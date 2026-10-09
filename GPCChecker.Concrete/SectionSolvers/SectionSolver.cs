@@ -652,6 +652,25 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return CalculateDomainPointWithFallback(force, failureAnalysisTypeOverride);
         }
 
+        /// <summary>Validated boundary path. Keeps the historical raw API unchanged; finite but unconverged candidates trigger the existing fallbacks.</summary>
+        internal FailureDomain.FailureDomainPoint CalculateConvergedDomainPoint(ResultBeamForces force, FailureAnalysisTypes criterion,
+            System.Threading.CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var first = CalculateDomainPoint(force, criterion);
+            Func<FailureDomain.FailureDomainPoint, bool> accepted = point => point?.StrainPlane != null
+                && DomainPointConvergence.Evaluate(this, force, point, criterion).Accepted;
+            if (accepted(first)) return first;
+            foreach (var strategy in new IDomainPointStrategy[] { new DomainPointStrategyBisection(this), new DomainPointStrategyIntersection(this) })
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var point = ToForceReferenceAxes(strategy.CalculateDomainPoint(force, criterion));
+                cancellationToken.ThrowIfCancellationRequested();
+                if (accepted(point)) { _log.Add("Returned-point validation selected " + strategy.GetType().Name); return point; }
+            }
+            return first;
+        }
+
         public FailureDomain.FailureDomainPoint[] CalculateDomainPoint(ResultBeamForces[] force)
         {
             FailureDomain.FailureDomainPoint[] result = new FailureDomain.FailureDomainPoint[force.Length];
@@ -787,6 +806,27 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         break;
                 }
             }
+        }
+
+        /// <summary>
+        /// The axial force of the failure domain for the uniform strain of pure compression (N, negative): the strain of
+        /// <see cref="GetYieldingStrainPureCompression"/> on the whole section, integrated as the points of the domain (reduction factor and
+        /// compression limit of the standard included). See <see cref="DomainPointAxialTolerance.CentredCompressionResistance(SectionSolver)"/>
+        /// </summary>
+        /// <returns>The axial force; 0 if the integration fails</returns>
+        internal double CalculatePureCompressionAxialForce() =>
+            CalculateForceResultantForDomain(new StrainPlane(0, 0, _integrationReferencePoint, GetYieldingStrainPureCompression())).N;
+
+        /// <summary>
+        /// The tolerance on N of the stopping test of the search of a point of the domain (N, positive): <see cref="FailureAnalysisDistanceTolerance"/>
+        /// divided by the adimensional axial force of 1 N (<see cref="ConvertToAdimensionalForces"/>), that is the distance tolerance times b h fck.
+        /// Not a bound of the returned point: see <see cref="DomainPointAxialTolerance.ConvergenceTolerance(SectionSolver)"/>
+        /// </summary>
+        /// <returns>The tolerance; 0 if the scale is not finite or not positive</returns>
+        internal double CalculateAxialConvergenceTolerance()
+        {
+            double tolerance = _failureAnalysisDistanceTolerance / ConvertToAdimensionalForces(new ForceTuple(1.0, 0, 0)).N;
+            return double.IsNaN(tolerance) || double.IsInfinity(tolerance) || tolerance < 0 ? 0 : tolerance;
         }
 
         #endregion

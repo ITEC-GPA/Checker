@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../GPCChecker.Geotechnics/GPCChecker.Geotechnics.csproj" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.6.4" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.6.4" />
+    <Reference Include="GPCModel"><HintPath>../../Model/Model/bin/Release/netstandard2.0/GPCModel.dll</HintPath></Reference>
+    <!-- Catalogues of the sections (CHS of the micropiles) used by the examples. -->
+    <Reference Include="GPCModelData"><HintPath>../../Model/ModelData/bin/Release/netstandard2.0/GPCModelData.dll</HintPath></Reference>
+    <Reference Include="GPCGeometry"><HintPath>../../Geometry/GPCGeometry/bin/Release/netstandard2.0/GPCGeometry.dll</HintPath></Reference>
+    <Reference Include="GPCUtilities"><HintPath>../../Utilities/GPCUtilities/bin/Release/netstandard2.0/GPCUtilities.dll</HintPath></Reference>
+  </ItemGroup>
+  <!-- Legacy outputs of ANTHEA (harness supporto/test/CheckerMigration.Capture), reproduced by the migration tests. -->
+  <ItemGroup>
+    <None Update="Fixtures\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

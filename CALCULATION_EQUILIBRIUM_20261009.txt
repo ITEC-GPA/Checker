@@ -1,0 +1,40 @@
+FASE 1 - EQUILIBRIO DELLA RISPOSTA RESISTENTE (9 ottobre 2026)
+Concrete 0.0.20.0: LegacySectionCalculation applica DomainPointAxialTolerance
+ai criteri ConstantN, ConstantNMx e ConstantNMy. Gli altri criteri non
+impongono N costante. Non cambiano ricerca, formule e punti del dominio.
+AxialEquilibriumEvidence conserva N richiesto/ottenuto, residuo e tolleranza.
+Un punto rifiutato restituisce NotConverged senza capacita' utilizzabile.
+Le vecchie firme pubbliche restano disponibili.
+Validazione: 26 test Calculation superati, inclusi i 2016 stati SLE storici,
+limite inclusivo, compressione/trazione oltre dominio, tutti i criteri,
+stress block e parabola-rettangolo su sezioni 300x500 e 2000x2000.
+Le tolleranze dei quattro casi geometrici sono confrontate con forme chiuse.
+
+Estensione richiesta: tutti i cinque criteri (Concrete 0.0.21.0)
+DomainPointConvergence controlla il punto restituito nella base del solver:
+- ConstantN: N e angolo della coppia M1/M2;
+- ConstantEccentricity: angolo del vettore M1/1e6,M2/1e6,N/1000;
+- ConstantMxMy: entrambi i momenti e verso di N;
+- ConstantNMx: N, M1 e verso di M2;
+- ConstantNMy: N, M2 e verso di M1.
+N conserva DomainPointAxialTolerance. Momenti: tolleranza adimensionale nativa
+0.25e-4 convertita mediante le scale effettive del solver. Angoli: tolleranza
+nativa 0.25e-3 rad. Nessun ampliamento automatico per i fallback; un punto finito
+fuori soglia resta non convergente. Direzione di ricerca nulla: non valutabile.
+Le formule resistenti e i punti nativi non vengono modificati. Questi controlli
+sono accettazione numerica; non sono una prova indipendente delle resistenze.
+48 test Calculation superati: casi fisici esistenti piu' prove dedicate dei cinque
+modi, componenti vincolate, ramo opposto, soglie, assi ruotati e direzione nulla.
+
+Correzione di integrazione - Concrete 0.0.22.0
+La sola validazione aveva rifiutato punti legacy finiti fuori soglia angolare.
+Il nuovo percorso del boundary prova i fallback esistenti (bisezione/intersezione)
+anche quando il candidato e' finito ma non accettabile. Nessuna tolleranza ampliata;
+le API storiche che restituiscono i punti grezzi rimangono invariate.
+N=M1=M2=0 senza predeformazione delle barre ha un contratto ZeroDemand separato:
+utilizzo 0 senza capacita', piano o convergenza inventati; V/T non sono verificati.
+Con predeformazione non e' ammessa questa semplificazione.
+Esito finale: 50 test Calculation e 128 test ModelChecker superati. Due confronti
+ModelChecker con il punto grezzo sono aggiornati al boundary validato; nel caso
+caratterizzante si verifica esplicitamente che il punto grezzo viola la soglia e
+quello accettato la rispetta. Nessuna fixture numerica storica rigenerata.

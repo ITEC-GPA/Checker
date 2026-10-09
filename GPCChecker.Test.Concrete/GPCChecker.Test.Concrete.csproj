@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\MSTest.TestAdapter.3.1.1\build\net462\MSTest.TestAdapter.props" Condition="Exists('..\packages\MSTest.TestAdapter.3.1.1\build\net462\MSTest.TestAdapter.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
@@ -60,6 +60,7 @@
     <Reference Include="GPCGeometry">
       <HintPath>..\..\Geometry\GPCGeometry\bin\Release\netstandard2.0\GPCGeometry.dll</HintPath>
     </Reference>
+    <Reference Include="GPC.Model.Persistence"><HintPath>../../Model/GPC.Model.Persistence/bin/Release/netstandard2.0/GPC.Model.Persistence.dll</HintPath></Reference>
     <Reference Include="GPCModel">
       <HintPath>..\..\Model\Model\bin\Release\netstandard2.0\GPCModel.dll</HintPath>
     </Reference>
@@ -91,6 +92,8 @@
   <ItemGroup>
     <Compile Include="ConcreteTestBase.cs" />
     <Compile Include="ConcreteControlTests.cs" />
+    <Compile Include="DomainPointContractTests.cs" />
+    <Compile Include="DomainPointAxialToleranceTests.cs" />
     <Compile Include="BridgeElasticStagesTests.cs" />
     <Compile Include="BridgeLinearSolverAuditTests.cs" />
     <Compile Include="FailureDomainCheckFRCTest.cs" />
@@ -101,9 +104,20 @@
     <Compile Include="FailureDomainRCTest.cs" />
     <Compile Include="GeneralTest.cs" />
     <Compile Include="MixedSectionTest.cs" />
+    <Compile Include="ModelCheckerContractTests.cs" />
     <Compile Include="PerformanceTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SectionIntegrationTest.cs" />
+    <Compile Include="ServiceabilityMigrationTests.cs" />
+    <Compile Include="ShearMigrationTests.cs" />
+    <Compile Include="TorsionMigrationTests.cs" />
+    <Compile Include="CrackMigrationTests.cs" />
+    <Compile Include="DetailingMigrationTests.cs" />
+    <Compile Include="DetailingContractTests.cs" />
+    <Compile Include="DurabilityMigrationTests.cs" />
+    <Compile Include="DurabilityEdgeCaseTests.cs" />
+    <Compile Include="DurabilityExamplesTests.cs" />
+    <Compile Include="DurabilityContractTests.cs" />
     <Compile Include="StressAnalysisPSCTest.cs" />
     <Compile Include="StressAnalysisRCTest.cs" />
     <Compile Include="ValidationTestFailureDomain.cs" />
@@ -114,6 +128,69 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+    <None Include="Fixtures\shear-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\domain-point-contract.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\stress-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\stress-sections.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\torsion-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\torsion-geometry-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\crack-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\crack-scalar-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\crack-sections.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\anchorage-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\detailing-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\curvature-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\detailing-contract-0.0.17.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\curvature-contract-0.0.17.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\detailing-plate-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\detailing-plate-sections.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\bond-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\durability-legacy.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\durability-contract.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\detailing-sections.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fixtures\model-checker-contract.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GPCChecker.Concrete\GPCChecker.Concrete.csproj">

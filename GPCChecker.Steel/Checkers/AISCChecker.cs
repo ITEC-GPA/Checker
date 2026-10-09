@@ -1,13 +1,14 @@
-﻿using GPC.Checkers.Steel.Results;
+using GPC.Checkers.Steel.Results;
 using GPC.Model.ElementProperties;
 using GPC.Model.Elements;
-using GPC.Model.Results.ElementResults;
+using GPC.Model.Results.Storage;
 using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using GPC.Model.Results.Locations;
 
 namespace GPC.Checkers.Steel.Checkers
 {
@@ -83,7 +84,7 @@ namespace GPC.Checkers.Steel.Checkers
             {
                 for (int j = 0; j < beamResult[k].Results.Count; j++)
                 {
-                    GPC.Model.Results.ResultLocations.ResultLocation result = beamResult[k].Results[j];
+                    ResultLocation result = beamResult[k].Results[j];
                 }
             }
 

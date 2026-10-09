@@ -1,0 +1,13 @@
+# ConcreteTorsionCalculator.Geometry legacy outputs; ANTHEA commit d2d3225c0c17a6bea5caf91e08644a6668292ae6; ANTHEA.Calculations.dll SHA-256 A7A90E6EE5B74729FABB293EADF33A12EEA63C524699687944322BD21800305D
+# Lengths mm, areas mm2. axis = cover + stirrup diameter + largest bar diameter / 2.
+id;name;shape;width;height;areaCls;axis;hollow;innerWidth;innerHeight;innerDiameter;outcome;A;P;t;message
+0;R300x500;Rettangolare;300;500;150000;48;False;;;;ok;82416;1216;96;
+1;R600x800;Rettangolare;600;800;480000;92;False;;;;ok;256256;2064;184;
+2;R200x200;Rettangolare;200;200;40000;46;False;;;;ok;11664;432;92;
+3;R160x160;Rettangolare;160;160;25600;54;False;;;;ok;2704;208;108;
+4;C1000;Circolare;1000;1000;785398.1633974483;92;False;;;;ok;441786.46691106464;2356.194490192345;250;
+5;C400;Circolare;400;400;125663.70614359173;56;False;;;;ok;65144.06526483795;904.7786842338604;112;
+6;R600x800H;Rettangolare;600;800;360000;92;True;300;400;;error:ArgumentException;;;;Torsione: spessore resistente insufficiente per contenere le armature periferiche.
+7;R1200x1000H;Rettangolare;1200;1000;850000;60;True;700;500;;ok;712500;3400;250;
+8;C1000H;Circolare;1000;1000;589048.6225480862;92;True;;;500;ok;441786.46691106464;2356.194490192345;250;
+9;T1200x800;A T;1200;800;520000;92;False;;;;error:ArgumentException;;;;Torsione: profilo periferico automatico per rettangolare o circolare.

@@ -1,0 +1,432 @@
+MIGRAZIONE DELLE LIBRERIE DI CALCOLO DI ANTHEA IN CHECKER — REGISTRO E MATRICE
+Avviata il 1 ottobre 2026 su richiesta dell'utente ("continua lo spostamento"), secondo
+Model/PROMPT_MIGRAZIONE_ANTHEA_CHECKER.txt. Per le famiglie del c.a. il registro di dettaglio
+è Model/CHECKER_PASSO_4.txt.
+
+Partenza:
+- ANTHEA main fe4652c (lib/Checker del 1/10/2026: Model 1.5.0.0, ModelData 0.0.2.0,
+  Checker.Concrete 0.0.13.1, CompositeBridge 1.4.0.1);
+- Checker develop 63a3d05b, Model master 435ca8bf.
+
+======================================================================================
+M0 — INVENTARIO DI ANTHEA/X.Calculations
+======================================================================================
+
+99 file .cs, circa 9000 righe. Le righe sono contate sul sorgente; i namespace sono
+Anthea.Calculations, Anthea.Calculations.Geotechnics e Materiali.
+
+Famiglia                        File   Righe  Natura                          Destinazione proposta
+------------------------------  ----  ------  ------------------------------  ---------------------------------------
+C   Sezione c.a. (A01-A08)        30    2795  nuclei + adattatori del foglio  GPCChecker.Concrete (PASSO 4)
+D   Progetto armature (A09)        4     652  ricerca/ottimizzazione          resta in ANTHEA, userà le API
+M   Materiali e durabilità         9     408  regole per norma + cataloghi    regole in Concrete, dati in ModelData (M1)
+P   Ponte: adattatori              12     556  JSON -> HBridgeInput, report    restano in ANTHEA (motore già migrato)
+Q   Ponte: BridgeConcept           10    1256  predimensionamento, costi, CO2  resta in ANTHEA (non è verifica)
+G   Geotecnica generale             7     462  nuclei tipizzati, kN-m-kPa      progetto geotecnico (M1)
+F   Pali e micropali                6     665  nuclei misti a JsonObject       progetto geotecnico (M1)
+W   Muri di sostegno               12    1502  geotecnica + c.a. + JSON        geotecnica (M1) + Concrete per il c.a.
+A   Applicazione e fogli            8     642  orchestrazione, JSON, catalogo  restano in ANTHEA
+
+Dettaglio delle famiglie non c.a. (il c.a. è in CHECKER_PASSO_1 A01-A10 e CHECKER_PASSO_4)
+
+G — Geotecnica generale (Geotechnics/*.cs): già priva di JsonObject. Unità SI ingegneristiche
+    (m, kN, kPa, gradi) per metro di sviluppo.
+  - BishopSolver: equilibrio di Bishop semplificato su conci assegnati; nessun coefficiente
+    di norma. Puro nucleo numerico.
+  - SlopeStability (+Models, SlopeGeometry): costruzione dei conci da stratigrafia, falda,
+    corpi e carichi; ricerca dei cerchi; casi di fattori parziali (SlopeFactors con nome
+    e valori, per esempio A2+M2 / R2).
+    Dipendenza da GPC.Geometry per il ritaglio dei poligoni.
+  - FoundationSettlement: cedimento edometrico 1D sotto striscia (tensioni di Boussinesq
+    per carico trapezio).
+  - NewmarkSliding: blocco rigido di Newmark con accelerogramma lineare a tratti.
+  - ShallowFoundationSeismic: EN 1998-5:2004 Annesso F (striscia su terreno asciutto
+    incoerente).
+  Test ANTHEA: GlobalStability.Checks, RetainingWall.Checks (parti di stabilità globale e
+  Newmark), smoke-global-stability.
+
+F — Pali e micropali:
+  - PaloOrizzontale (+Stratified, +Diagnostics): Broms (Viggiani, Fondazioni,
+    pp. 400-415), terreni coesivi/incoerenti, stratificato, falda, efficienza di gruppo.
+    Nucleo ed ingresso intrecciati con JsonObject del foglio.
+  - Micropali (BustamanteDoix, Chs, GeometriaMicropalo): Bustamante-Doix (Viggiani §13.1.6),
+    abachi digitalizzati, catalogo CHS. Pressione MPa, aderenza kPa. Dizionari statici
+    di sola lettura.
+  - MicropaloOrizzontale: proprietà e interazione N-M lineare cautelativa del tubolare.
+  - Nq: curve Nq (Berezantzev) trascritte da programma/nq.py; nessuna estrapolazione.
+  Test ANTHEA: suite --micropalo, --horizontal, --coesione, --gamma-sat, smoke e
+  smoke-horizontal.
+
+W — Muri di sostegno (RetainingWall.*.cs):
+  - Spinte Rankine/Coulomb, sismica Mononobe-Okabe e Wood.
+  - Approcci NTC 2018 / EN 1997-1: A1+M1+R3, A2+M2, Approccio 1/2.
+  - Equilibrio a scorrimento, ribaltamento e capacità portante.
+  - Stabilità globale (Bishop, §7.11.6.2.2).
+  - Muro a gravità; derivazione sismica (§3.2.2).
+  - Esercizio: curvature, spostamenti, Newmark.
+  - Armature del fusto e della fondazione; esportazione della sezione verso il modulo c.a.
+  Documento versionato JsonObject; nuclei non separati dall'adattatore.
+  Test ANTHEA: RetainingWall.Checks, MaxRetainingWall.Cases/Compare, smoke-retaining-wall.
+
+M — Materiali e durabilità:
+  - Durability: UNI EN 206-1:2006 prospetti 1 e F.1, EN 1992-1-1:2004 prospetto 4.4N.
+  - NtcCover: NTC 2018 / Circolare, copriferri.
+  - MaterialCover, MinimumConcrete (UNI 11104:2016 prospetto 5, come riportato in ATECAP 2020 p. 19, fonte secondaria).
+  - MixAutomation (a/c e cemento della UNI 11104:2016 prospetto 5, da ATECAP 2020): composizione della miscela, non
+    verifica.
+  - RebarMaterial: acciai, anche storici D.M. 9/1/1996.
+  - ConcreteMaterials, ConcreteMaterialCatalog: letti da ModelData.
+  - MaterialDiagram: solo presentazione.
+
+Dipendenze da rimuovere nel trasferimento:
+- JsonObject/JsonNode del foglio (ingressi e risultati): sostituire con input tipizzati.
+- Norme come stringhe (ConcreteStandards.Names, nomi in RequireOrdinary, StartsWith("DIN")):
+  sostituire con le classi tipizzate di GPC.Model.Standards, abbinate per tipo esatto. Una
+  classe derivata non abilita la politica della base: per esempio StandardCNR200 deriva da
+  StandardNTC2018Concrete ma non è NTC 2018.
+- Stato statico mutabile: Ntc2018Checks.SpacingCalculator; dizionari statici di
+  Micropali/Calcolo (verificare che restino di sola lettura).
+- SezioneCA/Barra: sostituire con ReinforcedConcreteSection, Rebar e materiali di Model.
+- Testi dei report e unità miste kN/kNm con mm/MPa: unità dichiarate nelle firme.
+- Costrutti .NET 8 (record, pattern, Math.Clamp, Math.Cbrt, double.IsFinite): adattare a
+  netstandard2.0 senza cambiare l'aritmetica.
+
+Sequenza proposta:
+1. c.a. secondo PASSO 4: 4A-4G.
+2. Materiali/durabilità (M), dopo l'accordo M1 sui dati.
+3. Geotecnica generale (G): già tipizzata, rischio basso.
+4. Pali e micropali (F).
+5. Muri (W), che usano G e il c.a.
+Ponte e BridgeConcept non si spostano.
+
+======================================================================================
+M1 — ORGANIZZAZIONE
+======================================================================================
+
+DECISIONI DELL'UTENTE (1 ottobre 2026), ATTUATE
+
+1. Progetto GPCChecker.Geotechnics (netstandard2.0) con test GPCChecker.Test.Geotechnics (net8.0), aggiunti alla
+   soluzione. README in GPCChecker.Geotechnics/README.md.
+2. Tipi del terreno in Model, come preferito dall'utente: GPC.Model.Geotechnics.Soil, SoilLayer e SoilProfile.
+   Valutazione: è coerente con materiali e norme, che stanno già in Model, e permette al modello FEM di usarli
+   (molle, pali); la libreria contiene solo i metodi.
+3. Norme: nuove classi in GPC.Model.Standards:
+   - StandardGeotechnical (insiemi A/M, γR per verifica e situazione, combinazioni, ξ dei pali);
+   - StandardNTC2018Geotechnics;
+   - StandardEN1997p1 (approccio ed esecuzione dei pali espliciti; EN 1998-5 non ancora definita).
+4. Unità N e mm ovunque, con conversione nell'interfaccia: pesi di volume N/mm³, tensioni MPa, angoli rad (come le
+   unità normalizzate "N,mm,rad" di Model). Valutazione: è la scelta giusta per i passaggi verso Model e Concrete
+   (muri, pali) e la precisione double basta (18 kN/m³ = 1,8·10⁻⁵ N/mm³). Il rischio è negli abachi e nelle formule
+   empiriche con costanti dimensionali (Bustamante-Doix in kPa e MPa, Nq, Broms). Lo coprono le costanti
+   SoilUnits, la conversione nei test di confronto con i casi legacy e i calcoli a mano.
+5. Norme americane (ACI, AASHTO): trascurate per ora, implementazione futura.
+
+PROPOSTA ORIGINARIA (per memoria)
+
+1. Collocazione della geotecnica (G, F, W)
+   a) [PROPOSTA] Nuovo progetto GPCChecker.Geotechnics (netstandard2.0, namespace
+      GPC.Checkers.Geotechnics) con test SDK net8.0 GPCChecker.Test.Geotechnics.
+      Contiene pendii, cedimenti, Newmark, capacità sismica delle fondazioni, pali,
+      micropali, spinte ed equilibrio dei muri. Le verifiche strutturali c.a. di muri e
+      pali restano in GPCChecker.Concrete e ricevono sezioni e azioni dalla geotecnica.
+      Motivo: la geotecnica non è un materiale e non usa i solver sezionali; un progetto
+      dedicato evita di caricare MathNet/DelaunayMesh dove non servono e separa le revisioni.
+   b) Geotecnica dentro GPCChecker.Concrete (namespace dedicato). Nessun nuovo progetto, ma
+      mescola ambiti e versioni (una modifica a un pendio cambia la versione del motore c.a.).
+   c) Lasciare la geotecnica in ANTHEA e spostare solo il c.a. Minimo sforzo, ma i nuclei
+      geotecnici non sarebbero riusabili da altri programmi.
+
+2. Dati del terreno
+   a) [PROPOSTA] Tipi del terreno e della stratigrafia (strato, falda, parametri efficaci e
+      non drenati, con provenienza) nella libreria geotecnica.
+      Model resta il modello strutturale: li ospiterà solo quando un'opera geotecnica
+      entrerà nel flusso Model -> ModelChecker.
+   b) Tipi del terreno subito in Model, per uso futuro con il FEM. Rischio di disegnare
+      contratti senza un utilizzatore reale.
+
+3. Normative geotecniche e sismiche
+   Oggi GPC.Model.Standards non ha classi per EN 1997-1, EN 1998-5 o NTC 2018 cap. 6-7.
+   a) [PROPOSTA] Profili tipizzati nella libreria geotecnica, da spostare in Model con la
+      riorganizzazione Standards/Options:
+      - GeotechnicalStandard con norma, edizione e annesso;
+      - insiemi di fattori parziali A/M/R e approcci/combinazioni NTC (A1+M1+R3, A2+M2+R2)
+        ed EN 1997-1 (DA1-C1/C2, DA2, DA3).
+      I valori del foglio restano override espliciti e tracciati; nessun ripiego.
+   b) Nuove classi subito in GPC.Model.Standards. Coerente con l'unica sorgente dei
+      coefficienti, ma anticipa la riorganizzazione che vuoi fare tu.
+
+4. Unità
+   a) [PROPOSTA] Geotecnica in kN, m, kPa, gradi (come il codice attuale e la pratica),
+      dichiarate nei commenti XML e nei nomi dei risultati. Conversione esplicita a N, mm
+      verso Concrete (sezioni del fusto, pali), con test della conversione.
+   b) N, mm ovunque, coerente con Model ma innaturale per pendii e spinte; rischio di
+      errori nel trasferimento dei casi.
+
+5. Risultati
+   - Nuclei geotecnici: risultati tipizzati della libreria, come HBridgeAnalysisResult del
+     ponte: fattore di sicurezza, superficie critica, conci, iterazioni, convergenza,
+     avvertenze.
+   - CheckResult/CheckDetails del PostProcessing di Model solo per le verifiche che entrano
+     in ModelChecker; per le opere geotecniche il contratto si propone al passo M5.
+
+6. Interfaccia verso ANTHEA
+   ANTHEA conserva fogli, conversione JSON -> input tipizzati, mappatura dei nomi delle
+   norme, presentazione e report. Riceve GPCChecker.Geotechnics.dll in lib/Checker con
+   manifest e procedura del README. Il motore legacy resta finché l'equivalenza non è provata.
+
+Esempio di flusso (pendio, proposta 1a-2a-3a-4a):
+  var section = new SlopeSection(surface, soils, water, bodies, loads);           // kN, m, kPa
+  var profile = GeotechnicalProfiles.Ntc2018.Combination("A2+M2+R2");             // tipizzato
+  var result = SlopeStabilityAnalysis.Calculate(section, search, profile, token);
+  // result: casi con fattore, cerchio critico, conci, convergenza, avvertenze, norma
+  // ANTHEA: RetainingWall.GlobalStability converte il foglio in SlopeSection e presenta result.
+
+======================================================================================
+M2 — RIFERIMENTI CONGELATI
+======================================================================================
+
+- 1/10/2026, ANTHEA fe4652c: build Release ed esecuzione di tutte le suite X.Verifiche,
+  dei 7 progetti *.Checks e delle 20 prove WPF. Script scratchpad run-anthea2.ps1; uscite
+  e hash nelle evidenze.
+- Esiti non nulli già presenti con lo snapshot precedente:
+  - --project-calculations: default di geo_muri_sostegno diversi tra progetto e foglio.
+    Difetto legacy da classificare con il modulo muri.
+  - 6 prove WPF: smoke, smoke-bridge, smoke-ca-extensions, smoke-global-stability,
+    smoke-project-workspace, smoke-retaining-wall. Da classificare: interfaccia, non
+    nuclei di calcolo.
+  - --audit-benchmark e BridgeDesign.IndependentChecks: difetto dell'harness (argomenti),
+    superati con gli argomenti corretti.
+- Casi del c.a.: vedi CHECKER_PASSO_4 (4A). Taglio: 2016 casi (harness
+  supporto/test/CheckerMigration.Capture, commit fe4652c), 1840 con esito e 176 rifiuti.
+
+======================================================================================
+REGISTRO
+======================================================================================
+
+2026-10-01  Avvio M0 e M1. BridgeAudit: baseline aggiornate con le chiavi predalle,
+            h_predalle e rif_ferri_inf (63a3d05b, valori identici).
+2026-10-01  c.a. (PASSO 4, dettaglio in Model/CHECKER_PASSO_4.txt):
+            - 4A: specifiche tipizzate nel piano (direzione, criterio, categoria di combinazione);
+            - 4B: limiti tensionali SLE in GPCChecker.Concrete/Serviceability;
+            - 4C: taglio trasferito in GPCChecker.Concrete/Shear (7 profili per tipo esatto) e collegato in
+              ModelChecker con i dati espliciti della sezione (ReinforcedConcreteSection.ShearData).
+            M2 del taglio: harness ANTHEA supporto/test/CheckerMigration.Capture, 2016 casi congelati in
+            GPCChecker.Test.Concrete/Fixtures/shear-legacy.csv, tutti riprodotti.
+            Versioni: Concrete 0.0.14.0, Steel 1.1.0.5, CompositeBridge 1.4.0.2, Model 1.6.0.0.
+            ANTHEA/lib/Checker non aggiornato.
+2026-10-01  4A completata: tutte le norme non americane per pressoflessione, tensioni SLE e taglio
+            (CNR-DT 204, CNR-DT 200, CS-TR34 non applicabile); 2016 stati SLE legacy congelati e riprodotti.
+            M1 attuata: GPCChecker.Geotechnics 0.1.0.0, terreni e norme geotecniche in Model (1.6.0.0, non
+            ancora distribuito).
+2026-10-01  4D: torsione con interazione del taglio trasferita in GPCChecker.Concrete/Torsion
+            (ConcreteTorsionCalculator di ANTHEA, 986 casi NTC e 10 contorni congelati e riprodotti).
+            - Tutte le norme non americane con lo stesso traliccio e le regole di bielle e interazione di
+              ciascuna; CS-TR34 non applicabile, CNR-DT 204 non supportata.
+            - Dati in Model: ReinforcedConcreteSection.TorsionData.
+            - Attività Torsion in ModelChecker con il cot θ comune (ShearCotTheta).
+            - Saltata su indicazione dell'utente perché troppo complessa: la regola DK NA 6.3.2(6) per V, T, N, M
+              combinati (nota nel registro di PASSO 4 e avviso in ogni risultato DS).
+            - L'utente chiede di seguire l'ordine previsto (sequenza proposta sopra): c.a. 4E-4G, materiali M,
+              geotecnica G, pali F, muri W. Pali e muri non vengono anticipati.
+2026-10-01  4E: fessurazione trasferita in GPCChecker.Concrete/Cracking.
+            - Catena completa di ANTHEA: requisiti, wk per norma, hc,eff, regioni efficaci, interassi, sezioni
+              interamente tese, superfici interne delle sezioni cave.
+            - SpacingCalculator globale sostituito da un metodo della geometria.
+            - Casi congelati e riprodotti: 936 stati SLE, 1400 aperture, 1596 requisiti.
+            - Collegata in ModelChecker come Serviceability/CrackWidth con i dati
+              ReinforcedConcreteSection.CrackData.
+            - Saltati con nota: fessurazione FRC (CNR-DT 204) e c.a.p.
+2026-10-01  4F: aderenza, ancoraggi e sovrapposizioni, dettagli 1D di travi e pilastri, M-curvatura trasferiti in
+            GPCChecker.Concrete/Detailing e /Response.
+            - Norme: NTC e CNR-DT 200 da ANTHEA; EN raccomandati; UNI e DS dagli annessi estratti.
+            - Non supportati, con il motivo: DIN, NS, MC2010.
+            - Dettagli collegati in ModelChecker come attività d'asta (IPhysicalMemberVerifier) con
+              ReinforcedConcreteSection.DetailingData.
+            - Ancoraggi e M-curvatura disponibili come API.
+            - Casi congelati e riprodotti: 450 ancoraggi, 144 dettagli, 5 curve.
+2026-10-01  4G: riscontro delle fonti, casi di copertura ed esempi del c.a.; PASSO 4 chiuso (bilancio in
+            Model/CHECKER_PASSO_4.txt).
+2026-10-01  M: materiali e durabilità trasferiti in GPCChecker.Concrete/Durability.
+            - Classi di esposizione con EN 206 F.1, gruppi NTC, UNI 11104 e classi indicative dell'Appendice E
+              (EN, DM 31/07/2012, DK NA E.1(2)).
+            - Copriferri: NTC 2018 / Circolare e CNR-DT 200, EN 1992-1-1 e UNI (4.3N, 4.4N), DS (DK NA Tabel 4.4N NA,
+              senza classi strutturali, solo 50 anni). DIN, NS, MC2010, CNR-DT 204: non supportati.
+            - Dati in Model: ReinforcedConcreteSection.DurabilityData. In ModelChecker la verifica dei dettagli d'asta
+              ricava cmin,dur, le maggiorazioni e il controllo della classe minima di resistenza.
+            - ModelData: superficie e A5 degli acciai storici D.M. 1996 (SteelMaterialDM1996Data.HistoricRebars),
+              solo documentazione; εu dei materiali invariato. Es resta 206000 MPa (il foglio ANTHEA usava 200000).
+            - Casi congelati e riprodotti (harness CheckerMigration.Capture, DurabilityCapture): 588 copriferri EC2,
+              1932 NTC, 505 rifiuti, 23 requisiti UNI 11104.
+            - Fonti: EN 206-1 F.1, EN 1992-1-1 4.4N ed E.1N, NTC Tab. 4.1.III, Circolare Tab. C4.1.IV, DK NA
+              verificati sul testo; UNI 11104:2016 prospetto 5 solo da fonte secondaria (ATECAP 2020 p. 19, valori di
+              ANTHEA; XC3, XD1, XF4 e XA1 C30/37 come nella 2025, C28/35 attribuito alla 2004). UNI 11104:2025
+              prospetto 6 (in vigore dal 24/07/2025) da un estratto del 28/07/2025, da riscontrare sul testo: XF1
+              C30/37, a/c 0,55 per XF1, cementi minimi più bassi; restano i valori della 2016. Prospetto E.1N del DM
+              letto per corrispondenza delle celle unite.
+            - Restano in ANTHEA: presentazione della composizione della miscela (MixAutomation; i limiti a/c, cemento
+              e aria sono ExposureClasses.Uni11104Mix e Uni11104Air), cataloghi e diagrammi di presentazione.
+2026-10-02  G: geotecnica generale trasferita in GPCChecker.Geotechnics (Slopes, Foundations, Seismic), unità di Model.
+            - Bishop, geometria e ricerca dei pendii con i terreni di Model; SlopeFactors.FromCombination dalle norme
+              geotecniche di Model.
+            - Cedimento edometrico sotto striscia; Newmark; EN 1998-5 Annesso F.
+            - Casi congelati (harness dadea50) e riprodotti: Bishop 414, geometria 72, conci di 6 cerchi, 15 ricerche,
+              121 tensioni, 36 cedimenti, 50 Newmark, 3900 portanze sismiche.
+            - Differenze intenzionali:
+              - tolleranza di 1e-9 mm sul filtro di profondità (il legacy scarta per arrotondamento parte dei cerchi ai
+                limiti: 9 su 24 in S2/Q2N, per cui la ricerca S2 esplora un altro insieme e trova minimi uguali o
+                inferiori);
+              - velocità nulla all'arresto del blocco di Newmark;
+              - controlli aggiunti su corpi, carichi, γw e fattori dei carichi;
+              - RefinedFactor separa la non convergenza dal controllo senza soluzione (stesso stato del legacy).
+            - Fonti NTC 2018 verificate sul testo: Tab. 6.2.I, 6.2.II, 6.8.I (R2: γR 1,1), §7.11.4 (fattori 1, γR 1,2,
+              βs 0,38/0,47, kv = ±kh/2), Tab. 7.11.II e 7.11.III. Il coefficiente su qu (1,6) di Model viene dalla
+              NTC 2008: nella Tab. 6.2.II del 2018 non c'è più.
+            - Da riscontrare (testo non disponibile): EN 1998-5 Annesso F (coefficienti dei terreni incoerenti e γRd
+              applicato anche a F̄ come nel legacy).
+            - Nessuna attività in ModelChecker: il contratto per le opere geotecniche resta per M5.
+2026-10-02  DECISIONE DELL'UTENTE: "Calcolo.cs rimane in ANTHEA come previsto però il calcolo di qualsiasi cosa verrà
+            spostato dentro le librerie e tolto da ANTHEA; dentro ANTHEA non ci dovrà più essere nessun calcolo, se non il
+            minimo". I file di ANTHEA restano adattatori (JSON -> input tipizzati -> librerie -> presentazione). Il motore di
+            Calcolo.cs (portanza verticale) entra quindi nella fase F. Il passaggio di ANTHEA alle librerie, con la
+            rimozione dei nuclei legacy, segue la prova di equivalenza di ogni famiglia.
+2026-10-02  F: pali e micropali trasferiti in GPCChecker.Geotechnics/Piles, con soli tipi di Model:
+            - terreni Soil e SoilProfile; tubolari SectionCHS (cataloghi EN 10210-2/10219-2 di ModelData); acciaio
+              SteelMaterial con γM0 di StandardEN1993p11; coefficienti dalle norme geotecniche di Model;
+            - nuclei: Nq (NQ-2026-09-09); Bustamante-Doix; tubolare CHS (peso, classe, momento resistente); Broms con
+              estensione stratificata e diagnostica; verifica trasversale con ξ, γR ed efficienza; portanza verticale di
+              pali e micropali (motore di Calcolo).
+            Casi congelati (harness 2663c96) e riprodotti:
+            - Nq: 805 casi e 566 valori delle curve;
+            - Bustamante-Doix: 1766 righe;
+            - CHS: 388 pesi e 121 sezioni;
+            - pali orizzontali: 126 calcoli e 12 rifiuti;
+            - pali e micropali verticali: 37 calcoli e 10 rifiuti.
+            Gli input non esprimibili con i tipi sono esclusi con il motivo nei test.
+            Riscontro fonti:
+            - Viggiani Tab. 13.12, 13.13 ed eq. 13.21 verificate sulle pagine scansionate; abachi 13.16-13.19
+              sovrapposti alla scansione (R al limite inferiore);
+            - NTC Tab. 6.4.II, 6.4.IV, 6.4.VI verificate;
+            - curve Nq dalle figure dell'utente (equazioni, non tabelle);
+            - da riscontrare: tabella K-μ e legge α(cu) di ANTHEA.
+            Model:
+            - StandardNTC2018Geotechnics.PileExecution: coefficienti della Tab. 6.4.II per pali infissi (γb 1,15),
+              trivellati (1,35) ed elica continua (1,30), con trivellati come predefinito. ANTHEA usava 1,35 per ogni palo:
+              a favore di sicurezza per infissi ed elica.
+            Catalogo dei tubolari:
+            - dei 64 profili del catalogo ANTHEA, 49 sono nei cataloghi di ModelData;
+            - 15 no (spessori 3,6, 14,2 e 17,5 e altri; fonte dichiarata in ANTHEA: Tata Steel Celsius). Si usano con
+              SectionCHS(D, t).
+            - Il peso dell'acciaio usa 7850 kg/m³ esplicito: la densità dei materiali di Model ha unità non definita
+              (predefinito 0,00785).
+2026-10-02  F, integrazioni chieste dall'utente:
+            - φ ridotto per Nq (opzione NqFrictionAngle, predefinito φ dello strato come ANTHEA): Kishida (1967) da
+              Viggiani, Fondazioni, §13.1.2 p. 376, verificato sulla scansione: battuti φ' = (φ'1 + 40°)/2, trivellati
+              φ' = φ'1 − 3° (elica continua tra i trivellati, Viggiani §12.3.4). Solo la punta; il fusto resta con φ'1.
+              AxialPile.BaseFrictionAngle, avviso se la regola non è quella della tecnologia. Le curve dei pali medi
+              coincidono con la fig. 13.6 di Viggiani (Berezantzev et al., 1961).
+            - Tubolari: nuovo catalogo ModelData EN10210_CircularHollowCelsius (Tata Steel, foglio delle proprietà
+              Celsius CHS del 01/07/2020 e brochure Celsius, 175 profili: 89 anche nelle tabelle della norma, 86 del
+              produttore, di cui 7 della sola brochure con proprietà calcolate). Tutti i 64 tubi di ANTHEA sono in
+              ModelData: 48 in EN10210_CircularHollow, 16 nel Celsius (i 15 mancanti e 76.1 x 6.3, prima solo a freddo).
+            - Densità uniformata in Model: t/mm³ (massa delle unità di Model su mm³), costanti SteelDensity 7,85e-9,
+              ConcreteDensity 2,5e-9, AluminiumDensity 2,7e-9, Material.GetUnitWeight(g); SoilUnits.Gravity 9810 mm/s².
+              Materiale versione 5: i file precedenti con densità > 1e-6 (i vecchi predefiniti in g/mm³) sono convertiti.
+              Corretti i costruttori da tabelle di acciaio, alluminio e FRP che scambiavano densità e dilatazione
+              termica, e quello di AluminiumMaterialEN1999 che scambiava Poisson e spessore massimo.
+            - MicropileTube.Weight e Micropile prendono il materiale del tubo: peso = ρ · 9810 · A, uguale al legacy
+              (7850 · 9,81) per gli acciai di Model; tutte le fixture restano riprodotte.
+            - Bustamante-Doix resta in Checker (tabelle e abachi come dati del metodo, terreni di Model); i tubi
+              commerciali sono quelli di EN 10210/10219 (Fondazione Promozione Acciaio, Micropali 2020: dalle NTC 2008
+              non più i tubi petroliferi UNI EN ISO 11960), ora completi in ModelData.
+2026-10-02  W1: muri di sostegno, nucleo geotecnico trasferito in GPCChecker.Geotechnics/Walls (+ Seismic/NtcSiteAmplification).
+            - Spinte (Rankine, Coulomb, Mononobe-Okabe, Wood), interfacce, colonna di valle e passiva limitata, acqua,
+              equilibrio, contatto, scorrimento, ribaltamento, portanza Annesso D e sismica Annesso F, sollecitazioni di
+              fusto e mensole, verifiche geotecniche, generatore delle combinazioni NTC, sisma dal sito.
+            - Dati di Model: Soil e SoilProfile (due colonne), terreno di posa; acqua come dato del muro.
+            - Casi congelati (harness cbed972, WallCapture) e riprodotti: 798 valori delle leggi, 2380 righe di combinazioni,
+              88 muri (149.922 sezioni, 8332 verifiche), 14 rifiuti. Fuori da W1: 8 documenti rifiutati per regole strutturali
+              o d'interfaccia (esposizione, armature, tipologie future, estensioni, versione, firma della matrice, lunghezza
+              efficace della gravità, H > 15 m che è un limite di interfaccia).
+            - Differenze intenzionali: quote in mm con tagli coincidenti unificati entro 1e-6 mm; ai carichi concentrati
+              l'inclusione non dipende più dall'arrotondamento in metri (36 tagli); difetto legacy: 35 momenti NaN del fusto
+              (colonna di valle con falda), finiti nel port; i documenti versione 1 sono letti come versione 2 (azioni
+              correlate del gruppo legacy, come Upgrade di ANTHEA).
+            - Fonti NTC 2018 verificate sul testo: Tab. 6.5.I, §7.11.6.2.1 (βm, kv, amax, ribaltamento), Tab. 7.11.III,
+              Tab. 3.2.IV, 3.2.V. Nota: la NTC sconsiglia in generale la passiva a valle nello scorrimento (opzione spenta per
+              difetto).
+            - Restano per W2-W4: verifiche strutturali (gravità, c.a. con Concrete), esercizio (cedimenti, spostamenti,
+              Newmark), stabilità globale del muro, dettagli delle armature. DesignReinforcement e SectionExport restano in
+              ANTHEA (progetto e interfaccia).
+2026-10-02  Riscontro delle fonti rimaste aperte in G e F:
+            - Viggiani, Fondazioni, Tab. 13.2 (K e μ per tipo di palo) e 13.3 (α(cu)): uguali ad ANTHEA, salvo 1 − 0,011 (cu − 25)
+              dei pali battuti, che ANTHEA scrive 0,0111 (continuo a 70 kPa, ≤ 0,9% a favore di sicurezza): mantenuto.
+            - EN 1998-5:2004 Annesso F (copia pubblica del testo, SHA256 1E6A080A…F2B8): (F.1)-(F.8) e Tab. F.1 coincidono; la
+              (F.7) non ha γRd in F̄, che ANTHEA moltiplicava per γRd. Correzione esplicita: per difetto la libreria segue la
+              norma, l'opzione modelFactorOnInertia (ShallowFoundationSeismic, WallSeismicBearing) riproduce ANTHEA; le fixture
+              G e W la usano. Effetto, esempio 4 dei muri: η della portanza sismica 0,760 (EN) invece di 0,791 (ANTHEA).
+              Tab. F.2 di γRd: 1,00 sabbia mediamente densa/densa, 1,15 sciolta asciutta, 1,50 sciolta satura, 1,00/1,15 argille.
+2026-10-02  W3: esercizio e stabilità globale dei muri (Walls/WallServiceability, Walls/WallGlobalStability), sui nuclei di G.
+            - Cedimenti e rotazione delle combinazioni SLE, spostamenti dalle curvature (fornite da W2; nei test quelle legacy),
+              Newmark; profilo globale proposto dal muro, combinazioni A2+M2+R2, eccezionali e SLV (βs 0,38), carichi del pendio,
+              verifiche.
+            - Riprodotti dalle fixture già congelate: 6 documenti di esercizio (18 casi, 12 accelerogrammi, 75 verifiche), 380
+              righe globali di 102 documenti, 3 analisi globali (8 combinazioni; 1 documento non confermato è un vincolo
+              d'interfaccia), la proposta del profilo di 4 documenti.
+            - Difetto legacy (anche di G): SlopeGeometry.Divisions poteva perdere l'ultimo concio dell'arco per arrotondamento
+              (L + (R − L)·n/n > R). Corretto con estremi esatti; 2 combinazioni non drenate dei muri lo mostravano (F 3,630 su 34
+              conci, ritrovato dal port togliendo l'ultimo; arco completo F più alto). Le fixture di G restano riprodotte.
+2026-10-02  M4 (G e W lato geotecnico): ANTHEA usa GPCChecker.Geotechnics per i muri di sostegno.
+            - lib/Checker di ANTHEA aggiornata (Model c07e99ac, Checker 79268a9e, nuova GPCChecker.Geotechnics.dll). Con le sole
+              DLL nuove e il codice ANTHEA precedente: regressione numerica, software, benchmark CA e cattura dei muri identici.
+            - ANTHEA X.Calculations/RetainingWall.Library.cs: adattatore del documento (m, kN/m, kPa, kN/m³, gradi) verso
+              WallInput (mm, N/mm, MPa, N/mm³, rad) e dei risultati verso i record di ANTHEA. Calculate, GenerateCombinations,
+              GenerateGlobalCombinations, CalculateGlobal, DeriveSeismic, esercizio e Newmark chiamano la libreria; Ka, SeismicKa,
+              ActiveHorizontal, InterfaceDelta, ContactLaw, Pressure, Integrate, ValleyBands, FrontSoilMass e IntegrateCurvature
+              sono deleghe nelle unità del documento. ANTHEA mantiene la lettura e la validazione del documento, le proposte del
+              profilo globale (riempimento delle tabelle), i testi delle relazioni e le verifiche strutturali (W2, W4).
+              Portanza sismica con γRd anche su F̄ (RetainingWall.ModelFactorOnSoilInertia = true), come prima.
+            - I nuclei X.Calculations/Geotechnics (BishopSolver, SlopeGeometry, SlopeStability, FoundationSettlement, NewmarkSliding,
+              ShallowFoundationSeismic) non sono più compilati; l'eliminazione dei file attende la conferma dell'utente.
+            - Equivalenza (cattura WallCapture rieseguita sull'adattatore e confrontata con quella congelata): leggi identiche
+              (un messaggio: quota del sito "fra 0 e l'altezza del rilievo"); forze, pressioni, contatti, resistenze e verifiche
+              geotecniche identiche entro 1e-10 relativo. Differenze, tutte già dichiarate per W1-W3: documenti versione 1 con 21
+              sezioni su mensole (prima solo la radice) e quindi più verifiche strutturali; 35 momenti NaN ora finiti (10 curve di
+              curvatura con un punto in più); stabilità globale non drenata con l'ultimo concio (documento 83); ricerca globale con
+              meno cerchi provati (931 → 784: in mm i nodi delle griglie di raffinamento coincidono esattamente e sono unificati)
+              e stesso cerchio critico. Le verifiche strutturali (solutore non lineare GPCChecker.Concrete) variano entro 1e-6
+              relativo per la sensibilità iterativa a sollecitazioni diverse di 1e-15: nessun esito cambiato.
+            - GenerateCombinations richiede ora un muro valido (costruisce WallInput): 3 documenti con dati errati (spessore in
+              testa maggiore del piede, altezza libera, γsat < γ) danno l'errore dei dati invece di una matrice.
+            - Test ANTHEA: RetainingWall.Checks 303 controlli (53 nuovi sull'adattatore: unità, conversioni esatte, nomi e unità
+              delle verifiche, versione 1, errori dei dati di esercizio e Newmark, sisma dal sito, stabilità globale),
+              GlobalStability.Checks 61; i controlli dei metodi chiamano direttamente la libreria in mm.
+2026-10-02  M4 (F): ANTHEA usa GPCChecker.Geotechnics per pali e micropali.
+            - Calcolo.cs (portanza assiale di pali e micropali), Nq.cs, Micropali.cs (Bustamante-Doix, CHS, inclinazione),
+              PaloOrizzontale*.cs e MicropaloOrizzontale.cs sono adattatori: lettura e controllo del foglio con i messaggi di
+              ANTHEA, AxialPileCapacity, BearingCapacityFactors, BustamanteDoix, MicropileTube e LateralPileCapacity per il calcolo,
+              risultati nel formato del foglio. ξ3, ξ4 e γR = 1,3 da StandardNTC2018Geotechnics di Model; K, μ e α(cu) dalla
+              libreria; tubi CHS dai cataloghi di ModelData; proprietà del CHS da SectionCHS di Model.
+            - Nuovo LateralPileCapacity.ModelName (modello delle verticali prima del calcolo, usato dall'anteprima dell'interfaccia),
+              con 2 test (stessi nomi della capacità; dati non validi).
+            - Equivalenza (cattura PilesCapture rieseguita sugli adattatori e confrontata con quella congelata): Nq, Bustamante-Doix,
+              pesi e sezioni CHS, pali verticali e orizzontali identici entro 1e-14 relativo, messaggi d'errore compresi. Differenze
+              solo di testo: riferimento "Pacini" (equilibrio implementato nella libreria) e avviso sui fattori ("γR" invece di
+              "γR = 1,3", "verifiche strutturali" invece di "NTC/EC2").
+            - Regola dei terreni di Model applicata ai fogli: γ > 0, γsat ≥ γ dove la falda lo usa, cu > 0 dove serve il calcolo non
+              drenato. I 6 casi di regressione "alfa_*_0" (cu = 0 sotto falda) ora sono errori attesi; nei controlli SaturatedWeight e
+              HorizontalStratified un γsat esplicito minore di γ sotto falda è rifiutato, non sostituito.
+            - Suite ANTHEA: regressione 464 casi (942.254 valori, scarto relativo massimo 2,6e-14), software, micropalo, orizzontale,
+              coesione, γsat, CalculationLibrary, RetainingWall, GlobalStability superate. "bridge" fallisce per modifiche non
+              committate di un'altra sessione su BridgeSection (sullo stato committato con le DLL nuove passa).
+2026-10-07  Fixture del c.a. ricatturate (decisione dell'utente del 7/10, refactoring di ANTHEA F2.1): i 13 file di
+            GPCChecker.Test.Concrete/Fixtures (CSV e archivi XML delle sezioni) vengono ora da ANTHEA
+            refactoring/integrazione-d7b-d2 d2d3225 (CheckerMigration.Capture, modalità tutte) invece che da fe4652c.
+            - Differenze rispetto alle fixture del 1/10, tutte con causa: 30 stati di fessurazione (22 con l'asse neutro nel
+              copriferro, wk = 0; 8 con le barre tese fuori da Ac,eff, limite superiore dell'eq. (7.14)), 318 tracce per
+              D7-b (un solo k2; nessun k2 nelle 67 sezioni interamente compresse), di cui una sola con numeri diversi (stato
+              796, wk 0,608 → 0,360 mm), 4 stati C1000H per la fascia interna dei fori (0.0.17.0); negli archivi versioni delle
+              sezioni (3 → 4) e dei materiali (4 → 5), densità in t/mm³, identificativi casuali. Taglio, SLE, torsione,
+              ancoraggi, dettagli, M-χ e durabilità identici.
+            - CrackMigrationTests senza i casi speciali per queste differenze e senza l'opzione legacy di k2 sulle righe
+              catturate (resta nei test dedicati). GPCChecker.Test.Concrete: 508 test superati.
+            - Fixture geotecniche (GPCChecker.Test.Geotechnics/Fixtures) invariate: si ricatturano a fine refactoring.

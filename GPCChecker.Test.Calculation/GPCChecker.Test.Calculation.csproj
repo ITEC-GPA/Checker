@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net8.0</TargetFramework><IsTestProject>true</IsTestProject><IsPackable>false</IsPackable></PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
+    <ProjectReference Include="../GPCChecker.Concrete/GPCChecker.Concrete.csproj" />
+    <Reference Include="GPC.Model.Persistence"><HintPath>../../Model/GPC.Model.Persistence/bin/Release/netstandard2.0/GPC.Model.Persistence.dll</HintPath></Reference>
+    <Reference Include="GPCModel"><HintPath>../../Model/Model/bin/Release/netstandard2.0/GPCModel.dll</HintPath></Reference>
+    <Reference Include="GPCGeometry"><HintPath>../../Geometry/GPCGeometry/bin/Release/netstandard2.0/GPCGeometry.dll</HintPath></Reference>
+    <Compile Include="../GPCChecker.Test.Concrete/ServiceabilityMigrationTests.cs" Link="ServiceabilityMigrationTests.cs" />
+    <None Include="../GPCChecker.Test.Concrete/Fixtures/stress-*" Link="Fixtures/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
