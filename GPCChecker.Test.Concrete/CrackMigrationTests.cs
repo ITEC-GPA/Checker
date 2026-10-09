@@ -1091,6 +1091,48 @@ namespace ConcreteTests
         }
 
         /// <summary>
+        /// ValidateAtUse and the number of bar stresses (0.0.19.0; ANTHEA Ntc2018Checks.Cracking takes the stresses of the state and checks them only where σs is
+        /// used): an entirely compressed section gives wk = 0 also with no stress, one less or one more than the bars, the same result as with the right stresses;
+        /// elsewhere Evaluate refuses them before the branches, with the code BarStresses and the message without "k2:", and with ntcK2FromCompressedBars before
+        /// any branch with the message of K2. Without ValidateAtUse the constructor refuses them as in 0.0.17.0, without a code (contract K0).
+        /// </summary>
+        [TestMethod]
+        public void ValidateAtUseChecksTheNumberOfBarStressesAfterTheCompressionReturn()
+        {
+            var basic = new OptionCase { Bars = Doubly };
+            const string countMessage = "Cracking: one stress per ordinary bar is required.", k2Message = "k2: bar stresses missing or not finite.",
+                atUseMessage = "Cracking: bar stresses missing or not finite.";
+            double[][] Wrong(double[] all) => new[] { new double[0], all.Take(all.Length - 1).ToArray(), all.Concat(new[] { 0.0 }).ToArray() };
+            int checks = 0;
+            foreach (var standard in new[] { "NTC 2018", "EN 1992-1-1" })
+                foreach (var plane in new[] { UniformCompression, CompressedToZero })
+                {
+                    var clean = basic.With(x => { x.Standard = standard; x.Exposure = standard == "NTC 2018" ? "XC1" : "XC3"; x.Plane = plane; });
+                    foreach (var stresses in Wrong(Doubly.Select(b => 200000 * plane.GetStrain(b.X, b.Y)).ToArray()))
+                    {
+                        var c = clean.With(x => x.Stresses = stresses);
+                        string what = standard + " " + plane.StrainReferencePoint + ", " + stresses.Length + " stresses for " + Doubly.Length + " bars";
+                        var r = c.Evaluate(AtUse);
+                        Assert.AreEqual(CrackOutcome.Evaluated, r.Outcome, what); Assert.AreEqual(CrackReason.EntirelyCompressed, r.Reason, what);
+                        Assert.AreEqual(0, r.Width.Value, what); Assert.AreEqual(CrackVerdict.Satisfied, r.Verdict, what); Assert.IsNull(r.K2, what);
+                        AssertSameResult(clean.Evaluate(AtUse), r, what);
+                        var constructor = Assert.ThrowsException<ArgumentException>(() => c.Input(SectionCrackOptions.Default), what + ", default options");
+                        Assert.AreEqual(countMessage, constructor.Message, what); Assert.IsNull(CrackRejection.CodeOf(constructor), what);
+                        Refusal(() => c.With(x => x.LegacyK2 = true).Evaluate(AtUse), CrackRejection.BarStresses, k2Message, what + ", ntcK2FromCompressedBars");
+                        checks++;
+                    }
+                }
+            Assert.AreEqual(2 * 2 * 3, checks);
+            // Bent, entirely tensile and neutral axis in the cover: refused after the compression return, before the branches.
+            foreach (var plane in new[] { BentAt50, EccentricTension, AxisInTheCover })
+                foreach (var stresses in Wrong(Doubly.Select(b => 200000 * plane.GetStrain(b.X, b.Y)).ToArray()))
+                {
+                    var c = basic.With(x => { x.Plane = plane; x.Stresses = stresses; });
+                    Refusal(() => SectionCrackCheck.Evaluate(c.Input(AtUse)), CrackRejection.BarStresses, atUseMessage, "at use, " + plane.StrainReferencePoint + ", " + stresses.Length + " stresses");
+                }
+        }
+
+        /// <summary>
         /// EffectiveDepthCover (ANTHEA W8): c of the DIN condition (h − x)/3 ≥ c + 20 mm (NCI 7.3.2(3)), by default the nominal cover. 300×500 with 3Ø20 at y = −200,
         /// neutral axis at y = 50: h − x = 300, h − d = 50, h = 500, coefficient 2 + 0.1 · 500/50 = 3, hc,eff = min(150; 250) = 150 mm unless (h − x)/3 = 100 ≥ c + 20,
         /// then 100 mm. σs = 200 MPa, s = 100 mm ≤ 5 (c + Ø/2), DIN: kt = 0.4, sr,max = min[Ø/(3.6 ρ); σs Ø/(3.6 fct)], wk = sr,max max[0.6 σs/Es; (σs − kt fct/ρ (1 + αe ρ))/Es].
