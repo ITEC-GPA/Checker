@@ -652,6 +652,25 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return CalculateDomainPointWithFallback(force, failureAnalysisTypeOverride);
         }
 
+        /// <summary>Validated boundary path. Keeps the historical raw API unchanged; finite but unconverged candidates trigger the existing fallbacks.</summary>
+        internal FailureDomain.FailureDomainPoint CalculateConvergedDomainPoint(ResultBeamForces force, FailureAnalysisTypes criterion,
+            System.Threading.CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var first = CalculateDomainPoint(force, criterion);
+            Func<FailureDomain.FailureDomainPoint, bool> accepted = point => point?.StrainPlane != null
+                && DomainPointConvergence.Evaluate(this, force, point, criterion).Accepted;
+            if (accepted(first)) return first;
+            foreach (var strategy in new IDomainPointStrategy[] { new DomainPointStrategyBisection(this), new DomainPointStrategyIntersection(this) })
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var point = ToForceReferenceAxes(strategy.CalculateDomainPoint(force, criterion));
+                cancellationToken.ThrowIfCancellationRequested();
+                if (accepted(point)) { _log.Add("Returned-point validation selected " + strategy.GetType().Name); return point; }
+            }
+            return first;
+        }
+
         public FailureDomain.FailureDomainPoint[] CalculateDomainPoint(ResultBeamForces[] force)
         {
             FailureDomain.FailureDomainPoint[] result = new FailureDomain.FailureDomainPoint[force.Length];

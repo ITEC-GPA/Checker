@@ -115,6 +115,21 @@ namespace GPC.Checkers.Concrete.Analysis
         public double? Utilization { get; }
         public string Criterion { get; }
         public string FailureMode { get; }
+        /// <summary>No domain search or resistance capacity is claimed for an unloaded section without initial strains.</summary>
+        public SectionAnalysisInput ZeroDemandInput { get; }
+        public bool IsZeroDemand => ZeroDemandInput != null;
+        private SectionResistanceResponse(SectionAnalysisInput input, SolverDiagnostics diagnostics, string criterion)
+        {
+            ZeroDemandInput = input; Diagnostics = diagnostics; Criterion = criterion; Utilization = 0; FailureMode = "ZeroDemand";
+        }
+        public static SectionResistanceResponse ForZeroDemand(SectionAnalysisInput input, SolverDiagnostics diagnostics, string criterion)
+        {
+            if (input == null || diagnostics == null) throw new ArgumentNullException();
+            var force = input.Forces;
+            if (force.N != 0 || force.M1 != 0 || force.M2 != 0 || diagnostics.Status != CalculationStatus.Completed)
+                throw new ArgumentException("Completed zero sectional demand required.");
+            return new SectionResistanceResponse(input, diagnostics, criterion);
+        }
         public SectionResistanceResponse(SolverDiagnostics diagnostics, string criterion, SectionStrain strain = null,
             double? n = null, double? m1 = null, double? m2 = null, double? utilization = null, string failureMode = null)
         {

@@ -53,7 +53,10 @@ namespace GPC.Checkers.Concrete.Analysis
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var force = input.Forces; var criterion = _checker.SectionCheckerOptions.FailureAnalysisType;
-                var point = _checker.CalculateFailureDomainPoint(force, criterion);
+                if (force.N == 0 && force.M1 == 0 && force.M2 == 0 && _checker.SectionSolver.ConcreteSection.Rebars.All(r => r.EpsilonP == 0))
+                    return SectionResistanceResponse.ForZeroDemand(input, Diagnostic(CalculationStatus.Completed,
+                        "Zero N-M1-M2 demand without initial rebar strain. No domain search or resistance capacity is claimed; shear/torsion are separate checks."), criterion.ToString());
+                var point = _checker.SectionSolver.CalculateConvergedDomainPoint(force, criterion, cancellationToken);
                 cancellationToken.ThrowIfCancellationRequested();
                 if (point?.StrainPlane == null) return new SectionResistanceResponse(Diagnostic(CalculationStatus.NotConverged, "Missing domain point/strain plane."), criterion.ToString());
                 if (new[] { point.NRd, point.MxRd, point.MyRd }.Any(v => !SectionAnalysisInput.Finite(v)))

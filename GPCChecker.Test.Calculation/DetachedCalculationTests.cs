@@ -161,5 +161,32 @@ namespace ConcreteTests
             Assert.AreEqual(response.Diagnostics.ResistanceConvergence.Accepted, response.Diagnostics.Status == CalculationStatus.Completed);
             if (!evidence.Accepted) Assert.IsNull(response.Utilization);
         }
+
+        [TestMethod]
+        public void ZeroSectionalDemandHasNoFabricatedCapacityOrConvergence()
+        {
+            foreach (SectionSolver.FailureAnalysisTypes criterion in Enum.GetValues(typeof(SectionSolver.FailureAnalysisTypes)))
+            {
+                var f = Setup(false, criterion); f.force.N = f.force.M1 = f.force.M2 = 0;
+                var response = new LegacySectionCalculation(f.checker).SolveResistance(new SectionAnalysisInput(f.force));
+                Assert.IsTrue(response.IsZeroDemand); Assert.AreEqual(0.0, response.Utilization.Value);
+                Assert.IsNull(response.N); Assert.IsNull(response.M1); Assert.IsNull(response.Strain);
+                Assert.IsNull(response.Diagnostics.ResistanceConvergence);
+            }
+            var nonzero = Setup(false);
+            Assert.ThrowsException<ArgumentException>(() => SectionResistanceResponse.ForZeroDemand(new SectionAnalysisInput(nonzero.force),
+                new SolverDiagnostics(CalculationStatus.Completed, "test", "1"), "ConstantN"));
+        }
+        [TestMethod]
+        public void InitialRebarStrainPreventsTheZeroDemandShortcut()
+        {
+            var f = Setup(false); var bar = f.section.Rebars.First();
+            f.section.AddRebars(new[] { new ReinforcedConcreteRebar(bar.RebarSection, new Point2d(150, 250), 100, f.section.Rebars.Max(r => r.Id) + 1) });
+            f.force.N = f.force.M1 = f.force.M2 = 0;
+            var checker = new SectionCheckerModelCode2010(new SectionCheckerAttribute(f.section),
+                (SectionCheckerModelCode2010.SectionOptionsModelCode2010)f.checker.SectionCheckerOptions, f.standard, false);
+            var response = new LegacySectionCalculation(checker).SolveResistance(new SectionAnalysisInput(f.force));
+            Assert.IsFalse(response.IsZeroDemand); Assert.AreNotEqual(CalculationStatus.Completed, response.Diagnostics.Status);
+        }
     }
 }

@@ -25,3 +25,16 @@ Le formule resistenti e i punti nativi non vengono modificati. Questi controlli
 sono accettazione numerica; non sono una prova indipendente delle resistenze.
 48 test Calculation superati: casi fisici esistenti piu' prove dedicate dei cinque
 modi, componenti vincolate, ramo opposto, soglie, assi ruotati e direzione nulla.
+
+Correzione di integrazione - Concrete 0.0.22.0
+La sola validazione aveva rifiutato punti legacy finiti fuori soglia angolare.
+Il nuovo percorso del boundary prova i fallback esistenti (bisezione/intersezione)
+anche quando il candidato e' finito ma non accettabile. Nessuna tolleranza ampliata;
+le API storiche che restituiscono i punti grezzi rimangono invariate.
+N=M1=M2=0 senza predeformazione delle barre ha un contratto ZeroDemand separato:
+utilizzo 0 senza capacita', piano o convergenza inventati; V/T non sono verificati.
+Con predeformazione non e' ammessa questa semplificazione.
+Esito finale: 50 test Calculation e 128 test ModelChecker superati. Due confronti
+ModelChecker con il punto grezzo sono aggiornati al boundary validato; nel caso
+caratterizzante si verifica esplicitamente che il punto grezzo viola la soglia e
+quello accettato la rispetta. Nessuna fixture numerica storica rigenerata.
