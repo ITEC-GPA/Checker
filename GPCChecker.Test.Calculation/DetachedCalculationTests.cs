@@ -99,13 +99,15 @@ namespace ConcreteTests
             var f = Setup(false, criterion);
             var response = new LegacySectionCalculation(f.checker).SolveResistance(new SectionAnalysisInput(f.force));
             Assert.IsNotNull(response.Diagnostics);
+            Assert.IsNotNull(response.Diagnostics.ResistanceConvergence);
+            Assert.AreEqual(criterion, response.Diagnostics.ResistanceConvergence.Criterion);
             Assert.AreEqual(required, response.Diagnostics.AxialEquilibrium != null);
             if (required)
             {
                 var evidence = response.Diagnostics.AxialEquilibrium;
                 Assert.AreEqual(f.force.N, evidence.Requested);
                 Assert.AreEqual(DomainPointAxialTolerance.Calculate(f.checker.SectionSolver, f.force.N), evidence.Tolerance);
-                Assert.AreEqual(evidence.Accepted, response.Diagnostics.Status == CalculationStatus.Completed);
+                Assert.AreEqual(response.Diagnostics.ResistanceConvergence.Accepted, response.Diagnostics.Status == CalculationStatus.Completed);
             }
         }
         [DataTestMethod]
@@ -156,7 +158,7 @@ namespace ConcreteTests
             var evidence = response.Diagnostics.AxialEquilibrium;
             Assert.IsNotNull(evidence);
             Assert.AreEqual(expectedTolerance, evidence.Tolerance, expectedTolerance * 1e-6);
-            Assert.AreEqual(evidence.Accepted, response.Diagnostics.Status == CalculationStatus.Completed);
+            Assert.AreEqual(response.Diagnostics.ResistanceConvergence.Accepted, response.Diagnostics.Status == CalculationStatus.Completed);
             if (!evidence.Accepted) Assert.IsNull(response.Utilization);
         }
     }
