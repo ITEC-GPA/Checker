@@ -12,12 +12,18 @@ namespace GPC.Checkers.Concrete.Analysis
     /// <summary>Numerical status independent of the engineering verdict. Missing residuals and iteration counts are not invented.</summary>
     public sealed class SolverDiagnostics
     {
+        public AxialEquilibriumEvidence AxialEquilibrium { get; }
         public CalculationStatus Status { get; }
         public string Engine { get; }
         public string Version { get; }
         public string Message { get; }
         public SolverDiagnostics(CalculationStatus status, string engine, string version, string message = null)
+            : this(status, engine, version, message, null) { }
+        public SolverDiagnostics(CalculationStatus status, string engine, string version, string message, AxialEquilibriumEvidence axialEquilibrium)
         {
+            AxialEquilibrium = axialEquilibrium;
+            if (status == CalculationStatus.Completed && axialEquilibrium != null && !axialEquilibrium.Accepted)
+                throw new ArgumentException("Completed calculation cannot contain rejected axial equilibrium.");
             if (!Enum.IsDefined(typeof(CalculationStatus), status)) throw new ArgumentOutOfRangeException(nameof(status));
             Status = status; Engine = engine ?? throw new ArgumentNullException(nameof(engine)); Version = version; Message = message;
         }

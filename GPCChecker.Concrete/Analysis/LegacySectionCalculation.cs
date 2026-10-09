@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Results;
+using GPC.Checkers.Concrete.SectionSolvers;
 
 namespace GPC.Checkers.Concrete.Analysis
 {
@@ -55,9 +56,21 @@ namespace GPC.Checkers.Concrete.Analysis
                 var point = _checker.CalculateFailureDomainPoint(force, criterion);
                 cancellationToken.ThrowIfCancellationRequested();
                 if (point?.StrainPlane == null) return new SectionResistanceResponse(Diagnostic(CalculationStatus.NotConverged, "Missing domain point/strain plane."), criterion.ToString());
+                if (new[] { point.NRd, point.MxRd, point.MyRd }.Any(v => !SectionAnalysisInput.Finite(v)))
+                    return new SectionResistanceResponse(Diagnostic(CalculationStatus.NotConverged, "Non-finite domain point."), criterion.ToString());
+                AxialEquilibriumEvidence equilibrium = null;
+                if (criterion == SectionSolver.FailureAnalysisTypes.ConstantN || criterion == SectionSolver.FailureAnalysisTypes.ConstantNMx
+                    || criterion == SectionSolver.FailureAnalysisTypes.ConstantNMy)
+                {
+                    equilibrium = new AxialEquilibriumEvidence(force.N, point.NRd, DomainPointAxialTolerance.Calculate(_checker.SectionSolver, force.N));
+                    if (!equilibrium.Accepted)
+                        return new SectionResistanceResponse(new SolverDiagnostics(CalculationStatus.NotConverged, EngineId, Version,
+                            "Assigned axial force is outside the acceptance tolerance.", equilibrium), criterion.ToString());
+                }
                 var ratio = point.CalculateWorkingRatio(criterion, force, 1e6, 1000);
                 if (!SectionAnalysisInput.Finite(ratio) || ratio < 0) return new SectionResistanceResponse(Diagnostic(CalculationStatus.NotConverged, "Invalid working ratio."), criterion.ToString());
-                return new SectionResistanceResponse(Diagnostic(CalculationStatus.Completed), criterion.ToString(), SectionStrain.From(point.StrainPlane),
+                return new SectionResistanceResponse(new SolverDiagnostics(CalculationStatus.Completed, EngineId, Version,
+                    equilibrium == null ? "Axial equilibrium at assigned N is not applicable to this criterion." : null, equilibrium), criterion.ToString(), SectionStrain.From(point.StrainPlane),
                     point.NRd, point.MxRd, point.MyRd, ratio, point.FailureIndex.ToString());
             }
         }

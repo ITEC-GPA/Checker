@@ -1,0 +1,11 @@
+FASE 1 - EQUILIBRIO DELLA RISPOSTA RESISTENTE (9 ottobre 2026)
+Concrete 0.0.20.0: LegacySectionCalculation applica DomainPointAxialTolerance
+ai criteri ConstantN, ConstantNMx e ConstantNMy. Gli altri criteri non
+impongono N costante. Non cambiano ricerca, formule e punti del dominio.
+AxialEquilibriumEvidence conserva N richiesto/ottenuto, residuo e tolleranza.
+Un punto rifiutato restituisce NotConverged senza capacita' utilizzabile.
+Le vecchie firme pubbliche restano disponibili.
+Validazione: 26 test Calculation superati, inclusi i 2016 stati SLE storici,
+limite inclusivo, compressione/trazione oltre dominio, tutti i criteri,
+stress block e parabola-rettangolo su sezioni 300x500 e 2000x2000.
+Le tolleranze dei quattro casi geometrici sono confrontate con forme chiuse.
