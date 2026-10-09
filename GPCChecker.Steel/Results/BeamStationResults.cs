@@ -1,10 +1,10 @@
-﻿using GPC.Checkers.Results;
+using GPC.Checkers.Results;
 using GPC.Checkers.Steel.Checkers;
 using GPC.Model.ElementProperties;
 using GPC.Model.Elements;
 using GPC.Model.LoadCases;
 using GPC.Model.Results;
-using GPC.Model.Results.ResultLocations;
+using GPC.Model.Results.Locations;
 using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
 using System;

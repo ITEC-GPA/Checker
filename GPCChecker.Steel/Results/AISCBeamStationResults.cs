@@ -1,7 +1,7 @@
-﻿using GPC.Checkers.Steel.Checkers;
+using GPC.Checkers.Steel.Checkers;
 using GPC.Model.Elements;
 using GPC.Model.LoadCases;
-using GPC.Model.Results.ResultLocations;
+using GPC.Model.Results.Locations;
 using GPC.Model.Standards;
 using System;
 using System.Runtime.Serialization;

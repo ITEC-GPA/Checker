@@ -4,6 +4,7 @@ using System.Linq;
 using GPC.Geometry;
 using GPC.Model.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
+using GPC.Model.Core.Coordinates;
 
 namespace GPC.Checkers.Concrete.Analysis
 {
@@ -49,7 +50,7 @@ namespace GPC.Checkers.Concrete.Analysis
             if (!Enum.IsDefined(typeof(SectionSolver.FailureAnalysisTypes), criterion)) throw new ArgumentOutOfRangeException(nameof(criterion));
             if (new[] { axialTolerance, moment1Tolerance, moment2Tolerance, angularTolerance }.Any(t => !SectionAnalysisInput.Finite(t) || t < 0)
                 || angularTolerance >= Math.PI / 2) throw new ArgumentException("InvalidConvergenceTolerances");
-            GPC.Model.PostProcessing.Axes.Validate(constraintAxes);
+            Axes.Validate(constraintAxes);
             var d = demand.Forces.ToCoordinateSystemWithEccentricity(constraintAxes);
             var r = capacity.Forces.ToCoordinateSystemWithEccentricity(constraintAxes);
             var residuals = new List<NumericalResidual>(); bool direction = true;

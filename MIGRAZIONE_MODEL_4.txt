@@ -1,0 +1,25 @@
+CHECKER CON MODEL 4 - 9 OTTOBRE 2026
+Branch: codex/model-architecture.
+
+Consumer aggiornati per la migrazione dei namespace di Model:
+- Concrete usa GPC.Model.Core.Coordinates.Axes per la convergenza.
+- Steel usa GPC.Model.Results.Storage e GPC.Model.Results.Locations.
+- Nessuna formula di verifica, tolleranza o fixture numerica modificata.
+- Nessun riferimento a Persistence nei motori di produzione.
+
+Versioni: Concrete 0.0.23.0; Steel 2.0.0.0. Serve Model 4.0.0.0.
+Steel cambia major perche' espone tipi Model rinominati nelle proprie firme.
+Ricompilare i consumer con un insieme coerente di DLL; non sostituire soltanto
+Model in un bundle Anthea esistente. Anthea non e' stato aggiornato.
+La guida completa e' MIGRAZIONE_MODEL_4.txt nel repository Model.
+
+Collaudo:
+- Test.Calculation: 50 PASS (include i cinque criteri di convergenza).
+- Test.CompositeBridge: 254 PASS.
+- Test.Steel .NET Framework: 77 PASS / 17 FAIL gia' presenti. I nomi dei 17
+  fallimenti coincidono con TestResults/ContinuationPhase5Baseline/
+  g.pacini_ITEC-137_2026-10-09_13_18_22.trx, non solo il conteggio.
+- Test.Concrete .NET Framework: compilazione riuscita; avviso storico
+  MSB3270 per GMsh AMD64/MSIL.
+- Consumer ModelChecker: 155 PASS nel repository Model con bundle fissato.
+La migrazione non costituisce completamento dei metodi plate ancora differiti.
