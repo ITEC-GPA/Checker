@@ -28,7 +28,7 @@ namespace GPC.Checkers.Concrete.Cracking
         /// <item>the bar stresses after the return of the entirely compressed section (wk = 0 also with missing or non-finite stresses), before the other
         /// branches, with the code <see cref="CrackRejection.BarStresses"/> and the message "Cracking: bar stresses missing or not finite.". With
         /// <see cref="SectionCrackInput.NtcK2FromCompressedBars"/> the bar stresses choose k2 and are checked before any branch, as in 0.0.17.0. Since
-        /// 0.0.19.0 this includes the number of stresses (one per ordinary bar), which the constructor checks only without ValidateAtUse; with the rule
+        /// 0.0.25.0 this includes the number of stresses (one per ordinary bar), which the constructor checks only without ValidateAtUse; with the rule
         /// before D7-b a wrong number gives the code <see cref="CrackRejection.BarStresses"/> with the message of <see cref="CrackWidthCalculator.K2"/>.</item>
         /// </list>
         /// The other checks of the constructor (null arguments, Es, Ecm, fctm) do not move.

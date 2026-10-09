@@ -21,3 +21,36 @@ I commit sono preparati su codex/model-architecture e integrati nel ramo
 principale master su richiesta dell'utente. Model aggiorna versioni/SHA256
 dei tre checker fissati nel suo manifest dopo la ricompilazione.
 Questa operazione non pubblica pacchetti NuGet ne' aggiorna il bundle Anthea.
+
+
+SECONDA RELEASE DEL 9 OTTOBRE 2026 (sera)
+
+Checker.Concrete        0.0.24.0 -> 0.0.25.0 (Version pacchetto 0.0.25)
+Checker.Steel           2.0.1.0  -> 2.0.2.0  (Version pacchetto 2.0.2)
+Checker.CompositeBridge 1.4.0.6  -> 1.4.0.7
+Checker.Geotechnics     0.1.1.3  -> 0.1.1.4
+
+Dipendenze: GPCGeometry 2.1.0.5, DelaunayMesh 2.0.0.12 (Geometry 1f901ef,
+binari committati), GPCUtilities 2.0.0.8, Model 4.0.1.0 / ModelData 0.0.2.5
+ricompilati contro la Geometry nuova (Model bea56136).
+
+Concrete: con ValidateAtUse il numero delle tensioni delle barre si controlla
+al punto d'uso, dopo il ritorno della sezione interamente compressa (commit
+27d1d380, prova generale ANTHEA F2.7). Senza ValidateAtUse nulla cambia.
+Steel, CompositeBridge e Geotechnics: solo ricompilazione contro la Geometry
+nuova; nessuna formula, API o fixture modificata.
+
+Validazione (Release, tutte le suite):
+Concrete .NET Framework (vstest x64): 568 PASS, 1 FAIL (vedi sotto);
+Steel: 88 PASS e gli stessi 17 FAIL storici, confrontati per nome;
+CompositeBridge: 260 PASS; Geotechnics: 108 PASS; Calculation: 60 PASS.
+Il contratto K0 (112027 righe) coincide in tutti i valori numerici: le mesh
+usuali restano identiche con GPCGeometry 2.1.0.5.
+
+FAIL APERTO, da decidere: ModelCheckerContractOf0017IsUnchanged, caso
+"#44 notConverged" (R300x500, NTC 2018, non lineare, N -1e6 kN). Il messaggio
+atteso "Stress analysis without strain plane: not converged." e' diventato
+"Numerical analysis not completed: No strain plane." con 8c45ba30 (separazione
+delle risposte numeriche, StressLimitCheck.cs). Gia' presente nel master prima
+di questa release: la suite net472 di Concrete non era stata rieseguita.
+Il fixture del contratto non e' stato aggiornato.

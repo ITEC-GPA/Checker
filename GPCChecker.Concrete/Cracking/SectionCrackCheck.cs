@@ -86,7 +86,7 @@ namespace GPC.Checkers.Concrete.Cracking
             StrainPlane = strainPlane ?? throw new ArgumentNullException(nameof(strainPlane));
             BarStresses = (barStresses ?? throw new ArgumentNullException(nameof(barStresses))).ToArray();
             Options = options ?? throw new ArgumentNullException(nameof(options));
-            // One stress per ordinary bar: here by default; with ValidateAtUse where the stresses are used (0.0.19.0), so that an entirely compressed
+            // One stress per ordinary bar: here by default; with ValidateAtUse where the stresses are used (0.0.25.0), so that an entirely compressed
             // section gives wk = 0 also without them, as in ANTHEA Ntc2018Checks.
             if (!options.ValidateAtUse && BarStresses.Count != geometry.Bars.Count) throw new ArgumentException("Cracking: one stress per ordinary bar is required.");
             if (!CrackSectionGeometry.Positive(es) || !CrackSectionGeometry.Positive(ecm) || !CrackSectionGeometry.Positive(fctm)) throw new ArgumentException("Cracking: Es, Ecm and fctm must be positive.");
@@ -307,7 +307,7 @@ namespace GPC.Checkers.Concrete.Cracking
             // With ValidateAtUse and the current k2 rule they are checked after the compression return, where σs is first used (ANTHEA Ntc2018Checks).
             bool stressesAtUse = p.Options.ValidateAtUse && !p.NtcK2FromCompressedBars;
             double barK2 = stressesAtUse ? double.NaN : CrackWidthCalculator.K2(stresses);
-            // With ValidateAtUse the constructor does not check the number of stresses (0.0.19.0): with the rule before D7-b it is checked here, with K2.
+            // With ValidateAtUse the constructor does not check the number of stresses (0.0.25.0): with the rule before D7-b it is checked here, with K2.
             if (p.Options.ValidateAtUse && !stressesAtUse && stresses.Count != g.Bars.Count)
                 throw CrackRejection.Create(CrackRejection.BarStresses, "k2: bar stresses missing or not finite.");
             if (trace != null)

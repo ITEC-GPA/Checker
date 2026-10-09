@@ -1091,7 +1091,7 @@ namespace ConcreteTests
         }
 
         /// <summary>
-        /// ValidateAtUse and the number of bar stresses (0.0.19.0; ANTHEA Ntc2018Checks.Cracking takes the stresses of the state and checks them only where σs is
+        /// ValidateAtUse and the number of bar stresses (0.0.25.0; ANTHEA Ntc2018Checks.Cracking takes the stresses of the state and checks them only where σs is
         /// used): an entirely compressed section gives wk = 0 also with no stress, one less or one more than the bars, the same result as with the right stresses;
         /// elsewhere Evaluate refuses them before the branches, with the code BarStresses and the message without "k2:", and with ntcK2FromCompressedBars before
         /// any branch with the message of K2. Without ValidateAtUse the constructor refuses them as in 0.0.17.0, without a code (contract K0).
