@@ -1,0 +1,59 @@
+TEST DI REGRESSIONE PER METODO - 9 ottobre 2026
+
+Incremento: 37 casi, tutti superati. Nessuna formula, API, versione o attesa
+numerica storica modificata. Test in MethodRegressionTests.cs per ogni suite.
+
+GPCChecker.Concrete / Test.Calculation: 10 casi nuovi, suite 60 PASS.
+- StrainPlane.GetStrain (due overload): riferimento traslato e curvature firmate.
+- GetNeutralAxis: coordinate globali su deformazione nulla.
+- GetNeutralAxisRespectReferencePoint: coordinate relative al riferimento.
+- GetConstantStrainAxis: asse obliquo a deformazione assegnata, nessun asse unico
+  per deformazione uniforme.
+- NumericalResidual: accettazione inclusiva al valore assoluto della tolleranza.
+- AxialEquilibriumEvidence: rifiuto dell'overflow nella differenza fra forze finite.
+I test preesistenti coprono i cinque modi di convergenza, sessioni di calcolo
+indipendenti e la migrazione SLE da Anthea. Questa esecuzione riguarda la suite
+.NET 8 Calculation; non una nuova esecuzione completa della vecchia suite net472.
+
+GPCChecker.Steel: 11 casi nuovi, tutti PASS.
+- BeamChecker.GetLengthAxialBuckling1/2, GetEffectiveLengthAxialBuckling1/2,
+  GetLengthLatTorsBuckling, GetLengthCriticalMoment1/2: fattori distinti su beam
+  lunga 1000 mm; metodi efficaci separati da quelli di lunghezza libera.
+- EN1993p11Checker.CalculateMcRd1/2: confronto plastico/elastico per anello
+  D=100, t=10, fy=235, GammaM0=1.25; attese da geometria analitica.
+- CalculateVcRd1/2: area resistente a taglio 1800 mm2 e GammaM0.
+Le primitive protected sono esposte solo da una sottoclasse nei test.
+Suite completa: 88 PASS, 17 FAIL su 105 casi. Verificati NOMI ED ESITI dei 94
+casi preesistenti: identici alla baseline ContinuationPhase5Baseline
+(g.pacini_ITEC-137_2026-10-09_13_18_22.trx). Nessun nuovo fallimento.
+Fallimenti storici:
+Sap_SectionCHSTest1, Sap_SectionHAsymmetricTest1, Sap_SectionHAsymmetricTest2,
+Sap_SectionLTest, Sap_SectionRHSTest1, Sap_SectionRHSTest2, Sap_SectionTTest,
+Sap_SectionTTest2, SectionCLateralTorsionalBuckling2, SectionHBuckling1,
+SectionHBucklingExample2, SectionHInteraction2, SectionHInteraction3,
+SectionHLateralTorsionalBuckling1, SectionHLateralTorsionalBuckling2,
+SectionRHSClassification, SectionRHSClasstification2.
+
+GPCChecker.CompositeBridge: 6 nuovi, suite 260 PASS.
+- HistoryStrainPlane.At e Scale: convenzione del segno e scalatura.
+- HistoryElasticLaw.Evaluate: variazione del modulo sui soli incrementi.
+- HistoryBilinearSteelLaw.Evaluate: scarico elastico con deformazione plastica
+  conservata; rifiuto modifica E non supportata e deformazione oltre il limite;
+  nessuna mutazione dello stato confermato in una valutazione di prova.
+
+GPCChecker.Geotechnics: 10 nuovi, suite 108 PASS.
+- PileGroupLayout.Generate: rotazione baricentrica con coordinate attese.
+- CapOutline: distanza bordo misurata dall'asse del palo, input immutato.
+- MicropileTube.AxisCosine: radianti e limite orizzontale escluso.
+- SectionClass: sei casi sui limiti inclusivi di snellezza.
+- NewmarkSliding.Calculate: integrazione della corsa e arresto dopo il termine
+  dell'accelerogramma, con velocita', spostamento e tempo calcolati a mano.
+
+Esecuzione:
+dotnet test GPCChecker.Test.Calculation/GPCChecker.Test.Calculation.csproj -c Release
+dotnet test GPCChecker.Test.CompositeBridge/GPCChecker.Test.CompositeBridge.csproj -c Release
+dotnet test GPCChecker.Test.Geotechnics/GPCChecker.Test.Geotechnics.csproj -c Release
+MSBuild GPCChecker.Test.Steel/GPCChecker.Test.Steel.csproj /t:Build /p:Configuration=Release
+vstest.console.exe GPCChecker.Test.Steel/bin/Release/GPCChecker.Test.Steel.dll
+Per i soli nuovi casi: filtro FullyQualifiedName~MethodRegressionTests.
+TRX e log locali: TestResults/MethodRegression e TestResults/method-*.log.
