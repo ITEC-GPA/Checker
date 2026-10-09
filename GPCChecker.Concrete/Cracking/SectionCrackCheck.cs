@@ -517,7 +517,7 @@ namespace GPC.Checkers.Concrete.Cracking
             if (g.Circular)
             {
                 faces.Clear();
-                var angles = g.Bars.Select(b => Math.Atan2(b.Y, b.X)).Concat(new[] { Math.Atan2(plane.ChiY, plane.ChiX), Math.Atan2(plane.ChiY, plane.ChiX) + Math.PI }).ToArray();
+                var angles = g.Bars.Select(g.Angle).Concat(new[] { Math.Atan2(plane.ChiY, plane.ChiX), Math.Atan2(plane.ChiY, plane.ChiX) + Math.PI }).ToArray();
                 foreach (double angle in angles)
                 {
                     double x = Math.Cos(angle), y = Math.Sin(angle);
@@ -717,15 +717,17 @@ namespace GPC.Checkers.Concrete.Cracking
             }
             var tensile = Enumerable.Range(0, g.Bars.Count).Where(i => stresses[i] > 0).ToArray();
             double factor = profile == CrackProfile.DsEN1992p11 ? 2 : 2.5;
-            if (g.Circular)
+            if (g.Circular && g.HasCircularInnerRing)
             {
                 var hole = g.Holes[0];
-                double ri = hole.Max(v => CrackSectionGeometry.Hypot(v.X, v.Y)), outerRadius = g.Outline.Max(v => CrackSectionGeometry.Hypot(v.X, v.Y)), wall = outerRadius - ri;
-                double nearest = tensile.Select(i => CrackSectionGeometry.Hypot(g.Bars[i].X, g.Bars[i].Y) - ri).DefaultIfEmpty(wall).Min();
+                double ri = hole.Max(v => g.Radius(v.X, v.Y)), outerRadius = g.Outline.Max(v => g.Radius(v.X, v.Y)), wall = outerRadius - ri;
+                double nearest = tensile.Select(i => g.Radius(g.Bars[i].X, g.Bars[i].Y) - ri).DefaultIfEmpty(wall).Min();
                 double hc = Math.Min(factor * nearest, wall / 2), radius = ri + hc;
-                var outline = hole.Select(v => new Point2d(v.X * radius / ri, v.Y * radius / ri)).Reverse().ToArray();
-                var indices = tensile.Where(i => CrackSectionGeometry.Hypot(g.Bars[i].X, g.Bars[i].Y) <= radius + 1e-8).ToArray();
-                Check("InnerRing", outline, g.Holes, indices, b => CrackSectionGeometry.Hypot(b.X, b.Y) - ri - b.Diameter / 2, hc, Math.Max(g.Width, g.Height));
+                // Keep the legacy operation order and signed zero when a centre coordinate is zero.
+                double Scale(double value, double center) => center == 0 ? value * radius / ri : center + (value - center) * radius / ri;
+                var outline = hole.Select(v => new Point2d(Scale(v.X, g.CenterX), Scale(v.Y, g.CenterY))).Reverse().ToArray();
+                var indices = tensile.Where(i => g.Radius(g.Bars[i].X, g.Bars[i].Y) <= radius + 1e-8).ToArray();
+                Check("InnerRing", outline, g.Holes, indices, b => g.Radius(b.X, b.Y) - ri - b.Diameter / 2, hc, Math.Max(g.Width, g.Height));
             }
             else if (g.Holes.Count == 1 && AxisAlignedRectangle(g.Holes[0]))
             {
@@ -776,7 +778,7 @@ namespace GPC.Checkers.Concrete.Cracking
                     trace.Add(CrackTraceCodes.Width, governing.Width, "mm", null, CrackTraceFlags.Envelope);
                     trace.Add(CrackTraceCodes.WidthRatio, incomplete && governing.Width <= limit ? null : governing.Ratio, CrackTraceBuilder.Dimensionless, null, CrackTraceFlags.Envelope);
                 }
-                if (g.Circular || g.Holes.Count == 1 && AxisAlignedRectangle(g.Holes[0])) trace.Add(CrackTraceCodes.InnerBoundaryNote, null, "");
+                if (g.Circular && g.HasCircularInnerRing || g.Holes.Count == 1 && AxisAlignedRectangle(g.Holes[0])) trace.Add(CrackTraceCodes.InnerBoundaryNote, null, "");
             }
             string missing = string.Join("; ", results.Where(r => !r.Width.HasValue).Select(r => r.Status));
             final.Details = details.AsReadOnly(); final.Regions = regions.ToArray();

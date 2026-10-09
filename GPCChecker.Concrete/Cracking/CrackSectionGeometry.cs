@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GPC.Geometry;
 using GPC.Model.Materials;
+using GPC.Model.Sections;
 using GPC.Model.Sections.Concrete;
 
 namespace GPC.Checkers.Concrete.Cracking
@@ -30,7 +31,8 @@ namespace GPC.Checkers.Concrete.Cracking
 
     /// <summary>
     /// Section geometry for crack control in the plane of the section (the coordinates of the strain plane): outline, holes (mm) and ordinary bars
-    /// in the order of the section rebars. Circular sections are centred at the origin of the polygon coordinates (as the section solver input).
+    /// in the order of the section rebars. The polygon constructor assumes circles centred at the origin;
+    /// FromCurves preserves the analytic centre and the section/strain-plane coordinates.
     /// </summary>
     public sealed class CrackSectionGeometry
     {
@@ -43,7 +45,15 @@ namespace GPC.Checkers.Concrete.Cracking
         public double Width { get; }
         public double Height { get; }
 
+        internal double CenterX { get; }
+        internal double CenterY { get; }
+        internal bool HasCircularInnerRing { get; }
+
         public CrackSectionGeometry(IEnumerable<Point2d> outline, IEnumerable<IEnumerable<Point2d>> holes, IEnumerable<CrackBar> bars, CrackBarLayout layout)
+            : this(outline, holes, bars, layout, 0, 0, true) { }
+
+        private CrackSectionGeometry(IEnumerable<Point2d> outline, IEnumerable<IEnumerable<Point2d>> holes, IEnumerable<CrackBar> bars,
+            CrackBarLayout layout, double centerX, double centerY, bool hasCircularInnerRing)
         {
             Outline = (outline ?? throw new ArgumentNullException(nameof(outline))).ToArray();
             Holes = (holes ?? Enumerable.Empty<IEnumerable<Point2d>>()).Select(h => (IReadOnlyList<Point2d>)h.ToArray()).ToArray();
@@ -52,6 +62,7 @@ namespace GPC.Checkers.Concrete.Cracking
             if (Bars.Any(b => !Positive(b.Diameter) || !Positive(b.Area) || double.IsNaN(b.X + b.Y) || double.IsInfinity(b.X + b.Y)))
                 throw new ArgumentException("Cracking: invalid bar.");
             Layout = layout; Circular = layout != CrackBarLayout.Rows;
+            CenterX = centerX; CenterY = centerY; HasCircularInnerRing = hasCircularInnerRing;
             Width = Outline.Max(p => p.X) - Outline.Min(p => p.X); Height = Outline.Max(p => p.Y) - Outline.Min(p => p.Y);
         }
 
@@ -74,6 +85,52 @@ namespace GPC.Checkers.Concrete.Cracking
             var layout = !circle ? CrackBarLayout.Rows : concentricRings ? CrackBarLayout.ConcentricRings : CrackBarLayout.Ring;
             return new CrackSectionGeometry(outline, holes, bars, layout);
         }
+
+        /// <summary>
+        /// Explicitly samples the native Model curves with the given chord tolerance (mm) and maximum segment length.
+        /// Preserves section coordinates and ordinary bar order; tendons and prestressed bars are excluded as in From.
+        /// Disconnected regions and material islands are not supported. Existing From keeps its polygon contract.
+        /// </summary>
+        public static CrackSectionGeometry FromCurves(ReinforcedConcreteSection section, double chordTolerance,
+            double maxSegmentLength = double.PositiveInfinity, bool concentricRings = false)
+        {
+            if (section == null) throw new ArgumentNullException(nameof(section));
+            var outlines = section.GetCurveOutlines();
+            if (outlines.Count != 1) throw new NotSupportedException("Cracking: exactly one concrete region is required.");
+            var bars = section.Rebars.Where(r => r.RebarMaterial.SteelType != SteelMaterial.SteelTypes.Tendon && r.EpsilonP == 0)
+                .Select(r => new CrackBar(r.Position.X, r.Position.Y, r.RebarSection.Diameter, r.Area));
+            return FromCurves(outlines[0], bars, chordTolerance, maxSegmentLength, concentricRings);
+        }
+
+        /// <summary>
+        /// Samples one closed XY region, including holes, without moving its coordinates. Tolerance controls chord
+        /// deviation, not the error of the crack calculation. Circles use their analytic centre for radial checks;
+        /// other outlines (including ellipses) use rows, with explicit spacing when rows cannot determine it.
+        /// </summary>
+        public static CrackSectionGeometry FromCurves(SectionCurveOutline outline, IEnumerable<CrackBar> bars, double chordTolerance,
+            double maxSegmentLength = double.PositiveInfinity, bool concentricRings = false)
+        {
+            if (outline == null) throw new ArgumentNullException(nameof(outline));
+            if (outline.Children.Count != 0) throw new NotSupportedException("Cracking: shapes with children inside the holes are not supported.");
+            var shape = outline.ToShape(chordTolerance, maxSegmentLength);
+            var center = CircleCenter(outline.Boundary);
+            var holes = outline.Holes;
+            var inner = holes.Count == 1 ? CircleCenter(holes[0]) : null;
+            bool innerRing = center != null && inner != null && Hypot(center.X - inner.X, center.Y - inner.Y) <= 1e-8;
+            var layout = center == null ? CrackBarLayout.Rows : concentricRings ? CrackBarLayout.ConcentricRings : CrackBarLayout.Ring;
+            return new CrackSectionGeometry(shape.Fill2d.Points, (shape.Holes2d ?? new Polygon2d[0]).Select(h => h.Points), bars,
+                layout, center?.X ?? 0, center?.Y ?? 0, innerRing);
+        }
+
+        private static Point3d CircleCenter(Curve3d curve)
+        {
+            if (curve is ArcCurve3d arc && arc.IsClosed) return arc.Center;
+            if (curve is EllipseCurve3d ellipse && ellipse.IsClosed && ellipse.SemiAxisX == ellipse.SemiAxisY) return ellipse.Center;
+            return null;
+        }
+
+        internal double Radius(double x, double y) => Hypot(x - CenterX, y - CenterY);
+        internal double Angle(CrackBar bar) => Math.Atan2(bar.Y - CenterY, bar.X - CenterX);
 
         internal static bool Positive(double v) => !double.IsNaN(v) && !double.IsInfinity(v) && v > 0;
 
@@ -128,9 +185,9 @@ namespace GPC.Checkers.Concrete.Cracking
             var distances = new List<double>();
             if (Circular)
             {
-                var radii = Bars.Select(b => Math.Sqrt(b.X * b.X + b.Y * b.Y)).ToArray();
+                var radii = Bars.Select(b => Radius(b.X, b.Y)).ToArray();
                 if (radii.Max() - radii.Min() > 1e-4 && Layout != CrackBarLayout.ConcentricRings) return null;
-                foreach (var group in Bars.Select((b, i) => new { Bar = b, Index = i, Angle = Math.Atan2(b.Y, b.X) }).GroupBy(b => Math.Round(radii[b.Index], 5)))
+                foreach (var group in Bars.Select((b, i) => new { Bar = b, Index = i, Angle = Angle(b) }).GroupBy(b => Math.Round(radii[b.Index], 5)))
                 {
                     var ring = group.OrderBy(b => b.Angle).ToArray(); double radius = group.Average(b => radii[b.Index]);
                     for (int i = 0; i < ring.Length; i++)

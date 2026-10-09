@@ -56,3 +56,53 @@ delle risposte numeriche, StressLimitCheck.cs), gia' nel master prima di questa
 release (la suite net472 di Concrete non era stata rieseguita). Tipo
 dell'eccezione e chiamata invariati; il fixture cambia solo in quella riga.
 Con il fixture aggiornato: Concrete 569/569.
+
+
+TERZA RELEASE DEL 9 OTTOBRE 2026: compatibilita' con le curve
+
+Checker.Concrete        0.0.25.0 -> 0.0.26.0 (Version pacchetto 0.0.26)
+Checker.Steel           2.0.2.0  -> 2.0.3.0  (Version pacchetto 2.0.3)
+Checker.CompositeBridge 1.4.0.7  -> 1.4.0.8
+Checker.Geotechnics     0.1.1.4  -> 0.1.1.5
+
+Dipendenze: Model 4.1.0.0 / ModelData 0.0.2.6 / Persistence 2.1.0.0,
+dal master pubblicato 82d1e02897244c524fe3e2fcc28cf3de97caf735;
+Geometry 2.3.0.0 / DelaunayMesh 2.0.0.14 dal master pubblicato
+e8f840e4607806104ed8b4650faaf0e8f0e4e548; Utilities 2.0.0.8.
+
+Concrete aggiunge CrackSectionGeometry.FromCurves per una sezione di Model
+o un SectionCurveOutline con barre: tolleranza obbligatoria e lunghezza
+massima opzionale, contorno/fori/piano/barre nello stesso riferimento.
+Il centro analitico governa gli interassi e le regioni radiali dei cerchi
+traslati. La superficie interna ad anello richiede un solo foro circolare
+concentrico; fori ellittici/eccentrici conservano l'esito non supportato.
+Le ellissi sono discretizzate come gli altri contorni non circolari.
+L'ingresso From precedente e le fixture numeriche sono conservati, incluso
+il segno dello zero nelle regioni interne. Nessuna formula normativa cambia.
+Steel, CompositeBridge e Geotechnics vengono ricompilati con le nuove librerie.
+
+111 nuovi casi, condivisi tra net472 e net8: 100 combinazioni di topologia,
+dimensione e posizione; interassi; traslazioni del calcolo completo; barre
+ordinarie/precompresse; fori non supportati; tolleranze e input non validi.
+I test delle eccezioni usano la cultura UI invariante, come il contratto K0,
+per non inizializzare la cache dei messaggi di .NET Framework in altra lingua.
+
+Provenienza degli input di build (SHA256 delle DLL effettivamente usate):
+GPCModel: ACF2158524C2C2887824D9CD9AEBD75A023FE828C65A3293A91C264A60A3CC78
+GPCModelData: 1A234FC423E0FDC7F6B955B89A941E379237DB2C2C87B2198D941A82A2C2F271
+GPC.Model.Persistence: 46174D96B179DE896BA9DC0CC974EDAE6CFCCE89D9CB083CDAEB54DD6EEF8256
+GPCGeometry: 7EF76EDFB4C3736AAE7B6F66B2F3CE30A8BB8DE031C492B03BD52289D6E9D29E
+DelaunayMesh: D18BB08255D23239271C197130515758767291F75CE1A9996F1A92DB55F114BB
+GPCUtilities: 638FF722D19AD4EF5B9E14E65A5398960DF5F5BB1569BF6B1392354E84AF5AC7
+Build nella radice C:\Users\g.pacini\Documents\Repository, SDK 9.0.318,
+MSBuild di Visual Studio 2022 per la soluzione e i test net472, vstest x64.
+Come per la release precedente, percorso, PDB/SourceLink e MVID degli input
+concorrono agli hash: la sola versione dell'assembly non identifica i byte.
+
+Validazione finale Release:
+Concrete net472 680/680; Calculation net8 171/171; CompositeBridge 260/260;
+Geotechnics 108/108. Steel 88 PASS e 17 FAIL: nomi e messaggi dei fallimenti
+identici alla baseline eseguita prima dell'aggiornamento; nessuna nuova
+regressione. I 111 nuovi casi sono eseguiti su entrambi i runtime.
+Contratto K0 di 112027 righe identico, senza modifiche alle fixture.
+API Concrete: 2018 firme pubbliche, nessuna rimozione (due factory aggiunte).
