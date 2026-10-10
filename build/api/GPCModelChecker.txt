@@ -1,0 +1,457 @@
+F|GPC.Model.Checker.ConcreteSectionVerifier|BeamDetailingMethod|System.String|Public, Static, Literal, HasDefault|"Concrete.Detailing1D.Beam"
+F|GPC.Model.Checker.ConcreteSectionVerifier|ColumnDetailingMethod|System.String|Public, Static, Literal, HasDefault|"Concrete.Detailing1D.Column"
+F|GPC.Model.Checker.Configuration.BeamStationDomain|Deformable|GPC.Model.Checker.Configuration.BeamStationDomain|Public, Static, Literal, HasDefault|2
+F|GPC.Model.Checker.Configuration.BeamStationDomain|NodeToNode|GPC.Model.Checker.Configuration.BeamStationDomain|Public, Static, Literal, HasDefault|0
+F|GPC.Model.Checker.Configuration.BeamStationDomain|OffsetToOffset|GPC.Model.Checker.Configuration.BeamStationDomain|Public, Static, Literal, HasDefault|1
+F|GPC.Model.Checker.Configuration.BeamStationDomain|value__|System.Int32|Public, SpecialName, RTSpecialName|
+F|GPC.Model.Checker.Configuration.CheckUnitConvention|N_Mm_Rad|GPC.Model.Checker.Configuration.CheckUnitConvention|Public, Static, Literal, HasDefault|0
+F|GPC.Model.Checker.Configuration.CheckUnitConvention|value__|System.Int32|Public, SpecialName, RTSpecialName|
+F|GPC.Model.Checker.Configuration.ConfigurationArchive|Namespace|System.String|Public, Static, Literal, HasDefault|"urn:gpc:modelchecker:configuration:1"
+F|GPC.Model.Checker.Configuration.ShellNormalFace|Negative|GPC.Model.Checker.Configuration.ShellNormalFace|Public, Static, Literal, HasDefault|1
+F|GPC.Model.Checker.Configuration.ShellNormalFace|Positive|GPC.Model.Checker.Configuration.ShellNormalFace|Public, Static, Literal, HasDefault|0
+F|GPC.Model.Checker.Configuration.ShellNormalFace|value__|System.Int32|Public, SpecialName, RTSpecialName|
+F|GPC.Model.Checker.CrackLoadDuration|LongTerm|GPC.Model.Checker.CrackLoadDuration|Public, Static, Literal, HasDefault|0
+F|GPC.Model.Checker.CrackLoadDuration|ShortTerm|GPC.Model.Checker.CrackLoadDuration|Public, Static, Literal, HasDefault|1
+F|GPC.Model.Checker.CrackLoadDuration|value__|System.Int32|Public, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.CompositeBridgeCase|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.CompositeBridgeCase|get_ActionReferenceY()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeCase|get_BeamId()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeCase|get_HistoryAndReferenceConfirmed()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeCase|get_Input()|GPC.Checkers.CompositeBridge.HBridgeInput|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeCase|get_SectionAxes()|GPC.Geometry.CoordinateSystem|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeCase|get_Side()|GPC.Model.PostProcessing.SectionSide|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeCase|get_Source()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeCase|get_State()|GPC.Model.PostProcessing.ResultSelection|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeCase|get_Station()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeCase|get_StationDomain()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeCase|set_ActionReferenceY(System.Nullable`1<System.Double> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeCase|set_BeamId(System.Int32 value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeCase|set_HistoryAndReferenceConfirmed(System.Boolean value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeCase|set_Input(GPC.Checkers.CompositeBridge.HBridgeInput value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeCase|set_SectionAxes(GPC.Geometry.CoordinateSystem value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeCase|set_Side(GPC.Model.PostProcessing.SectionSide value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeCase|set_Source(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeCase|set_State(GPC.Model.PostProcessing.ResultSelection value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeCase|set_Station(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeCase|set_StationDomain(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeMaterialChecker|.ctor(GPC.Checkers.CompositeBridge.BridgeStandard code:None,System.String edition:None,System.Collections.Generic.IEnumerable`1<GPC.Model.Checker.CompositeBridgeCase> cases:None,System.String nationalAnnex:Optional, HasDefault=null)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.CompositeBridgeMaterialChecker|Accepts(GPC.Model.Elements.BeamElement element:None)|System.Boolean|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Model.Checker.CompositeBridgeMaterialChecker|CreateSession()|GPC.Model.Checker.IMaterialCheckSession|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Model.Checker.CompositeBridgeMaterialChecker|get_Cases()|GPC.Model.Checker.CompositeBridgeCase[]|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeMaterialChecker|get_Code()|GPC.Checkers.CompositeBridge.BridgeStandard|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeMaterialChecker|get_Configuration()|System.String|Public, Final, Virtual, HideBySig, VtableLayoutMask, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeMaterialChecker|get_Edition()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeMaterialChecker|get_Id()|System.String|Public, Final, Virtual, HideBySig, VtableLayoutMask, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeMaterialChecker|get_NationalAnnex()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeMaterialChecker|get_Standard()|GPC.Model.PostProcessing.CheckStandardContext|Public, Final, Virtual, HideBySig, VtableLayoutMask, SpecialName|
+M|GPC.Model.Checker.CompositeBridgeMaterialChecker|get_Version()|System.String|Public, Final, Virtual, HideBySig, VtableLayoutMask, SpecialName|
+M|GPC.Model.Checker.ConcreteMaterialChecker|.ctor(GPC.Model.Checker.ConcreteVerificationOptions options:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.ConcreteMaterialChecker|Accepts(GPC.Model.Elements.BeamElement element:None)|System.Boolean|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Model.Checker.ConcreteMaterialChecker|CreateSession()|GPC.Model.Checker.IMaterialCheckSession|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Model.Checker.ConcreteMaterialChecker|get_Configuration()|System.String|Public, Final, Virtual, HideBySig, VtableLayoutMask, SpecialName|
+M|GPC.Model.Checker.ConcreteMaterialChecker|get_Id()|System.String|Public, Final, Virtual, HideBySig, VtableLayoutMask, SpecialName|
+M|GPC.Model.Checker.ConcreteMaterialChecker|get_Options()|GPC.Model.Checker.ConcreteVerificationOptions|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteMaterialChecker|get_Standard()|GPC.Model.PostProcessing.CheckStandardContext|Public, Final, Virtual, HideBySig, VtableLayoutMask, SpecialName|
+M|GPC.Model.Checker.ConcreteMaterialChecker|get_Version()|System.String|Public, Final, Virtual, HideBySig, VtableLayoutMask, SpecialName|
+M|GPC.Model.Checker.ConcreteSectionVerifier|.ctor(GPC.Model.Standards.StandardModelCode2010 standard:None,GPC.Checkers.Concrete.SectionSolvers.SectionSolver+FailureAnalysisTypes criterion:None,System.Boolean considerTension:None,System.Int32 angularDivisions:None,System.Double psiRebar:None,System.Double psiTendon:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.ConcreteSectionVerifier|.ctor(GPC.Model.Standards.StandardModelCode2010 standard:None,GPC.Checkers.Concrete.SectionSolvers.SectionSolver+FailureAnalysisTypes criterion:None,System.Boolean considerTension:None,System.Int32 angularDivisions:None,System.Double psiRebar:None,System.Double psiTendon:None,System.String standardEdition:None,System.String nationalAnnex:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.ConcreteSectionVerifier|.ctor(GPC.Model.Standards.StandardModelCode2010 standard:None,GPC.Checkers.Concrete.SectionSolvers.SectionSolver+FailureAnalysisTypes criterion:None,System.Boolean considerTension:None,System.Int32 angularDivisions:None,System.Double psiRebar:None,System.Double psiTendon:None,System.String standardEdition:None,System.String nationalAnnex:None,GPC.Checkers.Concrete.SectionSolvers.SectionSolver+StressAnalysisTypes serviceabilityAnalysis:None,System.Double concreteStressLimitFactor:None,System.Nullable`1<System.Double> shearCotTheta:Optional, HasDefault=null,GPC.Model.Checker.CrackLoadDuration crackLoadDuration:Optional, HasDefault=LongTerm,System.Nullable`1<System.Double> crackDesignLimit:Optional, HasDefault=null)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.ConcreteSectionVerifier|Supports(GPC.Model.PostProcessing.SectionCheckSpecification check:None)|System.Boolean|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Model.Checker.ConcreteSectionVerifier|Supports(System.String methodId:None,GPC.Model.PostProcessing.CheckMechanism mechanism:None)|System.Boolean|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Model.Checker.ConcreteSectionVerifier|Verify(GPC.Model.PostProcessing.BeamCheckInput input:None,GPC.Model.PostProcessing.CheckMechanism mechanism:None,System.Threading.CancellationToken cancellationToken:None)|GPC.Model.PostProcessing.CheckResult|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Model.Checker.ConcreteSectionVerifier|Verify(GPC.Model.PostProcessing.BeamCheckInput input:None,GPC.Model.PostProcessing.SectionCheckSpecification check:None,System.Threading.CancellationToken cancellationToken:None)|GPC.Model.PostProcessing.CheckResult|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Model.Checker.ConcreteSectionVerifier|Verify(GPC.Model.PostProcessing.PhysicalMemberCheckInput input:None,System.Threading.CancellationToken cancellationToken:None)|GPC.Model.PostProcessing.CheckResult|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Model.Checker.ConcreteSectionVerifier|get_Capabilities()|System.Collections.Generic.IReadOnlyCollection`1<GPC.Model.PostProcessing.CheckMechanism>|Public, Final, Virtual, HideBySig, VtableLayoutMask, SpecialName|
+M|GPC.Model.Checker.ConcreteSectionVerifier|get_Configuration()|System.String|Public, Final, Virtual, HideBySig, VtableLayoutMask, SpecialName|
+M|GPC.Model.Checker.ConcreteSectionVerifier|get_CreatedCheckers()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteSectionVerifier|get_StandardContext()|GPC.Model.PostProcessing.CheckStandardContext|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteSectionVerifier|get_Version()|System.String|Public, Final, Virtual, HideBySig, VtableLayoutMask, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|CreateVerifier()|GPC.Model.Checker.ConcreteSectionVerifier|Public, HideBySig|
+M|GPC.Model.Checker.ConcreteVerificationOptions|get_AngularDivisions()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|get_ConcreteStressLimitFactor()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|get_ConsiderTensileConcrete()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|get_CrackDesignLimit()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|get_CrackLoadDuration()|GPC.Model.Checker.CrackLoadDuration|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|get_Criterion()|GPC.Checkers.Concrete.SectionSolvers.SectionSolver+FailureAnalysisTypes|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|get_NationalAnnex()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|get_PsiRebar()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|get_PsiTendon()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|get_ServiceabilityAnalysis()|GPC.Checkers.Concrete.SectionSolvers.SectionSolver+StressAnalysisTypes|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|get_ShearCotTheta()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|get_Standard()|GPC.Model.Standards.StandardModelCode2010|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|get_StandardEdition()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|set_AngularDivisions(System.Int32 value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|set_ConcreteStressLimitFactor(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|set_ConsiderTensileConcrete(System.Boolean value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|set_CrackDesignLimit(System.Nullable`1<System.Double> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|set_CrackLoadDuration(GPC.Model.Checker.CrackLoadDuration value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|set_Criterion(GPC.Checkers.Concrete.SectionSolvers.SectionSolver+FailureAnalysisTypes value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|set_NationalAnnex(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|set_PsiRebar(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|set_PsiTendon(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|set_ServiceabilityAnalysis(GPC.Checkers.Concrete.SectionSolvers.SectionSolver+StressAnalysisTypes value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|set_ShearCotTheta(System.Nullable`1<System.Double> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|set_Standard(GPC.Model.Standards.StandardModelCode2010 value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ConcreteVerificationOptions|set_StandardEdition(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BeamCut|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.Configuration.BeamCut|ToLocation()|GPC.Model.PostProcessing.RequiredBeamLocation|Public, HideBySig|
+M|GPC.Model.Checker.Configuration.BeamCut|get_Domain()|GPC.Model.Checker.Configuration.BeamStationDomain|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BeamCut|get_ElementId()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BeamCut|get_Parameter()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BeamCut|get_Side()|GPC.Model.PostProcessing.SectionSide|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BeamCut|set_Domain(GPC.Model.Checker.Configuration.BeamStationDomain value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BeamCut|set_ElementId(System.Int32 value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BeamCut|set_Parameter(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BeamCut|set_Side(GPC.Model.PostProcessing.SectionSide value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeCaseDefinition|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.Configuration.BridgeCaseDefinition|FromCase(GPC.Model.Checker.CompositeBridgeCase value:None)|GPC.Model.Checker.Configuration.BridgeCaseDefinition|Public, Static, HideBySig|
+M|GPC.Model.Checker.Configuration.BridgeCaseDefinition|get_ActionReferenceY()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeCaseDefinition|get_Cut()|GPC.Model.Checker.Configuration.BeamCut|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeCaseDefinition|get_HistoryAndReferenceConfirmed()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeCaseDefinition|get_Input()|GPC.Model.Checker.Configuration.BridgeInputDefinition|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeCaseDefinition|get_SectionAxes()|GPC.Geometry.CoordinateSystem|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeCaseDefinition|get_Source()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeCaseDefinition|get_State()|GPC.Model.PostProcessing.ResultSelection|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeCaseDefinition|set_ActionReferenceY(System.Nullable`1<System.Double> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeCaseDefinition|set_Cut(GPC.Model.Checker.Configuration.BeamCut value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeCaseDefinition|set_HistoryAndReferenceConfirmed(System.Boolean value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeCaseDefinition|set_Input(GPC.Model.Checker.Configuration.BridgeInputDefinition value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeCaseDefinition|set_SectionAxes(GPC.Geometry.CoordinateSystem value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeCaseDefinition|set_Source(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeCaseDefinition|set_State(GPC.Model.PostProcessing.ResultSelection value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|FromInput(GPC.Checkers.CompositeBridge.HBridgeInput value:None)|GPC.Model.Checker.Configuration.BridgeInputDefinition|Public, Static, HideBySig|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|get_BottomRebars()|GPC.Checkers.CompositeBridge.BridgeRebarRow|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|get_Box()|GPC.Checkers.CompositeBridge.BridgeBoxOptions|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|get_Concrete()|GPC.Model.Materials.ConcreteMaterialEN1992|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|get_Fatigue()|GPC.Checkers.CompositeBridge.BridgeFatigueOptions|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|get_Geometry()|GPC.Checkers.CompositeBridge.HSectionDimensions|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|get_Intermediate()|GPC.Checkers.CompositeBridge.BridgeIntermediateStiffener|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|get_Options()|GPC.Checkers.CompositeBridge.BridgeAnalysisOptions|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|get_Phases()|GPC.Checkers.CompositeBridge.BridgePhase[]|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|get_Rebar()|GPC.Model.Materials.SteelMaterial|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|get_Steel()|GPC.Model.Materials.SteelMaterial|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|get_Studs()|GPC.Checkers.CompositeBridge.BridgeStudOptions|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|get_Support()|GPC.Checkers.CompositeBridge.BridgeSupportStiffener|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|get_TopRebars()|GPC.Checkers.CompositeBridge.BridgeRebarRow|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|get_Transverse()|GPC.Checkers.CompositeBridge.BridgeTransverseReinforcement|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|set_BottomRebars(GPC.Checkers.CompositeBridge.BridgeRebarRow value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|set_Box(GPC.Checkers.CompositeBridge.BridgeBoxOptions value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|set_Concrete(GPC.Model.Materials.ConcreteMaterialEN1992 value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|set_Fatigue(GPC.Checkers.CompositeBridge.BridgeFatigueOptions value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|set_Geometry(GPC.Checkers.CompositeBridge.HSectionDimensions value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|set_Intermediate(GPC.Checkers.CompositeBridge.BridgeIntermediateStiffener value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|set_Options(GPC.Checkers.CompositeBridge.BridgeAnalysisOptions value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|set_Phases(GPC.Checkers.CompositeBridge.BridgePhase[] value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|set_Rebar(GPC.Model.Materials.SteelMaterial value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|set_Steel(GPC.Model.Materials.SteelMaterial value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|set_Studs(GPC.Checkers.CompositeBridge.BridgeStudOptions value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|set_Support(GPC.Checkers.CompositeBridge.BridgeSupportStiffener value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|set_TopRebars(GPC.Checkers.CompositeBridge.BridgeRebarRow value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.BridgeInputDefinition|set_Transverse(GPC.Checkers.CompositeBridge.BridgeTransverseReinforcement value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.CheckRouteDefinition|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.Configuration.CheckRouteDefinition|get_Checks()|GPC.Model.PostProcessing.SectionCheckSpecification[]|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.CheckRouteDefinition|get_Elements()|GPC.Model.PostProcessing.ElementSelection|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.CheckRouteDefinition|get_EngineId()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.CheckRouteDefinition|get_Mechanisms()|GPC.Model.PostProcessing.CheckMechanism[]|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.CheckRouteDefinition|get_PlateCheckIds()|System.String[]|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.CheckRouteDefinition|set_Checks(GPC.Model.PostProcessing.SectionCheckSpecification[] value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.CheckRouteDefinition|set_Elements(GPC.Model.PostProcessing.ElementSelection value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.CheckRouteDefinition|set_EngineId(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.CheckRouteDefinition|set_Mechanisms(GPC.Model.PostProcessing.CheckMechanism[] value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.CheckRouteDefinition|set_PlateCheckIds(System.String[] value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.ConfigurationArchive|Copy(GPC.Model.Checker.Configuration.VerificationConfiguration configuration:None)|GPC.Model.Checker.Configuration.VerificationConfiguration|Public, Static, HideBySig|
+M|GPC.Model.Checker.Configuration.ConfigurationArchive|Fingerprint(GPC.Model.Checker.Configuration.VerificationConfiguration configuration:None)|System.String|Public, Static, HideBySig|
+M|GPC.Model.Checker.Configuration.ConfigurationArchive|Load(System.IO.Stream source:None)|GPC.Model.Checker.Configuration.VerificationConfiguration|Public, Static, HideBySig|
+M|GPC.Model.Checker.Configuration.ConfigurationArchive|Save(GPC.Model.Checker.Configuration.VerificationConfiguration configuration:None,System.IO.Stream destination:None)|System.Void|Public, Static, HideBySig|
+M|GPC.Model.Checker.Configuration.ConfiguredCheckJob|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.Configuration.ConfiguredCheckJob|get_Cuts()|GPC.Model.Checker.Configuration.BeamCut[]|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.ConfiguredCheckJob|get_Name()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.ConfiguredCheckJob|get_Plan()|GPC.Model.PostProcessing.BeamCheckPlanRequest|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.ConfiguredCheckJob|get_Routes()|GPC.Model.Checker.Configuration.CheckRouteDefinition[]|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.ConfiguredCheckJob|set_Cuts(GPC.Model.Checker.Configuration.BeamCut[] value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.ConfiguredCheckJob|set_Name(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.ConfiguredCheckJob|set_Plan(GPC.Model.PostProcessing.BeamCheckPlanRequest value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.ConfiguredCheckJob|set_Routes(GPC.Model.Checker.Configuration.CheckRouteDefinition[] value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.ConfiguredPlateJob|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.Configuration.ConfiguredPlateJob|get_Axes()|GPC.Geometry.CoordinateSystem|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.ConfiguredPlateJob|get_AxesKind()|GPC.Model.PostProcessing.ShellInputAxes|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.ConfiguredPlateJob|get_Checks()|GPC.Model.Checker.Configuration.PlateCheckSpecification[]|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.ConfiguredPlateJob|get_Name()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.ConfiguredPlateJob|get_Preparation()|GPC.Model.PostProcessing.PreparationRequest|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.ConfiguredPlateJob|get_Routes()|GPC.Model.Checker.Configuration.CheckRouteDefinition[]|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.ConfiguredPlateJob|set_Axes(GPC.Geometry.CoordinateSystem value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.ConfiguredPlateJob|set_AxesKind(GPC.Model.PostProcessing.ShellInputAxes value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.ConfiguredPlateJob|set_Checks(GPC.Model.Checker.Configuration.PlateCheckSpecification[] value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.ConfiguredPlateJob|set_Name(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.ConfiguredPlateJob|set_Preparation(GPC.Model.PostProcessing.PreparationRequest value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.ConfiguredPlateJob|set_Routes(GPC.Model.Checker.Configuration.CheckRouteDefinition[] value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.DesignContextDefinition|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.Configuration.DesignContextDefinition|get_BridgeCode()|System.Nullable`1<GPC.Checkers.CompositeBridge.BridgeStandard>|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.DesignContextDefinition|get_Code()|GPC.Model.Standards.Standard|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.DesignContextDefinition|get_Edition()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.DesignContextDefinition|get_Id()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.DesignContextDefinition|get_NationalAnnex()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.DesignContextDefinition|get_Revision()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.DesignContextDefinition|get_Source()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.DesignContextDefinition|get_Units()|GPC.Model.Checker.Configuration.CheckUnitConvention|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.DesignContextDefinition|set_BridgeCode(System.Nullable`1<GPC.Checkers.CompositeBridge.BridgeStandard> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.DesignContextDefinition|set_Code(GPC.Model.Standards.Standard value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.DesignContextDefinition|set_Edition(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.DesignContextDefinition|set_Id(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.DesignContextDefinition|set_NationalAnnex(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.DesignContextDefinition|set_Revision(System.Int32 value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.DesignContextDefinition|set_Source(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.DesignContextDefinition|set_Units(GPC.Model.Checker.Configuration.CheckUnitConvention value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineCapability|.ctor(System.String kind:None,System.Int32 schema:None,System.String description:None,System.String limitations:None,System.Func`3<GPC.Model.Checker.Configuration.EngineDefinition,GPC.Model.Checker.Configuration.DesignContextDefinition,GPC.Model.Checker.IMaterialChecker> factory:None,System.Func`4<GPC.Model.Checker.IMaterialChecker,GPC.Model.PostProcessing.CheckMechanism,GPC.Model.PostProcessing.SectionCheckSpecification,System.Boolean> supports:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.Configuration.EngineCapability|get_Description()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineCapability|get_Kind()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineCapability|get_Limitations()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineCapability|get_Schema()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineCatalog|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.Configuration.EngineCatalog|BuiltIn()|GPC.Model.Checker.Configuration.EngineCatalog|Public, Static, HideBySig|
+M|GPC.Model.Checker.Configuration.EngineCatalog|Compile(GPC.Model.Checker.Configuration.VerificationConfiguration configuration:None)|GPC.Model.Checker.MultiMaterialCheckRequest|Public, HideBySig|
+M|GPC.Model.Checker.Configuration.EngineCatalog|CompilePlates(GPC.Model.Checker.Configuration.VerificationConfiguration configuration:None)|GPC.Model.Checker.PlateCheckRequest|Public, HideBySig|
+M|GPC.Model.Checker.Configuration.EngineCatalog|Register(GPC.Model.Checker.Configuration.EngineCapability capability:None)|System.Void|Public, HideBySig|
+M|GPC.Model.Checker.Configuration.EngineCatalog|RegisterPlate(GPC.Model.Checker.Configuration.PlateEngineCapability capability:None)|System.Void|Public, HideBySig|
+M|GPC.Model.Checker.Configuration.EngineCatalog|Supports(GPC.Model.Checker.Configuration.EngineDefinition definition:None,GPC.Model.Checker.Configuration.DesignContextDefinition context:None,GPC.Model.PostProcessing.CheckMechanism mechanism:None,GPC.Model.PostProcessing.SectionCheckSpecification check:Optional, HasDefault=null)|System.Boolean|Public, HideBySig|
+M|GPC.Model.Checker.Configuration.EngineCatalog|get_Capabilities()|System.Collections.Generic.IReadOnlyCollection`1<GPC.Model.Checker.Configuration.EngineCapability>|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineCatalog|get_PlateCapabilities()|System.Collections.Generic.IReadOnlyCollection`1<GPC.Model.Checker.Configuration.PlateEngineCapability>|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineDefinition|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.Configuration.EngineDefinition|get_BridgeCases()|GPC.Model.Checker.Configuration.BridgeCaseDefinition[]|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineDefinition|get_Concrete()|GPC.Model.Checker.ConcreteVerificationOptions|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineDefinition|get_ContextId()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineDefinition|get_ContextRevision()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineDefinition|get_Id()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineDefinition|get_Kind()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineDefinition|get_Parameters()|System.Collections.Generic.Dictionary`2<System.String,System.String>|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineDefinition|get_RequiredImplementationVersion()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineDefinition|get_Schema()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineDefinition|set_BridgeCases(GPC.Model.Checker.Configuration.BridgeCaseDefinition[] value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineDefinition|set_Concrete(GPC.Model.Checker.ConcreteVerificationOptions value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineDefinition|set_ContextId(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineDefinition|set_ContextRevision(System.Int32 value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineDefinition|set_Id(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineDefinition|set_Kind(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineDefinition|set_Parameters(System.Collections.Generic.Dictionary`2<System.String,System.String> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineDefinition|set_RequiredImplementationVersion(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.EngineDefinition|set_Schema(System.Int32 value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateCheckSpecification|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.Configuration.PlateCheckSpecification|Copy()|GPC.Model.Checker.Configuration.PlateCheckSpecification|Public, HideBySig|
+M|GPC.Model.Checker.Configuration.PlateCheckSpecification|get_Category()|GPC.Model.PostProcessing.CombinationCategory|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateCheckSpecification|get_Direction()|GPC.Model.PostProcessing.SectionCheckDirection|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateCheckSpecification|get_Face()|GPC.Model.Checker.Configuration.PlateFaceReference|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateCheckSpecification|get_Id()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateCheckSpecification|get_Mechanism()|GPC.Model.PostProcessing.CheckMechanism|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateCheckSpecification|get_MethodId()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateCheckSpecification|get_ReinforcementRequired()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateCheckSpecification|set_Category(GPC.Model.PostProcessing.CombinationCategory value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateCheckSpecification|set_Direction(GPC.Model.PostProcessing.SectionCheckDirection value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateCheckSpecification|set_Face(GPC.Model.Checker.Configuration.PlateFaceReference value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateCheckSpecification|set_Id(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateCheckSpecification|set_Mechanism(GPC.Model.PostProcessing.CheckMechanism value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateCheckSpecification|set_MethodId(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateCheckSpecification|set_ReinforcementRequired(System.Boolean value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateEngineCapability|.ctor(System.String kind:None,System.Int32 schema:None,System.String description:None,System.String limitations:None,System.Func`3<GPC.Model.Checker.Configuration.EngineDefinition,GPC.Model.Checker.Configuration.DesignContextDefinition,GPC.Model.Checker.IPlateChecker> factory:Optional, HasDefault=null)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.Configuration.PlateEngineCapability|get_Description()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateEngineCapability|get_IsAvailable()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateEngineCapability|get_Kind()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateEngineCapability|get_Limitations()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateEngineCapability|get_Schema()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateFaceReference|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.Configuration.PlateFaceReference|get_NormalFace()|GPC.Model.Checker.Configuration.ShellNormalFace|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateFaceReference|get_PhysicalName()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateFaceReference|set_NormalFace(GPC.Model.Checker.Configuration.ShellNormalFace value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.PlateFaceReference|set_PhysicalName(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.VerificationConfiguration|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.Configuration.VerificationConfiguration|get_Contexts()|GPC.Model.Checker.Configuration.DesignContextDefinition[]|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.VerificationConfiguration|get_Engines()|GPC.Model.Checker.Configuration.EngineDefinition[]|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.VerificationConfiguration|get_Jobs()|GPC.Model.Checker.Configuration.ConfiguredCheckJob[]|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.VerificationConfiguration|get_PlateJobs()|GPC.Model.Checker.Configuration.ConfiguredPlateJob[]|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.VerificationConfiguration|get_Schema()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.VerificationConfiguration|set_Contexts(GPC.Model.Checker.Configuration.DesignContextDefinition[] value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.VerificationConfiguration|set_Engines(GPC.Model.Checker.Configuration.EngineDefinition[] value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.VerificationConfiguration|set_Jobs(GPC.Model.Checker.Configuration.ConfiguredCheckJob[] value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.VerificationConfiguration|set_PlateJobs(GPC.Model.Checker.Configuration.ConfiguredPlateJob[] value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.Configuration.VerificationConfiguration|set_Schema(System.Int32 value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.IMaterialCheckSession|Verify(GPC.Model.PostProcessing.BeamActionInput input:None,GPC.Model.PostProcessing.CheckMechanism mechanism:None,System.Threading.CancellationToken token:None)|GPC.Model.PostProcessing.CheckResult|Public, Virtual, HideBySig, VtableLayoutMask, Abstract|
+M|GPC.Model.Checker.IMaterialCheckSession|get_CreatedCheckers()|System.Int32|Public, Virtual, HideBySig, VtableLayoutMask, Abstract, SpecialName|
+M|GPC.Model.Checker.IMaterialChecker|Accepts(GPC.Model.Elements.BeamElement element:None)|System.Boolean|Public, Virtual, HideBySig, VtableLayoutMask, Abstract|
+M|GPC.Model.Checker.IMaterialChecker|CreateSession()|GPC.Model.Checker.IMaterialCheckSession|Public, Virtual, HideBySig, VtableLayoutMask, Abstract|
+M|GPC.Model.Checker.IMaterialChecker|get_Configuration()|System.String|Public, Virtual, HideBySig, VtableLayoutMask, Abstract, SpecialName|
+M|GPC.Model.Checker.IMaterialChecker|get_Id()|System.String|Public, Virtual, HideBySig, VtableLayoutMask, Abstract, SpecialName|
+M|GPC.Model.Checker.IMaterialChecker|get_Standard()|GPC.Model.PostProcessing.CheckStandardContext|Public, Virtual, HideBySig, VtableLayoutMask, Abstract, SpecialName|
+M|GPC.Model.Checker.IMaterialChecker|get_Version()|System.String|Public, Virtual, HideBySig, VtableLayoutMask, Abstract, SpecialName|
+M|GPC.Model.Checker.IPlateCheckSession|Verify(GPC.Model.PostProcessing.ShellCheckInput input:None,GPC.Model.Checker.Configuration.PlateCheckSpecification check:None,System.Threading.CancellationToken token:None)|GPC.Model.PostProcessing.CheckResult|Public, Virtual, HideBySig, VtableLayoutMask, Abstract|
+M|GPC.Model.Checker.IPlateCheckSession|get_CreatedCheckers()|System.Int32|Public, Virtual, HideBySig, VtableLayoutMask, Abstract, SpecialName|
+M|GPC.Model.Checker.IPlateChecker|Accepts(GPC.Model.Elements.AreaElement element:None)|System.Boolean|Public, Virtual, HideBySig, VtableLayoutMask, Abstract|
+M|GPC.Model.Checker.IPlateChecker|CreateSession()|GPC.Model.Checker.IPlateCheckSession|Public, Virtual, HideBySig, VtableLayoutMask, Abstract|
+M|GPC.Model.Checker.IPlateChecker|Supports(GPC.Model.Checker.Configuration.PlateCheckSpecification check:None)|System.Boolean|Public, Virtual, HideBySig, VtableLayoutMask, Abstract|
+M|GPC.Model.Checker.IPlateChecker|get_Configuration()|System.String|Public, Virtual, HideBySig, VtableLayoutMask, Abstract, SpecialName|
+M|GPC.Model.Checker.IPlateChecker|get_Id()|System.String|Public, Virtual, HideBySig, VtableLayoutMask, Abstract, SpecialName|
+M|GPC.Model.Checker.IPlateChecker|get_Standard()|GPC.Model.PostProcessing.CheckStandardContext|Public, Virtual, HideBySig, VtableLayoutMask, Abstract, SpecialName|
+M|GPC.Model.Checker.IPlateChecker|get_Version()|System.String|Public, Virtual, HideBySig, VtableLayoutMask, Abstract, SpecialName|
+M|GPC.Model.Checker.ISectionCheckSession|Supports(GPC.Model.PostProcessing.SectionCheckSpecification check:None)|System.Boolean|Public, Virtual, HideBySig, VtableLayoutMask, Abstract|
+M|GPC.Model.Checker.ISectionCheckSession|Verify(GPC.Model.PostProcessing.BeamActionInput input:None,GPC.Model.PostProcessing.SectionCheckSpecification check:None,System.Threading.CancellationToken token:None)|GPC.Model.PostProcessing.CheckResult|Public, Virtual, HideBySig, VtableLayoutMask, Abstract|
+M|GPC.Model.Checker.MaterialCheckerAssignment|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.MaterialCheckerAssignment|get_Checker()|GPC.Model.Checker.IMaterialChecker|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.MaterialCheckerAssignment|get_Checks()|GPC.Model.PostProcessing.SectionCheckSpecification[]|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.MaterialCheckerAssignment|get_Mechanisms()|GPC.Model.PostProcessing.CheckMechanism[]|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.MaterialCheckerAssignment|get_Selection()|GPC.Model.PostProcessing.ElementSelection|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.MaterialCheckerAssignment|set_Checker(GPC.Model.Checker.IMaterialChecker value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.MaterialCheckerAssignment|set_Checks(GPC.Model.PostProcessing.SectionCheckSpecification[] value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.MaterialCheckerAssignment|set_Mechanisms(GPC.Model.PostProcessing.CheckMechanism[] value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.MaterialCheckerAssignment|set_Selection(GPC.Model.PostProcessing.ElementSelection value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ModelCheckJob|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.ModelCheckJob|get_BeamPlan()|GPC.Model.PostProcessing.BeamCheckPlanRequest|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ModelCheckJob|get_Name()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ModelCheckJob|get_Options()|GPC.Model.Checker.ConcreteVerificationOptions|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ModelCheckJob|get_Preparation()|GPC.Model.PostProcessing.PreparationRequest|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ModelCheckJob|set_BeamPlan(GPC.Model.PostProcessing.BeamCheckPlanRequest value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ModelCheckJob|set_Name(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ModelCheckJob|set_Options(GPC.Model.Checker.ConcreteVerificationOptions value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ModelCheckJob|set_Preparation(GPC.Model.PostProcessing.PreparationRequest value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ModelCheckReport|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.ModelCheckReport|CurrentOutcome(GPC.Model.Models.Model model:None,System.Func`2<System.String,GPC.Model.PostProcessing.IConcreteSectionVerifier> verifierForJob:None)|GPC.Model.PostProcessing.EngineeringOutcome|Public, HideBySig|
+M|GPC.Model.Checker.ModelCheckReport|CurrentOutcome(GPC.Model.Models.Model model:None,System.Func`2<System.String,GPC.Model.PostProcessing.IConcreteSectionVerifier> verifierForJob:None,System.Func`2<System.String,GPC.Model.PostProcessing.IPhysicalMemberVerifier> memberVerifierForJob:None)|GPC.Model.PostProcessing.EngineeringOutcome|Public, HideBySig|
+M|GPC.Model.Checker.ModelCheckReport|CurrentOutcome(GPC.Model.Models.Model model:None,System.Func`2<System.String,GPC.Model.PostProcessing.IConcreteSectionVerifier> verifierForJob:None,System.Func`2<System.String,GPC.Model.PostProcessing.IPhysicalMemberVerifier> memberVerifierForJob:None,System.Func`2<System.String,GPC.Model.PostProcessing.BeamCheckPlanRequest> currentPlanForJob:None)|GPC.Model.PostProcessing.EngineeringOutcome|Public, HideBySig|
+M|GPC.Model.Checker.ModelCheckReport|get_CreatedCheckers()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ModelCheckReport|get_Elements()|System.Collections.Generic.IReadOnlyList`1<GPC.Model.PostProcessing.ElementCheckReport>|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ModelCheckReport|get_Executed()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ModelCheckReport|get_Groups()|System.Collections.Generic.IReadOnlyList`1<GPC.Model.PostProcessing.CheckResultGroup>|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ModelCheckReport|get_Jobs()|System.Collections.Generic.IReadOnlyList`1<GPC.Model.PostProcessing.CheckReport>|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ModelCheckReport|get_Mechanisms()|System.Collections.Generic.IReadOnlyList`1<GPC.Model.PostProcessing.CheckResultGroup>|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ModelCheckReport|get_Members()|System.Collections.Generic.IReadOnlyList`1<GPC.Model.PostProcessing.CheckResultGroup>|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ModelCheckReport|get_Outcome()|GPC.Model.PostProcessing.EngineeringOutcome|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ModelCheckReport|get_Required()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ModelCheckReport|get_Standards()|System.Collections.Generic.IReadOnlyList`1<GPC.Model.PostProcessing.CheckResultGroup>|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ModelCheckReport|get_Summary()|GPC.Model.PostProcessing.CheckSummary|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ModelCheckRequest|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.ModelCheckRequest|get_Jobs()|System.Collections.Generic.List`1<GPC.Model.Checker.ModelCheckJob>|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.ModelChecker|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.ModelChecker|.ctor(System.Func`2<GPC.Model.Checker.ModelCheckJob,GPC.Model.PostProcessing.IConcreteSectionVerifier> factory:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.ModelChecker|.ctor(System.Func`2<GPC.Model.Checker.ModelCheckJob,GPC.Model.PostProcessing.IConcreteSectionVerifier> sectionFactory:None,System.Func`2<GPC.Model.Checker.ModelCheckJob,GPC.Model.PostProcessing.IPhysicalMemberVerifier> memberFactory:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.ModelChecker|CurrentOutcome(GPC.Model.Checker.ModelCheckReport report:None,GPC.Model.Models.Model model:None,GPC.Model.Checker.Configuration.VerificationConfiguration configuration:None,GPC.Model.Checker.Configuration.EngineCatalog catalog:None)|GPC.Model.PostProcessing.EngineeringOutcome|Public, Static, HideBySig|
+M|GPC.Model.Checker.ModelChecker|CurrentOutcome(GPC.Model.Checker.ModelCheckReport report:None,GPC.Model.Models.Model model:None,GPC.Model.Checker.MultiMaterialCheckRequest request:None)|GPC.Model.PostProcessing.EngineeringOutcome|Public, Static, HideBySig|
+M|GPC.Model.Checker.ModelChecker|CurrentOutcome(GPC.Model.Checker.ModelCheckReport report:None,GPC.Model.Models.Model model:None,GPC.Model.Checker.PlateCheckRequest request:None)|GPC.Model.PostProcessing.EngineeringOutcome|Public, Static, HideBySig|
+M|GPC.Model.Checker.ModelChecker|CurrentOutcome(System.Collections.Generic.IEnumerable`1<GPC.Model.PostProcessing.CheckReport> reports:None,GPC.Model.Models.Model model:None,GPC.Model.Checker.MultiMaterialCheckRequest request:None)|GPC.Model.PostProcessing.EngineeringOutcome|Public, Static, HideBySig|
+M|GPC.Model.Checker.ModelChecker|PreparePlates(GPC.Model.Models.Model model:None,GPC.Model.Checker.PlateCheckRequest request:None,System.Threading.CancellationToken token:Optional, HasDefault=null)|System.Collections.Generic.IReadOnlyList`1<GPC.Model.Checker.PlateCheckPlan>|Public, Static, HideBySig|
+M|GPC.Model.Checker.ModelChecker|Verify(GPC.Model.Checking.VerificationSnapshot snapshot:None,GPC.Model.Checker.Configuration.VerificationConfiguration configuration:None,GPC.Model.Checker.Configuration.EngineCatalog catalog:None,System.Threading.CancellationToken token:Optional, HasDefault=null,System.IProgress`1<GPC.Model.Checker.VerificationProgress> progress:Optional, HasDefault=null)|GPC.Model.Checker.ModelCheckReport|Public, HideBySig|
+M|GPC.Model.Checker.ModelChecker|Verify(GPC.Model.Checking.VerificationSnapshot snapshot:None,GPC.Model.Checker.ModelCheckRequest request:None,System.Threading.CancellationToken token:Optional, HasDefault=null,System.IProgress`1<GPC.Model.Checker.VerificationProgress> progress:Optional, HasDefault=null)|GPC.Model.Checker.ModelCheckReport|Public, HideBySig|
+M|GPC.Model.Checker.ModelChecker|Verify(GPC.Model.Checking.VerificationSnapshot snapshot:None,GPC.Model.Checker.MultiMaterialCheckRequest request:None,System.Threading.CancellationToken token:Optional, HasDefault=null,System.IProgress`1<GPC.Model.Checker.VerificationProgress> progress:Optional, HasDefault=null)|GPC.Model.Checker.ModelCheckReport|Public, HideBySig|
+M|GPC.Model.Checker.ModelChecker|Verify(GPC.Model.Checking.VerificationSnapshot snapshot:None,GPC.Model.Checker.PlateCheckRequest request:None,System.Threading.CancellationToken token:Optional, HasDefault=null,System.IProgress`1<GPC.Model.Checker.VerificationProgress> progress:Optional, HasDefault=null)|GPC.Model.Checker.ModelCheckReport|Public, HideBySig|
+M|GPC.Model.Checker.ModelChecker|Verify(GPC.Model.Models.Model model:None,GPC.Model.Checker.Configuration.VerificationConfiguration configuration:None,GPC.Model.Checker.Configuration.EngineCatalog catalog:None,System.Threading.CancellationToken token:Optional, HasDefault=null,System.IProgress`1<GPC.Model.Checker.VerificationProgress> progress:Optional, HasDefault=null)|GPC.Model.Checker.ModelCheckReport|Public, HideBySig|
+M|GPC.Model.Checker.ModelChecker|Verify(GPC.Model.Models.Model model:None,GPC.Model.Checker.ModelCheckRequest request:None,System.Threading.CancellationToken cancellationToken:Optional, HasDefault=null,System.IProgress`1<GPC.Model.Checker.VerificationProgress> progress:Optional, HasDefault=null)|GPC.Model.Checker.ModelCheckReport|Public, HideBySig|
+M|GPC.Model.Checker.ModelChecker|Verify(GPC.Model.Models.Model model:None,GPC.Model.Checker.MultiMaterialCheckRequest request:None,System.Threading.CancellationToken token:Optional, HasDefault=null,System.IProgress`1<GPC.Model.Checker.VerificationProgress> progress:Optional, HasDefault=null)|GPC.Model.Checker.ModelCheckReport|Public, HideBySig|
+M|GPC.Model.Checker.ModelChecker|Verify(GPC.Model.Models.Model model:None,GPC.Model.Checker.PlateCheckRequest request:None,System.Threading.CancellationToken token:Optional, HasDefault=null,System.IProgress`1<GPC.Model.Checker.VerificationProgress> progress:Optional, HasDefault=null)|GPC.Model.Checker.ModelCheckReport|Public, HideBySig|
+M|GPC.Model.Checker.ModelChecker|Verify(GPC.Model.PostProcessing.PreparedVerification prepared:None,GPC.Model.Checker.ModelCheckRequest request:None,System.Threading.CancellationToken token:Optional, HasDefault=null,System.IProgress`1<GPC.Model.Checker.VerificationProgress> progress:Optional, HasDefault=null)|GPC.Model.Checker.ModelCheckReport|Public, HideBySig|
+M|GPC.Model.Checker.ModelChecker|Verify(GPC.Model.PostProcessing.PreparedVerification prepared:None,GPC.Model.Checker.MultiMaterialCheckRequest request:None,System.Threading.CancellationToken token:Optional, HasDefault=null,System.IProgress`1<GPC.Model.Checker.VerificationProgress> progress:Optional, HasDefault=null)|GPC.Model.Checker.ModelCheckReport|Public, HideBySig|
+M|GPC.Model.Checker.MultiMaterialCheckJob|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.MultiMaterialCheckJob|get_Assignments()|GPC.Model.Checker.MaterialCheckerAssignment[]|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.MultiMaterialCheckJob|get_Name()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.MultiMaterialCheckJob|get_Plan()|GPC.Model.PostProcessing.BeamCheckPlanRequest|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.MultiMaterialCheckJob|set_Assignments(GPC.Model.Checker.MaterialCheckerAssignment[] value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.MultiMaterialCheckJob|set_Name(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.MultiMaterialCheckJob|set_Plan(GPC.Model.PostProcessing.BeamCheckPlanRequest value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.MultiMaterialCheckRequest|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.MultiMaterialCheckRequest|get_Jobs()|System.Collections.Generic.List`1<GPC.Model.Checker.MultiMaterialCheckJob>|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckJob|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.PlateCheckJob|get_Assignments()|GPC.Model.Checker.PlateCheckerAssignment[]|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckJob|get_Axes()|GPC.Geometry.CoordinateSystem|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckJob|get_AxesKind()|GPC.Model.PostProcessing.ShellInputAxes|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckJob|get_Checks()|GPC.Model.Checker.Configuration.PlateCheckSpecification[]|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckJob|get_Name()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckJob|get_Preparation()|GPC.Model.PostProcessing.PreparationRequest|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckJob|set_Assignments(GPC.Model.Checker.PlateCheckerAssignment[] value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckJob|set_Axes(GPC.Geometry.CoordinateSystem value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckJob|set_AxesKind(GPC.Model.PostProcessing.ShellInputAxes value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckJob|set_Checks(GPC.Model.Checker.Configuration.PlateCheckSpecification[] value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckJob|set_Name(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckJob|set_Preparation(GPC.Model.PostProcessing.PreparationRequest value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckPlan|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.PlateCheckPlan|get_IsCurrent()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckPlan|get_Name()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckPlan|get_ScopeFingerprint()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckPlan|get_WorkItems()|System.Collections.Generic.IReadOnlyList`1<GPC.Model.Checker.PlateCheckTask>|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckRequest|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.PlateCheckRequest|get_Jobs()|System.Collections.Generic.List`1<GPC.Model.Checker.PlateCheckJob>|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckTask|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.PlateCheckTask|get_Check()|GPC.Model.Checker.Configuration.PlateCheckSpecification|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckTask|get_CheckerId()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckTask|get_Data()|GPC.Model.PostProcessing.DataStatus|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckTask|get_ElementId()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckTask|get_Id()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckTask|get_Input()|GPC.Model.PostProcessing.ShellCheckInput|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckTask|get_Selection()|GPC.Model.PostProcessing.ResultSelection|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckerAssignment|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.PlateCheckerAssignment|get_CheckIds()|System.String[]|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckerAssignment|get_Checker()|GPC.Model.Checker.IPlateChecker|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckerAssignment|get_EngineId()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckerAssignment|get_Mechanisms()|GPC.Model.PostProcessing.CheckMechanism[]|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckerAssignment|get_Selection()|GPC.Model.PostProcessing.ElementSelection|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckerAssignment|set_CheckIds(System.String[] value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckerAssignment|set_Checker(GPC.Model.Checker.IPlateChecker value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckerAssignment|set_EngineId(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckerAssignment|set_Mechanisms(GPC.Model.PostProcessing.CheckMechanism[] value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.PlateCheckerAssignment|set_Selection(GPC.Model.PostProcessing.ElementSelection value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.SteelMaterialChecker|.ctor(GPC.Model.Standards.StandardEN1993p11 code:None,System.String edition:None,System.String nationalAnnex:Optional, HasDefault=null)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.SteelMaterialChecker|Accepts(GPC.Model.Elements.BeamElement element:None)|System.Boolean|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Model.Checker.SteelMaterialChecker|CreateSession()|GPC.Model.Checker.IMaterialCheckSession|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Model.Checker.SteelMaterialChecker|get_Code()|GPC.Model.Standards.StandardEN1993p11|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.SteelMaterialChecker|get_Configuration()|System.String|Public, Final, Virtual, HideBySig, VtableLayoutMask, SpecialName|
+M|GPC.Model.Checker.SteelMaterialChecker|get_Edition()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.SteelMaterialChecker|get_Id()|System.String|Public, Final, Virtual, HideBySig, VtableLayoutMask, SpecialName|
+M|GPC.Model.Checker.SteelMaterialChecker|get_NationalAnnex()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.SteelMaterialChecker|get_Standard()|GPC.Model.PostProcessing.CheckStandardContext|Public, Final, Virtual, HideBySig, VtableLayoutMask, SpecialName|
+M|GPC.Model.Checker.SteelMaterialChecker|get_Version()|System.String|Public, Final, Virtual, HideBySig, VtableLayoutMask, SpecialName|
+M|GPC.Model.Checker.VerificationProgress|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Model.Checker.VerificationProgress|get_Completed()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.VerificationProgress|get_ElementId()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.VerificationProgress|get_Family()|GPC.Model.PostProcessing.EntityFamily|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.VerificationProgress|get_Job()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.VerificationProgress|get_Target()|GPC.Model.PostProcessing.CheckTargetReference|Public, HideBySig, SpecialName|
+M|GPC.Model.Checker.VerificationProgress|get_Total()|System.Int32|Public, HideBySig, SpecialName|
+T|GPC.Model.Checker.CompositeBridgeCase|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.CompositeBridgeMaterialChecker|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=GPC.Model.Checker.IMaterialChecker|
+T|GPC.Model.Checker.ConcreteMaterialChecker|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=GPC.Model.Checker.IMaterialChecker|
+T|GPC.Model.Checker.ConcreteSectionVerifier|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=GPC.Model.PostProcessing.IConcreteSectionVerifier,GPC.Model.PostProcessing.IConfiguredSectionVerifier,GPC.Model.PostProcessing.IPhysicalMemberVerifier,GPC.Model.PostProcessing.ISectionCheckVerifier|
+T|GPC.Model.Checker.ConcreteVerificationOptions|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.Configuration.BeamCut|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.Configuration.BeamStationDomain|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
+T|GPC.Model.Checker.Configuration.BridgeCaseDefinition|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.Configuration.BridgeInputDefinition|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.Configuration.CheckRouteDefinition|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.Configuration.CheckUnitConvention|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
+T|GPC.Model.Checker.Configuration.ConfigurationArchive|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.Configuration.ConfiguredCheckJob|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.Configuration.ConfiguredPlateJob|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.Configuration.DesignContextDefinition|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.Configuration.EngineCapability|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.Configuration.EngineCatalog|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.Configuration.EngineDefinition|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.Configuration.PlateCheckSpecification|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.Configuration.PlateEngineCapability|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.Configuration.PlateFaceReference|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.Configuration.ShellNormalFace|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
+T|GPC.Model.Checker.Configuration.VerificationConfiguration|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.CrackLoadDuration|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
+T|GPC.Model.Checker.IMaterialCheckSession|Public, ClassSemanticsMask, Abstract, BeforeFieldInit|base=-|interfaces=|
+T|GPC.Model.Checker.IMaterialChecker|Public, ClassSemanticsMask, Abstract, BeforeFieldInit|base=-|interfaces=|
+T|GPC.Model.Checker.IPlateCheckSession|Public, ClassSemanticsMask, Abstract, BeforeFieldInit|base=-|interfaces=|
+T|GPC.Model.Checker.IPlateChecker|Public, ClassSemanticsMask, Abstract, BeforeFieldInit|base=-|interfaces=|
+T|GPC.Model.Checker.ISectionCheckSession|Public, ClassSemanticsMask, Abstract, BeforeFieldInit|base=-|interfaces=GPC.Model.Checker.IMaterialCheckSession|
+T|GPC.Model.Checker.MaterialCheckerAssignment|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.ModelCheckJob|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.ModelCheckReport|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.ModelCheckRequest|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.ModelChecker|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.MultiMaterialCheckJob|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.MultiMaterialCheckRequest|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.PlateCheckJob|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.PlateCheckPlan|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.PlateCheckRequest|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.PlateCheckTask|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.PlateCheckerAssignment|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Model.Checker.SteelMaterialChecker|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=GPC.Model.Checker.IMaterialChecker|
+T|GPC.Model.Checker.VerificationProgress|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|

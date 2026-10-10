@@ -1,0 +1,9 @@
+<Project>
+  <!-- Release DLLs independent of the checkout path: SourceLink maps the repository root to /_/ in the PDB and in the PE
+       debug directory, so the SHA-256 depends on sources, commit and referenced assemblies only. Debug keeps local paths.
+       Old-style net472 test projects (Test.Concrete, Test.Steel) are not SDK projects and are not affected. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(UsingMicrosoftNETSdk)' == 'true'">
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+</Project>
