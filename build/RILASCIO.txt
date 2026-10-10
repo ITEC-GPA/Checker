@@ -1,0 +1,44 @@
+TRENO DI RILASCIO DELLE LIBRERIE GPC
+Regole del 10/10/2026 (revisione di architettura, punto R3, e decisioni dell'utente).
+
+PERIMETRO E DIREZIONE DELLE DIPENDENZE
+Utilities <- Geometry (GPCGeometry, DelaunayMesh) <- Model (GPCModel, GPCModelData,
+GPC.Model.Persistence, GPC Converter) <- Checker (Concrete, Steel, CompositeBridge,
+Geotechnics, GPCModelChecker) <- ANTHEA. Nessuna dipendenza all'indietro: Model fissa
+solo Geometry e Utilities; ModelChecker sta in Checker.
+
+REGOLE
+1. Versioni. Le assegna l'utente, oppure un agente dopo avergli chiesto. Sui branch di
+   lavoro restano quelle di master; il numero nuovo entra con il commit di versione su
+   master. Nessuno strumento cambia le versioni da solo.
+2. Un solo treno. Si rilascia un set coerente di commit dei quattro repository, mai
+   una libreria isolata. Se cambia Model, il set comprende il Checker compilato contro
+   quel Model.
+3. Il set lo produce build/Release-Set.ps1 da checkout puliti: controlla che Model fissi
+   i binari committati di Geometry e Utilities del set, esegue tutte le suite, copia le
+   dodici DLL e scrive release-set.json (versioni, SHA-256, commit, esiti delle suite).
+4. Nessun rilascio senza tutte le suite verdi: Model (Core, UnitTest, API), Checker
+   (Concrete e Steel net472, CompositeBridge, Geotechnics, Calculation, ModelChecker,
+   API). Sono ammessi solo i fallimenti elencati per nome in build/known-failures.json.
+5. Una DLL con SHA-256 diverso dal set precedente deve avere una versione piu' alta:
+   Release-Set.ps1 -Previous rifiuta il set altrimenti. Due build diverse non possono
+   avere la stessa versione.
+6. Build deterministiche (Directory.Build.props): gli stessi commit danno gli stessi
+   SHA-256 in qualunque cartella. Le ricette con cartelle fisse non servono piu'.
+7. ANTHEA installa lib/Checker solo da un set di rilascio
+   (tools/libs/Update-Snapshot.ps1 -ReleaseSet <cartella>), che ricontrolla gli SHA-256.
+
+PROCEDURA
+a. Lavoro su un branch da master aggiornato; suite del repository toccato.
+b. Merge su master con l'ok dell'utente.
+c. L'utente assegna le versioni delle DLL cambiate. Commit di versione su master:
+   Utilities e Geometry ricompilano in Release e committano bin/Release; Model aggiorna
+   in build/dependencies.props versioni e SHA-256 di Geometry e Utilities.
+d. Release-Set.ps1 -Root <checkout puliti> -Out <cartella nuova> -Previous <set precedente>.
+e. Push dei commit con l'ok dell'utente; poi in ANTHEA Update-Snapshot.ps1 -ReleaseSet
+   <cartella> -Install, profilo full del runner e voce nel README di lib/Checker.
+
+SET CANDIDATO
+Release-Set.ps1 -Candidate ammette branch e commit non pushati e salta il controllo
+delle versioni: il set e' marcato candidate. ANTHEA lo installa solo con -AllowCandidate,
+per prove su branch, mai come rilascio.
