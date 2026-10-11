@@ -43,10 +43,10 @@ public static class CompositeLinearStressSolver
         var axes = new CoordinateSystem(new Point2d(applicationX, applicationY), new Vector3d(-1, 0, 0), new Vector3d(0, -1, 0));
         var options = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(axes, SectionSolver.FailureAnalysisTypes.ConstantN,
             SectionSolver.FailureDomainTypes.Elastic, SectionSolver.StressAnalysisTypes.Linear, effectivePhi, 0, true, 16);
-        SectionCheckerModelCode2010 checker;
-        lock (CompositeSolverSynchronization.Construction)
-            checker = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section), options,
-                standard == BridgeStandard.Ntc2018 ? new StandardNTC2018Concrete() : new StandardEN1992p11(), true, -1, new StandardEN1993p11());
+        // No construction gate: the section meshes are created once under the section lock (Model), and independent engines on the
+        // same section are thread-safe (architecture review R7, ConcurrencyTests).
+        var checker = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section), options,
+            standard == BridgeStandard.Ntc2018 ? new StandardNTC2018Concrete() : new StandardEN1992p11(), true, -1, new StandardEN1993p11());
         var response = checker.SectionSolver.GetLinearStressAnalysisResult(new ResultBeamForces(forceN, 0, 0, 0, momentNmm, 0, axes), effectivePhi, 0);
         var vertices = response.GetStructuralSteelVerticesTension(effectivePhi).OrderBy(v => v.point.Y).ToArray();
         if (vertices.Length < 2 || vertices.Last().point.Y <= vertices.First().point.Y)

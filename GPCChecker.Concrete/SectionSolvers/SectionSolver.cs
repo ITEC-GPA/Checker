@@ -666,7 +666,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 cancellationToken.ThrowIfCancellationRequested();
                 var point = ToForceReferenceAxes(strategy.CalculateDomainPoint(force, criterion));
                 cancellationToken.ThrowIfCancellationRequested();
-                if (accepted(point)) { _log.Add("Returned-point validation selected " + strategy.GetType().Name); return point; }
+                if (accepted(point)) { AddLog("Returned-point validation selected " + strategy.GetType().Name); return point; }
             }
             return first;
         }
@@ -728,7 +728,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
             catch (Exception e)
             {
-                _log.Add($"Iterative strategy: {e.Message}");
+                AddLog($"Iterative strategy: {e.Message}");
             }
 
             try
@@ -736,16 +736,16 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 FailureDomain.FailureDomainPoint point = new DomainPointStrategyBisection(this).CalculateDomainPoint(force, failureAnalysisTypeOverride);
                 if (point != null)
                 {
-                    _log.Add("Iterative strategy failed: bisection strategy used");
+                    AddLog("Iterative strategy failed: bisection strategy used");
                     return point;
                 }
             }
             catch (Exception e)
             {
-                _log.Add($"Bisection strategy: {e.Message}");
+                AddLog($"Bisection strategy: {e.Message}");
             }
 
-            _log.Add("Iterative and bisection strategies failed: intersection strategy used");
+            AddLog("Iterative and bisection strategies failed: intersection strategy used");
             lock (_fallbackStrategyLock)
             {
                 if (_fallbackDomainPointStrategy == null)
@@ -934,9 +934,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
             catch (Exception e)
             {
-                _log.Add(e.Message);
+                AddLog(e.Message);
                 if (e.InnerException != null)
-                    _log.Add(e.InnerException.Message);
+                    AddLog(e.InnerException.Message);
                 return new ForceTuple();
             }
         }
@@ -963,9 +963,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
             catch (Exception e)
             {
-                _log.Add(e.Message);
+                AddLog(e.Message);
                 if (e.InnerException != null)
-                    _log.Add(e.InnerException.Message);
+                    AddLog(e.InnerException.Message);
                 return new ForceTuple();
             }
         }
@@ -1011,9 +1011,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
             catch (Exception e)
             {
-                _log.Add(e.Message);
+                AddLog(e.Message);
                 if (e.InnerException != null)
-                    _log.Add(e.InnerException.Message);
+                    AddLog(e.InnerException.Message);
                 return null;
             }
         }
@@ -1032,9 +1032,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
             catch (Exception e)
             {
-                _log.Add(e.Message);
+                AddLog(e.Message);
                 if (e.InnerException != null)
-                    _log.Add(e.InnerException.Message);
+                    AddLog(e.InnerException.Message);
                 return new ForceTuple();
             }
         }
@@ -1067,7 +1067,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
             catch (Exception e)
             {
-                _log.Add(e.Message);
+                AddLog(e.Message);
                 return new ForceTuple();
             }
         }
@@ -1096,7 +1096,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
             catch (Exception e)
             {
-                _log.Add(e.Message);
+                AddLog(e.Message);
                 return new ForceTuple();
             }
         }
@@ -1127,7 +1127,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
             catch (Exception e)
             {
-                _log.Add(e.Message);
+                AddLog(e.Message);
                 return null;
             }
         }
@@ -1988,9 +1988,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
             catch (Exception e)
             {
-                _log.Add(e.Message);
+                AddLog(e.Message);
                 if (e.InnerException != null)
-                    _log.Add(e.InnerException.Message);
+                    AddLog(e.InnerException.Message);
                 return null;
             }
 
@@ -2015,9 +2015,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
             catch (Exception e)
             {
-                _log.Add(e.Message);
+                AddLog(e.Message);
                 if (e.InnerException != null)
-                    _log.Add(e.InnerException.Message);
+                    AddLog(e.InnerException.Message);
                 return null;
             }
 
@@ -2563,16 +2563,16 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                         }
                         catch (Exception e)
                         {
-                            _log.Add(e.Message);
+                            AddLog(e.Message);
                             if (e.InnerException != null)
-                                _log.Add(e.InnerException.Message);
-                            _log.Add("Fail to calculate find strain plane");
+                                AddLog(e.InnerException.Message);
+                            AddLog("Fail to calculate find strain plane");
                             return null;
                         }
                     }
                     else
                     {
-                        _log.Add("Fail to calculate find strain plane");
+                        AddLog("Fail to calculate find strain plane");
                         return null;
                     }
 
@@ -2677,9 +2677,18 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             info.AddValue("SectionOption", _sectionOption);
         }
 
+        /// <summary>A copy of the log. The solver writes it from its own parallel loops (architecture review R7)</summary>
         public List<string> GetLog()
         {
-            return _log;
+            lock (_log)
+                return new List<string>(_log);
+        }
+
+        /// <summary>Adds a log entry: several searches of the same solver run in parallel (List is not thread-safe)</summary>
+        private void AddLog(string entry)
+        {
+            lock (_log)
+                _log.Add(entry);
         }
 
         #endregion

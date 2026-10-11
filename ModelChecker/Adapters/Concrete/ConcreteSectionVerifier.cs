@@ -22,7 +22,9 @@ namespace GPC.Model.Checker
     /// <summary>Optional headless adapter to the installed Checker. No FEM solving or resistance formula is implemented here.</summary>
     public sealed partial class ConcreteSectionVerifier : ISectionCheckVerifier
     {
-        private static readonly object Sync = new object();
+        // Per verifier: it guards the checkers of this verifier and their engines. Independent engines are thread-safe, also on the same
+        // section (architecture review R7), so different verifiers can run in parallel; before, one static lock serialized the process.
+        private readonly object Sync = new object();
         private readonly StandardModelCode2010 _standard;
         private readonly SectionSolver.FailureAnalysisTypes _criterion;
         private readonly bool _considerTension;

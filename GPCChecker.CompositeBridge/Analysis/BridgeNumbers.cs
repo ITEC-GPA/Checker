@@ -25,7 +25,12 @@ namespace GPC.Checkers.CompositeBridge
         public bool Equals(BridgePhase? x, BridgePhase? y) => ReferenceEquals(x, y);
         public int GetHashCode(BridgePhase obj) => RuntimeHelpers.GetHashCode(obj);
     }
-    /// <summary>Shared construction gate for the existing concrete solver's static initialization.</summary>
+    /// <summary>
+    /// Former construction gate of the concrete solver. Not needed: the section meshes are created once under the section lock (Model) and
+    /// independent engines on the same section are thread-safe (architecture review R7; ConcurrencyTests of Concrete and CompositeBridge).
+    /// Kept so that the callers that still lock on it keep compiling; a lock on it is harmless and serializes only those callers.
+    /// </summary>
+    [Obsolete("Not needed: the concrete engine construction is thread-safe (architecture review R7). Remove the lock.")]
     public static class CompositeSolverSynchronization
     {
         public static object Construction { get; } = new object();
