@@ -347,7 +347,7 @@ namespace GPC.Checkers.Concrete.Response
             MomentCurvatureLimit Limit(double n, double cx, double sy)
             {
                 // Direction of the moment as in ANTHEA: unit components in kNm.
-                var point = domain.CalculateForce(new ResultBeamForces(n, 0, 0, 0, cx * 1e6, sy * 1e6, axes));
+                var point = domain.CalculatePoint(new ResultBeamForces(n, 0, 0, 0, cx * 1e6, sy * 1e6, axes));
                 if (point?.StrainPlane == null) return null;
                 return new MomentCurvatureLimit(point.NRd, point.MxRd, point.MyRd, MomentCurvatureStrains.From(point.StrainPlane, section));
             }

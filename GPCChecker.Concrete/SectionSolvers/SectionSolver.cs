@@ -671,7 +671,23 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return first;
         }
 
+        /// <summary>Message of the public entry points that return the raw domain point (architecture review R2).</summary>
+        internal const string RawDomainPointMessage = "Raw domain point, not checked against the search constraints. "
+            + "Use ISectionResistanceSolver (LegacySectionCalculation.SolveResistance), the single owner of the ULS resistance.";
+
+        /// <summary>
+        /// Raw domain points of the configured strategy with its fallbacks. The returned point is not checked against the search
+        /// constraints: <see cref="Analysis.LegacySectionCalculation.SolveResistance"/> accepts a point only when it satisfies them and
+        /// otherwise tries the other strategies
+        /// </summary>
+        [Obsolete(RawDomainPointMessage)]
         public FailureDomain.FailureDomainPoint[] CalculateDomainPoint(ResultBeamForces[] force)
+        {
+            return CalculateDomainPoints(force);
+        }
+
+        /// <summary>Raw domain points in parallel, for the library callers that check the point themselves</summary>
+        internal FailureDomain.FailureDomainPoint[] CalculateDomainPoints(ResultBeamForces[] force)
         {
             FailureDomain.FailureDomainPoint[] result = new FailureDomain.FailureDomainPoint[force.Length];
 

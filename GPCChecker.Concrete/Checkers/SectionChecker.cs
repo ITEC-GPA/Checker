@@ -473,6 +473,8 @@ namespace GPC.Checkers.Concrete.Checkers
         /// Calculate the plastic domain point for input force
         /// </summary>
         /// <returns>The failure domain point</returns>
+        /// <remarks>Raw point, not checked against the search constraints (architecture review R2)</remarks>
+        [Obsolete(SectionSolver.RawDomainPointMessage)]
         public FailureDomain.FailureDomainPoint CalculateFailureDomainPoint(ResultBeamForces force, SectionSolver.FailureAnalysisTypes? failureAnalysisTypeOverride = null)
         {
             return _solver.CalculateDomainPoint(force, failureAnalysisTypeOverride);
@@ -484,7 +486,7 @@ namespace GPC.Checkers.Concrete.Checkers
         /// <returns>The failure domain points</returns>
         internal FailureDomain.FailureDomainPoint[] CalculateFailureDomainPoint(ResultBeamForces[] forces)
         {
-            return _solver.CalculateDomainPoint(forces);
+            return _solver.CalculateDomainPoints(forces);
         }
 
         /// <summary>

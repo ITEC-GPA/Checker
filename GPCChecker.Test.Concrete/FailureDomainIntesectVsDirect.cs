@@ -1,4 +1,6 @@
-﻿using GPC.Checkers.Concrete.Attributes;
+﻿// Raw domain points on purpose: these tests check the public raw entry points (architecture review R2).
+#pragma warning disable CS0618
+using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;

@@ -1,3 +1,5 @@
+// Raw domain points on purpose: these tests check the public raw entry points (architecture review R2).
+#pragma warning disable CS0618
 using System;
 using System.IO;
 using System.Linq;
@@ -72,6 +74,25 @@ namespace ConcreteTests
             Assert.AreEqual(CalculationStatus.Completed, response.Diagnostics.Status);
             Assert.AreEqual(point.NRd, response.N.Value, 1e-6);
             Assert.AreEqual(point.CalculateWorkingRatio(SectionSolver.FailureAnalysisTypes.ConstantN, f.force, 1e6, 1000), response.Utilization.Value, 1e-12);
+        }
+        [TestMethod]
+        public void RawDomainPointEntriesAreObsoleteAndUnchanged()
+        {
+            // Architecture review R2: ISectionResistanceSolver is the single owner of the ULS resistance; the raw entry points stay public only
+            // as [Obsolete], with the same results.
+            var raw = new[] {
+                typeof(SectionSolver).GetMethod(nameof(SectionSolver.CalculateDomainPoint), new[] { typeof(ResultBeamForces[]) }),
+                typeof(SectionChecker).GetMethod(nameof(SectionChecker.CalculateFailureDomainPoint), new[] { typeof(ResultBeamForces), typeof(SectionSolver.FailureAnalysisTypes?) }),
+                typeof(GPC.Checkers.Concrete.Results.FailureDomainResult).GetMethod(nameof(GPC.Checkers.Concrete.Results.FailureDomainResult.CalculateForce)) };
+            foreach (var method in raw)
+                StringAssert.Contains(((ObsoleteAttribute)Attribute.GetCustomAttribute(method, typeof(ObsoleteAttribute))).Message, "ISectionResistanceSolver", method.Name);
+            var f = Setup(false); var single = f.checker.CalculateFailureDomainPoint(f.force);
+            var batch = f.checker.SectionSolver.CalculateDomainPoint(new[] { f.force })[0];
+            var domain = f.checker.GetFailureDomainResult().CalculateForce(f.force);
+            foreach (var point in new[] { batch, domain })
+            {
+                Assert.AreEqual(single.NRd, point.NRd); Assert.AreEqual(single.MxRd, point.MxRd); Assert.AreEqual(single.MyRd, point.MyRd);
+            }
         }
         [TestMethod]
         public void AlternativeSolverFeedsSameMethodWithBoundaryJudgment()

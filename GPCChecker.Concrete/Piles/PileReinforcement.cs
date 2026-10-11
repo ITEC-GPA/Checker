@@ -217,7 +217,7 @@ namespace GPC.Checkers.Concrete.Piles
         double Moment(double n,int sign)
         {
             // Native solver uses N in newtons, negative in compression. Constant-N must be selected by caller.
-            var point=p.Solver.CalculateDomainPoint(new[]{new ResultBeamForces(-n*1000,0,0,0,sign*1e6,0,p.Axes)})[0];
+            var point=p.Solver.CalculateDomainPoints(new[]{new ResultBeamForces(-n*1000,0,0,0,sign*1e6,0,p.Axes)})[0];
             if(point==null||!Finite(point.NRd+point.MxRd+point.MyRd)||Math.Abs(point.NRd+n*1000)>Math.Max(1000,Math.Abs(n)*.001)||point.MxRd*sign<0||Math.Abs(point.MyRd)>Math.Max(1e6,Math.Abs(point.MxRd)*.001))throw new ArgumentException("Equilibrio N o direzione non rispettati.");
             return point.MxRd/1e6;
         }

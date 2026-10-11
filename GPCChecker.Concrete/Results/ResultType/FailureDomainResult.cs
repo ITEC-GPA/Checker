@@ -345,8 +345,15 @@ namespace GPC.Checkers.Concrete.Results
         /// <param name="force">The force to add</param>
         /// <returns>The corresponding domain point</returns>
         /// <exception cref="ArgumentNullException">Thrown when forces is null</exception>
-        /// <remarks>Force is not added to list of forces</remarks>
+        /// <remarks>Force is not added to list of forces. Raw point, not checked against the search constraints (architecture review R2)</remarks>
+        [Obsolete(SectionSolver.RawDomainPointMessage)]
         public FailureDomain.FailureDomainPoint CalculateForce(ResultBeamForces force)
+        {
+            return CalculatePoint(force);
+        }
+
+        /// <summary>Raw domain point of a single force, for the library callers that check the point themselves</summary>
+        internal FailureDomain.FailureDomainPoint CalculatePoint(ResultBeamForces force)
         {
             if (force is null)
             {
