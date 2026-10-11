@@ -66,7 +66,7 @@ try {
             Invoke-Checked "Build $p" { & $msbuild "$p\$p.csproj" /p:Configuration=Release /p:BuildProjectReferences=false /nologo /v:m }
         }
         $net = @('GPCChecker.Test.CompositeBridge\GPCChecker.Test.CompositeBridge.csproj', 'GPCChecker.Test.Geotechnics\GPCChecker.Test.Geotechnics.csproj',
-            'GPCChecker.Test.Calculation\GPCChecker.Test.Calculation.csproj') + $net
+            'GPCChecker.Test.Calculation\GPCChecker.Test.Calculation.csproj', 'tests\ShallowFoundation.Tests\ShallowFoundation.Tests.csproj') + $net
     }
     foreach ($p in $net) { Invoke-Checked "Build $p" { dotnet build $p -c Release -nologo -v:q } }
 
