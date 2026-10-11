@@ -222,7 +222,8 @@ public class DurabilityDetailingTest
         var loaded = ModelArchive.Load(stream).BeamElements[250].Assignments.Sections[0].Section;
         Assert.AreEqual(section.DurabilityData, loaded.DurabilityData); Assert.AreEqual(section, loaded);
         // A section without durability data keeps its content: the entry is written only when present.
-        static string Saved(GPC.Model.Models.Model model) { using var s = new MemoryStream(); ModelArchive.Save(model, s); return System.Text.Encoding.UTF8.GetString(s.ToArray()); }
+        // The XML document of a model with results: Save writes it as a package (version 5).
+        static string Saved(GPC.Model.Models.Model model) { using var s = new MemoryStream(); ModelArchive.SaveDocument(model, s); return System.Text.Encoding.UTF8.GetString(s.ToArray()); }
         Assert.IsFalse(Saved(Model(null)).Contains("DurabilityData")); Assert.IsTrue(Saved(m).Contains("DurabilityData"));
         Assert.AreNotEqual(Model(null).VerificationFingerprint("x"), Model(Data("XC1")).VerificationFingerprint("x"));
     }

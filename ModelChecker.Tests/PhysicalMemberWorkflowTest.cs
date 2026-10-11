@@ -194,7 +194,8 @@ public class PhysicalMemberWorkflowTest
         var copy = ModelArchive.Load(full);
         Assert.AreEqual(5000, new PhysicalMemberGeometry(copy, copy.PhysicalMembers["T1"]).Length);
         Assert.AreEqual(report.Outcome, copy.CheckReports.Single().CurrentOutcome(copy, request.Jobs[0].Options.CreateVerifier(), engine));
-        full.Position = 0; var xml = XDocument.Load(full); xml.Root!.SetAttributeValue("version", "1");
+        using var document = new MemoryStream(); ModelArchive.SaveDocument(m, document); document.Position = 0;
+        var xml = XDocument.Load(document); xml.Root!.SetAttributeValue("version", "1");
         using var invalid = new MemoryStream(); xml.Save(invalid); invalid.Position = 0;
         Assert.ThrowsException<SerializationException>(() => ModelArchive.Load(invalid));
     }
