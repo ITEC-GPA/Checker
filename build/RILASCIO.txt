@@ -25,6 +25,9 @@ REGOLE
    avere la stessa versione.
 6. Build deterministiche (Directory.Build.props): gli stessi commit danno gli stessi
    SHA-256 in qualunque cartella. Le ricette con cartelle fisse non servono piu'.
+   Gli a capo entrano negli hash del PDB e quindi nella DLL: .gitattributes di Model e
+   Checker fissa CRLF ("* text=auto eol=crlf") e Release-Set.ps1 rifiuta i file con a capo
+   diversi da un checkout pulito (per esempio scritti con LF da uno strumento).
 7. ANTHEA installa lib/Checker solo da un set di rilascio
    (tools/libs/Update-Snapshot.ps1 -ReleaseSet <cartella>), che ricontrolla gli SHA-256.
 

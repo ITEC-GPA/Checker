@@ -37,6 +37,10 @@ foreach ($r in 'Utilities', 'Geometry', 'Model', 'Checker') {
     if (!(Test-Path -LiteralPath (Join-Path $dir '.git'))) { throw "Repository $r non trovato in $Root." }
     $status = (GitValue $dir status --porcelain=v1 --untracked-files=normal).Text
     if ($status) { throw "${r}: albero non pulito, il set nasce da commit:`n$status" }
+    # Line endings enter the PDB document hashes, hence the DLL: a file written with LF where .gitattributes asks for CRLF
+    # leaves the tree clean for git but changes the SHA-256 (release R of 12/10). Only a fresh checkout is accepted.
+    $eol = @((GitValue $dir ls-files --eol).Text -split "`n" | Where-Object { $_ -match 'eol=crlf' -and $_ -match '\bw/(lf|mixed)\b' })
+    if ($eol) { throw "${r}: a capo diversi da un checkout pulito, rifare il checkout:`n$($eol -join "`n")" }
     $commit = (GitValue $dir rev-parse HEAD).Text
     $onMaster = (GitValue $dir merge-base --is-ancestor $commit origin/master).Code -eq 0
     if (!$Candidate -and !$onMaster) { throw "${r}: $commit non e' su origin/master. Un rilascio parte da master pushato (-Candidate per le prove)." }
