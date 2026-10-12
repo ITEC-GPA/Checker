@@ -40,9 +40,10 @@ I TRX conservano anche i fallimenti prima della correzione.
 
 ## Distribuzione ancora da completare
 
-Le versioni restano quelle di master, come richiesto da AGENTS.md. Questo commit
-non pubblica un rilascio e non cambia `ANTHEA/lib/Checker`. Per attivare la
-correzione nel prodotto occorrono la versione assegnata dall’utente, il set
-coerente da commit pushati e il confronto ANTHEA prima/dopo con la differenza
-API-02 dichiarata. Fino ad allora i percorsi circolari conservativi di ANTHEA
+Il 12 ottobre l’utente delega la scelta delle versioni: ultimo componente per i fix,
+secondo per le altre modifiche (AGENTS.md e build/RILASCIO.txt aggiornati). Per questo
+fix geometrico Concrete passa da **0.0.27.1 a 0.0.27.2**, senza modifiche alle API
+pubbliche. Il commit di versione non pubblica un rilascio e non cambia
+`ANTHEA/lib/Checker`. Per attivare la correzione nel prodotto restano il set coerente
+da commit pushati e il confronto ANTHEA prima/dopo con la differenza API-02 dichiarata. Fino ad allora i percorsi circolari conservativi di ANTHEA
 restano presenti e il punto di integrazione rimane aperto.
