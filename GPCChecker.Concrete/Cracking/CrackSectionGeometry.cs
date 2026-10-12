@@ -187,9 +187,11 @@ namespace GPC.Checkers.Concrete.Cracking
             {
                 var radii = Bars.Select(b => Radius(b.X, b.Y)).ToArray();
                 if (radii.Max() - radii.Min() > 1e-4 && Layout != CrackBarLayout.ConcentricRings) return null;
-                foreach (var group in Bars.Select((b, i) => new { Bar = b, Index = i, Angle = Angle(b) }).GroupBy(b => Math.Round(radii[b.Index], 5)))
+                foreach (var group in CircularBarGroups(radii))
                 {
-                    var ring = group.OrderBy(b => b.Angle).ToArray(); double radius = group.Average(b => radii[b.Index]);
+                    if (group.Length < 2) continue; // An isolated bar has no adjacent bar on its own ring.
+                    var ring = group.Select(i => new { Index = i, Angle = Angle(Bars[i]) }).OrderBy(b => b.Angle).ToArray();
+                    double radius = group.Average(i => radii[i]);
                     for (int i = 0; i < ring.Length; i++)
                     {
                         var a = ring[i]; var b = ring[(i + 1) % ring.Length];
@@ -218,6 +220,26 @@ namespace GPC.Checkers.Concrete.Cracking
                 }
             }
             return distances.Count > 0 ? distances.Max() : (double?)null;
+        }
+
+        /// <summary>
+        /// Groups concentric bars by a bounded radial spread of 1e-5 mm (the former five-decimal precision).
+        /// Comparing actual radii avoids rounding-bin boundaries splitting one ring due to floating-point noise.
+        /// Each group is anchored to its minimum radius, so nearby rings cannot merge through a chain of bars.
+        /// </summary>
+        private static IEnumerable<int[]> CircularBarGroups(double[] radii)
+        {
+            const double radialTolerance = 1e-5;
+            var ordered = Enumerable.Range(0, radii.Length).OrderBy(i => radii[i]).ToArray();
+            for (int start = 0; start < ordered.Length;)
+            {
+                int end = start + 1;
+                while (end < ordered.Length && radii[ordered[end]] - radii[ordered[start]] <= radialTolerance) end++;
+                var group = new int[end - start];
+                Array.Copy(ordered, start, group, 0, group.Length);
+                yield return group;
+                start = end;
+            }
         }
 
         private bool Inside(double x, double y)

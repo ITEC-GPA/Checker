@@ -430,3 +430,11 @@ REGISTRO
             - CrackMigrationTests senza i casi speciali per queste differenze e senza l'opzione legacy di k2 sulle righe
               catturate (resta nei test dedicati). GPCChecker.Test.Concrete: 508 test superati.
             - Fixture geotecniche (GPCChecker.Test.Geotechnics/Fixtures) invariate: si ricatturano a fine refactoring.
+
+2026-10-12  API-02: corretto MaximumSpacing delle corone circolari.
+            - Gruppi per estensione radiale massima 1e-5 mm, senza confini di arrotondamento e senza
+              concatenamento; una barra isolata non genera più la propria circonferenza come interasse.
+            - 38 regressioni geometriche indipendenti (7 fallivano prima); tutte le suite Checker:
+              1544 PASS, 17 Steel già ammessi, nessun nuovo fallimento, API compatibili.
+            - Attesi congelati invariati. Versioni e distribuzione ANTHEA ancora da autorizzare;
+              il punto non è chiuso nel prodotto. Dettagli in API-02-interassi-circolari.md.
