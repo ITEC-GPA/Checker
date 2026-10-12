@@ -266,7 +266,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public bool ConsiderTensileConcrete { get => _considerTensileConcrete; internal set => _considerTensileConcrete = value; }
 
-        internal List<string> Log => _log;
+        // Log writes are serialized by AddLog; no mutable list is exposed to strategies.
 
         public int TetaDiscretization { get => _tetaDiscretization; set => _tetaDiscretization = value; }
 
@@ -2685,7 +2685,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         /// <summary>Adds a log entry: several searches of the same solver run in parallel (List is not thread-safe)</summary>
-        private void AddLog(string entry)
+        internal void AddLog(string entry)
         {
             lock (_log)
                 _log.Add(entry);

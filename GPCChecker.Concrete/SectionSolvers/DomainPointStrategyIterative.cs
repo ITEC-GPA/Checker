@@ -272,9 +272,9 @@ namespace GPC.Checker.SectionSolvers
                         }
                         catch (Exception e)
                         {
-                            _solver.Log.Add(e.Message);
+                            _solver.AddLog(e.Message);
                             if (e.InnerException != null)
-                                _solver.Log.Add(e.InnerException.Message);
+                                _solver.AddLog(e.InnerException.Message);
                             return null;
                         }
                         SetIncrement(_solver.SectionOption.FailureDomainType, ref failureIndex, ref teta, ref eta, increment.deltaTeta, increment.deltaEta);
@@ -318,7 +318,7 @@ namespace GPC.Checker.SectionSolvers
                     }
                     else
                     {
-                        _solver.Log.Add("Fail to calculate point on domain");
+                        _solver.AddLog("Fail to calculate point on domain");
                         // the closest point is chosen by an angle that, with a constant axial force, measures only the direction of the moments:
                         // it is accepted only if it also has the required axial force (before it could be returned with any N)
                         if (!HasTheConstantAxialForce(closestPoint, targetLocalForces, failureAnalysisType))
