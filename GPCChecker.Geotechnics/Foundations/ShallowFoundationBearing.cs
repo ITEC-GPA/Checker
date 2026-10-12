@@ -50,12 +50,27 @@ public sealed class ShallowFoundationInput
     public double RelativeDensity { get; set; } = .5;
 }
 
+/// <summary>
+/// One term of the trinomial expression: Pressure = strength × N × Shape × Depth × Inclination × AdditiveFactor.
+/// Multiplicative corrections are 1 when absent. Additive corrections (Brinch Hansen undrained, Califfo 3.26) are 0 when absent
+/// and are never stored in the multiplicative fields.
+/// </summary>
 public sealed class FoundationTerm
 {
     public double N { get; internal set; }
     public double Shape { get; internal set; } = 1;
     public double Depth { get; internal set; } = 1;
     public double Inclination { get; internal set; } = 1;
+    /// <summary>True when the term uses the additive corrections; Shape, Depth and Inclination then stay 1.</summary>
+    public bool Additive { get; internal set; }
+    /// <summary>Additive shape correction s′c, added.</summary>
+    public double AdditiveShape { get; internal set; }
+    /// <summary>Additive depth correction d′c, added.</summary>
+    public double AdditiveDepth { get; internal set; }
+    /// <summary>Additive inclination correction i′c, subtracted.</summary>
+    public double AdditiveInclination { get; internal set; }
+    /// <summary>1 + s′c + d′c − i′c; 1 when the term is multiplicative.</summary>
+    public double AdditiveFactor => 1 + AdditiveShape + AdditiveDepth - AdditiveInclination;
     public double Pressure { get; internal set; }
 }
 
@@ -100,7 +115,10 @@ public sealed class ShallowFoundationResult
 /// </summary>
 public static class ShallowFoundationBearing
 {
-    /// <summary>2: actions beyond the method domain give DomainExhausted with zero resistance; DemandPressure nullable.</summary>
+    /// <summary>
+    /// 2: actions beyond the method domain give DomainExhausted with zero resistance; DemandPressure nullable;
+    /// additive corrections of Hansen undrained in their own FoundationTerm fields.
+    /// </summary>
     public const string ContractVersion = "2";
     public static ShallowFoundationResult Calculate(ShallowFoundationInput x)
     {
@@ -269,8 +287,9 @@ public static class ShallowFoundationBearing
         {
             if (h > 0) throw new NotSupportedException("Hansen non drenato con carico inclinato: formula del fattore di forma da riscontrare sulla fonte originale.");
             // Additive expression, deliberately not the product of shape and depth factors.
-            f.Shape = .2 * ratio; f.Depth = .4 * k; f.Inclination = 0;
-            f.Pressure = cu * f.N * (1 + f.Shape + f.Depth);
+            f.Shape = f.Depth = f.Inclination = 1;
+            f.Additive = true; f.AdditiveShape = .2 * ratio; f.AdditiveDepth = .4 * k; f.AdditiveInclination = 0;
+            f.Pressure = cu * f.N * f.AdditiveFactor;
             r.Reference = "Brinch Hansen (1970), non drenato, correzioni additive; carico normale";
         }
         else

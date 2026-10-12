@@ -45,9 +45,18 @@ public sealed class BearingTests
         double nc=Math.PI+2, cu=.075, q=.018, s=1+.2*2/3;
         Close(cu*nc*s+q,ShallowFoundationBearing.Calculate(x).UltimatePressure);
         x.Method=FoundationBearingMethod.Hansen;
-        Close(cu*nc*(1+.2*2/3+.4*.5)+q,ShallowFoundationBearing.Calculate(x).UltimatePressure);
+        var hansen=ShallowFoundationBearing.Calculate(x);
+        Close(cu*nc*(1+.2*2/3+.4*.5)+q,hansen.UltimatePressure);
+        // Additive corrections in their own fields; the multiplicative ones stay neutral.
+        Assert.IsTrue(hansen.Cohesion.Additive);
+        Close(.2*2/3,hansen.Cohesion.AdditiveShape);Close(.4*.5,hansen.Cohesion.AdditiveDepth);Close(0,hansen.Cohesion.AdditiveInclination);
+        Close(1,hansen.Cohesion.Shape);Close(1,hansen.Cohesion.Depth);Close(1,hansen.Cohesion.Inclination);
+        Close(1+.2*2/3+.4*.5,hansen.Cohesion.AdditiveFactor);
+        Close(cu*nc*hansen.Cohesion.AdditiveFactor,hansen.Cohesion.Pressure);
         x.Method=FoundationBearingMethod.Vesic;
-        Close(cu*nc*s*(1+.4*.5)+q,ShallowFoundationBearing.Calculate(x).UltimatePressure);
+        var vesic=ShallowFoundationBearing.Calculate(x);
+        Close(cu*nc*s*(1+.4*.5)+q,vesic.UltimatePressure);
+        Assert.IsFalse(vesic.Cohesion.Additive);Close(1,vesic.Cohesion.AdditiveFactor);
         x.Method=FoundationBearingMethod.Terzaghi;x.Shape=FoundationShape.Strip;
         Close(cu*(1+1.5*Math.PI)+q,ShallowFoundationBearing.Calculate(x).UltimatePressure);
     }
