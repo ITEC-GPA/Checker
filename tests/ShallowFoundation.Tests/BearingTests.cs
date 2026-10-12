@@ -73,10 +73,41 @@ public sealed class BearingTests
         x.Condition=FoundationSoilCondition.Drained;
         x.WaterDepth=x.Depth+x.Width;var dry=ShallowFoundationBearing.Calculate(x);
         Close(.018,dry.Overburden);Close(18e-6,dry.BearingUnitWeight);
+        // Beyond the domain: explicit null capacity with flag and reason, never a clipped positive value.
         x.MomentY=x.Normal*x.Width/2;
-        Assert.ThrowsException<ArgumentException>(()=>ShallowFoundationBearing.Calculate(x));
+        Exhausted(ShallowFoundationBearing.Calculate(x));
         x=Input();x.Condition=FoundationSoilCondition.Undrained;x.HorizontalX=x.Width*x.Length*x.UndrainedStrength+1;
-        Assert.ThrowsException<ArgumentException>(()=>ShallowFoundationBearing.Calculate(x));
+        Exhausted(ShallowFoundationBearing.Calculate(x));
+    }
+
+    static void Exhausted(ShallowFoundationResult r)
+    {
+        Assert.IsTrue(r.DomainExhausted);
+        Assert.AreEqual(0,r.Resistance);Assert.AreEqual(0,r.UltimatePressure);Assert.IsNull(r.Utilization);
+        Assert.IsTrue(r.Warnings.Any(w=>w.Contains("Capacità portante assunta nulla")));
+    }
+
+    [TestMethod]
+    public void ActionsBeyondTheDomainAreNotVerified()
+    {
+        // Califfo §3.4.1: no inclination factor may be negative, otherwise the bearing capacity is null.
+        var x=Input();x.Profile=FoundationDesignProfile.Ntc2018;x.MomentY=x.Normal*x.Width/2;
+        var r=ShallowFoundationBearing.Calculate(x);
+        Exhausted(r);Assert.AreEqual("Non verificata",r.Status);Assert.AreEqual(0,r.EffectiveArea);Assert.IsNull(r.DemandPressure);
+        x=Input();x.Profile=FoundationDesignProfile.Ntc2018;x.HorizontalX=x.Normal;
+        r=ShallowFoundationBearing.Calculate(x);
+        Exhausted(r);Assert.AreEqual("Non verificata",r.Status);
+        Assert.AreEqual(0,r.Surcharge.Inclination);Assert.AreEqual(0,r.Weight.Inclination);Assert.AreEqual(0,r.Cohesion.Inclination);
+        // phi=30°, c=0, m=(2+2/3)/(1+2/3)=1.6: H/N=0.9 gives iq=0.1^m < 1/Nq, so ic < 0 while the fraction is still below one.
+        x=Input();x.HorizontalX=.9*x.Normal;
+        r=ShallowFoundationBearing.Calculate(x);
+        Exhausted(r);Assert.AreEqual("Confronto caratteristico",r.Status);Close(Math.Pow(.1,1.6),r.Surcharge.Inclination);
+        x.HorizontalX=.8*x.Normal;
+        r=ShallowFoundationBearing.Calculate(x);
+        Assert.IsFalse(r.DomainExhausted);Assert.IsTrue(r.Resistance>0);Assert.IsTrue(r.Cohesion.Inclination>0);
+        // Vesić undrained: m H / (A cu Nc) > 1 with m = 1.6.
+        x=Input(FoundationBearingMethod.Vesic);x.Condition=FoundationSoilCondition.Undrained;x.HorizontalX=1.5e6;
+        Exhausted(ShallowFoundationBearing.Calculate(x));
     }
 
     [TestMethod]
@@ -134,8 +165,6 @@ public sealed class BearingTests
         var x=Input();x.Width=double.NaN;Assert.ThrowsException<ArgumentException>(()=>ShallowFoundationBearing.Calculate(x));
         x=Input();x.Normal=0;Assert.ThrowsException<ArgumentException>(()=>ShallowFoundationBearing.Calculate(x));
         x=Input();x.Width=1e200;x.Length=1e200;Assert.ThrowsException<ArgumentException>(()=>ShallowFoundationBearing.Calculate(x));
-        x=Input();x.HorizontalX=x.Normal;Assert.ThrowsException<ArgumentException>(()=>ShallowFoundationBearing.Calculate(x));
-        x=Input();x.MomentX=x.Normal*x.Length;Assert.ThrowsException<ArgumentException>(()=>ShallowFoundationBearing.Calculate(x));
         x=Input();x.Shape=FoundationShape.Strip;x.HorizontalY=1;Assert.ThrowsException<ArgumentException>(()=>ShallowFoundationBearing.Calculate(x));
         x=Input(FoundationBearingMethod.Meyerhof);x.HorizontalX=1;Assert.ThrowsException<NotSupportedException>(()=>ShallowFoundationBearing.Calculate(x));
     }
