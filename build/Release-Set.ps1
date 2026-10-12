@@ -20,6 +20,8 @@ $ErrorActionPreference = 'Stop'
 $checker = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 if (!$Root) { $Root = Split-Path $checker -Parent }
 $Root = [IO.Path]::GetFullPath($Root)
+# Tests, source checks and packaged DLLs must refer to the same checkout even when this script is invoked elsewhere.
+$checker = Join-Path $Root 'Checker'
 $Out = [IO.Path]::GetFullPath($Out)
 if (Test-Path -LiteralPath $Out) { throw "$Out esiste gia': scegliere una cartella nuova." }
 $git = (Get-Command git -ErrorAction SilentlyContinue).Source
@@ -68,6 +70,14 @@ foreach ($trx in Get-ChildItem -LiteralPath (Join-Path $tests 'Model') -Filter *
 }
 foreach ($s in (Get-Content -LiteralPath (Join-Path $tests 'Checker\summary.json') -Raw | ConvertFrom-Json).results) {
     $suites += [ordered]@{ name = $s.name; repository = 'Checker'; passed = $s.passed; failed = $s.failed; other = $s.other; knownFailures = @($s.knownFailures) }
+}
+
+# Confirm that the source identity captured before verification is still the identity being packaged.
+foreach ($r in 'Utilities', 'Geometry', 'Model', 'Checker') {
+    $dir = Join-Path $Root $r
+    if ((GitValue $dir rev-parse HEAD).Text -ne $repos[$r].commit -or (GitValue $dir status --porcelain=v1 --untracked-files=normal).Text) {
+        throw "${r}: sorgenti modificate durante il collaudo; nessun set viene pubblicato."
+    }
 }
 
 # 4. DLLs and manifest.

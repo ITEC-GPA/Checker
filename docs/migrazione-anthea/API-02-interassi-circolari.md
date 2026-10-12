@@ -51,3 +51,7 @@ restano presenti e il punto di integrazione rimane aperto.
 ## Riallineamento del treno a Model 5.1
 
 Steel 2.0.4.2, CompositeBridge 1.5.0.2, Geotechnics 0.1.3.1 e ModelChecker 2.1.0.2 sono revisioni tecniche per il riferimento al nuovo GPCModel 5.1.0.0. Nessuna formula o contratto modificato. Concrete resta alla 0.0.27.2, ancora non distribuita, che include API-02; anche la versione di pacchetto viene allineata all’assembly. Le revisioni tecniche incrementano l’ultimo componente secondo la delega del 12 ottobre. Tutte le suite del treno devono essere rieseguite.
+
+## Coerenza della radice di rilascio
+
+Il collaudo del 12/10 ha rilevato che `Release-Set.ps1 -Root` verificava i sorgenti e copiava le DLL dalla radice richiesta, ma avviava `Checker/build/Verify.ps1` dal checkout dello script chiamante. Se diversi, un set poteva associare test e binari di directory diverse. Il percorso di Checker ora deriva sempre da Root; prima del confezionamento vengono ricontrollati commit e pulizia di tutti e quattro i repository. Il candidato `candidate-final-20261012` è escluso dal rilascio. La nuova esecuzione dalla radice alternativa prova l’intero flusso corretto.
