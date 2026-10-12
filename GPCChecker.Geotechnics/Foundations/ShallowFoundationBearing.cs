@@ -55,12 +55,27 @@ public sealed class ShallowFoundationInput
     internal ShallowFoundationInput Copy()=>(ShallowFoundationInput)MemberwiseClone();
 }
 
+/// <summary>
+/// One term of the trinomial expression: Pressure = strength × N × Shape × Depth × Inclination × AdditiveFactor.
+/// Multiplicative corrections are 1 when absent. Additive corrections (Brinch Hansen undrained, Califfo 3.26) are 0 when absent
+/// and are never stored in the multiplicative fields.
+/// </summary>
 public sealed class FoundationTerm
 {
     public double N { get; internal set; }
     public double Shape { get; internal set; } = 1;
     public double Depth { get; internal set; } = 1;
     public double Inclination { get; internal set; } = 1;
+    /// <summary>True when the term uses the additive corrections; Shape, Depth and Inclination then stay 1.</summary>
+    public bool Additive { get; internal set; }
+    /// <summary>Additive shape correction s′c, added.</summary>
+    public double AdditiveShape { get; internal set; }
+    /// <summary>Additive depth correction d′c, added.</summary>
+    public double AdditiveDepth { get; internal set; }
+    /// <summary>Additive inclination correction i′c, subtracted.</summary>
+    public double AdditiveInclination { get; internal set; }
+    /// <summary>1 + s′c + d′c − i′c; 1 when the term is multiplicative.</summary>
+    public double AdditiveFactor => 1 + AdditiveShape + AdditiveDepth - AdditiveInclination;
     public double Pressure { get; internal set; }
 }
 
@@ -83,9 +98,15 @@ public sealed class ShallowFoundationResult
     public double UltimatePressure { get; internal set; }
     public double NetUltimatePressure { get; internal set; }
     public double DesignPressure { get; internal set; }
-    public double DemandPressure { get; internal set; }
+    /// <summary>N / A′; null when the effective area is zero (resultant outside the base).</summary>
+    public double? DemandPressure { get; internal set; }
     public double Resistance { get; internal set; }
     public double? Utilization { get; internal set; }
+    /// <summary>
+    /// The actions exceed the domain of the method: resultant outside the base, tangential load beyond the inclination formula
+    /// or a negative inclination factor. Resistance is zero and the reason is in Warnings (reference manual: null bearing capacity).
+    /// </summary>
+    public bool DomainExhausted { get; internal set; }
     public FoundationTerm Cohesion { get; } = new();
     public FoundationTerm Surcharge { get; } = new();
     public FoundationTerm Weight { get; } = new();
@@ -100,7 +121,11 @@ public sealed class ShallowFoundationResult
 /// </summary>
 public static class ShallowFoundationBearing
 {
-    public const string ContractVersion = "1";
+    /// <summary>
+    /// 2: actions beyond the method domain give DomainExhausted with zero resistance; DemandPressure nullable;
+    /// additive corrections of Hansen undrained in their own FoundationTerm fields.
+    /// </summary>
+    public const string ContractVersion = "2";
     public static ShallowFoundationResult Calculate(ShallowFoundationInput x)
     {
         if (x == null) throw new ArgumentNullException(nameof(x));
@@ -109,24 +134,24 @@ public static class ShallowFoundationBearing
         var r = new ShallowFoundationResult { Method = x.Method.ToString() };
         double b = x.Width, l = x.Shape == FoundationShape.Strip ? 1000 : x.Shape == FoundationShape.Circle ? b : x.Length;
         double ex = x.MomentY / x.Normal, ey = x.MomentX / x.Normal;
-        double be = b - 2 * Math.Abs(ex), le = l - 2 * Math.Abs(ey);
-        if (be <= 0 || le <= 0) throw new ArgumentException("Risultante esterna alla base: dimensioni efficaci non positive.");
         if (x.Shape == FoundationShape.Circle && (ex != 0 || ey != 0))
             throw new NotSupportedException("Fondazione circolare eccentrica: geometria efficace non disponibile; non usare B′L′.");
         if (x.Shape == FoundationShape.Strip && (ey != 0 || x.HorizontalY != 0))
             throw new ArgumentException("Fondazione nastriforme: My e Hx trasversali; Mx e Hy devono essere nulli. Azioni per metro.");
-        double area = x.Shape == FoundationShape.Circle ? Math.PI * b * b / 4 : be * le;
+        double be = Math.Max(0, b - 2 * Math.Abs(ex)), le = Math.Max(0, l - 2 * Math.Abs(ey));
+        bool outside = be == 0 || le == 0;
+        double area = outside ? 0 : x.Shape == FoundationShape.Circle ? Math.PI * b * b / 4 : be * le;
         double hx = Math.Abs(x.HorizontalX), hy = Math.Abs(x.HorizontalY);
         // Preserve axis association when the effective dimensions change order.
         if (x.Shape == FoundationShape.Rectangle && be > le)
         { (be, le) = (le, be); (b, l) = (l, b); (hx, hy) = (hy, hx); }
-        double ratio = x.Shape == FoundationShape.Strip ? 0 : be / le;
+        double ratio = x.Shape == FoundationShape.Strip || outside ? 0 : be / le;
         double h = Hypot(hx, hy);
         double q = x.Surcharge + (x.ProfileOverburden ?? CoverPressure(x));
         double gamma = x.UnitWeight;
         if (x.WaterEnabled)
         {
-            double dryFraction = Math.Max(0, Math.Min(1, (x.WaterDepth - x.Depth) / be));
+            double dryFraction = be > 0 ? Math.Max(0, Math.Min(1, (x.WaterDepth - x.Depth) / be)) : x.WaterDepth > x.Depth ? 1 : 0;
             gamma = dryFraction * x.UnitWeight + (1 - dryFraction) * (x.SaturatedUnitWeight - x.WaterUnitWeight);
             r.Warnings.Add(x.Condition == FoundationSoilCondition.Drained
                 ? "Falda idrostatica: γ medio nello spessore B′ sotto la base; N efficace deve comprendere già la sottospinta."
@@ -154,20 +179,25 @@ public static class ShallowFoundationBearing
         r.AdoptedFrictionAngle = phi; r.AdoptedCohesion = c;
         if (Math.Abs(ex) > x.Width / 3 || Math.Abs(ey) > x.Length / 3)
             r.Warnings.Add("Grande eccentricità: EN 1997-1 §6.5.4 richiede precauzioni speciali; la sola portanza non conclude la verifica.");
+        // Terzaghi first: it rejects any moment, so its own restriction prevails over the resultant outside the base.
         if (x.Method == FoundationBearingMethod.Terzaghi)
             Terzaghi(x, r, phi, c, q, gamma, be, ratio, h);
+        else if (outside)
+            Exhaust(r, "Risultante esterna alla base: dimensioni efficaci nulle.");
         else if (x.Condition == FoundationSoilCondition.Undrained)
             Undrained(x, r, c, q, b, ratio, h, hx, hy, area);
         else
             Drained(x, r, phi, c, q, gamma, b, be, le, ratio, h, hx, hy, area);
+        if (r.DomainExhausted) r.Cohesion.Pressure = r.Surcharge.Pressure = r.Weight.Pressure = 0;
         r.UltimatePressure = r.Cohesion.Pressure + r.Surcharge.Pressure + r.Weight.Pressure;
         if (!Finite(r.UltimatePressure) || r.UltimatePressure < 0) throw new ArgumentException("Resistenza fuori dal dominio del metodo.");
         r.NetUltimatePressure = r.UltimatePressure - q;
         r.DesignPressure = r.UltimatePressure / r.ResistanceFactor;
         r.Resistance = r.DesignPressure * area;
-        r.DemandPressure = x.Normal / area;
+        r.DemandPressure = area > 0 ? x.Normal / area : null;
         r.Utilization = r.Resistance > 0 ? x.Normal / r.Resistance : (double?)null;
-        if (!Finite(area) || area <= 0 || !Finite(r.Resistance) || !Finite(r.DemandPressure) || r.Utilization.HasValue && !Finite(r.Utilization.Value))
+        if (!Finite(area) || area <= 0 && !outside || !Finite(r.Resistance) || r.DemandPressure.HasValue && !Finite(r.DemandPressure.Value)
+            || r.Utilization.HasValue && !Finite(r.Utilization.Value))
             throw new ArgumentException("Dimensioni o azioni fuori dall'intervallo numerico rappresentabile.");
         r.Status = r.Resistance >= x.Normal ? "Verificata" : "Non verificata";
         if (x.Profile == FoundationDesignProfile.Characteristic) r.Status = "Confronto caratteristico";
@@ -203,6 +233,8 @@ public static class ShallowFoundationBearing
             double limit = 10 * Math.PI / 180;
             double shapeK = phi < limit ? Math.Pow(Math.Tan(Math.PI / 4 + limit / 2), 2) * phi / limit : kp;
             double depthK = phi < limit ? Math.Tan(Math.PI / 4 + limit / 2) * phi / limit : Math.Sqrt(kp);
+            if (phi < limit)
+                r.Warnings.Add("Meyerhof con φ′ < 10°: sq, sγ, dq e dγ interpolati linearmente tra φ′ = 0 e 10° (USACE EM 1110-1-1905, tab. 4-3); le espressioni di Meyerhof (1963) e il manuale di riferimento non li definiscono in questo intervallo.");
             fq.Shape = fg.Shape = 1 + .1 * shapeK * ratio;
             double depth = x.IncludeDepthFactors ? x.Depth / b : 0;
             fc.Depth = 1 + .2 * Math.Sqrt(kp) * depth;
@@ -232,12 +264,23 @@ public static class ShallowFoundationBearing
             double m = Exponent(ratio, h, hx, hy, x.Shape);
             // H*t / (N*t + A*c) avoids cot(phi) overflow near phi=0.
             double fraction = h * t / (x.Normal * t + area * c);
-            if (fraction >= 1) throw new ArgumentException("Carico tangenziale fuori dal dominio della formula di inclinazione.");
-            fq.Inclination = Math.Pow(1 - fraction, m);
-            fg.Inclination = Math.Pow(1 - fraction, m + 1);
-            double delta = Expm1(m * Log1p(-fraction));
-            fc.Inclination = 1 + delta * nq / nqMinusOne;
-            if (fc.Inclination < 0) throw new ArgumentException("Fattore di inclinazione della coesione negativo: resistenza fuori campo.");
+            if (fraction >= 1)
+            {
+                fc.Inclination = fq.Inclination = fg.Inclination = 0;
+                Exhaust(r, "Carico tangenziale oltre il limite della formula di inclinazione: H ≥ N + A′c′ cot φ′.");
+            }
+            else
+            {
+                fq.Inclination = Math.Pow(1 - fraction, m);
+                fg.Inclination = Math.Pow(1 - fraction, m + 1);
+                double delta = Expm1(m * Log1p(-fraction));
+                fc.Inclination = 1 + delta * nq / nqMinusOne;
+                if (fc.Inclination < 0)
+                {
+                    fc.Inclination = 0;
+                    Exhaust(r, "Fattore di inclinazione della coesione negativo.");
+                }
+            }
         }
         fc.Pressure = c * fc.N * fc.Shape * fc.Depth * fc.Inclination;
         fq.Pressure = q * fq.N * fq.Shape * fq.Depth * fq.Inclination;
@@ -255,16 +298,21 @@ public static class ShallowFoundationBearing
         {
             if (h > 0) throw new NotSupportedException("Hansen non drenato con carico inclinato: formula del fattore di forma da riscontrare sulla fonte originale.");
             // Additive expression, deliberately not the product of shape and depth factors.
-            f.Shape = .2 * ratio; f.Depth = .4 * k; f.Inclination = 0;
-            f.Pressure = cu * f.N * (1 + f.Shape + f.Depth);
+            f.Shape = f.Depth = f.Inclination = 1;
+            f.Additive = true; f.AdditiveShape = .2 * ratio; f.AdditiveDepth = .4 * k; f.AdditiveInclination = 0;
+            f.Pressure = cu * f.N * f.AdditiveFactor;
             r.Reference = "Brinch Hansen (1970), non drenato, correzioni additive; carico normale";
         }
         else
         {
             if (x.Method == FoundationBearingMethod.Eurocode7)
             {
-                if (h > area * cu) throw new ArgumentException("EN 1997-1 D.3: H deve essere ≤ A′ cu,d.");
-                f.Inclination = .5 + .5 * Math.Sqrt(1 - h / (area * cu));
+                if (h > area * cu)
+                {
+                    f.Inclination = 0;
+                    Exhaust(r, "EN 1997-1 D.3: H supera A′ cu,d.");
+                }
+                else f.Inclination = .5 + .5 * Math.Sqrt(1 - h / (area * cu));
                 r.Reference = "EN 1997-1:2004/AC:2009, allegato D.3";
             }
             else if (x.Method == FoundationBearingMethod.Meyerhof)
@@ -278,12 +326,23 @@ public static class ShallowFoundationBearing
             {
                 f.Depth = 1 + .4 * k;
                 f.Inclination = 1 - Exponent(ratio, h, hx, hy, x.Shape) * h / (area * cu * f.N);
-                if (f.Inclination < 0) throw new ArgumentException("Vesić non drenato: fattore di inclinazione negativo.");
+                if (f.Inclination < 0)
+                {
+                    f.Inclination = 0;
+                    Exhaust(r, "Vesić non drenato: fattore di inclinazione negativo.");
+                }
                 r.Reference = "Vesić (1975), non drenato, base e terreno orizzontali";
             }
             f.Pressure = cu * f.N * f.Shape * f.Depth * f.Inclination;
         }
         r.Surcharge.N = 1; r.Surcharge.Pressure = q;
+    }
+
+    /// <summary>Califfo §3.4.1: no inclination factor may be negative; otherwise the bearing capacity is taken as zero.</summary>
+    static void Exhaust(ShallowFoundationResult r, string reason)
+    {
+        r.DomainExhausted = true;
+        r.Warnings.Add(reason + " Capacità portante assunta nulla.");
     }
 
     static void Terzaghi(ShallowFoundationInput x, ShallowFoundationResult r, double phi, double c, double q, double gamma, double be, double ratio, double h)

@@ -6,7 +6,7 @@ Stato 12 ottobre 2026: API sorgente in `GPCChecker.Geotechnics/Foundations/Shall
 
 `ShallowFoundationBearing.Calculate(ShallowFoundationInput)` usa mm, N, Nmm, MPa, N/mm³ e radianti. Le azioni sono già combinate al piano di posa, inclusi peso della fondazione e ricoprimento. N è efficace nel drenato (sottospinta già sottratta), totale nel non drenato (pressione interstiziale alla base non sottratta). q segue la stessa convenzione. La distinzione è essenziale quando γR agisce sulla resistenza.
 
-Terreno resistente omogeneo, base e terreno orizzontali; forme rettangolare, nastriforme e circolare centrata. L'input della striscia è riferito a un metro. I casi geometrici o meccanici non supportati lanciano eccezioni; nessun risultato parziale viene presentato come verifica.
+Terreno resistente omogeneo, base e terreno orizzontali; forme rettangolare, nastriforme e circolare centrata. L'input della striscia è riferito a un metro. I casi geometrici o meccanici non supportati lanciano eccezioni; nessun risultato parziale viene presentato come verifica. Le azioni oltre il dominio del metodo (risultante esterna alla base, H ≥ N + A′c′ cot φ′, fattore di inclinazione negativo, H > A′cu nell'EC7 non drenato) non sono eccezioni: il risultato ha `DomainExhausted`, resistenza nulla, esito «Non verificata» e il motivo negli avvisi (manuale Califfo §3.4.1: capacità portante nulla).
 
 Profilo NTC 2018: riuso di `StandardNTC2018Geotechnics.Combinations(ShallowFoundationBearing, PersistentTransient)`. M1 e γR=2,3 dalla libreria Model, una sola applicazione. Profilo caratteristico: γR=1, nessun esito normativo. L'allegato D è quello della EN 1997-1:2004/AC:2009, non quello della seconda generazione. Non è implementato un generatore di combinazioni A1.
 
@@ -59,3 +59,23 @@ FoundationGraphics calcola il contatto convenzionale p=max(0,a+bx+cy) equilibran
 La rappresentazione di Prandtl è solo un riferimento per terreno privo di peso: α=π/4+φ/2, β=π/4−φ/2, r0=B′/(2cosα), r=r0 exp(θ tanφ), 0≤θ≤π/2. Le due sezioni non compongono una superficie tridimensionale. Niente ottimizzazione critica né effetti di H, D o γ nel disegno. Fonte primaria sul limite della cinematica rispetto al termine di peso: Hjiaj, Lyamin e Sloan, Numerical limit analysis solutions for the bearing capacity factor Nγ, IJSS 42 (2005) 1681–1704, DOI 10.1016/j.ijsolstr.2004.08.002, §1 e §5, figura 6. Copia dell'autore: https://www.newcastle.edu.au/__data/assets/pdf_file/0006/22596/72_Numerical-limit-analysis-solutions-for-the-bearing-capacity-factor-N-gamma.pdf . Le figure distribuite sono originali e non riproducono quelle della pubblicazione.
 
 Verifiche aggiunte: GraphicsTests (7 casi indipendenti) e SoilProfileTests (6 casi: integrale drenato/non drenato, riferimento altimetrico, interfaccia, proprietà eterogenee, dominio e identità del caso omogeneo), oltre ai 10 casi iniziali. Nessuna modifica degli attesi originari o dei motori legacy. Output ANTHEA in supporto/artefatti/fondazioni-superficiali/visualizzazioni.
+
+## Controllo con il manuale Califfo (12 ottobre 2026)
+
+Confronto formula per formula e numerico con il manuale. `tests/ShallowFoundation.Tests/califfo_reference.py` ricava gli attesi dalle formule del manuale, senza importare il motore, e li congela in `califfo-reference.json` (426 casi); `CaliffoReferenceTests` li confronta con tolleranza relativa 1e-9. Le formule implementate coincidono con il manuale; nessun errore a sfavore di sicurezza.
+
+Decisioni dell'utente, applicate con `ContractVersion` "2":
+
+- azioni oltre il dominio: «Non verificata» con resistenza nulla, invece dell'eccezione (vedi Contratto e perimetro);
+- Hansen non drenato: le correzioni additive stanno in `FoundationTerm.AdditiveShape`, `AdditiveDepth` e `AdditiveInclination` (`Additive` vero, `AdditiveFactor` = 1 + s′c + d′c − i′c); `Shape`, `Depth` e `Inclination` restano 1. Per ogni termine vale Pressure = resistenza × N × Shape × Depth × Inclination × AdditiveFactor;
+- Meyerhof sotto 10°: interpolazione mantenuta. Verificata sulla tabella 4-3 di USACE EM 1110-1-1905, che la prescrive per 0 < φ ≤ 10°; il manuale lascia indefiniti i fattori. Il risultato lo dichiara negli avvisi.
+
+Convenzioni del motore non prescritte dal manuale, registrate nel riferimento con il valore letterale e il verso:
+
+- quando l'eccentricità scambia B′ e L′, i fattori di profondità usano il lato geometrico allineato a B′ invece della B geometrica: −3/−6% sulla capacità, a favore di sicurezza;
+- EC7 su pianta quadrata eccentrica: fattori di forma da B′/L′ invece della formula della quadrata, che il manuale applica alla geometria reale: −3/−4%, a favore di sicurezza;
+- Meyerhof con θ > φ′: iγ = 0 (USACE tab. 4-3), dove il manuale scrive solo (1 − θ/φ′)²: a favore di sicurezza.
+
+Non implementati rispetto al manuale, sempre con eccezione esplicita: fattori di inclinazione della base e del pendio (b, g), Meyerhof inclinato su pianta non nastriforme, fattori di compressibilità di Vesić da indice di rigidezza (4.3–4.6), Nγ di Salgado, adesione ca di Bowles, Terzaghi con D > B.
+
+Lavori in coda: Hansen con carico inclinato, drenato (3.23–3.25, calcolo nelle due direzioni con il minore) e non drenato (3.27).
