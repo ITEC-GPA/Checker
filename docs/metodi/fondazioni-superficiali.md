@@ -6,7 +6,7 @@ Stato 12 ottobre 2026: API sorgente in `GPCChecker.Geotechnics/Foundations/Shall
 
 `ShallowFoundationBearing.Calculate(ShallowFoundationInput)` usa mm, N, Nmm, MPa, N/mm³ e radianti. Le azioni sono già combinate al piano di posa, inclusi peso della fondazione e ricoprimento. N è efficace nel drenato (sottospinta già sottratta), totale nel non drenato (pressione interstiziale alla base non sottratta). q segue la stessa convenzione. La distinzione è essenziale quando γR agisce sulla resistenza.
 
-Terreno resistente omogeneo, base e terreno orizzontali; forme rettangolare, nastriforme e circolare centrata. L'input della striscia è riferito a un metro. I casi geometrici o meccanici non supportati lanciano eccezioni; nessun risultato parziale viene presentato come verifica.
+Terreno resistente omogeneo, base e terreno orizzontali; forme rettangolare, nastriforme e circolare centrata. L'input della striscia è riferito a un metro. I casi geometrici o meccanici non supportati lanciano eccezioni; nessun risultato parziale viene presentato come verifica. Le azioni oltre il dominio del metodo (risultante esterna alla base, H ≥ N + A′c′ cot φ′, fattore di inclinazione negativo, H > A′cu nell'EC7 non drenato) non sono eccezioni: il risultato ha `DomainExhausted`, resistenza nulla, esito «Non verificata» e il motivo negli avvisi (manuale Califfo §3.4.1: capacità portante nulla).
 
 Profilo NTC 2018: riuso di `StandardNTC2018Geotechnics.Combinations(ShallowFoundationBearing, PersistentTransient)`. M1 e γR=2,3 dalla libreria Model, una sola applicazione. Profilo caratteristico: γR=1, nessun esito normativo. L'allegato D è quello della EN 1997-1:2004/AC:2009, non quello della seconda generazione. Non è implementato un generatore di combinazioni A1.
 
@@ -49,3 +49,23 @@ Errori accertati del codice preesistente: nessuno. Difetti trovati e corretti du
 ## Rilascio ancora da eseguire
 
 Assegnazione versione da parte dell'utente, commit e push autorizzato, tutte le suite previste dal treno e creazione del set coerente con `build/Release-Set.ps1`. Solo quel set può aggiornare ANTHEA. La nuova suite è inclusa nel runner `build/Verify.ps1`. Nessun riferimento a build locali deve entrare nello snapshot distribuito.
+
+## Controllo con il manuale Califfo (12 ottobre 2026)
+
+Confronto formula per formula e numerico con il manuale. `tests/ShallowFoundation.Tests/califfo_reference.py` ricava gli attesi dalle formule del manuale, senza importare il motore, e li congela in `califfo-reference.json` (426 casi); `CaliffoReferenceTests` li confronta con tolleranza relativa 1e-9. Le formule implementate coincidono con il manuale; nessun errore a sfavore di sicurezza.
+
+Decisioni dell'utente, applicate con `ContractVersion` "2":
+
+- azioni oltre il dominio: «Non verificata» con resistenza nulla, invece dell'eccezione (vedi Contratto e perimetro);
+- Hansen non drenato: le correzioni additive stanno in `FoundationTerm.AdditiveShape`, `AdditiveDepth` e `AdditiveInclination` (`Additive` vero, `AdditiveFactor` = 1 + s′c + d′c − i′c); `Shape`, `Depth` e `Inclination` restano 1. Per ogni termine vale Pressure = resistenza × N × Shape × Depth × Inclination × AdditiveFactor;
+- Meyerhof sotto 10°: interpolazione mantenuta. Verificata sulla tabella 4-3 di USACE EM 1110-1-1905, che la prescrive per 0 < φ ≤ 10°; il manuale lascia indefiniti i fattori. Il risultato lo dichiara negli avvisi.
+
+Convenzioni del motore non prescritte dal manuale, registrate nel riferimento con il valore letterale e il verso:
+
+- quando l'eccentricità scambia B′ e L′, i fattori di profondità usano il lato geometrico allineato a B′ invece della B geometrica: −3/−6% sulla capacità, a favore di sicurezza;
+- EC7 su pianta quadrata eccentrica: fattori di forma da B′/L′ invece della formula della quadrata, che il manuale applica alla geometria reale: −3/−4%, a favore di sicurezza;
+- Meyerhof con θ > φ′: iγ = 0 (USACE tab. 4-3), dove il manuale scrive solo (1 − θ/φ′)²: a favore di sicurezza.
+
+Non implementati rispetto al manuale, sempre con eccezione esplicita: fattori di inclinazione della base e del pendio (b, g), Meyerhof inclinato su pianta non nastriforme, fattori di compressibilità di Vesić da indice di rigidezza (4.3–4.6), Nγ di Salgado, adesione ca di Bowles, Terzaghi con D > B.
+
+Lavori in coda: Hansen con carico inclinato, drenato (3.23–3.25, calcolo nelle due direzioni con il minore) e non drenato (3.27).

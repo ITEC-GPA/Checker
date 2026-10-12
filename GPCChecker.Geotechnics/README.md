@@ -41,6 +41,7 @@ fondazioni, pali e micropali, spinte ed equilibrio dei muri. Organizzazione deci
 | `Slopes.BishopSolver` | Bishop semplificato su conci assegnati |
 | `Slopes.SlopeGeometry` | Cerchi per uscita, ingresso e profondità; famiglia tangente; divisioni in conci; ammissibilità |
 | `Slopes.SlopeStability` | Conci di un cerchio (pesi, falda, corpi rigidi, carichi, sisma pseudostatico) e ricerca del cerchio critico per combinazione |
+| `Foundations.ShallowFoundationBearing` | Portanza statica delle fondazioni superficiali: EC7 allegato D, Terzaghi, Meyerhof, Brinch Hansen, Vesić (docs/metodi/fondazioni-superficiali.md) |
 | `Foundations.FoundationSettlement` | Cedimento edometrico 1D sotto una striscia (Boussinesq, carico trapezio, scarico dello scavo) |
 | `Foundations.ShallowFoundationSeismic` | Portanza sismica di una striscia su terreno incoerente asciutto, EN 1998-5 Annesso F |
 | `Seismic.NewmarkSliding` | Blocco rigido di Newmark su accelerogramma lineare a tratti |
