@@ -47,3 +47,7 @@ pubbliche. Il commit di versione non pubblica un rilascio e non cambia
 `ANTHEA/lib/Checker`. Per attivare la correzione nel prodotto restano il set coerente
 da commit pushati e il confronto ANTHEA prima/dopo con la differenza API-02 dichiarata. Fino ad allora i percorsi circolari conservativi di ANTHEA
 restano presenti e il punto di integrazione rimane aperto.
+
+## Riallineamento del treno a Model 5.1
+
+Steel 2.0.4.2, CompositeBridge 1.5.0.2, Geotechnics 0.1.3.1 e ModelChecker 2.1.0.2 sono revisioni tecniche per il riferimento al nuovo GPCModel 5.1.0.0. Nessuna formula o contratto modificato. Concrete resta alla 0.0.27.2, ancora non distribuita, che include API-02; anche la versione di pacchetto viene allineata all’assembly. Le revisioni tecniche incrementano l’ultimo componente secondo la delega del 12 ottobre. Tutte le suite del treno devono essere rieseguite.
