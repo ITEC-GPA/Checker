@@ -48,6 +48,11 @@ public sealed class ShallowFoundationInput
     /// <summary>Required for drained EN 1997-1 Annex D: base friction δ ≥ φ/2.</summary>
     public bool RoughBase { get; set; } = true;
     public double RelativeDensity { get; set; } = .5;
+    /// <summary>Optional canonical Model profile; when assigned, its soil and groundwater data take precedence over the legacy scalar inputs.</summary>
+    public GPC.Model.Geotechnics.SoilProfile? SoilProfile { get; set; }
+    public bool HomogeneousHalfSpace { get; set; } = true;
+    internal double? ProfileOverburden { get; set; }
+    internal ShallowFoundationInput Copy()=>(ShallowFoundationInput)MemberwiseClone();
 }
 
 public sealed class FoundationTerm
@@ -85,6 +90,7 @@ public sealed class ShallowFoundationResult
     public FoundationTerm Surcharge { get; } = new();
     public FoundationTerm Weight { get; } = new();
     public List<string> Warnings { get; } = new();
+    public FoundationGraphicsResult? Graphics { get; internal set; }
 }
 
 /// <summary>
@@ -98,6 +104,7 @@ public static class ShallowFoundationBearing
     public static ShallowFoundationResult Calculate(ShallowFoundationInput x)
     {
         if (x == null) throw new ArgumentNullException(nameof(x));
+        x=FoundationSoilProfile.Prepare(x);
         Validate(x);
         var r = new ShallowFoundationResult { Method = x.Method.ToString() };
         double b = x.Width, l = x.Shape == FoundationShape.Strip ? 1000 : x.Shape == FoundationShape.Circle ? b : x.Length;
@@ -115,7 +122,7 @@ public static class ShallowFoundationBearing
         { (be, le) = (le, be); (b, l) = (l, b); (hx, hy) = (hy, hx); }
         double ratio = x.Shape == FoundationShape.Strip ? 0 : be / le;
         double h = Hypot(hx, hy);
-        double q = x.Surcharge + CoverPressure(x);
+        double q = x.Surcharge + (x.ProfileOverburden ?? CoverPressure(x));
         double gamma = x.UnitWeight;
         if (x.WaterEnabled)
         {
@@ -164,6 +171,8 @@ public static class ShallowFoundationBearing
             throw new ArgumentException("Dimensioni o azioni fuori dall'intervallo numerico rappresentabile.");
         r.Status = r.Resistance >= x.Normal ? "Verificata" : "Non verificata";
         if (x.Profile == FoundationDesignProfile.Characteristic) r.Status = "Confronto caratteristico";
+        try { r.Graphics=FoundationGraphics.Create(x,r); }
+        catch(ArithmeticException e) { r.Warnings.Add(e.Message); }
         r.Warnings.Add("Terreno omogeneo, piano campagna e base orizzontali. Esclusi sisma, cedimenti, scorrimento, stabilità globale e verifiche strutturali.");
         return r;
     }
