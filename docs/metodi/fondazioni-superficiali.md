@@ -1,6 +1,6 @@
 # Portanza statica delle fondazioni superficiali
 
-Stato 12 ottobre 2026: API sorgente in `GPCChecker.Geotechnics/Foundations/ShallowFoundationBearing.cs`, non ancora in un release set approvato. Nessun cambio di versione. Nessun motore preesistente modificato.
+Stato 12 ottobre 2026: API in `GPCChecker.Geotechnics/Foundations/ShallowFoundationBearing.cs`, GPCChecker.Geotechnics 0.1.3.0, `ContractVersion` 2. Nessun motore preesistente modificato.
 
 ## Contratto e perimetro
 
