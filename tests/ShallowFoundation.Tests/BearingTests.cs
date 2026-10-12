@@ -144,6 +144,21 @@ public sealed class BearingTests
     }
 
     [TestMethod]
+    public void ResultantOutsideTheBaseGivesASerializableResult()
+    {
+        // Resultant on and beyond the edge: null capacity, and the contact graphics must not leak non-finite numbers.
+        foreach (double factor in new[]{.5,.6})
+        {
+            var x=Input();x.Profile=FoundationDesignProfile.Ntc2018;x.MomentY=factor*x.Normal*x.Width;
+            var r=ShallowFoundationBearing.Calculate(x);
+            Exhausted(r);Assert.AreEqual("Non verificata",r.Status);
+            System.Text.Json.JsonSerializer.Serialize(r);
+            // No compressive contact can balance a resultant on or beyond the edge: no graphics, reason in the warnings.
+            Assert.IsNull(r.Graphics);Assert.IsTrue(r.Warnings.Any(w=>w.StartsWith("Distribuzione delle pressioni non convergente")));
+        }
+    }
+
+    [TestMethod]
     public void DensityReductionDomainAndContinuity()
     {
         var x=Input();var r=ShallowFoundationBearing.Calculate(x);
