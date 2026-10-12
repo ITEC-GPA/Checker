@@ -1,6 +1,6 @@
 # Regole per gli agenti (librerie GPC: Checker)
 
-- **Versioni**: le assegna l'utente. Non cambiare `AssemblyVersion`, `Version` o `FileVersion` senza averglielo chiesto; sui branch di lavoro le versioni restano quelle di master.
+- **Versioni**: l'utente delega agli agenti la scelta in base alle modifiche. Per i fix incrementare l'ultimo componente; per le altre modifiche incrementare il secondo componente da sinistra e azzerare quelli successivi. Esempi: 0.0.27.1 -> 0.0.27.2 (fix), 0.0.27.2 -> 0.1.0.0 (altro). Registrare motivo e versione nel commit; nessuna richiesta di conferma per il numero. Restano i controlli del set coerente e le autorizzazioni Git.
 - **Rilascio**: un solo treno per Utilities, Geometry, Model e Checker, descritto in `build/RILASCIO.txt`. Il set coerente lo produce `build/Release-Set.ps1`; nessun rilascio senza tutte le suite, comprese quelle net472 di Concrete e Steel (`build/Verify.ps1`). Fallimenti ammessi solo per nome in `build/known-failures.json`.
 - **Dipendenze**: Checker sta a valle di Model. `GPCModelChecker` (cartelle `ModelChecker` e `ModelChecker.Tests`) usa GPCModel dal checkout fratello `../Model`; Model non referenzia Checker.
 - **Gmsh** (GMsh.Net, UnsafeEx, `gmsh-*.dll`, GMesh) solo negli unit test, mai nelle DLL delle librerie.

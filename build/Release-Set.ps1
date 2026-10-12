@@ -11,7 +11,7 @@ on any machine and in any folder.
   -Root       folder with the sibling checkouts; default: the parent folder of this repository.
   -Out        new folder for the DLLs, their PDB and XML documentation, release-set.json and the test results.
   -Previous   release-set.json of the last release: every DLL whose SHA-256 changed needs a higher assembly version.
-              Versions are assigned by the user (or by an agent after asking); this script never changes them.
+              Versions follow the delegation in build/RILASCIO.txt (last component for fixes, second otherwise); this script never changes them.
   -Candidate  set for tests: branches and unpushed commits allowed, no version check, release-set.json marked candidate.
               ANTHEA installs a candidate only with Update-Snapshot.ps1 -AllowCandidate (tests, never a release).
 #>
@@ -97,7 +97,7 @@ foreach ($l in $libraries) {
         informationalVersion = $info.ProductVersion; sha256 = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash; commit = $repos[$l[0]].commit }
 }
 
-# 5. Versions: a changed DLL needs a higher version assigned by the user.
+# 5. Versions: a changed DLL needs a higher version following build/RILASCIO.txt.
 $problems = @()
 if ($Previous -and !$Candidate) {
     $old = @{}
@@ -105,7 +105,7 @@ if ($Previous -and !$Candidate) {
     foreach ($f in $files) {
         $p = $old[$f.file]
         if ($p -and $p.sha256 -ne $f.sha256 -and [version]$f.assemblyVersion -le [version]$p.assemblyVersion) {
-            $problems += "$($f.file): contenuto cambiato rispetto al set precedente con la versione $($f.assemblyVersion) (prima $($p.assemblyVersion)); la versione nuova la assegna l'utente."
+            $problems += "$($f.file): contenuto cambiato rispetto al set precedente con la versione $($f.assemblyVersion) (prima $($p.assemblyVersion)); assegnare una versione nuova secondo build/RILASCIO.txt."
         }
     }
 } elseif (!$Candidate) {
