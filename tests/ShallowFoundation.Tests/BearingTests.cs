@@ -169,6 +169,20 @@ public sealed class BearingTests
     }
 
     [TestMethod]
+    public void MeyerhofBelowTenDegreesIsInterpolatedAndDeclared()
+    {
+        // USACE EM 1110-1-1905 Table 4-3: for 0 < phi <= 10° linear interpolation between phi = 0 (factor 1) and phi = 10°.
+        var x=Input(FoundationBearingMethod.Meyerhof);x.FrictionAngle=5*Math.PI/180;
+        var r=ShallowFoundationBearing.Calculate(x);
+        double kp10=Math.Pow(Math.Tan(50*Math.PI/180),2);
+        Close(1+.5*.1*kp10*2/3,r.Surcharge.Shape);Close(r.Surcharge.Shape,r.Weight.Shape);
+        Close(1+.5*.1*Math.Sqrt(kp10)*.5,r.Surcharge.Depth);Close(r.Surcharge.Depth,r.Weight.Depth);
+        Assert.IsTrue(r.Warnings.Any(w=>w.StartsWith("Meyerhof con φ′ < 10°")));
+        x.FrictionAngle=10*Math.PI/180;
+        Assert.IsFalse(ShallowFoundationBearing.Calculate(x).Warnings.Any(w=>w.StartsWith("Meyerhof con φ′ < 10°")));
+    }
+
+    [TestMethod]
     public void RejectNonFiniteAndOutOfDomainInputs()
     {
         var x=Input();x.Width=double.NaN;Assert.ThrowsException<ArgumentException>(()=>ShallowFoundationBearing.Calculate(x));

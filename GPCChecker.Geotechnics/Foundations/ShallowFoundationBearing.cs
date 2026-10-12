@@ -224,6 +224,8 @@ public static class ShallowFoundationBearing
             double limit = 10 * Math.PI / 180;
             double shapeK = phi < limit ? Math.Pow(Math.Tan(Math.PI / 4 + limit / 2), 2) * phi / limit : kp;
             double depthK = phi < limit ? Math.Tan(Math.PI / 4 + limit / 2) * phi / limit : Math.Sqrt(kp);
+            if (phi < limit)
+                r.Warnings.Add("Meyerhof con φ′ < 10°: sq, sγ, dq e dγ interpolati linearmente tra φ′ = 0 e 10° (USACE EM 1110-1-1905, tab. 4-3); le espressioni di Meyerhof (1963) e il manuale di riferimento non li definiscono in questo intervallo.");
             fq.Shape = fg.Shape = 1 + .1 * shapeK * ratio;
             double depth = x.IncludeDepthFactors ? x.Depth / b : 0;
             fc.Depth = 1 + .2 * Math.Sqrt(kp) * depth;
