@@ -18,7 +18,7 @@ ElasticPile e i convertitori GPC.Model.Units; non si crea un altro motore.
 | ElasticPileSection | Geometria mm, modulo MPa, EI esposto in kN·m²; metadati da distinguere da Input.EI |
 | PileAction/armature | Contratto separato kN/kNm/m; ingresso al solutore di sezione N/Nmm già convertito |
 | Adattatore ANTHEA | Quote m con selezione tratti ±1e-9 m; diametro m→mm esplicito ma ancora con fattori letterali |
-| Resistenza del palo CA | Tolleranza su N max(1000 N, 0.001 |N|), su momento trasversale max(1e6 Nmm, 0.001 |Mx|) |
+| Resistenza del palo CA | Tolleranza su N max(1000 N, 1e-6 |N in N|); nel sorgente storico il termine relativo è 0.001·|N in kN|, su momento trasversale max(1e6 Nmm, 0.001 |Mx|) |
 
 Il solutore elastico è già indipendente dalle unità. Non serve riscriverlo per
 ottenere N/mm; restano F4.6b per i confini nominati degli adattatori e il riuso
@@ -75,3 +75,26 @@ e `14A345FB46085EDDBA07C889BFF0468356138FFC9EF5732D0B508B9B84D9043E`.
 Evidenze: `ANTHEA/supporto/artefatti/refactoring/f4/tip-fix-final`.
 Il fix è nel ramo di sviluppo: l'attivazione in ANTHEA richiede il successivo
 rilascio coerente, senza sostituire singolarmente la DLL.
+
+## F4.6b — confini espliciti delle armature
+
+I fattori forza, momento e lunghezza sono derivati una volta da GPC.Model.Units.
+I contratti pubblici restano kN/kNm/m per azioni, tratti e distinte, N/Nmm/mm
+per i solutori e le verifiche della sezione. Conversioni nominate anche per
+traslazione, ancoraggi, sovrapposizioni, staffe, spirali e zona sismica.
+Nessuna modifica alla strategia del solutore o alla tolleranza di accettazione.
+
+Precisata la tabella precedente: il termine storico Math.Abs(n)*.001 riceve
+n in kN mentre lo scarto è in N. Equivale a 1e-6 dello sforzo in N, con soglia
+minima di 1000 N; non a 0.001 dello sforzo in N. Il criterio numerico è
+conservato e dichiarato nel codice. Un'eventuale armonizzazione con
+DomainPointAxialTolerance è una modifica del criterio, non una conversione.
+
+Concrete candidata **0.2.0.0**: secondo componente incrementato per questo
+refactoring interno, senza correzioni normative o rimozioni di API.
+Suite Concrete completa: **735 PASS**, zero fallimenti (3,54 minuti).
+Cattura degli 11 casi di palo identica al riferimento precedente, SHA-256
+5E75A6432480694166F77216554D772AF00FFFB079495F6A45BF12458851985E.
+Prova preventiva dei pali: 15 PASS. Evidenze nel repository ANTHEA:
+`supporto/artefatti/refactoring/f4/armature-units-before` e `armature-units-after`.
+L'attivazione resta vincolata al set coerente; nessuna DLL copiata in ANTHEA.

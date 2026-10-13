@@ -54,10 +54,10 @@ namespace GPC.Checkers.Concrete.Piles
             if(!Finite(diameterMm)||diameterMm<=0||!Finite(pileLength)||pileLength<=0||
                 (assignedLength.HasValue&&(!Finite(assignedLength.Value)||assignedLength<=0)))
                 throw new ArgumentException("Zona sismica: diametro e lunghezze positivi finiti richiesti.");
-            return Math.Min(pileLength,assignedLength??10*diameterMm/1000);
+            return Math.Min(pileLength,assignedLength??10*diameterMm/MillimetresPerMetre);
         }
         public static PileSeismicZone DescribeSeismicHead(double diameterMm,double pileLength,double? assignedLength=null)
-            =>new PileSeismicZone{AdoptedEnd=SeismicHeadEnd(diameterMm,pileLength,assignedLength),NominalLength=10*diameterMm/1000,MinimumEnd=SeismicHeadEnd(diameterMm,pileLength)};
+            =>new PileSeismicZone{AdoptedEnd=SeismicHeadEnd(diameterMm,pileLength,assignedLength),NominalLength=10*diameterMm/MillimetresPerMetre,MinimumEnd=SeismicHeadEnd(diameterMm,pileLength)};
         /// <summary>NTC 7.2.5 head-zone details and simplified conditions without a specific ductility assessment.
         /// Uses concomitant section actions and existing nominal resistances. No seismic action generation.</summary>
         public PileSeismicResult CheckHeadSeismic(PileSeismicSettings settings,double start,double end,double pileLength,IReadOnlyList<PileSectionCheck> sections)
@@ -65,7 +65,7 @@ namespace GPC.Checkers.Concrete.Piles
             if(settings==null)throw new ArgumentNullException(nameof(settings));
             var result=new PileSeismicResult{Active=settings.Enabled,Scope="Zona dissipativa presso la testa, se non si esclude il raggiungimento della capacità. Prescrizioni semplificate in assenza di valutazione specifica di duttilità. Azioni assegnate; non genera combinazioni, effetti cinematici, zone profonde o verifiche del nodo palo-plinto. Dettagli di giunzione e ancoraggio restano separati."};
             if(!settings.Enabled)return result;
-            double zone=SeismicHeadEnd(p.Diameter,pileLength,settings.HeadLength),required=10*p.Diameter/1000;
+            double zone=SeismicHeadEnd(p.Diameter,pileLength,settings.HeadLength),required=10*p.Diameter/MillimetresPerMetre;
             if(!Finite(start+end)||start<0||end<=start||end>pileLength||sections==null||!Enum.IsDefined(typeof(PileSeismicLinks),settings.Links))
                 throw new ArgumentException("Tratto o tipologia staffe non validi per i controlli sismici.");
             var points=sections.Where(c=>c.Action.Depth>=start-1e-9&&c.Action.Depth<=end+1e-9).ToArray();
@@ -97,7 +97,7 @@ namespace GPC.Checkers.Concrete.Piles
             }
             bool seismic=settings.SeismicActionsConfirmed&&p.DesignActionsConfirmed&&standard;
             Demand("SeismicShear","Margine sismico a taglio",points,c=>1.3*Math.Abs(c.Action.V),c=>p.ShearModelConfirmed?c.VRd:null,"kN",seismic,false,"1,3 |VEd| ≤ VRd. Controllo lungo tutto il palo, senza cambiare VEd nel FEM.");
-            if(head)Demand("SeismicCompression","Compressione media nella zona dissipativa",headPoints,c=>Math.Max(0,c.Action.N)*1000/area,c=>.45*p.Fcd,"MPa",seismic,true,"σc,media < 0,45 fcd; N della stessa combinazione sismica, positivo a compressione.");
+            if(head)Demand("SeismicCompression","Compressione media nella zona dissipativa",headPoints,c=>Math.Max(0,c.Action.N)*NewtonsPerKilonewton/area,c=>.45*p.Fcd,"MPa",seismic,true,"σc,media < 0,45 fcd; N della stessa combinazione sismica, positivo a compressione.");
             Demand("SeismicElasticMoment","Momento da analisi elastica",points,c=>Math.Abs(c.Action.M),c=>c.Action.M>=0?1.5*c.MRdPositive:-1.5*c.MRdNegative,"kNm",seismic&&settings.ElasticMomentConfirmed,true,"|Mel| < 1,5 MRd(N), nel verso locale. Confermare che M assegnato provenga da analisi elastica non ridotta (q=1); N concomitante sismico. Resta distinta la verifica ordinaria MEd ≤ MRd.");
             if(points.Any(c=>c.DevelopmentAvailable==false))Add("SeismicBarDevelopment","Disponibilità dello sviluppo delle barre",null,null,"",null,"Resistenze nominali calcolate; sviluppo o giunti non disponibili ad alcune quote: non certificano il dettaglio sismico.");
             return result;

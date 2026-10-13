@@ -33,14 +33,14 @@ namespace GPC.Checkers.Concrete.Piles
             double radius=CircularLinkRadius(diameterMm,coverMm,barDiameterMm);
             var stations=LinkStations(start,end,maximumPitchMm,last);
             var full=LinkStations(start,end,maximumPitchMm,true);int turns=full.Length-1;
-            var r=new PileTransverseDetail{Kind=kind,Start=start,End=end,Diameter=barDiameterMm,Radius=radius,MaximumPitch=maximumPitchMm,ActualPitch=(end-start)*1000/turns};
+            var r=new PileTransverseDetail{Kind=kind,Start=start,End=end,Diameter=barDiameterMm,Radius=radius,MaximumPitch=maximumPitchMm,ActualPitch=(end-start)*MillimetresPerMetre/turns};
             if(kind==PileSeismicLinks.Unspecified)return r;
             if(kind==PileSeismicLinks.SingleHoops)
             {
-                r.Stations=stations;r.Count=stations.Length;r.GeometricLength=stations.Length*2*Math.PI*radius/1000;return r;
+                r.Stations=stations;r.Count=stations.Length;r.GeometricLength=stations.Length*2*Math.PI*radius/MillimetresPerMetre;return r;
             }
             r.Count=1;r.Turns=turns;
-            double circumference=2*Math.PI*radius/1000;
+            double circumference=2*Math.PI*radius/MillimetresPerMetre;
             r.GeometricLength=Math.Sqrt(Math.Pow(turns*circumference,2)+Math.Pow(end-start,2));
             // 24 samples per turn describe the geometry, independently of the drawing scale or FEM mesh.
             r.Projection=Enumerable.Range(0,checked(turns*24+1)).Select(i=>new PileTransversePoint{Depth=start+(end-start)*i/(turns*24),X=radius*Math.Cos(i*Math.PI/12),Front=Math.Sin((i-.5)*Math.PI/12)>=0}).ToArray();
