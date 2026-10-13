@@ -49,12 +49,29 @@ Esito finale: **56/56 nuove prove**, **173/173 suite geotecnica**.
 Evidenze ANTHEA in `supporto/artefatti/refactoring/f4/pile-units-final`;
 diagnostica completa in `pile-units-diagnostic`, primo tentativo in `pile-units`.
 
-## Difetto individuato da correggere separatamente (F4.6c)
+## Difetto individuato e corretto separatamente (F4.6c)
 
 Con uno strato che termina a L·(1−5e-11), la validazione di copertura ammette
 l'input, ma la mesh crea un ultimo elemento quasi nullo e lo rifiuta come mal
 condizionato. Accade in entrambi i sistemi di unità; non è un difetto di scala.
 Lo scostamento L·(1−2e-10) è invece correttamente rifiutato per copertura.
-Preparare una regressione dedicata prima della correzione: usare la tolleranza
-già esistente per coincidere con la punta senza introdurre un elemento spurio,
-lasciando inalterati i confini interni, gli input e il rifiuto oltre tolleranza.
+La regressione preventiva fallisce nei due sistemi di unità (`tip-fix-before`).
+Il fix usa la tolleranza già esistente per far coincidere l'ultimo confine con
+la punta, senza introdurre un elemento spurio. Restano inalterati i confini
+interni, gli input e il rifiuto oltre tolleranza.
+
+Quattro regressioni coprono kN/m e N/mm, terreno uniforme e stratificato:
+il risultato serializzato coincide esattamente con quello della copertura
+completa, gli input restano identici, la mesh ha rispettivamente 24 e 25 elementi
+e conserva l'interfaccia interna a 4,13 m. Le prove della soglia ora richiedono
+esplicitamente il successo anche per la copertura corta ammessa.
+
+Geotechnics **0.2.0.1**: incremento dell'ultimo componente per questo fix.
+Collaudo completo con `build/Verify.ps1`: **1625 PASS, 17 fallimenti Steel già
+censiti, zero nuovi fallimenti**; suite geotecnica **177/177**. Compatibilità API
+conservata. Le catture legacy degli 11 pali e dei 7 muri mantengono le impronte
+precedenti, rispettivamente `5E75A6432480694166F77216554D772AF00FFFB079495F6A45BF12458851985E`
+e `14A345FB46085EDDBA07C889BFF0468356138FFC9EF5732D0B508B9B84D9043E`.
+Evidenze: `ANTHEA/supporto/artefatti/refactoring/f4/tip-fix-final`.
+Il fix è nel ramo di sviluppo: l'attivazione in ANTHEA richiede il successivo
+rilascio coerente, senza sostituire singolarmente la DLL.

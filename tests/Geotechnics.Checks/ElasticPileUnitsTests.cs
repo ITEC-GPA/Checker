@@ -167,7 +167,35 @@ public class ElasticPileUnitsTests
         string first = Decision(p), second = Decision(Scale(p));
         TestContext.WriteLine("Coverage delta {0:R}: {1}", relativeGap, first);
         Assert.AreEqual(first, second, "relative coverage/conditioning threshold");
-        if (relativeGap >= 0) Assert.AreEqual("calculated", first);
+        if (relativeGap >= -1e-10) Assert.AreEqual("calculated", first);
         if (relativeGap < -1e-10) StringAssert.Contains(first, "Layers must cover");
+    }
+
+    [DataTestMethod]
+    [DataRow(false, false)]
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    [DataRow(true, true)]
+    public void CoverageRoundingWithinToleranceDoesNotCreateATinyTipElement(bool millimetres, bool stratified)
+    {
+        var exact = Input(); exact.FreeLength = 0; exact.AdditionalNodes = Array.Empty<double>();
+        exact.Layers = new[] { new ElasticPileLayer { Thickness = exact.Length, Value = 10000 } };
+        var rounded = Input(); rounded.FreeLength = 0; rounded.AdditionalNodes = Array.Empty<double>();
+        rounded.Layers = new[] { new ElasticPileLayer { Thickness = rounded.Length * (1 - 5e-11), Value = 10000 } };
+        if (stratified)
+        {
+            exact.Layers = new[] { new ElasticPileLayer { Thickness = 4.13, Value = 10000 },
+                new ElasticPileLayer { Thickness = exact.Length - 4.13, Value = 25000 } };
+            rounded.Layers = new[] { new ElasticPileLayer { Thickness = 4.13, Value = 10000 },
+                new ElasticPileLayer { Thickness = rounded.Length * (1 - 5e-11) - 4.13, Value = 25000 } };
+        }
+        if (millimetres) { exact = Scale(exact); rounded = Scale(rounded); }
+        string before = JsonSerializer.Serialize(rounded);
+        var expected = ElasticPile.Calculate(exact); var actual = ElasticPile.Calculate(rounded);
+        // Same physical end within the existing tolerance: not a wider numerical comparison.
+        Assert.AreEqual(JsonSerializer.Serialize(expected), JsonSerializer.Serialize(actual));
+        Assert.AreEqual(before, JsonSerializer.Serialize(rounded), "The user's layer must not be edited");
+        Assert.AreEqual(stratified ? 25 : 24, actual.Elements);
+        if (stratified) Assert.IsTrue(actual.Nodes.Any(n => n.Depth == 4.13 * (millimetres ? 1000 : 1)), "Internal interface retained");
     }
 }
