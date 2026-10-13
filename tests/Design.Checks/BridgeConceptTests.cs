@@ -66,6 +66,9 @@ public sealed class BridgeConceptTests
             var data=Input(row!["input"]!);var copy=data with {};var r=BridgeConcept.Calculate(data);
             var actual=new JsonObject{["result"]=JsonSerializer.SerializeToNode(r),["technical"]=JsonSerializer.SerializeToNode(BridgeConcept.TechnicalSchedule(data,r)),
                 ["supports"]=JsonSerializer.SerializeToNode(BridgeConcept.SupportSchedule(data,r))};
+            int removed=NormalizeLegacyStations(row["calculation"]);
+            Assert.AreEqual(0,NormalizeLegacyStations(actual),"Native diagram still contains duplicates.");
+            Console.WriteLine($"{row["id"]}: {removed} redundant legacy stations");
             numbers+=Compare(row["calculation"],actual,row["id"]!.GetValue<string>());Assert.AreEqual(copy,data);
         }
         Console.WriteLine($"Frozen bridge calculations: {cases.Count} cases, {numbers} numbers.");
@@ -78,9 +81,43 @@ public sealed class BridgeConceptTests
         {
             var data=Input(row!["input"]!);var options=row["options"]!.Deserialize<BridgeConcept.OptimizationOptions>()!;
             var actual=JsonSerializer.SerializeToNode(BridgeConcept.Optimize(data,options));RestoreArchiveShape(actual,row["input"]!);
+            int removed=NormalizeLegacyStations(row["optimization"]);
+            Assert.AreEqual(0,NormalizeLegacyStations(actual),"Native search diagram still contains duplicates.");
+            Console.WriteLine($"{row["id"]}: {removed} redundant legacy stations");
             numbers+=Compare(row["optimization"],actual,row["id"]!.GetValue<string>());count++;
         }
         Assert.AreEqual(17,count);Console.WriteLine($"Frozen bridge searches: {count} grids, {numbers} numbers.");
+    }
+    // Classified representation fix only. Each removed point must have the same span and all physical values
+    // within the original numerical comparison tolerance. The SHA-protected source bytes are never changed.
+    static int NormalizeLegacyStations(JsonNode? node)
+    {
+        if(node is JsonArray list)return list.Sum(NormalizeLegacyStations);
+        if(node is not JsonObject obj)return 0;
+        int removed=0;
+        foreach(var pair in obj.ToArray())
+        {
+            if(pair.Key!="Stations"||pair.Value is not JsonArray stations){removed+=NormalizeLegacyStations(pair.Value);continue;}
+            for(int i=stations.Count-1;i>0;i--)
+            {
+                var a=stations[i-1]!;var b=stations[i]!;
+                double x=a["X"]!.GetValue<double>(),y=b["X"]!.GetValue<double>();
+                if(a["Span"]!.GetValue<int>()!=b["Span"]!.GetValue<int>()||Math.Abs(x-y)>1e-12*Math.Max(1,Math.Abs(x)))continue;
+                foreach(string key in new[]{"Moment","Shear","DeflectionMm"})Compare(a[key],b[key],"redundant station/"+key);
+                stations.RemoveAt(i);removed++;
+            }
+        }
+        return removed;
+    }
+    [TestMethod]
+    public void RoundoffCannotAddDuplicateStationAtAnalyticalMaximum()
+    {
+        foreach(double q in new[]{1d,1.0000000000000002,5.73,181.8})
+        {
+            var result=BridgeConcept.Analyze([36,36],q,1e6,true);
+            Assert.AreEqual(82,result.Stations.Length);
+            foreach(var span in result.Stations.GroupBy(s=>s.Span))Assert.AreEqual(41,span.Select(s=>s.X).Distinct().Count());
+        }
     }
     [TestMethod]
     public void SimplySupportedUniformLoadMatchesIndependentStatics()

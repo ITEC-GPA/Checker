@@ -230,7 +230,8 @@ public static partial class BridgeConcept
             reactions[k] += r; reactions[k + 1] += q * l - r;
             double c = -(ml * l * l / 2 + r * l * l * l / 6 - q * Math.Pow(l, 4) / 24) / l;
             var xs = Enumerable.Range(0, 41).Select(t => l * t / 40).ToList();
-            if (q != 0 && r / q > 0 && r / q < l) xs.Add(r / q);
+            // Keep the analytical maximum unless its abscissa already belongs to the sampling grid.
+            if (q != 0 && r / q > 0 && r / q < l && !xs.Any(x => Math.Abs(x - r / q) <= l * 1e-12)) xs.Add(r / q);
             foreach (double x in xs.Distinct().Order())
                 stations.Add(new(k + 1, offset + x, ml + r * x - q * x * x / 2, r - q * x,
                     -(ml * x * x / 2 + r * x * x * x / 6 - q * Math.Pow(x, 4) / 24 + c * x) / ei * 1000));
