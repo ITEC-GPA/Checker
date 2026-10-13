@@ -194,7 +194,7 @@ public static partial class BridgeConcept
         if (id == "filler_beam") warnings.Add("Travi incorporate: profili a I ideali, cls netto dell’acciaio; collaborazione perfetta assunta. Adesione, armatura trasversale, fasi di getto e verifica del profilo non calcolate.");
         if (ortho) warnings.Add("Piastra ortotropa: lamiera, canalette e cassone conteggiati geometricamente. La rigidezza locale ortotropa, i traversi e la fatica delle saldature richiedono un modello dedicato.");
         if (maxRatio > 1 || maxSlenderness > 100 || maxStress > .3) warnings.Add("Una o più soglie indicative di pile / fondazioni sono superate; soluzione esclusa dalla ricerca.");
-        CostWarnings(warnings, length, factored.Item1.Where(v => v > 0).Sum(), (i.Continuous ? count + 1 : 2 * count) * Math.Max(2, deck.Girders), rates.Bearing);
+        CostWarnings(warnings, length, factored.Item1.Where(v => v > 0).Sum(), (i.Continuous ? count + 1 : 2 * count) * Math.Max(2, deck.Girders), BearingRate(data));
         warnings.Add("Costi convenzionali, montaggio speciale esplicito; CO₂ parziale materiali e cantiere, senza EPD. Durata parametrica, non cronoprogramma.");
         if (quantities.Any(t => !double.IsFinite(t.Amount) || !double.IsFinite(t.Cost)) || !double.IsFinite(deck.Inertia)) throw new ArgumentException("Risultato non finito nel predimensionamento della tipologia.");
         return new(family, width, depth, depth, deck.Slab, deck.Spacing, deck.Girders, deck.Web, deck.Bottom, spans, supports.ToArray(), foundation, diameter, pileLength,

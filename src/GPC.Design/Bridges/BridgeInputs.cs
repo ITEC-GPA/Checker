@@ -216,4 +216,8 @@ public sealed record BridgeRates
     };
 }
 
-public sealed record BridgeModel(BridgeInput Input, BridgeRates Rates, BridgeAssumptions Assumptions);
+public sealed record BridgeModel(BridgeInput Input, BridgeRates Rates, BridgeAssumptions Assumptions)
+{
+    /// <summary>Null preserves the rates and arithmetic of a legacy calculation. Otherwise this owned snapshot governs every candidate.</summary>
+    public GPC.Design.Costs.ResolvedPriceSnapshot? Prices { get; init; }
+}

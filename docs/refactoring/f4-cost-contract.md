@@ -11,3 +11,9 @@ Prezzo assente, prezzo zero esplicito, tariffa assente e unità errata sono stat
 Design 0.13.0.0 espone quantità misurate con codice lavorazione e unità, separate dal risultato storico. Il codice nasce nello stesso punto in cui viene prodotta la quantità, senza ricostruzione dalle etichette italiane. L'armatura delle fondazioni è separata in plinti/ancoraggi e pali, con relazione di inclusione soltanto al proprio prezzo del palo. Le quantità sono possedute e immutabili. Reprice non modifica né ricalcola la struttura; risultati storici privi delle quantità tipizzate richiedono un nuovo calcolo invece di produrre un costo nullo.
 
 44 test Design PASS: 31 casi di tutte le famiglie conservano costi e quantità, prezzi raddoppiati danno costo doppio, inclusioni detraggono esattamente la sola armatura dei pali. Conservati gli attesi originali, tolleranza 1e-10; la traccia strutturale e CO₂ resta protetta dal corpus iniziale. Le nuove quantità sono escluse dalla serializzazione storica del risultato; il nuovo documento di prezzi ne conserva lo snapshot esplicito.
+
+## F4.11b.3 — prezzi nell'ottimizzazione
+
+Design 0.14.0.0: BridgeModel può ricevere uno snapshot risolto; tutti i candidati e le copie ne conservano la stessa revisione. I risultati con listino esplicito espongono quantità e costi delle quote distinte, inclusioni evidenti e totale rivalutato. Calcolo e ricerca rifiutano una stima incompleta, senza attribuire prezzi zero alle voci mancanti. Valuta EUR esplicita: nessun cambio implicito. Null conserva esattamente il percorso degli archivi legacy.
+
+45 test PASS, comprese graduatoria e tentativi con prezzi raddoppiati, riproduzione delle alternative, revisione comune, quadratura del computo e rifiuto dei listini incompleti. Il corpus iniziale è invariato. Versione con secondo componente incrementato per il nuovo ingresso del motore.

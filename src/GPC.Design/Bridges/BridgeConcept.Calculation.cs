@@ -4,7 +4,11 @@ namespace GPC.Design.Bridges;
 
 public static partial class BridgeConcept
 {
-    public static Result Calculate(BridgeModel data) => Own(CalculateCore(data));
+    public static Result Calculate(BridgeModel data)
+    {
+        var result = CalculateCore(data);
+        return Own(data.Prices is null ? result : ApplyPrices(result, data.Assumptions, data.Prices));
+    }
 
     private static Result CalculateCore(BridgeModel data)
     {
@@ -183,7 +187,7 @@ public static partial class BridgeConcept
         if (maxPierStressRatio > .3) warnings.Add("Compressione media nelle pile oltre 0,30 fc: soglia orientativa del predimensionamento, richiede verifica pressoflessionale specifica.");
         if (family.Id == "fcm") warnings.Add("Cassone variabile: quantità e rigidezza ricavate con altezza media d + (d_pila − d)/3; fasi a sbalzo non analizzate.");
         if (i.Obstacle == "Fiume") warnings.Add("Franco idraulico ed erosione non valutati: il terreno rappresentato è schematico.");
-        CostWarnings(warnings, length, factored.Reactions.Where(v => v > 0).Sum(), bearingCount, rates.Bearing);
+        CostWarnings(warnings, length, factored.Reactions.Where(v => v > 0).Sum(), bearingCount, BearingRate(data));
         warnings.Add("CO₂ indicativa: cls e acciai + maggiorazione trasporti/cantiere; finiture, esercizio e fine vita esclusi. Fattori non riferiti a EPD.");
         var details = new List<Detail> {
             new("Larghezza impalcato", width, "m", "corsie × larghezza + 2 banchine + spartitraffico + 2 barriere"),

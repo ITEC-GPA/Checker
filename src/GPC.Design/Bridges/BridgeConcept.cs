@@ -172,6 +172,8 @@ public static partial class BridgeConcept
         // Kept separate from the legacy result serialization: the explicit pricing document owns its persisted snapshot.
         [System.Text.Json.Serialization.JsonIgnore]
         public IReadOnlyList<GPC.Design.Costs.CostQuantity> CostQuantities { get; init; } = [];
+        [System.Text.Json.Serialization.JsonIgnore]
+        public string? PriceRevision { get; init; }
         public double Length => Spans.Sum();
         public double Area => Width * Length;
     }
