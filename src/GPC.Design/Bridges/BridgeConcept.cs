@@ -169,6 +169,9 @@ public static partial class BridgeConcept
         double CostLow, double CostHigh, double Carbon, double Duration, IReadOnlyList<Quantity> Quantities, IReadOnlyList<Detail> Details, IReadOnlyList<Station> Stations, IReadOnlyList<string> Warnings)
     {
         public AdvancedGeometry? Advanced { get; init; }
+        // Kept separate from the legacy result serialization: the explicit pricing document owns its persisted snapshot.
+        [System.Text.Json.Serialization.JsonIgnore]
+        public IReadOnlyList<GPC.Design.Costs.CostQuantity> CostQuantities { get; init; } = [];
         public double Length => Spans.Sum();
         public double Area => Width * Length;
     }

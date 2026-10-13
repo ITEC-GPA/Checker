@@ -1,3 +1,4 @@
+using GPC.Design.Costs;
 
 namespace GPC.Design.Bridges;
 
@@ -148,9 +149,13 @@ public static partial class BridgeConcept
         double subRebar = subVolume * a.RebarSub / 1000, foundRebar = (foundVolume + pilesVolume) * a.RebarFound / 1000;
         double cf = a.Co2Concrete * (i.LowCarbon ? a.LowCarbonFactor : 1);
         double sf = a.Co2Steel * (i.Recycled ? a.RecycledFactor : 1);
-        var quantities = new List<Quantity>();
-        void Add(string group, string item, double amount, string unit, string rateKey, double carbon)
-        { if (amount > 0) quantities.Add(new(group, item, amount, unit, rates.Value(rateKey), amount * rates.Value(rateKey), carbon)); }
+        var quantities = new List<Quantity>(); var costQuantities = new List<CostQuantity>();
+        string? Add(string group, string item, double amount, string unit, string rateKey, double carbon)
+        {
+            if (amount <= 0) return null;
+            quantities.Add(new(group, item, amount, unit, rates.Value(rateKey), amount * rates.Value(rateKey), carbon));
+            AddCostQuantity(costQuantities, quantities.Count, rateKey, amount, unit); return costQuantities[^1].Id;
+        }
         Add("Impalcato", "Calcestruzzo", volumeDeck, "m³", "concrete_deck", volumeDeck * cf / 1000);
         Add("Impalcato", "Armatura ordinaria", deckRebar, "t", "rebar", deckRebar * a.Co2Rebar);
         Add("Impalcato", "Precompressione", pt, "t", "prestress", pt * a.Co2Pt);
@@ -161,8 +166,9 @@ public static partial class BridgeConcept
         Add("Sottostrutture", "Casseforme equivalenti pile e spalle", subForms, "m²", "formwork", 0);
         Add("Fondazioni", "Casseforme laterali plinti", foundationForms, "m²", "formwork", 0);
         Add("Fondazioni", "Calcestruzzo plinti", foundVolume, "m³", "concrete_sub", foundVolume * cf / 1000);
-        Add("Fondazioni", $"Pali trivellati Ø {pileDiameter:0.0} m", totalPileLength, "m", pileDiameter > 1 ? "pile_15" : "pile_1", pilesVolume * cf / 1000);
+        string? pileOwner = Add("Fondazioni", $"Pali trivellati Ø {pileDiameter:0.0} m", totalPileLength, "m", pileDiameter > 1 ? "pile_15" : "pile_1", pilesVolume * cf / 1000);
         Add("Fondazioni", "Armatura plinti e pali", foundRebar, "t", "rebar", foundRebar * a.Co2Rebar);
+        SplitFoundationRebar(costQuantities, pileOwner, pilesVolume * a.RebarFound / 1000);
         double bearingCount = (i.Continuous ? count + 1 : count * 2) * (family.Id == "steel_box" ? girders * 2 : Math.Max(2, girders));
         Add("Finiture", "Apparecchi d'appoggio", bearingCount, "cad", "bearing", 0);
         Add("Finiture", "Giunti di dilatazione", width * (i.Continuous ? 2 : count + 1), "m", "joint", 0);
@@ -203,7 +209,7 @@ public static partial class BridgeConcept
         };
         return new(family, width, depth, pierDepth, slab, spacing, girders, web, bottom, spans, supports.ToArray(), foundation, pileDiameter, pileLength,
             volumeDeck + subVolume + foundVolume + pilesVolume, massSteel, deckRebar + subRebar + foundRebar, pt, inertia, direct, total,
-            total * (1 - a.Uncertainty / 100), total * (1 + a.Uncertainty / 100), carbon, months, quantities.ToArray(), details.ToArray(), factored.Stations, warnings.Distinct().ToArray());
+            total * (1 - a.Uncertainty / 100), total * (1 + a.Uncertainty / 100), carbon, months, quantities.ToArray(), details.ToArray(), factored.Stations, warnings.Distinct().ToArray()) { CostQuantities = costQuantities };
     }
     private static double Auto(double value, double automatic) => value > 0 ? value : automatic;
 
