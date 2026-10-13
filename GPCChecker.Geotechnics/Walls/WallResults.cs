@@ -1,3 +1,6 @@
+using GPC.Model.Checking.Contracts;
+using GPC.Model.Core.Diagnostics;
+
 namespace GPC.Checkers.Geotechnics.Walls
 {
     /// <summary>Member of the wall where the internal forces are given: stem (position = depth below the top), toe and heel (position = distance from the free end).</summary>
@@ -132,6 +135,20 @@ namespace GPC.Checkers.Geotechnics.Walls
         public double? Resistance { get; }
         public double? Ratio { get; }
         public WallCheckStatus Status { get; }
+        /// <summary>Common engineering outcome. Zero resistance with nonzero demand and loss of equilibrium are failures, not missing checks.</summary>
+        public EngineeringOutcome Outcome => Data != DataStatus.Ready ? EngineeringOutcome.NotEvaluated : Status switch
+        {
+            WallCheckStatus.Satisfied or WallCheckStatus.ContactInCompression => EngineeringOutcome.Satisfied,
+            WallCheckStatus.NotSatisfied or WallCheckStatus.ZeroResistance or WallCheckStatus.LossOfEquilibrium => EngineeringOutcome.NotSatisfied,
+            _ => EngineeringOutcome.NotEvaluated
+        };
+        /// <summary>Execution of this verification, distinct from the wall analysis that produced its actions.</summary>
+        public ExecutionStatus Execution => Data == DataStatus.Ready ? ExecutionStatus.Completed : ExecutionStatus.NotExecuted;
+        /// <summary>Unavailable or nonfinite check data cannot certify a result. The existing message retains the detailed reason.</summary>
+        public DataStatus Data => Status == WallCheckStatus.Unavailable || !Finite(Demand)
+            || Resistance.HasValue && !Finite(Resistance.Value) || Ratio.HasValue && !Finite(Ratio.Value)
+            ? DataStatus.Insufficient : DataStatus.Ready;
+        private static bool Finite(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
         public string Message { get; }
         internal WallCheck(WallCheckKind kind, string combination, double demand, double? resistance, double? ratio, WallCheckStatus status, string message)
         { Kind = kind; Combination = combination; Demand = demand; Resistance = resistance; Ratio = ratio; Status = status; Message = message; }

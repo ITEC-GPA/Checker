@@ -11,6 +11,8 @@ using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Checkers.Concrete.Shear;
 using GPC.Geometry;
 using GPC.Model.Results;
+using GPC.Model.Checking.Contracts;
+using GPC.Model.Core.Diagnostics;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
 
@@ -70,6 +72,12 @@ namespace GPC.Checkers.Concrete.Piles
     }
     public sealed class PileSectionCheck
     {
+        /// <summary>Nominal N-M-V and requested minimum-reinforcement outcome. A pass does not certify all construction details; ApplyDevelopment can make it unavailable.</summary>
+        public EngineeringOutcome Outcome { get; internal set; } = EngineeringOutcome.NotEvaluated;
+        /// <summary>Execution of this check. An unsolved resistance is Error, not a satisfied zero demand.</summary>
+        public ExecutionStatus Execution { get; internal set; } = ExecutionStatus.NotExecuted;
+        /// <summary>Availability of the information needed by this check, including explicit action/shear confirmations and requested development.</summary>
+        public DataStatus Data { get; internal set; } = DataStatus.Insufficient;
         public PileAction Action { get; set; }
         public double? MRdPositive { get; set; }
         public double? MRdNegative { get; set; }
@@ -77,6 +85,7 @@ namespace GPC.Checkers.Concrete.Piles
         public double? BendingRatio { get; set; }
         public double? ShearRatio { get; set; }
         public double CotTheta { get; set; }
+        /// <summary>Compatibility display label. Engineering decisions use Outcome, Execution and Data, never this mutable text.</summary>
         public string Status { get; set; }
         public string Message { get; set; }
         public bool? MinimumReinforcementPassed { get; set; }
@@ -192,7 +201,7 @@ namespace GPC.Checkers.Concrete.Piles
         public PileSectionCheck Check(PileAction action)
         {
             if(action==null||new[]{action.Depth,action.N,action.V,action.M}.Any(v=>!Finite(v)))throw new ArgumentException("Azioni concomitanti finite richieste.");
-            var r=new PileSectionCheck{Action=action,Status="Non verificabile",Message=""};
+            var r=new PileSectionCheck{Action=action,Status="Non verificabile",Message="",Data=DataStatus.Ready,Execution=ExecutionStatus.Error};
             if(!resistance.TryGetValue(action.N,out var moments))
             {
                 moments=SolveResistance(action.N);resistance.Add(action.N,moments);
@@ -210,8 +219,12 @@ namespace GPC.Checkers.Concrete.Piles
             else r.Message+=" Confermare il modello di taglio circolare e z/d.";
             if(!p.DesignActionsConfirmed)r.Message+=" Natura delle azioni di progetto da confermare.";
             if(p.PileMinimumRequirements){r.MinimumReinforcementPassed=geometry.Bars.Sum(b=>b.Area)>=.003*area&&p.LinkDiameter>=8&&p.LinkSpacing<=8*geometry.Bars.Min(b=>b.Diameter);r.Message+=" Minimi pali NTC 2018 §7.2.5: As≥0,3% Ac, φst≥8 mm, s≤8φL; escluse prescrizioni delle zone dissipative.";}
-            r.Status=(r.BendingRatio>1||r.ShearRatio>1)?"Non soddisfatto":r.GoverningRatio.HasValue&&p.DesignActionsConfirmed?"Soddisfatto N–M–V; dettagli da completare":"Parziale";
-            if(r.MinimumReinforcementPassed==false)r.Status="Non soddisfatto";
+            bool complete=r.GoverningRatio.HasValue&&p.DesignActionsConfirmed;
+            r.Execution=ExecutionStatus.Completed;
+            r.Data=complete?DataStatus.Ready:DataStatus.Insufficient;
+            r.Outcome=r.BendingRatio>1||r.ShearRatio>1||r.MinimumReinforcementPassed==false
+                ?EngineeringOutcome.NotSatisfied:complete?EngineeringOutcome.Satisfied:EngineeringOutcome.NotEvaluated;
+            r.Status=r.Outcome==EngineeringOutcome.NotSatisfied?"Non soddisfatto":r.Outcome==EngineeringOutcome.Satisfied?"Soddisfatto N–M–V; dettagli da completare":"Parziale";
             return r;
         }
         double Moment(double n,int sign)
@@ -266,7 +279,8 @@ namespace GPC.Checkers.Concrete.Piles
                 c.DevelopmentAvailable=bars.Length>0&&bars.All(run=>c.Action.Depth>=run.CapacityStart-1e-9&&c.Action.Depth<=run.CapacityEnd+1e-9&&run.Joints.All(j=>j.LengthPassed&&j.ArrangementPassed));
                 if(c.DevelopmentAvailable==false)
                 {
-                    if(c.Status.StartsWith("Soddisfatto"))c.Status="Parziale";
+                    c.Data=DataStatus.Insufficient;
+                    if(c.Outcome==EngineeringOutcome.Satisfied){c.Outcome=EngineeringOutcome.NotEvaluated;c.Status="Parziale";}
                     c.Message+=" Sviluppo delle barre o giunti non disponibili: MRd nominale non utilizzabile. Dettaglio locale da definire.";
                 }
             }
@@ -299,7 +313,7 @@ namespace GPC.Checkers.Concrete.Piles
             {
                 if(!candidates[i].DesignActionsConfirmed||!candidates[i].ShearModelConfirmed)throw new ArgumentException("Confermare natura delle azioni e modello di taglio prima del dimensionamento.");
                 var service=new PileReinforcement(candidates[i]);bool pass=true;
-                foreach(var action in actions){var c=service.Check(action);if(!c.Status.StartsWith("Soddisfatto")){pass=false;break;}}
+                foreach(var action in actions){var c=service.Check(action);if(c.Outcome!=EngineeringOutcome.Satisfied){pass=false;break;}}
                 if(pass)return i;
             }
             return -1;

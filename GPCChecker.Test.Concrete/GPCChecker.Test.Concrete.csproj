@@ -114,6 +114,7 @@
     <Compile Include="TorsionMigrationTests.cs" />
     <Compile Include="CrackMigrationTests.cs" />
     <Compile Include="..\tests\Concrete.Checks\CircularSpacingTests.cs"><Link>CircularSpacingTests.cs</Link></Compile>
+    <Compile Include="..\tests\Concrete.Checks\PileOutcomeTests.cs"><Link>PileOutcomeTests.cs</Link></Compile>
     <Compile Include="DetailingMigrationTests.cs" />
     <Compile Include="DetailingContractTests.cs" />
     <Compile Include="DurabilityMigrationTests.cs" />

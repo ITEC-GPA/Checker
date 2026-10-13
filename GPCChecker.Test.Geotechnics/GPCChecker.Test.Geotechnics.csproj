@@ -19,6 +19,9 @@
   </ItemGroup>
   <!-- Legacy outputs of ANTHEA (harness supporto/test/CheckerMigration.Capture), reproduced by the migration tests. -->
   <ItemGroup>
+    <Compile Include="../tests/Geotechnics.Checks/WallOutcomeTests.cs" Link="WallOutcomeTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <None Update="Fixtures\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
