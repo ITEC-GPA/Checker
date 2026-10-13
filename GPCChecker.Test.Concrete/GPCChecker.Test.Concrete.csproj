@@ -117,6 +117,7 @@
     <Compile Include="..\tests\Concrete.Checks\PileOutcomeTests.cs"><Link>PileOutcomeTests.cs</Link></Compile>
     <Compile Include="..\tests\Concrete.Checks\WallShearAxialTests.cs"><Link>WallShearAxialTests.cs</Link></Compile>
     <Compile Include="..\tests\Concrete.Checks\WallStripTests.cs"><Link>WallStripTests.cs</Link></Compile>
+    <Compile Include="..\tests\Concrete.Checks\WallSectionSessionTests.cs"><Link>WallSectionSessionTests.cs</Link></Compile>
     <None Include="..\tests\Concrete.Checks\Fixtures\wall-detailing-f4.csv"><Link>Fixtures\wall-detailing-f4.csv</Link><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <Compile Include="DetailingMigrationTests.cs" />
     <Compile Include="DetailingContractTests.cs" />

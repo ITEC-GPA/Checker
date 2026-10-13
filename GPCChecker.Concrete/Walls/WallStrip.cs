@@ -79,7 +79,8 @@ namespace GPC.Checkers.Concrete.Walls
             if (!WallStrip.Finite(demand) || demand < 0 || capacity.HasValue && (!WallStrip.Finite(capacity.Value) || capacity < 0))
                 throw new ArgumentException("Finite, nonnegative demand and capacity required.");
             Method = method; Unit = unit; Demand = demand; Capacity = capacity; Execution = execution; Diagnostic = diagnostic;
-            Data = capacity.HasValue ? DataStatus.Ready : DataStatus.Insufficient;
+            // Solver failure does not imply missing input data.
+            Data = capacity.HasValue || execution == ExecutionStatus.Error ? DataStatus.Ready : DataStatus.Insufficient;
             Ratio = capacity > 0 ? demand / capacity : demand == 0 && capacity == 0 ? 0 : (double?)null;
             Outcome = execution != ExecutionStatus.Completed || !capacity.HasValue ? EngineeringOutcome.NotEvaluated
                 : demand <= capacity ? EngineeringOutcome.Satisfied : EngineeringOutcome.NotSatisfied;

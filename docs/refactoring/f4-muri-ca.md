@@ -38,3 +38,52 @@ Concrete candidata **0.3.0.0**: secondo componente incrementato per API nuova.
 Restano F4.7b (N–M, taglio, SLE/curvature), F4.7c (confronto del percorso
 completo e adattatore) e F4.9 per il set coerente e l'attivazione.
 La formula locale del taglio in ANTHEA non è ancora cambiata (F4-03).
+
+## F4.7b.1 — N–M e SLE equivalenti
+
+`WallSectionSession` possiede una sezione preparata e le sue tre analisi
+(GPC non lineare ULS, lineare senza trazione e lineare integra richiesta solo
+quando serve). Il chiamante ne trasferisce la proprietà esclusiva. La mesh
+non viene ricostruita; geometria, barre, materiale e profilo sono verificati.
+Azioni immutabili in N/Nmm, N negativo a compressione. Cache di capacità
+per N esatto e segno; annullamento prima/dopo il solutore, chiamate serializzate
+per sessione. Materiali/profilo non vanno mutati dopo il trasferimento.
+
+Riuso di LegacySectionCalculation, DomainPointAxialTolerance, StressLimitCheck
+e SectionCrackCheck; nessun nuovo solutore o formula di fessurazione. Gli
+stati limite sono enum. La prova integrativa di sezione non fessurata considera
+solo i motivi tipizzati previsti, senza interpretare testi tradotti. L'errore
+del solutore conserva Data=Ready quando gli input erano disponibili.
+
+Il banco ANTHEA `baseline/f4-wall-port` è opzionale con `-F4CandidateConcrete`:
+crea una copia isolata dei binari di test, registra SHA della candidata e usa
+le API nuove via reflection solo nel test. Non sostituisce DLL in lib/Checker
+né nei binari applicativi. I riferimenti catturati sono verificati con SHA
+prima di ogni confronto; nessuna modifica di attesi o tolleranze.
+
+Confronto: 26 muri, 576 sezioni, 286 combinazioni e 62568 quantità confrontate
+(domande, capacità, rapporti, disponibilità e curvature); nessuna differenza
+oltre la tolleranza già in uso 1e-9 assoluta + 1e-9 relativa. Scarto massimo
+7.105427357601002e-15. Il corpus non esercita la prova integrativa non fessurata:
+non se ne dichiara una copertura numerica completa. I dieci nuovi test di
+sessione e quelli esistenti di dettagli danno **33 PASS**.
+
+Le prove iniziali che pretendevano antisimettria numerica esatta dai solutori
+iterativi sono state corrette: entrambi i versi devono essere validi e vengono
+confrontati separatamente con i valori congelati, senza allargare tolleranze.
+Concrete candidata **0.4.0.0**, incremento del secondo componente per la nuova
+API di sessione. Percorso runtime ANTHEA ancora invariato.
+
+### Difetto emerso: curvatura con viscosità
+
+Il muro legacy usa il gradiente di StrainPlane senza il fattore 1+phi.
+`StressAnalysisResult.GetVerticeStrain(point, phi)` include invece tale fattore
+per le deformazioni totali. Esempio C30, striscia 1000×400 mm, 6phi16/faccia,
+copriferro 40 mm, N=-20 kN, M=20 kNm: gradiente equivalente 3.0544466e-7/mm
+con phi=2, contro 7.5335540e-7/mm con phi=0. La curvatura totale del primo caso
+è tre volte il gradiente, coerente con la differenza di deformazione/altezza.
+
+In questo commit si conserva la curvatura equivalente, dichiarata nell'API,
+per dimostrare il port. Correzione separata F4.7b.3, con atteso indipendente e
+quantificazione sugli spostamenti; non si modifica la tolleranza per nascondere
+il difetto. Il taglio con sigma_cp resta il passo separato F4.7b.2.
