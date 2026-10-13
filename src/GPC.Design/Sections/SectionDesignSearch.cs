@@ -3,7 +3,16 @@ using System.Diagnostics;
 namespace GPC.Design.Sections;
 
 public enum SectionSearchStage { Preliminary, Probes, Neighbours, Completion }
-public sealed record SectionDesignCheck(string Key,string Name,string Combination,double? Ratio,double Target,bool? Passed,string Detail);
+public sealed record SectionDesignCheck(string Key,string Name,string Combination,double? Ratio,double Target,bool? Passed,string Detail)
+{
+    /// <summary>Search target with the captured 1e-10 numerical tolerance. Missing/nonfinite/negative ratios fail explicitly.</summary>
+    public static SectionDesignCheck FromRatio(string key,string name,string combination,double? ratio,double target,string detail)
+    {
+        if(!double.IsFinite(target)||target<=0||target>1)throw new ArgumentException("Design target must be in (0,1].");
+        bool finite=ratio is double value&&double.IsFinite(value)&&value>=0;
+        return new(key,name,combination,finite?ratio:null,target,finite&&ratio<=target+1e-10,detail);
+    }
+}
 public sealed record PreparedSectionDesign<T>(int Id,T State,SectionDesignLayout Layout,SectionDesignMetric Metrics,IReadOnlyList<SectionDesignCheck> Checks,string LongitudinalKey);
 public sealed record SectionDesignPreparation<T>(PreparedSectionDesign<T>? Candidate,string? Exclusion=null,SectionDesignCheck? Example=null);
 public sealed record SectionDesignCandidate<T>(int Id,T State,SectionDesignMetric Metrics,IReadOnlyList<SectionDesignCheck> Checks,double Score,bool Pareto=false);

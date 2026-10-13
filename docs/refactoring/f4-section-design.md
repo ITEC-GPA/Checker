@@ -14,3 +14,8 @@ Design 0.7.0.0 per nuove API. Ventisette test Design PASS, API compatibili. Atte
 SectionDesignCatalogue genera la griglia e la priorità approssimata; SectionDesignSearch gestisce preparazione, gruppi longitudinali, prove iniziali, vicini, completamento, budget, annullamento, progressi, esclusioni e graduatoria. I payload generici sono privati per candidato e opachi al motore; i callback collegano i servizi Concrete già esistenti. Il motore decide l'ammissibilità dagli esiti, non dalle etichette; conserva il primo esempio escluso per identità stabile. Il criterio Plastico/Elastico resta nei contratti delle verifiche, separato dallo stato limite.
 
 Design 0.8.0.0: API nuova di catalogo/coordinamento. Trenta test Design PASS: conteggi manuali della griglia, ordine, stessa graduatoria ed esclusioni con uno/quattro worker, una sola valutazione per gruppo longitudinale compatibile, budget e annullamento senza dichiarare completa una ricerca parziale. Empty checks non certificano una proposta. Adattatore e collaudo completo ancora da collegare nel passo seguente.
+
+
+### Confini del collegamento
+
+Design 0.9.0.0 aggiunge la quota di area da riservare alla torsione e la valutazione del rapporto rispetto all'obiettivo con la tolleranza storica 1e-10. L'adattatore non deve ricopiare queste operazioni. Trentuno test Design PASS; rapporti mancanti, negativi e non finiti producono rifiuto, soglia ai due lati della tolleranza provata indipendentemente. API additive, collegamento in ANTHEA nel passo seguente.

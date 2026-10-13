@@ -80,6 +80,12 @@ public static class SectionDesignQuantities
         };
         if(!double.IsFinite(score))throw new ArithmeticException("Design score exceeds numeric range.");return score;
     }
+    public static double ReservedArea(double totalArea,double reservePercent)
+    {
+        _=ReservedDiameterFactor(reservePercent);
+        if(!double.IsFinite(totalArea)||totalArea<0)throw new ArgumentException("Finite nonnegative total steel area required.");
+        return totalArea*reservePercent/100;
+    }
     public static double ReservedDiameterFactor(double reservePercent)
     {
         if(!double.IsFinite(reservePercent)||reservePercent<=0||reservePercent>=100)throw new ArgumentException("Torsion reserve must be between 0 and 100 percent.");

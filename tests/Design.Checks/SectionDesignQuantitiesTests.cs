@@ -51,4 +51,15 @@ public sealed class SectionDesignQuantitiesTests
         Assert.ThrowsException<ArgumentException>(()=>SectionDesignSelection.SelectSecondary(geometry,new(false,0,0,2,2,0,20),SecondaryReinforcementKind.Wall,
             1e8,250,false,-100,100,20,[8],[250],3,new(ReinforcementObjective.Weight,1,1,1)));
     }
+
+    [TestMethod]
+    public void ReserveAndRatioTargetsAreExplicitAndFinite()
+    {
+        Assert.AreEqual(200d,SectionDesignQuantities.ReservedArea(800,25));
+        Assert.IsTrue(SectionDesignCheck.FromRatio("n","N","ULS",.75+5e-11,.75,"").Passed);
+        Assert.IsFalse(SectionDesignCheck.FromRatio("n","N","ULS",.75+2e-10,.75,"").Passed);
+        foreach(double? ratio in new double?[]{null,double.NaN,double.PositiveInfinity,-1})
+        {var check=SectionDesignCheck.FromRatio("n","N","ULS",ratio,1,"");Assert.IsFalse(check.Passed);Assert.IsNull(check.Ratio);}
+        Assert.ThrowsException<ArgumentException>(()=>SectionDesignQuantities.ReservedArea(double.NaN,25));
+    }
 }
