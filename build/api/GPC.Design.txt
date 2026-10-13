@@ -1,0 +1,128 @@
+F|GPC.Design.Walls.GravityCheckMethod|AssignedCompression|GPC.Design.Walls.GravityCheckMethod|Public, Static, Literal, HasDefault|1
+F|GPC.Design.Walls.GravityCheckMethod|AssignedFoundationFlexure|GPC.Design.Walls.GravityCheckMethod|Public, Static, Literal, HasDefault|3
+F|GPC.Design.Walls.GravityCheckMethod|AssignedShear|GPC.Design.Walls.GravityCheckMethod|Public, Static, Literal, HasDefault|4
+F|GPC.Design.Walls.GravityCheckMethod|CompressedBlock|GPC.Design.Walls.GravityCheckMethod|Public, Static, Literal, HasDefault|5
+F|GPC.Design.Walls.GravityCheckMethod|Contact|GPC.Design.Walls.GravityCheckMethod|Public, Static, Literal, HasDefault|11
+F|GPC.Design.Walls.GravityCheckMethod|ElasticStability|GPC.Design.Walls.GravityCheckMethod|Public, Static, Literal, HasDefault|0
+F|GPC.Design.Walls.GravityCheckMethod|FoundationCompression|GPC.Design.Walls.GravityCheckMethod|Public, Static, Literal, HasDefault|8
+F|GPC.Design.Walls.GravityCheckMethod|FoundationShear|GPC.Design.Walls.GravityCheckMethod|Public, Static, Literal, HasDefault|10
+F|GPC.Design.Walls.GravityCheckMethod|FoundationTension|GPC.Design.Walls.GravityCheckMethod|Public, Static, Literal, HasDefault|9
+F|GPC.Design.Walls.GravityCheckMethod|MasonryJointShear|GPC.Design.Walls.GravityCheckMethod|Public, Static, Literal, HasDefault|6
+F|GPC.Design.Walls.GravityCheckMethod|NoTension|GPC.Design.Walls.GravityCheckMethod|Public, Static, Literal, HasDefault|2
+F|GPC.Design.Walls.GravityCheckMethod|PlainConcreteShear|GPC.Design.Walls.GravityCheckMethod|Public, Static, Literal, HasDefault|7
+F|GPC.Design.Walls.GravityCheckMethod|value__|System.Int32|Public, SpecialName, RTSpecialName|
+F|GPC.Design.Walls.GravityWallMaterialKind|Assigned|GPC.Design.Walls.GravityWallMaterialKind|Public, Static, Literal, HasDefault|0
+F|GPC.Design.Walls.GravityWallMaterialKind|Masonry|GPC.Design.Walls.GravityWallMaterialKind|Public, Static, Literal, HasDefault|2
+F|GPC.Design.Walls.GravityWallMaterialKind|PlainConcrete|GPC.Design.Walls.GravityWallMaterialKind|Public, Static, Literal, HasDefault|1
+F|GPC.Design.Walls.GravityWallMaterialKind|value__|System.Int32|Public, SpecialName, RTSpecialName|
+M|GPC.Design.Walls.GravityCheck|.ctor(GPC.Design.Walls.GravityCheckMethod Method:None,System.String Combination:None,System.Nullable`1<GPC.Checkers.Concrete.Walls.WallMember> Member:None,System.Nullable`1<System.Double> Position:None,System.Double Demand:None,System.Nullable`1<System.Double> Capacity:None,System.String Unit:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Design.Walls.GravityCheck|<Clone>$()|GPC.Design.Walls.GravityCheck|Public, HideBySig|
+M|GPC.Design.Walls.GravityCheck|Deconstruct(GPC.Design.Walls.GravityCheckMethod& Method:Out,System.String& Combination:Out,System.Nullable`1<GPC.Checkers.Concrete.Walls.WallMember>& Member:Out,System.Nullable`1<System.Double>& Position:Out,System.Double& Demand:Out,System.Nullable`1<System.Double>& Capacity:Out,System.String& Unit:Out)|System.Void|Public, HideBySig|
+M|GPC.Design.Walls.GravityCheck|Equals(GPC.Design.Walls.GravityCheck other:None)|System.Boolean|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Design.Walls.GravityCheck|Equals(System.Object obj:None)|System.Boolean|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.GravityCheck|GetHashCode()|System.Int32|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.GravityCheck|ToString()|System.String|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.GravityCheck|get_Capacity()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCheck|get_Combination()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCheck|get_Data()|GPC.Model.Core.Diagnostics.DataStatus|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCheck|get_Demand()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCheck|get_Execution()|GPC.Model.Checking.Contracts.ExecutionStatus|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCheck|get_Member()|System.Nullable`1<GPC.Checkers.Concrete.Walls.WallMember>|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCheck|get_Method()|GPC.Design.Walls.GravityCheckMethod|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCheck|get_Outcome()|GPC.Model.Checking.Contracts.EngineeringOutcome|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCheck|get_Position()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCheck|get_Ratio()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCheck|get_Unit()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCheck|op_Equality(GPC.Design.Walls.GravityCheck left:None,GPC.Design.Walls.GravityCheck right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCheck|op_Inequality(GPC.Design.Walls.GravityCheck left:None,GPC.Design.Walls.GravityCheck right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCheck|set_Capacity(System.Nullable`1<System.Double> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCheck|set_Combination(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCheck|set_Demand(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCheck|set_Member(System.Nullable`1<GPC.Checkers.Concrete.Walls.WallMember> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCheck|set_Method(GPC.Design.Walls.GravityCheckMethod value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCheck|set_Position(System.Nullable`1<System.Double> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCheck|set_Unit(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCombinationResult|.ctor(System.String Id:None,System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.GravityCheck> Checks:None,System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.GravityCurvature> Curvatures:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Design.Walls.GravityCombinationResult|<Clone>$()|GPC.Design.Walls.GravityCombinationResult|Public, HideBySig|
+M|GPC.Design.Walls.GravityCombinationResult|Deconstruct(System.String& Id:Out,System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.GravityCheck>& Checks:Out,System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.GravityCurvature>& Curvatures:Out)|System.Void|Public, HideBySig|
+M|GPC.Design.Walls.GravityCombinationResult|Equals(GPC.Design.Walls.GravityCombinationResult other:None)|System.Boolean|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Design.Walls.GravityCombinationResult|Equals(System.Object obj:None)|System.Boolean|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.GravityCombinationResult|GetHashCode()|System.Int32|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.GravityCombinationResult|ToString()|System.String|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.GravityCombinationResult|get_Checks()|System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.GravityCheck>|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCombinationResult|get_Curvatures()|System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.GravityCurvature>|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCombinationResult|get_Id()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCombinationResult|op_Equality(GPC.Design.Walls.GravityCombinationResult left:None,GPC.Design.Walls.GravityCombinationResult right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCombinationResult|op_Inequality(GPC.Design.Walls.GravityCombinationResult left:None,GPC.Design.Walls.GravityCombinationResult right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCombinationResult|set_Checks(System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.GravityCheck> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCombinationResult|set_Curvatures(System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.GravityCurvature> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCombinationResult|set_Id(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCombination|.ctor(System.String Id:None,System.Boolean Serviceability:None,System.Boolean ContactValid:None,System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.GravitySection> Sections:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Design.Walls.GravityCombination|<Clone>$()|GPC.Design.Walls.GravityCombination|Public, HideBySig|
+M|GPC.Design.Walls.GravityCombination|Deconstruct(System.String& Id:Out,System.Boolean& Serviceability:Out,System.Boolean& ContactValid:Out,System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.GravitySection>& Sections:Out)|System.Void|Public, HideBySig|
+M|GPC.Design.Walls.GravityCombination|Equals(GPC.Design.Walls.GravityCombination other:None)|System.Boolean|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Design.Walls.GravityCombination|Equals(System.Object obj:None)|System.Boolean|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.GravityCombination|GetHashCode()|System.Int32|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.GravityCombination|ToString()|System.String|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.GravityCombination|get_ContactValid()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCombination|get_Id()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCombination|get_Sections()|System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.GravitySection>|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCombination|get_Serviceability()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCombination|op_Equality(GPC.Design.Walls.GravityCombination left:None,GPC.Design.Walls.GravityCombination right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCombination|op_Inequality(GPC.Design.Walls.GravityCombination left:None,GPC.Design.Walls.GravityCombination right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCombination|set_ContactValid(System.Boolean value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCombination|set_Id(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCombination|set_Sections(System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.GravitySection> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCombination|set_Serviceability(System.Boolean value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCurvature|.ctor(System.Double Height:None,System.Double Curvature:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Design.Walls.GravityCurvature|<Clone>$()|GPC.Design.Walls.GravityCurvature|Public, HideBySig|
+M|GPC.Design.Walls.GravityCurvature|Deconstruct(System.Double& Height:Out,System.Double& Curvature:Out)|System.Void|Public, HideBySig|
+M|GPC.Design.Walls.GravityCurvature|Equals(GPC.Design.Walls.GravityCurvature other:None)|System.Boolean|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Design.Walls.GravityCurvature|Equals(System.Object obj:None)|System.Boolean|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.GravityCurvature|GetHashCode()|System.Int32|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.GravityCurvature|ToString()|System.String|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.GravityCurvature|get_Curvature()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCurvature|get_Height()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCurvature|op_Equality(GPC.Design.Walls.GravityCurvature left:None,GPC.Design.Walls.GravityCurvature right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCurvature|op_Inequality(GPC.Design.Walls.GravityCurvature left:None,GPC.Design.Walls.GravityCurvature right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCurvature|set_Curvature(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityCurvature|set_Height(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravitySection|.ctor(GPC.Checkers.Concrete.Walls.WallMember Member:None,System.Double Position:None,System.Double Thickness:None,System.Double N:None,System.Double V:None,System.Double M:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Design.Walls.GravitySection|<Clone>$()|GPC.Design.Walls.GravitySection|Public, HideBySig|
+M|GPC.Design.Walls.GravitySection|Deconstruct(GPC.Checkers.Concrete.Walls.WallMember& Member:Out,System.Double& Position:Out,System.Double& Thickness:Out,System.Double& N:Out,System.Double& V:Out,System.Double& M:Out)|System.Void|Public, HideBySig|
+M|GPC.Design.Walls.GravitySection|Equals(GPC.Design.Walls.GravitySection other:None)|System.Boolean|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Design.Walls.GravitySection|Equals(System.Object obj:None)|System.Boolean|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.GravitySection|GetHashCode()|System.Int32|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.GravitySection|ToString()|System.String|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.GravitySection|get_M()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravitySection|get_Member()|GPC.Checkers.Concrete.Walls.WallMember|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravitySection|get_N()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravitySection|get_Position()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravitySection|get_Thickness()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravitySection|get_V()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravitySection|op_Equality(GPC.Design.Walls.GravitySection left:None,GPC.Design.Walls.GravitySection right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravitySection|op_Inequality(GPC.Design.Walls.GravitySection left:None,GPC.Design.Walls.GravitySection right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravitySection|set_M(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravitySection|set_Member(GPC.Checkers.Concrete.Walls.WallMember value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravitySection|set_N(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravitySection|set_Position(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravitySection|set_Thickness(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravitySection|set_V(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityWallAnalysis|Calculate(GPC.Design.Walls.GravityWallMaterial material:None,System.Double height:None,System.Double topThickness:None,System.Double effectiveHeight:None,System.Double initialEccentricity:None,System.Collections.Generic.IEnumerable`1<GPC.Design.Walls.GravityCombination> combinations:None,System.Threading.CancellationToken cancellation:Optional, HasDefault=null)|System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.GravityCombinationResult>|Public, Static, HideBySig|
+M|GPC.Design.Walls.GravityWallMaterial|Assigned(System.Double compression:None,System.Double tension:None,System.Double modulus:None,System.Double shear:None)|GPC.Design.Walls.GravityWallMaterial|Public, Static, HideBySig|
+M|GPC.Design.Walls.GravityWallMaterial|From(GPC.Checkers.Concrete.Walls.PlainConcreteWallMaterial material:None)|GPC.Design.Walls.GravityWallMaterial|Public, Static, HideBySig|
+M|GPC.Design.Walls.GravityWallMaterial|From(GPC.Checkers.Masonry.MasonryWallMaterial material:None)|GPC.Design.Walls.GravityWallMaterial|Public, Static, HideBySig|
+M|GPC.Design.Walls.GravityWallMaterial|get_Compression()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityWallMaterial|get_EffectiveModulus()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityWallMaterial|get_FoundationShear()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityWallMaterial|get_Kind()|GPC.Design.Walls.GravityWallMaterialKind|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.GravityWallMaterial|get_Tension()|System.Double|Public, HideBySig, SpecialName|
+T|GPC.Design.Walls.GravityCheckMethod|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
+T|GPC.Design.Walls.GravityCheck|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Walls.GravityCheck>|
+T|GPC.Design.Walls.GravityCombinationResult|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Walls.GravityCombinationResult>|
+T|GPC.Design.Walls.GravityCombination|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Walls.GravityCombination>|
+T|GPC.Design.Walls.GravityCurvature|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Walls.GravityCurvature>|
+T|GPC.Design.Walls.GravitySection|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Walls.GravitySection>|
+T|GPC.Design.Walls.GravityWallAnalysis|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Design.Walls.GravityWallMaterialKind|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
+T|GPC.Design.Walls.GravityWallMaterial|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|

@@ -66,7 +66,7 @@ try {
             Invoke-Checked "Build $p" { & $msbuild "$p\$p.csproj" /p:Configuration=Release /p:BuildProjectReferences=false /nologo /v:m }
         }
         $net = @('GPCChecker.Test.CompositeBridge\GPCChecker.Test.CompositeBridge.csproj', 'GPCChecker.Test.Geotechnics\GPCChecker.Test.Geotechnics.csproj',
-            'GPCChecker.Test.Calculation\GPCChecker.Test.Calculation.csproj', 'tests\ShallowFoundation.Tests\ShallowFoundation.Tests.csproj') + $net
+            'GPCChecker.Test.Calculation\GPCChecker.Test.Calculation.csproj', 'tests\ShallowFoundation.Tests\ShallowFoundation.Tests.csproj', 'tests\Design.Checks\Design.Checks.csproj') + $net
     }
     foreach ($p in $net) { Invoke-Checked "Build $p" { dotnet build $p -c Release -nologo -v:q } }
 
@@ -105,6 +105,13 @@ try {
         (Join-Path $repository 'ModelChecker.Tests\bin\Release\net6.0') (Join-Path $repository 'build\api') GPCModelChecker GPCChecker.Concrete
     $api = ($LASTEXITCODE -eq 0)
     if (!$api) { $unexpected += 'API pubbliche di GPCModelChecker/GPCChecker.Concrete: rimozioni non approvate' }
+    if ($Suites -eq 'all') {
+        dotnet run --project (Join-Path $ModelRoot 'tools\ApiSurface\ApiSurface.csproj') -c Release -- check `
+            (Join-Path $repository 'tests\Design.Checks\bin\Release\net8.0') (Join-Path $repository 'build\api') GPC.Design GPCChecker.Masonry
+        $designApi = ($LASTEXITCODE -eq 0)
+        if (!$designApi) { $unexpected += 'API pubbliche Design/Masonry: rimozioni non approvate' }
+        $api = $api -and $designApi
+    }
     $json = [ordered]@{ suites = $Suites; created = (Get-Date).ToString('s'); results = $summary; apiCompatible = $api; unexpected = $unexpected } | ConvertTo-Json -Depth 5
     [IO.File]::WriteAllText((Join-Path $Results 'summary.json'), $json, (New-Object Text.UTF8Encoding($false)))
     if ($unexpected.Count) { throw "Verifica di Checker non superata:`n  " + ($unexpected -join "`n  ") }

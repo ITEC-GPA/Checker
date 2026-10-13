@@ -93,7 +93,9 @@ $libraries = @(
     @('Checker', 'GPCChecker.Steel\bin\Release\netstandard2.0\GPCChecker.Steel.dll'),
     @('Checker', 'GPCChecker.CompositeBridge\bin\Release\netstandard2.0\GPCChecker.CompositeBridge.dll'),
     @('Checker', 'GPCChecker.Geotechnics\bin\Release\netstandard2.0\GPCChecker.Geotechnics.dll'),
-    @('Checker', 'ModelChecker\bin\Release\netstandard2.0\GPCModelChecker.dll')
+    @('Checker', 'ModelChecker\bin\Release\netstandard2.0\GPCModelChecker.dll'),
+    @('Checker', 'src\GPCChecker.Masonry\bin\Release\netstandard2.0\GPCChecker.Masonry.dll'),
+    @('Checker', 'src\GPC.Design\bin\Release\net8.0\GPC.Design.dll')
 )
 $files = @()
 foreach ($l in $libraries) {
