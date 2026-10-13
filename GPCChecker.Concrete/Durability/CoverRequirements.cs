@@ -79,6 +79,9 @@ namespace GPC.Checkers.Concrete.Durability
         public bool PlateElement { get; }
         public bool NtcQualityReduction { get; }
         public double? PertinentCmin { get; }
+        /// <summary>Preserve the chosen durability specification and evaluate the actual bar diameter.</summary>
+        public CoverInput WithBarDiameter(double diameter) => new CoverInput(Exposures, Fck, DesignLife, StrengthReduction, SlabGeometry,
+            SpecialQualityControl, diameter, Aggregate, Deviation, RoughSurface, Abrasion, Ground, PlateElement, NtcQualityReduction, PertinentCmin);
         public CoverInput(IEnumerable<string> exposures, double fck, int designLife, bool strengthReduction, bool slabGeometry, bool specialQualityControl, double barDiameter,
             double aggregate, double deviation, bool roughSurface = false, int abrasion = 0, int ground = 0, bool plateElement = false, bool ntcQualityReduction = false,
             double? pertinentCmin = null)

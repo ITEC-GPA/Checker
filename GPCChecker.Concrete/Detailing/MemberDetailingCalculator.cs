@@ -185,7 +185,7 @@ namespace GPC.Checkers.Concrete.Detailing
             for (int i = 0; i < bars.Count; i++)
                 for (int j = i + 1; j < bars.Count; j++)
                     clear = Math.Min(clear, CrackSectionGeometry.Hypot(bars[i].X - bars[j].X, bars[i].Y - bars[j].Y) - (bars[i].Diameter + bars[j].Diameter) / 2);
-            Min("ClearSpacing", clear, Math.Max(20, Math.Max(maxPhi, p.Aggregate + 5)), "mm", ntc ? ".3 / EC2 §8.2" : "§8.2(2)", "max(20 mm; Ømax; dg + 5 mm) on every pair of bars");
+            Min("ClearSpacing", clear, PlateDetailingRules.MinimumClearSpacing(maxPhi, p.Aggregate), "mm", ntc ? ".3 / EC2 §8.2" : "§8.2(2)", "max(20 mm; Ømax; dg + 5 mm) on every pair of bars");
             if (p.MinimumDurabilityCover.HasValue && p.MinimumDurabilityCover.Value >= 0)
             {
                 double cdur = p.MinimumDurabilityCover.Value;
@@ -241,13 +241,13 @@ namespace GPC.Checkers.Concrete.Detailing
         {
             var g = p.Geometry; var plate = p.Plate; bool critical = plate.CriticalRegion;
             var spacing = g.MaximumSpacing(Enumerable.Range(0, g.Bars.Count).ToArray());
-            if (spacing.HasValue) Max("MainSpacing", spacing.Value, Math.Min((critical ? 2 : 3) * g.Height, critical ? 250 : 400), "mm", "EC2 §9.3.1.1",
+            if (spacing.HasValue) Max("MainSpacing", spacing.Value, PlateDetailingRules.SlabMainSpacing(g.Height, critical), "mm", "EC2 §9.3.1.1",
                 "critical region: min(2h; 250 mm); elsewhere: min(3h; 400 mm)");
             double principal = steel * 1000 / g.Width;
-            Min("SecondaryReinforcement", plate.SecondarySteelPerMetre, .2 * principal, "mm2/m", "EC2 §9.3.1.1",
+            Min("SecondaryReinforcement", plate.SecondarySteelPerMetre, PlateDetailingRules.SlabSecondaryArea(principal), "mm2/m", "EC2 §9.3.1.1",
                 "As,secondary ≥ 20% As,main; total of the two faces per metre of width");
             Pending("SecondaryFaceDistribution", "EC2 §9.3.1.1", "The total does not check the 20% on each face: check the actual distribution.");
-            if (plate.SecondarySpacing > 0) Max("SecondarySpacing", plate.SecondarySpacing, Math.Min((critical ? 3 : 3.5) * g.Height, critical ? 400 : 450), "mm", "EC2 §9.3.1.1",
+            if (plate.SecondarySpacing > 0) Max("SecondarySpacing", plate.SecondarySpacing, PlateDetailingRules.SlabSecondarySpacing(g.Height, critical), "mm", "EC2 §9.3.1.1",
                 "critical region: min(3h; 400 mm); elsewhere: min(3.5h; 450 mm)");
             else Pending("SecondarySpacing", "EC2 §9.3.1.1", "Spacing of the secondary bars (orthogonal direction) required.");
             Pending("EdgesSupportsPunching", "EC2 §§9.3–9.4 / NTC §4.1.2.3.5.4",
@@ -266,11 +266,11 @@ namespace GPC.Checkers.Concrete.Detailing
             if (!p.LapZone) Max("WallVerticalMaximum", steel, LongitudinalReinforcementLimits.MaximumRatioOutsideLaps * p.ConcreteArea, "mm2", "EC2 §9.6.2", "As,v ≤ 0.04 Ac outside laps");
             double thickness = Math.Min(g.Width, g.Height), length = Math.Max(g.Width, g.Height);
             var spacing = g.MaximumSpacing(Enumerable.Range(0, g.Bars.Count).ToArray());
-            if (spacing.HasValue) Max("WallVerticalSpacing", spacing.Value, Math.Min(3 * thickness, 400), "mm", "EC2 §9.6.2", "s ≤ min(3 t; 400 mm)");
+            if (spacing.HasValue) Max("WallVerticalSpacing", spacing.Value, PlateDetailingRules.WallMainSpacing(thickness), "mm", "EC2 §9.6.2", "s ≤ min(3 t; 400 mm)");
             else Pending("WallVerticalSpacing", "EC2 §9.6.2", "Bar arrangement not recognised automatically.");
-            Min("WallHorizontal", plate.SecondarySteelPerMetre, Math.Max(.25 * steel * 1000 / length, .001 * thickness * 1000), "mm2/m", "EC2 §9.6.3",
+            Min("WallHorizontal", plate.SecondarySteelPerMetre, Math.Max(PlateDetailingRules.WallHorizontalMainRatio * steel * 1000 / length, PlateDetailingRules.WallHorizontalConcreteRatio * thickness * 1000), "mm2/m", "EC2 §9.6.3",
                 "max(0.25 As,v; 0.001 Ac) per metre of wall");
-            if (plate.SecondarySpacing > 0) Max("WallHorizontalSpacing", plate.SecondarySpacing, 400, "mm", "EC2 §9.6.3", "s ≤ 400 mm");
+            if (plate.SecondarySpacing > 0) Max("WallHorizontalSpacing", plate.SecondarySpacing, PlateDetailingRules.WallHorizontalMaximumSpacing, "mm", "EC2 §9.6.3", "s ≤ 400 mm");
             else Pending("WallHorizontalSpacing", "EC2 §9.6.3", "Spacing of the horizontal bars required.");
             Pending("WallFacesAndTies", "EC2 §9.6", "Check the distribution on the two faces and the transverse ties: not described by the longitudinal bars.");
         }
