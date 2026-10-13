@@ -87,3 +87,24 @@ In questo commit si conserva la curvatura equivalente, dichiarata nell'API,
 per dimostrare il port. Correzione separata F4.7b.3, con atteso indipendente e
 quantificazione sugli spostamenti; non si modifica la tolleranza per nascondere
 il difetto. Il taglio con sigma_cp resta il passo separato F4.7b.2.
+
+## F4.7b.2 — taglio con compressione assiale
+
+`CheckShear` passa alla API esistente SectionShearCalculator lo sforzo normale
+concomitante (N negativo in compressione), Ac e l'armatura della faccia tesa.
+Le resistenze del materiale sono passate come valori assoluti: Fck nel modello
+materiale è negativo, nel contratto di taglio è positivo. Profili, limiti e
+rifiuto della trazione provengono da GPC, senza altra formula nel servizio.
+La resistenza di sezione non certifica ancoraggi o applicabilità senza staffe.
+
+Confronto con il file Python indipendente F4.3b, protetto da SHA-256:
+**12512 verifiche**, tutte corrispondenti; 4192 capacità cambiano rispetto al
+legacy, fino a +4.301578125 kN/m (+2.80197%), senza cambiamenti di giudizio nel
+corpus. Il banco completo ora confronta 87592 quantità, zero differenze non
+ammesse. I cinque attesi sintetici precedenti restano invariati; **22 test
+mirati PASS**, compresi compressione, limite, trazione e annullamento.
+Artefatti ANTHEA `wall-shear-native-final` e runner `20261013-f4-wall-shear-final`.
+
+Concrete candidata **0.4.0.1**: incremento dell'ultimo componente per la
+correzione F4-03, distinta dal port equivalente. L'attivazione in ANTHEA è
+ancora F4.9; i risultati dell'applicazione corrente non sono cambiati.

@@ -128,5 +128,19 @@ namespace ConcreteTests
             Assert.AreEqual(0, crack.Demand, 0);
             Assert.AreEqual(EngineeringOutcome.Satisfied, crack.Outcome);
         }
+
+        [TestMethod]
+        public void ShearUsesConcomitantCompressionAndDeclinesTension()
+        {
+            var session = Session();
+            var zero = session.CheckShear(new WallSectionActions(0, 200000, 1e7));
+            var compressed = session.CheckShear(new WallSectionActions(-400000, 200000, 1e7));
+            Assert.IsTrue(compressed.Check.Capacity > zero.Check.Capacity);
+            Assert.AreEqual(1, compressed.Response.Details.Single(d => d.Symbol == "σcp").Value, 0);
+            var tension = session.CheckShear(new WallSectionActions(40000, 200000, 1e7));
+            Assert.AreEqual(EngineeringOutcome.NotEvaluated, tension.Check.Outcome);
+            Assert.IsNull(tension.Check.Capacity); Assert.IsNull(tension.Check.Ratio);
+            Assert.ThrowsException<OperationCanceledException>(() => session.CheckShear(new WallSectionActions(0, 0, 0), new CancellationToken(true)));
+        }
     }
 }
