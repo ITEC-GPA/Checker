@@ -54,7 +54,7 @@ public sealed record GravityCurvature(double Height, double Curvature);
 public sealed record GravityCheck(GravityCheckMethod Method, string Combination, WallMember? Member, double? Position, double Demand, double? Capacity, string Unit)
 {
     public double? Ratio => Capacity is > 0 ? Math.Abs(Demand) / Capacity : Capacity == 0 && Demand == 0 ? 0 : null;
-    public EngineeringOutcome Outcome => Capacity is null ? EngineeringOutcome.NotEvaluated
+    public EngineeringOutcome Outcome => Capacity is null or < 0 ? EngineeringOutcome.NotEvaluated
         : Capacity == 0 ? Demand == 0 ? EngineeringOutcome.Satisfied : EngineeringOutcome.NotSatisfied
         : Ratio <= 1 ? EngineeringOutcome.Satisfied : EngineeringOutcome.NotSatisfied;
     public ExecutionStatus Execution => ExecutionStatus.Completed;

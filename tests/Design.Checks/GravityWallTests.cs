@@ -81,6 +81,14 @@ public sealed class GravityWallTests
         Assert.IsFalse(a[0].Checks.Any(x=>x.Method==GravityCheckMethod.ElasticStability));
         Assert.ThrowsException<ArgumentOutOfRangeException>(()=>GravityWallMaterial.Assigned(2,.1,0,.05));
     }
+    [TestMethod]
+    public void NegativeNoTensionCapacityIsUnavailableAndNeverPasses()
+    {
+        var c=new GravityCombination("T",false,true,new[]{new GravitySection(WallMember.Stem,1000,500,-100,0,0)});
+        var check=GravityWallAnalysis.Calculate(GravityWallMaterial.Assigned(2,.1,.05),3000,500,6000,0,new[]{c})[0].Checks.Single(x=>x.Method==GravityCheckMethod.NoTension);
+        Assert.IsTrue(check.Capacity<0);Assert.IsNull(check.Ratio);
+        Assert.AreEqual(EngineeringOutcome.NotEvaluated,check.Outcome);
+    }
     static void Same(double expected,double actual) => Assert.AreEqual(expected,actual,1e-9+1e-9*Math.Max(Math.Abs(expected),Math.Abs(actual)));
 
     [TestMethod]

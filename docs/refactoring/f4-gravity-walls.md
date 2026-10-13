@@ -84,3 +84,11 @@ No stability check or SLS curvature is produced for this material.
 Design patch 0.4.0.1 fixes this integration defect. All 16 Design checks pass,
 including identical assigned ULS results with/without E and absent SLS results.
 Evidence: TestResults/f4-assigned-without-e. No fixture or tolerance changed.
+
+### Negative no-tension bound (F4.8a.3)
+
+For assigned axial tension the historic N*t/6 bound is negative and the check
+is unavailable (no utilization), not an evaluated failure or a pass. The native
+Outcome now agrees with that contract. Independent stem regression fails before
+and passes after; 17 Design tests and Design/Masonry API compatibility pass.
+Design patch 0.4.0.2. Evidence: f4-negative-capacity-before/after and f4-assigned-api.
