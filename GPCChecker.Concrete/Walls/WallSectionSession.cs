@@ -33,8 +33,10 @@ namespace GPC.Checkers.Concrete.Walls
     public sealed class WallServiceabilityResult
     {
         public IReadOnlyList<WallSectionCheck> Checks { get; }
-        /// <summary>Historical elastic-equivalent signed curvature, 1/mm. Total curvature under creep is a separate correction after the equivalent port. Null if not calculated.</summary>
+        /// <summary>Total signed curvature, 1/mm, including creep. Null if the strain plane was not calculated.</summary>
         public double? Curvature { get; }
+        /// <summary>Solver gradient before creep amplification, 1/mm; diagnostic only, not the curvature to integrate for displacements.</summary>
+        public double? ElasticEquivalentCurvature { get; }
         public SectionResponse Response { get; }
         /// <summary>Original cracking-engine result; the separate uncracked proof, when present, is reported in Checks.</summary>
         public SectionCrackResult CrackResponse { get; }
@@ -43,7 +45,8 @@ namespace GPC.Checkers.Concrete.Walls
         internal WallServiceabilityResult(IEnumerable<WallSectionCheck> checks, double? curvature, SectionResponse response,
             SectionCrackResult crack = null, double? uncrackedMaximumStress = null, bool provenUncracked = false)
         {
-            Checks = Array.AsReadOnly(checks.ToArray()); Curvature = curvature; Response = response;
+            Checks = Array.AsReadOnly(checks.ToArray()); ElasticEquivalentCurvature = curvature; Response = response;
+            Curvature = curvature * (response != null && response.Linear ? Homogenization.CreepFactor(response.PsiRebar) : 1);
             CrackResponse = crack; UncrackedMaximumStress = uncrackedMaximumStress; ProvenUncracked = provenUncracked;
         }
     }

@@ -83,10 +83,8 @@ namespace ConcreteTests
             Assert.IsTrue(a.Curvature > 0 && b.Curvature < 0);
             Assert.AreEqual(2, a.Response.PsiRebar, 0);
             var fresh = Session(0).CheckServiceability(new WallSectionActions(-20000, 0, 2e7), ServiceabilityCombination.QuasiPermanent);
-            // F4 equivalent port retains the historical elastic-equivalent curvature.
-            // Physical total curvature needs (1+phi): separate defect/fix, never relax a tolerance.
             Assert.AreEqual(0, fresh.Response.PsiRebar, 0);
-            Assert.AreNotEqual(a.Curvature, fresh.Curvature);
+            Assert.IsTrue(a.Curvature > fresh.Curvature);
         }
 
         [TestMethod]
@@ -141,6 +139,28 @@ namespace ConcreteTests
             Assert.AreEqual(EngineeringOutcome.NotEvaluated, tension.Check.Outcome);
             Assert.IsNull(tension.Check.Capacity); Assert.IsNull(tension.Check.Ratio);
             Assert.ThrowsException<OperationCanceledException>(() => session.CheckShear(new WallSectionActions(0, 0, 0), new CancellationToken(true)));
+        }
+
+        [DataTestMethod]
+        [DataRow(0.0, 1)]
+        [DataRow(0.0, -1)]
+        [DataRow(2.0, 1)]
+        [DataRow(2.0, -1)]
+        [DataRow(5.0, 1)]
+        [DataRow(5.0, -1)]
+        public void TotalCurvatureMatchesTheIndependentElasticStrainGradient(double phi, int sign)
+        {
+            // Fully compressed linear section: epsilon = sigma / Ec,eff at both vertices.
+            // Independent kinematic check: kappa = delta(epsilon)/delta(y), not the raw solver gradient.
+            var result = Session(phi).CheckServiceability(new WallSectionActions(-1000000, 0, sign * 1e7), ServiceabilityCombination.QuasiPermanent);
+            var vertices = result.Response.Concrete;
+            double x = vertices.Min(p => p.X);
+            var edge = vertices.Where(p => p.X == x).OrderBy(p => p.Y).ToArray();
+            Assert.IsTrue(edge.All(p => p.Stress < 0));
+            var material = new ConcreteMaterialEN1992("C30", 30, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle);
+            double effectiveModulus = material.E / (1 + phi);
+            double gradient = (edge.Last().Stress / effectiveModulus - edge.First().Stress / effectiveModulus) / (edge.Last().Y - edge.First().Y);
+            Assert.AreEqual(sign * Math.Abs(gradient), result.Curvature.Value, 1e-15);
         }
     }
 }

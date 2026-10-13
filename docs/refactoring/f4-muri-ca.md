@@ -108,3 +108,39 @@ Artefatti ANTHEA `wall-shear-native-final` e runner `20261013-f4-wall-shear-fina
 Concrete candidata **0.4.0.1**: incremento dell'ultimo componente per la
 correzione F4-03, distinta dal port equivalente. L'attivazione in ANTHEA è
 ancora F4.9; i risultati dell'applicazione corrente non sono cambiati.
+
+## F4.7b.3 — curvatura totale con viscosità
+
+Corretto il difetto F4-08 nel servizio candidato. `Curvature` restituisce la
+curvatura totale; `ElasticEquivalentCurvature` conserva il gradiente precedente
+per diagnostica e confronto. Il fattore proviene da `Homogenization.CreepFactor`,
+riusato anche dal calcolo del rapporto di omogeneizzazione e dall'accessore
+nativo delle deformazioni. Non si altera il piano usato dalla fessurazione:
+quel percorso considera già la viscosità attraverso il proprio contesto.
+
+La regressione indipendente usa una sezione interamente compressa e ricava
+la curvatura da Δ(σ/Eeff)/Δy, con Eeff=E/(1+φ), per φ=0,2,5 e i due versi
+del momento. Prima della correzione: 2 PASS e 4 FAIL; dopo: 6 PASS con la
+stessa tolleranza 1e-15. Le prove mirate sui muri sono **28 PASS**.
+
+Il confronto congelato conserva la verifica del gradiente equivalente e
+aggiunge la verifica della curvatura totale e della sua integrazione tramite
+il servizio GPC già esistente. **1572 curvature e 78 forme flessionali**:
+variazione massima 0.001496934767347093 1/m e 3.5411539587512513 mm. Si tratta
+della componente flessionale, non dello spostamento complessivo del muro che
+può includere traslazione e rotazione della fondazione. Il banco completo
+conta **94114 confronti, zero differenze non ammesse**, scarto massimo
+5.684341886080802e-14; attesi originari e tolleranze conservati.
+
+Evidenze ANTHEA: `curvature-before/curvature.trx`, `curvature-after/curvature.trx`
+e runner `20261013-f4-wall-curvature-final` (**6 PASS**).
+Concrete candidata **0.4.0.2**, ultimo componente incrementato per il fix.
+Adattatore completo, ramo della prova integrativa non fessurata non esercitato
+dal corpus e attivazione con set coerente restano in F4.7c/F4.9.
+
+Collaudo conclusivo `build/Verify.ps1`, evidenze ANTHEA
+`supporto/artefatti/refactoring/f4/wall-final-verify`: **1651 PASS**, soli 17
+fallimenti Steel già censiti, zero nuovi fallimenti e nessuna rimozione API.
+Concrete 756, Steel 88, CompositeBridge 261, Geotechnics 177, Calculation 174,
+ShallowFoundation 27, ModelChecker 168 test superati. Le 240 impronte del
+riferimento F4 sono state ricontrollate senza variazioni.
