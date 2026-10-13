@@ -68,6 +68,19 @@ public sealed class GravityWallTests
         Same(.2,checks[1].Demand); Same(2,checks[1].Ratio!.Value);
         Assert.AreEqual(EngineeringOutcome.NotSatisfied,checks[1].Outcome);
     }
+    [TestMethod]
+    public void AssignedStrengthsNeedNoInventedElasticModulus()
+    {
+        var noStiffness=GravityWallMaterial.Assigned(2,.1,.05);
+        Assert.IsFalse(noStiffness.HasStiffness);Assert.AreEqual(0,noStiffness.EffectiveModulus);
+        var c=new GravityCombination("A",false,true,new[]{new GravitySection(WallMember.Stem,1000,500,10,2,100)});
+        var a=GravityWallAnalysis.Calculate(noStiffness,3000,500,6000,0,new[]{c,c with {Id="SLS",Serviceability=true}});
+        var b=GravityWallAnalysis.Calculate(GravityWallMaterial.Assigned(2,.1,3000,.05),3000,500,6000,0,new[]{c});
+        CollectionAssert.AreEqual(b[0].Checks.ToArray(),a[0].Checks.ToArray());
+        Assert.AreEqual(0,a[1].Checks.Count);Assert.AreEqual(0,a[1].Curvatures.Count);
+        Assert.IsFalse(a[0].Checks.Any(x=>x.Method==GravityCheckMethod.ElasticStability));
+        Assert.ThrowsException<ArgumentOutOfRangeException>(()=>GravityWallMaterial.Assigned(2,.1,0,.05));
+    }
     static void Same(double expected,double actual) => Assert.AreEqual(expected,actual,1e-9+1e-9*Math.Max(Math.Abs(expected),Math.Abs(actual)));
 
     [TestMethod]

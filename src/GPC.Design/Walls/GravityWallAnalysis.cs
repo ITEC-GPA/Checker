@@ -15,17 +15,25 @@ public sealed class GravityWallMaterial
     public GravityWallMaterialKind Kind { get; }
     public double Compression { get; }
     public double Tension { get; }
+    /// <summary>MPa; zero means unavailable, only for the assigned-strength model which never uses stiffness.</summary>
     public double EffectiveModulus { get; }
+    public bool HasStiffness => EffectiveModulus > 0;
     public double FoundationShear { get; }
     readonly Func<double, double> shearStress;
     GravityWallMaterial(GravityWallMaterialKind kind, double compression, double tension, double modulus, double foundationShear, Func<double, double> shear)
     {
-        if (!double.IsFinite(compression) || compression <= 0 || !double.IsFinite(tension) || tension < 0 || !double.IsFinite(modulus) || modulus <= 0
+        if (!double.IsFinite(compression) || compression <= 0 || !double.IsFinite(tension) || tension < 0 || !double.IsFinite(modulus) || modulus < 0 || modulus == 0 && kind != GravityWallMaterialKind.Assigned
             || !double.IsFinite(foundationShear) || foundationShear < 0) throw new ArgumentOutOfRangeException(nameof(compression));
         Kind = kind; Compression = compression; Tension = tension; EffectiveModulus = modulus; FoundationShear = foundationShear; shearStress = shear;
     }
     public static GravityWallMaterial Assigned(double compression, double tension, double modulus, double shear)
-        => new(GravityWallMaterialKind.Assigned, compression, tension, modulus, shear, _ => shear);
+    {
+        if (!double.IsFinite(modulus) || modulus <= 0) throw new ArgumentOutOfRangeException(nameof(modulus));
+        return new(GravityWallMaterialKind.Assigned, compression, tension, modulus, shear, _ => shear);
+    }
+    /// <summary>Assigned strengths without an elastic modulus. No stiffness, stability or curvature is inferred.</summary>
+    public static GravityWallMaterial Assigned(double compression, double tension, double shear)
+        => new(GravityWallMaterialKind.Assigned, compression, tension, 0, shear, _ => shear);
     public static GravityWallMaterial From(PlainConcreteWallMaterial material)
     {
         ArgumentNullException.ThrowIfNull(material);
@@ -77,16 +85,17 @@ public static class GravityWallAnalysis
             if (material.Kind != GravityWallMaterialKind.Assigned && !c.Sections.Any(f => f.Member == WallMember.Stem)) throw new ArgumentException("Stem sections required for stability.");
         }
         double inertia = Math.Pow(topThickness, 3) / 12;
-        double ncr = Math.PI * Math.PI * material.EffectiveModulus * inertia / (effectiveHeight * effectiveHeight);
-        if (!double.IsFinite(ncr) || ncr <= 0) throw new ArgumentOutOfRangeException(nameof(topThickness), "Stability dimensions exceed the numeric range.");
+        bool assigned = material.Kind == GravityWallMaterialKind.Assigned;
+        double ncr = assigned ? 0 : Math.PI * Math.PI * material.EffectiveModulus * inertia / (effectiveHeight * effectiveHeight);
+        if (!assigned && (!double.IsFinite(ncr) || ncr <= 0)) throw new ArgumentOutOfRangeException(nameof(topThickness), "Stability dimensions exceed the numeric range.");
         var results = new List<GravityCombinationResult>();
         foreach (var c in cases)
         {
             cancellation.ThrowIfCancellationRequested();
             var checks = new List<GravityCheck>(); var curvatures = new List<GravityCurvature>();
             double maxN = c.Sections.Where(f => f.Member == WallMember.Stem).Select(f => f.N).DefaultIfEmpty().Max();
-            bool assigned = material.Kind == GravityWallMaterialKind.Assigned, stable = maxN < .8 * ncr;
-            double amplification = stable ? 1 / (1 - Math.Max(0, maxN) / ncr) : 1;
+            bool stable = assigned || maxN < .8 * ncr;
+            double amplification = !assigned && stable ? 1 / (1 - Math.Max(0, maxN) / ncr) : 1;
             if (!assigned && !c.Serviceability) checks.Add(new(GravityCheckMethod.ElasticStability, c.Id, null, null, Math.Max(0, maxN), .8 * ncr, "N/mm"));
             foreach (var f in c.Sections)
             {

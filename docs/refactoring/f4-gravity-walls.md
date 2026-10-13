@@ -72,3 +72,15 @@ of input actions. Toe t=500 mm, N=-100 N/mm, M=V=0 gives both stress demands
 0.2 MPa, with ratios 0.1 and 2 for assigned strengths 2 and 0.1 MPa.
 Targeted verification: five tests pass, including the unchanged 8672/240
 frozen comparison (`gravity-tension-fix`). Design patch version 0.1.0.1.
+
+### Assigned strengths without stiffness (F4.8a.2)
+
+The historical assigned-strength path does not request E. The first native
+contract incorrectly required it, although no assigned check uses stiffness.
+The three-argument Assigned factory declares unavailable stiffness explicitly
+(HasStiffness=false, EffectiveModulus=0); the four-argument factory keeps its
+positive-modulus contract. The coordinator skips the unused Euler calculation.
+No stability check or SLS curvature is produced for this material.
+Design patch 0.4.0.1 fixes this integration defect. All 16 Design checks pass,
+including identical assigned ULS results with/without E and absent SLS results.
+Evidence: TestResults/f4-assigned-without-e. No fixture or tolerance changed.
