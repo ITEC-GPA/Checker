@@ -15,6 +15,15 @@ F|GPC.Design.Walls.GravityWallMaterialKind|Assigned|GPC.Design.Walls.GravityWall
 F|GPC.Design.Walls.GravityWallMaterialKind|Masonry|GPC.Design.Walls.GravityWallMaterialKind|Public, Static, Literal, HasDefault|2
 F|GPC.Design.Walls.GravityWallMaterialKind|PlainConcrete|GPC.Design.Walls.GravityWallMaterialKind|Public, Static, Literal, HasDefault|1
 F|GPC.Design.Walls.GravityWallMaterialKind|value__|System.Int32|Public, SpecialName, RTSpecialName|
+F|GPC.Design.Walls.WallBarKind|Main|GPC.Design.Walls.WallBarKind|Public, Static, Literal, HasDefault|0
+F|GPC.Design.Walls.WallBarKind|Secondary|GPC.Design.Walls.WallBarKind|Public, Static, Literal, HasDefault|1
+F|GPC.Design.Walls.WallBarKind|Tie|GPC.Design.Walls.WallBarKind|Public, Static, Literal, HasDefault|2
+F|GPC.Design.Walls.WallBarKind|value__|System.Int32|Public, SpecialName, RTSpecialName|
+F|GPC.Design.Walls.WallBarNote|InclinedStemTransition|GPC.Design.Walls.WallBarNote|Public, Static, Literal, HasDefault|1
+F|GPC.Design.Walls.WallBarNote|LongitudinalEndsToDetail|GPC.Design.Walls.WallBarNote|Public, Static, Literal, HasDefault|2
+F|GPC.Design.Walls.WallBarNote|None|GPC.Design.Walls.WallBarNote|Public, Static, Literal, HasDefault|0
+F|GPC.Design.Walls.WallBarNote|TieShapeToDetail|GPC.Design.Walls.WallBarNote|Public, Static, Literal, HasDefault|3
+F|GPC.Design.Walls.WallBarNote|value__|System.Int32|Public, SpecialName, RTSpecialName|
 F|GPC.Design.Walls.WallDetailRule|AnchorageExtent|GPC.Design.Walls.WallDetailRule|Public, Static, Literal, HasDefault|16
 F|GPC.Design.Walls.WallDetailRule|BarCountContinuity|GPC.Design.Walls.WallDetailRule|Public, Static, Literal, HasDefault|8
 F|GPC.Design.Walls.WallDetailRule|BendHeight|GPC.Design.Walls.WallDetailRule|Public, Static, Literal, HasDefault|12
@@ -45,6 +54,12 @@ F|GPC.Design.Walls.WallRebarZone|StemUpper|GPC.Design.Walls.WallRebarZone|Public
 F|GPC.Design.Walls.WallRebarZone|Stem|GPC.Design.Walls.WallRebarZone|Public, Static, Literal, HasDefault|0
 F|GPC.Design.Walls.WallRebarZone|Toe|GPC.Design.Walls.WallRebarZone|Public, Static, Literal, HasDefault|2
 F|GPC.Design.Walls.WallRebarZone|value__|System.Int32|Public, SpecialName, RTSpecialName|
+F|GPC.Design.Walls.WallScheduleWarningCode|DetailChecksIncomplete|GPC.Design.Walls.WallScheduleWarningCode|Public, Static, Literal, HasDefault|0
+F|GPC.Design.Walls.WallScheduleWarningCode|DetailSummaryDisabled|GPC.Design.Walls.WallScheduleWarningCode|Public, Static, Literal, HasDefault|1
+F|GPC.Design.Walls.WallScheduleWarningCode|LongerThanStock|GPC.Design.Walls.WallScheduleWarningCode|Public, Static, Literal, HasDefault|2
+F|GPC.Design.Walls.WallScheduleWarningCode|MissingTieDevelopment|GPC.Design.Walls.WallScheduleWarningCode|Public, Static, Literal, HasDefault|3
+F|GPC.Design.Walls.WallScheduleWarningCode|Preliminary|GPC.Design.Walls.WallScheduleWarningCode|Public, Static, Literal, HasDefault|4
+F|GPC.Design.Walls.WallScheduleWarningCode|value__|System.Int32|Public, SpecialName, RTSpecialName|
 M|GPC.Design.Walls.GravityCheck|.ctor(GPC.Design.Walls.GravityCheckMethod Method:None,System.String Combination:None,System.Nullable`1<GPC.Checkers.Concrete.Walls.WallMember> Member:None,System.Nullable`1<System.Double> Position:None,System.Double Demand:None,System.Nullable`1<System.Double> Capacity:None,System.String Unit:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
 M|GPC.Design.Walls.GravityCheck|<Clone>$()|GPC.Design.Walls.GravityCheck|Public, HideBySig|
 M|GPC.Design.Walls.GravityCheck|Deconstruct(GPC.Design.Walls.GravityCheckMethod& Method:Out,System.String& Combination:Out,System.Nullable`1<GPC.Checkers.Concrete.Walls.WallMember>& Member:Out,System.Nullable`1<System.Double>& Position:Out,System.Double& Demand:Out,System.Nullable`1<System.Double>& Capacity:Out,System.String& Unit:Out)|System.Void|Public, HideBySig|
@@ -186,6 +201,19 @@ M|GPC.Design.Walls.WallBarDetail|set_RequiredAnchor(System.Double value:None)|Sy
 M|GPC.Design.Walls.WallBarDetail|set_RequiredLap(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
 M|GPC.Design.Walls.WallBarDetail|set_Spacing(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
 M|GPC.Design.Walls.WallBarDetail|set_Zone(GPC.Design.Walls.WallRebarZone value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallBarLeg|.ctor(System.String Name:None,System.Double Length:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Design.Walls.WallBarLeg|<Clone>$()|GPC.Design.Walls.WallBarLeg|Public, HideBySig|
+M|GPC.Design.Walls.WallBarLeg|Deconstruct(System.String& Name:Out,System.Double& Length:Out)|System.Void|Public, HideBySig|
+M|GPC.Design.Walls.WallBarLeg|Equals(GPC.Design.Walls.WallBarLeg other:None)|System.Boolean|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Design.Walls.WallBarLeg|Equals(System.Object obj:None)|System.Boolean|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.WallBarLeg|GetHashCode()|System.Int32|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.WallBarLeg|ToString()|System.String|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.WallBarLeg|get_Length()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallBarLeg|get_Name()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallBarLeg|op_Equality(GPC.Design.Walls.WallBarLeg left:None,GPC.Design.Walls.WallBarLeg right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallBarLeg|op_Inequality(GPC.Design.Walls.WallBarLeg left:None,GPC.Design.Walls.WallBarLeg right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallBarLeg|set_Length(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallBarLeg|set_Name(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
 M|GPC.Design.Walls.WallBarPoint|.ctor(System.Double X:None,System.Double Y:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
 M|GPC.Design.Walls.WallBarPoint|<Clone>$()|GPC.Design.Walls.WallBarPoint|Public, HideBySig|
 M|GPC.Design.Walls.WallBarPoint|Deconstruct(System.Double& X:Out,System.Double& Y:Out)|System.Void|Public, HideBySig|
@@ -199,6 +227,7 @@ M|GPC.Design.Walls.WallBarPoint|op_Equality(GPC.Design.Walls.WallBarPoint left:N
 M|GPC.Design.Walls.WallBarPoint|op_Inequality(GPC.Design.Walls.WallBarPoint left:None,GPC.Design.Walls.WallBarPoint right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
 M|GPC.Design.Walls.WallBarPoint|set_X(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
 M|GPC.Design.Walls.WallBarPoint|set_Y(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallBarScheduling|Calculate(GPC.Design.Walls.WallDetailInput input:None,GPC.Design.Walls.WallScheduleOptions options:None,System.Threading.CancellationToken token:Optional, HasDefault=null)|GPC.Design.Walls.WallScheduleResult|Public, Static, HideBySig|
 M|GPC.Design.Walls.WallDetailCheck|.ctor(GPC.Design.Walls.WallDetailRule Rule:None,System.Nullable`1<GPC.Design.Walls.WallRebarZone> Zone:None,System.Nullable`1<GPC.Design.Walls.WallRebarFace> Face:None,System.Double Demand:None,System.Double Capacity:None,System.String Unit:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
 M|GPC.Design.Walls.WallDetailCheck|<Clone>$()|GPC.Design.Walls.WallDetailCheck|Public, HideBySig|
 M|GPC.Design.Walls.WallDetailCheck|Deconstruct(GPC.Design.Walls.WallDetailRule& Rule:Out,System.Nullable`1<GPC.Design.Walls.WallRebarZone>& Zone:Out,System.Nullable`1<GPC.Design.Walls.WallRebarFace>& Face:Out,System.Double& Demand:Out,System.Double& Capacity:Out,System.String& Unit:Out)|System.Void|Public, HideBySig|
@@ -339,6 +368,106 @@ M|GPC.Design.Walls.WallReinforcementDetails|op_Inequality(GPC.Design.Walls.WallR
 M|GPC.Design.Walls.WallReinforcementDetails|set_Bars(System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.WallBarDetail> value:None)|System.Void|Public, HideBySig, SpecialName|
 M|GPC.Design.Walls.WallReinforcementDetails|set_Checks(System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.WallDetailCheck> value:None)|System.Void|Public, HideBySig, SpecialName|
 M|GPC.Design.Walls.WallReinforcementDetails|set_SteelKg(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleOptions|.ctor(System.Double PanelLength:None,System.Double EndCover:None,System.Double StockLength:None,System.Int32 TiesPerMetre:None,System.Double TieCutLength:None,System.Boolean DetailSummaryEnabled:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Design.Walls.WallScheduleOptions|<Clone>$()|GPC.Design.Walls.WallScheduleOptions|Public, HideBySig|
+M|GPC.Design.Walls.WallScheduleOptions|Deconstruct(System.Double& PanelLength:Out,System.Double& EndCover:Out,System.Double& StockLength:Out,System.Int32& TiesPerMetre:Out,System.Double& TieCutLength:Out,System.Boolean& DetailSummaryEnabled:Out)|System.Void|Public, HideBySig|
+M|GPC.Design.Walls.WallScheduleOptions|Equals(GPC.Design.Walls.WallScheduleOptions other:None)|System.Boolean|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Design.Walls.WallScheduleOptions|Equals(System.Object obj:None)|System.Boolean|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.WallScheduleOptions|GetHashCode()|System.Int32|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.WallScheduleOptions|ToString()|System.String|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.WallScheduleOptions|get_DetailSummaryEnabled()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleOptions|get_EndCover()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleOptions|get_PanelLength()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleOptions|get_StockLength()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleOptions|get_TieCutLength()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleOptions|get_TiesPerMetre()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleOptions|op_Equality(GPC.Design.Walls.WallScheduleOptions left:None,GPC.Design.Walls.WallScheduleOptions right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleOptions|op_Inequality(GPC.Design.Walls.WallScheduleOptions left:None,GPC.Design.Walls.WallScheduleOptions right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleOptions|set_DetailSummaryEnabled(System.Boolean value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleOptions|set_EndCover(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleOptions|set_PanelLength(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleOptions|set_StockLength(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleOptions|set_TieCutLength(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleOptions|set_TiesPerMetre(System.Int32 value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleResult|.ctor(System.Double PanelLength:None,System.Double EndCover:None,System.Double StockLength:None,System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.WallScheduledBar> Bars:None,System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.WallScheduleWarning> Warnings:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Design.Walls.WallScheduleResult|<Clone>$()|GPC.Design.Walls.WallScheduleResult|Public, HideBySig|
+M|GPC.Design.Walls.WallScheduleResult|Deconstruct(System.Double& PanelLength:Out,System.Double& EndCover:Out,System.Double& StockLength:Out,System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.WallScheduledBar>& Bars:Out,System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.WallScheduleWarning>& Warnings:Out)|System.Void|Public, HideBySig|
+M|GPC.Design.Walls.WallScheduleResult|Equals(GPC.Design.Walls.WallScheduleResult other:None)|System.Boolean|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Design.Walls.WallScheduleResult|Equals(System.Object obj:None)|System.Boolean|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.WallScheduleResult|GetHashCode()|System.Int32|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.WallScheduleResult|ToString()|System.String|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.WallScheduleResult|get_Bars()|System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.WallScheduledBar>|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleResult|get_CompleteQuantities()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleResult|get_EndCover()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleResult|get_KnownWeight()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleResult|get_PanelLength()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleResult|get_StockLength()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleResult|get_Warnings()|System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.WallScheduleWarning>|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleResult|op_Equality(GPC.Design.Walls.WallScheduleResult left:None,GPC.Design.Walls.WallScheduleResult right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleResult|op_Inequality(GPC.Design.Walls.WallScheduleResult left:None,GPC.Design.Walls.WallScheduleResult right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleResult|set_Bars(System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.WallScheduledBar> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleResult|set_EndCover(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleResult|set_PanelLength(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleResult|set_StockLength(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleResult|set_Warnings(System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.WallScheduleWarning> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleWarning|.ctor(GPC.Design.Walls.WallScheduleWarningCode Code:None,System.String Mark:Optional, HasDefault=null,System.Nullable`1<System.Int32> Count:Optional, HasDefault=null)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Design.Walls.WallScheduleWarning|<Clone>$()|GPC.Design.Walls.WallScheduleWarning|Public, HideBySig|
+M|GPC.Design.Walls.WallScheduleWarning|Deconstruct(GPC.Design.Walls.WallScheduleWarningCode& Code:Out,System.String& Mark:Out,System.Nullable`1<System.Int32>& Count:Out)|System.Void|Public, HideBySig|
+M|GPC.Design.Walls.WallScheduleWarning|Equals(GPC.Design.Walls.WallScheduleWarning other:None)|System.Boolean|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Design.Walls.WallScheduleWarning|Equals(System.Object obj:None)|System.Boolean|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.WallScheduleWarning|GetHashCode()|System.Int32|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.WallScheduleWarning|ToString()|System.String|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.WallScheduleWarning|get_Code()|GPC.Design.Walls.WallScheduleWarningCode|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleWarning|get_Count()|System.Nullable`1<System.Int32>|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleWarning|get_Mark()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleWarning|op_Equality(GPC.Design.Walls.WallScheduleWarning left:None,GPC.Design.Walls.WallScheduleWarning right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleWarning|op_Inequality(GPC.Design.Walls.WallScheduleWarning left:None,GPC.Design.Walls.WallScheduleWarning right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleWarning|set_Code(GPC.Design.Walls.WallScheduleWarningCode value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleWarning|set_Count(System.Nullable`1<System.Int32> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduleWarning|set_Mark(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|.ctor(System.String Mark:None,GPC.Design.Walls.WallRebarZone Zone:None,System.Nullable`1<GPC.Design.Walls.WallRebarFace> Face:None,GPC.Design.Walls.WallBarKind Kind:None,System.Double Diameter:None,System.Int32 Quantity:None,System.Nullable`1<System.Double> CutLength:None,System.Double Spacing:None,System.Double Mandrel:None,System.Double Lap:None,System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.WallBarLeg> Legs:None,System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.WallBarPoint> Shape:None,GPC.Design.Walls.WallBarNote Note:None,System.Nullable`1<System.Double> ZoneStart:Optional, HasDefault=null,System.Nullable`1<System.Double> ZoneEnd:Optional, HasDefault=null,System.Nullable`1<System.Int32> TieRows:Optional, HasDefault=null)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Design.Walls.WallScheduledBar|<Clone>$()|GPC.Design.Walls.WallScheduledBar|Public, HideBySig|
+M|GPC.Design.Walls.WallScheduledBar|Deconstruct(System.String& Mark:Out,GPC.Design.Walls.WallRebarZone& Zone:Out,System.Nullable`1<GPC.Design.Walls.WallRebarFace>& Face:Out,GPC.Design.Walls.WallBarKind& Kind:Out,System.Double& Diameter:Out,System.Int32& Quantity:Out,System.Nullable`1<System.Double>& CutLength:Out,System.Double& Spacing:Out,System.Double& Mandrel:Out,System.Double& Lap:Out,System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.WallBarLeg>& Legs:Out,System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.WallBarPoint>& Shape:Out,GPC.Design.Walls.WallBarNote& Note:Out,System.Nullable`1<System.Double>& ZoneStart:Out,System.Nullable`1<System.Double>& ZoneEnd:Out,System.Nullable`1<System.Int32>& TieRows:Out)|System.Void|Public, HideBySig|
+M|GPC.Design.Walls.WallScheduledBar|Equals(GPC.Design.Walls.WallScheduledBar other:None)|System.Boolean|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Design.Walls.WallScheduledBar|Equals(System.Object obj:None)|System.Boolean|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.WallScheduledBar|GetHashCode()|System.Int32|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.WallScheduledBar|ToString()|System.String|Public, Virtual, HideBySig|
+M|GPC.Design.Walls.WallScheduledBar|get_CutLength()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|get_Diameter()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|get_Face()|System.Nullable`1<GPC.Design.Walls.WallRebarFace>|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|get_Kind()|GPC.Design.Walls.WallBarKind|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|get_Lap()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|get_Legs()|System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.WallBarLeg>|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|get_Mandrel()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|get_Mark()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|get_Note()|GPC.Design.Walls.WallBarNote|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|get_Quantity()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|get_Shape()|System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.WallBarPoint>|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|get_Spacing()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|get_TieRows()|System.Nullable`1<System.Int32>|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|get_TotalLength()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|get_Weight()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|get_Zone()|GPC.Design.Walls.WallRebarZone|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|get_ZoneEnd()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|get_ZoneStart()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|op_Equality(GPC.Design.Walls.WallScheduledBar left:None,GPC.Design.Walls.WallScheduledBar right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|op_Inequality(GPC.Design.Walls.WallScheduledBar left:None,GPC.Design.Walls.WallScheduledBar right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|set_CutLength(System.Nullable`1<System.Double> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|set_Diameter(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|set_Face(System.Nullable`1<GPC.Design.Walls.WallRebarFace> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|set_Kind(GPC.Design.Walls.WallBarKind value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|set_Lap(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|set_Legs(System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.WallBarLeg> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|set_Mandrel(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|set_Mark(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|set_Note(GPC.Design.Walls.WallBarNote value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|set_Quantity(System.Int32 value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|set_Shape(System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.WallBarPoint> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|set_Spacing(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|set_TieRows(System.Nullable`1<System.Int32> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|set_Zone(GPC.Design.Walls.WallRebarZone value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|set_ZoneEnd(System.Nullable`1<System.Double> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallScheduledBar|set_ZoneStart(System.Nullable`1<System.Double> value:None)|System.Void|Public, HideBySig, SpecialName|
 M|GPC.Design.Walls.WallZoneBars|.ctor(GPC.Design.Walls.WallFaceBars FirstFace:None,GPC.Design.Walls.WallFaceBars OppositeFace:None,System.Double SecondaryDiameter:None,System.Double SecondarySpacing:None,System.Double AnchorLength:Optional, HasDefault=0,System.Double LapLength:Optional, HasDefault=0,System.Double BendDiameter:Optional, HasDefault=0)|-|Public, HideBySig, SpecialName, RTSpecialName|
 M|GPC.Design.Walls.WallZoneBars|<Clone>$()|GPC.Design.Walls.WallZoneBars|Public, HideBySig|
 M|GPC.Design.Walls.WallZoneBars|Deconstruct(GPC.Design.Walls.WallFaceBars& FirstFace:Out,GPC.Design.Walls.WallFaceBars& OppositeFace:Out,System.Double& SecondaryDiameter:Out,System.Double& SecondarySpacing:Out,System.Double& AnchorLength:Out,System.Double& LapLength:Out,System.Double& BendDiameter:Out)|System.Void|Public, HideBySig|
@@ -372,7 +501,11 @@ T|GPC.Design.Walls.GravityWallAnalysis|Public, Abstract, Sealed, BeforeFieldInit
 T|GPC.Design.Walls.GravityWallMaterialKind|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
 T|GPC.Design.Walls.GravityWallMaterial|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Design.Walls.WallBarDetail|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Walls.WallBarDetail>|
+T|GPC.Design.Walls.WallBarKind|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
+T|GPC.Design.Walls.WallBarLeg|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Walls.WallBarLeg>|
+T|GPC.Design.Walls.WallBarNote|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
 T|GPC.Design.Walls.WallBarPoint|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Walls.WallBarPoint>|
+T|GPC.Design.Walls.WallBarScheduling|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Design.Walls.WallDetailCheck|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Walls.WallDetailCheck>|
 T|GPC.Design.Walls.WallDetailGeometry|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Walls.WallDetailGeometry>|
 T|GPC.Design.Walls.WallDetailInput|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Walls.WallDetailInput>|
@@ -385,4 +518,9 @@ T|GPC.Design.Walls.WallRebarLayout|Public, Sealed, BeforeFieldInit|base=System.O
 T|GPC.Design.Walls.WallRebarZone|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
 T|GPC.Design.Walls.WallReinforcementDetailing|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Design.Walls.WallReinforcementDetails|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Walls.WallReinforcementDetails>|
+T|GPC.Design.Walls.WallScheduleOptions|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Walls.WallScheduleOptions>|
+T|GPC.Design.Walls.WallScheduleResult|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Walls.WallScheduleResult>|
+T|GPC.Design.Walls.WallScheduleWarningCode|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
+T|GPC.Design.Walls.WallScheduleWarning|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Walls.WallScheduleWarning>|
+T|GPC.Design.Walls.WallScheduledBar|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Walls.WallScheduledBar>|
 T|GPC.Design.Walls.WallZoneBars|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Walls.WallZoneBars>|
