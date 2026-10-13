@@ -61,3 +61,14 @@ Final complete verification `gravity-verify`: **1655 PASS**, only the 17 named
 historical Steel failures, zero new failures, compatible APIs. ANTHEA runner
 `20261013-f4-gravity-source-final`: **5 PASS**, including repeat capture and
 architecture. Production ANTHEA remains on set V.
+
+### Assigned axial tension edge case (F4.8a.1)
+
+The frozen six-wall corpus does not contain assigned tensile axial force.
+An additional independent regression exposes signed demands in the port;
+legacy CheckValue always stores their absolute magnitude. The coordinator
+now applies that same normalization, without changing capacities or signs
+of input actions. Toe t=500 mm, N=-100 N/mm, M=V=0 gives both stress demands
+0.2 MPa, with ratios 0.1 and 2 for assigned strengths 2 and 0.1 MPa.
+Targeted verification: five tests pass, including the unchanged 8672/240
+frozen comparison (`gravity-tension-fix`). Design patch version 0.1.0.1.

@@ -96,7 +96,7 @@ public static class GravityWallAnalysis
                 void Add(GravityCheckMethod method, double demand, double? capacity, string unit)
                 {
                     if (!double.IsFinite(demand) || capacity.HasValue && !double.IsFinite(capacity.Value)) throw new ArithmeticException("Gravity section exceeds the numeric range.");
-                    checks.Add(new(method, c.Id, f.Member, f.Position, demand, capacity, unit));
+                    checks.Add(new(method, c.Id, f.Member, f.Position, Math.Abs(demand), capacity, unit));
                 }
                 if (!stem && !c.ContactValid && (assigned || f.N != 0 || f.V != 0 || f.M != 0)) { Add(GravityCheckMethod.Contact, 0, null, "MPa"); continue; }
                 if (f.N == 0 && f.V == 0 && f.M == 0 && (!assigned || f.Position <= 0)) continue;

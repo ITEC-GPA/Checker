@@ -58,6 +58,16 @@ public sealed class GravityWallTests
         }
         Assert.IsTrue(checks>1000 && curves>0); Console.WriteLine($"Gravity: {checks} checks and {curves} curvatures equivalent");
     }
+    [TestMethod]
+    public void AssignedTensileAxialActionKeepsHistoricalAbsoluteDemand()
+    {
+        var mat=GravityWallMaterial.Assigned(2,.1,3000,.05);
+        var c=new GravityCombination("T",false,true,new[]{new GravitySection(WallMember.Toe,1000,500,-100,0,0)});
+        var checks=GravityWallAnalysis.Calculate(mat,3000,500,6000,0,new[]{c})[0].Checks;
+        Same(.2,checks[0].Demand); Same(.1,checks[0].Ratio!.Value);
+        Same(.2,checks[1].Demand); Same(2,checks[1].Ratio!.Value);
+        Assert.AreEqual(EngineeringOutcome.NotSatisfied,checks[1].Outcome);
+    }
     static void Same(double expected,double actual) => Assert.AreEqual(expected,actual,1e-9+1e-9*Math.Max(Math.Abs(expected),Math.Abs(actual)));
 
     [TestMethod]
