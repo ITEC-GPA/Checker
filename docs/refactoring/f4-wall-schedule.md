@@ -28,3 +28,17 @@ the immediately preceding detail port was 1660 PASS / 17 known Steel failures;
 this additive step will also run in the final coherent release verification.
 ANTHEA's deployed calculation and set V are unchanged until F4.9. Search of
 wall/pile reinforcement still remains in the following F4.10 steps.
+
+## F4.7c.0 — undetailed quantity adapter prerequisite
+
+`WallRebarQuantities.PrincipalSteelKgPerMetre` ports the separate historical
+strip estimate (before anchors and secondary reinforcement are counted).
+It is checked against 22 original frozen `SteelKg` values with details off,
+and a hand-calculated asymmetric-face example. These expected masses are
+extracted from the original SHA-verified F4 results, never recalculated by
+the new service; fixture hash is asserted by the test.
+
+Model.Material.SteelDensity is now the single source of density for this
+estimate, detailed reinforcement and the schedule. All 15 Design tests pass,
+including the 56 detail and 30 schedule comparisons, with unchanged tolerance.
+Design 0.4.0.0 for the additive API; no new formulas in ANTHEA.

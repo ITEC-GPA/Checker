@@ -13,7 +13,7 @@ public sealed record WallScheduledBar(string Mark, WallRebarZone Zone, WallRebar
     IReadOnlyList<WallBarPoint> Shape, WallBarNote Note, double? ZoneStart = null, double? ZoneEnd = null, int? TieRows = null)
 {
     public double? TotalLength => Quantity * CutLength;
-    public double? Weight => TotalLength * Math.PI * Diameter * Diameter / 4 * .00785;
+    public double? Weight => TotalLength * Math.PI * Diameter * Diameter / 4 * WallRebarQuantities.SteelKgPerSquareMmMetre;
 }
 public sealed record WallScheduleWarning(WallScheduleWarningCode Code, string? Mark = null, int? Count = null);
 public sealed record WallScheduleResult(double PanelLength, double EndCover, double StockLength,

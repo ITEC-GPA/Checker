@@ -352,6 +352,7 @@ M|GPC.Design.Walls.WallRebarLayout|.ctor(System.Boolean twoZones:None,System.Dou
 M|GPC.Design.Walls.WallRebarLayout|get_LowerHeight()|System.Double|Public, HideBySig, SpecialName|
 M|GPC.Design.Walls.WallRebarLayout|get_TwoZones()|System.Boolean|Public, HideBySig, SpecialName|
 M|GPC.Design.Walls.WallRebarLayout|get_Zones()|System.Collections.Generic.IReadOnlyDictionary`2<GPC.Design.Walls.WallRebarZone,GPC.Design.Walls.WallZoneBars>|Public, HideBySig, SpecialName|
+M|GPC.Design.Walls.WallRebarQuantities|PrincipalSteelKgPerMetre(GPC.Design.Walls.WallDetailInput input:None)|System.Double|Public, Static, HideBySig|
 M|GPC.Design.Walls.WallReinforcementDetailing|Calculate(GPC.Design.Walls.WallDetailInput input:None,System.Threading.CancellationToken token:Optional, HasDefault=null)|GPC.Design.Walls.WallReinforcementDetails|Public, Static, HideBySig|
 M|GPC.Design.Walls.WallReinforcementDetails|.ctor(System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.WallBarDetail> Bars:None,System.Collections.Generic.IReadOnlyList`1<GPC.Design.Walls.WallDetailCheck> Checks:None,System.Double SteelKg:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
 M|GPC.Design.Walls.WallReinforcementDetails|<Clone>$()|GPC.Design.Walls.WallReinforcementDetails|Public, HideBySig|
@@ -515,6 +516,7 @@ T|GPC.Design.Walls.WallDetailRule|Public, Sealed|base=System.Enum|interfaces=Sys
 T|GPC.Design.Walls.WallFaceBars|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Walls.WallFaceBars>|
 T|GPC.Design.Walls.WallRebarFace|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
 T|GPC.Design.Walls.WallRebarLayout|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Design.Walls.WallRebarQuantities|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Design.Walls.WallRebarZone|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
 T|GPC.Design.Walls.WallReinforcementDetailing|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Design.Walls.WallReinforcementDetails|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Walls.WallReinforcementDetails>|

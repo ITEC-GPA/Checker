@@ -103,9 +103,9 @@ public static partial class WallReinforcementDetailing
                 // The sampled arc is only for drawing; cut length uses its exact centre-line development.
                 if (mandrel > 0) length += (mandrel + dia) / 2000 * (Math.PI / 2 - 24 * Math.Sin(Math.PI / 48));
                 bars.Add(new("P" + (bars.Count + 1), key, currentFace.Value, dia, count, spacing, area, length, upper ? 0 : dev.RequiredLength, anchor, stem && two ? lap.RequiredLength : 0, lapUsed, mandrel, dev.Fbd, path.AsReadOnly()));
-                kg += area * 1e-6 * length * 7850;
+                kg += area * 1e-6 * length * WallRebarQuantities.SteelKgPerCubicMetre;
                 double regionLength = stem ? (upper ? h - split : split) : key == WallRebarZone.Toe ? a + s / 2 : g.Heel + s / 2;
-                kg += secArea * 1e-6 * regionLength * 7850;
+                kg += secArea * 1e-6 * regionLength * WallRebarQuantities.SteelKgPerCubicMetre;
             }
         }
         if (two)
@@ -115,7 +115,7 @@ public static partial class WallReinforcementDetailing
             double ties = opt.TieDiameter, step = opt.TieSpacing;
             Max(WallDetailRule.JunctionTieSpacing, step, Math.Min(150, 12 * phi));
             Min(WallDetailRule.JunctionTieArea, Math.Floor(l0 / 3 / step) * Math.PI * ties * ties / 4, .5 * Math.PI * phi * phi / 4, "mm²");
-            kg += 2 * (s + .1) * Math.Ceiling(l0 / step) * Math.PI * ties * ties / 4 * 1e-6 * 7850;
+            kg += 2 * (s + .1) * Math.Ceiling(l0 / step) * Math.PI * ties * ties / 4 * 1e-6 * WallRebarQuantities.SteelKgPerCubicMetre;
         }
         token.ThrowIfCancellationRequested();
         if (!double.IsFinite(kg)) throw new ArithmeticException("Steel quantity exceeds the numeric range.");
