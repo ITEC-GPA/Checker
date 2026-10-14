@@ -31,7 +31,28 @@ namespace GPC.Checkers.Concrete.Results
 
         public ResultBeamForces Force => _force;
 
+        /// <summary>
+        /// Plane of the solver. In a linear elastic analysis with creep it is the elastic-equivalent plane (concrete at its modulus, steel at
+        /// Es·(1 + ψ)): stresses depend only on the modular ratio, but its strains are 1 + ψ times smaller than the physical ones. Use
+        /// <see cref="TotalStrainPlane"/> for strains, curvatures and displacements.
+        /// </summary>
         public StrainPlane StrainPlane => _strainPlane;
+
+        /// <summary>
+        /// Plane of the total strains: <see cref="StrainPlane"/> amplified by <see cref="Serviceability.Homogenization.CreepFactor"/> of the
+        /// rebars in a linear elastic analysis (the factor of <see cref="GetVerticeStrain(Point2d, double)"/> and of the rebar strains), the
+        /// solver plane itself otherwise. A bar at stress σs lies on it at σs/Es. With a different ψ for the tendons, the tendon strains keep
+        /// their own factor.
+        /// </summary>
+        public StrainPlane TotalStrainPlane
+        {
+            get
+            {
+                if (_strainPlane is null || !_linearElasticAnalysis || (_psiRebar ?? 0) == 0) return _strainPlane;
+                double factor = Serviceability.Homogenization.CreepFactor(_psiRebar.Value);
+                return new StrainPlane(_strainPlane.ChiX * factor, _strainPlane.ChiY * factor, _strainPlane.ReferencePoint, _strainPlane.StrainReferencePoint * factor);
+            }
+        }
 
         public SectionSolver SectionSolver => _sectionSolver;
 

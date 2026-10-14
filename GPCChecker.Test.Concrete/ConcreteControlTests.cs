@@ -62,6 +62,42 @@ namespace ConcreteTests
         private static void Rel(double expected, double actual, double tolerance, string message = "") =>
             Assert.AreEqual(expected, actual, Math.Abs(expected) * tolerance + 1e-9, message);
 
+        /// <summary>
+        /// Total strain plane of a cracked linear analysis with creep (n = 15): the solver plane is elastic-equivalent, the total one carries
+        /// each bar at σs/Es and the compressed concrete at σc·(1 + ψ)/Ec, the physical strains with the effective modulus Ec/(1 + ψ).
+        /// </summary>
+        [TestMethod]
+        public void TotalStrainPlaneCarriesThePhysicalStrainsOfTheLinearAnalysisWithCreep()
+        {
+            var section = Rect(B, H, FourCorners);
+            double psi = Psi(15, section), factor = 1 + psi, es = section.GetRebars()[0].RebarMaterial.ElasticModulusTension,
+                ec = section.ConcreteMaterial.ElasticModulusCompression;
+            var options = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(GetLocalCoordinateSystem(section),
+                SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Plastic,
+                SectionSolver.StressAnalysisTypes.Linear, psi, 0, false, 64);
+            var checker = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section, null, null), options, new StandardEN1992p11(), false);
+            var result = checker.GetTensionAnalysisResult(Force(section, -100, 80));
+            Assert.IsTrue(result.LinearElasticAnalysis);
+            Assert.AreEqual(psi, result.PsiRebar.Value, 0);
+            Rel(result.StrainPlane.ChiX * factor, result.TotalStrainPlane.ChiX, 1e-12, "Total chi x");
+            Rel(result.StrainPlane.ChiY * factor, result.TotalStrainPlane.ChiY, 1e-12, "Total chi y");
+            foreach (var bar in section.GetRebars())
+            {
+                double total = result.TotalStrainPlane.GetStrain(bar.Position);
+                Rel(result.GetRebarStrain(bar, psi), total, 1e-12, "Same strain as the rebar accessor");
+                Rel(result.GetRebarTension(psi, bar) / es, total, 1e-9, "Bar on the total plane at sigma_s/Es");
+                Rel(result.GetRebarTension(psi, bar) / (es * factor), result.StrainPlane.GetStrain(bar.Position), 1e-9, "Solver plane 1 + psi times smaller");
+            }
+            foreach (Point2d point in section.ConcreteShape.GetPoints2d())
+            {
+                double stress = result.GetConcreteTension(psi, point);
+                if (stress < 0) Rel(stress * factor / ec, result.TotalStrainPlane.GetStrain(point), 1e-9, "Compressed concrete at sigma_c (1 + psi)/Ec");
+                Rel(result.GetVerticeStrain(point, psi), result.TotalStrainPlane.GetStrain(point), 1e-12, "Same strain as the vertex accessor");
+            }
+            var nonLinear = Checker(section, new StandardEN1992p11(), false).GetTensionAnalysisResult(Force(section, -100, 80));
+            Assert.AreSame(nonLinear.StrainPlane, nonLinear.TotalStrainPlane);
+        }
+
         [DataTestMethod]
         [DataRow(SectionSolver.StressAnalysisTypes.Linear)]
         [DataRow(SectionSolver.StressAnalysisTypes.NonLinear)]
