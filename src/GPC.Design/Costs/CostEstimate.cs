@@ -2,7 +2,8 @@ using System.Collections.ObjectModel;
 
 namespace GPC.Design.Costs;
 
-public enum QuantityUnit { Item, Metre, SquareMetre, CubicMetre, Kilogram, Tonne }
+/// <summary>Units of measured work and prices; Hour (labour and plant hire in price analyses) converts only to itself.</summary>
+public enum QuantityUnit { Item, Metre, SquareMetre, CubicMetre, Kilogram, Tonne, Hour }
 public enum CostIssue { None, MissingRate, MissingPrice, IncompatibleUnit, InvalidInclusion }
 
 /// <summary>A measured quantity. InclusionOwner is the id of the specific enclosing work, never a global material exemption.</summary>
