@@ -171,6 +171,14 @@ namespace GPC.Checkers.Geotechnics.Piles
 
         /// <summary>Axial capacity of a grouted micropile along its axis (Bustamante-Doix); the profiles give the vertical thicknesses, s = z / cos θ.</summary>
         public static AxialCapacityResult<MicropileSurveyResistance> Calculate(Micropile pile, IReadOnlyList<MicropileSurvey> surveys, PileResistanceFactors factors, PileGroupEfficiency efficiency)
+            => CalculateMicropile(pile, surveys, factors, efficiency, s => MicropileLayer.FromProfile(s.Profile, s.Layers, pile.Inclination));
+
+        /// <summary>Same micropile calculation from vertical thicknesses and Bustamante–Doix parameters only.</summary>
+        public static AxialCapacityResult<MicropileSurveyResistance> CalculateFromDepths(Micropile pile, IReadOnlyList<MicropileDepthSurvey> surveys, PileResistanceFactors factors, PileGroupEfficiency efficiency)
+            => CalculateMicropile(pile, surveys, factors, efficiency, s => s.AlongAxis(pile.Inclination));
+
+        private static AxialCapacityResult<MicropileSurveyResistance> CalculateMicropile<T>(Micropile pile, IReadOnlyList<T> surveys, PileResistanceFactors factors,
+            PileGroupEfficiency efficiency, Func<T, MicropileLayer[]> axisLayers) where T : class
         {
             if (pile == null) throw new ArgumentNullException(nameof(pile));
             if (surveys == null) throw new ArgumentNullException(nameof(surveys));
@@ -190,7 +198,7 @@ namespace GPC.Checkers.Geotechnics.Piles
             foreach (var survey in surveys)
             {
                 if (survey == null) throw new ArgumentNullException(nameof(surveys));
-                var list = MicropileLayer.FromProfile(survey.Profile, survey.Layers, pile.Inclination);
+                var list = axisLayers(survey);
                 try { BustamanteDoix.Segments(list, l, sb, d, pile.Injection, pile.Pressure); }
                 catch (ArgumentException ex) { throw new ArgumentException($"Vertical {strata.Count + 1}: {ex.Message}"); }
                 strata.Add(list);

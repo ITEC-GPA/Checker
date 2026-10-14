@@ -7,3 +7,7 @@ Design 0.19.0.0: nuovo contratto tipizzato ShearGeometryProposal con barre Desig
 ## Riferimento della predalle
 
 CompositeBridge 1.6.0.0: SlabRebarLayout tipizzato, riferimenti soletta/predalle espliciti e due prove indipendenti PASS sui limiti e sulle quote. La predalle resta contenuta nella soletta omogenea. Venti casi prima del port nella stessa cattura ANTHEA; integrazione e confronto nel passo seguente. API aggiuntiva: incremento del secondo componente.
+
+## Stratigrafia dei micropali
+
+Geotechnics 0.3.0.0: MicropileDepthSurvey conserva soltanto spessori verticali e parametri Bustamante–Doix. CalculateFromDepths e l'API precedente convergono sullo stesso motore, senza duplicarlo né inventare peso o resistenza del terreno. Dati copiati e sola lettura. Sei combinazioni di inclinazione/attivazione con curve, azioni, pesi e avvisi identici; conversione indipendente a 60° e rifiuti di dati errati. Diciassette prove PASS incluse regressioni del port e casi limite. Nuova API, incremento del secondo componente. Collegamento ANTHEA ancora da completare.
