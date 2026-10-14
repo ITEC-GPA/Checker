@@ -94,7 +94,7 @@ public sealed class BeamTrafficEnvelope
         for (int k = 0; k < spans.Length; k++)
         {
             cancellation.ThrowIfCancellationRequested();
-            for (int t = 0; t <= 40; t++) sections.Add(At(k, spans[k] * t / 40, ei));
+            for (int t = 0; t <= 40; t++) sections.Add(At(k, t == 40 ? spans[k] : spans[k] * t / 40, ei));
         }
         return new(Array.AsReadOnly(reactions), sections.AsReadOnly());
     }

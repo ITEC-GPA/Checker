@@ -8,6 +8,15 @@ namespace DesignTests;
 public sealed class TrafficEnvelopeTests
 {
     [TestMethod]
+    public void SamplerDoesNotOvershootSpanEndForFloatingPointLengths()
+    {
+        foreach (double length in new[] { 2.4, 28.000000000000004, 35.00000000000001, Math.PI * 10 })
+        {
+            var r = new BeamTrafficEnvelope([length], false, RoadTraffic.Ntc2018(9.5)).Calculate(1e8);
+            Assert.AreEqual(length, r.Sections[^1].X); Assert.AreEqual(41, r.Sections.Count);
+        }
+    }
+    [TestMethod]
     public void LaneLayoutFollowsNormativeBoundariesAndGlobalNumbering()
     {
         foreach (var (width, count, udl, axle) in new[] { (7.5, 2, 38.25, 500d), (9.5, 3, 43.25, 600d), (11.5, 3, 48.25, 600d), (5.4, 2, 31.05, 500d), (6d, 2, 34.5, 500d) })

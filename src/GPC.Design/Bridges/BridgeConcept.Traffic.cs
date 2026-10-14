@@ -43,6 +43,14 @@ public static partial class BridgeConcept
         var maxima = g.Reactions.Zip(q.Reactions, (p, t) => p + gq * t.Maximum).ToArray();
         var minima = g.Reactions.Zip(q.Reactions, (p, t) => p + gq * t.Minimum).ToArray();
         var fixedStations = g.Stations.ToDictionary(s => (s.Span, s.X));
+        // Legacy Analyze keeps its original arithmetic, including L*40/40 at the final station.
+        // Alias that ordinate to the exact geometric endpoint; do not perturb legacy results.
+        double offset = 0;
+        for (int k = 0; k < spans.Length; k++)
+        {
+            offset += spans[k];
+            fixedStations[(k + 1, offset)] = g.Stations.Last(s => s.Span == k + 1);
+        }
         var stations = q.Sections.Select(t =>
         {
             var p = fixedStations[(t.Span, t.X)];

@@ -31,6 +31,9 @@ public sealed class BridgeTrafficTests
             Assert.AreEqual(Math.Min(0, updated.Stations.Min(s => s.MomentMinimum!.Value)), negative);
             Assert.IsTrue(updated.Warnings.Any(w => w.Contains("non concomitanti")));
         }
+        var decimalSpan = Models()[0];
+        var decimalResult = BridgeConcept.Calculate(decimalSpan with { Input = decimalSpan.Input with { Family = "psc_i", Length = 161, Height = 40, Spans = 5, TrafficModel = TrafficModel.Ntc2018Schema1 } });
+        Assert.AreEqual(205, decimalResult.Stations.Count);
         var bad = Models()[0];
         Assert.ThrowsException<ArgumentException>(() => BridgeConcept.Calculate(bad with { Input = bad.Input with { TrafficModel = (TrafficModel)99 } }));
     }
