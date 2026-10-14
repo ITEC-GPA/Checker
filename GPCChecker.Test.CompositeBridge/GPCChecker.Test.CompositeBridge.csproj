@@ -7,6 +7,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../tests/CompositeBridge.Checks/SlabRebarLayoutTests.cs" Link="SlabRebarLayoutTests.cs" />
     <None Update="Validation/*.json" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="../GPCChecker.CompositeBridge/GPCChecker.CompositeBridge.csproj" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
