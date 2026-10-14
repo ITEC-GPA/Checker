@@ -2,7 +2,10 @@ using GPC.Model.Materials;
 namespace GPC.Design.Bridges;
 public static partial class BridgeConcept
 {
-    // Captured concept conventions. Preserve arithmetic during the initial port; Model Ecm unification is a separate measured step.
-    private const double SteelTonnesPerCubicMetre = 7.85;
-    private static double ConcreteModulus(double fck) => 22000 * Math.Pow((fck + 8) / 10, .3);
+    private const double SteelTonnesPerCubicMetre = Material.SteelDensityTonnesPerCubicMetre;
+    private static double ConcreteModulus(double fck)
+    {
+        var material = new ConcreteMaterialEN1992("Concept concrete", fck, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle);
+        return EuropeanConcreteElasticity.SecantModulusMpa(material.Fcm);
+    }
 }
