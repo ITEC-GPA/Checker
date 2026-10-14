@@ -5,6 +5,9 @@ public static partial class BridgeConcept
     /// <summary>Pure repricing of measured work: no structural recalculation or mutation.</summary>
     public static CostEstimate Reprice(Result result, BridgeAssumptions assumptions, ResolvedPriceSnapshot snapshot)
     {
+        foreach (var rate in snapshot.Rates.Values)
+            if (rate.Includes!.Count > 0 && (rate.WorkCode is not ("pile_1" or "pile_15") || rate.Includes.Any(code => code != "rebar")))
+                throw new ArgumentException("Bridge Design: inclusioni supportate solo per rebar nei prezzi pile_1/pile_15; le altre lavorazioni richiedono una scomposizione esplicita.");
         if (result.CostQuantities.Count == 0) throw new ArgumentException("Measured quantities are unavailable; recalculate the concept before repricing.");
         return CostEstimator.Evaluate(result.CostQuantities, snapshot, (decimal)assumptions.Prelims, (decimal)assumptions.Contingency);
     }

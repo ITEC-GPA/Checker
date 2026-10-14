@@ -17,3 +17,5 @@ Design 0.13.0.0 espone quantità misurate con codice lavorazione e unità, separ
 Design 0.14.0.0: BridgeModel può ricevere uno snapshot risolto; tutti i candidati e le copie ne conservano la stessa revisione. I risultati con listino esplicito espongono quantità e costi delle quote distinte, inclusioni evidenti e totale rivalutato. Calcolo e ricerca rifiutano una stima incompleta, senza attribuire prezzi zero alle voci mancanti. Valuta EUR esplicita: nessun cambio implicito. Null conserva esattamente il percorso degli archivi legacy.
 
 45 test PASS, comprese graduatoria e tentativi con prezzi raddoppiati, riproduzione delle alternative, revisione comune, quadratura del computo e rifiuto dei listini incompleti. Il corpus iniziale è invariato. Versione con secondo componente incrementato per il nuovo ingresso del motore.
+
+Fix 0.15.0.1: Bridge rifiuta inclusioni non coperte dalla propria scomposizione invece di ignorarle. Al momento rebar in pile_1/pile_15 è la relazione implementata; le altre richiedono quantità figlie esplicite. Test su montaggio incluso nella carpenteria: rifiuto, nessuno sconto implicito. Contratto generale CostEstimator invariato.

@@ -13,6 +13,8 @@ public sealed class BridgeCostTests
         using var stream = new GZipStream(File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Fixtures/bridge-f4.json.gz")), CompressionMode.Decompress);
         var input = BridgeConceptTests.Input(JsonNode.Parse(stream)!["cases"]![0]!["input"]!);
         var basePrices = BridgeConcept.LegacyPrices(input.Rates, "A");
+        Assert.ThrowsException<ArgumentException>(() => BridgeConcept.Reprice(BridgeConcept.Calculate(input), input.Assumptions,
+            new ResolvedPriceSnapshot("unsupported inclusion", "EUR", basePrices.Rates.Values.Select(r => r.WorkCode == "steel" ? r with { Includes = new[]{"erection_special"} } : r))));
         var prices = new ResolvedPriceSnapshot("B", "EUR", basePrices.Rates.Values.Select(r => r with { Price = r.Price * 2 }));
         var options = new BridgeConcept.OptimizationOptions { KeepFamily = true, KeepFoundation = true, KeepPier = true, MinSpans = 2, MaxSpans = 4 };
         var before = BridgeConcept.Optimize(input, options); var after = BridgeConcept.Optimize(input with { Prices = prices }, options);
