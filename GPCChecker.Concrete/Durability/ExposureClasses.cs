@@ -104,7 +104,7 @@ namespace GPC.Checkers.Concrete.Durability
             {
                 case DurabilityProfile.Ntc2018:
                 case DurabilityProfile.CnrDT200:
-                    return new StrengthRequirement(values.Max(e => e.Uni11104MinStrength), "UNI 11104 prospetto 5 (NTC 2018 §11.2.11)", new string[0]);
+                    return new StrengthRequirement(values.Max(e => e.Uni11104MinStrength), "UNI 11104:2016 prospetto 5 (NTC 2018 §11.2.11)", new string[0]);
                 case DurabilityProfile.EN1992p11:
                 case DurabilityProfile.UniEN1992p11:
                     bool uni = profile == DurabilityProfile.UniEN1992p11;
