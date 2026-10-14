@@ -24,6 +24,9 @@ public sealed record RoadTraffic(IReadOnlyList<TrafficLane> Lanes, double Remain
                 lanes.Add(new(number, c + 1, width, number switch { 1 => 300, 2 => 200, 3 => 100, _ => 0 }, number == 1 ? 9 : 2.5));
             }
         }
+        // On unequal carriageways lane 1 occupies the widest conventional lane for the global effect.
+        lanes = lanes.OrderByDescending(l => l.Width).Select((lane, k) => lane with { Number = k + 1,
+            AxleKn = k switch { 0 => 300, 1 => 200, 2 => 100, _ => 0 }, UniformKnPerSquareMetre = k == 0 ? 9 : 2.5 }).ToList();
         return new(lanes.AsReadOnly(), remaining, lanes.Sum(l => l.Width * l.UniformKnPerSquareMetre) + remaining * 2.5, lanes.Sum(l => l.AxleKn));
     }
 }

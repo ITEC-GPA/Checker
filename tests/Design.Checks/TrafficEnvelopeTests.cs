@@ -13,6 +13,8 @@ public sealed class TrafficEnvelopeTests
         foreach (var (width, count, udl, axle) in new[] { (7.5, 2, 38.25, 500d), (9.5, 3, 43.25, 600d), (11.5, 3, 48.25, 600d), (5.4, 2, 31.05, 500d), (6d, 2, 34.5, 500d) })
         { var r = RoadTraffic.Ntc2018(width); Assert.AreEqual(count, r.Lanes.Count); Assert.AreEqual(udl, r.UniformKnPerMetre, 1e-10); Assert.AreEqual(axle, r.AxleKn); }
         var divided = RoadTraffic.Ntc2018(8.8, 8.8);
+        Assert.AreEqual(RoadTraffic.Ntc2018(5.4, 8.8).UniformKnPerMetre, RoadTraffic.Ntc2018(8.8, 5.4).UniformKnPerMetre);
+        Assert.AreEqual(3, RoadTraffic.Ntc2018(5.4, 8.8).Lanes[0].Width);
         Assert.AreEqual(4, divided.Lanes.Count); Assert.AreEqual(63.5, divided.UniformKnPerMetre, 1e-10);
         Assert.AreEqual(600, divided.AxleKn); Assert.AreEqual(100, divided.Lanes[2].AxleKn);
         Assert.ThrowsException<ArgumentException>(() => RoadTraffic.Ntc2018(double.NaN));

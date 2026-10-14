@@ -13,3 +13,7 @@ Tre momenti risolti nei coefficienti della posizione del carico. Linee di influe
 Fixture estratta dai risultati dello studio Python preesistente, senza ricalcolo né sostituzione: ANTHEA/supporto/artefatti/refactoring/ricerca-f/risultati/effetti.csv, SHA256 c8e85ed520bb80f05531e4bfbef8fa32cfa5b51a2fb451c2b76f555491d48615. Venti valori per luci 20/30 m, una/due/tre campate, appoggiate e continue; fixture traffic-research.json SHA256 7bb22b105c47e700d477b0ff5b50ac620151c61c19657f2073e34e51289d5335. Soglia 0.2% dichiarata prima del test per la griglia Python 0.05 m/carico e 0.10 m/sezione e le 41 sezioni della UI; tutti passati alla prima corsa. Controlli indipendenti esatti su tandem, M_B = -qL²/8, R_B = 1.25qL, freccia 5qL⁴/(384EI), corsie e integrazione del carico uniforme su tutti gli schemi con 1/2/3/5 campate (1e-8/1e-9 assoluti).
 
 Corsa traffic-a: 3 test PASS, involucro completo tre campate/123 sezioni in 3.776 ms a caldo. L'integrazione con BridgeConcept e il confronto delle ricerche sono il passo successivo; nessuna modifica degli archivi o del calcolo Bridge in questo commit.
+
+## Carreggiate diseguali
+
+0.16.0.1: correzione della numerazione globale: la corsia 1 si colloca sulla corsia convenzionale più larga. Scambiare l’ordine delle carreggiate 5.4/8.8 m non cambia il carico. Rilevata in revisione prima dell’integrazione; nessun impatto sui venti attesi precedenti (carreggiate uguali).
