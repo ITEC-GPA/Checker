@@ -383,6 +383,7 @@ F|GPC.Checkers.Concrete.Serviceability.ThinCastingRule|Ntc2018AndItalianAnnex|GP
 F|GPC.Checkers.Concrete.Serviceability.ThinCastingRule|Ntc2018Only|GPC.Checkers.Concrete.Serviceability.ThinCastingRule|Public, Static, Literal, HasDefault|0
 F|GPC.Checkers.Concrete.Serviceability.ThinCastingRule|value__|System.Int32|Public, SpecialName, RTSpecialName|
 F|GPC.Checkers.Concrete.Shear.SectionShearCalculator|MethodId|System.String|Public, Static, Literal, HasDefault|"Concrete.SectionShear"
+F|GPC.Checkers.Concrete.Shear.ShearLeverArm|RectangularRatio|System.Double|Public, Static, Literal, HasDefault|0.9
 F|GPC.Checkers.Concrete.Shear.ShearProfile|CnrDT200|GPC.Checkers.Concrete.Shear.ShearProfile|Public, Static, Literal, HasDefault|8
 F|GPC.Checkers.Concrete.Shear.ShearProfile|CnrDT204|GPC.Checkers.Concrete.Shear.ShearProfile|Public, Static, Literal, HasDefault|7
 F|GPC.Checkers.Concrete.Shear.ShearProfile|DinEN1992p11|GPC.Checkers.Concrete.Shear.ShearProfile|Public, Static, Literal, HasDefault|4
@@ -859,6 +860,15 @@ M|GPC.Checkers.Concrete.Detailing.PlateDetailingRules|SlabMainSpacing(System.Dou
 M|GPC.Checkers.Concrete.Detailing.PlateDetailingRules|SlabSecondaryArea(System.Double primaryArea:None)|System.Double|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.Detailing.PlateDetailingRules|SlabSecondarySpacing(System.Double thickness:None,System.Boolean critical:None)|System.Double|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.Detailing.PlateDetailingRules|WallMainSpacing(System.Double thickness:None)|System.Double|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Durability.CoverAssessment|Evaluate(System.Double adopted:None,System.Double materialMinimum:None,System.Nullable`1<System.Double> actualBarsMinimum:None)|GPC.Checkers.Concrete.Durability.CoverAssessment|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Durability.CoverAssessment|get_ActualBarsMinimum()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Durability.CoverAssessment|get_Adopted()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Durability.CoverAssessment|get_Data()|GPC.Model.Core.Diagnostics.DataStatus|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Durability.CoverAssessment|get_Execution()|GPC.Model.Checking.Contracts.ExecutionStatus|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Durability.CoverAssessment|get_MaterialMinimum()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Durability.CoverAssessment|get_Outcome()|GPC.Model.Checking.Contracts.EngineeringOutcome|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Durability.CoverAssessment|get_Passed()|System.Nullable`1<System.Boolean>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Durability.CoverAssessment|get_Required()|System.Double|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Durability.CoverInput|.ctor(System.Collections.Generic.IEnumerable`1<System.String> exposures:None,System.Double fck:None,System.Int32 designLife:None,System.Boolean strengthReduction:None,System.Boolean slabGeometry:None,System.Boolean specialQualityControl:None,System.Double barDiameter:None,System.Double aggregate:None,System.Double deviation:None,System.Boolean roughSurface:Optional, HasDefault=False,System.Int32 abrasion:Optional, HasDefault=0,System.Int32 ground:Optional, HasDefault=0,System.Boolean plateElement:Optional, HasDefault=False,System.Boolean ntcQualityReduction:Optional, HasDefault=False,System.Nullable`1<System.Double> pertinentCmin:Optional, HasDefault=null)|-|Public, HideBySig, SpecialName, RTSpecialName|
 M|GPC.Checkers.Concrete.Durability.CoverInput|WithBarDiameter(System.Double diameter:None)|GPC.Checkers.Concrete.Durability.CoverInput|Public, HideBySig|
 M|GPC.Checkers.Concrete.Durability.CoverInput|get_Abrasion()|System.Int32|Public, HideBySig, SpecialName|
@@ -1586,6 +1596,7 @@ M|GPC.Checkers.Concrete.Results.StressAnalysisResult|get_PsiRebar()|System.Nulla
 M|GPC.Checkers.Concrete.Results.StressAnalysisResult|get_PsiTendon()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Results.StressAnalysisResult|get_SectionSolver()|GPC.Checkers.Concrete.SectionSolvers.SectionSolver|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Results.StressAnalysisResult|get_StrainPlane()|GPC.Checkers.Concrete.Results.StrainPlane|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Results.StressAnalysisResult|get_TotalStrainPlane()|GPC.Checkers.Concrete.Results.StrainPlane|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.SectionSolvers.DomainPointAxialTolerance|Calculate(GPC.Checkers.Concrete.SectionSolvers.SectionSolver solver:None,System.Double axialForce:None)|System.Double|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.SectionSolvers.DomainPointAxialTolerance|CentredCompressionResistance(GPC.Checkers.Concrete.SectionSolvers.SectionSolver solver:None)|System.Double|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.SectionSolvers.DomainPointAxialTolerance|ConvergenceTolerance(GPC.Checkers.Concrete.SectionSolvers.SectionSolver solver:None)|System.Double|Public, Static, HideBySig|
@@ -1816,6 +1827,9 @@ M|GPC.Checkers.Concrete.Shear.ShearCalculationDetail|get_Expression()|System.Str
 M|GPC.Checkers.Concrete.Shear.ShearCalculationDetail|get_Symbol()|System.String|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Shear.ShearCalculationDetail|get_Unit()|System.String|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Shear.ShearCalculationDetail|get_Value()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Shear.ShearLeverArm|DanishSteelDuctility(System.Double yieldStrength:None,System.Double ultimateStrength:None,System.Double ultimateStrainPerMille:None)|System.Boolean|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Shear.ShearLeverArm|NtcCircularPierRatio(System.Boolean hollow:None)|System.Double|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Shear.ShearLeverArm|Ratio(GPC.Checkers.Concrete.Shear.ShearProfile profile:None,System.Double effectiveDepth:None,System.Double clearCover:None,System.Double linkDiameter:None,System.Boolean circular:Optional, HasDefault=False,System.Boolean hollow:Optional, HasDefault=False,System.Boolean ntcPier:Optional, HasDefault=False,System.Nullable`1<System.Double> assignedRatio:Optional, HasDefault=null)|System.Double|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.Shear.ShearProfiles|Model(GPC.Checkers.Concrete.Shear.ShearProfile profile:None)|System.String|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.Shear.ShearProfiles|NotApplicableReason(GPC.Model.Standards.Standard standard:None)|System.String|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.Shear.ShearProfiles|Reference(GPC.Checkers.Concrete.Shear.ShearProfile profile:None)|System.String|Public, Static, HideBySig|
@@ -2000,6 +2014,7 @@ T|GPC.Checkers.Concrete.Detailing.MemberDetailingOptions|Public, Sealed, BeforeF
 T|GPC.Checkers.Concrete.Detailing.MemberDetailingResult|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Detailing.PlateDetailingData|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Detailing.PlateDetailingRules|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Durability.CoverAssessment|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Durability.CoverInput|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Durability.CoverLine|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Durability.CoverRequirements|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
@@ -2076,6 +2091,7 @@ T|GPC.Checkers.Concrete.Shear.SectionShearCalculator|Public, Abstract, Sealed, B
 T|GPC.Checkers.Concrete.Shear.SectionShearInput|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Shear.SectionShearResult|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Shear.ShearCalculationDetail|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Shear.ShearLeverArm|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Shear.ShearProfiles|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Shear.ShearProfile|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
 T|GPC.Checkers.Concrete.Shear.ShearVerdict|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
