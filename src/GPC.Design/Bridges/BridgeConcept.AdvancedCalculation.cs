@@ -48,7 +48,7 @@ public static partial class BridgeConcept
             for (; iteration < 80; iteration++)
             {
                 double design = a.GammaG * (deckPermanent + extraMass / length * 9.81) + a.GammaQ * live;
-                structure = ExtendedMembers(i, a, id, spans, design);
+                structure = ExtendedMembers(i, a, id, spans, design, i.TrafficModel == TrafficModel.LegacyUniform ? null : a.GammaG * (deckPermanent + extraMass / length * 9.81));
                 double next = structure.Steel + structure.Cables;
                 if (Math.Abs(next - extraMass) <= 1e-8 * Math.Max(1, next)) { extraMass = next; break; }
                 extraMass = next;
@@ -57,10 +57,10 @@ public static partial class BridgeConcept
         }
         double permanent = deckPermanent + extraMass / length * 9.81, q = permanent + live, qd = a.GammaG * permanent + a.GammaQ * live;
         double ec = ConcreteModulus(i.Fc);
-        var serviceLoads = upper ? null : Loads(data, spans, permanent, ec * 1000 * deck.Inertia, false);
-        var factoredLoads = upper ? null : Loads(data, spans, permanent, ec * 1000 * deck.Inertia, true);
-        var service = upper ? (ExtendedReactions(id, spans, q, structure), Array.Empty<Station>()) : (serviceLoads!.Reactions, serviceLoads.Stations);
-        var factored = upper ? (ExtendedReactions(id, spans, qd, structure), Array.Empty<Station>()) : (factoredLoads!.Reactions, factoredLoads.Stations);
+        var serviceLoads = upper ? UpperLoads(data, id, spans, permanent, structure, false) : Loads(data, spans, permanent, ec * 1000 * deck.Inertia, false);
+        var factoredLoads = upper ? UpperLoads(data, id, spans, permanent, structure, true) : Loads(data, spans, permanent, ec * 1000 * deck.Inertia, true);
+        var service = (serviceLoads.Reactions, serviceLoads.Stations);
+        var factored = (factoredLoads.Reactions, factoredLoads.Stations);
         var reactions = service.Item1;
         int soil = Soils.ToList().IndexOf(i.Soil);
         double pressure = Auto(a.SoilPressure, new double[] { 1000, 400, 200, 100 }[soil]);
@@ -69,7 +69,7 @@ public static partial class BridgeConcept
         double diameter = foundation == "Plinto diretto" ? 0 : foundation == "Pali Ø 1,5 m" ? 1.5 : 1;
         double pileLength = diameter == 0 ? 0 : Auto(i.PileLength, new double[] { 10, 15, 22, 30 }[soil]);
         double resistance = diameter == 0 ? 0 : Math.PI * diameter * pileLength * skin + Math.PI * diameter * diameter / 4 * tip;
-        double anchorVolume = id == "suspension" ? 2 * (Math.Max(0, -factored.Item1[0]) + structure.Horizontal / a.AnchorFriction) / 25 : 0;
+        double anchorVolume = id == "suspension" ? 2 * (Math.Max(0, -factoredLoads.MinimumReactions[0]) + structure.Horizontal / a.AnchorFriction) / 25 : 0;
         double subVolume = 0, towerVolume = 0, foundVolume = 0, pileMetres = 0, maxRatio = 0, maxSlenderness = 0, maxStress = 0, towerStressRatio = 0;
         var supports = new List<Support>(); var supportSchedule = new List<SupportGeometry>();
         double subForms = 0, foundationForms = 0;
@@ -182,7 +182,7 @@ public static partial class BridgeConcept
             {
                 Dim(group.Key, "Σ n·l", group.Sum(m => m.Count * m.Length), "m", "Sviluppo geometrico complessivo nei due piani");
                 Dim(group.Key, "A_max", group.Max(m => m.Area) * 1e6, "mm²", "Area massima per singola asta o cavo = |N| / tensione di riferimento");
-                Dim(group.Key, "N_max", group.Max(m => Math.Abs(m.Force)), "kN", "Massimo valore assoluto per singola asta / cavo sotto carico uniforme");
+                Dim(group.Key, "N_max", group.Max(m => Math.Abs(m.Force)), "kN", i.TrafficModel == TrafficModel.LegacyUniform ? "Massimo valore assoluto per singola asta / cavo sotto carico uniforme" : "Massimo per singola asta/cavo: azioni globali equivalenti e tandem locali, estremi non concomitanti");
                 Dim(group.Key, "m_net", group.Sum(m => m.Mass), "t", "Massa geometrica, prima di eventuali collegamenti");
             }
             details.Add(new("Iterazioni equilibrio peso struttura", iteration + 1, "n.", "Aggiornamento massa superiore e carico fino a tolleranza relativa 10⁻⁸"));
@@ -198,7 +198,15 @@ public static partial class BridgeConcept
         if (maxRatio > 1 || maxSlenderness > 100 || maxStress > .3) warnings.Add("Una o più soglie indicative di pile / fondazioni sono superate; soluzione esclusa dalla ricerca.");
         if (i.TrafficModel == TrafficModel.LegacyUniform) CostWarnings(warnings, length, factored.Item1.Where(v => v > 0).Sum(), (i.Continuous ? count + 1 : 2 * count) * Math.Max(2, deck.Girders), BearingRate(data));
         else EnvelopeCostWarnings(warnings, length, factored.Item1, Math.Max(2, deck.Girders), i.Continuous, BearingRate(data));
-        if (serviceLoads is not null && factoredLoads is not null) DescribeTraffic(details, data, serviceLoads, factoredLoads, warnings);
+        DescribeTraffic(details, data, serviceLoads, factoredLoads, warnings);
+        if (upper && i.TrafficModel == TrafficModel.Ntc2018Schema1)
+        {
+            details.Add(new("Traffico sul piano esterno · distribuito", OuterPlane(i).UniformKnPerMetre, "kN/m", "Ripartizione a leva fra i due piani; solo predimensionamento locale"));
+            details.Add(new("Traffico sul piano esterno · tandem", 2 * OuterPlane(i).AxleKn, "kN", "Tandem locale su pendini, montanti e stralli; non spalmato sulla luce del ponte"));
+            for (int k = 0; k < details.Count; k++)
+                if (details[k].Name is "Carico verticale di servizio totale" or "Somma reazioni verticali") details[k] = details[k] with { Name = details[k].Name == "Somma reazioni verticali" ? "Somma degli estremi di reazione (non concomitanti)" : "Permanenti verticali sull'impalcato", Value = details[k].Name == "Somma reazioni verticali" ? reactions.Sum() : permanent * length, Rule = "Gli estremi di traffico hanno posizioni differenti: non costituiscono un caso di equilibrio unico" };
+            warnings.Add("Strutture superiori: uniforme equivalente al momento per azioni globali, tandem locale ripartito a leva sui due piani. Per le antenne/cavi i limiti delle azioni sono separati e conservativi nello schema ideale; non sono linee di influenza della struttura reale.");
+        }
         if (i.TrafficModel != TrafficModel.LegacyUniform && serviceLoads is not null)
             for (int k = 0; k < supports.Count; k++) supports[k] = supports[k] with { MinimumReaction = serviceLoads.MinimumReactions[k] };
         warnings.Add("Costi convenzionali, montaggio speciale esplicito; CO₂ parziale materiali e cantiere, senza EPD. Durata parametrica, non cronoprogramma.");
@@ -207,7 +215,7 @@ public static partial class BridgeConcept
             volumeDeck + subVolume + towerVolume + foundVolume + anchorVolume + pileVolume, deck.SteelMass + structure.Steel + structure.Cables,
             deckRebar + subRebar + foundRebar, 0, deck.Inertia, direct, total, total * (1 - a.Uncertainty / 100), total * (1 + a.Uncertainty / 100),
             carbon, months, quantities.ToArray(), details.ToArray(), factored.Item2, warnings.ToArray()) {
-                CostQuantities = costQuantities, Traffic = TrafficSummary(data), Advanced = new(ortho, !upper, main, structure.Rise, structure.Tower, deck.SteelMass, structure.Steel, structure.Cables, anchorVolume, towerVolume,
+                CostQuantities = costQuantities, Traffic = TrafficSummary(data, upper), Advanced = new(ortho, !upper, main, structure.Rise, structure.Tower, deck.SteelMass, structure.Steel, structure.Cables, anchorVolume, towerVolume,
                     structure.Horizontal, structure.Members, dimensions.ToArray()) { FoundationSchedule = supportSchedule.ToArray() }
             };
     }

@@ -154,7 +154,6 @@ public static partial class BridgeConcept
         foreach(var p in Assumptions.Concat(AdvancedAssumptions))Range(p,data.Assumptions.Value(p.Key));
         var i=data.Input;
         if (!Enum.IsDefined(i.TrafficModel)) throw new ArgumentException("Modello di traffico non riconosciuto.");
-        if (i.TrafficModel == TrafficModel.Ntc2018Schema1 && HasUpperStructure(i.Family)) throw new ArgumentException("Schema 1 per le strutture superiori non ancora disponibile.");
         if(!DeckTypes.Contains(i.DeckType))throw new ArgumentException("Tipo di impalcato non riconosciuto.");
         if(!Families.Any(f=>f.Id==i.Family))throw new ArgumentException("Tipologia impalcato non riconosciuta.");
         foreach(var (key,value,choices) in new[]{("obstacle",i.Obstacle,Obstacles),("soil",i.Soil,Soils),("pier",i.Pier,Piers),("foundation",i.Foundation,Foundations)})

@@ -17,6 +17,11 @@ public sealed class TrafficEnvelopeTests
         Assert.AreEqual(3, RoadTraffic.Ntc2018(5.4, 8.8).Lanes[0].Width);
         Assert.AreEqual(4, divided.Lanes.Count); Assert.AreEqual(63.5, divided.UniformKnPerMetre, 1e-10);
         Assert.AreEqual(600, divided.AxleKn); Assert.AreEqual(100, divided.Lanes[2].AxleKn);
+        var plane = RoadTraffic.OuterPlane(10.5, new CarriagewayStrip(.5, 9.5));
+        // Independent hand sum: axle = (300*8.5 + 200*5.5 + 100*2.5)/10.5;
+        // UDL = 2.5*9.5/2 + 6.5*3*8.5/10.5, local tributary panels p=8 m.
+        Assert.AreEqual(371.4285714285714, plane.AxleKn, 1e-9);
+        Assert.AreEqual(908.4285714285713, plane.LocalSupportForce(8), 1e-9);
         Assert.ThrowsException<ArgumentException>(() => RoadTraffic.Ntc2018(double.NaN));
         Assert.ThrowsException<ArgumentException>(() => RoadTraffic.Ntc2018(2.9));
     }

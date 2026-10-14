@@ -1,12 +1,41 @@
 namespace GPC.Design.Bridges;
 
 public enum TrafficModel { LegacyUniform, Ntc2018Schema1 }
+public sealed record CarriagewayStrip(double Start, double Width);
+public sealed record PlaneTraffic(double UniformKnPerMetre, double AxleKn)
+{
+    /// <summary>Interior support between two simply supported deck panels of equal length.</summary>
+    public double LocalSupportForce(double panel)
+    {
+        if (!double.IsFinite(panel) || panel < RoadTraffic.AxleSpacing) throw new ArgumentException("Passo locale inferiore all'interasse del tandem.");
+        return UniformKnPerMetre * panel + 2 * AxleKn * (1 - RoadTraffic.AxleSpacing / (2 * panel));
+    }
+}
 public sealed record TrafficLane(int Number, int Carriageway, double Width, double AxleKn, double UniformKnPerSquareMetre);
 public sealed record RoadTraffic(IReadOnlyList<TrafficLane> Lanes, double RemainingWidth, double UniformKnPerMetre, double AxleKn)
 {
     public const double AxleSpacing = 1.2;
     public const double NtcUnfavourableGamma = 1.35;
     public const string Reference = "NTC 2018 §5.1.3.3, Tabelle 5.1.I e 5.1.II; parte rimanente EN 1991-2 Tabella 4.2";
+    /// <summary>Lever distribution to the left outer structural plane. Lanes packed towards that plane;
+    /// adverse lane numbering for axle and uniform effects. Used only for local conceptual cable/member sizing.</summary>
+    public static PlaneTraffic OuterPlane(double deckWidth, params CarriagewayStrip[] strips)
+    {
+        if (!double.IsFinite(deckWidth) || deckWidth <= 0 || strips.Length == 0) throw new ArgumentException("Geometria trasversale non valida.");
+        double Integral(double start, double width) => width * (1 - (start + width / 2) / deckWidth);
+        var lanes = new List<(double Width, double Start)>(); double uniform = 0, end = 0;
+        foreach (var strip in strips.OrderBy(s => s.Start))
+        {
+            if (!double.IsFinite(strip.Start) || strip.Start < end || strip.Start + strip.Width > deckWidth) throw new ArgumentException("Carreggiate sovrapposte o esterne all'impalcato.");
+            var layout = Ntc2018(strip.Width); double x = strip.Start;
+            foreach (var lane in layout.Lanes) { lanes.Add((lane.Width, x)); x += lane.Width; }
+            uniform += 2.5 * Integral(strip.Start, strip.Width); end = strip.Start + strip.Width;
+        }
+        uniform += 6.5 * lanes.Max(l => Integral(l.Start, l.Width));
+        var lever = lanes.Select(l => 1 - (l.Start + l.Width / 2) / deckWidth).OrderDescending().ToArray();
+        double axles = lever.Select((v, k) => v * (k switch { 0 => 300, 1 => 200, 2 => 100, _ => 0 })).Sum();
+        return new(uniform, axles);
+    }
     /// <summary>Global longitudinal action. Numbering is common to carriageways divided by a fixed barrier.</summary>
     public static RoadTraffic Ntc2018(params double[] carriageways)
     {
