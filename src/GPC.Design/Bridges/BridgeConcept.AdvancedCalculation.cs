@@ -57,8 +57,10 @@ public static partial class BridgeConcept
         }
         double permanent = deckPermanent + extraMass / length * 9.81, q = permanent + live, qd = a.GammaG * permanent + a.GammaQ * live;
         double ec = ConcreteModulus(i.Fc);
-        var service = upper ? (ExtendedReactions(id, spans, q, structure), Array.Empty<Station>()) : Analyze(spans, q, ec * 1000 * deck.Inertia, i.Continuous);
-        var factored = upper ? (ExtendedReactions(id, spans, qd, structure), Array.Empty<Station>()) : Analyze(spans, qd, ec * 1000 * deck.Inertia, i.Continuous);
+        var serviceLoads = upper ? null : Loads(data, spans, permanent, ec * 1000 * deck.Inertia, false);
+        var factoredLoads = upper ? null : Loads(data, spans, permanent, ec * 1000 * deck.Inertia, true);
+        var service = upper ? (ExtendedReactions(id, spans, q, structure), Array.Empty<Station>()) : (serviceLoads!.Reactions, serviceLoads.Stations);
+        var factored = upper ? (ExtendedReactions(id, spans, qd, structure), Array.Empty<Station>()) : (factoredLoads!.Reactions, factoredLoads.Stations);
         var reactions = service.Item1;
         int soil = Soils.ToList().IndexOf(i.Soil);
         double pressure = Auto(a.SoilPressure, new double[] { 1000, 400, 200, 100 }[soil]);
@@ -194,14 +196,18 @@ public static partial class BridgeConcept
         if (id == "filler_beam") warnings.Add("Travi incorporate: profili a I ideali, cls netto dell’acciaio; collaborazione perfetta assunta. Adesione, armatura trasversale, fasi di getto e verifica del profilo non calcolate.");
         if (ortho) warnings.Add("Piastra ortotropa: lamiera, canalette e cassone conteggiati geometricamente. La rigidezza locale ortotropa, i traversi e la fatica delle saldature richiedono un modello dedicato.");
         if (maxRatio > 1 || maxSlenderness > 100 || maxStress > .3) warnings.Add("Una o più soglie indicative di pile / fondazioni sono superate; soluzione esclusa dalla ricerca.");
-        CostWarnings(warnings, length, factored.Item1.Where(v => v > 0).Sum(), (i.Continuous ? count + 1 : 2 * count) * Math.Max(2, deck.Girders), BearingRate(data));
+        if (i.TrafficModel == TrafficModel.LegacyUniform) CostWarnings(warnings, length, factored.Item1.Where(v => v > 0).Sum(), (i.Continuous ? count + 1 : 2 * count) * Math.Max(2, deck.Girders), BearingRate(data));
+        else EnvelopeCostWarnings(warnings, length, factored.Item1, Math.Max(2, deck.Girders), i.Continuous, BearingRate(data));
+        if (serviceLoads is not null && factoredLoads is not null) DescribeTraffic(details, data, serviceLoads, factoredLoads, warnings);
+        if (i.TrafficModel != TrafficModel.LegacyUniform && serviceLoads is not null)
+            for (int k = 0; k < supports.Count; k++) supports[k] = supports[k] with { MinimumReaction = serviceLoads.MinimumReactions[k] };
         warnings.Add("Costi convenzionali, montaggio speciale esplicito; CO₂ parziale materiali e cantiere, senza EPD. Durata parametrica, non cronoprogramma.");
         if (quantities.Any(t => !double.IsFinite(t.Amount) || !double.IsFinite(t.Cost)) || !double.IsFinite(deck.Inertia)) throw new ArgumentException("Risultato non finito nel predimensionamento della tipologia.");
         return new(family, width, depth, depth, deck.Slab, deck.Spacing, deck.Girders, deck.Web, deck.Bottom, spans, supports.ToArray(), foundation, diameter, pileLength,
             volumeDeck + subVolume + towerVolume + foundVolume + anchorVolume + pileVolume, deck.SteelMass + structure.Steel + structure.Cables,
             deckRebar + subRebar + foundRebar, 0, deck.Inertia, direct, total, total * (1 - a.Uncertainty / 100), total * (1 + a.Uncertainty / 100),
             carbon, months, quantities.ToArray(), details.ToArray(), factored.Item2, warnings.ToArray()) {
-                CostQuantities = costQuantities, Advanced = new(ortho, !upper, main, structure.Rise, structure.Tower, deck.SteelMass, structure.Steel, structure.Cables, anchorVolume, towerVolume,
+                CostQuantities = costQuantities, Traffic = TrafficSummary(data), Advanced = new(ortho, !upper, main, structure.Rise, structure.Tower, deck.SteelMass, structure.Steel, structure.Cables, anchorVolume, towerVolume,
                     structure.Horizontal, structure.Members, dimensions.ToArray()) { FoundationSchedule = supportSchedule.ToArray() }
             };
     }

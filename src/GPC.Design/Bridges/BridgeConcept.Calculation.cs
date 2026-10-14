@@ -103,8 +103,8 @@ public static partial class BridgeConcept
         double pt = family.Prestressed ? volumeDeck * a.PtDensity / 1000 : 0;
         double permanent = areaConcrete * 25 + massSteel / length * 9.81 + width * a.WearLoad + (i.Median > 0 ? 3 : 2) * 8;
         double live = width * a.TrafficLoad, q = permanent + live;
-        var service = Analyze(spans, q, ec * 1000 * inertia, i.Continuous);
-        var factored = Analyze(spans, a.GammaG * permanent + a.GammaQ * live, ec * 1000 * inertia, i.Continuous);
+        var service = Loads(data, spans, permanent, ec * 1000 * inertia, false);
+        var factored = Loads(data, spans, permanent, ec * 1000 * inertia, true);
         int soil = Soils.ToList().IndexOf(i.Soil);
         double pressure = Auto(a.SoilPressure, new double[] { 1000, 400, 200, 100 }[soil]);
         double skin = Auto(a.PileSkin, new double[] { 150, 70, 45, 25 }[soil]);
@@ -187,7 +187,8 @@ public static partial class BridgeConcept
         if (maxPierStressRatio > .3) warnings.Add("Compressione media nelle pile oltre 0,30 fc: soglia orientativa del predimensionamento, richiede verifica pressoflessionale specifica.");
         if (family.Id == "fcm") warnings.Add("Cassone variabile: quantità e rigidezza ricavate con altezza media d + (d_pila − d)/3; fasi a sbalzo non analizzate.");
         if (i.Obstacle == "Fiume") warnings.Add("Franco idraulico ed erosione non valutati: il terreno rappresentato è schematico.");
-        CostWarnings(warnings, length, factored.Reactions.Where(v => v > 0).Sum(), bearingCount, BearingRate(data));
+        if (i.TrafficModel == TrafficModel.LegacyUniform) CostWarnings(warnings, length, factored.Reactions.Where(v => v > 0).Sum(), bearingCount, BearingRate(data));
+        else EnvelopeCostWarnings(warnings, length, factored.Reactions, family.Id == "steel_box" ? girders * 2 : Math.Max(2, girders), i.Continuous, BearingRate(data));
         warnings.Add("CO₂ indicativa: cls e acciai + maggiorazione trasporti/cantiere; finiture, esercizio e fine vita esclusi. Fattori non riferiti a EPD.");
         var details = new List<Detail> {
             new("Larghezza impalcato", width, "m", "corsie × larghezza + 2 banchine + spartitraffico + 2 barriere"),
@@ -211,9 +212,12 @@ public static partial class BridgeConcept
             new("Costo totale indicativo", total, "€", "Diretto × (1 + oneri/100) × (1 + imprevisti/100); IVA esclusa"),
             new("Durata indicativa", months, "mesi", "Avvio + campate × coeff. + pile × coeff. + fondazioni / conci; incertezza ±25%")
         };
+        DescribeTraffic(details, data, service, factored, warnings);
+        if (i.TrafficModel != TrafficModel.LegacyUniform)
+            for (int k = 0; k < supports.Count; k++) supports[k] = supports[k] with { MinimumReaction = service.MinimumReactions[k] };
         return new(family, width, depth, pierDepth, slab, spacing, girders, web, bottom, spans, supports.ToArray(), foundation, pileDiameter, pileLength,
             volumeDeck + subVolume + foundVolume + pilesVolume, massSteel, deckRebar + subRebar + foundRebar, pt, inertia, direct, total,
-            total * (1 - a.Uncertainty / 100), total * (1 + a.Uncertainty / 100), carbon, months, quantities.ToArray(), details.ToArray(), factored.Stations, warnings.Distinct().ToArray()) { CostQuantities = costQuantities };
+            total * (1 - a.Uncertainty / 100), total * (1 + a.Uncertainty / 100), carbon, months, quantities.ToArray(), details.ToArray(), factored.Stations, warnings.Distinct().ToArray()) { CostQuantities = costQuantities, Traffic = TrafficSummary(data) };
     }
     private static double Auto(double value, double automatic) => value > 0 ? value : automatic;
 

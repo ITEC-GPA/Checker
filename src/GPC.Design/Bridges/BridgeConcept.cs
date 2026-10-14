@@ -153,6 +153,8 @@ public static partial class BridgeConcept
         foreach(var p in Rates)Range(p,data.Rates.Value(p.Key));
         foreach(var p in Assumptions.Concat(AdvancedAssumptions))Range(p,data.Assumptions.Value(p.Key));
         var i=data.Input;
+        if (!Enum.IsDefined(i.TrafficModel)) throw new ArgumentException("Modello di traffico non riconosciuto.");
+        if (i.TrafficModel == TrafficModel.Ntc2018Schema1 && HasUpperStructure(i.Family)) throw new ArgumentException("Schema 1 per le strutture superiori non ancora disponibile.");
         if(!DeckTypes.Contains(i.DeckType))throw new ArgumentException("Tipo di impalcato non riconosciuto.");
         if(!Families.Any(f=>f.Id==i.Family))throw new ArgumentException("Tipologia impalcato non riconosciuta.");
         foreach(var (key,value,choices) in new[]{("obstacle",i.Obstacle,Obstacles),("soil",i.Soil,Soils),("pier",i.Pier,Piers),("foundation",i.Foundation,Foundations)})
@@ -161,13 +163,27 @@ public static partial class BridgeConcept
     }
     public sealed record Quantity(string Group, string Item, double Amount, string Unit, double Rate, double Cost, double Carbon);
     public sealed record Detail(string Name, double Value, string Unit, string Rule);
-    public sealed record Station(int Span, double X, double Moment, double Shear, double DeflectionMm);
-    public sealed record Support(int Index, double X, string Type, double Reaction, double PierHeight, double PierSize, int Columns, double FootingSize, double FootingWidth, int Piles);
+    public sealed record Station(int Span, double X, double Moment, double Shear, double DeflectionMm)
+    {
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public double? MomentMinimum { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public double? ShearMinimum { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public double? DeflectionMinimumMm { get; init; }
+    }
+    public sealed record Support(int Index, double X, string Type, double Reaction, double PierHeight, double PierSize, int Columns, double FootingSize, double FootingWidth, int Piles)
+    {
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public double? MinimumReaction { get; init; }
+    }
     public sealed record Result(Family Family, double Width, double Depth, double PierDepth, double Slab, double Spacing, int Girders,
         double Web, double Bottom, IReadOnlyList<double> Spans, IReadOnlyList<Support> Supports, string Foundation, double PileDiameter, double PileLength,
         double Concrete, double Steel, double Rebar, double Prestress, double Inertia, double DirectCost, double TotalCost,
         double CostLow, double CostHigh, double Carbon, double Duration, IReadOnlyList<Quantity> Quantities, IReadOnlyList<Detail> Details, IReadOnlyList<Station> Stations, IReadOnlyList<string> Warnings)
     {
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public BridgeTrafficSummary? Traffic { get; init; }
         public AdvancedGeometry? Advanced { get; init; }
         // Kept separate from the legacy result serialization: the explicit pricing document owns its persisted snapshot.
         [System.Text.Json.Serialization.JsonIgnore]

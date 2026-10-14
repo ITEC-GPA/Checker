@@ -227,7 +227,7 @@ public static partial class BridgeConcept
         if (r.Details.Any(d => d.Name == "Compressione antenne / riferimento" && d.Value > 1 + 1e-8)) reasons.Add("Compressione antenna oltre la tensione di riferimento");
         if (r.Supports.Any(s => s.Type != "Spalla" && s.FootingSize < s.PierSize - 1e-8)) reasons.Add("Fusto non contenuto nel plinto");
         if (r.Supports.Any(s => s.Piles > 64)) reasons.Add("Più di 64 pali per appoggio");
-        if (r.Family.Id != "suspension" && r.Supports.Any(s => s.Reaction < -1e-8)) reasons.Add("Reazione verso l’alto: dispositivi antisollevamento non dimensionati");
+        if (r.Family.Id != "suspension" && r.Supports.Any(s => (s.MinimumReaction ?? s.Reaction) < -1e-8)) reasons.Add("Reazione verso l’alto: dispositivi antisollevamento non dimensionati");
         if (r.PileDiameter > 0 && r.Supports.Any(s => s.FootingSize + .001 < (Math.Ceiling(Math.Sqrt(s.Piles)) - 1) * 3 * r.PileDiameter + 2 * r.PileDiameter)) reasons.Add("Pali non contenuti nel plinto a interasse 3Ø");
         if (r.Family.Id == "psc_u" && i.UTop * r.Girders > r.Width) reasons.Add("Sovrapposizione travi a U");
         if (r.Family.Id == "steel_box")

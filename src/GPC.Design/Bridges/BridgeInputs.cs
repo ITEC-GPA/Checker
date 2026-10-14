@@ -3,6 +3,8 @@ namespace GPC.Design.Bridges;
 /// <summary>Immutable, explicit SI inputs. Zero dimensions request the documented automatic rule; no archive defaults are inferred.</summary>
 public sealed record BridgeInput
 {
+    /// <summary>Defaults only for source compatibility; archive adapters must explicitly identify old documents.</summary>
+    public TrafficModel TrafficModel { get; init; } = TrafficModel.LegacyUniform;
     public required double Length { get; init; }
     public required double Height { get; init; }
     public required double ObstacleWidth { get; init; }

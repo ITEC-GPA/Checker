@@ -17,3 +17,9 @@ Corsa traffic-a: 3 test PASS, involucro completo tre campate/123 sezioni in 3.77
 ## Carreggiate diseguali
 
 0.16.0.1: correzione della numerazione globale: la corsia 1 si colloca sulla corsia convenzionale più larga. Scambiare l’ordine delle carreggiate 5.4/8.8 m non cambia il carico. Rilevata in revisione prima dell’integrazione; nessun impatto sui venti attesi precedenti (carreggiate uguali).
+
+## Collegamento alle travate, 0.17.0.0
+
+Standard e travate avanzate (incorporate/ortotrope) usano G più estremi Q separati. Risultati espongono min/max M/V/freccia e reazione minima; la ricerca controlla anche il sollevamento nell'inviluppo minimo. Avviso appoggi dal massimo per dispositivo/appoggio, senza somma non fisica dei massimi. Dati di traffico e coefficienti adottati nel risultato. Cache limitata a 128 geometrie indipendente da EI, con risultati immutabili; costi e geometrie differenti riusano le stesse linee di influenza. Vecchi archivi/API restano LegacyUniform, ancora nessun cambio ai documenti.
+
+traffic-integration-a: 50 test Design PASS, corpus precedente invariato. Sette candidati: legacy 1.36 ms, Schema 1 20.09 ms a freddo / 2.71 ms a caldo. Campo nuovo per le strutture superiori temporaneamente rifiutato (integrazione successiva), mai reinterpretato come uniforme. Versione funzionale 0.17.0.0.
