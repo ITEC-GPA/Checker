@@ -11,3 +11,7 @@ CompositeBridge 1.6.0.0: SlabRebarLayout tipizzato, riferimenti soletta/predalle
 ## Stratigrafia dei micropali
 
 Geotechnics 0.3.0.0: MicropileDepthSurvey conserva soltanto spessori verticali e parametri Bustamante–Doix. CalculateFromDepths e l'API precedente convergono sullo stesso motore, senza duplicarlo né inventare peso o resistenza del terreno. Dati copiati e sola lettura. Sei combinazioni di inclinazione/attivazione con curve, azioni, pesi e avvisi identici; conversione indipendente a 60° e rifiuti di dati errati. Diciassette prove PASS incluse regressioni del port e casi limite. Nuova API, incremento del secondo componente. Collegamento ANTHEA ancora da completare.
+
+## Braccio del taglio
+
+Concrete 0.8.0.0: ShearLeverArm raccoglie le scelte geometriche NTC/DIN e il prerequisito di duttilità DS già applicati da ANTHEA. Nessuna modifica del solutore; la costante del braccio rettangolare è condivisa con SectionShearInput. Due test net472 PASS, con valori indipendenti (0.9, 0.75, 0.60 e DIN 0.84), limiti della duttilità e rifiuti espliciti. Incremento del secondo componente per la nuova API. Confronto applicativo e suite complete nel set successivo.

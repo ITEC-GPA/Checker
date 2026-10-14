@@ -53,7 +53,7 @@ namespace GPC.Checkers.Concrete.Shear
 
         public SectionShearInput(Standard standard, double n, double v, double m, double area, double bw, double d, double asl,
             double fck, double fcd, double fyd, double gammaC, double es, double asw, double spacing,
-            double alphaDegrees = 90, double? cotTheta = null, double leverFactor = .9, double aggregate = 20, double axialEccentricity = 0,
+            double alphaDegrees = 90, double? cotTheta = null, double leverFactor = ShearLeverArm.RectangularRatio, double aggregate = 20, double axialEccentricity = 0,
             double residualTensileStrength = 0, double matrixTensileStrength = 0)
         {
             Standard = standard ?? throw new ArgumentNullException(nameof(standard));
