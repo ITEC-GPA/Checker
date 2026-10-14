@@ -134,7 +134,11 @@ public static class ElasticPile
             bottom += layer.Thickness;
             if(bottom < input.Length) boundaries.Add(bottom);
         }
-        Require(bottom >= input.Length - 1e-10 * input.Length, "Layers must cover the embedded length."); boundaries.Add(input.Length);
+        Require(bottom >= input.Length - 1e-10 * input.Length, "Layers must cover the embedded length.");
+        // A final layer end accepted within the existing relative coverage tolerance is the
+        // pile tip, not a separate near-zero element. Preserve internal interfaces and inputs.
+        if(bottom < input.Length) boundaries[boundaries.Count-1]=input.Length;
+        else boundaries.Add(input.Length);
         foreach(double station in input.AdditionalNodes){Require(Finite(station)&&station>=0&&station<=input.Length,"Invalid verification station.");boundaries.Add(station);}
         boundaries=boundaries.Distinct().OrderBy(v=>v).ToList();
         bool springs = input.Layers.TakeWhile((s,i)=>input.FreeLength+input.Layers.Take(i).Sum(t=>t.Thickness)<input.Length).Any(s=>s.Value>0);

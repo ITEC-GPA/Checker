@@ -11,6 +11,8 @@ using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Checkers.Concrete.Shear;
 using GPC.Geometry;
 using GPC.Model.Results;
+using GPC.Model.Checking.Contracts;
+using GPC.Model.Core.Diagnostics;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Standards;
 
@@ -70,6 +72,12 @@ namespace GPC.Checkers.Concrete.Piles
     }
     public sealed class PileSectionCheck
     {
+        /// <summary>Nominal N-M-V and requested minimum-reinforcement outcome. A pass does not certify all construction details; ApplyDevelopment can make it unavailable.</summary>
+        public EngineeringOutcome Outcome { get; internal set; } = EngineeringOutcome.NotEvaluated;
+        /// <summary>Execution of this check. An unsolved resistance is Error, not a satisfied zero demand.</summary>
+        public ExecutionStatus Execution { get; internal set; } = ExecutionStatus.NotExecuted;
+        /// <summary>Availability of the information needed by this check, including explicit action/shear confirmations and requested development.</summary>
+        public DataStatus Data { get; internal set; } = DataStatus.Insufficient;
         public PileAction Action { get; set; }
         public double? MRdPositive { get; set; }
         public double? MRdNegative { get; set; }
@@ -77,6 +85,7 @@ namespace GPC.Checkers.Concrete.Piles
         public double? BendingRatio { get; set; }
         public double? ShearRatio { get; set; }
         public double CotTheta { get; set; }
+        /// <summary>Compatibility display label. Engineering decisions use Outcome, Execution and Data, never this mutable text.</summary>
         public string Status { get; set; }
         public string Message { get; set; }
         public bool? MinimumReinforcementPassed { get; set; }
@@ -138,6 +147,11 @@ namespace GPC.Checkers.Concrete.Piles
     /// <summary>Orchestration of the existing section-domain, shear and bond engines. No alternate resistance solver.</summary>
     public sealed partial class PileReinforcement
     {
+        // Public actions/lengths are kN, kNm, m; section calculations use N, Nmm, mm.
+        // Derive factors once from the shared unit API; preserve multiply/divide order of the legacy contract.
+        static readonly double NewtonsPerKilonewton = GPC.Model.Units.ConvertForceToDefault(1, GPC.Model.Units.Knm);
+        static readonly double NewtonMillimetresPerKilonewtonMetre = GPC.Model.Units.ConverMomentToDefault(1, GPC.Model.Units.Knm);
+        static readonly double MillimetresPerMetre = GPC.Model.Units.ConvertLengthToDefault(1, GPC.Model.Units.Knm);
         readonly PileRcParameters p;readonly CrackSectionGeometry geometry;readonly double d,area,asl;
         public PileResistanceTimings ResistanceTimings { get; private set; } = new PileResistanceTimings();
         public double LinkCentreRadius => CircularLinkRadius(p.Diameter,p.Cover,p.LinkDiameter);
@@ -192,7 +206,7 @@ namespace GPC.Checkers.Concrete.Piles
         public PileSectionCheck Check(PileAction action)
         {
             if(action==null||new[]{action.Depth,action.N,action.V,action.M}.Any(v=>!Finite(v)))throw new ArgumentException("Azioni concomitanti finite richieste.");
-            var r=new PileSectionCheck{Action=action,Status="Non verificabile",Message=""};
+            var r=new PileSectionCheck{Action=action,Status="Non verificabile",Message="",Data=DataStatus.Ready,Execution=ExecutionStatus.Error};
             if(!resistance.TryGetValue(action.N,out var moments))
             {
                 moments=SolveResistance(action.N);resistance.Add(action.N,moments);
@@ -203,23 +217,30 @@ namespace GPC.Checkers.Concrete.Piles
             r.BendingRatio=mr>0?Math.Abs(action.M)/mr:action.M==0?0:(double?)null;
             if(p.ShearModelConfirmed)
             {
-                var shear=SectionShearCalculator.Calculate(new SectionShearInput(p.Standard,-action.N*1000,action.V*1000,action.M*1e6,area,p.Diameter,d,asl,p.Fck,p.Fcd,p.Fyd,p.Standard.GammaC,p.Es,2*Math.PI*p.LinkDiameter*p.LinkDiameter/4,p.LinkSpacing,90,null,p.LeverFactor));
-                r.VRd=shear.VRd/1000;r.ShearRatio=shear.Ratio;r.CotTheta=shear.CotTheta;
+                var shear=SectionShearCalculator.Calculate(new SectionShearInput(p.Standard,-action.N*NewtonsPerKilonewton,action.V*NewtonsPerKilonewton,action.M*NewtonMillimetresPerKilonewtonMetre,area,p.Diameter,d,asl,p.Fck,p.Fcd,p.Fyd,p.Standard.GammaC,p.Es,2*Math.PI*p.LinkDiameter*p.LinkDiameter/4,p.LinkSpacing,90,null,p.LeverFactor));
+                r.VRd=shear.VRd/NewtonsPerKilonewton;r.ShearRatio=shear.Ratio;r.CotTheta=shear.CotTheta;
                 if(shear.Verdict==ShearVerdict.NotEvaluated)r.ShearRatio=null;
             }
             else r.Message+=" Confermare il modello di taglio circolare e z/d.";
             if(!p.DesignActionsConfirmed)r.Message+=" Natura delle azioni di progetto da confermare.";
             if(p.PileMinimumRequirements){r.MinimumReinforcementPassed=geometry.Bars.Sum(b=>b.Area)>=.003*area&&p.LinkDiameter>=8&&p.LinkSpacing<=8*geometry.Bars.Min(b=>b.Diameter);r.Message+=" Minimi pali NTC 2018 §7.2.5: As≥0,3% Ac, φst≥8 mm, s≤8φL; escluse prescrizioni delle zone dissipative.";}
-            r.Status=(r.BendingRatio>1||r.ShearRatio>1)?"Non soddisfatto":r.GoverningRatio.HasValue&&p.DesignActionsConfirmed?"Soddisfatto N–M–V; dettagli da completare":"Parziale";
-            if(r.MinimumReinforcementPassed==false)r.Status="Non soddisfatto";
+            bool complete=r.GoverningRatio.HasValue&&p.DesignActionsConfirmed;
+            r.Execution=ExecutionStatus.Completed;
+            r.Data=complete?DataStatus.Ready:DataStatus.Insufficient;
+            r.Outcome=r.BendingRatio>1||r.ShearRatio>1||r.MinimumReinforcementPassed==false
+                ?EngineeringOutcome.NotSatisfied:complete?EngineeringOutcome.Satisfied:EngineeringOutcome.NotEvaluated;
+            r.Status=r.Outcome==EngineeringOutcome.NotSatisfied?"Non soddisfatto":r.Outcome==EngineeringOutcome.Satisfied?"Soddisfatto N–M–V; dettagli da completare":"Parziale";
             return r;
         }
         double Moment(double n,int sign)
         {
             // Native solver uses N in newtons, negative in compression. Constant-N must be selected by caller.
-            var point=p.Solver.CalculateDomainPoints(new[]{new ResultBeamForces(-n*1000,0,0,0,sign*1e6,0,p.Axes)})[0];
-            if(point==null||!Finite(point.NRd+point.MxRd+point.MyRd)||Math.Abs(point.NRd+n*1000)>Math.Max(1000,Math.Abs(n)*.001)||point.MxRd*sign<0||Math.Abs(point.MyRd)>Math.Max(1e6,Math.Abs(point.MxRd)*.001))throw new ArgumentException("Equilibrio N o direzione non rispettati.");
-            return point.MxRd/1e6;
+            var point=p.Solver.CalculateDomainPoints(new[]{new ResultBeamForces(-n*NewtonsPerKilonewton,0,0,0,sign*NewtonMillimetresPerKilonewtonMetre,0,p.Axes)})[0];
+            // Existing tolerance is 1 kN or 1e-6 of N expressed in newtons, not 0.1% of N.
+            // Keep the numerical acceptance criterion unchanged during the unit-only port.
+            double axialToleranceN=Math.Max(NewtonsPerKilonewton,Math.Abs(n)*.001);
+            if(point==null||!Finite(point.NRd+point.MxRd+point.MyRd)||Math.Abs(point.NRd+n*NewtonsPerKilonewton)>axialToleranceN||point.MxRd*sign<0||Math.Abs(point.MyRd)>Math.Max(NewtonMillimetresPerKilonewtonMetre,Math.Abs(point.MxRd)*.001))throw new ArgumentException("Equilibrio N o direzione non rispettati.");
+            return point.MxRd/NewtonMillimetresPerKilonewtonMetre;
         }
         public PileBarRun Detail(string id,double start,double end,double totalLength,IReadOnlyList<PileSectionCheck> checks)
         {
@@ -230,8 +251,8 @@ namespace GPC.Checkers.Concrete.Piles
             // percentage to shorten a grouped (100%) joint that has not been staggered.
             var lap=AnchorageCalculator.Calculate(profile,new AnchorageInput(phi,p.Fyd,p.Fctk05,p.Standard.GammaC,p.GoodBond,0,true,100,p.LapClearDistance));
             // EC2 9.2.1.3(2), shear truss with links at 90 degrees. Upper permitted cot(theta) if shear is not confirmed.
-            double shift=p.LeverFactor*d*checks.Select(c=>c.CotTheta>0?c.CotTheta:2.5).DefaultIfEmpty(2.5).Max()/2000;
-            double lb=anchorage.RequiredLength/1000,requiredLap=lap.RequiredLength/1000,initialLap=InitialLap(phi,p.LapDiameterFactor),l0=Math.Max(requiredLap,initialLap);
+            double shift=p.LeverFactor*d*checks.Select(c=>c.CotTheta>0?c.CotTheta:2.5).DefaultIfEmpty(2.5).Max()/(2*MillimetresPerMetre);
+            double lb=anchorage.RequiredLength/MillimetresPerMetre,requiredLap=lap.RequiredLength/MillimetresPerMetre,initialLap=InitialLap(phi,p.LapDiameterFactor),l0=Math.Max(requiredLap,initialLap);
             double actualStart=start==0?0:Math.Max(0,start-l0),actualEnd=end;
             bool available=start-actualStart+1e-9>=lb+shift&&actualEnd-end+1e-9>=lb+shift;
             var run=new PileBarRun{Segment=id,Count=geometry.Bars.Count,Diameter=phi,TheoreticalStart=start,TheoreticalEnd=end,Start=actualStart,End=actualEnd,Anchorage=lb,Lap=l0,RequiredLap=requiredLap,InitialLap=initialLap,Shift=shift,EndDevelopmentAvailable=available,
@@ -266,7 +287,8 @@ namespace GPC.Checkers.Concrete.Piles
                 c.DevelopmentAvailable=bars.Length>0&&bars.All(run=>c.Action.Depth>=run.CapacityStart-1e-9&&c.Action.Depth<=run.CapacityEnd+1e-9&&run.Joints.All(j=>j.LengthPassed&&j.ArrangementPassed));
                 if(c.DevelopmentAvailable==false)
                 {
-                    if(c.Status.StartsWith("Soddisfatto"))c.Status="Parziale";
+                    c.Data=DataStatus.Insufficient;
+                    if(c.Outcome==EngineeringOutcome.Satisfied){c.Outcome=EngineeringOutcome.NotEvaluated;c.Status="Parziale";}
                     c.Message+=" Sviluppo delle barre o giunti non disponibili: MRd nominale non utilizzabile. Dettaglio locale da definire.";
                 }
             }
@@ -299,7 +321,7 @@ namespace GPC.Checkers.Concrete.Piles
             {
                 if(!candidates[i].DesignActionsConfirmed||!candidates[i].ShearModelConfirmed)throw new ArgumentException("Confermare natura delle azioni e modello di taglio prima del dimensionamento.");
                 var service=new PileReinforcement(candidates[i]);bool pass=true;
-                foreach(var action in actions){var c=service.Check(action);if(!c.Status.StartsWith("Soddisfatto")){pass=false;break;}}
+                foreach(var action in actions){var c=service.Check(action);if(c.Outcome!=EngineeringOutcome.Satisfied){pass=false;break;}}
                 if(pass)return i;
             }
             return -1;

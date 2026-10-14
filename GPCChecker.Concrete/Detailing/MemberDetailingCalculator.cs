@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using GPC.Checkers.Concrete.Cracking;
@@ -185,7 +185,7 @@ namespace GPC.Checkers.Concrete.Detailing
             for (int i = 0; i < bars.Count; i++)
                 for (int j = i + 1; j < bars.Count; j++)
                     clear = Math.Min(clear, CrackSectionGeometry.Hypot(bars[i].X - bars[j].X, bars[i].Y - bars[j].Y) - (bars[i].Diameter + bars[j].Diameter) / 2);
-            Min("ClearSpacing", clear, Math.Max(20, Math.Max(maxPhi, p.Aggregate + 5)), "mm", ntc ? ".3 / EC2 §8.2" : "§8.2(2)", "max(20 mm; Ømax; dg + 5 mm) on every pair of bars");
+            Min("ClearSpacing", clear, PlateDetailingRules.MinimumClearSpacing(maxPhi, p.Aggregate), "mm", ntc ? ".3 / EC2 §8.2" : "§8.2(2)", "max(20 mm; Ømax; dg + 5 mm) on every pair of bars");
             if (p.MinimumDurabilityCover.HasValue && p.MinimumDurabilityCover.Value >= 0)
             {
                 double cdur = p.MinimumDurabilityCover.Value;
@@ -241,13 +241,13 @@ namespace GPC.Checkers.Concrete.Detailing
         {
             var g = p.Geometry; var plate = p.Plate; bool critical = plate.CriticalRegion;
             var spacing = g.MaximumSpacing(Enumerable.Range(0, g.Bars.Count).ToArray());
-            if (spacing.HasValue) Max("MainSpacing", spacing.Value, Math.Min((critical ? 2 : 3) * g.Height, critical ? 250 : 400), "mm", "EC2 §9.3.1.1",
+            if (spacing.HasValue) Max("MainSpacing", spacing.Value, PlateDetailingRules.SlabMainSpacing(g.Height, critical), "mm", "EC2 §9.3.1.1",
                 "critical region: min(2h; 250 mm); elsewhere: min(3h; 400 mm)");
             double principal = steel * 1000 / g.Width;
-            Min("SecondaryReinforcement", plate.SecondarySteelPerMetre, .2 * principal, "mm2/m", "EC2 §9.3.1.1",
+            Min("SecondaryReinforcement", plate.SecondarySteelPerMetre, PlateDetailingRules.SlabSecondaryArea(principal), "mm2/m", "EC2 §9.3.1.1",
                 "As,secondary ≥ 20% As,main; total of the two faces per metre of width");
             Pending("SecondaryFaceDistribution", "EC2 §9.3.1.1", "The total does not check the 20% on each face: check the actual distribution.");
-            if (plate.SecondarySpacing > 0) Max("SecondarySpacing", plate.SecondarySpacing, Math.Min((critical ? 3 : 3.5) * g.Height, critical ? 400 : 450), "mm", "EC2 §9.3.1.1",
+            if (plate.SecondarySpacing > 0) Max("SecondarySpacing", plate.SecondarySpacing, PlateDetailingRules.SlabSecondarySpacing(g.Height, critical), "mm", "EC2 §9.3.1.1",
                 "critical region: min(3h; 400 mm); elsewhere: min(3.5h; 450 mm)");
             else Pending("SecondarySpacing", "EC2 §9.3.1.1", "Spacing of the secondary bars (orthogonal direction) required.");
             Pending("EdgesSupportsPunching", "EC2 §§9.3–9.4 / NTC §4.1.2.3.5.4",
@@ -262,15 +262,15 @@ namespace GPC.Checkers.Concrete.Detailing
             Action<string, string, string> Pending, double steel)
         {
             var g = p.Geometry; var plate = p.Plate;
-            Min("WallVertical", steel, .002 * p.ConcreteArea, "mm2", "EC2 §9.6.2", "As,v ≥ 0.002 Ac, distributed on the two faces");
-            if (!p.LapZone) Max("WallVerticalMaximum", steel, .04 * p.ConcreteArea, "mm2", "EC2 §9.6.2", "As,v ≤ 0.04 Ac outside laps");
+            Min("WallVertical", steel, LongitudinalReinforcementLimits.MinimumWallVerticalRatio * p.ConcreteArea, "mm2", "EC2 §9.6.2", "As,v ≥ 0.002 Ac, distributed on the two faces");
+            if (!p.LapZone) Max("WallVerticalMaximum", steel, LongitudinalReinforcementLimits.MaximumRatioOutsideLaps * p.ConcreteArea, "mm2", "EC2 §9.6.2", "As,v ≤ 0.04 Ac outside laps");
             double thickness = Math.Min(g.Width, g.Height), length = Math.Max(g.Width, g.Height);
             var spacing = g.MaximumSpacing(Enumerable.Range(0, g.Bars.Count).ToArray());
-            if (spacing.HasValue) Max("WallVerticalSpacing", spacing.Value, Math.Min(3 * thickness, 400), "mm", "EC2 §9.6.2", "s ≤ min(3 t; 400 mm)");
+            if (spacing.HasValue) Max("WallVerticalSpacing", spacing.Value, PlateDetailingRules.WallMainSpacing(thickness), "mm", "EC2 §9.6.2", "s ≤ min(3 t; 400 mm)");
             else Pending("WallVerticalSpacing", "EC2 §9.6.2", "Bar arrangement not recognised automatically.");
-            Min("WallHorizontal", plate.SecondarySteelPerMetre, Math.Max(.25 * steel * 1000 / length, .001 * thickness * 1000), "mm2/m", "EC2 §9.6.3",
+            Min("WallHorizontal", plate.SecondarySteelPerMetre, Math.Max(PlateDetailingRules.WallHorizontalMainRatio * steel * 1000 / length, PlateDetailingRules.WallHorizontalConcreteRatio * thickness * 1000), "mm2/m", "EC2 §9.6.3",
                 "max(0.25 As,v; 0.001 Ac) per metre of wall");
-            if (plate.SecondarySpacing > 0) Max("WallHorizontalSpacing", plate.SecondarySpacing, 400, "mm", "EC2 §9.6.3", "s ≤ 400 mm");
+            if (plate.SecondarySpacing > 0) Max("WallHorizontalSpacing", plate.SecondarySpacing, PlateDetailingRules.WallHorizontalMaximumSpacing, "mm", "EC2 §9.6.3", "s ≤ 400 mm");
             else Pending("WallHorizontalSpacing", "EC2 §9.6.3", "Spacing of the horizontal bars required.");
             Pending("WallFacesAndTies", "EC2 §9.6", "Check the distribution on the two faces and the transverse ties: not described by the longitudinal bars.");
         }
@@ -287,7 +287,7 @@ namespace GPC.Checkers.Concrete.Detailing
                 if (spacing.HasValue) Max("LongitudinalSpacing", spacing.Value, 300, "mm", ".2", "spacing on the faces / perimeter ≤ 300 mm");
                 else Pending("LongitudinalSpacing", ".2", "Bar arrangement not recognised automatically.");
                 Min("MinimumLongitudinal", steel, Math.Max(.1 * p.Compression / p.Fyd, .003 * p.ConcreteArea), "mm2", ".2", "max(0.10 NEd/fyd; 0.003 Ac), largest NEd");
-                if (!p.LapZone) Max("MaximumLongitudinal", steel, .04 * p.ConcreteArea, "mm2", ".2", "As ≤ 0.04 Ac outside laps");
+                if (!p.LapZone) Max("MaximumLongitudinal", steel, LongitudinalReinforcementLimits.MaximumRatioOutsideLaps * p.ConcreteArea, "mm2", ".2", "As ≤ 0.04 Ac outside laps");
                 Min("LinkDiameter", linkDiameter, Math.Max(6, maxPhi / 4), "mm", ".2", "max(6 mm; Ømax/4)");
                 Max("LinkSpacing", linkSpacing, Math.Min(250, 12 * minPhi), "mm", ".2", "min(250 mm; 12 Ømin)");
                 return;
@@ -296,7 +296,7 @@ namespace GPC.Checkers.Concrete.Detailing
             Min("LongitudinalDiameter", minPhi, uni ? 12 : 8, "mm", "§9.5.2(1)", uni ? "Ømin ≥ 12 mm (DM 31/07/2012)" : "Ømin ≥ 8 mm");
             Min("MinimumLongitudinal", steel, Math.Max(.1 * p.Compression / p.Fyd, (uni ? .003 : .002) * p.ConcreteArea), "mm2", "§9.5.2(2)",
                 uni ? "max(0.10 NEd/fyd; 0.003 Ac) (DM 31/07/2012)" : "max(0.10 NEd/fyd; 0.002 Ac) (9.12N)");
-            if (!p.LapZone) Max("MaximumLongitudinal", steel, .04 * p.ConcreteArea, "mm2", "§9.5.2(3)", "As ≤ 0.04 Ac outside laps");
+            if (!p.LapZone) Max("MaximumLongitudinal", steel, LongitudinalReinforcementLimits.MaximumRatioOutsideLaps * p.ConcreteArea, "mm2", "§9.5.2(3)", "As ≤ 0.04 Ac outside laps");
             if (g.Circular) Min("BarCount", g.Bars.Count, 4, "-", "§9.5.2(4)", "at least 4 bars in a circular column");
             Min("LinkDiameter", linkDiameter, Math.Max(6, maxPhi / 4), "mm", "§9.5.3(1)", "max(6 mm; Ømax/4)");
             double limit = uni ? Math.Min(12 * minPhi, Math.Min(bMin, 250)) : Math.Min(20 * minPhi, Math.Min(bMin, 400));
@@ -316,7 +316,7 @@ namespace GPC.Checkers.Concrete.Detailing
         {
             var g = p.Geometry; bool ntc = DetailingProfiles.IsNtc(profile), uni = profile == DetailingProfile.UniEN1992p11, ds = profile == DetailingProfile.DsEN1992p11;
             double minY = g.Outline.Min(v => v.Y), maxY = g.Outline.Max(v => v.Y), middle = (minY + maxY) / 2;
-            double rhoMin = Math.Max(.26 * p.Fctm / p.Fyk, .0013);
+            double rhoMin = LongitudinalReinforcementLimits.MinimumBendingRatio(p.Fctm, p.Fyk);
             double linksPerMetre = p.HasLinks && p.LinkSpacing > 0 ? p.LinkLegs * Math.PI * p.LinkDiameter * p.LinkDiameter / 4 * 1000 / p.LinkSpacing : 0;
             // Both faces: a reversal of bending is not silently omitted.
             foreach (bool top in new[] { false, true })
@@ -333,7 +333,7 @@ namespace GPC.Checkers.Concrete.Detailing
                 double d = top ? ys - minY : maxY - ys, bt = top ? p.TopWidth : p.BottomWidth;
                 if (ds) r.Add(National("MinimumTension:" + face, "§9.2.1.1(1)", "DK NA national value of As,min not available in this implementation."));
                 else Min("MinimumTension:" + face, area, rhoMin * bt * d, "mm2", ntc ? ".1 / EC2 §9.3.1.1" : "§9.2.1.1(1)", "max(0.26 fctm/fyk; 0.0013) bt d; both faces potentially tensioned");
-                if (!p.LapZone) Max("MaximumTension:" + face, area, .04 * p.ConcreteArea, "mm2", ntc ? ".1" : "§9.2.1.1(3)", "As of the zone ≤ 0.04 Ac");
+                if (!p.LapZone) Max("MaximumTension:" + face, area, LongitudinalReinforcementLimits.MaximumRatioOutsideLaps * p.ConcreteArea, "mm2", ntc ? ".1" : "§9.2.1.1(3)", "As of the zone ≤ 0.04 Ac");
                 if (slab) continue;
                 if (ntc)
                 {

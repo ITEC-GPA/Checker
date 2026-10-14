@@ -4,7 +4,7 @@ Regole del 10/10/2026 (revisione di architettura, punto R3, e decisioni dell'ute
 PERIMETRO E DIREZIONE DELLE DIPENDENZE
 Utilities <- Geometry (GPCGeometry, DelaunayMesh) <- Model (GPCModel, GPCModelData,
 GPC.Model.Persistence, GPC Converter) <- Checker (Concrete, Steel, CompositeBridge,
-Geotechnics, GPCModelChecker) <- ANTHEA. Nessuna dipendenza all'indietro: Model fissa
+Geotechnics, GPCModelChecker, Masonry) <- GPC.Design <- ANTHEA. Nessuna dipendenza all'indietro: Model fissa
 solo Geometry e Utilities; ModelChecker sta in Checker.
 
 REGOLE
@@ -22,7 +22,7 @@ REGOLE
    dodici DLL e scrive release-set.json (versioni, SHA-256, commit, esiti delle suite).
 4. Nessun rilascio senza tutte le suite verdi: Model (Core, UnitTest, API), Checker
    (Concrete e Steel net472, CompositeBridge, Geotechnics, Calculation, ModelChecker,
-   API). Sono ammessi solo i fallimenti elencati per nome in build/known-failures.json.
+   API), Design.Checks e API Design/Masonry. Sono ammessi solo i fallimenti elencati per nome in build/known-failures.json.
 5. Una DLL con SHA-256 diverso dal set precedente deve avere una versione piu' alta:
    Release-Set.ps1 -Previous rifiuta il set altrimenti. Due build diverse non possono
    avere la stessa versione.

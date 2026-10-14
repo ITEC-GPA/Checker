@@ -1,0 +1,9 @@
+M|GPC.Checkers.Masonry.MasonryWallMaterial|.ctor(System.Double fk:None,System.Double gammaM:None,System.Double confidence:None,System.Double modulus:None,System.Double creep:None,System.Double fvk0:None,System.Double fvkLimit:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Masonry.MasonryWallMaterial|ShearStress(System.Double compressionStress:None)|System.Double|Public, HideBySig|
+M|GPC.Checkers.Masonry.MasonryWallMaterial|get_CharacteristicShear()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Masonry.MasonryWallMaterial|get_CharacteristicShearCap()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Masonry.MasonryWallMaterial|get_Compression()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Masonry.MasonryWallMaterial|get_EffectiveModulus()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Masonry.MasonryWallMaterial|get_FoundationShear()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Masonry.MasonryWallMaterial|get_Gamma()|System.Double|Public, HideBySig, SpecialName|
+T|GPC.Checkers.Masonry.MasonryWallMaterial|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|

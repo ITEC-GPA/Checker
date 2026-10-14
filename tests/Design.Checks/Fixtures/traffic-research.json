@@ -1,0 +1,122 @@
+[
+  {
+    "Schema": "appoggiata",
+    "L": 20.0,
+    "Effect": "M+ campata",
+    "Expected": 7806.435
+  },
+  {
+    "Schema": "appoggiata",
+    "L": 30.0,
+    "Effect": "M+ campata",
+    "Expected": 13507.96
+  },
+  {
+    "Schema": "2 appoggiate",
+    "L": 20.0,
+    "Effect": "R pila",
+    "Expected": 2029.0
+  },
+  {
+    "Schema": "2 appoggiate",
+    "L": 30.0,
+    "Effect": "R pila",
+    "Expected": 2473.5
+  },
+  {
+    "Schema": "2 continue",
+    "L": 20.0,
+    "Effect": "M+ campata",
+    "Expected": 6296.399
+  },
+  {
+    "Schema": "2 continue",
+    "L": 20.0,
+    "Effect": "M- appoggio",
+    "Expected": 4462.532
+  },
+  {
+    "Schema": "2 continue",
+    "L": 20.0,
+    "Effect": "R spalla",
+    "Expected": 1534.551
+  },
+  {
+    "Schema": "2 continue",
+    "L": 20.0,
+    "Effect": "R pila",
+    "Expected": 2279.645
+  },
+  {
+    "Schema": "2 continue",
+    "L": 30.0,
+    "Effect": "M+ campata",
+    "Expected": 10851.396
+  },
+  {
+    "Schema": "2 continue",
+    "L": 30.0,
+    "Effect": "M- appoggio",
+    "Expected": 8323.478
+  },
+  {
+    "Schema": "2 continue",
+    "L": 30.0,
+    "Effect": "R spalla",
+    "Expected": 1738.747
+  },
+  {
+    "Schema": "2 continue",
+    "L": 30.0,
+    "Effect": "R pila",
+    "Expected": 2821.159
+  },
+  {
+    "Schema": "3 continue",
+    "L": 20.0,
+    "Effect": "M+ centrale",
+    "Expected": 4921.055
+  },
+  {
+    "Schema": "3 continue",
+    "L": 20.0,
+    "Effect": "M- appoggio",
+    "Expected": 3701.511
+  },
+  {
+    "Schema": "3 continue",
+    "L": 20.0,
+    "Effect": "R spalla",
+    "Expected": 1461.219
+  },
+  {
+    "Schema": "3 continue",
+    "L": 20.0,
+    "Effect": "R pila",
+    "Expected": 2119.226
+  },
+  {
+    "Schema": "3 continue",
+    "L": 30.0,
+    "Effect": "M+ centrale",
+    "Expected": 8465.482
+  },
+  {
+    "Schema": "3 continue",
+    "L": 30.0,
+    "Effect": "M- appoggio",
+    "Expected": 6765.706
+  },
+  {
+    "Schema": "3 continue",
+    "L": 30.0,
+    "Effect": "R spalla",
+    "Expected": 1637.745
+  },
+  {
+    "Schema": "3 continue",
+    "L": 30.0,
+    "Effect": "R pila",
+    "Expected": 2581.319
+  }
+]

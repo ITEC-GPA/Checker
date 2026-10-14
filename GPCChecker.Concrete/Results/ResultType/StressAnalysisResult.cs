@@ -435,7 +435,7 @@ namespace GPC.Checkers.Concrete.Results
 
         public double GetVerticeStrain(Point2d point, double phi)
         {
-            return _strainPlane.GetStrain(point) * (1 + phi);
+            return _strainPlane.GetStrain(point) * Serviceability.Homogenization.CreepFactor(phi);
         }
 
         public virtual (Point2d point, double tension, double workingRatio)[] ConcreteServiceabilityQuasiPermanentCheck(double psi)

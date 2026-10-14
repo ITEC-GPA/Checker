@@ -23,6 +23,12 @@ F|GPC.Checker.Results.ResultType.StrainPlaneResult|_sigmaSMin|System.Double|Fami
 F|GPC.Checker.Results.ResultType.StrainPlaneResult|_sigmaSSMax|System.Double|Family|
 F|GPC.Checker.Results.ResultType.StrainPlaneResult|_sigmaSSMin|System.Double|Family|
 F|GPC.Checker.Results.ResultType.StrainPlaneResult|_strainPlane|GPC.Checkers.Concrete.Results.StrainPlane|Family|
+F|GPC.Checkers.Concrete.Analysis.CalculationStatus|Completed|GPC.Checkers.Concrete.Analysis.CalculationStatus|Public, Static, Literal, HasDefault|0
+F|GPC.Checkers.Concrete.Analysis.CalculationStatus|Failed|GPC.Checkers.Concrete.Analysis.CalculationStatus|Public, Static, Literal, HasDefault|3
+F|GPC.Checkers.Concrete.Analysis.CalculationStatus|NotConverged|GPC.Checkers.Concrete.Analysis.CalculationStatus|Public, Static, Literal, HasDefault|1
+F|GPC.Checkers.Concrete.Analysis.CalculationStatus|Unsupported|GPC.Checkers.Concrete.Analysis.CalculationStatus|Public, Static, Literal, HasDefault|2
+F|GPC.Checkers.Concrete.Analysis.CalculationStatus|value__|System.Int32|Public, SpecialName, RTSpecialName|
+F|GPC.Checkers.Concrete.Analysis.LegacySectionCalculation|EngineId|System.String|Public, Static, Literal, HasDefault|"Concrete.LegacySectionSolver"
 F|GPC.Checkers.Concrete.Attributes.SectionCheckerAttribute|_sLSresults|GPC.Model.Results.ResultBeamForces[]|Family, InitOnly|
 F|GPC.Checkers.Concrete.Attributes.SectionCheckerAttribute|_section|GPC.Model.Sections.Concrete.IConcreteSection|Family, InitOnly|
 F|GPC.Checkers.Concrete.Attributes.SectionCheckerAttribute|_uLSresults|GPC.Model.Results.ResultBeamForces[]|Family, InitOnly|
@@ -250,6 +256,9 @@ F|GPC.Checkers.Concrete.Detailing.MemberDetailingKind|Slab|GPC.Checkers.Concrete
 F|GPC.Checkers.Concrete.Detailing.MemberDetailingKind|Wall|GPC.Checkers.Concrete.Detailing.MemberDetailingKind|Public, Static, Literal, HasDefault|3
 F|GPC.Checkers.Concrete.Detailing.MemberDetailingKind|value__|System.Int32|Public, SpecialName, RTSpecialName|
 F|GPC.Checkers.Concrete.Detailing.MemberDetailingOptions|Default|GPC.Checkers.Concrete.Detailing.MemberDetailingOptions|Public, Static, InitOnly|
+F|GPC.Checkers.Concrete.Detailing.PlateDetailingRules|WallHorizontalConcreteRatio|System.Double|Public, Static, Literal, HasDefault|0.001
+F|GPC.Checkers.Concrete.Detailing.PlateDetailingRules|WallHorizontalMainRatio|System.Double|Public, Static, Literal, HasDefault|0.25
+F|GPC.Checkers.Concrete.Detailing.PlateDetailingRules|WallHorizontalMaximumSpacing|System.Double|Public, Static, Literal, HasDefault|400
 F|GPC.Checkers.Concrete.Durability.DurabilityProfile|CnrDT200|GPC.Checkers.Concrete.Durability.DurabilityProfile|Public, Static, Literal, HasDefault|4
 F|GPC.Checkers.Concrete.Durability.DurabilityProfile|DsEN1992p11|GPC.Checkers.Concrete.Durability.DurabilityProfile|Public, Static, Literal, HasDefault|3
 F|GPC.Checkers.Concrete.Durability.DurabilityProfile|EN1992p11|GPC.Checkers.Concrete.Durability.DurabilityProfile|Public, Static, Literal, HasDefault|1
@@ -404,6 +413,13 @@ F|GPC.Checkers.Concrete.Torsion.TorsionThicknessRule|value__|System.Int32|Public
 F|GPC.Checkers.Concrete.Torsion.TorsionVerdict|NotSatisfied|GPC.Checkers.Concrete.Torsion.TorsionVerdict|Public, Static, Literal, HasDefault|1
 F|GPC.Checkers.Concrete.Torsion.TorsionVerdict|Satisfied|GPC.Checkers.Concrete.Torsion.TorsionVerdict|Public, Static, Literal, HasDefault|0
 F|GPC.Checkers.Concrete.Torsion.TorsionVerdict|value__|System.Int32|Public, SpecialName, RTSpecialName|
+F|GPC.Checkers.Concrete.Walls.WallFace|Bottom|GPC.Checkers.Concrete.Walls.WallFace|Public, Static, Literal, HasDefault|1
+F|GPC.Checkers.Concrete.Walls.WallFace|Top|GPC.Checkers.Concrete.Walls.WallFace|Public, Static, Literal, HasDefault|0
+F|GPC.Checkers.Concrete.Walls.WallFace|value__|System.Int32|Public, SpecialName, RTSpecialName|
+F|GPC.Checkers.Concrete.Walls.WallMember|Heel|GPC.Checkers.Concrete.Walls.WallMember|Public, Static, Literal, HasDefault|2
+F|GPC.Checkers.Concrete.Walls.WallMember|Stem|GPC.Checkers.Concrete.Walls.WallMember|Public, Static, Literal, HasDefault|0
+F|GPC.Checkers.Concrete.Walls.WallMember|Toe|GPC.Checkers.Concrete.Walls.WallMember|Public, Static, Literal, HasDefault|1
+F|GPC.Checkers.Concrete.Walls.WallMember|value__|System.Int32|Public, SpecialName, RTSpecialName|
 M|GPC.Checker.Helper.DeformationFieldsPoint|.ctor(System.Double epsilon:None,GPC.Geometry.Point2d point:None,System.Double distance:None,System.Double angle:Optional, HasDefault=0)|-|Public, HideBySig, SpecialName, RTSpecialName|
 M|GPC.Checker.Helper.DeformationFieldsPoint|Equals(System.Object obj:None)|System.Boolean|Public, Virtual, HideBySig|
 M|GPC.Checker.Helper.DeformationFieldsPoint|GetHashCode()|System.Int32|Public, Virtual, HideBySig|
@@ -447,6 +463,78 @@ M|GPC.Checker.Results.ResultType.StrainPlaneResult|op_Equality(GPC.Checker.Resul
 M|GPC.Checker.Results.ResultType.StrainPlaneResult|op_Inequality(GPC.Checker.Results.ResultType.StrainPlaneResult left:None,GPC.Checker.Results.ResultType.StrainPlaneResult right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
 M|GPC.Checker.SectionSolvers.IDomainPointStrategy|CalculateDomainPoint(GPC.Model.Results.ResultBeamForces targetLocalForces:None,System.Nullable`1<GPC.Checkers.Concrete.SectionSolvers.SectionSolver+FailureAnalysisTypes> failureAnalysisTypeOverride:Optional, HasDefault=null)|GPC.Checkers.Concrete.Results.FailureDomain+FailureDomainPoint|Public, Virtual, HideBySig, VtableLayoutMask, Abstract|
 M|GPC.Checker.SectionSolvers.IDomainPointStrategy|get_Solver()|GPC.Checkers.Concrete.SectionSolvers.SectionSolver|Public, Virtual, HideBySig, VtableLayoutMask, Abstract, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.AxialEquilibriumEvidence|.ctor(System.Double requested:None,System.Double actual:None,System.Double tolerance:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Analysis.AxialEquilibriumEvidence|get_Accepted()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.AxialEquilibriumEvidence|get_Actual()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.AxialEquilibriumEvidence|get_Requested()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.AxialEquilibriumEvidence|get_Residual()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.AxialEquilibriumEvidence|get_Tolerance()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.ISectionResistanceSolver|SolveResistance(GPC.Checkers.Concrete.Analysis.SectionAnalysisInput input:None,System.Threading.CancellationToken cancellationToken:Optional, HasDefault=null)|GPC.Checkers.Concrete.Analysis.SectionResistanceResponse|Public, Virtual, HideBySig, VtableLayoutMask, Abstract|
+M|GPC.Checkers.Concrete.Analysis.ISectionResponseSolver|Solve(GPC.Checkers.Concrete.Analysis.SectionAnalysisInput input:None,System.Threading.CancellationToken cancellationToken:Optional, HasDefault=null)|GPC.Checkers.Concrete.Analysis.SectionResponse|Public, Virtual, HideBySig, VtableLayoutMask, Abstract|
+M|GPC.Checkers.Concrete.Analysis.LegacySectionCalculation|.ctor(GPC.Checkers.Concrete.Checkers.SectionChecker checker:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Analysis.LegacySectionCalculation|Capture(GPC.Checkers.Concrete.Results.StressAnalysisResult result:None,GPC.Checkers.Concrete.Analysis.SectionAnalysisInput input:Optional, HasDefault=null)|GPC.Checkers.Concrete.Analysis.SectionResponse|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Analysis.LegacySectionCalculation|Solve(GPC.Checkers.Concrete.Analysis.SectionAnalysisInput input:None,System.Threading.CancellationToken cancellationToken:Optional, HasDefault=null)|GPC.Checkers.Concrete.Analysis.SectionResponse|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Checkers.Concrete.Analysis.LegacySectionCalculation|SolveResistance(GPC.Checkers.Concrete.Analysis.SectionAnalysisInput input:None,System.Threading.CancellationToken cancellationToken:Optional, HasDefault=null)|GPC.Checkers.Concrete.Analysis.SectionResistanceResponse|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Checkers.Concrete.Analysis.LegacySectionCalculation|get_Version()|System.String|Public, Static, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.NumericalResidual|.ctor(System.String quantity:None,System.String unit:None,System.Double residual:None,System.Double tolerance:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Analysis.NumericalResidual|get_Accepted()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.NumericalResidual|get_Quantity()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.NumericalResidual|get_Residual()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.NumericalResidual|get_Tolerance()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.NumericalResidual|get_Unit()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.ResistanceConvergence|Evaluate(GPC.Checkers.Concrete.SectionSolvers.SectionSolver+FailureAnalysisTypes criterion:None,GPC.Checkers.Concrete.Analysis.SectionAnalysisInput demand:None,GPC.Checkers.Concrete.Analysis.SectionAnalysisInput capacity:None,GPC.Geometry.CoordinateSystem constraintAxes:None,System.Double axialTolerance:None,System.Double moment1Tolerance:None,System.Double moment2Tolerance:None,System.Double angularTolerance:None)|GPC.Checkers.Concrete.Analysis.ResistanceConvergence|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Analysis.ResistanceConvergence|get_Accepted()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.ResistanceConvergence|get_Capacity()|GPC.Checkers.Concrete.Analysis.SectionAnalysisInput|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.ResistanceConvergence|get_ConstraintAxes()|GPC.Geometry.CoordinateSystem|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.ResistanceConvergence|get_Criterion()|GPC.Checkers.Concrete.SectionSolvers.SectionSolver+FailureAnalysisTypes|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.ResistanceConvergence|get_Demand()|GPC.Checkers.Concrete.Analysis.SectionAnalysisInput|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.ResistanceConvergence|get_HasSearchDirection()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.ResistanceConvergence|get_Residuals()|System.Collections.Generic.IReadOnlyList`1<GPC.Checkers.Concrete.Analysis.NumericalResidual>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionAnalysisInput|.ctor(GPC.Model.Results.ResultBeamForces forces:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionAnalysisInput|get_Forces()|GPC.Model.Results.ResultBeamForces|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionResistanceResponse|.ctor(GPC.Checkers.Concrete.Analysis.SolverDiagnostics diagnostics:None,System.String criterion:None,GPC.Checkers.Concrete.Analysis.SectionStrain strain:Optional, HasDefault=null,System.Nullable`1<System.Double> n:Optional, HasDefault=null,System.Nullable`1<System.Double> m1:Optional, HasDefault=null,System.Nullable`1<System.Double> m2:Optional, HasDefault=null,System.Nullable`1<System.Double> utilization:Optional, HasDefault=null,System.String failureMode:Optional, HasDefault=null)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionResistanceResponse|ForZeroDemand(GPC.Checkers.Concrete.Analysis.SectionAnalysisInput input:None,GPC.Checkers.Concrete.Analysis.SolverDiagnostics diagnostics:None,System.String criterion:None)|GPC.Checkers.Concrete.Analysis.SectionResistanceResponse|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Analysis.SectionResistanceResponse|get_Criterion()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionResistanceResponse|get_Diagnostics()|GPC.Checkers.Concrete.Analysis.SolverDiagnostics|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionResistanceResponse|get_FailureMode()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionResistanceResponse|get_IsZeroDemand()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionResistanceResponse|get_M1()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionResistanceResponse|get_M2()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionResistanceResponse|get_N()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionResistanceResponse|get_Strain()|GPC.Checkers.Concrete.Analysis.SectionStrain|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionResistanceResponse|get_Utilization()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionResistanceResponse|get_ZeroDemandInput()|GPC.Checkers.Concrete.Analysis.SectionAnalysisInput|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionResponse|.ctor(GPC.Checkers.Concrete.Analysis.SectionAnalysisInput input:None,GPC.Checkers.Concrete.Analysis.SolverDiagnostics diagnostics:None,GPC.Checkers.Concrete.Analysis.SectionStrain strain:None,System.Boolean linear:None,System.Double psiRebar:None,System.Double psiTendon:None,System.Collections.Generic.IEnumerable`1<GPC.Checkers.Concrete.Analysis.SectionStressPoint> concrete:None,System.Collections.Generic.IEnumerable`1<GPC.Checkers.Concrete.Analysis.SectionStressPoint> bars:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionResponse|get_Bars()|System.Collections.Generic.IReadOnlyList`1<GPC.Checkers.Concrete.Analysis.SectionStressPoint>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionResponse|get_Concrete()|System.Collections.Generic.IReadOnlyList`1<GPC.Checkers.Concrete.Analysis.SectionStressPoint>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionResponse|get_Diagnostics()|GPC.Checkers.Concrete.Analysis.SolverDiagnostics|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionResponse|get_Input()|GPC.Checkers.Concrete.Analysis.SectionAnalysisInput|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionResponse|get_Linear()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionResponse|get_PsiRebar()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionResponse|get_PsiTendon()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionResponse|get_Strain()|GPC.Checkers.Concrete.Analysis.SectionStrain|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionStrain|.ctor(System.Double x:None,System.Double y:None,System.Double epsilon:None,System.Double chiX:None,System.Double chiY:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionStrain|From(GPC.Checkers.Concrete.Results.StrainPlane plane:None)|GPC.Checkers.Concrete.Analysis.SectionStrain|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Analysis.SectionStrain|ToStrainPlane()|GPC.Checkers.Concrete.Results.StrainPlane|Public, HideBySig|
+M|GPC.Checkers.Concrete.Analysis.SectionStrain|get_ChiX()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionStrain|get_ChiY()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionStrain|get_Epsilon()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionStrain|get_X()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionStrain|get_Y()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionStressPoint|.ctor(System.String id:None,System.Double x:None,System.Double y:None,System.Double stress:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionStressPoint|get_Id()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionStressPoint|get_Stress()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionStressPoint|get_X()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SectionStressPoint|get_Y()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SolverDiagnostics|.ctor(GPC.Checkers.Concrete.Analysis.CalculationStatus status:None,System.String engine:None,System.String version:None,System.String message:None,GPC.Checkers.Concrete.Analysis.AxialEquilibriumEvidence axialEquilibrium:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Analysis.SolverDiagnostics|.ctor(GPC.Checkers.Concrete.Analysis.CalculationStatus status:None,System.String engine:None,System.String version:None,System.String message:None,GPC.Checkers.Concrete.Analysis.AxialEquilibriumEvidence axialEquilibrium:None,GPC.Checkers.Concrete.Analysis.ResistanceConvergence resistanceConvergence:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Analysis.SolverDiagnostics|.ctor(GPC.Checkers.Concrete.Analysis.CalculationStatus status:None,System.String engine:None,System.String version:None,System.String message:Optional, HasDefault=null)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Analysis.SolverDiagnostics|get_AxialEquilibrium()|GPC.Checkers.Concrete.Analysis.AxialEquilibriumEvidence|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SolverDiagnostics|get_Engine()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SolverDiagnostics|get_Message()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SolverDiagnostics|get_ResistanceConvergence()|GPC.Checkers.Concrete.Analysis.ResistanceConvergence|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SolverDiagnostics|get_Status()|GPC.Checkers.Concrete.Analysis.CalculationStatus|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Analysis.SolverDiagnostics|get_Version()|System.String|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Attributes.BeamCheckerAttribute|.ctor(GPC.Model.Sections.Concrete.IConcreteSection[] sections:None,GPC.Model.Results.ResultBeamForces[][] slsbeamResults:None,GPC.Model.Results.ResultBeamForces[][] ulsbeamResults:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
 M|GPC.Checkers.Concrete.Attributes.BeamCheckerAttribute|.ctor(System.Runtime.Serialization.SerializationInfo info:None,System.Runtime.Serialization.StreamingContext context:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
 M|GPC.Checkers.Concrete.Attributes.BeamCheckerAttribute|Equals(System.Object obj:None)|System.Boolean|Public, Virtual, HideBySig|
@@ -574,6 +662,8 @@ M|GPC.Checkers.Concrete.Cracking.CrackSectionGeometry|BarCover(GPC.Checkers.Conc
 M|GPC.Checkers.Concrete.Cracking.CrackSectionGeometry|Clip(System.Collections.Generic.IReadOnlyList`1<GPC.Geometry.Point2d> polygon:None,System.Double qx:None,System.Double qy:None,System.Double level:None)|GPC.Geometry.Point2d[]|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.Cracking.CrackSectionGeometry|EffectiveDepth(GPC.Checkers.Concrete.Cracking.CrackProfile profile:None,System.Double qx:None,System.Double qy:None,System.Double top:None,System.Double height:None,System.Double coverToCenter:None,System.Double tensileDepth:None,System.Boolean entirelyTensile:None,System.Double nominalCover:None)|System.Double|Public, HideBySig|
 M|GPC.Checkers.Concrete.Cracking.CrackSectionGeometry|From(GPC.Model.Sections.Concrete.ReinforcedConcreteSection section:None,System.Boolean concentricRings:Optional, HasDefault=False)|GPC.Checkers.Concrete.Cracking.CrackSectionGeometry|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Cracking.CrackSectionGeometry|FromCurves(GPC.Model.Sections.Concrete.ReinforcedConcreteSection section:None,System.Double chordTolerance:None,System.Double maxSegmentLength:Optional, HasDefault=Infinity,System.Boolean concentricRings:Optional, HasDefault=False)|GPC.Checkers.Concrete.Cracking.CrackSectionGeometry|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Cracking.CrackSectionGeometry|FromCurves(GPC.Model.Sections.SectionCurveOutline outline:None,System.Collections.Generic.IEnumerable`1<GPC.Checkers.Concrete.Cracking.CrackBar> bars:None,System.Double chordTolerance:None,System.Double maxSegmentLength:Optional, HasDefault=Infinity,System.Boolean concentricRings:Optional, HasDefault=False)|GPC.Checkers.Concrete.Cracking.CrackSectionGeometry|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.Cracking.CrackSectionGeometry|MaximumSpacing(System.Collections.Generic.IReadOnlyList`1<System.Int32> tensileBarIndices:None)|System.Nullable`1<System.Double>|Public, HideBySig|
 M|GPC.Checkers.Concrete.Cracking.CrackSectionGeometry|Region(System.String key:None,System.Double qx:None,System.Double qy:None,System.Double level:None,System.Int32[] bars:None,System.Nullable`1<System.Double> width:Optional, HasDefault=null)|GPC.Checkers.Concrete.Cracking.CrackRegion|Public, HideBySig|
 M|GPC.Checkers.Concrete.Cracking.CrackSectionGeometry|get_Bars()|System.Collections.Generic.IReadOnlyList`1<GPC.Checkers.Concrete.Cracking.CrackBar>|Public, HideBySig, SpecialName|
@@ -764,7 +854,13 @@ M|GPC.Checkers.Concrete.Detailing.PlateDetailingData|.ctor(System.Double seconda
 M|GPC.Checkers.Concrete.Detailing.PlateDetailingData|get_CriticalRegion()|System.Boolean|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Detailing.PlateDetailingData|get_SecondarySpacing()|System.Double|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Detailing.PlateDetailingData|get_SecondarySteelPerMetre()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Detailing.PlateDetailingRules|MinimumClearSpacing(System.Double diameter:None,System.Double aggregate:None)|System.Double|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Detailing.PlateDetailingRules|SlabMainSpacing(System.Double thickness:None,System.Boolean critical:None)|System.Double|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Detailing.PlateDetailingRules|SlabSecondaryArea(System.Double primaryArea:None)|System.Double|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Detailing.PlateDetailingRules|SlabSecondarySpacing(System.Double thickness:None,System.Boolean critical:None)|System.Double|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Detailing.PlateDetailingRules|WallMainSpacing(System.Double thickness:None)|System.Double|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.Durability.CoverInput|.ctor(System.Collections.Generic.IEnumerable`1<System.String> exposures:None,System.Double fck:None,System.Int32 designLife:None,System.Boolean strengthReduction:None,System.Boolean slabGeometry:None,System.Boolean specialQualityControl:None,System.Double barDiameter:None,System.Double aggregate:None,System.Double deviation:None,System.Boolean roughSurface:Optional, HasDefault=False,System.Int32 abrasion:Optional, HasDefault=0,System.Int32 ground:Optional, HasDefault=0,System.Boolean plateElement:Optional, HasDefault=False,System.Boolean ntcQualityReduction:Optional, HasDefault=False,System.Nullable`1<System.Double> pertinentCmin:Optional, HasDefault=null)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Durability.CoverInput|WithBarDiameter(System.Double diameter:None)|GPC.Checkers.Concrete.Durability.CoverInput|Public, HideBySig|
 M|GPC.Checkers.Concrete.Durability.CoverInput|get_Abrasion()|System.Int32|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Durability.CoverInput|get_Aggregate()|System.Double|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Durability.CoverInput|get_BarDiameter()|System.Double|Public, HideBySig, SpecialName|
@@ -1105,12 +1201,15 @@ M|GPC.Checkers.Concrete.Piles.PileSectionCheck|.ctor()|-|Public, HideBySig, Spec
 M|GPC.Checkers.Concrete.Piles.PileSectionCheck|get_Action()|GPC.Checkers.Concrete.Piles.PileAction|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Piles.PileSectionCheck|get_BendingRatio()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Piles.PileSectionCheck|get_CotTheta()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Piles.PileSectionCheck|get_Data()|GPC.Model.Core.Diagnostics.DataStatus|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Piles.PileSectionCheck|get_DevelopmentAvailable()|System.Nullable`1<System.Boolean>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Piles.PileSectionCheck|get_Execution()|GPC.Model.Checking.Contracts.ExecutionStatus|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Piles.PileSectionCheck|get_GoverningRatio()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Piles.PileSectionCheck|get_MRdNegative()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Piles.PileSectionCheck|get_MRdPositive()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Piles.PileSectionCheck|get_Message()|System.String|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Piles.PileSectionCheck|get_MinimumReinforcementPassed()|System.Nullable`1<System.Boolean>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Piles.PileSectionCheck|get_Outcome()|GPC.Model.Checking.Contracts.EngineeringOutcome|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Piles.PileSectionCheck|get_ShearRatio()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Piles.PileSectionCheck|get_Status()|System.String|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Piles.PileSectionCheck|get_UsableMRdNegative()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
@@ -1493,6 +1592,7 @@ M|GPC.Checkers.Concrete.SectionSolvers.DomainPointAxialTolerance|ConvergenceTole
 M|GPC.Checkers.Concrete.SectionSolvers.DomainPointAxialTolerance|HasAxialForce(GPC.Checkers.Concrete.SectionSolvers.SectionSolver solver:None,GPC.Checkers.Concrete.Results.FailureDomain+FailureDomainPoint point:None,System.Double axialForce:None)|System.Boolean|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.SectionSolvers.DomainPointAxialTolerance|HasReducedPrecision(GPC.Checkers.Concrete.SectionSolvers.SectionSolver solver:None)|System.Boolean|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.SectionSolvers.DomainPointAxialTolerance|HasReducedPrecision(GPC.Model.Materials.ConcreteMaterial+CompressionStressStrainDiagrams diagram:None)|System.Boolean|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.SectionSolvers.DomainPointConvergence|Evaluate(GPC.Checkers.Concrete.SectionSolvers.SectionSolver solver:None,GPC.Model.Results.ResultBeamForces demand:None,GPC.Checkers.Concrete.Results.FailureDomain+FailureDomainPoint point:None,GPC.Checkers.Concrete.SectionSolvers.SectionSolver+FailureAnalysisTypes criterion:None)|GPC.Checkers.Concrete.Analysis.ResistanceConvergence|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.SectionSolvers.SectionSolverACI318|.ctor(System.Runtime.Serialization.SerializationInfo info:None,System.Runtime.Serialization.StreamingContext context:None)|-|Family, HideBySig, SpecialName, RTSpecialName|
 M|GPC.Checkers.Concrete.SectionSolvers.SectionSolverACI318|CalculateCompressionAxialForceLimit()|System.Double|Family, Virtual, HideBySig|
 M|GPC.Checkers.Concrete.SectionSolvers.SectionSolverACI318|CalculateDesignStressRebar(System.Double strain:None,GPC.Model.Materials.SteelMaterial material:None)|System.Double|Family, HideBySig|
@@ -1634,12 +1734,20 @@ M|GPC.Checkers.Concrete.SectionSolvers.SectionSolver|get_IntegrationReferencePoi
 M|GPC.Checkers.Concrete.SectionSolvers.SectionSolver|get_StandardStructuralSteel()|GPC.Model.Standards.Standard|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.SectionSolvers.SectionSolver|get_TetaDiscretization()|System.Int32|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.SectionSolvers.SectionSolver|set_TetaDiscretization(System.Int32 value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Serviceability.Homogenization|CreepFactor(System.Double phi:None)|System.Double|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.Serviceability.Homogenization|CreepFromModularRatio(System.Double n:None,System.Double es:None,System.Double ec:None)|System.Double|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.Serviceability.Homogenization|ModularRatio(System.Double es:None,System.Double ec:None,System.Double phi:None)|System.Double|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.Serviceability.Homogenization|Resolve(System.Double es:None,System.Double ec:None,System.Boolean fromN:None,System.Double value:None)|System.ValueTuple`2<System.Double,System.Double>|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Serviceability.StressLimitCheck|Evaluate(GPC.Checkers.Concrete.Analysis.SectionResponse response:None,GPC.Checkers.Concrete.Serviceability.StressLimitContext context:None,GPC.Checkers.Concrete.Serviceability.ServiceabilityCombination combination:None,System.Double concreteLimitFactor:Optional, HasDefault=1)|GPC.Checkers.Concrete.Serviceability.StressLimitResult|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.Serviceability.StressLimitCheck|Evaluate(GPC.Checkers.Concrete.Results.StressAnalysisResult result:None,GPC.Checkers.Concrete.Serviceability.ServiceabilityCombination combination:None,System.Double concreteLimitFactor:Optional, HasDefault=1)|GPC.Checkers.Concrete.Serviceability.StressLimitResult|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.Serviceability.StressLimitCheck|NotApplicableReason(GPC.Model.Standards.Standard standard:None)|System.String|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.Serviceability.StressLimitCheck|SteelLimit(GPC.Model.Standards.StandardModelCode2010 standard:None,GPC.Model.Materials.SteelMaterial material:None)|System.Double|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Serviceability.StressLimitContext|.ctor(System.String standardName:None,System.Double concreteCharacteristic:None,System.Double concreteQuasiPermanent:None,System.Collections.Generic.IDictionary`2<System.String,System.Double> steelCharacteristic:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Serviceability.StressLimitContext|Resolve(GPC.Model.Standards.StandardModelCode2010 standard:None,GPC.Model.Sections.Concrete.IConcreteSection section:None)|GPC.Checkers.Concrete.Serviceability.StressLimitContext|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Serviceability.StressLimitContext|get_ConcreteCharacteristic()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Serviceability.StressLimitContext|get_ConcreteQuasiPermanent()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Serviceability.StressLimitContext|get_StandardName()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Serviceability.StressLimitContext|get_SteelCharacteristic()|System.Collections.Generic.IReadOnlyDictionary`2<System.String,System.Double>|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Serviceability.StressLimitPoint|get_Id()|System.String|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Serviceability.StressLimitPoint|get_Limit()|System.Double|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Serviceability.StressLimitPoint|get_Ratio()|System.Double|Public, HideBySig, SpecialName|
@@ -1773,9 +1881,73 @@ M|GPC.Checkers.Concrete.Torsion.TorsionShearComponent|get_LongitudinalStrain()|S
 M|GPC.Checkers.Concrete.Torsion.TorsionShearComponent|get_Shear()|GPC.Checkers.Concrete.Shear.SectionShearResult|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Torsion.TorsionShearComponent|get_VRcd()|System.Double|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Torsion.TorsionShearComponent|get_VRsd()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.PlainConcreteWallMaterial|.ctor(System.Double compression:None,System.Double characteristicTension:None,System.Double gammaC:None,System.Double modulus:None,System.Double creep:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Walls.PlainConcreteWallMaterial|ShearStress(System.Double compressionStress:None)|System.Double|Public, HideBySig|
+M|GPC.Checkers.Concrete.Walls.PlainConcreteWallMaterial|get_Compression()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.PlainConcreteWallMaterial|get_EffectiveModulus()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.PlainConcreteWallMaterial|get_Tension()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallReinforcementChecks|get_MaximumTotal()|GPC.Checkers.Concrete.Walls.WallSectionCheck|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallReinforcementChecks|get_MinimumPerFace()|GPC.Checkers.Concrete.Walls.WallSectionCheck|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallSectionActions|.ctor(System.Double n:None,System.Double v:None,System.Double m:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Walls.WallSectionActions|get_M()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallSectionActions|get_N()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallSectionActions|get_V()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallSectionCheck|get_Capacity()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallSectionCheck|get_Data()|GPC.Model.Core.Diagnostics.DataStatus|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallSectionCheck|get_Demand()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallSectionCheck|get_Diagnostic()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallSectionCheck|get_Execution()|GPC.Model.Checking.Contracts.ExecutionStatus|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallSectionCheck|get_Method()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallSectionCheck|get_Outcome()|GPC.Model.Checking.Contracts.EngineeringOutcome|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallSectionCheck|get_Ratio()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallSectionCheck|get_Unit()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallSectionSession|.ctor(GPC.Checkers.Concrete.Walls.WallStrip strip:None,GPC.Model.Sections.Concrete.ReinforcedConcreteSection preparedSection:None,GPC.Model.Standards.StandardNTC2018Concrete standard:None,System.Double creep:None,System.String exposure:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Walls.WallSectionSession|CheckLongitudinalAreas()|GPC.Checkers.Concrete.Walls.WallReinforcementChecks|Public, HideBySig|
+M|GPC.Checkers.Concrete.Walls.WallSectionSession|CheckMoment(GPC.Checkers.Concrete.Walls.WallSectionActions action:None,System.Threading.CancellationToken cancellation:Optional, HasDefault=null)|GPC.Checkers.Concrete.Walls.WallSectionCheck|Public, HideBySig|
+M|GPC.Checkers.Concrete.Walls.WallSectionSession|CheckServiceability(GPC.Checkers.Concrete.Walls.WallSectionActions action:None,GPC.Checkers.Concrete.Serviceability.ServiceabilityCombination combination:None,System.Threading.CancellationToken cancellation:Optional, HasDefault=null)|GPC.Checkers.Concrete.Walls.WallServiceabilityResult|Public, HideBySig|
+M|GPC.Checkers.Concrete.Walls.WallSectionSession|CheckShear(GPC.Checkers.Concrete.Walls.WallSectionActions action:None,System.Threading.CancellationToken cancellation:Optional, HasDefault=null)|GPC.Checkers.Concrete.Walls.WallShearResult|Public, HideBySig|
+M|GPC.Checkers.Concrete.Walls.WallServiceabilityResult|get_Checks()|System.Collections.Generic.IReadOnlyList`1<GPC.Checkers.Concrete.Walls.WallSectionCheck>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallServiceabilityResult|get_CrackResponse()|GPC.Checkers.Concrete.Cracking.SectionCrackResult|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallServiceabilityResult|get_Curvature()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallServiceabilityResult|get_ElasticEquivalentCurvature()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallServiceabilityResult|get_ProvenUncracked()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallServiceabilityResult|get_Response()|GPC.Checkers.Concrete.Analysis.SectionResponse|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallServiceabilityResult|get_UncrackedMaximumStress()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallShearResult|get_Check()|GPC.Checkers.Concrete.Walls.WallSectionCheck|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallShearResult|get_Response()|GPC.Checkers.Concrete.Shear.SectionShearResult|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallStripDetailing|Evaluate(GPC.Checkers.Concrete.Walls.WallStrip strip:None,System.Double fctm:None,System.Double fyk:None)|GPC.Checkers.Concrete.Walls.WallReinforcementChecks|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Walls.WallStrip|.ctor(GPC.Checkers.Concrete.Walls.WallMember member:None,System.Double width:None,System.Double thickness:None,System.Double cover:None,System.Int32 topCount:None,System.Double topDiameter:None,System.Int32 bottomCount:None,System.Double bottomDiameter:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Walls.WallStrip|EffectiveDepth(GPC.Checkers.Concrete.Walls.WallFace face:None)|System.Double|Public, HideBySig|
+M|GPC.Checkers.Concrete.Walls.WallStrip|TensionArea(System.Double moment:None)|System.Double|Public, HideBySig|
+M|GPC.Checkers.Concrete.Walls.WallStrip|TensionFace(System.Double moment:None)|GPC.Checkers.Concrete.Walls.WallFace|Public, HideBySig|
+M|GPC.Checkers.Concrete.Walls.WallStrip|get_BottomArea()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallStrip|get_BottomCount()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallStrip|get_BottomDiameter()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallStrip|get_ConcreteArea()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallStrip|get_Cover()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallStrip|get_MaximumBarSpacing()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallStrip|get_Member()|GPC.Checkers.Concrete.Walls.WallMember|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallStrip|get_Thickness()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallStrip|get_TopArea()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallStrip|get_TopCount()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallStrip|get_TopDiameter()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Walls.WallStrip|get_Width()|System.Double|Public, HideBySig, SpecialName|
 T|GPC.Checker.Helper.DeformationFieldsPoint|Public, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checker.Results.ResultType.StrainPlaneResult|Public, BeforeFieldInit|base=GPC.Checkers.Concrete.Results.CheckerResultType|interfaces=System.IEquatable`1<GPC.Checker.Results.ResultType.StrainPlaneResult>,System.Runtime.Serialization.ISerializable|
 T|GPC.Checker.SectionSolvers.IDomainPointStrategy|Public, ClassSemanticsMask, Abstract, BeforeFieldInit|base=-|interfaces=|
+T|GPC.Checkers.Concrete.Analysis.AxialEquilibriumEvidence|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Analysis.CalculationStatus|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
+T|GPC.Checkers.Concrete.Analysis.ISectionResistanceSolver|Public, ClassSemanticsMask, Abstract, BeforeFieldInit|base=-|interfaces=|
+T|GPC.Checkers.Concrete.Analysis.ISectionResponseSolver|Public, ClassSemanticsMask, Abstract, BeforeFieldInit|base=-|interfaces=|
+T|GPC.Checkers.Concrete.Analysis.LegacySectionCalculation|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=GPC.Checkers.Concrete.Analysis.ISectionResistanceSolver,GPC.Checkers.Concrete.Analysis.ISectionResponseSolver|
+T|GPC.Checkers.Concrete.Analysis.NumericalResidual|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Analysis.ResistanceConvergence|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Analysis.SectionAnalysisInput|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Analysis.SectionResistanceResponse|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Analysis.SectionResponse|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Analysis.SectionStrain|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Analysis.SectionStressPoint|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Analysis.SolverDiagnostics|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Attributes.BeamCheckerAttribute|Public, Serializable, BeforeFieldInit|base=GPC.Model.ModelObjectId|interfaces=System.Runtime.Serialization.ISerializable|
 T|GPC.Checkers.Concrete.Attributes.PlateCheckerAttribute|Public, Serializable, BeforeFieldInit|base=GPC.Model.ModelObjectId|interfaces=System.Runtime.Serialization.ISerializable|
 T|GPC.Checkers.Concrete.Attributes.SectionCheckerAttribute|Public, Serializable, BeforeFieldInit|base=GPC.Model.ModelObjectId|interfaces=System.Runtime.Serialization.ISerializable|
@@ -1827,6 +1999,7 @@ T|GPC.Checkers.Concrete.Detailing.MemberDetailingKind|Public, Sealed|base=System
 T|GPC.Checkers.Concrete.Detailing.MemberDetailingOptions|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Detailing.MemberDetailingResult|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Detailing.PlateDetailingData|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Detailing.PlateDetailingRules|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Durability.CoverInput|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Durability.CoverLine|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Durability.CoverRequirements|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
@@ -1881,6 +2054,7 @@ T|GPC.Checkers.Concrete.Results.FailureDomain|Public, Serializable, BeforeFieldI
 T|GPC.Checkers.Concrete.Results.StrainPlane|Public, Sealed, Serializable, BeforeFieldInit|base=GPC.Model.ModelObjectId|interfaces=System.IEquatable`1<GPC.Checkers.Concrete.Results.StrainPlane>,System.Runtime.Serialization.ISerializable|
 T|GPC.Checkers.Concrete.Results.StressAnalysisResult|Public, Serializable, BeforeFieldInit|base=GPC.Checkers.Concrete.Results.CheckerResultType|interfaces=System.Runtime.Serialization.ISerializable|
 T|GPC.Checkers.Concrete.SectionSolvers.DomainPointAxialTolerance|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.SectionSolvers.DomainPointConvergence|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.SectionSolvers.SectionSolver+DomainPointStrategyTypes|NestedPublic, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
 T|GPC.Checkers.Concrete.SectionSolvers.SectionSolver+FailureAnalysisTypes|NestedPublic, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
 T|GPC.Checkers.Concrete.SectionSolvers.SectionSolver+FailureDomainTypes|NestedPublic, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
@@ -1893,6 +2067,7 @@ T|GPC.Checkers.Concrete.Serviceability.HomogenizationRejection|Public, Sealed|ba
 T|GPC.Checkers.Concrete.Serviceability.Homogenization|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Serviceability.ServiceabilityCombination|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
 T|GPC.Checkers.Concrete.Serviceability.StressLimitCheck|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Serviceability.StressLimitContext|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Serviceability.StressLimitPoint|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Serviceability.StressLimitResult|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Serviceability.ThinCastingRule|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
@@ -1913,3 +2088,14 @@ T|GPC.Checkers.Concrete.Torsion.TorsionProfile|Public, Sealed|base=System.Enum|i
 T|GPC.Checkers.Concrete.Torsion.TorsionShearComponent|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Torsion.TorsionThicknessRule|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
 T|GPC.Checkers.Concrete.Torsion.TorsionVerdict|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
+T|GPC.Checkers.Concrete.Walls.PlainConcreteWallMaterial|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Walls.WallFace|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
+T|GPC.Checkers.Concrete.Walls.WallMember|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
+T|GPC.Checkers.Concrete.Walls.WallReinforcementChecks|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Walls.WallSectionActions|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Walls.WallSectionCheck|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Walls.WallSectionSession|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Walls.WallServiceabilityResult|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Walls.WallShearResult|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Walls.WallStripDetailing|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Walls.WallStrip|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|

@@ -31,7 +31,7 @@ namespace GPC.Checkers.Concrete.Piles
         public static double[] LinkStations(double start,double end,double maximumSpacingMm,bool last)
         {
             if(!Finite(start+end+maximumSpacingMm)||end<=start||maximumSpacingMm<=0)throw new ArgumentException("Quote e passo staffe validi richiesti.");
-            int intervals=(int)Math.Ceiling((end-start)*1000/maximumSpacingMm-1e-10);intervals=Math.Max(1,intervals);
+            int intervals=(int)Math.Ceiling((end-start)*MillimetresPerMetre/maximumSpacingMm-1e-10);intervals=Math.Max(1,intervals);
             return Enumerable.Range(0,intervals+(last?1:0)).Select(i=>start+(end-start)*i/intervals).ToArray();
         }
         /// <summary>User requested initial convention, metres. Independent from code-required lap.</summary>
@@ -45,7 +45,7 @@ namespace GPC.Checkers.Concrete.Piles
             if(!Finite(maximumCompressionKn))throw new ArgumentException("Compressione finita richiesta.");
             // Column is a user-selected detailing convention, not a reclassification of the geotechnical model.
             var kind=p.DetailingMode==PileDetailingMode.Beam?MemberDetailingKind.Beam:MemberDetailingKind.Column;
-            var input=new MemberDetailingInput(kind,geometry,area,p.Fck,p.Fctm,p.Fyk,p.Fyd,p.Diameter,p.Diameter,p.Diameter,Math.Max(0,maximumCompressionKn)*1000,true,p.LinkDiameter,p.LinkSpacing,2,p.Aggregate,p.Cover,p.MinimumDurabilityCover,p.CoverDeviation,false,p.CompressionBarsRestrained,p.EndZonesConfirmed);
+            var input=new MemberDetailingInput(kind,geometry,area,p.Fck,p.Fctm,p.Fyk,p.Fyd,p.Diameter,p.Diameter,p.Diameter,Math.Max(0,maximumCompressionKn)*NewtonsPerKilonewton,true,p.LinkDiameter,p.LinkSpacing,2,p.Aggregate,p.Cover,p.MinimumDurabilityCover,p.CoverDeviation,false,p.CompressionBarsRestrained,p.EndZonesConfirmed);
             var checks=MemberDetailingCalculator.Calculate(DetailingProfiles.Resolve(p.Standard),input).Checks.Where(c=>p.DetailingMode!=PileDetailingMode.CommonOnly||c.Key=="ClearSpacing"||c.Key=="NominalCover"||c.Key=="BarCoverMargin").ToList();
             if(p.DetailingMode==PileDetailingMode.CommonOnly)checks.Add(new DetailingCheck("MemberRulesExcluded",null,null,"",null,"Scelta utente","Prescrizioni di trave/pilastro escluse: verificare separatamente i dettagli del tipo di elemento."));
             void Rule(string key,double actual,double limit,bool passed,string expression)=>checks.Add(new DetailingCheck(key,actual,limit,key=="PileSteelArea"?"mm²":"mm",p.PileMinimumRequirements?(bool?)passed:null,"NTC 2018 §7.2.5",p.PileMinimumRequirements?expression:"Campo di applicabilità dei minimi pali da confermare; "+expression));

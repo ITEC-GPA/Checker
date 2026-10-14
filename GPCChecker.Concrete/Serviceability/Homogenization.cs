@@ -44,7 +44,11 @@ namespace GPC.Checkers.Concrete.Serviceability
         /// n = es·(1 + phi)/ec, evaluated as <c>es * (1 + phi) / ec</c>. No checks: a negative phi gives n &lt; es/ec (the stress
         /// tab of ANTHEA accepts it), NaN and infinities propagate.
         /// </summary>
-        public static double ModularRatio(double es, double ec, double phi) => es * (1 + phi) / ec;
+        public static double ModularRatio(double es, double ec, double phi) => es * CreepFactor(phi) / ec;
+
+        /// <summary>Amplification from the elastic-equivalent strain plane to total strain (and its gradient).
+        /// No validation: retains the arithmetic contract of the existing native stress/strain accessors.</summary>
+        public static double CreepFactor(double phi) => 1 + phi;
 
         /// <summary>
         /// φ = n·ec/es − 1, evaluated as <c>n * ec / es - 1</c>, the inverse of <see cref="ModularRatio"/>. No checks: n &lt; es/ec
