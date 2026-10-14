@@ -16,6 +16,15 @@ La pagina è la revisione tecnica del metodo: descrive ciò che il codice fa, no
 | [ca.dettagli](ca.dettagli.md) | Dettagli costruttivi di travi e pilastri | `MemberDetailingCalculator` | bozza |
 | [ca.durabilita-copriferri](ca.durabilita-copriferri.md) | Durabilità, classi di esposizione e copriferri | `ExposureClasses`, `CoverRequirements` | bozza |
 | [ca.momento-curvatura](ca.momento-curvatura.md) | Risposta momento-curvatura a sforzo normale costante | `MomentCurvatureAnalysis` | bozza |
+| [ca.muri-taglio](ca.muri-taglio.md) | Taglio senza armatura trasversale delle strisce di muro, con lo sforzo normale | `WallSectionSession`, `SectionShearCalculator` | bozza |
+| [ca.muri-curvatura](ca.muri-curvatura.md) | Curvatura e piano delle deformazioni totali nell'analisi lineare con viscosità | `StressAnalysisResult`, `WallSectionSession` | bozza |
+
+Pagine di GPC.Design (stesso template, campo `libreria: GPC.Design`, prefisso `design.`):
+
+| Id | Titolo | Classi principali | Stato |
+| --- | --- | --- | --- |
+| [design.ponti-traffico](design.ponti-traffico.md) | Traffico stradale Schema 1 nella stima concettuale dei ponti | `RoadTraffic`, `BeamTrafficEnvelope` | bozza |
+| [design.servizi](design.servizi.md) | Servizi di progetto per le sezioni, le armature minime e i prezzi | `SectionDesignDemand`, `CostEstimator`, `PriceAnalyses` | bozza |
 
 La pressoflessione (dominio di rottura e verifica di resistenza della sezione) avrà una pagina con lo stesso
 template. Fino ad allora vale l'avvertenza della libreria sulla tolleranza su N dei punti a N assegnato
