@@ -22,8 +22,10 @@ public static partial class HBridgeSection
         foreach (var p in phases)
         {
             if (!PhaseKinds.Contains(p.KindName)) throw new ArgumentException("Tipo di fase sconosciuto.");
-            if (p.KindName == "Solo acciaio" && compositeSeen) throw new ArgumentException("Le fasi di solo acciaio devono precedere le fasi composte.");
-            compositeSeen |= p.KindName is "Composta" or "Soletta esclusa";
+            // the same rule and message of the histories: every phase other than «Solo acciaio» (composite, cracked slab, shrinkage) follows the
+            // casting of the slab. Before, a «Ritiro» did not count, and a later steel-only phase was calculated on the bare steel
+            if (p.KindName == "Solo acciaio" && compositeSeen) throw new ArgumentException("Le fasi di solo acciaio devono precedere il getto.");
+            compositeSeen |= p.KindName != "Solo acciaio";
             if (p.KindName == ShrinkageKind) Number(p, "epsilon_cs");
             else { Number(p, "N"); Number(p, "Mx"); Number(p, "V"); }
             if (!LoadReferences.Contains(LoadReference(p))) throw new ArgumentException("Riferimento di N sconosciuto.");

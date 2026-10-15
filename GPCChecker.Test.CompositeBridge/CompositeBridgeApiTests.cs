@@ -159,6 +159,22 @@ public class CompositeBridgeApiTests
             Assert.AreEqual(lengths[n - 1], details.Single(x => x.Name == $"Soletta b–b · gruppo {n} · superficie").Value, 1e-9);
     }
 
+    [DataTestMethod]
+    // finding PON-5: a steel-only phase after the shrinkage of the slab (cast and connected) was accepted by the cumulative method
+    [DataRow(BridgePhaseKind.Shrinkage)] [DataRow(BridgePhaseKind.Composite)] [DataRow(BridgePhaseKind.ConcreteExcluded)]
+    public void SteelOnlyAfterCastingIsRejectedAsInTheHistories(BridgePhaseKind first)
+    {
+        var d = Input() with
+        {
+            Options = new() { Class4 = false },
+            Phases = [new() { Name = "Prima", Kind = first, ShrinkageMicrostrain = -250, MomentKNm = first == BridgePhaseKind.Shrinkage ? 0 : 500 },
+                new() { Name = "G1 dopo", Kind = BridgePhaseKind.SteelOnly, MomentKNm = 1500 }]
+        };
+        const string message = "Le fasi di solo acciaio devono precedere il getto.";
+        Assert.AreEqual(message, Assert.ThrowsException<ArgumentException>(() => HBridgeSection.Calculate(d)).Message);
+        Assert.AreEqual(message, Assert.ThrowsException<ArgumentException>(() => GPC.Checkers.CompositeBridge.History.HBridgeHistoryResults.Calculate(d)).Message);
+    }
+
     [TestMethod]
     public void InvalidLoadsAndPhaseOrderAreRejectedInChecker()
     {
