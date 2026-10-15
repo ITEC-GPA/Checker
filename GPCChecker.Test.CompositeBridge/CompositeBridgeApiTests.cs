@@ -138,6 +138,27 @@ public class CompositeBridgeApiTests
         Assert.ThrowsException<OperationCanceledException>(() => HBridgeSection.Calculate(Input(), new CancellationToken(true)));
     }
 
+    [DataTestMethod]
+    // finding PON-4: one stud per row with an empty transverse pitch (NaN from the application). b–b surface around the studs of a group
+    // (EN 1994-1-1 Fig. 6.15, EN 1994-2 §6.6.6.1): 2 h + (n − 1) st + d_head = 2 · 150 + 35 = 335 mm for one stud
+    [DataRow(1, double.NaN, new[] { 335d })]
+    // two studs, pitch 120: 335 and 2 · 150 + 120 + 35 = 455 mm (unchanged)
+    [DataRow(2, 120d, new[] { 335d, 455d })]
+    public void SlabSurfaceBbUsesTheValidatedTransversePitch(int count, double pitch, double[] lengths)
+    {
+        var d = Input() with
+        {
+            Phases = Input().Phases.Select(p => p with { ShearKN = 500 }).ToArray(),
+            Studs = new() { Enabled = true, CountPerRow = count, Diameter = 22, Height = 150, LongitudinalPitch = 200, TransversePitch = pitch, Fu = 450,
+                GammaV = 1.25, HeadDiameter = 35, HeadThickness = 12, RequiredCover = 20 },
+            Transverse = new() { Enabled = true, TopDiameter = 16, TopPitch = 150, BottomDiameter = 16, BottomPitch = 150, CotTheta = 1, LeftFlowFraction = .5,
+                AnchorageLength = 700, GoodBond = true, LeftConcreteEdge = 500, RightConcreteEdge = 500 }
+        };
+        var details = HBridgeSection.Calculate(d).Stages.Last().Studs!.Details!;
+        for (int n = 1; n <= count; n++)
+            Assert.AreEqual(lengths[n - 1], details.Single(x => x.Name == $"Soletta b–b · gruppo {n} · superficie").Value, 1e-9);
+    }
+
     [TestMethod]
     public void InvalidLoadsAndPhaseOrderAreRejectedInChecker()
     {
