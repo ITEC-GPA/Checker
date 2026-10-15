@@ -285,8 +285,8 @@ Percorsi relativi alla radice del repository Checker (namespace `GPC.Checkers.Co
 - Materiali (repository Model, progetto GPCModel):
   - `Model/Materials/Concrete/ConcreteMaterialEuropeanCommon.cs`: tabelle del calcestruzzo (righe 756-783) e tensione
     di progetto αcc/γc (righe 734-740);
-  - `Model/Materials/Steel/SteelMaterial.cs`: tensione di progetto dell'acciaio (righe 537-543, con
-    `CalculateDesignStressCommon` alle righe 857-880) ed εud = k εuk (righe 500-506);
+  - `Model/Materials/Steel/SteelMaterial.cs`: tensione di progetto dell'acciaio (righe 528-535, con
+    `CalculateDesignStressCommon` alle righe 825-850) ed εud = k εuk (righe 492-498);
   - `Model/Materials/StressStrainTable.cs`: interpolazione lineare, tensione nulla oltre l'ultimo punto (righe
     189-204).
 
@@ -305,6 +305,10 @@ curva.
   (`InterruptedAtStep`).
 - Il punto limite rispetta N a meno di tolN; il residuo è restituito (`AxialResidual`). Con acciaio snervato e
   calcestruzzo plastico la traslazione del piano limite è definita solo entro questa tolleranza.
+- ANTHEA passa tolN = max(valore dell'utente; `DomainPointAxialTolerance.Calculate`), cioè almeno max(1 kN;
+  10⁻⁶ |N|; 0,5·10⁻⁴ b h fck) e, con lo stress block, almeno 10⁻³ NRd,c: è la regola dei punti del dominio a N
+  assegnato (SLU-3, 15/10/2026). Con il solo valore dell'utente le sezioni grandi (per esempio D1600 C35/45 a N = 0)
+  erano rifiutate anche quando la ricerca si era fermata normalmente.
 - Nelle sezioni non simmetriche la direzione della curvatura può differire da quella del momento: χ è il modulo del
   gradiente, le componenti sono restituite.
 - Il primo snervamento conta anche le barre compresse; con N di compressione elevato può essere la barra compressa a

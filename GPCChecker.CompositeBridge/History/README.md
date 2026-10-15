@@ -229,6 +229,10 @@ ritiri liberi/vincolati/eccentrici e multipli, φ/n, inerzie del CLS netto, oltr
 1.200 fasi, enumerazione progressiva, annullamento, stati immutabili, plastica,
 scarico/inversione, diagramma Model, mancata convergenza, classe 4 e mesh.
 
+Stato al 16 ottobre 2026: i conteggi di questo paragrafo sono quelli del 25 settembre. Oggi `GPCChecker.Test.CompositeBridge`
+esegue **284/284** casi (`build\Verify.ps1`, Release), comprese le correzioni PON-1…PON-5 e il tension stiffening
+preso da Model; le otto istantanee complete sono nel progetto `GPCChecker.Test.BridgeAudit`.
+
 Eseguiti: **80/80** (52 nuovi + 28 precedenti), sia sulle dipendenze distribuite
 ANTHEA sia sulle dipendenze dei progetti sorgente. Inoltre **267/267** regressioni
 del metodo precedente con la nuova DLL, comprese le otto istantanee complete.
