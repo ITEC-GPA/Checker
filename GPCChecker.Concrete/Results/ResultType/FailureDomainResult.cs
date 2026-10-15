@@ -434,8 +434,10 @@ namespace GPC.Checkers.Concrete.Results
                         // FailureIndex
                         SectionSolver.FailureZones _failureIndex = (SectionSolver.FailureZones)Math.Min((int)vA.FailureIndex, (int)vB.FailureIndex);
 
-                        double weightA = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(vA.NRd, vB.NRd, 0, 1, forces.N);
-                        double weightB = 1 - weightA;
+                        // Weights of the strain planes of the ends at the parameter of N on the segment (0 at vA, as mx and my). Before
+                        // (found with bug SLU-1 of 15/10/2026) the parameter was the weight of vA: the plane was the one of the other end.
+                        double weightB = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(vA.NRd, vB.NRd, 0, 1, forces.N);
+                        double weightA = 1 - weightB;
 
                         // Theta
                         var thetaA = vA.StrainPlane.Teta;

@@ -135,6 +135,10 @@ convergente» in ANTHEA):
   elastico (SLV), il cui meridiano aveva due punti nulli e un polo di trazione sbagliato.
 - Prove: `FailureDomain2dNMTests` (θ = 0, 30, 45, 90, 180, 270 sulle sezioni del verificatore, contro il suo modello
   a fibre indipendente e la verifica 3D a eccentricità costante, entro l'1 %).
+- Dominio a N costante (Mx–My, `CalculateDomainConstantAxialForce` e ramo a N costante di `GetDomainPoint`): il piano
+  di deformazione di un punto interpolato pesa θ e immersione degli estremi con 1 − t e t, come le forze; prima i pesi
+  erano scambiati e il piano era quello dell'altro estremo (le forze non cambiano). Fra estremi in campi di rottura
+  diversi l'immersione resta approssimata (`SectionSolver.GetImmersione`). Prove: `ConstantAxialForcePlaneTests`.
 
 ### Taglio
 

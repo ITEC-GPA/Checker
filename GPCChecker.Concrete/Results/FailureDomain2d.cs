@@ -151,8 +151,12 @@ namespace GPC.Checkers.Concrete.Results
                                 // FailureIndex
                                 SectionSolver.FailureZones _failureIndex = (SectionSolver.FailureZones)Math.Min((int)vA.FailureIndex, (int)vB.FailureIndex);
 
-                                double weightA = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(vA.MxRd, vB.MxRd, 0, 1, forceTuple.Mx);
-                                double weightB = 1 - weightA;
+                                // Weights of the strain planes of the ends at the parameter of the intersection on the side (0 at vA). Before
+                                // (found with bug SLU-1 of 15/10/2026) the parameter itself, taken from Mx only, was the weight of vA: the plane
+                                // was the one of the other end of the side.
+                                double t = EdgeParameter(point1, point2, intersection);
+                                double weightA = 1 - t;
+                                double weightB = t;
 
                                 // Theta
                                 var thetaA = vA.StrainPlane.Teta;
