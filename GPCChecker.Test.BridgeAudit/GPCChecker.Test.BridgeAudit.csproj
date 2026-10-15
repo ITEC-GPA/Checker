@@ -6,14 +6,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <NoWarn>$(NoWarn);CS8618</NoWarn>
-    <BridgeLibraryDir Condition="'$(BridgeLibraryDir)' == ''">$(MSBuildThisFileDirectory)..\..\ANTHEA\lib\Checker</BridgeLibraryDir>
+    <!-- AntheaDir: ANTHEA checkout or worktree (default: sibling of Checker). BridgeLibraryDir: GPC DLL set used both by this
+         project and by the referenced ANTHEA projects (GpcLibDir), so that the adapter and the tests load the same libraries. -->
+    <AntheaDir Condition="'$(AntheaDir)' == ''">$(MSBuildThisFileDirectory)..\..\ANTHEA</AntheaDir>
+    <BridgeLibraryDir Condition="'$(BridgeLibraryDir)' == ''">$(AntheaDir)\lib\Checker</BridgeLibraryDir>
   </PropertyGroup>
   <ItemGroup>
     <None Update="Baselines/*.json" CopyToOutputDirectory="PreserveNewest" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.6.4" />
     <PackageReference Include="MSTest.TestFramework" Version="3.6.4" />
-    <ProjectReference Include="..\..\ANTHEA\X.Core\X.Core.csproj" />
+    <!-- Bridge archive adapter (BridgeSection, BridgeResult, J: assembly ANTHEA.Calculations) and its report (ReportBridge: ANTHEA.Reports). -->
+    <ProjectReference Include="$(AntheaDir)\X.Calculations\X.Calculations.csproj" AdditionalProperties="GpcLibDir=$(BridgeLibraryDir)" />
+    <ProjectReference Include="$(AntheaDir)\src\ANTHEA.Reports\ANTHEA.Reports.csproj" AdditionalProperties="GpcLibDir=$(BridgeLibraryDir)" />
     <Compile Include="..\GPCChecker.Test.Concrete\BridgeElasticStagesTests.cs" Link="BridgeElasticStagesTests.cs" />
     <Compile Include="..\GPCChecker.Test.Concrete\BridgeLinearSolverAuditTests.cs" Link="BridgeLinearSolverAuditTests.cs" />
     <Reference Include="GPCChecker.Concrete"><HintPath>$(BridgeLibraryDir)\GPCChecker.Concrete.dll</HintPath></Reference>

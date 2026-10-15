@@ -1,5 +1,44 @@
 # Audit delle sezioni miste da ponte
 
+## Aggiornamento 16 ottobre 2026 (ANTHEA dopo F4, correzioni PON-1…5)
+
+Dopo il refactoring di ANTHEA (F3/F4) il progetto non compilava più: `X.Core` è ora un guscio
+che inoltra i tipi, l'adattatore della sezione da ponte (`BridgeSection`, `BridgeResult`, `J`)
+sta in `X.Calculations` (assembly `ANTHEA.Calculations`, spazio `Anthea.Calculations`) e il
+report `ReportBridge` in `src/ANTHEA.Reports`. Il progetto referenzia questi due progetti.
+La cartella di ANTHEA è la proprietà `AntheaDir` (predefinita `../../ANTHEA`, anche un worktree);
+`BridgeLibraryDir` (predefinita `$(AntheaDir)/lib/Checker`) è passata ai progetti ANTHEA come
+`GpcLibDir`, così adattatore e prove usano le stesse DLL, controllate con il manifest SHA-256.
+Usare percorsi assoluti.
+
+Prove modificate, nessuna asserzione tolta:
+
+- le cinque prove `Class4_*` su pannelli e sbalzi chiamano `HBridgeSection.InternalPlate` ed
+  `HBridgeSection.EffectiveWidths` della DLL: ANTHEA 85405af2 (decisione D3) ha tolto i due
+  involucri `BridgeSection.*`, che le inoltravano senza modifiche;
+- `MultipleShrinkageIncrementsSuperposeAtAnyPosition`: con PON-5 il ritiro vale come soletta
+  gettata e il cumulativo rifiuta un ritiro prima di una fase «Solo acciaio» («Le fasi di solo
+  acciaio devono precedere il getto.»), proprio l'ordine usato dalla prova. Ora la prova verifica
+  il rifiuto e sposta l'incremento di ritiro oltre una fase composta di carico.
+
+Esiti su 302 casi:
+
+- ANTHEA `245f8ddf` (prima delle correzioni del 15/10) con la release Y: 302 superati con la
+  prova di ritiro precedente; con la nuova 301, perché il rifiuto non esisteva ancora;
+- ANTHEA `94acc474` (`refactoring/integrazione-1016`) con le DLL di sviluppo delle correzioni
+  (Checker `3ae0cdb6`, CompositeBridge 1.7.0.0): **302 superati**. Questo ANTHEA non compila
+  con la release Y, perché usa API nuove (per esempio `HistoryConcreteTension` di PON-2).
+
+Le otto baseline restano identiche byte per byte in entrambe le combinazioni: riacquisite in una
+cartella temporanea con `BRIDGE_CAPTURE_BASELINE` e confrontate come testo. Non sono state
+rigenerate. I casi congelati non toccano le correzioni PON: metodo cumulativo lineare, nessun
+cassoncino, SLE solo con azioni nulle (caso 7), due pioli per fila, ritiro dopo le fasi di solo
+acciaio. Le correzioni sono provate direttamente in `GPCChecker.Test.CompositeBridge`.
+
+```powershell
+dotnet test GPCChecker.Test.BridgeAudit.csproj -c Release -p:AntheaDir=<ANTHEA> -p:BridgeLibraryDir=<cartella DLL>
+```
+
 ## Aggiornamento 28 settembre 2026 (CompositeBridge 1.4.0.0)
 
 Le otto baseline sono state riacquisite dopo l'introduzione della torsione del cassoncino.
@@ -62,10 +101,10 @@ sono nel repository Checker. Il risultato aggiornato è nell'
   integrati anche nel progetto storico .NET Framework 4.7.2. Il file è collegato,
   senza duplicazioni, nel presente progetto.
 - `BridgeModuleStagesTests.cs`: 65 casi delle fasi e delle larghezze efficaci del
-  modulo ANTHEA. Il riferimento a `../../ANTHEA/X.Core/X.Core.csproj` permette di
-  provare il codice effettivo senza copiarlo o spostarlo durante l'audit.
+  modulo ANTHEA. I riferimenti a `X.Calculations` e `src/ANTHEA.Reports` di `AntheaDir`
+  (fino al 7/10 `X.Core`) permettono di provare il codice effettivo senza copiarlo o spostarlo.
 
-Il runner .NET 8 usa le DLL `../../ANTHEA/lib/Checker`, ossia il gruppo distribuito
+Il runner .NET 8 usa le DLL `BridgeLibraryDir`, per default `../../ANTHEA/lib/Checker`, ossia il gruppo distribuito
 con l'app. Richiede i repository Checker e ANTHEA affiancati. Il progetto storico
 usa invece i riferimenti già presenti nel suo `.csproj`; non sostituire DLL
 singole per far coincidere due ambienti. I test nativi registrano percorso e
