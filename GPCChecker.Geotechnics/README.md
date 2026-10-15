@@ -111,7 +111,10 @@ Nc, terreno e α di Bustamante-Doix.
   ancoraggi φ10 e φ100 dati per L/D = 5, 10, 20, 50;
 - D > 0,80 m: cubiche a tratti in u = φ − 34° (continuità C2 a 34° e 38°) adattate alla figura per L/D = 4 e 32;
 - tra le curve z/D è interpolato in scala logaritmica, con media geometrica di Nq e aritmetica di Nq*;
-- fuori dal tratto visibile si usa il bordo, segnalato.
+- fuori dal tratto visibile si usa il bordo, segnalato. Per z/D l'avviso distingue i due casi (correzione PV-3, 15/10/2026):
+  oltre il bordo superiore (z/D > 50, o > 32 per D > 0,80 m), cioè alla punta, il bordo sovrastima Nq e l'avviso
+  «ATTENZIONE» riporta la quota, z/D e il valore adottato (non cautelativo); sotto il bordo inferiore (z/D < 5 o < 4), nel
+  tratto superficiale, il bordo è a favore di sicurezza e la nota non è un'attenzione.
 
 Le fonti (immagini, digitalizzazione, punti di controllo) sono in `ANTHEA/supporto/documentazione/riferimenti_nq`. Le curve
 dei pali medi sono quelle di Berezantzev et al. (1961), fig. 13.6 di Viggiani, Fondazioni (stessi assi e curve).

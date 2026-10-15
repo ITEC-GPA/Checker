@@ -356,6 +356,27 @@ public class PileEdgeCaseTests
     /// PV-2: cu is required only in the cohesive layers crossed by the pile below the water table. Pile D = 0.6 m, L = 10 m, water at 2 m: sand
     /// 0–12 m over clay 12–20 m without cu gives the same curves as the sand alone (the clay below the tip never enters the calculation).
     /// </summary>
+    /// <summary>
+    /// PV-3: the warning on z/D separates the truncation beyond the upper bound at the tip (non conservative) from the shallow part below the lower
+    /// bound (safe side, no «ATTENZIONE»). Pile D = 0.3 m, L = 20 m in sand φ' = 32°: at the tip z/D = 66.7 > 50, Nq of the curve 50 =
+    /// 10^(1 + (32 − 27.5)/(38.8 − 27.5)) = 25.02 (anchors of the curve 50, by hand). Pile D = 0.6 m, L = 12 m: z/D = 20 at the tip, only the
+    /// shallow part (z &lt; 3 m) uses the border.
+    /// </summary>
+    [TestMethod]
+    public void NqSlendernessWarningSeparatesTheTipFromTheHead()
+    {
+        var slender = Axial(new AxialPile(PileInstallation.Bored, 300, 20 * M), new AxialPileSurvey(Profile(null, (Sand(32), 30)), new[] { new AxialPileLayer(SoilBehaviour.Granular, SoilDensity.Dense) }));
+        Close(Math.Pow(10, 1 + 4.5 / 11.3), slender.Depths.Last().Surveys[0].Nq!.Nq, "Nq of the curve 50 at 32°", 1e-12);
+        var w = slender.Warnings.Single(x => x.Contains("z/D"));
+        StringAssert.StartsWith(w, "ATTENZIONE Nq: oltre z/D = 50 (z > 15,00 m)"); StringAssert.Contains(w, "alla punta z = 20,00 m, z/D = 66,7: Nq = 25,02, valore non cautelativo");
+        StringAssert.Contains(w, "Inoltre nel tratto superficiale con z/D < 5 (z < 1,50 m)");
+        var stocky = Axial(new AxialPile(PileInstallation.Bored, 600, 12 * M), new AxialPileSurvey(Profile(null, (Sand(32), 30)), new[] { new AxialPileLayer(SoilBehaviour.Granular, SoilDensity.Dense) }));
+        Assert.IsFalse(stocky.Depths.Last().Surveys[0].Nq!.SlendernessClipped, "z/D = 20 at the tip");
+        var s = stocky.Warnings.Single(x => x.Contains("z/D"));
+        Assert.AreEqual("Nq: nel tratto superficiale con z/D < 5 (z < 3,00 m) adottata la curva z/D = 5, senza estrapolare: a favore di sicurezza (Nq cresce al diminuire di z/D).", s);
+        Assert.IsFalse(stocky.Warnings.Any(x => x.StartsWith("ATTENZIONE Nq")));
+    }
+
     [TestMethod]
     public void CuIsRequiredOnlyInTheLayersCrossedByThePile()
     {

@@ -1,3 +1,4 @@
+using System.Globalization;
 using GPC.Model.Geotechnics;
 
 namespace GPC.Checkers.Geotechnics.Piles
@@ -169,7 +170,25 @@ namespace GPC.Checkers.Geotechnics.Piles
                     ") non corrisponde alla tecnologia del palo.");
             var traces = result.Depths.SelectMany(x => x.Surveys).Select(s => s.Nq).Where(n => n != null).ToArray();
             if (traces.Any(t => t!.FrictionAngleClipped)) warnings.Add("ATTENZIONE Nq: φ fuori dal tratto visibile di almeno una curva; adottato il bordo. Vedere le φ adottate nel dettaglio export.");
-            if (traces.Any(t => t!.SlendernessClipped)) warnings.Add("ATTENZIONE Nq: alcune quote hanno z/D fuori dall'intervallo " + (d > BearingCapacityFactors.LargeDiameter ? "4–32" : "5–50") + "; adottata la curva di bordo, senza estrapolare.");
+            // z/D outside the curves (PV-3): beyond the upper bound, at the deepest depths and so at the tip, the border curve overestimates Nq (it
+            // decreases with z/D): warning with the depth and the value; below the lower bound, near the head, the border is on the safe side.
+            var it = CultureInfo.GetCultureInfo("it-IT");
+            bool large = d > BearingCapacityFactors.LargeDiameter; double lowRatio = large ? 4 : 5, highRatio = large ? 32 : 50;
+            var deep = result.Depths.SelectMany(x => x.Surveys.Where(s => s.Nq != null && s.Nq.Slenderness > s.Nq.AdoptedSlenderness).Select(s => (x.Depth, Nq: s.Nq!))).ToArray();
+            bool shallow = traces.Any(t => t!.Slenderness < t.AdoptedSlenderness);
+            string shallowText = $"nel tratto superficiale con z/D < {lowRatio.ToString(it)} (z < {(lowRatio * d / SoilUnits.Metre).ToString("0.00", it)} m) adottata la curva z/D = {lowRatio.ToString(it)}, "
+                + "senza estrapolare: a favore di sicurezza (Nq cresce al diminuire di z/D).";
+            if (deep.Length > 0)
+            {
+                double last = deep.Max(x => x.Depth); var atLast = deep.Where(x => x.Depth == last).Select(x => x.Nq).ToArray();
+                double nqMin = atLast.Min(x => x.Nq), nqMax = atLast.Max(x => x.Nq);
+                string value = nqMin == nqMax ? nqMax.ToString("0.00", it) : nqMin.ToString("0.00", it) + "–" + nqMax.ToString("0.00", it);
+                warnings.Add($"ATTENZIONE {atLast[0].Factor}: oltre z/D = {highRatio.ToString(it)} (z > {(highRatio * d / SoilUnits.Metre).ToString("0.00", it)} m) adottata la curva di bordo z/D = "
+                    + $"{highRatio.ToString(it)}, senza estrapolare; {(last >= l - 1e-6 ? "alla punta" : "alla quota massima")} z = {(last / SoilUnits.Metre).ToString("0.00", it)} m, "
+                    + $"z/D = {atLast[0].Slenderness.ToString("0.0", it)}: {atLast[0].Factor} = {value}, valore non cautelativo (Nq diminuisce al crescere di z/D)."
+                    + (shallow ? " Inoltre " + shallowText : ""));
+            }
+            else if (shallow) warnings.Add("Nq: " + shallowText);
             result.MaximumDepth = max; result.PileLength = l; result.FullCoverage = max >= l - 1e-6; result.SurveyCount = strata.Count; result.Warnings = warnings;
             return result;
         }
