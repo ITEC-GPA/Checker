@@ -79,13 +79,37 @@ namespace GPC.Checkers.Concrete.Cracking
         /// <summary>
         /// A tensile zone without reinforcement fails the crack-width check (false by default: no verdict, <see cref="SectionCrackResult.Passed"/> null, as in
         /// 0.0.17.0). With true <see cref="SectionCrackResult.Passed"/> is false, with the same <see cref="SectionCrackResult.Outcome"/> and no width, in three
-        /// cases: <see cref="CrackOutcome.NoTensileReinforcement"/> (no tensile bar and the bar nearest to the tensile edge beyond h/2); a face of the entirely
-        /// tensile section with concrete but no bar in its effective band (<see cref="CrackReason.FaceWithoutAreaOrSteel"/>); an inner surface in tension without
-        /// effective reinforcement (<see cref="CrackOutcome.InnerSurfaceUnreinforced"/>). The cracks of such a zone are not controlled by any bar
-        /// (EN 1992-1-1 7.3.2(1)); the tensile strength of the concrete is not used. The neutral axis within the cover of a reinforced face keeps wk = 0.
-        /// ANTHEA F2-7 point 3, decision of the user 15/10/2026.
+        /// cases: <see cref="CrackOutcome.NoTensileReinforcement"/> (no tensile bar and the neutral axis not within the cover of a bar of the tensile edge, see
+        /// below); a face of the entirely tensile section with concrete but no bar in its effective band (<see cref="CrackReason.FaceWithoutAreaOrSteel"/>); an
+        /// inner surface in tension without effective reinforcement (<see cref="CrackOutcome.InnerSurfaceUnreinforced"/>). The cracks of such a zone are not
+        /// controlled by any bar (EN 1992-1-1 7.3.2(1)); the tensile strength of the concrete is not used. ANTHEA F2-7 point 3, decision of the user 15/10/2026.
+        /// <para>
+        /// The neutral axis within the cover of a reinforced face keeps wk = 0. Without the option a face counts as reinforced when the bar nearest to the
+        /// tensile edge is closer than h/2 (rule of 0.0.17.0); with the option (ANTHEA bug analysis 15/10/2026, FES-1) a bar must lie within its cover
+        /// c + Ø/2 measured along the strain gradient (projected: (c + Ø/2)(|qx| + |qy|) at the corner of a rectangle; on circles plus the sagitta
+        /// r (1 − cos(π/n)) of a regular ring of n bars), or the tensile zone must be no deeper than that projected cover with a bar within c + Ø/2 of the
+        /// tensile surface; c is <see cref="SectionCrackInput.CoverOverride"/> or the nominal cover (validated there with <see cref="ValidateAtUse"/>).
+        /// A detail "a,c" gives the projected cover of the governing bar. Bars at h/2 from the edge, a central mesh or side bars no longer give wk = 0.
+        /// </para>
         /// </summary>
         public bool UnreinforcedTensileZoneFails { get; private set; }
+
+        /// <summary>
+        /// Cover c of the width formula in the tensile zone of a partially compressed section without <see cref="SectionCrackInput.CoverOverride"/>: with true
+        /// the smallest free cover of the effective bars to the tensile face, as the faces of the entirely tensile section already measure it from the bar
+        /// positions, so that bars placed deeper than the nominal cover (free bars) enter k3 c, 5 (c + Ø/2) and Δsm with their real cover. The free cover of a
+        /// bar is its perpendicular distance, minus Ø/2, to the face of the outline that the strain gradient reaches first from the bar centre: the cover to
+        /// the tensile face, not to a side face (a corner bar of a beam with 40 mm side and 60 mm bottom cover bent about x gives 60), and in biaxial bending
+        /// the cover to the face the gradient points to, so a bar at the nominal cover keeps the nominal cover. On circular sections
+        /// (<see cref="CrackSectionGeometry.Circular"/>) it is radial, R − r − Ø/2 with R the radius of the outline vertices, so a ring at the nominal cover
+        /// keeps it (the polygon edges would give up to R (1 − cos(π/N)) less). Holes are not considered (their surfaces have their own bands).
+        /// <see cref="SectionCrackInput.NominalCover"/> only when that cover is not positive or not determined. False by default:
+        /// <see cref="SectionCrackInput.NominalCover"/>, the rule of 0.0.17.0 kept for the frozen fixtures and the contract K0. The trace marks the value with
+        /// <see cref="CrackTraceFlags.BarGeometry"/> and the detail "c" reads "smallest free cover of the effective bars to the tensile face". Automatic
+        /// layouts (bars at the nominal cover) give the nominal cover up to rounding. The cover of the DIN condition (<see cref="EffectiveDepthCover"/>) and
+        /// of the neutral axis within the cover (<see cref="UnreinforcedTensileZoneFails"/>) do not change. ANTHEA bug analysis 15/10/2026, FES-2.
+        /// </summary>
+        public bool CoverFromBarGeometry { get; private set; }
 
         private SectionCrackOptions() { }
 
@@ -137,6 +161,12 @@ namespace GPC.Checkers.Concrete.Cracking
         public SectionCrackOptions WithUnreinforcedTensileZoneFails(bool fails)
         {
             var copy = Copy(); copy.UnreinforcedTensileZoneFails = fails; return copy;
+        }
+
+        /// <summary>Copy with <see cref="CoverFromBarGeometry"/>.</summary>
+        public SectionCrackOptions WithCoverFromBarGeometry(bool fromBarGeometry)
+        {
+            var copy = Copy(); copy.CoverFromBarGeometry = fromBarGeometry; return copy;
         }
 
         private SectionCrackOptions Copy() => (SectionCrackOptions)MemberwiseClone();

@@ -127,7 +127,14 @@ non fessurata), l'esito, tutte le regioni esaminate e la traccia dei valori inte
 - σs è la tensione massima delle barre efficaci (a favore di sicurezza con più strati).
 - Il copriferro c è misurato alla superficie delle barre longitudinali (copriferro nominale più diametro della
   staffa), dato dal chiamante per la zona tesa delle sezioni parzializzate, oppure calcolato dalla geometria per le
-  facce e le superfici interne; può essere assegnato.
+  facce e le superfici interne; può essere assegnato. Con l'opzione `CoverFromBarGeometry` di `SectionCrackOptions`
+  (analisi dei bug FES-2; spenta per default, come in 0.0.17.0, per le catture congelate e il contratto K0) anche nella
+  zona tesa delle sezioni parzializzate c viene dalla geometria, se non è assegnato: il minimo, sulle barre efficaci,
+  della distanza dal baricentro della barra alla faccia del contorno che il gradiente raggiunge per prima, meno Ø/2
+  (copriferro verso la faccia tesa, non verso una faccia laterale; nelle sezioni circolari radiale, R − r − Ø/2 con R
+  il raggio dei vertici del contorno). Con le barre al copriferro nominale (disposizioni automatiche, anche in
+  flessione deviata) c resta il nominale; con barre libere più profonde entra il copriferro reale. Il copriferro
+  nominale resta solo come ripiego (copriferro non positivo o non determinato).
 - fct,eff = fctm del calcestruzzo, dato dal chiamante.
 - Durata del carico (breve o lunga) e aderenza delle barre (migliorata o liscia) sono dati del chiamante.
 
@@ -354,14 +361,53 @@ compresse (nullo con entrambe le regole, prima era il k2 delle barre) né i test
 
 ### 6.8 Casi particolari della sezione parzializzata
 
-**Asse neutro nel copriferro.** Se nessuna barra è tesa ma ci sono barre a distanza minore di h/2 dal lembo teso,
-l'asse neutro cade tra il lembo e le barre: σs ≤ 0 e
+**Asse neutro nel copriferro.** Se nessuna barra è tesa ma il lembo teso è armato, l'asse neutro cade tra il lembo e
+le barre di quel lembo: σs ≤ 0 e
 
 ```math
 w_k = 0 \qquad \text{(F.14)}
 ```
 
-Senza barre entro h/2 dal lembo teso la zona tesa non è armata e la verifica non ha esito.
+Quando il lembo teso è armato dipende dall'opzione `UnreinforcedTensileZoneFails` di `SectionCrackOptions`:
+
+- senza l'opzione (comportamento di 0.0.17.0, usato da ModelChecker e dal contratto K0): basta una barra a distanza
+  minore di h/2 dal lembo teso, misurata lungo il gradiente (h altezza proiettata). Senza barre entro h/2 la zona tesa
+  non è armata e la verifica non ha esito;
+- con l'opzione (regola dell'utente del 15/10/2026, analisi dei bug FES-1): (F.14) vale solo con l'asse neutro nel
+  copriferro di una barra del lembo teso. Detto a(d) lo spessore, lungo il gradiente, del calcestruzzo che resta fuori
+  dal contorno rientrato di d (fori allargati di d), cioè la profondità della posizione più avanzata di un baricentro
+  di barra con copriferro d,
+
+  ```math
+  a(d) = Q_{max} - \max_{P \in A_d} Q(P), \qquad a(d) = d \text{ (gradiente normale a una faccia)}, \qquad a(d) = d\,(|q_x| + |q_y|) \text{ (spigolo di un rettangolo)}
+  ```
+
+  una barra b del lembo teso soddisfa una delle due condizioni, con d = c + Ø_b/2 e c il copriferro della formula
+  (`CoverOverride` o copriferro nominale) e una tolleranza di 10⁻⁶ h:
+
+  ```math
+  Q_{max} - Q_b \le a(c + \varnothing_b/2) + s_b \qquad \text{oppure} \qquad h - x \le a(c + \varnothing_b/2) \;\text{e}\; \operatorname{dist}(b, \text{superficie tesa}) \le c + \varnothing_b/2 \qquad \text{(F.14a)}
+  ```
+
+  La prima dice che b sta nel proprio copriferro misurato lungo il gradiente (proiettato: nello spigolo di un
+  rettangolo con flessione deviata vale (c + Ø/2)(|qx| + |qy|)); s_b = r (1 − cos(π/n)) è la freccia di un anello
+  regolare di n barre di raggio r nelle sezioni circolari (zero nelle altre), perché con il gradiente fra due barre
+  adiacenti la barra più vicina sta più in profondità del cerchio rientrato. La seconda copre la faccia armata a una
+  sola estremità con gradiente appena obliquo (punta dell'ala di una T): zona tesa non più profonda del copriferro
+  proiettato e barra entro c + Ø/2 dalla parte del contorno oltre l'asse neutro. Se nessuna barra soddisfa (F.14a) la
+  zona tesa non è armata: esito «Nessuna armatura tesa», verifica non soddisfatta (apertura delle fessure non
+  controllata). Barre a mezza altezza, una rete in mezzeria o barre di parete lontane dal lembo non danno più wk = 0, e
+  il verdetto non dipende più dal confronto con h/2 (che si ribaltava spostando le barre di pochi decimi di mm o con il
+  rumore del solutore sulla rete in mezzeria). Il dettaglio «a,c» riporta a(c + Ø/2) + s_b della barra che governa.
+
+**Strisce di muro.** `WallSectionSession` (muri di sostegno, NTC 2018) usa questa verifica con
+`UnreinforcedTensileZoneFails` attivo e il copriferro libero della striscia assegnato (decisione dell'utente E1-D4 del
+15/10/2026): asse neutro nel copriferro delle barre di faccia → wk = 0; zona tesa senza armatura → verifica
+«Wall.Cracking» non soddisfatta senza ampiezza (domanda 0, limite wlim, rapporto assente, apertura delle fessure non
+controllata). Non c'è più la prova «non fessurata» con la tensione della sezione elastica non fessurata
+σt,el ≤ fctk,0,05: la resistenza a trazione del calcestruzzo non entra, come nelle sezioni (`ProvenUncracked` resta
+sempre falso). Con le barre al copriferro su entrambe le facce, che la striscia impone, la zona tesa senza armatura non
+si presenta nei casi ordinari.
 
 **Barre tese fuori da Ac,eff.** Se le barre tese sono tutte oltre hc,eff (asse neutro vicino alle barre), il metodo
 usa il limite superiore di EN 1992-1-1 7.3.4(3), (7.14), con ρ → 0 in (F.8):
@@ -376,7 +422,8 @@ con σs e Øeq delle barre tese.
 >
 > - Norma: le formule (7.8)-(7.9) e [C4.1.5]-[C4.1.7] non trattano esplicitamente il caso di barre tutte compresse
 >   con una zona tesa di calcestruzzo nel copriferro.
-> - Programma: wk = 0, come limite di (7.9) per σs → 0.
+> - Programma: wk = 0, come limite di (7.9) per σs → 0. Con `UnreinforcedTensileZoneFails` solo con l'asse neutro nel
+>   copriferro di una barra del lembo teso (F.14a); senza l'opzione con una barra entro h/2 dal lembo.
 > - Effetto: nessuna fessura di calcolo all'altezza delle barre; la fessura del solo copriferro non è valutata.
 > - Stato: dichiarato.
 
@@ -543,7 +590,7 @@ Con meno di due barre efficaci, o se la disposizione non è riconosciuta, l'inte
 | γ superfici interne | 2,5; DS 2 | — | 2,5 (h − d) di EN; DS 2 (h − d) per la fascia baricentrica | no | `SectionCrackCheck.Inner` |
 | Soglia della trazione uniforme delle fasce interne | \|∇ε\| hg ≤ 10⁻⁴ εmax,c | tutti | scelta del metodo (riquadro F-9) | no | `SectionCrackCheck.UniformTensionTolerance`, `Inner` |
 | Sistema grossolano DS | 0,5 · (7.8) | DS | DK NA 7.3.4(1) | no | `SectionCrackCheck.FullyTensioned` |
-| c | copriferro nominale più staffa | — | — | sì (`CoverOverride`) | `SectionCrackInput` |
+| c | copriferro nominale più staffa; con `CoverFromBarGeometry` copriferro delle barre efficaci verso la faccia tesa | — | — | sì (`CoverOverride`) | `SectionCrackInput`, `CrackSectionGeometry.TensileFaceCover` |
 | s | automatico (6.11) | — | — | sì (`SpacingOverride`) | `CrackSectionGeometry.MaximumSpacing` |
 | Riconoscimento del cerchio | ≥ 16 vertici equidistanti dall'origine entro 10⁻⁶ relativo | — | — | anelli concentrici da confermare | `CrackSectionGeometry.From` |
 | Tolleranze | εmax ≤ 10⁻¹² compressa; \|∇ε\| ≤ 10⁻¹⁵ asse neutro indeterminato; 10⁻⁸ mm sulle quote | — | — | no | `SectionCrackCheck.Evaluate` |
@@ -695,6 +742,24 @@ nella quasi permanente); XC3 quasi permanente, NTC e EN 0,3 mm; XD1 quasi perman
     eccentrica con l'asse neutro fuori (h − x = hg dove εmax,b/|∇ε| la supera), wk a mano; continuità all'ingresso
     dell'asse neutro (cassoni 400 × 600 e 400 × 400, anello Ø1000, flessione retta e deviata, NTC ed EN, entro 10⁻⁶);
     salto alla soglia della trazione uniforme con i valori del riquadro F-9;
+  - lembo teso armato con `UnreinforcedTensileZoneFails` (F.14a, `TensileEdgeBarMustLieWithinItsCover`): R300x500
+    con barre di parete Ø12 a 200 mm dal lembo teso (a = 44 mm, non soddisfatta; senza opzione wk = 0), barre a 230,
+    249,9, 250,1 e 270 mm (sempre non soddisfatta; senza opzione la soglia h/2 resta), striscia 1000 × 200 con rete
+    in mezzeria a y = −1, 0, +1 per i due segni (non soddisfatta), flessione deviata (0,6; −0,8) con barre d'angolo
+    (a = 70 mm, wk = 0 con h − x = 60 mm) e con le sole barre centrali (non soddisfatta), cerchio Ø1000 a 32 lati con
+    16Ø24 (a + s = 100,284754 mm, wk = 0 con il gradiente fra due barre e su una barra; mezzo anello: non
+    soddisfatta), striscia 1200 × 250 armata solo in alto con gradiente a 4° (a = 96,058847 mm: wk = 0 con h − x =
+    30 mm, non soddisfatta con 98 mm). Piani di deformazione dal Python indipendente del verificatore, a e profondità
+    delle barre a mano o con poligoni regolari;
+  - copriferro dalla geometria con `CoverFromBarGeometry` (`FormulaCoverComesFromTheEffectiveBarsWithTheOption`):
+    R300x500 con 3Ø20 a 70 mm dal lembo teso e 50 mm dalle facce laterali, x = 107,503 mm, σs = 264,405 MPa (stato
+    del Python indipendente del verificatore): c = 60 mm e wk = 0,3613160 mm (sr,max 345,59 mm) contro 0,2831131 mm
+    con il copriferro nominale 38 mm, NTC ed EN, (7.8)-(7.11) a mano; copriferro assegnato prevalente; barre al
+    copriferro nominale, flessione deviata con barre d'angolo e anello di 16Ø24 su un 32-gono: stessa ampiezza del
+    copriferro nominale;
+  - strisce di muro (`WallSectionSessionTests.CrackCheckFollowsTheSectionsWithoutTheTensileStrengthProof`): striscia
+    1000 × 400, N = −1000 kN, M = 75 kNm, asse neutro nel copriferro, wk = 0 e a = 40 + 8 = 48 mm, nessuna prova con
+    fctk,0,05; verifica non soddisfatta senza ampiezza per la zona tesa senza armatura;
   - ritaglio, interassi su file e anelli, hc,eff EN, DIN e DS.
 - **Integrazione**: i test del verificatore di modello eseguono la fessurazione per 10 norme e confrontano il
   risultato NTC con la chiamata diretta del metodo.

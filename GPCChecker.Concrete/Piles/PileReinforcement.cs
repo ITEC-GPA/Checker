@@ -57,7 +57,9 @@ namespace GPC.Checkers.Concrete.Piles
         public bool GoodBond { get; set; }
         public double LapPercent { get; set; } = 100;
         public double LapClearDistance { get; set; }
-        public double HeadAnchorage { get; set; } // m available outside the model
+        /// <summary>Anchorage of the bars beyond the pile head (into the cap), m, outside the model: counted as embedded length in the development at the head, not added to the cuts.</summary>
+        public double HeadAnchorage { get; set; }
+        /// <summary>Anchorage of the bars beyond the toe, m, outside the model: counted as embedded length in the development at the toe, not added to the cuts.</summary>
         public double ToeAnchorage { get; set; }
         public double StockLength { get; set; } = 12;
         public double LapDiameterFactor { get; set; } = 60;
@@ -89,6 +91,11 @@ namespace GPC.Checkers.Concrete.Piles
         public string Status { get; set; }
         public string Message { get; set; }
         public bool? MinimumReinforcementPassed { get; set; }
+        /// <summary>
+        /// Set by <see cref="PileReinforcement.ApplyDevelopment(IEnumerable{PileBarRun}, IEnumerable{PileSectionCheck})"/>: true where the bars are developed
+        /// (and their joints usable), false only where the demand needs tensile bars and they are not developed, null where it does not need them
+        /// (no bending and no axial tension, see <see cref="PileReinforcement.DevelopmentDemandRatio"/>) or before ApplyDevelopment.
+        /// </summary>
         public bool? DevelopmentAvailable { get; set; }
         public double? UsableMRdPositive => DevelopmentAvailable == true ? MRdPositive : null;
         public double? UsableMRdNegative => DevelopmentAvailable == true ? MRdNegative : null;
@@ -236,9 +243,10 @@ namespace GPC.Checkers.Concrete.Piles
         {
             // Native solver uses N in newtons, negative in compression. Constant-N must be selected by caller.
             var point=p.Solver.CalculateDomainPoints(new[]{new ResultBeamForces(-n*NewtonsPerKilonewton,0,0,0,sign*NewtonMillimetresPerKilonewtonMetre,0,p.Axes)})[0];
-            // Existing tolerance is 1 kN or 1e-6 of N expressed in newtons, not 0.1% of N.
-            // Keep the numerical acceptance criterion unchanged during the unit-only port.
-            double axialToleranceN=Math.Max(NewtonsPerKilonewton,Math.Abs(n)*.001);
+            // Same acceptance as the section resistance at assigned N (F2-15, ANTHEA bug analysis 15/10/2026 PO-3): max(1 kN; 1e-6 |N|; 0.5e-4 b h fck),
+            // also 1e-3 NRd,c with the stress block. The former max(1 kN; 1e-6 |N|) rejected the normal stops of the search on large piles
+            // (D >= 1.6 m in C35/45: |NRd - N| 1.1-2.0 kN) and left every depth without MRd. Only the acceptance changes, never the point.
+            double axialToleranceN=DomainPointAxialTolerance.Calculate(p.Solver,-n*NewtonsPerKilonewton);
             if(point==null||!Finite(point.NRd+point.MxRd+point.MyRd)||Math.Abs(point.NRd+n*NewtonsPerKilonewton)>axialToleranceN||point.MxRd*sign<0||Math.Abs(point.MyRd)>Math.Max(NewtonMillimetresPerKilonewtonMetre,Math.Abs(point.MxRd)*.001))throw new ArgumentException("Equilibrio N o direzione non rispettati.");
             return point.MxRd/NewtonMillimetresPerKilonewtonMetre;
         }
@@ -254,11 +262,15 @@ namespace GPC.Checkers.Concrete.Piles
             double shift=p.LeverFactor*d*checks.Select(c=>c.CotTheta>0?c.CotTheta:2.5).DefaultIfEmpty(2.5).Max()/(2*MillimetresPerMetre);
             double lb=anchorage.RequiredLength/MillimetresPerMetre,requiredLap=lap.RequiredLength/MillimetresPerMetre,initialLap=InitialLap(phi,p.LapDiameterFactor),l0=Math.Max(requiredLap,initialLap);
             double actualStart=start==0?0:Math.Max(0,start-l0),actualEnd=end;
-            bool available=start-actualStart+1e-9>=lb+shift&&actualEnd-end+1e-9>=lb+shift;
+            // Anchorage outside the model (into the cap at the head, beyond the toe) counts as embedded length at the pile ends (PO-5).
+            double headExtra=start==0?p.HeadAnchorage:0,toeExtra=end>=totalLength-1e-9?p.ToeAnchorage:0;
+            bool available=start-actualStart+headExtra+1e-9>=lb+shift&&actualEnd-end+toeExtra+1e-9>=lb+shift;
             var run=new PileBarRun{Segment=id,Count=geometry.Bars.Count,Diameter=phi,TheoreticalStart=start,TheoreticalEnd=end,Start=actualStart,End=actualEnd,Anchorage=lb,Lap=l0,RequiredLap=requiredLap,InitialLap=initialLap,Shift=shift,EndDevelopmentAvailable=available,
                 LapClearDistancePassed=lap.LapClearDistancePassed,
                 Status=available&&lap.LapClearDistancePassed?"Proposta: sviluppo disponibile; giunti, confinamento e disposizione da verificare":"Proposta incompleta: sviluppo o distanza di sovrapposizione insufficiente",
                 Reference=anchorage.Reference+"; "+lap.Reference+"; traslazione a_l=z cotθ/2 (EN1992-1-1 §9.2.1.3, JRC Arrieta 2011). α1…α5=1, σsd=fyd. Capacità nominale senza contributo aggiuntivo delle barre sovrapposte."};
+            if(start==0)run.StartDevelopment=Math.Max(0,lb+shift-p.HeadAnchorage);
+            if(end>=totalLength-1e-9)run.EndDevelopment=Math.Max(0,lb+shift-p.ToeAnchorage);
             run.Reference+=" Default software richiesto: 60φ (o fattore assegnato), arrotondato per eccesso a 0,10 m; l0 adottata=max(default, richiesta).";
             run.Pieces=PreferredStockPieces(id,actualStart,actualEnd,p.StockLength,l0,run.Count,phi).ToList();
             if(run.Pieces.Count>1&&p.LapPercent<100)run.Status="Proposta incompleta: la distinta raggruppa i giunti al 100%; distribuire i giunti per la percentuale assegnata prima di usarla.";
@@ -276,15 +288,32 @@ namespace GPC.Checkers.Concrete.Piles
         // Compatibility entry point. The current user-defined cutting scheme preserves every segment.
         public static IReadOnlyList<PileBarRun> ContinuousRuns(IReadOnlyList<PileDetailSegment> segments,double totalLength)
             => SegmentRuns(segments,totalLength);
+        /// <summary>
+        /// Bending ratio |M|/MRd at or below which a depth has no bending demand on the bars (1e-6: a numerically zero moment, such as the free head or the
+        /// tip of the elastic pile model, M about 1e-10 kNm).
+        /// </summary>
+        public const double DevelopmentDemandRatio = 1e-6;
         /// <summary>Conservative availability gate for straight bars: full tensile development plus tension shift from both physical ends. Does not certify the remaining lap/confinement details.</summary>
         public static void ApplyDevelopment(PileBarRun run,IEnumerable<PileSectionCheck> checks)
             => ApplyDevelopment(new[]{run},checks);
+        /// <summary>
+        /// Development of the bars at each depth (ANTHEA bug analysis 15/10/2026, PO-5). The bars are developed at depth x when x lies in
+        /// [CapacityStart; CapacityEnd] of every run, i.e. at least lbd + a_l from the bar ends (the anchorage outside the model at the pile head and toe,
+        /// <see cref="PileRcParameters.HeadAnchorage"/> and <see cref="PileRcParameters.ToeAnchorage"/>, counts as embedded length there), and every joint
+        /// of the runs has its length and arrangement. The demand needs tensile bars at x unless the bending ratio |M|/MRd is known and not above
+        /// <see cref="DevelopmentDemandRatio"/> and the axial force is not tensile (N ≥ 0, compression positive); an unknown ratio counts as a demand.
+        /// DevelopmentAvailable is true where the bars are developed, false only where the demand needs them and they are not (the nominal MRd is not
+        /// usable there: outcome Satisfied becomes NotEvaluated "Parziale", data insufficient), null where the demand does not need them.
+        /// Before 15/10/2026 every depth within lbd + a_l of the bar ends was "not available", also with M = 0, and the head anchorage was not used.
+        /// </summary>
         public static void ApplyDevelopment(IEnumerable<PileBarRun> runs,IEnumerable<PileSectionCheck> checks)
         {
             var bars=runs.ToArray();
             foreach(var c in checks)
             {
-                c.DevelopmentAvailable=bars.Length>0&&bars.All(run=>c.Action.Depth>=run.CapacityStart-1e-9&&c.Action.Depth<=run.CapacityEnd+1e-9&&run.Joints.All(j=>j.LengthPassed&&j.ArrangementPassed));
+                bool developed=bars.Length>0&&bars.All(run=>c.Action.Depth>=run.CapacityStart-1e-9&&c.Action.Depth<=run.CapacityEnd+1e-9&&run.Joints.All(j=>j.LengthPassed&&j.ArrangementPassed));
+                bool required=!(c.BendingRatio<=DevelopmentDemandRatio)||c.Action.N<0;
+                c.DevelopmentAvailable=developed?true:required?false:(bool?)null;
                 if(c.DevelopmentAvailable==false)
                 {
                     c.Data=DataStatus.Insufficient;

@@ -59,7 +59,7 @@ sospeso se nessun controllo fallisce ma almeno uno è in sospeso, soddisfatto ne
 | Trave (sezione 1D), flessione in entrambi i versi | supportato | le due metà della sezione sono verificate come zone tese potenziali |
 | Pilastro (sezione 1D) | supportato | NEd è la compressione massima di progetto, fornita dal chiamante |
 | Sezioni rettangolari, a T, circolari, cave, poligonali | supportato | geometria esplicita: contorno, fori e barre ordinarie della sezione |
-| Solette e piastre (EN 9.3), pareti (EN 9.6) | non supportato | nessun controllo |
+| Strisce di soletta piena (EN 9.3.1) e pareti (EN 9.6), profilo NTC 2018 (0.0.18.0) | supportato | striscia rettangolare; interasse misurato lungo gli strati (6.5) |
 | Fondazioni, mensole tozze, nodi, zone di diffusione | non supportato | fuori dal metodo |
 | Sezioni precompresse, sezioni composte acciaio-calcestruzzo | non supportato | la geometria considera solo le barre ordinarie; il verificatore del modello restituisce «non supportato» |
 | Regole per zone sismiche (NTC cap. 7, EN 1998-1) | non supportato | valgono solo le regole del capitolo 4 NTC e delle sezioni 8-9 EN |
@@ -300,6 +300,19 @@ L'esito complessivo è:
 >   e può essere implementato.
 > - Stato: da discutere (voce R20 del registro delle differenze, per ρw,min).
 
+### 6.5 Solette e pareti: interasse delle barre
+
+Nelle strisce di soletta piena (chiave `MainSpacing`, EN 9.3.1.1(3): s ≤ min(3h; 400 mm), nelle zone critiche
+s ≤ min(2h; 250 mm)) e nelle pareti (`WallVerticalSpacing`, EN 9.6.2(3): s ≤ min(3t; 400 mm)) l'interasse è la
+massima distanza fra barre adiacenti dello stesso strato, cioè delle file parallele alla striscia: righe di uguale y
+nella soletta (h lungo y) e nella parete con lo spessore lungo y (b ≥ h), colonne di uguale x nella parete ruotata
+(b < h). La distanza fra lo strato superiore e quello inferiore, attraverso lo spessore, non entra mai (analisi dei bug
+del 15/10/2026, DET-1): prima due barre allineate dei due strati valevano come adiacenti e l'interasse risultava
+max(interasse nello strato; h − 2c − Ø), con esiti non soddisfatti indebiti oltre h ≈ 480 mm (striscia 1000 × 500,
+c = 30, 6Ø16 per faccia: 424 mm invece di 184,8 mm). L'opzione con nome
+`MemberDetailingOptions.LegacyPlateSpacingAcrossLayers` riproduce la misura precedente, solo per la cattura
+congelata `detailing-plate-legacy.csv`. La regola dei pilastri (riquadro D-2) non cambia.
+
 ## 7. Coefficienti e valori predefiniti
 
 | Simbolo | Valore | Fonte | Modificabile | Dove nel codice |
@@ -356,7 +369,7 @@ Percorsi relativi alla radice del repository Checker (namespace `GPC.Checkers.Co
 
 ## 9. Limiti e casi non supportati
 
-- Solette e pareti non sono verificate dalla libreria.
+- Solette e pareti: solo profilo NTC 2018, striscia rettangolare; l'interasse è misurato lungo gli strati (6.5).
 - Le larghezze bt e bw, la dimensione dell'aggregato e il copriferro nominale sono dati: il metodo non li ricava
   dalla forma.
 - La divisione a metà altezza tratta le barre di parete come armatura della zona in cui cadono. Ne cambiano l'area e
@@ -450,7 +463,13 @@ Valori della libreria (GPCChecker.Concrete 0.0.17.0, eseguita):
   - `EurocodeAndAnnexValuesOfBeamsAndColumns`: valori a mano EN, UNI e DS su pilastro R400x400 e trave R300x500, con
     la riduzione 0,6, il passo UNI di 192 mm e le regole DS in sospeso;
   - `CoverAdditionsAndGroundCoverAreApplied`: maggiorazioni di cmin e copriferro contro terreno 40 e 75 mm;
-  - `ProfilesAreResolvedByExactTypeWithoutFallback`.
+  - `ProfilesAreResolvedByExactTypeWithoutFallback`;
+  - `SlabAndWallSpacingIsMeasuredAlongTheLayers` (DET-1): striscia 1000 × h, c = 30, 6Ø16 per faccia, interasse a mano
+    (1000 − 2 · 38)/5 = 184,8 mm per soletta h = 500 (≤ 400), soletta h = 400 in zona critica (≤ 250), parete
+    1000 × 500 e parete ruotata (≤ 400); con l'opzione legacy 424, 324, 424 e 424 mm, non soddisfatti;
+  - `LegacyPlateDetailingIsReproduced`: cattura congelata delle solette e pareti con l'opzione legacy dell'interasse;
+    senza l'opzione gli altri controlli sono identici e 60 righe hanno l'interasse più piccolo (S1000x200D 102 → 69,38,
+    W250x1200N 164 → 159,14, W1000x200D 92 → 68,62 mm), con gli stessi esiti.
 - Nel repository Model, `MemberDetailingTest` verifica il collegamento come attività d'asta (trave NTC soddisfatta,
   pilastro NTC non soddisfatto sul passo delle staffe, EN, DS, dati mancanti, conferme).
 - **Esempio di questa pagina**: eseguito con la libreria 0.0.17.0 e ricalcolato in modo indipendente, scarto

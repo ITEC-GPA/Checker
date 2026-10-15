@@ -175,10 +175,111 @@ namespace GPC.Checkers.Concrete.Cracking
             return (inside ? clearance : -clearance) - bar.Diameter / 2;
         }
 
+        /// <summary>
+        /// Free cover of a bar to the tensile face, mm: the face of the outline that the strain gradient (unit direction qx, qy) reaches first from the bar
+        /// centre, as the perpendicular distance to that face minus Ø/2 (the smaller one when the ray hits a vertex); so a bar at the nominal cover gives the
+        /// nominal cover also in biaxial bending, and the cover to a side face does not replace the cover to the tensile face. On circular sections radially,
+        /// R − r − Ø/2 with R the radius of the outline vertices (the circle the polygon is inscribed in, so a ring at the nominal cover keeps it). Holes are
+        /// not considered (their surfaces are checked by the inner bands). NaN when the ray leaves no face behind (bar outside the outline).
+        /// </summary>
+        internal double TensileFaceCover(CrackBar bar, double qx, double qy)
+        {
+            if (Circular) return Outline.Max(v => Radius(v.X, v.Y)) - Radius(bar.X, bar.Y) - bar.Diameter / 2;
+            double first = double.PositiveInfinity, distance = double.NaN;
+            for (int i = 0; i < Outline.Count; i++)
+            {
+                var a = Outline[i]; var b = Outline[(i + 1) % Outline.Count];
+                double dx = b.X - a.X, dy = b.Y - a.Y, denominator = qx * dy - qy * dx;
+                if (denominator == 0) continue; // face parallel to the gradient
+                double rx = a.X - bar.X, ry = a.Y - bar.Y;
+                double t = (rx * dy - ry * dx) / denominator, s = (rx * qy - ry * qx) / denominator;
+                if (t <= 0 || s < -1e-12 || s > 1 + 1e-12) continue;
+                double length = Hypot(dx, dy), normal = Math.Abs((bar.X - a.X) * (-dy / length) + (bar.Y - a.Y) * (dx / length));
+                if (t < first - 1e-9) { first = t; distance = normal; }
+                else if (t <= first + 1e-9) distance = Math.Min(distance, normal);
+            }
+            return distance - bar.Diameter / 2;
+        }
+
+        // ---- Bars of the tensile edge (neutral axis within the cover) ----
+
+        /// <summary>
+        /// Depth along the unit direction (qx, qy), from the most advanced point of the concrete, of the concrete inset by <paramref name="inset"/> mm (outline
+        /// moved inward and holes outward, mitered corners): Qmax − max Q of the inset region, i.e. the depth along the strain gradient of the deepest
+        /// position of a bar centre at that distance from every surface. Rectangle: inset (|qx| + |qy|); gradient normal to a face: inset.
+        /// Null when nothing is left of the concrete (section thinner than twice the inset).
+        /// </summary>
+        internal double? InsetDepth(double qx, double qy, double inset)
+        {
+            double top = Outline.Max(v => qx * v.X + qy * v.Y);
+            double extent = Outline.Concat(Holes.SelectMany(h => h)).Max(v => Math.Max(Math.Abs(v.X), Math.Abs(v.Y)));
+            // Same scale rule as the boolean operations of GPC.Geometry: the largest coordinate close to 1e9 (relative precision 1e-9).
+            double scale = Math.Pow(10, Math.Floor(Math.Log10(1e9 / Math.Max(extent, 1e-9))));
+            List<IntPoint> Path(IReadOnlyList<Point2d> polygon, bool positive)
+            {
+                var path = polygon.Select(v => new IntPoint((long)Math.Round(v.X * scale), (long)Math.Round(v.Y * scale))).ToList();
+                if (Clipper.Orientation(path) != positive) path.Reverse();
+                return path;
+            }
+            var offset = new ClipperOffset();
+            offset.AddPath(Path(Outline, true), JoinType.jtMiter, EndType.etClosedPolygon);
+            foreach (var hole in Holes) offset.AddPath(Path(hole, false), JoinType.jtMiter, EndType.etClosedPolygon);
+            var solution = new List<List<IntPoint>>();
+            offset.Execute(ref solution, -inset * scale);
+            var points = solution.SelectMany(p => p).ToArray();
+            if (points.Length == 0) return null;
+            return top - points.Max(v => (qx * v.X + qy * v.Y) / scale);
+        }
+
+        /// <summary>
+        /// Distance from the centre of a bar to the tensile surface of the concrete: the edges of the outline and of the holes clipped to
+        /// qx x + qy y ≥ <paramref name="level"/> (the part beyond the neutral axis); infinity when no edge reaches the level.
+        /// </summary>
+        internal double DistanceToSurfaceBeyond(CrackBar bar, double qx, double qy, double level)
+        {
+            double best = double.PositiveInfinity;
+            foreach (var polygon in new[] { Outline }.Concat(Holes))
+                for (int i = 0; i < polygon.Count; i++)
+                {
+                    var a = polygon[i]; var b = polygon[(i + 1) % polygon.Count];
+                    double qa = qx * a.X + qy * a.Y - level, qb = qx * b.X + qy * b.Y - level;
+                    if (qa < 0 && qb < 0) continue;
+                    double ax = a.X, ay = a.Y, bx = b.X, by = b.Y;
+                    if (qa < 0) { double t = qa / (qa - qb); ax += t * (bx - ax); ay += t * (by - ay); }
+                    else if (qb < 0) { double t = qb / (qb - qa); bx += t * (ax - bx); by += t * (ay - by); }
+                    double dx = bx - ax, dy = by - ay, length = dx * dx + dy * dy;
+                    double s = length > 0 ? Math.Max(0, Math.Min(1, ((bar.X - ax) * dx + (bar.Y - ay) * dy) / length)) : 0;
+                    best = Math.Min(best, Hypot(bar.X - ax - s * dx, bar.Y - ay - s * dy));
+                }
+            return best;
+        }
+
+        /// <summary>
+        /// Allowance for the discrete bars of a circular section: the sagitta r (1 − cos(π/n)) of a regular ring of n bars at radius r, i.e. how much deeper
+        /// than the ring the nearest bar can lie along the gradient when the gradient points between two adjacent bars. Bars are grouped by radius as in
+        /// <see cref="MaximumSpacing"/>; zero for the other layouts and for an isolated bar.
+        /// </summary>
+        internal double RingAllowance(CrackBar bar)
+        {
+            if (!Circular) return 0;
+            double radius = Radius(bar.X, bar.Y);
+            int count = Bars.Count(b => Math.Abs(Radius(b.X, b.Y) - radius) <= 1e-5);
+            return count < 2 ? 0 : radius * (1 - Math.Cos(Math.PI / count));
+        }
+
         // ---- Maximum spacing of the effective tensile bars (ANTHEA TensionBarSpacing) ----
 
         /// <summary>Maximum distance between adjacent selected bars; null when fewer than two bars or when it cannot be determined.</summary>
-        public double? MaximumSpacing(IReadOnlyList<int> tensileBarIndices)
+        public double? MaximumSpacing(IReadOnlyList<int> tensileBarIndices) => MaximumSpacing(tensileBarIndices, null);
+
+        /// <summary>
+        /// Maximum distance between adjacent selected bars of a layer (Rows layout): only the rows of bars with the same y (<paramref name="alongX"/> true) or
+        /// the same x (false), never across the layers, e.g. through the thickness of a slab or wall strip (ANTHEA bug analysis 15/10/2026, DET-1). The
+        /// circular layouts measure along their rings as <see cref="MaximumSpacing(IReadOnlyList{int})"/>. Null as there.
+        /// </summary>
+        internal double? MaximumSpacingAlong(IReadOnlyList<int> barIndices, bool alongX) => MaximumSpacing(barIndices, alongX);
+
+        private double? MaximumSpacing(IReadOnlyList<int> tensileBarIndices, bool? alongX)
         {
             var selected = new HashSet<int>(tensileBarIndices);
             if (selected.Count < 2) return null;
@@ -203,7 +304,7 @@ namespace GPC.Checkers.Concrete.Cracking
             }
             else
             {
-                foreach (bool horizontal in new[] { true, false })
+                foreach (bool horizontal in alongX.HasValue ? new[] { alongX.Value } : new[] { true, false })
                 {
                     var rows = Bars.Select((b, i) => new { Bar = b, Index = i }).GroupBy(b => Math.Round(horizontal ? b.Bar.Y : b.Bar.X, 6));
                     foreach (var row in rows)

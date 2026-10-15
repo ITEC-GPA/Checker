@@ -488,6 +488,161 @@ namespace ConcreteTests
         }
 
         /// <summary>
+        /// FES-1 of the ANTHEA bug analysis (15/10/2026; user rule of 15/10: wk = 0 only with the neutral axis in the cover): with UnreinforcedTensileZoneFails
+        /// the branch "no tensile bar" gives wk = 0 only when a bar lies within its cover along the strain gradient, Qmax − Q ≤ a(c + Ø/2), a = depth of the
+        /// concrete inset by c + Ø/2 (plus the sagitta of a regular ring on circles), or when the tensile zone is not deeper than a and a bar lies within
+        /// c + Ø/2 of the tensile surface; otherwise NoTensileReinforcement, not satisfied. Without the option the rule of 0.0.17.0 (nearest bar closer
+        /// than h/2) is unchanged. Strain planes of the cases from the verifier's independent Python (scratchpad bug/verA-fess-copriferro-h2/attesi.py: R300x500,
+        /// N = −600 kN, M = 86 kNm, h − x = 171.43 mm, ε = 1.8324e-4 at the tensile edge; wall 1000×200, N = −600, M = ±28, h − x = 41.87 mm,
+        /// ε = 6.0393e-5); a and the bar depths by hand or from scratchpad agent-conc-sle/fes1_attesi.py (regular polygons, no library code).
+        /// </summary>
+        [TestMethod]
+        public void TensileEdgeBarMustLieWithinItsCover()
+        {
+            var fails = SectionCrackOptions.Default.WithUnreinforcedTensileZoneFails(true);
+            SectionCrackResult C(Point2d[] outline, CrackBar[] bars, CrackBarLayout layout, StrainPlane plane, double cover, SectionCrackOptions options)
+                => SectionCrackCheck.Evaluate(new SectionCrackInput(Ntc, ServiceabilityCombination.QuasiPermanent, "XC1", false, null,
+                    new CrackSectionGeometry(outline, null, bars, layout), plane, bars.Select(b => 200000 * plane.GetStrain(b.X, b.Y)), true, false, false,
+                    200000, 33000, 2.9, false, true, cover, null, null, null, false, options));
+            CrackBar Bar(double x, double y, double diameter) => new CrackBar(x, y, diameter, Math.PI * diameter * diameter / 4);
+            double? Projected(SectionCrackResult r) => r.Details.SingleOrDefault(d => d.Symbol == "a,c")?.Value;
+            // Bottom edge in tension, neutral axis at y = −250 + h − x (attesi.py).
+            StrainPlane BottomTension(double depth, double strain, double edge) => new StrainPlane(0, -strain / depth, new Point2d(0, edge + depth), 0);
+            var scenario = BottomTension(171.43, 1.8324e-4, -250);
+            CrackBar[] Scenario(double fromBottom) => new[] { Bar(-106, 204, 16), Bar(0, 204, 16), Bar(106, 204, 16), Bar(-108, -250 + fromBottom, 12), Bar(108, -250 + fromBottom, 12) };
+            // (A) Side bars 2Ø12 at 200 mm from the tensile edge, nominal cover 30 + 8: a = 38 + 12/2 = 44 mm (gradient normal to the face), bars at 200 mm.
+            var a = C(Rectangle300x500, Scenario(200), CrackBarLayout.Rows, scenario, 38, fails);
+            Assert.AreEqual(CrackOutcome.NoTensileReinforcement, a.Outcome, a.Status); Assert.AreEqual(false, a.Passed); Assert.IsNull(a.Width);
+            Assert.AreEqual(44, Projected(a).Value, 1e-5);
+            var legacy = C(Rectangle300x500, Scenario(200), CrackBarLayout.Rows, scenario, 38, SectionCrackOptions.Default);
+            Assert.AreEqual(0, legacy.Width.Value, "default: nearest bar 200 < h/2 = 250, wk = 0 as in 0.0.17.0"); Assert.IsNull(Projected(legacy));
+            // (B) The verdict no longer flips at h/2: with the option every position beyond the cover fails; the default keeps the h/2 threshold.
+            foreach (double fromBottom in new[] { 230, 249.9, 250.1, 270 })
+            {
+                var r = C(Rectangle300x500, Scenario(fromBottom), CrackBarLayout.Rows, scenario, 38, fails);
+                Assert.AreEqual(false, r.Passed, fromBottom + " mm"); Assert.AreEqual(CrackOutcome.NoTensileReinforcement, r.Outcome, fromBottom + " mm");
+                var d = C(Rectangle300x500, Scenario(fromBottom), CrackBarLayout.Rows, scenario, 38, SectionCrackOptions.Default);
+                Assert.AreEqual(fromBottom < 250 ? true : (bool?)null, d.Passed, fromBottom + " mm, default");
+            }
+            // (C) Wall strip 1000×200 with one central mesh 5Ø12 (y = 0 and ±1): a = 44, mesh at 100 mm from either face; both signs fail, without noise.
+            var strip = new[] { new Point2d(-500, -100), new Point2d(500, -100), new Point2d(500, 100), new Point2d(-500, 100) };
+            foreach (double y in new[] { -1d, 0, 1 })
+                foreach (int sign in new[] { 1, -1 })
+                {
+                    var mesh = Enumerable.Range(0, 5).Select(k => Bar(-400 + 200 * k, y, 12)).ToArray();
+                    var plane = sign > 0 ? BottomTension(41.87, 6.0393e-5, -100) : new StrainPlane(0, 6.0393e-5 / 41.87, new Point2d(0, 100 - 41.87), 0);
+                    var r = C(strip, mesh, CrackBarLayout.Rows, plane, 38, fails);
+                    Assert.AreEqual(CrackOutcome.NoTensileReinforcement, r.Outcome, "mesh y = " + y + ", sign " + sign); Assert.AreEqual(false, r.Passed);
+                }
+            // (D) Biaxial bending, gradient (0.6, −0.8): tensile corner (150, −250), Qmax = 290. Corner bars Ø20 at (±100, ±200), nominal cover 40:
+            // a = (40 + 10)(0.6 + 0.8) = 70 = depth of the corner bar, so wk = 0 with h − x = 60 > c + Ø/2 = 50 (the cover is projected along the gradient).
+            // Bars at x = 0 only: depth 290 − 0.8 · 200 = 130 > 70, the tensile corner has no bar: not satisfied.
+            var oblique = new StrainPlane(.6e-6, -.8e-6, new Point2d(0, -287.5), 0); // neutral axis Q = 0.6 x − 0.8 y = 230, h − x = 60
+            var corners = new[] { Bar(-100, -200, 20), Bar(100, -200, 20), Bar(-100, 200, 20), Bar(100, 200, 20) };
+            var d1 = C(Rectangle300x500, corners, CrackBarLayout.Rows, oblique, 40, fails);
+            Assert.AreEqual(CrackOutcome.Evaluated, d1.Outcome, d1.Status); Assert.AreEqual(0, d1.Width.Value); Assert.AreEqual(true, d1.Passed);
+            Assert.AreEqual(70, Projected(d1).Value, 1e-5); Assert.AreEqual(70, d1.Details.Single(e => e.Symbol == "h − d,min").Value, 1e-9);
+            var d2 = C(Rectangle300x500, new[] { Bar(0, -200, 20), Bar(0, 200, 20) }, CrackBarLayout.Rows, oblique, 40, fails);
+            Assert.AreEqual(CrackOutcome.NoTensileReinforcement, d2.Outcome, d2.Status); Assert.AreEqual(false, d2.Passed);
+            // (E) Circle D 1000 as a 32-gon (ANTHEA default), 16Ø24 at r = 408 (cover 70 + 10), Ring: gradient between two bars (11.25°) and on a bar
+            // (0°), tensile cap 30 mm. fes1_attesi.py: a = 92.445149 and the ring sagitta 408 (1 − cos(π/16)) = 7.839606, nearest bar 99.839606 at 11.25°
+            // (deeper than a, within a + sagitta) and 92 at 0°: wk = 0 in both. Half ring only (bars at 90°…270°), gradient at 0°: the nearest bar is at
+            // 500 mm, not satisfied.
+            var circle = Enumerable.Range(0, 32).Select(i => new Point2d(500 * Math.Cos(2 * Math.PI * i / 32), 500 * Math.Sin(2 * Math.PI * i / 32))).ToArray();
+            var ring = Enumerable.Range(0, 16).Select(i => Bar(408 * Math.Cos(2 * Math.PI * i / 16), 408 * Math.Sin(2 * Math.PI * i / 16), 24)).ToArray();
+            StrainPlane Cap(double degrees)
+            {
+                double qx = Math.Cos(degrees * Math.PI / 180), qy = Math.Sin(degrees * Math.PI / 180), top = circle.Max(v => qx * v.X + qy * v.Y), level = top - 30;
+                return new StrainPlane(1e-6 * qx, 1e-6 * qy, new Point2d(level * qx, level * qy), 0);
+            }
+            foreach (var pair in new[] { Tuple.Create(11.25, 100.284754), Tuple.Create(0d, 100.284754), Tuple.Create(3d, 100.158061) })
+            {
+                var r = C(circle, ring, CrackBarLayout.Ring, Cap(pair.Item1), 80, fails);
+                Assert.AreEqual(0, r.Width.Value, pair.Item1 + "° " + r.Status); Assert.AreEqual(true, r.Passed);
+                Assert.AreEqual(pair.Item2, Projected(r).Value, 1e-5, pair.Item1 + "°: a + ring sagitta");
+            }
+            var half = ring.Where(b => b.X <= 1e-9).ToArray();
+            var h = C(circle, half, CrackBarLayout.Ring, Cap(0), 80, fails);
+            Assert.AreEqual(CrackOutcome.NoTensileReinforcement, h.Outcome, h.Status); Assert.AreEqual(false, h.Passed);
+            // (F) Flange-like strip 1200×250 with bars only at the top corners (±510, 35) Ø20, c = 80, gradient −(cos 4°, sin 4°): the extreme point is
+            // the lower corner (−600, −125), Qmax = 607.257989, a = 90 (cos 4° + sin 4°) = 96.058847, the bars lie 100.941800 deep (fes1_attesi.py), but
+            // they are within c + Ø/2 = 90 of the tensile face x = −600. Tensile zone 30 mm (≤ a): neutral axis within the cover of those bars, wk = 0;
+            // 98 mm (> a, bars still compressed): not satisfied.
+            var flange = new[] { new Point2d(-600, -125), new Point2d(600, -125), new Point2d(600, 125), new Point2d(-600, 125) };
+            var flangeBars = new[] { Bar(-510, 35, 20), Bar(510, 35, 20) };
+            double fx = -Math.Cos(4 * Math.PI / 180), fy = -Math.Sin(4 * Math.PI / 180);
+            StrainPlane Tilted(double depth) { double level = 607.257989 - depth; return new StrainPlane(1e-6 * fx, 1e-6 * fy, new Point2d(level * fx, level * fy), 0); }
+            var shallow = C(flange, flangeBars, CrackBarLayout.Rows, Tilted(30), 80, fails);
+            Assert.AreEqual(0, shallow.Width.Value, shallow.Status); Assert.AreEqual(true, shallow.Passed); Assert.AreEqual(96.058847, Projected(shallow).Value, 1e-5);
+            var deep = C(flange, flangeBars, CrackBarLayout.Rows, Tilted(98), 80, fails);
+            Assert.AreEqual(CrackOutcome.NoTensileReinforcement, deep.Outcome, deep.Status); Assert.AreEqual(false, deep.Passed);
+        }
+
+        /// <summary>
+        /// FES-2 of the ANTHEA bug analysis (15/10/2026): with CoverFromBarGeometry and no assigned cover, c of the width formula in the partially compressed
+        /// section is the free cover of the effective bars to the tensile face (here 70 − 10 = 60 mm; not the side cover 50 − 10 = 40 mm), not the nominal
+        /// cover (30 + 8 = 38 mm). Scenario of the verifier (scratchpad bug/fessurazione-cover-libere/indip.py, which takes c = 60 for these bars): R300x500,
+        /// C30/37, 3Ø20 with centre 70 mm from the tensile edge, 2Ø16 at the top, M = 98 kNm,
+        /// cracked state x = 107.503 mm, σs = 264.405 MPa (its n − 1 solution). Expected widths by hand from EN 1992-1-1 (7.8)-(7.11), scratchpad
+        /// agent-conc-sle/fes2_attesi.py: c = 38 → wk = 0.2831130993325234 (sr,max 270.79), c = 60 → wk = 0.3613160069764426 (sr,max 345.59, NTC Δsm
+        /// 203.29), beyond wlim = 0.3. NTC gives the same width (Δsm = sr,max/1.7, wk = 1.7 Δsm Δε). Without the option the nominal cover stays; bars at the
+        /// nominal cover and a ring of bars at the nominal cover of a polygonal circle keep the width of the nominal cover.
+        /// </summary>
+        [TestMethod]
+        public void FormulaCoverComesFromTheEffectiveBarsWithTheOption()
+        {
+            var fromBars = SectionCrackOptions.Default.WithCoverFromBarGeometry(true);
+            double ecm = 22000 * Math.Pow(3.8, .3), fctm = .3 * Math.Pow(30, 2.0 / 3);
+            CrackBar Bar(double x, double y, double diameter) => new CrackBar(x, y, diameter, Math.PI * diameter * diameter / 4);
+            SectionCrackResult C(Standard standard, string exposure, double? limit, Point2d[] outline, CrackBar[] bars, CrackBarLayout layout, StrainPlane state,
+                double nominal, SectionCrackOptions options)
+                => SectionCrackCheck.Evaluate(new SectionCrackInput(standard, ServiceabilityCombination.QuasiPermanent, exposure, false, limit,
+                    new CrackSectionGeometry(outline, null, bars, layout), state, bars.Select(b => 200000 * state.GetStrain(b.X, b.Y)), true, false, false,
+                    200000, ecm, fctm, false, true, nominal, null, null, null, false, options));
+            CrackBar[] Free(double centre) => new[] { Bar(-100, -250 + centre, 20), Bar(0, -250 + centre, 20), Bar(100, -250 + centre, 20), Bar(-100, 200, 16), Bar(100, 200, 16) };
+            double steel = 264.405 / 200000, axis = 250 - 107.503;
+            var plane = new StrainPlane(0, -steel / (axis + 180), new Point2d(0, axis), 0);
+            foreach (var code in new[] { Tuple.Create(Ntc, "XC1", (double?)null), Tuple.Create((Standard)ServiceabilityMigrationTests.Standard("EN 1992-1-1"), "XC1", (double?).3) })
+            {
+                string what = code.Item1.GetType().Name;
+                var nominal = C(code.Item1, code.Item2, code.Item3, Rectangle300x500, Free(70), CrackBarLayout.Rows, plane, 38, SectionCrackOptions.Default);
+                Assert.AreEqual(0.2831130993325234, nominal.Width.Value, 1e-9, what + " nominal cover"); Assert.AreEqual(true, nominal.Passed, what);
+                Assert.AreEqual(38, nominal.Details.Single(d => d.Symbol == "c").Value, what);
+                var r = C(code.Item1, code.Item2, code.Item3, Rectangle300x500, Free(70), CrackBarLayout.Rows, plane, 38, fromBars.WithTrace(true));
+                Assert.AreEqual(0.3613160069764426, r.Width.Value, 1e-9, what + " cover of the bars"); Assert.AreEqual(false, r.Passed, what + ": beyond 0.3 mm");
+                var c = r.Details.Single(d => d.Symbol == "c");
+                Assert.AreEqual(60, c.Value, 1e-12, what); Assert.AreEqual("smallest free cover of the effective bars to the tensile face", c.Expression, what);
+                Assert.IsTrue(r.Trace.Single(e => e.Code == CrackTraceCodes.Cover && e.Region == null && !e.HasFlag(CrackTraceFlags.Formula)).HasFlag(CrackTraceFlags.BarGeometry), what);
+                // An assigned cover wins; bars at the nominal cover give the nominal width.
+                var assigned = SectionCrackCheck.Evaluate(new SectionCrackInput(code.Item1, ServiceabilityCombination.QuasiPermanent, code.Item2, false, code.Item3,
+                    new CrackSectionGeometry(Rectangle300x500, null, Free(70), CrackBarLayout.Rows), plane, Free(70).Select(b => 200000 * plane.GetStrain(b.X, b.Y)), true, false, false,
+                    200000, ecm, fctm, false, true, 38, 38, null, null, false, fromBars));
+                Assert.AreEqual(nominal.Width.Value, assigned.Width.Value, 1e-15, what + " assigned");
+                var atNominal = C(code.Item1, code.Item2, code.Item3, Rectangle300x500, Free(48), CrackBarLayout.Rows, plane, 38, fromBars);
+                Assert.AreEqual(C(code.Item1, code.Item2, code.Item3, Rectangle300x500, Free(48), CrackBarLayout.Rows, plane, 38, SectionCrackOptions.Default).Width.Value,
+                    atNominal.Width.Value, 1e-15, what + " bars at the nominal cover");
+            }
+            // Biaxial bending, gradient (0.6, −0.8) with the neutral axis at Q = 0.6 x − 0.8 y = −200: corner and face bars Ø16 at the nominal cover
+            // 38 + 8 = 46 from every face; the cover to the face the gradient reaches is 38 for every effective bar (a projection along the gradient would not).
+            var square = new[] { -104d, 0, 104 }.SelectMany(x => new[] { Bar(x, -204, 16), Bar(x, 204, 16) }).Concat(new[] { Bar(-104, 0, 16), Bar(104, 0, 16) }).ToArray();
+            var oblique = new StrainPlane(.6e-6, -.8e-6, new Point2d(0, 250), 0); // effective bars (104, −204) and (0, −204), Qmax − Q − Ø/2 = 56.4 and 118.8
+            var biaxial = C(Ntc, "XC1", null, Rectangle300x500, square, CrackBarLayout.Rows, oblique, 38, fromBars);
+            Assert.AreEqual(CrackOutcome.Evaluated, biaxial.Outcome, biaxial.Status);
+            Assert.AreEqual(38, biaxial.Details.Single(d => d.Symbol == "c").Value, 1e-12);
+            Assert.AreEqual(C(Ntc, "XC1", null, Rectangle300x500, square, CrackBarLayout.Rows, oblique, 38, SectionCrackOptions.Default).Width.Value, biaxial.Width.Value, 1e-15);
+            // Ring of 16Ø24 at the nominal cover 80 of a 32-gon of radius 500 (r = 500 − 80 − 12): the radial cover is the nominal one, while the distance
+            // to the polygon edges would be smaller by up to 500 (1 − cos(π/32)).
+            var circle = Enumerable.Range(0, 32).Select(i => new Point2d(500 * Math.Cos(2 * Math.PI * i / 32), 500 * Math.Sin(2 * Math.PI * i / 32))).ToArray();
+            var ring = Enumerable.Range(0, 16).Select(i => Bar(408 * Math.Cos(2 * Math.PI * (i + .5) / 16), 408 * Math.Sin(2 * Math.PI * (i + .5) / 16), 24)).ToArray();
+            var bent = new StrainPlane(0, -2e-6, new Point2d(0, 150), 0);
+            var ringNominal = C(Ntc, "XC1", null, circle, ring, CrackBarLayout.Ring, bent, 80, SectionCrackOptions.Default);
+            var ringBars = C(Ntc, "XC1", null, circle, ring, CrackBarLayout.Ring, bent, 80, fromBars);
+            Assert.AreEqual(CrackOutcome.Evaluated, ringBars.Outcome, ringBars.Status);
+            Assert.AreEqual(80, ringBars.Details.Single(d => d.Symbol == "c").Value, 1e-9);
+            Assert.AreEqual(ringNominal.Width.Value, ringBars.Width.Value, 1e-12);
+        }
+
+        /// <summary>
         /// (g) Hollow section in bending: the neutral axis cuts the section (k2 = 0.5 for the outer tensile zone), but each inner wall is checked as a local
         /// area with the k2 of its own tensile band, for every profile and with or without the legacy option. Box 400×600, hole 200×400, 4Ø20 at y = ±250,
         /// neutral axis at y = 0: band of the bottom wall 200 ≤ −y ≤ 250 (hc,eff = min[2.5 · 50; 100/2] = 50), ε = 8e-4 … 1e-3, k2 = (8e-4 + 1e-3)/(2e-3) = 0.9;

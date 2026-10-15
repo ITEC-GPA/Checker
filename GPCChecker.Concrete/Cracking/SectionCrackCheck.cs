@@ -379,11 +379,13 @@ namespace GPC.Checkers.Concrete.Cracking
             var tensile = Enumerable.Range(0, g.Bars.Count).Where(i => plane.GetStrain(g.Bars[i].X, g.Bars[i].Y) > 0).ToArray();
             if (tensile.Length == 0)
             {
-                // Neutral axis within the cover of the tensile edge: the reinforcement of that face (closer than h/2, upper bound of hc,eff) is compressed,
-                // σs ≤ 0 and wk = 0 (limit of EC2 7.3.4 for σs → 0). Without bars on that side the tensile zone is unreinforced: no verdict, or with
-                // UnreinforcedTensileZoneFails a failed check (no bar controls the cracks, EN 1992-1-1 7.3.2(1)).
+                // Neutral axis within the cover of the tensile edge: the reinforcement of that face is compressed, σs ≤ 0 and wk = 0 (limit of EC2 7.3.4
+                // for σs → 0). Without bars on that side the tensile zone is unreinforced: no verdict, or with UnreinforcedTensileZoneFails a failed check
+                // (no bar controls the cracks, EN 1992-1-1 7.3.2(1)). Bar of the tensile face: by default (0.0.17.0) the nearest bar closer than h/2 (upper
+                // bound of hc,eff); with UnreinforcedTensileZoneFails a bar within its cover, see EdgeBarWithinCover (ANTHEA bug analysis 15/10/2026, FES-1).
                 double nearest = g.Bars.Count == 0 ? double.PositiveInfinity : top - g.Bars.Max(b => Q(b.X, b.Y));
-                if (!(nearest < height / 2))
+                bool edgeBar = p.Options.UnreinforcedTensileZoneFails ? EdgeBarWithinCover(p, qx, qy, top, height, tensileDepth, details) : nearest < height / 2;
+                if (!edgeBar)
                 {
                     if (!p.Options.UnreinforcedTensileZoneFails) return Stop(CrackOutcome.NoTensileReinforcement, "No tensile reinforcement");
                     result.Passed = false;
@@ -455,16 +457,20 @@ namespace GPC.Checkers.Concrete.Cracking
             }
             double steel = effective.Sum(i => g.Bars[i].Area), phi = effective.Sum(i => g.Bars[i].Diameter * g.Bars[i].Diameter) / effective.Sum(i => g.Bars[i].Diameter);
             double sigma = effective.Max(i => stresses[i]);
-            double c = p.FormulaCover();
+            // FES-2: without an assigned cover, with CoverFromBarGeometry the smallest free cover of the effective bars to the tensile face; nominal as fallback.
+            double geometric = p.CoverOverride.HasValue || !p.Options.CoverFromBarGeometry ? double.NaN : effective.Min(i => g.TensileFaceCover(g.Bars[i], qx, qy));
+            bool fromBars = geometric > 0;
+            double c = fromBars ? geometric : p.FormulaCover();
             double? spacing = p.UsedSpacingOverride() ?? g.MaximumSpacing(effective);
-            Add("Øeq", phi, "mm", "ΣØ²/ΣØ"); Add("σs", sigma, "MPa", "maximum stress of the effective bars"); Add("c", c, "mm", p.CoverOverride.HasValue ? "assigned" : "nominal cover + link");
+            Add("Øeq", phi, "mm", "ΣØ²/ΣØ"); Add("σs", sigma, "MPa", "maximum stress of the effective bars");
+            Add("c", c, "mm", p.CoverOverride.HasValue ? "assigned" : fromBars ? "smallest free cover of the effective bars to the tensile face" : "nominal cover + link");
             if (trace != null)
             {
                 // ANTHEA Ntc2018Checks.cs:222-232; s without value when the automatic spacing is not determined.
                 trace.Add(CrackTraceCodes.EffectiveSteel, steel, "mm2"); trace.Add(CrackTraceCodes.DiameterSquareSum, effective.Sum(i => g.Bars[i].Diameter * g.Bars[i].Diameter), "mm2");
                 trace.Add(CrackTraceCodes.DiameterSum, effective.Sum(i => g.Bars[i].Diameter), "mm");
                 trace.Add(CrackTraceCodes.EquivalentDiameter, phi, "mm", null, CrackTraceFlags.EffectiveBars); trace.Add(CrackTraceCodes.SteelStress, sigma, "MPa", null, CrackTraceFlags.EffectiveBars);
-                trace.Add(CrackTraceCodes.Cover, c, "mm", null, p.CoverOverride.HasValue ? CrackTraceFlags.Assigned : CrackTraceFlags.Nominal);
+                trace.Add(CrackTraceCodes.Cover, c, "mm", null, p.CoverOverride.HasValue ? CrackTraceFlags.Assigned : fromBars ? CrackTraceFlags.BarGeometry : CrackTraceFlags.Nominal);
                 trace.Add(CrackTraceCodes.Spacing, spacing, "mm", null, p.SpacingOverride.HasValue ? CrackTraceFlags.Manual : CrackTraceFlags.Automatic);
             }
             result.EffectiveArea = aceff; result.EffectiveSteel = steel;
@@ -493,6 +499,42 @@ namespace GPC.Checkers.Concrete.Cracking
             result.Regions = new[] { region.WithWidth(width) };
             Stop(CrackOutcome.Evaluated, width <= wlim ? "Crack width within the limit" : "Crack width beyond the limit");
             return Inner(result, p, profile, trace);
+        }
+
+        /// <summary>
+        /// Neutral axis within the cover of a bar of the tensile edge, with <see cref="SectionCrackOptions.UnreinforcedTensileZoneFails"/> (ANTHEA bug
+        /// analysis 15/10/2026, FES-1), used when no bar is tensile. With a(d) the depth along the strain gradient of the concrete inset by d
+        /// (<see cref="CrackSectionGeometry.InsetDepth"/>: d for a gradient normal to a face, d (|qx| + |qy|) at the corner of a rectangle), c the cover of
+        /// the width formula (<see cref="SectionCrackInput.CoverOverride"/> or the nominal cover) and a tolerance of 1e-6 h, a bar b qualifies when
+        /// <list type="number">
+        /// <item>it lies within its cover along the gradient: Qmax − Q(b) ≤ a(c + Ø/2). Every bar is compressed, so the tensile zone is shallower than b. On
+        /// circular sections a gradient between two adjacent bars of a ring leaves the nearest bar deeper than the inset circle by up to r (1 − cos(π/n)),
+        /// which is added (<see cref="CrackSectionGeometry.RingAllowance"/>);</item>
+        /// <item>or the tensile zone is not deeper than a(c + Ø/2) and b lies within c + Ø/2 of the tensile surface (the outline beyond the neutral axis,
+        /// <see cref="CrackSectionGeometry.DistanceToSurfaceBeyond"/>): a face reinforced only at one end (flange tip of a T) with a slightly oblique
+        /// gradient.</item>
+        /// </list>
+        /// An inset that leaves no concrete (section thinner than 2 (c + Ø/2)) takes a = h. Without a qualifying bar the tensile zone is unreinforced.
+        /// </summary>
+        private static bool EdgeBarWithinCover(SectionCrackInput p, double qx, double qy, double top, double height, double tensileDepth, List<ShearCalculationDetail> details)
+        {
+            var g = p.Geometry;
+            if (g.Bars.Count == 0) return false;
+            double c = p.FormulaCover(), tolerance = 1e-6 * height;
+            var insets = new Dictionary<double, double?>();
+            double margin = double.PositiveInfinity, governing = double.NaN;
+            bool shallow = false;
+            foreach (var b in g.Bars)
+            {
+                double inset = c + b.Diameter / 2;
+                if (!insets.TryGetValue(inset, out var depth)) insets[inset] = depth = g.InsetDepth(qx, qy, inset);
+                double limit = (depth ?? height) + g.RingAllowance(b), excess = top - (qx * b.X + qy * b.Y) - limit;
+                if (excess < margin) { margin = excess; governing = limit; }
+                if (!shallow && tensileDepth <= (depth ?? height) + tolerance) shallow = g.DistanceToSurfaceBeyond(b, qx, qy, top - tensileDepth) <= inset + tolerance;
+            }
+            details.Add(new ShearCalculationDetail("a,c", governing, "mm", "depth along the gradient of a bar at the cover c + Ø/2 (c = " + c.ToString("0.###", CultureInfo.InvariantCulture)
+                + " mm): bar of the tensile edge when Qmax − Q ≤ a,c"));
+            return margin <= tolerance || shallow;
         }
 
         private static string HcExpression(CrackProfile profile) => profile == CrackProfile.DsEN1992p11 ? "band with centroid at the tensile reinforcement (DK NA Fig. 7.100)"

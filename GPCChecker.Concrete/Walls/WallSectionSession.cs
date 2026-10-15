@@ -38,9 +38,17 @@ namespace GPC.Checkers.Concrete.Walls
         /// <summary>Solver gradient before creep amplification, 1/mm; diagnostic only, not the curvature to integrate for displacements.</summary>
         public double? ElasticEquivalentCurvature { get; }
         public SectionResponse Response { get; }
-        /// <summary>Original cracking-engine result; the separate uncracked proof, when present, is reported in Checks.</summary>
+        /// <summary>
+        /// Result of the section crack check (with <see cref="SectionCrackOptions.UnreinforcedTensileZoneFails"/>): the "Wall.Cracking" check of Checks
+        /// carries its width and limit, or, for a tensile zone without reinforcement, NotSatisfied without a width (crack width not controlled).
+        /// </summary>
         public SectionCrackResult CrackResponse { get; }
+        /// <summary>Maximum stress of the uncracked elastic section, MPa, when the crack check needed it (decompression or crack formation); null otherwise.</summary>
         public double? UncrackedMaximumStress { get; }
+        /// <summary>
+        /// Always false since the decision E1-D4 of the user (15/10/2026): the former proof "uncracked, σt,el ≤ fctk,0.05" for a tensile zone without
+        /// reinforcement is withdrawn, such a zone fails the crack check as in the sections. Kept for compatibility.
+        /// </summary>
         public bool ProvenUncracked { get; }
         internal WallServiceabilityResult(IEnumerable<WallSectionCheck> checks, double? curvature, SectionResponse response,
             SectionCrackResult crack = null, double? uncrackedMaximumStress = null, bool provenUncracked = false)
@@ -197,17 +205,19 @@ namespace GPC.Checkers.Concrete.Walls
                             if (elastic.Diagnostics.Status != CalculationStatus.Completed) throw new InvalidOperationException(elastic.Diagnostics.Message);
                             elasticMaximum = elastic.Concrete.Max(p => p.Stress); return elasticMaximum.Value;
                         }
-                        var options = SectionCrackOptions.Default.WithValidateAtUse(true).WithTrace(true).WithAnalysisContext(concrete.E, response.PsiRebar);
+                        // Decision E1-D4 of the user (15/10/2026): walls follow the sections. A tensile zone without reinforcement fails the check
+                        // (UnreinforcedTensileZoneFails: "crack width not controlled"), the neutral axis within the cover of the face bars keeps wk = 0;
+                        // the tensile strength of the concrete is not used (the former proof σt,el ≤ fctk,0.05 is withdrawn).
+                        var options = SectionCrackOptions.Default.WithValidateAtUse(true).WithTrace(true).WithAnalysisContext(concrete.E, response.PsiRebar)
+                            .WithUnreinforcedTensileZoneFails(true);
                         var crack = SectionCrackCheck.Evaluate(new SectionCrackInput(standard, combination, exposure, false, null, geometry,
                             response.Strain.ToStrainPlane(), response.Bars.Select(p => p.Stress), response.Linear, false, false, steel.E, concrete.Ecm, concrete.Fctm,
                             false, true, strip.Cover, strip.Cover, strip.MaximumBarSpacing, UncrackedStress, false, options));
-                        bool proveUncracked = !crack.Width.HasValue && (crack.Outcome == CrackOutcome.NoTensileReinforcement || crack.Reason == CrackReason.NoEffectiveSteelOrArea)
-                            && UncrackedStress() <= concrete.Fctk05;
-                        double? width = proveUncracked ? 0 : crack.Width;
-                        checks.Add(new WallSectionCheck("Wall.Cracking", "mm", width ?? 0, width.HasValue ? crack.Limit : null,
-                            ExecutionStatus.Completed, proveUncracked ? "Uncracked elastic tensile stress does not exceed fctk,0.05." : crack.Status));
+                        checks.Add(crack.Passed == false && !crack.Width.HasValue && crack.Limit.HasValue
+                            ? WallSectionCheck.NotSatisfiedWithoutDemand("Wall.Cracking", "mm", crack.Limit.Value, crack.Status)
+                            : new WallSectionCheck("Wall.Cracking", "mm", crack.Width ?? 0, crack.Width.HasValue ? crack.Limit : null, ExecutionStatus.Completed, crack.Status));
                         cancellation.ThrowIfCancellationRequested();
-                        return new WallServiceabilityResult(checks, curvature, response, crack, elasticMaximum, proveUncracked);
+                        return new WallServiceabilityResult(checks, curvature, response, crack, elasticMaximum);
                     }
                     cancellation.ThrowIfCancellationRequested();
                     return new WallServiceabilityResult(checks, curvature, response);

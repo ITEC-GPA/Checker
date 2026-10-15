@@ -85,6 +85,9 @@ namespace GPC.Checkers.Concrete.Piles
                     upper.Joints.Add(joint);r.Joints.Add(joint);
                 }
                 r.StartDevelopment=r.EndDevelopment=r.Anchorage+r.Shift;
+                // Anchorage outside the model at the pile head and toe counts as embedded length (PO-5); it does not lengthen the cuts.
+                if(segment.Start==0)r.StartDevelopment=Math.Max(0,r.Anchorage+r.Shift-service.p.HeadAnchorage);
+                if(segment.End>=length-1e-9)r.EndDevelopment=Math.Max(0,r.Anchorage+r.Shift-service.p.ToeAnchorage);
                 r.EndDevelopmentAvailable=r.CapacityStart<=r.TheoreticalStart+1e-9&&r.CapacityEnd>=r.TheoreticalEnd-1e-9;
                 r.Pieces=PreferredStockPieces(r.Id,r.Start,r.End,service.p.StockLength,r.Lap,r.Count,r.Diameter).ToList();
                 for(int j=1;j<r.Pieces.Count;j++)
@@ -113,7 +116,7 @@ namespace GPC.Checkers.Concrete.Piles
                 if(r.Joints.Count>0&&segments[i].Service.p.LapPercent<100)
                     r.Status+=". Giunti calcolati al 100%; sfalsamento richiesto dall'utente non ancora disposto";
                 if(segments[i].Service.p.HeadAnchorage>0||segments[i].Service.p.ToeAnchorage>0)
-                    r.Status+=". Sviluppi esterni del precedente schema conservati nell'archivio ma non aggiunti ai tagli";
+                    r.Status+=". Ancoraggi esterni in testa o in punta considerati nello sviluppo delle barre, non aggiunti ai tagli";
             }
             return runs;
         }

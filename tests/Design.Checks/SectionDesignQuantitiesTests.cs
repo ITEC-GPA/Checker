@@ -17,6 +17,24 @@ public sealed class SectionDesignQuantitiesTests
         Assert.AreEqual(metric.KgPerM*2+9*3+2*4,SectionDesignQuantities.Score(metric,new(ReinforcementObjective.Weighted,2,3,4)),1e-12);
         Assert.AreEqual(100d,geometry.Bars[0].Area);Assert.AreEqual(2d,SectionDesignQuantities.Score(metric,new(ReinforcementObjective.DiameterKinds,1,1,1)));
     }
+    /// <summary>
+    /// ARM-3 of the ANTHEA bug analysis (15/10/2026): the closed links of a T section are on the web. T with bf = 1200, bw = 300, h = 700, cover 40,
+    /// Ø8/150 with 2 legs, hooks 20 Ø: link centreline (300 − 88) × (700 − 88) = 212 × 612 mm, perimeter 1648 + 160 = 1808 mm, 1000/150 links per
+    /// metre, 7850 kg/m³: π 8²/4 · 1808/150 · 0.00785 = 4.756 kg/m by hand; on the flange width (the former result) 2 (1112 + 612) + 160 = 3608 mm,
+    /// 9.491 kg/m. The constructor without the link width keeps Width.
+    /// </summary>
+    [TestMethod]
+    public void TeeLinksAreMeasuredOnTheWeb()
+    {
+        DesignBar[] bars=[new(-110,-306,20,314),new(110,-306,20,314),new(-550,306,16,201),new(550,306,16,201)];
+        var links=new SectionDesignLinks(true,8,150,2,2,0,20);var none=new SectionSecondaryReinforcement(SecondaryReinforcementKind.None,0,0,0);
+        var web=SectionDesignQuantities.Calculate(new SectionDesignGeometry(false,1200,700,40,1030,bars,300),links,none);
+        Assert.AreEqual(Math.PI*64/4*1808/150*.00785,web.TransverseKgPerM,1e-12);Assert.AreEqual(4.756,web.TransverseKgPerM,5e-4);
+        var flange=SectionDesignQuantities.Calculate(new SectionDesignGeometry(false,1200,700,40,1030,bars),links,none);
+        Assert.AreEqual(Math.PI*64/4*3608/150*.00785,flange.TransverseKgPerM,1e-12);Assert.AreEqual(1200d,new SectionDesignGeometry(false,1200,700,40,1030,bars).LinkWidth);
+        Assert.ThrowsException<ArgumentException>(()=>new SectionDesignGeometry(false,1200,700,40,1030,bars,1300));
+        Assert.ThrowsException<ArgumentException>(()=>new SectionDesignGeometry(false,1200,700,40,1030,bars,double.NaN));
+    }
     [TestMethod]
     public void TorsionAreaIsDistributedOverEachTributaryLength()
     {

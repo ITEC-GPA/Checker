@@ -85,6 +85,20 @@ namespace GPC.Checkers.Concrete.Walls
             Outcome = execution != ExecutionStatus.Completed || !capacity.HasValue ? EngineeringOutcome.NotEvaluated
                 : demand <= capacity ? EngineeringOutcome.Satisfied : EngineeringOutcome.NotSatisfied;
         }
+
+        /// <summary>
+        /// Completed check that fails without a computed demand (the crack width of a tensile zone without reinforcement is not controlled): demand 0,
+        /// the capacity (limit) kept, no ratio, <see cref="EngineeringOutcome.NotSatisfied"/>, data ready.
+        /// </summary>
+        internal static WallSectionCheck NotSatisfiedWithoutDemand(string method, string unit, double capacity, string diagnostic)
+            => new WallSectionCheck(method, unit, capacity, diagnostic);
+
+        WallSectionCheck(string method, string unit, double capacity, string diagnostic)
+        {
+            if (!WallStrip.Finite(capacity) || capacity < 0) throw new ArgumentException("Finite, nonnegative capacity required.");
+            Method = method; Unit = unit; Demand = 0; Capacity = capacity; Ratio = null; Execution = ExecutionStatus.Completed; Diagnostic = diagnostic;
+            Data = DataStatus.Ready; Outcome = EngineeringOutcome.NotSatisfied;
+        }
     }
 
     public sealed class WallReinforcementChecks

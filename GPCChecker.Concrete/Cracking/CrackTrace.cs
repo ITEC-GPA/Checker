@@ -222,7 +222,7 @@ namespace GPC.Checkers.Concrete.Cracking
         public const string DiameterSquareSum = "DiameterSquareSum";
         /// <summary>"ΣØ", mm.</summary>
         public const string DiameterSum = "DiameterSum";
-        /// <summary>"c", mm: section (:227, <see cref="CrackTraceFlags.Assigned"/> or <see cref="CrackTraceFlags.Nominal"/>), Eurocode formula (<see cref="CrackTraceFlags.Formula"/>).</summary>
+        /// <summary>"c", mm: section (:227, <see cref="CrackTraceFlags.Assigned"/>, <see cref="CrackTraceFlags.Nominal"/> or <see cref="CrackTraceFlags.BarGeometry"/>), Eurocode formula (<see cref="CrackTraceFlags.Formula"/>).</summary>
         public const string Cover = "Cover";
         /// <summary>"s", mm: section (:232, <see cref="CrackTraceFlags.Automatic"/> or <see cref="CrackTraceFlags.Manual"/>; null value when the automatic spacing is
         /// not determined), Eurocode formula (<see cref="CrackTraceFlags.Formula"/>).</summary>
@@ -401,6 +401,8 @@ namespace GPC.Checkers.Concrete.Cracking
         public const string Assigned = "Assigned";
         /// <summary>Nominal cover plus link.</summary>
         public const string Nominal = "Nominal";
+        /// <summary>Smallest free cover of the effective bars to the outline (<see cref="SectionCrackOptions.CoverFromBarGeometry"/>).</summary>
+        public const string BarGeometry = "BarGeometry";
         /// <summary>Automatic maximum spacing of the effective bars.</summary>
         public const string Automatic = "Automatic";
         /// <summary>Assigned maximum spacing.</summary>

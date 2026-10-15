@@ -20,14 +20,23 @@ public sealed class SectionDesignGeometry
     public double Cover {get;}
     public double SteelArea {get;}
     public IReadOnlyList<DesignBar> Bars {get;}
+    /// <summary>
+    /// Width of the closed links of a non-circular section, mm: the web width of a T section, where <see cref="Width"/> is the extent of the outline
+    /// (the flange). Defaults to <see cref="Width"/>; not used by circular sections (ANTHEA bug analysis 15/10/2026, ARM-3).
+    /// </summary>
+    public double LinkWidth {get;}
     public SectionDesignGeometry(bool circular,double width,double height,double cover,double steelArea,IEnumerable<DesignBar> bars)
+        : this(circular,width,height,cover,steelArea,bars,width) {}
+    /// <summary>Geometry with the width of the closed links (<see cref="LinkWidth"/>): positive, finite and not larger than <paramref name="width"/>.</summary>
+    public SectionDesignGeometry(bool circular,double width,double height,double cover,double steelArea,IEnumerable<DesignBar> bars,double linkWidth)
     {
         ArgumentNullException.ThrowIfNull(bars);
         if(!double.IsFinite(width)||width<=0||!double.IsFinite(height)||height<=0||!double.IsFinite(cover)||cover<0||!double.IsFinite(steelArea)||steelArea<=0)
             throw new ArgumentException("Positive finite dimensions and steel area, nonnegative cover required.");
         var owned=bars.ToArray();if(owned.Length==0||owned.Any(b=>b==null||!double.IsFinite(b.X)||!double.IsFinite(b.Y)||!double.IsFinite(b.Diameter)||b.Diameter<=0||!double.IsFinite(b.Area)||b.Area<=0))
             throw new ArgumentException("Finite bar geometry and positive area required.");
-        Circular=circular;Width=width;Height=height;Cover=cover;SteelArea=steelArea;Bars=Array.AsReadOnly(owned);
+        if(!double.IsFinite(linkWidth)||linkWidth<=0||linkWidth>width)throw new ArgumentException("Link width must be positive, finite and not larger than the section width.");
+        Circular=circular;Width=width;Height=height;Cover=cover;SteelArea=steelArea;Bars=Array.AsReadOnly(owned);LinkWidth=linkWidth;
     }
 }
 
@@ -46,7 +55,8 @@ public static class SectionDesignQuantities
             if(!double.IsFinite(links.Diameter)||links.Diameter<=0||!double.IsFinite(links.Spacing)||links.Spacing<=0||
                 new[]{links.LegsX,links.LegsY,links.InternalLegs,links.HookAllowance}.Any(v=>!double.IsFinite(v)||v<0))
                 throw new ArgumentException("Invalid link dimensions, legs or hook allowance.");
-            double phi=links.Diameter,spacing=links.Spacing,c=section.Cover+phi/2,width=section.Width-2*c,height=section.Height-2*c;
+            // Closed links on the web (LinkWidth) of a T section, not on the flange (ARM-3); the diameter of a circular section.
+            double phi=links.Diameter,spacing=links.Spacing,c=section.Cover+phi/2,width=(section.Circular?section.Width:section.LinkWidth)-2*c,height=section.Height-2*c;
             double extra=section.Circular?links.InternalLegs:Math.Max(0,links.LegsX-2)+Math.Max(0,links.LegsY-2);
             double length=section.Circular?Math.PI*width+extra*width:2*(width+height)+Math.Max(0,links.LegsX-2)*width+Math.Max(0,links.LegsY-2)*height;
             length+=links.HookAllowance*phi*(1+extra);
