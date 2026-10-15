@@ -438,3 +438,16 @@ REGISTRO
               1544 PASS, 17 Steel già ammessi, nessun nuovo fallimento, API compatibili.
             - Attesi congelati invariati. Versioni e distribuzione ANTHEA ancora da autorizzare;
               il punto non è chiuso nel prodotto. Dettagli in API-02-interassi-circolari.md.
+
+2026-10-16  M4 (c.a.): ANTHEA usa GPCChecker.Concrete per tutto il c.a. (refactoring di ANTHEA, fasi F2-F4).
+            - Famiglie collegate: taglio e torsione (F2-1, F2-2); SLE tensionali e fessurazione (F2-7, con le opzioni
+              del 15/10 per R1, R2 e F2-25); dettagli, ancoraggi, aderenza e momento-curvatura (F2.8, ratifica 3a del
+              14/10); durabilità e copriferri (F2-13, F2-14); SLU tramite la porta ISectionResistanceSolver (F2-17);
+              resistenza a N assegnato (F2-15). Le sigle sono le voci di ANTHEA/docs/refactoring/registro-differenze.json.
+            - API-02 è distribuito dal set T del 12/10 (Concrete 0.0.27.2, 97b7d1f1): il punto aperto qui sopra è chiuso.
+            - I motori storici di ANTHEA non sono eliminati: stanno in ANTHEA/tests/ANTHEA.Legacy (decisione D3 del 15/10,
+              voce F4-49) e servono solo alle prove di equivalenza.
+            - Distribuzione: set di rilascio da S (12/10) a Y (15/10, Concrete 0.10.0.0), con le voci in
+              ANTHEA/lib/Checker/README.md. Le correzioni dell'analisi dei bug del 15/10 (Concrete 0.11.0.0, Geotechnics
+              0.4.0.0, CompositeBridge 1.7.0.0) arrivano con il rilascio successivo.
+            - Nessuna SCHEDA_SCOSTAMENTI_FESSURAZIONE separata: il registro delle differenze di ANTHEA la sostituisce.
