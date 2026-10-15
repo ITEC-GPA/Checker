@@ -457,16 +457,20 @@ namespace GPC.Checkers.Concrete.Cracking
             }
             double steel = effective.Sum(i => g.Bars[i].Area), phi = effective.Sum(i => g.Bars[i].Diameter * g.Bars[i].Diameter) / effective.Sum(i => g.Bars[i].Diameter);
             double sigma = effective.Max(i => stresses[i]);
-            double c = p.FormulaCover();
+            // FES-2: without an assigned cover, with CoverFromBarGeometry the smallest free cover of the effective bars to the tensile face; nominal as fallback.
+            double geometric = p.CoverOverride.HasValue || !p.Options.CoverFromBarGeometry ? double.NaN : effective.Min(i => g.TensileFaceCover(g.Bars[i], qx, qy));
+            bool fromBars = geometric > 0;
+            double c = fromBars ? geometric : p.FormulaCover();
             double? spacing = p.UsedSpacingOverride() ?? g.MaximumSpacing(effective);
-            Add("Øeq", phi, "mm", "ΣØ²/ΣØ"); Add("σs", sigma, "MPa", "maximum stress of the effective bars"); Add("c", c, "mm", p.CoverOverride.HasValue ? "assigned" : "nominal cover + link");
+            Add("Øeq", phi, "mm", "ΣØ²/ΣØ"); Add("σs", sigma, "MPa", "maximum stress of the effective bars");
+            Add("c", c, "mm", p.CoverOverride.HasValue ? "assigned" : fromBars ? "smallest free cover of the effective bars to the tensile face" : "nominal cover + link");
             if (trace != null)
             {
                 // ANTHEA Ntc2018Checks.cs:222-232; s without value when the automatic spacing is not determined.
                 trace.Add(CrackTraceCodes.EffectiveSteel, steel, "mm2"); trace.Add(CrackTraceCodes.DiameterSquareSum, effective.Sum(i => g.Bars[i].Diameter * g.Bars[i].Diameter), "mm2");
                 trace.Add(CrackTraceCodes.DiameterSum, effective.Sum(i => g.Bars[i].Diameter), "mm");
                 trace.Add(CrackTraceCodes.EquivalentDiameter, phi, "mm", null, CrackTraceFlags.EffectiveBars); trace.Add(CrackTraceCodes.SteelStress, sigma, "MPa", null, CrackTraceFlags.EffectiveBars);
-                trace.Add(CrackTraceCodes.Cover, c, "mm", null, p.CoverOverride.HasValue ? CrackTraceFlags.Assigned : CrackTraceFlags.Nominal);
+                trace.Add(CrackTraceCodes.Cover, c, "mm", null, p.CoverOverride.HasValue ? CrackTraceFlags.Assigned : fromBars ? CrackTraceFlags.BarGeometry : CrackTraceFlags.Nominal);
                 trace.Add(CrackTraceCodes.Spacing, spacing, "mm", null, p.SpacingOverride.HasValue ? CrackTraceFlags.Manual : CrackTraceFlags.Automatic);
             }
             result.EffectiveArea = aceff; result.EffectiveSteel = steel;

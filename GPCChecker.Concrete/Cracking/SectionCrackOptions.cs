@@ -94,6 +94,23 @@ namespace GPC.Checkers.Concrete.Cracking
         /// </summary>
         public bool UnreinforcedTensileZoneFails { get; private set; }
 
+        /// <summary>
+        /// Cover c of the width formula in the tensile zone of a partially compressed section without <see cref="SectionCrackInput.CoverOverride"/>: with true
+        /// the smallest free cover of the effective bars to the tensile face, as the faces of the entirely tensile section already measure it from the bar
+        /// positions, so that bars placed deeper than the nominal cover (free bars) enter k3 c, 5 (c + Ø/2) and Δsm with their real cover. The free cover of a
+        /// bar is its perpendicular distance, minus Ø/2, to the face of the outline that the strain gradient reaches first from the bar centre: the cover to
+        /// the tensile face, not to a side face (a corner bar of a beam with 40 mm side and 60 mm bottom cover bent about x gives 60), and in biaxial bending
+        /// the cover to the face the gradient points to, so a bar at the nominal cover keeps the nominal cover. On circular sections
+        /// (<see cref="CrackSectionGeometry.Circular"/>) it is radial, R − r − Ø/2 with R the radius of the outline vertices, so a ring at the nominal cover
+        /// keeps it (the polygon edges would give up to R (1 − cos(π/N)) less). Holes are not considered (their surfaces have their own bands).
+        /// <see cref="SectionCrackInput.NominalCover"/> only when that cover is not positive or not determined. False by default:
+        /// <see cref="SectionCrackInput.NominalCover"/>, the rule of 0.0.17.0 kept for the frozen fixtures and the contract K0. The trace marks the value with
+        /// <see cref="CrackTraceFlags.BarGeometry"/> and the detail "c" reads "smallest free cover of the effective bars to the tensile face". Automatic
+        /// layouts (bars at the nominal cover) give the nominal cover up to rounding. The cover of the DIN condition (<see cref="EffectiveDepthCover"/>) and
+        /// of the neutral axis within the cover (<see cref="UnreinforcedTensileZoneFails"/>) do not change. ANTHEA bug analysis 15/10/2026, FES-2.
+        /// </summary>
+        public bool CoverFromBarGeometry { get; private set; }
+
         private SectionCrackOptions() { }
 
         /// <summary>Copy with <see cref="Trace"/>.</summary>
@@ -144,6 +161,12 @@ namespace GPC.Checkers.Concrete.Cracking
         public SectionCrackOptions WithUnreinforcedTensileZoneFails(bool fails)
         {
             var copy = Copy(); copy.UnreinforcedTensileZoneFails = fails; return copy;
+        }
+
+        /// <summary>Copy with <see cref="CoverFromBarGeometry"/>.</summary>
+        public SectionCrackOptions WithCoverFromBarGeometry(bool fromBarGeometry)
+        {
+            var copy = Copy(); copy.CoverFromBarGeometry = fromBarGeometry; return copy;
         }
 
         private SectionCrackOptions Copy() => (SectionCrackOptions)MemberwiseClone();

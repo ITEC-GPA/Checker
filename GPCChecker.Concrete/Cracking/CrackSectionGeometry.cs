@@ -175,6 +175,32 @@ namespace GPC.Checkers.Concrete.Cracking
             return (inside ? clearance : -clearance) - bar.Diameter / 2;
         }
 
+        /// <summary>
+        /// Free cover of a bar to the tensile face, mm: the face of the outline that the strain gradient (unit direction qx, qy) reaches first from the bar
+        /// centre, as the perpendicular distance to that face minus Ø/2 (the smaller one when the ray hits a vertex); so a bar at the nominal cover gives the
+        /// nominal cover also in biaxial bending, and the cover to a side face does not replace the cover to the tensile face. On circular sections radially,
+        /// R − r − Ø/2 with R the radius of the outline vertices (the circle the polygon is inscribed in, so a ring at the nominal cover keeps it). Holes are
+        /// not considered (their surfaces are checked by the inner bands). NaN when the ray leaves no face behind (bar outside the outline).
+        /// </summary>
+        internal double TensileFaceCover(CrackBar bar, double qx, double qy)
+        {
+            if (Circular) return Outline.Max(v => Radius(v.X, v.Y)) - Radius(bar.X, bar.Y) - bar.Diameter / 2;
+            double first = double.PositiveInfinity, distance = double.NaN;
+            for (int i = 0; i < Outline.Count; i++)
+            {
+                var a = Outline[i]; var b = Outline[(i + 1) % Outline.Count];
+                double dx = b.X - a.X, dy = b.Y - a.Y, denominator = qx * dy - qy * dx;
+                if (denominator == 0) continue; // face parallel to the gradient
+                double rx = a.X - bar.X, ry = a.Y - bar.Y;
+                double t = (rx * dy - ry * dx) / denominator, s = (rx * qy - ry * qx) / denominator;
+                if (t <= 0 || s < -1e-12 || s > 1 + 1e-12) continue;
+                double length = Hypot(dx, dy), normal = Math.Abs((bar.X - a.X) * (-dy / length) + (bar.Y - a.Y) * (dx / length));
+                if (t < first - 1e-9) { first = t; distance = normal; }
+                else if (t <= first + 1e-9) distance = Math.Min(distance, normal);
+            }
+            return distance - bar.Diameter / 2;
+        }
+
         // ---- Bars of the tensile edge (neutral axis within the cover) ----
 
         /// <summary>

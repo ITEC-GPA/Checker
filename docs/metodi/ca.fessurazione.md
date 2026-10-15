@@ -127,7 +127,14 @@ non fessurata), l'esito, tutte le regioni esaminate e la traccia dei valori inte
 - σs è la tensione massima delle barre efficaci (a favore di sicurezza con più strati).
 - Il copriferro c è misurato alla superficie delle barre longitudinali (copriferro nominale più diametro della
   staffa), dato dal chiamante per la zona tesa delle sezioni parzializzate, oppure calcolato dalla geometria per le
-  facce e le superfici interne; può essere assegnato.
+  facce e le superfici interne; può essere assegnato. Con l'opzione `CoverFromBarGeometry` di `SectionCrackOptions`
+  (analisi dei bug FES-2; spenta per default, come in 0.0.17.0, per le catture congelate e il contratto K0) anche nella
+  zona tesa delle sezioni parzializzate c viene dalla geometria, se non è assegnato: il minimo, sulle barre efficaci,
+  della distanza dal baricentro della barra alla faccia del contorno che il gradiente raggiunge per prima, meno Ø/2
+  (copriferro verso la faccia tesa, non verso una faccia laterale; nelle sezioni circolari radiale, R − r − Ø/2 con R
+  il raggio dei vertici del contorno). Con le barre al copriferro nominale (disposizioni automatiche, anche in
+  flessione deviata) c resta il nominale; con barre libere più profonde entra il copriferro reale. Il copriferro
+  nominale resta solo come ripiego (copriferro non positivo o non determinato).
 - fct,eff = fctm del calcestruzzo, dato dal chiamante.
 - Durata del carico (breve o lunga) e aderenza delle barre (migliorata o liscia) sono dati del chiamante.
 
@@ -574,7 +581,7 @@ Con meno di due barre efficaci, o se la disposizione non è riconosciuta, l'inte
 | γ superfici interne | 2,5; DS 2 | — | 2,5 (h − d) di EN; DS 2 (h − d) per la fascia baricentrica | no | `SectionCrackCheck.Inner` |
 | Soglia della trazione uniforme delle fasce interne | \|∇ε\| hg ≤ 10⁻⁴ εmax,c | tutti | scelta del metodo (riquadro F-9) | no | `SectionCrackCheck.UniformTensionTolerance`, `Inner` |
 | Sistema grossolano DS | 0,5 · (7.8) | DS | DK NA 7.3.4(1) | no | `SectionCrackCheck.FullyTensioned` |
-| c | copriferro nominale più staffa | — | — | sì (`CoverOverride`) | `SectionCrackInput` |
+| c | copriferro nominale più staffa; con `CoverFromBarGeometry` copriferro delle barre efficaci verso la faccia tesa | — | — | sì (`CoverOverride`) | `SectionCrackInput`, `CrackSectionGeometry.TensileFaceCover` |
 | s | automatico (6.11) | — | — | sì (`SpacingOverride`) | `CrackSectionGeometry.MaximumSpacing` |
 | Riconoscimento del cerchio | ≥ 16 vertici equidistanti dall'origine entro 10⁻⁶ relativo | — | — | anelli concentrici da confermare | `CrackSectionGeometry.From` |
 | Tolleranze | εmax ≤ 10⁻¹² compressa; \|∇ε\| ≤ 10⁻¹⁵ asse neutro indeterminato; 10⁻⁸ mm sulle quote | — | — | no | `SectionCrackCheck.Evaluate` |
@@ -735,6 +742,12 @@ nella quasi permanente); XC3 quasi permanente, NTC e EN 0,3 mm; XD1 quasi perman
     soddisfatta), striscia 1200 × 250 armata solo in alto con gradiente a 4° (a = 96,058847 mm: wk = 0 con h − x =
     30 mm, non soddisfatta con 98 mm). Piani di deformazione dal Python indipendente del verificatore, a e profondità
     delle barre a mano o con poligoni regolari;
+  - copriferro dalla geometria con `CoverFromBarGeometry` (`FormulaCoverComesFromTheEffectiveBarsWithTheOption`):
+    R300x500 con 3Ø20 a 70 mm dal lembo teso e 50 mm dalle facce laterali, x = 107,503 mm, σs = 264,405 MPa (stato
+    del Python indipendente del verificatore): c = 60 mm e wk = 0,3613160 mm (sr,max 345,59 mm) contro 0,2831131 mm
+    con il copriferro nominale 38 mm, NTC ed EN, (7.8)-(7.11) a mano; copriferro assegnato prevalente; barre al
+    copriferro nominale, flessione deviata con barre d'angolo e anello di 16Ø24 su un 32-gono: stessa ampiezza del
+    copriferro nominale;
   - ritaglio, interassi su file e anelli, hc,eff EN, DIN e DS.
 - **Integrazione**: i test del verificatore di modello eseguono la fessurazione per 10 norme e confrontano il
   risultato NTC con la chiamata diretta del metodo.
