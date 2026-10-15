@@ -122,6 +122,43 @@ public sealed class HistoryModelEnvelopeLaw : IHistoryMaterialLaw
     }
 }
 
+/// <summary>
+/// Concrete with tension stiffening after cracking: in tension σ = Ecm ε up to εcr = fctm / Ecm, then the average tensile stress of cracked
+/// concrete of Collins and Mitchell (1991), modified compression field theory (Vecchio and Collins 1986), σ = fctm / (1 + √(500 ε)), with the
+/// tangent dσ/dε = −250 fctm / (√(500 ε) (1 + √(500 ε))²). Compression on the Model envelope (beyond εcu outside the domain). A function of the
+/// strain only: unloading follows the same curve, without damage or crack memory. No automatic design factors.
+/// At εcr the stress drops from fctm to fctm / (1 + √(500 εcr)) (about 0,82 fctm for ordinary concretes), as in the original formulation.
+/// </summary>
+public sealed class HistoryTensionStiffeningConcreteLaw : IHistoryMaterialLaw
+{
+    private readonly HistoryModelEnvelopeLaw compression;
+    /// <summary>Ecm, the modulus of the uncracked branch</summary>
+    public double InitialModulus { get; }
+    /// <summary>fctm, the stress at cracking</summary>
+    public double TensileStrength { get; }
+    /// <summary>εcr = fctm / Ecm</summary>
+    public double CrackingStrain => TensileStrength / InitialModulus;
+    public bool IsLinear => false;
+    public bool SupportsModulusFactors => false;
+    /// <param name="material">The Model material: Ecm (elastic modulus in compression) and the compressive envelope</param>
+    /// <param name="tensileStrength">fctm</param>
+    public HistoryTensionStiffeningConcreteLaw(Material material, double tensileStrength)
+    {
+        compression = new HistoryModelEnvelopeLaw(material, neglectTension: true);
+        InitialModulus = compression.InitialModulus;
+        TensileStrength = BridgeNumbers.Require(tensileStrength, "fctm", strict: true);
+    }
+    public HistoryMaterialState InitialState() => new(0, 0);
+    public HistoryMaterialResponse Evaluate(double strain, HistoryMaterialState committed, double modulusFactor)
+    {
+        if (modulusFactor != 1) throw new NotSupportedException("Il legame con tension stiffening non definisce l'evoluzione viscosa: usare phi=0 o una legge storica dedicata.");
+        if (strain <= 0) return compression.Evaluate(strain, committed, 1);
+        if (strain <= CrackingStrain) return new(InitialModulus * strain, InitialModulus, new(strain, InitialModulus * strain));
+        double root = Math.Sqrt(500 * strain), stress = TensileStrength / (1 + root);
+        return new(stress, -250 * TensileStrength / (root * (1 + root) * (1 + root)), new(strain, stress));
+    }
+}
+
 /// <summary>A trial outside a constitutive domain may be retried with a shorter Newton step.</summary>
 public sealed class HistoryMaterialRangeException : InvalidOperationException
 {

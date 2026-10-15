@@ -1,11 +1,17 @@
 namespace GPC.Checkers.CompositeBridge.History;
 
 public enum HistoryMaterialMode { Linear, Nonlinear }
+/// <summary>The concrete in tension in the nonlinear H history and in the curves of the H adapter: Neglected (default, no tensile strength,
+/// EN 1992-1-1 §6.1(2)P) or TensionStiffening (uncracked up to fctm, then the tension stiffening of Collins and Mitchell 1991,
+/// <see cref="HistoryTensionStiffeningConcreteLaw"/>). The linear mode is not affected</summary>
+public enum HistoryConcreteTension { Neglected, TensionStiffening }
 public sealed record HBridgeHistoryOptions
 {
     public HistoryMaterialMode MaterialMode { get; init; }
     /// <summary>Explicit instantaneous analysis: ignore archived creep inputs without modifying them.</summary>
     public bool InstantaneousConcrete { get; init; }
+    /// <summary>Nonlinear mode: the concrete in tension (ignored when <see cref="ConcreteLaw"/> is assigned)</summary>
+    public HistoryConcreteTension ConcreteTension { get; init; }
     public int WebLayers { get; init; } = 160;
     public int FlangeLayers { get; init; } = 4;
     public int ConcreteLayers { get; init; } = 32;
@@ -35,16 +41,20 @@ public static class HBridgeHistoryAnalysis
     public static HistorySection CreateSection(HBridgeInput input, HBridgeHistoryOptions? options = null)
     {
         var o = options ?? new();
-        if (o.WebLayers < 1 || o.FlangeLayers < 1 || o.ConcreteLayers < 1 || o.SubstepsPerPhase < 1 || !Enum.IsDefined(typeof(HistoryMaterialMode), o.MaterialMode))
+        if (o.WebLayers < 1 || o.FlangeLayers < 1 || o.ConcreteLayers < 1 || o.SubstepsPerPhase < 1 || !Enum.IsDefined(typeof(HistoryMaterialMode), o.MaterialMode)
+            || !Enum.IsDefined(typeof(HistoryConcreteTension), o.ConcreteTension))
             throw new ArgumentException("Discretizzazione o modo materiale non valido.");
         // Geometry validation is reused, but the legacy API's 20-phase limit has no place in this engine.
         var g = HBridgeSection.Geometry(input with { Phases = new[] { new BridgePhase() } });
         var m = input.Materials;
         bool linear = o.MaterialMode == HistoryMaterialMode.Linear;
         IHistoryMaterialLaw steel = o.SteelLaw ?? (linear ? new HistoryElasticLaw(m.Steel.ElasticModulusTension) : HistoryBilinearSteelLaw.FromModel(m.Steel));
-        // nonlinear: the compressive envelope of Model, tensile strength neglected (cracked slab; EN 1992-1-1 §6.1(2)P). With the tensile branch
-        // the analyses stopped at the cracking of the slab, i.e. in every ordinary hogging case; it can be injected with ConcreteLaw
-        IHistoryMaterialLaw concrete = o.ConcreteLaw ?? (linear ? new HistoryElasticLaw(m.Concrete.ElasticModulusCompression) : new HistoryModelEnvelopeLaw(m.Concrete, neglectTension: true));
+        // nonlinear: the compressive envelope of Model, tensile strength neglected (cracked slab; EN 1992-1-1 §6.1(2)P) or, as an option, with the
+        // tension stiffening of Collins and Mitchell (drop to about 0.82 fctm at cracking, then a smooth softening). With the tensile branch of Model the analyses stopped at
+        // the cracking of the slab, i.e. in every ordinary hogging case (abrupt drop from fct to 0); it can still be injected with ConcreteLaw
+        IHistoryMaterialLaw concrete = o.ConcreteLaw ?? (linear ? new HistoryElasticLaw(m.Concrete.ElasticModulusCompression)
+            : o.ConcreteTension == HistoryConcreteTension.TensionStiffening ? new HistoryTensionStiffeningConcreteLaw(m.Concrete, m.Concrete.Fctm)
+            : new HistoryModelEnvelopeLaw(m.Concrete, neglectTension: true));
         IHistoryMaterialLaw rebar = o.RebarLaw ?? (linear ? new HistoryElasticLaw(m.Rebar.ElasticModulusTension) : HistoryBilinearSteelLaw.FromModel(m.Rebar));
         if (input.Options.Class4 && (!steel.IsLinear || !concrete.IsLinear || !rebar.IsLinear))
             throw new NotSupportedException("Le larghezze efficaci automatiche sono disponibili per i legami lineari. Il non lineare richiede Class4=false oppure un modello efficace dedicato nell'API generica.");
