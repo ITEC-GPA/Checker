@@ -119,7 +119,11 @@ fase fallita non è esposto come utilizzabile. È disponibile l'annullamento.
   aderenza migliorata, carico di breve durata). Il controllo MCFT della trasmissione
   alla fessura (tensione media del CLS limitata dalla riserva delle barre nella
   fessura) non è applicato: oltre lo snervamento delle barre il contributo del CLS
-  teso è sovrastimato.
+  teso è sovrastimato. Dal 16/10/2026 la legge in trazione è quella di Model
+  (`ConcreteTensionStiffening`, `ConcreteMaterial.TensionResponseDiagrams.TensionStiffening`),
+  unica definizione della libreria, la stessa delle analisi tensionali non lineari e
+  del momento-curvatura di GPCChecker.Concrete; le espressioni sono le stesse di prima
+  e i risultati non cambiano.
 - `IHistoryMaterialLaw`: consente altre leggi con stati interni immutabili.
   `Evaluate` deve essere puro rispetto allo stato precedente; il motore decide
   quando accettare la risposta. Le istanze di legge devono essere immutabili
