@@ -926,6 +926,8 @@ namespace ConcreteTests
                     // At the limit point the strain plane comes from the domain search, converged on N within its tolerance (legacy residual ≈ 0.04 kN):
                     // with yielded steel and plastic concrete N is almost insensitive to a translation of the plane, so the translation is defined to
                     // ≈ 3e-4 only (the section read back from the archive gives a different converged plane). Moment, N and curvature agree to 1e-7.
+                    // The ε0 of the limit row is the library's strain at the origin of the local axes (SLU-4, regenerated with the user's approval;
+                    // ANTHEA d2d3225 wrote −3.5‰, the strain at the pivot vertex).
                     double strains = bool.Parse(q[7]) ? 1e-3 : 1e-7;
                     Close(D(q[4]) / 1000, p.ReferenceStrain, what + " ε0", strains);
                     Close(D(q[5]) / 1000, p.ConcreteCompressionStrain, what + " εc", strains); Close(D(q[6]) / 1000, p.SteelStrain, what + " εs", strains);

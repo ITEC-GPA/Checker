@@ -384,13 +384,13 @@ punto limite al passo 40.
   momento limite, curvature, N e gradienti; sulle deformazioni 10⁻⁷ nei punti con acciaio elastico e 10⁻³ in quelli
   con acciaio snervato, perché la traslazione del piano è definita solo entro la tolleranza su N del solutore.
 - **Test**: `DetailingMigrationTests.LegacyMomentCurvatureIsReproduced`.
-- **ε0 del punto limite (SLU-4)**: i casi congelati e il contratto `curvature-contract-0.0.17.csv` riportano per il
+- **ε0 del punto limite (SLU-4)**: i casi congelati e il contratto `curvature-contract-0.0.17.csv` riportavano per il
   punto limite di ciascuna delle 5 curve ε0 = −0,0035 (deformazione al vertice pivot); con la correzione la libreria
   dà la deformazione in (xr, yr): +0,0050595, +0,0155943, −0,0005561, +0,0008943, +0,0102017 (curve 0-4; per la
   curva 0 a mano −0,0035 + χ · 250 mm = −0,0035 + 3,4238e-5 · 250 = +0,0050595). Le altre colonne e gli altri punti
-  restano identici bit per bit. Le catture non sono state rigenerate: la decisione spetta all'utente; fino ad allora
-  `LegacyMomentCurvatureIsReproduced` e `CurvatureContractOf0017IsUnchanged` falliscono su queste 5 righe. Prova
-  indipendente: `MomentCurvatureReferenceStrainTests` (modello a fibre: −0,5032‰ a N = −1000 kN, +15,559‰ a N = 0).
+  restano identici bit per bit. Con l'approvazione dell'utente le due catture sono state rigenerate solo in queste 5
+  righe (in `curvature-legacy.csv` ε0 in ‰, con una riga di commento che lo dichiara). Prova indipendente:
+  `MomentCurvatureReferenceStrainTests` (modello a fibre: −0,5032‰ a N = −1000 kN, +15,559‰ a N = 0).
 - **Esempio di questa pagina**: eseguito con la libreria 0.0.17.0 e ricalcolato in modo indipendente (integrazione
   numerica della zona compressa con la parabola esatta), scarti nella tabella.
 - **Benchmark indipendenti pubblicati**: nessuno, per ora.

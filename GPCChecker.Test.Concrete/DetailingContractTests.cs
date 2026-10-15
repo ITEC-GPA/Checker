@@ -33,6 +33,8 @@ namespace ConcreteTests
     ///   scalar results and every point) and, on analytic functions, complete, partial, interrupted and refined curves and the four rejections
     ///   (invalid request, limit point not available, residual N, non-positive limit moment), with the invariant and the Italian culture
     ///   (numbers in the texts are formatted with the current culture).
+    ///   Accepted change (approved by the user, bug analysis of 15/10/2026, SLU-4): ReferenceStrain of the limit point of the 5 fixture curves is the
+    ///   strain at the origin of the local axes, no longer −0.0035 at the pivot vertex; only those 5 values were regenerated.
     /// Doubles are written with the round-trip format (G17 where "R" does not round-trip, −0 kept), so the comparison is bit for bit. Generation runs with the
     /// invariant culture and UI culture (mscorlib messages in English on every machine). On a difference the generated text is written to
     /// %TEMP%\&lt;fixture&gt;.actual and the first differing line is reported.
