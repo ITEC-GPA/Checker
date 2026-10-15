@@ -42,7 +42,9 @@ public static class HBridgeHistoryAnalysis
         var m = input.Materials;
         bool linear = o.MaterialMode == HistoryMaterialMode.Linear;
         IHistoryMaterialLaw steel = o.SteelLaw ?? (linear ? new HistoryElasticLaw(m.Steel.ElasticModulusTension) : HistoryBilinearSteelLaw.FromModel(m.Steel));
-        IHistoryMaterialLaw concrete = o.ConcreteLaw ?? (linear ? new HistoryElasticLaw(m.Concrete.ElasticModulusCompression) : new HistoryModelEnvelopeLaw(m.Concrete));
+        // nonlinear: the compressive envelope of Model, tensile strength neglected (cracked slab; EN 1992-1-1 §6.1(2)P). With the tensile branch
+        // the analyses stopped at the cracking of the slab, i.e. in every ordinary hogging case; it can be injected with ConcreteLaw
+        IHistoryMaterialLaw concrete = o.ConcreteLaw ?? (linear ? new HistoryElasticLaw(m.Concrete.ElasticModulusCompression) : new HistoryModelEnvelopeLaw(m.Concrete, neglectTension: true));
         IHistoryMaterialLaw rebar = o.RebarLaw ?? (linear ? new HistoryElasticLaw(m.Rebar.ElasticModulusTension) : HistoryBilinearSteelLaw.FromModel(m.Rebar));
         if (input.Options.Class4 && (!steel.IsLinear || !concrete.IsLinear || !rebar.IsLinear))
             throw new NotSupportedException("Le larghezze efficaci automatiche sono disponibili per i legami lineari. Il non lineare richiede Class4=false oppure un modello efficace dedicato nell'API generica.");

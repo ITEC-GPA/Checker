@@ -45,7 +45,7 @@ public static class HBridgeHistoryResults
     public const string NonlinearMethod = "Storico non lineare · fibre e plasticità dell’acciaio";
     public const string Scope = "Compatibilità delle deformazioni con riferimento al getto; equilibrio N–Mx a ogni fase. " +
         "Ritiri incrementali illimitati. Moduli efficaci del lineare applicati ai soli incrementi, senza integrazione della viscosità nel tempo. " +
-        "Non lineare: acciaio con memoria plastica isotropa, CLS sull’inviluppo Model (scarico sullo stesso inviluppo, senza danno ciclico). " +
+        "Non lineare: acciaio con memoria plastica isotropa, CLS sull’inviluppo Model in compressione, resistenza a trazione trascurata (soletta tesa fessurata; scarico sullo stesso inviluppo, senza danno ciclico). " +
         "Legami caratteristici senza coefficienti di resistenza. Non lineare sulla sezione lorda: instabilità locale non inclusa. " +
         "V è registrato; taglio, pioli, irrigidimenti e interazione N–M–V non verificati da questo metodo.";
 
@@ -61,6 +61,7 @@ public static class HBridgeHistoryResults
         if (!Enum.IsDefined(typeof(BridgeLimitState), data.Options.LimitState)) throw new ArgumentException("Stato limite sconosciuto.");
         var section = HBridgeHistoryAnalysis.CreateSection(data, o);
         bool nonlinear = section.Components.Any(c => !c.Material.IsLinear);
+        bool noTension = section.Components.FirstOrDefault(c => c.Id == HBridgeHistoryAnalysis.Concrete)?.Material is HistoryModelEnvelopeLaw { NeglectsTension: true };
         var history = BridgeHistoryAnalysis.Calculate(section, HBridgeHistoryAnalysis.ConvertPhases(data, data.Phases, o), o.Solver, cancellation);
         if (history.Stages.Count == 0) throw new ArgumentException("Attivare almeno una fase.");
         var g = HBridgeSection.Geometry(data with { Phases = new[] { new BridgePhase() } });
@@ -147,7 +148,9 @@ public static class HBridgeHistoryResults
             var warnings = new List<string> { "Metodo con storico: V registrato; verifiche di taglio, connessione, irrigidimenti e N–M–V da completare. Nessun esito globale favorevole.",
                 "Tensioni alle facce: valore della fibra di integrazione più vicina; controllare la convergenza della discretizzazione." };
             if (stiffening is not null) warnings.Add(stiffening.Note());
-            if (nonlinear) warnings.Add("Non lineare su sezione lorda, materiali caratteristici: analisi N–Mx, non verifica SLU di classe 4. CLS sull’inviluppo Model, senza danno né isteresi ciclica; acciaio con deformazioni plastiche residue.");
+            if (nonlinear) warnings.Add("Non lineare su sezione lorda, materiali caratteristici: analisi N–Mx, non verifica SLU di classe 4. CLS sull’inviluppo Model"
+                + (noTension ? " in compressione, resistenza a trazione trascurata (EN 1992-1-1 §6.1(2)P): la soletta tesa è fessurata e un ritiro che la tende non produce tensioni;" : ",")
+                + " senza danno né isteresi ciclica; acciaio con deformazioni plastiche residue.");
             if (o.InstantaneousConcrete) warnings.Add("Analisi istantanea esplicita: φ=0 nel calcolo; i φ/n dell’archivio restano memorizzati per il metodo lineare.");
             else warnings.Add("φ/n modifica il modulo dei nuovi incrementi; non viene integrata una legge di viscosità dipendente dall’età.");
             if (!data.Options.Class4 && !nonlinear) warnings.Add("Riduzioni di classe 4 disattivate: sezione lorda.");

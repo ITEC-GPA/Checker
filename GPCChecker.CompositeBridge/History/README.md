@@ -78,7 +78,8 @@ M_int,0 = -somma(sigma_i * Aeff_i * y_i)
 
 Il bilancio delle fibre fornisce anche i residui indipendenti delle azioni.
 In caso di mancata convergenza viene sollevata `HistoryConvergenceException`,
-con indice/nome fase, sottopasso e ultima fase completata. Il risultato della
+con indice/nome fase, sottopasso e ultima fase completata; se la ricerca del passo
+ha respinto tentativi fuori dal dominio costitutivo, il messaggio ne riporta il motivo. Il risultato della
 fase fallita non è esposto come utilizzabile. È disponibile l'annullamento.
 
 ## Legami costitutivi e significato di φ/n
@@ -94,20 +95,33 @@ fase fallita non è esposto come utilizzabile. È disponibile l'annullamento.
   `FromModel` legge E, fy, fu, deformazione ultima e tipo di curva da Model;
   non pretende di riprodurre una legge ciclica sperimentale dell'acciaio.
 - `HistoryModelEnvelopeLaw`: copia i diagrammi tabulati di Model, usa la loro
-  interpolazione nativa e la tangente del segmento. Per il CLS il ramo teso è
-  esattamente quello del materiale fornito. È un inviluppo non lineare a funzione
-  univoca: lo scarico segue quel diagramma, senza una legge aggiunta di danno,
-  chiusura delle fessure o isteresi. Oltre la deformazione ultima di un ramo
-  resistente il tentativo viene rifiutato, evitando di interpretare lo zero
-  restituito fuori tabella come un equilibrio valido dopo rottura.
+  interpolazione nativa e la tangente del segmento. È un inviluppo non lineare a
+  funzione univoca: lo scarico segue quel diagramma, senza una legge aggiunta di
+  danno, chiusura delle fessure o isteresi. Il ramo teso termina alla fessurazione:
+  oltre la sua ultima deformazione il CLS è fessurato, σ = 0 e tangente nulla.
+  Oltre la deformazione ultima del ramo compresso (εcu) il tentativo viene
+  rifiutato, evitando di interpretare lo zero restituito fuori tabella come un
+  equilibrio valido dopo lo schiacciamento. Con `neglectTension: true` il CLS non
+  ha resistenza a trazione (σ = 0 e tangente nulla per ogni trazione).
+  Il salto da fct a 0 del ramo teso è una discontinuità che il Newton di un
+  incremento di carico non attraversa: con il ramo teso lo storico a momento
+  negativo si ferma ancora alla fessurazione della soletta.
 - `IHistoryMaterialLaw`: consente altre leggi con stati interni immutabili.
   `Evaluate` deve essere puro rispetto allo stato precedente; il motore decide
   quando accettare la risposta. Le istanze di legge devono essere immutabili
   oppure essere usate senza modifiche concorrenti.
 
 Per il non lineare H assegnare `MaterialMode = Nonlinear` e `Class4 = false`.
-Acciaio e barre usano la legge plastica, il CLS l'inviluppo Model; si possono
-iniettare leggi alternative tramite le opzioni. Le resistenze dei diagrammi
+Acciaio e barre usano la legge plastica, il CLS l'inviluppo Model in compressione
+con resistenza a trazione trascurata (EN 1992-1-1 §6.1(2)P; sezione fessurata di
+EN 1994-2 §§5.4.2.3, 7.2.1): la soletta tesa è fessurata, quindi lo storico a momento
+negativo e le curve M–κ dalla sezione vergine proseguono oltre la fessurazione fino
+ai limiti di acciaio, barre e CLS compresso. Prima il CLS aveva il ramo teso di Model
+(fctk,0,05 a εcr ≈ 6,6e-5) e il calcolo si fermava alla fessurazione con un messaggio
+di capacità. Conseguenza: un ritiro che tende la soletta non produce tensioni (con il
+ramo teso, sui dati di prova, già −200 µε prima dei carichi composti la fessuravano). Si possono
+iniettare leggi alternative tramite le opzioni, per esempio
+`ConcreteLaw = new HistoryModelEnvelopeLaw(materiale)` con il ramo teso. Le resistenze dei diagrammi
 sono quelle del materiale: **nessun gamma/alpha viene applicato automaticamente**
 dal nuovo motore. L'eventuale diagramma di progetto va fornito esplicitamente.
 

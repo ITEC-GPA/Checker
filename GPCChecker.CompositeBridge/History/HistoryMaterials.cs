@@ -76,8 +76,10 @@ public sealed class HistoryBilinearSteelLaw : IHistoryMaterialLaw
     }
 }
 
-/// <summary>Snapshot of Model's tabulated constitutive envelopes. Nonlinear, path independent;
-/// unloading follows the envelope, without invented concrete damage/hysteresis. No automatic design factors.</summary>
+/// <summary>Snapshot of Model's tabulated constitutive envelopes, for the concrete. Nonlinear, path independent;
+/// unloading follows the envelope, without invented concrete damage/hysteresis. No automatic design factors.
+/// The tensile branch ends at cracking: beyond its last strain the concrete is cracked, σ = 0 and tangent 0. Compression beyond the last strain
+/// of the compressive branch (εcu) is outside the domain (<see cref="HistoryMaterialRangeException"/>).</summary>
 public sealed class HistoryModelEnvelopeLaw : IHistoryMaterialLaw
 {
     private readonly StressStrainTable compression, tension;
@@ -85,22 +87,34 @@ public sealed class HistoryModelEnvelopeLaw : IHistoryMaterialLaw
     public double InitialModulus { get; }
     public bool IsLinear => false;
     public bool SupportsModulusFactors => false;
-    public HistoryModelEnvelopeLaw(Material material)
+    /// <summary>True: no tensile resistance, σ = 0 and tangent 0 for any tension (the tensile branch of the material is ignored)</summary>
+    public bool NeglectsTension { get; }
+    public HistoryModelEnvelopeLaw(Material material) : this(material, false) { }
+    /// <summary>The envelope of the material</summary>
+    /// <param name="material">The Model material</param>
+    /// <param name="neglectTension">True: the tensile strength is neglected (EN 1992-1-1 §6.1(2)P; the cracked section of EN 1994-2 §§5.4.2.3,
+    /// 7.2.1). Continuous at ε = 0, so that the equilibrium iterations converge through the cracking of the slab; with the tensile branch the
+    /// stress drops from fct to 0 at cracking, a discontinuity that the Newton iterations of a load increment cannot cross</param>
+    public HistoryModelEnvelopeLaw(Material material, bool neglectTension)
     {
         InitialModulus = BridgeNumbers.Require(material.ElasticModulusCompression, "E", strict: true);
         compressionStrains = material.StressStrainTableCompression.Strains; compressionStresses = material.StressStrainTableCompression.Stresses;
         tensionStrains = material.StressStrainTableTension.Strains; tensionStresses = material.StressStrainTableTension.Stresses;
         compression = new(compressionStresses, compressionStrains); tension = new(tensionStresses, tensionStrains);
+        NeglectsTension = neglectTension;
     }
     public HistoryMaterialState InitialState() => new(0, 0);
     public HistoryMaterialResponse Evaluate(double strain, HistoryMaterialState committed, double modulusFactor)
     {
         if (modulusFactor != 1) throw new NotSupportedException("Il diagramma Model non definisce l'evoluzione viscosa: usare phi=0 o una legge storica dedicata.");
+        // Tension: no resistance when neglected, and beyond the end of the tensile branch (cracked concrete). Before, a strain beyond the
+        // cracking strain was rejected as outside the domain, and the analyses stopped at the cracking of the slab.
+        if (strain > 0 && (NeglectsTension || tensionStrains.Length == 0 || strain > tensionStrains.Last())) return new(0, 0, new(strain, 0));
         var e = strain > 0 ? tensionStrains : compressionStrains;
         var s = strain > 0 ? tensionStresses : compressionStresses;
-        // An empty/zero tensile branch represents no tensile resistance, not material rupture.
+        // Compression beyond the ultimate strain is rupture, not zero resistance.
         if (s.Any(v => v != 0) && Math.Abs(strain) > Math.Abs(e.Last()))
-            throw new HistoryMaterialRangeException("Deformazione oltre il diagramma costitutivo Model.");
+            throw new HistoryMaterialRangeException("Deformazione di compressione oltre il diagramma costitutivo Model (εcu).");
         double stress = (strain > 0 ? tension : compression).GetStress(strain), tangent = 0;
         for (int i = 1; i < e.Length; i++)
             if (Math.Abs(strain) <= Math.Abs(e[i])) { tangent = (s[i] - s[i - 1]) / (e[i] - e[i - 1]); break; }

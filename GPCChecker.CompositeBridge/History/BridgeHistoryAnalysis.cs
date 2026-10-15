@@ -193,7 +193,7 @@ public static class BridgeHistoryAnalysis
             double de = (k11 * r0 - k01 * r1) / determinant;
             double dk = (k00 * r1 - k01 * r0) / determinant / length;
             var change = new HistoryStrainPlane(de + dk * origin, dk);
-            bool improved = false; double alpha = 1;
+            bool improved = false; double alpha = 1; string? rejected = null;
             for (int search = 0; search < o.MaximumLineSearchIterations; search++, alpha *= .5)
             {
                 try
@@ -201,9 +201,11 @@ public static class BridgeHistoryAnalysis
                     var trial = Evaluate(current.Plane + change.Scale(alpha));
                     if (Norm(trial) < norm || Norm(trial) <= 1) { current = trial; improved = true; break; }
                 }
-                catch (HistoryMaterialRangeException) { /* Shorten the trial; do not commit a failed material state. */ }
+                catch (HistoryMaterialRangeException ex) { rejected ??= ex.Message; /* Shorten the trial; do not commit a failed material state. */ }
             }
-            if (!improved) throw new HistorySolveFailure($"Newton non riduce il residuo (N={current.N - targetN:E4} N, M={current.M - targetM:E4} Nmm, norma={norm:E4}, Δε={change.AxialStrain:E4}, Δκ={change.Curvature:E4}); verificare capacità, diagrammi e sottopassi");
+            // the reason of a constitutive rejection, when there is one (before, always "verify capacity")
+            if (!improved) throw new HistorySolveFailure($"Newton non riduce il residuo (N={current.N - targetN:E4} N, M={current.M - targetM:E4} Nmm, norma={norm:E4}, Δε={change.AxialStrain:E4}, Δκ={change.Curvature:E4}); "
+                + (rejected is null ? "verificare capacità, diagrammi e sottopassi" : "tentativi respinti dal legame costitutivo: " + rejected.TrimEnd('.') + "; verificare capacità e sottopassi"));
         }
         throw new HistorySolveFailure("Numero massimo di iterazioni Newton raggiunto");
     }

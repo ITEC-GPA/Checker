@@ -21,7 +21,10 @@ meccanica e stato plastico di ogni fibra. Non modifica lo stato iniziale passato
 dal chiamante. Eventuali componenti inattivi rimangono inattivi. La curva non
 introduce nuovi getti o ritiri: questi vanno definiti nello storico di partenza.
 
-Si riusano le leggi costitutive dello storico. Nel controllo M–κ l'equilibrio
+Si riusano le leggi costitutive dello storico; nell'adattatore H il CLS non lineare
+non ha resistenza a trazione, quindi la curva dalla sezione vergine prosegue oltre la
+fessurazione della soletta (prima si fermava con `MaterialDomain` al momento di
+fessurazione). Nel controllo M–κ l'equilibrio
 scalare di N usa predittore elastico, Newton con tangente, ricerca del passo e
 suddivisione adattiva. N–ε integra direttamente il piano prescritto. Solo gli
 stati accettati aggiornano la memoria; una prova fallita non la modifica.
