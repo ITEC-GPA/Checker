@@ -57,7 +57,10 @@ public static partial class HBridgeSection
             var contributions = data.Options.Class4 ? included.Select(p => Solve(data, g, effective, p, applicationPoints[p])).ToList() : situation.Contributions.ToList();
             // Keep properties and stresses on the same converged geometry. Diagnostic plate data are recomputed on those stresses.
             var diagnostics = data.Options.Class4 ? EffectiveWidths(g, y => contributions.Sum(c => c.SteelStress(y)), mat.Steel.Fyk, data.Options) : BridgeEffective.Full(g);
-            effective = effective with { Web = diagnostics.Web, Top = diagnostics.Top, Bottom = diagnostics.Bottom, SecondBottom = diagnostics.SecondBottom };
+            // all the plates, including the outstands of the bottom flange of the box (before, BottomOutstand kept the gross plate: results, report
+            // and drawing showed fully effective outstands, while BottomWidth included their reduction)
+            effective = effective with { Web = diagnostics.Web, Top = diagnostics.Top, Bottom = diagnostics.Bottom, SecondBottom = diagnostics.SecondBottom,
+                BottomOutstand = diagnostics.BottomOutstand };
             var effectiveParts = SteelPieces(g, effective, mat.Steel);
             double effectiveArea = effectiveParts.Sum(p => p.Section.Area);
             double effectiveCentroid = effectiveParts.Sum(p => p.Section.Area * p.PositionToGlobal(p.Section.Centroid).Y) / effectiveArea;
