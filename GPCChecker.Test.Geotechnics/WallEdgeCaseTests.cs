@@ -382,6 +382,37 @@ public class WallEdgeCaseTests
         Close(.1 * .3 * 20 * 2 * 4.45 * KNm, with.Overturning - without.Overturning, "kh ψ2 q b ht", 1e-9);
     }
 
+    /// <summary>
+    /// MUR-5: with the coefficients from the site Mononobe-Okabe is checked also with the overturning ones (βm,rib = 1.5 βm = 0.57). Site of the
+    /// finding: ag = 0.35 g, category C, F0 = 2.5: Ss = 1.7 − 0.6·2.5·0.35 = 1.175 (NTC Tab. 3.2.IV), amax = 0.41125 g; general kh = 0.38 amax =
+    /// 0.1563, kv = 0.0781, θ = atan(0.1563/0.9219) = 9.62°; overturning kh = 0.57 amax = 0.2344, kv = 0.1172, θ = atan(0.2344/0.8828) = 14.87°
+    /// (hand calculation). With φ′ = 14° the general check passes and the overturning one fails, with a message naming it and βm.
+    /// </summary>
+    [TestMethod]
+    public void MononobeOkabeIsCheckedWithTheOverturningCoefficientsOfTheSite()
+    {
+        var site = NtcSiteAmplification.Create(.35, (NtcSoilCategory.C, 2.5), null, (NtcTopography.Flat, 0, 0, 0), null);
+        Close(.41125, site.AmaxG, "amax", 1e-12);
+        WallInput Input(double phi) => Wall(fill: Column(3.4, (Fill(phi), 10)), seismic: WallSeismic.FromSite(WallSeismicMethod.MononobeOkabe, site));
+        var seismic = Input(14).Seismic!;
+        Close(14.870857, EarthPressure.SeismicAngle(seismic.KhOverturning, seismic.KvOverturning) / Deg, "θ overturning (hand)", 1e-6);
+        Close(9.621366, EarthPressure.SeismicAngle(seismic.Kh, seismic.Kv) / Deg, "θ general (hand)", 1e-6);
+        var e = Assert.ThrowsException<ArgumentException>(() => RetainingWallAnalysis.Calculate(Input(14), WallCombinations.Generate(Input(14))));
+        StringAssert.Contains(e.Message, "combinazioni SLV di ribaltamento"); StringAssert.Contains(e.Message, "βm = 0,57"); StringAssert.Contains(e.Message, "θ = atan(kh/(1 − kv)) = 14,9°");
+        StringAssert.Contains(e.Message, "φ′ = 14,0°");
+        // General combinations beyond the field: the same check with βm = 0.38. Site ag = 0.5 g, C: Ss = max(1; 1.7 − 0.6·2.5·0.5) = 1, kh = 0.19,
+        // kv = 0.095, θ = atan(0.19/0.905) = 11.86° > φ′ = 11°.
+        var strong = NtcSiteAmplification.Create(.5, (NtcSoilCategory.C, 2.5), null, (NtcTopography.Flat, 0, 0, 0), null);
+        var weak = Wall(fill: Column(3.4, (Fill(11), 10)), seismic: WallSeismic.FromSite(WallSeismicMethod.MononobeOkabe, strong));
+        var general = Assert.ThrowsException<ArgumentException>(() => RetainingWallAnalysis.Calculate(weak, WallCombinations.Generate(weak)));
+        StringAssert.Contains(general.Message, "combinazioni SLV generali"); StringAssert.Contains(general.Message, "βm = 0,38");
+        // φ′ = 16°: both inside the field, the calculation runs.
+        var ok = RetainingWallAnalysis.Calculate(Input(16), WallCombinations.Generate(Input(16)));
+        Assert.AreEqual(4, ok.Cases.Count(c => c.Combination.State == WallLimitState.Seismic));
+        // Assigned coefficients keep the check of the assigned kh, kv.
+        Throws(() => RetainingWallAnalysis.Calculate(Wall(fill: Column(3.4, (Fill(12), 10)), seismic: WallSeismic.Assigned(WallSeismicMethod.MononobeOkabe, .3, .05)), new[] { Row() }), "assigned beyond φ");
+    }
+
     [TestMethod]
     public void SiteAmplificationFollowsNtcTables()
     {

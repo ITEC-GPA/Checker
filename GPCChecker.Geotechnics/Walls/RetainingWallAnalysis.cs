@@ -1,3 +1,4 @@
+using System.Globalization;
 using GPC.Checkers.Geotechnics.Foundations;
 using GPC.Model.Geotechnics;
 
@@ -382,7 +383,24 @@ namespace GPC.Checkers.Geotechnics.Walls
                 var layers = input.Backfill.Layers; var first = layers[0].Soil;
                 if (input.Water != null || layers.Any(l => l.Soil.FrictionAngle != first.FrictionAngle || l.Soil.UnitWeight != first.UnitWeight))
                     throw new ArgumentException("Pseudostatica: questa versione richiede terreno omogeneo asciutto; disattivare il sisma per il caso con falda o strati differenti.");
-                if (input.Seismic.Method == WallSeismicMethod.MononobeOkabe) _ = EarthPressure.MononobeOkabe(first.FrictionAngle, input.Seismic.Kh, input.Seismic.Kv);
+                if (input.Seismic.Method == WallSeismicMethod.MononobeOkabe)
+                {
+                    var s = input.Seismic;
+                    if (s.Site == null) _ = EarthPressure.MononobeOkabe(first.FrictionAngle, s.Kh, s.Kv);
+                    else
+                        // Coefficients from the site: the general combinations (βm) and the overturning ones (βm,rib = min(1; 1.5 βm)) both use Mononobe-Okabe.
+                        foreach (var (label, beta, kh, kv) in new[] { ("generali", s.Beta, s.Kh, s.Kv), ("di ribaltamento", s.BetaOverturning, s.KhOverturning, s.KvOverturning) })
+                        {
+                            double theta = EarthPressure.SeismicAngle(kh, kv);
+                            if (theta >= first.FrictionAngle)
+                            {
+                                var it = CultureInfo.GetCultureInfo("it-IT");
+                                throw new ArgumentException($"Mononobe-Okabe non applicabile nelle combinazioni SLV {label} (sisma dal sito, βm = {beta.ToString("0.###", it)}): "
+                                    + $"kh = {kh.ToString("0.###", it)}, kv = ±{kv.ToString("0.###", it)}, θ = atan(kh/(1 − kv)) = {(theta / SoilUnits.Degree).ToString("0.0", it)}° ≥ φ′ = "
+                                    + $"{(first.FrictionAngle / SoilUnits.Degree).ToString("0.0", it)}° del terreno a monte.");
+                            }
+                        }
+                }
             }
             if (rows.Length == 0) throw new ArgumentException("Abilitare almeno una combinazione.");
             var names = new HashSet<string>();

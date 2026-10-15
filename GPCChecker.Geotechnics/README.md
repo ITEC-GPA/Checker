@@ -221,6 +221,12 @@ mensola di valle) anche per i tagli sopra la fondazione e contava la striscia ch
 a gravità di ANTHEA (2,20/0,55 m, Dv = 2,0 m), quasi permanente, taglio a z = 2,25 m: N = 68,91 kN/m e M = −0,46 kNm/m (prima
 74,85 e +6,07); alla radice nulla cambia. Con le scarpe dei muri a mensola (circa 0,05) l'effetto è piccolo.
 
+**Campo di Mononobe-Okabe con il sisma dal sito (correzione MUR-5, 15/10/2026).** Con i coefficienti ricavati dal sito la
+validazione controlla θ = atan(kh/(1 − kv)) < φ′ sia con i coefficienti generali (βm = 0,38) sia con quelli del ribaltamento
+(βm,rib = min(1; 1,5 βm) = 0,57), e il messaggio indica le combinazioni SLV (generali o di ribaltamento), βm, kh, kv, θ e φ′.
+Prima era controllato solo il kh generale e con θrib ≥ φ′ il calcolo si fermava con il messaggio generico di Coulomb. Con kh e
+kv assegnati resta il controllo sui valori assegnati.
+
 Casi legacy congelati e riprodotti (`WallsMigrationTests`, harness ANTHEA cbed972, `Fixtures/walls-*`): 798 valori delle
 leggi, 110 generazioni di combinazioni (2380 righe), 88 muri completi (149.922 sezioni, 8332 verifiche) e 14 documenti
 rifiutati; 8 documenti rifiutati da ANTHEA per motivi fuori da W1 (strutturali o d'interfaccia) sono elencati nel test.
