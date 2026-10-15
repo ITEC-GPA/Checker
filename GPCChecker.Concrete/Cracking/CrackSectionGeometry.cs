@@ -270,7 +270,16 @@ namespace GPC.Checkers.Concrete.Cracking
         // ---- Maximum spacing of the effective tensile bars (ANTHEA TensionBarSpacing) ----
 
         /// <summary>Maximum distance between adjacent selected bars; null when fewer than two bars or when it cannot be determined.</summary>
-        public double? MaximumSpacing(IReadOnlyList<int> tensileBarIndices)
+        public double? MaximumSpacing(IReadOnlyList<int> tensileBarIndices) => MaximumSpacing(tensileBarIndices, null);
+
+        /// <summary>
+        /// Maximum distance between adjacent selected bars of a layer (Rows layout): only the rows of bars with the same y (<paramref name="alongX"/> true) or
+        /// the same x (false), never across the layers, e.g. through the thickness of a slab or wall strip (ANTHEA bug analysis 15/10/2026, DET-1). The
+        /// circular layouts measure along their rings as <see cref="MaximumSpacing(IReadOnlyList{int})"/>. Null as there.
+        /// </summary>
+        internal double? MaximumSpacingAlong(IReadOnlyList<int> barIndices, bool alongX) => MaximumSpacing(barIndices, alongX);
+
+        private double? MaximumSpacing(IReadOnlyList<int> tensileBarIndices, bool? alongX)
         {
             var selected = new HashSet<int>(tensileBarIndices);
             if (selected.Count < 2) return null;
@@ -295,7 +304,7 @@ namespace GPC.Checkers.Concrete.Cracking
             }
             else
             {
-                foreach (bool horizontal in new[] { true, false })
+                foreach (bool horizontal in alongX.HasValue ? new[] { alongX.Value } : new[] { true, false })
                 {
                     var rows = Bars.Select((b, i) => new { Bar = b, Index = i }).GroupBy(b => Math.Round(horizontal ? b.Bar.Y : b.Bar.X, 6));
                     foreach (var row in rows)

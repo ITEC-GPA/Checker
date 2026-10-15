@@ -246,20 +246,23 @@ namespace ConcreteTests
         /// Row of detailing-plate-legacy.csv as the ANTHEA mapping passes it (F2.8 §5 B2, M12): cmin,dur null when not finite, Fctm of the legacy formula,
         /// plate data for every kind, no cover additions.
         /// </summary>
-        private static MemberDetailingInput PlateInput(string[] c, ReinforcedConcreteSection section, bool legacyNegativeLinkLegs)
+        private static MemberDetailingInput PlateInput(string[] c, ReinforcedConcreteSection section, bool legacyNegativeLinkLegs, bool legacySpacing = true)
         {
             double durability = D(c[19]);
             return new MemberDetailingInput(Kind(c[2]), CrackSectionGeometry.From(section), D(c[6]), D(c[3]), Fctm(D(c[3])), D(c[4]), D(c[5]), D(c[9]), D(c[10]), D(c[11]),
                 D(c[13]), bool.Parse(c[14]), D(c[15]), D(c[16]), int.Parse(c[17]), D(c[18]), D(c[12]),
                 double.IsNaN(durability) || double.IsInfinity(durability) ? (double?)null : durability, D(c[20]), bool.Parse(c[21]), bool.Parse(c[22]), bool.Parse(c[23]), 0, 0,
-                new MemberDetailingOptions(new PlateDetailingData(D(c[24]), D(c[25]), bool.Parse(c[26])), legacyNegativeLinkLegs));
+                new MemberDetailingOptions(new PlateDetailingData(D(c[24]), D(c[25]), bool.Parse(c[26])), legacyNegativeLinkLegs, legacySpacing));
         }
 
         /// <summary>
         /// ANTHEA ConcreteDetailingCalculator on solid slab strips, walls, slab rejections and rows with −2 link legs (detailing-plate-legacy.csv,
         /// sections detailing-plate-sections.xml; F2.8 A0 capture F2-pre-f28 a/tutte, ANTHEA 1baeb60): same keys in the same order,
         /// same verdicts and units, Actual and Limit within 1e-9, rejections on the same rows with the corresponding message. The rows with −2 legs
-        /// are reproduced with <see cref="MemberDetailingOptions.LegacyNegativeLinkLegs"/> and rejected without it.
+        /// are reproduced with <see cref="MemberDetailingOptions.LegacyNegativeLinkLegs"/> and rejected without it. The spacing of slabs and walls of the
+        /// capture was measured also across the layers (DET-1): the capture is reproduced with <see cref="MemberDetailingOptions.LegacyPlateSpacingAcrossLayers"/>;
+        /// without it (default) every other check is the same and MainSpacing / WallVerticalSpacing are never larger than the captured value (the old value
+        /// is max(spacing along the layer; distance between the layers)), with the same verdict in the capture.
         /// </summary>
         [TestMethod]
         public void LegacyPlateDetailingIsReproduced()
@@ -270,7 +273,7 @@ namespace ConcreteTests
             Assert.IsTrue(lines[0].StartsWith("id;section;kind;"), "header");
             var rows = lines.Skip(1).ToArray();
             Assert.AreEqual(282, rows.Length);
-            int checks = 0, errors = 0, negativeLegs = 0, pending = 0, calculated = 0;
+            int checks = 0, errors = 0, negativeLegs = 0, pending = 0, calculated = 0, spacingChanged = 0;
             var perKey = new Dictionary<string, int>();
             foreach (var row in rows)
             {
@@ -291,6 +294,20 @@ namespace ConcreteTests
                 }
                 var r = MemberDetailingCalculator.Calculate(DetailingProfile.Ntc2018, PlateInput(c, section, true));
                 Assert.AreEqual(Kind(c[2]), r.Kind, id); calculated++;
+                var fixedSpacing = MemberDetailingCalculator.Calculate(DetailingProfile.Ntc2018, PlateInput(c, section, true, false));
+                Assert.AreEqual(r.Checks.Count, fixedSpacing.Checks.Count, id);
+                for (int i = 0; i < r.Checks.Count; i++)
+                {
+                    var a = r.Checks[i]; var b = fixedSpacing.Checks[i];
+                    Assert.AreEqual(a.Key, b.Key, id); Assert.AreEqual(a.Limit, b.Limit, id + " " + a.Key);
+                    if (a.Key == "MainSpacing" || a.Key == "WallVerticalSpacing")
+                    {
+                        Assert.IsTrue(b.Actual == a.Actual || b.Actual <= a.Actual + 1e-9, id + " " + a.Key + ": along the layers " + b.Actual + " > " + a.Actual);
+                        if (b.Actual < a.Actual - 1e-9) spacingChanged++;
+                        Assert.AreEqual(a.Passed, b.Passed, id + " " + a.Key + " verdict in the capture");
+                    }
+                    else { Assert.AreEqual(a.Actual, b.Actual, id + " " + a.Key); Assert.AreEqual(a.Passed, b.Passed, id + " " + a.Key); }
+                }
                 var legacy = c[28].Split('|');
                 Assert.AreEqual(legacy.Length, r.Checks.Count, id + ": " + string.Join(",", r.Checks.Select(x => x.Key)));
                 for (int i = 0; i < legacy.Length; i++)
@@ -316,6 +333,51 @@ namespace ConcreteTests
             foreach (var key in new[] { "MaximumAtLap", "BarsHeldByLinks", "MinimumLinks:Bottom", "LongitudinalSpacing" }) Assert.IsTrue(perKey.ContainsKey(key), key + " not covered");
             Assert.AreEqual(272, calculated, "143 slabs, 123 walls, 3 beams, 3 columns");
             Assert.AreEqual(2610, checks); Assert.AreEqual(701, pending);
+            // DET-1: S1000x200D 102 → 69.38, W250x1200N 164 → 159.14, W1000x200D 92 → 68.62 mm (20 rows each), all within their limits before and after.
+            Assert.AreEqual(60, spacingChanged, "rows whose spacing was the distance between the layers");
+        }
+
+        /// <summary>
+        /// DET-1 of the ANTHEA bug analysis (15/10/2026, verifier scratchpad bug/verA-solette-pareti-interasse, indep.py): the spacing of slabs and walls
+        /// is measured along the layers, never through the thickness. Strip 1000 × h, c = 30 mm to the bars (no links), 6Ø16 on each face: by hand the
+        /// spacing along a layer is (1000 − 2 · 38)/5 = 184.8 mm, the distance between the layers h − 2 · 38 = 424 (h = 500) and 324 (h = 400).
+        /// Slab 1000 × 500: 184.8 ≤ min(3 h; 400) = 400 (EC2 §9.3.1.1(3)); slab 1000 × 400 in the critical region: 184.8 ≤ min(2 h; 250) = 250; wall
+        /// 1000 × 500 and the same wall rotated (thickness along x): 184.8 ≤ min(3 t; 400) = 400 (§9.6.2(3)). Before: 424, 324, 424 and 424, not satisfied.
+        /// With <see cref="MemberDetailingOptions.LegacyPlateSpacingAcrossLayers"/> the former values come back.
+        /// </summary>
+        [TestMethod]
+        public void SlabAndWallSpacingIsMeasuredAlongTheLayers()
+        {
+            CrackSectionGeometry Plate(double width, double thickness, bool rotated)
+            {
+                var bars = new List<CrackBar>();
+                foreach (double across in new[] { -(thickness / 2 - 38), thickness / 2 - 38 })
+                    for (int i = 0; i < 6; i++)
+                    {
+                        double along = -(width / 2 - 38) + i * (width - 76) / 5;
+                        bars.Add(rotated ? new CrackBar(across, along, 16, Math.PI * 64) : new CrackBar(along, across, 16, Math.PI * 64));
+                    }
+                double bx = rotated ? thickness : width, by = rotated ? width : thickness;
+                return new CrackSectionGeometry(new[] { new Point2d(-bx / 2, -by / 2), new Point2d(bx / 2, -by / 2), new Point2d(bx / 2, by / 2), new Point2d(-bx / 2, by / 2) },
+                    null, bars, CrackBarLayout.Rows);
+            }
+            double fctm = .3 * Math.Pow(30, 2d / 3);
+            DetailingCheck Spacing(MemberDetailingKind kind, CrackSectionGeometry g, bool critical, bool legacy)
+            {
+                var input = new MemberDetailingInput(kind, g, g.Width * g.Height, 30, fctm, 450, 391.3, 1000, 1000, 1000, 0, false, 0, 0, 0, 20, 30, null, 10, false, true, true, 0, 0,
+                    new MemberDetailingOptions(new PlateDetailingData(1000, 200, critical), false, legacy));
+                return MemberDetailingCalculator.Calculate(DetailingProfile.Ntc2018, input).Checks.Single(c => c.Key == (kind == MemberDetailingKind.Slab ? "MainSpacing" : "WallVerticalSpacing"));
+            }
+            foreach (var t in new[] { Tuple.Create(MemberDetailingKind.Slab, 500d, false, false, 400d, 424d), Tuple.Create(MemberDetailingKind.Slab, 400d, true, false, 250d, 324d),
+                Tuple.Create(MemberDetailingKind.Wall, 500d, false, false, 400d, 424d), Tuple.Create(MemberDetailingKind.Wall, 500d, false, true, 400d, 424d) })
+            {
+                string what = t.Item1 + " h = " + t.Item2 + (t.Item3 ? " critical" : "") + (t.Item4 ? " rotated" : "");
+                var g = Plate(1000, t.Item2, t.Item4);
+                var s = Spacing(t.Item1, g, t.Item3, false);
+                Assert.AreEqual(184.8, s.Actual.Value, 1e-9, what); Assert.AreEqual(t.Item5, s.Limit.Value, 1e-12, what); Assert.AreEqual(true, s.Passed, what);
+                var legacy = Spacing(t.Item1, g, t.Item3, true);
+                Assert.AreEqual(t.Item6, legacy.Actual.Value, 1e-9, what + " legacy"); Assert.AreEqual(false, legacy.Passed, what + " legacy");
+            }
         }
 
         private static CrackSectionGeometry Strip(double width, double thickness, double y, int count, double diameter, bool topToo)

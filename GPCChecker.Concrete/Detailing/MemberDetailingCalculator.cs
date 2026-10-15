@@ -39,7 +39,18 @@ namespace GPC.Checkers.Concrete.Detailing
         /// legs). Correction proposed to the user (ANTHEA F2.8-U2); false = rejected, as with the default options.
         /// </summary>
         public bool LegacyNegativeLinkLegs { get; }
-        public MemberDetailingOptions(PlateDetailingData plate, bool legacyNegativeLinkLegs) { Plate = plate; LegacyNegativeLinkLegs = legacyNegativeLinkLegs; }
+        /// <summary>
+        /// Named legacy option: the bar spacing of solid slab strips (MainSpacing) and walls (WallVerticalSpacing) is measured, as before the ANTHEA bug
+        /// analysis of 15/10/2026 (DET-1), on rows and columns of bars, so two aligned bars of the opposite layers count as adjacent and the value is
+        /// max(spacing along the layer; h − 2c − Ø). Kept only for the frozen capture detailing-plate-legacy.csv; false (default): along the layers only.
+        /// </summary>
+        public bool LegacyPlateSpacingAcrossLayers { get; }
+        public MemberDetailingOptions(PlateDetailingData plate, bool legacyNegativeLinkLegs) : this(plate, legacyNegativeLinkLegs, false) { }
+        /// <summary>Options with <see cref="LegacyPlateSpacingAcrossLayers"/>.</summary>
+        public MemberDetailingOptions(PlateDetailingData plate, bool legacyNegativeLinkLegs, bool legacyPlateSpacingAcrossLayers)
+        {
+            Plate = plate; LegacyNegativeLinkLegs = legacyNegativeLinkLegs; LegacyPlateSpacingAcrossLayers = legacyPlateSpacingAcrossLayers;
+        }
     }
 
     /// <summary>
@@ -234,13 +245,17 @@ namespace GPC.Checkers.Concrete.Detailing
         /// <summary>
         /// Solid slab strip after the two faces of <see cref="Beam"/> (As,min and As,max, no link checks): main and secondary reinforcement and spacing
         /// (EC2 §9.3.1.1), pending checks of the face distribution and of edges, supports and punching (ANTHEA ConcreteDetailing.cs:109-118). The main
-        /// spacing has no pending check when the arrangement is not recognised, as in ANTHEA.
+        /// spacing has no pending check when the arrangement is not recognised, as in ANTHEA. The main spacing is measured along the layers (rows of
+        /// bars with the same y), never between the top and the bottom layer (ANTHEA bug analysis 15/10/2026, DET-1: before, aligned bars of the two
+        /// layers gave h − 2c − Ø, e.g. 424 mm instead of 184.8 mm for h = 500).
         /// </summary>
         private static void Slab(MemberDetailingInput p, Action<string, double, double, string, string, string> Min, Action<string, double, double, string, string, string> Max,
             Action<string, string, string> Pending, double steel)
         {
             var g = p.Geometry; var plate = p.Plate; bool critical = plate.CriticalRegion;
-            var spacing = g.MaximumSpacing(Enumerable.Range(0, g.Bars.Count).ToArray());
+            // Along the layers (rows of equal y, the strip has h = thickness along y), never through the thickness (DET-1).
+            var all = Enumerable.Range(0, g.Bars.Count).ToArray();
+            var spacing = p.Options.LegacyPlateSpacingAcrossLayers ? g.MaximumSpacing(all) : g.MaximumSpacingAlong(all, true);
             if (spacing.HasValue) Max("MainSpacing", spacing.Value, PlateDetailingRules.SlabMainSpacing(g.Height, critical), "mm", "EC2 §9.3.1.1",
                 "critical region: min(2h; 250 mm); elsewhere: min(3h; 400 mm)");
             double principal = steel * 1000 / g.Width;
@@ -256,7 +271,8 @@ namespace GPC.Checkers.Concrete.Detailing
 
         /// <summary>
         /// Wall (EC2 §§9.6.2-9.6.3): vertical reinforcement, minimum and maximum, and spacing; horizontal reinforcement per metre and spacing; pending
-        /// distribution on the faces and transverse ties (ANTHEA ConcreteDetailing.cs:127-134). Thickness t = min(b; h), length l = max(b; h).
+        /// distribution on the faces and transverse ties (ANTHEA ConcreteDetailing.cs:127-134). Thickness t = min(b; h), length l = max(b; h). The vertical
+        /// spacing is measured along the layers (rows of bars along the length), never through the thickness (DET-1).
         /// </summary>
         private static void Wall(MemberDetailingInput p, Action<string, double, double, string, string, string> Min, Action<string, double, double, string, string, string> Max,
             Action<string, string, string> Pending, double steel)
@@ -265,7 +281,10 @@ namespace GPC.Checkers.Concrete.Detailing
             Min("WallVertical", steel, LongitudinalReinforcementLimits.MinimumWallVerticalRatio * p.ConcreteArea, "mm2", "EC2 §9.6.2", "As,v ≥ 0.002 Ac, distributed on the two faces");
             if (!p.LapZone) Max("WallVerticalMaximum", steel, LongitudinalReinforcementLimits.MaximumRatioOutsideLaps * p.ConcreteArea, "mm2", "EC2 §9.6.2", "As,v ≤ 0.04 Ac outside laps");
             double thickness = Math.Min(g.Width, g.Height), length = Math.Max(g.Width, g.Height);
-            var spacing = g.MaximumSpacing(Enumerable.Range(0, g.Bars.Count).ToArray());
+            // Along the layers, i.e. across the thickness direction: rows of equal y when the thickness is along y (Width ≥ Height), of equal x otherwise;
+            // never through the thickness (DET-1).
+            var all = Enumerable.Range(0, g.Bars.Count).ToArray();
+            var spacing = p.Options.LegacyPlateSpacingAcrossLayers ? g.MaximumSpacing(all) : g.MaximumSpacingAlong(all, g.Width >= g.Height);
             if (spacing.HasValue) Max("WallVerticalSpacing", spacing.Value, PlateDetailingRules.WallMainSpacing(thickness), "mm", "EC2 §9.6.2", "s ≤ min(3 t; 400 mm)");
             else Pending("WallVerticalSpacing", "EC2 §9.6.2", "Bar arrangement not recognised automatically.");
             Min("WallHorizontal", plate.SecondarySteelPerMetre, Math.Max(PlateDetailingRules.WallHorizontalMainRatio * steel * 1000 / length, PlateDetailingRules.WallHorizontalConcreteRatio * thickness * 1000), "mm2/m", "EC2 §9.6.3",
