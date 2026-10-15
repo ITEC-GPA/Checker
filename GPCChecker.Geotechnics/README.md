@@ -51,6 +51,10 @@ fondazioni, pali e micropali, spinte ed equilibrio dei muri. Organizzazione deci
 - **Pendii.** I terreni sono `Soil` di Model a strati orizzontali, con una seconda colonna facoltativa a valle. Si
   modellano falda idrostatica, corpi rigidi (per esempio il muro, che sostituisce il terreno occupato) e carichi
   identificati, ciascuno con il proprio coefficiente.
+  - Segni (documentazione corretta il 15/10/2026, GEO-2): la valle è a sinistra (le uscite dei cerchi stanno a sinistra degli
+    ingressi) e il momento motore è orario. La forza orizzontale di `SlopeLoad` e kh di `SlopeFactors` sono positivi verso
+    valle, cioè verso −X, nel verso dello scorrimento; una forza verso monte è negativa. La documentazione diceva «verso +X»,
+    mentre il calcolo (e `WallGlobalStability`, che passa le forze del muro positive verso valle) usava già questo verso.
   - `SlopeFactors` contiene i coefficienti di una combinazione. `FromCombination` li ricava dalle norme di Model (NTC
     2018 A2+M2+R2, γR 1,1; sisma: fattori 1, γR 1,2). Un insieme A con γG1 diversi per favorevole e sfavorevole (EN DA1
     A1) è rifiutato: i coefficienti vanno dati esplicitamente.
