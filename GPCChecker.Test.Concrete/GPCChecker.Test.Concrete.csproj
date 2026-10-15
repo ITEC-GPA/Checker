@@ -101,6 +101,7 @@
     <Compile Include="FailureDomainCheckRCTest.cs" />
     <Compile Include="FailureDomain2dNMTests.cs" />
     <Compile Include="AssignedAxialForceOutcomeTests.cs" />
+    <Compile Include="MomentCurvatureReferenceStrainTests.cs" />
     <Compile Include="FailureDomainFRCTest.cs" />
     <Compile Include="FailureDomainIntesectVsDirect.cs" />
     <Compile Include="FailureDomainPSCTest.cs" />

@@ -113,7 +113,7 @@ compressione e quella delle barre come massimo modulo.
 | Mr | momento limite nella direzione θ | Nmm | `MomentCurvatureResult.LimitMoment` |
 | χx, χy | componenti del gradiente di deformazione | 1/mm | `GradientX`, `GradientY` |
 | χ | curvatura, modulo del gradiente | 1/mm | `Curvature` |
-| ε0 | deformazione nel punto di riferimento | — | `ReferenceStrain` |
+| ε0 | deformazione nel punto di riferimento dell'integrazione (xr, yr), in tutti i punti della curva | — | `ReferenceStrain` |
 | xr, yr | punto di riferimento dell'integrazione delle forze, negli assi della sezione | mm | `SectionSolver.IntegrationReferencePoint` |
 | δi | 1 per la barra i interna al calcestruzzo, 0 altrimenti (sezione netta) | — | `SectionSolver.IntegrateRebarStress` |
 | εc | modulo della massima compressione del calcestruzzo ai vertici del contorno | — | `ConcreteCompressionStrain` |
@@ -178,7 +178,12 @@ f_i = \varphi_{end}\left(\frac{i}{n}\right)^{2}\ \text{(campionamento quadratico
 ```
 
 Per i < n, oppure φend < 1, il punto è l'analisi tensionale non lineare con (N; Mi cos θ; Mi sin θ). Per i = n e
-φend = 1 il punto è lo stato di deformazione del punto limite. Curvatura e indicatori del punto:
+φend = 1 il punto è lo stato di deformazione del punto limite. Nella variante sul verificatore ε0 è in ogni punto la
+deformazione nel punto di riferimento dell'integrazione (xr, yr), l'origine degli assi delle forze del verificatore,
+anche al punto limite, il cui piano viene dal dominio con riferimento al vertice pivot: ε0 = ε(xr, yr). Fino alla
+correzione SLU-4 del 15/10/2026 la riga del punto limite riportava la deformazione al vertice (−3,5‰ con il
+calcestruzzo a εcu): 300 × 500 C25/30 4Ø16, N = −1000 kN, θ = 0, ε0 = −0,508‰ invece di −3,5‰ (modello a fibre
+indipendente −0,503‰). Curvatura e indicatori del punto:
 
 ```math
 \chi = \sqrt{\chi_x^2 + \chi_y^2}, \qquad \varepsilon_s = \max_i\left|\varepsilon(x_i,y_i)\right|, \qquad \varepsilon_c = \max\left(0;\ -\min_{v}\varepsilon(x_v,y_v)\right), \qquad \text{snervato} \iff \varepsilon_s \ge \varepsilon_y \qquad \text{(M.5)}
@@ -230,7 +235,9 @@ Percorsi relativi alla radice del repository Checker (namespace `GPC.Checkers.Co
 `GPCChecker.Concrete/Response/MomentCurvatureAnalysis.cs`), salvo i materiali del repository Model.
 
 - `MomentCurvatureRequest` (righe 19-34), `MomentCurvatureStrains` (righe 37-55; `From` ricava εs e εc da un piano
-  di deformazione, righe 48-54), `MomentCurvatureLimit` (righe 58-66), `MomentCurvaturePoint` (righe 69-82),
+  di deformazione, righe 48-54, ed ε0 nel punto di riferimento del piano oppure, con il terzo argomento, nel punto
+  dato: la variante sul verificatore passa l'origine degli assi delle forze per il punto limite e per le risposte),
+  `MomentCurvatureLimit` (righe 58-66), `MomentCurvaturePoint` (righe 69-82),
   `MomentCurvatureResult` (righe 88-99).
 - `MomentCurvatureAnalysis.Calculate`, variante generica (righe 108-168), che riceve le funzioni del punto limite e
   della risposta:
@@ -352,6 +359,13 @@ punto limite al passo 40.
   momento limite, curvature, N e gradienti; sulle deformazioni 10⁻⁷ nei punti con acciaio elastico e 10⁻³ in quelli
   con acciaio snervato, perché la traslazione del piano è definita solo entro la tolleranza su N del solutore.
 - **Test**: `DetailingMigrationTests.LegacyMomentCurvatureIsReproduced`.
+- **ε0 del punto limite (SLU-4)**: i casi congelati e il contratto `curvature-contract-0.0.17.csv` riportano per il
+  punto limite di ciascuna delle 5 curve ε0 = −0,0035 (deformazione al vertice pivot); con la correzione la libreria
+  dà la deformazione in (xr, yr): +0,0050595, +0,0155943, −0,0005561, +0,0008943, +0,0102017 (curve 0-4; per la
+  curva 0 a mano −0,0035 + χ · 250 mm = −0,0035 + 3,4238e-5 · 250 = +0,0050595). Le altre colonne e gli altri punti
+  restano identici bit per bit. Le catture non sono state rigenerate: la decisione spetta all'utente; fino ad allora
+  `LegacyMomentCurvatureIsReproduced` e `CurvatureContractOf0017IsUnchanged` falliscono su queste 5 righe. Prova
+  indipendente: `MomentCurvatureReferenceStrainTests` (modello a fibre: −0,5032‰ a N = −1000 kN, +15,559‰ a N = 0).
 - **Esempio di questa pagina**: eseguito con la libreria 0.0.17.0 e ricalcolato in modo indipendente (integrazione
   numerica della zona compressa con la parabola esatta), scarti nella tabella.
 - **Benchmark indipendenti pubblicati**: nessuno, per ora.
