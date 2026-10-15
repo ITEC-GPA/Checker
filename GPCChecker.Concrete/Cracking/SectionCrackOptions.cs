@@ -79,11 +79,18 @@ namespace GPC.Checkers.Concrete.Cracking
         /// <summary>
         /// A tensile zone without reinforcement fails the crack-width check (false by default: no verdict, <see cref="SectionCrackResult.Passed"/> null, as in
         /// 0.0.17.0). With true <see cref="SectionCrackResult.Passed"/> is false, with the same <see cref="SectionCrackResult.Outcome"/> and no width, in three
-        /// cases: <see cref="CrackOutcome.NoTensileReinforcement"/> (no tensile bar and the bar nearest to the tensile edge beyond h/2); a face of the entirely
-        /// tensile section with concrete but no bar in its effective band (<see cref="CrackReason.FaceWithoutAreaOrSteel"/>); an inner surface in tension without
-        /// effective reinforcement (<see cref="CrackOutcome.InnerSurfaceUnreinforced"/>). The cracks of such a zone are not controlled by any bar
-        /// (EN 1992-1-1 7.3.2(1)); the tensile strength of the concrete is not used. The neutral axis within the cover of a reinforced face keeps wk = 0.
-        /// ANTHEA F2-7 point 3, decision of the user 15/10/2026.
+        /// cases: <see cref="CrackOutcome.NoTensileReinforcement"/> (no tensile bar and the neutral axis not within the cover of a bar of the tensile edge, see
+        /// below); a face of the entirely tensile section with concrete but no bar in its effective band (<see cref="CrackReason.FaceWithoutAreaOrSteel"/>); an
+        /// inner surface in tension without effective reinforcement (<see cref="CrackOutcome.InnerSurfaceUnreinforced"/>). The cracks of such a zone are not
+        /// controlled by any bar (EN 1992-1-1 7.3.2(1)); the tensile strength of the concrete is not used. ANTHEA F2-7 point 3, decision of the user 15/10/2026.
+        /// <para>
+        /// The neutral axis within the cover of a reinforced face keeps wk = 0. Without the option a face counts as reinforced when the bar nearest to the
+        /// tensile edge is closer than h/2 (rule of 0.0.17.0); with the option (ANTHEA bug analysis 15/10/2026, FES-1) a bar must lie within its cover
+        /// c + Ø/2 measured along the strain gradient (projected: (c + Ø/2)(|qx| + |qy|) at the corner of a rectangle; on circles plus the sagitta
+        /// r (1 − cos(π/n)) of a regular ring of n bars), or the tensile zone must be no deeper than that projected cover with a bar within c + Ø/2 of the
+        /// tensile surface; c is <see cref="SectionCrackInput.CoverOverride"/> or the nominal cover (validated there with <see cref="ValidateAtUse"/>).
+        /// A detail "a,c" gives the projected cover of the governing bar. Bars at h/2 from the edge, a central mesh or side bars no longer give wk = 0.
+        /// </para>
         /// </summary>
         public bool UnreinforcedTensileZoneFails { get; private set; }
 
