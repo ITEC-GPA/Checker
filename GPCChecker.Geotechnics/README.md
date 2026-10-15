@@ -258,7 +258,10 @@ validazione controlla θ = atan(kh/(1 − kv)) < φ′ sia con i coefficienti ge
 (βm,rib = min(1; 1,5 βm) = 0,57), e il messaggio indica le combinazioni SLV (generali o di ribaltamento), βm, kh, kv, θ e φ′.
 Prima era controllato solo il kh generale e con θrib ≥ φ′ il calcolo si fermava con il messaggio generico di Coulomb. Con kh e
 kv assegnati resta il controllo sui valori assegnati.
-
+Dal 16/10/2026 (decisione dell'utente) ogni riga sismica è controllata anche con i valori che il calcolo usa davvero: φd =
+atan(tan φ′/γM) della riga, δd del paramento (sul fusto) e del piano di equilibrio (0 dietro la mensola, δd del paramento senza
+mensola), θ = atan(kh/(1 − kv)) della riga. Servono θ < φd, δd ≤ φd e δd + θ < 90°; altrimenti il messaggio nomina la riga, θ,
+φd, γM e δd, invece del messaggio generico di Coulomb che compariva durante il calcolo (righe personalizzate con γM > 1).
 Casi legacy congelati e riprodotti (`WallsMigrationTests`, harness ANTHEA cbed972, `Fixtures/walls-*`): 798 valori delle
 leggi, 110 generazioni di combinazioni (2380 righe), 88 muri completi (149.922 sezioni, 8332 verifiche) e 14 documenti
 rifiutati; 8 documenti rifiutati da ANTHEA per motivi fuori da W1 (strutturali o d'interfaccia) sono elencati nel test.

@@ -456,6 +456,30 @@ public class WallEdgeCaseTests
         Throws(() => RetainingWallAnalysis.Calculate(Wall(fill: Column(3.4, (Fill(12), 10)), seismic: WallSeismic.Assigned(WallSeismicMethod.MononobeOkabe, .3, .05)), new[] { Row() }), "assigned beyond φ");
     }
 
+    /// <summary>
+    /// Follow-up of MUR-5 (user decision 16/10/2026): every seismic row is checked with the φd, δd and θ it uses. Fill φ′ = 20°, custom seismic row
+    /// with γM = 1.25: φd = atan(tan 20°/1.25) = 16.23°; kh = 0.3, kv = 0: θ = atan 0.3 = 16.70° ≥ φd (the assigned kh passes the check on φ′ = 20°),
+    /// kh = 0.25: θ = 14.04° < φd runs (hand values). Without heel the friction of the back acts on the plane: δ = 10°, δd = atan(tan 10°/1.25) = 8.0°.
+    /// </summary>
+    [TestMethod]
+    public void MononobeOkabeIsCheckedWithTheValuesOfEachSeismicRow()
+    {
+        WallCombination Quake(double kh, double mphi, string name = "S1") => new(name, WallLimitState.Seismic, 1, 1, 1, 1, mphi, 1, 1, 1, kh, 0, new Dictionary<string, double> { ["q"] = .3 });
+        var fill = Column(3.4, (Fill(20), 10));
+        var input = Wall(fill: fill, seismic: WallSeismic.Assigned(WallSeismicMethod.MononobeOkabe, .3, 0));
+        Close(16.234302, Math.Atan(Math.Tan(20 * Deg) / 1.25) / Deg, "φd (hand, python)", 1e-7);
+        var e = Assert.ThrowsException<ArgumentException>(() => RetainingWallAnalysis.Calculate(input, new[] { Quake(.3, 1.25) }));
+        StringAssert.StartsWith(e.Message, "Mononobe-Okabe non applicabile nella combinazione «S1»: θ = atan(kh/(1 − kv)) = 16,7° (kh = 0,3, kv = 0), φd = atan(tan φ′/γM) = 16,2° (φ′ = 20,0°, γM = 1,25)");
+        RetainingWallAnalysis.Calculate(input, new[] { Quake(.3, 1) });
+        RetainingWallAnalysis.Calculate(input, new[] { Quake(.25, 1.25) });
+        // Without heel: the friction of the back on the equilibrium plane, with its design value.
+        var noHeel = Wall(toe: 2.7, heel: 0, fill: fill, back: new WallInterface(WallFriction.Assigned, 10 * Deg), seismic: WallSeismic.Assigned(WallSeismicMethod.MononobeOkabe, .3, 0));
+        var h = Assert.ThrowsException<ArgumentException>(() => RetainingWallAnalysis.Calculate(noHeel, new[] { Quake(.3, 1.25, "S2") }));
+        StringAssert.Contains(h.Message, "«S2»"); StringAssert.Contains(h.Message, "δd = 8,0° sul piano di equilibrio");
+        // Wood does not use Mononobe-Okabe.
+        RetainingWallAnalysis.Calculate(Wall(fill: fill, seismic: WallSeismic.Assigned(WallSeismicMethod.Wood, .3, 0)), new[] { Quake(.3, 1.25) });
+    }
+
     [TestMethod]
     public void SiteAmplificationFollowsNtcTables()
     {
