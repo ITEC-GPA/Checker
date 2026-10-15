@@ -85,8 +85,10 @@ public class WallExamplesTests
         var free = Worst(RetainingWallAnalysis.Calculate(Cantilever(), WallCombinations.Generate(Cantilever())), WallCheckKind.Sliding);
         TestContext.WriteLine($"Es.3: passiva disponibile {sle.Soil.PassiveAvailable:0.00} N/mm, peso a valle {sle.Soil.ValleyWeight:0.00} N/mm, q'={sle.Soil.Overburden * 1000:0.00} kPa; η scorrimento {sliding.Ratio:0.000} contro {free.Ratio:0.000}");
         Assert.IsTrue(sliding.Ratio < free.Ratio);
-        // Independent model wallref.py: 0.616310 with the twins (0.557572, reported before MUR-1, with q on the heel).
-        Close(.61631, sliding.Ratio!.Value, "wallref.py", 1e-5);
+        // Independent model wallref.py (MUR-2: demand = driving thrust 97.5815, resistance N tan δb/1.1 + η Pp/1.4 = 126.7891 + 13.8857): 0.693667 for
+        // the twin of wall 1, fill 1.3, q 1.5. Before: 0.557572 (passive subtracted from the thrust, without γR,e) and 0.616310 with the twins.
+        Close(.693667, sliding.Ratio!.Value, "wallref.py", 1e-5);
+        Close(.5 * kp * .5 * 18 * KN3 * 1200 * 1200 / 1.4, r.Cases.Single(x => x.Combination.Name == sliding.Combination).Soil.PassiveDesign, "η Pp/γR,e", 1e-12);
     }
 
     [TestMethod]

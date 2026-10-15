@@ -7,7 +7,7 @@ namespace GPC.Checkers.Geotechnics.Walls
     /// commit fe4652c): SLS characteristic and frequent with every leading variable action, quasi permanent; ULS with every pattern of the factors
     /// of the wall (1/1.3), of the fill (1/1.3), of the water (1/1.3), of every permanent group (G1 1/1.3, G2 0/1.5), of the presence of every
     /// variable group and every leading one (1.5, the others 1.5 ψ0), and of the valley soil (1/1.3) when there is soil in front; γR 1.1 sliding,
-    /// 1.15 overturning, 1.4 bearing. Seismic with the quasi permanent actions: assigned kh and ±kv, or from the site general and overturning (γR
+    /// 1.15 overturning, 1.4 bearing, 1.4 the passive resistance in front (γR,e, NTC 2018 Tab. 6.5.I; 1 in the other rows). Seismic with the quasi permanent actions: assigned kh and ±kv, or from the site general and overturning (γR
     /// 1, 1, 1.2, NTC Tab. 7.11.III). Accidental: every group of accidental actions with the quasi permanent ones. Identical rows are merged; at
     /// most 4096 rows.
     /// <para>
@@ -39,13 +39,16 @@ namespace GPC.Checkers.Geotechnics.Walls
                     string approach = purpose != WallSeismicPurpose.None ? "SLV · NTC 7.11.III" : state == WallLimitState.Seismic ? "Sismica · M1/R3" : design ? "A1+M1+R3"
                         : state == WallLimitState.Exceptional ? "Eccezionale · M1/R=1" : "SLE";
                     double slide = purpose != WallSeismicPurpose.None ? 1 : design ? 1.1 : 1, over = purpose != WallSeismicPurpose.None ? 1 : design ? 1.15 : 1, bearing = purpose != WallSeismicPurpose.None ? 1.2 : design ? 1.4 : 1;
+                    // γR,e of the passive in front (NTC 2018 Tab. 6.5.I, R3): 1.4 in the ULS; the seismic rows never count the passive, the
+                    // accidental ones have R = 1 like the other resistances, the SLS have no resistance checks (mobilised η Pp in the equilibrium).
+                    double passive = state == WallLimitState.Ultimate ? 1.4 : 1;
                     string name = label + " " + (++number);
                     // ULS with a variable surcharge on a heel: also the twin «b» without the surcharge on the heel (favourable γQ = 0), same thrust.
                     bool twin = state == WallLimitState.Ultimate && heel && input.Actions.Any(x => x.Enabled && x.Type == WallActionType.UniformSurcharge && x.Category == WallActionCategory.Q && coefficients[x.Id] > 0);
                     foreach (bool onHeel in twin ? new[] { true, false } : new[] { true })
                     {
                         if (result.Count >= 4096) throw new ArgumentException("Oltre 4096 combinazioni: raggruppare le azioni correlate o predisporre una matrice personalizzata.");
-                        result.Add(new WallCombination(onHeel ? name : name + "b", state, wall, soil, valleyFactor, waterFactor, 1, slide, over, bearing, kh, kv, coefficients, purpose, approach, onHeel));
+                        result.Add(new WallCombination(onHeel ? name : name + "b", state, wall, soil, valleyFactor, waterFactor, 1, slide, over, bearing, kh, kv, coefficients, purpose, approach, onHeel, passive));
                     }
                 }
             }

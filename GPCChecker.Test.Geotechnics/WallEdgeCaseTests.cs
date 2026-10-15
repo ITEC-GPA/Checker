@@ -31,8 +31,8 @@ public class WallEdgeCaseTests
     internal static WallAction Surcharge(double kPa, string id = "q", WallActionCategory category = WallActionCategory.Q, double psi0 = .7, string group = "")
         => new(id, "q", WallActionType.UniformSurcharge, category, kPa * KPa, psi0: psi0, group: group);
     internal static WallCombination Row(WallLimitState state = WallLimitState.Characteristic, double wall = 1, double soil = 1, double water = 1, double mphi = 1, double rs = 1, double ro = 1,
-        double rb = 1, double kh = 0, double kv = 0, IReadOnlyDictionary<string, double>? f = null, string name = "C", double? valley = null)
-        => new(name, state, wall, soil, valley ?? soil, water, mphi, rs, ro, rb, kh, kv, f ?? new Dictionary<string, double> { ["q"] = 1 });
+        double rb = 1, double kh = 0, double kv = 0, IReadOnlyDictionary<string, double>? f = null, string name = "C", double? valley = null, double passive = 1)
+        => new(name, state, wall, soil, valley ?? soil, water, mphi, rs, ro, rb, kh, kv, f ?? new Dictionary<string, double> { ["q"] = 1 }, passiveFactor: passive);
     static WallCaseResult One(WallInput input, WallCombination row) => RetainingWallAnalysis.Calculate(input, new[] { row }).Cases[0];
 
     [TestMethod]
@@ -163,14 +163,53 @@ public class WallEdgeCaseTests
         var band = RetainingWallAnalysis.ValleyBands(Wall(valley: new WallValley(1000, front, true, .5)));
         Assert.AreEqual(2, band.Count); Close(400, band[0].Bottom, "the layer ends at the top of the slab", 1e-12, 1e-9); Close(18 * KN3 * 600, band[0].SigmaBottom, "σ'v", 1e-12);
         // Never in the seismic combinations.
-        var s = Wall(valley: new WallValley(1000, front, true, 1), seismic: WallSeismic.Assigned(WallSeismicMethod.MononobeOkabe, .1, 0));
+        var s = Wall(valley: new WallValley(1000, front, true, .5), seismic: WallSeismic.Assigned(WallSeismicMethod.MononobeOkabe, .1, 0));
         Assert.AreEqual(0, One(s, Row(WallLimitState.Seismic, kh: .1)).Soil.PassiveAvailable);
         // The valley soil above the toe adds weight; q' gives Nq in the bearing.
         Assert.IsTrue(none.Soil.ValleyWeight > 0 && none.Soil.Overburden > 0);
         Close(none.Soil.ValleyWeight, RetainingWallAnalysis.FrontSoilMass(Wall().Geometry, band).Weight, "valley weight", 1e-12);
-        // A huge passive is used only up to the driving thrust.
-        var big = One(Wall(valley: new WallValley(3000, Column(3, (Fill(45), 10)), true, 1)), Row());
-        Assert.IsTrue(big.Soil.PassiveScale < 1); Close(0, big.Horizontal - big.Horizontal * 0, "finite");
+        // A huge passive is used in the equilibrium only up to the driving thrust; the sliding demand is never reduced by it.
+        var big = One(Wall(valley: new WallValley(3000, Column(3, (Fill(45), 10)), true, .5)), Row());
+        Assert.IsTrue(big.Soil.PassiveScale < 1); Close(big.SlidingDemand - big.Soil.PassiveUsed, big.Horizontal, "net H of the equilibrium", 1e-12);
+        Assert.IsTrue(big.SlidingDemand > 0 && big.SlidingResistance > big.Soil.PassiveDesign);
+    }
+
+    /// <summary>
+    /// MUR-2: the passive in front is a resistance with γR,e = 1.4 in the A1+M1+R3 rows (NTC 2018 Tab. 6.5.I) and at most 50% of it can be
+    /// mobilised (§6.5.3.1.1). Scenario of the finding: ANTHEA default wall (H 3, s 0.40/0.25, t 0.45, toe 0.80) with heel 0.6 m, q = 20 kPa,
+    /// soil in front Dv = 1.2 m (φ 30°, γ 18: Pp = Kp γ Dv²/2 = 38.88 kN/m), η = 0.5. Expected values from the independent model
+    /// scratchpad\agent-geo\wallref.py (mur2_passive.py); the parent row agrees with the verifier (bug\muri-passiva-verifica\ntc_check.py:
+    /// 51.34 + 19.44/1.4 = 65.23 against 80.92, ratio 1.241).
+    /// </summary>
+    [TestMethod]
+    public void PassiveInFrontIsADesignResistance()
+    {
+        var front = Column(1.2, (Fill(), 6));
+        Throws(() => new WallValley(1200, front, true, 1), "η = 1 beyond 50%");
+        StringAssert.Contains(Assert.ThrowsException<ArgumentException>(() => new WallValley(1200, front, true, .51)).Message, "§6.5.3.1.1");
+        Assert.AreEqual(.9, new WallValley(1200, front, false, .9).Mobilization, "without the passive the fraction is not used");
+        var input = Wall(h: 3, s0: .4, s1: .25, t: .45, toe: .8, heel: .6, valley: new WallValley(1200, front, true, .5), actions: new[] { Surcharge(20) });
+        var rows = WallCombinations.Generate(input); var r = RetainingWallAnalysis.Calculate(input, rows);
+        Assert.IsTrue(rows.All(x => x.PassiveFactor == (x.State == WallLimitState.Ultimate ? 1.4 : 1)));
+        WallCaseResult Pick(bool onHeel) => r.Cases.Single(c => c.Combination.State == WallLimitState.Ultimate && c.Combination.Wall == 1 && c.Combination.Soil == 1.3
+            && c.Combination.ValleySoil == 1 && c.Combination.Coefficients["q"] == 1.5 && c.Combination.VariableSurchargeOnHeel == onHeel);
+        var p = Pick(true); var t = Pick(false);
+        Close(19.44, p.Soil.PassiveAvailable, "η Pp", 1e-12); Close(19.44 / 1.4, p.Soil.PassiveDesign, "η Pp/γR,e", 1e-12); Assert.AreEqual(1.4, p.Soil.PassiveFactor);
+        double Ratio(WallCaseResult c, WallCheckKind kind) => r.Checks.Single(k => k.Combination == c.Combination.Name && k.Kind == kind).Ratio!.Value;
+        // Sliding: demand 80.9198 (driving thrust, never reduced), resistance 51.3441 + 13.8857 = 65.2298 (wallref.py).
+        Close(80.9198, p.SlidingDemand, "driving thrust", 1e-6); Close(65.2298, p.SlidingResistance, "N tan δb/1.1 + η Pp/1.4", 1e-6);
+        Close(1.240533, Ratio(p, WallCheckKind.Sliding), "sliding (wallref.py)", 1e-6);
+        // Overturning: driving moment 112.8952 against Ms/1.15 + (η Pp/1.4) Dv/3 = 125.6842 (wallref.py).
+        Close(112.8952 * KNm, p.OverturningDemand, "driving moment", 1e-6); Close(125.6842 * KNm, p.OverturningResistance, "resisting", 1e-6);
+        Close(.898245, Ratio(p, WallCheckKind.Overturning), "overturning (wallref.py)", 1e-6);
+        // Equilibrium: H on the base net of the design passive used, 80.9198 − 13.8857 = 67.0340.
+        Close(67.034, p.Horizontal, "net H", 1e-5); Assert.AreEqual(1, p.Soil.PassiveScale);
+        // The twin without q on the heel governs (MUR-1): 1.413476 and 1.104586 (wallref.py), both not satisfied.
+        Close(1.413476, Ratio(t, WallCheckKind.Sliding), "twin sliding (wallref.py)", 1e-6); Close(1.104586, Ratio(t, WallCheckKind.Overturning), "twin overturning (wallref.py)", 1e-6);
+        Close(1.413476, r.Checks.Where(k => k.Kind == WallCheckKind.Sliding).Max(k => k.Ratio!.Value), "worst sliding", 1e-6);
+        // SLS rows: γR,e = 1, the mobilised η Pp in the equilibrium.
+        var sle = r.Cases[0]; Assert.AreEqual(1, sle.Soil.PassiveFactor); Close(19.44, sle.Soil.PassiveDesign, "SLS η Pp", 1e-12);
+        Close(sle.SlidingDemand - 19.44, sle.Horizontal, "SLS net H", 1e-9);
     }
 
     [TestMethod]
@@ -386,6 +425,8 @@ public class WallEdgeCaseTests
         Throws(() => new WallWater(-1), "negative water");
         Throws(() => new WallValley(-1, Column(0, (Fill(), 5))), "negative valley");
         Throws(() => new WallValley(0, Column(0, (Fill(), 5)), true, 1.2), "mobilisation > 1");
+        Throws(() => new WallValley(0, Column(0, (Fill(), 5)), true, .6), "mobilisation > 0.5 (NTC §6.5.3.1.1)");
+        Throws(() => Row(passive: 0), "γR,e < 0.1");
         Throws(() => new WallValley(0, new SoilProfile("w", new[] { new SoilLayer(Fill(), 0, -5000) }, "t", -1000)), "water in the valley column");
         void Calc(WallInput i, string what) => Throws(() => RetainingWallAnalysis.Calculate(i, new[] { Row() }), what);
         Calc(Wall(fill: Column(3.4, (Fill(), 2))), "short fill");

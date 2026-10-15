@@ -51,7 +51,8 @@ namespace GPC.Checkers.Geotechnics.Walls
     /// <summary>
     /// Soil in front of the wall: height Dv of the ground above the base (0 = entirely free face), its Model column (<see cref="SoilProfile"/>
     /// with the ground at Dv, c' = 0, without groundwater: the water is <see cref="WallWater"/>), Rankine passive resistance with the mobilised
-    /// fraction 0-1 (never in the seismic combinations).
+    /// fraction η (never in the seismic combinations). With the passive η ≤ 0.5: NTC 2018 §6.5.3.1.1 admits at most 50% of the passive
+    /// resistance, when justified (displacements compatible with its mobilisation, permanence of the soil in front).
     /// </summary>
     public sealed class WallValley
     {
@@ -63,6 +64,9 @@ namespace GPC.Checkers.Geotechnics.Walls
         {
             if (!(height >= 0) || double.IsInfinity(height)) throw new ArgumentException("Altezza libera: 0≤Hlib≤H+t.");
             if (!(mobilization >= 0 && mobilization <= 1)) throw new ArgumentException("Frazione di passiva mobilitata: 0–1.");
+            if (passive && mobilization > .5)
+                throw new ArgumentException("Resistenza passiva a valle: frazione mobilitata η ≤ 0,5. NTC 2018 §6.5.3.1.1 ammette al più il 50% della resistenza passiva, "
+                    + "se giustificato (spostamenti compatibili con la sua mobilitazione e permanenza del terreno a valle).");
             Profile = profile ?? throw new ArgumentNullException(nameof(profile));
             if (profile.GroundwaterElevation.HasValue) throw new ArgumentException("Valle: la falda è un dato del muro (WallWater), non della colonna.");
             Height = height; Passive = passive; Mobilization = mobilization;
@@ -147,19 +151,24 @@ namespace GPC.Checkers.Geotechnics.Walls
         /// heel (twin rows «b» of <see cref="WallCombinations.Generate"/>), the thrust keeps them.
         /// </summary>
         public bool VariableSurchargeOnHeel { get; }
+        /// <summary>
+        /// γR,e of the passive resistance of the soil in front (NTC 2018 Tab. 6.5.I, 1.4 in the A1+M1+R3 rows of <see cref="WallCombinations.Generate"/>,
+        /// 1 elsewhere; default 1): the design passive η Pp/γR,e is a resistance of sliding and overturning and the value used in the equilibrium.
+        /// </summary>
+        public double PassiveFactor { get; }
         public WallCombination(string name, WallLimitState state, double wall, double soil, double valleySoil, double water, double frictionFactor, double slidingFactor,
             double overturningFactor, double bearingFactor, double kh, double kv, IReadOnlyDictionary<string, double> coefficients, WallSeismicPurpose purpose = WallSeismicPurpose.None, string approach = "",
-            bool variableSurchargeOnHeel = true)
+            bool variableSurchargeOnHeel = true, double passiveFactor = 1)
         {
             if (string.IsNullOrWhiteSpace(name) || !Enum.IsDefined(typeof(WallLimitState), state)) throw new ArgumentException("Combinazioni: nome univoco e stato limite valido obbligatori.");
             foreach (double v in new[] { wall, soil, valleySoil, water }) if (!(v >= 0 && v <= 5)) throw new ArgumentException("Coefficiente fuori campo.");
-            foreach (double v in new[] { frictionFactor, slidingFactor, overturningFactor, bearingFactor }) if (!(v >= .1 && v <= 5)) throw new ArgumentException("Coefficiente fuori campo.");
+            foreach (double v in new[] { frictionFactor, slidingFactor, overturningFactor, bearingFactor, passiveFactor }) if (!(v >= .1 && v <= 5)) throw new ArgumentException("Coefficiente fuori campo.");
             if (!(kh >= 0 && kh <= .4)) throw new ArgumentException("Coefficiente fuori campo: kh");
             if (!(Math.Abs(kv) <= .2)) throw new ArgumentException("kv deve essere compreso fra −0,2 e +0,2.");
             if ((kh != 0 || kv != 0) && state != WallLimitState.Seismic) throw new ArgumentException("kh/kv ammessi soltanto in combinazioni SISMA con sisma abilitato.");
             if (purpose != WallSeismicPurpose.None && state != WallLimitState.Seismic) throw new ArgumentException("Destinazione della combinazione sismica non valida.");
             Name = name; State = state; Approach = approach ?? ""; Wall = wall; Soil = soil; ValleySoil = valleySoil; Water = water; FrictionFactor = frictionFactor; SlidingFactor = slidingFactor;
-            OverturningFactor = overturningFactor; BearingFactor = bearingFactor; Kh = kh; Kv = kv; Purpose = purpose; VariableSurchargeOnHeel = variableSurchargeOnHeel;
+            OverturningFactor = overturningFactor; BearingFactor = bearingFactor; Kh = kh; Kv = kv; Purpose = purpose; VariableSurchargeOnHeel = variableSurchargeOnHeel; PassiveFactor = passiveFactor;
             Coefficients = (coefficients ?? throw new ArgumentNullException(nameof(coefficients))).ToDictionary(p => p.Key, p => p.Value);
         }
         public bool Design => State == WallLimitState.Ultimate || State == WallLimitState.Seismic;

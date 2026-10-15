@@ -175,13 +175,31 @@ Dv; granulari, c' = 0, falda come dato del muro `WallWater`), terreno di posa `S
 | `Walls.WallInterface` | attrito del paramento e della base: assegnato o k·atan(tan φcv/γM), k = 1, 2/3, 0 |
 | `Walls.WallContact` | contatto senza trazione (trapezio nel terzo medio, triangolo 3x altrimenti), integrazione delle pressioni |
 | `Walls.WallCombinations` | preset NTC A1+M1+R3 (SLE, SLU con ogni fattore, valle, acqua, permanenti, variabili principali, gemelle «b» senza il sovraccarico variabile sulla mensola), sisma assegnato o SLV generale e ribaltamento, eccezionali |
-| `Walls.RetainingWallAnalysis` | equilibrio per metro: spinte, sottospinta, pesi, terreno a valle e passiva limitata, scorrimento, ribaltamento, portanza EN 1997-1 Annesso D e sismica EN 1998-5 Annesso F, sollecitazioni di fusto, mensola a valle e a monte, verifiche geotecniche |
+| `Walls.RetainingWallAnalysis` | equilibrio per metro: spinte, sottospinta, pesi, terreno a valle e passiva (resistenza con γR,e, η ≤ 0,5), scorrimento, ribaltamento, portanza EN 1997-1 Annesso D e sismica EN 1998-5 Annesso F, sollecitazioni di fusto, mensola a valle e a monte, verifiche geotecniche |
 | `Seismic.NtcSiteAmplification` | amax = Ss St ag (NTC Tab. 3.2.IV, 3.2.V), con Ss o St assegnati |
 
 Fonti NTC 2018 verificate sul testo: Tab. 6.5.I (γR 1,4 portanza, 1,1 scorrimento, 1,15 ribaltamento sulle azioni
 stabilizzanti), §7.11.6.2.1 (kh = βm amax/g, kv = ±0,5 kh, βm 0,38 allo SLV, 1 per muri non liberi di spostarsi, +50% e ≤ 1
 per il ribaltamento), Tab. 7.11.III (1,2, 1,0, 1,0), Tab. 3.2.IV (Ss) e 3.2.V (St). La NTC indica di non contare in generale
 la passiva a valle nello scorrimento: in `WallValley` è un'opzione, spenta per difetto, con la frazione mobilitata.
+
+**Resistenza passiva a valle (correzione MUR-2, 15/10/2026).** Con la passiva attiva la frazione mobilitata è η ≤ 0,5
+(NTC 2018 §6.5.3.1.1: aliquota non superiore al 50%, da giustificare con spostamenti compatibili e permanenza del terreno a
+valle); oltre, `WallValley` rifiuta il dato con un messaggio che cita il paragrafo. La passiva è una resistenza del terreno a
+valle con γR,e = 1,4 (Tab. 6.5.I, R3), `WallCombination.PassiveFactor`: 1,4 nelle righe SLU generate (A1+M1+R3), 1 nelle
+altre. Le righe sismiche non contano mai la passiva; le eccezionali hanno R = 1 come le altre resistenze; le SLE non hanno
+verifiche di resistenza e usano la passiva mobilitata η Pp nell'equilibrio. Valore di progetto Pp,d = η Kp σ′v/γR,e (Rankine
+sulle fasce di valle, mai amplificato dal fattore del terreno di valle).
+- Scorrimento: domanda = spinta motrice + azioni orizzontali + inerzia, mai ridotta dalla passiva (`WallCaseResult.SlidingDemand`);
+  resistenza = N tan δb/γR + Pp,d.
+- Ribaltamento: domanda = momento ribaltante motore (`OverturningDemand`); resistenza = Ms/γR + momento di Pp,d rispetto al piede.
+- Equilibrio (x, e, contatto, H sulla base per i fattori d'inclinazione della portanza, pressioni e sollecitazioni del fusto):
+  Pp,d limitata alla spinta motrice, min(1, Sa/Pp,d); `Horizontal` e `Overturning` restano i valori netti dell'equilibrio.
+- La passiva resiste solo a una spinta motrice verso valle.
+
+Esempio della segnalazione (muro predefinito, b = 0,6 m, q = 20 kPa, Dv = 1,2 m, η = 0,5, Pp = 38,88 kN/m): riga con muro 1,
+terreno 1,3, γQ 1,5 scorrimento 80,92/(51,34 + 19,44/1,4) = 1,241 (prima 61,48/51,34 = 1,197 con la passiva sottratta),
+ribaltamento 112,90/125,68 = 0,898; la gemella senza q sulla mensola dà 1,413 e 1,105.
 
 **Sovraccarico sulla mensola di monte (correzione MUR-1, 15/10/2026).** Il sovraccarico uniforme agisce sulla spinta (K q,
 sfavorevole) e sulla mensola di monte (q b in N, nel momento stabilizzante, nell'inerzia kh q b Ht e nel carico della soletta

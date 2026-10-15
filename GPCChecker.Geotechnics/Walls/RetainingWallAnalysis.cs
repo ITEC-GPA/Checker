@@ -32,10 +32,12 @@ namespace GPC.Checkers.Geotechnics.Walls
     /// <para>
     /// Earth pressure: Rankine by layers on the vertical plane behind the heel (δ = 0; with the friction of the back when there is no heel), on the stem
     /// Coulomb with the friction of the back; effective stresses and water separate; seismic Mononobe-Okabe (increment at mid height) or simplified Wood
-    /// (at rest, kh γ Ht² uniform); passive Rankine in front optional, limited to the driving thrust, never seismic. Equilibrium about the toe with
-    /// uplift, weights of the wall, of the fill on the heel and of the soil in front, actions (the uniform surcharge also on the heel, without its
-    /// variable part when <see cref="WallCombination.VariableSurchargeOnHeel"/> is false); contact without tension; sliding μ N/γR, overturning
-    /// stabilising/γR, bearing EN 1997-1 Annex D (c' = 0, q' of the soil in front, Nγ = 2(Nq − 1) tan φ, iq = (1 − H/V)², iγ = (1 − H/V)³, rough base
+    /// (at rest, kh γ Ht² uniform); passive Rankine in front optional (η ≤ 0.5, never seismic), design value η Pp/γR,e
+    /// (<see cref="WallCombination.PassiveFactor"/>). Equilibrium about the toe with uplift, weights of the wall, of the fill on the heel and of the
+    /// soil in front, actions (the uniform surcharge also on the heel, without its variable part when
+    /// <see cref="WallCombination.VariableSurchargeOnHeel"/> is false) and the design passive limited to the driving thrust; contact without tension.
+    /// Sliding: driving thrust + horizontal actions + inertia against μ N/γR + η Pp/γR,e; overturning: driving moment against stabilising/γR + the
+    /// moment of η Pp/γR,e (the passive is a resistance, never subtracted from the demand). Bearing EN 1997-1 Annex D (c' = 0, q' of the soil in front, Nγ = 2(Nq − 1) tan φ, iq = (1 − H/V)², iγ = (1 − H/V)³, rough base
     /// δb ≥ φd/2, |e| ≤ B/3) and in the seismic combinations EN 1998-5 Annex F. Internal forces of the stem at 21 cuts (and at the loads, the change of
     /// the reinforcement and the valley bands) and of the toe and heel at 21 cuts.
     /// </para>
@@ -127,15 +129,18 @@ namespace GPC.Checkers.Geotechnics.Walls
                 foreach (var act in actions.Where(x => x.Action.Type == WallActionType.LateralPressure))
                 { var p = new WallPressureSegment(ht - act.Action.Z, ht - act.Action.Z0, act.Design, act.Design); pressures.Add(p); stemPressures.Add(p); }
                 var valleyPressures = new List<WallPressureSegment>();
-                double eta = input.Valley.Passive && !seismic ? input.Valley.Mobilization : 0;
+                double eta = input.Valley.Passive && !seismic ? input.Valley.Mobilization : 0, gp = c.PassiveFactor;
                 foreach (var b in valleyBands)
                 {
                     double kp = EarthPressure.RankinePassive(EarthPressure.Design(b.FrictionAngle, mf));
-                    // A resistance is not amplified by an unfavourable permanent-action factor.
-                    valleyPressures.Add(new WallPressureSegment(ht - b.Top, ht - b.Bottom, eta * kp * b.SigmaTop * Math.Min(1, fp) * vf, eta * kp * b.SigmaBottom * Math.Min(1, fp) * vf));
+                    // A resistance is not amplified by an unfavourable permanent-action factor; design value η Kp σ'v / γR,e (NTC 2018 Tab. 6.5.I).
+                    valleyPressures.Add(new WallPressureSegment(ht - b.Top, ht - b.Bottom, eta * kp * b.SigmaTop * Math.Min(1, fp) * vf / gp, eta * kp * b.SigmaBottom * Math.Min(1, fp) * vf / gp));
                 }
-                double availablePassive = WallPressureSegment.Integrate(valleyPressures, 0, ht, ht).Force;
-                double activeDrive = WallPressureSegment.Integrate(pressures, 0, ht, ht).Force + horizontalActions.Sum(x => x.Design);
+                var designPassive = WallPressureSegment.Integrate(valleyPressures, 0, ht, ht);
+                double availablePassive = designPassive.Force, passiveMoment = -designPassive.Moment;
+                var drive = WallPressureSegment.Integrate(pressures, 0, ht, ht);
+                double activeDrive = drive.Force + horizontalActions.Sum(x => x.Design);
+                // Equilibrium (contact, eccentricity, H on the base, internal forces): the design passive limited to the driving thrust.
                 double passiveScale = availablePassive > 0 ? Clamp(activeDrive / availablePassive, 0, 1) : 0;
                 valleyPressures = valleyPressures.Select(p => new WallPressureSegment(p.Z0, p.Z1, p.P0 * passiveScale, p.P1 * passiveScale)).ToList();
                 foreach (var p in valleyPressures) { pressures.Add(new WallPressureSegment(p.Z0, p.Z1, -p.P0, -p.P1)); stemPressures.Add(new WallPressureSegment(p.Z0, p.Z1, -p.P0, -p.P1)); }
@@ -156,7 +161,11 @@ namespace GPC.Checkers.Geotechnics.Walls
                 // Uplift moment is included in overturning, and U is subtracted from the normal force.
                 double x = normal > 0 ? (stabilizing - overturning) / normal : 0;
                 double e = width / 2 - x, be = Math.Max(0, width - 2 * Math.Abs(e)); var contact = WallContact.Law(width, normal, x);
-                double sliding = Math.Max(0, normal) * Math.Tan(deltaBase) / c.SlidingFactor;
+                // Checks (MUR-2): the passive in front is a resistance, η Pp/γR,e and its moment, never subtracted from the demand (driving thrust,
+                // horizontal actions, inertia; driving overturning moment). It resists only a thrust towards the valley.
+                double passiveResistance = activeDrive > 0 ? availablePassive : 0, passiveResistingMoment = activeDrive > 0 ? passiveMoment : 0;
+                double slidingDemand = drive.Force + horizontalActions.Sum(x => x.Design) + inertial, overturningDemand = overturning + passiveScale * passiveMoment;
+                double sliding = Math.Max(0, normal) * Math.Tan(deltaBase) / c.SlidingFactor + passiveResistance;
                 double inclination = normal > 0 ? Math.Max(0, 1 - Math.Abs(horizontal) / normal) : 0;
                 bool roughBase = deltaBase + 1e-9 * SoilUnits.Degree >= phiF / 2;
                 double? bearing = seismic || !roughBase || Math.Abs(e) > width / 3 || normal <= 0 ? (double?)null
@@ -206,14 +215,16 @@ namespace GPC.Checkers.Geotechnics.Walls
                 return new WallCaseResult
                 {
                     Combination = c, Horizontal = horizontal, Vertical = normal, Uplift = uplift, Stabilizing = stabilizing, Overturning = overturning, X = x, Eccentricity = e,
-                    EffectiveWidth = be, Contact = contact, SlidingResistance = sliding, OverturningResistance = stabilizing / c.OverturningFactor, BearingResistance = bearing,
+                    EffectiveWidth = be, Contact = contact, SlidingDemand = slidingDemand, SlidingResistance = sliding, OverturningDemand = overturningDemand,
+                    OverturningResistance = stabilizing / c.OverturningFactor + passiveResistingMoment, BearingResistance = bearing,
                     Pressures = pressures, StemPressures = stemPressures, ValleyPressures = valleyPressures, PressureDetails = details, StemPressureDetails = stemDetails, Actions = actions,
                     Sections = sections, SeismicBearing = seismicBearing, SeismicBearingError = seismicBearingError,
                     Soil = new WallSoilAudit
                     {
                         ValleyHeight = input.Valley.Height, FreeHeight = ht - input.Valley.Height, ValleyWeight = frontMass.Weight * fp * vf, ValleyMoment = frontMass.MomentX * fp * vf,
                         Overburden = overburden, WallFriction = deltaWall, BaseFriction = deltaBase, BaseFrictionCoefficient = Math.Tan(deltaBase), EquilibriumPlaneFriction = heel > 0 ? 0 : deltaWall,
-                        PassiveAvailable = availablePassive, PassiveUsed = availablePassive * passiveScale, PassiveFraction = eta, PassiveScale = passiveScale, Nq = factorNq, Ngamma = ng,
+                        PassiveAvailable = availablePassive * gp, PassiveFactor = gp, PassiveDesign = availablePassive, PassiveUsed = availablePassive * passiveScale, PassiveFraction = eta,
+                        PassiveScale = passiveScale, Nq = factorNq, Ngamma = ng,
                         Iq = inclination * inclination, Igamma = Math.Pow(inclination, 3), RoughBase = roughBase
                     }
                 };
@@ -224,9 +235,9 @@ namespace GPC.Checkers.Geotechnics.Walls
             foreach (var c in cases.Where(c => c.Combination.State == WallLimitState.Ultimate || c.Combination.State == WallLimitState.Seismic || c.Combination.State == WallLimitState.Exceptional))
             {
                 string name = c.Combination.Name;
-                if (c.Combination.Purpose == WallSeismicPurpose.Overturning) { checks.Add(WallCheck.Of(WallCheckKind.Overturning, name, c.Overturning, c.OverturningResistance)); continue; }
-                checks.Add(WallCheck.Of(WallCheckKind.Sliding, name, Math.Abs(c.Horizontal), c.SlidingResistance));
-                if (c.Combination.Purpose != WallSeismicPurpose.General) checks.Add(WallCheck.Of(WallCheckKind.Overturning, name, c.Overturning, c.OverturningResistance));
+                if (c.Combination.Purpose == WallSeismicPurpose.Overturning) { checks.Add(WallCheck.Of(WallCheckKind.Overturning, name, c.OverturningDemand, c.OverturningResistance)); continue; }
+                checks.Add(WallCheck.Of(WallCheckKind.Sliding, name, Math.Abs(c.SlidingDemand), c.SlidingResistance));
+                if (c.Combination.Purpose != WallSeismicPurpose.General) checks.Add(WallCheck.Of(WallCheckKind.Overturning, name, c.OverturningDemand, c.OverturningResistance));
                 checks.Add(WallCheck.Of(WallCheckKind.Bearing, name, Math.Max(0, c.Vertical), c.BearingResistance, c.Combination.State == WallLimitState.Seismic
                     ? (c.SeismicBearingError.Length > 0 ? c.SeismicBearingError : "Portanza sismica non disponibile")
                     : !c.Soil.RoughBase ? "Fuori campo: base liscia, δd < φd/2" : "Fuori campo: e > B/3 o risultante verticale non positiva"));

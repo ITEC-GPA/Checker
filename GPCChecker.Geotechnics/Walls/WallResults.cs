@@ -58,8 +58,9 @@ namespace GPC.Checkers.Geotechnics.Walls
 
     /// <summary>
     /// Soil quantities of a combination: valley height and free height, weight of the valley soil and its moment, effective overburden q' at the
-    /// base, design friction of the back and of the base and μ, friction on the equilibrium plane, passive available, used, mobilised fraction and
-    /// equilibrium scale, bearing factors and inclination factors, rough base (δb ≥ φd/2).
+    /// base, design friction of the back and of the base and μ, friction on the equilibrium plane, passive: mobilised η Pp (available), γR,e,
+    /// design value η Pp/γR,e, the part used in the equilibrium, mobilised fraction η and equilibrium scale min(1, driving thrust / design
+    /// passive), bearing factors and inclination factors, rough base (δb ≥ φd/2).
     /// </summary>
     public sealed class WallSoilAudit
     {
@@ -72,7 +73,13 @@ namespace GPC.Checkers.Geotechnics.Walls
         public double BaseFriction { get; internal set; }
         public double BaseFrictionCoefficient { get; internal set; }
         public double EquilibriumPlaneFriction { get; internal set; }
+        /// <summary>Mobilised passive η Pp (N/mm), without γR,e.</summary>
         public double PassiveAvailable { get; internal set; }
+        /// <summary>γR,e of the passive of the combination (<see cref="WallCombination.PassiveFactor"/>).</summary>
+        public double PassiveFactor { get; internal set; }
+        /// <summary>Design passive η Pp/γR,e (N/mm): the resistance added to sliding (and its moment to overturning).</summary>
+        public double PassiveDesign { get; internal set; }
+        /// <summary>Part of the design passive used in the equilibrium (contact, eccentricity, H on the base, internal forces), N/mm.</summary>
         public double PassiveUsed { get; internal set; }
         public double PassiveFraction { get; internal set; }
         public double PassiveScale { get; internal set; }
@@ -85,22 +92,33 @@ namespace GPC.Checkers.Geotechnics.Walls
 
     /// <summary>
     /// Equilibrium of the wall in a combination (per unit length, N/mm and N·mm/mm about the toe at the base): horizontal and normal forces, uplift,
-    /// stabilising and overturning moments, position x of the normal force, eccentricity, effective width, contact, design resistances to sliding,
-    /// overturning and bearing (null out of the field), pressures on the equilibrium plane, on the stem and in front, details, internal forces.
+    /// stabilising and overturning moments, position x of the normal force, eccentricity, effective width, contact, demands and design resistances
+    /// of sliding and overturning, bearing resistance (null out of the field), pressures on the equilibrium plane, on the stem and in front,
+    /// details, internal forces. <see cref="Horizontal"/> and <see cref="Overturning"/> are the equilibrium values, net of the design passive used
+    /// (limited to the driving thrust): they give x, e, the contact and the inclination of the bearing. The checks use
+    /// <see cref="SlidingDemand"/> and <see cref="OverturningDemand"/>, never reduced by the passive, which is in the resistances.
     /// </summary>
     public sealed class WallCaseResult
     {
         public WallCombination Combination { get; internal set; } = null!;
+        /// <summary>Horizontal force on the base (N/mm): thrust, horizontal actions and inertia, net of the design passive used.</summary>
         public double Horizontal { get; internal set; }
         public double Vertical { get; internal set; }
         public double Uplift { get; internal set; }
         public double Stabilizing { get; internal set; }
+        /// <summary>Overturning moment of the equilibrium (N·mm/mm), net of the moment of the design passive used.</summary>
         public double Overturning { get; internal set; }
         public double X { get; internal set; }
         public double Eccentricity { get; internal set; }
         public double EffectiveWidth { get; internal set; }
         public WallContact Contact { get; internal set; } = null!;
+        /// <summary>Demand of the sliding check (N/mm): driving thrust, horizontal actions and inertia, without the passive in front.</summary>
+        public double SlidingDemand { get; internal set; }
+        /// <summary>N tan δb/γR + η Pp/γR,e (the passive only with a driving thrust towards the valley), N/mm.</summary>
         public double SlidingResistance { get; internal set; }
+        /// <summary>Demand of the overturning check (N·mm/mm): the driving overturning moment, without the passive in front.</summary>
+        public double OverturningDemand { get; internal set; }
+        /// <summary>Stabilising moment/γR + moment of η Pp/γR,e about the toe (N·mm/mm).</summary>
         public double OverturningResistance { get; internal set; }
         public double? BearingResistance { get; internal set; }
         public IReadOnlyList<WallPressureSegment> Pressures { get; internal set; } = null!;
