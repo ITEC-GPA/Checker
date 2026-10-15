@@ -92,6 +92,26 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   la prova di arresto al massimo 540 N); per C2 la tolleranza è 1280 N e nessun punto ha scarto fra 1000 e 1280 N.
   Con lo stress block nessun punto accettato prima è rifiutato (164 confermati, 7 accettati in più).
 
+### Dominio 2D N–M
+
+`FailureDomain2d` di tipo N–M (`FailureDomainResult2d.DomainTypes.ConstantMxMy`; correzione SLU-1 del 15/10/2026):
+
+- il momento 2D di un punto è il modulo di (MxRd, MyRd) con il segno della proiezione sull'asse `MomentAxis` α,
+  in (−90°; 90°]: la direzione del meridiano ridotta dal lato di Mx positivo, o di My positivo se |cos α| ≤ 1e-8 (la
+  regola del segno di CheckerDomain2D di ANTHEA). Il momento 2D di una forza è in M1 (M1 = Mx cos α + My sin α);
+- il punto 3D resistente è il lato del meridiano al parametro dell'intersezione, NRd, MxRd e MyRd interpolati; prima
+  il punto 2D era ruotato in 3D con una rotazione giusta solo per un meridiano di Mx positivo (a θ = 90° N = 80 604 kN,
+  η = 0,0127 invece di 2,48);
+- il tasso di `FailureDomainForce2d.CalculateWorkingRatio` N–M è |(M1 / SCALE_M, N / SCALE_N)| / |(m / SCALE_M,
+  NRd / SCALE_N)| (prima le scale del denominatore erano scambiate);
+- il meridiano dell'asse neutro (`GetPlasticFailureDomainResult2d(θ)`) di una sezione non simmetrica rispetto al
+  piano di flessione ha un momento trasversale e non è la sezione del dominio nel piano (circa 5 % a favore di
+  sicurezza nel caso della prova, di più vicino alla compressione centrata): per la verifica N–M si usa il meridiano
+  della direzione del momento, `FailureDomainResult.CalculateDomainConstantMomentsRatio`, anche per il dominio
+  elastico (SLV), il cui meridiano aveva due punti nulli e un polo di trazione sbagliato.
+- Prove: `FailureDomain2dNMTests` (θ = 0, 30, 45, 90, 180, 270 sulle sezioni del verificatore, contro il suo modello
+  a fibre indipendente e la verifica 3D a eccentricità costante, entro l'1 %).
+
 ### Taglio
 
 - Profili scelti dal tipo esatto della classe Standard: NTC 2018, Model Code 2010 livello II, EN 1992-1-1 e annessi
