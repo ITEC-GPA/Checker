@@ -150,6 +150,8 @@ di 0,7287, Rd +27,8%). Con interasse anteriore uguale al posteriore il prodotto 
 **Portanza verticale** (motore di `Calcolo.cs`, che in ANTHEA resta solo adattatore).
 - Fusto: τ = c' + K μ σ'v,media in condizioni drenate; α(cu) cu sotto falda in condizioni non drenate.
 - Base: A σ'v Nq; nei coesivi sotto falda in condizioni non drenate A (Nc cu + σv).
+- cu è richiesta solo negli strati coesivi attraversati dal palo (cielo < L) sotto falda (correzione PV-2, 15/10/2026): gli
+  strati interamente sotto la punta non entrano nel calcolo.
 - Micropali: fusto di Bustamante-Doix lungo l'asse, quota di punta 0-15%.
 - Curve di progetto: min(media/ξ3; minimo/ξ4) con γb, γs, γst ed ηg.
 - Azioni per condizione e verso (correzione PV-1, 15/10/2026; `AxialCapacityResult.Actions`): compressione NEd + γG,sfav W,

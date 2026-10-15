@@ -79,7 +79,8 @@ namespace GPC.Checkers.Geotechnics.Piles
                 {
                     var layer = survey.Profile.Layers[i]; var p = survey.Layers[i];
                     double top = survey.Profile.GroundSurface - layer.Top, bottom = survey.Profile.GroundSurface - layer.Bottom;
-                    if (p.Behaviour == SoilBehaviour.Cohesive && falda && Math.Min(bottom, l) > zf && !layer.Soil.UndrainedShearStrength.HasValue)
+                    // cu only where it is used: a cohesive layer crossed by the pile (top < L) below the water table (PV-2).
+                    if (p.Behaviour == SoilBehaviour.Cohesive && falda && top < l && Math.Min(bottom, l) > zf && !layer.Soil.UndrainedShearStrength.HasValue)
                         throw new ArgumentException("Layer " + (i + 1) + " (" + layer.Soil.Name + "): cu is required for the undrained capacity.");
                     list.Add((layer.Soil, p, top, bottom));
                 }

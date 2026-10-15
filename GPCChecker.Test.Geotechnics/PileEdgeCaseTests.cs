@@ -352,6 +352,25 @@ public class PileEdgeCaseTests
         CollectionAssert.AreEqual(dry.Actions[(AxialCondition.Drained, false)].ToArray(), dry.Actions[(AxialCondition.Undrained, false)].ToArray());
     }
 
+    /// <summary>
+    /// PV-2: cu is required only in the cohesive layers crossed by the pile below the water table. Pile D = 0.6 m, L = 10 m, water at 2 m: sand
+    /// 0–12 m over clay 12–20 m without cu gives the same curves as the sand alone (the clay below the tip never enters the calculation).
+    /// </summary>
+    [TestMethod]
+    public void CuIsRequiredOnlyInTheLayersCrossedByThePile()
+    {
+        var pile = new AxialPile(PileInstallation.Bored, 600, 10 * M, compressionAction: 500e3);
+        var clayWithoutCu = new Soil("Clay", 19 * KN3, 20 * KN3, 25 * Deg, 0, "test");
+        var layers = new[] { new AxialPileLayer(SoilBehaviour.Granular, SoilDensity.Dense), new AxialPileLayer(SoilBehaviour.Cohesive, SoilDensity.Dense) };
+        var deep = Axial(pile, new AxialPileSurvey(Profile(2, (Sand(32), 12), (clayWithoutCu, 8)), layers));
+        var sand = Axial(pile, new AxialPileSurvey(Profile(2, (Sand(32), 20)), new[] { layers[0] }));
+        foreach (var key in sand.Curves.Keys) CollectionAssert.AreEqual(sand.Curves[key].Design.ToArray(), deep.Curves[key].Design.ToArray(), key.ToString());
+        // A clay layer starting exactly at the tip is not crossed either; one crossed by the pile still needs cu, with the layer named.
+        Axial(pile, new AxialPileSurvey(Profile(2, (Sand(32), 10), (clayWithoutCu, 8)), layers));
+        var e = Assert.ThrowsException<ArgumentException>(() => Axial(pile, new AxialPileSurvey(Profile(2, (Sand(32), 8), (clayWithoutCu, 8)), layers)));
+        StringAssert.StartsWith(e.Message, "Layer 2 (Clay): cu is required");
+    }
+
     [TestMethod]
     public void AxialCoefficientsAdhesionWaterAndUndrainedBase()
     {
