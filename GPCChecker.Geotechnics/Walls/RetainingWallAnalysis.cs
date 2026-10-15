@@ -1,3 +1,4 @@
+using System.Globalization;
 using GPC.Checkers.Geotechnics.Foundations;
 using GPC.Model.Geotechnics;
 
@@ -32,9 +33,12 @@ namespace GPC.Checkers.Geotechnics.Walls
     /// <para>
     /// Earth pressure: Rankine by layers on the vertical plane behind the heel (δ = 0; with the friction of the back when there is no heel), on the stem
     /// Coulomb with the friction of the back; effective stresses and water separate; seismic Mononobe-Okabe (increment at mid height) or simplified Wood
-    /// (at rest, kh γ Ht² uniform); passive Rankine in front optional, limited to the driving thrust, never seismic. Equilibrium about the toe with
-    /// uplift, weights of the wall, of the fill on the heel and of the soil in front, actions; contact without tension; sliding μ N/γR, overturning
-    /// stabilising/γR, bearing EN 1997-1 Annex D (c' = 0, q' of the soil in front, Nγ = 2(Nq − 1) tan φ, iq = (1 − H/V)², iγ = (1 − H/V)³, rough base
+    /// (at rest, kh γ Ht² uniform); passive Rankine in front optional (η ≤ 0.5, never seismic), design value η Pp/γR,e
+    /// (<see cref="WallCombination.PassiveFactor"/>). Equilibrium about the toe with uplift, weights of the wall, of the fill on the heel and of the
+    /// soil in front, actions (the uniform surcharge also on the heel, without its variable part when
+    /// <see cref="WallCombination.VariableSurchargeOnHeel"/> is false) and the design passive limited to the driving thrust; contact without tension.
+    /// Sliding: driving thrust + horizontal actions + inertia against μ N/γR + η Pp/γR,e; overturning: driving moment against stabilising/γR + the
+    /// moment of η Pp/γR,e (the passive is a resistance, never subtracted from the demand). Bearing EN 1997-1 Annex D (c' = 0, q' of the soil in front, Nγ = 2(Nq − 1) tan φ, iq = (1 − H/V)², iγ = (1 − H/V)³, rough base
     /// δb ≥ φd/2, |e| ≤ B/3) and in the seismic combinations EN 1998-5 Annex F. Internal forces of the stem at 21 cuts (and at the loads, the change of
     /// the reinforcement and the valley bands) and of the toe and heel at 21 cuts.
     /// </para>
@@ -91,6 +95,9 @@ namespace GPC.Checkers.Geotechnics.Walls
                 double factorNq = Math.Exp(Math.PI * Math.Tan(phiF)) * Math.Pow(Math.Tan(Math.PI / 4 + phiF / 2), 2), ng = 2 * (factorNq - 1) * Math.Tan(phiF);
                 var actions = input.Actions.Where(x => x.Enabled).Select(x => new WallAppliedAction(x, c.Coefficients.TryGetValue(x.Id, out double f) ? f : 0)).ToList();
                 double q = actions.Where(x => x.Action.Type == WallActionType.UniformSurcharge).Sum(x => x.Action.Value * x.Factor);
+                // Surcharge on the heel: the variable part is absent in the twin rows (favourable γQ = 0); the thrust keeps K q.
+                double qHeel = actions.Where(x => x.Action.Type == WallActionType.UniformSurcharge && (c.VariableSurchargeOnHeel || x.Action.Category != WallActionCategory.Q))
+                    .Sum(x => x.Action.Value * x.Factor);
                 var horizontalActions = actions.Where(x => x.Action.Type == WallActionType.HorizontalForce || x.Action.Type == WallActionType.Impact).ToArray();
                 var verticalActions = actions.Where(x => x.Action.Type == WallActionType.VerticalForce).ToArray();
                 var momentActions = actions.Where(x => x.Action.Type == WallActionType.Moment).ToArray();
@@ -123,15 +130,18 @@ namespace GPC.Checkers.Geotechnics.Walls
                 foreach (var act in actions.Where(x => x.Action.Type == WallActionType.LateralPressure))
                 { var p = new WallPressureSegment(ht - act.Action.Z, ht - act.Action.Z0, act.Design, act.Design); pressures.Add(p); stemPressures.Add(p); }
                 var valleyPressures = new List<WallPressureSegment>();
-                double eta = input.Valley.Passive && !seismic ? input.Valley.Mobilization : 0;
+                double eta = input.Valley.Passive && !seismic ? input.Valley.Mobilization : 0, gp = c.PassiveFactor;
                 foreach (var b in valleyBands)
                 {
                     double kp = EarthPressure.RankinePassive(EarthPressure.Design(b.FrictionAngle, mf));
-                    // A resistance is not amplified by an unfavourable permanent-action factor.
-                    valleyPressures.Add(new WallPressureSegment(ht - b.Top, ht - b.Bottom, eta * kp * b.SigmaTop * Math.Min(1, fp) * vf, eta * kp * b.SigmaBottom * Math.Min(1, fp) * vf));
+                    // A resistance is not amplified by an unfavourable permanent-action factor; design value η Kp σ'v / γR,e (NTC 2018 Tab. 6.5.I).
+                    valleyPressures.Add(new WallPressureSegment(ht - b.Top, ht - b.Bottom, eta * kp * b.SigmaTop * Math.Min(1, fp) * vf / gp, eta * kp * b.SigmaBottom * Math.Min(1, fp) * vf / gp));
                 }
-                double availablePassive = WallPressureSegment.Integrate(valleyPressures, 0, ht, ht).Force;
-                double activeDrive = WallPressureSegment.Integrate(pressures, 0, ht, ht).Force + horizontalActions.Sum(x => x.Design);
+                var designPassive = WallPressureSegment.Integrate(valleyPressures, 0, ht, ht);
+                double availablePassive = designPassive.Force, passiveMoment = -designPassive.Moment;
+                var drive = WallPressureSegment.Integrate(pressures, 0, ht, ht);
+                double activeDrive = drive.Force + horizontalActions.Sum(x => x.Design);
+                // Equilibrium (contact, eccentricity, H on the base, internal forces): the design passive limited to the driving thrust.
                 double passiveScale = availablePassive > 0 ? Clamp(activeDrive / availablePassive, 0, 1) : 0;
                 valleyPressures = valleyPressures.Select(p => new WallPressureSegment(p.Z0, p.Z1, p.P0 * passiveScale, p.P1 * passiveScale)).ToList();
                 foreach (var p in valleyPressures) { pressures.Add(new WallPressureSegment(p.Z0, p.Z1, -p.P0, -p.P1)); stemPressures.Add(new WallPressureSegment(p.Z0, p.Z1, -p.P0, -p.P1)); }
@@ -139,20 +149,24 @@ namespace GPC.Checkers.Geotechnics.Walls
                 double rearHead = water ? ht - zw : 0, u0 = front * Gw * fw, u1 = rearHead * Gw * fw;
                 double uplift = (u0 + u1) * width / 2, upliftMoment = width * width * (u0 + 2 * u1) / 6;
                 double pointN = verticalActions.Sum(x => x.Design);
-                double wStem = stemWeight * fc, wSlab = slabWeight * fc, wSoil = soilWeight * fs, live = heel * q + pointN;
+                double wStem = stemWeight * fc, wSlab = slabWeight * fc, wSoil = soilWeight * fs, live = heel * qHeel + pointN;
                 double backFriction = heel == 0 ? WallPressureSegment.Integrate(verticalFriction, 0, ht, ht).Force : 0;
                 double normal = (wStem + wSlab + wSoil + frontMass.Weight * fp + live) * vf - uplift + backFriction;
                 double inertial = kh * (wStem + wSlab + wSoil + frontMass.Weight * fp + live);
                 double horizontal = thrust.Force + horizontalActions.Sum(x => x.Design) + inertial;
-                double stabilizing = (wStem * stemX + wSlab * width / 2 + (wSoil + heel * q) * (a + s + heel / 2) + verticalActions.Sum(x => x.Design * x.Action.X)) * vf;
+                double stabilizing = (wStem * stemX + wSlab * width / 2 + (wSoil + heel * qHeel) * (a + s + heel / 2) + verticalActions.Sum(x => x.Design * x.Action.X)) * vf;
                 double overturning = -thrust.Moment + horizontalActions.Sum(x => x.Design * x.Action.Z) + momentActions.Sum(x => x.Design) + upliftMoment
-                    + kh * (wStem * stemY + wSlab * t / 2 + wSoil * soilHeight + heel * q * ht + verticalActions.Sum(x => x.Design * x.Action.Z));
+                    + kh * (wStem * stemY + wSlab * t / 2 + wSoil * soilHeight + heel * qHeel * ht + verticalActions.Sum(x => x.Design * x.Action.Z));
                 stabilizing += frontMass.MomentX * fp * vf + backFriction * (a + s);
                 overturning += kh * frontMass.MomentY * fp;
                 // Uplift moment is included in overturning, and U is subtracted from the normal force.
                 double x = normal > 0 ? (stabilizing - overturning) / normal : 0;
                 double e = width / 2 - x, be = Math.Max(0, width - 2 * Math.Abs(e)); var contact = WallContact.Law(width, normal, x);
-                double sliding = Math.Max(0, normal) * Math.Tan(deltaBase) / c.SlidingFactor;
+                // Checks (MUR-2): the passive in front is a resistance, η Pp/γR,e and its moment, never subtracted from the demand (driving thrust,
+                // horizontal actions, inertia; driving overturning moment). It resists only a thrust towards the valley.
+                double passiveResistance = activeDrive > 0 ? availablePassive : 0, passiveResistingMoment = activeDrive > 0 ? passiveMoment : 0;
+                double slidingDemand = drive.Force + horizontalActions.Sum(x => x.Design) + inertial, overturningDemand = overturning + passiveScale * passiveMoment;
+                double sliding = Math.Max(0, normal) * Math.Tan(deltaBase) / c.SlidingFactor + passiveResistance;
                 double inclination = normal > 0 ? Math.Max(0, 1 - Math.Abs(horizontal) / normal) : 0;
                 bool roughBase = deltaBase + 1e-9 * SoilUnits.Degree >= phiF / 2;
                 double? bearing = seismic || !roughBase || Math.Abs(e) > width / 3 || normal <= 0 ? (double?)null
@@ -188,7 +202,7 @@ namespace GPC.Checkers.Geotechnics.Walls
                 // Net upward reaction on the slab includes groundwater separately from effective soil contact.
                 var upward = contact.Valid ? new List<WallPressureSegment> { new WallPressureSegment(contact.Start, contact.End, contact.Toe, contact.Heel) } : new List<WallPressureSegment>();
                 upward.Add(new WallPressureSegment(0, width, u0, u1));
-                foreach (var (member, l, r, downward) in new[] { (WallMember.Toe, 0d, a, (gc * t * fc + frontColumn * fp) * vf), (WallMember.Heel, a + s, width, (gc * t * fc + soilIntegral.Force * fs + q) * vf) })
+                foreach (var (member, l, r, downward) in new[] { (WallMember.Toe, 0d, a, (gc * t * fc + frontColumn * fp) * vf), (WallMember.Heel, a + s, width, (gc * t * fc + soilIntegral.Force * fs + qHeel) * vf) })
                 {
                     if (r <= l) continue;
                     var load = new List<WallPressureSegment>(upward) { new WallPressureSegment(l, r, -downward, -downward) };
@@ -202,14 +216,16 @@ namespace GPC.Checkers.Geotechnics.Walls
                 return new WallCaseResult
                 {
                     Combination = c, Horizontal = horizontal, Vertical = normal, Uplift = uplift, Stabilizing = stabilizing, Overturning = overturning, X = x, Eccentricity = e,
-                    EffectiveWidth = be, Contact = contact, SlidingResistance = sliding, OverturningResistance = stabilizing / c.OverturningFactor, BearingResistance = bearing,
+                    EffectiveWidth = be, Contact = contact, SlidingDemand = slidingDemand, SlidingResistance = sliding, OverturningDemand = overturningDemand,
+                    OverturningResistance = stabilizing / c.OverturningFactor + passiveResistingMoment, BearingResistance = bearing,
                     Pressures = pressures, StemPressures = stemPressures, ValleyPressures = valleyPressures, PressureDetails = details, StemPressureDetails = stemDetails, Actions = actions,
                     Sections = sections, SeismicBearing = seismicBearing, SeismicBearingError = seismicBearingError,
                     Soil = new WallSoilAudit
                     {
                         ValleyHeight = input.Valley.Height, FreeHeight = ht - input.Valley.Height, ValleyWeight = frontMass.Weight * fp * vf, ValleyMoment = frontMass.MomentX * fp * vf,
                         Overburden = overburden, WallFriction = deltaWall, BaseFriction = deltaBase, BaseFrictionCoefficient = Math.Tan(deltaBase), EquilibriumPlaneFriction = heel > 0 ? 0 : deltaWall,
-                        PassiveAvailable = availablePassive, PassiveUsed = availablePassive * passiveScale, PassiveFraction = eta, PassiveScale = passiveScale, Nq = factorNq, Ngamma = ng,
+                        PassiveAvailable = availablePassive * gp, PassiveFactor = gp, PassiveDesign = availablePassive, PassiveUsed = availablePassive * passiveScale, PassiveFraction = eta,
+                        PassiveScale = passiveScale, Nq = factorNq, Ngamma = ng,
                         Iq = inclination * inclination, Igamma = Math.Pow(inclination, 3), RoughBase = roughBase
                     }
                 };
@@ -220,9 +236,9 @@ namespace GPC.Checkers.Geotechnics.Walls
             foreach (var c in cases.Where(c => c.Combination.State == WallLimitState.Ultimate || c.Combination.State == WallLimitState.Seismic || c.Combination.State == WallLimitState.Exceptional))
             {
                 string name = c.Combination.Name;
-                if (c.Combination.Purpose == WallSeismicPurpose.Overturning) { checks.Add(WallCheck.Of(WallCheckKind.Overturning, name, c.Overturning, c.OverturningResistance)); continue; }
-                checks.Add(WallCheck.Of(WallCheckKind.Sliding, name, Math.Abs(c.Horizontal), c.SlidingResistance));
-                if (c.Combination.Purpose != WallSeismicPurpose.General) checks.Add(WallCheck.Of(WallCheckKind.Overturning, name, c.Overturning, c.OverturningResistance));
+                if (c.Combination.Purpose == WallSeismicPurpose.Overturning) { checks.Add(WallCheck.Of(WallCheckKind.Overturning, name, c.OverturningDemand, c.OverturningResistance)); continue; }
+                checks.Add(WallCheck.Of(WallCheckKind.Sliding, name, Math.Abs(c.SlidingDemand), c.SlidingResistance));
+                if (c.Combination.Purpose != WallSeismicPurpose.General) checks.Add(WallCheck.Of(WallCheckKind.Overturning, name, c.OverturningDemand, c.OverturningResistance));
                 checks.Add(WallCheck.Of(WallCheckKind.Bearing, name, Math.Max(0, c.Vertical), c.BearingResistance, c.Combination.State == WallLimitState.Seismic
                     ? (c.SeismicBearingError.Length > 0 ? c.SeismicBearingError : "Portanza sismica non disponibile")
                     : !c.Soil.RoughBase ? "Fuori campo: base liscia, δd < φd/2" : "Fuori campo: e > B/3 o risultante verticale non positiva"));
@@ -261,16 +277,18 @@ namespace GPC.Checkers.Geotechnics.Walls
 
         /// <summary>
         /// Weight and static moments of the soil in front of the wall above the slab (or only of the wedge over the inclined face of the stem above the
-        /// elevation <paramref name="above"/>): trapezoids between the end of the toe (or the root of the stem) and the face.
+        /// elevation <paramref name="above"/>): trapezoids between the end of the toe (or, for the wedge, the face at the elevation of the cut) and the
+        /// face. The wedge is the soil resting on the face above the cut, between x_face(cut) and x_face(y): one band gives slope (Dv − cut)²/2.
         /// </summary>
         public static WallSoilMass FrontSoilMass(WallGeometry g, IEnumerable<WallValleyBand> bands, double above = 0, bool wedgeOnly = false)
         {
-            double a = g.Toe, t = g.Slab, slope = (g.StemBase - g.StemTop) / g.Height;
+            double a = g.Toe, t = g.Slab, slope = (g.StemBase - g.StemTop) / g.Height, cut = Math.Max(t, above);
             double w = 0, mx = 0, my = 0;
             foreach (var band in bands)
             {
-                double low = Math.Max(Math.Max(t, above), band.Bottom), high = band.Top; if (high <= low) continue;
-                double left = wedgeOnly ? a : 0, x0 = a + slope * (low - t), x1 = a + slope * (high - t);
+                double low = Math.Max(cut, band.Bottom), high = band.Top; if (high <= low) continue;
+                // The soil between the end of the toe and the face at the cut rests on the face below the cut (MUR-3): the wedge starts at the face.
+                double left = wedgeOnly ? a + slope * (cut - t) : 0, x0 = a + slope * (low - t), x1 = a + slope * (high - t);
                 if (Math.Max(x0, x1) <= left) continue;
                 // Trapezoid with the vertical side at x = left: widths b0 at y = low and b1 at y = high.
                 double b0 = x0 - left, b1 = x1 - left, height = high - low, area = (b0 + b1) * height / 2;
@@ -365,7 +383,24 @@ namespace GPC.Checkers.Geotechnics.Walls
                 var layers = input.Backfill.Layers; var first = layers[0].Soil;
                 if (input.Water != null || layers.Any(l => l.Soil.FrictionAngle != first.FrictionAngle || l.Soil.UnitWeight != first.UnitWeight))
                     throw new ArgumentException("Pseudostatica: questa versione richiede terreno omogeneo asciutto; disattivare il sisma per il caso con falda o strati differenti.");
-                if (input.Seismic.Method == WallSeismicMethod.MononobeOkabe) _ = EarthPressure.MononobeOkabe(first.FrictionAngle, input.Seismic.Kh, input.Seismic.Kv);
+                if (input.Seismic.Method == WallSeismicMethod.MononobeOkabe)
+                {
+                    var s = input.Seismic;
+                    if (s.Site == null) _ = EarthPressure.MononobeOkabe(first.FrictionAngle, s.Kh, s.Kv);
+                    else
+                        // Coefficients from the site: the general combinations (βm) and the overturning ones (βm,rib = min(1; 1.5 βm)) both use Mononobe-Okabe.
+                        foreach (var (label, beta, kh, kv) in new[] { ("generali", s.Beta, s.Kh, s.Kv), ("di ribaltamento", s.BetaOverturning, s.KhOverturning, s.KvOverturning) })
+                        {
+                            double theta = EarthPressure.SeismicAngle(kh, kv);
+                            if (theta >= first.FrictionAngle)
+                            {
+                                var it = CultureInfo.GetCultureInfo("it-IT");
+                                throw new ArgumentException($"Mononobe-Okabe non applicabile nelle combinazioni SLV {label} (sisma dal sito, βm = {beta.ToString("0.###", it)}): "
+                                    + $"kh = {kh.ToString("0.###", it)}, kv = ±{kv.ToString("0.###", it)}, θ = atan(kh/(1 − kv)) = {(theta / SoilUnits.Degree).ToString("0.0", it)}° ≥ φ′ = "
+                                    + $"{(first.FrictionAngle / SoilUnits.Degree).ToString("0.0", it)}° del terreno a monte.");
+                            }
+                        }
+                }
             }
             if (rows.Length == 0) throw new ArgumentException("Abilitare almeno una combinazione.");
             var names = new HashSet<string>();

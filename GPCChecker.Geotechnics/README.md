@@ -51,6 +51,10 @@ fondazioni, pali e micropali, spinte ed equilibrio dei muri. Organizzazione deci
 - **Pendii.** I terreni sono `Soil` di Model a strati orizzontali, con una seconda colonna facoltativa a valle. Si
   modellano falda idrostatica, corpi rigidi (per esempio il muro, che sostituisce il terreno occupato) e carichi
   identificati, ciascuno con il proprio coefficiente.
+  - Segni (documentazione corretta il 15/10/2026, GEO-2): la valle è a sinistra (le uscite dei cerchi stanno a sinistra degli
+    ingressi) e il momento motore è orario. La forza orizzontale di `SlopeLoad` e kh di `SlopeFactors` sono positivi verso
+    valle, cioè verso −X, nel verso dello scorrimento; una forza verso monte è negativa. La documentazione diceva «verso +X»,
+    mentre il calcolo (e `WallGlobalStability`, che passa le forze del muro positive verso valle) usava già questo verso.
   - `SlopeFactors` contiene i coefficienti di una combinazione. `FromCombination` li ricava dalle norme di Model (NTC
     2018 A2+M2+R2, γR 1,1; sisma: fattori 1, γR 1,2). Un insieme A con γG1 diversi per favorevole e sfavorevole (EN DA1
     A1) è rifiutato: i coefficienti vanno dati esplicitamente.
@@ -111,7 +115,10 @@ Nc, terreno e α di Bustamante-Doix.
   ancoraggi φ10 e φ100 dati per L/D = 5, 10, 20, 50;
 - D > 0,80 m: cubiche a tratti in u = φ − 34° (continuità C2 a 34° e 38°) adattate alla figura per L/D = 4 e 32;
 - tra le curve z/D è interpolato in scala logaritmica, con media geometrica di Nq e aritmetica di Nq*;
-- fuori dal tratto visibile si usa il bordo, segnalato.
+- fuori dal tratto visibile si usa il bordo, segnalato. Per z/D l'avviso distingue i due casi (correzione PV-3, 15/10/2026):
+  oltre il bordo superiore (z/D > 50, o > 32 per D > 0,80 m), cioè alla punta, il bordo sovrastima Nq e l'avviso
+  «ATTENZIONE» riporta la quota, z/D e il valore adottato (non cautelativo); sotto il bordo inferiore (z/D < 5 o < 4), nel
+  tratto superficiale, il bordo è a favore di sicurezza e la nota non è un'attenzione.
 
 Le fonti (immagini, digitalizzazione, punti di controllo) sono in `ANTHEA/supporto/documentazione/riferimenti_nq`. Le curve
 dei pali medi sono quelle di Berezantzev et al. (1961), fig. 13.6 di Viggiani, Fondazioni (stessi assi e curve).
@@ -129,6 +136,9 @@ ridotto fuori dal tratto visibile delle curve usa il bordo, segnalato. `NqResult
 - Formula: Rs = Σ π α D L s; pl = pressione d'iniezione (ipotesi progettuale di ANTHEA).
 - Tabelle 13.12 e 13.13 di Viggiani verificate sulle pagine scansionate.
 - Abachi digitalizzati, senza estrapolazione; le curve R sono il limite inferiore.
+- α è richiesto (positivo e finito) solo negli strati attivi che intersecano il tratto iniettato [sb, L] (correzione PV-4,
+  15/10/2026): fuori dalla zona iniettata non ha significato e `MicropileDepthLayer` lo accetta mancante; il messaggio indica
+  verticale, strato e tratto iniettato.
 - Tabelle e abachi stanno qui, in Checker, come dati del metodo; terreno di Bustamante-Doix e α per strato sono
   parametri del metodo (`MicropileSurvey`), i terreni restano i `Soil` di Model.
 
@@ -139,11 +149,31 @@ ridotto fuori dal tratto visibile delle curve usa il bordo, segnalato. `NqResult
 
 L'estensione stratificata con reazioni distribuite (G. Pacini) è un modello sperimentale.
 
+**Efficienza di Reese e Van Impe del foglio (correzione PO-2, 15/10/2026).** Gli interassi sono riferiti al verso di H. Il
+palo con un vicino davanti (anteriore) è in ombra, cioè arretrato: η = min(1; 0,48 (s/D)^0,38); il palo con un vicino dietro
+(posteriore) è avanzato: η = min(1; 0,70 (s/D)^0,26); ai lati min(1; 0,64 (s/D)^0,34); le diagonali usano la regola ellittica
+con il fattore del proprio lato. È la regola di Reese e Van Impe e di Caltrans §10.7.2.4, la stessa di `LateralPileGroup`
+(palo avanzato = più avanti nel verso di H). Il foglio SMath originale assegnava 0,70 all'interasse anteriore e 0,48 al
+posteriore: con interassi diversi il palo arretrato riceveva un'efficienza troppo alta (due pali a 3D, D = 1 m: 0,9314 invece
+di 0,7287, Rd +27,8%). Con interasse anteriore uguale al posteriore il prodotto non cambia.
+
 **Portanza verticale** (motore di `Calcolo.cs`, che in ANTHEA resta solo adattatore).
 - Fusto: τ = c' + K μ σ'v,media in condizioni drenate; α(cu) cu sotto falda in condizioni non drenate.
 - Base: A σ'v Nq; nei coesivi sotto falda in condizioni non drenate A (Nc cu + σv).
+- cu è richiesta solo negli strati coesivi attraversati dal palo (cielo < L) sotto falda (correzione PV-2, 15/10/2026): gli
+  strati interamente sotto la punta non entrano nel calcolo.
 - Micropali: fusto di Bustamante-Doix lungo l'asse, quota di punta 0-15%.
 - Curve di progetto: min(media/ξ3; minimo/ξ4) con γb, γs, γst ed ηg.
+- Azioni per condizione e verso (correzione PV-1, 15/10/2026; `AxialCapacityResult.Actions`): compressione NEd + γG,sfav W,
+  trazione max(0; NEd,t − γG,fav W). Con la falda, W′ = W − γw A max(0, z − zf):
+  - trazione, drenata e non drenata: sempre W′ (l'acqua spinge la base verso l'alto), qualunque sia l'opzione sottospinta;
+  - compressione non drenata con base lorda A (Nc cu + σv), cioè punta coesiva sotto falda in almeno una verticale: sempre W
+    pieno, perché σv contiene già la pressione dell'acqua alla base (togliere U la conterebbe due volte);
+  - compressione drenata (e non drenata senza base lorda): W′ con l'opzione sottospinta, W altrimenti (a favore di sicurezza).
+  `CompressionActions` e `TensionActions` sono le azioni della condizione drenata. Il peso del dettaglio di ogni quota è quello
+  della compressione drenata. Esempi: palo trivellato D = 1 m, L = 20 m in sabbia con falda a 2 m, T = 1200 kN, opzione spenta:
+  Ed,t = 1200 − (392,70 − 138,69) = 946,0 kN > Rd,t = 876,8 kN (prima 807,3 kN); in argilla cu = 80 kPa con falda al piano
+  campagna e opzione attiva, N = 900 kN: Ed,c non drenata = 900 + 1,3 · 392,70 = 1410,5 kN > 1283,2 kN (prima 1210,2 kN).
 - K e μ per tipo di palo e α(cu): Viggiani, Fondazioni, Tab. 13.2 e 13.3, verificate sulla scansione. Unica differenza:
   per i pali battuti il libro stampa α = 1 − 0,011 (cu − 25), ANTHEA 0,0111 (continuo a 70 kPa, al più 0,9% più basso, a
   favore di sicurezza), mantenuto.
@@ -174,14 +204,58 @@ Dv; granulari, c' = 0, falda come dato del muro `WallWater`), terreno di posa `S
 | `Walls.EarthPressure` | Rankine, Coulomb/Mononobe-Okabe (componente orizzontale, attrito del paramento), Jaky (Wood), φd = atan(tan φ/γM) |
 | `Walls.WallInterface` | attrito del paramento e della base: assegnato o k·atan(tan φcv/γM), k = 1, 2/3, 0 |
 | `Walls.WallContact` | contatto senza trazione (trapezio nel terzo medio, triangolo 3x altrimenti), integrazione delle pressioni |
-| `Walls.WallCombinations` | preset NTC A1+M1+R3 (SLE, SLU con ogni fattore, valle, acqua, permanenti, variabili principali), sisma assegnato o SLV generale e ribaltamento, eccezionali |
-| `Walls.RetainingWallAnalysis` | equilibrio per metro: spinte, sottospinta, pesi, terreno a valle e passiva limitata, scorrimento, ribaltamento, portanza EN 1997-1 Annesso D e sismica EN 1998-5 Annesso F, sollecitazioni di fusto, mensola a valle e a monte, verifiche geotecniche |
+| `Walls.WallCombinations` | preset NTC A1+M1+R3 (SLE, SLU con ogni fattore, valle, acqua, permanenti, variabili principali, gemelle «b» senza il sovraccarico variabile sulla mensola), sisma assegnato o SLV generale e ribaltamento, eccezionali |
+| `Walls.RetainingWallAnalysis` | equilibrio per metro: spinte, sottospinta, pesi, terreno a valle e passiva (resistenza con γR,e, η ≤ 0,5), scorrimento, ribaltamento, portanza EN 1997-1 Annesso D e sismica EN 1998-5 Annesso F, sollecitazioni di fusto, mensola a valle e a monte, verifiche geotecniche |
 | `Seismic.NtcSiteAmplification` | amax = Ss St ag (NTC Tab. 3.2.IV, 3.2.V), con Ss o St assegnati |
 
 Fonti NTC 2018 verificate sul testo: Tab. 6.5.I (γR 1,4 portanza, 1,1 scorrimento, 1,15 ribaltamento sulle azioni
 stabilizzanti), §7.11.6.2.1 (kh = βm amax/g, kv = ±0,5 kh, βm 0,38 allo SLV, 1 per muri non liberi di spostarsi, +50% e ≤ 1
 per il ribaltamento), Tab. 7.11.III (1,2, 1,0, 1,0), Tab. 3.2.IV (Ss) e 3.2.V (St). La NTC indica di non contare in generale
 la passiva a valle nello scorrimento: in `WallValley` è un'opzione, spenta per difetto, con la frazione mobilitata.
+
+**Sovraccarico sulla mensola di monte (correzione MUR-1, 15/10/2026).** Il sovraccarico uniforme agisce sulla spinta (K q,
+sfavorevole) e sulla mensola di monte (q b in N, nel momento stabilizzante, nell'inerzia kh q b Ht e nel carico della soletta
+di monte), dove è favorevole per scorrimento, ribaltamento e portanza. Ogni riga SLU con un sovraccarico variabile Q attivo e
+tallone b > 0 è seguita dalla gemella con lo stesso nome e il suffisso «b» (per esempio SLU 8 e SLU 8b): spinta invariata con
+γQ = 1,5, sovraccarico variabile assente sulla mensola (γQ = 0 per la parte favorevole, NTC 2018 Tab. 2.6.I; EN 1990 Tab. A1.2).
+Le due righe entrano in tutte le verifiche (scorrimento, ribaltamento, portanza, contatto) e nelle sollecitazioni della mensola;
+la numerazione delle altre righe non cambia. Il flag è `WallCombination.VariableSurchargeOnHeel` (predefinito vero) e vale
+anche per le matrici personalizzate. I sovraccarichi permanenti G1 e G2 hanno un solo fattore su spinta e mensola (sorgente
+unica, EN 1997-1 2.4.2(9)); le righe sismiche ed eccezionali tengono ψ2 q anche sulla mensola. Esempio: H = 4 m, b = 2 m,
+q = 20 kPa sul muro predefinito di ANTHEA: SLU 8b scorrimento 103,91/94,22 = 1,103 (non soddisfatta), ribaltamento 0,527,
+portanza 1,415, contro 0,860, 0,399 e 0,659 della SLU 8 con q sulla mensola (prima della correzione il massimo dello
+scorrimento era 0,870, soddisfatta).
+
+**Resistenza passiva a valle (correzione MUR-2, 15/10/2026).** Con la passiva attiva la frazione mobilitata è η ≤ 0,5
+(NTC 2018 §6.5.3.1.1: aliquota non superiore al 50%, da giustificare con spostamenti compatibili e permanenza del terreno a
+valle); oltre, `WallValley` rifiuta il dato con un messaggio che cita il paragrafo. La passiva è una resistenza del terreno a
+valle con γR,e = 1,4 (Tab. 6.5.I, R3), `WallCombination.PassiveFactor`: 1,4 nelle righe SLU generate (A1+M1+R3), 1 nelle
+altre. Le righe sismiche non contano mai la passiva; le eccezionali hanno R = 1 come le altre resistenze; le SLE non hanno
+verifiche di resistenza e usano la passiva mobilitata η Pp nell'equilibrio. Valore di progetto Pp,d = η Kp σ′v/γR,e (Rankine
+sulle fasce di valle, mai amplificato dal fattore del terreno di valle).
+- Scorrimento: domanda = spinta motrice + azioni orizzontali + inerzia, mai ridotta dalla passiva (`WallCaseResult.SlidingDemand`);
+  resistenza = N tan δb/γR + Pp,d.
+- Ribaltamento: domanda = momento ribaltante motore (`OverturningDemand`); resistenza = Ms/γR + momento di Pp,d rispetto al piede.
+- Equilibrio (x, e, contatto, H sulla base per i fattori d'inclinazione della portanza, pressioni e sollecitazioni del fusto):
+  Pp,d limitata alla spinta motrice, min(1, Sa/Pp,d); `Horizontal` e `Overturning` restano i valori netti dell'equilibrio.
+- La passiva resiste solo a una spinta motrice verso valle.
+
+Esempio della segnalazione (muro predefinito, b = 0,6 m, q = 20 kPa, Dv = 1,2 m, η = 0,5, Pp = 38,88 kN/m): riga con muro 1,
+terreno 1,3, γQ 1,5 scorrimento 80,92/(51,34 + 19,44/1,4) = 1,241 (prima 61,48/51,34 = 1,197 con la passiva sottratta),
+ribaltamento 112,90/125,68 = 0,898; la gemella senza q sulla mensola dà 1,413 e 1,105.
+
+**Terreno a valle sul paramento inclinato (correzione MUR-3, 15/10/2026).** Nel corpo libero del fusto sopra il taglio alla
+quota yc entra solo il terreno che poggia sul paramento sopra il taglio: fra x_faccia(yc) e x_faccia(y), per y da yc a Dv
+(`FrontSoilMass` con `wedgeOnly`; una fascia dà l'area pendenza·(Dv − yc)²/2). Prima il cuneo partiva da x = a (fine della
+mensola di valle) anche per i tagli sopra la fondazione e contava la striscia che poggia sul paramento sotto il taglio. Esempio
+a gravità di ANTHEA (2,20/0,55 m, Dv = 2,0 m), quasi permanente, taglio a z = 2,25 m: N = 68,91 kN/m e M = −0,46 kNm/m (prima
+74,85 e +6,07); alla radice nulla cambia. Con le scarpe dei muri a mensola (circa 0,05) l'effetto è piccolo.
+
+**Campo di Mononobe-Okabe con il sisma dal sito (correzione MUR-5, 15/10/2026).** Con i coefficienti ricavati dal sito la
+validazione controlla θ = atan(kh/(1 − kv)) < φ′ sia con i coefficienti generali (βm = 0,38) sia con quelli del ribaltamento
+(βm,rib = min(1; 1,5 βm) = 0,57), e il messaggio indica le combinazioni SLV (generali o di ribaltamento), βm, kh, kv, θ e φ′.
+Prima era controllato solo il kh generale e con θrib ≥ φ′ il calcolo si fermava con il messaggio generico di Coulomb. Con kh e
+kv assegnati resta il controllo sui valori assegnati.
 
 Casi legacy congelati e riprodotti (`WallsMigrationTests`, harness ANTHEA cbed972, `Fixtures/walls-*`): 798 valori delle
 leggi, 110 generazioni di combinazioni (2380 righe), 88 muri completi (149.922 sezioni, 8332 verifiche) e 14 documenti
@@ -193,8 +267,9 @@ ANTHEA include la forza secondo l'arrotondamento di ht − z in metri (36 tagli:
 **W3 — esercizio e stabilità globale.**
 - `Walls.WallServiceability`: cedimenti edometrici sotto il contatto della base in ogni combinazione SLE (piede, centro,
   tallone; convergenza 40/80 suddivisioni; tensione residua al fondo ≤ 10% del netto o base rigida), rotazione, spostamento
-  elastico del fusto dalle curvature e spostamento della testa disaccoppiato u = u_fusto + H/k − θ H, scorrimento di
-  Newmark con accelerogrammi SLD/SLV confermati (non con Wood).
+  elastico del fusto dalle curvature e spostamento della testa disaccoppiato u = u_fusto + H/k − θ (H + t), scorrimento di
+  Newmark con accelerogrammi SLD/SLV confermati (non con Wood). La rotazione rigida θ della fondazione agisce attorno al piano di
+  posa, quindi con il braccio H + t (correzione MUR-4, 15/10/2026: prima θ H, che trascurava θ t).
 - `Walls.WallGlobalStability`: profilo (proposto dal muro con `Propose`, da confermare), combinazioni A2+M2+R2 dalle
   ordinarie (G1 1, le altre × 1,3/1,5, M2, γR 1,1), eccezionali, SLV con βs 0,38 e γR 1,2; muro come corpo rigido, azioni
   come carichi del pendio; verifiche con γR/F solo se il risultato è un verdetto.

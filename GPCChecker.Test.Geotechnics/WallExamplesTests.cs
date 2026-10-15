@@ -25,22 +25,26 @@ public class WallExamplesTests
     {
         // H = 4 m, s 0.45/0.30 m, t 0.5 m, toe 1.0 m, heel 2.2 m; fill φ 32°, γ 19; q = 10 kPa; foundation φ 34°, δb = 24°. A1+M1+R3.
         var input = Cantilever(); var rows = WallCombinations.Generate(input); var r = RetainingWallAnalysis.Calculate(input, rows);
-        Assert.AreEqual(11, r.Cases.Count);
+        Assert.AreEqual(11 + 4, r.Cases.Count, "8 ULS, 4 of them with q and their twins without q on the heel");
         var sliding = Worst(r, WallCheckKind.Sliding);
-        // The governing sliding: wall 1, fill 1.3, q 1.5: H = 1.3 (½ γ Ka Ht²) + 1.5 q Ka Ht; V without the favourable surcharge would govern only with q 0.
+        // The governing sliding: wall 1, fill 1.3, q 1.5 on the thrust only (twin «b», q absent from the heel, γQ = 0 favourable):
+        // H = 1.3 (½ γ Ka Ht²) + 1.5 q Ka Ht; V without the favourable surcharge.
         var c = r.Cases.Single(x => x.Combination.Name == sliding.Combination);
+        Assert.IsFalse(c.Combination.VariableSurchargeOnHeel); Assert.AreEqual(1.3, c.Combination.Soil); Assert.AreEqual(1.5, c.Combination.Coefficients["q"]);
         double ka = EarthPressure.RankineActive(32 * Deg), ht = 4500, g = 19 * KN3;
         double h = c.Combination.Soil * .5 * g * ka * ht * ht + c.Combination.Coefficients["q"] * 10 * KPa * ka * ht;
         Close(h, c.Horizontal, "H", 1e-12);
         double stem = (450 + 300) * 4000 / 2.0 * 25 * KN3, slab = 3650 * 500 * 25 * KN3, fill = 2200 * 4000 * g;
-        double v = c.Combination.Wall * (stem + slab) + c.Combination.Soil * fill + c.Combination.Coefficients["q"] * 10 * KPa * 2200;
+        double v = c.Combination.Wall * (stem + slab) + c.Combination.Soil * fill + (c.Combination.VariableSurchargeOnHeel ? c.Combination.Coefficients["q"] * 10 * KPa * 2200 : 0);
         Close(v, c.Vertical, "V", 1e-12);
         Close(v * Math.Tan(24 * Deg) / 1.1, c.SlidingResistance, "Rd sliding", 1e-12);
         Close(h / (v * Math.Tan(24 * Deg) / 1.1), sliding.Ratio!.Value, "ratio", 1e-12);
         var overturning = Worst(r, WallCheckKind.Overturning); var bearing = Worst(r, WallCheckKind.Bearing);
         Assert.IsTrue(r.Checks.All(x => x.Status is WallCheckStatus.Satisfied or WallCheckStatus.ContactInCompression));
         TestContext.WriteLine($"Es.1: {sliding.Combination} H={c.Horizontal:0.00} N/mm V={c.Vertical:0.00} N/mm, η scorrimento {sliding.Ratio:0.000}; ribaltamento {overturning.Ratio:0.000}; portanza {bearing.Ratio:0.000}");
-        Close(.72294, sliding.Ratio!.Value, "reported", 1e-4);
+        // Independent model scratchpad\agent-geo\wallref.py (examples.py): 0.802332 with the twins; 0.722937 (the value reported before MUR-1) with q
+        // always on the heel.
+        Close(.802332, sliding.Ratio!.Value, "wallref.py", 1e-5);
     }
 
     [TestMethod]
@@ -49,7 +53,7 @@ public class WallExamplesTests
         // Same wall, water 2 m below the top of the fill, no water in front: water thrust ½ γw 2.5², triangular uplift, more ULS (water 1/1.3).
         var dry = RetainingWallAnalysis.Calculate(Cantilever(), WallCombinations.Generate(Cantilever()));
         var input = Cantilever(new WallWater(2000)); var rows = WallCombinations.Generate(input); var r = RetainingWallAnalysis.Calculate(input, rows);
-        Assert.AreEqual(16 + 3, rows.Count);
+        Assert.AreEqual(16 + 3 + 8, rows.Count, "16 ULS, 8 twins without q on the heel, 3 SLS");
         var qp = r.Cases.Single(x => x.Combination.State == WallLimitState.QuasiPermanent);
         double gw = SoilUnits.WaterUnitWeight;
         Close(.5 * gw * 2500 * 3650, qp.Uplift, "uplift", 1e-12);
@@ -61,7 +65,8 @@ public class WallExamplesTests
         var sliding = Worst(r, WallCheckKind.Sliding);
         TestContext.WriteLine($"Es.2: U={qp.Uplift:0.00} N/mm, ΔH acqua={qp.Horizontal - dryQp.Horizontal:0.00} N/mm; η scorrimento {sliding.Ratio:0.000} ({sliding.Combination}) contro {Worst(dry, WallCheckKind.Sliding).Ratio:0.000} asciutto");
         Assert.IsTrue(sliding.Ratio > Worst(dry, WallCheckKind.Sliding).Ratio);
-        Close(1.19736, sliding.Ratio!.Value, "reported: not satisfied", 1e-4); Assert.AreEqual(WallCheckStatus.NotSatisfied, sliding.Status);
+        // Independent model wallref.py: 1.398400 (twin of wall 1, fill 1, water 1.3, q 1.5); 1.197358 (reported before MUR-1) with q on the heel.
+        Close(1.3984, sliding.Ratio!.Value, "wallref.py: not satisfied", 1e-5); Assert.AreEqual(WallCheckStatus.NotSatisfied, sliding.Status);
     }
 
     [TestMethod]
@@ -70,7 +75,7 @@ public class WallExamplesTests
         // Soil in front 1.2 m above the base, passive Rankine mobilised at 50%, valley factor 1/1.3 doubles the ULS.
         var front = Column(1.2, (Fill(30, 18, 20), 6));
         var input = Cantilever(valley: new WallValley(1200, front, true, .5)); var rows = WallCombinations.Generate(input); var r = RetainingWallAnalysis.Calculate(input, rows);
-        Assert.AreEqual(16 + 3, rows.Count);
+        Assert.AreEqual(16 + 3 + 8, rows.Count, "16 ULS, 8 twins without q on the heel, 3 SLS");
         var sle = r.Cases[0];
         // Available passive: η Kp ½ γ Dv² on the bands of the valley (above and beside the slab).
         double kp = EarthPressure.RankinePassive(30 * Deg);
@@ -80,7 +85,10 @@ public class WallExamplesTests
         var free = Worst(RetainingWallAnalysis.Calculate(Cantilever(), WallCombinations.Generate(Cantilever())), WallCheckKind.Sliding);
         TestContext.WriteLine($"Es.3: passiva disponibile {sle.Soil.PassiveAvailable:0.00} N/mm, peso a valle {sle.Soil.ValleyWeight:0.00} N/mm, q'={sle.Soil.Overburden * 1000:0.00} kPa; η scorrimento {sliding.Ratio:0.000} contro {free.Ratio:0.000}");
         Assert.IsTrue(sliding.Ratio < free.Ratio);
-        Close(.55757, sliding.Ratio!.Value, "reported", 1e-4);
+        // Independent model wallref.py (MUR-2: demand = driving thrust 97.5815, resistance N tan δb/1.1 + η Pp/1.4 = 126.7891 + 13.8857): 0.693667 for
+        // the twin of wall 1, fill 1.3, q 1.5. Before: 0.557572 (passive subtracted from the thrust, without γR,e) and 0.616310 with the twins.
+        Close(.693667, sliding.Ratio!.Value, "wallref.py", 1e-5);
+        Close(.5 * kp * .5 * 18 * KN3 * 1200 * 1200 / 1.4, r.Cases.Single(x => x.Combination.Name == sliding.Combination).Soil.PassiveDesign, "η Pp/γR,e", 1e-12);
     }
 
     [TestMethod]

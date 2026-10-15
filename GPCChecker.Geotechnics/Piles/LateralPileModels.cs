@@ -165,14 +165,19 @@ namespace GPC.Checkers.Geotechnics.Piles
         }
 
         /// <summary>
-        /// Reese and Van Impe (SMath sheet): spacings in front, behind, left and right of the pile in the direction of H (mm, at least D):
-        /// ηa = min(1; 0.7 (s/D)^0.26), ηb = min(1; 0.48 (s/D)^0.38), ηs = min(1; 0.64 (s/D)^0.34), diagonals by the elliptical rule; η = product of the eight.
+        /// Reese and Van Impe (SMath sheet): spacings to the neighbours in front of, behind, left and right of the pile in the direction of H (mm, at
+        /// least D). A pile with a neighbour in front is the trailing pile in its shadow: ηfront = min(1; 0.48 (s/D)^0.38); a pile with a neighbour
+        /// behind is the leading pile: ηback = min(1; 0.70 (s/D)^0.26) (Reese and Van Impe; Caltrans §10.7.2.4; the same rule as
+        /// <see cref="LateralPileGroup"/>, leading = ahead in the direction of H); ηs = min(1; 0.64 (s/D)^0.34) at the sides; diagonals by the
+        /// elliptical rule with the factor of their side (front or back); η = product of the eight. The original SMath sheet gave 0.70 to the spacing
+        /// in front and 0.48 to the one behind (PO-2, corrected 15/10/2026).
         /// </summary>
         public static LateralGroupEfficiency ReeseVanImpeEfficiency(double diameter, double front, double back, double left, double right)
         {
             foreach (double s in new[] { front, back, left, right })
                 if (double.IsNaN(s) || double.IsInfinity(s) || s <= 0 || s < diameter) throw new ArgumentException("The spacings of the piles must be at least the diameter.");
-            double a = Math.Min(1, .7 * Math.Pow(front / diameter, .26)), p = Math.Min(1, .48 * Math.Pow(back / diameter, .38)),
+            // Neighbour in front: this pile trails (0.48, 0.38); neighbour behind: this pile leads (0.70, 0.26).
+            double a = Math.Min(1, .48 * Math.Pow(front / diameter, .38)), p = Math.Min(1, .7 * Math.Pow(back / diameter, .26)),
                 sx = Math.Min(1, .64 * Math.Pow(left / diameter, .34)), dx = Math.Min(1, .64 * Math.Pow(right / diameter, .34));
             double Diagonal(double longitudinal, double transverse, double axialEta, double sideEta)
             {

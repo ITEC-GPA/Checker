@@ -202,6 +202,31 @@ public class SlopeEdgeCaseTests
         Close(expected, moments, "driving of the loads", 1e-9);
     }
 
+    /// <summary>
+    /// GEO-2: the valley is on the left (exits left of the entries, the slip mass moves towards −X) and the driving moment is clockwise. A
+    /// horizontal load and kh are positive towards the valley, in the direction of sliding: a positive H lowers F, a negative H (towards the hill)
+    /// raises it; the driving moment of H at height y below the centre is H (yc − y)/R (hand statics: a force −X below the centre turns clockwise).
+    /// </summary>
+    [TestMethod]
+    public void HorizontalLoadsAndKhArePositiveTowardsTheValley()
+    {
+        var circle = SlopeGeometry.Through(P(-8, 0), P(20, 6), -4 * M)!;
+        double F(double horizontal, double kh = 0)
+        {
+            var section = Slope(loads: new[] { new SlopeLoad("H", 14 * M, 14 * M, 6 * M, 0, horizontal, 0, false) });
+            var factors = new SlopeFactors("S", 1, 1, 1.25, 1.25, 1.4, 1.1, kh, 0, false, new Dictionary<string, double> { ["H"] = 1 });
+            return BishopSolver.Solve(circle, SlopeStability.Slices(section, circle, factors, 40), 1.1)!.Factor;
+        }
+        double still = F(0), towardsValley = F(50), towardsHill = F(-50);
+        Assert.IsTrue(towardsValley < still && still < towardsHill, $"F: +H {towardsValley}, 0 {still}, −H {towardsHill}");
+        Assert.IsTrue(F(0, .1) < still, "kh > 0 pushes towards the valley");
+        // Driving term of the load: H (yc − y)/R, positive (unfavourable) for H > 0 below the centre.
+        var plain = SlopeStability.Slices(Slope(), circle, Static(), 40);
+        var loaded = SlopeStability.Slices(Slope(loads: new[] { new SlopeLoad("H", 14 * M, 14 * M, 6 * M, 0, 50, 0, false) }), circle, Static(loads: new Dictionary<string, double> { ["H"] = 1 }), 40);
+        Assert.IsTrue(circle.Y > 6 * M);
+        Close(50 * (circle.Y - 6 * M) / circle.Radius, loaded.Sum(s => s.Driving) - plain.Sum(s => s.Driving), "H (yc − y)/R", 1e-9);
+    }
+
     [TestMethod]
     public void FactorsFromTheModelStandards()
     {

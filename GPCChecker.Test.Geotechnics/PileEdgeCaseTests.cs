@@ -111,7 +111,7 @@ public class PileEdgeCaseTests
         Assert.AreEqual(12 * M, s[2].Bottom, "cut at the depth reached");
         Close(Math.PI * 1.8 * 250 * 4 * M * BustamanteDoix.UnitShaftResistance(BustamanteDoixSoil.Marl, MicropileInjection.IRS, 2, 1.8).UnitResistance, s[2].Lateral, "π α D L s", 1e-14);
         Assert.AreEqual(0, BustamanteDoix.Segments(layers, 2 * M, 2 * M, 250, MicropileInjection.IRS, 2).Length, "depth at the start of the grouting");
-        StringAssert.StartsWith(Assert.ThrowsException<ArgumentException>(() => BustamanteDoix.Segments(layers, 12 * M, 0, 250, MicropileInjection.IRS, .2)).Message, "Layer 1:");
+        StringAssert.StartsWith(Assert.ThrowsException<ArgumentException>(() => BustamanteDoix.Segments(layers, 12 * M, 0, 250, MicropileInjection.IRS, .2)).Message, "Layer 1 (grouted from 0 to 3 m along the axis): p_l outside chart");
         // From a Model profile with the axis inclined by 20°: s = z / cos θ.
         var profile = Profile(null, (Sand(), 3), (Clay(60), 9));
         var axis = MicropileLayer.FromProfile(profile, new[] { (BustamanteDoixSoil.SiltySand, 1.4, true), (BustamanteDoixSoil.Clay, 1.8, true) }, 20 * Deg);
@@ -233,6 +233,36 @@ public class PileEdgeCaseTests
         Assert.IsTrue(limit.Satisfied); Close(1, limit.Utilization, "utilisation", 1e-12);
     }
 
+    /// <summary>
+    /// PO-2: the sheet of Reese and Van Impe gives the trailing factor 0.48 (s/D)^0.38 to the neighbour in front (in the direction of H) and the
+    /// leading factor 0.70 (s/D)^0.26 to the one behind, as <see cref="LateralPileGroup"/>. Two piles in line with H, D = 1 m, spacing 3 m (the
+    /// other neighbours at 1000 m): trailing pile 0.48·3^0.38 = 0.728698, leading pile 0.70·3^0.26 = 0.931429; with the elliptical diagonals of
+    /// the sheet η = 0.728694 and 0.931427 (independent scratchpad\agent-geo\po2_reese.py; verifier bug\verA-rvi-efficienza\rvi.py).
+    /// </summary>
+    [TestMethod]
+    public void ReeseVanImpeSheetAgreesWithThePileGroup()
+    {
+        var trailing = LateralGroupEfficiency.ReeseVanImpeEfficiency(1000, 3 * M, 1000 * M, 1000 * M, 1000 * M);
+        var leading = LateralGroupEfficiency.ReeseVanImpeEfficiency(1000, 1000 * M, 3 * M, 1000 * M, 1000 * M);
+        Close(.48 * Math.Pow(3, .38), trailing.Front, "neighbour in front: trailing", 1e-15); Assert.AreEqual(1, trailing.Back);
+        Close(.70 * Math.Pow(3, .26), leading.Back, "neighbour behind: leading", 1e-15); Assert.AreEqual(1, leading.Front);
+        Close(.728694, trailing.Eta, "trailing pile (po2_reese.py)", 1e-6); Close(.931427, leading.Eta, "leading pile (po2_reese.py)", 1e-6);
+        // The pile group of the library: two piles along +X (direction of H), row 1 the one ahead.
+        var group = LateralPileGroup.Calculate(new LateralGroupInput { Piles = new[] { new GroupPile { Id = "R", X = 0, Y = 0 }, new GroupPile { Id = "F", X = 3000, Y = 0 } }, Diameter = 1000 },
+            LateralGroupMethod.ReeseVanImpe);
+        double rear = group.Piles.Single(p => p.Id == "R").Beta, front = group.Piles.Single(p => p.Id == "F").Beta;
+        Close(.728698, rear, "group: pile behind (trailing)", 1e-6); Close(.931429, front, "group: pile ahead (leading)", 1e-6);
+        Close(rear, trailing.Front, "sheet = group, trailing", 1e-12); Close(front, leading.Back, "sheet = group, leading", 1e-12);
+        Close(rear, trailing.Eta, "η of the sheet with far neighbours", 1e-5); Close(front, leading.Eta, "η of the sheet with far neighbours", 1e-5);
+        // Middle pile of three in line, 3D ahead and 5D behind: 0.728694 (before 0.824132, +13%); equal spacings give the same product both ways.
+        Close(.728694, LateralGroupEfficiency.ReeseVanImpeEfficiency(1000, 3 * M, 5 * M, 1000 * M, 1000 * M).Eta, "middle pile (po2_reese.py)", 1e-6);
+        // Diagonals: the front ones with the trailing factor, the back ones with the leading one.
+        var grid = LateralGroupEfficiency.ReeseVanImpeEfficiency(1000, 3 * M, 3 * M, 3 * M, 3 * M);
+        double angle = Math.PI / 4, side = .64 * Math.Pow(3, .34);
+        Close(Math.Sqrt(Math.Pow(grid.Front * Math.Cos(angle), 2) + Math.Pow(side * Math.Sin(angle), 2)), grid.FrontLeft, "front diagonal", 1e-14);
+        Close(Math.Sqrt(Math.Pow(grid.Back * Math.Cos(angle), 2) + Math.Pow(side * Math.Sin(angle), 2)), grid.BackRight, "back diagonal", 1e-14);
+    }
+
     [TestMethod]
     public void LateralInputsAreChecked()
     {
@@ -282,6 +312,84 @@ public class PileEdgeCaseTests
         // Depth grid: 101 points, every 0.5 m, 0 and L.
         Assert.IsTrue(r.Depths.Any(x => x.Depth == 0) && r.Depths.Any(x => x.Depth == 2500) && r.Depths.Last().Depth == 10 * M);
         Assert.IsTrue(r.FullCoverage); Assert.AreEqual(10 * M, r.MaximumDepth);
+    }
+
+    /// <summary>
+    /// PV-1: the actions follow the condition and the direction. Bored pile D = 1 m, L = 20 m, γ 25, NTC with one vertical (ξ 1.70). Expected
+    /// values from the independent scratchpad\agent-geo\pv1_buoyancy.py, equal to the verifier's bug\pali-sottospinta\indep.py:
+    /// (a) dense sand φ' 32°, γ 19/20, water at 2 m, T = 1200 kN, buoyancy option off: Ed,t = 1200 − (392.699 − 138.686) = 945.99 kN > Rd,t =
+    /// 876.79 kN in both conditions (before 807.30 kN, satisfied); (b) clay cu = 80 kPa, γsat 20, water at the ground, N = 900 kN, buoyancy on:
+    /// undrained Ed,c = 900 + 1.3 · 392.699 = 1410.51 kN > Rd,c,u = 1283.18 kN, the gross base already holds A u = 154.10 kN (before 1210.19 kN);
+    /// drained Ed,c keeps the option: 900 + 1.3 · 238.60 = 1210.19 kN.
+    /// </summary>
+    [TestMethod]
+    public void AxialActionsFollowTheConditionAndTheDirection()
+    {
+        double At(IReadOnlyList<(double Depth, double Value)> list) => list.Single(x => x.Depth == 20 * M).Value;
+        var sand = new AxialPileSurvey(Profile(2, (Sand(32, 19, 20), 30)), new[] { new AxialPileLayer(SoilBehaviour.Granular, SoilDensity.Dense) });
+        var a = Axial(new AxialPile(PileInstallation.Bored, 1000, 20 * M, tensionAction: 1200e3), sand);
+        foreach (var condition in new[] { AxialCondition.Drained, AxialCondition.Undrained })
+        {
+            Close(945.9865e3, At(a.Actions[(condition, false)]), "Ed,t with W' (pv1_buoyancy.py) " + condition, 1e-7);
+            Close(876.7941e3, At(a.Curves[(condition, false)].Design), "Rd,t (pv1_buoyancy.py) " + condition, 1e-7);
+            Assert.AreEqual(0, a.Actions[(condition, true)].Count, "no compression action");
+        }
+        Assert.AreSame(a.Actions[(AxialCondition.Drained, false)], a.TensionActions);
+        Close(392.6991e3, a.Depths.Single(x => x.Depth == 20 * M).Weight, "drained compression weight: full W without the option", 1e-7);
+        // Above the water table the tension uses the full weight.
+        double area = Math.PI * 1000 * 1000 / 4;
+        Close(1200e3 - 25 * KN3 * area * 2 * M, a.TensionActions.Single(x => x.Depth == 2 * M).Value, "W above the water table", 1e-12);
+        var clay = new AxialPileSurvey(Profile(0, (Clay(80, gamma: 20, sat: 20), 30)), new[] { new AxialPileLayer(SoilBehaviour.Cohesive, SoilDensity.Dense) });
+        var b = Axial(new AxialPile(PileInstallation.Bored, 1000, 20 * M, buoyancy: true, compressionAction: 900e3), clay);
+        Close(1410.5088e3, At(b.Actions[(AxialCondition.Undrained, true)]), "undrained Ed,c with W (pv1_buoyancy.py)", 1e-7);
+        Close(1283.1815e3, At(b.Curves[(AxialCondition.Undrained, true)].Design), "Rd,c,u (pv1_buoyancy.py)", 1e-7);
+        Close(1210.1852e3, At(b.Actions[(AxialCondition.Drained, true)]), "drained Ed,c with W' (option)", 1e-7);
+        Assert.AreSame(b.Actions[(AxialCondition.Drained, true)], b.CompressionActions);
+        // Without the water table the two conditions and the two weights coincide.
+        var dry = Axial(new AxialPile(PileInstallation.Bored, 1000, 20 * M, buoyancy: true, compressionAction: 900e3, tensionAction: 100e3), new AxialPileSurvey(Profile(null, (Sand(32), 30)),
+            new[] { new AxialPileLayer(SoilBehaviour.Granular, SoilDensity.Dense) }));
+        CollectionAssert.AreEqual(dry.Actions[(AxialCondition.Drained, true)].ToArray(), dry.Actions[(AxialCondition.Undrained, true)].ToArray());
+        CollectionAssert.AreEqual(dry.Actions[(AxialCondition.Drained, false)].ToArray(), dry.Actions[(AxialCondition.Undrained, false)].ToArray());
+    }
+
+    /// <summary>
+    /// PV-2: cu is required only in the cohesive layers crossed by the pile below the water table. Pile D = 0.6 m, L = 10 m, water at 2 m: sand
+    /// 0–12 m over clay 12–20 m without cu gives the same curves as the sand alone (the clay below the tip never enters the calculation).
+    /// </summary>
+    /// <summary>
+    /// PV-3: the warning on z/D separates the truncation beyond the upper bound at the tip (non conservative) from the shallow part below the lower
+    /// bound (safe side, no «ATTENZIONE»). Pile D = 0.3 m, L = 20 m in sand φ' = 32°: at the tip z/D = 66.7 > 50, Nq of the curve 50 =
+    /// 10^(1 + (32 − 27.5)/(38.8 − 27.5)) = 25.02 (anchors of the curve 50, by hand). Pile D = 0.6 m, L = 12 m: z/D = 20 at the tip, only the
+    /// shallow part (z &lt; 3 m) uses the border.
+    /// </summary>
+    [TestMethod]
+    public void NqSlendernessWarningSeparatesTheTipFromTheHead()
+    {
+        var slender = Axial(new AxialPile(PileInstallation.Bored, 300, 20 * M), new AxialPileSurvey(Profile(null, (Sand(32), 30)), new[] { new AxialPileLayer(SoilBehaviour.Granular, SoilDensity.Dense) }));
+        Close(Math.Pow(10, 1 + 4.5 / 11.3), slender.Depths.Last().Surveys[0].Nq!.Nq, "Nq of the curve 50 at 32°", 1e-12);
+        var w = slender.Warnings.Single(x => x.Contains("z/D"));
+        StringAssert.StartsWith(w, "ATTENZIONE Nq: oltre z/D = 50 (z > 15,00 m)"); StringAssert.Contains(w, "alla punta z = 20,00 m, z/D = 66,7: Nq = 25,02, valore non cautelativo");
+        StringAssert.Contains(w, "Inoltre nel tratto superficiale con z/D < 5 (z < 1,50 m)");
+        var stocky = Axial(new AxialPile(PileInstallation.Bored, 600, 12 * M), new AxialPileSurvey(Profile(null, (Sand(32), 30)), new[] { new AxialPileLayer(SoilBehaviour.Granular, SoilDensity.Dense) }));
+        Assert.IsFalse(stocky.Depths.Last().Surveys[0].Nq!.SlendernessClipped, "z/D = 20 at the tip");
+        var s = stocky.Warnings.Single(x => x.Contains("z/D"));
+        Assert.AreEqual("Nq: nel tratto superficiale con z/D < 5 (z < 3,00 m) adottata la curva z/D = 5, senza estrapolare: a favore di sicurezza (Nq cresce al diminuire di z/D).", s);
+        Assert.IsFalse(stocky.Warnings.Any(x => x.StartsWith("ATTENZIONE Nq")));
+    }
+
+    [TestMethod]
+    public void CuIsRequiredOnlyInTheLayersCrossedByThePile()
+    {
+        var pile = new AxialPile(PileInstallation.Bored, 600, 10 * M, compressionAction: 500e3);
+        var clayWithoutCu = new Soil("Clay", 19 * KN3, 20 * KN3, 25 * Deg, 0, "test");
+        var layers = new[] { new AxialPileLayer(SoilBehaviour.Granular, SoilDensity.Dense), new AxialPileLayer(SoilBehaviour.Cohesive, SoilDensity.Dense) };
+        var deep = Axial(pile, new AxialPileSurvey(Profile(2, (Sand(32), 12), (clayWithoutCu, 8)), layers));
+        var sand = Axial(pile, new AxialPileSurvey(Profile(2, (Sand(32), 20)), new[] { layers[0] }));
+        foreach (var key in sand.Curves.Keys) CollectionAssert.AreEqual(sand.Curves[key].Design.ToArray(), deep.Curves[key].Design.ToArray(), key.ToString());
+        // A clay layer starting exactly at the tip is not crossed either; one crossed by the pile still needs cu, with the layer named.
+        Axial(pile, new AxialPileSurvey(Profile(2, (Sand(32), 10), (clayWithoutCu, 8)), layers));
+        var e = Assert.ThrowsException<ArgumentException>(() => Axial(pile, new AxialPileSurvey(Profile(2, (Sand(32), 8), (clayWithoutCu, 8)), layers)));
+        StringAssert.StartsWith(e.Message, "Layer 2 (Clay): cu is required");
     }
 
     [TestMethod]

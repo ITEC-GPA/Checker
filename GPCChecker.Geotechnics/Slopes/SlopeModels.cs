@@ -41,9 +41,10 @@ namespace GPC.Checkers.Geotechnics.Slopes
 
     /// <summary>
     /// External load identified by <see cref="Id"/> (its partial factor comes from <see cref="SlopeFactors.Loads"/>). Concentrated: forces per
-    /// unit length (N/mm, vertical downwards and horizontal towards +X positive) at abscissa <see cref="Left"/> and height <see cref="Y"/>, and a
-    /// moment (N·mm/mm) positive when it increases the driving moment. Distributed: the same three quantities per unit length of the segment
-    /// between <see cref="Left"/> and <see cref="Right"/> (pressures in MPa).
+    /// unit length (N/mm) at abscissa <see cref="Left"/> and height <see cref="Y"/>: vertical positive downwards, horizontal positive towards the
+    /// valley, that is towards −X, the direction of sliding (the valley is on the left: the circles exit left of their entries); a moment
+    /// (N·mm/mm) positive when it increases the driving moment. Distributed: the same three quantities per unit length of the segment between
+    /// <see cref="Left"/> and <see cref="Right"/> (pressures in MPa). A horizontal force towards the hill (+X) is negative.
     /// </summary>
     public sealed class SlopeLoad
     {
@@ -101,7 +102,8 @@ namespace GPC.Checkers.Geotechnics.Slopes
 
     /// <summary>
     /// Partial factors of one combination: on the weight of the soil and of the bodies, on tan φ', c' and cu, γR on the resistance,
-    /// seismic coefficients kh and kv (kv positive upwards: V = (1 − kv) W) and the factors of the loads by identifier (missing = 0).
+    /// seismic coefficients kh and kv (kh positive towards the valley, −X, the direction of sliding: H = kh W; kv positive upwards:
+    /// V = (1 − kv) W) and the factors of the loads by identifier (missing = 0).
     /// </summary>
     public sealed class SlopeFactors
     {
