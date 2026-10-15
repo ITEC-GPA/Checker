@@ -174,6 +174,27 @@ namespace ConcreteTests
         }
 
         [TestMethod]
+        public void ElasticDomainMeridianOfTheMomentDirection()
+        {
+            // The elastic (SLV) N–M domain of the moment direction had two null points (ArgumentNullException at the first force) and, because the
+            // search at constant eccentricity of the elastic domain returns the pole of compression for a pure tension, a pole of tension at
+            // N = NRd,c that cut the domain (η 4.64 instead of 0.76 for (-1000; 0; 60)). Expected: the 3d check at constant eccentricity of the
+            // elastic domain (another code path, LegacySectionCalculation.SolveResistance), within 1 %; no independent model of the elastic domain.
+            var section = UltimateSections.Symmetric();
+            var checker = UltimateSections.Checker(section, SectionSolver.FailureAnalysisTypes.ConstantEccentricity, SectionSolver.FailureDomainTypes.Elastic);
+            var domain = MomentDirectionDomain(checker, section, 90);
+            Assert.IsFalse(Array.Exists(domain.Domain.DomainPoints, p => p == null), "null points");
+            Assert.AreEqual(1, Array.FindAll(domain.Domain.DomainPoints, p => p.NRd > 300e3).Length, "one pole of tension (NRd,t = 314.7 kN)");
+            foreach (var (n, my) in new[] { (-1000.0, 60.0), (100, 10), (-2000, 20), (0, 50) })
+            {
+                var (ratio2d, _, point) = Check2d(section, domain, n, 0, my);
+                double ratio3d = Ratio3d(checker, section, n, 0, my);
+                Assert.AreEqual(ratio3d, ratio2d, 0.01 * ratio3d, "elastic (" + n + "; 0; " + my + ")");
+                Assert.IsTrue(point.MyRd * my > 0, "branch of the action");
+            }
+        }
+
+        [TestMethod]
         public void MomentAxisFollowsTheSignRuleOfAnthea()
         {
             // ANTHEA's CheckerDomain2D multiplies the projection of the action on θ by sign(cos θ) (sign(sin θ) when |cos θ| ≤ 1e-8): the axis is
