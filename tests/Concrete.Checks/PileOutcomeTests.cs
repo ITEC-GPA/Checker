@@ -159,6 +159,52 @@ namespace ConcreteTests
             Assert.AreEqual(DataStatus.Insufficient, failed.Data);
         }
 
+        /// <summary>
+        /// PO-5 of the ANTHEA bug analysis (15/10/2026): development is "not available" only where the demand needs tensile bars. D 1000 pile of 10 m,
+        /// one run 0-10 m: within lbd + a_l of the ends (more than 0.3 m: lb,rqd of Ø16 about 0.47 m plus a_l = z cotθ/2 about 0.4-0.9 m) a depth with
+        /// a numerically zero moment and no axial tension (the free head of the elastic model, M = 1.4e-10 kNm; the tip, M = 0) gets null and keeps its
+        /// outcome; a moment of 90 kNm at 0.3 m or an axial tension at the head still gives false. The head anchorage outside the model counts as
+        /// embedded length: 5 m (more than lbd + a_l) makes the bars developed from the head, 0.5 m moves the capacity point by 0.5 m; the toe
+        /// anchorage likewise at the tip; the bar schedule (SegmentRuns) applies the same credit.
+        /// </summary>
+        [TestMethod]
+        public void DevelopmentIsRequiredOnlyWhereTheDemandNeedsTensileBars()
+        {
+            var service = new PileReinforcement(Parameters());
+            var head = service.Check(new PileAction { Depth = 0, N = 1000, M = 1.4e-10, V = 300 });
+            var near = service.Check(new PileAction { Depth = .3, N = 1000, M = 90, V = 300 });
+            var tension = service.Check(new PileAction { Depth = 0, N = -200, M = 0, V = 0 });
+            var tip = service.Check(new PileAction { Depth = 10, N = 1200, M = 0, V = 0 });
+            var middle = service.Check(LowDemand(5));
+            var checks = new[] { head, near, tension, tip, middle };
+            var run = service.Detail("A", 0, 10, 10, checks);
+            Assert.IsTrue(run.Anchorage + run.Shift > .3, "0.3 m is within lbd + a_l");
+            Assert.AreEqual(run.Anchorage + run.Shift, run.StartDevelopment.Value, 1e-12, "no head anchorage");
+            PileReinforcement.ApplyDevelopment(run, checks);
+            Assert.IsNull(head.DevelopmentAvailable); Assert.AreEqual(EngineeringOutcome.Satisfied, head.Outcome); Assert.AreEqual(DataStatus.Ready, head.Data);
+            Assert.IsNull(tip.DevelopmentAvailable); Assert.AreEqual(EngineeringOutcome.Satisfied, tip.Outcome);
+            Assert.AreEqual(false, near.DevelopmentAvailable); Assert.AreEqual(EngineeringOutcome.NotEvaluated, near.Outcome); Assert.AreEqual("Parziale", near.Status);
+            Assert.AreEqual(false, tension.DevelopmentAvailable, "axial tension needs the bars");
+            Assert.AreEqual(true, middle.DevelopmentAvailable); Assert.AreEqual(EngineeringOutcome.Satisfied, middle.Outcome);
+
+            var anchored = Parameters(); anchored.HeadAnchorage = 5; anchored.ToeAnchorage = 5;
+            var developed = new PileReinforcement(anchored);
+            var nearHead = developed.Check(new PileAction { Depth = 0, N = 1000, M = 90, V = 300 });
+            var nearTip = developed.Check(new PileAction { Depth = 9.9, N = 1200, M = 30, V = 20 });
+            var anchoredRun = developed.Detail("A", 0, 10, 10, new[] { nearHead, nearTip });
+            Assert.AreEqual(0, anchoredRun.StartDevelopment.Value); Assert.AreEqual(0, anchoredRun.EndDevelopment.Value); Assert.IsTrue(anchoredRun.EndDevelopmentAvailable);
+            PileReinforcement.ApplyDevelopment(anchoredRun, new[] { nearHead, nearTip });
+            Assert.AreEqual(true, nearHead.DevelopmentAvailable); Assert.AreEqual(true, nearTip.DevelopmentAvailable);
+
+            var partial = Parameters(); partial.HeadAnchorage = .5;
+            var partialService = new PileReinforcement(partial);
+            var partialRun = partialService.Detail("A", 0, 10, 10, new[] { middle });
+            Assert.AreEqual(partialRun.Anchorage + partialRun.Shift - .5, partialRun.CapacityStart, 1e-12);
+            var schedule = PileReinforcement.SegmentRuns(new[] { new PileDetailSegment { Id = "T1", Start = 0, End = 10, Service = partialService, Checks = new[] { middle } } }, 10);
+            Assert.AreEqual(partialRun.Anchorage + partialRun.Shift - .5, schedule[0].CapacityStart, 1e-12, "bar schedule");
+            Assert.AreEqual(schedule[0].Anchorage + schedule[0].Shift, schedule[0].EndDevelopment.Value, 1e-12, "no toe anchorage");
+        }
+
         [TestMethod]
         public void CandidateSelectionRejectsFailedMinimumReinforcement()
         {
