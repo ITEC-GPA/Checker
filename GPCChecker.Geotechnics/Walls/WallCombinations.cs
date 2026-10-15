@@ -10,6 +10,12 @@ namespace GPC.Checkers.Geotechnics.Walls
     /// 1.15 overturning, 1.4 bearing. Seismic with the quasi permanent actions: assigned kh and ±kv, or from the site general and overturning (γR
     /// 1, 1, 1.2, NTC Tab. 7.11.III). Accidental: every group of accidental actions with the quasi permanent ones. Identical rows are merged; at
     /// most 4096 rows.
+    /// <para>
+    /// Every ULS row with a variable uniform surcharge (factor &gt; 0) on a wall with a heel is followed by its twin, named with the suffix «b»
+    /// (for example SLU 8 and SLU 8b), with <see cref="WallCombination.VariableSurchargeOnHeel"/> false: the surcharge keeps the thrust K γQ q
+    /// and is absent from the heel (γQ = 0 on the favourable part, NTC 2018 Tab. 2.6.I). Both rows enter every check (sliding, overturning,
+    /// bearing, contact) and the internal forces of the heel. The numbers of the other rows do not change.
+    /// </para>
     /// </summary>
     public static class WallCombinations
     {
@@ -20,8 +26,8 @@ namespace GPC.Checkers.Geotechnics.Walls
             var groups = actions.GroupBy(x => x.Key).ToArray();
             var vars = groups.Where(gr => gr.First().Category == WallActionCategory.Q).ToArray();
             var permanent = groups.Where(gr => gr.First().Category == WallActionCategory.G1 || gr.First().Category == WallActionCategory.G2).ToArray();
-            var result = new List<WallCombination>(); var seen = new HashSet<string>();
-            bool valley = input.Valley.Height > 0, water = input.Water != null;
+            var result = new List<WallCombination>(); var seen = new HashSet<string>(); int number = 0;
+            bool valley = input.Valley.Height > 0, water = input.Water != null, heel = input.Geometry.Heel > 0;
             void Add(WallLimitState state, string label, double wall, double soil, double waterFactor, Dictionary<string, double> factors, double kh = 0, double kv = 0, WallSeismicPurpose purpose = WallSeismicPurpose.None)
             {
                 foreach (double valleyFactor in state == WallLimitState.Ultimate && valley ? new[] { 1d, 1.3 } : new[] { 1d })
@@ -29,12 +35,18 @@ namespace GPC.Checkers.Geotechnics.Walls
                     var coefficients = input.Actions.ToDictionary(x => x.Id, x => x.Enabled && factors.TryGetValue(x.Id, out double f) ? f : 0);
                     string fingerprint = string.Join("/", state, purpose, R(wall), R(soil), R(waterFactor), R(kh), R(kv), R(valleyFactor)) + "/" + string.Join(",", input.Actions.Select(x => R(coefficients[x.Id])));
                     if (!seen.Add(fingerprint)) continue;
-                    if (result.Count >= 4096) throw new ArgumentException("Oltre 4096 combinazioni: raggruppare le azioni correlate o predisporre una matrice personalizzata.");
                     bool design = state == WallLimitState.Ultimate || state == WallLimitState.Seismic;
                     string approach = purpose != WallSeismicPurpose.None ? "SLV · NTC 7.11.III" : state == WallLimitState.Seismic ? "Sismica · M1/R3" : design ? "A1+M1+R3"
                         : state == WallLimitState.Exceptional ? "Eccezionale · M1/R=1" : "SLE";
                     double slide = purpose != WallSeismicPurpose.None ? 1 : design ? 1.1 : 1, over = purpose != WallSeismicPurpose.None ? 1 : design ? 1.15 : 1, bearing = purpose != WallSeismicPurpose.None ? 1.2 : design ? 1.4 : 1;
-                    result.Add(new WallCombination(label + " " + (result.Count + 1), state, wall, soil, valleyFactor, waterFactor, 1, slide, over, bearing, kh, kv, coefficients, purpose, approach));
+                    string name = label + " " + (++number);
+                    // ULS with a variable surcharge on a heel: also the twin «b» without the surcharge on the heel (favourable γQ = 0), same thrust.
+                    bool twin = state == WallLimitState.Ultimate && heel && input.Actions.Any(x => x.Enabled && x.Type == WallActionType.UniformSurcharge && x.Category == WallActionCategory.Q && coefficients[x.Id] > 0);
+                    foreach (bool onHeel in twin ? new[] { true, false } : new[] { true })
+                    {
+                        if (result.Count >= 4096) throw new ArgumentException("Oltre 4096 combinazioni: raggruppare le azioni correlate o predisporre una matrice personalizzata.");
+                        result.Add(new WallCombination(onHeel ? name : name + "b", state, wall, soil, valleyFactor, waterFactor, 1, slide, over, bearing, kh, kv, coefficients, purpose, approach, onHeel));
+                    }
                 }
             }
             Dictionary<string, double> Service(WallLimitState state, string? lead = null) => actions.ToDictionary(x => x.Id, x =>

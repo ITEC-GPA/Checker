@@ -104,7 +104,7 @@ public class WallsMigrationTests
     [TestMethod]
     public void LegacyCombinationsAreReproduced()
     {
-        int generated = 0, rows = 0, rejected = 0;
+        int generated = 0, rows = 0, rejected = 0, twins = 0;
         foreach (var line in Lines("walls-combinations.jsonl"))
         {
             string name = Str(line["name"]); var legacy = line["ordinary"];
@@ -117,7 +117,12 @@ public class WallsMigrationTests
             // ANTHEA generates the combinations before checking the geometry and the soils: these documents are rejected by its calculation.
             try { input = Input(line["input"]!.AsObject()); }
             catch (ArgumentException) { Assert.IsTrue(name is "errore fusto rovescio" or "errore terreno di posa gamma sat" or "errore altezza libera", name); rejected++; continue; }
-            var port = WallCombinations.Generate(input); var list = legacy!.AsArray();
+            var all = WallCombinations.Generate(input); var list = legacy!.AsArray();
+            // MUR-1 (15/10/2026): the twin rows «b» without the variable surcharge on the heel are new, not in the legacy capture. Each one follows
+            // its parent with the same factors; every legacy row is still compared below, with its name and number.
+            for (int i = 0; i < all.Count; i++)
+                if (!all[i].VariableSurchargeOnHeel) { Assert.AreEqual(all[i - 1].Name + "b", all[i].Name, name); twins++; }
+            var port = all.Where(p => p.VariableSurchargeOnHeel).ToList();
             Assert.AreEqual(list.Count, port.Count, name);
             for (int i = 0; i < port.Count; i++)
             {
@@ -134,6 +139,7 @@ public class WallsMigrationTests
         }
         Assert.AreEqual(110, generated + rejected);
         Assert.IsTrue(rows > 1500, "rows " + rows);
+        TestContext.WriteLine($"{generated} generations, {rows} legacy rows reproduced, {twins} twin rows without the variable surcharge on the heel (MUR-1)");
     }
 
     /// <summary>Documents rejected by ANTHEA for reasons outside the geotechnical core of W1 (structure, user interface): they are calculated here.</summary>

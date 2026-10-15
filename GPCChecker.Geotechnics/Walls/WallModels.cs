@@ -118,6 +118,12 @@ namespace GPC.Checkers.Geotechnics.Walls
     /// <summary>
     /// A combination of the wall: limit state, factors of the weight of the wall, of the fill (also on the thrust), of the valley soil and of the
     /// water, γM of tan φ, γR of sliding, overturning and bearing, seismic coefficients and the factor of every action (by id).
+    /// <para>
+    /// The factor of a uniform surcharge acts on the thrust (K q) and on the load q over the heel (normal force, stabilising moment, inertia kh q
+    /// b ht, load of the heel slab). <see cref="VariableSurchargeOnHeel"/> false removes the variable (Q) surcharges from the heel only, with the
+    /// thrust unchanged: the arrangement with the favourable part of the variable action absent (γQ = 0, NTC 2018 Tab. 2.6.I; EN 1990 A1.2).
+    /// Permanent surcharges (G1, G2) keep one factor on both parts (single source, EN 1997-1 2.4.2(9)).
+    /// </para>
     /// </summary>
     public sealed class WallCombination
     {
@@ -136,8 +142,14 @@ namespace GPC.Checkers.Geotechnics.Walls
         public double Kv { get; }
         public WallSeismicPurpose Purpose { get; }
         public IReadOnlyDictionary<string, double> Coefficients { get; }
+        /// <summary>
+        /// True (default): the variable surcharges act also on the heel with the factor of the thrust. False: the variable surcharges are absent from the
+        /// heel (twin rows «b» of <see cref="WallCombinations.Generate"/>), the thrust keeps them.
+        /// </summary>
+        public bool VariableSurchargeOnHeel { get; }
         public WallCombination(string name, WallLimitState state, double wall, double soil, double valleySoil, double water, double frictionFactor, double slidingFactor,
-            double overturningFactor, double bearingFactor, double kh, double kv, IReadOnlyDictionary<string, double> coefficients, WallSeismicPurpose purpose = WallSeismicPurpose.None, string approach = "")
+            double overturningFactor, double bearingFactor, double kh, double kv, IReadOnlyDictionary<string, double> coefficients, WallSeismicPurpose purpose = WallSeismicPurpose.None, string approach = "",
+            bool variableSurchargeOnHeel = true)
         {
             if (string.IsNullOrWhiteSpace(name) || !Enum.IsDefined(typeof(WallLimitState), state)) throw new ArgumentException("Combinazioni: nome univoco e stato limite valido obbligatori.");
             foreach (double v in new[] { wall, soil, valleySoil, water }) if (!(v >= 0 && v <= 5)) throw new ArgumentException("Coefficiente fuori campo.");
@@ -147,7 +159,7 @@ namespace GPC.Checkers.Geotechnics.Walls
             if ((kh != 0 || kv != 0) && state != WallLimitState.Seismic) throw new ArgumentException("kh/kv ammessi soltanto in combinazioni SISMA con sisma abilitato.");
             if (purpose != WallSeismicPurpose.None && state != WallLimitState.Seismic) throw new ArgumentException("Destinazione della combinazione sismica non valida.");
             Name = name; State = state; Approach = approach ?? ""; Wall = wall; Soil = soil; ValleySoil = valleySoil; Water = water; FrictionFactor = frictionFactor; SlidingFactor = slidingFactor;
-            OverturningFactor = overturningFactor; BearingFactor = bearingFactor; Kh = kh; Kv = kv; Purpose = purpose;
+            OverturningFactor = overturningFactor; BearingFactor = bearingFactor; Kh = kh; Kv = kv; Purpose = purpose; VariableSurchargeOnHeel = variableSurchargeOnHeel;
             Coefficients = (coefficients ?? throw new ArgumentNullException(nameof(coefficients))).ToDictionary(p => p.Key, p => p.Value);
         }
         public bool Design => State == WallLimitState.Ultimate || State == WallLimitState.Seismic;

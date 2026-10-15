@@ -33,7 +33,8 @@ namespace GPC.Checkers.Geotechnics.Walls
     /// Earth pressure: Rankine by layers on the vertical plane behind the heel (δ = 0; with the friction of the back when there is no heel), on the stem
     /// Coulomb with the friction of the back; effective stresses and water separate; seismic Mononobe-Okabe (increment at mid height) or simplified Wood
     /// (at rest, kh γ Ht² uniform); passive Rankine in front optional, limited to the driving thrust, never seismic. Equilibrium about the toe with
-    /// uplift, weights of the wall, of the fill on the heel and of the soil in front, actions; contact without tension; sliding μ N/γR, overturning
+    /// uplift, weights of the wall, of the fill on the heel and of the soil in front, actions (the uniform surcharge also on the heel, without its
+    /// variable part when <see cref="WallCombination.VariableSurchargeOnHeel"/> is false); contact without tension; sliding μ N/γR, overturning
     /// stabilising/γR, bearing EN 1997-1 Annex D (c' = 0, q' of the soil in front, Nγ = 2(Nq − 1) tan φ, iq = (1 − H/V)², iγ = (1 − H/V)³, rough base
     /// δb ≥ φd/2, |e| ≤ B/3) and in the seismic combinations EN 1998-5 Annex F. Internal forces of the stem at 21 cuts (and at the loads, the change of
     /// the reinforcement and the valley bands) and of the toe and heel at 21 cuts.
@@ -91,6 +92,9 @@ namespace GPC.Checkers.Geotechnics.Walls
                 double factorNq = Math.Exp(Math.PI * Math.Tan(phiF)) * Math.Pow(Math.Tan(Math.PI / 4 + phiF / 2), 2), ng = 2 * (factorNq - 1) * Math.Tan(phiF);
                 var actions = input.Actions.Where(x => x.Enabled).Select(x => new WallAppliedAction(x, c.Coefficients.TryGetValue(x.Id, out double f) ? f : 0)).ToList();
                 double q = actions.Where(x => x.Action.Type == WallActionType.UniformSurcharge).Sum(x => x.Action.Value * x.Factor);
+                // Surcharge on the heel: the variable part is absent in the twin rows (favourable γQ = 0); the thrust keeps K q.
+                double qHeel = actions.Where(x => x.Action.Type == WallActionType.UniformSurcharge && (c.VariableSurchargeOnHeel || x.Action.Category != WallActionCategory.Q))
+                    .Sum(x => x.Action.Value * x.Factor);
                 var horizontalActions = actions.Where(x => x.Action.Type == WallActionType.HorizontalForce || x.Action.Type == WallActionType.Impact).ToArray();
                 var verticalActions = actions.Where(x => x.Action.Type == WallActionType.VerticalForce).ToArray();
                 var momentActions = actions.Where(x => x.Action.Type == WallActionType.Moment).ToArray();
@@ -139,14 +143,14 @@ namespace GPC.Checkers.Geotechnics.Walls
                 double rearHead = water ? ht - zw : 0, u0 = front * Gw * fw, u1 = rearHead * Gw * fw;
                 double uplift = (u0 + u1) * width / 2, upliftMoment = width * width * (u0 + 2 * u1) / 6;
                 double pointN = verticalActions.Sum(x => x.Design);
-                double wStem = stemWeight * fc, wSlab = slabWeight * fc, wSoil = soilWeight * fs, live = heel * q + pointN;
+                double wStem = stemWeight * fc, wSlab = slabWeight * fc, wSoil = soilWeight * fs, live = heel * qHeel + pointN;
                 double backFriction = heel == 0 ? WallPressureSegment.Integrate(verticalFriction, 0, ht, ht).Force : 0;
                 double normal = (wStem + wSlab + wSoil + frontMass.Weight * fp + live) * vf - uplift + backFriction;
                 double inertial = kh * (wStem + wSlab + wSoil + frontMass.Weight * fp + live);
                 double horizontal = thrust.Force + horizontalActions.Sum(x => x.Design) + inertial;
-                double stabilizing = (wStem * stemX + wSlab * width / 2 + (wSoil + heel * q) * (a + s + heel / 2) + verticalActions.Sum(x => x.Design * x.Action.X)) * vf;
+                double stabilizing = (wStem * stemX + wSlab * width / 2 + (wSoil + heel * qHeel) * (a + s + heel / 2) + verticalActions.Sum(x => x.Design * x.Action.X)) * vf;
                 double overturning = -thrust.Moment + horizontalActions.Sum(x => x.Design * x.Action.Z) + momentActions.Sum(x => x.Design) + upliftMoment
-                    + kh * (wStem * stemY + wSlab * t / 2 + wSoil * soilHeight + heel * q * ht + verticalActions.Sum(x => x.Design * x.Action.Z));
+                    + kh * (wStem * stemY + wSlab * t / 2 + wSoil * soilHeight + heel * qHeel * ht + verticalActions.Sum(x => x.Design * x.Action.Z));
                 stabilizing += frontMass.MomentX * fp * vf + backFriction * (a + s);
                 overturning += kh * frontMass.MomentY * fp;
                 // Uplift moment is included in overturning, and U is subtracted from the normal force.
@@ -188,7 +192,7 @@ namespace GPC.Checkers.Geotechnics.Walls
                 // Net upward reaction on the slab includes groundwater separately from effective soil contact.
                 var upward = contact.Valid ? new List<WallPressureSegment> { new WallPressureSegment(contact.Start, contact.End, contact.Toe, contact.Heel) } : new List<WallPressureSegment>();
                 upward.Add(new WallPressureSegment(0, width, u0, u1));
-                foreach (var (member, l, r, downward) in new[] { (WallMember.Toe, 0d, a, (gc * t * fc + frontColumn * fp) * vf), (WallMember.Heel, a + s, width, (gc * t * fc + soilIntegral.Force * fs + q) * vf) })
+                foreach (var (member, l, r, downward) in new[] { (WallMember.Toe, 0d, a, (gc * t * fc + frontColumn * fp) * vf), (WallMember.Heel, a + s, width, (gc * t * fc + soilIntegral.Force * fs + qHeel) * vf) })
                 {
                     if (r <= l) continue;
                     var load = new List<WallPressureSegment>(upward) { new WallPressureSegment(l, r, -downward, -downward) };

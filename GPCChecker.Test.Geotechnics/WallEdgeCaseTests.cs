@@ -199,24 +199,40 @@ public class WallEdgeCaseTests
     [TestMethod]
     public void CombinationsFollowTheNtcPreset()
     {
-        // One variable action: 2 SLS (characteristic, frequent) + quasi permanent + 8 ULS (wall, fill, presence of q).
+        // One variable action: 2 SLS (characteristic, frequent) + quasi permanent + 8 ULS (wall, fill, presence of q), plus the 4 twins «b» of the
+        // ULS with q (q absent from the heel, MUR-1).
+        static int Ultimate(IEnumerable<WallCombination> list) => list.Count(r => r.State == WallLimitState.Ultimate && r.VariableSurchargeOnHeel);
+        static int Twins(IEnumerable<WallCombination> list) => list.Count(r => !r.VariableSurchargeOnHeel);
         var rows = WallCombinations.Generate(Wall());
-        Assert.AreEqual(11, rows.Count); Assert.AreEqual(8, rows.Count(r => r.State == WallLimitState.Ultimate));
+        Assert.AreEqual(11 + 4, rows.Count); Assert.AreEqual(8, Ultimate(rows)); Assert.AreEqual(4, Twins(rows));
         Assert.IsTrue(rows.Where(r => r.State == WallLimitState.Ultimate).All(r => r.SlidingFactor == 1.1 && r.OverturningFactor == 1.15 && r.BearingFactor == 1.4 && r.Approach == "A1+M1+R3"));
         Assert.AreEqual("SLE 1", rows[0].Name); Assert.AreEqual("Quasi permanente 3", rows[2].Name); Close(.3, rows[2].Coefficients["q"], "ψ2");
-        // Two variable actions: the leading one 1.5, the other 1.5 ψ0; 20 ULS.
+        // Each twin follows its parent: same name with «b», same factors, only the flag differs; the parents keep the numbers.
+        for (int i = 0; i < rows.Count; i++)
+        {
+            if (rows[i].VariableSurchargeOnHeel) continue;
+            var p = rows[i - 1]; var t = rows[i];
+            Assert.AreEqual(p.Name + "b", t.Name); Assert.IsTrue(p.VariableSurchargeOnHeel && p.State == WallLimitState.Ultimate && p.Coefficients["q"] > 0);
+            Assert.IsTrue(p.Wall == t.Wall && p.Soil == t.Soil && p.ValleySoil == t.ValleySoil && p.Water == t.Water && p.Coefficients["q"] == t.Coefficients["q"]);
+        }
+        Assert.AreEqual("SLU 11b", rows[^1].Name);
+        // Two variable actions: the leading one 1.5, the other 1.5 ψ0; 20 ULS, 16 with a surcharge (twins).
         var two = WallCombinations.Generate(Wall(actions: new[] { Surcharge(10, "q", psi0: .6), Surcharge(20, "q2", psi0: .8) }));
-        Assert.AreEqual(20, two.Count(r => r.State == WallLimitState.Ultimate));
+        Assert.AreEqual(20, Ultimate(two)); Assert.AreEqual(16, Twins(two));
         Assert.IsTrue(two.Any(r => r.Coefficients["q"] == 1.5 && Math.Abs(r.Coefficients["q2"] - 1.2) < 1e-12));
         Assert.IsTrue(two.Any(r => Math.Abs(r.Coefficients["q"] - .9) < 1e-12 && r.Coefficients["q2"] == 1.5));
         // Soil in front doubles the ULS (valley 1/1.3); water adds a factor.
-        Assert.AreEqual(16, WallCombinations.Generate(Wall(valley: new WallValley(1000, Column(1, (Fill(), 5))))).Count(r => r.State == WallLimitState.Ultimate));
-        Assert.AreEqual(16, WallCombinations.Generate(Wall(water: new WallWater(1000))).Count(r => r.State == WallLimitState.Ultimate));
-        // Permanent G2: 0/1.5; correlated group: one key.
+        Assert.AreEqual(16, Ultimate(WallCombinations.Generate(Wall(valley: new WallValley(1000, Column(1, (Fill(), 5)))))));
+        Assert.AreEqual(16, Ultimate(WallCombinations.Generate(Wall(water: new WallWater(1000)))));
+        // Without a heel the twin would be the same row: none.
+        Assert.AreEqual(0, Twins(WallCombinations.Generate(Wall(toe: 2.7, heel: 0))));
+        // Permanent G2: 0/1.5, one factor on thrust and heel (single source): twins only for the variable q.
         var g2 = WallCombinations.Generate(Wall(actions: new[] { Surcharge(10), Surcharge(5, "g", WallActionCategory.G2) }));
         Assert.IsTrue(g2.Where(r => r.State == WallLimitState.Ultimate).Select(r => r.Coefficients["g"]).Distinct().OrderBy(v => v).SequenceEqual(new[] { 0, 1.5 }));
+        Assert.IsTrue(g2.Where(r => !r.VariableSurchargeOnHeel).All(r => r.Coefficients["q"] > 0));
+        Assert.AreEqual(0, Twins(WallCombinations.Generate(Wall(actions: new[] { Surcharge(5, "g", WallActionCategory.G2) }))));
         var grouped = WallCombinations.Generate(Wall(actions: new[] { Surcharge(10, "a", group: "G"), Surcharge(5, "b", group: "G") }));
-        Assert.AreEqual(8, grouped.Count(r => r.State == WallLimitState.Ultimate));
+        Assert.AreEqual(8, Ultimate(grouped));
         // Accidental: separate, ψ2 of the variables, γR = 1.
         var impact = new WallAction("u", "Urto", WallActionType.Impact, WallActionCategory.A, 40, 2000);
         var acc = WallCombinations.Generate(Wall(actions: new[] { Surcharge(10), impact }));
@@ -243,6 +259,50 @@ public class WallEdgeCaseTests
         // More than 12 factors: refused.
         var many = Enumerable.Range(0, 11).Select(i => Surcharge(1, "q" + i)).ToArray();
         Throws(() => WallCombinations.Generate(Wall(actions: many)), "too many");
+    }
+
+    /// <summary>
+    /// MUR-1: the variable surcharge on the heel is favourable for sliding, overturning and bearing; the twin row without it governs. Wall of the
+    /// ANTHEA defaults (s 0.40/0.25, t 0.45, toe 0.80) with H = 4 m, heel 2 m, q = 20 kPa (Q). Expected values from the independent
+    /// scratchpad\agent-geo\mur1_heel.py (Rankine on the plane behind the heel, A1+M1+R3, EN 1997-1 Annex D), confirmed by the verifier
+    /// (bug\muri-q-mensola\indip.py): SLU 8b (γG 1, γQ 1.5 on the thrust only) sliding 103.9075/94.2211 = 1.1028, overturning 0.5274, bearing
+    /// 1.4151; with q also on the heel (SLU 8) 0.8600, 0.3985, 0.6589.
+    /// </summary>
+    [TestMethod]
+    public void VariableSurchargeIsAbsentFromTheHeelInTheTwinRows()
+    {
+        var input = Wall(h: 4, s0: .4, s1: .25, t: .45, toe: .8, heel: 2, actions: new[] { Surcharge(20) });
+        var rows = WallCombinations.Generate(input); var r = RetainingWallAnalysis.Calculate(input, rows);
+        var parent = r.Cases.Single(c => c.Combination.Name == "SLU 8"); var twin = r.Cases.Single(c => c.Combination.Name == "SLU 8b");
+        Assert.AreEqual(1, parent.Combination.Wall); Assert.AreEqual(1, parent.Combination.Soil); Assert.AreEqual(1.5, parent.Combination.Coefficients["q"]);
+        Assert.IsTrue(parent.Combination.VariableSurchargeOnHeel); Assert.IsFalse(twin.Combination.VariableSurchargeOnHeel);
+        // Same thrust K γQ q Ht; the heel loses γQ q b = 1.5 · 20 · 2 = 60 kN/m and its moment 60 · (a + s0 + b/2) = 60 · 2.2.
+        Close(103.9075, parent.Horizontal, "H (python)", 1e-6); Close(parent.Horizontal, twin.Horizontal, "same thrust", 1e-12);
+        Close(272.5, parent.Vertical, "N with q on the heel (python)", 1e-6); Close(212.5, twin.Vertical, "N without (python)", 1e-6);
+        Close(408.025 * KNm, twin.Stabilizing, "Ms without q (python)", 1e-6); Close(parent.Overturning, twin.Overturning, "same Mr", 1e-12);
+        double Ratio(string name, WallCheckKind kind) => r.Checks.Single(c => c.Combination == name && c.Kind == kind).Ratio!.Value;
+        Close(1.102805, Ratio("SLU 8b", WallCheckKind.Sliding), "sliding (python)", 1e-6); Close(.527428, Ratio("SLU 8b", WallCheckKind.Overturning), "overturning (python)", 1e-6);
+        Close(1.415133, Ratio("SLU 8b", WallCheckKind.Bearing), "bearing (python)", 1e-6);
+        Close(.859986, Ratio("SLU 8", WallCheckKind.Sliding), "sliding with q on the heel (python)", 1e-6);
+        // The twins govern every geotechnical check of the wall.
+        foreach (var (kind, value) in new[] { (WallCheckKind.Sliding, 1.102805), (WallCheckKind.Overturning, .527428), (WallCheckKind.Bearing, 1.415133) })
+        {
+            var worst = r.Checks.Where(c => c.Kind == kind && c.Ratio.HasValue).OrderByDescending(c => c.Ratio).First();
+            Assert.AreEqual("SLU 8b", worst.Combination, kind.ToString()); Close(value, worst.Ratio!.Value, kind + " worst", 1e-6);
+        }
+        Assert.AreEqual(WallCheckStatus.NotSatisfied, r.Checks.Single(c => c.Combination == "SLU 8b" && c.Kind == WallCheckKind.Sliding).Status);
+        // The heel slab: downward load without q in the twin (heel root moment differs by the contact and by q b²/2).
+        var heelParent = parent.Sections.Last(s => s.Member == WallMember.Heel); var heelTwin = twin.Sections.Last(s => s.Member == WallMember.Heel);
+        Assert.AreNotEqual(heelParent.M, heelTwin.M);
+        // Seismic inertia kh q b ht also follows the heel load (custom rows with the flag).
+        var seismic = Wall(h: 4, s0: .4, s1: .25, t: .45, toe: .8, heel: 2, actions: new[] { Surcharge(20) }, seismic: WallSeismic.Assigned(WallSeismicMethod.MononobeOkabe, .1, 0));
+        var f = new Dictionary<string, double> { ["q"] = .3 };
+        WallCaseResult Seismic(bool onHeel) => RetainingWallAnalysis.Calculate(seismic, new[] { new WallCombination("S", WallLimitState.Seismic, 1, 1, 1, 1, 1, 1, 1, 1, .1, 0, f, variableSurchargeOnHeel: onHeel) }).Cases[0];
+        var with = Seismic(true); var without = Seismic(false);
+        Close(.3 * 20 * 2, with.Vertical - without.Vertical, "ψ2 q b", 1e-9);
+        Close(.1 * .3 * 20 * 2, with.Horizontal - without.Horizontal, "kh ψ2 q b", 1e-9);
+        Close((.3 * 20 * 2 * 2.2 * KNm), with.Stabilizing - without.Stabilizing, "ψ2 q b (a + s0 + b/2)", 1e-9);
+        Close(.1 * .3 * 20 * 2 * 4.45 * KNm, with.Overturning - without.Overturning, "kh ψ2 q b ht", 1e-9);
     }
 
     [TestMethod]

@@ -174,7 +174,7 @@ Dv; granulari, c' = 0, falda come dato del muro `WallWater`), terreno di posa `S
 | `Walls.EarthPressure` | Rankine, Coulomb/Mononobe-Okabe (componente orizzontale, attrito del paramento), Jaky (Wood), φd = atan(tan φ/γM) |
 | `Walls.WallInterface` | attrito del paramento e della base: assegnato o k·atan(tan φcv/γM), k = 1, 2/3, 0 |
 | `Walls.WallContact` | contatto senza trazione (trapezio nel terzo medio, triangolo 3x altrimenti), integrazione delle pressioni |
-| `Walls.WallCombinations` | preset NTC A1+M1+R3 (SLE, SLU con ogni fattore, valle, acqua, permanenti, variabili principali), sisma assegnato o SLV generale e ribaltamento, eccezionali |
+| `Walls.WallCombinations` | preset NTC A1+M1+R3 (SLE, SLU con ogni fattore, valle, acqua, permanenti, variabili principali, gemelle «b» senza il sovraccarico variabile sulla mensola), sisma assegnato o SLV generale e ribaltamento, eccezionali |
 | `Walls.RetainingWallAnalysis` | equilibrio per metro: spinte, sottospinta, pesi, terreno a valle e passiva limitata, scorrimento, ribaltamento, portanza EN 1997-1 Annesso D e sismica EN 1998-5 Annesso F, sollecitazioni di fusto, mensola a valle e a monte, verifiche geotecniche |
 | `Seismic.NtcSiteAmplification` | amax = Ss St ag (NTC Tab. 3.2.IV, 3.2.V), con Ss o St assegnati |
 
@@ -182,6 +182,19 @@ Fonti NTC 2018 verificate sul testo: Tab. 6.5.I (γR 1,4 portanza, 1,1 scorrimen
 stabilizzanti), §7.11.6.2.1 (kh = βm amax/g, kv = ±0,5 kh, βm 0,38 allo SLV, 1 per muri non liberi di spostarsi, +50% e ≤ 1
 per il ribaltamento), Tab. 7.11.III (1,2, 1,0, 1,0), Tab. 3.2.IV (Ss) e 3.2.V (St). La NTC indica di non contare in generale
 la passiva a valle nello scorrimento: in `WallValley` è un'opzione, spenta per difetto, con la frazione mobilitata.
+
+**Sovraccarico sulla mensola di monte (correzione MUR-1, 15/10/2026).** Il sovraccarico uniforme agisce sulla spinta (K q,
+sfavorevole) e sulla mensola di monte (q b in N, nel momento stabilizzante, nell'inerzia kh q b Ht e nel carico della soletta
+di monte), dove è favorevole per scorrimento, ribaltamento e portanza. Ogni riga SLU con un sovraccarico variabile Q attivo e
+tallone b > 0 è seguita dalla gemella con lo stesso nome e il suffisso «b» (per esempio SLU 8 e SLU 8b): spinta invariata con
+γQ = 1,5, sovraccarico variabile assente sulla mensola (γQ = 0 per la parte favorevole, NTC 2018 Tab. 2.6.I; EN 1990 Tab. A1.2).
+Le due righe entrano in tutte le verifiche (scorrimento, ribaltamento, portanza, contatto) e nelle sollecitazioni della mensola;
+la numerazione delle altre righe non cambia. Il flag è `WallCombination.VariableSurchargeOnHeel` (predefinito vero) e vale
+anche per le matrici personalizzate. I sovraccarichi permanenti G1 e G2 hanno un solo fattore su spinta e mensola (sorgente
+unica, EN 1997-1 2.4.2(9)); le righe sismiche ed eccezionali tengono ψ2 q anche sulla mensola. Esempio: H = 4 m, b = 2 m,
+q = 20 kPa sul muro predefinito di ANTHEA: SLU 8b scorrimento 103,91/94,22 = 1,103 (non soddisfatta), ribaltamento 0,527,
+portanza 1,415, contro 0,860, 0,399 e 0,659 della SLU 8 con q sulla mensola (prima della correzione il massimo dello
+scorrimento era 0,870, soddisfatta).
 
 Casi legacy congelati e riprodotti (`WallsMigrationTests`, harness ANTHEA cbed972, `Fixtures/walls-*`): 798 valori delle
 leggi, 110 generazioni di combinazioni (2380 righe), 88 muri completi (149.922 sezioni, 8332 verifiche) e 14 documenti
