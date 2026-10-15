@@ -170,6 +170,16 @@ namespace GPC.Checkers.Concrete.Results
         public StrainPlaneResult CalculateStrainPlaneResult(IConcreteSection _section, ResultBeamForces resultBeamForces, SectionSolver _sectionSolver, Standard _standard,
             bool linearAnalysis = false, double psiR = 0, double psiT = 0, Standard standardStructuralSteel = null)
         {
+            return CalculateStrainPlaneResult(_section, resultBeamForces, _sectionSolver, _standard, linearAnalysis, psiR, psiT, standardStructuralSteel, null);
+        }
+
+        /// <summary>
+        /// <see cref="CalculateStrainPlaneResult(IConcreteSection, ResultBeamForces, SectionSolver, Standard, bool, double, double, Standard)"/> with, in
+        /// the nonlinear summary, the concrete in tension of the tension stiffening of a nonlinear stress analysis (null: as before)
+        /// </summary>
+        internal StrainPlaneResult CalculateStrainPlaneResult(IConcreteSection _section, ResultBeamForces resultBeamForces, SectionSolver _sectionSolver, Standard _standard,
+            bool linearAnalysis, double psiR, double psiT, Standard standardStructuralSteel, ConcreteTensionStiffening tensionStiffening)
+        {
             double sigmaCMax = double.MinValue;
             double sigmaSMax = double.MinValue;
             double sigmaPMax = double.MinValue;
@@ -204,6 +214,8 @@ namespace GPC.Checkers.Concrete.Results
                         double sigmaCMaxbuffer;
                         if (linearAnalysis)
                             sigmaCMaxbuffer = _sectionSolver.CalculateElasticSigmaC(epsilonCMax);
+                        else if (tensionStiffening != null && epsilonCMax > 0)
+                            sigmaCMaxbuffer = tensionStiffening.GetStress(epsilonCMax);
                         else
                         {
                             var buff = _section.ConcreteMaterial.CalculateDesignStressConcrete(_standard, epsilonCMax);
@@ -228,6 +240,8 @@ namespace GPC.Checkers.Concrete.Results
                         double sigmaCMinbuffer;
                         if (linearAnalysis)
                             sigmaCMinbuffer = _sectionSolver.CalculateElasticSigmaC(epsilonCMin);
+                        else if (tensionStiffening != null && epsilonCMin > 0)
+                            sigmaCMinbuffer = tensionStiffening.GetStress(epsilonCMin);
                         else
                         {
                             var buff = _section.ConcreteMaterial.CalculateDesignStressConcrete(_standard, epsilonCMin);

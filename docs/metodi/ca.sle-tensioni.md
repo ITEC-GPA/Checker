@@ -45,6 +45,7 @@ massimo. Il metodo non ripete l'equilibrio: usa il piano di deformazione e le te
 | --- | --- | --- |
 | Stato tensionale di una sezione in c.a. del solutore per le norme della famiglia Model Code 2010 (NTC 2018, EN 1992-1-1 e annessi UNI, DIN, DS, NS, Model Code 2010, CNR-DT 204, CNR-DT 200) | supportato | calcolo con i coefficienti della classe normativa |
 | Analisi lineare (con φ per le barre e per i trefoli) o non lineare | supportato | vedi riquadro E-4 per l'analisi non lineare |
+| Analisi non lineare con il tension stiffening (opzione `StressAnalysisConcreteTension`) | supportato su richiesta | stato accettato; vedi riquadro E-6 |
 | Combinazione caratteristica | supportato | calcestruzzo, barre e trefoli |
 | Combinazione quasi permanente | supportato | solo calcestruzzo |
 | Combinazione frequente | nessun limite | rapporti assenti (`null`) |
@@ -120,7 +121,16 @@ L'equilibrio con le azioni del solutore conta le barre al netto del calcestruzzo
 calcestruzzo compresso il contributo è (σs − σc) As, cioè (n − 1) As nella sezione omogeneizzata.
 
 Analisi non lineare: le leggi costitutive sono quelle di progetto del solutore, cioè la legge del calcestruzzo
-moltiplicata per αcc/γc in compressione e la legge di progetto dell'acciaio (vedi riquadro E-4).
+moltiplicata per αcc/γc in compressione e la legge di progetto dell'acciaio (vedi riquadro E-4). In trazione il
+calcestruzzo è nullo, oppure segue il diagramma del materiale con il cls teso, oppure, con l'opzione
+`StressAnalysisConcreteTension = TensionStiffening` (riquadro E-6), la legge di Model `ConcreteTensionStiffening`
+(Collins e Mitchell 1991; valori medi, senza coefficienti parziali):
+
+```math
+\sigma_c(\varepsilon) = E_{cm}\, \varepsilon \quad (0 < \varepsilon \le \varepsilon_{cr} = f_{ctm}/E_{cm}), \qquad \sigma_c(\varepsilon) = \frac{f_{ctm}}{1 + \sqrt{500\, \varepsilon}} \quad (\varepsilon > \varepsilon_{cr}) \qquad \text{(E.1b)}
+```
+
+L'opzione non cambia l'analisi lineare, il dominio di rottura né le resistenze.
 
 ### 6.2 Limiti
 
@@ -207,6 +217,20 @@ rapporto massimo.
 > - Programma: la classe DIN eredita k5 = 0,75 della classe base.
 > - Effetto: se confermato, a sfavore di sicurezza per i trefoli con DIN (+15% sul limite).
 > - Stato: da riscontrare (voce R6 del registro delle differenze).
+
+> **Scostamento dichiarato — E-6 Tension stiffening opzionale nell'analisi non lineare (16/10/2026)**
+>
+> - Norma: le tensioni di esercizio da confrontare con i limiti di 7.2 si calcolano sulla sezione fessurata quando la
+>   resistenza a trazione è superata (EN 1992-1-1 7.1(2)); la Circolare 2019 C4.1.2.2.5 indica il calcestruzzo teso
+>   trascurato.
+> - Programma: con `SectionOptions.StressAnalysisConcreteTension = TensionStiffening` l'analisi non lineare usa in
+>   trazione la tensione media del calcestruzzo fessurato di Collins e Mitchell (1991), σ = fctm/(1 + √(500 ε)) oltre
+>   εcr = fctm/Ecm, su tutta la zona tesa (E.1b); le tensioni dei vertici e il riepilogo del risultato seguono la stessa
+>   legge. Il metodo accetta lo stato senza segnalarlo.
+> - Effetto: a sfavore di sicurezza per l'acciaio e, in misura minore, per il calcestruzzo compresso. Sezione 300 × 500
+>   C25/30 4Ø16, NTC, N = 0, M = 45 kNm: σs = 37,4 MPa invece di 269,2 MPa (−86%), σc = −3,27 MPa invece di −5,33 MPa.
+> - Stato: opzione su richiesta dell'utente per la convergenza delle analisi non lineari; non adatta alle verifiche
+>   dei limiti tensionali senza una decisione esplicita.
 
 ## 7. Coefficienti e valori predefiniti
 
@@ -327,3 +351,5 @@ Esempio del riquadro E-4, stessi dati con NTC e combinazione caratteristica:
 - DS/EN 1992-1-1 DK NA:2024, §7.2.
 - NS-EN 1992-1-1, *Nasjonalt tillegg*, §7.2.
 - fib, *fib Model Code for Concrete Structures 2010*, Ernst & Sohn, 2013, §7.6.
+- M. P. Collins, D. Mitchell, *Prestressed Concrete Structures*, Prentice Hall, Englewood Cliffs 1991: tensione media
+  del calcestruzzo teso fessurato (E.1b, riquadro E-6).

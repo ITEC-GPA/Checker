@@ -356,6 +356,10 @@ namespace GPC.Checkers.Concrete.Response
         /// its stress analyses. Axes: the coordinate system of the forces passed to the checker; steel yield strain fyd/Es. The reference strain of
         /// every point, the limit point included, is the strain at the origin of the force reference axes of the checker, the reference point of the
         /// integration of the solver.
+        /// The concrete in tension of the responses follows <see cref="SectionChecker.SectionOptions.StressAnalysisConcreteTension"/> of the checker
+        /// (opt-in tension stiffening of Model, 16/10/2026: Ecm up to fctm, then the descending branch of Collins and Mitchell 1991, which keeps the
+        /// stress analyses converging past the cracking); the limit point comes from the failure domain, which never uses it, so that MRd and the
+        /// ultimate curvature are those without the option. With the option the Status says so.
         /// </summary>
         public static MomentCurvatureResult Calculate(MomentCurvatureRequest p, SectionCheckerModelCode2010 checker, ReinforcedConcreteSection section,
             CoordinateSystem axes, double steelYieldStrain, CancellationToken token = default(CancellationToken))
@@ -383,7 +387,10 @@ namespace GPC.Checkers.Concrete.Response
                     throw new ArgumentException("Stress analysis not converged.");
                 return MomentCurvatureStrains.From(stress.StrainPlane, section, origin);
             }
-            return Calculate(p, Limit, Response, steelYieldStrain, token);
+            var result = Calculate(p, Limit, Response, steelYieldStrain, token);
+            if (checker.SectionCheckerOptions.StressAnalysisConcreteTension == GPC.Model.Materials.ConcreteMaterial.TensionResponseDiagrams.TensionStiffening)
+                result.Status += " Concrete in tension of the responses: tension stiffening (Collins and Mitchell 1991, mean Ecm and fctm); the limit point is the one of the failure domain, which does not use it.";
+            return result;
         }
     }
 }

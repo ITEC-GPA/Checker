@@ -94,10 +94,16 @@ namespace GPC.Checkers.Concrete.Results
 
         #region StrainPlaneResult
 
+        /// <summary>
+        /// The extreme stresses and strains of the plane. For a nonlinear stress analysis with the tension stiffening of
+        /// <see cref="Checkers.SectionChecker.SectionOptions.StressAnalysisConcreteTension"/>, the concrete in tension of the nonlinear summary
+        /// (<paramref name="linearAnalysis"/> false) follows the same law as the analysis
+        /// </summary>
         public StrainPlaneResult CalculateStrainPlaneResult(bool linearAnalysis = false, double psiR = 0, double psiT = 0)
         {
             StrainPlaneResult strainPlaneResult = new StrainPlaneResult(_section, _force, _strainPlane, _sectionSolver, _standard, _id, _standardStructuralSteel);
-            return strainPlaneResult.CalculateStrainPlaneResult(linearAnalysis, psiR, psiT);
+            return strainPlaneResult.CalculateStrainPlaneResult(linearAnalysis, psiR, psiT,
+                !_linearElasticAnalysis && !linearAnalysis ? _sectionSolver.GetStressAnalysisTensionStiffening() : null);
         }
 
         #endregion
@@ -355,9 +361,13 @@ namespace GPC.Checkers.Concrete.Results
 
         #region Concrete
 
+        /// <summary>
+        /// The concrete stress at a point with the nonlinear law of the solver (in tension, the tension stiffening of a nonlinear stress analysis with
+        /// <see cref="Checkers.SectionChecker.SectionOptions.StressAnalysisConcreteTension"/>, the law of its equilibrium)
+        /// </summary>
         public virtual double GetConcreteTension(Point2d point)
         {
-            return _sectionSolver.CalculateSigmaC(StrainPlane.GetStrain(point));
+            return ConcreteStress(StrainPlane.GetStrain(point));
         }
 
         public virtual double GetConcreteTension(double psi, Point2d point)
@@ -365,9 +375,16 @@ namespace GPC.Checkers.Concrete.Results
             return _sectionSolver.CalculateElasticSigmaC(StrainPlane.GetStrain(point));
         }
 
+        /// <summary>The concrete stresses at the vertices of the outline with the nonlinear law of the solver (see <see cref="GetConcreteTension(Point2d)"/>)</summary>
         public virtual (Point2d point, double tension)[] GetConcreteVerticesTension()
         {
-            return _section.Shape.GetPoints2d().Select(i => (i, _sectionSolver.CalculateSigmaC(StrainPlane.GetStrain(i)))).ToArray();
+            return _section.Shape.GetPoints2d().Select(i => (i, ConcreteStress(StrainPlane.GetStrain(i)))).ToArray();
+        }
+
+        /// <summary>The nonlinear concrete stress: the law of the nonlinear stress analyses for their results, the one of the solver otherwise</summary>
+        private double ConcreteStress(double strain)
+        {
+            return _linearElasticAnalysis ? _sectionSolver.CalculateSigmaC(strain) : _sectionSolver.CalculateStressAnalysisSigmaC(strain);
         }
 
         public virtual (Point2d point, double tension)[] GetConcreteVerticesTension(double psi)
