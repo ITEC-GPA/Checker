@@ -499,7 +499,8 @@ namespace GPC.Checkers.Concrete.Results
                     points[i] = _sectionSolver.CalculateDomainPoint(force, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
             });
 
-            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantMxMy);
+            // The axis of the 2d moment is the direction of the moments of the meridian (bug SLU-1 of 15/10/2026).
+            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantMxMy, Math.Atan2(forces.My, forces.Mx));
         }
 
         protected virtual FailureDomain2d CalculateElasticDomainMomentsRatio(ForceTuple forces, int subdivision = 10)
@@ -520,7 +521,8 @@ namespace GPC.Checkers.Concrete.Results
                     points[i] = _sectionSolver.CalculateDomainPoint(force, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
             });
 
-            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantMxMy);
+            // The axis of the 2d moment is the direction of the moments of the meridian (bug SLU-1 of 15/10/2026).
+            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantMxMy, Math.Atan2(forces.My, forces.Mx));
         }
 
         protected ForceTuple[] CalculateRadialForces(ForceTuple forces, int subdivision = 10)

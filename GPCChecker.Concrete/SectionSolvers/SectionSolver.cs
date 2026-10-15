@@ -535,7 +535,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             var strainPlanes = CalculateDesignFailureStrainPlanes(2, zoneDiscretization, FailureDomainTypes.Elastic, angle);
 
             return new FailureDomainResult2d(ConcreteSection,
-                ConvertFailureDomain3dTo2d(CalculateFailureDomain(strainPlanes, _sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Elastic).RebuildFailureDomain()),
+                ConvertFailureDomain3dTo2d(CalculateFailureDomain(strainPlanes, _sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Elastic).RebuildFailureDomain(), angle),
                 null, this, _standard, _sectionOption, Id, _standardStructuralSteel);
         }
 
@@ -595,7 +595,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             var strainPlanes = CalculateDesignFailureStrainPlanes(2, zoneDiscretization, FailureDomainTypes.Plastic, angle);
 
             return new FailureDomainResult2d(ConcreteSection,
-                ConvertFailureDomain3dTo2d(CalculateFailureDomain(strainPlanes, _sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Plastic).RebuildFailureDomain()), null, this, _standard,
+                ConvertFailureDomain3dTo2d(CalculateFailureDomain(strainPlanes, _sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Plastic).RebuildFailureDomain(), angle), null, this, _standard,
                 _sectionOption, Id, _standardStructuralSteel);
         }
 
@@ -2286,6 +2286,26 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             domainPoints.AddRange(domainPointNevative);
 
             return new FailureDomain2d(domainPoints.ToArray(), FailureDomainResult2d.DomainTypes.ConstantMxMy);
+        }
+
+        /// <summary>
+        /// The N–M domain of the two meridians of the neutral axis at <paramref name="angle"/> and <paramref name="angle"/> + π, with the axis of
+        /// the 2d moment (<see cref="FailureDomain2d.MomentAxis"/>) of the angle: the strain planes at the angle θ (section axes) compress the side
+        /// (-sin θ, cos θ), so their moment points along ±(cos θ, sin θ) of the section axes (exactly for a section symmetric about that line),
+        /// here expressed in the force reference axes of the points. With the axis taken from the points (see
+        /// <see cref="ConvertFailureDomain3dTo2d(FailureDomain)"/>) a transverse moment of a section not symmetric about the plane could turn the
+        /// axis of a meridian of My to the other side of the My axis (bug SLU-1 of 15/10/2026)
+        /// </summary>
+        /// <param name="failureDomain">The domain of the two meridians</param>
+        /// <param name="angle">The angle of the neutral axis of the first meridian (radians, section axes)</param>
+        /// <returns>The 2d domain</returns>
+        protected virtual FailureDomain2d ConvertFailureDomain3dTo2d(FailureDomain failureDomain, double angle)
+        {
+            FailureDomain2d domain = ConvertFailureDomain3dTo2d(failureDomain);
+            CoordinateSystem axes = _sectionOption.ForceReferenceCoordinateSystem;
+            Vector3d direction = new Vector3d(Math.Cos(angle), Math.Sin(angle), 0);
+            double momentDirection = Math.Atan2(direction * axes.V2, direction * axes.V1);
+            return new FailureDomain2d(domain.DomainPoints, FailureDomainResult2d.DomainTypes.ConstantMxMy, momentDirection);
         }
 
         protected virtual ForceTuple CalculateCompressionReduction(ForceTuple force, double limit)
