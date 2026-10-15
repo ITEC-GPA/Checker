@@ -368,6 +368,17 @@ namespace GPC.Checker.SectionSolvers
                 } while (!exit);
             }
 
+            // At constant eccentricity the search follows the whole line of the demand through the origin and can stop on its other side, which
+            // the test on the distance from the line accepts: with the elastic domain a pure tension gave the pole of compression (300 × 500 C25/30
+            // 4Ø16: N = -2422.6 kN for N = +100 kN; found with bug SLU-1 of 15/10/2026). Such a point is not returned: the fallbacks of the solver
+            // search it again.
+            if (failureAnalysisType == SectionSolver.FailureAnalysisTypes.ConstantEccentricity
+                && new Vector3d(forces.Mx / SectionSolver.FROM_KNM_TO_NM, forces.My / SectionSolver.FROM_KNM_TO_NM, forces.N / SectionSolver.FROM_KN_TO_N).AngleTo(vectorEd) > Math.PI / 2)
+            {
+                _solver.AddLog("Iterative strategy: point on the side of the line of the demand opposite to it");
+                return null;
+            }
+
             return new FailureDomain.FailureDomainPoint(forces, failureIndex, strainPlane, eta);
         }
 
