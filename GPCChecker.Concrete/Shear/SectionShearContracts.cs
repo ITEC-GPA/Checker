@@ -44,7 +44,13 @@ namespace GPC.Checkers.Concrete.Shear
         public double LeverFactor { get; }
         /// <summary>Maximum aggregate size dg, mm (Model Code 2010 and NS).</summary>
         public double Aggregate { get; }
-        /// <summary>Axial-force eccentricity Δe of Model Code 2010, mm.</summary>
+        /// <summary>
+        /// Axial-force eccentricity Δe of Model Code 2010, mm: distance of the line of action of N (the point to which N and M are referred) from
+        /// the mid-depth of z, positive towards the chord in tension under the bending moment, negative towards the compressed chord. It enters
+        /// εx with the sign "+" of N (1/2 + Δe/z): by the statics of the two chords, the tension chord takes M/z + N (1/2 + Δe/z). A compression
+        /// N whose line of action is nearer to the compressed chord (for example the centroid of a T section with the flange in compression)
+        /// therefore has a negative Δe (sign declared with bug TAG-1 of 15/10/2026; the formula is unchanged).
+        /// </summary>
         public double AxialEccentricity { get; }
         /// <summary>Characteristic ultimate residual tensile strength fFtuk of fibre-reinforced concrete, MPa (CNR-DT 204); 0 for plain concrete.</summary>
         public double ResidualTensileStrength { get; }
