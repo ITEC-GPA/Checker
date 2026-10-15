@@ -90,8 +90,11 @@ public class PileExamplesTests
         Assert.AreEqual(1, r.GoverningSurvey); Assert.AreEqual("Diagramma stratificato · terreno multistrato", r.ModelName); Assert.IsTrue(r.Experimental);
         Close(Math.Min(r.MeanCapacity / 1.65, r.Capacity / 1.55) / 1.3 * eta.Eta, r.DesignResistance, "Rd", 1e-12);
         foreach (var s in r.Surveys) Assert.IsTrue(s.DistributedClosure && s.Diagram.All(p => Math.Abs(p.Moment) <= 1500e6 * (1 + 1e-5)));
-        Close(1075.5e3, r.Surveys[0].Capacity, "H 1075.5 kN", 1e-4); Close(1091.6e3, r.Surveys[1].Capacity, "H 1091.6 kN", 1e-4); Close(226.0e3, r.DesignResistance, "design 226 kN", 1e-4);
-        Assert.IsFalse(r.Satisfied, "HEd = 300 kN above the design resistance: the close spacing of the group governs (η = 0.447)");
+        // η of the sheet with the trailing factor in front and the leading one behind (PO-2): 0.445327 (before 0.447370), scratchpad\agent-geo\po2_reese.py;
+        // Rd = min(1083.55/1.65; 1075.5/1.55)/1.3 · η = 505.152 · 0.445327 = 224.96 kN (before 226.0 kN).
+        Close(.445327, eta.Eta, "η (po2_reese.py)", 1e-5);
+        Close(1075.5e3, r.Surveys[0].Capacity, "H 1075.5 kN", 1e-4); Close(1091.6e3, r.Surveys[1].Capacity, "H 1091.6 kN", 1e-4); Close(224.96e3, r.DesignResistance, "design 224.96 kN", 1e-4);
+        Assert.IsFalse(r.Satisfied, "HEd = 300 kN above the design resistance: the close spacing of the group governs (η = 0.445)");
         TestContext.WriteLine($"Example 4: H {r.Surveys[0].Capacity / 1e3:F1} / {r.Surveys[1].Capacity / 1e3:F1} kN ({r.Mechanism}), η {eta.Eta:F3}, Rd {r.DesignResistance / 1e3:F1} kN, HEd/Rd {r.Utilization:F3}");
     }
 

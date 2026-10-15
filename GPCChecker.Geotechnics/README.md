@@ -139,6 +139,14 @@ ridotto fuori dal tratto visibile delle curve usa il bordo, segnalato. `NqResult
 
 L'estensione stratificata con reazioni distribuite (G. Pacini) è un modello sperimentale.
 
+**Efficienza di Reese e Van Impe del foglio (correzione PO-2, 15/10/2026).** Gli interassi sono riferiti al verso di H. Il
+palo con un vicino davanti (anteriore) è in ombra, cioè arretrato: η = min(1; 0,48 (s/D)^0,38); il palo con un vicino dietro
+(posteriore) è avanzato: η = min(1; 0,70 (s/D)^0,26); ai lati min(1; 0,64 (s/D)^0,34); le diagonali usano la regola ellittica
+con il fattore del proprio lato. È la regola di Reese e Van Impe e di Caltrans §10.7.2.4, la stessa di `LateralPileGroup`
+(palo avanzato = più avanti nel verso di H). Il foglio SMath originale assegnava 0,70 all'interasse anteriore e 0,48 al
+posteriore: con interassi diversi il palo arretrato riceveva un'efficienza troppo alta (due pali a 3D, D = 1 m: 0,9314 invece
+di 0,7287, Rd +27,8%). Con interasse anteriore uguale al posteriore il prodotto non cambia.
+
 **Portanza verticale** (motore di `Calcolo.cs`, che in ANTHEA resta solo adattatore).
 - Fusto: τ = c' + K μ σ'v,media in condizioni drenate; α(cu) cu sotto falda in condizioni non drenate.
 - Base: A σ'v Nq; nei coesivi sotto falda in condizioni non drenate A (Nc cu + σv).

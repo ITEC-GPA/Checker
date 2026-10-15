@@ -233,6 +233,36 @@ public class PileEdgeCaseTests
         Assert.IsTrue(limit.Satisfied); Close(1, limit.Utilization, "utilisation", 1e-12);
     }
 
+    /// <summary>
+    /// PO-2: the sheet of Reese and Van Impe gives the trailing factor 0.48 (s/D)^0.38 to the neighbour in front (in the direction of H) and the
+    /// leading factor 0.70 (s/D)^0.26 to the one behind, as <see cref="LateralPileGroup"/>. Two piles in line with H, D = 1 m, spacing 3 m (the
+    /// other neighbours at 1000 m): trailing pile 0.48·3^0.38 = 0.728698, leading pile 0.70·3^0.26 = 0.931429; with the elliptical diagonals of
+    /// the sheet η = 0.728694 and 0.931427 (independent scratchpad\agent-geo\po2_reese.py; verifier bug\verA-rvi-efficienza\rvi.py).
+    /// </summary>
+    [TestMethod]
+    public void ReeseVanImpeSheetAgreesWithThePileGroup()
+    {
+        var trailing = LateralGroupEfficiency.ReeseVanImpeEfficiency(1000, 3 * M, 1000 * M, 1000 * M, 1000 * M);
+        var leading = LateralGroupEfficiency.ReeseVanImpeEfficiency(1000, 1000 * M, 3 * M, 1000 * M, 1000 * M);
+        Close(.48 * Math.Pow(3, .38), trailing.Front, "neighbour in front: trailing", 1e-15); Assert.AreEqual(1, trailing.Back);
+        Close(.70 * Math.Pow(3, .26), leading.Back, "neighbour behind: leading", 1e-15); Assert.AreEqual(1, leading.Front);
+        Close(.728694, trailing.Eta, "trailing pile (po2_reese.py)", 1e-6); Close(.931427, leading.Eta, "leading pile (po2_reese.py)", 1e-6);
+        // The pile group of the library: two piles along +X (direction of H), row 1 the one ahead.
+        var group = LateralPileGroup.Calculate(new LateralGroupInput { Piles = new[] { new GroupPile { Id = "R", X = 0, Y = 0 }, new GroupPile { Id = "F", X = 3000, Y = 0 } }, Diameter = 1000 },
+            LateralGroupMethod.ReeseVanImpe);
+        double rear = group.Piles.Single(p => p.Id == "R").Beta, front = group.Piles.Single(p => p.Id == "F").Beta;
+        Close(.728698, rear, "group: pile behind (trailing)", 1e-6); Close(.931429, front, "group: pile ahead (leading)", 1e-6);
+        Close(rear, trailing.Front, "sheet = group, trailing", 1e-12); Close(front, leading.Back, "sheet = group, leading", 1e-12);
+        Close(rear, trailing.Eta, "η of the sheet with far neighbours", 1e-5); Close(front, leading.Eta, "η of the sheet with far neighbours", 1e-5);
+        // Middle pile of three in line, 3D ahead and 5D behind: 0.728694 (before 0.824132, +13%); equal spacings give the same product both ways.
+        Close(.728694, LateralGroupEfficiency.ReeseVanImpeEfficiency(1000, 3 * M, 5 * M, 1000 * M, 1000 * M).Eta, "middle pile (po2_reese.py)", 1e-6);
+        // Diagonals: the front ones with the trailing factor, the back ones with the leading one.
+        var grid = LateralGroupEfficiency.ReeseVanImpeEfficiency(1000, 3 * M, 3 * M, 3 * M, 3 * M);
+        double angle = Math.PI / 4, side = .64 * Math.Pow(3, .34);
+        Close(Math.Sqrt(Math.Pow(grid.Front * Math.Cos(angle), 2) + Math.Pow(side * Math.Sin(angle), 2)), grid.FrontLeft, "front diagonal", 1e-14);
+        Close(Math.Sqrt(Math.Pow(grid.Back * Math.Cos(angle), 2) + Math.Pow(side * Math.Sin(angle), 2)), grid.BackRight, "back diagonal", 1e-14);
+    }
+
     [TestMethod]
     public void LateralInputsAreChecked()
     {
