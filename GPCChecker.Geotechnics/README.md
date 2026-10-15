@@ -152,6 +152,16 @@ di 0,7287, Rd +27,8%). Con interasse anteriore uguale al posteriore il prodotto 
 - Base: A σ'v Nq; nei coesivi sotto falda in condizioni non drenate A (Nc cu + σv).
 - Micropali: fusto di Bustamante-Doix lungo l'asse, quota di punta 0-15%.
 - Curve di progetto: min(media/ξ3; minimo/ξ4) con γb, γs, γst ed ηg.
+- Azioni per condizione e verso (correzione PV-1, 15/10/2026; `AxialCapacityResult.Actions`): compressione NEd + γG,sfav W,
+  trazione max(0; NEd,t − γG,fav W). Con la falda, W′ = W − γw A max(0, z − zf):
+  - trazione, drenata e non drenata: sempre W′ (l'acqua spinge la base verso l'alto), qualunque sia l'opzione sottospinta;
+  - compressione non drenata con base lorda A (Nc cu + σv), cioè punta coesiva sotto falda in almeno una verticale: sempre W
+    pieno, perché σv contiene già la pressione dell'acqua alla base (togliere U la conterebbe due volte);
+  - compressione drenata (e non drenata senza base lorda): W′ con l'opzione sottospinta, W altrimenti (a favore di sicurezza).
+  `CompressionActions` e `TensionActions` sono le azioni della condizione drenata. Il peso del dettaglio di ogni quota è quello
+  della compressione drenata. Esempi: palo trivellato D = 1 m, L = 20 m in sabbia con falda a 2 m, T = 1200 kN, opzione spenta:
+  Ed,t = 1200 − (392,70 − 138,69) = 946,0 kN > Rd,t = 876,8 kN (prima 807,3 kN); in argilla cu = 80 kPa con falda al piano
+  campagna e opzione attiva, N = 900 kN: Ed,c non drenata = 900 + 1,3 · 392,70 = 1410,5 kN > 1283,2 kN (prima 1210,2 kN).
 - K e μ per tipo di palo e α(cu): Viggiani, Fondazioni, Tab. 13.2 e 13.3, verificate sulla scansione. Unica differenza:
   per i pali battuti il libro stampa α = 1 − 0,011 (cu − 25), ANTHEA 0,0111 (continuo a 70 kPa, al più 0,9% più basso, a
   favore di sicurezza), mantenuto.

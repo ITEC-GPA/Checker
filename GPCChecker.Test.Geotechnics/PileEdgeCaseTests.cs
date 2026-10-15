@@ -314,6 +314,44 @@ public class PileEdgeCaseTests
         Assert.IsTrue(r.FullCoverage); Assert.AreEqual(10 * M, r.MaximumDepth);
     }
 
+    /// <summary>
+    /// PV-1: the actions follow the condition and the direction. Bored pile D = 1 m, L = 20 m, γ 25, NTC with one vertical (ξ 1.70). Expected
+    /// values from the independent scratchpad\agent-geo\pv1_buoyancy.py, equal to the verifier's bug\pali-sottospinta\indep.py:
+    /// (a) dense sand φ' 32°, γ 19/20, water at 2 m, T = 1200 kN, buoyancy option off: Ed,t = 1200 − (392.699 − 138.686) = 945.99 kN > Rd,t =
+    /// 876.79 kN in both conditions (before 807.30 kN, satisfied); (b) clay cu = 80 kPa, γsat 20, water at the ground, N = 900 kN, buoyancy on:
+    /// undrained Ed,c = 900 + 1.3 · 392.699 = 1410.51 kN > Rd,c,u = 1283.18 kN, the gross base already holds A u = 154.10 kN (before 1210.19 kN);
+    /// drained Ed,c keeps the option: 900 + 1.3 · 238.60 = 1210.19 kN.
+    /// </summary>
+    [TestMethod]
+    public void AxialActionsFollowTheConditionAndTheDirection()
+    {
+        double At(IReadOnlyList<(double Depth, double Value)> list) => list.Single(x => x.Depth == 20 * M).Value;
+        var sand = new AxialPileSurvey(Profile(2, (Sand(32, 19, 20), 30)), new[] { new AxialPileLayer(SoilBehaviour.Granular, SoilDensity.Dense) });
+        var a = Axial(new AxialPile(PileInstallation.Bored, 1000, 20 * M, tensionAction: 1200e3), sand);
+        foreach (var condition in new[] { AxialCondition.Drained, AxialCondition.Undrained })
+        {
+            Close(945.9865e3, At(a.Actions[(condition, false)]), "Ed,t with W' (pv1_buoyancy.py) " + condition, 1e-7);
+            Close(876.7941e3, At(a.Curves[(condition, false)].Design), "Rd,t (pv1_buoyancy.py) " + condition, 1e-7);
+            Assert.AreEqual(0, a.Actions[(condition, true)].Count, "no compression action");
+        }
+        Assert.AreSame(a.Actions[(AxialCondition.Drained, false)], a.TensionActions);
+        Close(392.6991e3, a.Depths.Single(x => x.Depth == 20 * M).Weight, "drained compression weight: full W without the option", 1e-7);
+        // Above the water table the tension uses the full weight.
+        double area = Math.PI * 1000 * 1000 / 4;
+        Close(1200e3 - 25 * KN3 * area * 2 * M, a.TensionActions.Single(x => x.Depth == 2 * M).Value, "W above the water table", 1e-12);
+        var clay = new AxialPileSurvey(Profile(0, (Clay(80, gamma: 20, sat: 20), 30)), new[] { new AxialPileLayer(SoilBehaviour.Cohesive, SoilDensity.Dense) });
+        var b = Axial(new AxialPile(PileInstallation.Bored, 1000, 20 * M, buoyancy: true, compressionAction: 900e3), clay);
+        Close(1410.5088e3, At(b.Actions[(AxialCondition.Undrained, true)]), "undrained Ed,c with W (pv1_buoyancy.py)", 1e-7);
+        Close(1283.1815e3, At(b.Curves[(AxialCondition.Undrained, true)].Design), "Rd,c,u (pv1_buoyancy.py)", 1e-7);
+        Close(1210.1852e3, At(b.Actions[(AxialCondition.Drained, true)]), "drained Ed,c with W' (option)", 1e-7);
+        Assert.AreSame(b.Actions[(AxialCondition.Drained, true)], b.CompressionActions);
+        // Without the water table the two conditions and the two weights coincide.
+        var dry = Axial(new AxialPile(PileInstallation.Bored, 1000, 20 * M, buoyancy: true, compressionAction: 900e3, tensionAction: 100e3), new AxialPileSurvey(Profile(null, (Sand(32), 30)),
+            new[] { new AxialPileLayer(SoilBehaviour.Granular, SoilDensity.Dense) }));
+        CollectionAssert.AreEqual(dry.Actions[(AxialCondition.Drained, true)].ToArray(), dry.Actions[(AxialCondition.Undrained, true)].ToArray());
+        CollectionAssert.AreEqual(dry.Actions[(AxialCondition.Drained, false)].ToArray(), dry.Actions[(AxialCondition.Undrained, false)].ToArray());
+    }
+
     [TestMethod]
     public void AxialCoefficientsAdhesionWaterAndUndrainedBase()
     {

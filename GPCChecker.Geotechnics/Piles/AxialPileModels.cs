@@ -55,7 +55,8 @@ namespace GPC.Checkers.Geotechnics.Piles
 
     /// <summary>
     /// Pile for the axial capacity: installation, diameter and length (mm), unit weight of the pile (N/mm³; 25 kN/m³ as ANTHEA), buoyancy below the
-    /// water table, design actions in compression and tension at the head (N; null when not given) and the friction angle of the base factor Nq
+    /// water table in the drained compression (the tension always uses the buoyant weight and the undrained compression with the gross base the full
+    /// weight: <see cref="AxialCapacityResult{TSurvey}.Actions"/>), design actions in compression and tension at the head (N; null when not given) and the friction angle of the base factor Nq
     /// (the one of the layer as ANTHEA, or reduced by Kishida: see <see cref="BearingCapacityFactors.Kishida"/> for the rule of the installation).
     /// </summary>
     public sealed class AxialPile
@@ -228,7 +229,10 @@ namespace GPC.Checkers.Geotechnics.Piles
         internal AxialComponents(AxialComponentBranch mean, AxialComponentBranch minimum) { Mean = mean; Minimum = minimum; }
     }
 
-    /// <summary>Results at one depth: weight of the pile (N), resistances of every vertical and the components by condition and direction.</summary>
+    /// <summary>
+    /// Results at one depth: weight of the pile of the drained compression (N; buoyant with <see cref="AxialPile.Buoyancy"/>), resistances of every
+    /// vertical and the components by condition and direction.
+    /// </summary>
     public sealed class AxialDepthResult<TSurvey>
     {
         public double Depth { get; }
@@ -256,9 +260,17 @@ namespace GPC.Checkers.Geotechnics.Piles
     {
         public IReadOnlyDictionary<(AxialCondition Condition, bool Compression), AxialCapacityCurve> Curves { get; internal set; } = null!;
         public IReadOnlyList<AxialDepthResult<TSurvey>> Depths { get; internal set; } = null!;
-        /// <summary>NEd + γG,unfav W at every depth (N); empty without the action.</summary>
+        /// <summary>
+        /// Actions at every depth by condition and direction (N; empty lists without the action): compression NEd + γG,unfav W, tension
+        /// max(0; NEd,t − γG,fav W'). Tension, drained and undrained: W' = W − γw A max(0, z − zf) whenever there is a water table. Undrained
+        /// compression with the gross base A (Nc cu + σv) of a cohesive tip below the water table (in at least one vertical): the full W, since σv
+        /// already contains the water pressure at the base. Drained compression (and undrained without the gross base): W' with
+        /// <see cref="AxialPile.Buoyancy"/>, W otherwise. Micropiles: the drained condition only, full weight.
+        /// </summary>
+        public IReadOnlyDictionary<(AxialCondition Condition, bool Compression), IReadOnlyList<(double Depth, double Value)>> Actions { get; internal set; } = null!;
+        /// <summary>Drained compression actions, <see cref="Actions"/> of (Drained, true): NEd + γG,unfav W (W' with the buoyancy option), N.</summary>
         public IReadOnlyList<(double Depth, double Value)> CompressionActions { get; internal set; } = null!;
-        /// <summary>max(0; NEd,t − γG,fav W) at every depth (N); empty without the action.</summary>
+        /// <summary>Drained tension actions, <see cref="Actions"/> of (Drained, false): max(0; NEd,t − γG,fav W'), W' buoyant below the water table, N.</summary>
         public IReadOnlyList<(double Depth, double Value)> TensionActions { get; internal set; } = null!;
         public double MaximumDepth { get; internal set; }
         public double PileLength { get; internal set; }

@@ -11,7 +11,8 @@ namespace GPC.Checkers.Geotechnics.Piles
     /// the water table and the drained τ above it; base A σ'v Nq (Nq of <see cref="BearingCapacityFactors"/> with z/D and φ' of the layer or reduced by
     /// Kishida, <see cref="AxialPile.BaseFrictionAngle"/>; the shaft keeps the φ' of the layer) and, undrained below the water
     /// table, A (Nc cu + σv). Micropiles: Bustamante-Doix shaft along the axis and a base share of 0-15%. Design curves: mean/ξ3 and minimum/ξ4 of
-    /// the verticals with γb, γs (γst in tension) and the group efficiency; actions with the factored weight of the pile.
+    /// the verticals with γb, γs (γst in tension) and the group efficiency; actions with the factored weight of the pile by condition and direction
+    /// (tension with the buoyant weight, undrained compression with the gross base with the full weight, drained compression as chosen).
     /// </para>
     /// </summary>
     public static class AxialPileCapacity
@@ -144,15 +145,18 @@ namespace GPC.Checkers.Geotechnics.Piles
                 }
                 return new AxialSurveyResistance(segments.ToArray(), effective, phi, total, nq, nc, bd, ld, bu, lu);
             }
-            double Weight(double z)
-            {
-                double weight = pile.UnitWeight * area * z;
-                if (falda && pile.Buoyancy) weight -= gw * area * Math.Max(0, z - zf);
-                return Math.Max(weight, 0);
-            }
+            // Weight of the pile: full W = γ A z, buoyant W' = W − γw A max(0, z − zf) (never negative); W' only with a water table.
+            double FullWeight(double z) => pile.UnitWeight * area * z;
+            double BuoyantWeight(double z) => Math.Max(0, FullWeight(z) - (falda ? gw * area * Math.Max(0, z - zf) : 0));
+            // Drained compression: the choice of the user (full W is on the safe side, W' is exact).
+            double Weight(double z) => pile.Buoyancy ? BuoyantWeight(z) : FullWeight(z);
+            // Weight in the actions by condition and direction (PV-1): tension always W' (the water pushes the base up); undrained compression with
+            // the gross base A (Nc cu + σv) of a cohesive tip below the water table always W, because σv already holds the water pressure at the base.
+            double ActionWeight(double z, AxialSurveyResistance[] tips, AxialCondition condition, bool compression)
+                => !compression ? BuoyantWeight(z) : condition == AxialCondition.Undrained && falda && z > zf && tips.Any(s => s.Nc.HasValue) ? FullWeight(z) : Weight(z);
             var warnings = new List<string>();
             if (efficiency.Method == PileGroupMethod.Feld || efficiency.Method == PileGroupMethod.ConverseLabarre) warnings.Add("Scelta progettuale 2026-09-15: efficienza geometrica applicata sia a compressione sia a trazione.");
-            var result = Assemble(depths, z => strata.Select(s => Resistances(s, z)).ToArray(), Weight, new[] { AxialCondition.Drained, AxialCondition.Undrained },
+            var result = Assemble(depths, z => strata.Select(s => Resistances(s, z)).ToArray(), Weight, ActionWeight, new[] { AxialCondition.Drained, AxialCondition.Undrained },
                 (s, c) => c == AxialCondition.Drained ? (s.DrainedShaft, s.DrainedBase) : (s.UndrainedShaft, s.UndrainedBase), false, 0, pile.CompressionAction, pile.TensionAction, factors, efficiency);
             warnings.Add("Ipotesi progettuale 2026-09-15: nella verifica non drenata la porzione sopra falda è drenata; senza falda le due verifiche coincidono.");
             string rule = pile.BaseFrictionAngle == NqFrictionAngle.Layer ? " φ non ridotto."
@@ -216,7 +220,7 @@ namespace GPC.Checkers.Geotechnics.Piles
                 double lateral = CompensatedSum(segments.Select(s => s.Lateral));
                 return new MicropileSurveyResistance(segments, lateral, lateral * pct / 100);
             }
-            var result = Assemble(depths, z => strata.Select(s => Resistances(s, z)).ToArray(), z => weight.Total * z * cos, new[] { AxialCondition.Drained },
+            var result = Assemble(depths, z => strata.Select(s => Resistances(s, z)).ToArray(), z => weight.Total * z * cos, (z, s, c, compression) => weight.Total * z * cos, new[] { AxialCondition.Drained },
                 (s, c) => (s.Shaft, s.Base), true, pct, pile.CompressionAction, pile.TensionAction, factors, efficiency);
             var warnings = new List<string>();
             if (efficiency.Method == PileGroupMethod.Feld || efficiency.Method == PileGroupMethod.ConverseLabarre) warnings.Add("Scelta progettuale 2026-09-15: efficienza geometrica applicata sia a compressione sia a trazione.");
@@ -231,12 +235,13 @@ namespace GPC.Checkers.Geotechnics.Piles
         }
 
         private static AxialCapacityResult<TSurvey> Assemble<TSurvey>(SortedSet<double> depths, Func<double, TSurvey[]> resistances, Func<double, double> weightAt,
-            AxialCondition[] conditions, Func<TSurvey, AxialCondition, (double Shaft, double Base)> select, bool micro, double pct, double? compressionAction, double? tensionAction,
+            Func<double, TSurvey[], AxialCondition, bool, double> actionWeight, AxialCondition[] conditions, Func<TSurvey, AxialCondition, (double Shaft, double Base)> select, bool micro, double pct, double? compressionAction, double? tensionAction,
             PileResistanceFactors f, PileGroupEfficiency eff)
         {
             var curves = new Dictionary<(AxialCondition, bool), (List<(double, double)> Mean, List<(double, double)> Min, List<(double, double)> Design)>();
             foreach (var c in conditions) foreach (bool compression in new[] { true, false }) curves[(c, compression)] = (new List<(double, double)>(), new List<(double, double)>(), new List<(double, double)>());
-            var details = new List<AxialDepthResult<TSurvey>>(); var nc = new List<(double, double)>(); var nt = new List<(double, double)>();
+            var details = new List<AxialDepthResult<TSurvey>>(); var actions = new Dictionary<(AxialCondition, bool), List<(double, double)>>();
+            foreach (var c in conditions) foreach (bool compression in new[] { true, false }) actions[(c, compression)] = new List<(double, double)>();
             foreach (double z in depths)
             {
                 var surveys = resistances(z); double weight = weightAt(z); var components = new Dictionary<(AxialCondition, bool), AxialComponents>();
@@ -265,13 +270,17 @@ namespace GPC.Checkers.Geotechnics.Piles
                     }
                 }
                 details.Add(new AxialDepthResult<TSurvey>(z, weight, surveys, components));
-                if (compressionAction.HasValue) nc.Add((z, compressionAction.Value + f.WeightUnfavourable * weight));
-                if (tensionAction.HasValue) nt.Add((z, Math.Max(0, tensionAction.Value - f.WeightFavourable * weight)));
+                foreach (var c in conditions)
+                {
+                    if (compressionAction.HasValue) actions[(c, true)].Add((z, compressionAction.Value + f.WeightUnfavourable * actionWeight(z, surveys, c, true)));
+                    if (tensionAction.HasValue) actions[(c, false)].Add((z, Math.Max(0, tensionAction.Value - f.WeightFavourable * actionWeight(z, surveys, c, false))));
+                }
             }
             return new AxialCapacityResult<TSurvey>
             {
                 Curves = curves.ToDictionary(p => p.Key, p => new AxialCapacityCurve(p.Value.Mean, p.Value.Min, p.Value.Design)), Depths = details,
-                CompressionActions = nc, TensionActions = nt, Efficiency = eff, Factors = f
+                Actions = actions.ToDictionary(p => p.Key, p => (IReadOnlyList<(double Depth, double Value)>)p.Value),
+                CompressionActions = actions[(AxialCondition.Drained, true)], TensionActions = actions[(AxialCondition.Drained, false)], Efficiency = eff, Factors = f
             };
         }
 
