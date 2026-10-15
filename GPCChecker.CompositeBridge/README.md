@@ -119,6 +119,28 @@ K = 24/(b/Dh + h/Dv), K_D = G t b h e 2EA b²h²/L³, carico T/2), trapezio con 
 telaio indipendente e contro Yoo et al. (SSRC 2015), Hetényi per la trave infinita e
 appoggiata, flussi e verifiche calcolati a mano, H invariata.
 
+## Tensioni SLE delle armature della soletta fessurata
+
+Negli stati «SLE rara» e «SLE quasi permanente», quando la situazione contiene contributi
+«Soletta esclusa» (soletta fessurata), la tensione delle barre tese comprende il tension
+stiffening richiesto da EN 1994-2 §7.2.1(1), calcolato con EN 1994-1-1 §7.4.3(3):
+
+```text
+σs  = σs,0 + Δσs          (solo se σs,0 > 0, trazione)
+Δσs = 0,4 fctm / (αst ρs)
+ρs  = As / Act            Act = beff hc (soletta nella larghezza efficace), As = tutte le file di barre
+αst = A I / (Aa Ia)       A, I: sezione fessurata (acciaio efficace + barre con Es/Ea); Aa, Ia: acciaio efficace
+```
+
+σs,0 è la somma dei contributi di fase, che restano invariati: per queste barre `Stress`
+vale σs,0 + Δσs e `BridgeStressPoint.GetTensionStiffening()` riporta σs,0, Δσs, fctm (Model),
+ρs, αst e le aree e inerzie usate; una nota della situazione riporta gli stessi valori.
+Il limite resta 0,8 fyk. Le tensioni dell'acciaio strutturale, del CLS e lo SLU non cambiano;
+le barre compresse e le situazioni senza contributi «Soletta esclusa» non ricevono Δσs.
+La stessa regola vale negli storici (`HBridgeHistoryResults`), con A, I dalle fibre attive di
+acciaio e barre e Aa, Ia dalle fibre di acciaio; nel non lineare la tensione è riportata
+senza utilizzo, come le altre.
+
 ## Metodo mantenuto e limiti noti
 
 Questa è una migrazione del metodo cumulativo esistente. Conservati 120 tentativi,
