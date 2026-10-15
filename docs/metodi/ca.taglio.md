@@ -137,7 +137,7 @@ traccia dei valori intermedi. La norma si sceglie dal tipo esatto della classe n
 | θ | inclinazione delle bielle compresse | ° | `CotTheta` (cot θ) |
 | z | braccio delle forze interne, z = (z/d) · d | mm | `LeverFactor` · `D` |
 | dg | dimensione massima dell'aggregato | mm | `Aggregate` |
-| Δe | eccentricità della forza assiale (Model Code 2010) | mm | `AxialEccentricity` |
+| Δe | eccentricità della forza assiale (Model Code 2010): distanza della retta d'azione di N dalla metà di z, positiva verso la corda tesa a flessione | mm | `AxialEccentricity` |
 | fFtuk | resistenza residua ultima caratteristica a trazione del calcestruzzo fibrorinforzato | MPa | `ResidualTensileStrength` |
 | fctk | resistenza caratteristica a trazione (frattile 5%) della matrice | MPa | `MatrixTensileStrength` |
 | σcp | tensione media di compressione, positiva se di compressione | MPa | traccia `σcp` |
@@ -196,7 +196,14 @@ Fonti: NTC 2018 §4.1.2.3.5.1, [4.1.23]; EN 1992-1-1 6.2.2(1), (6.2.a), (6.2.b),
 \varepsilon_x = \max\left\{0;\; \frac{1}{2 E_s A_{sl}}\left[\frac{|M_{Ed}|}{z} + |V_{Ed}| + N\left(\frac{1}{2} + \frac{\Delta e}{z}\right)\right]\right\} \qquad \text{(T.6)}
 ```
 
-con N positivo di trazione (coincide con la convenzione del dato N).
+con N positivo di trazione (coincide con la convenzione del dato N). Δe è la distanza della retta d'azione di N (il
+punto a cui sono riferiti N ed M) dalla metà di z, **positiva verso la corda tesa a flessione** e negativa verso la
+corda compressa: per l'equilibrio delle due corde la corda tesa riceve M/z + N(1/2 + Δe/z), da cui il segno «+» di
+(T.6). Una compressione con la retta d'azione spostata verso la corda compressa (per esempio il baricentro di una
+sezione a T con l'ala compressa) ha quindi Δe negativo. Il verso è dichiarato con la correzione TAG-1 del 15/10/2026;
+la formula non cambia. Esempio: d = 460 mm, z = 414 mm, Asl = 1256,64 mm², C30 con γc = 1,5, dg = 20 mm,
+N = −500 kN, M = 100 kNm, V = 100 kN, senza armatura trasversale: Δe = −50 mm (risultante a 50 mm verso la corda
+compressa) dà εx = 3,023·10⁻⁴ e VRd,c = 118,61 kN; Δe = +50 mm dà εx = 6,199·10⁻⁵ e VRd,c = 157,72 kN.
 
 ```math
 k_{dg} = \max\left(0{,}75;\; \frac{32}{16 + d_g}\right), \qquad d_g = 0 \ \text{se}\ f_{ck} > 70\ \text{MPa} \qquad \text{(T.7)}

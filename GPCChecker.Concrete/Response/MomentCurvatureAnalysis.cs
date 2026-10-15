@@ -50,12 +50,31 @@ namespace GPC.Checkers.Concrete.Response
         public MomentCurvatureStrains(double chiX, double chiY, double referenceStrain, double maximumBarStrain, double minimumConcreteStrain)
         { ChiX = chiX; ChiY = chiY; ReferenceStrain = referenceStrain; MaximumBarStrain = maximumBarStrain; MinimumConcreteStrain = minimumConcreteStrain; }
 
-        /// <summary>Strains of a strain plane on the bars and on the outline vertices of the section.</summary>
+        /// <summary>
+        /// Strains of a strain plane on the bars and on the outline vertices of the section; the reference strain is the strain at the reference
+        /// point of the plane itself, which for a plane of the failure domain is the pivot vertex (use the overload with the reference point for
+        /// strains comparable between planes).
+        /// </summary>
         public static MomentCurvatureStrains From(StrainPlane plane, ReinforcedConcreteSection section)
         {
             if (plane == null) throw new ArgumentException("Response: strain plane not available (analysis not converged).");
+            return From(plane, section, plane.ReferencePoint);
+        }
+
+        /// <summary>
+        /// Strains of a strain plane on the bars and on the outline vertices of the section, with the reference strain at
+        /// <paramref name="referencePoint"/> (section axes, mm). The native curve uses the reference point of the integration of the solver
+        /// for every point, also for the limit point, whose plane comes from the failure domain with its own reference at the pivot vertex
+        /// (bug SLU-4 of 15/10/2026: the limit row reported -3.5 ‰ at the vertex instead of the strain at the reference point).
+        /// </summary>
+        public static MomentCurvatureStrains From(StrainPlane plane, ReinforcedConcreteSection section, Point2d referencePoint)
+        {
+            if (plane == null) throw new ArgumentException("Response: strain plane not available (analysis not converged).");
+            if (section == null || referencePoint == null) throw new ArgumentNullException();
             var outline = section.ConcreteShape.Fill2d.Points;
-            return new MomentCurvatureStrains(plane.ChiX, plane.ChiY, plane.StrainReferencePoint,
+            // At the reference point of the plane the stored strain itself, bit for bit (also its sign of zero).
+            bool own = plane.ReferencePoint != null && referencePoint.X == plane.ReferencePoint.X && referencePoint.Y == plane.ReferencePoint.Y;
+            return new MomentCurvatureStrains(plane.ChiX, plane.ChiY, own ? plane.StrainReferencePoint : plane.GetStrain(referencePoint),
                 section.Rebars.Select(b => Math.Abs(plane.GetStrain(b.Position))).DefaultIfEmpty(0).Max(), outline.Min(v => plane.GetStrain(v)));
         }
     }
@@ -334,7 +353,9 @@ namespace GPC.Checkers.Concrete.Response
 
         /// <summary>
         /// Curve on a native checker with nonlinear stress analysis: the limit point at constant N comes from its failure domain, the responses from
-        /// its stress analyses. Axes: the coordinate system of the forces passed to the checker; steel yield strain fyd/Es.
+        /// its stress analyses. Axes: the coordinate system of the forces passed to the checker; steel yield strain fyd/Es. The reference strain of
+        /// every point, the limit point included, is the strain at the origin of the force reference axes of the checker, the reference point of the
+        /// integration of the solver.
         /// </summary>
         public static MomentCurvatureResult Calculate(MomentCurvatureRequest p, SectionCheckerModelCode2010 checker, ReinforcedConcreteSection section,
             CoordinateSystem axes, double steelYieldStrain, CancellationToken token = default(CancellationToken))
@@ -344,19 +365,23 @@ namespace GPC.Checkers.Concrete.Response
                 throw new ArgumentException("Moment-curvature: the checker must use the nonlinear stress analysis.");
             var domain = checker.GetFailureDomainResult() ?? throw new ArgumentException("Failure domain not available.");
             domain.FailureAnalysisType = SectionSolver.FailureAnalysisTypes.ConstantN;
+            // Reference point of every ε0 of the curve: the reference point of the integration of the solver (origin of the force reference
+            // axes), where the planes of the stress analyses have their strain (bug SLU-4 of 15/10/2026: the limit point reported the strain of its
+            // plane of the domain at the pivot vertex).
+            Point2d origin = checker.SectionCheckerOptions.ForceReferenceCoordinateSystem.Origin;
             MomentCurvatureLimit Limit(double n, double cx, double sy)
             {
                 // Direction of the moment as in ANTHEA: unit components in kNm.
                 var point = domain.CalculatePoint(new ResultBeamForces(n, 0, 0, 0, cx * 1e6, sy * 1e6, axes));
                 if (point?.StrainPlane == null) return null;
-                return new MomentCurvatureLimit(point.NRd, point.MxRd, point.MyRd, MomentCurvatureStrains.From(point.StrainPlane, section));
+                return new MomentCurvatureLimit(point.NRd, point.MxRd, point.MyRd, MomentCurvatureStrains.From(point.StrainPlane, section, origin));
             }
             MomentCurvatureStrains Response(double n, double mx, double my)
             {
                 var stress = checker.GetTensionAnalysisResult(new ResultBeamForces(n, 0, 0, 0, mx, my, axes));
                 if (stress?.StrainPlane == null || section.ConcreteShape.GetPoints2d().Any(v => double.IsNaN(stress.StrainPlane.GetStrain(v)) || double.IsInfinity(stress.StrainPlane.GetStrain(v))))
                     throw new ArgumentException("Stress analysis not converged.");
-                return MomentCurvatureStrains.From(stress.StrainPlane, section);
+                return MomentCurvatureStrains.From(stress.StrainPlane, section, origin);
             }
             return Calculate(p, Limit, Response, steelYieldStrain, token);
         }

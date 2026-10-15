@@ -99,6 +99,11 @@
     <Compile Include="BridgeLinearSolverAuditTests.cs" />
     <Compile Include="FailureDomainCheckFRCTest.cs" />
     <Compile Include="FailureDomainCheckRCTest.cs" />
+    <Compile Include="FailureDomain2dNMTests.cs" />
+    <Compile Include="AssignedAxialForceOutcomeTests.cs" />
+    <Compile Include="MomentCurvatureReferenceStrainTests.cs" />
+    <Compile Include="ShearAxialEccentricityTests.cs" />
+    <Compile Include="ConstantAxialForcePlaneTests.cs" />
     <Compile Include="FailureDomainFRCTest.cs" />
     <Compile Include="FailureDomainIntesectVsDirect.cs" />
     <Compile Include="FailureDomainPSCTest.cs" />

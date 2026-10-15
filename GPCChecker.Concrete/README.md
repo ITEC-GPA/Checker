@@ -92,6 +92,54 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   la prova di arresto al massimo 540 N); per C2 la tolleranza è 1280 N e nessun punto ha scarto fra 1000 e 1280 N.
   Con lo stress block nessun punto accettato prima è rifiutato (164 confermati, 7 accettati in più).
 
+### Resistenza a N assegnato: N fuori dal campo del dominio e momento nullo
+
+`LegacySectionCalculation.SolveResistance` con i criteri a N assegnato (N costante, N e Mx, N e My) dà due esiti
+tipizzati, entrambi `Completed` (correzione SLU-2 del 15/10/2026; prima `NotConverged`, «punto resistente non
+convergente» in ANTHEA):
+
+- **N fuori dal campo** [NRd,c; NRd,t] del dominio (`SectionSolver.CalculateAxialForceRange`: punti di N minimo e
+  massimo dei due meridiani a 0 e π, piani a deformazione uniforme): nessun punto esiste a quell'N, la sezione non è
+  verificata per nessun momento. `FailureMode` = `AxialForceOutsideDomain` (`IsAxialForceOutsideDomain`), η > 1, punto
+  dichiarato a eccentricità costante della domanda (la convergenza allegata è quella del criterio a eccentricità
+  costante, senza evidenza di equilibrio su N). Se quella ricerca non dà un punto accettato oltre la domanda (per
+  esempio una sezione precompressa il cui dominio non contiene l'origine), il punto è l'estremo del campo dal lato di N
+  e η = |N / NRd,lim| (messaggio `AxialForceOutsideDomainEndMessage`).
+- **Momento di domanda nullo con N costante**, N nel campo e sezione senza deformazioni iniziali: la direzione della
+  ricerca è nulla e prima nessun punto era accettato. `FailureMode` = `ZeroMomentDemand` (`IsZeroMomentDemand`), η = 0;
+  il punto dichiarato è la resistenza all'N assegnato per un momento positivo attorno al primo asse delle forze, con
+  la sua convergenza e l'evidenza dell'equilibrio su N.
+- Entrambe le risposte riportano NRd,c e NRd,t (`AxialCompressionResistance`, `AxialTensionResistance`). Restano
+  `NotConverged`, come deciso nel registro F2-17 (opzione A), la direzione nulla e i residui fuori tolleranza di N e Mx
+  costanti e N e My costanti con N nel campo.
+- Prove: `AssignedAxialForceOutcomeTests` (300 × 500 C25/30 4Ø16, NRd,c = −2428,31 kN e NRd,t = 314,71 kN in forma
+  chiusa, η = |NEd / NRd,lim|, MRd,x(−1000 kN) = 191,93 kNm e punto a eccentricità costante del modello a fibre
+  indipendente).
+
+### Dominio 2D N–M
+
+`FailureDomain2d` di tipo N–M (`FailureDomainResult2d.DomainTypes.ConstantMxMy`; correzione SLU-1 del 15/10/2026):
+
+- il momento 2D di un punto è il modulo di (MxRd, MyRd) con il segno della proiezione sull'asse `MomentAxis` α,
+  in (−90°; 90°]: la direzione del meridiano ridotta dal lato di Mx positivo, o di My positivo se |cos α| ≤ 1e-8 (la
+  regola del segno di CheckerDomain2D di ANTHEA). Il momento 2D di una forza è in M1 (M1 = Mx cos α + My sin α);
+- il punto 3D resistente è il lato del meridiano al parametro dell'intersezione, NRd, MxRd e MyRd interpolati; prima
+  il punto 2D era ruotato in 3D con una rotazione giusta solo per un meridiano di Mx positivo (a θ = 90° N = 80 604 kN,
+  η = 0,0127 invece di 2,48);
+- il tasso di `FailureDomainForce2d.CalculateWorkingRatio` N–M è |(M1 / SCALE_M, N / SCALE_N)| / |(m / SCALE_M,
+  NRd / SCALE_N)| (prima le scale del denominatore erano scambiate);
+- il meridiano dell'asse neutro (`GetPlasticFailureDomainResult2d(θ)`) di una sezione non simmetrica rispetto al
+  piano di flessione ha un momento trasversale e non è la sezione del dominio nel piano (circa 5 % a favore di
+  sicurezza nel caso della prova, di più vicino alla compressione centrata): per la verifica N–M si usa il meridiano
+  della direzione del momento, `FailureDomainResult.CalculateDomainConstantMomentsRatio`, anche per il dominio
+  elastico (SLV), il cui meridiano aveva due punti nulli e un polo di trazione sbagliato.
+- Prove: `FailureDomain2dNMTests` (θ = 0, 30, 45, 90, 180, 270 sulle sezioni del verificatore, contro il suo modello
+  a fibre indipendente e la verifica 3D a eccentricità costante, entro l'1 %).
+- Dominio a N costante (Mx–My, `CalculateDomainConstantAxialForce` e ramo a N costante di `GetDomainPoint`): il piano
+  di deformazione di un punto interpolato pesa θ e immersione degli estremi con 1 − t e t, come le forze; prima i pesi
+  erano scambiati e il piano era quello dell'altro estremo (le forze non cambiano). Fra estremi in campi di rottura
+  diversi l'immersione resta approssimata (`SectionSolver.GetImmersione`). Prove: `ConstantAxialForcePlaneTests`.
+
 ### Taglio
 
 - Profili scelti dal tipo esatto della classe Standard: NTC 2018, Model Code 2010 livello II, EN 1992-1-1 e annessi

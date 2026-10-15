@@ -434,8 +434,10 @@ namespace GPC.Checkers.Concrete.Results
                         // FailureIndex
                         SectionSolver.FailureZones _failureIndex = (SectionSolver.FailureZones)Math.Min((int)vA.FailureIndex, (int)vB.FailureIndex);
 
-                        double weightA = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(vA.NRd, vB.NRd, 0, 1, forces.N);
-                        double weightB = 1 - weightA;
+                        // Weights of the strain planes of the ends at the parameter of N on the segment (0 at vA, as mx and my). Before
+                        // (found with bug SLU-1 of 15/10/2026) the parameter was the weight of vA: the plane was the one of the other end.
+                        double weightB = GPC.Utilities.Maths.Interpolation.GetLinearInterpolation(vA.NRd, vB.NRd, 0, 1, forces.N);
+                        double weightA = 1 - weightB;
 
                         // Theta
                         var thetaA = vA.StrainPlane.Teta;
@@ -499,7 +501,8 @@ namespace GPC.Checkers.Concrete.Results
                     points[i] = _sectionSolver.CalculateDomainPoint(force, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
             });
 
-            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantMxMy);
+            // The axis of the 2d moment is the direction of the moments of the meridian (bug SLU-1 of 15/10/2026).
+            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantMxMy, Math.Atan2(forces.My, forces.Mx));
         }
 
         protected virtual FailureDomain2d CalculateElasticDomainMomentsRatio(ForceTuple forces, int subdivision = 10)
@@ -507,9 +510,11 @@ namespace GPC.Checkers.Concrete.Results
             if (subdivision <= 2)
                 throw new Exception();
 
-            FailureDomain.FailureDomainPoint[] points = new FailureDomain.FailureDomainPoint[2 * subdivision + 2];
-
             ForceTuple[] forceTuples = CalculateRadialForces(forces, subdivision);
+
+            // One point per radial force, as the plastic domain: the array of 2 subdivision + 2 points left the last two null, and the 2d domain
+            // threw ArgumentNullException at the first force (found with bug SLU-1 of 15/10/2026).
+            FailureDomain.FailureDomainPoint[] points = new FailureDomain.FailureDomainPoint[forceTuples.Length];
 
             Parallel.For(0, forceTuples.Length, (i) =>
             {
@@ -517,10 +522,25 @@ namespace GPC.Checkers.Concrete.Results
                 if (forceTuples[i].Mx != 0 || forceTuples[i].My != 0)
                     points[i] = _sectionSolver.CalculateDomainPoint(force, SectionSolver.FailureAnalysisTypes.ConstantN);
                 else
-                    points[i] = _sectionSolver.CalculateDomainPoint(force, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
+                    points[i] = AxialPole(force);
             });
 
-            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantMxMy);
+            // The axis of the 2d moment is the direction of the moments of the meridian (bug SLU-1 of 15/10/2026).
+            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantMxMy, Math.Atan2(forces.My, forces.Mx));
+        }
+
+        /// <summary>
+        /// The pole of an N–M meridian of the elastic domain: the point at constant eccentricity of the pure axial force; when the search returns
+        /// no point or a point of the other sign of N (the search of the elastic domain returns the pole of compression for a pure tension,
+        /// found with bug SLU-1 of 15/10/2026), the point of the first meridian of the domain with the largest (tension) or smallest (compression) N
+        /// </summary>
+        private FailureDomain.FailureDomainPoint AxialPole(ResultBeamForces force)
+        {
+            var point = _sectionSolver.CalculateDomainPoint(force, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
+            if (point != null && Math.Sign(point.NRd) == Math.Sign(force.N))
+                return point;
+            var meridian = _failureDomain.DomainPoints[0];
+            return force.N > 0 ? meridian.OrderByDescending(p => p.NRd).First() : meridian.OrderBy(p => p.NRd).First();
         }
 
         protected ForceTuple[] CalculateRadialForces(ForceTuple forces, int subdivision = 10)

@@ -765,6 +765,16 @@ namespace GPC.Checkers.Concrete.Results
 
             #region Method
 
+            /// <summary>
+            /// The working ratio of the force on its point of the 2d domain: for an N–M domain (<see cref="FailureDomainResult2d.DomainTypes.ConstantMxMy"/>)
+            /// |(M1 / SCALE_M, N / SCALE_N)| / |(m / SCALE_M, NRd / SCALE_N)|, with the 2d point (NRd, m) and the 2d moment of the force in M1 (see
+            /// <see cref="FailureDomain2d.MomentAxis"/>); at constant N |(M1, M2)| / |(MxRd, MyRd)|. Before (bug SLU-1 of 15/10/2026) the N–M ratio divided
+            /// NRd by SCALE_M and m by SCALE_N
+            /// </summary>
+            /// <param name="domainType">The type of the 2d domain</param>
+            /// <param name="SCALE_M">Factor for moments units scale</param>
+            /// <param name="SCALE_N">Factor for axial force units scale</param>
+            /// <returns>The working ratio; -1 if a scale is not positive or the type is not known</returns>
             public double CalculateWorkingRatio(FailureDomainResult2d.DomainTypes domainType, double SCALE_M, double SCALE_N)
             {
                 if (SCALE_M <= 0 || SCALE_N <= 0)
@@ -775,7 +785,7 @@ namespace GPC.Checkers.Concrete.Results
                     case FailureDomainResult2d.DomainTypes.ConstantMxMy:
                         ForceTuple force2d = ConvertForceToForceTuple2d(domainType, new ForceTuple(N, M1, M2));
                         return new Vector3d(force2d.Mx / SCALE_M, force2d.N / SCALE_N, 0).Length /
-                            ((Vector3d)new Point3d(Point2d.X / SCALE_M, Point2d.Y / SCALE_N, 0)).Length;
+                            ((Vector3d)new Point3d(Point2d.Y / SCALE_M, Point2d.X / SCALE_N, 0)).Length;
 
                     case FailureDomainResult2d.DomainTypes.ConstantN:
                         return new Vector3d(M1 / SCALE_M, M2 / SCALE_M, 0).Length /

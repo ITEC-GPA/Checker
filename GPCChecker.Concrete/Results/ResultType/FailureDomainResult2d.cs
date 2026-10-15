@@ -272,7 +272,9 @@ namespace GPC.Checkers.Concrete.Results
         }
 
         /// <summary>
-        /// Convert <paramref name="force"/> to a 2d point
+        /// Convert <paramref name="force"/> to a 2d point, in the force reference axes: (M1, M2) for a domain at constant N; (N, M1) for an N–M
+        /// domain, whose 2d moment the caller passes in M1, positive along <see cref="FailureDomain2d.MomentAxis"/> (for a moment (Mx, My) of the
+        /// plane of the domain, M1 = Mx cos α + My sin α), M2 not used
         /// </summary>
         /// <param name="force">The force to convert</param>
         /// <returns></returns>

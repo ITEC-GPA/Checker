@@ -162,6 +162,8 @@ namespace GPC.Model.Checker
                     zero.EngineVersion = Version; zero.Standard = StandardContext;
                     return WithEdition(WithNumericalDiagnostics(zero, point.Diagnostics));
                 }
+                if (point.IsAxialForceOutsideDomain || point.IsZeroMomentDemand)
+                    return AssignedAxialForceOutcome(input, forces, point);
                 var convergence = point.Diagnostics.ResistanceConvergence;
                 if (convergence == null || !convergence.Accepted || convergence.Criterion != _criterion
                     || !SameForces(convergence.Demand.Forces, forces)
@@ -183,6 +185,74 @@ namespace GPC.Model.Checker
                 return WithEdition(WithNumericalDiagnostics(result, point.Diagnostics));
             }
         }
+        /// <summary>
+        /// The typed outcomes of the criteria at assigned N of GPCChecker.Concrete (bug SLU-2 of 15/10/2026), after their own contract checks:
+        /// <list type="bullet">
+        /// <item><see cref="SectionResistanceResponse.AxialForceOutsideDomainMode"/>: NEd outside [NRd,c; NRd,t], so no resistance exists at that
+        /// N and the section is not verified for any moment: NotSatisfied with the utilization of the response (above 1, at constant
+        /// eccentricity or |NEd / NRd,lim|) and the diagnostic AxialForceOutsideDomain with the range;</item>
+        /// <item><see cref="SectionResistanceResponse.ZeroMomentDemandMode"/>: constant N, no moment and NEd inside the range: Satisfied with
+        /// utilization 0 and the diagnostic ZeroMomentDemand; the declared point is the resistance at NEd for a positive M1.</item>
+        /// </list>
+        /// Before, both were NumericalResistanceConvergenceContractMismatch (and before the typed outcomes CheckerAxialEquilibriumRejected or
+        /// CheckerSearchConstraintsRejected). A response that does not respect the contract of its outcome is NumericalAssignedAxialForceContractMismatch.
+        /// </summary>
+        private CheckResult AssignedAxialForceOutcome(BeamCheckInput input, ResultBeamForces forces, SectionResistanceResponse point)
+        {
+            const string mismatch = "NumericalAssignedAxialForceContractMismatch";
+            bool assigned = _criterion == SectionSolver.FailureAnalysisTypes.ConstantN || _criterion == SectionSolver.FailureAnalysisTypes.ConstantNMx
+                || _criterion == SectionSolver.FailureAnalysisTypes.ConstantNMy;
+            double? compression = point.AxialCompressionResistance, tension = point.AxialTensionResistance;
+            var strain = point.Strain;
+            if (!assigned || !compression.HasValue || !tension.HasValue || !(compression.Value <= tension.Value) || strain == null
+                || !point.Utilization.HasValue || !point.N.HasValue || !point.M1.HasValue || !point.M2.HasValue)
+                return Failure(mismatch);
+            double ratio = point.Utilization.Value;
+            var convergence = point.Diagnostics.ResistanceConvergence;
+            bool Declares(ResistanceConvergence c) => c.Accepted && c.Capacity.Forces.N == point.N && c.Capacity.Forces.M1 == point.M1
+                && c.Capacity.Forces.M2 == point.M2 && ModelValues.Fingerprint(new object[] { c.Capacity.Forces.CoordinateSystem })
+                    == ModelValues.Fingerprint(new object[] { forces.CoordinateSystem });
+            CheckResult result; ModelDiagnostic reason;
+            if (point.IsAxialForceOutsideDomain)
+            {
+                bool declared = convergence == null || Declares(convergence) && convergence.Criterion == SectionSolver.FailureAnalysisTypes.ConstantEccentricity
+                    && SameForces(convergence.Demand.Forces, forces);
+                if (!(forces.N < compression.Value || forces.N > tension.Value) || !(ratio > 1) || double.IsInfinity(ratio)
+                    || point.Diagnostics.AxialEquilibrium != null || !declared)
+                    return Failure(mismatch);
+                result = new CheckResult { Execution = ExecutionStatus.Completed, Data = DataStatus.Ready, Outcome = EngineeringOutcome.NotSatisfied };
+                reason = new ModelDiagnostic { Code = "AxialForceOutsideDomain", Severity = DiagnosticSeverity.Warning,
+                    Message = string.Format(CultureInfo.InvariantCulture,
+                        "NEd = {0:R} N outside [NRd,c; NRd,t] = [{1:R}; {2:R}] N: no resistance at the assigned axial force, not verified for any moment; utilization {3:R} {4}.",
+                        forces.N, compression.Value, tension.Value, ratio, convergence == null ? "|NEd / NRd,lim| at the end of the range" : "at constant eccentricity") };
+            }
+            else
+            {
+                var evidence = point.Diagnostics.AxialEquilibrium;
+                bool declared = convergence != null && Declares(convergence) && convergence.Criterion == SectionSolver.FailureAnalysisTypes.ConstantN
+                    && ProbeOf(convergence.Demand.Forces, forces) && evidence != null && evidence.Accepted && evidence.Requested == forces.N;
+                if (_criterion != SectionSolver.FailureAnalysisTypes.ConstantN || forces.M1 != 0 || forces.M2 != 0 || input.Section.Rebars.Any(r => r.EpsilonP != 0)
+                    || forces.N < compression.Value || forces.N > tension.Value || ratio != 0 || !declared)
+                    return Failure(mismatch);
+                result = new CheckResult { Execution = ExecutionStatus.Completed, Data = DataStatus.Ready, Outcome = EngineeringOutcome.Satisfied };
+                reason = new ModelDiagnostic { Code = "ZeroMomentDemand", Severity = DiagnosticSeverity.Information,
+                    Message = string.Format(CultureInfo.InvariantCulture,
+                        "Zero moment demand at NEd = {0:R} N inside [NRd,c; NRd,t] = [{1:R}; {2:R}] N: utilization 0; declared point at NEd for a positive M1.",
+                        forces.N, compression.Value, tension.Value) };
+            }
+            result.Utilization = ratio; result.EngineVersion = Version; result.Standard = StandardContext;
+            result.Details = new SectionResistanceDetails("Concrete.PlasticSectionDomain", _criterion.ToString(), new BeamForceSnapshot(forces),
+                point.N.Value, point.M1.Value, point.M2.Value, ratio, point.FailureMode, strain.X, strain.Y, strain.Epsilon, strain.ChiX, strain.ChiY);
+            result.Diagnostics.Add(reason);
+            return WithEdition(WithNumericalDiagnostics(result, point.Diagnostics));
+        }
+
+        /// <summary>True if the demand of the convergence is the probe of a zero moment demand: the same N, no shear and torsion, M2 null and a
+        /// positive M1, in the same axes.</summary>
+        private static bool ProbeOf(ResultBeamForces probe, ResultBeamForces forces) =>
+            probe.N == forces.N && probe.V1 == 0 && probe.V2 == 0 && probe.T == 0 && probe.M1 > 0 && probe.M2 == 0
+                && ModelValues.Fingerprint(new object[] { probe.CoordinateSystem }) == ModelValues.Fingerprint(new object[] { forces.CoordinateSystem });
+
         private static CheckResult WithNumericalDiagnostics(CheckResult result, SolverDiagnostics diagnostics)
         {
             var evidence = diagnostics.AxialEquilibrium;
