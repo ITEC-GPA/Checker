@@ -59,7 +59,11 @@ block il punto è meno preciso. La pagina riporterà questi riquadri (prefisso P
 >   0.0.17.0 (max(1 kN; 1e-6 |N|)) rifiutava i pali di ANTHEA da D 1600 in su a N = 0.
 > - Effetto: sulle sezioni con b h fck oltre 2e7 N sono accettati punti con scarto su N fino a 0,5e-4 b h fck, anche
 >   con i legami continui; i valori dei punti non cambiano. Palo D 2000, N = 0: MRd 2537,95 kNm contro 2536,85 kNm
->   della forma chiusa (0,04 %).
+>   della forma chiusa (0,04 %). Dall'analisi dei bug del 15/10/2026 (PO-3) la stessa tolleranza vale anche per la
+>   resistenza a N assegnato di `PileReinforcement` (verifica N–M del palo elastico e ricerca delle armature dei
+>   tratti), che usava ancora max(1 kN; 1e-6 |N|): con 24φ26 in C35/45 i pali da D 1,6 e 2,0 m restavano senza MRd a
+>   ogni quota (scarti di 1,1-2,0 kN). Ora, per esempio, MRd = 4367 kNm a D 1,6 m con N = 2000 kN, come il calcolo a
+>   fibre indipendente sullo stesso 32-gono.
 > - Stato: `dichiarato`.
 
 ## Convenzioni

@@ -236,9 +236,10 @@ namespace GPC.Checkers.Concrete.Piles
         {
             // Native solver uses N in newtons, negative in compression. Constant-N must be selected by caller.
             var point=p.Solver.CalculateDomainPoints(new[]{new ResultBeamForces(-n*NewtonsPerKilonewton,0,0,0,sign*NewtonMillimetresPerKilonewtonMetre,0,p.Axes)})[0];
-            // Existing tolerance is 1 kN or 1e-6 of N expressed in newtons, not 0.1% of N.
-            // Keep the numerical acceptance criterion unchanged during the unit-only port.
-            double axialToleranceN=Math.Max(NewtonsPerKilonewton,Math.Abs(n)*.001);
+            // Same acceptance as the section resistance at assigned N (F2-15, ANTHEA bug analysis 15/10/2026 PO-3): max(1 kN; 1e-6 |N|; 0.5e-4 b h fck),
+            // also 1e-3 NRd,c with the stress block. The former max(1 kN; 1e-6 |N|) rejected the normal stops of the search on large piles
+            // (D >= 1.6 m in C35/45: |NRd - N| 1.1-2.0 kN) and left every depth without MRd. Only the acceptance changes, never the point.
+            double axialToleranceN=DomainPointAxialTolerance.Calculate(p.Solver,-n*NewtonsPerKilonewton);
             if(point==null||!Finite(point.NRd+point.MxRd+point.MyRd)||Math.Abs(point.NRd+n*NewtonsPerKilonewton)>axialToleranceN||point.MxRd*sign<0||Math.Abs(point.MyRd)>Math.Max(NewtonMillimetresPerKilonewtonMetre,Math.Abs(point.MxRd)*.001))throw new ArgumentException("Equilibrio N o direzione non rispettati.");
             return point.MxRd/NewtonMillimetresPerKilonewtonMetre;
         }

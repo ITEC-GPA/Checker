@@ -42,6 +42,48 @@ namespace ConcreteTests
 
         private static PileAction LowDemand(double depth = 2) => new PileAction { Depth = depth, N = 1000, M = 100, V = 100 };
 
+        /// <summary>Large pile of PO-3: D mm as a 32-gon, 24φ26 with centres at D/2 − 93 (cover 70 + link 10 + 13), C35/45 parabola-rectangle, B450C.</summary>
+        private PileRcParameters LargePile(double diameter)
+        {
+            var concrete = new ConcreteMaterialEN1992("C35", 35, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle);
+            var steel = new SteelMaterial("B450", 200000, 450, 450, .075, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
+            var section = GetCircularSection(diameter, 26, 93, 24, 32, concrete, steel);
+            var axes = new CoordinateSystem(section.Centroid, new Vector3d(-1, 0, 0), new Vector3d(0, -1, 0));
+            var standard = new StandardNTC2018Concrete();
+            var options = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(axes, SectionSolver.FailureAnalysisTypes.ConstantN,
+                SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 32);
+            var checker = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section, null, null), options, standard, false);
+            checker.SetDomainPointStrategy(SectionSolver.DomainPointStrategyTypes.Iterative);
+            return new PileRcParameters { Solver = checker.SectionSolver, Axes = axes, Section = section, Standard = standard,
+                Diameter = diameter, Fck = 35, Fctk05 = concrete.Fctk05, Fcd = Math.Abs(concrete.CalculateFcd(standard)),
+                Fyd = Math.Abs(steel.CalculateFyd(standard)), Es = 200000, Cover = 70, LinkDiameter = 10, LinkSpacing = 150,
+                ShearModelConfirmed = true, DesignActionsConfirmed = true, GoodBond = true };
+        }
+
+        /// <summary>
+        /// PO-3 of the ANTHEA bug analysis (15/10/2026): the domain point of a pile is accepted with the tolerance of the section resistance
+        /// (DomainPointAxialTolerance, F2-15), so piles of D 1.6 and 2.0 m get MRd at every N; before, |NRd − N| of 1.1-2.0 kN exceeded the 1 kN of the
+        /// pile and every depth was "Non verificabile". Expected MRd from an independent fibre integration of the same 32-gon and bars (NTC 2018
+        /// 4.1.2.1.2, parabola-rectangle fcd = 0.85 · 35/1.5, εcu = 3.5‰, steel elastic-perfectly plastic fyd = 450/1.15; scratchpad
+        /// agent-conc-sle/po3_mrd.py, after the verifier's mrd_circle.py): D 1.6 m, N 0/500/2000 kN: 3293.8, 3581.1, 4367.2 kNm; D 2.0 m: 4307.9, 4691.5,
+        /// 5804.1 kNm; tolerance 0.2 % (the integration with or without the concrete displaced by the bars differs by 0.1-0.2 %).
+        /// </summary>
+        [TestMethod]
+        public void LargePilesGetTheirResistanceAtEveryAxialForce()
+        {
+            foreach (var t in new[] { Tuple.Create(1600d, 0d, 3293.8), Tuple.Create(1600d, 500d, 3581.1), Tuple.Create(1600d, 2000d, 4367.2),
+                Tuple.Create(2000d, 0d, 4307.9), Tuple.Create(2000d, 500d, 4691.5), Tuple.Create(2000d, 2000d, 5804.1) })
+            {
+                string what = "D " + t.Item1 + " N " + t.Item2;
+                var result = new PileReinforcement(LargePile(t.Item1)).Check(new PileAction { Depth = 5, N = t.Item2, M = 1079, V = 300 });
+                Assert.AreEqual(ExecutionStatus.Completed, result.Execution, what + ": " + result.Message);
+                Assert.IsTrue(result.MRdPositive.HasValue && result.MRdNegative.HasValue, what);
+                Assert.AreEqual(t.Item3, result.MRdPositive.Value, 2e-3 * t.Item3, what + " MRd+");
+                Assert.AreEqual(t.Item3, -result.MRdNegative.Value, 2e-3 * t.Item3, what + " MRd−");
+                Assert.AreEqual(EngineeringOutcome.Satisfied, result.Outcome, what);
+            }
+        }
+
         [TestMethod]
         public void AnUnexecutedCheckCannotPassFromItsLabel()
         {
