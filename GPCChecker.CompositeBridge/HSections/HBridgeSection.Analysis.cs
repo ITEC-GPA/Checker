@@ -22,8 +22,10 @@ public static partial class HBridgeSection
         foreach (var p in phases)
         {
             if (!PhaseKinds.Contains(p.KindName)) throw new ArgumentException("Tipo di fase sconosciuto.");
-            if (p.KindName == "Solo acciaio" && compositeSeen) throw new ArgumentException("Le fasi di solo acciaio devono precedere le fasi composte.");
-            compositeSeen |= p.KindName is "Composta" or "Soletta esclusa";
+            // the same rule and message of the histories: every phase other than «Solo acciaio» (composite, cracked slab, shrinkage) follows the
+            // casting of the slab. Before, a «Ritiro» did not count, and a later steel-only phase was calculated on the bare steel
+            if (p.KindName == "Solo acciaio" && compositeSeen) throw new ArgumentException("Le fasi di solo acciaio devono precedere il getto.");
+            compositeSeen |= p.KindName != "Solo acciaio";
             if (p.KindName == ShrinkageKind) Number(p, "epsilon_cs");
             else { Number(p, "N"); Number(p, "Mx"); Number(p, "V"); }
             if (!LoadReferences.Contains(LoadReference(p))) throw new ArgumentException("Riferimento di N sconosciuto.");
@@ -57,20 +59,28 @@ public static partial class HBridgeSection
             var contributions = data.Options.Class4 ? included.Select(p => Solve(data, g, effective, p, applicationPoints[p])).ToList() : situation.Contributions.ToList();
             // Keep properties and stresses on the same converged geometry. Diagnostic plate data are recomputed on those stresses.
             var diagnostics = data.Options.Class4 ? EffectiveWidths(g, y => contributions.Sum(c => c.SteelStress(y)), mat.Steel.Fyk, data.Options) : BridgeEffective.Full(g);
-            effective = effective with { Web = diagnostics.Web, Top = diagnostics.Top, Bottom = diagnostics.Bottom, SecondBottom = diagnostics.SecondBottom };
-            var points = StressPoints(g, contributions, data, Math.Abs(mat.Concrete.Fck), mat.Steel.Fyk, mat.Rebar.Fyk);
+            // all the plates, including the outstands of the bottom flange of the box (before, BottomOutstand kept the gross plate: results, report
+            // and drawing showed fully effective outstands, while BottomWidth included their reduction)
+            effective = effective with { Web = diagnostics.Web, Top = diagnostics.Top, Bottom = diagnostics.Bottom, SecondBottom = diagnostics.SecondBottom,
+                BottomOutstand = diagnostics.BottomOutstand };
+            var effectiveParts = SteelPieces(g, effective, mat.Steel);
+            double effectiveArea = effectiveParts.Sum(p => p.Section.Area);
+            double effectiveCentroid = effectiveParts.Sum(p => p.Section.Area * p.PositionToGlobal(p.Section.Centroid).Y) / effectiveArea;
+            double effectiveInertia = effectiveParts.Sum(p => p.Section.Jxx * Math.Pow(Math.Cos(p.Rotation), 2) + p.Section.Jyy * Math.Pow(Math.Sin(p.Rotation), 2)
+                + p.Section.Area * Math.Pow(p.PositionToGlobal(p.Section.Centroid).Y - effectiveCentroid, 2));
+            // the cracked section of the «Soletta esclusa» contributions: all are solved on the same effective geometry of the situation
+            var cracked = contributions.FirstOrDefault(c => c.Kind == ConcreteExcludedKind);
+            var stiffening = TensionStiffeningApplies(data.Options.LimitState, contributions, g)
+                ? BridgeTensionStiffening.Calculate(mat.Concrete.Fctm, g.Width * g.SlabHeight, g.Bars.Sum(b => b.Area), cracked!.Area, cracked.Inertia, effectiveArea, effectiveInertia) : null;
+            var points = StressPoints(g, contributions, data, Math.Abs(mat.Concrete.Fck), mat.Steel.Fyk, mat.Rebar.Fyk, stiffening);
             var warnings = new List<string>();
+            if (stiffening is not null) warnings.Add(stiffening.Note());
             if (points.Any(p => p.Material == "CLS" && p.Stress > 1e-6)) warnings.Add("CLS teso nel modello non fessurato: valutare una situazione con soletta esclusa; non è attestata la verifica del CLS in trazione.");
             if (!data.Options.Class4) warnings.Add("Sezione lorda: riduzioni locali disattivate. Risultato di confronto, non verifica di classe 4.");
             if (contributions.Any(c => c.IsShrinkage)) warnings.Add("Ritiro uniforme imposto al solo CLS: effetti primari autoequilibrati. Eventuali azioni secondarie da vincoli esterni vanno inserite come fasi N–Mx separate.");
             if (data.Options.Class4) warnings.AddRange(LocalBucklingWarnings(data.Options));
             warnings.AddRange(SectionTypeWarnings(g, data.Box.Enabled));
             if (g.Bottom2Thickness > 0) warnings.Add("Due piastre inferiori modellate con la geometria reale. Instabilità locale: ciascuna piastra come sbalzo dall'anima con il proprio spessore, senza il beneficio dell'accoppiamento (a favore di sicurezza).");
-            var effectiveParts = SteelPieces(g, effective, mat.Steel);
-            double effectiveArea = effectiveParts.Sum(p => p.Section.Area);
-            double effectiveCentroid = effectiveParts.Sum(p => p.Section.Area * p.PositionToGlobal(p.Section.Centroid).Y) / effectiveArea;
-            double effectiveInertia = effectiveParts.Sum(p => p.Section.Jxx * Math.Pow(Math.Cos(p.Rotation), 2) + p.Section.Jyy * Math.Pow(Math.Sin(p.Rotation), 2)
-                + p.Section.Area * Math.Pow(p.PositionToGlobal(p.Section.Centroid).Y - effectiveCentroid, 2));
             var materialValues = new BridgeMaterialValues(mat.Concrete.Name, Math.Abs(mat.Concrete.Fck), mat.Concrete.ElasticModulusCompression,
                 mat.Steel.Name, mat.Steel.Fyk, mat.Steel.ElasticModulusTension, mat.Rebar.Name, mat.Rebar.Fyk, mat.Rebar.ElasticModulusTension);
             var accessory = CalculateShear(data, g, materialValues, effective, contributions, included, warnings, TorsionFlows(data, g, materialValues, included));
@@ -199,7 +209,13 @@ public static partial class HBridgeSection
         else Add(e.BottomWidth, g.BottomEquivalentThickness, -g.Height);
         return pieces;
     }
-    private static List<BridgeStressPoint> StressPoints(BridgeGeometry g, List<BridgeContribution> c, HBridgeInput d, double fck, double fy, double fys)
+    internal const string ConcreteExcludedKind = "Soletta esclusa";
+    /// <summary>EN 1994-2 §7.2.1(1): in the SLE states the stresses of the bars of the cracked slab include the tension stiffening, EN 1994-1-1
+    /// §7.4.3(3). The slab is cracked in the situations with contributions «Soletta esclusa»</summary>
+    internal static bool TensionStiffeningApplies(BridgeLimitState state, IEnumerable<BridgeContribution> contributions, BridgeGeometry g) =>
+        state is BridgeLimitState.Rare or BridgeLimitState.QuasiPermanent && g.Bars.Length > 0 && contributions.Any(c => c.Kind == ConcreteExcludedKind);
+    private static List<BridgeStressPoint> StressPoints(BridgeGeometry g, List<BridgeContribution> c, HBridgeInput d, double fck, double fy, double fys,
+        BridgeTensionStiffening? stiffening)
     {
         var points = new List<BridgeStressPoint>();
         double lc = d.Options.LimitStateName == "SLU" ? d.Options.AlphaCC * fck / d.Options.GammaC : (d.Options.LimitStateName == "SLE rara" ? .6 : .45) * fck;
@@ -209,8 +225,11 @@ public static partial class HBridgeSection
         {
             var values = c.Select(p => p.Stress(material, y)).ToArray(); double stress = values.Sum();
             bool active = material switch { "Acciaio" => true, "CLS" => c.Any(x => x.HasConcrete), _ => c.Any(x => x.Kind != "Solo acciaio") };
+            // the tensile bars of the cracked slab: σs = σs,0 + Δσs (the contributions give σs,0)
+            var bar = material == "Armatura" && active ? stiffening?.At(stress) : null;
+            if (bar is not null) stress = bar.Stress;
             double? utilization = !active || material == "CLS" && stress > 1e-6 ? null : Math.Abs(stress) / limit;
-            points.Add(new(label, material, y, stress, limit, utilization, active, values));
+            points.Add(new(label, material, y, stress, limit, utilization, active, values) { TensionStiffening = bar });
         }
         Add("Soletta · estradosso", "CLS", g.SlabHeight, lc); Add("Soletta · intradosso", "CLS", 0, lc);
         foreach (var row in g.Bars.GroupBy(b => b.Y).OrderByDescending(x => x.Key)) Add("Armatura · y=" + row.Key.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture), "Armatura", row.Key, ls);

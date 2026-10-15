@@ -198,7 +198,7 @@ public static partial class HBridgeSection
         if (contributions.Any(c => c.IsShrinkage)) warnings.Add("Pioli: il ritiro uniforme non genera un gradiente longitudinale nel tratto uniforme. Assegnare Δq aggiuntivo per effetti di estremità/vincolo ricavati dal modello globale.");
         var connectionDetails = new List<BridgeDetailValue>();
         // box: the connection is on the two top flanges, each with its rows of studs and its surfaces of the slab
-        CheckSlabAndFatigue(d, g, m, totalFlow / g.TopFlangeCount, studChecks, connectionDetails, warnings, slabFlow);
+        CheckSlabAndFatigue(d, g, m, totalFlow / g.TopFlangeCount, transversePitch, studChecks, connectionDetails, warnings, slabFlow);
         if (g.SectionType == BridgeSteelSectionType.Box)
             warnings.Add("Cassoncino: pioli e superfici della soletta per ciascuna delle due piattabande superiori, con metà del flusso di scorrimento" +
                 (slabFlow == 0 ? "" : " più il flusso torsionale q (le superfici a–a interne alla cella e b–b)") + "; la fatica dei pioli usa i flussi assegnati per piattabanda.");

@@ -110,7 +110,54 @@ public sealed record BridgeContribution(string Name, string Kind, double N, doub
         material == "Armatura" ? Kind == "Solo acciaio" ? 0 : SteelStress(y) * RebarRatio : SteelStress(y));
     public double? NeutralAxis => HistoryProfile is not null ? null : Math.Abs(StressSlope) < 1e-15 ? null : Centroid - UniformStress / StressSlope;
 }
-public sealed record BridgeStressPoint(string Name, string Material, double Y, double Stress, double Limit, double? Utilization, bool Active, double[] Contributions);
+/// <summary>A stress point of a situation. Stress is the total stress; Contributions are the increments of the phases, whose sum is Stress except
+/// for the tensile bars of the cracked slab in the SLE states, where Stress adds the tension stiffening Δσs (<see cref="GetTensionStiffening"/>)</summary>
+public sealed record BridgeStressPoint(string Name, string Material, double Y, double Stress, double Limit, double? Utilization, bool Active, double[] Contributions)
+{
+    // A field and a method, not a property: the result keeps the shape of its serialization (archived results and frozen captures)
+    internal BridgeTensionStiffening? TensionStiffening;
+    /// <summary>The tension stiffening added to the stress of a tensile bar of the cracked slab (null: not applied)</summary>
+    public BridgeTensionStiffening? GetTensionStiffening() => TensionStiffening;
+}
+/// <summary>
+/// Tension stiffening of the reinforcement of the cracked slab in the SLE states (EN 1994-2 §7.2.1(1), EN 1994-1-1 §7.4.3(3), formulas 7.4–7.6):
+/// σs = σs,0 + Δσs, Δσs = 0,4 fctm / (αst ρs), ρs = As / Act, αst = A I / (Aa Ia). Applied to the tensile bars of a situation with contributions
+/// «Soletta esclusa». N, mm, MPa
+/// </summary>
+/// <param name="StressAtCrack">σs,0: the stress of the bar of the cracked section, the sum of the contributions (0 in the parameters of a situation)</param>
+/// <param name="Increment">Δσs</param>
+/// <param name="Fctm">The mean tensile strength of the concrete</param>
+/// <param name="ReinforcementRatio">ρs = As / Act</param>
+/// <param name="Alpha">αst = A I / (Aa Ia)</param>
+/// <param name="ConcreteArea">Act: the area of the slab within the effective width, beff hc</param>
+/// <param name="ReinforcementArea">As: all the layers of bars in Act</param>
+/// <param name="CrackedArea">A: the cracked composite section, effective steel and bars (Es/Ea), in steel</param>
+/// <param name="CrackedInertia">I: the cracked composite section</param>
+/// <param name="SteelArea">Aa: the effective steel section</param>
+/// <param name="SteelInertia">Ia: the effective steel section</param>
+public sealed record BridgeTensionStiffening(double StressAtCrack, double Increment, double Fctm, double ReinforcementRatio, double Alpha,
+    double ConcreteArea, double ReinforcementArea, double CrackedArea, double CrackedInertia, double SteelArea, double SteelInertia)
+{
+    /// <summary>σs = σs,0 + Δσs</summary>
+    public double Stress => StressAtCrack + Increment;
+    /// <summary>The parameters of a situation (StressAtCrack = 0)</summary>
+    public static BridgeTensionStiffening Calculate(double fctm, double concreteArea, double reinforcementArea, double crackedArea, double crackedInertia,
+        double steelArea, double steelInertia)
+    {
+        foreach (var (value, name) in new[] { (fctm, "fctm"), (concreteArea, "Act"), (reinforcementArea, "As"), (crackedArea, "A"), (crackedInertia, "I"),
+            (steelArea, "Aa"), (steelInertia, "Ia") })
+            BridgeNumbers.Require(value, name, strict: true);
+        double ratio = reinforcementArea / concreteArea, alpha = crackedArea * crackedInertia / (steelArea * steelInertia);
+        return new(0, .4 * fctm / (alpha * ratio), fctm, ratio, alpha, concreteArea, reinforcementArea, crackedArea, crackedInertia, steelArea, steelInertia);
+    }
+    /// <summary>The stress of a bar: Δσs is added only to a tensile σs,0 (null for a compressed bar)</summary>
+    public BridgeTensionStiffening? At(double stressAtCrack) => stressAtCrack > 0 ? this with { StressAtCrack = stressAtCrack } : null;
+    /// <summary>The note of the results</summary>
+    public string Note() => "SLE, armature della soletta fessurata (contributi «Soletta esclusa»): alle barre tese si somma il tension stiffening, " +
+        $"σs = σs,0 + Δσs con Δσs = 0,4 fctm/(αst ρs) = {BridgeNumericFormat.Number(Increment)} MPa; fctm = {BridgeNumericFormat.Number(Fctm)} MPa, " +
+        $"ρs = As/Act = {BridgeNumericFormat.Number(100 * ReinforcementRatio)} %, αst = A I/(Aa Ia) = {BridgeNumericFormat.Number(Alpha)} " +
+        "(EN 1994-2 §7.2.1, EN 1994-1-1 §7.4.3(3)). I Δσ dei contributi sommano σs,0.";
+}
 public sealed record BridgeSteelProperties(double Area, double Centroid, double Inertia);
 public sealed record BridgeStage(string Name, int Iterations, double Residual, BridgeEffective Effective, BridgeSteelProperties EffectiveSteel, List<BridgeContribution> Contributions,
     List<BridgeStressPoint> Points, List<string> Warnings, BridgeShearResult? Shear = null, BridgeStudResult? Studs = null, BridgeTorsionResult? Torsion = null)

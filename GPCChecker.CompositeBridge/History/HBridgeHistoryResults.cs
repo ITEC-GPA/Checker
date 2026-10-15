@@ -43,11 +43,16 @@ public static class HBridgeHistoryResults
 {
     public const string LinearMethod = "Storico lineare · deformazioni e ritiro incrementali";
     public const string NonlinearMethod = "Storico non lineare · fibre e plasticità dell’acciaio";
+    private const string NeglectedTensionScope = "CLS sull’inviluppo Model in compressione, resistenza a trazione trascurata (soletta tesa fessurata; scarico sullo stesso inviluppo, senza danno ciclico)";
+    private const string TensionStiffeningScope = "CLS sull’inviluppo Model in compressione e in trazione lineare fino a fctm, poi con tension stiffening (Collins e Mitchell 1991; scarico sulla stessa curva, senza danno né memoria di fessura)";
+    /// <summary>The scope of the default options (nonlinear concrete without tensile strength); <see cref="ScopeFor"/> for the option</summary>
     public const string Scope = "Compatibilità delle deformazioni con riferimento al getto; equilibrio N–Mx a ogni fase. " +
         "Ritiri incrementali illimitati. Moduli efficaci del lineare applicati ai soli incrementi, senza integrazione della viscosità nel tempo. " +
-        "Non lineare: acciaio con memoria plastica isotropa, CLS sull’inviluppo Model (scarico sullo stesso inviluppo, senza danno ciclico). " +
+        "Non lineare: acciaio con memoria plastica isotropa, " + NeglectedTensionScope + ". " +
         "Legami caratteristici senza coefficienti di resistenza. Non lineare sulla sezione lorda: instabilità locale non inclusa. " +
         "V è registrato; taglio, pioli, irrigidimenti e interazione N–M–V non verificati da questo metodo.";
+    /// <summary>The scope with the concrete in tension of the options</summary>
+    public static string ScopeFor(HistoryConcreteTension tension) => tension == HistoryConcreteTension.TensionStiffening ? Scope.Replace(NeglectedTensionScope, TensionStiffeningScope) : Scope;
 
     /// <summary>Unified presentation result without calling/recalculating the legacy cumulative solver.</summary>
     public static HBridgeAnalysisResult Calculate(HBridgeInput input, HBridgeHistoryOptions? options = null, CancellationToken cancellation = default)
@@ -61,6 +66,9 @@ public static class HBridgeHistoryResults
         if (!Enum.IsDefined(typeof(BridgeLimitState), data.Options.LimitState)) throw new ArgumentException("Stato limite sconosciuto.");
         var section = HBridgeHistoryAnalysis.CreateSection(data, o);
         bool nonlinear = section.Components.Any(c => !c.Material.IsLinear);
+        var concreteLaw = section.Components.FirstOrDefault(c => c.Id == HBridgeHistoryAnalysis.Concrete)?.Material;
+        bool noTension = concreteLaw is HistoryModelEnvelopeLaw { NeglectsTension: true };
+        var tensionStiffening = concreteLaw as HistoryTensionStiffeningConcreteLaw;
         var history = BridgeHistoryAnalysis.Calculate(section, HBridgeHistoryAnalysis.ConvertPhases(data, data.Phases, o), o.Solver, cancellation);
         if (history.Stages.Count == 0) throw new ArgumentException("Attivare almeno una fase.");
         var g = HBridgeSection.Geometry(data with { Phases = new[] { new BridgePhase() } });
@@ -109,12 +117,25 @@ public static class HBridgeHistoryResults
                 (data.Options.LimitState == BridgeLimitState.Rare ? .6 : .45) * values.Fck;
             double la = data.Options.LimitState == BridgeLimitState.Ultimate ? values.Fy / data.Options.GammaM0 : values.Fy;
             double ls = data.Options.LimitState == BridgeLimitState.Ultimate ? values.Fys / data.Options.GammaS : .8 * values.Fys;
+            // SLE, cracked slab: tension stiffening of the tensile bars, as in the cumulative method. A and I of the cracked section from the
+            // active steel and bar fibres (Es/Ea), Aa and Ia from the active steel fibres, with their effective areas
+            BridgeTensionStiffening? stiffening = null;
+            if (HBridgeSection.TensionStiffeningApplies(data.Options.LimitState, contributions, g))
+            {
+                var crackedFibers = active.Where(f => f.ComponentId != HBridgeHistoryAnalysis.Concrete).ToArray();
+                double ca = crackedFibers.Sum(f => f.EffectiveArea * E(f) / values.Ea), cc = crackedFibers.Sum(f => f.EffectiveArea * E(f) / values.Ea * f.Fiber.Y) / ca;
+                stiffening = BridgeTensionStiffening.Calculate(m.Concrete.Fctm, g.Width * g.SlabHeight, g.Bars.Sum(b => b.Area), ca,
+                    crackedFibers.Sum(f => f.EffectiveArea * E(f) / values.Ea * Math.Pow(f.Fiber.Y - cc, 2)), steelProperties.Area, steelProperties.Inertia);
+            }
             var points = new List<BridgeStressPoint>();
             void Point(string name, string material, double y, double limit, bool enabled)
             {
                 double sigma = profile.Stress(material, y);
                 var delta = contributions.Select(x => x.Stress(material, y)).ToArray();
-                points.Add(new(name, material, y, sigma, limit, !enabled || nonlinear || material == "CLS" && sigma > 1e-6 ? null : Math.Abs(sigma) / limit, enabled, delta));
+                var bar = material == "Armatura" && enabled ? stiffening?.At(sigma) : null;
+                if (bar is not null) sigma = bar.Stress;
+                points.Add(new(name, material, y, sigma, limit, !enabled || nonlinear || material == "CLS" && sigma > 1e-6 ? null : Math.Abs(sigma) / limit, enabled, delta)
+                    { TensionStiffening = bar });
             }
             bool concreteActive = active.Any(f => f.ComponentId == HBridgeHistoryAnalysis.Concrete);
             Point("Soletta · estradosso (fibra prossima)", "CLS", g.SlabHeight, lc, concreteActive);
@@ -133,7 +154,13 @@ public static class HBridgeHistoryResults
                 }
             var warnings = new List<string> { "Metodo con storico: V registrato; verifiche di taglio, connessione, irrigidimenti e N–M–V da completare. Nessun esito globale favorevole.",
                 "Tensioni alle facce: valore della fibra di integrazione più vicina; controllare la convergenza della discretizzazione." };
-            if (nonlinear) warnings.Add("Non lineare su sezione lorda, materiali caratteristici: analisi N–Mx, non verifica SLU di classe 4. CLS sull’inviluppo Model, senza danno né isteresi ciclica; acciaio con deformazioni plastiche residue.");
+            if (stiffening is not null) warnings.Add(stiffening.Note());
+            if (nonlinear) warnings.Add("Non lineare su sezione lorda, materiali caratteristici: analisi N–Mx, non verifica SLU di classe 4. CLS sull’inviluppo Model"
+                + (noTension ? " in compressione, resistenza a trazione trascurata (EN 1992-1-1 §6.1(2)P): la soletta tesa è fessurata e un ritiro che la tende non produce tensioni;"
+                    : tensionStiffening is not null ? $" in compressione; in trazione lineare fino a fctm = {BridgeNumericFormat.Number(tensionStiffening.TensileStrength)} MPa, poi tension stiffening σ = fctm/(1 + √(500 ε))"
+                        + " (Collins e Mitchell 1991, MCFT), senza il controllo della trasmissione alla fessura: oltre lo snervamento delle barre il contributo del CLS teso è sovrastimato;"
+                    : ",")
+                + " senza danno né isteresi ciclica; acciaio con deformazioni plastiche residue.");
             if (o.InstantaneousConcrete) warnings.Add("Analisi istantanea esplicita: φ=0 nel calcolo; i φ/n dell’archivio restano memorizzati per il metodo lineare.");
             else warnings.Add("φ/n modifica il modulo dei nuovi incrementi; non viene integrata una legge di viscosità dipendente dall’età.");
             if (!data.Options.Class4 && !nonlinear) warnings.Add("Riduzioni di classe 4 disattivate: sezione lorda.");
@@ -146,6 +173,6 @@ public static class HBridgeHistoryResults
             stage.HistoryView = new(s, nonlinear, profile, area, cy, inertia);
             stages.Add(stage);
         }
-        return new(nonlinear ? NonlinearMethod : LinearMethod, Scope, data, g, values, stages);
+        return new(nonlinear ? NonlinearMethod : LinearMethod, tensionStiffening is null ? Scope : ScopeFor(HistoryConcreteTension.TensionStiffening), data, g, values, stages);
     }
 }

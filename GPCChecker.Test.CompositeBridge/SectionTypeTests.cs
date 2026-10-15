@@ -171,6 +171,31 @@ public class SectionTypeTests
     }
 
     [TestMethod]
+    public void BoxReducedBottomOutstandIsTheOneOfTheResult()
+    {
+        // finding PON-3: δ = 250, s = 1800, top flanges 450 x 25, bottom flange 2600 x 14, H = 1839; hogging G1 −3000 (steel), Q −8000 kNm
+        var d = Box(class4: true) with
+        {
+            Geometry = Box().Geometry with { BottomWidth = 2600, BottomThickness = 14 },
+            Phases = [new() { Name = "G1", Kind = BridgePhaseKind.SteelOnly, MomentKNm = -3000 }, new() { Name = "Q", MomentKNm = -8000 }]
+        };
+        var r = HBridgeSection.Calculate(d);
+        BridgeGeometry g = r.Geometry;
+        BridgeEffective e = r.Stages.Last().Effective;
+        // EN 1993-1-5 Tab. 4.2 (ψ = 1, kσ = 0,43) and (4.3), independent calculation (agent-bridge/py/pon3.py): c = (2600 − 1300 − 14,134)/2 = 642,93 mm,
+        // λp = (c/t)/(28,4 ε √kσ) = 3,0309, ρ = (λp − 0,188)/λp² = 0,30947, b_eff = 198,97 mm
+        Assert.AreEqual(642.9328, e.BottomOutstand!.Width, 1e-3);
+        Assert.AreEqual(3.03086, e.BottomOutstand.Lambda, 1e-4);
+        Assert.AreEqual(.30947, e.BottomOutstand.Rho, 1e-5);
+        Assert.AreEqual(198.9711, e.BottomOutstand.EffectiveAtStart, 1e-3);
+        Assert.IsTrue(e.BottomOutstand.StartStress < 0, "compressed outstand");
+        // internal plate (kσ = 4): b_eff = 575,37 mm; bottom width = 2 · 14,134 + 575,37 + 2 · 198,97 = 1001,58 mm
+        Assert.AreEqual(575.3703, e.Bottom.EffectiveAtStart + e.Bottom.EffectiveAtEnd, 1e-3);
+        Assert.AreEqual(1001.5812, e.BottomWidth, 1e-3);
+        Assert.AreEqual(2 * g.WebHorizontalThickness + e.Bottom.EffectiveAtStart + e.Bottom.EffectiveAtEnd + 2 * e.BottomOutstand.EffectiveAtStart, e.BottomWidth, 1e-6);
+    }
+
+    [TestMethod]
     public void BoxShearAndStudsOnTwoWebsAndTwoFlanges()
     {
         var d = Box() with { Studs = new() { Enabled = true, CountPerRow = 2, Diameter = 22, Height = 150, LongitudinalPitch = 200, TransversePitch = 120, Fu = 450, GammaV = 1.25,

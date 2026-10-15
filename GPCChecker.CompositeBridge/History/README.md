@@ -78,7 +78,8 @@ M_int,0 = -somma(sigma_i * Aeff_i * y_i)
 
 Il bilancio delle fibre fornisce anche i residui indipendenti delle azioni.
 In caso di mancata convergenza viene sollevata `HistoryConvergenceException`,
-con indice/nome fase, sottopasso e ultima fase completata. Il risultato della
+con indice/nome fase, sottopasso e ultima fase completata; se la ricerca del passo
+ha respinto tentativi fuori dal dominio costitutivo, il messaggio ne riporta il motivo. Il risultato della
 fase fallita non è esposto come utilizzabile. È disponibile l'annullamento.
 
 ## Legami costitutivi e significato di φ/n
@@ -94,20 +95,72 @@ fase fallita non è esposto come utilizzabile. È disponibile l'annullamento.
   `FromModel` legge E, fy, fu, deformazione ultima e tipo di curva da Model;
   non pretende di riprodurre una legge ciclica sperimentale dell'acciaio.
 - `HistoryModelEnvelopeLaw`: copia i diagrammi tabulati di Model, usa la loro
-  interpolazione nativa e la tangente del segmento. Per il CLS il ramo teso è
-  esattamente quello del materiale fornito. È un inviluppo non lineare a funzione
-  univoca: lo scarico segue quel diagramma, senza una legge aggiunta di danno,
-  chiusura delle fessure o isteresi. Oltre la deformazione ultima di un ramo
-  resistente il tentativo viene rifiutato, evitando di interpretare lo zero
-  restituito fuori tabella come un equilibrio valido dopo rottura.
+  interpolazione nativa e la tangente del segmento. È un inviluppo non lineare a
+  funzione univoca: lo scarico segue quel diagramma, senza una legge aggiunta di
+  danno, chiusura delle fessure o isteresi. Il ramo teso termina alla fessurazione:
+  oltre la sua ultima deformazione il CLS è fessurato, σ = 0 e tangente nulla.
+  Oltre la deformazione ultima del ramo compresso (εcu) il tentativo viene
+  rifiutato, evitando di interpretare lo zero restituito fuori tabella come un
+  equilibrio valido dopo lo schiacciamento. Con `neglectTension: true` il CLS non
+  ha resistenza a trazione (σ = 0 e tangente nulla per ogni trazione).
+  Il salto da fct a 0 del ramo teso è una discontinuità che il Newton di un
+  incremento di carico non attraversa: con il ramo teso lo storico a momento
+  negativo si ferma ancora alla fessurazione della soletta.
+- `HistoryTensionStiffeningConcreteLaw`: CLS con tension stiffening. In trazione
+  σ = Ecm ε fino a εcr = fctm/Ecm, poi la tensione media del CLS fessurato di
+  Collins e Mitchell (1991), teoria del campo di compressione modificato (MCFT,
+  Vecchio e Collins 1986): σ = fctm/(1 + √(500 ε)), tangente
+  dσ/dε = −250 fctm/(√(500 ε) (1 + √(500 ε))²); in compressione l'inviluppo Model
+  (oltre εcu rifiuto). Funzione della sola deformazione: scarico sulla stessa curva,
+  senza danno né memoria di fessura. Come nella formulazione originale, a εcr la
+  tensione scende da fctm a fctm/(1 + √(500 εcr)), circa 0,82 fctm: il salto è
+  minore di quello a σ = 0 e il Newton lo attraversa nei casi provati (vedi sotto).
+  I coefficienti α1 α2 della formula di Collins e Mitchell valgono 1 (barre ad
+  aderenza migliorata, carico di breve durata). Il controllo MCFT della trasmissione
+  alla fessura (tensione media del CLS limitata dalla riserva delle barre nella
+  fessura) non è applicato: oltre lo snervamento delle barre il contributo del CLS
+  teso è sovrastimato.
 - `IHistoryMaterialLaw`: consente altre leggi con stati interni immutabili.
   `Evaluate` deve essere puro rispetto allo stato precedente; il motore decide
   quando accettare la risposta. Le istanze di legge devono essere immutabili
   oppure essere usate senza modifiche concorrenti.
 
 Per il non lineare H assegnare `MaterialMode = Nonlinear` e `Class4 = false`.
-Acciaio e barre usano la legge plastica, il CLS l'inviluppo Model; si possono
-iniettare leggi alternative tramite le opzioni. Le resistenze dei diagrammi
+Acciaio e barre usano la legge plastica, il CLS l'inviluppo Model in compressione;
+in trazione decide `HBridgeHistoryOptions.ConcreteTension` (ignorata nel lineare e
+quando si assegna `ConcreteLaw`). Il valore predefinito `Neglected` è il CLS
+con resistenza a trazione trascurata (EN 1992-1-1 §6.1(2)P; sezione fessurata di
+EN 1994-2 §§5.4.2.3, 7.2.1): la soletta tesa è fessurata, quindi lo storico a momento
+negativo e le curve M–κ dalla sezione vergine proseguono oltre la fessurazione fino
+ai limiti di acciaio, barre e CLS compresso. Prima il CLS aveva il ramo teso di Model
+(fctk,0,05 a εcr ≈ 6,6e-5) e il calcolo si fermava alla fessurazione con un messaggio
+di capacità. Conseguenza: un ritiro che tende la soletta non produce tensioni (con il
+ramo teso, sui dati di prova, già −200 µε prima dei carichi composti la fessuravano). Si possono
+iniettare leggi alternative tramite le opzioni, per esempio
+`ConcreteLaw = new HistoryModelEnvelopeLaw(materiale)` con il ramo teso.
+
+L'opzione `ConcreteTension = TensionStiffening` usa
+`HistoryTensionStiffeningConcreteLaw` con fctm ed Ecm del materiale: prima della
+fessurazione la soletta reagisce come nella sezione non fessurata, dopo con il
+tension stiffening. Risultati sui dati di prova (H 1855, soletta 3000×250, C35/45),
+storico non lineare istantaneo a momento negativo, confrontati con il predefinito:
+
+| Caso | Trazione trascurata | Tension stiffening |
+| --- | --- | --- |
+| ×0,6 (G1 −900, G2 −1200, Q −1800 kNm): κ [1/m] | −4,570e-4 | −2,844e-4 (soletta integra, σ ≤ 2,66 MPa) |
+| ×0,6: acciaio sup / inf, barre sup [MPa] | 91,94 / −85,79 / 74,61 | 36,29 / −74,31 / 14,35 |
+| ×1 (G1 −1500, G2 −2000, Q −3000 kNm): κ [1/m] | −7,616e-4 | −5,575e-4 (soletta fessurata) |
+| ×1: acciaio sup / inf, barre sup [MPa] | 153,24 / −142,98 / 124,36 | 87,04 / −129,78 / 52,72 |
+| M–κ dalla sezione vergine, κ = −1,5e-4 1/m [kNm] | −1363,6 | −2859,1 (non fessurata) |
+| M–κ dalla sezione vergine, κ = −3e-3 1/m [kNm] | −18152,1 | −19186,7 |
+
+Lo storico converge con l'opzione da ×0,5 a ×2,5 (anche con la soletta
+parzialmente fessurata, ×0,75–0,9, fino a 10 iterazioni Newton); a ×3 si ferma in Q
+per carico oltre la capacità (il momento massimo della curva M–κ è circa
+−19,35 MNm). Le curve M–κ dalla sezione vergine arrivano a −3e-3, −1e-2 e
+−2e-2 1/m. Con le fasi «Soletta esclusa» il CLS è disattivato e vale il Δσs del
+§7.4.3(3) di EN 1994-1-1 sulle barre (README della libreria): non c'è doppio conteggio.
+Le resistenze dei diagrammi
 sono quelle del materiale: **nessun gamma/alpha viene applicato automaticamente**
 dal nuovo motore. L'eventuale diagramma di progetto va fornito esplicitamente.
 

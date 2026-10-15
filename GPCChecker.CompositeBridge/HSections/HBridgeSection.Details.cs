@@ -151,8 +151,9 @@ public static partial class HBridgeSection
     }
 
     // torsionFlow (box): the torsional flow of the slab. The a–a surface inside the cell of each top flange and the b–b surfaces add it; with
-    // the same fraction for both flanges, the left surface is the internal one of the right flange and vice versa
-    private static void CheckSlabAndFatigue(HBridgeInput d, BridgeGeometry g, BridgeMaterialValues m, double flow,
+    // the same fraction for both flanges, the left surface is the internal one of the right flange and vice versa.
+    // transversePitch: the validated transverse pitch of the studs (0 with one stud per row, where the input may be empty)
+    private static void CheckSlabAndFatigue(HBridgeInput d, BridgeGeometry g, BridgeMaterialValues m, double flow, double transversePitch,
         List<BridgeLocalCheck> checks, List<BridgeDetailValue> details, List<string> warnings, double torsionFlow = 0)
     {
         double qt = Math.Abs(torsionFlow);
@@ -179,7 +180,8 @@ public static partial class HBridgeSection
             if (qt > 0) details.Add(new("Soletta · flusso torsionale sommato (a–a interne, b–b)", qt, "kN/m"));
             int studs = (int)d.Studs.CountPerRow;
             for (int n = 1; n <= studs; n++) Surface($"Soletta b–b · gruppo {n}", (Math.Abs(flow) + qt) * n / studs,
-                2 * d.Studs.Height + (n - 1) * d.Studs.TransversePitch + d.Studs.HeadDiameter, 2 * ab);
+                // before, (n − 1) times the raw input: with one stud per row and an empty pitch 0 · NaN = NaN, and the section was not calculated
+                2 * d.Studs.Height + (n - 1) * transversePitch + d.Studs.HeadDiameter, 2 * ab);
             double fctm = m.Fck <= 50 ? .3 * Math.Pow(m.Fck, 2d / 3) : 2.12 * Math.Log(1 + (m.Fck + 8) / 10);
             foreach (string side in new[] { "sup", "inf" })
             {
