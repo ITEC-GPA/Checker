@@ -154,7 +154,7 @@ namespace GPC.Checkers.Geotechnics.Piles
                 if (!layer.ShaftActive) { output.Add(new MicropileShaftSegment(i + 1, top, bottom, null, null, 0, 0)); continue; }
                 BustamanteDoixShaft shaft;
                 try { shaft = UnitShaftResistance(layer.Soil, injection, pressure, layer.Alpha); }
-                catch (ArgumentException ex) { throw new ArgumentException($"Layer {i + 1}: {ex.Message}"); }
+                catch (ArgumentException ex) { throw new ArgumentException($"Layer {i + 1} (grouted from {top / 1000:0.##} to {bottom / 1000:0.##} m along the axis): {ex.Message}"); }
                 double ds = diameter * shaft.Alpha;
                 output.Add(new MicropileShaftSegment(i + 1, top, bottom, shaft, ds, shaft.UnitResistance, Math.PI * ds * (bottom - top) * shaft.UnitResistance));
             }

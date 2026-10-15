@@ -132,6 +132,9 @@ ridotto fuori dal tratto visibile delle curve usa il bordo, segnalato. `NqResult
 - Formula: Rs = Σ π α D L s; pl = pressione d'iniezione (ipotesi progettuale di ANTHEA).
 - Tabelle 13.12 e 13.13 di Viggiani verificate sulle pagine scansionate.
 - Abachi digitalizzati, senza estrapolazione; le curve R sono il limite inferiore.
+- α è richiesto (positivo e finito) solo negli strati attivi che intersecano il tratto iniettato [sb, L] (correzione PV-4,
+  15/10/2026): fuori dalla zona iniettata non ha significato e `MicropileDepthLayer` lo accetta mancante; il messaggio indica
+  verticale, strato e tratto iniettato.
 - Tabelle e abachi stanno qui, in Checker, come dati del metodo; terreno di Bustamante-Doix e α per strato sono
   parametri del metodo (`MicropileSurvey`), i terreni restano i `Soil` di Model.
 

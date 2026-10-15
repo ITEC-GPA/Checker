@@ -1,6 +1,10 @@
 namespace GPC.Checkers.Geotechnics.Piles;
 
-/// <summary>Vertical layer thickness in mm and the Bustamante–Doix parameters actually needed by a micropile.</summary>
+/// <summary>
+/// Vertical layer thickness in mm and the Bustamante–Doix parameters actually needed by a micropile. α is required (positive and finite) only for
+/// an active layer that intersects the grouted length [sb, L]: the calculation checks it there and names the vertical and the layer
+/// (<see cref="BustamanteDoix.Segments"/>); outside the grouted zone α has no meaning and may be missing (NaN) or zero (PV-4).
+/// </summary>
 public sealed class MicropileDepthLayer
 {
     public double Thickness { get; }
@@ -11,7 +15,6 @@ public sealed class MicropileDepthLayer
     {
         if (double.IsNaN(thickness) || double.IsInfinity(thickness) || thickness <= 0) throw new ArgumentException("Positive finite layer thickness required.");
         if (!Enum.IsDefined(typeof(BustamanteDoixSoil), soil)) throw new ArgumentException("Unknown Bustamante-Doix soil.");
-        if (shaftActive && (double.IsNaN(alpha) || double.IsInfinity(alpha) || alpha <= 0)) throw new ArgumentException("Positive finite alpha required for an active layer.");
         Thickness = thickness; Soil = soil; Alpha = alpha; ShaftActive = shaftActive;
     }
 }

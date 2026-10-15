@@ -111,7 +111,7 @@ public class PileEdgeCaseTests
         Assert.AreEqual(12 * M, s[2].Bottom, "cut at the depth reached");
         Close(Math.PI * 1.8 * 250 * 4 * M * BustamanteDoix.UnitShaftResistance(BustamanteDoixSoil.Marl, MicropileInjection.IRS, 2, 1.8).UnitResistance, s[2].Lateral, "π α D L s", 1e-14);
         Assert.AreEqual(0, BustamanteDoix.Segments(layers, 2 * M, 2 * M, 250, MicropileInjection.IRS, 2).Length, "depth at the start of the grouting");
-        StringAssert.StartsWith(Assert.ThrowsException<ArgumentException>(() => BustamanteDoix.Segments(layers, 12 * M, 0, 250, MicropileInjection.IRS, .2)).Message, "Layer 1:");
+        StringAssert.StartsWith(Assert.ThrowsException<ArgumentException>(() => BustamanteDoix.Segments(layers, 12 * M, 0, 250, MicropileInjection.IRS, .2)).Message, "Layer 1 (grouted from 0 to 3 m along the axis): p_l outside chart");
         // From a Model profile with the axis inclined by 20°: s = z / cos θ.
         var profile = Profile(null, (Sand(), 3), (Clay(60), 9));
         var axis = MicropileLayer.FromProfile(profile, new[] { (BustamanteDoixSoil.SiltySand, 1.4, true), (BustamanteDoixSoil.Clay, 1.8, true) }, 20 * Deg);
