@@ -36,19 +36,27 @@ namespace GPC.Checkers.Concrete.Cracking
     /// NTC 2018 (Circolare C4.1.2.2.4.5): wk = 1.7 Δsm (εsm − εcm), Δsm = (3.4 c + k1 k2 0.425 Ø/ρ)/1.7, sparse bars (s &gt; 5(c + Ø/2)) with
     /// max(Δsm; 0.75 (h − x)). Eurocode family (7.8-7.14): wk = sr,max (εsm − εcm), sr,max = k3 c + k1 k2 k4 Ø/ρ (1.3 (h − x) for sparse bars);
     /// DS: k3 = 3.4 (25/c)^(2/3); DIN: kt = 0.4, sr,max = min(Ø/(3.6 ρ) or 1.3 (h − x); σs Ø/(3.6 fct)); Model Code 2010: sr = 2 [c + Ø/(4 τbm/fctm ρ)]
-    /// with τbm/fctm = 1.8 (short) or 1.35 (long), βmin = 1 − kt. MC2010 and DIN only with ribbed bars.
+    /// with τbm/fctm = 1.8 (short) or 1.35 (long), βmin = 1 − kt. MC2010 and DIN only with ribbed bars. These are the rules of
+    /// <see cref="SectionCrackOptions.Default"/>; <see cref="SectionCrackOptions.ModelCode2010BondStages"/> and <see cref="SectionCrackOptions.DinKtByDuration"/>
+    /// select the stages of fib MC2010 Tab. 7.6-2 and kt by duration for DIN.
     /// </summary>
     public static class CrackWidthCalculator
     {
-        public static double Width(CrackProfile profile, CrackWidthInput p, List<ShearCalculationDetail> details = null) => Width(profile, p, details, null, null, false);
+        public static double Width(CrackProfile profile, CrackWidthInput p, List<ShearCalculationDetail> details = null) => Width(profile, p, details, null, null, false, null);
+
+        /// <summary><see cref="Width(CrackProfile, CrackWidthInput, List{ShearCalculationDetail})"/> with the rules of <paramref name="options"/> (null: <see cref="SectionCrackOptions.Default"/>).</summary>
+        public static double Width(CrackProfile profile, CrackWidthInput p, List<ShearCalculationDetail> details, SectionCrackOptions options)
+            => Width(profile, p, details, null, null, false, options);
 
         /// <summary>
         /// <see cref="Width(CrackProfile, CrackWidthInput, List{ShearCalculationDetail})"/> that also writes the trace of ANTHEA (Ntc2018Checks.CalculateCrackWidth,
         /// ConcreteCodeChecks.CrackWidth) for the region (null: section); <paramref name="k2FromBars"/> is the rule before D7-b, which keeps the k₂ text of MC2010 / DIN.
         /// </summary>
-        internal static double Width(CrackProfile profile, CrackWidthInput p, List<ShearCalculationDetail> details, CrackTraceBuilder trace, string region, bool k2FromBars)
+        internal static double Width(CrackProfile profile, CrackWidthInput p, List<ShearCalculationDetail> details, CrackTraceBuilder trace, string region, bool k2FromBars,
+            SectionCrackOptions options)
         {
             if (p == null) throw new ArgumentNullException(nameof(p));
+            options = options ?? SectionCrackOptions.Default;
             if (new[] { p.Es, p.Ecm, p.Fct, p.Rho, p.Diameter, p.Spacing, p.TensileDepth }.Any(v => double.IsNaN(v) || double.IsInfinity(v) || v <= 0)
                 || double.IsNaN(p.SteelStress + p.Cover + p.K2) || double.IsInfinity(p.SteelStress + p.Cover + p.K2) || p.SteelStress < 0 || p.Cover < 0 || p.K2 < .5 || p.K2 > 1)
                 throw CrackRejection.Create(CrackRejection.WidthParameters, "Cracking: invalid crack-width parameters.");
@@ -106,13 +114,28 @@ namespace GPC.Checkers.Concrete.Cracking
             }
             bool mc = profile == CrackProfile.ModelCode2010, din = profile == CrackProfile.DinEN1992p11, ds = profile == CrackProfile.DsEN1992p11;
             if ((mc || din) && !p.Ribbed) throw CrackRejection.Create(CrackRejection.RibbedBarsRequired, "Cracking: the Model Code 2010 / DIN crack model is implemented for ribbed bars.");
-            double ktEc = din ? .4 : p.ShortTerm ? .6 : .4;
+            double ktEc = din && !options.DinKtByDuration ? .4 : p.ShortTerm ? .6 : .4;
             double lower = mc ? 1 - ktEc : .6;
             double strainEc = Math.Max(lower * sigma / es, (sigma - ktEc * p.Fct / rho * (1 + es / p.Ecm * rho)) / es);
+            string strainExpression = "max[(σs − kt fct/ρ (1 + αe ρ))/Es; βmin σs/Es]";
+            // fib MC2010 §7.6.4.4, Tab. 7.6-2 (option, R1): σsr chooses the stage, then τbms and β of that stage; the default keeps τbm/fctm by duration with β = kt.
+            bool stages = mc && options.ModelCode2010BondStages, stabilized = false;
+            double tauRatio = p.ShortTerm ? 1.8 : 1.35, sigmaSr = double.NaN;
+            if (stages)
+            {
+                sigmaSr = p.Fct / rho * (1 + es / p.Ecm * rho);
+                stabilized = sigma >= sigmaSr;
+                ktEc = stabilized && !p.ShortTerm ? .4 : .6;
+                tauRatio = stabilized || p.ShortTerm ? 1.8 : 1.35;
+                lower = 1 - ktEc;
+                strainEc = stabilized ? (sigma - ktEc * sigmaSr) / es : lower * sigma / es;
+                strainExpression = stabilized ? "(σs − β σsr)/Es, stabilized cracking (fib MC2010 Tab. 7.6-2)" : "(1 − β) σs/Es, single crack formation (fib MC2010 Tab. 7.6-2)";
+            }
+            string stage = !stages ? null : stabilized ? CrackTraceFlags.StabilizedCrackStage : CrackTraceFlags.SingleCrackStage;
             double k3 = ds && cover > 0 ? 3.4 * Math.Pow(25 / cover, 2d / 3) : 3.4;
             double sr = k3 * cover + (p.Ribbed ? .8 : 1.6) * p.K2 * .425 * phi / rho;
             string formula = "k3 c + k1 k2 k4 Ø/ρ", variant = CrackTraceFlags.FormulaStandard;
-            if (mc) { sr = 2 * (cover + phi / (4 * (p.ShortTerm ? 1.8 : 1.35) * rho)); formula = "2 [c + Ø/(4 τbm/fctm ρ)]"; variant = CrackTraceFlags.FormulaModelCode2010; }
+            if (mc) { sr = 2 * (cover + phi / (4 * tauRatio * rho)); formula = "2 [c + Ø/(4 τbm/fctm ρ)]"; variant = CrackTraceFlags.FormulaModelCode2010; }
             else if (din)
             {
                 double freeSpacing = p.Spacing > 5 * (cover + phi / 2) ? 1.3 * p.TensileDepth : phi / (3.6 * rho);
@@ -120,21 +143,24 @@ namespace GPC.Checkers.Concrete.Cracking
                 formula = "min[Ø/(3.6 ρ) or 1.3 (h − x); σs Ø/(3.6 fct)]"; variant = CrackTraceFlags.FormulaDin;
             }
             else if (p.Spacing > 5 * (cover + phi / 2)) { sr = 1.3 * p.TensileDepth; formula = "1.3 (h − x), sparse bars (7.14)"; variant = CrackTraceFlags.FormulaSparseBars; }
-            Add("ρp,eff", rho, "−", "As,eff / Ac,eff"); Add("αe", es / p.Ecm, "−", "Es / Ecm"); Add("kt", ktEc, "−", "duration / standard");
+            Add("ρp,eff", rho, "−", "As,eff / Ac,eff"); Add("αe", es / p.Ecm, "−", "Es / Ecm"); Add("kt", ktEc, "−", stages ? "β of fib MC2010 Tab. 7.6-2" : "duration / standard");
             Add("k2", p.K2, "−", "strain distribution"); Add("k3", k3, "−", ds ? "3.4 (25/c)^(2/3)" : "3.4");
-            Add("sr,max", sr, "mm", formula); Add("εsm − εcm", strainEc, "−", "max[(σs − kt fct/ρ (1 + αe ρ))/Es; βmin σs/Es]");
-            Add("βmin", lower, "−", mc ? "1 − kt" : "0.6"); Add("wk", sr * strainEc, "mm", "sr,max (εsm − εcm)");
+            if (stages) { Add("σsr", sigmaSr, "MPa", "fctm/ρ (1 + αe ρ)"); Add("τbms/fctm", tauRatio, "−", "fib MC2010 Tab. 7.6-2"); }
+            Add("sr,max", sr, "mm", formula); Add("εsm − εcm", strainEc, "−", strainExpression);
+            Add("βmin", lower, "−", stages ? "1 − β" : mc ? "1 − kt" : "0.6"); Add("wk", sr * strainEc, "mm", "sr,max (εsm − εcm)");
             if (trace != null)
             {
                 // ConcreteCodeChecks.CrackWidth (ANTHEA ConcreteCodeChecks.cs:206-211): ρ, αe, kt, k2, σs, c, Øeq, s, sr,max, εsm − εcm, βmin, wk (no k3 entry).
+                // With the stages of MC2010 also σsr and τbms/fctm before sr,max, and the stage on kt (= β), εsm − εcm and βmin.
                 const string none = CrackTraceBuilder.Dimensionless;
                 trace.Add(CrackTraceCodes.Rho, rho, none, region); trace.Add(CrackTraceCodes.AlphaE, es / p.Ecm, none, region);
-                trace.Add(CrackTraceCodes.Kt, ktEc, none, region, p.ShortTerm ? CrackTraceFlags.ShortTerm : CrackTraceFlags.LongTerm);
+                trace.Add(CrackTraceCodes.Kt, ktEc, none, region, p.ShortTerm ? CrackTraceFlags.ShortTerm : CrackTraceFlags.LongTerm, stage);
                 trace.Add(CrackTraceCodes.K2, p.K2, none, region, (mc || din) && !k2FromBars ? CrackTraceFlags.NotInWidthFormula : null);
                 trace.Add(CrackTraceCodes.SteelStress, sigma, "MPa", region, CrackTraceFlags.Formula); trace.Add(CrackTraceCodes.Cover, cover, "mm", region, CrackTraceFlags.Formula);
                 trace.Add(CrackTraceCodes.EquivalentDiameter, phi, "mm", region, CrackTraceFlags.Formula); trace.Add(CrackTraceCodes.Spacing, p.Spacing, "mm", region, CrackTraceFlags.Formula);
-                trace.Add(CrackTraceCodes.MaximumCrackSpacing, sr, "mm", region, variant); trace.Add(CrackTraceCodes.MeanStrainDifference, strainEc, none, region);
-                trace.Add(CrackTraceCodes.BetaMinimum, lower, none, region); trace.Add(CrackTraceCodes.Width, sr * strainEc, "mm", region);
+                if (stages) { trace.Add(CrackTraceCodes.CrackingSteelStress, sigmaSr, "MPa", region, stage); trace.Add(CrackTraceCodes.BondStressRatio, tauRatio, none, region, stage); }
+                trace.Add(CrackTraceCodes.MaximumCrackSpacing, sr, "mm", region, variant); trace.Add(CrackTraceCodes.MeanStrainDifference, strainEc, none, region, stage);
+                trace.Add(CrackTraceCodes.BetaMinimum, lower, none, region, stage); trace.Add(CrackTraceCodes.Width, sr * strainEc, "mm", region);
             }
             return sr * strainEc;
         }
@@ -146,29 +172,39 @@ namespace GPC.Checkers.Concrete.Cracking
         /// </summary>
         public static double UnbondedUpperBound(CrackProfile profile, double steelStress, double es, double fct, double diameter, double tensileDepth, bool shortTerm, bool ribbed,
             List<ShearCalculationDetail> details = null)
-            => UnbondedUpperBound(profile, steelStress, es, fct, diameter, tensileDepth, shortTerm, ribbed, details, null);
+            => UnbondedUpperBound(profile, steelStress, es, fct, diameter, tensileDepth, shortTerm, ribbed, details, null, null);
+
+        /// <summary><see cref="UnbondedUpperBound(CrackProfile, double, double, double, double, double, bool, bool, List{ShearCalculationDetail})"/> with the rules of
+        /// <paramref name="options"/> (null: <see cref="SectionCrackOptions.Default"/>).</summary>
+        public static double UnbondedUpperBound(CrackProfile profile, double steelStress, double es, double fct, double diameter, double tensileDepth, bool shortTerm, bool ribbed,
+            List<ShearCalculationDetail> details, SectionCrackOptions options)
+            => UnbondedUpperBound(profile, steelStress, es, fct, diameter, tensileDepth, shortTerm, ribbed, details, null, options);
 
         /// <summary><see cref="UnbondedUpperBound(CrackProfile, double, double, double, double, double, bool, bool, List{ShearCalculationDetail})"/> that also writes the
         /// trace of ANTHEA (ConcreteCodeChecks.UnbondedCrackWidthBound, ConcreteCodeChecks.cs:230-231).</summary>
         internal static double UnbondedUpperBound(CrackProfile profile, double steelStress, double es, double fct, double diameter, double tensileDepth, bool shortTerm, bool ribbed,
-            List<ShearCalculationDetail> details, CrackTraceBuilder trace)
+            List<ShearCalculationDetail> details, CrackTraceBuilder trace, SectionCrackOptions options)
         {
             if (new[] { es, fct, diameter, tensileDepth }.Any(v => double.IsNaN(v) || double.IsInfinity(v) || v <= 0) || double.IsNaN(steelStress) || double.IsInfinity(steelStress) || steelStress < 0)
                 throw CrackRejection.Create(CrackRejection.UpperBoundParameters, "Cracking: invalid crack-width parameters.");
+            options = options ?? SectionCrackOptions.Default;
             void Add(string symbol, double value, string unit, string expression) => details?.Add(new ShearCalculationDetail(symbol, value, unit, expression));
             bool mc = profile == CrackProfile.ModelCode2010, din = profile == CrackProfile.DinEN1992p11;
             if ((mc || din) && !ribbed) throw CrackRejection.Create(CrackRejection.RibbedBarsRequired, "Cracking: the Model Code 2010 / DIN crack model is implemented for ribbed bars.");
-            double lower = mc ? 1 - (shortTerm ? .6 : .4) : .6, strain = lower * steelStress / es;
+            // With the stages of MC2010 (option, R1) ρ → 0 gives σsr → ∞: single crack formation, β = 0.6 for every duration (Tab. 7.6-2).
+            bool stages = mc && options.ModelCode2010BondStages;
+            double lower = stages ? 1 - .6 : mc ? 1 - (shortTerm ? .6 : .4) : .6, strain = lower * steelStress / es;
+            string stage = stages ? CrackTraceFlags.SingleCrackStage : null;
             double sr = CrackProfiles.IsNtc(profile) ? 1.7 * .75 * tensileDepth : 1.3 * tensileDepth;
             string formula = CrackProfiles.IsNtc(profile) ? "1.7 · 0.75 (h − x), no bonded bar in Ac,eff" : "1.3 (h − x), no bonded bar in Ac,eff (7.3.4(3), eq. (7.14))";
             if (din) { sr = Math.Min(sr, steelStress * diameter / (3.6 * fct)); formula = "min[1.3 (h − x); σs Ø/(3.6 fct)], no bonded bar in Ac,eff"; }
-            Add("εsm − εcm", strain, "−", "βmin σs/Es (ρp,eff → 0)"); Add("βmin", lower, "−", mc ? "1 − kt" : "0.6");
+            Add("εsm − εcm", strain, "−", "βmin σs/Es (ρp,eff → 0)"); Add("βmin", lower, "−", stages ? "1 − β, single crack formation (fib MC2010 Tab. 7.6-2)" : mc ? "1 − kt" : "0.6");
             Add("sr,max", sr, "mm", formula); Add("wk", sr * strain, "mm", "sr,max (εsm − εcm), upper bound");
             if (trace != null)
             {
                 const string none = CrackTraceBuilder.Dimensionless, bound = CrackTraceFlags.UpperBound;
                 string variant = din ? CrackTraceFlags.UpperBoundDin : CrackProfiles.IsNtc(profile) ? CrackTraceFlags.UpperBoundNtc : CrackTraceFlags.UpperBoundEurocode;
-                trace.Add(CrackTraceCodes.MeanStrainDifference, strain, none, null, bound); trace.Add(CrackTraceCodes.BetaMinimum, lower, none, null, bound);
+                trace.Add(CrackTraceCodes.MeanStrainDifference, strain, none, null, bound, stage); trace.Add(CrackTraceCodes.BetaMinimum, lower, none, null, bound, stage);
                 trace.Add(CrackTraceCodes.MaximumCrackSpacing, sr, "mm", null, bound, variant); trace.Add(CrackTraceCodes.Width, sr * strain, "mm", null, bound);
             }
             return sr * strain;

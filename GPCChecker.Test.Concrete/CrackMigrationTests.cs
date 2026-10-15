@@ -4,6 +4,7 @@ using GPC.Checkers.Concrete.Cracking;
 using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Checkers.Concrete.Serviceability;
+using GPC.Checkers.Concrete.Shear;
 using GPC.Geometry;
 using GPC.Model.Materials;
 using GPC.Model.Persistence;
@@ -385,6 +386,105 @@ namespace ConcreteTests
             Assert.AreEqual(CrackOutcome.Evaluated, u.Outcome, u.Status); StringAssert.StartsWith(u.Status, "No bar in Ac,eff");
             Assert.AreEqual(1.7 * .75 * 100 * 3e-4, u.Width.Value, 1e-12); Assert.AreEqual(uLegacy.Width, u.Width); Assert.AreEqual(uLegacy.Passed, u.Passed);
             Assert.AreEqual(.5, u.K2.Value); Assert.AreEqual(1, uLegacy.K2.Value);
+        }
+
+        /// <summary>
+        /// R1 of ANTHEA (registro-differenze; decision of the user 15/10/2026, secondary sources): with ModelCode2010BondStages the width of fib MC2010 follows
+        /// the stage of Tab. 7.6-2. Independent values, exact fractions of the formulas of the research report (not of this code): σs = 250, Es = 200000,
+        /// Ecm = 33000, fctm = 2.9, Ø20, c = 40. Long term, ρ = 0.02: stabilized (σsr = 162.58 ≤ σs, β = 0.4, τbms = 1.8 fctm), wk = 0.330890; ρ = 0.01:
+        /// single crack formation (σsr = 307.58, β = 0.6, τbms = 1.35 fctm), wk = 0.410370. Short term the default is already Tab. 7.6-2 (0.272724, 0.317778).
+        /// The default keeps the rule of 0.0.17.0 (τbms = 1.35 fctm with β = 0.4 at long term). Without bonded bars the bound takes the formation stage.
+        /// </summary>
+        [TestMethod]
+        public void ModelCode2010StagesFollowTable762()
+        {
+            var stages = SectionCrackOptions.Default.WithModelCode2010BondStages(true);
+            CrackWidthInput W(double rho, bool shortTerm) => new CrackWidthInput(250, 200000, 33000, 2.9, rho, 20, 40, 100, 330, shortTerm, true, .5);
+            foreach (var c in new[] { Tuple.Create(.02, false, 0.3308902356902357, "stabilized"), Tuple.Create(.01, false, 0.4103703703703704, "single crack formation"),
+                Tuple.Create(.02, true, 0.2727242424242424, "stabilized"), Tuple.Create(.01, true, 0.31777777777777777, "single crack formation") })
+            {
+                string what = "ρ " + c.Item1.ToString(CultureInfo.InvariantCulture) + (c.Item2 ? " short" : " long");
+                var details = new List<ShearCalculationDetail>();
+                double wk = CrackWidthCalculator.Width(CrackProfile.ModelCode2010, W(c.Item1, c.Item2), details, stages);
+                Assert.AreEqual(c.Item3, wk, 1e-12, what);
+                StringAssert.Contains(details.Single(d => d.Symbol == "εsm − εcm").Expression, c.Item4, what);
+                Assert.AreEqual(c.Item4 == "stabilized" ? 1.8 : c.Item2 ? 1.8 : 1.35, details.Single(d => d.Symbol == "τbms/fctm").Value, what);
+                double legacy = CrackWidthCalculator.Width(CrackProfile.ModelCode2010, W(c.Item1, c.Item2));
+                Assert.AreEqual(legacy, CrackWidthCalculator.Width(CrackProfile.ModelCode2010, W(c.Item1, c.Item2), null, SectionCrackOptions.Default), what + ": default of 0.0.17.0");
+                if (c.Item2) Assert.AreEqual(legacy, wk, 1e-12, what + ": short term unchanged");
+                else Assert.IsTrue(legacy > wk * 1.2, what + ": the rule of 0.0.17.0 is larger at long term");
+            }
+            Assert.AreEqual(0.2145, CrackWidthCalculator.UnbondedUpperBound(CrackProfile.ModelCode2010, 250, 200000, 2.9, 20, 330, false, true, null, stages), 1e-12);
+            Assert.AreEqual(0.2145, CrackWidthCalculator.UnbondedUpperBound(CrackProfile.ModelCode2010, 250, 200000, 2.9, 20, 330, true, true, null, stages), 1e-12);
+            Assert.AreEqual(1.3 * 330 * .6 * 250 / 200000, CrackWidthCalculator.UnbondedUpperBound(CrackProfile.ModelCode2010, 250, 200000, 2.9, 20, 330, false, true), 1e-12,
+                "default, long term: βmin = 1 − kt = 0.6");
+            // The option changes only MC2010.
+            foreach (var profile in new[] { CrackProfile.Ntc2018, CrackProfile.EN1992p11, CrackProfile.DinEN1992p11, CrackProfile.DsEN1992p11 })
+                Assert.AreEqual(CrackWidthCalculator.Width(profile, W(.02, false)), CrackWidthCalculator.Width(profile, W(.02, false), null, stages), profile.ToString());
+        }
+
+        /// <summary>
+        /// R2 of ANTHEA (decision of the user 15/10/2026, secondary sources): with DinKtByDuration the DIN profile uses kt = 0.6 short and 0.4 long term.
+        /// Independent values (exact fractions): σs = 250, ρ = 0.02: short 0.211742, long 0.256902; σs = 150, ρ = 0.01, short: 0.129310 (0.6 σs/Es governs).
+        /// The default keeps kt = 0.4 for every duration (DIN 1045-1), so its short-term width is the long-term one.
+        /// </summary>
+        [TestMethod]
+        public void DinKtFollowsTheDuration()
+        {
+            var byDuration = SectionCrackOptions.Default.WithDinKtByDuration(true);
+            CrackWidthInput W(double sigma, double rho, bool shortTerm) => new CrackWidthInput(sigma, 200000, 33000, 2.9, rho, 20, 40, 100, 330, shortTerm, true, .5);
+            Assert.AreEqual(0.21174242424242423, CrackWidthCalculator.Width(CrackProfile.DinEN1992p11, W(250, .02, true), null, byDuration), 1e-12);
+            Assert.AreEqual(0.2569023569023569, CrackWidthCalculator.Width(CrackProfile.DinEN1992p11, W(250, .02, false), null, byDuration), 1e-12);
+            Assert.AreEqual(0.12931034482758622, CrackWidthCalculator.Width(CrackProfile.DinEN1992p11, W(150, .01, true), null, byDuration), 1e-12);
+            Assert.AreEqual(0.2569023569023569, CrackWidthCalculator.Width(CrackProfile.DinEN1992p11, W(250, .02, true)), 1e-12, "default: kt = 0.4 also at short term");
+            var details = new List<ShearCalculationDetail>();
+            CrackWidthCalculator.Width(CrackProfile.DinEN1992p11, W(250, .02, true), details, byDuration);
+            Assert.AreEqual(.6, details.Single(d => d.Symbol == "kt").Value);
+            foreach (var profile in new[] { CrackProfile.Ntc2018, CrackProfile.EN1992p11, CrackProfile.ModelCode2010, CrackProfile.DsEN1992p11 })
+                Assert.AreEqual(CrackWidthCalculator.Width(profile, W(250, .02, true)), CrackWidthCalculator.Width(profile, W(250, .02, true), null, byDuration), profile.ToString());
+        }
+
+        /// <summary>
+        /// F2-7 point 3 of ANTHEA (decision of the user 15/10/2026): with UnreinforcedTensileZoneFails a tensile zone without reinforcement fails, with the same
+        /// outcome and no width; without the option there is no verdict, as before. R300x500 with bars only at the top and the bottom edge in tension
+        /// (NoTensileReinforcement); the neutral axis within the cover of the bottom bars keeps wk = 0; uniform tension with bars only at the bottom (face +y
+        /// without steel); box with the side walls in tension without bars (inner surfaces).
+        /// </summary>
+        [TestMethod]
+        public void UnreinforcedTensileZoneFailsWithTheOption()
+        {
+            var fails = SectionCrackOptions.Default.WithUnreinforcedTensileZoneFails(true);
+            SectionCrackResult C(CrackBar[] bars, StrainPlane plane, SectionCrackOptions options, double? spacing = null)
+                => SectionCrackCheck.Evaluate(new SectionCrackInput(Ntc, ServiceabilityCombination.QuasiPermanent, "XC1", false, null,
+                    new CrackSectionGeometry(Rectangle300x500, null, bars, CrackBarLayout.Rows), plane, bars.Select(b => 200000 * plane.GetStrain(b.X, b.Y)), true, false, false,
+                    200000, 33000, 2.9, false, true, 40, null, spacing, null, false, options));
+            var cover = new StrainPlane(0, -1e-5, new Point2d(0, -230), 0);
+            var none = C(Row(200), cover, SectionCrackOptions.Default); var failed = C(Row(200), cover, fails);
+            Assert.AreEqual(CrackOutcome.NoTensileReinforcement, none.Outcome); Assert.IsNull(none.Passed); Assert.AreEqual(CrackVerdict.NotEvaluated, none.Verdict);
+            Assert.AreEqual(CrackOutcome.NoTensileReinforcement, failed.Outcome); Assert.AreEqual(false, failed.Passed); Assert.AreEqual(CrackVerdict.NotSatisfied, failed.Verdict);
+            Assert.IsNull(failed.Width); StringAssert.Contains(failed.Status, "crack width not controlled");
+            foreach (var options in new[] { SectionCrackOptions.Default, fails })
+            {
+                var inCover = C(Bottom, cover, options);
+                Assert.AreEqual(0, inCover.Width.Value); Assert.AreEqual(true, inCover.Passed, "neutral axis within the cover: wk = 0");
+            }
+            var uniform = new StrainPlane(0, 0, new Point2d(0, 0), 5e-4);
+            var face = C(Bottom, uniform, SectionCrackOptions.Default, 100); var faceFailed = C(Bottom, uniform, fails, 100);
+            Assert.AreEqual(CrackReason.FaceWithoutAreaOrSteel, face.Reason); Assert.IsNull(face.Passed); Assert.AreEqual("Face+y: no effective area or reinforcement", face.Status);
+            Assert.AreEqual(CrackReason.FaceWithoutAreaOrSteel, faceFailed.Reason); Assert.AreEqual(CrackOutcome.NoEffectiveArea, faceFailed.Outcome);
+            Assert.AreEqual(false, faceFailed.Passed); Assert.IsNull(faceFailed.Width);
+            Assert.AreEqual("Face+y: no reinforcement in the effective band, crack width not controlled", faceFailed.Status);
+            // Box 400×600 of HollowSectionInnerWallKeepsItsBandK2: the side walls are tensile without bars.
+            var boxBars = new[] { -150d, -50, 50, 150 }.SelectMany(x => new[] { new CrackBar(x, -250, 20, Math.PI * 100), new CrackBar(x, 250, 20, Math.PI * 100) }).ToArray();
+            var boxPlane = new StrainPlane(0, -4e-6, new Point2d(0, 0), 0);
+            SectionCrackResult Box(SectionCrackOptions options) => SectionCrackCheck.Evaluate(new SectionCrackInput(Ntc, ServiceabilityCombination.QuasiPermanent, "XC1", false, null,
+                new CrackSectionGeometry(InnerBoxOutline, new[] { InnerBoxHole }, boxBars, CrackBarLayout.Rows), boxPlane, boxBars.Select(b => 200000 * boxPlane.GetStrain(b.X, b.Y)),
+                true, false, false, 200000, 33000, 2.9, false, true, 40, null, null, null, false, options));
+            var hollow = Box(SectionCrackOptions.Default); var hollowFailed = Box(fails);
+            Assert.AreEqual(CrackOutcome.InnerSurfaceUnreinforced, hollow.Outcome, hollow.Status); Assert.IsNull(hollow.Passed);
+            Assert.IsTrue(hollowFailed.Width.Value <= hollowFailed.Limit.Value, "the reinforced bands are within the limit");
+            Assert.AreEqual(false, hollowFailed.Passed, hollowFailed.Status); Assert.AreEqual(hollow.Width, hollowFailed.Width); Assert.IsNull(hollowFailed.Ratio);
+            StringAssert.Contains(hollowFailed.Status, "inner surface in tension without effective reinforcement");
         }
 
         /// <summary>
@@ -1369,7 +1469,9 @@ namespace ConcreteTests
             { CrackTraceCodes.MaximumCrackSpacing, "sr,max" }, { CrackTraceCodes.Width, "wk" }, { CrackTraceCodes.WidthRatio, "ηw" },
             { CrackTraceCodes.EntirelyTensileK2, "k₂ · interamente tesa" }, { CrackTraceCodes.GoverningFace, "Faccia governante" },
             { CrackTraceCodes.BandTensileDepth, "h − x della fascia" }, { CrackTraceCodes.BandK2, "k₂ della fascia" }, { CrackTraceCodes.GoverningSurface, "Superficie governante" },
-            { CrackTraceCodes.InnerBoundaryNote, "Contorno interno" }
+            { CrackTraceCodes.InnerBoundaryNote, "Contorno interno" },
+            // Stages of fib MC2010 (SectionCrackOptions.ModelCode2010BondStages, 0.10.0.0): new in the library, not in the legacy.
+            { CrackTraceCodes.CrackingSteelStress, "σsr" }, { CrackTraceCodes.BondStressRatio, "τbms/fctm" }
         };
 
         private static readonly string[] BarCodes = { CrackTraceCodes.BarStrain, CrackTraceCodes.BarX, CrackTraceCodes.BarY, CrackTraceCodes.BarQ, CrackTraceCodes.BarDiameter,
@@ -1420,7 +1522,7 @@ namespace ConcreteTests
                 foreach (var f in fields) Assert.AreEqual(f.Name, (string)f.GetRawConstantValue(), type.Name + "." + f.Name);
             }
             var codes = typeof(CrackTraceCodes).GetFields().Select(f => (string)f.GetRawConstantValue()).ToArray();
-            Assert.AreEqual(91, codes.Length);
+            Assert.AreEqual(93, codes.Length);
             var composed = new[] { CrackTraceCodes.CompressedBars, CrackTraceCodes.TensileBars, CrackTraceCodes.ZeroStressBars, CrackTraceCodes.RegionCheck };
             CollectionAssert.AreEquivalent(codes, LegacySymbols.Keys.Concat(composed).ToArray());
         }

@@ -380,9 +380,15 @@ namespace GPC.Checkers.Concrete.Cracking
             if (tensile.Length == 0)
             {
                 // Neutral axis within the cover of the tensile edge: the reinforcement of that face (closer than h/2, upper bound of hc,eff) is compressed,
-                // σs ≤ 0 and wk = 0 (limit of EC2 7.3.4 for σs → 0). Without bars on that side the tensile zone is unreinforced: no verdict.
+                // σs ≤ 0 and wk = 0 (limit of EC2 7.3.4 for σs → 0). Without bars on that side the tensile zone is unreinforced: no verdict, or with
+                // UnreinforcedTensileZoneFails a failed check (no bar controls the cracks, EN 1992-1-1 7.3.2(1)).
                 double nearest = g.Bars.Count == 0 ? double.PositiveInfinity : top - g.Bars.Max(b => Q(b.X, b.Y));
-                if (!(nearest < height / 2)) return Stop(CrackOutcome.NoTensileReinforcement, "No tensile reinforcement");
+                if (!(nearest < height / 2))
+                {
+                    if (!p.Options.UnreinforcedTensileZoneFails) return Stop(CrackOutcome.NoTensileReinforcement, "No tensile reinforcement");
+                    result.Passed = false;
+                    return Stop(CrackOutcome.NoTensileReinforcement, "No tensile reinforcement: unreinforced tensile zone, crack width not controlled");
+                }
                 Add("h − d,min", nearest, "mm", "Qmax − Q of the bar nearest to the tensile edge > h − x");
                 trace?.Add(CrackTraceCodes.NearestBarDepth, nearest, "mm");
                 result.Width = 0; result.Ratio = 0; result.Passed = true;
@@ -434,7 +440,7 @@ namespace GPC.Checkers.Concrete.Cracking
                     trace.Add(CrackTraceCodes.EquivalentDiameter, phiT, "mm", null, CrackTraceFlags.TensileBars);
                     trace.Add(CrackTraceCodes.SteelStress, sigmaT, "MPa", null, CrackTraceFlags.TensileBars);
                 }
-                double bound = CrackWidthCalculator.UnbondedUpperBound(profile, sigmaT, p.Es, p.Fctm, phiT, tensileDepth, p.ShortTerm, p.RibbedBars, details, trace);
+                double bound = CrackWidthCalculator.UnbondedUpperBound(profile, sigmaT, p.Es, p.Fctm, phiT, tensileDepth, p.ShortTerm, p.RibbedBars, details, trace, p.Options);
                 trace?.Add(CrackTraceCodes.WidthRatio, bound / wlim, none);
                 trace?.Outcome(region.Key, CrackOutcome.Evaluated, bound);
                 result.Width = bound; result.Ratio = bound / wlim; result.Passed = bound <= wlim; result.EffectiveArea = aceff; result.EffectiveSteel = 0;
@@ -478,7 +484,7 @@ namespace GPC.Checkers.Concrete.Cracking
             // The k2 of the width formula is the section-level k2 already in the trace with its reason: one k2 entry only.
             var formula = new List<ShearCalculationDetail>();
             double width = CrackWidthCalculator.Width(profile, new CrackWidthInput(sigma, p.Es, p.Ecm, p.Fctm, steel / aceff, phi, c, spacing.Value, tensileDepth, p.ShortTerm, p.RibbedBars, k2), formula,
-                trace, null, p.NtcK2FromCompressedBars);
+                trace, null, p.NtcK2FromCompressedBars, p.Options);
             details.AddRange(formula.Where(d => d.Symbol != "k2"));
             trace?.Add(CrackTraceCodes.WidthRatio, width / wlim, none);
             trace?.Outcome(region.Key, CrackOutcome.Evaluated, width);
@@ -561,7 +567,10 @@ namespace GPC.Checkers.Concrete.Cracking
                 if (region.Area <= 0 || region.SteelArea <= 0)
                 {
                     result.Reason = CrackReason.FaceWithoutAreaOrSteel;
-                    return Stop(CrackOutcome.NoEffectiveArea, key + ": no effective area or reinforcement", region);
+                    // A tensile face with concrete but no bar in its band: no verdict, or with UnreinforcedTensileZoneFails a failed check.
+                    if (!p.Options.UnreinforcedTensileZoneFails || !(region.Area > 0)) return Stop(CrackOutcome.NoEffectiveArea, key + ": no effective area or reinforcement", region);
+                    result.Passed = false;
+                    return Stop(CrackOutcome.NoEffectiveArea, key + ": no reinforcement in the effective band, crack width not controlled", region);
                 }
                 double phi = indices.Sum(i => g.Bars[i].Diameter * g.Bars[i].Diameter) / indices.Sum(i => g.Bars[i].Diameter);
                 double cover = p.UsedCoverOverride() ?? indices.Min(i => top - Q(g.Bars[i].X, g.Bars[i].Y) - g.Bars[i].Diameter / 2);
@@ -571,7 +580,7 @@ namespace GPC.Checkers.Concrete.Cracking
                 var calculation = new List<ShearCalculationDetail>();
                 int start = trace?.Count ?? 0;
                 double width = CrackWidthCalculator.Width(profile, new CrackWidthInput(sigma, p.Es, p.Ecm, p.Fctm, region.SteelArea / region.Area, phi, cover, spacing.Value, height,
-                    p.ShortTerm, p.RibbedBars, k2), calculation, trace, key, p.NtcK2FromCompressedBars);
+                    p.ShortTerm, p.RibbedBars, k2), calculation, trace, key, p.NtcK2FromCompressedBars, p.Options);
                 formulae.Add(Tuple.Create(start, trace?.Count ?? 0));
                 trace?.Outcome(key, CrackOutcome.Evaluated, width);
                 details.AddRange(calculation.Select(d => new ShearCalculationDetail(key + " · " + d.Symbol, d.Value, d.Unit, d.Expression)));
@@ -593,7 +602,7 @@ namespace GPC.Checkers.Concrete.Cracking
                 var calculation = new List<ShearCalculationDetail>();
                 int start = trace?.Count ?? 0;
                 double width = .5 * CrackWidthCalculator.Width(CrackProfile.DsEN1992p11, new CrackWidthInput(stresses.Max(), p.Es, p.Ecm, p.Fctm, steel / area, phi, cover, spacing.Value,
-                    Math.Max(g.Width, g.Height), p.ShortTerm, p.RibbedBars, k2), calculation, trace, coarse.Key, p.NtcK2FromCompressedBars);
+                    Math.Max(g.Width, g.Height), p.ShortTerm, p.RibbedBars, k2), calculation, trace, coarse.Key, p.NtcK2FromCompressedBars, p.Options);
                 // ANTHEA ConcreteTensionCracking.cs:66: the halved wk closes the trace of the coarse system.
                 trace?.Add(CrackTraceCodes.Width, width, "mm", coarse.Key, CrackTraceFlags.DsCoarseHalf);
                 formulae.Add(Tuple.Create(start, trace?.Count ?? 0));
@@ -665,8 +674,10 @@ namespace GPC.Checkers.Concrete.Cracking
                 regions.Add(region);
                 if (steel <= 0)
                 {
+                    // No verdict for the surface, or with UnreinforcedTensileZoneFails a failed check that makes the envelope fail.
                     trace?.Outcome(key, CrackOutcome.InnerSurfaceUnreinforced, null);
-                    results.Add(new SectionCrackResult { Limit = limit, Outcome = CrackOutcome.InnerSurfaceUnreinforced, Status = key + ": inner surface in tension without effective reinforcement" });
+                    results.Add(new SectionCrackResult { Limit = limit, Outcome = CrackOutcome.InnerSurfaceUnreinforced, Status = key + ": inner surface in tension without effective reinforcement",
+                        Passed = p.Options.UnreinforcedTensileZoneFails ? false : (bool?)null });
                     return;
                 }
                 var bars = indices.Select(i => g.Bars[i]).ToArray();
@@ -706,7 +717,7 @@ namespace GPC.Checkers.Concrete.Cracking
                     if (!p.NtcK2FromCompressedBars) trace.Add(CrackTraceCodes.BandK2, k2, CrackTraceBuilder.Dimensionless, key, uniform ? CrackTraceFlags.Uniform : CrackTraceFlags.Local);
                 }
                 double width = CrackWidthCalculator.Width(profile, new CrackWidthInput(sigma, p.Es, p.Ecm, p.Fctm, steel / area, phi, c, spacing.Value, depth, p.ShortTerm, p.RibbedBars, k2), band,
-                    trace, key, p.NtcK2FromCompressedBars);
+                    trace, key, p.NtcK2FromCompressedBars, p.Options);
                 if (trace != null) { bandTraces[key] = Tuple.Create(start, trace.Count); trace.Outcome(key, CrackOutcome.Evaluated, width); }
                 details.Add(new ShearCalculationDetail(key + " · Ac,eff", area, "mm2", "tensile band of the inner surface, hole excluded"));
                 details.Add(new ShearCalculationDetail(key + " · As,eff", steel, "mm2", indices.Length + " bars"));
@@ -782,7 +793,8 @@ namespace GPC.Checkers.Concrete.Cracking
             }
             string missing = string.Join("; ", results.Where(r => !r.Width.HasValue).Select(r => r.Status));
             final.Details = details.AsReadOnly(); final.Regions = regions.ToArray();
-            final.Passed = governing.Width > limit ? false : incomplete ? (bool?)null : true;
+            bool unreinforced = results.Any(r => r.Outcome == CrackOutcome.InnerSurfaceUnreinforced && r.Passed == false);
+            final.Passed = governing.Width > limit || unreinforced ? false : incomplete ? (bool?)null : true;
             final.Ratio = incomplete && governing.Width <= limit ? null : governing.Ratio;
             final.Status = incomplete ? governing.Status + " · " + missing : governing.Status + " · outer and inner surfaces checked";
             if (incomplete && final.Passed == null) final.Outcome = results.First(r => !r.Width.HasValue).Outcome;

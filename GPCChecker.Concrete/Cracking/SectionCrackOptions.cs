@@ -61,6 +61,32 @@ namespace GPC.Checkers.Concrete.Cracking
         /// <summary>Creep coefficient φ of the bars in the stress analysis (analysis context, null by default), see <see cref="AnalysisConcreteModulus"/>.</summary>
         public double? AnalysisPsiRebar { get; private set; }
 
+        /// <summary>
+        /// fib Model Code 2010 (§7.6.4.4, Tab. 7.6-2) with the stage of cracking (false by default: the rule of 0.0.17.0, τbms/fctm = 1.8 short and 1.35 long
+        /// term with β = kt, kept for the frozen fixtures and the contract K0). With true, σsr = fctm/ρ (1 + αe ρ) chooses the stage: stabilized cracking
+        /// (σs ≥ σsr) with τbms = 1.8 fctm, β = 0.6 short and 0.4 long term, εsm − εcm = (σs − β σsr)/Es; single crack formation (σs &lt; σsr) with β = 0.6,
+        /// τbms = 1.8 fctm short and 1.35 fctm long term, εsm − εcm = (1 − β) σs/Es. Without bonded bars in Ac,eff the upper bound uses the formation stage
+        /// (βmin = 1 − 0.6). Shrinkage (ηr εsh) is not considered. Values from secondary sources (ANTHEA registro-differenze R1, decision of the user 15/10/2026).
+        /// </summary>
+        public bool ModelCode2010BondStages { get; private set; }
+
+        /// <summary>
+        /// DIN EN 1992-1-1/NA: kt = 0.6 short and 0.4 long term, as EN 1992-1-1 7.3.4(2) (false by default: kt = 0.4 for every duration, the fixed value of
+        /// DIN 1045-1 kept for the frozen fixtures and the contract K0). ANTHEA registro-differenze R2, decision of the user 15/10/2026.
+        /// </summary>
+        public bool DinKtByDuration { get; private set; }
+
+        /// <summary>
+        /// A tensile zone without reinforcement fails the crack-width check (false by default: no verdict, <see cref="SectionCrackResult.Passed"/> null, as in
+        /// 0.0.17.0). With true <see cref="SectionCrackResult.Passed"/> is false, with the same <see cref="SectionCrackResult.Outcome"/> and no width, in three
+        /// cases: <see cref="CrackOutcome.NoTensileReinforcement"/> (no tensile bar and the bar nearest to the tensile edge beyond h/2); a face of the entirely
+        /// tensile section with concrete but no bar in its effective band (<see cref="CrackReason.FaceWithoutAreaOrSteel"/>); an inner surface in tension without
+        /// effective reinforcement (<see cref="CrackOutcome.InnerSurfaceUnreinforced"/>). The cracks of such a zone are not controlled by any bar
+        /// (EN 1992-1-1 7.3.2(1)); the tensile strength of the concrete is not used. The neutral axis within the cover of a reinforced face keeps wk = 0.
+        /// ANTHEA F2-7 point 3, decision of the user 15/10/2026.
+        /// </summary>
+        public bool UnreinforcedTensileZoneFails { get; private set; }
+
         private SectionCrackOptions() { }
 
         /// <summary>Copy with <see cref="Trace"/>.</summary>
@@ -93,6 +119,24 @@ namespace GPC.Checkers.Concrete.Cracking
             if (effectiveDepthCover.HasValue && (double.IsNaN(effectiveDepthCover.Value) || double.IsInfinity(effectiveDepthCover.Value)))
                 throw new ArgumentOutOfRangeException(nameof(effectiveDepthCover));
             var copy = Copy(); copy.EffectiveDepthCover = effectiveDepthCover; return copy;
+        }
+
+        /// <summary>Copy with <see cref="ModelCode2010BondStages"/>.</summary>
+        public SectionCrackOptions WithModelCode2010BondStages(bool bondStages)
+        {
+            var copy = Copy(); copy.ModelCode2010BondStages = bondStages; return copy;
+        }
+
+        /// <summary>Copy with <see cref="DinKtByDuration"/>.</summary>
+        public SectionCrackOptions WithDinKtByDuration(bool ktByDuration)
+        {
+            var copy = Copy(); copy.DinKtByDuration = ktByDuration; return copy;
+        }
+
+        /// <summary>Copy with <see cref="UnreinforcedTensileZoneFails"/>.</summary>
+        public SectionCrackOptions WithUnreinforcedTensileZoneFails(bool fails)
+        {
+            var copy = Copy(); copy.UnreinforcedTensileZoneFails = fails; return copy;
         }
 
         private SectionCrackOptions Copy() => (SectionCrackOptions)MemberwiseClone();

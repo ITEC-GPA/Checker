@@ -243,7 +243,8 @@ namespace GPC.Checkers.Concrete.Cracking
         public const string Rho = "Rho";
         /// <summary>"αe" = Es/Ecm.</summary>
         public const string AlphaE = "AlphaE";
-        /// <summary>"kt": NTC with <see cref="CrackTraceFlags.ShortTerm"/> or <see cref="CrackTraceFlags.LongTerm"/>.</summary>
+        /// <summary>"kt": NTC with <see cref="CrackTraceFlags.ShortTerm"/> or <see cref="CrackTraceFlags.LongTerm"/>; MC2010 with
+        /// <see cref="SectionCrackOptions.ModelCode2010BondStages"/> it is β of Tab. 7.6-2, with the flag of the stage.</summary>
         public const string Kt = "Kt";
         /// <summary>"k₁" (NTC): <see cref="CrackTraceFlags.Ribbed"/> 0.8 or <see cref="CrackTraceFlags.Plain"/> 1.6.</summary>
         public const string K1 = "K1";
@@ -253,7 +254,8 @@ namespace GPC.Checkers.Concrete.Cracking
         public const string K3 = "K3";
         /// <summary>"k₄" = 0.425 (NTC).</summary>
         public const string K4 = "K4";
-        /// <summary>"β minimo deformazione": 0.6 (NTC, Eurocode), 1 − kt (MC2010); upper bound with <see cref="CrackTraceFlags.UpperBound"/>.</summary>
+        /// <summary>"β minimo deformazione": 0.6 (NTC, Eurocode), 1 − kt (MC2010; 1 − β with the stage flag and <see cref="SectionCrackOptions.ModelCode2010BondStages"/>);
+        /// upper bound with <see cref="CrackTraceFlags.UpperBound"/>.</summary>
         public const string BetaMinimum = "BetaMinimum";
         /// <summary>"β apertura" = 1.7 (NTC).</summary>
         public const string BetaWidth = "BetaWidth";
@@ -280,8 +282,13 @@ namespace GPC.Checkers.Concrete.Cracking
         /// <summary>"Δε minima" = 0.6 σs/Es (NTC); arguments SteelStress, Es.</summary>
         public const string MinimumStrainDifference = "MinimumStrainDifference";
         /// <summary>"εsm − εcm": NTC with <see cref="CrackTraceFlags.ComputedGoverns"/> or <see cref="CrackTraceFlags.MinimumGoverns"/>; Eurocode formula; upper bound
-        /// with <see cref="CrackTraceFlags.UpperBound"/>.</summary>
+        /// with <see cref="CrackTraceFlags.UpperBound"/>; MC2010 with <see cref="SectionCrackOptions.ModelCode2010BondStages"/> also with
+        /// <see cref="CrackTraceFlags.SingleCrackStage"/> or <see cref="CrackTraceFlags.StabilizedCrackStage"/>.</summary>
         public const string MeanStrainDifference = "MeanStrainDifference";
+        /// <summary>"σsr" = fctm/ρ (1 + αe ρ), MPa: MC2010 with <see cref="SectionCrackOptions.ModelCode2010BondStages"/>, flag of the stage it selects.</summary>
+        public const string CrackingSteelStress = "CrackingSteelStress";
+        /// <summary>"τbms/fctm" of fib MC2010 Tab. 7.6-2 (1.8 or 1.35): MC2010 with <see cref="SectionCrackOptions.ModelCode2010BondStages"/>, flag of the stage.</summary>
+        public const string BondStressRatio = "BondStressRatio";
         /// <summary>"Termine copriferro" = k₃ c, mm (NTC).</summary>
         public const string CoverTerm = "CoverTerm";
         /// <summary>"Termine armatura" = k₁ k₂ k₄ Øeq/ρp,eff, mm (NTC).</summary>
@@ -428,6 +435,10 @@ namespace GPC.Checkers.Concrete.Cracking
         public const string BoundedByHeight = "BoundedByHeight";
         /// <summary>k₂ of an inner band from the strains of its tensile part.</summary>
         public const string Local = "Local";
+        /// <summary>MC2010 with <see cref="SectionCrackOptions.ModelCode2010BondStages"/>: single crack formation stage (σs &lt; σsr; upper bound without bonded bars).</summary>
+        public const string SingleCrackStage = "SingleCrackStage";
+        /// <summary>MC2010 with <see cref="SectionCrackOptions.ModelCode2010BondStages"/>: stabilized cracking stage (σs ≥ σsr).</summary>
+        public const string StabilizedCrackStage = "StabilizedCrackStage";
     }
 
     /// <summary>Names of the arguments of the trace entries (<see cref="CrackTraceEntry.Arguments"/>).</summary>
