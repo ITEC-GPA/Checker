@@ -198,6 +198,30 @@ public sealed class BearingTests
     }
 
     [TestMethod]
+    public void MeyerhofUndrainedAppliesIqToTheSurcharge()
+    {
+        // GEO-1, user decision of 15/10/2026 (Meyerhof 1963 / USACE EM 1110-1-1905 Tab. 4-3 over the Califfo manual (3.16)):
+        // ic = iq = (1 − θ/90°)² for any φ; with φ = 0 only Nq = sq = dq = 1. Strip B = 2 m, D = 3 m, q = 18·3 = 54 kPa, cu = 75 kPa,
+        // N = 300 kN, H = 150 kN: θ = atan(0.5), i = 0.49679; qult = 75·(π + 2)·1.3·i + 54·i = 249.04 + 26.83 = 275.87 kPa
+        // (independent: scratchpad\bug\geo-meyerhof-iq\indip.py, 275.870; before + q: 303.04 kPa).
+        var x=Input(FoundationBearingMethod.Meyerhof);x.Shape=FoundationShape.Strip;x.Condition=FoundationSoilCondition.Undrained;
+        x.Depth=3000;x.Normal=300000;x.HorizontalX=150000;
+        var r=ShallowFoundationBearing.Calculate(x);
+        double i=Math.Pow(1-Math.Atan(.5)/(Math.PI/2),2);
+        Close(.4967892261934240,i,1e-12);Close(i,r.Cohesion.Inclination);Close(i,r.Surcharge.Inclination);
+        Close(54e-3*i,r.Surcharge.Pressure);Close((75*(Math.PI+2)*1.3+54)*i/1000,r.UltimatePressure);
+        Assert.AreEqual(275.870,r.UltimatePressure*1000,.001);
+        // Continuity with the drained branch at φ′ → 0 and c′ = cu (the verifier: 275.871 kPa).
+        var d=Input(FoundationBearingMethod.Meyerhof);d.Shape=FoundationShape.Strip;d.Depth=3000;d.Normal=300000;d.HorizontalX=150000;
+        d.FrictionAngle=1e-4*Math.PI/180;d.Cohesion=.075;
+        Close(r.UltimatePressure,ShallowFoundationBearing.Calculate(d).UltimatePressure,1e-4);
+        // Normal load: i = 1, the surcharge term stays q; the other methods keep + q also with H.
+        x.HorizontalX=0;var n=ShallowFoundationBearing.Calculate(x);Close(1,n.Surcharge.Inclination);Close(54e-3,n.Surcharge.Pressure);
+        var v=Input(FoundationBearingMethod.Vesic);v.Shape=FoundationShape.Strip;v.Condition=FoundationSoilCondition.Undrained;v.Depth=3000;v.Normal=300000;v.HorizontalX=40000;
+        var vr=ShallowFoundationBearing.Calculate(v);Close(1,vr.Surcharge.Inclination);Close(54e-3,vr.Surcharge.Pressure);
+    }
+
+    [TestMethod]
     public void RejectNonFiniteAndOutOfDomainInputs()
     {
         var x=Input();x.Width=double.NaN;Assert.ThrowsException<ArgumentException>(()=>ShallowFoundationBearing.Calculate(x));

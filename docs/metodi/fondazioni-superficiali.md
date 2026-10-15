@@ -36,7 +36,7 @@ Terzaghi Nγ: lacuna della pagina 6 sostituita con interpolazione lineare della 
 
 Hansen: il fattore di forma non drenato inclinato riportato a §3.27 del manuale sembra discontinuo rispetto alla specializzazione a carico normale. Non è stato possibile accertare una correzione sulla pubblicazione originale; questa rimane una questione aperta, non un bug accertato di Checker. Il ramo inclinato è esplicitamente escluso. Il ramo normale è additivo. Le correlazioni sc/sq e dc/dq dell'appendice sono verificate algebricamente per una correzione per volta: non provano equivalenza dei prodotti di più fattori. Il nuovo codice dichiara la variante correlata, non modifica formule altrui come se l'equivalenza fosse universale.
 
-Meyerhof 0°–10°: interpolazione degli incrementi di forma/profondità q e γ prevista nella tabella USACE 4-3. Carichi inclinati ammessi solo per striscia per evitare combinazioni non riscontrate con fattori di forma. Hansen/Vesić: k passa da D/B ad atan(D/B) oltre uno, come nella formulazione prescelta; il salto empirico non è nascosto con un raccordo numerico.
+Meyerhof 0°–10°: interpolazione degli incrementi di forma/profondità q e γ prevista nella tabella USACE 4-3. Carichi inclinati ammessi solo per striscia per evitare combinazioni non riscontrate con fattori di forma. Meyerhof non drenato con carico inclinato: ic = iq = (1 − θ/90°)² anche sul termine del sovraccarico, qlim = cu Nc sc dc ic + q iq (Meyerhof 1963; USACE tab. 4-3, «ic = iq» per ogni φ; con φ = 0 valgono solo Nq = sq = dq = 1). Hansen/Vesić: k passa da D/B ad atan(D/B) oltre uno, come nella formulazione prescelta; il salto empirico non è nascosto con un raccordo numerico.
 
 ## Cattura e prove
 
@@ -62,19 +62,21 @@ Verifiche aggiunte: GraphicsTests (7 casi indipendenti) e SoilProfileTests (6 ca
 
 ## Controllo con il manuale Califfo (12 ottobre 2026)
 
-Confronto formula per formula e numerico con il manuale. `tests/ShallowFoundation.Tests/califfo_reference.py` ricava gli attesi dalle formule del manuale, senza importare il motore, e li congela in `califfo-reference.json` (426 casi); `CaliffoReferenceTests` li confronta con tolleranza relativa 1e-9. Le formule implementate coincidono con il manuale; nessun errore a sfavore di sicurezza.
+Confronto formula per formula e numerico con il manuale. `tests/ShallowFoundation.Tests/califfo_reference.py` ricava gli attesi dalle formule del manuale, senza importare il motore, e li congela in `califfo-reference.json` (426 casi); `CaliffoReferenceTests` li confronta con tolleranza relativa 1e-9. Le formule implementate coincidono con il manuale, salvo le convenzioni elencate sotto; nessun errore a sfavore di sicurezza. Il 15/10/2026 la revisione dei bug ha trovato che il termine q del Meyerhof non drenato inclinato seguiva il manuale ma non Meyerhof/USACE (sovrastima): corretto per decisione dell'utente (GEO-1).
 
 Decisioni dell'utente, applicate con `ContractVersion` "2":
 
 - azioni oltre il dominio: «Non verificata» con resistenza nulla, invece dell'eccezione (vedi Contratto e perimetro);
 - Hansen non drenato: le correzioni additive stanno in `FoundationTerm.AdditiveShape`, `AdditiveDepth` e `AdditiveInclination` (`Additive` vero, `AdditiveFactor` = 1 + s′c + d′c − i′c); `Shape`, `Depth` e `Inclination` restano 1. Per ogni termine vale Pressure = resistenza × N × Shape × Depth × Inclination × AdditiveFactor;
 - Meyerhof sotto 10°: interpolazione mantenuta. Verificata sulla tabella 4-3 di USACE EM 1110-1-1905, che la prescrive per 0 < φ ≤ 10°; il manuale lascia indefiniti i fattori. Il risultato lo dichiara negli avvisi.
+- Meyerhof non drenato con carico inclinato (decisione del 15/10/2026, correzione GEO-1): si segue Meyerhof (1963)/USACE e non il manuale. Il termine del sovraccarico è q iq con iq = ic = (1 − θ/90°)² (`Surcharge.Inclination`), come nel ramo drenato; il manuale (3.16) scrive + q e la (3.14) dà ic = iq solo per φ > 0. Prima il motore seguiva il manuale e risultava discontinuo con il drenato a φ′ → 0 e c′ = cu, con una sovrastima di q (1 − iq). Esempio: striscia B = 2 m, D = 3 m, q = 54 kPa, cu = 75 kPa, N = 300 kN/m, H = 150 kN/m: qlim = 249,04 + 26,83 = 275,87 kPa invece di 303,04 kPa (−9,0%); con H = 0 nulla cambia. Gli altri metodi non drenati restano con + q (EC7 D.3, Vesić, Hansen, Terzaghi).
 
 Convenzioni del motore non prescritte dal manuale, registrate nel riferimento con il valore letterale e il verso:
 
 - quando l'eccentricità scambia B′ e L′, i fattori di profondità usano il lato geometrico allineato a B′ invece della B geometrica: −3/−6% sulla capacità, a favore di sicurezza;
 - EC7 su pianta quadrata eccentrica: fattori di forma da B′/L′ invece della formula della quadrata, che il manuale applica alla geometria reale: −3/−4%, a favore di sicurezza;
-- Meyerhof con θ > φ′: iγ = 0 (USACE tab. 4-3), dove il manuale scrive solo (1 − θ/φ′)²: a favore di sicurezza.
+- Meyerhof con θ > φ′: iγ = 0 (USACE tab. 4-3), dove il manuale scrive solo (1 − θ/φ′)²: a favore di sicurezza;
+- Meyerhof non drenato con H > 0: q iq invece di + q (decisione GEO-1 sopra): a favore di sicurezza. In `califfo_reference.py` è una convenzione con il valore letterale del manuale e il verso «le»; `califfo-reference.json` è stato rigenerato dallo script (cambiano solo i casi 387, 389 e 391, Meyerhof non drenato a striscia con Hx = 40, 150 e 200 kN).
 
 Non implementati rispetto al manuale, sempre con eccezione esplicita: fattori di inclinazione della base e del pendio (b, g), Meyerhof inclinato su pianta non nastriforme, fattori di compressibilità di Vesić da indice di rigidezza (4.3–4.6), Nγ di Salgado, adesione ca di Bowles, Terzaghi con D > B.
 

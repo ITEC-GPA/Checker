@@ -12,7 +12,12 @@ Conventions:
 - depth factors use the geometric side aligned with B' (the manual: the geometric B) when eccentricity swaps B' and L';
 - EC7 square or circular factors from B'/L' (the manual: from the real geometry);
 - Meyerhof 0 < phi < 10: USACE EM 1110-1-1905 Table 4-3 interpolation (the manual: undefined; here factors 1);
-- Meyerhof theta > phi: i_gamma = 0 (USACE Table 4-3; the manual writes only (1 - theta/phi)^2).
+- Meyerhof theta > phi: i_gamma = 0 (USACE Table 4-3; the manual writes only (1 - theta/phi)^2);
+- Meyerhof undrained with an inclined load: i_q = i_c = (1 - theta/90)^2 also on the surcharge term, q i_q
+  (Meyerhof 1963 and USACE EM 1110-1-1905 Table 4-3: i_c = i_q for any phi; with phi = 0 only N_q = s_q = d_q = 1).
+  The manual writes (3.16) q_ult = (2 + pi) cu s_c d_c i_c + q, without i_q, and gives (3.14) i_c = i_q only for
+  phi > 0. Decision of the user (15/10/2026, bug GEO-1): Meyerhof (1963)/USACE, not the manual. The "manual" value
+  keeps + q; the "convention" value is + q i_q, conservative ("le"). Without H the two coincide.
 Actions beyond the domain (section 3.4.1: no inclination factor may be negative) give a null bearing capacity.
 """
 import json, math, os, sys
@@ -116,7 +121,11 @@ def reference(cs, conv):
         elif method == 'Meyerhof':  # (3.16), (3.17)
             sc, dc = 1 + 0.2 * g['r'], 1 + 0.2 * D / g['Bdepth']
             ic = (1 - math.atan2(g['H'], N) / (PI / 2)) ** 2
-            out.update(qult=nc * cu * sc * dc * ic + q, c=term(nc, sc, dc, ic))
+            iq = 1.0
+            if conv and g['H'] > 0:  # Meyerhof (1963), USACE Table 4-3: i_q = i_c for any phi (manual (3.16): + q)
+                iq = ic
+                out['notes'].append('Meyerhof non drenato: iq = ic anche sul termine q (Meyerhof 1963, USACE tab. 4-3; manuale (3.16): + q)')
+            out.update(qult=nc * cu * sc * dc * ic + q * iq, c=term(nc, sc, dc, ic), q_=term(1.0, I=iq))
         elif method == 'Hansen':  # (3.26), (3.28): normal load, additive corrections
             sa, da = 0.2 * g['r'], 0.4 * depth_k(D, g['Bdepth'])
             out.update(qult=nc * cu * (1 + sa + da) + q, c=term(nc, additive=[sa, da, 0.0]))
@@ -127,7 +136,8 @@ def reference(cs, conv):
                 out.update(exhausted=True, qult=0.0)
                 return out
             out.update(qult=nc * cu * sc * dc * ic + q, c=term(nc, sc, dc, ic))
-        out.update(q_=term(1.0), g_=term(0.0))
+        out.setdefault('q_', term(1.0))
+        out.update(g_=term(0.0))
         return out
     phi, c = cs['phi'] * PI / 180, cs.get('c', 0.0)
     if cs.get('local') == 'Terzaghi':  # (4.1)

@@ -320,6 +320,8 @@ public static class ShallowFoundationBearing
                 if (h > 0 && ratio > 0) throw new NotSupportedException("Meyerhof inclinato: solo fondazione nastriforme.");
                 f.Depth = 1 + .2 * (x.IncludeDepthFactors ? x.Depth / b : 0);
                 f.Inclination = Square(1 - Math.Atan2(h, x.Normal) / (Math.PI / 2));
+                // Meyerhof (1963), USACE EM 1110-1-1905 Tab. 4-3: ic = iq = (1 − θ/90°)² for any φ; with φ = 0 only Nq, sq, dq are 1 (GEO-1).
+                r.Surcharge.Inclination = f.Inclination;
                 r.Reference = "Meyerhof (1963), non drenato";
             }
             else
@@ -335,7 +337,7 @@ public static class ShallowFoundationBearing
             }
             f.Pressure = cu * f.N * f.Shape * f.Depth * f.Inclination;
         }
-        r.Surcharge.N = 1; r.Surcharge.Pressure = q;
+        r.Surcharge.N = 1; r.Surcharge.Pressure = q * r.Surcharge.Inclination;
     }
 
     /// <summary>Califfo §3.4.1: no inclination factor may be negative; otherwise the bearing capacity is taken as zero.</summary>
