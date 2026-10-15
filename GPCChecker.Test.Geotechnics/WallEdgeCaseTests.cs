@@ -212,6 +212,44 @@ public class WallEdgeCaseTests
         Close(sle.SlidingDemand - 19.44, sle.Horizontal, "SLS net H", 1e-9);
     }
 
+    /// <summary>
+    /// MUR-3: the soil in front over the inclined face of a gravity stem enters the free body of the stem above a cut only where it rests on the
+    /// face above that cut. ANTHEA gravity example (H 3, stem 2.20/0.55, t 0.45, toe = heel = 0.25, γ 25; fill φ 30°, γ 18, δ = 0; q 10 kPa,
+    /// ψ2 0.3), soil in front up to Dv = 2.0 m (γ 18), quasi permanent. Expected values from the independent free body
+    /// scratchpad\agent-geo\mur3_wedge.py, equal to the verifier's bug\muri-cuneo-valle-verifica\indip.py: at z = 2.25 m N = 68.910 kN/m,
+    /// M = −0.461 kNm/m (before: 74.850 and +6.073); at z = 1.50 m N = 36.106, M = −1.872; at the root unchanged (115.017, 7.171).
+    /// </summary>
+    [TestMethod]
+    public void SoilInFrontOnTheStemStandsOnTheFaceAboveTheCut()
+    {
+        var input = Wall(h: 3, s0: 2.2, s1: .55, t: .45, toe: .25, heel: .25, family: WallFamily.Gravity, gamma: 25, valley: new WallValley(2000, Column(2, (Fill(), 10))));
+        var bands = RetainingWallAnalysis.ValleyBands(input); double slope = (2200 - 550) / 3000.0;
+        // Closed form of the wedge above the cut yc: area slope (Dv − yc)²/2, centroid ((2 x_face(yc) + x_face(Dv))/3, (yc + 2 Dv)/3).
+        double Face(double y) => 250 + slope * (y - 450);
+        foreach (double yc in new[] { 450.0, 1200, 1950 })
+        {
+            var w = RetainingWallAnalysis.FrontSoilMass(input.Geometry, bands, yc, true);
+            double area = slope * (2000 - yc) * (2000 - yc) / 2;
+            Close(area * 18 * KN3, w.Weight, "wedge at " + yc, 1e-12);
+            Close((2 * Face(yc) + Face(2000)) / 3, w.MomentX / w.Weight, "x of the wedge at " + yc, 1e-12);
+            Close((yc + 2 * 2000) / 3, w.MomentY / w.Weight, "y of the wedge at " + yc, 1e-12);
+        }
+        Close(3.168, RetainingWallAnalysis.FrontSoilMass(input.Geometry, bands, 1200, true).Weight, "3.168 kN/m (mur3_wedge.py)", 1e-12);
+        // The whole soil in front (not the wedge) is unchanged: the trapezoid from x = 0.
+        Close((250 + 250 + slope * 1550) / 2 * 1550 * 18 * KN3, RetainingWallAnalysis.FrontSoilMass(input.Geometry, bands).Weight, "soil above the toe", 1e-12);
+        var qp = One(input, Row(WallLimitState.QuasiPermanent, f: new Dictionary<string, double> { ["q"] = .3 }));
+        WallSectionForce At(double z) => qp.Sections.Single(s => s.Member == WallMember.Stem && Math.Abs(s.Position - z) < 1e-9);
+        Close(68.910188, At(2250).N, "N at z = 2.25 m (mur3_wedge.py)", 1e-7); Close(-.461121 * KNm, At(2250).M, "M at z = 2.25 m (mur3_wedge.py)", 1e-5);
+        Close(36.106125, At(1500).N, "N at z = 1.50 m", 1e-7); Close(-1.872465 * KNm, At(1500).M, "M at z = 1.50 m", 1e-6);
+        Close(115.017375, At(3000).N, "N at the root", 1e-7); Close(7.170946 * KNm, At(3000).M, "M at the root", 1e-6);
+        Close(17.4375, At(2250).V, "V at z = 2.25 m", 1e-9);
+        // M continuous through the valley ground (z = H + t − Dv = 1.45 m): no jump of the wedge.
+        var cuts = qp.Sections.Where(s => s.Member == WallMember.Stem).OrderBy(s => s.Position).ToArray();
+        var below = cuts.First(s => s.Position > 1450 + 1e-6);
+        Close(-1.796433 * KNm, At(1450).M, "M at the valley ground (mur3_wedge.py)", 1e-6);
+        Assert.IsTrue(Math.Abs(below.M - At(1450).M) < .2 * KNm, $"no jump: {At(1450).M} → {below.M} at {below.Position}");
+    }
+
     [TestMethod]
     public void InterfacesFollowTheirRule()
     {

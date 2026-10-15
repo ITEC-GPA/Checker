@@ -183,6 +183,19 @@ stabilizzanti), §7.11.6.2.1 (kh = βm amax/g, kv = ±0,5 kh, βm 0,38 allo SLV,
 per il ribaltamento), Tab. 7.11.III (1,2, 1,0, 1,0), Tab. 3.2.IV (Ss) e 3.2.V (St). La NTC indica di non contare in generale
 la passiva a valle nello scorrimento: in `WallValley` è un'opzione, spenta per difetto, con la frazione mobilitata.
 
+**Sovraccarico sulla mensola di monte (correzione MUR-1, 15/10/2026).** Il sovraccarico uniforme agisce sulla spinta (K q,
+sfavorevole) e sulla mensola di monte (q b in N, nel momento stabilizzante, nell'inerzia kh q b Ht e nel carico della soletta
+di monte), dove è favorevole per scorrimento, ribaltamento e portanza. Ogni riga SLU con un sovraccarico variabile Q attivo e
+tallone b > 0 è seguita dalla gemella con lo stesso nome e il suffisso «b» (per esempio SLU 8 e SLU 8b): spinta invariata con
+γQ = 1,5, sovraccarico variabile assente sulla mensola (γQ = 0 per la parte favorevole, NTC 2018 Tab. 2.6.I; EN 1990 Tab. A1.2).
+Le due righe entrano in tutte le verifiche (scorrimento, ribaltamento, portanza, contatto) e nelle sollecitazioni della mensola;
+la numerazione delle altre righe non cambia. Il flag è `WallCombination.VariableSurchargeOnHeel` (predefinito vero) e vale
+anche per le matrici personalizzate. I sovraccarichi permanenti G1 e G2 hanno un solo fattore su spinta e mensola (sorgente
+unica, EN 1997-1 2.4.2(9)); le righe sismiche ed eccezionali tengono ψ2 q anche sulla mensola. Esempio: H = 4 m, b = 2 m,
+q = 20 kPa sul muro predefinito di ANTHEA: SLU 8b scorrimento 103,91/94,22 = 1,103 (non soddisfatta), ribaltamento 0,527,
+portanza 1,415, contro 0,860, 0,399 e 0,659 della SLU 8 con q sulla mensola (prima della correzione il massimo dello
+scorrimento era 0,870, soddisfatta).
+
 **Resistenza passiva a valle (correzione MUR-2, 15/10/2026).** Con la passiva attiva la frazione mobilitata è η ≤ 0,5
 (NTC 2018 §6.5.3.1.1: aliquota non superiore al 50%, da giustificare con spostamenti compatibili e permanenza del terreno a
 valle); oltre, `WallValley` rifiuta il dato con un messaggio che cita il paragrafo. La passiva è una resistenza del terreno a
@@ -201,18 +214,12 @@ Esempio della segnalazione (muro predefinito, b = 0,6 m, q = 20 kPa, Dv = 1,2 m,
 terreno 1,3, γQ 1,5 scorrimento 80,92/(51,34 + 19,44/1,4) = 1,241 (prima 61,48/51,34 = 1,197 con la passiva sottratta),
 ribaltamento 112,90/125,68 = 0,898; la gemella senza q sulla mensola dà 1,413 e 1,105.
 
-**Sovraccarico sulla mensola di monte (correzione MUR-1, 15/10/2026).** Il sovraccarico uniforme agisce sulla spinta (K q,
-sfavorevole) e sulla mensola di monte (q b in N, nel momento stabilizzante, nell'inerzia kh q b Ht e nel carico della soletta
-di monte), dove è favorevole per scorrimento, ribaltamento e portanza. Ogni riga SLU con un sovraccarico variabile Q attivo e
-tallone b > 0 è seguita dalla gemella con lo stesso nome e il suffisso «b» (per esempio SLU 8 e SLU 8b): spinta invariata con
-γQ = 1,5, sovraccarico variabile assente sulla mensola (γQ = 0 per la parte favorevole, NTC 2018 Tab. 2.6.I; EN 1990 Tab. A1.2).
-Le due righe entrano in tutte le verifiche (scorrimento, ribaltamento, portanza, contatto) e nelle sollecitazioni della mensola;
-la numerazione delle altre righe non cambia. Il flag è `WallCombination.VariableSurchargeOnHeel` (predefinito vero) e vale
-anche per le matrici personalizzate. I sovraccarichi permanenti G1 e G2 hanno un solo fattore su spinta e mensola (sorgente
-unica, EN 1997-1 2.4.2(9)); le righe sismiche ed eccezionali tengono ψ2 q anche sulla mensola. Esempio: H = 4 m, b = 2 m,
-q = 20 kPa sul muro predefinito di ANTHEA: SLU 8b scorrimento 103,91/94,22 = 1,103 (non soddisfatta), ribaltamento 0,527,
-portanza 1,415, contro 0,860, 0,399 e 0,659 della SLU 8 con q sulla mensola (prima della correzione il massimo dello
-scorrimento era 0,870, soddisfatta).
+**Terreno a valle sul paramento inclinato (correzione MUR-3, 15/10/2026).** Nel corpo libero del fusto sopra il taglio alla
+quota yc entra solo il terreno che poggia sul paramento sopra il taglio: fra x_faccia(yc) e x_faccia(y), per y da yc a Dv
+(`FrontSoilMass` con `wedgeOnly`; una fascia dà l'area pendenza·(Dv − yc)²/2). Prima il cuneo partiva da x = a (fine della
+mensola di valle) anche per i tagli sopra la fondazione e contava la striscia che poggia sul paramento sotto il taglio. Esempio
+a gravità di ANTHEA (2,20/0,55 m, Dv = 2,0 m), quasi permanente, taglio a z = 2,25 m: N = 68,91 kN/m e M = −0,46 kNm/m (prima
+74,85 e +6,07); alla radice nulla cambia. Con le scarpe dei muri a mensola (circa 0,05) l'effetto è piccolo.
 
 Casi legacy congelati e riprodotti (`WallsMigrationTests`, harness ANTHEA cbed972, `Fixtures/walls-*`): 798 valori delle
 leggi, 110 generazioni di combinazioni (2380 righe), 88 muri completi (149.922 sezioni, 8332 verifiche) e 14 documenti

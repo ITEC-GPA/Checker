@@ -276,16 +276,18 @@ namespace GPC.Checkers.Geotechnics.Walls
 
         /// <summary>
         /// Weight and static moments of the soil in front of the wall above the slab (or only of the wedge over the inclined face of the stem above the
-        /// elevation <paramref name="above"/>): trapezoids between the end of the toe (or the root of the stem) and the face.
+        /// elevation <paramref name="above"/>): trapezoids between the end of the toe (or, for the wedge, the face at the elevation of the cut) and the
+        /// face. The wedge is the soil resting on the face above the cut, between x_face(cut) and x_face(y): one band gives slope (Dv − cut)²/2.
         /// </summary>
         public static WallSoilMass FrontSoilMass(WallGeometry g, IEnumerable<WallValleyBand> bands, double above = 0, bool wedgeOnly = false)
         {
-            double a = g.Toe, t = g.Slab, slope = (g.StemBase - g.StemTop) / g.Height;
+            double a = g.Toe, t = g.Slab, slope = (g.StemBase - g.StemTop) / g.Height, cut = Math.Max(t, above);
             double w = 0, mx = 0, my = 0;
             foreach (var band in bands)
             {
-                double low = Math.Max(Math.Max(t, above), band.Bottom), high = band.Top; if (high <= low) continue;
-                double left = wedgeOnly ? a : 0, x0 = a + slope * (low - t), x1 = a + slope * (high - t);
+                double low = Math.Max(cut, band.Bottom), high = band.Top; if (high <= low) continue;
+                // The soil between the end of the toe and the face at the cut rests on the face below the cut (MUR-3): the wedge starts at the face.
+                double left = wedgeOnly ? a + slope * (cut - t) : 0, x0 = a + slope * (low - t), x1 = a + slope * (high - t);
                 if (Math.Max(x0, x1) <= left) continue;
                 // Trapezoid with the vertical side at x = left: widths b0 at y = low and b1 at y = high.
                 double b0 = x0 - left, b1 = x1 - left, height = high - low, area = (b0 + b1) * height / 2;
