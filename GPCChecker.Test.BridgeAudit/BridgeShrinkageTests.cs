@@ -47,14 +47,19 @@ public class BridgeShrinkageTests
     [TestMethod]
     public void MultipleShrinkageIncrementsSuperposeAtAnyPosition()
     {
-        var d = Data(-100); var steel = BridgeSection.Phase("G1", "Solo acciaio", 0, 800);
+        // PON-5 (CompositeBridge, 15/10/2026): shrinkage presupposes the cast slab, so the cumulative method rejects it before a "Solo acciaio"
+        // phase, with the message of the histories. Until then this check moved the first shrinkage increment before G1, the order that is now
+        // rejected (asserted below); the admissible reordering moves it across a composite load phase instead.
+        var d = Data(-100); var steel = BridgeSection.Phase("G1", "Solo acciaio", 0, 800); var load = BridgeSection.Phase("Q", "Composta", 0, 1200);
         var another = BridgeSection.ShrinkagePhase(); another["epsilon_cs"] = -150;
-        d.Array("fasi").Insert(0, steel); d.Array("fasi").Add(another);
+        d.Array("fasi").Insert(0, steel); d.Array("fasi").Add(load); d.Array("fasi").Add(another); // G1, shrinkage -100, Q, shrinkage -150
         var original = BridgeSection.Calculate(d);
-        var reordered = (JsonObject)d.DeepClone(); var moving = reordered.Array("fasi")[1]!; reordered.Array("fasi").RemoveAt(1); reordered.Array("fasi").Insert(0, moving);
+        var early = (JsonObject)d.DeepClone(); var first = early.Array("fasi")[1]!; early.Array("fasi").RemoveAt(1); early.Array("fasi").Insert(0, first);
+        StringAssert.Contains(Assert.ThrowsException<ArgumentException>(() => BridgeSection.Calculate(early)).Message, "solo acciaio");
+        var reordered = (JsonObject)d.DeepClone(); var moving = reordered.Array("fasi")[1]!; reordered.Array("fasi").RemoveAt(1); reordered.Array("fasi").Add(moving); // G1, Q, -150, -100
         var second = BridgeSection.Calculate(reordered);
         foreach (var pair in original.Stages.Last().Points.Zip(second.Stages.Last().Points)) Near(pair.First.Stress, pair.Second.Stress, pair.First.Name);
-        var total = Data(-250); total.Array("fasi").Insert(0, steel.DeepClone());
+        var total = Data(-250); total.Array("fasi").Insert(0, steel.DeepClone()); total.Array("fasi").Add(load.DeepClone()); // G1, shrinkage -250, Q
         foreach (var pair in original.Stages.Last().Points.Zip(BridgeSection.Calculate(total).Stages.Last().Points)) Near(pair.First.Stress, pair.Second.Stress, pair.First.Name);
     }
     [TestMethod]
