@@ -42,7 +42,8 @@ namespace GPC.Checkers.Concrete.Detailing
         /// <summary>
         /// Named legacy option: the bar spacing of solid slab strips (MainSpacing) and walls (WallVerticalSpacing) is measured, as before the ANTHEA bug
         /// analysis of 15/10/2026 (DET-1), on rows and columns of bars, so two aligned bars of the opposite layers count as adjacent and the value is
-        /// max(spacing along the layer; h − 2c − Ø). Kept only for the frozen capture detailing-plate-legacy.csv; false (default): along the layers only.
+        /// max(spacing along the layer; h − 2c − Ø). Kept to give the former values back (the frozen capture detailing-plate-legacy.csv was regenerated
+        /// with the default); false (default): along the layers only.
         /// </summary>
         public bool LegacyPlateSpacingAcrossLayers { get; }
         public MemberDetailingOptions(PlateDetailingData plate, bool legacyNegativeLinkLegs) : this(plate, legacyNegativeLinkLegs, false) { }

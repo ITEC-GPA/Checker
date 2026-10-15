@@ -310,8 +310,9 @@ nella soletta (h lungo y) e nella parete con lo spessore lungo y (b ≥ h), colo
 del 15/10/2026, DET-1): prima due barre allineate dei due strati valevano come adiacenti e l'interasse risultava
 max(interasse nello strato; h − 2c − Ø), con esiti non soddisfatti indebiti oltre h ≈ 480 mm (striscia 1000 × 500,
 c = 30, 6Ø16 per faccia: 424 mm invece di 184,8 mm). L'opzione con nome
-`MemberDetailingOptions.LegacyPlateSpacingAcrossLayers` riproduce la misura precedente, solo per la cattura
-congelata `detailing-plate-legacy.csv`. La regola dei pilastri (riquadro D-2) non cambia.
+`MemberDetailingOptions.LegacyPlateSpacingAcrossLayers` riproduce la misura precedente; la cattura congelata
+`detailing-plate-legacy.csv` è stata rigenerata con la misura nuova e il test la confronta anche con l'opzione, che
+restituisce i valori di ANTHEA. La regola dei pilastri (riquadro D-2) non cambia.
 
 ## 7. Coefficienti e valori predefiniti
 
@@ -467,9 +468,10 @@ Valori della libreria (GPCChecker.Concrete 0.0.17.0, eseguita):
   - `SlabAndWallSpacingIsMeasuredAlongTheLayers` (DET-1): striscia 1000 × h, c = 30, 6Ø16 per faccia, interasse a mano
     (1000 − 2 · 38)/5 = 184,8 mm per soletta h = 500 (≤ 400), soletta h = 400 in zona critica (≤ 250), parete
     1000 × 500 e parete ruotata (≤ 400); con l'opzione legacy 424, 324, 424 e 424 mm, non soddisfatti;
-  - `LegacyPlateDetailingIsReproduced`: cattura congelata delle solette e pareti con l'opzione legacy dell'interasse;
-    senza l'opzione gli altri controlli sono identici e 60 righe hanno l'interasse più piccolo (S1000x200D 102 → 69,38,
-    W250x1200N 164 → 159,14, W1000x200D 92 → 68,62 mm), con gli stessi esiti.
+  - `LegacyPlateDetailingIsReproduced`: cattura congelata delle solette e pareti con le opzioni predefinite
+    dell'interasse; con l'approvazione dell'utente le 60 righe in cui ANTHEA misurava l'interasse anche fra gli strati
+    sono state rigenerate (S1000x200D 102 → 69,38, W250x1200N 164 → 159,14, W1000x200D 92 → 68,62 mm), con gli
+    stessi esiti; con l'opzione legacy gli altri controlli sono identici e tornano i 60 valori precedenti.
 - Nel repository Model, `MemberDetailingTest` verifica il collegamento come attività d'asta (trave NTC soddisfatta,
   pilastro NTC non soddisfatto sul passo delle staffe, EN, DS, dati mancanti, conferme).
 - **Esempio di questa pagina**: eseguito con la libreria 0.0.17.0 e ricalcolato in modo indipendente, scarto

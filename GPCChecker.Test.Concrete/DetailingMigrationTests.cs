@@ -246,7 +246,7 @@ namespace ConcreteTests
         /// Row of detailing-plate-legacy.csv as the ANTHEA mapping passes it (F2.8 §5 B2, M12): cmin,dur null when not finite, Fctm of the legacy formula,
         /// plate data for every kind, no cover additions.
         /// </summary>
-        private static MemberDetailingInput PlateInput(string[] c, ReinforcedConcreteSection section, bool legacyNegativeLinkLegs, bool legacySpacing = true)
+        private static MemberDetailingInput PlateInput(string[] c, ReinforcedConcreteSection section, bool legacyNegativeLinkLegs, bool legacySpacing = false)
         {
             double durability = D(c[19]);
             return new MemberDetailingInput(Kind(c[2]), CrackSectionGeometry.From(section), D(c[6]), D(c[3]), Fctm(D(c[3])), D(c[4]), D(c[5]), D(c[9]), D(c[10]), D(c[11]),
@@ -259,10 +259,10 @@ namespace ConcreteTests
         /// ANTHEA ConcreteDetailingCalculator on solid slab strips, walls, slab rejections and rows with −2 link legs (detailing-plate-legacy.csv,
         /// sections detailing-plate-sections.xml; F2.8 A0 capture F2-pre-f28 a/tutte, ANTHEA 1baeb60): same keys in the same order,
         /// same verdicts and units, Actual and Limit within 1e-9, rejections on the same rows with the corresponding message. The rows with −2 legs
-        /// are reproduced with <see cref="MemberDetailingOptions.LegacyNegativeLinkLegs"/> and rejected without it. The spacing of slabs and walls of the
-        /// capture was measured also across the layers (DET-1): the capture is reproduced with <see cref="MemberDetailingOptions.LegacyPlateSpacingAcrossLayers"/>;
-        /// without it (default) every other check is the same and MainSpacing / WallVerticalSpacing are never larger than the captured value (the old value
-        /// is max(spacing along the layer; distance between the layers)), with the same verdict in the capture.
+        /// are reproduced with <see cref="MemberDetailingOptions.LegacyNegativeLinkLegs"/> and rejected without it. The spacing of slabs and walls is
+        /// measured along the layers (DET-1, default options): with the user's approval the 60 rows where ANTHEA measured it also across the layers were
+        /// regenerated (MainSpacing / WallVerticalSpacing only, same verdicts). With <see cref="MemberDetailingOptions.LegacyPlateSpacingAcrossLayers"/>
+        /// every other check is the same and those 60 values of ANTHEA 1baeb60 come back (max(spacing along the layer; distance between the layers)).
         /// </summary>
         [TestMethod]
         public void LegacyPlateDetailingIsReproduced()
@@ -294,16 +294,21 @@ namespace ConcreteTests
                 }
                 var r = MemberDetailingCalculator.Calculate(DetailingProfile.Ntc2018, PlateInput(c, section, true));
                 Assert.AreEqual(Kind(c[2]), r.Kind, id); calculated++;
-                var fixedSpacing = MemberDetailingCalculator.Calculate(DetailingProfile.Ntc2018, PlateInput(c, section, true, false));
-                Assert.AreEqual(r.Checks.Count, fixedSpacing.Checks.Count, id);
+                var acrossLayers = MemberDetailingCalculator.Calculate(DetailingProfile.Ntc2018, PlateInput(c, section, true, true));
+                Assert.AreEqual(r.Checks.Count, acrossLayers.Checks.Count, id);
                 for (int i = 0; i < r.Checks.Count; i++)
                 {
-                    var a = r.Checks[i]; var b = fixedSpacing.Checks[i];
+                    var a = r.Checks[i]; var b = acrossLayers.Checks[i];
                     Assert.AreEqual(a.Key, b.Key, id); Assert.AreEqual(a.Limit, b.Limit, id + " " + a.Key);
                     if (a.Key == "MainSpacing" || a.Key == "WallVerticalSpacing")
                     {
-                        Assert.IsTrue(b.Actual == a.Actual || b.Actual <= a.Actual + 1e-9, id + " " + a.Key + ": along the layers " + b.Actual + " > " + a.Actual);
-                        if (b.Actual < a.Actual - 1e-9) spacingChanged++;
+                        Assert.IsTrue(b.Actual == a.Actual || b.Actual >= a.Actual - 1e-9, id + " " + a.Key + ": across the layers " + b.Actual + " < " + a.Actual);
+                        if (b.Actual > a.Actual + 1e-9)
+                        {
+                            Assert.IsTrue(AcrossLayersSpacing.ContainsKey(c[1]), id);
+                            Close(AcrossLayersSpacing[c[1]], b.Actual.Value, id + " " + a.Key + " with the legacy option");
+                            spacingChanged++;
+                        }
                         Assert.AreEqual(a.Passed, b.Passed, id + " " + a.Key + " verdict in the capture");
                     }
                     else { Assert.AreEqual(a.Actual, b.Actual, id + " " + a.Key); Assert.AreEqual(a.Passed, b.Passed, id + " " + a.Key); }
@@ -336,6 +341,12 @@ namespace ConcreteTests
             // DET-1: S1000x200D 102 → 69.38, W250x1200N 164 → 159.14, W1000x200D 92 → 68.62 mm (20 rows each), all within their limits before and after.
             Assert.AreEqual(60, spacingChanged, "rows whose spacing was the distance between the layers");
         }
+
+        /// <summary>
+        /// MainSpacing / WallVerticalSpacing of ANTHEA 1baeb60 (detailing-plate-legacy.csv before the DET-1 regeneration) in the 60 rows where it was the
+        /// distance between the two layers (h − 2c − Ø), in mm: given back by <see cref="MemberDetailingOptions.LegacyPlateSpacingAcrossLayers"/>.
+        /// </summary>
+        private static readonly Dictionary<string, double> AcrossLayersSpacing = new Dictionary<string, double> { { "S1000x200D", 102 }, { "W250x1200N", 164 }, { "W1000x200D", 92 } };
 
         /// <summary>
         /// DET-1 of the ANTHEA bug analysis (15/10/2026, verifier scratchpad bug/verA-solette-pareti-interasse, indep.py): the spacing of slabs and walls
