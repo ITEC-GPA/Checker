@@ -95,7 +95,7 @@ namespace GPC.Checkers.Geotechnics.Walls
     /// <summary>
     /// Serviceability of the wall (ANTHEA RetainingWall.CalculateService, commit fe4652c): oedometric settlements under the contact of the base of
     /// every SLS combination with the convergence and the depth of the profile checked, rotation from the differential settlements, elastic
-    /// displacement of the stem from the curvatures (cantilever fixed at the base) and decoupled head displacement u = u_stem + H/k − θ H,
+    /// displacement of the stem from the curvatures (cantilever fixed at the base) and decoupled head displacement u = u_stem + H/k − θ (H + t),
     /// permanent sliding of Newmark. Units mm, MPa, N/mm, rad.
     /// </summary>
     public static class WallServiceability
@@ -151,7 +151,8 @@ namespace GPC.Checkers.Geotechnics.Walls
                         checks.Add(WallCheck.Of(WallCheckKind.StemDisplacement, c.Combination.Name, Math.Abs(s.StemDisplacement.Value), headLimit));
                         if (!(stiffness >= 1e-5 && stiffness <= 1e7)) throw new ArgumentException("horizontal_stiffness: inserire un valore finito fra 0.01 e 10000000000.");
                         if (s.Rotation is null || messages.Count > 0) throw new ArgumentException("Spostamento totale: completare il calcolo convergente dei cedimenti/rotazione.");
-                        s.HeadDisplacement = s.StemDisplacement + c.Horizontal / stiffness - s.Rotation * height;
+                        // Rigid rotation of the foundation about the base: its arm is the whole height above the base, H + t (MUR-4).
+                        s.HeadDisplacement = s.StemDisplacement + c.Horizontal / stiffness - s.Rotation * input.Geometry.TotalHeight;
                         checks.Add(WallCheck.Of(WallCheckKind.HeadDisplacement, c.Combination.Name, Math.Abs(s.HeadDisplacement.Value), headLimit));
                     }
                     catch (ArgumentException ex) { checks.Add(WallCheck.Of(WallCheckKind.HeadDisplacement, c.Combination.Name, 0, null, ex.Message)); messages.Add(ex.Message); }

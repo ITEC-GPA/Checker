@@ -62,7 +62,9 @@ public class WallServiceGlobalEdgeTests
         var c = r.Cases[0];
         // Constant curvature up to the last cut below the top, zero at the top: the cantilever integral of those points.
         Close(WallDisplacementPoint.Integrate(Constant(wall.Cases[0]), 3000)[^1].Displacement, c.StemDisplacement!.Value, "stem", 1e-12); Assert.IsTrue(c.StemDisplacement < 1e-7 * 9e6 / 2 && c.StemDisplacement > .99 * 1e-7 * 9e6 / 2);
-        Close(c.StemDisplacement.Value + wall.Cases[0].Horizontal / 50 - c.Rotation!.Value * 3000, c.HeadDisplacement!.Value, "u + H/k − θ H", 1e-12);
+        // MUR-4: the rigid rotation of the foundation about the base acts with the whole height above the base, H + t = 3.0 + 0.4 m.
+        Assert.IsTrue(Math.Abs(c.Rotation!.Value) > 1e-6, "the settlements rotate the base");
+        Close(c.StemDisplacement.Value + wall.Cases[0].Horizontal / 50 - c.Rotation!.Value * 3400, c.HeadDisplacement!.Value, "u + H/k − θ (H + t)", 1e-12);
         Assert.IsTrue(r.Checks.Any(k => k.Kind == WallCheckKind.StemDisplacement) && r.Checks.Any(k => k.Kind == WallCheckKind.HeadDisplacement));
         // Missing curvatures, wrong count, no rotation.
         var missing = WallServiceability.Calculate(input, wall, options, _ => null);

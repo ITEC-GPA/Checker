@@ -231,8 +231,9 @@ ANTHEA include la forza secondo l'arrotondamento di ht − z in metri (36 tagli:
 **W3 — esercizio e stabilità globale.**
 - `Walls.WallServiceability`: cedimenti edometrici sotto il contatto della base in ogni combinazione SLE (piede, centro,
   tallone; convergenza 40/80 suddivisioni; tensione residua al fondo ≤ 10% del netto o base rigida), rotazione, spostamento
-  elastico del fusto dalle curvature e spostamento della testa disaccoppiato u = u_fusto + H/k − θ H, scorrimento di
-  Newmark con accelerogrammi SLD/SLV confermati (non con Wood).
+  elastico del fusto dalle curvature e spostamento della testa disaccoppiato u = u_fusto + H/k − θ (H + t), scorrimento di
+  Newmark con accelerogrammi SLD/SLV confermati (non con Wood). La rotazione rigida θ della fondazione agisce attorno al piano di
+  posa, quindi con il braccio H + t (correzione MUR-4, 15/10/2026: prima θ H, che trascurava θ t).
 - `Walls.WallGlobalStability`: profilo (proposto dal muro con `Propose`, da confermare), combinazioni A2+M2+R2 dalle
   ordinarie (G1 1, le altre × 1,3/1,5, M2, γR 1,1), eccezionali, SLV con βs 0,38 e γR 1,2; muro come corpo rigido, azioni
   come carichi del pendio; verifiche con γR/F solo se il risultato è un verdetto.
