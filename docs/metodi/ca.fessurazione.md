@@ -400,6 +400,15 @@ Quando il lembo teso è armato dipende dall'opzione `UnreinforcedTensileZoneFail
   il verdetto non dipende più dal confronto con h/2 (che si ribaltava spostando le barre di pochi decimi di mm o con il
   rumore del solutore sulla rete in mezzeria). Il dettaglio «a,c» riporta a(c + Ø/2) + s_b della barra che governa.
 
+**Strisce di muro.** `WallSectionSession` (muri di sostegno, NTC 2018) usa questa verifica con
+`UnreinforcedTensileZoneFails` attivo e il copriferro libero della striscia assegnato (decisione dell'utente E1-D4 del
+15/10/2026): asse neutro nel copriferro delle barre di faccia → wk = 0; zona tesa senza armatura → verifica
+«Wall.Cracking» non soddisfatta senza ampiezza (domanda 0, limite wlim, rapporto assente, apertura delle fessure non
+controllata). Non c'è più la prova «non fessurata» con la tensione della sezione elastica non fessurata
+σt,el ≤ fctk,0,05: la resistenza a trazione del calcestruzzo non entra, come nelle sezioni (`ProvenUncracked` resta
+sempre falso). Con le barre al copriferro su entrambe le facce, che la striscia impone, la zona tesa senza armatura non
+si presenta nei casi ordinari.
+
 **Barre tese fuori da Ac,eff.** Se le barre tese sono tutte oltre hc,eff (asse neutro vicino alle barre), il metodo
 usa il limite superiore di EN 1992-1-1 7.3.4(3), (7.14), con ρ → 0 in (F.8):
 
@@ -748,6 +757,9 @@ nella quasi permanente); XC3 quasi permanente, NTC e EN 0,3 mm; XD1 quasi perman
     con il copriferro nominale 38 mm, NTC ed EN, (7.8)-(7.11) a mano; copriferro assegnato prevalente; barre al
     copriferro nominale, flessione deviata con barre d'angolo e anello di 16Ø24 su un 32-gono: stessa ampiezza del
     copriferro nominale;
+  - strisce di muro (`WallSectionSessionTests.CrackCheckFollowsTheSectionsWithoutTheTensileStrengthProof`): striscia
+    1000 × 400, N = −1000 kN, M = 75 kNm, asse neutro nel copriferro, wk = 0 e a = 40 + 8 = 48 mm, nessuna prova con
+    fctk,0,05; verifica non soddisfatta senza ampiezza per la zona tesa senza armatura;
   - ritaglio, interassi su file e anelli, hc,eff EN, DIN e DS.
 - **Integrazione**: i test del verificatore di modello eseguono la fessurazione per 10 norme e confrontano il
   risultato NTC con la chiamata diretta del metodo.

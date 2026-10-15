@@ -127,6 +127,33 @@ namespace ConcreteTests
             Assert.AreEqual(EngineeringOutcome.Satisfied, crack.Outcome);
         }
 
+        /// <summary>
+        /// Decision E1-D4 of the user (15/10/2026): the wall crack check follows the sections. N = −1000 kN, M = 75 kNm on the 1000 × 400 strip: e = 75 mm,
+        /// just beyond h/6, so a shallow tensile zone (no-tension rectangle by hand: x = 3 (200 − 75) = 375 mm, h − x = 25 mm), shallower than the bars at
+        /// 48 mm: neutral axis within the cover of the face bars, wk = 0, satisfied, with the projected cover a = c + Ø/2 = 40 + 8 = 48 mm
+        /// (gradient normal to the face). The proof σt,el ≤ fctk,0.05 is withdrawn: ProvenUncracked is always false. A tensile zone without reinforcement
+        /// cannot be built with the strip (bars at the cover of both faces); its check is NotSatisfied without a width.
+        /// </summary>
+        [TestMethod]
+        public void CrackCheckFollowsTheSectionsWithoutTheTensileStrengthProof()
+        {
+            var result = Session().CheckServiceability(new WallSectionActions(-1000000, 0, 7.5e7), ServiceabilityCombination.QuasiPermanent);
+            var crack = result.CrackResponse;
+            Assert.AreEqual(GPC.Checkers.Concrete.Cracking.CrackOutcome.Evaluated, crack.Outcome, crack.Status);
+            StringAssert.StartsWith(crack.Status, "Neutral axis within the cover");
+            Assert.AreEqual(0, crack.Width.Value);
+            double depth = crack.Details.Single(d => d.Symbol == "h − x").Value;
+            Assert.IsTrue(depth > 0 && depth < 48, "tensile zone above the bars: " + depth);
+            Assert.AreEqual(48, crack.Details.Single(d => d.Symbol == "a,c").Value, 1e-3); // 48 (|qx| + |qy|), solver noise in χx
+            Assert.IsFalse(result.ProvenUncracked);
+            var check = result.Checks.Single(c => c.Method == "Wall.Cracking");
+            Assert.AreEqual(EngineeringOutcome.Satisfied, check.Outcome); Assert.AreEqual(0, check.Demand, 0);
+            var unreinforced = WallSectionCheck.NotSatisfiedWithoutDemand("Wall.Cracking", "mm", .3, "No tensile reinforcement: unreinforced tensile zone, crack width not controlled");
+            Assert.AreEqual(EngineeringOutcome.NotSatisfied, unreinforced.Outcome); Assert.AreEqual(ExecutionStatus.Completed, unreinforced.Execution);
+            Assert.AreEqual(DataStatus.Ready, unreinforced.Data); Assert.AreEqual(.3, unreinforced.Capacity); Assert.IsNull(unreinforced.Ratio);
+            Assert.AreEqual(0, unreinforced.Demand, 0);
+        }
+
         [TestMethod]
         public void ShearUsesConcomitantCompressionAndDeclinesTension()
         {
