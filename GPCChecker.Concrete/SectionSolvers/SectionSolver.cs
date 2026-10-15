@@ -495,20 +495,41 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 return null;
         }
 
+        /// <summary>
+        /// The subdivisions of the failure zones of the domain of the type for the section (the selection of the four Get...FailureDomainResult
+        /// methods); null for plain concrete without bars and steel sections, which has no domain
+        /// </summary>
+        private (FailureZones, int)[] GetFailureZonesDiscretization(FailureDomainTypes failureDomainType)
+        {
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete && _concreteSection.SteelSections.Count == 0
+                && ConcreteSection.RebarsCount == 0)
+                return null;
+
+            if (failureDomainType == FailureDomainTypes.Elastic)
+            {
+                if (_concreteSection.IsCompositeSteelConcrete)
+                    return _elasticFailureZonesDiscretizationsComposite;
+                else if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
+                    return _elasticFailureZonesDiscretizations;
+                else
+                    return _elasticFailureZonesDiscretizationsFRC;
+            }
+
+            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
+                return _plasticFailureZonesDiscretizations;
+            else if (ConcreteSection.RebarsCount != 0)
+                return _plasticFailureZonesDiscretizationsFRC;
+            else if (_concreteSection.ConcreteMaterial.StressStrainTableTension.IsHardening())
+                return _plasticFailureZonesDiscretizationsFRCNoRebarsHardening;
+            else
+                return _plasticFailureZonesDiscretizationsFRCNoRebarsSoftening;
+        }
+
         public virtual FailureDomainResult GetElasticFailureDomainResult()
         {
-            (FailureZones, int)[] zoneDiscretization;
-
-            if (_concreteSection.IsCompositeSteelConcrete)
-                zoneDiscretization = _elasticFailureZonesDiscretizationsComposite;
-            else if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
-                zoneDiscretization = _elasticFailureZonesDiscretizations;
-            else
-                zoneDiscretization = _elasticFailureZonesDiscretizationsFRC;
-
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete && _concreteSection.SteelSections.Count == 0)
-                if (ConcreteSection.RebarsCount == 0)
-                    return null;
+            (FailureZones, int)[] zoneDiscretization = GetFailureZonesDiscretization(FailureDomainTypes.Elastic);
+            if (zoneDiscretization == null)
+                return null;
 
             var strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization, zoneDiscretization, FailureDomainTypes.Elastic);
 
@@ -519,18 +540,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public virtual FailureDomainResult2d GetElasticFailureDomainResult2d(double angle = 0)
         {
-            (FailureZones, int)[] zoneDiscretization;
-
-            if (_concreteSection.IsCompositeSteelConcrete)
-                zoneDiscretization = _elasticFailureZonesDiscretizationsComposite;
-            else if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
-                zoneDiscretization = _elasticFailureZonesDiscretizations;
-            else
-                zoneDiscretization = _elasticFailureZonesDiscretizationsFRC;
-
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete && _concreteSection.SteelSections.Count == 0)
-                if (ConcreteSection.RebarsCount == 0)
-                    return null;
+            (FailureZones, int)[] zoneDiscretization = GetFailureZonesDiscretization(FailureDomainTypes.Elastic);
+            if (zoneDiscretization == null)
+                return null;
 
             var strainPlanes = CalculateDesignFailureStrainPlanes(2, zoneDiscretization, FailureDomainTypes.Elastic, angle);
 
@@ -541,26 +553,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public virtual FailureDomainResult GetPlasticFailureDomainResult()
         {
-            (FailureZones, int)[] zoneDiscretization;
-
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
-                zoneDiscretization = _plasticFailureZonesDiscretizations;
-            else
-            {
-                if (ConcreteSection.RebarsCount != 0)
-                    zoneDiscretization = _plasticFailureZonesDiscretizationsFRC;
-                else
-                {
-                    if (_concreteSection.ConcreteMaterial.StressStrainTableTension.IsHardening())
-                        zoneDiscretization = _plasticFailureZonesDiscretizationsFRCNoRebarsHardening;
-                    else
-                        zoneDiscretization = _plasticFailureZonesDiscretizationsFRCNoRebarsSoftening;
-                }
-            }
-
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete && _concreteSection.SteelSections.Count == 0)
-                if (ConcreteSection.RebarsCount == 0)
-                    return null;
+            (FailureZones, int)[] zoneDiscretization = GetFailureZonesDiscretization(FailureDomainTypes.Plastic);
+            if (zoneDiscretization == null)
+                return null;
 
             var strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization, zoneDiscretization, FailureDomainTypes.Plastic);
 
@@ -571,26 +566,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public virtual FailureDomainResult2d GetPlasticFailureDomainResult2d(double angle = 0)
         {
-            (FailureZones, int)[] zoneDiscretization;
-
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete)
-                zoneDiscretization = _plasticFailureZonesDiscretizations;
-            else
-            {
-                if (ConcreteSection.RebarsCount != 0)
-                    zoneDiscretization = _plasticFailureZonesDiscretizationsFRC;
-                else
-                {
-                    if (_concreteSection.ConcreteMaterial.StressStrainTableTension.IsHardening())
-                        zoneDiscretization = _plasticFailureZonesDiscretizationsFRCNoRebarsHardening;
-                    else
-                        zoneDiscretization = _plasticFailureZonesDiscretizationsFRCNoRebarsSoftening;
-                }
-            }
-
-            if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete && _concreteSection.SteelSections.Count == 0)
-                if (ConcreteSection.RebarsCount == 0)
-                    return null;
+            (FailureZones, int)[] zoneDiscretization = GetFailureZonesDiscretization(FailureDomainTypes.Plastic);
+            if (zoneDiscretization == null)
+                return null;
 
             var strainPlanes = CalculateDesignFailureStrainPlanes(2, zoneDiscretization, FailureDomainTypes.Plastic, angle);
 
@@ -832,6 +810,39 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <returns>The axial force; 0 if the integration fails</returns>
         internal double CalculatePureCompressionAxialForce() =>
             CalculateForceResultantForDomain(new StrainPlane(0, 0, _integrationReferencePoint, GetYieldingStrainPureCompression())).N;
+
+        /// <summary>
+        /// The ends of the range of the axial force of the failure domain of the options, [NRd,c; NRd,t] (N, compression negative, force reference
+        /// axes): the points with the smallest and the largest N of the two meridians of the neutral axis at 0 and π, before any interpolation. The
+        /// ends are planes of uniform strain (pure compression and pure tension), the same for every direction of the neutral axis. No point at an
+        /// assigned axial force exists outside the range (bug SLU-2 of 15/10/2026)
+        /// </summary>
+        /// <returns>The points of the two ends; null if the section has no domain or the integration fails</returns>
+        internal (FailureDomain.FailureDomainPoint Compression, FailureDomain.FailureDomainPoint Tension)? CalculateAxialForceRange()
+        {
+            FailureDomainTypes type = _sectionOption.FailureDomainType;
+            (FailureZones, int)[] zoneDiscretization = GetFailureZonesDiscretization(type);
+            if (zoneDiscretization == null)
+                return null;
+            var strainPlanes = CalculateDesignFailureStrainPlanes(2, zoneDiscretization, type);
+            FailureDomain domain = strainPlanes == null ? null : CalculateFailureDomain(strainPlanes, _sectionOption.ForceReferenceCoordinateSystem, type);
+            if (domain == null)
+                return null;
+            FailureDomain.FailureDomainPoint compression = null, tension = null;
+            foreach (var meridian in domain.DomainPoints)
+                foreach (var point in meridian)
+                {
+                    if (point?.StrainPlane == null || double.IsNaN(point.NRd + point.MxRd + point.MyRd) || double.IsInfinity(point.NRd + point.MxRd + point.MyRd))
+                        continue;
+                    if (compression == null || point.NRd < compression.NRd)
+                        compression = point;
+                    if (tension == null || point.NRd > tension.NRd)
+                        tension = point;
+                }
+            if (compression == null || tension == null)
+                return null;
+            return (compression, tension);
+        }
 
         /// <summary>
         /// The tolerance on N of the stopping test of the search of a point of the domain (N, positive): <see cref="FailureAnalysisDistanceTolerance"/>

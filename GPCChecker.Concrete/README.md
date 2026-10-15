@@ -92,6 +92,30 @@ speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedi
   la prova di arresto al massimo 540 N); per C2 la tolleranza è 1280 N e nessun punto ha scarto fra 1000 e 1280 N.
   Con lo stress block nessun punto accettato prima è rifiutato (164 confermati, 7 accettati in più).
 
+### Resistenza a N assegnato: N fuori dal campo del dominio e momento nullo
+
+`LegacySectionCalculation.SolveResistance` con i criteri a N assegnato (N costante, N e Mx, N e My) dà due esiti
+tipizzati, entrambi `Completed` (correzione SLU-2 del 15/10/2026; prima `NotConverged`, «punto resistente non
+convergente» in ANTHEA):
+
+- **N fuori dal campo** [NRd,c; NRd,t] del dominio (`SectionSolver.CalculateAxialForceRange`: punti di N minimo e
+  massimo dei due meridiani a 0 e π, piani a deformazione uniforme): nessun punto esiste a quell'N, la sezione non è
+  verificata per nessun momento. `FailureMode` = `AxialForceOutsideDomain` (`IsAxialForceOutsideDomain`), η > 1, punto
+  dichiarato a eccentricità costante della domanda (la convergenza allegata è quella del criterio a eccentricità
+  costante, senza evidenza di equilibrio su N). Se quella ricerca non dà un punto accettato oltre la domanda (per
+  esempio una sezione precompressa il cui dominio non contiene l'origine), il punto è l'estremo del campo dal lato di N
+  e η = |N / NRd,lim| (messaggio `AxialForceOutsideDomainEndMessage`).
+- **Momento di domanda nullo con N costante**, N nel campo e sezione senza deformazioni iniziali: la direzione della
+  ricerca è nulla e prima nessun punto era accettato. `FailureMode` = `ZeroMomentDemand` (`IsZeroMomentDemand`), η = 0;
+  il punto dichiarato è la resistenza all'N assegnato per un momento positivo attorno al primo asse delle forze, con
+  la sua convergenza e l'evidenza dell'equilibrio su N.
+- Entrambe le risposte riportano NRd,c e NRd,t (`AxialCompressionResistance`, `AxialTensionResistance`). Restano
+  `NotConverged`, come deciso nel registro F2-17 (opzione A), la direzione nulla e i residui fuori tolleranza di N e Mx
+  costanti e N e My costanti con N nel campo.
+- Prove: `AssignedAxialForceOutcomeTests` (300 × 500 C25/30 4Ø16, NRd,c = −2428,31 kN e NRd,t = 314,71 kN in forma
+  chiusa, η = |NEd / NRd,lim|, MRd,x(−1000 kN) = 191,93 kNm e punto a eccentricità costante del modello a fibre
+  indipendente).
+
 ### Dominio 2D N–M
 
 `FailureDomain2d` di tipo N–M (`FailureDomainResult2d.DomainTypes.ConstantMxMy`; correzione SLU-1 del 15/10/2026):

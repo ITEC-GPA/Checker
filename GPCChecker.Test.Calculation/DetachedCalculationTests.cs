@@ -134,14 +134,18 @@ namespace ConcreteTests
         [DataTestMethod]
         [DataRow(-1e9)]
         [DataRow(1e9)]
-        public void AxialDemandOutsideTheDomainCannotProduceAUtilization(double n)
+        public void AxialDemandOutsideTheDomainIsNotVerifiedForAnyMoment(double n)
         {
+            // Bug SLU-2 of 15/10/2026 (user decision): at an assigned N outside [NRd,c; NRd,t] the outcome is a completed «axial force outside
+            // the domain» with a utilization above 1 at constant eccentricity, no longer NotConverged with a rejected axial equilibrium.
             var f = Setup(false); f.force.N = n;
             var response = new LegacySectionCalculation(f.checker).SolveResistance(new SectionAnalysisInput(f.force));
-            Assert.AreEqual(CalculationStatus.NotConverged, response.Diagnostics.Status);
-            Assert.IsNull(response.Utilization);
-            Assert.IsNotNull(response.Diagnostics.AxialEquilibrium);
-            Assert.IsFalse(response.Diagnostics.AxialEquilibrium.Accepted);
+            Assert.AreEqual(CalculationStatus.Completed, response.Diagnostics.Status);
+            Assert.IsTrue(response.IsAxialForceOutsideDomain);
+            Assert.IsTrue(response.Utilization > 1);
+            Assert.IsNull(response.Diagnostics.AxialEquilibrium);
+            Assert.IsTrue(n < response.AxialCompressionResistance || n > response.AxialTensionResistance);
+            Assert.AreEqual(SectionSolver.FailureAnalysisTypes.ConstantEccentricity, response.Diagnostics.ResistanceConvergence.Criterion);
         }
         [TestMethod]
         public void EquilibriumEvidenceIncludesBoundaryAndRejectsInvalidCompletedStatus()

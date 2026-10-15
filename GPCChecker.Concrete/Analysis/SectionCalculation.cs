@@ -107,6 +107,32 @@ namespace GPC.Checkers.Concrete.Analysis
     }
     public sealed class SectionResistanceResponse
     {
+        /// <summary>
+        /// <see cref="FailureMode"/> of a completed response of a criterion at assigned N (ConstantN, ConstantNMx, ConstantNMy) whose axial force
+        /// is outside the range [NRd,c; NRd,t] of the domain (<see cref="AxialCompressionResistance"/>, <see cref="AxialTensionResistance"/>):
+        /// no point exists at that N, the section is not verified for any moment. Utilization above 1 and the declared point of the message
+        /// (<see cref="AxialForceOutsideDomainMessage"/> or <see cref="AxialForceOutsideDomainEndMessage"/>). Before (bug SLU-2 of 15/10/2026)
+        /// the response was NotConverged.
+        /// </summary>
+        public const string AxialForceOutsideDomainMode = "AxialForceOutsideDomain";
+        /// <summary>
+        /// <see cref="FailureMode"/> of a completed response of the ConstantN criterion with zero moment demand (in the solver axes) at an
+        /// axial force inside the range of the domain, for a section without initial strains: utilization 0, the declared point is the resistance at
+        /// the assigned N for a positive M1 of the force reference axes (<see cref="ZeroMomentDemandMessage"/>). Before (bug SLU-2 of 15/10/2026)
+        /// the response was NotConverged (direction of the search null).
+        /// </summary>
+        public const string ZeroMomentDemandMode = "ZeroMomentDemand";
+        /// <summary>Message of <see cref="AxialForceOutsideDomainMode"/> with the point and utilization at constant eccentricity of the demand.</summary>
+        public const string AxialForceOutsideDomainMessage =
+            "Axial force outside the range [NRd,c; NRd,t] of the domain: declared point and utilization at constant eccentricity.";
+        /// <summary>Message of <see cref="AxialForceOutsideDomainMode"/> when the search at constant eccentricity gives no point beyond the demand:
+        /// the declared point is the end of the range on the side of N, utilization |N / NRd,lim|.</summary>
+        public const string AxialForceOutsideDomainEndMessage =
+            "Axial force outside the range [NRd,c; NRd,t] of the domain: declared point at the end of the range, utilization |N / NRd,lim|.";
+        /// <summary>Message of <see cref="ZeroMomentDemandMode"/>.</summary>
+        public const string ZeroMomentDemandMessage =
+            "Zero moment demand at an axial force inside the range [NRd,c; NRd,t] of the domain: utilization 0, declared point at the assigned N for positive M1.";
+
         public SolverDiagnostics Diagnostics { get; }
         public SectionStrain Strain { get; }
         public double? N { get; }
@@ -118,6 +144,16 @@ namespace GPC.Checkers.Concrete.Analysis
         /// <summary>No domain search or resistance capacity is claimed for an unloaded section without initial strains.</summary>
         public SectionAnalysisInput ZeroDemandInput { get; }
         public bool IsZeroDemand => ZeroDemandInput != null;
+        /// <summary>Completed response of an axial force outside the range of the domain (<see cref="AxialForceOutsideDomainMode"/>).</summary>
+        public bool IsAxialForceOutsideDomain => Diagnostics.Status == CalculationStatus.Completed && FailureMode == AxialForceOutsideDomainMode;
+        /// <summary>Completed response of zero moment demand at constant N (<see cref="ZeroMomentDemandMode"/>).</summary>
+        public bool IsZeroMomentDemand => Diagnostics.Status == CalculationStatus.Completed && FailureMode == ZeroMomentDemandMode;
+        /// <summary>NRd,c, the smallest axial force of the domain (N, negative), for the responses of <see cref="AxialForceOutsideDomainMode"/> and
+        /// <see cref="ZeroMomentDemandMode"/>; null otherwise.</summary>
+        public double? AxialCompressionResistance { get; private set; }
+        /// <summary>NRd,t, the largest axial force of the domain (N), for the responses of <see cref="AxialForceOutsideDomainMode"/> and
+        /// <see cref="ZeroMomentDemandMode"/>; null otherwise.</summary>
+        public double? AxialTensionResistance { get; private set; }
         private SectionResistanceResponse(SectionAnalysisInput input, SolverDiagnostics diagnostics, string criterion)
         {
             ZeroDemandInput = input; Diagnostics = diagnostics; Criterion = criterion; Utilization = 0; FailureMode = "ZeroDemand";
@@ -137,6 +173,17 @@ namespace GPC.Checkers.Concrete.Analysis
             N = n; M1 = m1; M2 = m2; Utilization = utilization; FailureMode = failureMode;
             if (diagnostics.Status == CalculationStatus.Completed && (strain == null || new[] { n, m1, m2, utilization }.Any(v => !v.HasValue || !SectionAnalysisInput.Finite(v.Value)) || utilization < 0))
                 throw new ArgumentException("Invalid completed resistance response.");
+        }
+        /// <summary>A completed response of <see cref="AxialForceOutsideDomainMode"/> or <see cref="ZeroMomentDemandMode"/> with the range of the domain.</summary>
+        internal static SectionResistanceResponse ForAssignedAxialForce(SolverDiagnostics diagnostics, string criterion, string mode, SectionStrain strain,
+            double n, double m1, double m2, double utilization, double compression, double tension)
+        {
+            if (diagnostics?.Status != CalculationStatus.Completed || (mode != AxialForceOutsideDomainMode && mode != ZeroMomentDemandMode)
+                || (mode == AxialForceOutsideDomainMode ? !(utilization > 1) : utilization != 0) || !SectionAnalysisInput.Finite(compression)
+                || !SectionAnalysisInput.Finite(tension) || compression > tension)
+                throw new ArgumentException("Invalid assigned axial force response.");
+            return new SectionResistanceResponse(diagnostics, criterion, strain, n, m1, m2, utilization, mode)
+            { AxialCompressionResistance = compression, AxialTensionResistance = tension };
         }
     }
     /// <summary>A session owns a fixed section, resolved design/constitutive parameters and numerical options; implementations declare synchronization requirements.</summary>
