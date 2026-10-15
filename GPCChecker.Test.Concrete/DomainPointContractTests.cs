@@ -41,6 +41,9 @@ namespace ConcreteTests
     /// the same input (C2, N = -1500 kN, Mx+: NRd = -1513.15 kN here, -1502.05 kN with the same section on .NET 8, the runtime of ANTHEA).
     /// It is a regression snapshot, not an independent expectation: never regenerate it to make the test pass. On a difference the generated text is
     /// written next to the test assembly (domain-point-contract.actual.json) and the first differing line is reported.
+    /// Accepted change (approved by the user, bug analysis of 15/10/2026, SLU-5, GPCModel 5.4.0.3): εc1 and εcu1 of the non linear diagram use fcm at
+    /// 28 days (EN 1992-1-1 Table 3.1), so the 256 NonLinear points were regenerated; the other diagrams, the paths, the failure fields and the
+    /// verdicts on N are unchanged.
     /// </summary>
     [TestClass]
     public class DomainPointContractTests
