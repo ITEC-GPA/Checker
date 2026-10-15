@@ -259,8 +259,11 @@ public class WallsMigrationTests
             calculated++;
         }
         Assert.AreEqual(110, calculated + rejected + outside);
-        Assert.AreEqual(88, calculated); Assert.AreEqual(14, rejected); Assert.AreEqual(8, outside);
-        Assert.AreEqual(35, legacyNaN, "legacy defect: NaN moments of the stem with the valley water");
+        // MUR-2 (15/10/2026, capture regenerated with the user's approval): the 3 documents with the passive in front and η = 1 are rejected (η ≤ 0.5).
+        Assert.AreEqual(85, calculated); Assert.AreEqual(17, rejected); Assert.AreEqual(8, outside);
+        // Legacy defect: NaN moments of the stem with the valley water. Its 35 cuts were all in "valle Dv1 collegataFalse passivaTrue eta1 falda0.8",
+        // rejected since MUR-2: no calculated document has them now.
+        Assert.AreEqual(0, legacyNaN, "legacy defect: NaN moments of the stem with the valley water");
         TestContext.WriteLine($"{calculated} walls, {cases} combinations, {sections} cuts, {checks} checks; {roundingCuts} cuts at the loads decided by the rounding of ANTHEA, {legacyNaN} NaN of ANTHEA");
         Assert.IsTrue(cases > 2000 && sections > 100000 && checks > 5000, $"{cases} cases, {sections} cuts, {checks} checks");
     }

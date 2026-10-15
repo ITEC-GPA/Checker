@@ -190,6 +190,11 @@ harness ANTHEA 2663c96):
 - 126 pali orizzontali con diagrammi e diagnostica, 12 rifiuti;
 - 37 pali e micropali verticali con le curve a tutte le quote, 10 rifiuti.
 
+Dopo le correzioni del 15/10/2026, con l'approvazione dell'utente, nelle catture sono stati rigenerati con i valori della
+libreria solo i valori cambiati dalle correzioni (nota `regenerated` nella prima riga dei file): PO-2, 5 casi «due
+sondaggi» (efficienze di Reese e Van Impe, η 0,447370 → 0,445327, Rd −0,46%, stessi esiti); PV-1, le azioni di trazione
+sotto falda di 8 documenti (W' = W − γw A (z − zf)).
+
 Gli input non esprimibili con i tipi (nomi sconosciuti, strati disattivati nel modello orizzontale) sono elencati nei test.
 Casi limite in `PileEdgeCaseTests`, cinque esempi in `PileExamplesTests`; φ ridotto, peso del tubo dal materiale e tubi di
 ANTHEA nei cataloghi di ModelData in `PileOptionsTests`.
@@ -263,11 +268,18 @@ atan(tan φ′/γM) della riga, δd del paramento (sul fusto) e del piano di equ
 mensola), θ = atan(kh/(1 − kv)) della riga. Servono θ < φd, δd ≤ φd e δd + θ < 90°; altrimenti il messaggio nomina la riga, θ,
 φd, γM e δd, invece del messaggio generico di Coulomb che compariva durante il calcolo (righe personalizzate con γM > 1).
 Casi legacy congelati e riprodotti (`WallsMigrationTests`, harness ANTHEA cbed972, `Fixtures/walls-*`): 798 valori delle
-leggi, 110 generazioni di combinazioni (2380 righe), 88 muri completi (149.922 sezioni, 8332 verifiche) e 14 documenti
-rifiutati; 8 documenti rifiutati da ANTHEA per motivi fuori da W1 (strutturali o d'interfaccia) sono elencati nel test.
-Differenze intenzionali: quote in mm (i tagli coincidenti sono unificati entro 1e-6 mm); alla quota di un carico concentrato
-ANTHEA include la forza secondo l'arrotondamento di ht − z in metri (36 tagli: il port la include alla quota e la esclude
-1e-4 mm sopra); 35 momenti NaN di ANTHEA (colonna di valle con falda) sono finiti nel port.
+leggi, 110 generazioni di combinazioni (2491 righe confrontate), 85 muri completi (145.234 sezioni, 8076 verifiche) e 17
+documenti rifiutati; 8 documenti rifiutati da ANTHEA per motivi fuori da W1 (strutturali o d'interfaccia) sono elencati nel
+test. Differenze intenzionali: quote in mm (i tagli coincidenti sono unificati entro 1e-6 mm); alla quota di un carico
+concentrato ANTHEA include la forza secondo l'arrotondamento di ht − z in metri (36 tagli: il port la include alla quota e la
+esclude 1e-4 mm sopra). Le righe gemelle senza il sovraccarico sulla mensola (MUR-1) non sono nella cattura e sono
+controllate a parte.
+Catture rigenerate dopo le correzioni del 15/10/2026, con l'approvazione dell'utente, solo nei valori cambiati (nota
+`regenerated` nella prima riga dei file): MUR-2, i 3 documenti con la passiva e η = 1 sono ora rifiuti (prima 88 muri e 14
+rifiuti; fra questi c'era l'unico documento con la falda di valle sul fusto, con i 35 momenti NaN di ANTHEA) e nel documento
+con η = 0,5 scorrimento e ribaltamento cambiano (domanda + η Pp usata, resistenza + η Pp); MUR-3, i tagli del fusto fra la
+soletta e Dv di 2 documenti (ΔN = −γ fvalle pendenza (yc − t)(Dv − yc)); MUR-4, lo spostamento in testa di 2 documenti di
+esercizio (Δu = −θ t). Nessun esito cambia.
 
 **W3 — esercizio e stabilità globale.**
 - `Walls.WallServiceability`: cedimenti edometrici sotto il contatto della base in ogni combinazione SLE (piede, centro,
