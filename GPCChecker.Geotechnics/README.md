@@ -215,13 +215,15 @@ la passiva a valle nello scorrimento: in `WallValley` è un'opzione, spenta per 
 
 **Sovraccarico sulla mensola di monte (correzione MUR-1, 15/10/2026).** Il sovraccarico uniforme agisce sulla spinta (K q,
 sfavorevole) e sulla mensola di monte (q b in N, nel momento stabilizzante, nell'inerzia kh q b Ht e nel carico della soletta
-di monte), dove è favorevole per scorrimento, ribaltamento e portanza. Ogni riga SLU con un sovraccarico variabile Q attivo e
+di monte), dove è favorevole per scorrimento, ribaltamento e portanza. Ogni riga SLU (e, dal 16/10, sismica ed eccezionale) con un sovraccarico variabile Q attivo e
 tallone b > 0 è seguita dalla gemella con lo stesso nome e il suffisso «b» (per esempio SLU 8 e SLU 8b): spinta invariata con
 γQ = 1,5, sovraccarico variabile assente sulla mensola (γQ = 0 per la parte favorevole, NTC 2018 Tab. 2.6.I; EN 1990 Tab. A1.2).
 Le due righe entrano in tutte le verifiche (scorrimento, ribaltamento, portanza, contatto) e nelle sollecitazioni della mensola;
 la numerazione delle altre righe non cambia. Il flag è `WallCombination.VariableSurchargeOnHeel` (predefinito vero) e vale
 anche per le matrici personalizzate. I sovraccarichi permanenti G1 e G2 hanno un solo fattore su spinta e mensola (sorgente
-unica, EN 1997-1 2.4.2(9)); le righe sismiche ed eccezionali tengono ψ2 q anche sulla mensola. Esempio: H = 4 m, b = 2 m,
+unica, EN 1997-1 2.4.2(9)). Dal 16/10/2026 (decisione dell'utente) anche le righe sismiche (kh assegnato, SLV generali e di
+ribaltamento) ed eccezionali con ψ2 q hanno la gemella senza il sovraccarico sulla mensola (azione variabile favorevole non
+applicata, NTC 2018 §2.5.3), per esempio «SLV Generale kv− 12b». Esempio: H = 4 m, b = 2 m,
 q = 20 kPa sul muro predefinito di ANTHEA: SLU 8b scorrimento 103,91/94,22 = 1,103 (non soddisfatta), ribaltamento 0,527,
 portanza 1,415, contro 0,860, 0,399 e 0,659 della SLU 8 con q sulla mensola (prima della correzione il massimo dello
 scorrimento era 0,870, soddisfatta).
@@ -256,7 +258,10 @@ validazione controlla θ = atan(kh/(1 − kv)) < φ′ sia con i coefficienti ge
 (βm,rib = min(1; 1,5 βm) = 0,57), e il messaggio indica le combinazioni SLV (generali o di ribaltamento), βm, kh, kv, θ e φ′.
 Prima era controllato solo il kh generale e con θrib ≥ φ′ il calcolo si fermava con il messaggio generico di Coulomb. Con kh e
 kv assegnati resta il controllo sui valori assegnati.
-
+Dal 16/10/2026 (decisione dell'utente) ogni riga sismica è controllata anche con i valori che il calcolo usa davvero: φd =
+atan(tan φ′/γM) della riga, δd del paramento (sul fusto) e del piano di equilibrio (0 dietro la mensola, δd del paramento senza
+mensola), θ = atan(kh/(1 − kv)) della riga. Servono θ < φd, δd ≤ φd e δd + θ < 90°; altrimenti il messaggio nomina la riga, θ,
+φd, γM e δd, invece del messaggio generico di Coulomb che compariva durante il calcolo (righe personalizzate con γM > 1).
 Casi legacy congelati e riprodotti (`WallsMigrationTests`, harness ANTHEA cbed972, `Fixtures/walls-*`): 798 valori delle
 leggi, 110 generazioni di combinazioni (2380 righe), 88 muri completi (149.922 sezioni, 8332 verifiche) e 14 documenti
 rifiutati; 8 documenti rifiutati da ANTHEA per motivi fuori da W1 (strutturali o d'interfaccia) sono elencati nel test.

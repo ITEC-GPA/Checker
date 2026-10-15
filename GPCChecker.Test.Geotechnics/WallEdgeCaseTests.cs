@@ -175,6 +175,47 @@ public class WallEdgeCaseTests
     }
 
     /// <summary>
+    /// MUR-1 extended (user decision 16/10/2026): also the seismic and accidental rows with ψ2 q have the twin without the surcharge on the heel.
+    /// Benchmark wall (H 3, s 0.30, t 0.40, toe 0.80, heel 1.90; fill φ 30°, γ 18; δb 26°; q = 10 kPa, ψ2 0.3), assigned Mononobe-Okabe kh 0.1,
+    /// kv ±0.05. Expected values from the independent pseudo-static model scratchpad\agent-geo\mur1b_seismic.py (KAE, inertia of wall, fill and
+    /// q on the heel, vertical forces × (1 − kv), γR 1.1 / 1.15 of the assigned seismic rows).
+    /// </summary>
+    [TestMethod]
+    public void SeismicAndAccidentalRowsHaveTheTwinWithoutTheSurchargeOnTheHeel()
+    {
+        var input = Wall(seismic: WallSeismic.Assigned(WallSeismicMethod.MononobeOkabe, .1, .05));
+        var rows = WallCombinations.Generate(input); var r = RetainingWallAnalysis.Calculate(input, rows);
+        WallCaseResult Pick(double kv, bool onHeel) => r.Cases.Single(c => c.Combination.State == WallLimitState.Seismic && c.Combination.Kv == kv && c.Combination.VariableSurchargeOnHeel == onHeel);
+        double Ratio(WallCaseResult c, WallCheckKind kind) => r.Checks.Single(k => k.Combination == c.Combination.Name && k.Kind == kind).Ratio!.Value;
+        foreach (var (kv, onHeel, h, n, ms, mr, sliding, overturning) in new[]
+        {
+            (-.05, true, 63.253754, 168.84, 302.8095, 85.867781, .844932, .326106), (-.05, false, 62.683754, 162.855, 290.54025, 83.929781, .868090, .332206),
+            (.05, true, 59.514894, 152.76, 273.9705, 81.47692, .878672, .342002), (.05, false, 58.944894, 147.345, 262.86975, 79.53892, .902239, .347966)
+        })
+        {
+            var c = Pick(kv, onHeel); string id = $"kv {kv} q on the heel {onHeel} (mur1b_seismic.py)";
+            Close(h, c.Horizontal, "H " + id, 1e-7); Close(n, c.Vertical, "N " + id, 1e-9); Close(ms * KNm, c.Stabilizing, "Ms " + id, 1e-7); Close(mr * KNm, c.Overturning, "Mr " + id, 1e-7);
+            Close(sliding, Ratio(c, WallCheckKind.Sliding), "sliding " + id, 1e-6); Close(overturning, Ratio(c, WallCheckKind.Overturning), "overturning " + id, 1e-6);
+        }
+        Assert.AreEqual(Pick(-.05, true).Combination.Name + "b", Pick(-.05, false).Combination.Name);
+        // SLV from the site: general and overturning rows, each with its twin.
+        var site = NtcSiteAmplification.Create(.15, (NtcSoilCategory.C, 2.5), null, (NtcTopography.Flat, 0, 0, 0), null);
+        var slv = WallCombinations.Generate(Wall(seismic: WallSeismic.FromSite(WallSeismicMethod.MononobeOkabe, site))).Where(x => x.State == WallLimitState.Seismic).ToArray();
+        foreach (var purpose in new[] { WallSeismicPurpose.General, WallSeismicPurpose.Overturning })
+            Assert.AreEqual(2, slv.Count(x => x.Purpose == purpose && !x.VariableSurchargeOnHeel), purpose + " twins");
+        // Accidental: the twin loses ψ2 q b = 0.3 · 10 · 1.9 = 5.7 kN/m of N and its moment about the toe, 5.7 · 2.05.
+        var impact = new WallAction("u", "Urto", WallActionType.Impact, WallActionCategory.A, 40, 2000);
+        var accidental = Wall(actions: new[] { Surcharge(10), impact }); var ra = RetainingWallAnalysis.Calculate(accidental, WallCombinations.Generate(accidental));
+        var parent = ra.Cases.Single(c => c.Combination.State == WallLimitState.Exceptional && c.Combination.VariableSurchargeOnHeel);
+        var twin = ra.Cases.Single(c => c.Combination.State == WallLimitState.Exceptional && !c.Combination.VariableSurchargeOnHeel);
+        Close(5.7, parent.Vertical - twin.Vertical, "ψ2 q b", 1e-9); Close(5.7 * 2.05 * KNm, parent.Stabilizing - twin.Stabilizing, "ψ2 q b (a + s + b/2)", 1e-9);
+        Close(parent.Horizontal, twin.Horizontal, "same thrust", 1e-12);
+        // No twin without a heel or without a variable surcharge.
+        Assert.IsFalse(WallCombinations.Generate(Wall(toe: 2.7, heel: 0, seismic: WallSeismic.Assigned(WallSeismicMethod.MononobeOkabe, .1, .05))).Any(x => !x.VariableSurchargeOnHeel));
+        Assert.IsFalse(WallCombinations.Generate(Wall(actions: new[] { Surcharge(5, "g", WallActionCategory.G2) }, seismic: WallSeismic.Assigned(WallSeismicMethod.MononobeOkabe, .1, .05))).Any(x => !x.VariableSurchargeOnHeel));
+    }
+
+    /// <summary>
     /// MUR-2: the passive in front is a resistance with γR,e = 1.4 in the A1+M1+R3 rows (NTC 2018 Tab. 6.5.I) and at most 50% of it can be
     /// mobilised (§6.5.3.1.1). Scenario of the finding: ANTHEA default wall (H 3, s 0.40/0.25, t 0.45, toe 0.80) with heel 0.6 m, q = 20 kPa,
     /// soil in front Dv = 1.2 m (φ 30°, γ 18: Pp = Kp γ Dv²/2 = 38.88 kN/m), η = 0.5. Expected values from the independent model
@@ -313,17 +354,19 @@ public class WallEdgeCaseTests
         // Accidental: separate, ψ2 of the variables, γR = 1.
         var impact = new WallAction("u", "Urto", WallActionType.Impact, WallActionCategory.A, 40, 2000);
         var acc = WallCombinations.Generate(Wall(actions: new[] { Surcharge(10), impact }));
-        var e = acc.Single(r => r.State == WallLimitState.Exceptional); Assert.AreEqual(1, e.Coefficients["u"]); Close(.3, e.Coefficients["q"], "ψ2");
+        var e = acc.Single(r => r.State == WallLimitState.Exceptional && r.VariableSurchargeOnHeel); Assert.AreEqual(1, e.Coefficients["u"]); Close(.3, e.Coefficients["q"], "ψ2");
+        Assert.AreEqual(e.Name + "b", acc.Single(r => r.State == WallLimitState.Exceptional && !r.VariableSurchargeOnHeel).Name, "accidental twin without ψ2 q on the heel");
         Assert.IsTrue(acc.Where(r => r.State != WallLimitState.Exceptional).All(r => r.Coefficients["u"] == 0));
         var withImpact = RetainingWallAnalysis.Calculate(Wall(actions: new[] { Surcharge(10), impact }), acc);
-        var qp = withImpact.Cases.Single(c => c.Combination.State == WallLimitState.QuasiPermanent); var ec = withImpact.Cases.Single(c => c.Combination.State == WallLimitState.Exceptional);
+        var qp = withImpact.Cases.Single(c => c.Combination.State == WallLimitState.QuasiPermanent); var ec = withImpact.Cases.Single(c => c.Combination.State == WallLimitState.Exceptional && c.Combination.VariableSurchargeOnHeel);
         Close(40, ec.Horizontal - qp.Horizontal, "impact force", 1e-12); Close(40 * 2000, ec.Overturning - qp.Overturning, "impact arm", 1e-12);
         // Assigned seismic: both signs of kv, quasi permanent actions; site: general and overturning.
         var manual = WallCombinations.Generate(Wall(seismic: WallSeismic.Assigned(WallSeismicMethod.MononobeOkabe, .1, .05)));
-        Assert.AreEqual(2, manual.Count(r => r.State == WallLimitState.Seismic)); Assert.IsTrue(manual.Any(r => r.Name.StartsWith("Sisma kv−")));
+        Assert.AreEqual(2, manual.Count(r => r.State == WallLimitState.Seismic && r.VariableSurchargeOnHeel)); Assert.IsTrue(manual.Any(r => r.Name.StartsWith("Sisma kv−")));
+        Assert.AreEqual(2, Twins(manual.Where(r => r.State == WallLimitState.Seismic)), "seismic twins without ψ2 q on the heel");
         var site = NtcSiteAmplification.Create(.15, (NtcSoilCategory.C, 2.5), null, (NtcTopography.Flat, 0, 0, 0), null);
         var slv = WallCombinations.Generate(Wall(seismic: WallSeismic.FromSite(WallSeismicMethod.MononobeOkabe, site)));
-        Assert.AreEqual(4, slv.Count(r => r.State == WallLimitState.Seismic));
+        Assert.AreEqual(4, slv.Count(r => r.State == WallLimitState.Seismic && r.VariableSurchargeOnHeel)); Assert.AreEqual(4, Twins(slv.Where(r => r.State == WallLimitState.Seismic)));
         var over = slv.First(r => r.Purpose == WallSeismicPurpose.Overturning); Close(.57 * site.AmaxG, over.Kh, "β overturning", 1e-14);
         Assert.AreEqual(1.2, over.BearingFactor); Assert.AreEqual(1, over.SlidingFactor);
         // Overturning combinations give only the overturning check, general ones no overturning check.
@@ -408,9 +451,33 @@ public class WallEdgeCaseTests
         StringAssert.Contains(general.Message, "combinazioni SLV generali"); StringAssert.Contains(general.Message, "βm = 0,38");
         // φ′ = 16°: both inside the field, the calculation runs.
         var ok = RetainingWallAnalysis.Calculate(Input(16), WallCombinations.Generate(Input(16)));
-        Assert.AreEqual(4, ok.Cases.Count(c => c.Combination.State == WallLimitState.Seismic));
+        Assert.AreEqual(4, ok.Cases.Count(c => c.Combination.State == WallLimitState.Seismic && c.Combination.VariableSurchargeOnHeel));
         // Assigned coefficients keep the check of the assigned kh, kv.
         Throws(() => RetainingWallAnalysis.Calculate(Wall(fill: Column(3.4, (Fill(12), 10)), seismic: WallSeismic.Assigned(WallSeismicMethod.MononobeOkabe, .3, .05)), new[] { Row() }), "assigned beyond φ");
+    }
+
+    /// <summary>
+    /// Follow-up of MUR-5 (user decision 16/10/2026): every seismic row is checked with the φd, δd and θ it uses. Fill φ′ = 20°, custom seismic row
+    /// with γM = 1.25: φd = atan(tan 20°/1.25) = 16.23°; kh = 0.3, kv = 0: θ = atan 0.3 = 16.70° ≥ φd (the assigned kh passes the check on φ′ = 20°),
+    /// kh = 0.25: θ = 14.04° < φd runs (hand values). Without heel the friction of the back acts on the plane: δ = 10°, δd = atan(tan 10°/1.25) = 8.0°.
+    /// </summary>
+    [TestMethod]
+    public void MononobeOkabeIsCheckedWithTheValuesOfEachSeismicRow()
+    {
+        WallCombination Quake(double kh, double mphi, string name = "S1") => new(name, WallLimitState.Seismic, 1, 1, 1, 1, mphi, 1, 1, 1, kh, 0, new Dictionary<string, double> { ["q"] = .3 });
+        var fill = Column(3.4, (Fill(20), 10));
+        var input = Wall(fill: fill, seismic: WallSeismic.Assigned(WallSeismicMethod.MononobeOkabe, .3, 0));
+        Close(16.234302, Math.Atan(Math.Tan(20 * Deg) / 1.25) / Deg, "φd (hand, python)", 1e-7);
+        var e = Assert.ThrowsException<ArgumentException>(() => RetainingWallAnalysis.Calculate(input, new[] { Quake(.3, 1.25) }));
+        StringAssert.StartsWith(e.Message, "Mononobe-Okabe non applicabile nella combinazione «S1»: θ = atan(kh/(1 − kv)) = 16,7° (kh = 0,3, kv = 0), φd = atan(tan φ′/γM) = 16,2° (φ′ = 20,0°, γM = 1,25)");
+        RetainingWallAnalysis.Calculate(input, new[] { Quake(.3, 1) });
+        RetainingWallAnalysis.Calculate(input, new[] { Quake(.25, 1.25) });
+        // Without heel: the friction of the back on the equilibrium plane, with its design value.
+        var noHeel = Wall(toe: 2.7, heel: 0, fill: fill, back: new WallInterface(WallFriction.Assigned, 10 * Deg), seismic: WallSeismic.Assigned(WallSeismicMethod.MononobeOkabe, .3, 0));
+        var h = Assert.ThrowsException<ArgumentException>(() => RetainingWallAnalysis.Calculate(noHeel, new[] { Quake(.3, 1.25, "S2") }));
+        StringAssert.Contains(h.Message, "«S2»"); StringAssert.Contains(h.Message, "δd = 8,0° sul piano di equilibrio");
+        // Wood does not use Mononobe-Okabe.
+        RetainingWallAnalysis.Calculate(Wall(fill: fill, seismic: WallSeismic.Assigned(WallSeismicMethod.Wood, .3, 0)), new[] { Quake(.3, 1.25) });
     }
 
     [TestMethod]

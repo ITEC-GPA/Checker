@@ -408,6 +408,7 @@ namespace GPC.Checkers.Geotechnics.Walls
             {
                 if (!names.Add(c.Name)) throw new ArgumentException("Combinazioni: nome univoco e stato limite valido obbligatori.");
                 if (c.State == WallLimitState.Seismic && input.Seismic == null) throw new ArgumentException("Abilitare il sisma prima di usare combinazioni sismiche.");
+                if (c.State == WallLimitState.Seismic && input.Seismic!.Method == WallSeismicMethod.MononobeOkabe) MononobeOkabeField(input, c);
                 foreach (var x in input.Actions)
                 {
                     double f = c.Coefficients.TryGetValue(x.Id, out double v) ? v : 0;
@@ -416,6 +417,24 @@ namespace GPC.Checkers.Geotechnics.Walls
                 }
                 if (c.Coefficients.Keys.Any(k => !ids.Contains(k))) throw new ArgumentException("Matrice non allineata all’elenco delle azioni: rigenerare le combinazioni.");
             }
+        }
+
+        /// <summary>
+        /// Field of Mononobe-Okabe in a seismic row with the values the calculation uses: φd = atan(tan φ′/γM) of the row, δd of the back on the stem and
+        /// on the equilibrium plane (0 behind a heel, δd of the back without heel), θ = atan(kh/(1 − kv)) of the row. Requires θ &lt; φd, δd ≤ φd and
+        /// δd + θ &lt; 90°; otherwise a message that names the row (the formula would only give the generic Coulomb message later).
+        /// </summary>
+        private static void MononobeOkabeField(WallInput input, WallCombination c)
+        {
+            var it = CultureInfo.GetCultureInfo("it-IT");
+            double phi = input.Backfill.Layers[0].Soil.FrictionAngle, phiD = EarthPressure.Design(phi, c.FrictionFactor), theta = EarthPressure.SeismicAngle(c.Kh, c.Kv);
+            double back = input.Back.Design(c.FrictionFactor), plane = input.Geometry.Heel > 0 ? 0 : back;
+            string D(double rad) => (rad / SoilUnits.Degree).ToString("0.0", it);
+            foreach (var (delta, where) in new[] { (plane, "sul piano di equilibrio"), (back, "sul paramento") })
+                if (theta >= phiD || delta > phiD || delta + theta >= Math.PI / 2)
+                    throw new ArgumentException($"Mononobe-Okabe non applicabile nella combinazione «{c.Name}»: θ = atan(kh/(1 − kv)) = {D(theta)}° (kh = {c.Kh.ToString("0.###", it)}, "
+                        + $"kv = {c.Kv.ToString("+0.###;−0.###;0", it)}), φd = atan(tan φ′/γM) = {D(phiD)}° (φ′ = {D(phi)}°, γM = {c.FrictionFactor.ToString("0.###", it)}), "
+                        + $"δd = {D(delta)}° {where}: servono θ < φd, δd ≤ φd e δd + θ < 90°.");
         }
 
         private static double Clamp(double value, double low, double high) => value < low ? low : value > high ? high : value;

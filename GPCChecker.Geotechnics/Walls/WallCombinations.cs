@@ -11,10 +11,12 @@ namespace GPC.Checkers.Geotechnics.Walls
     /// 1, 1, 1.2, NTC Tab. 7.11.III). Accidental: every group of accidental actions with the quasi permanent ones. Identical rows are merged; at
     /// most 4096 rows.
     /// <para>
-    /// Every ULS row with a variable uniform surcharge (factor &gt; 0) on a wall with a heel is followed by its twin, named with the suffix «b»
-    /// (for example SLU 8 and SLU 8b), with <see cref="WallCombination.VariableSurchargeOnHeel"/> false: the surcharge keeps the thrust K γQ q
-    /// and is absent from the heel (γQ = 0 on the favourable part, NTC 2018 Tab. 2.6.I). Both rows enter every check (sliding, overturning,
-    /// bearing, contact) and the internal forces of the heel. The numbers of the other rows do not change.
+    /// Every ULS, seismic (assigned, SLV general and overturning) and accidental row with a variable uniform surcharge (factor &gt; 0: γQ, ψ0 γQ or
+    /// ψ2) on a wall with a heel is followed by its twin, named with the suffix «b» (for example SLU 8 and SLU 8b, SLV Generale kv− 12 and
+    /// SLV Generale kv− 12b), with <see cref="WallCombination.VariableSurchargeOnHeel"/> false: the surcharge keeps the thrust and is absent from
+    /// the heel (a favourable variable action is not applied: γQ = 0, NTC 2018 Tab. 2.6.I; ψ2 Qk only where unfavourable in the seismic and
+    /// accidental combinations, NTC 2018 §2.5.3). Both rows enter every check (sliding, overturning, bearing, contact) and the internal forces of
+    /// the heel. The numbers of the other rows do not change.
     /// </para>
     /// </summary>
     public static class WallCombinations
@@ -43,8 +45,9 @@ namespace GPC.Checkers.Geotechnics.Walls
                     // accidental ones have R = 1 like the other resistances, the SLS have no resistance checks (mobilised η Pp in the equilibrium).
                     double passive = state == WallLimitState.Ultimate ? 1.4 : 1;
                     string name = label + " " + (++number);
-                    // ULS with a variable surcharge on a heel: also the twin «b» without the surcharge on the heel (favourable γQ = 0), same thrust.
-                    bool twin = state == WallLimitState.Ultimate && heel && input.Actions.Any(x => x.Enabled && x.Type == WallActionType.UniformSurcharge && x.Category == WallActionCategory.Q && coefficients[x.Id] > 0);
+                    // ULS, seismic and accidental rows with a variable surcharge on a heel: also the twin «b» without the surcharge on the heel
+                    // (favourable variable action excluded: γQ = 0, or ψ2 Qk not applied where favourable), same thrust.
+                    bool twin = (state == WallLimitState.Ultimate || state == WallLimitState.Seismic || state == WallLimitState.Exceptional) && heel && input.Actions.Any(x => x.Enabled && x.Type == WallActionType.UniformSurcharge && x.Category == WallActionCategory.Q && coefficients[x.Id] > 0);
                     foreach (bool onHeel in twin ? new[] { true, false } : new[] { true })
                     {
                         if (result.Count >= 4096) throw new ArgumentException("Oltre 4096 combinazioni: raggruppare le azioni correlate o predisporre una matrice personalizzata.");
