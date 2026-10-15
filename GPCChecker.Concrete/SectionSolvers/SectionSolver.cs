@@ -2316,7 +2316,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             CoordinateSystem axes = _sectionOption.ForceReferenceCoordinateSystem;
             Vector3d direction = new Vector3d(Math.Cos(angle), Math.Sin(angle), 0);
             double momentDirection = Math.Atan2(direction * axes.V2, direction * axes.V1);
-            return new FailureDomain2d(domain.DomainPoints, FailureDomainResult2d.DomainTypes.ConstantMxMy, momentDirection);
+            return new FailureDomain2d(domain.DomainPoints, FailureDomainResult2d.DomainTypes.ConstantMxMy, momentDirection, failureDomain.FailureDomainAnalysisTypes);
         }
 
         protected virtual ForceTuple CalculateCompressionReduction(ForceTuple force, double limit)
@@ -2337,9 +2337,66 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return CalculateStrainPlaneMultiPoints(theta, failureIndex, immersione, failureIndex == SectionSolver.FailureZones.F1 ? tensionRotationPointsF1 : tensionRotationPoints, compressionRotationPoints, minDistanceCompression, elasticEpsilonTension, id);
         }
 
+        /// <summary>The immersion of a point of the domain in the failure field <paramref name="failureIndex"/>, for the domain type of the options
+        /// (see <see cref="GetImmersione(FailureDomain.FailureDomainPoint, FailureZones, FailureDomainTypes)"/>)</summary>
         internal double GetImmersione(FailureDomain.FailureDomainPoint fail, SectionSolver.FailureZones failureIndex)
         {
+            return GetImmersione(fail, failureIndex, _sectionOption.FailureDomainType);
+        }
+
+        /// <summary>
+        /// The immersion of a point of the domain expressed in the failure field <paramref name="failureIndex"/>, not after the field of the point:
+        /// its own immersion plus the number of fields of the sequence of the domain (<see cref="GetFailureZonesDiscretization"/>) from
+        /// <paramref name="failureIndex"/> to its field, since the end of a field (immersion 1) is the start of the next one (immersion 0). Points
+        /// in different fields are so interpolated along the sequence; the result is carried back to its field by
+        /// <see cref="NormalizeImmersione"/>. Before (bug found with SLU-1, fixed on 16/10/2026) only the immersion 0 of a later field became 1,
+        /// any other immersion was used as an immersion of <paramref name="failureIndex"/>: between F3A 0.997 and F3B 0.017 the plane was the one
+        /// of F3A about 0.2, whose resultant differed from the interpolated point (2d Mx-My domain of 300 × 500 C25/30 4Ø16 at N = -1000 kN:
+        /// N = -971.9 kN). A field not in the sequence keeps the previous rule
+        /// </summary>
+        /// <param name="fail">The point</param>
+        /// <param name="failureIndex">The field of the interpolation, the first of the fields of the interpolated points</param>
+        /// <param name="failureDomainType">The type of the domain of the points</param>
+        /// <returns>The immersion, above 1 for a point in a later field</returns>
+        internal double GetImmersione(FailureDomain.FailureDomainPoint fail, SectionSolver.FailureZones failureIndex, FailureDomainTypes failureDomainType)
+        {
+            if (fail.FailureIndex > failureIndex)
+            {
+                int from = FailureFieldPosition(failureIndex, failureDomainType), to = FailureFieldPosition(fail.FailureIndex, failureDomainType);
+                if (from >= 0 && to > from)
+                    return fail.Immersione + (to - from);
+            }
             return fail.Immersione != 0.0 || fail.FailureIndex <= failureIndex ? fail.Immersione : 1.0;
+        }
+
+        /// <summary>
+        /// The failure field and immersion of an immersion of <paramref name="failureIndex"/> interpolated with
+        /// <see cref="GetImmersione(FailureDomain.FailureDomainPoint, FailureZones, FailureDomainTypes)"/>: beyond 1 it moves to the following fields
+        /// of the sequence of the domain, 1 less for each field (an immersion of 1 stays at the end of its field, as before)
+        /// </summary>
+        internal (FailureZones FailureIndex, double Immersione) NormalizeImmersione(FailureZones failureIndex, double immersione, FailureDomainTypes failureDomainType)
+        {
+            var zones = GetFailureZonesDiscretization(failureDomainType);
+            int position = FailureFieldPosition(failureIndex, failureDomainType);
+            while (immersione > 1.0 && position >= 0 && position + 1 < zones.Length)
+            {
+                immersione -= 1.0;
+                position++;
+                failureIndex = zones[position].Item1;
+            }
+            return (failureIndex, immersione);
+        }
+
+        /// <summary>The position of a failure field in the sequence of the fields of the domain of the type; -1 if not in it</summary>
+        private int FailureFieldPosition(FailureZones failureIndex, FailureDomainTypes failureDomainType)
+        {
+            var zones = GetFailureZonesDiscretization(failureDomainType);
+            if (zones == null)
+                return -1;
+            for (int i = 0; i < zones.Length; i++)
+                if (zones[i].Item1 == failureIndex)
+                    return i;
+            return -1;
         }
 
         internal StrainPlane InterpolateStrainPlane(ForceTuple forces, FailureDomain.FailureDomainPoint vA, FailureDomain.FailureDomainPoint vB, FailureDomainTypes failureDomainType,
@@ -2368,10 +2425,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
             double theta = thetaA * weightA + thetaB * weightB;
 
-            // Immersione
-            var immA = GetImmersione(vA, _failureIndex);
-            var immB = GetImmersione(vB, _failureIndex);
+            // Immersione, along the sequence of the failure fields between ends in different fields (fixed 16/10/2026)
+            var immA = GetImmersione(vA, _failureIndex, failureDomainType);
+            var immB = GetImmersione(vB, _failureIndex, failureDomainType);
             double immersione = immA * weightA + immB * weightB;
+            (_failureIndex, immersione) = NormalizeImmersione(_failureIndex, immersione, failureDomainType);
 
             StrainPlane strainPlane = BuildPlane(theta, failureDomainType, _failureIndex, immersione);
 

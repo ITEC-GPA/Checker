@@ -453,10 +453,11 @@ namespace GPC.Checkers.Concrete.Results
                         }
                         double theta = thetaA * weightA + thetaB * weightB;
 
-                        // Immersione
-                        var immA = _sectionSolver.GetImmersione(vA, _failureIndex);
-                        var immB = _sectionSolver.GetImmersione(vB, _failureIndex);
+                        // Immersione, along the sequence of the failure fields between ends in different fields (fixed 16/10/2026)
+                        var immA = _sectionSolver.GetImmersione(vA, _failureIndex, _sectionOption.FailureDomainType);
+                        var immB = _sectionSolver.GetImmersione(vB, _failureIndex, _sectionOption.FailureDomainType);
                         double immersione = immA * weightA + immB * weightB;
+                        (_failureIndex, immersione) = _sectionSolver.NormalizeImmersione(_failureIndex, immersione, _sectionOption.FailureDomainType);
 
                         StrainPlane strainPlane = _sectionSolver.BuildPlane(theta, _sectionOption.FailureDomainType, _failureIndex, immersione);
 
@@ -467,7 +468,7 @@ namespace GPC.Checkers.Concrete.Results
                 }
             });
 
-            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantN);
+            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantN, double.NaN, failureDomain.FailureDomainAnalysisTypes);
         }
 
         /// <summary>
@@ -502,7 +503,8 @@ namespace GPC.Checkers.Concrete.Results
             });
 
             // The axis of the 2d moment is the direction of the moments of the meridian (bug SLU-1 of 15/10/2026).
-            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantMxMy, Math.Atan2(forces.My, forces.Mx));
+            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantMxMy, Math.Atan2(forces.My, forces.Mx),
+                SectionSolver.FailureDomainTypes.Plastic);
         }
 
         protected virtual FailureDomain2d CalculateElasticDomainMomentsRatio(ForceTuple forces, int subdivision = 10)
@@ -526,7 +528,8 @@ namespace GPC.Checkers.Concrete.Results
             });
 
             // The axis of the 2d moment is the direction of the moments of the meridian (bug SLU-1 of 15/10/2026).
-            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantMxMy, Math.Atan2(forces.My, forces.Mx));
+            return new FailureDomain2d(points, FailureDomainResult2d.DomainTypes.ConstantMxMy, Math.Atan2(forces.My, forces.Mx),
+                SectionSolver.FailureDomainTypes.Elastic);
         }
 
         /// <summary>

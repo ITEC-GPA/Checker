@@ -156,11 +156,12 @@ namespace GPC.Checker.SectionSolvers
                         }
                         double theta = thetaA * weightA + thetaB * weightB + thetaC * weightC;
 
-                        // Immersione
-                        var immA = _solver.GetImmersione(failA, _failureIndex);
-                        var immB = _solver.GetImmersione(failB, _failureIndex);
-                        var immC = _solver.GetImmersione(failC, _failureIndex);
+                        // Immersione, along the sequence of the failure fields between vertices in different fields (fixed 16/10/2026)
+                        var immA = _solver.GetImmersione(failA, _failureIndex, _solver.SectionOption.FailureDomainType);
+                        var immB = _solver.GetImmersione(failB, _failureIndex, _solver.SectionOption.FailureDomainType);
+                        var immC = _solver.GetImmersione(failC, _failureIndex, _solver.SectionOption.FailureDomainType);
                         immersione = immA * weightA + immB * weightB + immC * weightC;
+                        (_failureIndex, immersione) = _solver.NormalizeImmersione(_failureIndex, immersione, _solver.SectionOption.FailureDomainType);
 
                         // StrainPlane
                         strainPlane = _solver.BuildPlane(theta, _solver.SectionOption.FailureDomainType, _failureIndex, immersione);

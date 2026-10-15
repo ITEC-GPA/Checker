@@ -137,8 +137,20 @@ convergente» in ANTHEA):
   a fibre indipendente e la verifica 3D a eccentricità costante, entro l'1 %).
 - Dominio a N costante (Mx–My, `CalculateDomainConstantAxialForce` e ramo a N costante di `GetDomainPoint`): il piano
   di deformazione di un punto interpolato pesa θ e immersione degli estremi con 1 − t e t, come le forze; prima i pesi
-  erano scambiati e il piano era quello dell'altro estremo (le forze non cambiano). Fra estremi in campi di rottura
-  diversi l'immersione resta approssimata (`SectionSolver.GetImmersione`). Prove: `ConstantAxialForcePlaneTests`.
+  erano scambiati e il piano era quello dell'altro estremo (le forze non cambiano). Prove: `ConstantAxialForcePlaneTests`.
+- Estremi in campi di rottura diversi (correzione del 16/10/2026): l'immersione si interpola lungo la sequenza dei campi
+  del dominio (`SectionSolver.GetImmersione`: immersione propria più il numero di campi dal primo campo degli estremi;
+  `NormalizeImmersione` riporta il risultato nel suo campo). Prima l'immersione di un campo successivo era letta come
+  immersione del primo campo (fra F3A 0,997 e F3B 0,017 il piano era quello di F3A circa 0,2). Vale per le
+  interpolazioni a N costante, dei domini 2D e della strategia per intersezione.
+- Punti sui lati dei domini 2D (`GetDomainPoint`, correzione del 16/10/2026): il piano dichiarato è quello del punto
+  del dominio nella direzione del punto, cercato con il criterio del dominio 2D (N costante nella direzione del momento
+  per il dominio Mx–My, eccentricità costante per il meridiano N–M), se la sua direzione è entro 5e-3 rad
+  (`FailureDomain2d.SolvedPlaneAngle`) e, a N costante, N entro la tolleranza dei punti a N assegnato; altrimenti resta il
+  piano interpolato. Le forze del punto non cambiano: il punto sta su una corda, il piano sul dominio oltre la corda.
+  Prima la risultante del piano poteva distare dal punto qualche centinaio di kN (Mx–My a N = −1000 kN, 350,6°: N del
+  piano −971,9 kN). Vicino al polo di trazione della sezione non simmetrica i lati del meridiano N–M di 40 punti stanno
+  fino a circa il 50 % dentro il dominio. Prove: `ConstantAxialForcePlaneTests`.
 
 ### Taglio
 

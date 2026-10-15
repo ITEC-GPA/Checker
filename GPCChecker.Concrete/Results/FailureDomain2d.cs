@@ -17,6 +17,8 @@ namespace GPC.Checkers.Concrete.Results
         protected readonly Dictionary<FailureDomain.FailureDomainPoint, Point2d> _domainPoints2dAssociation;
         protected readonly FailureDomainResult2d.DomainTypes _domainType;
         private readonly double _momentAxis;
+        [NonSerialized]
+        private readonly SectionSolver.FailureDomainTypes? _failureDomainType;
 
         /// <summary>Below this |cos α| (α the direction of a moment) the axis is taken as the My axis: the tolerance of ANTHEA's CheckerDomain2D.</summary>
         private const double AxisCosineTolerance = 1e-8;
@@ -71,10 +73,14 @@ namespace GPC.Checkers.Concrete.Results
         /// <param name="domainType">The type of domain</param>
         /// <param name="momentDirection">For an N–M domain the direction of the moment of the meridian (radians, force reference axes, any sign:
         /// it is reduced to (-π/2; π/2]); ignored for a domain at constant N</param>
-        internal FailureDomain2d(FailureDomain.FailureDomainPoint[] domainPoints, FailureDomainResult2d.DomainTypes domainType, double momentDirection)
+        /// <param name="failureDomainType">The type (plastic or elastic) of the domain of the points, if known: the strain plane of an interpolated
+        /// point is searched again on the domain of the solver only when it is of this type (see <see cref="SolvePlane"/>)</param>
+        internal FailureDomain2d(FailureDomain.FailureDomainPoint[] domainPoints, FailureDomainResult2d.DomainTypes domainType, double momentDirection,
+            SectionSolver.FailureDomainTypes? failureDomainType = null)
         {
             _domainPoints = domainPoints ?? throw new ArgumentNullException(nameof(domainPoints));
             _domainType = domainType;
+            _failureDomainType = failureDomainType;
             _momentAxis = domainType == FailureDomainResult2d.DomainTypes.ConstantN ? double.NaN : NormalizeMomentAxis(momentDirection);
             _domainPoints2dAssociation = new Dictionary<FailureDomain.FailureDomainPoint, Point2d>();
             CalculateDomainPoints2dAssociation();
@@ -172,12 +178,14 @@ namespace GPC.Checkers.Concrete.Results
                                 }
                                 double theta = thetaA * weightA + thetaB * weightB;
 
-                                // Immersione
-                                var immA = sectionSolver.GetImmersione(vA, _failureIndex);
-                                var immB = sectionSolver.GetImmersione(vB, _failureIndex);
+                                // Immersione, along the sequence of the failure fields between ends in different fields (fixed 16/10/2026)
+                                var immA = sectionSolver.GetImmersione(vA, _failureIndex, sectionOptions.FailureDomainType);
+                                var immB = sectionSolver.GetImmersione(vB, _failureIndex, sectionOptions.FailureDomainType);
                                 double immersione = immA * weightA + immB * weightB;
+                                (_failureIndex, immersione) = sectionSolver.NormalizeImmersione(_failureIndex, immersione, sectionOptions.FailureDomainType);
 
                                 StrainPlane strainPlane = sectionSolver.BuildPlane(theta, sectionOptions.FailureDomainType, _failureIndex, immersione);
+                                SolvePlane(sectionSolver, forceTuple, SectionSolver.FailureAnalysisTypes.ConstantN, ref strainPlane, ref _failureIndex, ref immersione);
 
                                 return (new FailureDomain.FailureDomainPoint(forceTuple, _failureIndex, strainPlane, immersione), intersection);
                             }
@@ -212,12 +220,14 @@ namespace GPC.Checkers.Concrete.Results
                                 }
                                 double theta = thetaA * weightA + thetaB * weightB;
 
-                                // Immersione
-                                var immA = sectionSolver.GetImmersione(vA, _failureIndex);
-                                var immB = sectionSolver.GetImmersione(vB, _failureIndex);
+                                // Immersione, along the sequence of the failure fields between ends in different fields (fixed 16/10/2026)
+                                var immA = sectionSolver.GetImmersione(vA, _failureIndex, sectionOptions.FailureDomainType);
+                                var immB = sectionSolver.GetImmersione(vB, _failureIndex, sectionOptions.FailureDomainType);
                                 double immersione = immA * weightA + immB * weightB;
+                                (_failureIndex, immersione) = sectionSolver.NormalizeImmersione(_failureIndex, immersione, sectionOptions.FailureDomainType);
 
                                 StrainPlane strainPlane = sectionSolver.BuildPlane(theta, sectionOptions.FailureDomainType, _failureIndex, immersione);
+                                SolvePlane(sectionSolver, forceTuple, SectionSolver.FailureAnalysisTypes.ConstantEccentricity, ref strainPlane, ref _failureIndex, ref immersione);
 
                                 return (new FailureDomain.FailureDomainPoint(forceTuple, _failureIndex, strainPlane, immersione), intersection);
                             }
@@ -254,6 +264,53 @@ namespace GPC.Checkers.Concrete.Results
                         if (!_domainPoints2dAssociation.ContainsKey(_domainPoints[i]))
                             _domainPoints2dAssociation.Add(_domainPoints[i], new Point2d(_domainPoints[i].NRd, moment));
                     }
+            }
+        }
+
+        /// <summary>
+        /// The strain plane declared for a point interpolated on a side of the 2d domain: the plane of the point of the domain searched with the
+        /// criterion of the domain at the interpolated forces (constant N in the direction of its moment for a domain at constant N, constant
+        /// eccentricity for an N–M domain), when its direction is within <see cref="SolvedPlaneAngle"/> of the point (and at constant N its N
+        /// within the tolerance of <see cref="DomainPointAxialTolerance"/>) and the 2d domain is of the type of the domain of the solver;
+        /// otherwise the plane interpolated between the ends is kept. The forces of the point do not change: the point is on a chord of
+        /// the domain, the plane is the one of the point of the domain in its direction (same N and direction of the moment, or same direction of
+        /// N and moment), farther by the gap between chord and domain. Before (fixed on
+        /// 16/10/2026) the plane interpolated θ and immersion between the ends, whose resultant can differ much from the point when the ends are far
+        /// apart in the failure fields (2d Mx-My domain of 300 × 500 C25/30 4Ø16 at N = -1000 kN, 350.6°: N = -971.9 kN; N–M meridians of the
+        /// moment direction: up to some hundreds of kN)
+        /// </summary>
+        /// <summary>The largest angle (radians, forces in kN and kNm) between the direction of an interpolated point and the point of the domain
+        /// whose strain plane is declared for it: 20 times the angular tolerance of the search (2.5e-4)</summary>
+        internal const double SolvedPlaneAngle = 5e-3;
+
+        private void SolvePlane(SectionSolver solver, ForceTuple point, SectionSolver.FailureAnalysisTypes criterion, ref StrainPlane plane,
+            ref SectionSolver.FailureZones failureIndex, ref double immersione)
+        {
+            if (_failureDomainType.HasValue && _failureDomainType.Value != solver.SectionOption.FailureDomainType)
+                return;
+            try
+            {
+                var demand = new GPC.Model.Results.ResultBeamForces(point.N, 0, 0, 0, point.Mx, point.My, solver.SectionOption.ForceReferenceCoordinateSystem);
+                var found = solver.CalculateDomainPoint(demand, criterion);
+                if (found?.StrainPlane == null || double.IsNaN(found.NRd + found.MxRd + found.MyRd) || double.IsInfinity(found.NRd + found.MxRd + found.MyRd))
+                    return;
+                // The direction of the search within SolvedPlaneAngle, and at constant N the axial force within the tolerance of the points at an
+                // assigned axial force: the iterative search stops on the distance from the line of the demand, with angles up to some times its
+                // angular tolerance (2.5e-4) in points that are otherwise exact.
+                bool constantN = criterion == SectionSolver.FailureAnalysisTypes.ConstantN;
+                var target = constantN ? new Vector3d(point.Mx / 1e6, point.My / 1e6, 0) : new Vector3d(point.Mx / 1e6, point.My / 1e6, point.N / 1000);
+                var value = constantN ? new Vector3d(found.MxRd / 1e6, found.MyRd / 1e6, 0) : new Vector3d(found.MxRd / 1e6, found.MyRd / 1e6, found.NRd / 1000);
+                if (!(target.Length > 0) || !(value.Length > 0) || !(target.AngleTo(value) <= SolvedPlaneAngle))
+                    return;
+                if (constantN && !DomainPointAxialTolerance.HasAxialForce(solver, found, point.N))
+                    return;
+                plane = found.StrainPlane;
+                failureIndex = found.FailureIndex;
+                immersione = found.Immersione;
+            }
+            catch (Exception)
+            {
+                // The interpolated plane is kept.
             }
         }
 
