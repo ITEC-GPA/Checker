@@ -123,21 +123,25 @@ public sealed class HistoryModelEnvelopeLaw : IHistoryMaterialLaw
 }
 
 /// <summary>
-/// Concrete with tension stiffening after cracking: in tension σ = Ecm ε up to εcr = fctm / Ecm, then the average tensile stress of cracked
-/// concrete of Collins and Mitchell (1991), modified compression field theory (Vecchio and Collins 1986), σ = fctm / (1 + √(500 ε)), with the
-/// tangent dσ/dε = −250 fctm / (√(500 ε) (1 + √(500 ε))²). Compression on the Model envelope (beyond εcu outside the domain). A function of the
-/// strain only: unloading follows the same curve, without damage or crack memory. No automatic design factors.
+/// Concrete with tension stiffening after cracking: in tension the law of Model <see cref="ConcreteTensionStiffening"/> (the single definition of
+/// the library, <see cref="ConcreteMaterial.TensionResponseDiagrams.TensionStiffening"/>): σ = Ecm ε up to εcr = fctm / Ecm, then the average
+/// tensile stress of cracked concrete of Collins and Mitchell (1991), modified compression field theory (Vecchio and Collins 1986),
+/// σ = fctm / (1 + √(500 ε)), with the tangent dσ/dε = −250 fctm / (√(500 ε) (1 + √(500 ε))²). Compression on the Model envelope (beyond εcu
+/// outside the domain). A function of the strain only: unloading follows the same curve, without damage or crack memory. No automatic design factors.
 /// At εcr the stress drops from fctm to fctm / (1 + √(500 εcr)) (about 0,82 fctm for ordinary concretes), as in the original formulation.
+/// Until 16/10/2026 the law was written here; the expressions of Model are the same, so the results are unchanged bit for bit.
 /// </summary>
 public sealed class HistoryTensionStiffeningConcreteLaw : IHistoryMaterialLaw
 {
     private readonly HistoryModelEnvelopeLaw compression;
+    /// <summary>The law in tension, from Model: modulus <see cref="InitialModulus"/> and strength <see cref="TensileStrength"/></summary>
+    public ConcreteTensionStiffening Tension { get; }
     /// <summary>Ecm, the modulus of the uncracked branch</summary>
-    public double InitialModulus { get; }
+    public double InitialModulus => Tension.ElasticModulus;
     /// <summary>fctm, the stress at cracking</summary>
-    public double TensileStrength { get; }
+    public double TensileStrength => Tension.TensileStrength;
     /// <summary>εcr = fctm / Ecm</summary>
-    public double CrackingStrain => TensileStrength / InitialModulus;
+    public double CrackingStrain => Tension.CrackingStrain;
     public bool IsLinear => false;
     public bool SupportsModulusFactors => false;
     /// <param name="material">The Model material: Ecm (elastic modulus in compression) and the compressive envelope</param>
@@ -145,17 +149,15 @@ public sealed class HistoryTensionStiffeningConcreteLaw : IHistoryMaterialLaw
     public HistoryTensionStiffeningConcreteLaw(Material material, double tensileStrength)
     {
         compression = new HistoryModelEnvelopeLaw(material, neglectTension: true);
-        InitialModulus = compression.InitialModulus;
-        TensileStrength = BridgeNumbers.Require(tensileStrength, "fctm", strict: true);
+        Tension = new ConcreteTensionStiffening(compression.InitialModulus, BridgeNumbers.Require(tensileStrength, "fctm", strict: true));
     }
     public HistoryMaterialState InitialState() => new(0, 0);
     public HistoryMaterialResponse Evaluate(double strain, HistoryMaterialState committed, double modulusFactor)
     {
         if (modulusFactor != 1) throw new NotSupportedException("Il legame con tension stiffening non definisce l'evoluzione viscosa: usare phi=0 o una legge storica dedicata.");
         if (strain <= 0) return compression.Evaluate(strain, committed, 1);
-        if (strain <= CrackingStrain) return new(InitialModulus * strain, InitialModulus, new(strain, InitialModulus * strain));
-        double root = Math.Sqrt(500 * strain), stress = TensileStrength / (1 + root);
-        return new(stress, -250 * TensileStrength / (root * (1 + root) * (1 + root)), new(strain, stress));
+        Tension.Evaluate(strain, out double stress, out double tangent);
+        return new(stress, tangent, new(strain, stress));
     }
 }
 

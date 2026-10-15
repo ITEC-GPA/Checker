@@ -937,9 +937,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             try
             {
                 double limitCompression = CalculateCompressionAxialForceLimit();
-                ForceTuple force = IntegrateSectionStress(strainPlane) +
-                    IntegrateRebarStress(strainPlane, rebarIsInsideAssociation) +
-                    IntegrateStructuralSteelStress(strainPlane);
+                // the tension stiffening of the option of the stress analyses (16/10/2026): its own integration, so that the methods of the
+                // default (shared with the failure domain) are not touched and give the same results bit for bit
+                ConcreteTensionStiffening tensionStiffening = GetStressAnalysisTensionStiffening();
+                ForceTuple force = tensionStiffening == null
+                    ? IntegrateSectionStress(strainPlane) +
+                        IntegrateRebarStress(strainPlane, rebarIsInsideAssociation) +
+                        IntegrateStructuralSteelStress(strainPlane)
+                    : IntegrateStressAnalysisStress(strainPlane, rebarIsInsideAssociation, tensionStiffening);
 
                 return CalculateCompressionReduction(force, limitCompression);
             }
@@ -1173,6 +1178,98 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 }
             }
 
+        }
+
+        #endregion
+
+        #region Concrete in tension of the nonlinear stress analyses
+
+        /// <summary>
+        /// The tension stiffening of the nonlinear stress analyses (<see cref="Checkers.SectionChecker.SectionOptions.StressAnalysisConcreteTension"/>
+        /// = <see cref="ConcreteMaterial.TensionResponseDiagrams.TensionStiffening"/>): the law of Model of the concrete of the section
+        /// (<see cref="ConcreteMaterial.GetTensionStiffening"/>); null with the default. Read only by the nonlinear stress analyses
+        /// (<see cref="CalculateForceResultantForTension(StrainPlane, Dictionary{int, bool})"/>) and by their results: the failure domain, the
+        /// resistances and the linear analyses never call it
+        /// </summary>
+        /// <returns>The law, or null</returns>
+        internal ConcreteTensionStiffening GetStressAnalysisTensionStiffening()
+        {
+            return _sectionOption != null && _sectionOption.StressAnalysisConcreteTension == ConcreteMaterial.TensionResponseDiagrams.TensionStiffening
+                ? _concreteSection.ConcreteMaterial.GetTensionStiffening() : null;
+        }
+
+        /// <summary>
+        /// The concrete stress of the nonlinear stress analyses: the tension stiffening for a strain in tension when the option is assigned
+        /// (<see cref="GetStressAnalysisTensionStiffening"/>), <see cref="CalculateSigmaC(double)"/> otherwise (the same value as before with the default)
+        /// </summary>
+        /// <param name="strain">The strain (positive in tension)</param>
+        /// <returns>The stress</returns>
+        internal double CalculateStressAnalysisSigmaC(double strain)
+        {
+            ConcreteTensionStiffening tensionStiffening = strain > 0 ? GetStressAnalysisTensionStiffening() : null;
+            return tensionStiffening == null ? CalculateSigmaC(strain) : tensionStiffening.GetStress(strain);
+        }
+
+        /// <summary>
+        /// The resultant of a nonlinear stress analysis with the tension stiffening: the concrete, the bars (minus the concrete they displace) and the
+        /// steel sections (minus the concrete inside the outline), as <see cref="IntegrateSectionStress(StrainPlane)"/>,
+        /// <see cref="IntegrateRebarStress(StrainPlane, Dictionary{int, bool})"/> and <see cref="IntegrateStructuralSteelStress(StrainPlane)"/>, with the
+        /// concrete in tension of <paramref name="tensionStiffening"/> and in compression of <see cref="CalculateSigmaC(double)"/>
+        /// </summary>
+        /// <param name="strainPlane">The strain plane</param>
+        /// <param name="rebarIsInsideAssociation">For each bar, true if inside the concrete</param>
+        /// <param name="tensionStiffening">The law in tension</param>
+        /// <returns>The forces in the local reference system</returns>
+        private ForceTuple IntegrateStressAnalysisStress(StrainPlane strainPlane, Dictionary<int, bool> rebarIsInsideAssociation, ConcreteTensionStiffening tensionStiffening)
+        {
+            double SigmaC(double strain) => strain > 0 ? tensionStiffening.GetStress(strain) : CalculateSigmaC(strain);
+
+            // concrete
+            (double, double, double) concrete = GaussIntegration.IntegrationLinearShapeFunction((x, y) =>
+            {
+                double sigmaC = SigmaC(strainPlane.GetStrain(x, y));
+                return (sigmaC, -sigmaC * (y - _integrationReferencePoint.Y), sigmaC * (x - _integrationReferencePoint.X));
+            },
+            _globalCoordinateGaussPointsMesh);
+            ForceTuple force = new ForceTuple(concrete);
+
+            // bars
+            var rebars = ConcreteSection.GetRebars();
+            double n = 0, mx = 0, my = 0;
+            for (int i = 0; i < rebars.Length; i++)
+            {
+                double strain = strainPlane.GetStrain(rebars[i].Position);
+                double sigma = CalculateStressRebar(rebars[i], strain) - (rebarIsInsideAssociation[i] ? SigmaC(strain) : 0);
+                n += sigma * rebars[i].Area;
+                mx += sigma * rebars[i].Area * (rebars[i].Position.Y - _integrationReferencePoint.Y);
+                my += sigma * rebars[i].Area * (rebars[i].Position.X - _integrationReferencePoint.X);
+            }
+            force += new ForceTuple(n, -mx, my);
+
+            // steel sections
+            n = 0; mx = 0; my = 0;
+            for (int i = 0; i < ConcreteSection.SteelSections.Count; i++)
+            {
+                SteelSectionPosition steelSection = ConcreteSection.SteelSections[i];
+                for (int j = 0; j < _steelSectionsThinWallsBreaked[i].Length; j++)
+                {
+                    bool inside = _steelSectionsThinWallsBreaked[i][j].IsInsideConcrete;
+                    double stressFunctionN(double x, double y)
+                    {
+                        var strain = strainPlane.GetStrain(x, y);
+                        double sigmaS = _standardStructuralSteel == null ? steelSection.Section.SteelMaterial.GetStress(strain) : CalculateStressStructuralSteel(steelSection.Section, strain);
+                        return sigmaS - (inside ? SigmaC(strain) : 0.0);
+                    }
+                    double stressFunctionMx(double x, double y) => stressFunctionN(x, y) * (y - _integrationReferencePoint.Y);
+                    double stressFunctionMy(double x, double y) => stressFunctionN(x, y) * (x - _integrationReferencePoint.X);
+
+                    var thickness = _steelSectionsThinWallsBreaked[i][j].T;
+                    n += GaussIntegration.IntegrationLinearShapeFunction(stressFunctionN, _globalCoordinateGaussPointsThinWalls[i][j]) * thickness;
+                    mx += GaussIntegration.IntegrationLinearShapeFunction(stressFunctionMx, _globalCoordinateGaussPointsThinWalls[i][j]) * thickness;
+                    my += GaussIntegration.IntegrationLinearShapeFunction(stressFunctionMy, _globalCoordinateGaussPointsThinWalls[i][j]) * thickness;
+                }
+            }
+            return force + new ForceTuple(n, -mx, my);
         }
 
         #endregion
@@ -2602,6 +2699,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         private StrainPlane CalculateStrainPlaneStressAnalysis(ForceTuple localForces, CoordinateSystem coordinateSystem, double? psiRebars, double? psiTendon, double tolerance = 1e-5)
         {
             var rebarIsInsideAssociation = ConcreteSection.GetRebarIsInsideAssociation();
+            // nonlinear analysis with the tension stiffening (opt-in): Newton with backtracking, below; the default path is the one of before
+            if (!psiRebars.HasValue && !psiTendon.HasValue && GetStressAnalysisTensionStiffening() != null)
+                return CalculateStrainPlaneStressAnalysisWithLineSearch(localForces, coordinateSystem, rebarIsInsideAssociation, tolerance);
             ForceTuple targetLocalForcesAdim = ConvertToAdimensionalForces(localForces);
 
             // Valori di primo tentativo
@@ -2671,6 +2771,215 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
 
             return strainPlane;
+        }
+
+        /// <summary>
+        /// The nonlinear stress analysis with the tension stiffening (<see cref="GetStressAnalysisTensionStiffening"/>): the Newton iterations of
+        /// <see cref="CalculateStrainPlaneStressAnalysis(ForceTuple, CoordinateSystem, double)"/> (same first plane, increments and tolerance, at most
+        /// 50 planes) with a backtracking line search: a step that does not reduce the largest adimensional residual is halved, up to 8 times, and the
+        /// best trial is taken (the softening branch has a negative tangent, and the full Newton step can cycle around the cracking of the extreme
+        /// fibres). The law drops at cracking from fct to about 0.82 fct: sampled at the Gauss points of the section, the resultant jumps when a point
+        /// (or a row of points with the same strain) crosses εcr, by about 1e-5 to 2e-4 of b h fck in the sections tried, so an equilibrium within the
+        /// tolerance may not exist. When the iterations stop improving (6 planes without reducing the least residual) or reach the limit, the plane
+        /// with the least residual is accepted if its residual is within the tolerance plus twice that jump (<see cref="CalculateCrackingJump"/>), with
+        /// an entry in the log; otherwise the analysis fails as before.
+        /// </summary>
+        private StrainPlane CalculateStrainPlaneStressAnalysisWithLineSearch(ForceTuple localForces, CoordinateSystem coordinateSystem,
+            Dictionary<int, bool> rebarIsInsideAssociation, double tolerance)
+        {
+            ForceTuple target = ConvertToAdimensionalForces(localForces);
+            Point3d referencePoint = _integrationReferencePoint;
+            ConcreteTensionStiffening tensionStiffening = GetStressAnalysisTensionStiffening();
+            double Residual(ForceTuple resultant)
+            {
+                ForceTuple adim = ConvertToAdimensionalForces(resultant);
+                return Math.Max(Math.Abs(adim.N - target.N), Math.Max(Math.Abs(adim.Mx - target.Mx), Math.Abs(adim.My - target.My)));
+            }
+
+            int id = 1;
+            StrainPlane strainPlane = new StrainPlane(0, 0, referencePoint, 0, id);
+            ForceTuple forces = GetExternalForces(CalculateForceResultantForTension(strainPlane, rebarIsInsideAssociation), coordinateSystem);
+            double residual = Residual(forces);
+            if (residual <= tolerance * tolerance)
+                return strainPlane;
+            StrainPlane least = strainPlane;
+            double leastResidual = residual;
+            int withoutImprovement = 0;
+            try
+            {
+                // as the default: at least one step beyond the tolerance squared, then until the tolerance
+                do
+                {
+                    if (id >= 50 || withoutImprovement >= 6)
+                        return AcceptWithinTheCrackingJump(least, leastResidual, tolerance, tensionStiffening);
+                    id++;
+                    StrainPlane best = null;
+                    ForceTuple bestForces = forces;
+                    double bestResidual = double.PositiveInfinity;
+                    // the step of the tangent stiffness (the law in tension has its own tangent, so the jumps of the resultant at cracking do not
+                    // enter the derivatives); the step of the finite differences of the default when the tangent one does not reduce the residual
+                    for (int kind = 0; kind < 2 && !(bestResidual < residual); kind++)
+                    {
+                        (double deltaChiX, double deltaChiY, double deltaStrain) = kind == 0
+                            ? CalculateTangentIncrementStressAnalysis(strainPlane, localForces - forces, rebarIsInsideAssociation, tensionStiffening, coordinateSystem)
+                            : CalculateIncrementStressAnalysis(strainPlane, localForces - forces, rebarIsInsideAssociation, null, null);
+                        if (double.IsNaN(deltaChiX + deltaChiY + deltaStrain) || double.IsInfinity(deltaChiX + deltaChiY + deltaStrain))
+                            continue;
+                        double alpha = 1;
+                        for (int search = 0; search <= 8; search++, alpha /= 2)
+                        {
+                            var trial = new StrainPlane(strainPlane.ChiX + alpha * deltaChiX, strainPlane.ChiY + alpha * deltaChiY, referencePoint,
+                                strainPlane.StrainReferencePoint + alpha * deltaStrain, id);
+                            ForceTuple trialForces = GetExternalForces(CalculateForceResultantForTension(trial, rebarIsInsideAssociation), coordinateSystem);
+                            double trialResidual = Residual(trialForces);
+                            if (trialResidual < bestResidual)
+                            {
+                                best = trial; bestForces = trialForces; bestResidual = trialResidual;
+                            }
+                            if (trialResidual < residual)
+                                break;
+                        }
+                    }
+                    if (double.IsNaN(bestResidual) || best == null)
+                    {
+                        AddLog("Fail to calculate find strain plane");
+                        return null;
+                    }
+                    strainPlane = best; forces = bestForces; residual = bestResidual;
+                    if (residual < leastResidual)
+                    {
+                        least = strainPlane; leastResidual = residual; withoutImprovement = 0;
+                    }
+                    else
+                        withoutImprovement++;
+                } while (residual > tolerance);
+            }
+            catch (Exception e)
+            {
+                AddLog(e.Message);
+                if (e.InnerException != null)
+                    AddLog(e.InnerException.Message);
+                AddLog("Fail to calculate find strain plane");
+                return null;
+            }
+            return strainPlane;
+        }
+
+        /// <summary>
+        /// The Newton increment (χx, χy, ε0) of the stress analysis with the tension stiffening from the tangent stiffness of the section,
+        /// K = ∂(N, Mx, My)/∂(χx, χy, ε0) of the external forces: the tangent of the law in tension (<see cref="ConcreteTensionStiffening.GetTangent"/>),
+        /// the slopes of the design diagrams of the concrete in compression, of the bars (minus the concrete they displace) and of the steel sections,
+        /// at the Gauss points and at the bars
+        /// </summary>
+        /// <returns>K⁻¹ times the residual; NaN when K is singular</returns>
+        private (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) CalculateTangentIncrementStressAnalysis(StrainPlane plane, ForceTuple residual,
+            Dictionary<int, bool> rebarIsInsideAssociation, ConcreteTensionStiffening tensionStiffening, CoordinateSystem coordinateSystem)
+        {
+            double Slope(Func<double, double> stress, double strain)
+            {
+                double step = Math.Max(1e-9, 1e-6 * Math.Abs(strain));
+                return (stress(strain + step) - stress(strain - step)) / (2 * step);
+            }
+            double ConcreteTangent(double strain) => strain > 0 ? tensionStiffening.GetTangent(strain) : Slope(CalculateSigmaC, strain);
+            Matrix<double> k = Matrix<double>.Build.Dense(3, 3);
+            double xr = plane.ReferencePoint.X, yr = plane.ReferencePoint.Y;
+            void Add(double x, double y, double weight)
+            {
+                // rows: N, Mx, My of the integration (Mx = -Σ σ (y - Y0)); columns: ∂ε/∂χx = x - Xr, ∂ε/∂χy = y - Yr, ∂ε/∂ε0 = 1
+                double[] f = { 1, -(y - _integrationReferencePoint.Y), x - _integrationReferencePoint.X };
+                double[] g = { x - xr, y - yr, 1 };
+                for (int i = 0; i < 3; i++)
+                    for (int j = 0; j < 3; j++)
+                        k[i, j] += weight * f[i] * g[j];
+            }
+            foreach (var element in _globalCoordinateGaussPointsMesh)
+                foreach (var point in element)
+                    Add(point.GpX, point.GpY, point.EvaluateFunction((x, y) => ConcreteTangent(plane.GetStrain(x, y))));
+            var rebars = ConcreteSection.GetRebars();
+            for (int i = 0; i < rebars.Length; i++)
+            {
+                var rebar = rebars[i];
+                double strain = plane.GetStrain(rebar.Position);
+                double tangent = Slope(e => CalculateStressRebar(rebar, e), strain) - (rebarIsInsideAssociation[i] ? ConcreteTangent(strain) : 0);
+                Add(rebar.Position.X, rebar.Position.Y, tangent * rebar.Area);
+            }
+            for (int i = 0; i < ConcreteSection.SteelSections.Count; i++)
+            {
+                SteelSectionPosition steelSection = ConcreteSection.SteelSections[i];
+                double SteelStress(double e) => _standardStructuralSteel == null ? steelSection.Section.SteelMaterial.GetStress(e) : CalculateStressStructuralSteel(steelSection.Section, e);
+                for (int j = 0; j < _steelSectionsThinWallsBreaked[i].Length; j++)
+                {
+                    bool inside = _steelSectionsThinWallsBreaked[i][j].IsInsideConcrete;
+                    double thickness = _steelSectionsThinWallsBreaked[i][j].T;
+                    foreach (var point in _globalCoordinateGaussPointsThinWalls[i][j])
+                        Add(point.GpX, point.GpY, thickness * point.EvaluateFunction((x, y) =>
+                        {
+                            double strain = plane.GetStrain(x, y);
+                            return Slope(SteelStress, strain) - (inside ? ConcreteTangent(strain) : 0);
+                        }));
+                }
+            }
+            // external forces (GetExternalForces): Mx + N (Oy - Y0), My - N (Ox - X0)
+            double dy = coordinateSystem.Origin.Y - _integrationReferencePoint.Y, dx = coordinateSystem.Origin.X - _integrationReferencePoint.X;
+            for (int j = 0; j < 3; j++)
+            {
+                k[1, j] += k[0, j] * dy;
+                k[2, j] -= k[0, j] * dx;
+            }
+            double determinant = k.Determinant();
+            if (!(Math.Abs(determinant) > 0) || double.IsInfinity(determinant))
+                return (double.NaN, double.NaN, double.NaN);
+            var increment = k.Solve(Vector<double>.Build.DenseOfArray(new[] { residual.N, residual.Mx, residual.My }));
+            return (increment[0], increment[1], increment[2]);
+        }
+
+        /// <summary>
+        /// The end of <see cref="CalculateStrainPlaneStressAnalysisWithLineSearch"/> without equilibrium within the tolerance: the plane with the least
+        /// residual if within the tolerance plus twice the jump of the resultant at cracking (<see cref="CalculateCrackingJump"/>), null otherwise
+        /// </summary>
+        private StrainPlane AcceptWithinTheCrackingJump(StrainPlane least, double leastResidual, double tolerance, ConcreteTensionStiffening tensionStiffening)
+        {
+            double jump = CalculateCrackingJump(least, tensionStiffening);
+            // twice the jump: the target may fall between the two sides of the jumps of the points near εcr, met from either side
+            if (leastResidual <= tolerance + 2 * jump)
+            {
+                AddLog(string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                    "Tension stiffening: equilibrium within the jump at cracking, adimensional residual {0:G3} (tolerance {1:G3}, jump {2:G3})", leastResidual, tolerance, jump));
+                return least;
+            }
+            AddLog("Fail to calculate find strain plane");
+            return null;
+        }
+
+        /// <summary>
+        /// The jump of the resultant at cracking near a plane, adimensional (<see cref="ConvertToAdimensionalForces"/>, largest component): the drop of
+        /// the law fct − fct / (1 + √(500 εcr)) times the weights (and their moments about the reference point) of the integration points whose strain
+        /// is within εcr (1 ± 1e-3), the points that a change of the plane below the resolution of the iterations moves across the cracking (a row of
+        /// Gauss points with almost the same strain, for instance); a bar inside the concrete counts with its area (the concrete it displaces)
+        /// </summary>
+        private double CalculateCrackingJump(StrainPlane plane, ConcreteTensionStiffening tensionStiffening)
+        {
+            double crackingStrain = tensionStiffening.CrackingStrain;
+            double drop = tensionStiffening.TensileStrength - tensionStiffening.GetStress(crackingStrain * (1 + 1e-12));
+            double band = 1e-3 * crackingStrain;
+            double n = 0, mx = 0, my = 0;
+            foreach (var element in _globalCoordinateGaussPointsMesh)
+                foreach (var point in element)
+                    if (Math.Abs(plane.GetStrain(point.GpX, point.GpY) - crackingStrain) <= band)
+                    {
+                        n += point.EvaluateFunction((x, y) => 1.0);
+                        mx += point.EvaluateFunction((x, y) => y - _integrationReferencePoint.Y);
+                        my += point.EvaluateFunction((x, y) => x - _integrationReferencePoint.X);
+                    }
+            foreach (var rebar in ConcreteSection.GetRebars())
+                if (Math.Abs(plane.GetStrain(rebar.Position) - crackingStrain) <= band)
+                {
+                    n += rebar.Area;
+                    mx += rebar.Area * Math.Abs(rebar.Position.Y - _integrationReferencePoint.Y);
+                    my += rebar.Area * Math.Abs(rebar.Position.X - _integrationReferencePoint.X);
+                }
+            ForceTuple adim = ConvertToAdimensionalForces(new ForceTuple(drop * n, drop * mx, drop * my));
+            return Math.Max(Math.Abs(adim.N), Math.Max(Math.Abs(adim.Mx), Math.Abs(adim.My)));
         }
 
         #endregion

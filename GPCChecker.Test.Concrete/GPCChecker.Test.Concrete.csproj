@@ -135,6 +135,7 @@
     <Compile Include="DurabilityContractTests.cs" />
     <Compile Include="StressAnalysisPSCTest.cs" />
     <Compile Include="StressAnalysisRCTest.cs" />
+    <Compile Include="StressAnalysisTensionStiffeningTests.cs" />
     <Compile Include="ValidationTestFailureDomain.cs" />
     <Compile Include="ValidationTestFailureDomainCheckFRC.cs" />
     <Compile Include="ValidationTestLinearStressAnalysis.cs" />

@@ -1,6 +1,7 @@
 ﻿using GPC.Checkers.Concrete.Attributes;
 using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
+using GPC.Model.Materials;
 using GPC.Model.Results;
 using GPC.Model.Standards;
 using System;
@@ -608,6 +609,29 @@ namespace GPC.Checkers.Concrete.Checkers
 
             public bool ConsiderTensileConcrete { get; set; }
 
+            /// <summary>
+            /// The concrete in tension of the nonlinear stress analyses only (<see cref="SectionSolver.GetStressAnalysisResult(ResultBeamForces)"/>, also the responses of
+            /// the moment-curvature curve), opt-in. <see cref="ConcreteMaterial.TensionResponseDiagrams.Default"/> (default): as before, the diagram in
+            /// tension of the material with <see cref="ConsiderTensileConcrete"/>, no tension otherwise.
+            /// <see cref="ConcreteMaterial.TensionResponseDiagrams.TensionStiffening"/>: in tension the law of Model <see cref="ConcreteTensionStiffening"/>
+            /// of the concrete (<see cref="ConcreteMaterial.GetTensionStiffening"/>: Ecm up to fctm, then the descending branch of Collins and Mitchell
+            /// 1991; mean values, no partial factors), whatever <see cref="ConsiderTensileConcrete"/>; the compression keeps the design diagram of the
+            /// solver. The failure domain, the resistances, the design of the bars and the linear stress analyses never read it: they follow
+            /// <see cref="ConsiderTensileConcrete"/> as before (so the limit point of a moment-curvature curve is unchanged)
+            /// </summary>
+            /// <exception cref="ArgumentOutOfRangeException">For a value that is not a member of the enumeration</exception>
+            public ConcreteMaterial.TensionResponseDiagrams StressAnalysisConcreteTension
+            {
+                get => _stressAnalysisConcreteTension;
+                set
+                {
+                    if (!Enum.IsDefined(typeof(ConcreteMaterial.TensionResponseDiagrams), value))
+                        throw new ArgumentOutOfRangeException(nameof(value), "Unknown diagram of the concrete in tension.");
+                    _stressAnalysisConcreteTension = value;
+                }
+            }
+            private ConcreteMaterial.TensionResponseDiagrams _stressAnalysisConcreteTension;
+
             public int TetaDiscretization { get; set; }
 
             public SectionSolver.DomainPointStrategyTypes DomainPointStrategy { get; set; }
@@ -642,6 +666,10 @@ namespace GPC.Checkers.Concrete.Checkers
                 ConsiderTensileConcrete = info.GetBoolean("ConsiderTensileConcrete");
                 TetaDiscretization = info.GetInt16("TetaDiscretization");
                 DomainPointStrategy = (SectionSolver.DomainPointStrategyTypes)info.GetValue("DomainPointStrategy", typeof(SectionSolver.DomainPointStrategyTypes));
+                // written only when assigned (16/10/2026): the options saved before, and those with the default, have no entry
+                foreach (SerializationEntry entry in info)
+                    if (entry.Name == "StressAnalysisConcreteTension")
+                        StressAnalysisConcreteTension = (ConcreteMaterial.TensionResponseDiagrams)info.GetInt32("StressAnalysisConcreteTension");
             }
 
             public override bool Equals(object obj)
@@ -654,7 +682,8 @@ namespace GPC.Checkers.Concrete.Checkers
                     PsiCoefficientTendon.Equals(options.PsiCoefficientTendon) &&
                     ConsiderTensileConcrete.Equals(options.ConsiderTensileConcrete) &&
                     TetaDiscretization.Equals(options.TetaDiscretization) &&
-                    FailureAnalysisType.Equals(options.FailureAnalysisType);
+                    FailureAnalysisType.Equals(options.FailureAnalysisType) &&
+                    StressAnalysisConcreteTension == options.StressAnalysisConcreteTension;
             }
 
             public override int GetHashCode()
@@ -670,6 +699,9 @@ namespace GPC.Checkers.Concrete.Checkers
                     hashCode = hashCode * -23 + ConsiderTensileConcrete.GetHashCode();
                     hashCode = hashCode * -23 + TetaDiscretization.GetHashCode();
                     hashCode = hashCode * -23 + PsiCoefficientTendon.GetHashCode();
+                    // only when assigned, so that the hash of the default options is the one of before
+                    if (StressAnalysisConcreteTension != ConcreteMaterial.TensionResponseDiagrams.Default)
+                        hashCode = hashCode * -23 + (int)StressAnalysisConcreteTension;
                     return hashCode;
                 }
             }
@@ -685,6 +717,9 @@ namespace GPC.Checkers.Concrete.Checkers
                 info.AddValue("ConsiderTensileConcrete", ConsiderTensileConcrete);
                 info.AddValue("TetaDiscretization", TetaDiscretization);
                 info.AddValue("DomainPointStrategy", DomainPointStrategy);
+                // only when assigned: the data of the default options are those of before
+                if (StressAnalysisConcreteTension != ConcreteMaterial.TensionResponseDiagrams.Default)
+                    info.AddValue("StressAnalysisConcreteTension", (int)StressAnalysisConcreteTension);
             }
 
             public static bool operator ==(SectionOptions left, SectionOptions right)

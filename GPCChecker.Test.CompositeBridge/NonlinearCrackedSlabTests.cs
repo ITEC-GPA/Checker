@@ -100,6 +100,36 @@ public class NonlinearCrackedSlabTests
     }
 
     [TestMethod]
+    public void TensionStiffeningLawIsTheOneOfModel()
+    {
+        // 16/10/2026: the law of the bridge delegates to Model (ConcreteTensionStiffening, the single definition). Bit for bit the same as the
+        // expressions written here before (copied below), and the same law as ConcreteMaterial.GetTensionStiffening of the concrete (Ecm, fctm)
+        var material = ConcreteMaterialEN1992Data.C35_45;
+        var law = new HistoryTensionStiffeningConcreteLaw(material, material.Fctm);
+        var model = material.GetTensionStiffening();
+        Assert.AreEqual(model.ElasticModulus, law.InitialModulus, 0.0); Assert.AreEqual(model.TensileStrength, law.TensileStrength, 0.0);
+        Assert.AreEqual(model.CrackingStrain, law.CrackingStrain, 0.0);
+        double e0 = law.InitialModulus, fct = law.TensileStrength;
+        (double Stress, double Tangent) Before(double strain)
+        {
+            if (strain <= fct / e0) return (e0 * strain, e0);
+            double root = Math.Sqrt(500 * strain), stress = fct / (1 + root);
+            return (stress, -250 * fct / (root * (1 + root) * (1 + root)));
+        }
+        for (double strain = 1e-7; strain < 0.05; strain *= 1.07)
+            foreach (double e in new[] { strain, law.CrackingStrain, Math.BitIncrement(law.CrackingStrain) })
+            {
+                var r = law.Evaluate(e, law.InitialState(), 1);
+                var (stress, tangent) = Before(e);
+                Assert.AreEqual(stress, r.Stress, 0.0, "σ at " + e); Assert.AreEqual(tangent, r.Tangent, 0.0, "tangent at " + e);
+                Assert.AreEqual(stress, r.State.Stress, 0.0); Assert.AreEqual(e, r.State.MechanicalStrain, 0.0);
+                Assert.AreEqual(model.GetStress(e), r.Stress, 0.0);
+            }
+        // compression: still the envelope of Model
+        Assert.AreEqual(new HistoryModelEnvelopeLaw(material, true).Evaluate(-1e-3, law.InitialState(), 1).Stress, law.Evaluate(-1e-3, law.InitialState(), 1).Stress, 0.0);
+    }
+
+    [TestMethod]
     public void TensionStiffeningOptionGivesTheUncrackedResponseBeforeCracking()
     {
         // ×0,6 hogging: the slab stays below fctm (2,665 MPa at the top): G1 on the steel, G2 + Q on the uncracked section (net concrete with Ecm),

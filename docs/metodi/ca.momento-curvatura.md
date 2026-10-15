@@ -49,7 +49,8 @@ una domanda.
 | Analisi tensionale lineare | non supportato | `ArgumentException`: serve l'analisi non lineare |
 | Ramo di softening dopo il punto limite | non supportato | la curva termina al punto limite |
 | Carico ciclico, scarico, storia di carico | non supportato | ogni punto è un'analisi indipendente da stato vergine |
-| Tension stiffening, calcestruzzo confinato (NTC [4.1.8]-[4.1.12]) | non supportato | calcestruzzo teso nullo, salvo l'opzione del verificatore; nessun incremento di resistenza o di deformazione per confinamento |
+| Tension stiffening (opzione `StressAnalysisConcreteTension` del verificatore) | supportato su richiesta, solo nelle risposte | legge di Model di Collins e Mitchell con Ecm e fctm; punto limite invariato (riquadro M-3) |
+| Calcestruzzo confinato (NTC [4.1.8]-[4.1.12]) | non supportato | calcestruzzo teso nullo, salvo le opzioni del verificatore; nessun incremento di resistenza o di deformazione per confinamento |
 | Leggi medie (fcm, Ecm) per l'analisi non lineare della struttura | non supportato direttamente | le leggi sono quelle di progetto della norma; i coefficienti si possono modificare sulla classe di norma (per esempio γc = γs = 1) |
 | Bilinearizzazione, fattore di duttilità μφ (NTC §4.1.2.3.4.2), lunghezza di cerniera | non supportato | il metodo restituisce la curvatura al primo snervamento e al punto limite (riquadro M-1) |
 | Sezioni precompresse | non verificato | il solutore tiene conto della predeformazione, ma il primo snervamento è valutato sulle deformazioni del piano senza predeformazione |
@@ -77,7 +78,8 @@ una domanda.
 - Leggi di progetto dei materiali della sezione, con i coefficienti della classe di norma:
   - calcestruzzo compresso: diagramma del materiale (parabola-rettangolo nei materiali europei), con tensioni
     moltiplicate per αcc/γc;
-  - calcestruzzo teso: nullo, salvo l'opzione del verificatore;
+  - calcestruzzo teso: nullo, salvo le opzioni del verificatore: il diagramma di trazione del materiale
+    (`ConsiderTensileConcrete`, anche nel dominio) oppure, nelle sole risposte, il tension stiffening (riquadro M-3);
   - acciaio: curva caratteristica nel campo elastico; oltre lo snervamento di progetto la curva caratteristica
     traslata lungo la retta elastica e abbassata di fyk − fyd (riquadro M-2); deformazione ultima di progetto
     εud = k · εuk (k = 0,9 nelle norme europee del modello).
@@ -213,6 +215,28 @@ Il punto Mb raffinato è inserito nella curva. La curvatura ultima è quella del
 >   con μφ e non va usato in sua vece senza la bilinearizzazione.
 > - Stato: da discutere (voce R14 del registro delle differenze).
 
+> **Scostamento dichiarato — M-3 Tension stiffening opzionale nelle risposte (16/10/2026)**
+>
+> - Norma: NTC 2018 §4.1.2.3.4.1 ed EN 1992-1-1 6.1(2) trascurano la resistenza a trazione del calcestruzzo nelle
+>   verifiche di resistenza; la curva momento-curvatura descrive invece la risposta della sezione, per la quale il
+>   calcestruzzo teso fra le fessure collabora (tension stiffening).
+> - Programma: con `SectionOptions.StressAnalysisConcreteTension = TensionStiffening` le risposte (analisi tensionali
+>   non lineari) usano in trazione la legge di Model `ConcreteTensionStiffening` di Collins e Mitchell (1991):
+>   σ = Ecm ε fino a εcr = fctm/Ecm, poi σ = fctm/(1 + √(500 ε)) (fcr = 0,33 √f'c per ACI 318), valori medi senza
+>   coefficienti parziali, sull'intera zona tesa; la compressione resta la legge di progetto. Il punto limite viene dal
+>   dominio, che non legge l'opzione: MRd, χu e N del punto limite sono identici bit per bit a quelli senza opzione.
+>   Il ramo decrescente evita il salto da fct a 0 della legge del materiale (`ConsiderTensileConcrete`), con cui le
+>   analisi tensionali non convergono a momenti isolati; con l'opzione il solutore usa la rigidezza tangente della
+>   legge e una ricerca lineare, e accetta l'equilibrio entro la tolleranza più il salto della legge a εcr fra i punti
+>   di Gauss (circa 0,18 fctm), segnalandolo nel registro del solutore.
+> - Effetto: sezione molto più rigida e acciaio meno sollecitato prima del punto limite. Sezione 300 × 500 C25/30 4Ø16,
+>   N = 0: a M = 40,2 kNm (0,59 MRd) εs = 0,17 ‰ invece di 1,20 ‰; il primo snervamento arriva solo al punto limite
+>   (rapporto χu/χy,1 circa 1 invece di 13,4). La legge non è limitata all'area efficace attorno alle barre
+>   (EN 1992-1-1 7.3.2) né dalla verifica della fessura della MCFT (forza trasmessa dalle barre nella fessura): nelle
+>   sezioni poco armate il contributo del calcestruzzo teso è sovrastimato.
+> - Stato: opzione su richiesta dell'utente per la convergenza; da decidere l'area di applicazione e la verifica della
+>   fessura.
+
 ## 7. Coefficienti e valori predefiniti
 
 | Simbolo | Valore | Fonte | Modificabile | Dove nel codice |
@@ -226,7 +250,7 @@ Il punto Mb raffinato è inserito nella curva. La curvatura ultima è quella del
 | αcc, γc, γs, εud/εuk | della classe di norma (NTC: αcc 0,85, γc 1,5, γs 1,15, 0,9) | NTC §4.1.2.1.1, §4.1.2.1.2.2; EN 3.1.6, 2.4.2.4, 3.2.7 | sì, sulla classe di norma | `StandardModelCode2010` e derivate |
 | εc2, εcu | del materiale (0,002 e 0,0035 fino a C50/60) | NTC §4.1.2.1.2.1; EN prospetto 3.1 | sì, sul materiale | `ConcreteMaterialEuropeanCommon` |
 | punti del ramo parabolico | 9 fra 0 e εc2 | tabella del materiale | no | `ConcreteMaterialEuropeanCommon` |
-| calcestruzzo teso | trascurato | NTC §4.1.2.3.4.1; EN 6.1(2) | sì (opzione del verificatore) | `SectionOptions` |
+| calcestruzzo teso | trascurato | NTC §4.1.2.3.4.1; EN 6.1(2) | sì: diagramma del materiale (`ConsiderTensileConcrete`) o tension stiffening nelle risposte (`StressAnalysisConcreteTension`, riquadro M-3) | `SectionOptions` |
 | analisi richiesta | non lineare | requisito del metodo | no | `MomentCurvatureAnalysis.Calculate` |
 
 ## 8. Implementazione
@@ -286,7 +310,8 @@ curva.
 - Il primo snervamento conta anche le barre compresse; con N di compressione elevato può essere la barra compressa a
   snervare per prima. Se nessuna barra raggiunge εy prima del punto limite, χy,1 non è definita; se la curva si
   interrompe, χu non è definita.
-- Calcestruzzo confinato, tension stiffening ed effetti viscosi non sono considerati.
+- Calcestruzzo confinato ed effetti viscosi non sono considerati; il tension stiffening è un'opzione delle risposte
+  (riquadro M-3).
 
 ## 10. Esempio numerico verificato
 
@@ -377,3 +402,7 @@ punto limite al passo 40.
 - EN 1992-1-1:2004 + AC:2010, *Eurocode 2: Design of concrete structures — Part 1-1: General rules and rules for
   buildings*, §3.1.7, §3.2.7, §6.1.
 - UNI EN 1992-1-1, appendice nazionale: DM 31 luglio 2012.
+- M. P. Collins, D. Mitchell, *Prestressed Concrete Structures*, Prentice Hall, Englewood Cliffs 1991: tensione media
+  del calcestruzzo teso fessurato f1 = fcr/(1 + √(500 ε1)) (riquadro M-3).
+- F. J. Vecchio, M. P. Collins, *The Modified Compression-Field Theory for Reinforced Concrete Elements Subjected to
+  Shear*, ACI Journal 83(2), 1986.
