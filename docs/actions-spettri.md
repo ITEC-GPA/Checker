@@ -2,6 +2,8 @@
 
 GPC.Design 0.22.0.0 aggiunge `GPC.Design.Actions`: nuova funzionalità, incremento del secondo componente secondo AGENTS.md. Non cambia i motori esistenti.
 
+GPC.Design 0.22.0.1 corregge il campo di applicazione dello spettro di isolamento: rifiuto di Tis oltre 4 s, limite del grafico a 4 s e prova indipendente del bordo. Incremento dell'ultimo componente perché è un fix; i risultati dell'esempio rimangono invariati.
+
 ## Provenienza e riproducibilità
 
 - Riferimento: CSLP, Spettri-NTC 1.0.3, foglio NTC 2008, https://cslp.mit.gov.it/pareri/spettri-ntc-ver-103.
@@ -23,7 +25,7 @@ I parametri assegnati per i quattro stati limite sono un ingresso esplicito opzi
 
 NTC Italia 2018, §7.10.5.3.2: per T ≥ 0.8 Tis si adotta lo smorzamento dell'isolamento. Sistema equivalente traslazionale, massa in kN·s²/m, rigidezze in kN/mm; conversione 1000 nel periodo, g=9.81 m/s² nelle forze. La rigidezza effettiva SLE/SLU interviene anche nello spostamento.
 
-L'esempio utente ha due etichette dei periodi invertite e usa VLOOKUP approssimato sulla tabella degli spettri. `ExampleSamples` mantiene i 45 campioni dell'esempio solo per confronto, mentre il risultato ingegneristico valuta Sa analiticamente a Tis. La soglia non ha il vuoto di 0.0001 s della tabella. Una ricerca oltre 4 s è dichiarata indisponibile, non estrapolata come un campione costante. La verifica di dispositivi, torsione, eccentricità, regolarità, effetti verticali e applicabilità dell'analisi strutturale resta esterna a questa API.
+L'esempio utente ha due etichette dei periodi invertite e usa VLOOKUP approssimato sulla tabella degli spettri. `ExampleSamples` mantiene i 45 campioni dell'esempio solo per confronto, mentre il risultato ingegneristico valuta Sa analiticamente a Tis. La soglia non ha il vuoto di 0.0001 s della tabella. Le NTC 2018 §3.2.3.2 limitano questi spettri a periodi fondamentali non superiori a 4 s: `Calculate` rifiuta l'intero risultato se un Tis SLE o SLU supera 4 s e non estrapola il grafico. Per periodi maggiori occorre una definizione specifica dell'azione sismica, esterna a questa API. La verifica di dispositivi, torsione, eccentricità, regolarità, effetti verticali e applicabilità dell'analisi strutturale resta esterna a questa API.
 
 Il pendolo usa N, μ, d e R assegnati; g=9806 mm/s² come nell'esempio, esplicito e modificabile nell'API. Non si deduce il raggio da un catalogo commerciale.
 
@@ -32,3 +34,5 @@ Il pendolo usa N, μ, d e R assegnati; g=9806 mm/s² come nell'esempio, esplicit
 `SpectraTests` nella suite `Design.Checks` usa attesi acquisiti da Excel con macro disabilitate e congelati separatamente dal motore. 20 casi, entrambe le interpolazioni, quattro stati limite, sottosuoli A–E, topografie T1–T4, diversi smorzamenti/fattori q e tempi di riferimento; 17796 confronti, massimo scarto assoluto osservato 1.3322676295501878e-14. Tolleranza dichiarata 1e-10 × max(1, |atteso|), per differenze floating point fra Excel e .NET, molto inferiore alla precisione mostrata.
 
 Il secondo atteso conserva i valori e gli spettri dell'Excel utente: confronto delle ordinate e del pendolo, formula chiusa indipendente per Sa(Tis), equilibrio delle forze e controllo dimensionale dello spostamento. Ulteriori prove coprono input non validi, limiti analitici e calcolo concorrente. Le fixture non si rigenerano per inseguire risultati del codice.
+
+Il bordo Tis = 4 s usa M = 405.2847345693511 kN·s²/m e K = 1 kN/mm, dalla relazione indipendente M = 4000/π². Verificati il bordo, un caso inferiore, uno superiore e il superamento limitato agli stati ultimi. Fonte del limite: G.U. n. 42, S.O. n. 8, 20 febbraio 2018, pag. 47 (pagina PDF 51), https://www.gazzettaufficiale.it/eli/gu/2018/02/20/42/so/8/sg/pdf.

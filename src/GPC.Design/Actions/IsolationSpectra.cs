@@ -12,6 +12,8 @@ public sealed record PendulumResult(double FrictionForceKn,double EffectiveStiff
 /// <summary>Equivalent linear isolation spectra, NTC 2018 §7.10.5.3.2. Does not verify the applicability of the structural analysis model.</summary>
 public static class IsolationSpectra
 {
+    /// <summary>NTC 2018 §3.2.3.2: longer fundamental periods require a site-specific action definition.</summary>
+    public const double MaximumConventionalPeriodSeconds = 4;
     public static IReadOnlyList<IsolationState> Calculate(IReadOnlyList<SpectrumState> states,IsolationOptions o)
     {
         Validate(o);
@@ -19,14 +21,16 @@ public static class IsolationSpectra
         return states.Select(s=>{
             double k=nominal*(s.State is "SLO" or "SLD"?o.ServiceStiffnessFactor:o.UltimateStiffnessFactor);
             double t=2*Math.PI*Math.Sqrt(o.MassKnS2PerM/(1000*k)),threshold=.8*t;
+            if(!double.IsFinite(t)||t<=0||t>MaximumConventionalPeriodSeconds)
+                throw new ArgumentException($"{s.State}: periodo equivalente Tis = {t:G10} s fuori dal campo (0, 4] s. Per periodi superiori a 4 s le NTC 2018 §3.2.3.2 richiedono apposite analisi o storie temporali del moto del terreno.");
             double Acc(double period)=>NtcSpectra.ElasticHorizontal(s.Parameters,s.Ss,s.Cc,s.St,period>=threshold?ei:es,period);
             // Include both sides of the damping change; no artificial 0.0001 s gap in the engineering result.
-            double end=Math.Max(4,t*1.2);
-            var periods=Enumerable.Range(0,401).Select(i=>end*i/400).Concat(new[]{s.Tb,s.Tc,s.Td,t,Math.BitDecrement(threshold),threshold}).Where(x=>x>=0).Distinct().Order().ToArray();
+            double end=MaximumConventionalPeriodSeconds;
+            var periods=Enumerable.Range(0,401).Select(i=>end*i/400).Concat(new[]{s.Tb,s.Tc,s.Td,t,Math.BitDecrement(threshold),threshold}).Where(x=>x>=0&&x<=end).Distinct().Order().ToArray();
             double sa=Acc(t),force=o.MassKnS2PerM*9.81*sa;
             var groups=o.Groups.Select(g=>new BearingForce(g.Name,g.Count,g.Count==0?0:force*g.StiffnessKnPerMm/nominal)).ToArray();
             var example=ExampleSamples(s,threshold,es,ei);
-            double sampled=t<=example[^1].PeriodSeconds?example.Last(p=>p.PeriodSeconds<=t).AccelerationG:double.NaN;
+            double sampled=example.Last(p=>p.PeriodSeconds<=t).AccelerationG;
             return new IsolationState(s.State,k,t,threshold,sa,force,force/k,groups,periods.Select(p=>new SpectrumPoint(p,Acc(p))).ToArray(),sampled);
         }).ToArray();
     }

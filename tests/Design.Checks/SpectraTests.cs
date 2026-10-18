@@ -35,6 +35,23 @@ public sealed class SpectraTests
         Assert.ThrowsException<ArgumentException>(()=>IsolationSpectra.Validate(new(1,5,10,1,1,[new("empty",0,1)])));
         Assert.ThrowsException<ArgumentOutOfRangeException>(()=>IsolationSpectra.Pendulum(1,.05,0,1000));
     }
+    [TestMethod]public void IsolationConventionalSpectrumStopsAtFourSeconds(){
+        var states=NtcSpectra.Calculate(NtcSpectra.Site(12.4818,41.9109,SiteInterpolation.RuledSurface),new());
+        // Independent M = 4000/pi² kN*s²/m for K = 1 kN/mm gives exactly Tis = 4 s.
+        var boundary=new IsolationOptions(405.2847345693511,5,10,1,1,[new("single",1,1)]);
+        var atLimit=IsolationSpectra.Calculate(states,boundary);
+        foreach(var result in atLimit){
+            Assert.AreEqual(4,result.PeriodSeconds,1e-14);
+            Assert.IsTrue(result.Spectrum.All(point=>point.PeriodSeconds>=0&&point.PeriodSeconds<=4));
+            Assert.IsTrue(double.IsFinite(result.ExampleSampleAccelerationG));
+        }
+        var below=IsolationSpectra.Calculate(states,boundary with { MassKnS2PerM=400 });
+        Assert.IsTrue(below.All(result=>result.PeriodSeconds<4));
+        var above=Assert.ThrowsException<ArgumentException>(()=>IsolationSpectra.Calculate(states,boundary with { MassKnS2PerM=406 }));
+        StringAssert.Contains(above.Message,"NTC 2018 §3.2.3.2");
+        // A different stiffness factor can make only the ultimate states leave the domain.
+        Assert.ThrowsException<ArgumentException>(()=>IsolationSpectra.Calculate(states,boundary with { UltimateStiffnessFactor=.99 }));
+    }
     [TestMethod]public void ParallelSitesAreIndependent(){
         var first=NtcSpectra.Site(7.768,45.368,SiteInterpolation.RuledSurface);var expected=first.Periods[6].Parameters;
         Parallel.For(0,24,i=>{var s=NtcSpectra.Site(i%2==0?7.768:12.4818,i%2==0?45.368:41.9109,SiteInterpolation.RuledSurface);if(i%2==0)Assert.AreEqual(expected,s.Periods[6].Parameters);});
