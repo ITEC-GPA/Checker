@@ -9,6 +9,7 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <Compile Include="../src/Steel/**/*.cs" />
     <Reference Include="DelaunayMesh">
       <HintPath>..\..\Geometry\DelaunayMesh\bin\Release\netstandard2.0\DelaunayMesh.dll</HintPath>
     </Reference>
