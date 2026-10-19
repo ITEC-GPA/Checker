@@ -1,0 +1,22 @@
+{
+  "source": "Arithmetic fixed before the GPC kernel; chart points from Viggiani pp.394-395, NTC2018 Tab.6.6.I-III",
+  "segments": [
+    471238.89803846896,
+    814300.8158104745
+  ],
+  "raw_total": 1285539.7138489434,
+  "calculated_samples": [
+    1285539.7138489434,
+    1000000.0
+  ],
+  "calculated_characteristic": 588235.2941176471,
+  "calculated_permanent_design": 490196.0784313726,
+  "calculated_utilization_400kN": 0.816,
+  "measured_samples": [
+    900000,
+    1200000,
+    1350000
+  ],
+  "measured_characteristic": 750000.0,
+  "measured_temporary_design": 681818.1818181818
+}
