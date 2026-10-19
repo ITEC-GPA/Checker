@@ -1,0 +1,52 @@
+{
+  "method": "Independent horizontal-fibre integration of a 64-sided RC pile.\n\nNo GPC imports. Compression positive; N, mm, MPa, Nmm. NTC2018 ordinary\nC30 parabola-rectangle (epsc2=.002, epscu=.0035), B450 elastic-perfect plastic.\nConcrete displaced by bars is subtracted. File is created exclusively.\n",
+  "diameter": 800.0,
+  "count": 12,
+  "phi": 20.0,
+  "cover": 50.0,
+  "link": 10.0,
+  "Ecm": 32836.56803133079,
+  "I": 20106192982.974674,
+  "bar_radius": 330.0,
+  "samples": 131072,
+  "cases": [
+    {
+      "N": -250000.0,
+      "M": 392784422.512768,
+      "neutral_axis_depth": 133.9546015477976,
+      "residual": -2.3283064365386963e-10
+    },
+    {
+      "N": 0.0,
+      "M": 461314867.0936418,
+      "neutral_axis_depth": 155.19853724399297,
+      "residual": 1.1641532182693481e-10
+    },
+    {
+      "N": 500000.0,
+      "M": 578997029.9906068,
+      "neutral_axis_depth": 192.05306260274006,
+      "residual": -1.1641532182693481e-10
+    }
+  ],
+  "discretization128": [
+    {
+      "N": -250000.0,
+      "M": 392961705.37100744,
+      "neutral_axis_depth": 133.73264197832566,
+      "residual": 1.1641532182693481e-10
+    },
+    {
+      "N": 0.0,
+      "M": 461612499.6949489,
+      "neutral_axis_depth": 155.02123337128813,
+      "residual": -3.4924596548080444e-10
+    },
+    {
+      "N": 500000.0,
+      "M": 579348813.8144549,
+      "neutral_axis_depth": 191.82222807424114,
+      "residual": 3.4924596548080444e-10
+    }
+  ]
+}

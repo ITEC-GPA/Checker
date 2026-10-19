@@ -1,0 +1,38 @@
+{
+  "method": "Independent exact rational integrals of q(y) and y*q(y), per unit out-of-plane width",
+  "cases": [
+    {
+      "name": "ramp",
+      "top": 0.0,
+      "bottom": -6000.0,
+      "q_top": 0.0,
+      "q_bottom": 2.0,
+      "width": 1500.0,
+      "horizontal": 4.0,
+      "first_moment_y": -16000.0,
+      "driving_at_centre_y_2000_radius_10000": 2.4
+    },
+    {
+      "name": "balanced",
+      "top": 0.0,
+      "bottom": -6000.0,
+      "q_top": -2.0,
+      "q_bottom": 2.0,
+      "width": 1500.0,
+      "horizontal": 0.0,
+      "first_moment_y": -8000.0,
+      "driving_at_centre_y_2000_radius_10000": 0.8
+    },
+    {
+      "name": "partial",
+      "top": -1000.0,
+      "bottom": -4500.0,
+      "q_top": 1.0,
+      "q_bottom": 4.0,
+      "width": 2000.0,
+      "horizontal": 4.375,
+      "first_moment_y": -13562.5,
+      "driving_at_centre_y_2000_radius_10000": 2.23125
+    }
+  ]
+}

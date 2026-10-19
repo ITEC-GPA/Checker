@@ -1,0 +1,93 @@
+{
+  "source": "Independent standard-library Python; NTC2018 chapter 4, ordinary static axial steel members",
+  "units": "N, mm, MPa",
+  "examples": [
+    {
+      "name": "solid50_tension_net1000",
+      "area": 1963.4954084936207,
+      "inertia": 306796.1575771282,
+      "yield_capacity": 663848.4476335575,
+      "fracture_capacity": 367200.0
+    },
+    {
+      "name": "chs355_6x12_5_hot_s355",
+      "area": 13473.505493083225,
+      "inertia": 198521762.5251154,
+      "yield_capacity": 4555328.04766147,
+      "axes": [
+        {
+          "ncr": 11429432.356591055,
+          "normalized_slenderness": 0.6469074424379517,
+          "chi": 0.8713002113314141,
+          "capacity": 3969058.2906113574
+        },
+        {
+          "ncr": 6429055.700582469,
+          "normalized_slenderness": 0.8625432565839356,
+          "chi": 0.7580840724877952,
+          "capacity": 3453321.637889085
+        }
+      ]
+    },
+    {
+      "name": "chs193_7x5_hot_s460_reduced440",
+      "area": 2964.0926686619696,
+      "inertia": 13202324.399213092,
+      "yield_capacity": 1242095.9754393015,
+      "axes": [
+        {
+          "ncr": 1710210.0618104637,
+          "normalized_slenderness": 0.8732679035822967,
+          "chi": 0.8128426183437911,
+          "capacity": 1009628.5449103671
+        },
+        {
+          "ncr": 760093.3608046505,
+          "normalized_slenderness": 1.3099018553734452,
+          "chi": 0.4990363042445292,
+          "capacity": 619850.9851002326
+        }
+      ]
+    },
+    {
+      "name": "chs193_7x5_cold_s460_reduced440",
+      "area": 2964.0926686619696,
+      "inertia": 13202324.399213092,
+      "yield_capacity": 1242095.9754393015,
+      "axes": [
+        {
+          "ncr": 1710210.0618104637,
+          "normalized_slenderness": 0.8732679035822967,
+          "chi": 0.6163410294949287,
+          "capacity": 765554.7122337669
+        },
+        {
+          "ncr": 760093.3608046505,
+          "normalized_slenderness": 1.3099018553734452,
+          "chi": 0.38466392140926603,
+          "capacity": 477789.50867914915
+        }
+      ]
+    },
+    {
+      "name": "solid60_compression_s235",
+      "area": 2827.4333882308138,
+      "inertia": 636172.512351933,
+      "yield_capacity": 632806.5202230869,
+      "axes": [
+        {
+          "ncr": 146504.6573144166,
+          "normalized_slenderness": 2.129631229241764,
+          "chi": 0.17597072908103203,
+          "capacity": 111355.42473088743
+        },
+        {
+          "ncr": 82408.86973935935,
+          "normalized_slenderness": 2.839508305655685,
+          "chi": 0.10517259780109833,
+          "capacity": 66553.90563733532
+        }
+      ]
+    }
+  ]
+}

@@ -52,7 +52,33 @@ namespace GPC.Checkers.Geotechnics.Slopes
                     foreach (var column in section.LayersAt(gx))
                     {
                         double low = Math.Max(bottom, column.Bottom), high = upper;
-                        foreach (bool wet in new[] { false, true })
+                        if (section.Hydraulics != null && high > low)
+                        {
+                            // Exclude body volumes before querying a mesh with impermeable body holes.
+                            double start = low;
+                            void HydraulicMass(double from, double to)
+                            {
+                                if (to <= from) return;
+                                var parts = section.Hydraulics.Column(gx, from, to); double next = from;
+                                foreach (var part in parts)
+                                {
+                                    if (!Finite(part.Bottom) || !Finite(part.Top) || part.Top <= part.Bottom || Math.Abs(part.Bottom - next) > 1e-6 || part.Top > to + 1e-6)
+                                        throw new ArgumentException("Hydraulic column must be finite, continuous, ordered and confined to the requested interval.");
+                                    Mass(part.Bottom, part.Top, (part.Saturated ? column.Soil.SaturatedUnitWeight : column.Soil.UnitWeight) * factors.SoilWeight, false);
+                                    next = part.Top;
+                                }
+                                if (parts.Count == 0 || Math.Abs(next - to) > 1e-6) throw new ArgumentException("Incomplete hydraulic column: no extrapolation permitted.");
+                            }
+                            foreach (var occupied in intervals.OrderBy(t => t.Span!.Value.Bottom))
+                            {
+                                double lo = Math.Max(low, occupied.Span!.Value.Bottom), hi = Math.Min(high, occupied.Span.Value.Top);
+                                if (hi <= lo) continue;
+                                if (lo < start - 1e-6) throw new ArgumentException("Overlapping rigid bodies in hydraulic slope model.");
+                                HydraulicMass(start, lo); start = hi;
+                            }
+                            HydraulicMass(start, high);
+                        }
+                        else foreach (bool wet in new[] { false, true })
                         {
                             double lo = wet ? low : Math.Max(low, water), hi = wet ? Math.Min(high, water) : high;
                             double gamma = (wet ? column.Soil.SaturatedUnitWeight : column.Soil.UnitWeight) * factors.SoilWeight;
@@ -77,7 +103,9 @@ namespace GPC.Checkers.Geotechnics.Slopes
                     vl += load.Vertical * factor * length; hl += load.Horizontal * factor * length;
                     driving += factor * length * (load.Vertical * (atX - circle.X) + load.Horizontal * (circle.Y - load.Y) + load.Moment) / circle.Radius;
                 }
-                double u = section.Water.Count == 0 || factors.Undrained ? 0 : section.WaterUnitWeight * Math.Max(0, SlopeGeometry.Height(section.Water, x) - y);
+                double u = factors.Undrained ? 0 : section.Hydraulics != null ? section.Hydraulics.Pressure(x, y)
+                    : section.Water.Count == 0 ? 0 : section.WaterUnitWeight * Math.Max(0, SlopeGeometry.Height(section.Water, x) - y);
+                if (!Finite(u) || u < 0) throw new ArgumentException("Nonnegative finite pore pressure required at the slip base.");
                 double phi = factors.Undrained ? 0 : Math.Atan(Math.Tan(layer.Soil.FrictionAngle) / factors.TanFrictionAngle);
                 double cohesion = factors.Undrained ? layer.Soil.UndrainedShearStrength!.Value / factors.UndrainedShearStrength : layer.Soil.EffectiveCohesion / factors.EffectiveCohesion;
                 result.Add(new SlopeSlice(i, l, r, y, top, Math.Asin((x - circle.X) / circle.Radius), layer.Name, soilW, bodyW, xg, yg, vl, hl, u, phi, cohesion, v + vl, driving));
@@ -161,7 +189,8 @@ namespace GPC.Checkers.Geotechnics.Slopes
                 }
                 output.Add(new SlopeCaseResult(factors, best, tried, valid, solved, failed, boundary, status, refinedFactor));
             }
-            return new SlopeResult(section, search, output.ToArray(), Notes.ToArray());
+            return new SlopeResult(section, search, output.ToArray(), section.Hydraulics == null ? Notes.ToArray()
+                : Notes.Concat(new[] { "Stationary pore pressure and binary saturation field: " + section.Hydraulics.Source + ". Boundary water loads must be supplied explicitly; no transient coupling." }).ToArray());
         }
 
         private static bool Near(double value, double bound, double step) => Math.Abs(value - bound) < Math.Max(1e-3, step * .1);
@@ -199,6 +228,8 @@ namespace GPC.Checkers.Geotechnics.Slopes
             }
             if (!Finite(s.SoilSplitX)) throw new ArgumentException("Invalid split of the soil columns.");
             if (!Finite(s.WaterUnitWeight) || s.WaterUnitWeight <= 0) throw new ArgumentException("Invalid unit weight of water.");
+            if (s.Hydraulics != null && (s.Water.Count > 0 || string.IsNullOrWhiteSpace(s.Hydraulics.Source) || s.Hydraulics.WaterUnitWeight != s.WaterUnitWeight))
+                throw new ArgumentException("Hydraulic field: source and consistent water weight required; do not also assign a hydrostatic water line.");
             if (s.Water.Count > 0)
             {
                 Line(s.Water, "Water line");
