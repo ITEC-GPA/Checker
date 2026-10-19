@@ -93,7 +93,7 @@ public sealed class DistributedLoadTests
         }
     }
     [TestMethod]
-    public void InvalidIntervalsAndUnsupportedGlobalTransferAreExplicit()
+    public void InvalidIntervalsAndUnsupportedGlobalRestraintsAreExplicit()
     {
         foreach (string fault in new[] { "reversed", "outside", "nan", "source", "duplicate", "null" })
         {
@@ -107,7 +107,7 @@ public sealed class DistributedLoadTests
         var valid = Model(Expected()[0], 500);
         var error = Assert.ThrowsException<NotSupportedException>(() => EmbeddedWallGlobalStability.Prepare(valid, valid.Stages[0].Id,
             new(600, 12000, 12000, 1, true, "Test", new SlopeSearch(-10000, -1000, 1000, 10000, 6500, 12000, 3, 20, 0))));
-        StringAssert.Contains(error.Message, "tratti verticali");
+        StringAssert.Contains(error.Message, "Vincoli strutturali");
         Assert.ThrowsException<OperationCanceledException>(() => EmbeddedWallAnalysis.Calculate(valid, cancellation: new CancellationToken(true)));
     }
     [TestMethod]

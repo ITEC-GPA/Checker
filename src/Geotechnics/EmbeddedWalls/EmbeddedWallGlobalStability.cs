@@ -82,8 +82,6 @@ public static class EmbeddedWallGlobalStability
             throw new ArgumentException("Stabilità globale: spessore positivo, estensioni oltre le facce e direzione di scorrimento ±1 richiesti.");
         if (stage.ActiveSupports.Count > 0)
             throw new NotSupportedException("La fase contiene sostegni: servono geometria dei bulbi o strutture di contrasto per determinare le azioni esterne alla superficie globale. Nessuna reazione locale viene sommata automaticamente.");
-        if (stage.DistributedLoads.Count > 0)
-            throw new NotSupportedException("Carichi distribuiti su tratti verticali: il verificatore globale richiede il trasferimento delle sole porzioni interne alla superficie. Il risultante locale non viene concentrato automaticamente in un punto.");
         if (m.FixTopDisplacement || m.FixTopRotation || m.FixBottomDisplacement || m.FixBottomRotation)
             throw new NotSupportedException("Vincoli strutturali assegnati: definire il sistema esterno di vincolo nel modello globale prima della verifica.");
         if (stage.Left.Elevation > m.Top || stage.Right.Elevation > m.Top || stage.Left.Elevation < m.Bottom || stage.Right.Elevation < m.Bottom)
@@ -108,6 +106,19 @@ public static class EmbeddedWallGlobalStability
         if (uphill.Surcharge != 0) loads.Add(new(rightValley ? "LeftSurcharge" : "RightSurcharge", half, right, uy, uphill.Surcharge, 0, 0, true));
         if (stage.DistributedLoad != 0) loads.Add(new("StructureDistributed", 0, 0, (m.Bottom - m.Top) / 2, 0,
             profile.ValleyDirection * stage.DistributedLoad * (m.Top - m.Bottom) / m.TributaryWidth, 0, false));
+        foreach (var q in stage.DistributedLoads)
+        {
+            if (q.TopLoad == 0 && q.BottomLoad == 0) continue;
+            double length = q.Top - q.Bottom;
+            // Admissible slip circles pass below EVERY vertex of the complete continuous wall body.
+            // The entire loaded interval belongs to the sliding mass. At x=0 a force and a free couple
+            // at the interval midpoint preserve both horizontal action and driving moment exactly.
+            // Keeping the couple separately also handles opposite end intensities and a zero resultant.
+            double force = (q.TopLoad + q.BottomLoad) * length / (2 * m.TributaryWidth);
+            double couple = (q.BottomLoad - q.TopLoad) * length * length / (12 * m.TributaryWidth);
+            loads.Add(new("StructureInterval-" + q.Id, 0, 0, (q.Top + q.Bottom) / 2 - m.Top, 0,
+                profile.ValleyDirection * force, profile.ValleyDirection * couple, false));
+        }
         for (int i = 0; i < stage.PointLoads.Count; i++)
         {
             var p = stage.PointLoads[i]; if (p.DownwardForce == 0 && p.HorizontalForce == 0 && p.Moment == 0) continue;

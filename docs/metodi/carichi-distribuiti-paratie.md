@@ -58,9 +58,38 @@ separatamente il modello già privo di vincoli: Unstable.
 
 Si tratta di azioni assegnate direttamente alla struttura; diffusione di
 carichi sul terreno, Culmann e pressioni sismiche non sono dedotti da questa
-funzione. Il verificatore globale attuale non può distribuire un'azione
-lungo una frontiera verticale parzialmente interna alla superficie:
-`Prepare` restituisce un esito non supportato quando questi carichi sono
-presenti. Non vengono omessi né sostituiti implicitamente da un risultante
-concentrato. L'estensione del trasferimento globale e l'integrazione ANTHEA
-restano aperte al momento di questo documento.
+funzione. L'integrazione ANTHEA resta in corso.
+
+## Trasferimento alla stabilità globale
+
+Il primo candidato (`candidate-16`, 3148 PASS e 17 fallimenti storici Steel
+ammessi) rifiutava esplicitamente questi carichi nel modello globale.
+La successiva verifica del contratto `SlopeGeometry.Admissible` ha mostrato
+che tutte le superfici ammesse passano sotto ogni vertice di ogni corpo
+rigido: l'intera parete continua e ogni tratto caricato rimangono nella
+massa scivolante. Non sono ammesse superfici che tagliano la parete.
+
+Nel campo così delimitato si trasferiscono, per ogni tratto, una forza H e
+una coppia C al punto medio y0, mantenendo un unico identificativo per i
+coefficienti. Con L=ztop−zbottom e b larghezza della fascia:
+
+H = (qtop+qbottom)L/(2b); C = (qbottom−qtop)L²/(12b).
+
+Sono grandezze per unità di lunghezza fuori piano: H in N/mm, C in Nmm/mm.
+La direzione della valle moltiplica entrambe le azioni. Il momento motore
+rispetto al centro del cerchio è H(yc−y0)+C, esattamente uguale
+all'integrale del campo originale. Non si divide per H: una risultante
+nulla conserva la coppia. L'identificativo è `StructureInterval-<Id>`;
+la selezione normativa esplicita applica una sola volta γ·ψ a forza e
+coppia. Un tratto con entrambe le intensità nulle non aggiunge azioni.
+
+Prima dell'estensione sono stati generati tre attesi razionali integrando
+q(y) e yq(y), conservati in `global-distributed-expected.json`; generatore
+`tools/ParatieGlobalDistributedExpected.py`. `distributed-global-01`:
+60 test PASS. Due nuove prove verificano entrambi i versi di scorrimento,
+traslazione delle quote, risultante nulla, forze e momenti dei conci,
+equivalenza esatta al carico uniforme storico e stessa soluzione della
+ricerca globale, rifiuto di coefficienti mancanti e applicazione una sola
+volta. Slopes non è stato modificato. Questo trasferimento non si estende
+implicitamente a superfici che intersecano la paratia o a carichi esterni
+al corpo continuo.
