@@ -34,7 +34,8 @@ public static class WallSoilPressure
         {
             double top = Math.Min(s.Top, ground.Elevation), bottom = Math.Max(s.Bottom, elevation);
             if (top <= bottom) continue;
-            double wet = Math.Max(0, Math.Min(top, ground.WaterElevation ?? double.NegativeInfinity) - bottom);
+            double wet = ground.SaturationFromPorePressures ? SaturatedThickness(ground, top, bottom)
+                : Math.Max(0, Math.Min(top, ground.WaterElevation ?? double.NegativeInfinity) - bottom);
             total += (top - bottom - wet) * s.Soil.UnitWeight + wet * s.Soil.SaturatedUnitWeight;
         }
         double effective = total - water;
@@ -75,11 +76,30 @@ public static class WallSoilPressure
     {
         if (ground.PorePressures == null) throw new ArgumentException("Collezione delle pressioni interstiziali mancante.");
         var p = ground.PorePressures;
-        if (p.Count == 0) return;
+        if (p.Count == 0)
+        {
+            if (ground.SaturationFromPorePressures) throw new ArgumentException("Pesi da pressioni: il profilo interstiziale è obbligatorio.");
+            return;
+        }
+        if (ground.SaturationFromPorePressures && p[0].Elevation < ground.Elevation)
+            throw new ArgumentException("Pesi da pressioni: il profilo deve coprire tutta la colonna dalla superficie del terreno.");
         if (p.Count < 2 || string.IsNullOrWhiteSpace(ground.PorePressureSource)) throw new ArgumentException("Profilo interstiziale: almeno due quote e una fonte obbligatorie.");
         for (int i = 0; i < p.Count; i++)
             if (!Finite(p[i].Elevation) || !Finite(p[i].Pressure) || p[i].Pressure < 0 || i > 0 && p[i - 1].Elevation <= p[i].Elevation)
                 throw new ArgumentException("Pressioni interstiziali non negative e quote strettamente decrescenti richieste. La resistenza per suzione non è modellata.");
+    }
+    private static double SaturatedThickness(EmbeddedWallGround ground, double top, double bottom)
+    {
+        if (top > ground.PorePressures[0].Elevation || bottom < ground.PorePressures[ground.PorePressures.Count - 1].Elevation)
+            throw new ArgumentException("Pesi da pressioni: nessuna estrapolazione del profilo di saturazione.");
+        double wet = 0;
+        for (int i = 1; i < ground.PorePressures.Count; i++)
+        {
+            var a = ground.PorePressures[i - 1]; var b = ground.PorePressures[i];
+            // Pressure is nonnegative and affine on each interval, with all zero crossings retained by the coupling.
+            if (a.Pressure > 0 || b.Pressure > 0) wet += Math.Max(0, Math.Min(top, a.Elevation) - Math.Max(bottom, b.Elevation));
+        }
+        return wet;
     }
     private static bool Finite(double v) => !double.IsNaN(v) && !double.IsInfinity(v);
 }

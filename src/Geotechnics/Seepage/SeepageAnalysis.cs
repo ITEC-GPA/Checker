@@ -41,6 +41,7 @@ public static class SeepageAnalysis
                 if (changed) { previousChange = double.PositiveInfinity; continue; }
                 double error = MaxFree(residual, fixedNodes); result.MaximumResidual = error;
                 progress?.Report(new(iteration, error));
+                cancellation.ThrowIfCancellationRequested();
                 double balance = Math.Abs(residual.Where((r, i) => !fixedNodes[i]).Sum());
                 if (error <= tolerance && balance <= tolerance && previousChange <= opt.HeadTolerance)
                 {

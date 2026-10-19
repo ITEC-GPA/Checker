@@ -65,8 +65,10 @@ Non estrapola fuori dal dominio o attraverso vuoti e rifiuta punti idraulicament
 ambigui. Per la legge meccanica delle paratie la suzione può essere trascurata
 solo con scelta esplicita: il FEM conserva il valore negativo, mentre il profilo
 trasferito usa zero. Non viene attribuita resistenza per suzione al terreno.
-La quota di falda meccanica resta esplicita per i pesi naturali/saturi: non è una
-simulazione accoppiata di consolidazione. Le fasi hanno campi idraulici separati;
+Per i pesi naturali/saturi si può conservare la quota di falda oppure attivare
+esplicitamente `SaturationFromPorePressures`, con peso saturo nei tratti a
+pressione positiva; ipotesi e prove nelle [verifiche idrauliche](verifiche-idrauliche-paratie.md).
+Non è una simulazione accoppiata di consolidazione. Le fasi hanno campi idraulici separati;
 una filtrazione fallita non può fornire pressioni alla fase meccanica.
 
 ## Prove indipendenti

@@ -86,6 +86,6 @@ public static partial class EmbeddedWallAnalysis
             ActiveSupports = s.ActiveSupports.Select(a => new EmbeddedWallSupportActivation { SupportId = a.SupportId, Prestress = a.Prestress }).ToArray() }).ToArray()
     };
     private static EmbeddedWallGround CopyGround(EmbeddedWallGround g) => new EmbeddedWallGround { Elevation = g.Elevation, WaterElevation = g.WaterElevation, Surcharge = g.Surcharge,
-        PorePressures = g.PorePressures.ToArray(), PorePressureSource = g.PorePressureSource };
+        PorePressures = g.PorePressures.ToArray(), PorePressureSource = g.PorePressureSource, SaturationFromPorePressures = g.SaturationFromPorePressures };
     private static EmbeddedWallSoil[] CopySoils(IReadOnlyList<EmbeddedWallSoil> soils) => soils.Select(s => new EmbeddedWallSoil { Soil = s.Soil, Top = s.Top, Bottom = s.Bottom, HorizontalModulus = s.HorizontalModulus, AtRestCoefficient = s.AtRestCoefficient, Drainage = s.Drainage, StiffnessSource = s.StiffnessSource }).ToArray();
 }
