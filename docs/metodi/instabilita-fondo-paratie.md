@@ -70,6 +70,14 @@ isolamento dei risultati, scala geometrica e coefficienti applicati una volta;
 una prova Model dei profili passata. Non equivalgono al collaudo integrato del
 modulo e non sostituiscono le suite complete del treno di rilascio.
 
+Successivo collaudo completo del 19/10/2026: Model `8c1e79a9`, 19 Core e
+1249 UnitTest PASS, due test ignorati preesistenti; audit di uguaglianza e API
+conclusi senza rimozioni inattese. Checker `56f48103`, 1912 test PASS e i soli
+17 fallimenti Steel già ammessi, compatibilità API confermata. EmbeddedWalls
+comprende 74 test, di cui sette nuovi. Evidenze nel worktree ANTHEA,
+`supporto/artefatti/paratie/incremento-14/{model-full-01,checker-full-01}`.
+Non è stato prodotto o installato un set di rilascio di questo incremento.
+
 Da completare: adattatore di fase con geometria/terreni congruenti, selezione
 e provenienza del modello, migrazione del documento, editor, risultati,
 report/CSV, ricerca dell'infissione e guide globali. La valutazione di Nc resta
