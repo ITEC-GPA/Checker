@@ -70,10 +70,10 @@ public class EmbeddedWallGlobalTests
         var standard = new StandardNTC2018Geotechnics();
         var combination = standard.Combinations(GeotechnicalCheck.GlobalStability, GeotechnicalSituation.PersistentTransient).Single();
         GeotechnicalActionSelection[] selections = [
-            new("LeftSurcharge", GeotechnicalActionCategory.Variable, true, .3, "psi from specified synthetic combination"),
-            new("RightSurcharge", GeotechnicalActionCategory.PermanentNonStructural, false, 1, "favourable in specified combination"),
-            new("StructureDistributed", GeotechnicalActionCategory.PermanentStructural, true, 1, "permanent"),
-            new("PointLoad-0", GeotechnicalActionCategory.Variable, true, 1, "leading")];
+            new("LeftSurcharge", GeotechnicalCharacteristicActionCategory.Variable, true, .3, "psi from specified synthetic combination"),
+            new("RightSurcharge", GeotechnicalCharacteristicActionCategory.PermanentNonStructural, false, 1, "favourable in specified combination"),
+            new("StructureDistributed", GeotechnicalCharacteristicActionCategory.PermanentStructural, true, 1, "permanent"),
+            new("PointLoad-0", GeotechnicalCharacteristicActionCategory.Variable, true, 1, "leading")];
         var result = EmbeddedWallGlobalStability.CreateCase(prepared, combination, selections, false);
         Assert.AreEqual(.39, result.Factors.Loads["LeftSurcharge"], 1e-15);
         // NTC 2018, Table 6.2.I (Gazzetta Ufficiale 20/02/2018, p. 186): favourable G2 in A2 = 0.8.
@@ -87,7 +87,7 @@ public class EmbeddedWallGlobalTests
             standard.Combinations(GeotechnicalCheck.EmbeddedWallResistance, GeotechnicalSituation.PersistentTransient)[0], selections, false));
         Assert.ThrowsException<NotSupportedException>(() => EmbeddedWallGlobalStability.CreateCase(prepared,
             standard.Combinations(GeotechnicalCheck.GlobalStability, GeotechnicalSituation.Seismic)[0], selections, false));
-        Assert.ThrowsException<ArgumentException>(() => new GeotechnicalActionSelection("G", GeotechnicalActionCategory.PermanentStructural, false, .3, "invalid permanent psi"));
+        Assert.ThrowsException<ArgumentException>(() => new GeotechnicalActionSelection("G", GeotechnicalCharacteristicActionCategory.PermanentStructural, false, .3, "invalid permanent psi"));
     }
     [TestMethod]
     public void UnsupportedGlobalSystemsAndMissingLoadFactorsAreNotSilentlyIgnored()

@@ -2,7 +2,7 @@ using GPC.Checkers.Geotechnics.Slopes;
 using GPC.Model.Geotechnics;
 using GPC.Model.Geotechnics.EmbeddedWalls;
 using GPC.Model.Standards;
-using ModelActionCategory = GPC.Model.Standards.GeotechnicalActionCategory;
+using ModelActionCategory = GPC.Model.Standards.GeotechnicalCharacteristicActionCategory;
 
 namespace GPC.Checkers.Geotechnics.EmbeddedWalls;
 
