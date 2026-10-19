@@ -7,6 +7,7 @@ public static partial class EmbeddedWallAnalysis
     private static WallStageResult Recover(EmbeddedWallModel model, Mesh mesh, EmbeddedWallStage stage, double[] u, Evaluation evaluation, int increments, int iterations)
     {
         var points = new List<WallPointResult>(); var reactions = new List<WallBoundaryReaction>();
+        var elements = new List<WallRecoveredElement>();
         double forceResidual = 0, momentResidual = 0;
         for (int node = 0; node < mesh.Depth.Length; node++)
         {
@@ -20,6 +21,7 @@ public static partial class EmbeddedWallAnalysis
         }
         for (int e = 0; e < mesh.Depth.Length - 1; e++)
         {
+            int firstPoint = points.Count;
             double h = mesh.Depth[e + 1] - mesh.Depth[e], ei = mesh.Sections[e].FlexuralRigidity * stage.StiffnessFactor;
             var end = new double[4];
             for (int g = 0; g < 4; g++)
@@ -55,10 +57,18 @@ public static partial class EmbeddedWallAnalysis
                     LeftPressure = Value(left, t), RightPressure = Value(right, t), NetDistributedLoad = Value(q, t),
                     LeftPlastic = evaluation.LeftPlastic[4 * e + nearest], RightPlastic = evaluation.RightPlastic[4 * e + nearest] });
             }
+            // The existing recovery above is kept unchanged. Capture its polynomial fields, not a fit through
+            // tabulated extrema. Hermite displacement is cubic; force fields come from integrated Gauss reactions.
+            var displacement = Interpolate(Gauss.Select(t => Dot(Shape(t, h, mesh.RotationScale), u, 2 * e)).ToArray());
+            var rotationField = Enumerable.Range(1, displacement.Length - 1).Select(i => i * displacement[i] / h).ToArray();
+            elements.Add(new WallRecoveredElement(model.Top - mesh.Depth[e], model.Top - mesh.Depth[e + 1], mesh.Sections[e].SectionId,
+                new[] { displacement, rotationField, new[] { points[firstPoint].NormalForce, mesh.Sections[e].WeightPerLength * h },
+                    v, moment, left, right, q },
+                evaluation.LeftPlastic.Skip(4 * e).Take(4).ToArray(), evaluation.RightPlastic.Skip(4 * e).Take(4).ToArray()));
         }
         return new WallStageResult { Id = stage.Id, CaseId = model.CaseId, AcceptedIncrements = increments, Iterations = iterations,
             ForceResidual = forceResidual, MomentResidual = momentResidual, MaximumScaledResidual = evaluation.MaximumResidual,
-            Points = points.AsReadOnly(), Reactions = reactions.AsReadOnly(), Supports = evaluation.SupportResults.AsReadOnly() };
+            Points = points.AsReadOnly(), Elements = elements.AsReadOnly(), Reactions = reactions.AsReadOnly(), Supports = evaluation.SupportResults.AsReadOnly() };
     }
 
     private static double[] Interpolate(double[] values)

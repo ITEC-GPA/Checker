@@ -24,7 +24,8 @@ public static partial class EmbeddedWallAnalysis
             && Finite(opt.AbsoluteForceTolerance) && opt.AbsoluteForceTolerance > 0, "Invalid iteration controls.");
         var mesh = new Mesh(m); var u = new double[mesh.Dofs]; var history = new History(mesh.Springs, m.Supports.Count);
         var complete = new List<WallStageResult>();
-        var result = new WallAnalysisResult { CaseId = m.CaseId, Stages = complete.AsReadOnly(), Status = WallAnalysisStatus.Converged };
+        var result = new WallAnalysisResult { CaseId = m.CaseId, Top = m.Top, Bottom = m.Bottom, TributaryWidth = m.TributaryWidth,
+            Stages = complete.AsReadOnly(), Status = WallAnalysisStatus.Converged };
         EmbeddedWallStage? previous = null;
         foreach (var stage in m.Stages)
         {

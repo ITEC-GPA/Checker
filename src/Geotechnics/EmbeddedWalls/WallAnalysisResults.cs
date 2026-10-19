@@ -23,6 +23,9 @@ public sealed class WallAnalysisProgress
 public sealed class WallAnalysisResult
 {
     public string CaseId { get; internal set; } = "";
+    public double Top { get; internal set; }
+    public double Bottom { get; internal set; }
+    public double TributaryWidth { get; internal set; }
     public WallAnalysisStatus Status { get; internal set; }
     public string Diagnostic { get; internal set; } = "";
     public string? FailedStage { get; internal set; }
@@ -40,6 +43,8 @@ public sealed class WallStageResult
     public double MomentResidual { get; internal set; }
     public double MaximumScaledResidual { get; internal set; }
     public IReadOnlyList<WallPointResult> Points { get; internal set; } = Array.Empty<WallPointResult>();
+    /// <summary>Frozen recovered fields for sampling without interpolation of tabulated extrema or a new analysis.</summary>
+    public IReadOnlyList<WallRecoveredElement> Elements { get; internal set; } = Array.Empty<WallRecoveredElement>();
     public IReadOnlyList<WallSupportResult> Supports { get; internal set; } = Array.Empty<WallSupportResult>();
     public IReadOnlyList<WallBoundaryReaction> Reactions { get; internal set; } = Array.Empty<WallBoundaryReaction>();
 }
