@@ -74,7 +74,7 @@ public static partial class EmbeddedWallAnalysis
     }
     private static bool Inside(double z, EmbeddedWallModel m) => Finite(z) && z >= m.Bottom && z <= m.Top;
 
-    private static EmbeddedWallModel Snapshot(EmbeddedWallModel m) => new EmbeddedWallModel
+    internal static EmbeddedWallModel Snapshot(EmbeddedWallModel m) => new EmbeddedWallModel
     {
         Name = m.Name, CaseId = m.CaseId, Top = m.Top, Bottom = m.Bottom, TributaryWidth = m.TributaryWidth, MaximumElementLength = m.MaximumElementLength,
         FixTopDisplacement = m.FixTopDisplacement, FixTopRotation = m.FixTopRotation, FixBottomDisplacement = m.FixBottomDisplacement, FixBottomRotation = m.FixBottomRotation,

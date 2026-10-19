@@ -81,6 +81,8 @@ namespace GPC.Checkers.Geotechnics.Slopes
         public double SoilSplitX { get; }
         /// <summary>γw, N/mm³ (9.81 kN/m³ as the legacy calculation).</summary>
         public double WaterUnitWeight { get; }
+        /// <summary>Optional stationary field. When present it supplies pore pressures and saturation intervals instead of Water.</summary>
+        public ISlopeHydraulicField? Hydraulics { get; }
 
         public SlopeSection(IEnumerable<SlopePoint> surface, IEnumerable<SlopeLayer> layers, IEnumerable<SlopePoint>? water, IEnumerable<SlopeBody>? bodies,
             IEnumerable<SlopeLoad>? loads, double requiredLeft, double requiredRight, IEnumerable<SlopeLayer>? valleyLayers = null, double soilSplitX = 0,
@@ -92,6 +94,13 @@ namespace GPC.Checkers.Geotechnics.Slopes
             Loads = (loads ?? Enumerable.Empty<SlopeLoad>()).ToArray(); RequiredLeft = requiredLeft; RequiredRight = requiredRight;
             ValleyLayers = (valleyLayers ?? Enumerable.Empty<SlopeLayer>()).ToArray(); SoilSplitX = soilSplitX; WaterUnitWeight = waterUnitWeight;
         }
+
+        /// <summary>Section with an explicit stationary field. The original constructor is retained for binary compatibility.</summary>
+        public SlopeSection(IEnumerable<SlopePoint> surface, IEnumerable<SlopeLayer> layers, IEnumerable<SlopePoint>? water, IEnumerable<SlopeBody>? bodies,
+            IEnumerable<SlopeLoad>? loads, double requiredLeft, double requiredRight, IEnumerable<SlopeLayer>? valleyLayers, double soilSplitX,
+            double waterUnitWeight, ISlopeHydraulicField hydraulics)
+            : this(surface, layers, water, bodies, loads, requiredLeft, requiredRight, valleyLayers, soilSplitX, waterUnitWeight)
+        { Hydraulics = hydraulics ?? throw new ArgumentNullException(nameof(hydraulics)); }
 
         /// <summary>The column at the abscissa: the valley column left of the split, otherwise the main one.</summary>
         public IReadOnlyList<SlopeLayer> LayersAt(double x) => ValleyLayers.Count > 0 && x < SoilSplitX ? ValleyLayers : Layers;

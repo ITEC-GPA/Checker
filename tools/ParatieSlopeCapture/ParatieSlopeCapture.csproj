@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../GPCChecker.Geotechnics/GPCChecker.Geotechnics.csproj" />
+    <Reference Include="GPCModel"><HintPath>../../../Model/Model/bin/Release/netstandard2.0/GPCModel.dll</HintPath></Reference>
+    <Reference Include="GPCGeometry"><HintPath>../../../Geometry/GPCGeometry/bin/Release/netstandard2.0/GPCGeometry.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>
