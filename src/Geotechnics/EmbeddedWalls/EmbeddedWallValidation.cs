@@ -51,7 +51,7 @@ public static partial class EmbeddedWallAnalysis
         foreach (var stage in m.Stages!)
         {
             Require(stage != null && !string.IsNullOrWhiteSpace(stage.Id) && ids.Add(stage.Id) && stage.Left != null && stage.Right != null
-                && stage.ActiveSupports != null && stage.PointLoads != null && Finite(stage.DistributedLoad)
+                && stage.ActiveSupports != null && stage.PointLoads != null && stage.DistributedLoads != null && Finite(stage.DistributedLoad)
                 && Finite(stage.StiffnessFactor) && stage.StiffnessFactor > 0, "Invalid or duplicate stage.");
             foreach (var pair in new[] { (stage!.Left, m.LeftSoils!), (stage.Right, m.RightSoils!) })
             {
@@ -70,6 +70,10 @@ public static partial class EmbeddedWallAnalysis
                 Require(!s.Capacity.HasValue || a!.Prestress <= s.Capacity.Value, "Lock-off force exceeds support capacity.");
             }
             foreach (var p in stage.PointLoads!) Require(p != null && Inside(p.Elevation, m) && Finite(p.HorizontalForce) && Finite(p.Moment) && Finite(p.DownwardForce), "Invalid point action.");
+            var distributedIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var q in stage.DistributedLoads!) Require(q != null && !string.IsNullOrWhiteSpace(q.Id) && distributedIds.Add(q.Id)
+                && Inside(q.Top, m) && Inside(q.Bottom, m) && q.Top > q.Bottom && Finite(q.TopLoad) && Finite(q.BottomLoad)
+                && !string.IsNullOrWhiteSpace(q.Source), "Distributed loads require unique stage identifiers, ordered elevations inside the wall, finite intensities and provenance.");
         }
     }
     private static bool Inside(double z, EmbeddedWallModel m) => Finite(z) && z >= m.Bottom && z <= m.Top;
@@ -83,6 +87,8 @@ public static partial class EmbeddedWallAnalysis
         Supports = m.Supports.Select(s => new EmbeddedWallSupport { Id = s.Id, Elevation = s.Elevation, Kind = s.Kind, AxialStiffness = s.AxialStiffness, Inclination = s.Inclination, ResistingDirection = s.ResistingDirection, Spacing = s.Spacing, Capacity = s.Capacity }).ToArray(),
         Stages = m.Stages.Select(s => new EmbeddedWallStage { Id = s.Id, Left = CopyGround(s.Left), Right = CopyGround(s.Right), DistributedLoad = s.DistributedLoad, StiffnessFactor = s.StiffnessFactor,
             PointLoads = s.PointLoads.Select(p => new EmbeddedWallPointLoad { Elevation = p.Elevation, HorizontalForce = p.HorizontalForce, Moment = p.Moment, DownwardForce = p.DownwardForce }).ToArray(),
+            DistributedLoads = s.DistributedLoads.Select(q => new EmbeddedWallDistributedLoad { Id = q.Id, Top = q.Top, Bottom = q.Bottom,
+                TopLoad = q.TopLoad, BottomLoad = q.BottomLoad, Source = q.Source }).ToArray(),
             ActiveSupports = s.ActiveSupports.Select(a => new EmbeddedWallSupportActivation { SupportId = a.SupportId, Prestress = a.Prestress }).ToArray() }).ToArray()
     };
     private static EmbeddedWallGround CopyGround(EmbeddedWallGround g) => new EmbeddedWallGround { Elevation = g.Elevation, WaterElevation = g.WaterElevation, Surcharge = g.Surcharge,

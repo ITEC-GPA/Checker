@@ -82,6 +82,8 @@ public static class EmbeddedWallGlobalStability
             throw new ArgumentException("Stabilità globale: spessore positivo, estensioni oltre le facce e direzione di scorrimento ±1 richiesti.");
         if (stage.ActiveSupports.Count > 0)
             throw new NotSupportedException("La fase contiene sostegni: servono geometria dei bulbi o strutture di contrasto per determinare le azioni esterne alla superficie globale. Nessuna reazione locale viene sommata automaticamente.");
+        if (stage.DistributedLoads.Count > 0)
+            throw new NotSupportedException("Carichi distribuiti su tratti verticali: il verificatore globale richiede il trasferimento delle sole porzioni interne alla superficie. Il risultante locale non viene concentrato automaticamente in un punto.");
         if (m.FixTopDisplacement || m.FixTopRotation || m.FixBottomDisplacement || m.FixBottomRotation)
             throw new NotSupportedException("Vincoli strutturali assegnati: definire il sistema esterno di vincolo nel modello globale prima della verifica.");
         if (stage.Left.Elevation > m.Top || stage.Right.Elevation > m.Top || stage.Left.Elevation < m.Bottom || stage.Right.Elevation < m.Bottom)

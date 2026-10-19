@@ -114,7 +114,8 @@ public static partial class EmbeddedWallAnalysis
                 .Concat(m.Supports.Select(s => s.Elevation))
                 .Concat(m.Stages.SelectMany(s => new[] { s.Left.Elevation, s.Right.Elevation, s.Left.WaterElevation ?? m.Bottom, s.Right.WaterElevation ?? m.Bottom }))
                 .Concat(m.Stages.SelectMany(s => s.Left.PorePressures.Concat(s.Right.PorePressures).Select(p => p.Elevation)))
-                .Concat(m.Stages.SelectMany(s => s.PointLoads.Select(p => p.Elevation))))
+                .Concat(m.Stages.SelectMany(s => s.PointLoads.Select(p => p.Elevation)))
+                .Concat(m.Stages.SelectMany(s => s.DistributedLoads.SelectMany(q => new[] { q.Top, q.Bottom }))))
                 if (z >= m.Bottom && z <= m.Top) boundaries.Add(z);
             var depths = boundaries.Select(z => m.Top - z).OrderBy(v => v).ToArray();
             var nodes = new List<double> { 0 };
@@ -189,13 +190,15 @@ public static partial class EmbeddedWallAnalysis
         {
             var r = new Evaluation(Mesh, history);
             double eiFactor = Blend(from.StiffnessFactor, to.StiffnessFactor, fraction);
-            double qExternal = Blend(from.DistributedLoad, to.DistributedLoad, fraction);
+            double uniform = Blend(from.DistributedLoad, to.DistributedLoad, fraction);
             for (int e = 0; e < Mesh.Depth.Length - 1; e++)
             {
                 double h = Mesh.Depth[e + 1] - Mesh.Depth[e], ei = Mesh.Sections[e].FlexuralRigidity * eiFactor;
                 for (int g = 0; g < 4; g++)
                 {
                     int at = 4 * e + g; double t = Gauss[g], weight = Weights[g] * h;
+                    double z = model.Top - Mesh.Depth[e] - t * h;
+                    double qExternal = uniform + Blend(IntervalLoad(from, z), IntervalLoad(to, z), fraction);
                     double[] shape = Shape(t, h, Mesh.RotationScale), curvature = Curvature(t, h, Mesh.RotationScale);
                     double displacement = Dot(shape, u, 2 * e), bending = ei * Dot(curvature, u, 2 * e);
                     double pressure = 0, tangent = 0;
