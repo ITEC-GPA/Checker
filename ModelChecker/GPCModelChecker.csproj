@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <Version>2.1.0.17</Version>
+    <Version>2.1.0.18</Version>
     <RootNamespace>GPC.Model.Checker</RootNamespace>
   </PropertyGroup>
   <!-- Downstream of Model (moved from the Model repository on 10/10/2026): the engines are built from this repository,
