@@ -250,7 +250,7 @@ public static partial class EmbeddedWallAnalysis
                 r.Residual[row] -= reaction; r.Support[row] += reaction;
                 if (!plastic) r.Tangent.Add(row, row, stiffness * cos * cos * multiplicity);
                 r.Scale = Math.Max(r.Scale, Math.Abs(reaction));
-                r.SupportResults.Add(new WallSupportResult { Id = support.Id, AxialForce = force / activation, HorizontalReaction = reaction,
+                r.SupportResults.Add(new WallSupportResult { Id = support.Id, Kind = support.Kind, AxialStiffness = support.AxialStiffness, AxialForce = force / activation, HorizontalReaction = reaction,
                     ReferenceDisplacement = history.SupportReference[i], AtCapacity = support.Capacity.HasValue && Math.Abs(force) >= limit * (1 - 1e-10) });
             }
             return r;

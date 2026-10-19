@@ -66,8 +66,12 @@ public sealed class WallPointResult
 public sealed class WallSupportResult
 {
     public string Id { get; internal set; } = "";
-    /// <summary>Force per individual support, not per strip.</summary>
+    public GPC.Model.Geotechnics.EmbeddedWalls.EmbeddedWallSupportKind Kind { get; internal set; }
+    /// <summary>Force per individual support, not per strip. Positive: tension for Anchor/Bilateral, compression for Strut.</summary>
     public double AxialForce { get; internal set; }
+    /// <summary>Signed physical axial force per individual support, N, positive tension.</summary>
+    public double NormalForce => Kind == GPC.Model.Geotechnics.EmbeddedWalls.EmbeddedWallSupportKind.Strut ? -AxialForce : AxialForce;
+    public double AxialStiffness { get; internal set; }
     public double HorizontalReaction { get; internal set; }
     public double ReferenceDisplacement { get; internal set; }
     public bool AtCapacity { get; internal set; }

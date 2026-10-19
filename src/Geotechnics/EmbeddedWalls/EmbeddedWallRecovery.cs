@@ -46,7 +46,7 @@ public static partial class EmbeddedWallAnalysis
                 foreach (var support in evaluation.SupportResults)
                 {
                     var definition = model.Supports.First(s => s.Id == support.Id);
-                    if (definition.Elevation > z || definition.Elevation == z && side != "Above") axial += support.AxialForce * Math.Sin(definition.Inclination) * model.TributaryWidth / definition.Spacing;
+                    if (definition.Elevation > z || definition.Elevation == z && side != "Above") axial += support.NormalForce * Math.Sin(definition.Inclination) * model.TributaryWidth / definition.Spacing;
                 }
                 int nearest = Enumerable.Range(0, 4).OrderBy(g => Math.Abs(t - Gauss[g])).First();
                 points.Add(new WallPointResult { Elevation = z, Side = side, SectionId = mesh.Sections[e].SectionId,
