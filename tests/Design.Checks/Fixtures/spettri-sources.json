@@ -1,0 +1,18 @@
+{
+  "official_url": "https://cslp.mit.gov.it/pareri/spettri-ntc-ver-103",
+  "capture": "Excel 16 COM; macros disabled; analysis copy; Capture-Reference.ps1",
+  "files": [
+    {
+      "name": "Spettri-NTCver.1.0.3.xls",
+      "sha256": "71e424ad45454d873bf4b2be6b1d21f0da2ffbc0204eda087d59ea639e4ce894"
+    },
+    {
+      "name": "reference.xlsx",
+      "sha256": "d045112e04bddca00d0e7ebc9ff2b5e6bb2ab467726be1d56333ae2eb4a9637d"
+    },
+    {
+      "name": "isolamento-ntc18.xlsx",
+      "sha256": "36ea41a53bc846b6583a44a7bdfdfc9c920814a7675dc05598d0f8b8cb447337"
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><TargetFramework>net8.0</TargetFramework><IsTestProject>true</IsTestProject><IsPackable>false</IsPackable><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
   <ItemGroup>
+    <Compile Include="../Actions.Checks/SpectraEquivalence.cs" Link="SpectraEquivalence.cs" />
     <ProjectReference Include="../../src/GPC.Design/GPC.Design.csproj" />
     <Reference Include="GPCGeometry"><HintPath>../../../Geometry/GPCGeometry/bin/Release/netstandard2.0/GPCGeometry.dll</HintPath></Reference>
     <Reference Include="GPCModel"><HintPath>../../../Model/Model/bin/Release/netstandard2.0/GPCModel.dll</HintPath></Reference>

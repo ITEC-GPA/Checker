@@ -1,0 +1,1 @@
+SpectraEquivalence.Verify(args[0]);
