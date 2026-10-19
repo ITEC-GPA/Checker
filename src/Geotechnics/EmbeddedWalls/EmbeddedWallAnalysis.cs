@@ -15,7 +15,9 @@ public static partial class EmbeddedWallAnalysis
         CancellationToken cancellation = default, IProgress<WallAnalysisProgress>? progress = null)
     {
         cancellation.ThrowIfCancellationRequested(); Validate(input);
-        var m = Snapshot(input); var opt = options ?? new WallSolverOptions();
+        var m = Snapshot(input); var given = options ?? new WallSolverOptions();
+        var opt = new WallSolverOptions { InitialSubsteps = given.InitialSubsteps, MaximumIterations = given.MaximumIterations,
+            MinimumIncrement = given.MinimumIncrement, RelativeResidualTolerance = given.RelativeResidualTolerance, AbsoluteForceTolerance = given.AbsoluteForceTolerance };
         Require(opt.InitialSubsteps >= 1 && opt.InitialSubsteps <= 1024 && opt.MaximumIterations >= 1 && opt.MaximumIterations <= 1000
             && Finite(opt.MinimumIncrement) && opt.MinimumIncrement > 0 && opt.MinimumIncrement <= 1
             && Finite(opt.RelativeResidualTolerance) && opt.RelativeResidualTolerance > 0 && opt.RelativeResidualTolerance < .01
@@ -111,6 +113,7 @@ public static partial class EmbeddedWallAnalysis
                 .Concat(m.LeftSoils.Concat(m.RightSoils).SelectMany(s => new[] { s.Top, s.Bottom }))
                 .Concat(m.Supports.Select(s => s.Elevation))
                 .Concat(m.Stages.SelectMany(s => new[] { s.Left.Elevation, s.Right.Elevation, s.Left.WaterElevation ?? m.Bottom, s.Right.WaterElevation ?? m.Bottom }))
+                .Concat(m.Stages.SelectMany(s => s.Left.PorePressures.Concat(s.Right.PorePressures).Select(p => p.Elevation)))
                 .Concat(m.Stages.SelectMany(s => s.PointLoads.Select(p => p.Elevation))))
                 if (z >= m.Bottom && z <= m.Top) boundaries.Add(z);
             var depths = boundaries.Select(z => m.Top - z).OrderBy(v => v).ToArray();

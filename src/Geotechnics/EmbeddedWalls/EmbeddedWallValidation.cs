@@ -58,6 +58,9 @@ public static partial class EmbeddedWallAnalysis
                 var g = pair.Item1!;
                 Require(Finite(g.Elevation) && Finite(g.Surcharge) && g.Surcharge >= 0 && (!g.WaterElevation.HasValue || Finite(g.WaterElevation.Value)), "Invalid ground, surcharge or water level.");
                 Require(pair.Item2.Count == 0 || g.Elevation <= pair.Item2[0].Top, "Soil profile must include the highest ground elevation (also backfill).");
+                WallSoilPressure.ValidatePorePressures(g);
+                Require(g.PorePressures.Count == 0 || g.PorePressures[0].Elevation >= Math.Min(g.Elevation, m.Top)
+                    && g.PorePressures[g.PorePressures.Count - 1].Elevation <= m.Bottom, "Pore-pressure profile must cover the wall below ground.");
             }
             var active = new HashSet<string>(StringComparer.Ordinal);
             foreach (var a in stage!.ActiveSupports!)
@@ -82,6 +85,7 @@ public static partial class EmbeddedWallAnalysis
             PointLoads = s.PointLoads.Select(p => new EmbeddedWallPointLoad { Elevation = p.Elevation, HorizontalForce = p.HorizontalForce, Moment = p.Moment, DownwardForce = p.DownwardForce }).ToArray(),
             ActiveSupports = s.ActiveSupports.Select(a => new EmbeddedWallSupportActivation { SupportId = a.SupportId, Prestress = a.Prestress }).ToArray() }).ToArray()
     };
-    private static EmbeddedWallGround CopyGround(EmbeddedWallGround g) => new EmbeddedWallGround { Elevation = g.Elevation, WaterElevation = g.WaterElevation, Surcharge = g.Surcharge };
+    private static EmbeddedWallGround CopyGround(EmbeddedWallGround g) => new EmbeddedWallGround { Elevation = g.Elevation, WaterElevation = g.WaterElevation, Surcharge = g.Surcharge,
+        PorePressures = g.PorePressures.ToArray(), PorePressureSource = g.PorePressureSource };
     private static EmbeddedWallSoil[] CopySoils(IReadOnlyList<EmbeddedWallSoil> soils) => soils.Select(s => new EmbeddedWallSoil { Soil = s.Soil, Top = s.Top, Bottom = s.Bottom, HorizontalModulus = s.HorizontalModulus, AtRestCoefficient = s.AtRestCoefficient, Drainage = s.Drainage, StiffnessSource = s.StiffnessSource }).ToArray();
 }
