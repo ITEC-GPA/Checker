@@ -70,6 +70,8 @@ instabilità, S460 con fy ridotta e formazione a caldo/freddo, tondo compresso.
 Tolleranza relativa 2e-12, assoluta minima 1e-9: formule chiuse in double.
 Prove ulteriori: classe 4, dati mancanti, profili modificati, annullamento,
 isolamento, cambi di fase, limite plastico, forza per elemento e segno.
+Un puntone scarico mantiene i controlli di compressione: N=0 non permette di
+nascondere lunghezze libere d'inflessione mancanti o una sezione di classe 4.
 
 Le routine storiche EN1993p11Checker contengono segnaposto per area netta ed
 efficace. Non sono state modificate, né sono richiamate passando aree lorde

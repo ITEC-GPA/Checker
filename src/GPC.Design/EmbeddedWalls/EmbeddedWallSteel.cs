@@ -40,7 +40,7 @@ public static class EmbeddedWallSteel
         {
             cancellation.ThrowIfCancellationRequested();
             AxialSteelResult? verification = kind == EmbeddedWallSteelCheckKind.StaticUltimate && members.TryGetValue(support.Id, out var member)
-                ? Ntc2018AxialSteel.Check(member, support.NormalForce, standard) : null;
+                ? Ntc2018AxialSteel.Check(member, support.NormalForce, standard, support.Kind == EmbeddedWallSupportKind.Strut) : null;
             string diagnostic = kind != EmbeddedWallSteelCheckKind.StaticUltimate ? "Percorso verificato per SLU statici. Sisma, SLE e azioni non classificate richiedono verifiche distinte."
                 : verification is null ? "Definizione della membratura metallica assente: verifica non eseguita."
                 : "Forza per singolo sostegno; rigidezza assiale usata nell'analisi conservata separatamente. Verifiche dell'asta centrata; collegamenti, ancoraggi, bulbo e durabilità separati.";

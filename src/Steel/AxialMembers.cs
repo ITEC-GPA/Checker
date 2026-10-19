@@ -61,6 +61,11 @@ namespace GPC.Checkers.Steel.Members
     public static class Ntc2018AxialSteel
     {
         public static AxialSteelResult Check(AxialSteelMember member, double normalForce, StandardEN1993p11 standard)
+            => Check(member, normalForce, standard, false);
+
+        /// <summary>compressionWhenUnloaded preserves the intended strut checks at zero force, so an unloaded
+        /// construction stage cannot hide missing buckling data or an unsupported compression section class.</summary>
+        public static AxialSteelResult Check(AxialSteelMember member, double normalForce, StandardEN1993p11 standard, bool compressionWhenUnloaded)
         {
             if (member == null) throw new ArgumentNullException(nameof(member));
             if (!Finite(normalForce)) throw new ArgumentException("A finite design axial force is required.", nameof(normalForce));
@@ -86,7 +91,7 @@ namespace GPC.Checkers.Steel.Members
                 return Missing("Confermare l'asta soggetta alla sola azione assiale centrata. Eccentricità, flessione e azioni trasversali richiedono una verifica di interazione.");
             if (member.Kind == AxialSteelSectionKind.Other)
                 return Missing("Famiglia di sezione non ancora integrata nel percorso assiale: " + member.ShapeType + ".");
-            if (normalForce >= 0)
+            if (normalForce > 0 || normalForce == 0 && !compressionWhenUnloaded)
             {
                 Add("Snervamento a trazione", "NTC 2018 §4.2.4.1.2.1 [4.2.6]", member.Area * member.YieldStrength / basis.GammaM0, basis.GammaM0,
                     "Sezione lorda; collegamenti e ancoraggi da verificare separatamente.");

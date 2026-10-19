@@ -97,6 +97,17 @@ public sealed class AxialMemberTests
     }
 
     [TestMethod]
+    public void UnloadedStrutStillRequiresCompressionApplicabilityAndBothEffectiveLengths()
+    {
+        var incomplete = Ntc2018AxialSteel.Check(Member(l2: null), 0, Standard, true);
+        Assert.AreEqual(EngineeringOutcome.NotEvaluated, incomplete.Outcome);
+        Assert.AreEqual(3, incomplete.Checks.Count);
+        Assert.IsNull(incomplete.Checks[2].Capacity);
+        Assert.AreEqual(EngineeringOutcome.NotEvaluated, Ntc2018AxialSteel.Check(Member(Section(200, 1)), 0, Standard, true).Outcome);
+        Assert.AreEqual(EngineeringOutcome.Satisfied, Ntc2018AxialSteel.Check(Member(), 0, Standard, true).Outcome);
+    }
+
+    [TestMethod]
     public void SnapshotIsIndependentAndInputsAreValidated()
     {
         var section = Section(); var member = Member(section); double area = member.Area, fy = member.YieldStrength;
