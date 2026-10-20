@@ -2,7 +2,7 @@
   "description": "Test failures admitted by build/Verify.ps1, by suite and exact test name. Any other failure stops a release. A test listed here that passes is reported so that the list can be shortened.",
   "suites": {
     "GPCChecker.Test.Steel": {
-      "reason": "13 remaining Steel failures after EC3 fixes and explicit alignment of hollow-section SAP comparisons (20/10/2026). Classification fixtures, asymmetric-section checks and member instability/interactions remain open; see tools/Steel.LegacyDiagnostics/README.txt and CONFIGURATION_STUDY.txt. No changed expected values or widened tolerances.",
+      "reason": "11 remaining Steel failures after the two RHS classification tests were repaired (20/10/2026). Their expected classes are independently derived for the existing sharp-corner inputs; see tools/Steel.LegacyDiagnostics/RHS_CLASSIFICATION_STUDY.txt. SAP hollow comparisons remain conditional on the unconfirmed ColdFormed assumption. Asymmetric sections and member instability/interactions remain open.",
       "tests": [
         "Sap_SectionHAsymmetricTest1",
         "Sap_SectionHAsymmetricTest2",
@@ -14,9 +14,7 @@
         "SectionHInteraction2",
         "SectionHInteraction3",
         "SectionHLateralTorsionalBuckling1",
-        "SectionHLateralTorsionalBuckling2",
-        "SectionRHSClassification",
-        "SectionRHSClasstification2"
+        "SectionHLateralTorsionalBuckling2"
       ]
     }
   }

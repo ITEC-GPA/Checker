@@ -1,0 +1,60 @@
+SECONDO BLOCCO: DUE TEST DI CLASSIFICAZIONE RHS
+20 ottobre 2026 - sorgente precedente b5f8c0fb
+
+Difetti accertati nei test
+Entrambi costruivano una sola stazione, pur dichiarando sei/cinque azioni.
+Il primo chiedeva classe 4 e classe 1 allo stesso indice 4, senza leggere il 5.
+Entrambi leggevano AxialCompressionClass anche per i casi di flessione pura.
+Gli attesi in compressione variavano al variare della sola intensita' di N.
+Il secondo citava Cordova cap. 2 pag. 75, senza rendere disponibile l'esempio.
+Il commento sui raccordi e sul fattore 0.95 non descriveva gli input del secondo
+test: nessun raccordo e nessun fattore 0.95 nei suoi tre valori di N.
+
+Decisione esplicita
+Si correggono i test per la classificazione nominale alla resistenza della
+geometria a spigoli vivi che essi effettivamente costruiscono.
+Si conservano dimensioni, materiali e tutte le azioni degli array originari.
+Ogni azione costituisce un caso di carico indipendente con una stazione.
+Si cambiano gli attesi, NON le formule di produzione o le tolleranze.
+Non si afferma che l'esempio Cordova sia errato o sia stato riprodotto.
+Il suo recupero resta necessario per ricostruirne geometria e stato tensionale.
+
+Derivazione indipendente, N / mm / MPa / Nmm
+Riferimento: EN 1993-1-1:2005, corrigenda 2006/2009, 5.5.2 e tabella 5.2.
+Testo consultato:
+https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+epsilon=sqrt(235/355)=0.8136165.
+Limiti c/t delle parti interne in compressione: 33/38/42 epsilon.
+Limiti in flessione pura: 72/83/124 epsilon.
+In queste geometrie h>b: M1 e' sull'asse forte, M2 sull'asse debole.
+In M1 le pareti alte sono inflesse, la parete orizzontale compressa e' uniforme;
+in M2 si scambiano i ruoli. Governa la classe peggiore delle parti compresse.
+
+RHS 500x300x12.5: c_alto/t=38, c_largo/t=22.
+N=-1500/-2716.05/-5727.55/-6029 kN: classe nominale 4 in tutti i casi.
+M1=1 kNm: classe 1. M2=1 kNm: classe 4.
+Attesi originari: 1/2/3/4, poi 4 e 1 sullo stesso indice.
+Attesi corretti per gli undici input effettivi: 4/4/4/4/1/4.
+
+RHS 350x250x10: c_alto/t=33, c_largo/t=23.
+N=-1300/-1700/-2160 kN: classe nominale 3 in tutti i casi.
+M1=1 kNm: classe 1. M2=1 kNm: classe 3.
+Attesi originari: 1/2/3/1/3; attesi corretti: 3/3/3/1/3.
+
+Riproduzione numerica senza DLL GPC:
+  python tools/Steel.LegacyDiagnostics/rhs_classification_reference.py
+Il programma calcola i rapporti, le soglie e gli undici risultati.
+
+Deroga basata sulla tensione
+Il 5.5.2(9) consente, alle condizioni indicate, di trattare una classe 4 come 3
+aumentando epsilon di sqrt[(fy/gammaM0)/sigma_com,Ed].
+Il 5.5.2(10) esclude tale aumento per la resistenza di instabilita' del membro.
+Questa deroga non assegna classi 1 o 2 e non e' attivata dai due test nominali.
+La richiesta successiva dell'utente di implementarla e' un passo separato.
+
+Significato del successo dei test
+Cinque casi del primo test restano non valutabili per resistenza di classe 4:
+devono produrre un errore esplicito e capacita'/utilizzazione NaN.
+Il test richiede che il caso M1 valido, dopo quattro casi rifiutati, sia valutato.
+Un test superato non equivale a una verifica resistente di classe 4 completata.
+Le formule di produzione non cambiano in questo passo; Steel resta 2.3.0.3.

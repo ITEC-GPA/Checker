@@ -3,8 +3,11 @@ DIAGNOSTICA DEI CONFRONTI EC3 LEGACY
 
 Aggiornamento: il censimento sotto e' storico (commit 3c646d65).
 CONFIGURATION_STUDY.txt/.json documentano l'indagine successiva sui quattro
-confronti di configurazione: tre SAP risolti, HInteraction2 ancora aperto.
-La suite legacy corrente ha 109 successi e 13 fallimenti.
+confronti di configurazione: tre SAP riallineati sotto ipotesi ColdFormed
+non confermata, HInteraction2 ancora aperto.
+RHS_CLASSIFICATION_STUDY.txt documenta la correzione successiva dei due test RHS,
+con attesi ricalcolati indipendentemente per gli input a spigoli vivi.
+La suite legacy corrente ha 111 successi e 11 fallimenti.
 Usare -SourceRevision 55ac7438 per riprodurre gli input precedenti al
 riallineamento, senza modificare il checkout. -Scenario consente Baseline,
 HollowColdFormed, HollowWelded, HollowAlpha049Only e InteractionGamma105.

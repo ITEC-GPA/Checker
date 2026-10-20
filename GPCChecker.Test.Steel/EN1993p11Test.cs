@@ -299,6 +299,10 @@ namespace SteelTests
         [TestMethod]
         public void SectionRHSClassification()
         {
+            // Nominal classification at fy, sharp corners, EN 1993-1-1:2005 Table 5.2.
+            // epsilon=sqrt(235/355); web c/t=38, flange c/t=22.
+            // Uniform compression: 4; pure M1: 1; pure M2: 4.
+            // See tools/Steel.LegacyDiagnostics/RHS_CLASSIFICATION_STUDY.txt.
             double L = 1000;
             double h = 500;
             double b = 300;
@@ -314,36 +318,18 @@ namespace SteelTests
                 new ResultBeamForces(0, 0, 0, 0, 1e6, 0, CoordinateSystem.Global),
                 new ResultBeamForces(0, 0, 0, 0, 0, 1e6, CoordinateSystem.Global),
             };
-            LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
-
-            StationResultBeamForces[] resultLocationStations = new StationResultBeamForces[] { new StationResultBeamForces(loadCase, resultBeamForces[0], 0.0) };
-            BeamResult[] beamResults = new BeamResult[1] { new BeamResult(resultLocationStations) };
-            BeamElement beamElement = new BeamElement(new Point3d(0, 0, 0), new Point3d(0 + L, 0, 0), section355);
-            beamElement.Results.AddRange(beamResults);
-
-            EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.NotDirectlyLoaded,
-                EN1993p11Checker.EN1993p11Options.SupportConditions.EndsRestrained, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
-                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 1, 1);
-
-            StandardEN1993p11 standard = new StandardEN1993p11();
-            EN1993p11Checker checker355 = new EN1993p11Checker(beamElement, options, standard);
-
-            checker355.PerformCheck();
-
-            Assert.IsTrue(checker355.EN1993p11BeamStationResults[0].AxialCompressionClass == EN1993p11Checker.SectionClass.Class1);
-            Assert.IsTrue(checker355.EN1993p11BeamStationResults[1].AxialCompressionClass == EN1993p11Checker.SectionClass.Class2);
-            Assert.IsTrue(checker355.EN1993p11BeamStationResults[2].AxialCompressionClass == EN1993p11Checker.SectionClass.Class3);
-            Assert.IsTrue(checker355.EN1993p11BeamStationResults[3].AxialCompressionClass == EN1993p11Checker.SectionClass.Class4);
-            Assert.IsTrue(checker355.EN1993p11BeamStationResults[4].AxialCompressionClass == EN1993p11Checker.SectionClass.Class4);
-            Assert.IsTrue(checker355.EN1993p11BeamStationResults[4].AxialCompressionClass == EN1993p11Checker.SectionClass.Class1);
+            AssertRhsClassificationCases(section355, L, resultBeamForces,
+                EN1993p11Checker.SectionClass.Class4,
+                new[] { EN1993p11Checker.SectionClass.Class4, EN1993p11Checker.SectionClass.Class4, EN1993p11Checker.SectionClass.Class4, EN1993p11Checker.SectionClass.Class4, EN1993p11Checker.SectionClass.Class1, EN1993p11Checker.SectionClass.Class4 });
         }
 
         [TestMethod]
         public void SectionRHSClasstification2()
         {
-            //Cordova cap. 2 pag. 75
-            //in hot formed h = H - 2 * t - (0.5+0.5) * t
-            //in favour of safety h = H - 2 t, for this reason a value of 0.95 * Ned has been used to take this tolerance
+            // Historical reference: Cordova chapter 2, page 75; original unavailable.
+            // This test qualifies the sharp-corner inputs, not the original book example.
+            // Table 5.2: web c/t=33, flange c/t=23, fy=355 MPa.
+            // Uniform compression: 3; pure M1: 1; pure M2: 3.
             double h = 350;
             double b = 250;
             double t = 10;
@@ -358,26 +344,63 @@ namespace SteelTests
                 new ResultBeamForces(0, 0, 0, 0, 1e6, 0, CoordinateSystem.Global),
                 new ResultBeamForces(0, 0, 0, 0, 0, 1e6, CoordinateSystem.Global),
             };
-            LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
+            AssertRhsClassificationCases(section355, L, resultBeamForces,
+                EN1993p11Checker.SectionClass.Class3,
+                new[] { EN1993p11Checker.SectionClass.Class3, EN1993p11Checker.SectionClass.Class3, EN1993p11Checker.SectionClass.Class3, EN1993p11Checker.SectionClass.Class1, EN1993p11Checker.SectionClass.Class3 });
+        }
 
-            StationResultBeamForces[] resultLocationStations = new StationResultBeamForces[] { new StationResultBeamForces(loadCase, resultBeamForces[0], 0.0) };
-            BeamResult[] beamResults = new BeamResult[1] { new BeamResult(resultLocationStations) };
-            BeamElement beamElement = new BeamElement(new Point3d(0, 0, 0), new Point3d(0 + L, 0, 0), section355);
-            beamElement.Results.AddRange(beamResults);
-            EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.NotDirectlyLoaded,
-                EN1993p11Checker.EN1993p11Options.SupportConditions.EndsRestrained, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
+        private static void AssertRhsClassificationCases(SteelSection section, double length,
+            ResultBeamForces[] forces, EN1993p11Checker.SectionClass compressionClass,
+            EN1993p11Checker.SectionClass[] expectedClasses)
+        {
+            Assert.IsTrue(forces.Length == expectedClasses.Length);
+            var beamElement = new BeamElement(Point3d.Origin, new Point3d(length, 0, 0), section);
+            var stations = new StationResultBeamForces[forces.Length];
+            for (int i = 0; i < forces.Length; i++)
+            {
+                // Independent load cases, not a force diagram invented along one member.
+                var loadCase = new LoadCase("RHS classification " + i, LoadCase.LoadCaseTypes.SelfWeight);
+                stations[i] = new StationResultBeamForces(loadCase, forces[i], 0.0);
+                beamElement.Results.Add(new BeamResult(new[] { stations[i] }));
+            }
+            var options = new EN1993p11Checker.EN1993p11Options(
+                EN1993p11Checker.EN1993p11Options.LoadConditions.NotDirectlyLoaded,
+                EN1993p11Checker.EN1993p11Options.SupportConditions.EndsRestrained,
+                EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
                 EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds, 1, 1);
-
-            StandardEN1993p11 standard = new StandardEN1993p11();
-            EN1993p11Checker checker355 = new EN1993p11Checker(beamElement, options, standard);
-
+            var checker355 = new EN1993p11Checker(beamElement, options, new StandardEN1993p11());
             checker355.PerformCheck();
 
-            Assert.IsTrue(checker355.EN1993p11BeamStationResults[0].AxialCompressionClass == EN1993p11Checker.SectionClass.Class1);
-            Assert.IsTrue(checker355.EN1993p11BeamStationResults[1].AxialCompressionClass == EN1993p11Checker.SectionClass.Class2);
-            Assert.IsTrue(checker355.EN1993p11BeamStationResults[2].AxialCompressionClass == EN1993p11Checker.SectionClass.Class3);
-            Assert.IsTrue(checker355.EN1993p11BeamStationResults[3].AxialCompressionClass == EN1993p11Checker.SectionClass.Class1);
-            Assert.IsTrue(checker355.EN1993p11BeamStationResults[4].AxialCompressionClass == EN1993p11Checker.SectionClass.Class3);
+            var results = checker355.EN1993p11BeamStationResults;
+            Assert.IsTrue(results.Length == forces.Length);
+            int unsupportedCases = 0;
+            for (int i = 0; i < forces.Length; i++)
+            {
+                var result = results[i];
+                Assert.IsTrue(result != null);
+                Assert.IsTrue(ReferenceEquals(result.StationResultBeamForces, stations[i]));
+                Assert.IsTrue(result.AxialCompressionClass == compressionClass);
+                // Cases contain either N alone or one pure bending moment.
+                var actualClass = forces[i].N < 0
+                    ? result.AxialCompressionClass : result.BendingCompressionClass;
+                Assert.IsTrue(actualClass == expectedClasses[i]);
+                if (expectedClasses[i] == EN1993p11Checker.SectionClass.Class4)
+                {
+                    unsupportedCases++;
+                    Assert.IsTrue(double.IsNaN(result.WorkingRatio));
+                    Assert.IsTrue(double.IsNaN(result.AxialCompressionCapacity));
+                    Assert.IsTrue(double.IsNaN(result.BendingMoment1Capacity));
+                    Assert.IsTrue(double.IsNaN(result.BendingMoment2Capacity));
+                }
+                else
+                {
+                    // Evaluation must continue after a rejected class-4 case.
+                    Assert.IsTrue(!double.IsNaN(result.WorkingRatio) && !double.IsInfinity(result.WorkingRatio));
+                }
+            }
+            Assert.IsTrue(checker355.GetErrorLog().Count == unsupportedCases);
+            foreach (string error in checker355.GetErrorLog())
+                Assert.IsTrue(error.Contains("Class 4 requires verified effective section properties"));
         }
 
         #endregion

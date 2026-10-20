@@ -88,7 +88,8 @@ Applicazione e verifica del primo blocco
   prima/dopo: identiche, compresi valori attesi e tolleranze.
 - Steel.Members.Tests: 367/367 superati, inclusi 8 nuovi casi indipendenti.
 - GPCChecker.Test.Steel net472: 109/122 superati, 13 falliti.
-  Risolti esattamente Sap_SectionRHSTest1, Sap_SectionRHSTest2, Sap_SectionCHSTest1;
+  Riallineati sotto ipotesi ColdFormed non confermata: Sap_SectionRHSTest1,
+  Sap_SectionRHSTest2, Sap_SectionCHSTest1;
   nessun nuovo caso fallito. HInteraction2 ora fallisce sulla seconda asserzione.
 - build/known-failures.json corrisponde ai 13 nomi effettivamente falliti.
   Rimosso anche SectionHBucklingExample2, gia' risolto nella tranche precedente.
