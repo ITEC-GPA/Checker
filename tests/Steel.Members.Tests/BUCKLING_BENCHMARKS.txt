@@ -1,0 +1,152 @@
+INSTABILITA' EC3: FONTI E PERIMETRO DEI BENCHMARK
+20 ottobre 2026
+
+Edizione: EN 1993-1-1:2005, con correzioni AC 2006/2009.
+Questi confronti NON qualificano la seconda generazione EC3 o un'Appendice
+Nazionale italiana. Gli esempi SCI dichiarano l'Appendice Nazionale UK.
+Unita': N, mm, MPa; momenti Nmm. GammaM1=1 nei confronti pubblicati.
+Le azioni degli esempi sono gia' di progetto.
+
+Fonti primarie tecniche consultate
+1. SCI P364, M. E. Brettle, Steel Building Design: Worked Examples - Open
+   Sections, 2009, ISBN 978-1-85942-183-3.
+   https://www.steelconstruction.info/images/5/50/Sci_p364.pdf
+   SHA256 D3FF4CD54776ABA074F2456E72F282945253AA2C5F29E98F32B1DDDD07E0020D
+2. SCI P374, M. E. Brettle, Steel Building Design: Worked Examples - Hollow
+   Sections. File con copyright 2008, esempi controllati luglio 2009 e
+   premessa aggiornata novembre 2010.
+   https://www.steelconstruction.info/images/6/6b/SCI_P374.pdf
+   SHA256 3D67F52869045136D5A706068A5ABA99E01F64C9CA29ED6FCB1107E548263530
+3. Construction Industry Council / Hong Kong Polytechnic University,
+   K. F. Chung, M. C. H. Yam, H. C. Ho, Technical Guide on Effective Design
+   and Construction to Structural Eurocodes: EN1993-1-1 Design of Steel
+   Structures, 2015, ISBN 978-988-14432-0-5.
+   https://www.cic.hk/content/dam/cic-data/cic/publications/media/reports/2025/funded-projects/cop/completed-projects/technical-guide-en1993-prof.kf-chung.pdf
+   SHA256 3A1DE492397CB8A1EB20072B41650293CE28AF90358A03616BE3C1CA2F6D5979
+4. Tabella 6.2 EN 1993-1-1:2005, p.58 (PDF p.60), testo consultato:
+   https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+
+Non si versionano le pubblicazioni: solo riferimenti e dati numerici necessari
+alle prove. Le pagine SCI indicate sotto sono quelle stampate; aggiungere 8
+per ottenere il numero di pagina PDF a base 1. CIC: D26 = PDF244.
+
+PublishedBucklingBenchmarks
+- 20 casi di instabilita' flessionale (10 configurazioni, due assi):
+  P364 esempi 9 (pp.97-102), 10 (104-107), 11/13 (112,116-117,143-145),
+  12 (126,131); CIC II-3/II-4 (D26-D28,D30-D33), II-5 (D37-D39);
+  P374 esempi 2 (18-21), 5 (37,40), 6 (46,50-51), 7 (57,59).
+  Gli esempi 11/13 e II-3/II-4 hanno identici termini assiali: non si contano
+  due volte. Verificati selezione automatica curva, Euler, lambda, Phi, chi,
+  e Nb quando pubblicato. Inclusi ritegni intermedi e Lcr differenti.
+- Altri 20 casi usano gli stessi input pubblicati ma un oracolo indipendente
+  ad alta precisione: bisezione della relazione quadratica per chi, senza
+  richiamare formule del checker per calcolare gli attesi.
+- 12 casi LTB: P364 3/4/5/7/11/12/13 (27,38,47-48,71-72,118,133,146)
+  e CIC II-2 B2-I/B2-II/B3-II, II-4, II-5 (D19,D21,D25,D33,D39).
+  Verificano SOLTANTO Phi, chi, f, chi_mod.
+  Lambda, alpha, beta, lambda0 e kc sono input espliciti della fonte.
+  Non qualificano Mcr, la scelta automatica dei parametri NA o N-M.
+  Nei casi P364 11/13 kc=1 isola il valore chi prima della modifica: non
+  riproduce il diagramma di momento completo.
+- 1 caso CIC B3-I D23: distingue chi=.18 NON limitato dal valore EC3
+  limitato a 1/lambda^2=0.173611...; la capacita' 70.3 kNm non e' qualificata.
+- 3 casi sul plateau lambdaLT=.4 e i due lati della soglia, con coefficienti
+  del caso di trave continua SCI7; attesi normativi, non ulteriori esempi.
+- 5 casi Mcr con proprieta' pubblicate e C1 esplicito. Due confronti CIC
+  II-2 D18 e II-4 D32 verificano anche i valori pubblicati 63.8/740.2 kNm.
+  Tre confronti usano gli input SCI P364-13 p146, P364-5 p47 (proprieta'
+  della stessa UKC in P364-10), P374-4 p35; attesi da calcolo indipendente,
+  senza validare i valori editoriali Mcr arrotondati/incoerenti.
+  Sono casi a carico nel centro di taglio, vincoli a forcella, ingobbamento
+  libero. P374 trascura Iw esplicitamente. Non qualificano C1 automatico,
+  carico sull'ala, ne' geometrie monosimmetriche.
+- 2 casi torsionali P364 9/10 (pp.100-101,108-109): Ncr,T e riduzione.
+  GPC calcola G=E/[2(1+nu)]; SCI arrotonda G a 81000 MPa.
+  La tolleranza Ncr include tale scarto noto e l'ultima cifra stampata.
+  Non si pretende una verifica pubblica completa della resistenza torsionale.
+
+Proprieta' di input
+I benchmark di formula usano una sezione di test con A/I/i/It/Iw TABULATI.
+La geometria viene usata solo per la scelta della curva. Questo separa gli
+errori del modello geometrico dagli errori normativi. Gli SHS tabulati hanno
+raccordi reali: NON li si sostituisce silenziosamente con gli integrali di un
+rettangolo cavo a spigoli vivi. I valori A e I sono esplicitamente quelli del
+catalogo, non risultati di GPC. Se la fonte fornisce solo i, si usa I=A*i^2.
+La classe negli esempi con N+M e' quella dello stato originale: in particolare
+P364-12 NON viene trasformato in una colonna in compressione pura di classe 3.
+Fy e' assegnato dalla fonte; P364-9 usa 345 MPa per il prodotto S355.
+
+Arrotondamenti e incongruenze della fonte
+Gli esempi arrotondano epsilon, lambda, Phi e chi a ogni passaggio.
+Per i confronti editoriali si propaga l'intervallo delle cifre stampate:
+lambda +/-0.01 (include epsilon arrotondato), Phi +/-0.005, chi +/-0.005.
+Gli intervalli sono ricavati DAI DATI DELLA FONTE, mai dai risultati GPC.
+I 20 controlli indipendenti paralleli impongono 1e-12 relativo sulle forze e
+1e-12 assoluto su lambda/chi: l'intervallo editoriale non copre bug numerici.
+- P364 p.107 scrive (lambda-.5) in una formula simbolica, ma usa correttamente
+  (lambda-.2) nella sostituzione numerica. Si segue EC3 eq.(6.49).
+- P364 p.108 stampa Ncr,T=18.1*10^3 N. La formula e lambda=.43 richiedono
+  18.1*10^6 N. Il test dichiara esplicitamente la correzione dimensionale.
+- P364 p.38 stampa chi=.87, poi .88/.96=.92. Il valore finale incoerente .92
+  NON diventa un atteso qualificato: restano i confronti Phi, chi e f.
+- P374 p.59 usa Phi=.87 per lambda=.78; la formula senza arrotondamenti
+  intermedi da' un valore diverso. L'intervallo e' conservato; l'oracolo
+  indipendente verifica separatamente la soluzione precisa.
+- CIC D27 etichetta una soglia dell'ala come Classe 1 ma usa 10*epsilon
+  e conclude Classe 2. Qui non si qualifica quell'etichetta.
+- CIC II-2 B2-II D20 conserva L=10000 nel termine torsionale della formula
+  sostituita pur usando 5000 nel prefattore: Mcr=225.5 kNm non e' adottato
+  come riferimento per CalculateMcr. Il caso LTB verifica la riduzione
+  per il lambda=1.31 pubblicato, senza dichiarare corretta l'intera verifica.
+- CIC B3 D23 omette il limite 1/lambda^2. A D25 il riepilogo di B2-I
+  non coincide con lo svolgimento (lambda/Phi/f); usati D18-D19 espliciti.
+- CIC II-5 D37 tabula Iz=1550 cm4 ma D38 usa 1548: il caso dichiara
+  quest'ultimo come input, senza modificare implicitamente la geometria.
+- P364-12 p133 sostituisce .69 al posto di lambda=.61 nel calcolo di f:
+  entrambi arrotondano a .88. Il test usa lambda=.61 coerente con la formula.
+- P374-4 p35 dichiara Mcr=5500 kNm, mentre gli input riportati danno
+  5410.946 kNm con G=81000. Il test usa l'oracolo indipendente sugli input,
+  non una tolleranza allargata al valore pubblicato.
+- P364-13 p146 dichiara Mcr=345.7 kNm; con gli input scritti e G=81000
+  si ottengono 346.584 kNm. Anche qui si qualifica l'aritmetica sugli input,
+  non l'accordo con quel valore stampato.
+
+IBucklingCurveTableTests
+94 casi: 80 su righe/soglie h/b=1.2, tf=40/100 e fy=235/275/355/420/460;
+4 su indipendenza da tw; 6 su assi principali scambiati per H molto larghi;
+4 su h/b>1.2 e tf>100, geometria senza riga nella tabella 6.2.
+Le colonne y/z della tabella sono geometriche, non automaticamente gli assi
+principali 1/2 del Model. Asse 1 e' quello di massima inerzia.
+Il materiale del test fornisce il valore nominale di fy. L'API corrente non
+ha un identificatore separato del grado S460: la selezione del grado quando
+fy e' ridotto per lo spessore resta un limite da risolvere esplicitamente.
+
+SectionHBuckling1: diagnosi distinta dal benchmark
+Hea300BucklingArithmeticTests integra in modo indipendente HEA300 con raccordi:
+h=290,b=300,tf=14,tw=8.5,r=27; A=11252.778955533 mm2;
+Iy=182634978.731025, Iz=63095590.871742 mm4.
+Lcry=13000, Lcrz=6500 mm; curve b/c; E=210000 MPa; gammaM1=1.
+S355: Nb,y=1638514.458 N; Nb,z=1859223.220 N (coincide col checker).
+S275: Nb,y=1521420.835 N; Nb,z=1671053.358 N.
+Gli attesi legacy 1522500/1667400 N sono compatibili con S275 entro le
+tolleranze originarie, ma questo NON prova quale materiale usasse il libro.
+La pagina 149 di Cordova non e' stata consultata. Il vecchio test S355 e i
+suoi attesi restano invariati e il fallimento rimane aperto.
+
+Copertura ancora da completare
+Le fonti raccolte consentono ulteriori prove complete di Mcr, instabilita'
+flesso-torsionale di sezioni mono/non simmetriche, vincoli d'ingobbamento,
+carico destabilizzante, classe 4 e interazioni N-M degli allegati A/B.
+Le presenti prove di componenti NON sono verifiche complete di questi casi.
+Non si converte un confronto Annex B in Annex A solo per farlo coincidere.
+Il percorso pubblico e la propagazione di tali capacita' al ModelChecker
+restano da qualificare con casi end-to-end dedicati.
+
+Esito del passo
+161 nuovi casi: 63 PublishedBucklingBenchmarks, 94 tabella 6.2,
+4 Hea300BucklingArithmeticTests. Versione Steel 2.4.0.1.
+Prima del fix: 50/139 casi iniziali fallivano; quattro ulteriori casi HEA
+passavano. Il fix elimina i 50 fallimenti senza cambiare attesi o tolleranze.
+I 18 casi dell'estensione Mcr/LTB sono aggiunti successivamente.
+Regressione net472: 111/122, stessi 11 nomi gia' noti; ModelChecker Steel 14/14.
+Nessuna release, merge o push effettuato.

@@ -1,0 +1,135 @@
+Matrice fonte / tipo di sezione / calcolo - 20 ottobre 2026
+
+Requisito utente: almeno un controllo indipendente per ogni calcolo
+applicabile a ogni tipo di sezione. STATO: NON ANCORA SODDISFATTO.
+Questa matrice e' una lista di lavoro e un limite alle dichiarazioni di
+copertura, non un certificato. Un campione non qualifica tutte le varianti.
+
+Legenda
+P = confronto con risultato numerico PUBBLICATO, nei limiti della fonte;
+N = formula normativa verificata + atteso calcolato indipendentemente;
+A = integrazione/soluzione analitica indipendente, senza esempio pubblicato;
+? = manca un confronto indipendente adeguato o resta un difetto da indagare;
+U = percorso automatico non implementato/non qualificato.
+Una combinazione P/N indica campioni diversi, non copertura completa.
+L'assenza di un test non viene trasformata in "non applicabile" senza prova.
+Classe esplicita e proprieta' tabulate non qualificano la loro generazione.
+
+Sezione e resistenza (N/M/V indicano capacita', non combinazioni di carico)
+Famiglia           Geometria  Ntraz/Ncomp     M1/M2          V1/V2          ClasseN/M/NM
+H simmetrica       A          N/N,Pcomp      N/P            N/P           P/P/P campioni
+C                  P/A        N/N            P/N            P/N           N/P/N campioni
+T                  P/A        N/N            P+N/P+N        N/N           ?/?/?
+L                  P(A,I)/A   N/N            N/N            ?/?           ?/?/?
+RHS spigoli vivi   A          N/N            N/N            N/N           N/N/? parziale
+RHS raccordato     P          ?/?            P/P cl.esplicita ?/?          U/U/U
+CHS                P/A        N/P            P/P            P/P           N/P/? parziale
+Rectangular        A          N/N            N/N            ?/?           assegnata
+Circular           A          N/N            N/N            ?/?           assegnata
+
+Instabilita' e interazioni
+Famiglia           Euler/chi/Nb1,Nb2       NcrT/TF           Mcr/Mb          NMsezione/MV/NMV   NMasta
+H simmetrica       P/N                    P componenti     P componenti    N/N/?             ?
+C                  P/N                    P UPN componenti ?/?             Ael/?/?           ?
+T                  N                      ?/?              ?/?             Ael/?/?           ?
+L                  N                      ?/?              U/?             Ael/?/?           ?
+RHS spigoli vivi   P/N*                   ?/?              P**/?           N/N/?             ?
+RHS raccordato     U                      ?/?              U/U             U/U/U             U
+CHS                P/N                    ?/?              ?/?             A*** / N / A***   ?
+Rectangular        N NTC; EC3 U            ?/?              U/U             Ael/?/?           U
+Circular           N NTC; API assiale A    ?/?              U/U             Ael/?/?           U
+
+* P: SHS hot-finished SCI P374 con proprieta' tabulate; non certifica
+  automaticamente RHS rettangolari, raccordi e tutti i processi produttivi.
+** P: PublishedBucklingBenchmarks, SCI374-4 Mcr a proprieta' tabulate;
+   e' un componente, non un controllo completo della trave RHS.
+*** API dedicata NTC CHS: equilibrio plastico verificato per integrazione
+    indipendente. Non e' la stessa interazione semplificata EC3 del BlueBook.
+Ael: limite elastico conservativo NTC con moduli/assi principali espliciti,
+     non superficie plastica di interazione ne' verifica completa d'asta.
+
+Collegamento alle prove eseguibili (nomi ricercabili, non solo conteggi)
+Geometria8 famiglie / flessione / compressione:
+  CodeVerificationTests.BendingAgainstIndependentSectionIntegrals,
+  NtcCompressionAgainstIndependentArea, NtcElasticInteractionAndNetSection.
+  Fonte: integrali in Fixtures/generate_section_oracles.py; EC3/NTC in COVERAGE.txt.
+Taglio:
+  CodeVerificationTests.ShearAreaAndPartialFactor (H,C,T,RHS,CHS),
+  CaffeReferenceTests.WeldedChannelPublishedShearAreas (C),
+  Ipe500PublishedShearResistance (Av esplicita), SciSectionReferenceTests.ChsPublishedMomentShearAndClassification.
+Geometria esterna:
+  CaffeReferenceTests.WeldedChannelPublishedGeometry,
+  SciSectionReferenceTests.ModelGeometryAgainstPublishedSectionTable.
+Classificazione:
+  CaffeReferenceTests.Heb280PublishedClassification,
+  SciSectionReferenceTests.ChannelPublishedSectionBending / ChsPublishedMomentShearAndClassification;
+  ChannelClassificationRegressionTests, RhsBendingClassificationRegressionTests,
+  Ec3StressBasedClassificationTests (quest'ultima API riguarda parti piane).
+Euler, curve, Nb:
+  PublishedBucklingBenchmarks.PublishedFlexuralBuckling,
+  SciSectionReferenceTests.ChsPublishedBucklingAtThirteenLengths,
+  ChannelPublishedFlexuralBucklingAtThirteenLengths,
+  FamilyBucklingReferenceTests.EachSupportedFamilyAndAxisAgainstIndependentEulerAndReduction.
+Torsione/TF:
+  PublishedBucklingBenchmarks.PublishedTorsionalCriticalForce,
+  CaffeReferenceTests.Upn300TorsionalAndGoverningFlexuralTorsionalMode.
+LTB:
+  PublishedBucklingBenchmarks.ElasticCriticalMomentUsingPublishedProperties /
+  PublishedLtbReductionStage, CaffeReferenceTests.PublishedCriticalMoment /
+  PublishedModifiedReduction / Ipe300AutomaticLoadHeightAndModifiedResistance,
+  Ipe300LtbLegacyInvestigationTests.
+NM/MV:
+  CodeVerificationTests.SectionNMUsesPlasticAxialResistanceAndIsSignSymmetric /
+  HighShearSignDoesNotChangeMomentCapacity; CircularHollowSectionTests per CHS.
+  Fonti/formule e distinzioni dettagliate in COVERAGE.txt e nei relativi sorgenti.
+
+Ogni test futuro deve dichiarare:
+fonte+edizione+pagina, geometria/prodotto, materiale/spessore, assi,
+vincoli/lunghezze, quota/diagramma del carico, classe e proprieta' efficaci,
+norma+gamma+metodo, atteso indipendente, tolleranza motivata, API realmente testata.
+Le identita' dei risultati e le formule del SUT non possono alimentare gli attesi.
+
+Famiglie ulteriori censite in Model - NON coperte dalla promessa "tutte"
+SectionH asimmetrica: primitive M con classe esplicita; classificazione,
+  torsione/TF, z_j, LTB e NM di asta da qualificare. Caffe A1.2 e' candidato.
+SectionHTaperFlange: U; servono geometria reale e fonti per classificazione/stabilita'.
+SectionCTaperFlange: U; UPN tabulato non valida la geometria con ali inclinate.
+SectionTTaperFlange: U; non coperta dal benchmark T ad ali parallele.
+SectionHDoubleBottomFlange: U.
+SectionHInclinedWeb: U.
+SectionSteelBox: U; Caffe A3.3 candidato, non un RHS simmetrico equivalente.
+SectionColdFormed: U; distorsione/locali/EN1993-1-3 richiedono percorso dedicato.
+SectionBuiltUp: U; collegamento fra componenti e instabilita' composta.
+SectionWelded: U come assemblaggio generico; i casi geometrici H/C saldati
+  non qualificano automaticamente ogni assemblaggio.
+Section / ThinWallSection: U per classificazione/curva automatica.
+SectionEllipse: U; tabelle SCI per EHS candidate, non sostituibili con CHS.
+SectionRegularPolygon: U.
+SectionStadium: U.
+SectionTrapezoid: U.
+SectionHaunchedI: U, proprieta' variabili lungo l'asta.
+SectionBoxGirder: U.
+SectionMultiWebDeck: U.
+SectionHollowCore: U.
+SectionUBeam: U.
+SectionParametric astratta e SectionOutline/SectionCurveOutline (contorni)
+  non sono famiglie resistenti autonome.
+Concrete/Rebar/Bolt: fuori dal perimetro aste/sezioni di acciaio strutturale.
+
+Priorita' per completare il requisito
+1. NM di asta H: scomporre Caffe A5.5 (metodi 1/2) risolvendo le incoerenze
+   di A/Wel/It della fonte prima di confrontare i coefficienti e l'esito.
+2. T e L: classificazione per stato di tensione, assi ruotati, shear center,
+   Ncr torsionale/flesso-torsionale, resistenza e interazione di asta.
+3. Canali: Nb,T/TF e LTB SCI P363; differenze fra schema statico e carico,
+   proprieta' tabulate e integrate. Non estendere le prove UPN oltre il campione.
+4. Classe 4: Aeff/Weff e instabilita' locale (Caffe A7.1); eccezione/rifiuto
+   esplicito finche' il calcolo non e' implementato e qualificato.
+5. RHS raccordati, H asimmetriche e geometrie speciali: qualifiche separate.
+6. Solidi: esempi numerici pubblicati per resistenza/stabilita'/interazione;
+   oggi i controlli sono analitico-normativi, non benchmark numerici editoriali.
+
+Legacy: tutti attivi. La futura quarantena di un caso non riproducibile
+richiede una scheda con ipotesi mancanti e test sostitutivi pertinenti.
+Non attribuire l'esito "superato" a un caso commentato/ignorato.
+Questa matrice non autorizza merge/push/rilascio o riorganizzazione architetturale.

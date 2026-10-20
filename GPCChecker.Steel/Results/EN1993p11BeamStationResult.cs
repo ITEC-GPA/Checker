@@ -19,31 +19,32 @@ namespace GPC.Checkers.Steel.Results
     {
         #region Variables
 
-        protected double _axialTensionWorkingRatio;
-        protected double _axialCompressionWorkingRatio;
-        protected double _axialBuckling1WorkingRatio;
-        protected double _axialBuckling2WorkingRatio;
-        protected double _shear1WorkingRatio;
-        protected double _shear2WorkingRatio;
-        protected double _bendingMoment1WorkingRatio;
-        protected double _bendingMoment2WorkingRatio;
+        // Until the corresponding calculation completes, zero must not imply a satisfied check.
+        protected double _axialTensionWorkingRatio = double.NaN;
+        protected double _axialCompressionWorkingRatio = double.NaN;
+        protected double _axialBuckling1WorkingRatio = double.NaN;
+        protected double _axialBuckling2WorkingRatio = double.NaN;
+        protected double _shear1WorkingRatio = double.NaN;
+        protected double _shear2WorkingRatio = double.NaN;
+        protected double _bendingMoment1WorkingRatio = double.NaN;
+        protected double _bendingMoment2WorkingRatio = double.NaN;
         protected double _torsionalMomentWorkingRatio;
-        protected double _lateraTorsionalBucklingWorkingRatio;
-        protected double _crossSectionInteraction;
-        protected double _bucklingInteraction1Axis;
-        protected double _bucklingInteraction2Axis;
-        protected double _flexuralTorsionalInteraction;
+        protected double _lateraTorsionalBucklingWorkingRatio = double.NaN;
+        protected double _crossSectionInteraction = double.NaN;
+        protected double _bucklingInteraction1Axis = double.NaN;
+        protected double _bucklingInteraction2Axis = double.NaN;
+        protected double _flexuralTorsionalInteraction = double.NaN;
 
-        protected double _axialTensionRd;
-        protected double _axialCompressionRd;
-        protected double _axialBuckling1Rd;
-        protected double _axialBuckling2Rd;
-        protected double _shear1Rd;
-        protected double _shear2Rd;
-        protected double _bendingMoment1Rd;
-        protected double _bendingMoment2Rd;
+        protected double _axialTensionRd = double.NaN;
+        protected double _axialCompressionRd = double.NaN;
+        protected double _axialBuckling1Rd = double.NaN;
+        protected double _axialBuckling2Rd = double.NaN;
+        protected double _shear1Rd = double.NaN;
+        protected double _shear2Rd = double.NaN;
+        protected double _bendingMoment1Rd = double.NaN;
+        protected double _bendingMoment2Rd = double.NaN;
         protected double _torsionalMomentRd;
-        protected double _lateralTorsionalMomentRd;
+        protected double _lateralTorsionalMomentRd = double.NaN;
 
         protected double _lengthAxialBuckling1;
         protected double _lengthAxialBuckling2;
@@ -315,6 +316,10 @@ namespace GPC.Checkers.Steel.Results
         /// </summary>
         public EN1993p11Checker.EN1993p11Options.AxialBuckingCurves BuckingCurve2 => _axialBuckingCurves2;
 
+        /// <summary>
+        /// Reduction used in the reported lateral-torsional resistance. For I/H
+        /// sections this is chiLT,mod (including f) from EN 1993-1-1 6.3.2.3.
+        /// </summary>
         public double ChiLTBuckling => _chiLTBuckling;
         public double PhiLTBuckling => _phiLTBuckling;
         public double LambdaSignedLTBuckling => _lambdaSignedLTBuckling;
@@ -414,6 +419,10 @@ namespace GPC.Checkers.Steel.Results
         internal void SetCapacity(double axialTension, double axialCompression, double axialBuck1, double axialBuck2,
             double shear1, double shear2, double bending1, double bending2, double latTors)
         {
+            if (new[] { axialTension, axialCompression, axialBuck1, axialBuck2, shear1, shear2, bending1, bending2, latTors }
+                .Any(value => double.IsNaN(value) || double.IsInfinity(value)))
+                throw new ArithmeticException("Steel resistance calculation produced a non-finite value.");
+
             _axialTensionRd = axialTension < 0 ? throw new ArgumentException($"AxialTensionRd cannot be lower than zero") : axialTension;
             _axialCompressionRd = axialCompression < 0 ? throw new ArgumentException($"AxialCompressionRd cannot be lower than zero") : axialCompression;
             _axialBuckling1Rd = axialBuck1 < 0 ? throw new ArgumentException($"AxialBuckling1Rd cannot be lower than zero") : axialBuck1;
@@ -442,6 +451,13 @@ namespace GPC.Checkers.Steel.Results
             _bucklingInteraction1Axis = bucklingInteraction1Axis < 0 ? throw new ArgumentException($"BucklingInteraction1Axis cannot be lower than zero") : bucklingInteraction1Axis;
             _bucklingInteraction2Axis = bucklingInteraction2Axis < 0 ? throw new ArgumentException($"BucklingInteraction2Axis cannot be lower than zero") : bucklingInteraction2Axis;
             _flexuralTorsionalInteraction = flextureTorsionInteraction;
+
+            // Keep independently computed ratios available for diagnostics, but invalidate the overall check.
+            if (new[] { axialTensionWR, axialCompressionWR, axialBuck1WR, axialBuck2WR, shear1WR, shear2WR,
+                bending1WR, bending2WR, latTorsWR, crossSectionInteraction, bucklingInteraction1Axis,
+                bucklingInteraction2Axis, flextureTorsionInteraction }
+                .Any(value => double.IsNaN(value) || double.IsInfinity(value)))
+                throw new ArithmeticException("Steel utilization calculation produced a non-finite value.");
         }
 
         internal void SetClasses(EN1993p11Checker.SectionClass sectionClass, EN1993p11Checker.SectionClass axialSectionClass, EN1993p11Checker.SectionClass bendingSectionClass)
@@ -542,7 +558,9 @@ namespace GPC.Checkers.Steel.Results
                                                                 _bendingMoment2WorkingRatio, _torsionalMomentWorkingRatio, _lateraTorsionalBucklingWorkingRatio,
                                                                 _bucklingInteraction1Axis, _bucklingInteraction2Axis, _flexuralTorsionalInteraction, _crossSectionInteraction};
 
-            return workingRatioList.Max();
+            // Enumerable.Max ignores NaN when other entries are numeric.
+            return workingRatioList.Any(value => double.IsNaN(value) || double.IsInfinity(value))
+                ? double.NaN : workingRatioList.Max();
         }
 
         #endregion
