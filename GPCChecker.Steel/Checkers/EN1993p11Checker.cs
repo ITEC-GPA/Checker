@@ -2312,8 +2312,8 @@ namespace GPC.Checkers.Steel.Checkers
                     sectionClass1Axis = SetWorstClass(sectionClass1Axis,
                         GetClassBendingInnerPlate(resultBeamForces, sectionC.HeightWeb - 2 * sectionC.R1, sectionC.ThicknessWeb, section, sectionClass1Axis));
 
-                    SectionClass sectionClass2Axis = SetWorstClass(new SectionClass[] {GetClassCompressedOuterPlate(sectionC.LengthTop- sectionC.R1, sectionC.ThicknessTop),
-                        GetClassCompressedOuterPlate(sectionC.LengthBottom- sectionC.R1, sectionC.ThicknessBottom),
+                    SectionClass sectionClass2Axis = SetWorstClass(new SectionClass[] {GetClassCompressedOuterPlate(sectionC.LengthTop - sectionC.ThicknessWeb - sectionC.R1, sectionC.ThicknessTop),
+                        GetClassCompressedOuterPlate(sectionC.LengthBottom - sectionC.ThicknessWeb - sectionC.R1, sectionC.ThicknessBottom),
                         GetClassCompressedInnerPlate(sectionC.HeightWeb- 2 * sectionC.R1, sectionC.ThicknessWeb)});
 
                     return SetWorstClass(sectionClass1Axis, sectionClass2Axis);
@@ -2389,15 +2389,16 @@ namespace GPC.Checkers.Steel.Checkers
 
                 else if (section.SectionShape is SectionC sectionC)
                 {
-                    SectionClass sectionClass1Axis = SetWorstClass(new SectionClass[] {GetClassCompressedOuterPlate(sectionC.LengthTop, sectionC.ThicknessTop),
-                        GetClassCompressedOuterPlate(sectionC.LengthBottom, sectionC.ThicknessBottom)});
+                    // Table 5.2: measure flat plates between the web/fillet tangent and the free edge.
+                    SectionClass sectionClass1Axis = SetWorstClass(new SectionClass[] {GetClassCompressedOuterPlate(sectionC.LengthTop - sectionC.ThicknessWeb - sectionC.R1, sectionC.ThicknessTop),
+                        GetClassCompressedOuterPlate(sectionC.LengthBottom - sectionC.ThicknessWeb - sectionC.R1, sectionC.ThicknessBottom)});
 
                     sectionClass1Axis = SetWorstClass(sectionClass1Axis,
-                        GetClassBendingInnerPlate(resultBeamForces, sectionC.HeightWeb, sectionC.ThicknessWeb, section, sectionClass1Axis));
+                        GetClassBendingInnerPlate(resultBeamForces, sectionC.HeightWeb - 2 * sectionC.R1, sectionC.ThicknessWeb, section, sectionClass1Axis));
 
-                    SectionClass sectionClass2Axis = SetWorstClass(new SectionClass[] {GetClassCompressedOuterPlate(sectionC.LengthTop, sectionC.ThicknessTop),
-                        GetClassCompressedOuterPlate(sectionC.LengthBottom, sectionC.ThicknessBottom),
-                        GetClassCompressedInnerPlate(sectionC.HeightWeb, sectionC.ThicknessWeb)});
+                    SectionClass sectionClass2Axis = SetWorstClass(new SectionClass[] {GetClassCompressedOuterPlate(sectionC.LengthTop - sectionC.ThicknessWeb - sectionC.R1, sectionC.ThicknessTop),
+                        GetClassCompressedOuterPlate(sectionC.LengthBottom - sectionC.ThicknessWeb - sectionC.R1, sectionC.ThicknessBottom),
+                        GetClassCompressedInnerPlate(sectionC.HeightWeb - 2 * sectionC.R1, sectionC.ThicknessWeb)});
 
                     return SetWorstClass(sectionClass1Axis, sectionClass2Axis);
                 }
