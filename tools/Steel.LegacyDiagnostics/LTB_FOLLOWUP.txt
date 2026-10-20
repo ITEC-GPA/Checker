@@ -106,3 +106,21 @@ This is mathematical/normative qualification of a conservative algorithm,
 not an independently published worked biaxial-T resistance example. Rounded
 or tapered T remain outside this qualification. The legacy T class1 cannot
 be justified from its uniaxial SAP alpha in a biaxial load case.
+
+Step 6a - Steel2.4.0.15: coupled torsional-flexural elastic critical load.
+Replaced the divergent 15-step fixed-point iteration (including a mixed
+x0*y0 term) by the lowest root of the normalized characteristic determinant.
+Shear-centre offsets are rotated into the principal-axis frame used by Euler
+forces. Double-symmetric torsion remains separate from flexural checks.
+Reference: H.H.Snijder/I.Balaz/R.Stroetmann, Eurocode3 Technical Report on
+Elastic Critical Buckling of Members, ce/papers8(2025),613-619,eq17,p618,
+DOI10.1002/cepa.70116. Pure elastic mechanics used here; no change of the
+implemented EN1993-1-1:2005 resistance standard to the paper's newer edition.
+https://pure.tue.nl/ws/files/378731248/20260123-ce_papers_-_2026_-_Snijder_-_Eurocode_3_Technical_Report_on_Elastic_Critical_Buckling_of_Members-as_published.pdf
+The independent 3x3 generalized eigenproblem covers common fork ends/free
+warping/shared sine modes (alpha_yw=alpha_zw=1). Unequal effective lengths
+remain an approximation, not a qualified arbitrary-restraint solution.
+55 tests:48 principal-axis cases/3 rotated equal-angle geometric-axis
+problems/4 invalid-force cases. Before28fail/27pass; after1184/1184 members.
+Integration14/14;legacy111/122,same11;29diagnosticcases/221assertions.
+Audit prefix:coupled. No legacy fixture modified.

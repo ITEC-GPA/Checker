@@ -2080,53 +2080,47 @@ namespace GPC.Checkers.Steel.Checkers
             return 1.0 / Math.Pow(i0, 2.0) * (G * section.Jt + Math.Pow(Math.PI, 2.0) * Material.E * section.Jw / Math.Pow(GetLengthLatTorsBuckling(), 2.0));
         }
 
-        protected double GetNcrTF(ISteelSection section, double Ncr1, double Ncr2, double NcrT) //EN 1993-1-3 eq 6.35
+        protected double GetNcrTF(ISteelSection section, double Ncr1, double Ncr2, double NcrT)
         {
-            // Double symmetry decouples torsion from the separately checked flexural
-            // modes. Coordinate integration may leave roundoff-sized offsets.
+            if (!(Ncr1 > 0) || double.IsInfinity(Ncr1) || !(Ncr2 > 0) || double.IsInfinity(Ncr2) ||
+                !(NcrT > 0) || double.IsInfinity(NcrT))
+                throw new ArgumentOutOfRangeException("Ncr", "Critical forces must be finite and positive.");
+
+            // Double symmetry decouples torsion from separately checked flexure.
             if (section.IsDoubleSymmetric)
                 return NcrT;
 
-            double x0 = section.ShearCenter.X - section.Centroid.X;
-            double y0 = section.ShearCenter.Y - section.Centroid.Y;
-
-            double i0 = Math.Pow(Math.Pow(section.R11, 2.0) + Math.Pow(section.R22, 2.0) + Math.Pow(x0, 2.0) + Math.Pow(y0, 2.0), 0.5);
-            double beta;
-            double NcrTF;
-            if (y0 == 0 && x0 != 0)
-            {
-                beta = 1.0 - Math.Pow(x0 / i0, 2.0);
-                NcrTF = Ncr1 / (2.0 * beta) * (1.0 + NcrT / Ncr1 - Math.Pow(Math.Pow(1.0 - NcrT / Ncr1, 2.0) + 4.0 * Math.Pow(x0 / i0, 2.0) * NcrT / Ncr1, 0.5));
-            }
-            else if (x0 == 0 && y0 != 0)
-            {
-                beta = 1.0 - Math.Pow(y0 / i0, 2.0);
-                NcrTF = Ncr2 / (2.0 * beta) * (1.0 + NcrT / Ncr2 - Math.Pow(Math.Pow(1.0 - NcrT / Ncr2, 2.0) + 4.0 * Math.Pow(y0 / i0, 2.0) * NcrT / Ncr2, 0.5));
-            }
-            else if (y0 == 0 && x0 == 0)
-            {
+            // Flexural critical forces refer to the principal axes. Rotate the
+            // geometric shear-centre offset into that same frame (important for L).
+            double dx = section.ShearCenter.X - section.Centroid.X;
+            double dy = section.ShearCenter.Y - section.Centroid.Y;
+            double angle = section.SectionShape.AngleX1;
+            double x0 = dx * Math.Cos(angle) + dy * Math.Sin(angle);
+            double y0 = -dx * Math.Sin(angle) + dy * Math.Cos(angle);
+            double r2 = section.R11 * section.R11 + section.R22 * section.R22;
+            double i02 = r2 + x0 * x0 + y0 * y0;
+            if (!(r2 > 0) || double.IsInfinity(i02) || double.IsNaN(i02))
+                throw new ArgumentException("Invalid radii or shear-centre offset for flexural-torsional buckling.");
+            if (dx == 0 && dy == 0)
                 return NcrT;
-            }
-            else
-            {
-                /* solve --> x:
-                 * (Ncrz * x ) * (Ncry * x) * (NcrT * x) - (Ncrz - x) * x^2 * x0^2/i0^2 - (Ncry - x) * x^2 * y0^2/i0^2 = 0
-                 * x = g(x)
-                 * x = - (Ncrz - x) / ((NcrT - x) * (Ncry - x)) * x * x * x0*x0/(i0*i0) - (Ncry - x) / ((NcrT - x) * (Ncry - x)) * x * x * y0*x0/(i0*i0) + Ncry;
-                 * check if Ncry and Ncrz should be inverted in this equation
-                 */
-                int iter = 0;
-                NcrTF = 0;
-                while (iter < 15)
-                {
-                    iter++;
-                    NcrTF = -(Ncr2 - NcrTF) / ((NcrT - NcrTF) * (Ncr1 - NcrTF)) * NcrTF * NcrTF * y0 * y0 / (i0 * i0) -
-                        (Ncr1 - NcrTF) / ((NcrT - NcrTF) * (Ncr1 - NcrTF)) * NcrTF * NcrTF * x0 * y0 / (i0 * i0) + Ncr1;
-                }
-                //to be checked
-            }
 
-            return GetMin(new double[] { NcrTF, Ncr1, Ncr2, NcrT });
+            // Coupled elastic characteristic determinant. Exact for a shared sine
+            // mode with fork ends and free warping (coupling integrals equal 1).
+            // Snijder/Balaz/Stroetmann, ce/papers8(2025),eq17,p618. Other effective
+            // lengths remain an approximation; no general restraint eigenproblem
+            // is claimed here. Normalize to avoid force-unit sensitivity and poles.
+            double ax = x0 * x0 / i02, ay = y0 * y0 / i02;
+            double lower = 0, upper = Math.Min(Ncr1, Math.Min(Ncr2, NcrT));
+            for (int i = 0; i < 80; i++)
+            {
+                double n = lower + (upper - lower) / 2;
+                double u = n / Ncr1, v = n / Ncr2, w = n / NcrT;
+                double determinant = (1 - u) * (1 - v) * (1 - w)
+                    - u * w * ax * (1 - v) - v * w * ay * (1 - u);
+                if (determinant > 0) lower = n;
+                else upper = n;
+            }
+            return lower + (upper - lower) / 2;
         }
 
         //protected double CalculateMcr0(ISteelSection section, SectionClass sectionClass)
