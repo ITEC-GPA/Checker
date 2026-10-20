@@ -195,3 +195,9 @@ Legacy111/122, stessi11 fallimenti. Dettagli in ANNEX_A_INTERACTION_STUDY.txt.
 Risolti il ramo di simmetria sensibile al roundoff e Ncr,z nella soglia A.1.
 837/837 Steel.Members,14/14 ModelChecker Steel; stessi11 legacy falliti.
 Dettagli/ipotesi: ANNEX_A_INTERACTION_STUDY.txt e ANNEX_A_CHAIN_RESULTS.json.
+
+20/10/2026 - Censimento legacy e rifiuti espliciti, nessuna modifica DLL
+UnsupportedLegacyCapabilitiesTests:2 prove negative per H asimmetrica MN,Rd
+e L senza simmetria McrLT. Non sono benchmark di resistenza implementata.
+839/839 Steel.Members,14/14 ModelChecker Steel;111/122 legacy, stessi11 nomi.
+Censimento e prossime attivita': tools/Steel.LegacyDiagnostics/LEGACY_STATUS.txt.

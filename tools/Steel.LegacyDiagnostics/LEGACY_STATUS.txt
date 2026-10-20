@@ -1,0 +1,90 @@
+STATO DEGLI 11 CONFRONTI LEGACY EC3
+20 ottobre 2026 - Steel 2.4.0.7, Model 5.16.0.1
+
+Ambito: censimento dei fallimenti attivi, non certificazione generale EC3.
+Suite legacy net472: 111 successi / 11 fallimenti, zero ignorati.
+Tutti gli input, attesi e tolleranze originali restano attivi e invariati.
+La suddivisione distingue le prossime attivita'; non dimostra che i test
+storici siano sbagliati o che tutto il codice sia corretto.
+
+A. Due percorsi non implementati
+
+Sap_SectionHAsymmetricTest2
+  Il checker rifiuta MN,Rd plastico per la geometria asimmetrica.
+  La geometria costruita nel test e il report SAP incorporato richiedono
+  inoltre un confronto puntuale: non usare quel report come oracolo cieco.
+  Azione: definire e qualificare la resistenza/interazione della geometria
+  effettiva; mantenere nel frattempo il rifiuto esplicito.
+
+Sap_SectionLTest
+  Il checker rifiuta McrLT nel percorso senza simmetria.
+  Azione: qualificare assi principali, centro di taglio, Mcr e interazioni
+  degli angolari con una procedura pertinente prima di abilitare il caso.
+
+UnsupportedLegacyCapabilitiesTests contiene due prove negative:
+messaggio con caso/meccanismo/motivo e risultati non utilizzabili come
+verifica superata. I messaggi espliciti erano gia' presenti: nessun nuovo
+stato API introdotto. I due confronti numerici SAP restano falliti.
+Queste prove non costituiscono benchmark di resistenza.
+
+B. Tre casi con discrepanze di classificazione o stabilita'
+
+Sap_SectionHAsymmetricTest1
+  Restano differenze di chi, Mb e interazione. Verificare geometria e
+  fabbricazione effettive, classe, proprieta' mono-simmetriche e Mcr.
+  Non qualificato dal nuovo controllo H doppiamente simmetrico.
+
+Sap_SectionTTest
+  La discrepanza compare gia' nella resistenza di sezione:
+  il checker usa valori elastici, il confronto SAP valori plastici.
+  Prossima indagine raccomandata: stato tensionale/gradiente degli sbalzi,
+  classificazione T sui due assi e proprieta' elastiche/plastiche.
+  Solo dopo questo confronto ha senso attribuire gli scarti a LTB/kij.
+
+Sap_SectionTTest2
+  I confronti di capacita' di sezione passano; restano chiLT/PhiLT e kij.
+  Qualificare Mcr mono-simmetrico, orientamento e condizioni di vincolo.
+
+C. Quattro confronti con dati/metodo della fonte da accertare
+
+SectionHBuckling1
+  La ricostruzione indipendente degli input S355 conferma il calcolo.
+  S275 si avvicina agli attesi storici, ma la pagina originale manca.
+  Non cambiare il materiale per ottenere il risultato desiderato.
+
+SectionHLateralTorsionalBuckling1 / SectionHLateralTorsionalBuckling2
+  Gli input dichiarati IPE300 sono coperti dai test aritmetici dedicati.
+  Restano da confermare materiale, dati tabulati, metodo LTB e vincoli
+  delle pagine originali Cordova. Conservare i confronti originali.
+
+SectionCLateralTorsionalBuckling2
+  La discrepanza e' presente gia' in Mc,Rd; non basta modificare chiLT.
+  Ricostruire sezione/materiale/diagramma/altezza del carico della fonte,
+  poi verificare torsione, ingobbamento e procedura specifica per canali.
+  Il benchmark UPN da Caffe copre alcuni termini, non questo caso intero.
+
+D. Due interazioni H ricostruite per gli input dichiarati
+
+SectionHInteraction2: 0.895534272276182 / 0.863419245033176
+  Attesi storici: 1.00 / 0.92. Il commento originale dichiara un metodo
+  semplificato della fonte; manca il testo per verificarne le ipotesi.
+
+SectionHInteraction3: 0.800584094635512 / 0.787086685351978
+  Attesi storici: 0.77 / 0.73. Fonte/diagrammi originali da accertare.
+
+LegacyHInteractionArithmeticTests verifica37 grandezze per ciascun caso,
+con gamma originali e distinti. Le proprieta' di Model sono input espliciti:
+questa prova qualifica l'aritmetica dichiarata, non l'intero caso editoriale
+o tutte le proprieta' geometriche/torsionali e la classificazione.
+Fonti e limiti in ANNEX_A_INTERACTION_STUDY.txt;
+confronti numerici in ANNEX_A_CHAIN_RESULTS.json.
+
+Esito dei tre passi di questa lavorazione
+- npl normalizzato con gammaM0 (Steel 2.4.0.6), 16 nuovi casi;
+- simmetria robusta per Ncr,TF e Ncr,z nella soglia A.1 (2.4.0.7),
+  9 casi di soglia/simmetria e 4 ricostruzioni H;
+- 2 prove negative dei percorsi non implementati e questo censimento.
+31 nuovi test totali. Verificati839/839 Steel.Members,14/14 integrazione
+ModelChecker Steel,111/122 legacy con gli stessi11 fallimenti.
+Zero ignorati. Nessuna quarantena o modifica della whitelist.
+Non eseguito un nuovo rilascio o la verifica di tutte le librerie Checker.
