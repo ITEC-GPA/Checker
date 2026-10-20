@@ -175,3 +175,12 @@ InteractionLtbConsistencyTests:17 casi;16 fallimenti prima del fix.
 Dopo:796/796 Steel.Members e111/122 legacy, stessi11 fallimenti.
 H laminate/saldate e RHS;3 diagrammi e2 controlli di configurazione.
 Fonti, ipotesi e limiti: ANNEX_A_INTERACTION_STUDY.txt.
+
+20/10/2026 - Integrita' del report di interazione, Steel 2.4.0.5
+InteractionReportIntegrityTests:12 casi, tutti falliti prima del fix.
+Dopo:808/808 Steel.Members, 174/174 ModelChecker completo,
+legacy111/122 con gli stessi11 fallimenti. Nessun ignorato nelle tre suite.
+29 nuovi test totali per i due fix LTB/report; non copertura completa EC3.
+La diagnostica conferma che il secondo fix cambia solo i campi del report
+previsti e lascia invariati resistenze, kij e rapporti di utilizzazione.
+Dettagli: ../../tools/Steel.LegacyDiagnostics/ANNEX_A_INTERACTION_STUDY.txt.

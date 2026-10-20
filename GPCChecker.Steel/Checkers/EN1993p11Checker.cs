@@ -473,8 +473,18 @@ namespace GPC.Checkers.Steel.Checkers
                             stationResults[stationIndex].SetResultsForReportLateralTorsionalBuckling(chiLT, phiLT, lambdaSignedLTB, lambdaSignedLTB0, alphaLTB, Mcr,
                                 GetLateralTorsionalBucklingCurveForReport(steelSection), ncrt, ncrtf);
 
-                            stationResults[stationIndex].SetResultForReportInteractionCoefficient(cmx, cmy, mux, muy, wx, wy, cyx, cyy, cmLT, bLT, cLT, dLT, eLT,
-                                cxx, cxy, cyx, cyy, epsilony, kxx, kxy, kyx, kyy, kw, kyw, kAlpha);
+                            // Table A.2 initial factors must remain distinct from the
+                            // Table A.1 factors modified for torsional susceptibility.
+                            double cmx0 = GetCMi0(options.LoadCondition, options.SupportCondition, options.Psi1Axis,
+                                null, null, Math.Abs(rbf.N), ncr1);
+                            double cmy0 = GetCMi0(options.LoadCondition, options.SupportCondition, options.Psi1Axis,
+                                null, null, Math.Abs(rbf.N), ncr2);
+                            stationResults[stationIndex].SetResultForReportInteractionCoefficient(
+                                cmX0: cmx0, cmy0: cmy0, mux: mux, muy: muy, wx: wx, wy: wy,
+                                cmx: cmx, cmy: cmy, cmLT: cmLT, bLT: bLT, cLT: cLT, dLT: dLT, eLT: eLT,
+                                cxx: cxx, cxy: cxy, cyx: cyx, cyy: cyy, epsilonx: epsilony,
+                                kxx: kxx, kxy: kxy, kyx: kyx, kyy: kyy,
+                                kwInteraction: kw, kywInteraction: kyw, kAlphaInteraction: kAlpha);
 
                             #endregion
 

@@ -119,3 +119,40 @@ discrepanze. Nessuna modifica a input, attesi, tolleranze o whitelist legacy.
 Il fix non qualifica gli interi benchmark Cordova e non risolve gli11 casi.
 La normalizzazione npl e la formula generale con freccia restano fuori
 da questo intervento, limitato ai primi due bug richiesti dall'utente.
+
+20/10/2026 - Correzione del report di interazione (Steel 2.4.0.5)
+Risolto il candidato3 della lista storica (secondo bug richiesto dall'utente):
+Cmx/Cmy ricevono i fattori di momento, non Cyx/Cyy; CmX0/CmY0 conservano
+i valori iniziali della tabella A.2, prima della modifica della A.1.
+La chiamata al setter usa argomenti nominati per rendere visibile la
+corrispondenza. Nessuna nuova API o modifica della procedura di verifica.
+Il report usa lo stesso diagramma/psi del calcolo attuale; questo intervento
+non introduce il supporto di diagrammi indipendenti nei due piani.
+
+InteractionReportIntegrityTests:12 casi (L200/4000 mm, N0/-400 kN,
+carico distribuito/concentrato e momenti agli estremi con psi0).
+Entrambi i rami di suscettibilita' torsionale; confronto indipendente dei
+Cm0, Cm e CmLT con A.1/A.2, piu' ricostruzione algebrica dei quattro kij
+dai campi del report. Quest'ultima e' un controllo di integrita' del report,
+non una qualificazione indipendente di tutti i Cij e delle resistenze.
+Proprieta' di sezione di Model assunte come input; tolleranza2e-12
+relativa con pavimento assoluto2e-12.
+
+Prima:12/12 nuovi test falliti su Cmx; dopo:808/808 Steel.Members,
+174/174 ModelChecker (suite completa), legacy111/122 con gli stessi11 fallimenti.
+Confronto diagnostico fra2.4.0.4 e2.4.0.5: 29 casi,
+41 risultati di stazione. Cambiano solo i campi
+CmX0, Cmx, Cmy; tutte le altre proprieta' di stazione,
+gli errori e le219 asserzioni legacy restano identici.
+Riepilogo verifiche: audit-results/interaction-fixes-summary.json nel workspace
+di analisi ChatGPT/Checker. Nessun atteso o whitelist legacy modificato.
+
+SectionHInteraction2: rapporti prima/dopo il fix LTB:
+[0.8955342722761821, 0.8634192450331759] -> [0.8955342722761821, 0.8634192450331759].
+
+SectionHInteraction3: rapporti prima/dopo il fix LTB:
+[0.802462586429863, 0.7909352642245191] -> [0.8005840946355123, 0.7870866853519782].
+
+Questi sono risultati diagnostici, non nuovi attesi indipendenti.
+Restano aperti npl/gammaM0 e il percorso generale con freccia: esclusi
+dall'intervento su richiesta dell'utente. Nessuna revisione architetturale.
