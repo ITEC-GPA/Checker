@@ -124,3 +124,18 @@ remain an approximation, not a qualified arbitrary-restraint solution.
 problems/4 invalid-force cases. Before28fail/27pass; after1184/1184 members.
 Integration14/14;legacy111/122,same11;29diagnosticcases/221assertions.
 Audit prefix:coupled. No legacy fixture modified.
+
+Step 6b - Steel2.4.0.16: mono-symmetric critical moment.
+Corrected compression-flange orientation also for H. The previous approximate
+Wagner expression is replaced by exact area integration over three sharp
+rectangles. Rounded/derived/rotated mono-H are explicitly unsupported by this
+formula. The reference uniform Mcr0 now retains C3*zj for H/T; specifying only
+C1/C2 cannot silently set the missing asymmetric terms to zero.
+42 new cases all failed before the fix:36 independent geometric-stiffness
+integrations (scaling/mirrored H/two signs/three lengths),2 T reference moment
+consistency cases,4 scope guards. Source for the Wagner definition:CISC2002
+p2,eq3; independent sine-mode integration for fork ends/free warping. Jt/Jw
+and shear-centre are explicit Model inputs, not separately certified by the
+H eigenproblem. No general boundary condition qualification is claimed.
+1226/1226 members,14/14 ModelChecker Steel,111/122 legacy,same11 failures.
+Audit prefix:mono-mcr. No legacy fixture modified.

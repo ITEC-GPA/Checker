@@ -1652,28 +1652,14 @@ namespace GPC.Checkers.Steel.Checkers
                     */
                     if (section.SectionShape is SectionH sectionH)
                     {
-                        double Ifc; //inertia along the weak axis of the beam of compression flange
-                        double Ift; //inertia along the weak axis of the beam of tension flange
-                        if (forces.M1 >= 0)
-                        { //tension bottom
-                            Ift = 1.0 / 12.0 * sectionH.ThicknessBottomFlange * Math.Pow(sectionH.LenghtBottomFlange, 3.0);
-                            Ifc = 1.0 / 12.0 * sectionH.ThicknessTopFlange * Math.Pow(sectionH.LenghtTopFlange, 3.0);
-                        }
-                        else
-                        { //tension up
-                            Ifc = 1.0 / 12.0 * sectionH.ThicknessBottomFlange * Math.Pow(sectionH.LenghtBottomFlange, 3.0);
-                            Ift = 1.0 / 12.0 * sectionH.ThicknessTopFlange * Math.Pow(sectionH.LenghtTopFlange, 3.0);
-                        }
-                        //Book: Rules for Member Stability in EN 1993-1-1 - Background documentation and design guidelines - ECCS Techinacl Committee - Stability
-                        //pg 230
-                        double psif = (Ifc - Ift) / (Ifc + Ift);
-                        double hs = sectionH.Height - sectionH.ThicknessBottomFlange / 2.0 - sectionH.ThicknessTopFlange / 2.0; // distance between the shear center of the flanges
-
-                        if (psif >= 0)
-                            zj = 0.8 * psif * hs / 2.0; //Wagner coeff
-
-                        else
-                            zj = psif * hs / 2.0;
+                        if (sectionH.GetType() != typeof(SectionH) || sectionH.R != 0 ||
+                            Math.Abs(sectionH.AngleX1) > 1e-10)
+                            throw new NotSupportedException("McrLT for a mono-symmetric H requires sharp parallel flanges with principal axis 1 along geometric X.");
+                        double top = sectionH.ThicknessTopFlange * Math.Pow(sectionH.LenghtTopFlange, 3) / 12;
+                        double bottom = sectionH.ThicknessBottomFlange * Math.Pow(sectionH.LenghtBottomFlange, 3) / 12;
+                        double psif = (forces.M1 < 0 ? top - bottom : bottom - top) / (top + bottom);
+                        double geometricZj = GetHWagnerCoefficient(sectionH);
+                        zj = forces.M1 < 0 ? geometricZj : -geometricZj;
 
                         //Book: Rules for Member Stability in EN 1993-1-1 - Background documentation and design guidelines - ECCS Techinacl Committee - Stability
                         //pg 233
@@ -1725,8 +1711,13 @@ namespace GPC.Checkers.Steel.Checkers
 
             else
             {
-                c1 = (double)inputC1;
-                c2 = (double)inputC2;
+                if (!inputC1.HasValue || !inputC2.HasValue)
+                    throw new ArgumentException("Both C1 and C2 must be supplied together.");
+                if (!section.IsDoubleSymmetric && !(section.SectionShape is SectionC channel &&
+                    channel.LengthTop == channel.LengthBottom && channel.ThicknessTop == channel.ThicknessBottom))
+                    throw new NotSupportedException("Manual C1/C2 do not define C3 and the Wagner term for this section.");
+                c1 = inputC1.Value;
+                c2 = inputC2.Value;
                 c3 = 0;
                 zj = 0;
             }
@@ -1750,6 +1741,18 @@ namespace GPC.Checkers.Steel.Checkers
             double integral = RectangleIntegral(section.LenghtFlange, section.ThicknessFlange,
                 section.Height - section.ThicknessFlange / 2 - yc) +
                 RectangleIntegral(section.ThicknessWeb, section.HeightWeb, section.HeightWeb / 2 - yc);
+            return section.ShearCenter.Y - yc - integral / (2 * section.Jxx);
+        }
+
+        // Same exact Wagner area integral as for T, over three sharp rectangles.
+        protected double GetHWagnerCoefficient(SectionH section)
+        {
+            double Integral(double b, double d, double y) => b * d * y * (y * y + d * d / 4 + b * b / 12);
+            double yc = section.Centroid.Y;
+            double integral = Integral(section.LenghtBottomFlange, section.ThicknessBottomFlange,
+                section.ThicknessBottomFlange / 2 - yc) +
+                Integral(section.ThicknessWeb, section.HeightWeb, section.ThicknessBottomFlange + section.HeightWeb / 2 - yc) +
+                Integral(section.LenghtTopFlange, section.ThicknessTopFlange, section.Height - section.ThicknessTopFlange / 2 - yc);
             return section.ShearCenter.Y - yc - integral / (2 * section.Jxx);
         }
 
@@ -2138,6 +2141,12 @@ namespace GPC.Checkers.Steel.Checkers
                 EN1993p11Options.LateralWarpingConditions lateralWarpingConditions = EN1993p11Options.LateralWarpingConditions.HingesAtEnds,
                 EN1993p11Options.LoadApplicationPoints loadApplicationPoints = EN1993p11Options.LoadApplicationPoints.TopSection)
         {
+            // Reference moment: uniform bending, irrespective of the actual
+            // transverse loading. Monosymmetric sections retain C3*zj.
+            if (!section.IsDoubleSymmetric && !(section.SectionShape is SectionC))
+                return CalculateMcr(section, forces, GetLengthCriticalMoment1(), supportCondition,
+                    EN1993p11Options.LoadConditions.NotDirectlyLoaded, lateralSupportConditions,
+                    lateralWarpingConditions, 1.0, EN1993p11Options.LoadApplicationPoints.ShearCenter);
             return CalculateMcr(section, forces, GetLengthCriticalMoment1(), supportCondition, loadConditions, lateralSupportConditions,
                 lateralWarpingConditions, 1.0, loadApplicationPoints, 1.0, 0.0);
         }
