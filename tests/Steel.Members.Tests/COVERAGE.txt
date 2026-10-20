@@ -201,3 +201,12 @@ UnsupportedLegacyCapabilitiesTests:2 prove negative per H asimmetrica MN,Rd
 e L senza simmetria McrLT. Non sono benchmark di resistenza implementata.
 839/839 Steel.Members,14/14 ModelChecker Steel;111/122 legacy, stessi11 nomi.
 Censimento e prossime attivita': tools/Steel.LegacyDiagnostics/LEGACY_STATUS.txt.
+
+20/10/2026 - Classificazione T in flessione retta, Steel 2.4.0.8
+TeeClassificationRegressionTests:100 nuovi casi. Table5.2 EC3-2005,
+Table4.2 EN1993-1-5 tramite JRC/ECCS2007 e SCI/NSC2019 pp20-21.
+N+Mx, entrambi i versi, T ad ali parallele senza raccordi; casi di soglia,
+assi delle T larghe e flange tese, gammaM0 e rifiuto esplicito classe4.
+939/939 Steel.Members,14/14 ModelChecker Steel;111/122 legacy, stessi11.
+Nessuna modifica ai legacy. Dettagli e limiti in TEE_CLASSIFICATION.txt:
+la classificazione biassiale del caso SAP originale NON e' ancora qualificata.

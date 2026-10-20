@@ -46,6 +46,10 @@ Flange classified conservatively as uniformly compressed when any part of it
 is compressed; fully tensile flange can be omitted.
 Biaxial loading, geometric Y bending and worked corners/tapered subclasses
 retain the existing fallback. This does not certify their classification.
+For the class-3 elastic stress ratio outside the tabulated domain, the code
+uses the conservative endpoint (-3 at a compressed free tip, -1 at a
+compressed supported edge); it does not extrapolate the polynomial.
+No integration of the separate 5.5.2(9) low-stress API is added here.
 
 Open items in the ORIGINAL biaxial SAP legacy:
 - Its alpha=0.133 matches the uniaxial calculation above; it does not establish
@@ -57,3 +61,43 @@ Open items in the ORIGINAL biaxial SAP legacy:
 - SAP Rolled=No, code default Rolled; fu=510 vs Model490. Distinguish these
   inputs before claiming a complete SAP reproduction.
 - No original SAP model or authenticated original report is available.
+
+Executable verification, TeeClassificationRegressionTests (100 cases):
+- 32 plastic class1/2 boundaries, 2 materials and both moment directions;
+- 6 reduced legacy-geometry N+Mx cases, 4 elastic class3/4 stem cases;
+- 2 public capacity checks, 1 biaxial fallback, 1 uniform-compression/tension;
+- 44 elastic class3 boundaries from independent tabulated k_sigma values;
+- 1 SCI published nominal class4 component;
+- 2 wide-tee axis mappings, 2 tensile/compressed slender-flange cases;
+- 2 gammaM0 equilibrium cases, 2 worked-corner scope guards;
+- 1 explicit public class4 refusal without effective properties.
+The scope guards and negative tests are not positive resistance benchmarks.
+Tolerances: c/t offsets of 1e-6 distinguish either side of boundaries;
+capacity tolerance 1e-5 Nmm is floating-point arithmetic tolerance, not a
+percentage fitted to the legacy report.
+
+Before the fix, the initial 46 cases produced 41 failures and 5 passes.
+39 failures were classification/resistance expectations; 2 public cases
+also exposed a separate fixture/configuration issue: NotDirectlyLoaded +
+SupportConditions.HingesAtEnds leaves C1=C2=C3=0 in GetC1C2C3ForMcr.
+This yields Mcr=0 and a "Capacity can not be null" error. Follow-up needed:
+qualify that coefficient route or reject unsupported combinations explicitly.
+The final public fixture uses the ORIGINAL SAP restraint setup
+(EndsRestrained, load at shear centre). No SAP legacy input was changed.
+
+Results on Steel 2.4.0.8 / Model 5.16.0.1:
+100/100 new cases; 939/939 Steel.Members; 14/14 ModelChecker Steel integration.
+Legacy net472:111/122, same11 failures, zero ignored. All29 replayed legacy
+cases and219 captured assertions are numerically identical to 2.4.0.7.
+Original legacy source SHA256 unchanged:
+C344C8C1BACF16501DEC837ADD7D819E9DBDA064820BDA814683972353B3BD45.
+This step fixes the isolated uniaxial mechanism, not the original biaxial
+Sap_SectionTTest. Next: qualify its biaxial stress field, then torsional
+properties/Mcr/interaction, with the documented input differences resolved.
+
+Local audit evidence (outside version control):
+audit-results/tee-before.trx, tee-expanded.trx, tee-full.trx,
+tee-final-modelchecker.trx, tee-final-legacy.trx, tee-final-diagnostics.json.
+Public PDF SHA256 (retrieved 2026-10-20):
+JRC:2C9F63CBDAAD67B8F5E74932E5CF0790A8FC5169D2EFC300785F41FF192B02AB
+SCI:355047C883BDA481D97C1F93E4E2C890BFCBB8EBE6DCCBD49EE7D8EE3D36DA70

@@ -88,3 +88,17 @@ Esito dei tre passi di questa lavorazione
 ModelChecker Steel,111/122 legacy con gli stessi11 fallimenti.
 Zero ignorati. Nessuna quarantena o modifica della whitelist.
 Non eseguito un nuovo rilascio o la verifica di tutte le librerie Checker.
+
+Aggiornamento 20/10/2026 - Steel 2.4.0.8, primo passo sulla T
+Corretto il percorso N+Mx per T senza raccordi, qualificato con100 nuovi casi:
+vedere tests/Steel.Members.Tests/TEE_CLASSIFICATION.txt.
+La variante uniaxiale della geometria Sap_SectionTTest risulta classe1 con
+flangia compressa e classe2 con punta dell'anima compressa; capacita'923/227.2kNm.
+Il caso originale e' biassiale e mantiene il fallback conservativo classe3.
+Restano aperti equilibrio biassiale, Jt/Jw, Mcr e kij; il report incorporato
+riporta Kzz=1.112 mentre l'asserzione usa0.901, senza modifica dell'atteso.
+Un ulteriore percorso da qualificare: T, soli momenti d'estremita',
+SupportConditions.HingesAtEnds -> C1/C2/C3 lasciati a zero.
+Verificati939/939 Steel.Members,14/14 ModelChecker Steel,111/122 legacy.
+Tutti29 i casi della diagnostica, incluse219 asserzioni, sono invariati
+rispetto2.4.0.7; stessi11 nomi falliti, nessun ignorato o whitelist modificata.

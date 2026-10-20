@@ -19,7 +19,7 @@ Sezione e resistenza (N/M/V indicano capacita', non combinazioni di carico)
 Famiglia           Geometria  Ntraz/Ncomp     M1/M2          V1/V2          ClasseN/M/NM
 H simmetrica       A          N/N,Pcomp      N/P            N/P           P/P/P campioni
 C                  P/A        N/N            P/N            P/N           N/P/N campioni
-T                  P/A        N/N            P+N/P+N        N/N           ?/?/?
+T                  P/A        N/N            P+N/P+N        N/N           N/N/N parziale (T1)
 L                  P(A,I)/A   N/N            N/N            ?/?           ?/?/?
 RHS spigoli vivi   A          N/N            N/N            N/N           N/N/? parziale
 RHS raccordato     P          ?/?            P/P cl.esplicita ?/?          U/U/U
@@ -133,3 +133,13 @@ Legacy: tutti attivi. La futura quarantena di un caso non riproducibile
 richiede una scheda con ipotesi mancanti e test sostitutivi pertinenti.
 Non attribuire l'esito "superato" a un caso commentato/ignorato.
 Questa matrice non autorizza merge/push/rilascio o riorganizzazione architetturale.
+
+T1 - Qualifica parziale T, Steel 2.4.0.8 (20/10/2026)
+TeeClassificationRegressionTests:100 casi, con fonti in TEE_CLASSIFICATION.txt.
+Classificazione N+Mx per T esatta ad ali parallele e spigoli vivi, due versi,
+assi principali invertiti nelle T larghe, equilibrio plastico con gammaM0,
+limiti elastici di classe3 da k_sigma e rifiuto della classe4 senza Aeff/Weff.
+SCI/NSC Technical Digest2019 p21: confronto P della SOLA parte piana con
+geometria/tensioni pubblicate, non della geometria completa con raccordi.
+Restano non qualificati classificazione biassiale, N+My, raccordi/ali inclinate,
+LTB e interazione d'asta T. Il legacy biassiale SAP resta attivo e fallito.

@@ -2347,6 +2347,104 @@ namespace GPC.Checkers.Steel.Checkers
 
         #region Section Class
 
+        private bool TryGetTeeUniaxialBendingClass(ResultBeamForces forces, ISteelSection section, out SectionClass sectionClass)
+        {
+            sectionClass = SectionClass.Class4;
+            // Qualified scope: sharp, parallel-flange T; N plus geometric X bending.
+            // A biaxial plastic neutral axis and worked/tapered corners need separate
+            // qualification. Preserve the conservative compression fallback there.
+            if (section.SectionShape.GetType() != typeof(SectionT))
+                return false;
+            var tee = (SectionT)section.SectionShape;
+            if (tee.R != 0)
+                return false;
+
+            double mx;
+            if (Math.Abs(tee.AngleX1) < 1e-12 && forces.M2 == 0)
+                mx = forces.M1;
+            else if (Math.Abs(tee.AngleX1 + Math.PI / 2) < 1e-12 && forces.M1 == 0)
+                mx = forces.M2; // Wide T: axis 1 = -Y, axis 2 = X.
+            else
+                return false;
+            if (mx == 0 || Math.Abs(forces.N) >= tee.Area * Fy / GammaM0)
+                return false;
+
+            double c = tee.HeightWeb, tw = tee.ThicknessWeb;
+            double flangeArea = tee.LenghtFlange * tee.ThicknessFlange;
+            // Tension positive; Mx > 0 gives tension at the top, compression at
+            // the free stem tip. Coordinates are measured from the bottom tip.
+            double meanStress = forces.N / tee.Area;
+            double gradient = mx / tee.Jxx;
+            double sigmaTip = -(meanStress - gradient * tee.Centroid.Y);
+            double sigmaRoot = -(meanStress + gradient * (c - tee.Centroid.Y));
+            double sigmaTop = -(meanStress + gradient * (tee.Height - tee.Centroid.Y));
+            if (Math.Max(sigmaTip, sigmaTop) <= 0)
+            {
+                sectionClass = SectionClass.Class1;
+                return true;
+            }
+
+            // EN 1993-1-1 Table 5.2: alpha comes from plastic equilibrium,
+            // not from the elastic neutral axis used for the class-3 limit.
+            double compressedArea = (tee.Area - forces.N / (Fy / GammaM0)) / 2;
+            bool tipInCompression = mx > 0;
+            double compressedStemArea = tipInCompression ? compressedArea : compressedArea - flangeArea;
+            double alpha = Math.Max(0, Math.Min(1, compressedStemArea / (c * tw)));
+            SectionClass stemClass = GetClassBendingOuterPlate(c, tw, alpha, tipInCompression, sigmaRoot, sigmaTip);
+
+            // Uniform flange compression is conservative if only part of its
+            // thickness is compressed. Omit it only when fully tensile in both
+            // the elastic and plastic distributions.
+            bool flangeCompressed = !tipInCompression || compressedArea > c * tw ||
+                Math.Max(sigmaRoot, sigmaTop) > 0;
+            SectionClass flangeClass = flangeCompressed
+                ? GetClassCompressedOuterPlate((tee.LenghtFlange - tw) / 2, tee.ThicknessFlange)
+                : SectionClass.Class1;
+            sectionClass = SetWorstClass(stemClass, flangeClass);
+            return true;
+        }
+
+        /// <summary>
+        /// Table 5.2 sheet 2 outstand under bending/compression. Alpha and tip
+        /// orientation describe the plastic stress block; elastic edge stresses
+        /// (compression positive) determine k_sigma for class 3, EN 1993-1-5 Table 4.2.
+        /// </summary>
+        protected SectionClass GetClassBendingOuterPlate(double length, double thickness, double alpha,
+            bool tipInCompression, double sigmaRoot, double sigmaTip)
+        {
+            if (alpha <= 0 || Math.Max(sigmaRoot, sigmaTip) <= 0)
+                return SectionClass.Class1;
+            alpha = Math.Min(alpha, 1);
+            double ratio = length / thickness;
+            double divisor = tipInCompression ? alpha : alpha * Math.Sqrt(alpha);
+            if (ratio <= 9 * Epsilon / divisor) return SectionClass.Class1;
+            if (ratio <= 10 * Epsilon / divisor) return SectionClass.Class2;
+
+            double limit3;
+            if (sigmaRoot == sigmaTip)
+                limit3 = 14 * Epsilon; // Uniform compression, Table 5.2.
+            else
+            {
+                double psi, kSigma;
+                if (sigmaTip > sigmaRoot)
+                {
+                    // Table 4.2 domain: -3 <= psi <= 1. For more tension use
+                    // the conservative endpoint, without extrapolating the polynomial.
+                    psi = Math.Max(-3, sigmaRoot / sigmaTip);
+                    kSigma = 0.57 - 0.21 * psi + 0.07 * psi * psi;
+                }
+                else
+                {
+                    // Maximum compression at the supported edge; domain [-1,1].
+                    psi = Math.Max(-1, sigmaTip / sigmaRoot);
+                    kSigma = psi > 0 ? 0.578 / (psi + 0.34) : 1.7 - 5 * psi + 17.1 * psi * psi;
+                }
+                limit3 = 21 * Epsilon * Math.Sqrt(kSigma);
+            }
+            return ratio <= limit3 ? SectionClass.Class3 : SectionClass.Class4;
+        }
+
+
         private bool TryGetRhsPureBendingClass(ResultBeamForces forces, ISteelSection section, out SectionClass sectionClass)
         {
             sectionClass = SectionClass.Class4;
@@ -2385,6 +2483,9 @@ namespace GPC.Checkers.Steel.Checkers
 
         protected SectionClass CalculateSectionClassDueToCombinedBendingAndCompression(ResultBeamForces resultBeamForces, ISteelSection section)
         {
+            if (TryGetTeeUniaxialBendingClass(resultBeamForces, section, out SectionClass teeClass))
+                return teeClass;
+
             if (TryGetRhsPureBendingClass(resultBeamForces, section, out SectionClass rhsClass))
                 return rhsClass;
 
@@ -2471,6 +2572,9 @@ namespace GPC.Checkers.Steel.Checkers
         /// <returns></returns>
         protected SectionClass CalculateSectionClassDueToBending(ResultBeamForces resultBeamForces, ISteelSection section)
         {
+            if (TryGetTeeUniaxialBendingClass(resultBeamForces, section, out SectionClass teeClass))
+                return teeClass;
+
             if (TryGetRhsPureBendingClass(resultBeamForces, section, out SectionClass rhsClass))
                 return rhsClass;
 
