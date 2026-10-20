@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><TargetFramework>net8.0</TargetFramework><IsTestProject>true</IsTestProject><IsPackable>false</IsPackable><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
   <ItemGroup>
+    <None Update="basal-heave-expected.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="anchor-expected.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="distributed-expected.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="envelope-expected.json" CopyToOutputDirectory="PreserveNewest" />
