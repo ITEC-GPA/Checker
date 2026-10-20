@@ -1380,10 +1380,10 @@ namespace GPC.Checkers.Steel.Checkers
                 }
                 else
                 {
-                    if (sectionH.Height / sectionH.LenghtBottomFlange < 2 && sectionH.Height / sectionH.LenghtTopFlange < 2)
-                        return EN1993P11.AlphaLTImperfectionFactorForCurveB;
-                    else
+                    if (sectionH.Height / sectionH.LenghtBottomFlange <= 2 && sectionH.Height / sectionH.LenghtTopFlange <= 2)
                         return EN1993P11.AlphaLTImperfectionFactorForCurveC;
+                    else
+                        return EN1993P11.AlphaLTImperfectionFactorForCurveD;
                 }
             }
             else
@@ -1406,10 +1406,10 @@ namespace GPC.Checkers.Steel.Checkers
                 }
                 else
                 {
-                    if (sectionH.Height / sectionH.LenghtBottomFlange < 2 && sectionH.Height / sectionH.LenghtTopFlange < 2)
-                        return EN1993p11Options.LateralTorsionalBuckingCurves.b;
-                    else
+                    if (sectionH.Height / sectionH.LenghtBottomFlange <= 2 && sectionH.Height / sectionH.LenghtTopFlange <= 2)
                         return EN1993p11Options.LateralTorsionalBuckingCurves.c;
+                    else
+                        return EN1993p11Options.LateralTorsionalBuckingCurves.d;
                 }
             }
             else
@@ -1419,11 +1419,11 @@ namespace GPC.Checkers.Steel.Checkers
         private EN1993p11Options.LateralTorsionalBuckingCurves GetLateralTorsionalBucklingCurveForReport(ISteelSection section)
         {
             var curve = GetLateralTorsionalBucklingCurve(section);
-            if (!(section.SectionShape is SectionH))
+            if (!(section.SectionShape is SectionH) || !section.IsRolled)
                 return curve;
 
-            // The existing I/H modified-method selector uses b/c for rolled
-            // and c/d for welded sections instead of the general a/b and b/c.
+            // Tables 6.4/6.5: welded I sections use c/d in both methods.
+            // Rolled I sections change from a/b to b/c in the modified method.
             switch (curve)
             {
                 case EN1993p11Options.LateralTorsionalBuckingCurves.a:
@@ -1451,7 +1451,7 @@ namespace GPC.Checkers.Steel.Checkers
                 }
                 else
                 {
-                    if (sectionH.Height / sectionH.LenghtBottomFlange < 2 && sectionH.Height / sectionH.LenghtTopFlange < 2)
+                    if (sectionH.Height / sectionH.LenghtBottomFlange <= 2 && sectionH.Height / sectionH.LenghtTopFlange <= 2)
                         return EN1993P11.AlphaLTImperfectionFactorForCurveC;
                     else
                         return EN1993P11.AlphaLTImperfectionFactorForCurveD;

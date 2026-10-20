@@ -59,3 +59,10 @@ The existing channel-specific slenderness adjustment is NOT qualified here.
 report/capacity consistency. Before:5 failures/8passes; after:997/997 total.
 Integration14/14; legacy111/122, same11 failures;29 diagnostic cases/219
 assertions. Legacy inputs/assertions unchanged. Audit prefix: ltb-class.
+Step 4b - Steel 2.4.0.11
+EN1993-1-1:2005 Table6.4 gives welded I-section curves c/d, not b/c.
+Corrected general imperfection factors and curve labels. Both Table6.4 and
+Table6.5 include h/b=2 in the lower row. Corrected the welded boundary and
+kept the public modified-method curve label consistent with its alpha.
+Six table/boundary/report tests: before3fail/3pass; after1003/1003 total.
+Integration14/14; legacy111/122, same11 failures. Audit prefix: ltb-curves.
