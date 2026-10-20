@@ -163,3 +163,9 @@ fonti, test eseguibili e priorita'. Dettagli SCI: SCI_SECTION_BENCHMARKS.txt.
 I 149 nuovi casi di questa estensione sono31 Caffe + 90 SCI + 28 analitico-normativi.
 Solo test/documentazione; Steel 2.4.0.2 e i legacy rimangono invariati.
 Verifica finale eseguita: 753/753 Steel.Members.Tests, zero ignorati.
+
+20/10/2026 - Allegato A: convenzione N in compressione
+AnnexACompressionSignTests: 26 casi, fonte Caffe A5.5 p243 ed EC3 tabelle A.1/A.2.
+10 fallimenti riprodotti prima del fix; dopo 779/779 Steel.Members e14/14 ModelChecker Steel.
+Legacy invariati:111/122, stessi11 fallimenti. Dettagli e limiti:
+../../tools/Steel.LegacyDiagnostics/ANNEX_A_INTERACTION_STUDY.txt

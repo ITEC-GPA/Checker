@@ -2188,26 +2188,28 @@ namespace GPC.Checkers.Steel.Checkers
             double phi2 = GetPhiForBuckling(alpha2, lambdaSegnato2);
             double chi2 = GetChi(phi2, lambdaSegnato2);
 
-            mux = GetMu(forces.N, ncr1, chi1);
-            muy = GetMu(forces.N, ncr2, chi2);
+            // GPC compression is negative; Annex A uses a positive compressive NEd.
+            double compressionMagnitude = Math.Abs(forces.N);
+            mux = GetMu(compressionMagnitude, ncr1, chi1);
+            muy = GetMu(compressionMagnitude, ncr2, chi2);
 
             epsilony = CalculateEpsilonyForInteraction(sectionClass, forces, section);
 
             if (lambdaSignedLTB0 <= lambda0limit)
             {
-                cmx = GetCMi0(loadCondition, supportCondition, psi, null, null, forces.N, ncr1);
-                cmy = GetCMi0(loadCondition, supportCondition, psi, null, null, forces.N, ncr2);
+                cmx = GetCMi0(loadCondition, supportCondition, psi, null, null, compressionMagnitude, ncr1);
+                cmy = GetCMi0(loadCondition, supportCondition, psi, null, null, compressionMagnitude, ncr2);
                 cmLT = 1.0;
             }
             else
             {
-                double cmx0 = GetCMi0(loadCondition, supportCondition, psi, null, null, forces.N, ncr1);
+                double cmx0 = GetCMi0(loadCondition, supportCondition, psi, null, null, compressionMagnitude, ncr1);
                 double alphaLT = CalculateAlphaLTForInteraction(section);
 
                 double q = alphaLT == 0 ? 0 : Math.Sqrt(epsilony) * alphaLT;
                 cmx = double.IsPositiveInfinity(q) ? 1 : cmx0 + (1.0 - cmx0) * q / (1.0 + q);
 
-                cmy = GetCMi0(loadCondition, supportCondition, psi, null, null, forces.N, ncr2);
+                cmy = GetCMi0(loadCondition, supportCondition, psi, null, null, compressionMagnitude, ncr2);
 
                 cmLT = Math.Max(Math.Pow(cmx, 2) * alphaLT / Math.Sqrt((1.0 - Math.Abs(forces.N) / ncr2) * (1.0 - Math.Abs(forces.N) / ncrt)), 1.0);
             }

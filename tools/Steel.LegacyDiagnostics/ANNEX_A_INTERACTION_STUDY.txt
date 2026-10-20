@@ -1,0 +1,61 @@
+INTERAZIONI LEGACY H: CONFRONTO CON FONTI INDIPENDENTI
+20 ottobre 2026
+
+Primo difetto dimostrato: convenzione del segno della compressione
+Base Checker 60448490 / Model a5391971; fix Steel 2.4.0.3.
+
+Fonti controllate visivamente
+- EN 1993-1-1:2005 con AC 2006/2009, allegato A, tabelle A.1 e A.2,
+  pagine stampate 76-78 (PDF 78-80).
+  https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+  SHA256 96F11739D8B0A83A3B8CCE590D98412393C9DA00FF3E72A6267CDAB148634673.
+- Simone Caffe, Acciaio, ed.2012 ristampa2013, applicazione A5.5:
+  pagine 239-245, in particolare i mu pubblicati a pagina243 (PDF122).
+  SHA256 76BEE92A7A0966FD51C773B058E3BAB3F8806E7C375D009008D88AAEB8F5825B.
+  Il libro non costituisce una fonte NTC2018; qui si controllano termini EC3.
+
+La norma e l'esempio usano NEd come modulo positivo della compressione.
+GPC rappresenta la compressione con N negativo. CalculateCmFactorsForInteraction
+passava N direttamente a GetMu e GetCMi0. Il ramo dei momenti agli estremi
+usava gia' Abs(NEd), mentre i rami carico distribuito e forza concentrata no.
+Risultavano segni incoerenti fra rami dello stesso metodo.
+
+Fix: convertire N nel suo modulo prima delle due chiamate GetMu e delle
+quattro chiamate GetCMi0. Nessuna modifica a curve, schema statico, materiale,
+metodo LTB o attesi legacy. Nessuna nuova API.
+
+Benchmark pubblicato e limiti
+IPE500 S275, L=4000 mm, compressione400 kN.
+Per i termini di stabilita' si dichiarano A=11550 mm2 e Wel,y=1928000 mm3,
+come nelle sostituzioni del libro; la tabella precedente stampa invece
+11600 e1930000. Iy=48200 cm4, Iz=2142 cm4. Il confronto riguarda mu,
+indipendente dai diagrammi dei momenti; NON ricostruisce l'intera A5.5.
+Il libro stampa mu_y=1.0 e mu_z=.93. Prima del fix il percorso GPC dava
+mu_z=1.0596238019874025. Il valore corretto rientra nell'intervallo stampato.
+Il controllo stretto usa Euler e la radice del polinomio della curva,
+calcolati dagli input dichiarati, senza leggere risultati del checker.
+
+AnnexACompressionSignTests: 26 casi
+- 2 confronti con i mu pubblicati e con aritmetica indipendente;
+- 24 combinazioni: L200/4000, N0/-400kN, carico distribuito/concentrato
+  e momenti agli estremi con psi=-1,0,.5,1. Controllati entrambi i mu e Cm,
+  sia sotto sia sopra la soglia di suscettibilita' torsionale.
+Tolleranza editoriale: mezza unita' dell'ultima cifra. Tolleranza aritmetica:
+2e-12 relativa, con pavimento assoluto2e-12. Nessuna tolleranza ricavata
+dallo scarto GPC. Non si qualificano trazione, classe4, diagrammi diversi
+nei due piani o coefficienti d'interazione completi con questi soli test.
+
+Evidenza prima/dopo
+Prima: 10/26 nuovi test falliti; dopo: 779/779 Steel.Members,
+14/14 integrazione Steel di ModelChecker. Legacy122:111 passati, stessi
+11 fallimenti. Input, asserzioni, attesi e tolleranze legacy invariati.
+Diagnostica completa:29 casi,219 asserzioni,11 casi con discrepanze.
+
+Rapporti di interazione dopo il solo fix del segno:
+SectionHInteraction2: .895534272276182 / .863419245033176;
+attesi storici1.00/.92, fonte Cordova non disponibile.
+SectionHInteraction3: .802462586429863 / .790935264224519;
+attesi storici.77/.73, fonte Cordova non disponibile.
+Gli scostamenti residui NON autorizzano ad adottare l'output GPC come atteso.
+Occorre ancora qualificare la catena completa dei coefficienti kij e
+la corrispondenza tra metodo LTB, diagrammi e confronto indipendente.
