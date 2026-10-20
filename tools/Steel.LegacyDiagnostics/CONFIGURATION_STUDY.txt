@@ -79,3 +79,22 @@ Il commento dichiara anche un metodo semplificato nel libro; l'esempio
 originale non e' disponibile e non e' stato verificato direttamente.
 Il riallineamento del coefficiente non conferma l'accuratezza degli altri dati
 del confronto o la validita' normativa corrente del preset UNI.
+
+Applicazione e verifica del primo blocco
+- Nei tre benchmark SAP e' stato reso esplicito ColdFormed; il significato
+  della combinazione Rolled/ColdFormed e' commentato accanto alla costruzione.
+- Nel solo SectionHInteraction2 gammaM1=1.05 e' assegnato all'istanza locale.
+- Le espressioni Assert del file legacy sono state confrontate automaticamente
+  prima/dopo: identiche, compresi valori attesi e tolleranze.
+- Steel.Members.Tests: 367/367 superati, inclusi 8 nuovi casi indipendenti.
+- GPCChecker.Test.Steel net472: 109/122 superati, 13 falliti.
+  Risolti esattamente Sap_SectionRHSTest1, Sap_SectionRHSTest2, Sap_SectionCHSTest1;
+  nessun nuovo caso fallito. HInteraction2 ora fallisce sulla seconda asserzione.
+- build/known-failures.json corrisponde ai 13 nomi effettivamente falliti.
+  Rimosso anche SectionHBucklingExample2, gia' risolto nella tranche precedente.
+- Nessuna modifica alle DLL di produzione, ai preset globali o all'API:
+  GPCChecker.Steel resta 2.3.0.3, GPCModel resta 5.15.0.2.
+
+I 13 fallimenti rimasti comprendono i due test RHS incoerenti, i confronti
+numerici di stabilita'/interazione e i due percorsi non implementati.
+Questa lavorazione non ne cambia lo stato e non completa la qualifica EC3.

@@ -46,7 +46,9 @@ CodeVerificationTests: 230 nuovi casi generali.
 ChannelClassificationRegressionTests: 39 casi sui rami C e sulle soglie geometriche.
 RhsBendingClassificationRegressionTests: 77 casi, inclusi assi scambiati, entrambi i segni,
 S235/S355, tutte le classi e 12 verifiche pubbliche di capacita' M1.
-Totale: 346 nuovi casi generali + 13 preesistenti = 359, tutti superati.
+HollowManufacturingConfigurationTests: 8 confronti hot-finished/cold-formed sui due assi,
+con Ncr/Phi ricavati da integrali geometrici e formule indipendenti.
+Totale: 354 nuovi casi generali + 13 preesistenti = 367, tutti superati.
 Il fix C elimina 17 fallimenti dei nuovi casi; il fix RHS ne elimina 36.
 RHS: qualificata la sola classificazione in flessione retta pura per sezioni doppiamente
 simmetriche a spigoli vivi. N-M e flessione deviata restano da completare.
@@ -99,13 +101,18 @@ Limitazioni ancora da risolvere nel perimetro richiesto
   conservativa di fy, non l'integrazione plastica ottimale della sola area a taglio.
 
 Regressioni storiche
-Rimangono 16 dei 17 test legacy falliti nella baseline. SectionHBucklingExample2 ora passa
+Rimangono 13 dei 17 test legacy falliti nella baseline. SectionHBucklingExample2 ora passa
 dopo la correzione dei limiti di classificazione. Nessun atteso è stato cambiato.
 Due test RHS costruiscono una sola stazione ma ne asseriscono 5/6; inoltre chiedono classi
 diverse al variare della sola entità della compressione uniforme. Questo richiede revisione
 del significato dei casi di riferimento, non un ritocco delle soglie per farli passare.
 Il censimento completo dei 16 casi e il replay diagnostico sono in tools/Steel.LegacyDiagnostics.
-Dopo questi fix: legacy 106/122 superati (stessi 16 fallimenti), ModelChecker Steel 14/14.
+Dopo l'allineamento di configurazione: legacy 109/122 superati, 13 falliti.
+I tre confronti SAP RHS/CHS passano con il ramo ColdFormed che riproduce la curva c
+dichiarata nel report. Attesi e tolleranze invariati. CONFIGURATION_STUDY.txt esplicita
+i limiti di questa ricostruzione del benchmark e non certifica il processo produttivo reale.
+SectionHInteraction2 resta fallito sull'asse 2 dopo l'allineamento locale di gammaM1.
+ModelChecker Steel 14/14 nella tranche precedente; le librerie non sono cambiate in questo passo.
 
 Esecuzione riproducibile
 1. Compilare Model, ModelData e GPC.Model.Persistence nel branch Model con il fix del profilo C.

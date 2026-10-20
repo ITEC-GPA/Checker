@@ -1,6 +1,16 @@
 DIAGNOSTICA DEI CONFRONTI EC3 LEGACY
 20 ottobre 2026 - passo 1
 
+Aggiornamento: il censimento sotto e' storico (commit 3c646d65).
+CONFIGURATION_STUDY.txt/.json documentano l'indagine successiva sui quattro
+confronti di configurazione: tre SAP risolti, HInteraction2 ancora aperto.
+La suite legacy corrente ha 109 successi e 13 fallimenti.
+Usare -SourceRevision 55ac7438 per riprodurre gli input precedenti al
+riallineamento, senza modificare il checkout. -Scenario consente Baseline,
+HollowColdFormed, HollowWelded, HollowAlpha049Only e InteractionGamma105.
+Solo Baseline conserva gli input; gli altri scenari applicano la variazione
+dichiarata prima della verifica, mantenendo invariate asserzioni e tolleranze.
+
 Scopo
 Riprodurre gli input dei 29 metodi EN1993p11Test e registrare anche le
 asserzioni successive al primo errore. Non e' una suite di qualificazione:

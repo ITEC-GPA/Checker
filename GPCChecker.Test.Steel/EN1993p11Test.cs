@@ -107,7 +107,11 @@ namespace SteelTests
 
             double L = 1000;
 
-            var sectionRHS = new SteelSection(new SectionRHS(400, 200, 8, 8, 15, 15, string.Empty), SteelMaterialEN1993Data.S355);
+            // The embedded SAP reference explicitly uses curve c (alpha=0.49).
+            // In this API, Rolled + ColdFormed selects the cold-formed hollow-section branch;
+            // Welded selects a fabricated box, so it is not a direct translation of SAP "Rolled: No".
+            var sectionRHS = new SteelSection(new SectionRHS(400, 200, 8, 8, 15, 15, string.Empty),
+                SteelMaterialEN1993Data.S355, Section.SectionTypes.Rolled, Section.FormedTypes.ColdFormed);
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(100 * 1e3, 50 * 1e3, 50 * 1e3, 0, -100 * 1e6, 100 * 1e6, CoordinateSystem.Global) };
             LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
 
@@ -242,7 +246,9 @@ namespace SteelTests
 
 
 
-            var section = new SteelSection(new SectionRHS(400, 200, 8, 8, 15, 15, ""), SteelMaterialEN1993Data.S355);
+            // Reproduce the embedded SAP curve c; do not inherit the HotFinished default (curve a).
+            var section = new SteelSection(new SectionRHS(400, 200, 8, 8, 15, 15, ""),
+                SteelMaterialEN1993Data.S355, Section.SectionTypes.Rolled, Section.FormedTypes.ColdFormed);
 
             double L = 1000;
             double? psiX = 0.5;
@@ -696,7 +702,9 @@ namespace SteelTests
                 EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds,
                 psiy, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                 EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
-            StandardUNIEN1993p11 standard = new StandardUNIEN1993p11();
+            // Reproduce gammaM1=1.05 stated in this legacy comparison, without changing the
+            // global UNI preset (1.10). The second interaction still needs independent validation.
+            StandardUNIEN1993p11 standard = new StandardUNIEN1993p11 { GammaM1 = 1.05 };
             EN1993p11Checker Checker = new EN1993p11Checker(beamElement, options, standard);
 
             Checker.PerformCheck();
@@ -1334,7 +1342,9 @@ namespace SteelTests
             double thickness = 10;
             double? psiz = 0.5;
 
-            var circularSect = new SteelSection(new SectionCHS(diameter, thickness, string.Empty), SteelMaterialEN1993Data.S355);
+            // The embedded SAP reference uses curve c (alpha=0.49), hence ColdFormed here.
+            var circularSect = new SteelSection(new SectionCHS(diameter, thickness, string.Empty),
+                SteelMaterialEN1993Data.S355, Section.SectionTypes.Rolled, Section.FormedTypes.ColdFormed);
 
             ResultBeamForces[] resultBeamForces = new ResultBeamForces[] {
                 new ResultBeamForces(100 * 1000, 50 * 1000, 50 * 1000, 0, -100 * 1e6, 100 * 1e6, CoordinateSystem.Global) };
