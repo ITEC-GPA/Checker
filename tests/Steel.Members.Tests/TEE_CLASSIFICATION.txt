@@ -1,0 +1,59 @@
+T CLASSIFICATION INVESTIGATION - 2026-10-20
+
+Target: EN1993p11Test.Sap_SectionTTest, without changing its inputs/assertions.
+The initial implementation classifies both the flange and stem as uniformly
+compressed outstands for every load case. This is a conservative fallback,
+not the Table 5.2 classification for a partially compressed stem.
+
+Independent references, first-generation Eurocodes:
+1. EN 1993-1-1:2005 + AC:2006/2009, 5.5.2 and Table 5.2 sheet 2,
+   printed pp.40 and 43 (PDF pp.42 and 45).
+   https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+   alpha is the compressed fraction in the PLASTIC distribution for classes
+   1/2: limits 9/alpha,10/alpha for the compressed free tip; limits
+   9/(alpha*sqrt(alpha)),10/(alpha*sqrt(alpha)) for the tension free tip,
+   all multiplied by epsilon=sqrt(235/fy).
+2. JRC/ECCS, Johansson et al., Commentary and Worked Examples to EN 1993-1-5,
+   first edition October 2007, EUR22898EN, Table 4.2 p.50 (PDF p.64):
+   https://eurocodes.jrc.ec.europa.eu/sites/default/files/2021-12/EUR22898EN.pdf
+   Reproduces the elastic outstand k_sigma coefficients and their domains.
+3. David Brown (SCI), The design of tee sections in bending,
+   NSC Technical Digest 2019, pp.20-21, Method 3:
+   https://www.steelconstruction.info/images/4/4c/NSC_Technical_Digest_2019.pdf
+   T152x229x30, S355, compressed free stem tip: c/t=25.2, psi=-0.207,
+   k_sigma=0.616, class-3 limit=13.3, hence nominal class 4.
+   Only the nominal classification is used here. The article's reduced
+   design stress/effective-section and LTB approaches are NOT qualified here.
+
+Reconstruction of the legacy geometry, N-mm-MPa:
+h=400,b=200,tw=40,tf=50; A=24000; Aweb=14000; Aflange=10000.
+Centroid 258.3333333333333 mm from the stem tip.
+Uniform compression: web c/t=8.75; epsilon=0.8136165134668271;
+9*epsilon=7.322548621201444,10*epsilon=8.136165134668271 -> class 3.
+With N=+100000 (tension), fy=355, gammaM0=1:
+Ac=(A-N/(fy/gammaM0))/2=11859.154929577464 mm2.
+Major geometric X bending alone, flange compressed:
+alpha=(Ac-Aflange)/Aweb=0.13279678068410455 -> class 1.
+Opposite direction, stem tip compressed:
+alpha=Ac/Aweb=0.8470824949698189 -> class 2.
+Both allow Wpl,X=2600000 and Wpl,Y=640000 mm3:
+Mc,X,Rd=923 kNm, Mc,Y,Rd=227.2 kNm.
+
+Scope of this first step:
+Sharp parallel-flange SectionT, N plus bending about geometric X, both signs.
+Principal-axis mapping must be explicit for wide tees.
+Flange classified conservatively as uniformly compressed when any part of it
+is compressed; fully tensile flange can be omitted.
+Biaxial loading, geometric Y bending and worked corners/tapered subclasses
+retain the existing fallback. This does not certify their classification.
+
+Open items in the ORIGINAL biaxial SAP legacy:
+- Its alpha=0.133 matches the uniaxial calculation above; it does not establish
+  a compatible biaxial plastic stress field. Do not apply that alpha blindly.
+- SAP Jt=14970000 mm4 vs Model 16333333.333333334; SAP Iw=0 vs Model
+  100694444444.44444 mm6. These are different LTB inputs.
+- Embedded report Kzz=1.112 vs assertion Kyy=0.901: probable expectation
+  transcription error, still unmodified pending reconstruction of interaction.
+- SAP Rolled=No, code default Rolled; fu=510 vs Model490. Distinguish these
+  inputs before claiming a complete SAP reproduction.
+- No original SAP model or authenticated original report is available.
