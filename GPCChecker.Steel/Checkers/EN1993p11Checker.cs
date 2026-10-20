@@ -2253,8 +2253,47 @@ namespace GPC.Checkers.Steel.Checkers
 
         #region Section Class
 
+        private bool TryGetRhsPureBendingClass(ResultBeamForces forces, ISteelSection section, out SectionClass sectionClass)
+        {
+            sectionClass = SectionClass.Class4;
+            // Qualify only doubly symmetric, sharp-corner RHS in uniaxial pure bending.
+            // N-M and biaxial loading require the actual plate stress distributions.
+            if (forces.N != 0 || (forces.M1 == 0) == (forces.M2 == 0) ||
+                section.SectionShape.GetType() != typeof(SectionRHS) ||
+                !section.SectionShape.IsDoubleSymmetric)
+                return false;
+
+            var rhs = (SectionRHS)section.SectionShape;
+            // Model numbers the principal axis with the largest inertia as axis 1.
+            bool bendingAboutX = (forces.M1 != 0) == (rhs.Jxx >= rhs.Jyy);
+            if (bendingAboutX)
+            {
+                sectionClass = SetWorstClass(new[] {
+                    GetClassCompressedInnerPlate(rhs.BaseInternal, rhs.ThicknessTop),
+                    GetClassCompressedInnerPlate(rhs.BaseInternal, rhs.ThicknessBottom),
+                    GetClassBendingInnerPlate(forces, rhs.Heightinternal, rhs.ThicknessWebLeft, section, SectionClass.Class1),
+                    GetClassBendingInnerPlate(forces, rhs.Heightinternal, rhs.ThicknessWebRight, section, SectionClass.Class1)
+                });
+            }
+            else
+            {
+                sectionClass = SetWorstClass(new[] {
+                    GetClassCompressedInnerPlate(rhs.Heightinternal, rhs.ThicknessWebLeft),
+                    GetClassCompressedInnerPlate(rhs.Heightinternal, rhs.ThicknessWebRight),
+                    GetClassBendingInnerPlate(forces, rhs.BaseInternal, rhs.ThicknessTop, section, SectionClass.Class1),
+                    GetClassBendingInnerPlate(forces, rhs.BaseInternal, rhs.ThicknessBottom, section, SectionClass.Class1)
+                });
+            }
+            // EN 1993-1-1:2005 Table 5.2: uniform compression in the walls parallel
+            // to the neutral axis; pure bending in the perpendicular walls.
+            return true;
+        }
+
         protected SectionClass CalculateSectionClassDueToCombinedBendingAndCompression(ResultBeamForces resultBeamForces, ISteelSection section)
         {
+            if (TryGetRhsPureBendingClass(resultBeamForces, section, out SectionClass rhsClass))
+                return rhsClass;
+
             if (section.GetMinSigma(resultBeamForces.N, resultBeamForces.M1, resultBeamForces.M2) < 0.0)
             {
                 if (section.SectionShape is SectionH sectionH)
@@ -2338,6 +2377,9 @@ namespace GPC.Checkers.Steel.Checkers
         /// <returns></returns>
         protected SectionClass CalculateSectionClassDueToBending(ResultBeamForces resultBeamForces, ISteelSection section)
         {
+            if (TryGetRhsPureBendingClass(resultBeamForces, section, out SectionClass rhsClass))
+                return rhsClass;
+
             if (section.GetMinSigma(resultBeamForces.N, resultBeamForces.M1, resultBeamForces.M2) < 0.0)
             {
                 if (section.SectionShape is SectionH sectionH)

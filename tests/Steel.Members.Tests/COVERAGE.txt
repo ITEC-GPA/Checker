@@ -17,7 +17,7 @@ Riferimenti verificati
 Convenzioni
 N, mm, MPa, Nmm; N positivo a trazione. Assi principali baricentrici 1 e 2.
 Le azioni sono già di progetto; nessuna combinazione o conversione automatica.
-Nei test il materiale ha fy=235 MPa assegnato: non si testa la scelta di fy in funzione dello spessore.
+Nei test il materiale ha fy=235 o 355 MPa assegnato: non si testa la scelta di fy in funzione dello spessore.
 La resistenza del materiale per prodotto/spessore resta un dato del chiamante.
 Le tolleranze sono relative: 1e-10 per aritmetica/formule, 2e-6 per moduli geometrici.
 Le prove di simmetria del percorso legacy usano 1e-12.
@@ -42,7 +42,14 @@ Casi aggiunti a Steel.Members.Tests (CodeVerificationTests)
 8 interazioni elastiche NTC e rottura della sezione netta.
 4 input non validi; 1 classe 4; 1 larghezza libera ala; 1 limite N=0.
 6 carichi puri nel percorso pubblico H/RHS; 3 geometrie speciali rifiutate; 2 torsioni rifiutate.
-Totale: 230 nuovi casi generali, oltre ai 13 preesistenti della suite.
+CodeVerificationTests: 230 nuovi casi generali.
+ChannelClassificationRegressionTests: 39 casi sui rami C e sulle soglie geometriche.
+RhsBendingClassificationRegressionTests: 77 casi, inclusi assi scambiati, entrambi i segni,
+S235/S355, tutte le classi e 12 verifiche pubbliche di capacita' M1.
+Totale: 346 nuovi casi generali + 13 preesistenti = 359, tutti superati.
+Il fix C elimina 17 fallimenti dei nuovi casi; il fix RHS ne elimina 36.
+RHS: qualificata la sola classificazione in flessione retta pura per sezioni doppiamente
+simmetriche a spigoli vivi. N-M e flessione deviata restano da completare.
 Ulteriori 17 casi in EN1993ResultIntegrityTests: stazioni/gruppi, segni, NaN, recupero dopo errore.
 Ulteriori 4 casi di geometria nel repository Model: ChannelPlasticModulusRegressionTest.
 
@@ -97,7 +104,8 @@ dopo la correzione dei limiti di classificazione. Nessun atteso è stato cambiat
 Due test RHS costruiscono una sola stazione ma ne asseriscono 5/6; inoltre chiedono classi
 diverse al variare della sola entità della compressione uniforme. Questo richiede revisione
 del significato dei casi di riferimento, non un ritocco delle soglie per farli passare.
-Altri confronti SAP/Cordova e LTB/interazione devono essere ricostruiti con ipotesi e coefficienti coerenti.
+Il censimento completo dei 16 casi e il replay diagnostico sono in tools/Steel.LegacyDiagnostics.
+Dopo questi fix: legacy 106/122 superati (stessi 16 fallimenti), ModelChecker Steel 14/14.
 
 Esecuzione riproducibile
 1. Compilare Model, ModelData e GPC.Model.Persistence nel branch Model con il fix del profilo C.
