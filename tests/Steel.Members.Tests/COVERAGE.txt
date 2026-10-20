@@ -152,4 +152,14 @@ Riferimenti utente - Caffe (20 ottobre 2026)
 31 casi in CaffeReferenceTests: dettagli, limiti e incongruenze della fonte
 in USER_REFERENCE_BENCHMARKS.txt. Suite Steel eseguita: 635/635.
 Solo test/documentazione: DLL Steel invariata 2.4.0.2; legacy invariati.
-
+Copertura indipendente per famiglie - 20 ottobre 2026
+SciSectionReferenceTests aggiunge90 casi: proprieta' pubblicate C/T/L/CHS/RHS
+raccordato, resistenze e52 confronti di instabilita' CHS/C su13 lunghezze e2 assi.
+FamilyBucklingReferenceTests aggiunge28 casi analitico-normativi sulle8 famiglie
+base, con classi assegnate. Sono distinti dai benchmark numerici pubblicati.
+Il requisito di un test indipendente per ogni calcolo/tipo NON e' ancora
+soddisfatto: SOURCE_COVERAGE_MATRIX.txt elenca coperture e lacune per meccanismo,
+fonti, test eseguibili e priorita'. Dettagli SCI: SCI_SECTION_BENCHMARKS.txt.
+I 149 nuovi casi di questa estensione sono31 Caffe + 90 SCI + 28 analitico-normativi.
+Solo test/documentazione; Steel 2.4.0.2 e i legacy rimangono invariati.
+Verifica finale eseguita: 753/753 Steel.Members.Tests, zero ignorati.
