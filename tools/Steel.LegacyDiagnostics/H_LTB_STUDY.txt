@@ -1,0 +1,149 @@
+INDAGINE SUI DUE LEGACY H-LTB E COERENZA DEL REPORT
+20 ottobre 2026
+
+Base: Checker 385f9573, Steel 2.4.0.1; Model 7da2b9b7, 5.15.0.2.
+Esito: fix del report in Steel 2.4.0.2; confronti Cordova ancora aperti.
+Nessun cambiamento agli input, attesi o tolleranze dei due test legacy.
+
+1. Fonti e campo di applicazione
+EN 1993-1-1:2005, corrigenda 2006/2009, sezioni in acciaio, temperatura
+ordinaria; edizione gia' adottata dal checker, nessuna migrazione normativa.
+Consultati 6.3.2.2 e 6.3.2.3, eq.6.57-6.58, tab.6.5-6.6.
+https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+File SHA256 96F11739D8B0A83A3B8CCE590D98412393C9DA00FF3E72A6267CDAB148634673.
+Pagine stampate 61-63 (PDF 63-65); controllo visivo pagine 62-63.
+
+NCCI SN003b-EN-EU, Elastic critical moment for lateral torsional buckling,
+Alain Bureau / CTICM, Access Steel; equazione (1), paragrafi 2 e 3,
+tabella 3.2 per travi doppiamente simmetriche con k=kw=1.
+https://www.steelconstruction.info/File:SN003b.pdf
+C1/C2: carico distribuito 1.127/0.454; forza concentrata in mezzeria
+1.348/0.630. I coefficienti sono approssimazioni documentate, non una
+soluzione FEM esatta di ciascuno schema. G e' assunto dal materiale:
+E/[2(1+nu)]=80769.230769 MPa, invece del valore arrotondato 80770 del NCCI.
+
+I commenti legacy citano Cordova, Costruzioni in acciaio, p.190.
+La pagina originale NON e' stata reperita/consultata: materiale, schema,
+proprieta' tabulate, metodo e coefficienti effettivi del libro restano
+da verificare. Le ipotesi sotto non sono attribuite al libro.
+
+2. Input effettivamente eseguiti
+Convenzioni: N, mm, MPa, Nmm; nella tabella dei risultati si usano kNm.
+IPE300: h=300, b=150, tw=7.1, tf=10.7, r=15 mm, laminato.
+E=210000 MPa, nu=.3; S355 fy=355; gammaM0=gammaM1=1.
+N=V=T=M2=0; flessione pura asse forte, classe 1 per S355 e S275.
+
+Caso 1: L=5000, M1=64.4e6; carico distribuito (Constant), applicato
+in sommita', zg=150. Vincoli laterali e d'ingobbamento HingesAtEnds,
+ossia k=kw=1 nel percorso Mcr. Lunghezza Mcr=5000.
+Il fattore assiale 2 sul primo asse non modifica questa lunghezza.
+
+Caso 2: L=8000, M1=66e6; SingleForce, in sommita', zg=150.
+I fattori EffectiveLengthFactorLatTorsBuck, CriticalMoment1 e
+CriticalMoment2 valgono .5. Il checker usa quindi 4000 mm per Mcr,
+con k=kw=1 e coefficienti della forza concentrata.
+Ridurre solo EffectiveLengthFactorLatTorsBuck non riduce la lunghezza
+usata da CalculateMcr: i parametri sono distinti.
+La riduzione a 4 m non dimostra la presenza di un ritegno intermedio
+fisico: vanno confermati vincoli e diagramma nel tratto del riferimento.
+
+3. Controllo indipendente e limiti
+Area=5381.201652942297 mm2; Iz=6037784.24399291 mm4:
+integrali esatti di rettangoli e quattro raccordi (quadrato meno quarto
+di cerchio). Wpl esatto=628355.8864607274 mm3.
+Model restituisce Wpl=628365.3126399475 mm3, differenza +0.00150%.
+La discretizzazione dei raccordi usa 64 corde per quarto di cerchio.
+Il limite geometrico per lo scarto di Wpl e':
+  deltaA = 4*r^2/2 * [pi/2 - 64*sin(pi/128)]
+  |deltaWpl| <= deltaA*h/2.
+Il test usa questo limite derivato dalla geometria, non una tolleranza
+adattata al risultato. Per isolare Checker, la successiva aritmetica
+usa Wpl di Model come input esplicito.
+
+Analogamente Jt=199186.91786049944 mm4 e Jw=125760427779.96912 mm6
+sono input Model: il controllo non qualifica la loro approssimazione.
+Mcr e' ricalcolato con la radice razionalizzata dell'equazione:
+  ncr=pi^2*E*Iz/L^2, q=Iw/Iz+G*It/ncr, d=C2*zg
+  t^2+2*d*t-q=0; Mcr=C1*ncr*t.
+La riduzione chi e' ottenuta per bisezione sul polinomio caratteristico,
+indipendentemente dalla formula con radicale usata in produzione.
+Tolleranza aritmetica 1e-11 relativa (pavimento assoluto 1e-11).
+Gli scenari al centro di taglio hanno zg=0; non sostituiscono i legacy.
+
+4. Risultati degli scenari (gammaM0=gammaM1=1, carico in sommita')
+Materiale  Metodo                  Mc         Mb caso 1    Mb caso 2
+S355       laminati 6.3.2.3         223.069686  93.732162    124.374494
+S355       generale 6.3.2.2         223.069686  81.535044    107.898896
+S275       laminati 6.3.2.3         172.800461  88.458156    114.212073
+S275       generale 6.3.2.2         172.800461  77.976411    100.227037
+Attesi legacy (come scritti)        172.830000  78.435000    106.890000
+Il legacy 2 NON contiene un confronto Mc.
+Mcr e' indipendente da fy: 96.982273 e 136.892270 kNm nei due casi.
+
+Con metodo laminati e carico al centro di taglio:
+Mcr=129.835162/214.516115 kNm;
+Mb S355=117.208834/163.733743 kNm;
+Mb S275=107.192071/141.281737 kNm.
+
+Interpretazione:
+- Caso 1: l'atteso Mc implica fy=275.047 MPa usando Wpl di Model.
+  S275 spiega Mc (scarto -0.0171%), ma da solo non spiega Mb.
+  S275 + metodo generale spiega entrambi entro la tolleranza legacy
+  dell'1% (scarto Mb -0.5847%). E' una compatibilita' numerica.
+- Caso 2: S275 + generale resta -6.2335% sotto l'atteso.
+  S355 + generale differisce invece +0.9439%, entro la tolleranza.
+  Il solo esito verde non identifica materiale, metodo e schema.
+- Non sostituire automaticamente S355 con S275 in entrambi i test,
+  non cambiare il metodo predefinito per ottenere gli attesi.
+- Entrambi i metodi del checker riproducono il ricalcolo indipendente
+  per questi input. Non e' dimostrato un errore resistente che spieghi
+  i due confronti con il libro.
+
+5. Difetto dimostrato e corretto: report del metodo LTB
+CalculateLateralTorsionalBucklingMomentCapacity sceglie CalculateMbRdMod
+per SectionH, con curva b, alpha=.34, beta=.75, lambda0=.4 per IPE300.
+Prima del fix il report esponeva invece curva a, alpha=.21, beta=1,
+lambda0=.2 e chi del metodo generale.
+Per S355 caso 1 il report indicava chi=.3655137804, mentre la capacita'
+93.732162 kNm richiede chi=.4201922870; nel caso 2 .4837003972 contro
+.5575589246. La capacita' non era ricostruibile dai coefficienti esposti.
+
+Il fix allinea curva, alpha, Phi e chi del report al metodo gia' usato
+per la capacita'. ChiLTBuckling comprende il fattore f nel metodo
+6.3.2.3. Per sezioni diverse da H resta il metodo generale.
+Nessuna modifica a Mcr, capacita', coefficienti d'interazione o metodo
+predefinito. API e serializzazione conservano nomi e struttura.
+Consumatori che leggono i coefficienti del report ricevono ora valori
+diversi, coerenti con la capacita' esistente.
+
+6. Test e verifica
+Ipe300LtbLegacyInvestigationTests:
+- 8 casi: due schemi, due fy, carico in sommita'/centro di taglio;
+  geometria, classe, Mc, Mcr, lambda e capacita' con entrambi i metodi.
+- 4 casi che riproducono l'incoerenza report/capacita' degli IPE300.
+- 1 caso distingue lunghezza Mcr e lunghezza torsionale.
+- 4 casi di report per H laminate/saldate, h/b=1.5 e 3,
+  curve b/c/d e gammaM1=1.1.
+Prima del fix: i 9 controlli numerici passano, i 4 report IPE falliscono
+sulla curva a anziche' b. Le 4 estensioni H sono aggiunte dopo.
+Un primo controllo richiedeva Wpl esatto: identificata la discretizzazione
+a 64 corde, e' stato separato il limite geometrico dall'aritmetica Checker.
+
+Dopo il fix: 17/17 nuovi; Steel.Members.Tests 604/604; ModelChecker Steel
+14/14; net472 111/122, stessi 11 nomi falliti. Nessuna release.
+Comando mirato:
+dotnet test tests/Steel.Members.Tests/Steel.Members.Tests.csproj -c Release
+  -p:SteelModelRoot=<Model-SteelFixes>
+  --filter FullyQualifiedName~Ipe300LtbLegacyInvestigationTests
+
+7. Passo successivo
+Per chiudere i due confronti serve la fonte p.190 o un riferimento
+indipendente completo dello stesso schema (materiale, proprieta',
+vincoli, diagramma di momento, quota carico e metodo dichiarati).
+Il test del secondo caso deve rendere esplicito il significato fisico
+del fattore .5. Non si deduce lo schema dalla vicinanza della resistenza.
+
+Rilievo collaterale da trattare separatamente: nei selettori LTB delle
+H saldate il confine h/b=2 usa '<' invece di '<=' della tabella 6.5.
+Questo passo conserva la selezione resistente e rende fedele il report;
+non qualifica il caso limite delle H saldate o le sezioni monosimmetriche.

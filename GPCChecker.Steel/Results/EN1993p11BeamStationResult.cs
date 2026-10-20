@@ -316,6 +316,10 @@ namespace GPC.Checkers.Steel.Results
         /// </summary>
         public EN1993p11Checker.EN1993p11Options.AxialBuckingCurves BuckingCurve2 => _axialBuckingCurves2;
 
+        /// <summary>
+        /// Reduction used in the reported lateral-torsional resistance. For I/H
+        /// sections this is chiLT,mod (including f) from EN 1993-1-1 6.3.2.3.
+        /// </summary>
         public double ChiLTBuckling => _chiLTBuckling;
         public double PhiLTBuckling => _phiLTBuckling;
         public double LambdaSignedLTBuckling => _lambdaSignedLTBuckling;

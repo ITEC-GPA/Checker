@@ -216,9 +216,15 @@ namespace GPC.Checkers.Steel.Checkers
                             double lambdaSignedLTB = GetLambdaSignedLTB(steelSection, Mcr);
                             double lambdaSignedLTB0 = GetLambdaSignedLTB(steelSection, Mcr0);
 
-                            double alphaLTB = GetImperfectionFactorLT(steelSection);
-                            double phiLT = GetPhiForBuckling(alphaLTB, lambdaSignedLTB, EN1993P11.BetaForLateralTorsionalBuckling, EN1993P11.LambdaLT0ForLateralTorsionalBuckling);
-                            double chiLT = GetChiLTmod(phiLT, lambdaSignedLTB, EN1993P11.BetaForLateralTorsionalBuckling, 1.0);
+                            // Report the same method used for latTorsRd: I/H uses 6.3.2.3,
+                            // other sections use 6.3.2.2. Interaction calculations remain separate.
+                            bool modifiedLTB = steelSection.SectionShape is SectionH;
+                            double alphaLTB = modifiedLTB ? GetImperfectionFactorLTMod(steelSection) : GetImperfectionFactorLT(steelSection);
+                            double betaLTB = modifiedLTB ? EN1993P11.BetaForLateralTorsionalBucklingMod : EN1993P11.BetaForLateralTorsionalBuckling;
+                            double lambdaLT0 = modifiedLTB ? EN1993P11.LambdaLT0ForLateralTorsionalBucklingMod : EN1993P11.LambdaLT0ForLateralTorsionalBuckling;
+                            double phiLT = GetPhiForBuckling(alphaLTB, lambdaSignedLTB, betaLTB, lambdaLT0);
+                            double fLTB = modifiedLTB ? GetFactorFForLTB(kc, lambdaSignedLTB) : 1.0;
+                            double chiLT = GetChiLTmod(phiLT, lambdaSignedLTB, betaLTB, fLTB);
 
                             if (lambdaSignedLTB0 < lambda0limit)
                                 latTorsWR = 0.001;
@@ -465,7 +471,7 @@ namespace GPC.Checkers.Steel.Checkers
 
 
                             stationResults[stationIndex].SetResultsForReportLateralTorsionalBuckling(chiLT, phiLT, lambdaSignedLTB, lambdaSignedLTB0, alphaLTB, Mcr,
-                                GetLateralTorsionalBucklingCurve(steelSection), ncrt, ncrtf);
+                                GetLateralTorsionalBucklingCurveForReport(steelSection), ncrt, ncrtf);
 
                             stationResults[stationIndex].SetResultForReportInteractionCoefficient(cmx, cmy, mux, muy, wx, wy, cyx, cyy, cmLT, bLT, cLT, dLT, eLT,
                                 cxx, cxy, cyx, cyy, epsilony, kxx, kxy, kyx, kyy, kw, kyw, kAlpha);
@@ -1398,6 +1404,25 @@ namespace GPC.Checkers.Steel.Checkers
             }
             else
                 return EN1993p11Options.LateralTorsionalBuckingCurves.d;
+        }
+
+        private EN1993p11Options.LateralTorsionalBuckingCurves GetLateralTorsionalBucklingCurveForReport(ISteelSection section)
+        {
+            var curve = GetLateralTorsionalBucklingCurve(section);
+            if (!(section.SectionShape is SectionH))
+                return curve;
+
+            // The existing I/H modified-method selector uses b/c for rolled
+            // and c/d for welded sections instead of the general a/b and b/c.
+            switch (curve)
+            {
+                case EN1993p11Options.LateralTorsionalBuckingCurves.a:
+                    return EN1993p11Options.LateralTorsionalBuckingCurves.b;
+                case EN1993p11Options.LateralTorsionalBuckingCurves.b:
+                    return EN1993p11Options.LateralTorsionalBuckingCurves.c;
+                default:
+                    return EN1993p11Options.LateralTorsionalBuckingCurves.d;
+            }
         }
 
         /// <summary>

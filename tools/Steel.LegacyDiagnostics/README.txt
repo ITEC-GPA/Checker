@@ -8,6 +8,9 @@ non confermata, HInteraction2 ancora aperto.
 RHS_CLASSIFICATION_STUDY.txt documenta la correzione successiva dei due test RHS,
 con attesi ricalcolati indipendentemente per gli input a spigoli vivi.
 La suite legacy corrente ha 111 successi e 11 fallimenti.
+H_LTB_STUDY.txt documenta i due confronti IPE300: materiale/metodo della
+fonte ancora da confermare e fix della coerenza del report LTB (Steel 2.4.0.2).
+I due legacy rimangono aperti; input, attesi e tolleranze sono invariati.
 L'indagine successiva su SectionHBuckling1 e i benchmark SCI/CIC sono in
 ../../tests/Steel.Members.Tests/BUCKLING_BENCHMARKS.txt.
 La ricostruzione indipendente conferma il calcolo S355 del checker; S275

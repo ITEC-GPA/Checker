@@ -125,6 +125,16 @@ SectionHInteraction2 resta fallito sull'asse 2 dopo l'allineamento locale di gam
 Il censimento storico e le analisi sono in tools/Steel.LegacyDiagnostics.
 ModelChecker Steel: 14/14 rieseguiti su Steel 2.4.0.0; dettagli in EC3_STRESS_CLASSIFICATION.txt.
 
+Indagine H-LTB (Steel 2.4.0.2)
+17 nuovi casi Ipe300LtbLegacyInvestigationTests verificano geometria, Mc/Mcr,
+i due metodi LTB per IPE300, quota del carico, lunghezze e coerenza del report.
+Le proprieta' Jt/Jw sono input Model; i test non ne qualificano l'approssimazione.
+Per Wpl raccordato si usa il limite geometrico derivato dalle 64 corde per quarto.
+Il report ora espone il metodo realmente usato dalla capacita' LTB delle H.
+I due confronti Cordova restano aperti: nessuna sostituzione automatica di fy/metodo.
+Dettagli e fonti: tools/Steel.LegacyDiagnostics/H_LTB_STUDY.txt.
+Eseguiti 604/604 Steel.Members.Tests, 14/14 ModelChecker Steel, 111/122 legacy.
+
 Esecuzione riproducibile
 1. Compilare Model, ModelData e GPC.Model.Persistence nel branch Model con il fix del profilo C.
 2. Dal repository Checker:
