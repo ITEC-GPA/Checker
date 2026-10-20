@@ -59,3 +59,36 @@ attesi storici.77/.73, fonte Cordova non disponibile.
 Gli scostamenti residui NON autorizzano ad adottare l'output GPC come atteso.
 Occorre ancora qualificare la catena completa dei coefficienti kij e
 la corrispondenza tra metodo LTB, diagrammi e confronto indipendente.
+
+Seconda fonte confrontabile, ma non sostitutiva in blocco
+CIC / Hong Kong Polytechnic University, Technical Guide EN1993-1-1,
+2015, esempio II-5b, pagine stampate D41-D45. Nel PDF fornito D42/D43
+e D44/D45 sono invertite: controllate visivamente le pagine PDF259-263.
+URL e SHA256: tests/Steel.Members.Tests/BUCKLING_BENCHMARKS.txt, fonte3.
+Il caso comprende i fattori del metodo1 per un203x203x46 S275:
+NEd589kN, My11.1kNm, Mz0.3kNm, psi0, lunghezze flessionali5000mm.
+E' un candidato piu' vicino ai legacy HInteraction rispetto a prove di
+sola resistenza di sezione; non e' lo stesso esempio Cordova.
+
+Non importati automaticamente gli attesi kij:
+- D41 usa Iy4568/Iz1548 cm4, D43 usa Iy4570/Iz1550;
+- D43 usa Npl normalizzato con gammaM1, mentre la tabella A.1 corretta
+  nella copia EC3 consultata riporta gammaM0;
+- D45 colloca eLT all'esterno del prodotto con npl nella formula Czz;
+  EC3 A.1 consultata e Caffe p244 lo collocano all'interno.
+Questi punti vanno dichiarati e risolti prima di usare i valori .47/.88
+come qualificazione completa. Una fonte indipendente puo' contenere refusi.
+
+Candidati di codice da qualificare nei passi successivi, NON fixati qui
+1. Coerenza della riduzione LTB nei termini bLT/cLT/dLT/eLT:
+   CalculateCoefficientsForInteraction seleziona alpha modificato per H,
+   ma beta/lambda0 generali. Confrontare con il metodo della capacita'.
+2. Normalizzazione npl: verificare gammaM0 della A.1 rispetto al gammaM1
+   attualmente usato dal codice, con coefficienti distinti nel test.
+3. Report: verificare la corrispondenza fra CmX0/CmY0, Cmx/Cmy e Cij:
+   il chiamante passa cyx/cyy nei due argomenti nominati cmx/cmy.
+4. La A.2 generale con freccia richiede EI; il ramo GetCMi0 usa E senza I
+   ed e' richiamato con freccia/momento null. Prima va definito e collaudato
+   il percorso effettivamente supportato per diagrammi diversi nei due piani.
+Questa lista non dichiara controllate tutte le tabelle EC3 e non permette
+di commentare o considerare superati i legacy ancora non qualificati.
