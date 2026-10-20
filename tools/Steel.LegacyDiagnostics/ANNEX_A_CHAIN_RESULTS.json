@@ -1,0 +1,768 @@
+{
+  "purpose": "Diagnostic evidence of normative arithmetic, not a replacement for Cordova or a golden test fixture.",
+  "steelVersion": "2.4.0.7",
+  "units": "N, mm, Nmm, MPa. Compression magnitude positive in the independent arithmetic; signed GPC input negative.",
+  "scope": "37 quantities per case; IPE300 and HEA260, original and distinct partial factors. Model section properties are explicit inputs.",
+  "tests": [
+    {
+      "test": "DeclaredLegacyInputsAgainstIndependentAnnexAChain (2,False)",
+      "values": [
+        {
+          "quantity": "NCr1",
+          "independent": 6927605.327716784,
+          "checker": 6927605.327716784
+        },
+        {
+          "quantity": "NCr2",
+          "independent": 500560.5523576594,
+          "checker": 500560.5523576594
+        },
+        {
+          "quantity": "NcrTorsional",
+          "independent": 1592417.3465935267,
+          "checker": 1592417.346593526
+        },
+        {
+          "quantity": "NcrFlexuralTorsional",
+          "independent": 1592417.3465935267,
+          "checker": 1592417.346593526
+        },
+        {
+          "quantity": "LambdaSignedAxialBuckling1",
+          "independent": 0.4272499256595393,
+          "checker": 0.4272499256595393
+        },
+        {
+          "quantity": "LambdaSignedAxialBuckling2",
+          "independent": 1.5894440831975905,
+          "checker": 1.5894440831975905
+        },
+        {
+          "quantity": "ChiAxialBuckling1",
+          "independent": 0.9454683890330302,
+          "checker": 0.9454683890330304
+        },
+        {
+          "quantity": "ChiAxialBuckling2",
+          "independent": 0.3113050292813968,
+          "checker": 0.3113050292813969
+        },
+        {
+          "quantity": "MCr",
+          "independent": 203911478.89732325,
+          "checker": 203911478.89732325
+        },
+        {
+          "quantity": "Lambda0LTBuckling",
+          "independent": 1.1321548426377912,
+          "checker": 1.132154842637791
+        },
+        {
+          "quantity": "LambdaSignedLTBuckling",
+          "independent": 0.8509796905528635,
+          "checker": 0.8509796905528635
+        },
+        {
+          "quantity": "ChiLTBuckling",
+          "independent": 0.8995424893012852,
+          "checker": 0.8995424893012852
+        },
+        {
+          "quantity": "LateralTosionalBucklingCapacity",
+          "independent": 126506385.63603704,
+          "checker": 126506385.63603705
+        },
+        {
+          "quantity": "CmX0",
+          "independent": 0.7867417312430183,
+          "checker": 0.7867417312430183
+        },
+        {
+          "quantity": "CmY0",
+          "independent": 0.7449065544744088,
+          "checker": 0.7449065544744088
+        },
+        {
+          "quantity": "Cmx",
+          "independent": 0.9285957120449185,
+          "checker": 0.9285957120449185
+        },
+        {
+          "quantity": "Cmy",
+          "independent": 0.7449065544744088,
+          "checker": 0.7449065544744088
+        },
+        {
+          "quantity": "CmLT",
+          "independent": 1.1637557769200744,
+          "checker": 1.1637557769200744
+        },
+        {
+          "quantity": "Mux",
+          "independent": 0.9984645735365001,
+          "checker": 0.9984645735365
+        },
+        {
+          "quantity": "Muy",
+          "independent": 0.7035606926787737,
+          "checker": 0.7035606926787737
+        },
+        {
+          "quantity": "Wx",
+          "independent": 1.127974692523446,
+          "checker": 1.127974692523446
+        },
+        {
+          "quantity": "Wy",
+          "independent": 1.5,
+          "checker": 1.5
+        },
+        {
+          "quantity": "EpsilonX",
+          "independent": 3.9655864469387847,
+          "checker": 3.9655864469387847
+        },
+        {
+          "quantity": "BLT",
+          "independent": 0.0,
+          "checker": 0.0
+        },
+        {
+          "quantity": "CLT",
+          "independent": 0.7459307359918348,
+          "checker": 0.7459307359918347
+        },
+        {
+          "quantity": "DLT",
+          "independent": 0.0,
+          "checker": 0.0
+        },
+        {
+          "quantity": "ELT",
+          "independent": 0.19667125351543474,
+          "checker": 0.1966712535154347
+        },
+        {
+          "quantity": "Cxx",
+          "independent": 0.9387429226170003,
+          "checker": 0.9387429226170003
+        },
+        {
+          "quantity": "Cxy",
+          "independent": 0.5809344127965704,
+          "checker": 0.5809344127965704
+        },
+        {
+          "quantity": "Cyx",
+          "independent": 0.7031727153020313,
+          "checker": 0.7031727153020313
+        },
+        {
+          "quantity": "Cyy",
+          "independent": 0.9500920025225216,
+          "checker": 0.9500920025225216
+        },
+        {
+          "quantity": "Kxx",
+          "independent": 1.1818220219494964,
+          "checker": 1.1818220219494964
+        },
+        {
+          "quantity": "Kxy",
+          "independent": 1.4277918057622132,
+          "checker": 1.4277918057622125
+        },
+        {
+          "quantity": "Kyx",
+          "independent": 0.5784435058018103,
+          "checker": 0.5784435058018104
+        },
+        {
+          "quantity": "Kyy",
+          "independent": 0.8890947213803143,
+          "checker": 0.8890947213803144
+        },
+        {
+          "quantity": "BucklingInteraction1Axis",
+          "independent": 0.8955342722761821,
+          "checker": 0.8955342722761821
+        },
+        {
+          "quantity": "BucklingInteraction2Axis",
+          "independent": 0.8634192450331761,
+          "checker": 0.8634192450331759
+        }
+      ]
+    },
+    {
+      "test": "DeclaredLegacyInputsAgainstIndependentAnnexAChain (2,True)",
+      "values": [
+        {
+          "quantity": "NCr1",
+          "independent": 6927605.327716784,
+          "checker": 6927605.327716784
+        },
+        {
+          "quantity": "NCr2",
+          "independent": 500560.5523576594,
+          "checker": 500560.5523576594
+        },
+        {
+          "quantity": "NcrTorsional",
+          "independent": 1592417.3465935267,
+          "checker": 1592417.346593526
+        },
+        {
+          "quantity": "NcrFlexuralTorsional",
+          "independent": 1592417.3465935267,
+          "checker": 1592417.346593526
+        },
+        {
+          "quantity": "LambdaSignedAxialBuckling1",
+          "independent": 0.4272499256595393,
+          "checker": 0.4272499256595393
+        },
+        {
+          "quantity": "LambdaSignedAxialBuckling2",
+          "independent": 1.5894440831975905,
+          "checker": 1.5894440831975905
+        },
+        {
+          "quantity": "ChiAxialBuckling1",
+          "independent": 0.9454683890330302,
+          "checker": 0.9454683890330304
+        },
+        {
+          "quantity": "ChiAxialBuckling2",
+          "independent": 0.3113050292813968,
+          "checker": 0.3113050292813969
+        },
+        {
+          "quantity": "MCr",
+          "independent": 203911478.89732325,
+          "checker": 203911478.89732325
+        },
+        {
+          "quantity": "Lambda0LTBuckling",
+          "independent": 1.1321548426377912,
+          "checker": 1.132154842637791
+        },
+        {
+          "quantity": "LambdaSignedLTBuckling",
+          "independent": 0.8509796905528635,
+          "checker": 0.8509796905528635
+        },
+        {
+          "quantity": "ChiLTBuckling",
+          "independent": 0.8995424893012852,
+          "checker": 0.8995424893012852
+        },
+        {
+          "quantity": "LateralTosionalBucklingCapacity",
+          "independent": 120756095.37985353,
+          "checker": 120756095.37985355
+        },
+        {
+          "quantity": "CmX0",
+          "independent": 0.7867417312430183,
+          "checker": 0.7867417312430183
+        },
+        {
+          "quantity": "CmY0",
+          "independent": 0.7449065544744088,
+          "checker": 0.7449065544744088
+        },
+        {
+          "quantity": "Cmx",
+          "independent": 0.9285957120449185,
+          "checker": 0.9285957120449185
+        },
+        {
+          "quantity": "Cmy",
+          "independent": 0.7449065544744088,
+          "checker": 0.7449065544744088
+        },
+        {
+          "quantity": "CmLT",
+          "independent": 1.1637557769200744,
+          "checker": 1.1637557769200744
+        },
+        {
+          "quantity": "Mux",
+          "independent": 0.9984645735365001,
+          "checker": 0.9984645735365
+        },
+        {
+          "quantity": "Muy",
+          "independent": 0.7035606926787737,
+          "checker": 0.7035606926787737
+        },
+        {
+          "quantity": "Wx",
+          "independent": 1.127974692523446,
+          "checker": 1.127974692523446
+        },
+        {
+          "quantity": "Wy",
+          "independent": 1.5,
+          "checker": 1.5
+        },
+        {
+          "quantity": "EpsilonX",
+          "independent": 3.9655864469387847,
+          "checker": 3.9655864469387847
+        },
+        {
+          "quantity": "BLT",
+          "independent": 0.0,
+          "checker": 0.0
+        },
+        {
+          "quantity": "CLT",
+          "independent": 0.7459307359918348,
+          "checker": 0.7459307359918347
+        },
+        {
+          "quantity": "DLT",
+          "independent": 0.0,
+          "checker": 0.0
+        },
+        {
+          "quantity": "ELT",
+          "independent": 0.19667125351543474,
+          "checker": 0.1966712535154347
+        },
+        {
+          "quantity": "Cxx",
+          "independent": 0.9387429226170003,
+          "checker": 0.9387429226170003
+        },
+        {
+          "quantity": "Cxy",
+          "independent": 0.5809344127965704,
+          "checker": 0.5809344127965704
+        },
+        {
+          "quantity": "Cyx",
+          "independent": 0.7031727153020313,
+          "checker": 0.7031727153020313
+        },
+        {
+          "quantity": "Cyy",
+          "independent": 0.9500920025225216,
+          "checker": 0.9500920025225216
+        },
+        {
+          "quantity": "Kxx",
+          "independent": 1.1818220219494964,
+          "checker": 1.1818220219494964
+        },
+        {
+          "quantity": "Kxy",
+          "independent": 1.4277918057622132,
+          "checker": 1.4277918057622125
+        },
+        {
+          "quantity": "Kyx",
+          "independent": 0.5784435058018103,
+          "checker": 0.5784435058018104
+        },
+        {
+          "quantity": "Kyy",
+          "independent": 0.8890947213803143,
+          "checker": 0.8890947213803144
+        },
+        {
+          "quantity": "BucklingInteraction1Axis",
+          "independent": 0.9381787614321908,
+          "checker": 0.9381787614321908
+        },
+        {
+          "quantity": "BucklingInteraction2Axis",
+          "independent": 0.9045344471776131,
+          "checker": 0.9045344471776129
+        }
+      ]
+    },
+    {
+      "test": "DeclaredLegacyInputsAgainstIndependentAnnexAChain (3,False)",
+      "values": [
+        {
+          "quantity": "NCr1",
+          "independent": 13543198.482993023,
+          "checker": 13543198.482993023
+        },
+        {
+          "quantity": "NCr2",
+          "independent": 4750908.512044155,
+          "checker": 4750908.512044155
+        },
+        {
+          "quantity": "NcrTorsional",
+          "independent": 6801994.601034369,
+          "checker": 6801994.601034371
+        },
+        {
+          "quantity": "NcrFlexuralTorsional",
+          "independent": 6801994.601034369,
+          "checker": 6801994.601034371
+        },
+        {
+          "quantity": "LambdaSignedAxialBuckling1",
+          "independent": 0.3881340691375545,
+          "checker": 0.3881340691375545
+        },
+        {
+          "quantity": "LambdaSignedAxialBuckling2",
+          "independent": 0.6553209518132407,
+          "checker": 0.6553209518132407
+        },
+        {
+          "quantity": "ChiAxialBuckling1",
+          "independent": 0.930754386154875,
+          "checker": 0.9307543861548752
+        },
+        {
+          "quantity": "ChiAxialBuckling2",
+          "independent": 0.7521325820671303,
+          "checker": 0.7521325820671303
+        },
+        {
+          "quantity": "MCr",
+          "independent": 817105274.4693606,
+          "checker": 817105274.4693605
+        },
+        {
+          "quantity": "Lambda0LTBuckling",
+          "independent": 0.5460107593884664,
+          "checker": 0.5460107593884664
+        },
+        {
+          "quantity": "LambdaSignedLTBuckling",
+          "independent": 0.5143269042925145,
+          "checker": 0.5143269042925145
+        },
+        {
+          "quantity": "ChiLTBuckling",
+          "independent": 0.9788166814625509,
+          "checker": 0.9788166814625512
+        },
+        {
+          "quantity": "LateralTosionalBucklingCapacity",
+          "independent": 211571839.2817849,
+          "checker": 211571839.28178492
+        },
+        {
+          "quantity": "CmX0",
+          "independent": 1.0008860536168815,
+          "checker": 1.0008860536168815
+        },
+        {
+          "quantity": "CmY0",
+          "independent": 1.0025258326843336,
+          "checker": 1.0025258326843336
+        },
+        {
+          "quantity": "Cmx",
+          "independent": 1.0003769888629281,
+          "checker": 1.0003769888629281
+        },
+        {
+          "quantity": "Cmy",
+          "independent": 1.0025258326843336,
+          "checker": 1.0025258326843336
+        },
+        {
+          "quantity": "CmLT",
+          "independent": 1.0723318233873484,
+          "checker": 1.0723318233873484
+        },
+        {
+          "quantity": "Mux",
+          "independent": 0.9978970114101609,
+          "checker": 0.9978970114101609
+        },
+        {
+          "quantity": "Muy",
+          "independent": 0.9777200604270699,
+          "checker": 0.97772006042707
+        },
+        {
+          "quantity": "Wx",
+          "independent": 1.099705669987337,
+          "checker": 1.099705669987337
+        },
+        {
+          "quantity": "Wy",
+          "independent": 1.5,
+          "checker": 1.5
+        },
+        {
+          "quantity": "EpsilonX",
+          "independent": 1.8424813321200415,
+          "checker": 1.8424813321200415
+        },
+        {
+          "quantity": "BLT",
+          "independent": 0.01476821493602194,
+          "checker": 0.014768214936021937
+        },
+        {
+          "quantity": "CLT",
+          "independent": 0.19190296585538072,
+          "checker": 0.19190296585538066
+        },
+        {
+          "quantity": "DLT",
+          "independent": 0.3792818696910947,
+          "checker": 0.3792818696910946
+        },
+        {
+          "quantity": "ELT",
+          "independent": 1.08909165409359,
+          "checker": 1.0890916540935898
+        },
+        {
+          "quantity": "Cxx",
+          "independent": 1.0067482076784615,
+          "checker": 1.0067482076784615
+        },
+        {
+          "quantity": "Cxy",
+          "independent": 1.0220984144395637,
+          "checker": 1.0220984144395637
+        },
+        {
+          "quantity": "Cyx",
+          "independent": 0.9281520422866452,
+          "checker": 0.9281520422866452
+        },
+        {
+          "quantity": "Cyy",
+          "independent": 0.9752944294183116,
+          "checker": 0.9752944294183117
+        },
+        {
+          "quantity": "Kxx",
+          "independent": 1.0956653354560701,
+          "checker": 1.0956653354560701
+        },
+        {
+          "quantity": "Kxy",
+          "independent": 0.7489346833194425,
+          "checker": 0.7489346833194422
+        },
+        {
+          "quantity": "Kyx",
+          "independent": 0.5982081411346823,
+          "checker": 0.5982081411346826
+        },
+        {
+          "quantity": "Kyy",
+          "independent": 1.097415450709013,
+          "checker": 1.097415450709013
+        },
+        {
+          "quantity": "BucklingInteraction1Axis",
+          "independent": 0.8005840946355126,
+          "checker": 0.8005840946355123
+        },
+        {
+          "quantity": "BucklingInteraction2Axis",
+          "independent": 0.7870866853519782,
+          "checker": 0.7870866853519782
+        }
+      ]
+    },
+    {
+      "test": "DeclaredLegacyInputsAgainstIndependentAnnexAChain (3,True)",
+      "values": [
+        {
+          "quantity": "NCr1",
+          "independent": 13543198.482993023,
+          "checker": 13543198.482993023
+        },
+        {
+          "quantity": "NCr2",
+          "independent": 4750908.512044155,
+          "checker": 4750908.512044155
+        },
+        {
+          "quantity": "NcrTorsional",
+          "independent": 6801994.601034369,
+          "checker": 6801994.601034371
+        },
+        {
+          "quantity": "NcrFlexuralTorsional",
+          "independent": 6801994.601034369,
+          "checker": 6801994.601034371
+        },
+        {
+          "quantity": "LambdaSignedAxialBuckling1",
+          "independent": 0.3881340691375545,
+          "checker": 0.3881340691375545
+        },
+        {
+          "quantity": "LambdaSignedAxialBuckling2",
+          "independent": 0.6553209518132407,
+          "checker": 0.6553209518132407
+        },
+        {
+          "quantity": "ChiAxialBuckling1",
+          "independent": 0.930754386154875,
+          "checker": 0.9307543861548752
+        },
+        {
+          "quantity": "ChiAxialBuckling2",
+          "independent": 0.7521325820671303,
+          "checker": 0.7521325820671303
+        },
+        {
+          "quantity": "MCr",
+          "independent": 817105274.4693606,
+          "checker": 817105274.4693605
+        },
+        {
+          "quantity": "Lambda0LTBuckling",
+          "independent": 0.5460107593884664,
+          "checker": 0.5460107593884664
+        },
+        {
+          "quantity": "LambdaSignedLTBuckling",
+          "independent": 0.5143269042925145,
+          "checker": 0.5143269042925145
+        },
+        {
+          "quantity": "ChiLTBuckling",
+          "independent": 0.9788166814625509,
+          "checker": 0.9788166814625512
+        },
+        {
+          "quantity": "LateralTosionalBucklingCapacity",
+          "independent": 192338035.71071354,
+          "checker": 192338035.71071354
+        },
+        {
+          "quantity": "CmX0",
+          "independent": 1.0008860536168815,
+          "checker": 1.0008860536168815
+        },
+        {
+          "quantity": "CmY0",
+          "independent": 1.0025258326843336,
+          "checker": 1.0025258326843336
+        },
+        {
+          "quantity": "Cmx",
+          "independent": 1.0003769888629281,
+          "checker": 1.0003769888629281
+        },
+        {
+          "quantity": "Cmy",
+          "independent": 1.0025258326843336,
+          "checker": 1.0025258326843336
+        },
+        {
+          "quantity": "CmLT",
+          "independent": 1.0723318233873484,
+          "checker": 1.0723318233873484
+        },
+        {
+          "quantity": "Mux",
+          "independent": 0.9978970114101609,
+          "checker": 0.9978970114101609
+        },
+        {
+          "quantity": "Muy",
+          "independent": 0.9777200604270699,
+          "checker": 0.97772006042707
+        },
+        {
+          "quantity": "Wx",
+          "independent": 1.099705669987337,
+          "checker": 1.099705669987337
+        },
+        {
+          "quantity": "Wy",
+          "independent": 1.5,
+          "checker": 1.5
+        },
+        {
+          "quantity": "EpsilonX",
+          "independent": 1.8424813321200415,
+          "checker": 1.8424813321200415
+        },
+        {
+          "quantity": "BLT",
+          "independent": 0.01476821493602194,
+          "checker": 0.014768214936021937
+        },
+        {
+          "quantity": "CLT",
+          "independent": 0.19190296585538072,
+          "checker": 0.19190296585538066
+        },
+        {
+          "quantity": "DLT",
+          "independent": 0.3792818696910947,
+          "checker": 0.3792818696910946
+        },
+        {
+          "quantity": "ELT",
+          "independent": 1.08909165409359,
+          "checker": 1.0890916540935898
+        },
+        {
+          "quantity": "Cxx",
+          "independent": 1.0067482076784615,
+          "checker": 1.0067482076784615
+        },
+        {
+          "quantity": "Cxy",
+          "independent": 1.0220984144395637,
+          "checker": 1.0220984144395637
+        },
+        {
+          "quantity": "Cyx",
+          "independent": 0.9281520422866452,
+          "checker": 0.9281520422866452
+        },
+        {
+          "quantity": "Cyy",
+          "independent": 0.9752944294183116,
+          "checker": 0.9752944294183117
+        },
+        {
+          "quantity": "Kxx",
+          "independent": 1.0956653354560701,
+          "checker": 1.0956653354560701
+        },
+        {
+          "quantity": "Kxy",
+          "independent": 0.7489346833194425,
+          "checker": 0.7489346833194422
+        },
+        {
+          "quantity": "Kyx",
+          "independent": 0.5982081411346823,
+          "checker": 0.5982081411346826
+        },
+        {
+          "quantity": "Kyy",
+          "independent": 1.097415450709013,
+          "checker": 1.097415450709013
+        },
+        {
+          "quantity": "BucklingInteraction1Axis",
+          "independent": 0.880642504099064,
+          "checker": 0.8806425040990637
+        },
+        {
+          "quantity": "BucklingInteraction2Axis",
+          "independent": 0.8657953538871761,
+          "checker": 0.8657953538871761
+        }
+      ]
+    }
+  ]
+}

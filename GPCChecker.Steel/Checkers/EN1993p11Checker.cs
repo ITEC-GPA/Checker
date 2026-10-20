@@ -212,7 +212,7 @@ namespace GPC.Checkers.Steel.Checkers
                             double Mcr0 = CalculateMcr0ForInteraction(steelSection, rbf, options.SupportCondition, options.LoadCondition, options.LateralSupportCondition,
                                 options.LateralWarpingCondition, options.LoadApplicationPoint);
 
-                            double lambda0limit = CalculateLambda0LimitForFlexuralTorsionaBuckling(rbf, kc, ncrtf, ncrt);
+                            double lambda0limit = CalculateLambda0LimitForFlexuralTorsionaBuckling(rbf, kc, ncrtf, ncr2);
                             double lambdaSignedLTB = GetLambdaSignedLTB(steelSection, Mcr);
                             double lambdaSignedLTB0 = GetLambdaSignedLTB(steelSection, Mcr0);
 
@@ -2055,6 +2055,11 @@ namespace GPC.Checkers.Steel.Checkers
 
         protected double GetNcrTF(ISteelSection section, double Ncr1, double Ncr2, double NcrT) //EN 1993-1-3 eq 6.35
         {
+            // Double symmetry decouples torsion from the separately checked flexural
+            // modes. Coordinate integration may leave roundoff-sized offsets.
+            if (section.IsDoubleSymmetric)
+                return NcrT;
+
             double x0 = section.ShearCenter.X - section.Centroid.X;
             double y0 = section.ShearCenter.Y - section.Centroid.Y;
 
@@ -2159,6 +2164,8 @@ namespace GPC.Checkers.Steel.Checkers
             }
         }
 
+        // EC3 Table A.1 uses Ncr,TF and Ncr,z. The legacy parameter name
+        // NcrTorsional is retained for source compatibility; pass Ncr,z here.
         protected double CalculateLambda0LimitForFlexuralTorsionaBuckling(ResultBeamForces forces, double kc, double NcrFlexTors, double NcrTorsional)
         {
             return 0.2 * Math.Pow(Math.Pow(kc, -2.0), 0.5) * Math.Pow((1.0 - Math.Abs(forces.N) / NcrTorsional) * (1.0 - Math.Abs(forces.N) / NcrFlexTors), 0.25);
@@ -2182,7 +2189,7 @@ namespace GPC.Checkers.Steel.Checkers
             double ncr2 = GetNcrEuler(GetLengthAxialBuckling2(), section.J22);
             double ncrtf = GetNcrTF(section, ncr1, ncr2, ncrt);
 
-            double lambda0limit = CalculateLambda0LimitForFlexuralTorsionaBuckling(forces, kc, ncrtf, ncrt);
+            double lambda0limit = CalculateLambda0LimitForFlexuralTorsionaBuckling(forces, kc, ncrtf, ncr2);
 
             double lambdaSegnato1 = GetLambdaSigned(sectionClass, section, ncr1);
 

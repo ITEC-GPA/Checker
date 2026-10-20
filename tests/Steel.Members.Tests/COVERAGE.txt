@@ -188,3 +188,10 @@ Dettagli: ../../tools/Steel.LegacyDiagnostics/ANNEX_A_INTERACTION_STUDY.txt.
 20/10/2026 - npl/gammaM0, Steel 2.4.0.6:16 nuovi casi H/RHS.
 6 fallimenti prima; dopo824/824 Steel.Members e14/14 ModelChecker Steel.
 Legacy111/122, stessi11 fallimenti. Dettagli in ANNEX_A_INTERACTION_STUDY.txt.
+
+20/10/2026 - Catena Annex A e suscettibilita' torsionale, Steel 2.4.0.7
+4 casi LegacyHInteractionArithmeticTests (37 grandezze/caso);
+9 casi AnnexATorsionalSusceptibilityTests, inclusa la verifica pubblica LTB.
+Risolti il ramo di simmetria sensibile al roundoff e Ncr,z nella soglia A.1.
+837/837 Steel.Members,14/14 ModelChecker Steel; stessi11 legacy falliti.
+Dettagli/ipotesi: ANNEX_A_INTERACTION_STUDY.txt e ANNEX_A_CHAIN_RESULTS.json.

@@ -169,3 +169,50 @@ Dopo:824/824 Steel.Members,14/14 ModelChecker Steel; legacy111/122,
 stessi11 fallimenti. Diagnostica29 casi/219 asserzioni,11 discrepanze.
 I due legacy HInteraction hanno gammaM0=gammaM1, quindi non cambiano.
 Nessuna modifica agli attesi legacy; prova aritmetica, non esempio pubblicato.
+
+
+20/10/2026 - Ricostruzione dei due legacy H e soglia torsionale, Steel 2.4.0.7
+LegacyHInteractionArithmeticTests ricostruisce37 grandezze per caso:
+Euler, Ncr,T/TF, snellezze, chi, Mcr, Cm0/Cm/CmLT, mu, w, eccentricita',
+bLT/cLT/dLT/eLT, Cij, kij e i due rapporti di6.3.3(4).
+Quattro casi: IPE300/HEA260 con gamma originali e con gammaM1=1.10.
+Gli attesi sono aritmetica EC3 indipendente, con proprieta' di Model come
+input dichiarati. Non si certificano qui torsione/ingobbamento di Model,
+classificazione generale o riproduzione delle pagine Cordova non disponibili.
+C1=1.77 per psi0 e1.127 per UDL: ipotesi esplicite della ricostruzione.
+Riferimenti: EC3:2005+AC:2009,6.3.1,6.3.2.3,6.3.3(4),tabelle6.2-6.6,A.1/A.2;
+NCCI SN003b per Mcr. Tolleranza2e-11 relativa, pavimento assoluto2e-11.
+Il JSON ANNEX_A_CHAIN_RESULTS.json registra i confronti, non e' una fixture.
+
+Prima del fix tutti i37 termini coincidono tranne Ncr,TF nell'HEA260:
+atteso6.801994601MN, calcolato4.750908512MN. Due test su quattro falliscono.
+Differenza centro di taglio/baricentro dy=-2.842170943040401e-14mm:
+il confronto esatto con zero selezionava un ramo accoppiato per una sezione
+doppiamente simmetrica. Ora la simmetria dichiarata dalla geometria seleziona
+Ncr,TF=Ncr,T; i modi flessionali restano verificati separatamente.
+Non modificato il solutore per sezioni senza doppia simmetria.
+Il limite disaccoppiato e il criterio con Ncr,z e Ncr,T sono anche riscontrati
+in Caffe A5.5 pp239-240; non si importa l'intero esempio con diagrammi diversi.
+
+Secondo difetto isolato: il criterio A.1 per lambda0 usa Ncr,z e Ncr,TF,
+ma entrambi i chiamanti passavano Ncr,T al posto di Ncr,z.
+Corrette sia la selezione dei Cm sia quella della verifica LTB pubblica.
+Il nome del parametro protected NcrTorsional resta per compatibilita'
+con chiamanti che usino argomenti nominati; il commento esplicita Ncr,z.
+AnnexATorsionalSusceptibilityTests:9 casi, tre geometrie H e sei posizioni
+sotto/fra/sopra le soglie corretta/precedente con N400/800kN.
+Prima:3/9 fallimenti; dopo controllati Cm e rapporto LTB pubblico.
+Le lunghezze flessionali/torsionali sono4000mm; la sola luce per Mcr
+si determina per bisezione dall'equazione elastica indipendente.
+La tolleranza geometrica1e-10mm e' solo un'asserzione di test, non una
+nuova tolleranza inserita nel codice di produzione.
+
+Verifica dopo i fix:837/837 Steel.Members,14/14 ModelChecker Steel;
+legacy111/122 con gli stessi11 fallimenti,29 casi/219 asserzioni diagnostiche.
+Nessun atteso, input, tolleranza o whitelist legacy modificato.
+Gli HInteraction restano .895534272276182/.863419245033176 e
+.800584094635512/.787086685351978. Sono lontani dalla soglia e la correzione
+di Ncr,TF non cambia il loro ramo o i rapporti. Le differenze dagli attesi
+storici non derivano quindi da un errore aritmetico dei coefficienti ora
+controllati, sotto le ipotesi dichiarate. Metodo e dati originali della fonte
+restano da accertare: nessuna attribuzione automatica di errore all'autore.
