@@ -1,0 +1,89 @@
+{
+  "Purpose": "Verification audit, not a release approval or expected test fixture",
+  "SteelVersion": "2.4.0.17",
+  "CodeCommit": "b9fb6610",
+  "ModelVersion": "5.16.0.1",
+  "Suites": [
+    {
+      "File": "channel-ec3-full.trx",
+      "Sha256": "165cfeda6de6da809e0101a65ab2e0732256c3e7d68211c25a9513bcd759a828",
+      "Counters": {
+        "total": "1253",
+        "executed": "1253",
+        "passed": "1253",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "FailedTests": []
+    },
+    {
+      "File": "followup-modelchecker-full.trx",
+      "Sha256": "c4dfa3c74f58a542b1e490a209d54fc2b698b27b172f0bc266eb74b96683fe7a",
+      "Counters": {
+        "total": "174",
+        "executed": "174",
+        "passed": "174",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "FailedTests": []
+    },
+    {
+      "File": "channel-ec3-legacy.trx",
+      "Sha256": "2c4064c1eae9b485c4d36f8e6ca6374f71b019ed40aaa70cddf5d77eb9f3e9b6",
+      "Counters": {
+        "total": "122",
+        "executed": "122",
+        "passed": "111",
+        "failed": "11",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "FailedTests": [
+        "SectionCLateralTorsionalBuckling2",
+        "Sap_SectionHAsymmetricTest2",
+        "SectionHLateralTorsionalBuckling1",
+        "SectionHInteraction2",
+        "SectionHInteraction3",
+        "Sap_SectionTTest2",
+        "SectionHLateralTorsionalBuckling2",
+        "Sap_SectionHAsymmetricTest1",
+        "Sap_SectionTTest",
+        "SectionHBuckling1",
+        "Sap_SectionLTest"
+      ]
+    }
+  ]
+}

@@ -147,3 +147,6 @@ Rilievo collaterale da trattare separatamente: nei selettori LTB delle
 H saldate il confine h/b=2 usa '<' invece di '<=' della tabella 6.5.
 Questo passo conserva la selezione resistente e rende fedele il report;
 non qualifica il caso limite delle H saldate o le sezioni monosimmetriche.
+
+Aggiornamento2.4.0.17:il confine h/b=2 e le curve H saldate sono stati
+corretti e qualificati nel passo2.4.0.11. Vedere LTB_FOLLOWUP.txt.

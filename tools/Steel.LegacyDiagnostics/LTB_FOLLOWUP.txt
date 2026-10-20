@@ -167,3 +167,11 @@ of its plastic modulus to a double-symmetric combination of channels
 without associated torsion. It cannot certify the isolated legacy beam.
 https://constructalia.arcelormittal.com/files/UPN--a31ee316da5e451343f5b857f275013d.pdf
 SHA256:733FD744359742B5F06D8437A979792949B9DE781331FB096BA0DE7E29E9748E
+
+VERIFICA FINALE
+Suite integrale ModelChecker:174/174 superati,inclusi14 Steel,zero ignorati.
+Steel.Members:1253/1253;legacy net472:111/122,stessi11 falliti,zero ignorati.
+Manifest con hash TRX e nomi falliti:FOLLOWUP_VERIFICATION_2026_10_20.json.
+La verifica integrale ModelChecker non equivale al rilascio coordinato di
+Utilities/Geometry/Model/Checker o alla verifica delle suite net472 Concrete.
+Tutti i fix sono committati e integrati nel master locale;nessun push.

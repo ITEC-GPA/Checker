@@ -1,0 +1,671 @@
+{
+  "Purpose": "Observed diagnostics at Steel2.4.0.17, not an expected fixture or certification",
+  "SourceSha256": "773022095F2659B4292116A0C5C08065747457BDDA0F2EB8A8AF3B8C6BD0F47F",
+  "CodeCommit": "b9fb6610",
+  "Assemblies": [
+    {
+      "Name": "GPCModel, Version=5.16.0.1, Culture=neutral, PublicKeyToken=null",
+      "Sha256": "E004B7517A00DBE257D409EF591C6712BABBB9922CA863C873F71F67F42B459A"
+    },
+    {
+      "Name": "GPCChecker.Steel, Version=2.4.0.17, Culture=neutral, PublicKeyToken=null",
+      "Sha256": "95CD611C1D73EC83483E0A4D8BF8DDB28087A2B3B6B7017CFA0EBBDA9147F11E"
+    },
+    {
+      "Name": "GPCModelData, Version=0.0.2.26, Culture=neutral, PublicKeyToken=null",
+      "Sha256": "E0E17839E63166D43E9E585DB8BFC6E4D4082941519FAA49803493629AC49D25"
+    },
+    {
+      "Name": "GPCGeometry, Version=2.3.0.0, Culture=neutral, PublicKeyToken=null",
+      "Sha256": "7EF76EDFB4C3736AAE7B6F66B2F3CE30A8BB8DE031C492B03BD52289D6E9D29E"
+    },
+    {
+      "Name": "GPCUtilities, Version=3.0.0.0, Culture=neutral, PublicKeyToken=null",
+      "Sha256": "92031B381F9AA426A5F88B48762C72DB89724F784670FFDA8802203FC52A05E5"
+    }
+  ],
+  "Cases": [
+    {
+      "Name": "Sap_SectionHAsymmetricTest1",
+      "Exception": null,
+      "Errors": [
+        [
+          "Fail check beam , \n station 0 * beam Length from start point, \ncombination SelfWeight. \nError: EN1993-1-1:2005 6.3.3 requires doubly symmetric sections; combined member interaction for this section is not implemented. Section and standalone LTB components do not constitute a complete member check."
+        ]
+      ],
+      "FailedAssertions": [
+        {
+          "Passed": false,
+          "Expression": "484.759 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].LateralTosionalBucklingCapacity == 1",
+          "First": 1.4160269479684744,
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1081
+        },
+        {
+          "Passed": false,
+          "Expression": "0.575 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiAxialBuckling1 == 1",
+          "First": 0.8972893920754685,
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1083
+        },
+        {
+          "Passed": false,
+          "Expression": "0.15 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiAxialBuckling2 == 1",
+          "First": 0.8961467363129624,
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1084
+        },
+        {
+          "Passed": false,
+          "Expression": "0.775 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiLTBuckling == 1",
+          "First": 0.947511493087303,
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1085
+        },
+        {
+          "Passed": false,
+          "Expression": "1.005 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxx == 1",
+          "First": "NaN",
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1087
+        },
+        {
+          "Passed": false,
+          "Expression": "1.004 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxy == 1",
+          "First": "NaN",
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1088
+        },
+        {
+          "Passed": false,
+          "Expression": "0.918 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyx == 1",
+          "First": "NaN",
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1089
+        },
+        {
+          "Passed": false,
+          "Expression": "0.901 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyy == 1",
+          "First": "NaN",
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1090
+        }
+      ],
+      "Stations": [
+        {
+          "BucklingInteraction1Axis": "NaN",
+          "BucklingInteraction2Axis": "NaN",
+          "BendingMoment1Capacity": 418540170.22219867,
+          "LateralTosionalBucklingCapacity": 342337411.51287216,
+          "BendingCompressionClass": "Class3",
+          "ChiLTBuckling": 0.8179320310667642,
+          "LambdaSignedLTBuckling": 0.8980804129738386,
+          "MCr": 518927513.34629416,
+          "NcrTorsional": 3008276.2408709624,
+          "NcrFlexuralTorsional": 848473.3905463787,
+          "WorkingRatio": "NaN"
+        }
+      ]
+    },
+    {
+      "Name": "Sap_SectionHAsymmetricTest2",
+      "Exception": null,
+      "Errors": [
+        [
+          "Fail check beam , \n station 0 * beam Length from start point, \ncombination SelfWeight. \nError: MN,Rd EN1993-1-1 §6.2.9.1 not implemented this section"
+        ]
+      ],
+      "FailedAssertions": [
+        {
+          "Passed": false,
+          "Expression": "6212.5 * 1000.0 / EN1993P11Checker.EN1993p11BeamStationResults[0].AxialTensionCapacity == 1",
+          "First": "NaN",
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1206
+        },
+        {
+          "Passed": false,
+          "Expression": "637.891 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment1Capacity == 1",
+          "First": "NaN",
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1207
+        },
+        {
+          "Passed": false,
+          "Expression": "263.477 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment2Capacity == 1",
+          "First": "NaN",
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1208
+        },
+        {
+          "Passed": false,
+          "Expression": "0.396 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiAxialBuckling1 == 1",
+          "First": "Infinity",
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1210
+        },
+        {
+          "Passed": false,
+          "Expression": "0.123 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiAxialBuckling2 == 1",
+          "First": "Infinity",
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1211
+        },
+        {
+          "Passed": false,
+          "Expression": "0.121 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiLTBuckling == 1",
+          "First": "Infinity",
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1212
+        },
+        {
+          "Passed": false,
+          "Expression": "1.073 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxx == 1",
+          "First": "Infinity",
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1214
+        },
+        {
+          "Passed": false,
+          "Expression": "0.683 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxy == 1",
+          "First": "Infinity",
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1215
+        },
+        {
+          "Passed": false,
+          "Expression": "0.586 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyx == 1",
+          "First": "Infinity",
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1216
+        },
+        {
+          "Passed": false,
+          "Expression": "0.901 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyy == 1",
+          "First": "Infinity",
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1217
+        }
+      ],
+      "Stations": [
+        {
+          "BucklingInteraction1Axis": "NaN",
+          "BucklingInteraction2Axis": "NaN",
+          "BendingMoment1Capacity": "NaN",
+          "LateralTosionalBucklingCapacity": "NaN",
+          "BendingCompressionClass": "Class1",
+          "ChiLTBuckling": 0,
+          "LambdaSignedLTBuckling": 0,
+          "MCr": 0,
+          "NcrTorsional": 0,
+          "NcrFlexuralTorsional": 0,
+          "WorkingRatio": "NaN"
+        }
+      ]
+    },
+    {
+      "Name": "Sap_SectionLTest",
+      "Exception": null,
+      "Errors": [
+        [
+          "Fail check beam , \n station 0 * beam Length from start point, \ncombination SelfWeight. \nError: McrLT can not be calculated without symmetry"
+        ]
+      ],
+      "FailedAssertions": [
+        {
+          "Passed": false,
+          "Expression": "13774.0 * 1000.0 / EN1993P11Checker.EN1993p11BeamStationResults[0].AxialTensionCapacity == 1",
+          "First": "NaN",
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 2016
+        },
+        {
+          "Passed": false,
+          "Expression": "772.216 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment1Capacity == 1",
+          "First": "NaN",
+          "Second": 1,
+          "Tolerance": 0.03,
+          "GeneratedLine": 2017
+        },
+        {
+          "Passed": false,
+          "Expression": "433.721 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment2Capacity == 1",
+          "First": "NaN",
+          "Second": 1,
+          "Tolerance": 0.03,
+          "GeneratedLine": 2018
+        }
+      ],
+      "Stations": [
+        {
+          "BucklingInteraction1Axis": "NaN",
+          "BucklingInteraction2Axis": "NaN",
+          "BendingMoment1Capacity": "NaN",
+          "LateralTosionalBucklingCapacity": "NaN",
+          "BendingCompressionClass": "Class3",
+          "ChiLTBuckling": 0,
+          "LambdaSignedLTBuckling": 0,
+          "MCr": 0,
+          "NcrTorsional": 0,
+          "NcrFlexuralTorsional": 0,
+          "WorkingRatio": "NaN"
+        }
+      ]
+    },
+    {
+      "Name": "Sap_SectionTTest",
+      "Exception": null,
+      "Errors": [
+        [
+          "Fail check beam , \n station 0 * beam Length from start point, \ncombination SelfWeight. \nError: EN1993-1-1:2005 6.3.3 requires doubly symmetric sections; combined member interaction for this section is not implemented. Section and standalone LTB components do not constitute a complete member check."
+        ]
+      ],
+      "FailedAssertions": [
+        {
+          "Passed": false,
+          "Expression": "923.0 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment1Capacity == 1",
+          "First": 1.7753303964757698,
+          "Second": 1,
+          "Tolerance": 0.03,
+          "GeneratedLine": 1753
+        },
+        {
+          "Passed": false,
+          "Expression": "227.3 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment2Capacity == 1",
+          "First": 1.8189820742637643,
+          "Second": 1,
+          "Tolerance": 0.03,
+          "GeneratedLine": 1754
+        },
+        {
+          "Passed": false,
+          "Expression": "0.987 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiLTBuckling == 1",
+          "First": 0.987,
+          "Second": 1,
+          "Tolerance": 0.001,
+          "GeneratedLine": 1758
+        },
+        {
+          "Passed": false,
+          "Expression": "1.001 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxx == 1",
+          "First": "NaN",
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1760
+        },
+        {
+          "Passed": false,
+          "Expression": "0.54 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxy == 1",
+          "First": "NaN",
+          "Second": 1,
+          "Tolerance": 0.0206,
+          "GeneratedLine": 1761
+        },
+        {
+          "Passed": false,
+          "Expression": "0.676 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyx == 1",
+          "First": "NaN",
+          "Second": 1,
+          "Tolerance": 0.019,
+          "GeneratedLine": 1762
+        },
+        {
+          "Passed": false,
+          "Expression": "0.901 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyy == 1",
+          "First": "NaN",
+          "Second": 1,
+          "Tolerance": 0.0205,
+          "GeneratedLine": 1763
+        },
+        {
+          "Passed": false,
+          "Expression": "0.530 / EN1993P11Checker.EN1993p11BeamStationResults[0].PhiLTBuckling == 1",
+          "First": 1.1769442096921354,
+          "Second": 1,
+          "Tolerance": 0.1,
+          "GeneratedLine": 1767
+        }
+      ],
+      "Stations": [
+        {
+          "BucklingInteraction1Axis": "NaN",
+          "BucklingInteraction2Axis": "NaN",
+          "BendingMoment1Capacity": 519903225.8064519,
+          "LateralTosionalBucklingCapacity": 519903225.8064519,
+          "BendingCompressionClass": "Class3",
+          "ChiLTBuckling": 1,
+          "LambdaSignedLTBuckling": 0.06388897595333334,
+          "MCr": 127371029154.01047,
+          "NcrTorsional": 49541154.68129059,
+          "NcrFlexuralTorsional": 35135704.643917605,
+          "WorkingRatio": "NaN"
+        }
+      ]
+    },
+    {
+      "Name": "Sap_SectionTTest2",
+      "Exception": null,
+      "Errors": [
+        [
+          "Fail check beam , \n station 0 * beam Length from start point, \ncombination SelfWeight. \nError: EN1993-1-1:2005 6.3.3 requires doubly symmetric sections; combined member interaction for this section is not implemented. Section and standalone LTB components do not constitute a complete member check."
+        ]
+      ],
+      "FailedAssertions": [
+        {
+          "Passed": false,
+          "Expression": "0.511 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiLTBuckling == 1",
+          "First": 0.7076443233587746,
+          "Second": 1,
+          "Tolerance": 0.001,
+          "GeneratedLine": 1886
+        },
+        {
+          "Passed": false,
+          "Expression": "1.158 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxx == 1",
+          "First": "NaN",
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1888
+        },
+        {
+          "Passed": false,
+          "Expression": "0.775 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxy == 1",
+          "First": "NaN",
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1889
+        },
+        {
+          "Passed": false,
+          "Expression": "0.591 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyx == 1",
+          "First": "NaN",
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1890
+        },
+        {
+          "Passed": false,
+          "Expression": "0.901 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyy == 1",
+          "First": "NaN",
+          "Second": 1,
+          "Tolerance": 0.01,
+          "GeneratedLine": 1891
+        },
+        {
+          "Passed": false,
+          "Expression": "1.193 / EN1993P11Checker.EN1993p11BeamStationResults[0].PhiLTBuckling == 1",
+          "First": 1.4640626514552553,
+          "Second": 1,
+          "Tolerance": 0.1,
+          "GeneratedLine": 1895
+        }
+      ],
+      "Stations": [
+        {
+          "BucklingInteraction1Axis": "NaN",
+          "BucklingInteraction2Axis": "NaN",
+          "BendingMoment1Capacity": 1002012152.7777778,
+          "LateralTosionalBucklingCapacity": 723567183.637036,
+          "BendingCompressionClass": "Class2",
+          "ChiLTBuckling": 0.7221141795847118,
+          "LambdaSignedLTBuckling": 0.5823469632760323,
+          "MCr": 2954672557.902272,
+          "NcrTorsional": 49555169.80571259,
+          "NcrFlexuralTorsional": 515507.44822040515,
+          "WorkingRatio": "NaN"
+        }
+      ]
+    },
+    {
+      "Name": "SectionCLateralTorsionalBuckling2",
+      "Exception": null,
+      "Errors": [
+        []
+      ],
+      "FailedAssertions": [
+        {
+          "Passed": false,
+          "Expression": "(Math.Abs(Units.ConverMomentFromDefault(EN1993P11Checker.EN1993p11BeamStationResults[0].LateralTosionalBucklingCapacity, units) - expMbRd) / expMbRd * 100) < 1",
+          "First": null,
+          "Second": null,
+          "Tolerance": null,
+          "GeneratedLine": 655
+        },
+        {
+          "Passed": false,
+          "Expression": "(Math.Abs(Units.ConverMomentFromDefault(EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment1Capacity, units) - expMcRd) / expMcRd * 100) < 1",
+          "First": null,
+          "Second": null,
+          "Tolerance": null,
+          "GeneratedLine": 656
+        }
+      ],
+      "Stations": [
+        {
+          "BucklingInteraction1Axis": 0.9386180177727188,
+          "BucklingInteraction2Axis": 0.4992173164473733,
+          "BendingMoment1Capacity": 230145013.95109478,
+          "LateralTosionalBucklingCapacity": 68611510.51928146,
+          "BendingCompressionClass": "Class1",
+          "ChiLTBuckling": 0.2981229501407371,
+          "LambdaSignedLTBuckling": 1.4243012952645477,
+          "MCr": 113448258.07184537,
+          "NcrTorsional": 1912988.2311657027,
+          "NcrFlexuralTorsional": 470134.28161850246,
+          "WorkingRatio": 0.9386180177727188
+        }
+      ]
+    },
+    {
+      "Name": "SectionHBuckling1",
+      "Exception": null,
+      "Errors": [
+        []
+      ],
+      "FailedAssertions": [
+        {
+          "Passed": false,
+          "Expression": "Math.Abs(EN1993P11Checker.EN1993p11BeamStationResults[0].AxialBuckling1Capacity - expNbRd1) /\r\n                EN1993P11Checker.EN1993p11BeamStationResults[0].AxialBuckling1Capacity * 100 < 0.5",
+          "First": null,
+          "Second": null,
+          "Tolerance": null,
+          "GeneratedLine": 446
+        },
+        {
+          "Passed": false,
+          "Expression": "Math.Abs(EN1993P11Checker.EN1993p11BeamStationResults[0].AxialBuckling2Capacity - expNbRd2) /\r\n                EN1993P11Checker.EN1993p11BeamStationResults[0].AxialBuckling2Capacity * 100 < 0.5",
+          "First": null,
+          "Second": null,
+          "Tolerance": null,
+          "GeneratedLine": 448
+        }
+      ],
+      "Stations": [
+        {
+          "BucklingInteraction1Axis": 0.8056077829176611,
+          "BucklingInteraction2Axis": 0.7099739212827165,
+          "BendingMoment1Capacity": 447140809.9966463,
+          "LateralTosionalBucklingCapacity": 410415805.0290413,
+          "BendingCompressionClass": "Class3",
+          "ChiLTBuckling": 0.917867025002973,
+          "LambdaSignedLTBuckling": 0.7318400374012402,
+          "MCr": 834856780.9089057,
+          "NcrTorsional": 5940622.72313793,
+          "NcrFlexuralTorsional": 5940622.72313793,
+          "WorkingRatio": 0.8056077829176611
+        }
+      ]
+    },
+    {
+      "Name": "SectionHInteraction2",
+      "Exception": null,
+      "Errors": [
+        []
+      ],
+      "FailedAssertions": [
+        {
+          "Passed": false,
+          "Expression": "(Math.Abs(Checker.EN1993p11BeamStationResults[0].BucklingInteraction1Axis - expInteraction1WR) * 100) < 3.0",
+          "First": null,
+          "Second": null,
+          "Tolerance": null,
+          "GeneratedLine": 738
+        },
+        {
+          "Passed": false,
+          "Expression": "(Math.Abs(Checker.EN1993p11BeamStationResults[0].BucklingInteraction2Axis - expInteraction2WR) * 100) < 2.5",
+          "First": null,
+          "Second": null,
+          "Tolerance": null,
+          "GeneratedLine": 739
+        }
+      ],
+      "Stations": [
+        {
+          "BucklingInteraction1Axis": 0.8955342722761821,
+          "BucklingInteraction2Axis": 0.8634192450331759,
+          "BendingMoment1Capacity": 140634141.4003692,
+          "LateralTosionalBucklingCapacity": 126506385.63603705,
+          "BendingCompressionClass": "Class1",
+          "ChiLTBuckling": 0.8995424893012852,
+          "LambdaSignedLTBuckling": 0.8509796905528635,
+          "MCr": 203911478.89732325,
+          "NcrTorsional": 1592417.346593526,
+          "NcrFlexuralTorsional": 1592417.346593526,
+          "WorkingRatio": 0.8955342722761821
+        }
+      ]
+    },
+    {
+      "Name": "SectionHInteraction3",
+      "Exception": null,
+      "Errors": [
+        []
+      ],
+      "FailedAssertions": [
+        {
+          "Passed": false,
+          "Expression": "(Math.Abs(Checker.EN1993p11BeamStationResults[0].BucklingInteraction1Axis - expInteraction1WR) * 100) < 2.5",
+          "First": null,
+          "Second": null,
+          "Tolerance": null,
+          "GeneratedLine": 779
+        },
+        {
+          "Passed": false,
+          "Expression": "(Math.Abs(Checker.EN1993p11BeamStationResults[0].BucklingInteraction2Axis - expInteraction2WR) * 100) < 1",
+          "First": null,
+          "Second": null,
+          "Tolerance": null,
+          "GeneratedLine": 780
+        }
+      ],
+      "Stations": [
+        {
+          "BucklingInteraction1Axis": 0.8005840946355123,
+          "BucklingInteraction2Axis": 0.7870866853519782,
+          "BendingMoment1Capacity": 216150626.86268649,
+          "LateralTosionalBucklingCapacity": 211571839.28178492,
+          "BendingCompressionClass": "Class1",
+          "ChiLTBuckling": 0.9788166814625512,
+          "LambdaSignedLTBuckling": 0.5143269042925145,
+          "MCr": 817105274.4693605,
+          "NcrTorsional": 6801994.601034371,
+          "NcrFlexuralTorsional": 6801994.601034371,
+          "WorkingRatio": 0.8005840946355123
+        }
+      ]
+    },
+    {
+      "Name": "SectionHLateralTorsionalBuckling1",
+      "Exception": null,
+      "Errors": [
+        []
+      ],
+      "FailedAssertions": [
+        {
+          "Passed": false,
+          "Expression": "(Math.Abs(Units.ConverMomentFromDefault(EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment1Capacity, units) - expMcRd) / expMcRd) < 0.01",
+          "First": null,
+          "Second": null,
+          "Tolerance": null,
+          "GeneratedLine": 572
+        },
+        {
+          "Passed": false,
+          "Expression": "(Math.Abs(Units.ConverMomentFromDefault(EN1993P11Checker.EN1993p11BeamStationResults[0].LateralTosionalBucklingCapacity, units) - expMbRd) / expMbRd * 100) < 1",
+          "First": null,
+          "Second": null,
+          "Tolerance": null,
+          "GeneratedLine": 573
+        }
+      ],
+      "Stations": [
+        {
+          "BucklingInteraction1Axis": 0.6870640659249837,
+          "BucklingInteraction2Axis": 0.3574806458674466,
+          "BendingMoment1Capacity": 223069685.98718137,
+          "LateralTosionalBucklingCapacity": 93732161.51728047,
+          "BendingCompressionClass": "Class1",
+          "ChiLTBuckling": 0.42019228700876354,
+          "LambdaSignedLTBuckling": 1.516610641750676,
+          "MCr": 96982272.84683849,
+          "NcrTorsional": 1592417.346593526,
+          "NcrFlexuralTorsional": 1592417.346593526,
+          "WorkingRatio": 0.6870640659249837
+        }
+      ]
+    },
+    {
+      "Name": "SectionHLateralTorsionalBuckling2",
+      "Exception": null,
+      "Errors": [
+        []
+      ],
+      "FailedAssertions": [
+        {
+          "Passed": false,
+          "Expression": "(Math.Abs(Units.ConverMomentFromDefault(EN1993P11Checker.EN1993p11BeamStationResults[0].LateralTosionalBucklingCapacity, units) - expMbRd) / expMbRd * 100) < 1",
+          "First": null,
+          "Second": null,
+          "Tolerance": null,
+          "GeneratedLine": 614
+        }
+      ],
+      "Stations": [
+        {
+          "BucklingInteraction1Axis": 0.5306554242173773,
+          "BucklingInteraction2Axis": 0.27610095359433917,
+          "BendingMoment1Capacity": 223069685.98718137,
+          "LateralTosionalBucklingCapacity": 124374494.23481971,
+          "BendingCompressionClass": "Class1",
+          "ChiLTBuckling": 0.5575589246221777,
+          "LambdaSignedLTBuckling": 1.2765293821886032,
+          "MCr": 136892269.9063201,
+          "NcrTorsional": 1944644.0426788267,
+          "NcrFlexuralTorsional": 1944644.0426788267,
+          "WorkingRatio": 0.5306554242173773
+        }
+      ]
+    }
+  ]
+}

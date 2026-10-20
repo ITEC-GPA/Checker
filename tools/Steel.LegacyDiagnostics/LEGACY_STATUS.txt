@@ -1,3 +1,10 @@
+STATO ATTUALE: Steel2.4.0.17,1253/1253 membri,111/122 legacy,stessi11.
+Riepilogo aggiornato:FOLLOWUP_2026_10_20.txt.
+Le sezioni che seguono conservano lo storico dei passi precedenti;
+le dichiarazioni di input/asserzioni invariati valgono per quei passi.
+Nel ciclo corrente e' stato corretto Sap_SectionCTest come documentato.
+
+STORICO
 STATO DEGLI 11 CONFRONTI LEGACY EC3
 20 ottobre 2026 - Steel 2.4.0.7, Model 5.16.0.1
 

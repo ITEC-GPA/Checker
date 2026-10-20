@@ -1,3 +1,8 @@
+Aggiornamento corrente:la qualifica biassiale conservativa e' descritta
+nel passo2.4.0.14 in fondo;riepilogo completo in
+../../tools/Steel.LegacyDiagnostics/FOLLOWUP_2026_10_20.txt.
+Le parti precedenti conservano lo stato storico2.4.0.8.
+
 T CLASSIFICATION INVESTIGATION - 2026-10-20
 
 Target: EN1993p11Test.Sap_SectionTTest, without changing its inputs/assertions.
