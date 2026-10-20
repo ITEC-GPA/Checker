@@ -2300,7 +2300,7 @@ namespace GPC.Checkers.Steel.Checkers
 
                 else if (section.SectionShape is SectionT sectionT)
                 {
-                    return SetWorstClass(new SectionClass[] {GetClassCompressedOuterPlate(sectionT.LenghtFlange/2 - sectionT.R, sectionT.ThicknessFlange),
+                    return SetWorstClass(new SectionClass[] {GetClassCompressedOuterPlate((sectionT.LenghtFlange - sectionT.ThicknessWeb)/2 - sectionT.R, sectionT.ThicknessFlange),
                         GetClassCompressedOuterPlate(sectionT.HeightWeb, sectionT.ThicknessWeb)});
                 }
 
@@ -2348,8 +2348,8 @@ namespace GPC.Checkers.Steel.Checkers
                     sectionClass1Axis = SetWorstClass(sectionClass1Axis,
                         GetClassBendingInnerPlate(resultBeamForces, sectionH.D, sectionH.ThicknessWeb, section, sectionClass1Axis));
 
-                    SectionClass sectionClass2Axis = SetWorstClass(new SectionClass[] {GetClassCompressedOuterPlate(sectionH.LenghtTopFlange/2- sectionH.R, sectionH.ThicknessTopFlange),
-                        GetClassCompressedOuterPlate(sectionH.LenghtBottomFlange/2- sectionH.R, sectionH.ThicknessBottomFlange)});
+                    SectionClass sectionClass2Axis = SetWorstClass(new SectionClass[] {GetClassCompressedOuterPlate((sectionH.LenghtTopFlange - sectionH.ThicknessWeb)/2 - sectionH.R, sectionH.ThicknessTopFlange),
+                        GetClassCompressedOuterPlate((sectionH.LenghtBottomFlange - sectionH.ThicknessWeb)/2 - sectionH.R, sectionH.ThicknessBottomFlange)});
 
                     sectionClass1Axis = SetWorstClass(sectionClass1Axis,
                         GetClassBendingInnerPlate(resultBeamForces, sectionH.D, sectionH.ThicknessWeb, section, sectionClass1Axis));
@@ -2527,6 +2527,10 @@ namespace GPC.Checkers.Steel.Checkers
         {
             double alpha = -resultBeamForces.N / (2.0 * thickness * Fy * length) + 0.5;
             double ctRatio = length / thickness;
+            // Endpoints of the compressed fraction: no compressed plate, or conservatively
+            // uniform compression. In particular alpha == 1 must not fall through the branches.
+            if (alpha <= 0) return SectionClass.Class1;
+            if (alpha >= 1) return GetClassCompressedInnerPlate(length, thickness);
 
             double psi = 1;
             if (sectionClass != SectionClass.Class4)
@@ -2593,28 +2597,6 @@ namespace GPC.Checkers.Steel.Checkers
                     else
                         return SectionClass.Class4;
                 }
-            }
-
-            else if (alpha >= 1)
-            {
-                if (psi > -1)
-                {
-                    if (ctRatio <= 42.0 * Epsilon / (0.67 + 0.33 * psi))
-                        return SectionClass.Class3;
-
-                    else
-                        return SectionClass.Class4;
-                }
-                else if (psi <= -1)
-                {
-                    if (ctRatio <= 62.0 * Epsilon * (1 - psi) * Math.Sqrt(-psi))
-                        return SectionClass.Class3;
-
-                    else
-                        return SectionClass.Class4;
-                }
-                else
-                    return SectionClass.Class4;
             }
 
             else

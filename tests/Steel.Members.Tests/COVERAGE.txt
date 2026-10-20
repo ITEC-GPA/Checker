@@ -34,14 +34,15 @@ La vecchia formula Model produceva 149931.818... mm3: rimosso il difetto nel bra
 Casi aggiunti a Steel.Members.Tests (CodeVerificationTests)
 96 flessione: 8 famiglie x 2 norme x 3 classi assegnate x 2 assi.
 24 compressione NTC: 8 famiglie x 3 classi assegnate.
-20 taglio: H/C/T/RHS/CHS x 2 norme x 2 direzioni.
+20 taglio: H/C/T/RHS/CHS x 2 norme x 2 direzioni; 3 ulteriori casi C/T con raccordi.
 25 instabilità: 5 curve x 5 snellezze, con controllo Euler e limite plastico.
-18 classificazione: entrambi i lati delle 3 soglie per piatti interni, esterni e CHS.
+18 classificazione: entrambi i lati delle 3 soglie per piatti interni, esterni e CHS;
+8 ulteriori casi al limite di compressione completa dell'anima e oltre.
 6 interazioni flessione-taglio e segno; 4 interazioni N-M H/RHS.
 8 interazioni elastiche NTC e rottura della sezione netta.
 4 input non validi; 1 classe 4; 1 larghezza libera ala; 1 limite N=0.
 6 carichi puri nel percorso pubblico H/RHS; 3 geometrie speciali rifiutate; 2 torsioni rifiutate.
-Totale: 219 nuovi casi generali, oltre ai 13 preesistenti della suite.
+Totale: 230 nuovi casi generali, oltre ai 13 preesistenti della suite.
 Ulteriori 17 casi in EN1993ResultIntegrityTests: stazioni/gruppi, segni, NaN, recupero dopo errore.
 Ulteriori 4 casi di geometria nel repository Model: ChannelPlasticModulusRegressionTest.
 

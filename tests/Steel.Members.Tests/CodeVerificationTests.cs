@@ -181,6 +181,30 @@ public class CodeVerificationTests
         var shape = new SteelSection(new SectionH(200, 20, 190, 10, 190, 10, ""), SteelMaterialEN1993Data.S235);
         var p = new Probe(shape);
         Assert.AreEqual(1, p.CompressionClass());
+        Assert.AreEqual(1, p.BendingClass());
+    }
+
+    [DataTestMethod]
+    [DataRow("C", "EC3")] [DataRow("T", "EC3")] [DataRow("T", "NTC2018")]
+    public void RolledShearAreaIncludesTheCorrectRootFillets(string name, string code)
+    {
+        GPC.Model.Sections.Section shape = name == "C" ? new SectionC(300, 10, 100, 15, 100, 15, "", 10) :
+            new SectionT(200, 200, 10, 15, "", 10);
+        var p = new Probe(new SteelSection(shape, SteelMaterialEN1993Data.S235,
+            GPC.Model.Sections.Section.SectionTypes.Rolled, GPC.Model.Sections.Section.FormedTypes.HotFinished), code);
+        // Two root fillets: two squares of side r less two quarter-circles.
+        double area = (name == "C" ? 5700 : 4850) + 2 * 100 * (1 - Math.PI / 4);
+        double av = code == "NTC2018" ? .9 * (area - 3000) :
+            name == "C" ? area - 3000 + 20 * 15 : area - 3000 + 30 * 15 / 2;
+        Near(av * 235 / (Math.Sqrt(3) * (code == "NTC2018" ? 1.05 : 1)), p.Shear(2));
+    }
+
+    [DataTestMethod]
+    [DataRow(30d, 1d, 1)] [DataRow(35d, 1d, 2)] [DataRow(40d, 1d, 3)] [DataRow(45d, 1d, 4)]
+    [DataRow(30d, 1.1, 1)] [DataRow(35d, 1.1, 2)] [DataRow(40d, 1.1, 3)] [DataRow(45d, 1.1, 4)]
+    public void FullyCompressedInnerPlateHasTheUniformCompressionClass(double ratio, double fraction, int expected)
+    {
+        Assert.AreEqual(expected, new Probe("H").CombinedInnerClass(ratio, fraction));
     }
 
     [TestMethod]
@@ -262,6 +286,9 @@ public class CodeVerificationTests
         public int Classify(string family, double ratio) => (int)(family == "inner" ? GetClassCompressedInnerPlate(ratio, 1) :
             family == "outer" ? GetClassCompressedOuterPlate(ratio, 1) : GetClassCHSBending(ratio, 1));
         public int CompressionClass() => (int)CalculateSectionClassDueToCompression(Forces(n: -1000), Section);
+        public int BendingClass() => (int)CalculateSectionClassDueToBending(Forces(m1: 1e6), Section);
+        public int CombinedInnerClass(double ratio, double fraction) => (int)GetClassBendingInnerPlate(
+            Forces(n: -ratio * Fy * fraction), ratio, 1, Section, SC.Class1);
         public double EpsilonInteraction(double n, double m) => CalculateEpsilonyForInteraction(SC.Class1, Forces(n: n, m1: m), Section);
         public void AddLoad(ResultBeamForces forces) => BeamElement.Results.Add(new BeamResult(new[] {
             new StationResultBeamForces(new LoadCase("General check", LoadCase.LoadCaseTypes.SelfWeight), forces, 0) }));
