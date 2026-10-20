@@ -217,7 +217,7 @@ namespace GPC.Checkers.Steel.Checkers
                             double lambdaSignedLTB0 = GetLambdaSignedLTB(steelSection, Mcr0);
 
                             // Report the same method used for latTorsRd: I/H uses 6.3.2.3,
-                            // other sections use 6.3.2.2. Interaction calculations remain separate.
+                            // other sections use 6.3.2.2, as in the interaction coefficients.
                             bool modifiedLTB = steelSection.SectionShape is SectionH;
                             double alphaLTB = modifiedLTB ? GetImperfectionFactorLTMod(steelSection) : GetImperfectionFactorLT(steelSection);
                             double betaLTB = modifiedLTB ? EN1993P11.BetaForLateralTorsionalBucklingMod : EN1993P11.BetaForLateralTorsionalBuckling;
@@ -2239,17 +2239,19 @@ namespace GPC.Checkers.Steel.Checkers
             double mrd1 = CalculateBendingMoment1Capacity(forces, sectionClass, section);
             double mrd2 = CalculateBendingMoment2Capacity(forces, sectionClass, section);
 
-            double alpha;
-            if (section.SectionShape is SectionH)
-                alpha = GetImperfectionFactorLTMod(section);
-            else
-                alpha = GetImperfectionFactorLT(section);
+            // Use the same complete LTB method as the member capacity and report.
+            // EC3 6.3.2.3 for I/H; 6.3.2.2 for other sections, without correction f.
+            bool modifiedLTB = section.SectionShape is SectionH;
+            double alpha = modifiedLTB ? GetImperfectionFactorLTMod(section) : GetImperfectionFactorLT(section);
+            double beta = modifiedLTB ? EN1993P11.BetaForLateralTorsionalBucklingMod : EN1993P11.BetaForLateralTorsionalBuckling;
+            double lambdaLT0 = modifiedLTB ? EN1993P11.LambdaLT0ForLateralTorsionalBucklingMod : EN1993P11.LambdaLT0ForLateralTorsionalBuckling;
             double kc = Getkc(supportCondition, loadCondition, psi);
 
             double Mcr = CalculateMcr(section, forces, GetLengthCriticalMoment1(), supportCondition, loadCondition, lateralCondition, warpingCondition, psi, loadApplicationPoint);
             double lambdaSigned = GetLambdaSignedLTB(section, Mcr);
-            double phi = GetPhiForBuckling(alpha, lambdaSigned, EN1993P11.BetaForLateralTorsionalBuckling, EN1993P11.LambdaLT0ForLateralTorsionalBuckling);
-            double chiMod = GetChiLTmod(phi, lambdaSigned, EN1993P11.BetaForLateralTorsionalBuckling, GetFactorFForLTB(kc, lambdaSigned));
+            double phi = GetPhiForBuckling(alpha, lambdaSigned, beta, lambdaLT0);
+            double f = modifiedLTB ? GetFactorFForLTB(kc, lambdaSigned) : 1.0;
+            double chiMod = GetChiLTmod(phi, lambdaSigned, beta, f);
 
             double ncr1 = GetNcrEuler(GetLengthAxialBuckling1(), section.J11);
             double ncr2 = GetNcrEuler(GetLengthAxialBuckling2(), section.J22);

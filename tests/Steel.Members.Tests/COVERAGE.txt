@@ -169,3 +169,9 @@ AnnexACompressionSignTests: 26 casi, fonte Caffe A5.5 p243 ed EC3 tabelle A.1/A.
 10 fallimenti riprodotti prima del fix; dopo 779/779 Steel.Members e14/14 ModelChecker Steel.
 Legacy invariati:111/122, stessi11 fallimenti. Dettagli e limiti:
 ../../tools/Steel.LegacyDiagnostics/ANNEX_A_INTERACTION_STUDY.txt
+
+20/10/2026 - Coerenza LTB nei coefficienti di interazione, Steel 2.4.0.4
+InteractionLtbConsistencyTests:17 casi;16 fallimenti prima del fix.
+Dopo:796/796 Steel.Members e111/122 legacy, stessi11 fallimenti.
+H laminate/saldate e RHS;3 diagrammi e2 controlli di configurazione.
+Fonti, ipotesi e limiti: ANNEX_A_INTERACTION_STUDY.txt.

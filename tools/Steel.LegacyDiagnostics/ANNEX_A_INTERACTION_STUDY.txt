@@ -92,3 +92,30 @@ Candidati di codice da qualificare nei passi successivi, NON fixati qui
    il percorso effettivamente supportato per diagrammi diversi nei due piani.
 Questa lista non dichiara controllate tutte le tabelle EC3 e non permette
 di commentare o considerare superati i legacy ancora non qualificati.
+
+20/10/2026 - Correzione della coerenza LTB (Steel 2.4.0.4)
+Risolto il candidato 1 sopra: i termini bLT/cLT/dLT/eLT usano ora lo stesso
+metodo della capacita' e del report. Per I/H si selezionano insieme alpha,
+beta e lambdaLT0 modificati con f; per le altre sezioni si usa il set
+generale con f=1. I valori sono letti dallo Standard, non fissati nel checker.
+Fonti: EC3:2005 + AC:2009, 6.3.2.2/3, tabelle6.3-6.6 eA.1,
+pagine stampate61-63,76-77 della copia gia' identificata sopra.
+
+InteractionLtbConsistencyTests: 17 casi aritmetico-normativi indipendenti:
+H laminate/saldate con h/b minore e maggiore di2 e RHS; momento uniforme,
+carico distribuito e concentrato, appoggi a forcella e carico al centro
+di taglio. I casi assumono classe1; le proprieta' di Model sono INPUT,
+non un controllo della loro integrazione. Mcr e chi sono ricostruiti
+separatamente (NCCI SN003b e soluzione polinomiale della curva).
+Due casi controllano inoltre la propagazione di parametri Standard
+personalizzati: non vengono presentati come valori di un Annex nazionale.
+Controllati Mb e tutti e quattro i termini bLT/cLT/dLT/eLT.
+Tolleranza2e-12 relativa con pavimento assoluto2e-12.
+
+Prima:16/17 fallimenti; passa solo RHS con momento uniforme (f=1).
+Dopo:796/796 Steel.Members; legacy111/122, esattamente gli stessi11
+fallimenti ammessi per nome. Diagnostica29 casi/219 asserzioni,11 con
+discrepanze. Nessuna modifica a input, attesi, tolleranze o whitelist legacy.
+Il fix non qualifica gli interi benchmark Cordova e non risolve gli11 casi.
+La normalizzazione npl e la formula generale con freccia restano fuori
+da questo intervento, limitato ai primi due bug richiesti dall'utente.
