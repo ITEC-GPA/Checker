@@ -156,3 +156,16 @@ SectionHInteraction3: rapporti prima/dopo il fix LTB:
 Questi sono risultati diagnostici, non nuovi attesi indipendenti.
 Restano aperti npl/gammaM0 e il percorso generale con freccia: esclusi
 dall'intervento su richiesta dell'utente. Nessuna revisione architetturale.
+
+20/10/2026 - Normalizzazione npl, Steel 2.4.0.6
+Corretto NEd/(Npl,Rk/gammaM0), tabella A.1 EC3:2005+AC:2009 p76.
+AnnexANplNormalizationTests:16 casi H/RHS, N0/-200kN e quattro coppie
+(gammaM0,gammaM1): (1,1), (1,1.1), (1.05,1.1), (1.2,1).
+Momenti nulli isolano npl: i termini bLT/cLT/dLT/eLT si annullano.
+Confrontati tutti e quattro i Cij con aritmetica normativa indipendente;
+geometria Model assunta come input, classe1 assegnata al test primitivo.
+Prima:6 fallimenti su16, tutti e soli i casi compressi con gamma diversi.
+Dopo:824/824 Steel.Members,14/14 ModelChecker Steel; legacy111/122,
+stessi11 fallimenti. Diagnostica29 casi/219 asserzioni,11 discrepanze.
+I due legacy HInteraction hanno gammaM0=gammaM1, quindi non cambiano.
+Nessuna modifica agli attesi legacy; prova aritmetica, non esempio pubblicato.

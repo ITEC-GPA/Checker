@@ -184,3 +184,7 @@ legacy111/122 con gli stessi11 fallimenti. Nessun ignorato nelle tre suite.
 La diagnostica conferma che il secondo fix cambia solo i campi del report
 previsti e lascia invariati resistenze, kij e rapporti di utilizzazione.
 Dettagli: ../../tools/Steel.LegacyDiagnostics/ANNEX_A_INTERACTION_STUDY.txt.
+
+20/10/2026 - npl/gammaM0, Steel 2.4.0.6:16 nuovi casi H/RHS.
+6 fallimenti prima; dopo824/824 Steel.Members e14/14 ModelChecker Steel.
+Legacy111/122, stessi11 fallimenti. Dettagli in ANNEX_A_INTERACTION_STUDY.txt.

@@ -2278,7 +2278,8 @@ namespace GPC.Checkers.Steel.Checkers
             dLT = 2.0 * alphaLT * lambda0 * Math.Abs(forces.M1) * Math.Abs(forces.M2) / ((0.1 + Math.Pow(lambda2, 4.0)) * cmx * chiMod * mrd1 * cmy * mrd2);
             eLT = 1.7 * alphaLT * lambda0 * Math.Abs(forces.M1) / ((0.1 + Math.Pow(lambda2, 4.0)) * cmx * chiMod * mrd1);
 
-            double npl = Math.Abs(forces.N) / (Material.Fyk * section.Area / GammaM1);
+            // EC3 Table A.1: normalize by section resistance Npl,Rk / gammaM0.
+            double npl = Math.Abs(forces.N) / (Material.Fyk * section.Area / GammaM0);
 
             cxx = Math.Max(1.0 + (wx - 1.0) * ((2.0 - 1.6 / wx * Math.Pow(cmx, 2) * lambdaMax - 1.6 / wx * Math.Pow(cmx, 2) * Math.Pow(lambdaMax, 2)) * npl - bLT),
                 section.Wel1 / section.Wpl1);
