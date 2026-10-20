@@ -652,6 +652,47 @@ namespace GPC.Checkers.Steel.Checkers
         /// <summary>
         /// EN1993-1-1: 2005 Chapter 6.3.1.2(2)
         /// </summary>
+        /// <summary>
+        /// EN 1993-1-1:2005 Table 6.2, rolled doubly symmetric I/H sections.
+        /// Table axes y/z are geometric; Model axes 1/2 are ordered by inertia.
+        /// Fyk retains the existing nominal-grade convention; product-thickness
+        /// reductions must not be used to infer a different steel grade.
+        /// </summary>
+        private static EN1993p11Options.AxialBuckingCurves GetRolledSymmetricIBucklingCurve(
+            ISteelSection section, SectionH shape, int principalAxis)
+        {
+            double ratio = shape.Height / shape.LenghtTopFlange;
+            double tf = shape.ThicknessTopFlange;
+            bool s460 = section.SteelMaterial.Fyk >= 460;
+            EN1993p11Options.AxialBuckingCurves y, z;
+            if (ratio > 1.2)
+            {
+                if (tf <= 40)
+                {
+                    y = s460 ? EN1993p11Options.AxialBuckingCurves.a0 : EN1993p11Options.AxialBuckingCurves.a;
+                    z = s460 ? EN1993p11Options.AxialBuckingCurves.a0 : EN1993p11Options.AxialBuckingCurves.b;
+                }
+                else if (tf <= 100)
+                {
+                    y = s460 ? EN1993p11Options.AxialBuckingCurves.a : EN1993p11Options.AxialBuckingCurves.b;
+                    z = s460 ? EN1993p11Options.AxialBuckingCurves.a : EN1993p11Options.AxialBuckingCurves.c;
+                }
+                else
+                    throw new NotSupportedException("EN 1993-1-1 Table 6.2 has no rolled I-section row for h/b > 1.2 and tf > 100 mm.");
+            }
+            else if (tf <= 100)
+            {
+                y = s460 ? EN1993p11Options.AxialBuckingCurves.a : EN1993p11Options.AxialBuckingCurves.b;
+                z = s460 ? EN1993p11Options.AxialBuckingCurves.a : EN1993p11Options.AxialBuckingCurves.c;
+            }
+            else
+            {
+                y = z = s460 ? EN1993p11Options.AxialBuckingCurves.c : EN1993p11Options.AxialBuckingCurves.d;
+            }
+            bool geometricY = (shape.Jxx >= shape.Jyy) == (principalAxis == 1);
+            return geometricY ? y : z;
+        }
+
         protected EN1993p11Options.AxialBuckingCurves GetBucklingCurve2Axis(ISteelSection section)
         {
             if (section.SectionShape is SectionCHS sectionCHS)
@@ -695,6 +736,9 @@ namespace GPC.Checkers.Steel.Checkers
 
             else if (section.SectionShape is SectionH sectionH)
             {
+                if (section.SectionType == Section.SectionTypes.Rolled && sectionH.IsDoubleSymmetric)
+                    return GetRolledSymmetricIBucklingCurve(section, sectionH, 2);
+
                 if (section.SectionType == Section.SectionTypes.Rolled)
                 {
                     if ((2 * sectionH.Height) / (sectionH.LenghtTopFlange + sectionH.LenghtBottomFlange) > 1.2)
@@ -807,6 +851,9 @@ namespace GPC.Checkers.Steel.Checkers
 
             else if (section.SectionShape is SectionH sectionH)
             {
+                if (section.SectionType == Section.SectionTypes.Rolled && sectionH.IsDoubleSymmetric)
+                    return GetRolledSymmetricIBucklingCurve(section, sectionH, 1);
+
                 if (section.SectionType == Section.SectionTypes.Rolled)
                 {
                     if ((2 * sectionH.Height) / (sectionH.LenghtTopFlange + sectionH.LenghtBottomFlange) > 1.2)
