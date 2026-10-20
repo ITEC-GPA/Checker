@@ -10,20 +10,29 @@ public enum ConcreteTemplateKind { HollowRectangle, HollowCircle, I, L, C, Ellip
 public sealed record ConcreteTemplateInput(ConcreteTemplateKind Kind, double Width, double Height,
     double Web, double TopFlange, double BottomWidth, double BottomFlange,
     double InnerWidth, double InnerHeight, double Cover, double BarDiameter, double PerimeterSpacing,
-    int RadialCount, int InnerRadialCount, double LinkDiameter, double LinkSpacing, int CurveSides = 96, int PolygonSides = 8);
+    int RadialCount, int InnerRadialCount, double LinkDiameter, double LinkSpacing, int CurveSides = 96, int PolygonSides = 8)
+{
+    /// <summary>Optional separate layout. Null preserves the existing global radial layout.</summary>
+    public StadiumReinforcement? Stadium { get; init; }
+}
 
 public sealed record ConcreteTemplateLink(string Name, IReadOnlyList<Point2d> Points);
 public sealed record ConcreteTemplateFiber(double X, double Y, double Area);
 public sealed record ConcreteTemplateGeometry(Shape2d Shape, IReadOnlyList<DesignBar> Bars,
     IReadOnlyList<ConcreteTemplateLink> Links, IReadOnlyList<ConcreteTemplateFiber> Fibers,
-    double Width, double Height, double Area, string ShearNote);
+    double Width, double Height, double Area, string ShearNote)
+{
+    /// <summary>Closed path of bar centres for column spacing; absent for other templates.
+    /// Curved portions follow the discretized offset contour; straight portions join their bars.</summary>
+    public IReadOnlyList<Point2d>? ColumnBarPath { get; init; }
+}
 
 /// <summary>
 /// Constructive layouts, not reinforcement design or certification of anchorage/bend radii.
 /// New templates have their own path: established section meshes and their builders are untouched.
 /// Shapes are centred on the concrete centroid; bars and transverse paths share that origin.
 /// </summary>
-public static class ConcreteSectionTemplates
+public static partial class ConcreteSectionTemplates
 {
     public static ConcreteTemplateGeometry Create(ConcreteTemplateInput p)
     {
@@ -58,17 +67,29 @@ public static class ConcreteSectionTemplates
         outer = shape.Fill2d; holes = shape.Holes2d ?? [];
 
         double offset = p.Cover + p.LinkDiameter + p.BarDiameter / 2;
-        var barPaths = new List<Point2d[]> { Offset(outer, -offset) };
-        barPaths.AddRange(holes.Select(h => Offset(h, offset)));
+        var barPaths = new List<Point2d[]>();
+        if (p.Stadium is null)
+        {
+            barPaths.Add(Offset(outer, -offset));
+            barPaths.AddRange(holes.Select(h => Offset(h, offset)));
+        }
         var bars = new List<DesignBar>();
+        IReadOnlyList<Point2d>? columnBarPath = null;
         bool radial = p.Kind is ConcreteTemplateKind.Ellipse or ConcreteTemplateKind.Stadium or ConcreteTemplateKind.HollowCircle;
-        for (int ring = 0; ring < barPaths.Count; ring++)
+        if (p.Stadium is not null)
+        {
+            if (p.Kind != ConcreteTemplateKind.Stadium)
+                throw new ArgumentException("La disposizione per tratti appartiene soltanto alla capsula.");
+            columnBarPath = CreateStadiumBars(p, outer, bars);
+        }
+        else for (int ring = 0; ring < barPaths.Count; ring++)
         {
             IEnumerable<Point2d> points = radial ? Radial(barPaths[ring], ring == 0 ? p.RadialCount : p.InnerRadialCount)
                 : Divide(barPaths[ring], p.PerimeterSpacing);
             foreach (var point in points)
                 bars.Add(new(point.X, point.Y, p.BarDiameter, Math.PI * p.BarDiameter * p.BarDiameter / 4));
         }
+        if (p.Kind == ConcreteTemplateKind.Stadium && columnBarPath is null) columnBarPath = barPaths[0];
         ValidateBars(shape, bars, p.Cover + p.LinkDiameter);
 
         var links = new List<ConcreteTemplateLink>();
@@ -107,7 +128,8 @@ public static class ConcreteSectionTemplates
         }
         return new(shape, bars.AsReadOnly(), links.AsReadOnly(), fibers.AsReadOnly(), xmax - xmin, ymax - ymin, area,
             "Staffatura geometrica preliminare: verificare piegature, ancoraggi, trattenimento delle barre e ripartizione del taglio nelle pareti. " +
-            "Per questa tipologia assegnare esplicitamente bw, d, Asl e i bracci efficaci per direzione; la torsione richiede un modello dedicato.");
+            "Per questa tipologia assegnare esplicitamente bw, d, Asl e i bracci efficaci per direzione; la torsione richiede un modello dedicato.")
+        { ColumnBarPath = columnBarPath };
     }
 
     private static Shape2d Shape(ConcreteTemplateInput p)
