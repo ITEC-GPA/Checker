@@ -1619,10 +1619,15 @@ namespace SteelTests
             Assert.AreEqual(0.998 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiAxialBuckling2, 1, 0.001);
             Assert.AreEqual(1.000 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiLTBuckling, 1, 0.001);
 
-            Assert.AreEqual(0.895 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxx, 1, 0.01);
-            Assert.AreEqual(0.616 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxy, 1, 0.0206);
-            Assert.AreEqual(0.484 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyx, 1, 0.019);
-            Assert.AreEqual(0.901 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyy, 1, 0.0205);
+            // Historical SAP kij were 0.895/0.616/0.484/0.901.
+            // They cannot qualify EC3:2005 6.3.3 for this mono-symmetric C.
+            // Retain the independent component comparisons above/below.
+            Assert.IsTrue(double.IsNaN(EN1993P11Checker.EN1993p11BeamStationResults[0].Kxx));
+            Assert.IsTrue(double.IsNaN(EN1993P11Checker.EN1993p11BeamStationResults[0].Kxy));
+            Assert.IsTrue(double.IsNaN(EN1993P11Checker.EN1993p11BeamStationResults[0].Kyx));
+            Assert.IsTrue(double.IsNaN(EN1993P11Checker.EN1993p11BeamStationResults[0].Kyy));
+            Assert.IsTrue(double.IsNaN(EN1993P11Checker.EN1993p11BeamStationResults[0].WorkingRatio));
+            Assert.IsTrue(EN1993P11Checker.GetErrorLog().Count == 1 && EN1993P11Checker.GetErrorLog()[0].Contains("6.3.3"));
 
             Assert.AreEqual(0.474 / EN1993P11Checker.EN1993p11BeamStationResults[0].PhiAxialBuckling1, 1, 0.01);
             Assert.AreEqual(0.522 / EN1993P11Checker.EN1993p11BeamStationResults[0].PhiAxialBuckling2, 1, 0.01);

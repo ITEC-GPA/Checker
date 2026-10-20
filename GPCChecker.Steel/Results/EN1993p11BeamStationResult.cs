@@ -551,6 +551,14 @@ namespace GPC.Checkers.Steel.Results
             _kAlphaInteraction = kAlphaInteraction;
         }
 
+        internal void InvalidateMemberInteraction()
+        {
+            _bucklingInteraction1Axis = _bucklingInteraction2Axis = _flexuralTorsionalInteraction = double.NaN;
+            _cmX0 = _cmY0 = _mux = _muy = _wx = _wy = _cmx = _cmy = _cmLT = double.NaN;
+            _bLT = _cLT = _dLT = _eLT = _cxx = _cxy = _cyx = _cyy = _epsilonx = double.NaN;
+            _kxx = _kxy = _kyx = _kyy = _kwInteraction = _kywInteraction = _kAlphaInteraction = double.NaN;
+        }
+
         internal override double GetMaxWorkingRatio()
         {
             List<double> workingRatioList = new List<double>() { _axialTensionWorkingRatio, _axialCompressionWorkingRatio, _axialBuckling1WorkingRatio,

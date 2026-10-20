@@ -70,4 +70,22 @@ Integration14/14; legacy111/122, same11 failures. Audit prefix: ltb-curves.
 Step 3/4c - Steel2.4.0.12: see TEE_TORSION_STUDY.txt.
 Corrected T compression-side sign and exact Wagner integral;25 new tests.
 1028/1028 members,14/14 integration,111/122 legacy,same11 failures.
-
+Step 5 - Steel 2.4.0.13
+Verified EN1993-1-1:2005 6.3.3(1),printedp64/PDFp66: simplified member
+interaction requires doubly symmetric sections. No qualified extension
+for the present mono-symmetric combined cases has been established.
+Public results now retain section capacities, cross-section interaction and
+standalone LTB components but set combined member ratios and AnnexA
+coefficients to NaN, with an explicit diagnostic; overall utilization is NaN.
+Nine negative integration cases cover T/C/mono-H and compression/zero/tension.
+These are scope tests, not positive resistance benchmarks. Before9/9 failed.
+Two existing T public tests now assert preserved section resistance and an
+unsupported member interaction, rather than a finite aggregate.
+Sap_SectionCTest was deliberately corrected: all capacity/chi/phi assertions
+remain; four out-of-scope SAP kij comparisons were replaced by explicit
+unsupported-state assertions. Historical kij remain documented in the test.
+No numerical expected value in the11 remaining legacy failures was changed.
+1037/1037 members,14/14 integration,111/122 legacy,same11 failures,zero ignored.
+Current diagnostics29 cases/221 assertions. Audit prefix:interaction-scope.
+Original source can be replayed at commit a2a82faf with Run.ps1 -SourceRevision.
+Updated legacy source SHA256: 773022095F2659B4292116A0C5C08065747457BDDA0F2EB8A8AF3B8C6BD0F47F

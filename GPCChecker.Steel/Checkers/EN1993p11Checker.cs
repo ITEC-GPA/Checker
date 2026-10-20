@@ -486,6 +486,18 @@ namespace GPC.Checkers.Steel.Checkers
                                 kxx: kxx, kxy: kxy, kyx: kyx, kyy: kyy,
                                 kwInteraction: kw, kywInteraction: kyw, kAlphaInteraction: kAlpha);
 
+                            // EC3:2005 6.3.3(1): the simplified beam-column
+                            // interaction is limited to doubly symmetric sections.
+                            // Keep section/LTB components readable, but do not
+                            // present Annex A outside its scope as a valid check.
+                            bool combinedMemberAction = (rbf.M1 != 0 || rbf.M2 != 0) &&
+                                (rbf.N != 0 || (rbf.M1 != 0 && rbf.M2 != 0));
+                            if (!steelSection.IsDoubleSymmetric && combinedMemberAction)
+                            {
+                                stationResults[stationIndex].InvalidateMemberInteraction();
+                                throw new NotSupportedException("EN1993-1-1:2005 6.3.3 requires doubly symmetric sections; combined member interaction for this section is not implemented. Section and standalone LTB components do not constitute a complete member check.");
+                            }
+
                             #endregion
 
                         }

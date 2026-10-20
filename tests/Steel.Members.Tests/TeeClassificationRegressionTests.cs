@@ -83,18 +83,19 @@ public class TeeClassificationRegressionTests
 
     [DataTestMethod]
     [DataRow(-100e6)] [DataRow(100e6)]
-    public void PublicCheckUsesPlasticResistanceForBothQualifiedMomentDirections(double moment)
+    public void PublicCheckPreservesPlasticResistanceAndRefusesUnqualifiedMemberInteraction(double moment)
     {
         var p = LegacyProbe();
         p.AddLoad(Force(100000, moment));
         p.PerformCheck();
-        Assert.AreEqual(0, p.GetErrorLog().Count, string.Join("; ", p.GetErrorLog()));
+        Assert.AreEqual(1, p.GetErrorLog().Count, string.Join("; ", p.GetErrorLog()));
+        StringAssert.Contains(p.GetErrorLog().Single(), "6.3.3");
         var result = p.EN1993p11BeamStationResults.Single();
         Assert.AreEqual(moment < 0 ? 1 : 2, (int)result.BendingCompressionClass);
         // Independent integration about the plastic neutral axis of the two rectangles.
         Assert.AreEqual(923e6, result.BendingMoment1Capacity, 1e-5);
         Assert.AreEqual(227.2e6, result.BendingMoment2Capacity, 1e-5);
-        Assert.IsTrue(double.IsFinite(result.WorkingRatio));
+        Assert.IsTrue(double.IsNaN(result.WorkingRatio));
     }
 
     [TestMethod]
