@@ -1824,7 +1824,11 @@ namespace GPC.Checkers.Steel.Checkers
             C2 = 0;
             C3 = 0;
             //tables 63 and 64 of Book: Rules for Member Stability in EN 1993-1-1 - Background documentation and design guidelines - ECCS Techinacl Committee - Stability can be used
-            if (supportCondition == EN1993p11Options.SupportConditions.EndsRestrained)
+            // End couples prescribe the moment diagram independently of the
+            // in-plane support label. Lateral and warping restraints are separate.
+            if (loadCondition == EN1993p11Options.LoadConditions.NotDirectlyLoaded &&
+                (supportCondition == EN1993p11Options.SupportConditions.EndsRestrained ||
+                 supportCondition == EN1993p11Options.SupportConditions.HingesAtEnds))
             {
                 if (loadCondition == EN1993p11Options.LoadConditions.NotDirectlyLoaded)
                 {
@@ -2024,7 +2028,12 @@ namespace GPC.Checkers.Steel.Checkers
                     throw new Exception("cannot calc McrLT, no literature");
             }
             else
-                throw new Exception("cannot calc McrLT, no literature");
+                throw new NotSupportedException("McrLT: unsupported load/support coefficient combination.");
+
+            if (!(C1 > 0) || double.IsInfinity(C1) ||
+                double.IsNaN(C2) || double.IsInfinity(C2) ||
+                double.IsNaN(C3) || double.IsInfinity(C3))
+                throw new NotSupportedException("McrLT: no finite positive C1 for the requested load/support combination.");
         }
 
         protected double CalculateLateralTorsionalBucklingMomentCapacity(ResultBeamForces resultBeamForces, SectionClass sectionClass,

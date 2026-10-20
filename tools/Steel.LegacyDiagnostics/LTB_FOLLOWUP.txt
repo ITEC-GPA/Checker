@@ -1,0 +1,51 @@
+EC3 LEGACY FOLLOW-UP - 2026-10-20
+
+Scope: first-generation EN 1993-1-1:2005, ordinary static members.
+No American design standard is enabled by these investigations. Geometric
+property references, where used, are distinguished from design prescriptions.
+
+Work sequence:
+1. T biaxial classification: qualify equilibrium and outstand classification.
+2. End-moment coefficient routing and finite Mcr.
+3. T torsion, warping, shear centre and Wagner coefficient.
+4. Class-dependent LTB slenderness, chiLT and Mb,Rd.
+5. Applicability of member interaction and the SAP T input discrepancies.
+6. Reassess remaining H/C/L legacy cases and update coverage.
+
+Step 2 - Steel 2.4.0.9
+Bug: NotDirectlyLoaded + HingesAtEnds reached a branch with no assignment
+and returned C1=C2=C3=0 for mono-symmetric sections. Mcr was then zero.
+Prescribed end moments now use the existing end-moment table for both
+in-plane support labels; lateral restraints remain represented by k and kw.
+Unmatched load combinations cannot silently return zero coefficients.
+No table ordinate or legacy fixture was changed.
+
+The uniform-moment fork-ended eigenproblem has C1=C3=1,C2=0.
+The other 36 cases test route consistency over the existing table, not
+independent verification of every ordinate of that table.
+Four negative cases cover unsupported k, psi outside [-1,1], and NaN.
+Two negative cases cover unknown load conditions.
+Source context: EN 1993-1-1:2005 6.3.2.2 requires an elastic critical
+moment accounting for loading and restraint; SN003b-EN-EU describes these
+separate influences for doubly symmetric sections. It does not independently
+qualify mono-symmetric C3 ordinates. The pre-existing ECCS table remains
+subject to further source qualification.
+https://www.steelconstruction.info/images/0/0f/SN003b.pdf
+
+Before fix: 44/45 newly added tests failed, 1 passed.
+After fix: 984/984 Steel.Members tests passed.
+
+Important findings to resolve in step 5:
+- EN 1993-1-1:2005 6.3.3(1), printed p.64 (PDF p.66), limits its
+  simplified interaction method to doubly symmetric cross-sections.
+  Applying Annex A coefficients to T/C/mono-symmetric H is not certified
+  by matching a software report. Clause 6.3.4 has different prerequisites.
+- Sap_SectionTTest2 uses positive N (tension) while its embedded SAP report
+  says Ned=-100 kN (compression). Its transverse forces also differ.
+- Both T tests assert Kyy=0.901 whereas the embedded reports give different
+  values for the corresponding minor-axis coefficient. The original SAP
+  model/report is unavailable. Do not silently approve these expectations.
+
+Step 2 integration: 14/14 ModelChecker Steel; legacy 111/122, same 11 failures;
+29 diagnostic cases/219 assertions. Audit prefix: ltb-routing.
+
