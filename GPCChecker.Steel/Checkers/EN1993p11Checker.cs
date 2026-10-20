@@ -213,8 +213,8 @@ namespace GPC.Checkers.Steel.Checkers
                                 options.LateralWarpingCondition, options.LoadApplicationPoint);
 
                             double lambda0limit = CalculateLambda0LimitForFlexuralTorsionaBuckling(rbf, kc, ncrtf, ncr2);
-                            double lambdaSignedLTB = GetLambdaSignedLTB(steelSection, Mcr);
-                            double lambdaSignedLTB0 = GetLambdaSignedLTB(steelSection, Mcr0);
+                            double lambdaSignedLTB = GetLambdaSignedLTB(steelSection, sectionClass, Mcr);
+                            double lambdaSignedLTB0 = GetLambdaSignedLTB(steelSection, sectionClass, Mcr0);
 
                             // Report the same method used for latTorsRd: I/H uses 6.3.2.3,
                             // other sections use 6.3.2.2, as in the interaction coefficients.
@@ -1463,12 +1463,30 @@ namespace GPC.Checkers.Steel.Checkers
 
         protected double GetLambdaSignedLTB(ISteelSection section, double Mcr)
         {
+            return GetLambdaSignedLTB(section, SectionClass.Class1, Mcr);
+        }
+
+        // EC3 6.3.2.1(3), 6.3.2.2(1): the same Wy must be used in
+        // lambdaLT and Mb,Rd. Mcr continues to use gross elastic properties.
+        protected double GetLambdaSignedLTB(ISteelSection section, SectionClass sectionClass, double Mcr)
+        {
+            if (!(Mcr > 0) || double.IsInfinity(Mcr))
+                throw new ArgumentOutOfRangeException(nameof(Mcr), "Mcr must be finite and positive.");
+            double modulus;
+            switch (sectionClass)
+            {
+                case SectionClass.Class1:
+                case SectionClass.Class2: modulus = section.Wpl1; break;
+                case SectionClass.Class3: modulus = section.Wel1; break;
+                case SectionClass.Class4: modulus = GetWeffMin1(section); break;
+                default: throw new ArgumentOutOfRangeException(nameof(sectionClass));
+            }
             if (section.SectionShape is SectionC)
             {
-                double lambdaLT = Math.Pow(section.Wpl1 * Fy / Mcr, 0.5);
+                double lambdaLT = Math.Pow(modulus * Fy / Mcr, 0.5);
                 double lambdaT;
                 if (lambdaLT < 0.50)
-                    return Math.Pow(section.Wpl1 * Fy / Mcr, 0.5);
+                    return Math.Pow(modulus * Fy / Mcr, 0.5);
                 else if (lambdaLT >= 0.5 && lambdaLT < 0.75)
                     lambdaT = 1.11 - lambdaLT;
                 else if (lambdaLT >= 0.75 && lambdaLT < 1.14)
@@ -1480,7 +1498,7 @@ namespace GPC.Checkers.Steel.Checkers
                 return lambdaLT + lambdaT;
             }
             else
-                return Math.Pow(section.Wpl1 * Fy / Mcr, 0.5);
+                return Math.Pow(modulus * Fy / Mcr, 0.5);
         }
 
         protected double CalculateMcr(ISteelSection section, ResultBeamForces forces, double length,
@@ -1770,7 +1788,7 @@ namespace GPC.Checkers.Steel.Checkers
             double alpha = GetImperfectionFactorLT(section);
             double Mcr = CalculateMcr(section, forces, GetLengthCriticalMoment1(), supportCondition, loadCondition, lateralCondition,
                 warpingCondition, psi, loadApplicationPoint);
-            double lambdaSigned = GetLambdaSignedLTB(section, Mcr);
+            double lambdaSigned = GetLambdaSignedLTB(section, sectionClass, Mcr);
 
             double phi = GetPhiForBuckling(alpha, lambdaSigned, EN1993P11.BetaForLateralTorsionalBuckling, EN1993P11.LambdaLT0ForLateralTorsionalBuckling);
             double chiMod = GetChiLTmod(phi, lambdaSigned, EN1993P11.BetaForLateralTorsionalBuckling, 1.0);
@@ -1794,7 +1812,7 @@ namespace GPC.Checkers.Steel.Checkers
             double alpha = GetImperfectionFactorLTMod(section);
             double kc = Getkc(supportCondition, loadCondition, psi);
             double Mcr = CalculateMcr(section, forces, GetLengthCriticalMoment1(), supportCondition, loadCondition, lateralCondition, warpingCondition, psi, loadApplicationPoint);
-            double lambdaSigned = GetLambdaSignedLTB(section, Mcr);
+            double lambdaSigned = GetLambdaSignedLTB(section, sectionClass, Mcr);
             double phi = GetPhiForBuckling(alpha, lambdaSigned, EN1993P11.BetaForLateralTorsionalBucklingMod, EN1993P11.LambdaLT0ForLateralTorsionalBucklingMod);
             double f = GetFactorFForLTB(kc, lambdaSigned);
             double chiMod = GetChiLTmod(phi, lambdaSigned, EN1993P11.BetaForLateralTorsionalBucklingMod, f);
@@ -2189,7 +2207,7 @@ namespace GPC.Checkers.Steel.Checkers
         {
             Mcr0 = CalculateMcr0ForInteraction(section, forces, supportCondition, loadCondition, lateralSupportCondition,
                 lateralWarpingCondition, loadApplicationPoint);
-            double lambdaSignedLTB0 = GetLambdaSignedLTB(section, Mcr0);
+            double lambdaSignedLTB0 = GetLambdaSignedLTB(section, sectionClass, Mcr0);
 
             double kc = Getkc(supportCondition, loadCondition, psi);
 
@@ -2274,7 +2292,7 @@ namespace GPC.Checkers.Steel.Checkers
             double kc = Getkc(supportCondition, loadCondition, psi);
 
             double Mcr = CalculateMcr(section, forces, GetLengthCriticalMoment1(), supportCondition, loadCondition, lateralCondition, warpingCondition, psi, loadApplicationPoint);
-            double lambdaSigned = GetLambdaSignedLTB(section, Mcr);
+            double lambdaSigned = GetLambdaSignedLTB(section, sectionClass, Mcr);
             double phi = GetPhiForBuckling(alpha, lambdaSigned, beta, lambdaLT0);
             double f = modifiedLTB ? GetFactorFForLTB(kc, lambdaSigned) : 1.0;
             double chiMod = GetChiLTmod(phi, lambdaSigned, beta, f);
@@ -2286,7 +2304,7 @@ namespace GPC.Checkers.Steel.Checkers
             double lambda2 = GetLambdaSigned(sectionClass, section, ncr2);
             double lambdaMax = Math.Max(lambda1, lambda2);
 
-            double lambda0 = GetLambdaSignedLTB(section, Mcr0);
+            double lambda0 = GetLambdaSignedLTB(section, sectionClass, Mcr0);
             double alphaLT = CalculateAlphaLTForInteraction(section);
 
             bLT = 0.5 * alphaLT * lambda0 * lambda0 * Math.Abs(forces.M1) * Math.Abs(forces.M2) / (chiMod * mrd1 * mrd2);

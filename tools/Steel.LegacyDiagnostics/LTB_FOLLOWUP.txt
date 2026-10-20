@@ -49,3 +49,13 @@ Important findings to resolve in step 5:
 Step 2 integration: 14/14 ModelChecker Steel; legacy 111/122, same 11 failures;
 29 diagnostic cases/219 assertions. Audit prefix: ltb-routing.
 
+Step 4a - Steel 2.4.0.10
+Corrected lambdaLT in capacity, interaction and report to use Wpl for classes
+1/2 and Wel for class3 (EN1993-1-1:2005 6.3.2.1(3),6.3.2.2(1)).
+Gross elastic Mcr is unchanged. Invalid Mcr cannot enter the square root.
+Protected two-argument overload retained for compatibility (class1 semantics).
+The existing channel-specific slenderness adjustment is NOT qualified here.
+13 tests: two LTB methods, classes1/2/3, two gammaM1 values, public class3
+report/capacity consistency. Before:5 failures/8passes; after:997/997 total.
+Integration14/14; legacy111/122, same11 failures;29 diagnostic cases/219
+assertions. Legacy inputs/assertions unchanged. Audit prefix: ltb-class.
