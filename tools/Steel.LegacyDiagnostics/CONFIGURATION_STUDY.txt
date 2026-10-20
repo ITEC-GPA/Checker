@@ -1,0 +1,81 @@
+PRIMO BLOCCO OPERATIVO: QUATTRO CONFRONTI DI CONFIGURAZIONE
+20 ottobre 2026 - sorgente legacy al commit 55ac7438, Steel 2.3.0.3
+
+Metodo
+Sono stati ripetuti i casi originali, variando un solo dato di configurazione
+alla volta, senza modificare alcuna asserzione o tolleranza.
+CONFIGURATION_STUDY.json e' un risultato diagnostico, non una fixture di attesi.
+Il sorgente originario puo' essere riletto da Git senza alterare il checkout:
+
+./tools/Steel.LegacyDiagnostics/Run.ps1 -OutputPath <json> -ModelRoot <Model>
+  -SourceRevision 55ac7438 -Scenario <scenario>
+
+Scenari disponibili:
+Baseline: 29 casi originali, 140 asserzioni raggiunte, 16 casi con discrepanze.
+HollowColdFormed: tre casi SAP, solo FormedType=ColdFormed.
+HollowWelded: tre casi SAP, solo SectionType=Welded.
+HollowAlpha049Only: tre casi SAP, solo il valore alpha della curva selezionata
+  passa da 0.21 a 0.49. E' un esperimento di sensibilita', NON una modifica
+  normativa ammissibile del significato della curva a.
+InteractionGamma105: solo SectionHInteraction2, gammaM1 da 1.10 a 1.05.
+
+RHS/CHS: causa isolata delle asserzioni fallite
+Tutti e tre i report SAP incorporati nel sorgente indicano curva c, alpha=0.49.
+Il costruttore di SteelSection usato dai test ometteva il tipo produttivo e
+quindi selezionava Rolled/HotFinished, curva a, alpha=0.21 per S355.
+
+Caso                 Phi1 prima   Phi2 prima   Phi1 curva c   Phi2 curva c
+Sap_SectionRHSTest1   0.494017299  0.506454121   0.479685735    0.499702578
+Sap_SectionRHSTest2   0.494017299  0.506454121   0.479685735    0.499702578
+Sap_SectionCHSTest1   0.493464278  0.493464278   0.478748018    0.478748018
+
+Gli attesi SAP sono 0.480/0.500 per RHS e 0.479/0.479 per CHS.
+HollowColdFormed e HollowAlpha049Only superano tutte le 41 asserzioni dei tre
+casi. Le capacita' restano invariate: le aste sono corte e chi=1 in entrambi
+i casi. Per questo il confronto delle sole capacita' non evidenziava l'errore.
+HollowWelded NON risolve nessuno dei tre test: il codice tratta il RHS saldato
+come scatolare composto (curva b nel caso in esame); il CHS resta hot-finished.
+
+Interpretazione e limiti del riallineamento
+Nel modello corrente Rolled + ColdFormed e' la combinazione che seleziona
+il ramo dei profili cavi formati a freddo; la stessa convenzione e' gia'
+presente in CopSuos2011Test. SectionTypes.Welded nei RHS seleziona invece
+il ramo delle scatolari saldate. Non tradurre meccanicamente "Rolled: No".
+La scelta ColdFormed nei tre confronti riproduce la curva c dichiarata.
+Il report incorporato non identifica il processo produttivo reale o la
+norma di prodotto; non si certifica che la geometria RHS a spessori diversi
+rappresenti un prodotto commerciale formato a freddo. Si riallinea il benchmark.
+Il passaggio dei tre test qualifica le loro asserzioni, non l'intero rapporto
+SAP: alcune grandezze nel commento non sono asserite o hanno tolleranze ampie.
+
+Controllo indipendente
+EN 1993-1-1:2005, corrigenda 2006/2009, tabelle 6.1 e 6.2, formula 6.49.
+Ncr=pi^2 E I/Lcr^2; lambda=sqrt(A fy/Ncr);
+Phi=0.5[1+alpha(lambda-0.2)+lambda^2].
+Per i nuovi test: E=210000 MPa, fy=355 MPa, Lcr=1000 mm, N/mm/Nmm.
+A e I sono integrati indipendentemente per rettangolo cavo e corona circolare.
+I test coprono entrambi gli assi e i percorsi hot-finished/cold-formed.
+Testo consultato:
+https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+Non si modifica l'edizione normativa o il default dei prodotti.
+
+SectionHInteraction2: configurazione spiegata solo in parte
+Il preset StandardUNIEN1993p11 usa gammaM0=1.05, gammaM1=1.10.
+Il commento del confronto Cordova p.232 dichiara gammaM1=1.05.
+Si puo' impostare 1.05 nella singola istanza del benchmark, senza modificare
+il preset UNI o sostituirlo implicitamente con NTC2018.
+
+Grandezza                     Prima          Solo gammaM1=1.05    Atteso
+Interazione asse 1            1.077567196     1.025909177          1.000
+Interazione asse 2            1.269393837     1.196744809          0.920
+Nb,Rd asse 2 [kN]             387.535138      405.989192           -
+Mb,Rd [kNm]                   120.756095      126.506386           -
+
+La prima asserzione rientra nella tolleranza esistente di 0.03.
+La seconda resta fuori dalla tolleranza esistente di 0.025: scarto 0.276745,
+circa +30.1% rispetto all'atteso. Il caso rimane APERTO e va trasferito
+all'indagine su curve, coefficienti kij e metodo di interazione.
+Il commento dichiara anche un metodo semplificato nel libro; l'esempio
+originale non e' disponibile e non e' stato verificato direttamente.
+Il riallineamento del coefficiente non conferma l'accuratezza degli altri dati
+del confronto o la validita' normativa corrente del preset UNI.
