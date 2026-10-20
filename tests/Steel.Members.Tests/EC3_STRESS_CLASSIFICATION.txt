@@ -1,0 +1,79 @@
+EC3: TRATTAMENTO DELLA CLASSE 4 SECONDO LA TENSIONE DI PROGETTO
+EN 1993-1-1:2005, 5.5.2(9)-(10), parti piane compresse
+
+Nuova API: Ec3StressBasedClassification.Evaluate(fy, gammaM0, compressionParts).
+Namespace GPC.Checkers.Steel.Members, assembly GPCChecker.Steel.
+Unita': tensioni in MPa; c/t e coefficienti adimensionali.
+sigma_com,Ed e' POSITIVA a compressione, diversa dalla convenzione N<0
+del modello. La funzione non applica automaticamente il valore assoluto.
+
+Formula verificata nel testo:
+https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+  epsilon = sqrt(235/fy)
+  epsilon_mod = epsilon * sqrt[(fy/gammaM0)/sigma_com,Ed]
+Le parti nominalmente in classe 4 ammettono il trattamento come classe 3
+quando c/t rispetta il limite di classe 3 cosi' aumentato.
+La sezione lo ammette soltanto se tutte le sue parti in classe 4 lo ammettono.
+Il punto (10) mantiene i limiti nominali nelle verifiche d'instabilita' 6.3.
+
+Contratto esplicito
+- Ogni Ec3CompressionPart contiene classe nominale, c/t, coefficiente della
+  tabella 5.2 che moltiplica epsilon e massima sigma_com,Ed nella parte.
+- Il coefficiente deve corrispondere alla distribuzione effettiva: ad esempio
+  42 per compressione uniforme interna, 124 per flessione pura interna,
+  14 per parte sporgente uniformemente compressa.
+- Il chiamante fornisce TUTTE le parti compresse, con la classe e la
+  distribuzione gia' verificate. L'API non ricostruisce automaticamente
+  la distribuzione N-M1-M2 dalla geometria.
+- sigma_com,Ed deve provenire dall'analisi di primo ordine o, quando
+  necessario, di secondo ordine. Per compressione uniforme vale |N|/A;
+  sotto flessione non si sostituisce la massima tensione con la media.
+- Parti interamente tese o scariche non si passano. Input nulli, vuoti,
+  non finiti, non positivi o nominalmente incompatibili vengono rifiutati.
+- Le classi 1, 2 e 3 non vengono migliorate. Sopra fy/gammaM0 non si applica
+  alcun aumento; il risultato di classificazione NON verifica lo snervamento.
+- SectionResistanceClass vale per il carico valutato. Non e' una resistenza
+  indipendente dal carico: cambiando le azioni si rivaluta l'ammissibilita'.
+- NominalClass e MemberBucklingClass restano invariati. Parts espone sigma
+  di input, limite nominale, limite aumentato e ammissibilita' per parte.
+- Non si tratta il limite D/t dei CHS, che dipende da epsilon al quadrato,
+  con questa formula per parti piane. Non si estende implicitamente a NTC.
+
+Esempio riproducibile: RHS 500x300x12.5 a spigoli vivi, fy=355 MPa
+A=500*300-475*275=19375 mm2, gammaM0=1, NEd=-1500000 N.
+sigma_com,Ed=77.4193548387 MPa; epsilon_mod=1.74224472066.
+Limite aumentato della parte interna: 42*epsilon_mod=73.1742782677.
+c/t delle pareti alte=38, classe nominale 4; delle orizzontali=22, classe 1.
+
+  var sigma = 1500000d / 19375;
+  var result = Ec3StressBasedClassification.Evaluate(355, 1,
+      new Ec3CompressionPart(4, 38, 42, sigma),
+      new Ec3CompressionPart(4, 38, 42, sigma),
+      new Ec3CompressionPart(1, 22, 42, sigma),
+      new Ec3CompressionPart(1, 22, 42, sigma));
+  // NominalClass=4, SectionResistanceClass=3, MemberBucklingClass=4.
+
+Limite indipendente ricavato invertendo la disuguaglianza:
+N_lim=A*235/gammaM0*(42/38)^2=5562.12777008 kN.
+Per 1500 e 2716.05 kN il trattamento e' ammesso; per 5727.55 e 6029 kN no.
+
+Integrazione e limiti
+Questa API rende utilizzabile il trattamento per la classificazione della
+resistenza di sezione. Non cambia globalmente la classe nel checker legacy,
+che usa una sola classe per resistenza, instabilita' e interazioni.
+Il suo percorso pubblico continua quindi a rifiutare la resistenza di classe 4.
+La separazione automatica delle verifiche nel percorso legacy/ModelChecker
+resta da integrare; non si dichiara qui una verifica completa dell'asta.
+
+Verifica: Ec3StressBasedClassificationTests
+59 casi: soglie dei piatti interni/esterni e inflessi, gammaM0, i quattro
+carichi RHS storici, conservazione delle classi nominali, parte sfavorevole,
+stress oltre snervamento, input non validi e prova pubblica che l'instabilita'
+non utilizzi proprieta' lorde di classe 4 grazie alla deroga.
+
+Esito eseguito su Steel 2.4.0.0 / Model 5.15.0.2:
+- Steel.Members.Tests: 426/426 superati, inclusi i 59 casi nuovi.
+- Legacy net472: 111/122 superati, stessi 11 fallimenti noti.
+- ModelChecker.Tests, filtro Steel: 14/14 superati.
+Nuova funzione pubblica: versione 2.3.0.3 -> 2.4.0.0 secondo AGENTS.md.
+Non e' un rilascio del set coerente; nessun merge o push.

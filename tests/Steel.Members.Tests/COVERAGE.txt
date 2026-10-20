@@ -7,7 +7,7 @@ Il conteggio dei casi parametrizzati non equivale al numero di meccanismi implem
 Riferimenti verificati
 - EN 1993-1-1:2005, corrigenda 2006/2009: tab. 5.2, 6.2.5-6.2.9, 6.3.1.2.
   Testo normativo: https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
-  Si conserva l'edizione 2005 giÃ  usata dalla libreria; nessuna migrazione alla seconda generazione.
+  Si conserva l'edizione 2005 già usata dalla libreria; nessuna migrazione alla seconda generazione.
 - D.M. 17 gennaio 2018, cap. 4.2: 4.2.4.1.2.1-4, 4.2.4.1.3.1, tab. 4.2.VII.
   https://www.gazzettaufficiale.it/eli/id/2018/02/20/18A00716/sg
 - Circolare n. 7 del 21 gennaio 2019: identificata la pubblicazione ufficiale;
@@ -16,14 +16,14 @@ Riferimenti verificati
 
 Convenzioni
 N, mm, MPa, Nmm; N positivo a trazione. Assi principali baricentrici 1 e 2.
-Le azioni sono giÃ  di progetto; nessuna combinazione o conversione automatica.
+Le azioni sono già di progetto; nessuna combinazione o conversione automatica.
 Nei test il materiale ha fy=235 o 355 MPa assegnato: non si testa la scelta di fy in funzione dello spessore.
 La resistenza del materiale per prodotto/spessore resta un dato del chiamante.
 Le tolleranze sono relative: 1e-10 per aritmetica/formule, 2e-6 per moduli geometrici.
 Le prove di simmetria del percorso legacy usano 1e-12.
 
 Attesi
-Fixtures/section-oracles.json Ã¨ NUOVA. Non modifica alcuna fixture preesistente.
+Fixtures/section-oracles.json è NUOVA. Non modifica alcuna fixture preesistente.
 Fixtures/generate_section_oracles.py usa integrali di rettangoli disgiunti, rotazione
 agli assi principali e taglio dei poligoni per individuare l'asse plastico di equiarea.
 Per cerchi/corone usa integrali analitici. Non legge DLL o risultati GPC.
@@ -35,7 +35,7 @@ Casi aggiunti a Steel.Members.Tests (CodeVerificationTests)
 96 flessione: 8 famiglie x 2 norme x 3 classi assegnate x 2 assi.
 24 compressione NTC: 8 famiglie x 3 classi assegnate.
 20 taglio: H/C/T/RHS/CHS x 2 norme x 2 direzioni; 3 ulteriori casi C/T con raccordi.
-25 instabilitÃ : 5 curve x 5 snellezze, con controllo Euler e limite plastico.
+25 instabilità: 5 curve x 5 snellezze, con controllo Euler e limite plastico.
 18 classificazione: entrambi i lati delle 3 soglie per piatti interni, esterni e CHS;
 8 ulteriori casi al limite di compressione completa dell'anima e oltre.
 6 interazioni flessione-taglio e segno; 4 interazioni N-M H/RHS.
@@ -48,7 +48,10 @@ RhsBendingClassificationRegressionTests: 77 casi, inclusi assi scambiati, entram
 S235/S355, tutte le classi e 12 verifiche pubbliche di capacita' M1.
 HollowManufacturingConfigurationTests: 8 confronti hot-finished/cold-formed sui due assi,
 con Ncr/Phi ricavati da integrali geometrici e formule indipendenti.
-Totale: 354 nuovi casi generali + 13 preesistenti = 367, tutti superati.
+Ec3StressBasedClassificationTests: 59 casi per EN 1993-1-1:2005, 5.5.2(9)-(10).
+Totale: 413 nuovi casi generali + 13 preesistenti = 426, tutti superati.
+EC3_STRESS_CLASSIFICATION.txt descrive l'API esplicita per parti piane, sigma_com,Ed,
+la separazione dalla classe per instabilita' e i limiti d'integrazione nel percorso legacy.
 Il fix C elimina 17 fallimenti dei nuovi casi; il fix RHS ne elimina 36.
 RHS: qualificata la sola classificazione in flessione retta pura per sezioni doppiamente
 simmetriche a spigoli vivi. N-M e flessione deviata restano da completare.
@@ -56,7 +59,7 @@ Ulteriori 17 casi in EN1993ResultIntegrityTests: stazioni/gruppi, segni, NaN, re
 Ulteriori 4 casi di geometria nel repository Model: ChannelPlasticModulusRegressionTest.
 
 Matrice per famiglie Model
-Famiglia                             Resistenza      Classificazione       Interazione          InstabilitÃ 
+Famiglia                             Resistenza      Classificazione       Interazione          Instabilità
 SectionH (doppiamente simmetrica)     NTC N/M, EC3 M/V soglie + ala, parziale N-M e M-V provate    chi provato; LTB aperto
 SectionC                             NTC N/M, EC3 M/V piatti, parziale       elastica NTC         LTB/torsionale aperti
 SectionT                             NTC N/M, EC3 M/V piatti, parziale       elastica NTC         torsionale aperta
@@ -73,27 +76,27 @@ SectionTTaperFlange                   non qualificata automaticamente; rifiutata
 SectionHDoubleBottomFlange            non qualificata automaticamente; rifiutata nel percorso bulk
 SectionHInclinedWeb                   non qualificata automaticamente; rifiutata nel percorso bulk
 SectionSteelBox                       non qualificata automaticamente; rifiutata nel percorso bulk
-SectionColdFormed                     richiede norme/instabilitÃ  locale e distorsionale dedicate
+SectionColdFormed                     richiede norme/instabilità locale e distorsionale dedicate
 SectionBuiltUp, SectionWelded         aste composte e collegamento dei componenti non qualificati
 Section, ThinWallSection              geometria generica: nessuna classificazione o curva implicita
 SectionEllipse, SectionRegularPolygon, SectionStadium, SectionTrapezoid:
-                                     primitive NTC utilizzabili solo con proprietÃ /classe/curva fornite; nessuna qualifica geometrica automatica
+                                     primitive NTC utilizzabili solo con proprietà/classe/curva fornite; nessuna qualifica geometrica automatica
 SectionHaunchedI, SectionBoxGirder, SectionMultiWebDeck, SectionHollowCore, SectionUBeam:
                                      geometrie speciali/variabili: verifica automatica non implementata
-SectionParametric Ã¨ astratta; SectionOutline/SectionCurveOutline sono contorni, non famiglie verificabili.
+SectionParametric è astratta; SectionOutline/SectionCurveOutline sono contorni, non famiglie verificabili.
 Sezioni Concrete/Rebar/Bolt non sono famiglie di asta in acciaio strutturale di questo perimetro.
 
-"NTC N/M" indica capacitÃ  elementari con classe assegnata, non classificazione automatica.
+"NTC N/M" indica capacità elementari con classe assegnata, non classificazione automatica.
 "chi provato" indica curva matematica/Euler, non selezione automatica della curva per ogni prodotto.
 I controlli di rifiuto non sono conteggiati come verifiche resistenti superate.
 Non si usa il successo di una primitiva per abilitare nuovi meccanismi in ModelChecker.
 
 Limitazioni ancora da risolvere nel perimetro richiesto
-- Classe 4: proprietÃ  efficaci/instabilitÃ  locale; CHS snelli: gusci.
+- Classe 4: proprietà efficaci/instabilità locale; CHS snelli: gusci.
 - Classificazione completa sotto N-M1-M2, sezioni asimmetriche, angolari e geometrie speciali.
 - Selezione e validazione delle curve per tutte le sezioni e condizioni di fabbricazione.
-- InstabilitÃ  latero-torsionale, torsionale e flesso-torsionale; interazione di asta N-M.
-- InstabilitÃ  a taglio: il vecchio CalculateVbRd1 e il criterio RHS richiedono revisione dedicata.
+- Instabilità latero-torsionale, torsionale e flesso-torsionale; interazione di asta N-M.
+- Instabilità a taglio: il vecchio CalculateVbRd1 e il criterio RHS richiedono revisione dedicata.
 - Torsione e tensioni da ingobbamento: il percorso bulk ora rifiuta T diverso da zero.
 - Fori: il legacy assume area netta=lorda. NTC Tension permette area netta esplicita.
 - N-M-V simultaneo: i test attuali non costituiscono una validazione generale.
@@ -110,18 +113,19 @@ compressione e flessione pura. I loro attesi SONO cambiati: derivazione indipend
 dalla tabella 5.2 per la geometria realmente costruita, senza raccordi.
 RHS_CLASSIFICATION_STUDY.txt conserva il confronto prima/dopo e i limiti.
 Cinque casi di classe 4 restano esplicitamente non valutati per resistenza.
-Nessuna modifica alle formule della libreria in questo passo.
+Nessuna modifica alle formule della libreria per la correzione dei due test RHS.
+La successiva API Ec3StressBasedClassification aggiunge separatamente 5.5.2(9)-(10).
 SectionHInteraction2 resta fallito sull'asse 2 dopo l'allineamento locale di gammaM1.
 Il censimento storico e le analisi sono in tools/Steel.LegacyDiagnostics.
-ModelChecker Steel 14/14 nella tranche precedente; non rieseguito per il solo fix dei test.
+ModelChecker Steel: 14/14 rieseguiti su Steel 2.4.0.0; dettagli in EC3_STRESS_CLASSIFICATION.txt.
 
 Esecuzione riproducibile
 1. Compilare Model, ModelData e GPC.Model.Persistence nel branch Model con il fix del profilo C.
 2. Dal repository Checker:
    dotnet test tests/Steel.Members.Tests/Steel.Members.Tests.csproj -c Release -p:SteelModelRoot=<percorso-assoluto-Model>
-3. La proprietÃ  facoltativa SteelModelRoot seleziona solo le DLL del Model abbinato.
+3. La proprietà facoltativa SteelModelRoot seleziona solo le DLL del Model abbinato.
    Senza di essa restano i riferimenti preesistenti al checkout fratello ../Model.
-4. build/Verify.ps1 include giÃ  Steel.Members.Tests nelle suite ordinarie.
+4. build/Verify.ps1 include già Steel.Members.Tests nelle suite ordinarie.
    Per il rilascio occorrono tutte le suite e il set coerente previsto in build/RILASCIO.txt.
    Le modifiche di questa lavorazione non sono un rilascio e non estendono l'adapter ModelChecker.
 

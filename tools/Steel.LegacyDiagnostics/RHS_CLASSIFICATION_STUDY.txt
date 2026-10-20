@@ -34,7 +34,7 @@ RHS 500x300x12.5: c_alto/t=38, c_largo/t=22.
 N=-1500/-2716.05/-5727.55/-6029 kN: classe nominale 4 in tutti i casi.
 M1=1 kNm: classe 1. M2=1 kNm: classe 4.
 Attesi originari: 1/2/3/4, poi 4 e 1 sullo stesso indice.
-Attesi corretti per gli undici input effettivi: 4/4/4/4/1/4.
+Attesi corretti per i sei input effettivi: 4/4/4/4/1/4.
 
 RHS 350x250x10: c_alto/t=33, c_largo/t=23.
 N=-1300/-1700/-2160 kN: classe nominale 3 in tutti i casi.
@@ -58,3 +58,6 @@ devono produrre un errore esplicito e capacita'/utilizzazione NaN.
 Il test richiede che il caso M1 valido, dopo quattro casi rifiutati, sia valutato.
 Un test superato non equivale a una verifica resistente di classe 4 completata.
 Le formule di produzione non cambiano in questo passo; Steel resta 2.3.0.3.
+
+Verifica eseguita: legacy net472 111/122 superati, 11 falliti.
+Replay diagnostico: 29 metodi, 219 asserzioni, 11 casi con discrepanze.
