@@ -147,3 +147,9 @@ Esecuzione riproducibile
 
 Fuori dal perimetro attuale, su indicazione dell'utente: norme americane, collegamenti,
 fatica, incendio, sisma e revisione dell'architettura.
+
+Riferimenti utente - Caffe (20 ottobre 2026)
+31 casi in CaffeReferenceTests: dettagli, limiti e incongruenze della fonte
+in USER_REFERENCE_BENCHMARKS.txt. Suite Steel eseguita: 635/635.
+Solo test/documentazione: DLL Steel invariata 2.4.0.2; legacy invariati.
+

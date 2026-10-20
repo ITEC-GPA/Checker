@@ -1,0 +1,94 @@
+Riferimenti forniti dall'utente - 20 ottobre 2026
+
+Simone Caffe, Acciaio. Manuale tecnico per il progetto e la verifica delle
+strutture in acciaio e delle connessioni bullonate e saldate, Grafill,
+prima edizione dicembre 2012, ristampa aprile 2013, ISBN 978-88-8207-499-9.
+File: S.Caffe - Acciaio (1).pdf (il nome originale contiene e accentata).
+SHA256: 76BEE92A7A0966FD51C773B058E3BAB3F8806E7C375D009008D88AAEB8F5825B.
+Il testo tratta NTC2008 ed EN1993-1-1:2005: NON e' una fonte per NTC2018.
+Si riutilizzano dati geometrici, meccanica elastica e componenti EC3 pertinenti.
+GammaM0=GammaM1=1.05 e' assegnato esplicitamente nei confronti.
+Non si importano combinazioni di carico, appendici nazionali o scelte normative
+storiche come se fossero prescrizioni italiane attuali.
+
+CaffeReferenceTests: 31 casi, N/mm/MPa/Nmm.
+- A1.1 pp49-51, PDF25-26: C saldato 400x110, tw14/tf18, spigoli vivi.
+  8 proprieta' geometriche confrontate direttamente con Model e 2 aree a taglio
+  confrontate attraverso la resistenza di Checker. Wpl debole e asse plastico
+  costituiscono un controllo esterno del precedente fix Model sul canale.
+- A3.1 pp114-115, PDF58: HEB280 S275, classe1 in N, M e N+M.
+  Tre stati rappresentativi; non qualifica ogni combinazione/tutte le classi.
+- A5.3 pp201-203, PDF101-102: UPN300 S275; Ly6000,Lz=LT2000.
+  Euler sui due assi; torsione con i raggi stampati 117/29 mm e offset54.1 mm;
+  radice accoppiata flesso-torsionale verificata indipendentemente per bisezione;
+  minimo governante = instabilita' flessionale debole.
+  GetNcrTF restituisce il minimo anche con i modi disaccoppiati per il canale:
+  2931 kN e' la radice accoppiata, NON il minimo globale 2564.86 kN.
+  Il test isolato della radice alza solo il limite del modo disaccoppiato:
+  e' un controllo della primitiva, non un secondo esempio pubblicato.
+  Curva c automatica e resistenza debole verificate con equazione indipendente.
+- A5.4 pp220-227, PDF111-114: IPE300 L6000 con carico sull'ala superiore;
+  HEA600, tratti L4000, C1=1.879 e 1.141 assegnati dal testo.
+  Mcr e riduzione modificata. IPE300 ha anche percorso automatico Mcr->Mb.
+  HEA600 usa l'approssimazione del diagramma lineare adottata dal testo:
+  non qualifica l'intero impalcato con carichi concentrati e distribuiti.
+- A5.5 pp236-243, PDF119-122: IPE500 L4000, Mcr costante e con C1/C2
+  assegnati, Euler sui due assi, Npl/Mpl sui due assi, taglio da Av tabulata.
+  I fattori assegnati NON qualificano la loro selezione automatica.
+  La resistenza a taglio usa la primitiva NTC2018 con Av esplicita: la formula
+  condivisa e' confrontabile, ma non qualifica l'intera verifica NTC2018.
+  Metodi 1/2 di interazione completa pp240-247 ancora NON qualificati.
+
+Attesi e tolleranze
+- Nessun atteso deriva dalle DLL GPC.
+- Per gli input tabulati si usa ReferenceSection: i valori sono INPUT di
+  Checker. Questo NON certifica le corrispondenti proprieta' di Model.
+- Caffe A1.1 e HEB280 invece usano la geometria reale Model.
+- Intervalli editoriali: mezza unita' dell'ultima cifra, propagata attraverso
+  gli intermedi quando necessario. Si affiancano controlli stretti 2e-12
+  relativi con equazione caratteristica/equazione in forma prodotto.
+- G del libro=80770 contro G=E/(2*(1+nu))=80769.230769: differenza esplicita.
+- Per Ncry UPN300 e' incluso l'intervallo di Iy=8030 +/-0.5 cm4.
+- Per IPE500 Mcr p242 si propaga Ncr,z=2774.7 kN arrotondato dal testo:
+  690.348438 kNm dalla sostituzione stampata, 690.351297 con Euler non arrotondato.
+  Non e' stato allargato arbitrariamente un errore percentuale.
+
+Incongruenze della fonte mantenute visibili
+1. UPN300: tw=16 nell'elenco/ala, tw=10 nell'anima. Nessun test di
+   classificazione UPN viene qualificato da questi dati contraddittori.
+   Il profilo dell'adapter identifica solo la famiglia per la curva: A/I/J
+   e raggi per l'instabilita' sono tabulati, non ricavati da tale profilo.
+2. UPN300: .665*5880*275/1.05=1024.1 kN, diverso dal 1025 kN stampato.
+   Con calcolo continuo chi=0.6659208479 e Nb=1025.518106 kN.
+   Il valore finale stampato non e' un oracolo stretto; l'equazione indipendente si'.
+3. IPE300 p223: dichiara chi_mod=.435 ma sostituisce .434 e ottiene71.43 kNm.
+   Il test conserva la contraddizione; non forza Mb al risultato stampato.
+4. IPE500: A=11600 nella tabella e nella resistenza, A=11550 negli intermedi
+   di stabilita'; Wel,y=1930000 nella tabella,1928000 negli intermedi;
+   It=89.29 cm4 ma89.24 in una sostituzione torsionale.
+   Per i test del primo gruppo si usano gli input tabulati dichiarati.
+   Nessuna equivalenza con una verifica completa N-M viene affermata.
+
+Altri esempi censiti, non ancora trasformati in qualifiche
+A1.2 pp57-58 H monosimmetrica, ingobbamento; A3.2 pp116-122 HEB900;
+A3.3 pp123-133 scatolare asimmetrico; A5.1/2 pp184-190 vincoli e telai;
+A5.6 pp258-262 aste composte; A7.1 pp448-457 IPE600 classe4;
+A7.2 pp458-464 plasticita'; A7.3 pp465-473 travi; A7.4 pp474-513 portale.
+Proprieta' efficaci, analisi globale, aste composte e parti non implementate
+richiedono sviluppi dedicati. Collegamenti e sisma restano fuori perimetro.
+
+Vincenzo Nunziata, Teoria e pratica delle strutture in acciaio, 2a edizione,
+Dario Flaccovio; prefazione alla seconda edizione febbraio2000.
+SHA256: 9D1BA0B9512781B26B174CC5DD10345047F3D82016BE527EB1F1E3A8389CD21F.
+PDF468 pagine scansite, senza OCR. Numerazione PDF/stampata non uniforme.
+Cap5 pp266-269 (PDF261-263) usa il metodo omega storico: escluso dalla
+validazione EC3/NTC2018. Es80 pp442-443 (PDF435-436), HEA160, ed es81 p444
+(PDF437), HEA140, utili per Euler/vincoli ma ridondanti rispetto ai casi
+gia' coperti. Nessun risultato resistente storico importato.
+
+Legacy
+Nessun test Cordova/SAP e' stato modificato, ignorato o dichiarato superato.
+Le nuove fonti non ricostruiscono automaticamente le ipotesi dei vecchi casi.
+Eventuale quarantena futura: ragione, input mancanti e controlli sostitutivi
+identificati per nome. "Non riproducibile" non significa "corretto".
+Nessuna variazione DLL: questo passo aggiunge soltanto test e documentazione.
