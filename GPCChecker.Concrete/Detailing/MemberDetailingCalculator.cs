@@ -165,9 +165,10 @@ namespace GPC.Checkers.Concrete.Detailing
     /// Solid slab strips and walls (0.0.18.0): NTC 2018 profile with EC2 §§9.3 and 9.6 as in ANTHEA (ConcreteDetailing.cs at ANTHEA 98a21d4; fixtures
     /// detailing-plate-legacy.csv): the slab needs a rectangular strip without holes (b = width, h = thickness), the other profiles are not implemented.
     /// </summary>
-    public static class MemberDetailingCalculator
+    public static partial class MemberDetailingCalculator
     {
         public const string MethodId = "Concrete.MemberDetailing";
+        private const double NtcColumnMaximumSpacing = 300;
 
         public static MemberDetailingResult Calculate(DetailingProfile profile, MemberDetailingInput p)
         {
@@ -304,7 +305,7 @@ namespace GPC.Checkers.Concrete.Detailing
             {
                 Min("LongitudinalDiameter", minPhi, 12, "mm", ".2", "Ømin ≥ 12 mm");
                 var spacing = g.MaximumSpacing(Enumerable.Range(0, g.Bars.Count).ToArray());
-                if (spacing.HasValue) Max("LongitudinalSpacing", spacing.Value, 300, "mm", ".2", "spacing on the faces / perimeter ≤ 300 mm");
+                if (spacing.HasValue) Max("LongitudinalSpacing", spacing.Value, NtcColumnMaximumSpacing, "mm", ".2", "spacing on the faces / perimeter ≤ 300 mm");
                 else Pending("LongitudinalSpacing", ".2", "Bar arrangement not recognised automatically.");
                 Min("MinimumLongitudinal", steel, Math.Max(.1 * p.Compression / p.Fyd, .003 * p.ConcreteArea), "mm2", ".2", "max(0.10 NEd/fyd; 0.003 Ac), largest NEd");
                 if (!p.LapZone) Max("MaximumLongitudinal", steel, LongitudinalReinforcementLimits.MaximumRatioOutsideLaps * p.ConcreteArea, "mm2", ".2", "As ≤ 0.04 Ac outside laps");
