@@ -84,6 +84,21 @@ public sealed class ConcreteSectionTemplateChecks
     }
 
     [TestMethod]
+    public void TrapezoidAndPolygonHaveAnalyticAreasAndContainedLinks()
+    {
+        var trapezoid = ConcreteSectionTemplates.Create(Input(ConcreteTemplateKind.Trapezoid));
+        Assert.AreEqual((1000d + 800) * 1200 / 2, trapezoid.Area, 1e-7);
+        CheckPaths(trapezoid, 40);
+        foreach (int sides in new[] { 3, 4, 6, 8, 12 })
+        {
+            var polygon = ConcreteSectionTemplates.Create(Input(ConcreteTemplateKind.RegularPolygon) with { PolygonSides = sides });
+            Assert.AreEqual(sides / 2d * 500 * 500 * Math.Sin(2 * Math.PI / sides), polygon.Area, 1e-7);
+            CheckPaths(polygon, 40);
+        }
+        Assert.ThrowsException<ArgumentException>(() => ConcreteSectionTemplates.Create(Input(ConcreteTemplateKind.RegularPolygon) with { PolygonSides = 2 }));
+    }
+
+    [TestMethod]
     public void InvalidAndUnbuildableLayoutsAreRefused()
     {
         var p = Input(ConcreteTemplateKind.C);

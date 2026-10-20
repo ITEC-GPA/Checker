@@ -3,14 +3,14 @@ using GPC.Model.Sections;
 
 namespace GPC.Design.Sections;
 
-public enum ConcreteTemplateKind { HollowRectangle, HollowCircle, I, L, C, Ellipse, Stadium }
+public enum ConcreteTemplateKind { HollowRectangle, HollowCircle, I, L, C, Ellipse, Stadium, Trapezoid, RegularPolygon }
 
 /// <summary>Lengths in mm. Cover is measured to the outside of the transverse reinforcement.
 /// PerimeterSpacing is an upper bound for centre spacing; radial layouts use the assigned counts.</summary>
 public sealed record ConcreteTemplateInput(ConcreteTemplateKind Kind, double Width, double Height,
     double Web, double TopFlange, double BottomWidth, double BottomFlange,
     double InnerWidth, double InnerHeight, double Cover, double BarDiameter, double PerimeterSpacing,
-    int RadialCount, int InnerRadialCount, double LinkDiameter, double LinkSpacing, int CurveSides = 96);
+    int RadialCount, int InnerRadialCount, double LinkDiameter, double LinkSpacing, int CurveSides = 96, int PolygonSides = 8);
 
 public sealed record ConcreteTemplateLink(string Name, IReadOnlyList<Point2d> Points);
 public sealed record ConcreteTemplateFiber(double X, double Y, double Area);
@@ -75,7 +75,8 @@ public static class ConcreteSectionTemplates
         if (p.LinkDiameter > 0)
         {
             double axis = p.Cover + p.LinkDiameter / 2;
-            if (p.Kind is ConcreteTemplateKind.Ellipse or ConcreteTemplateKind.Stadium or ConcreteTemplateKind.HollowCircle)
+            if (p.Kind is ConcreteTemplateKind.Ellipse or ConcreteTemplateKind.Stadium or ConcreteTemplateKind.HollowCircle
+                or ConcreteTemplateKind.Trapezoid or ConcreteTemplateKind.RegularPolygon)
             {
                 links.Add(new("Staffa esterna", Offset(outer, -axis)));
                 foreach (var hole in holes) links.Add(new("Staffa interna", Offset(hole, axis)));
@@ -126,6 +127,16 @@ public static class ConcreteSectionTemplates
         }
         if (p.Kind == ConcreteTemplateKind.Ellipse) return new SectionEllipse(p.Width, p.Height).Shape;
         if (p.Kind == ConcreteTemplateKind.Stadium) return new SectionStadium(p.Width, p.Height).Shape;
+        if (p.Kind == ConcreteTemplateKind.RegularPolygon)
+        {
+            if (p.PolygonSides is < 3 or > 32) throw new ArgumentException("Numero di lati del poligono compreso fra 3 e 32.");
+            return new SectionRegularPolygon(p.PolygonSides, p.Width).Shape;
+        }
+        if (p.Kind == ConcreteTemplateKind.Trapezoid)
+        {
+            if (!double.IsFinite(p.BottomWidth) || p.BottomWidth <= 0) throw new ArgumentException("Base inferiore positiva e finita.");
+            return new SectionTrapezoid(p.BottomWidth, p.Width, p.Height).Shape;
+        }
         foreach (double value in new[] { p.Web, p.TopFlange })
             if (!double.IsFinite(value) || value <= 0) throw new ArgumentException("Spessori di anima e ala positivi.");
         if (p.Web >= p.Width || p.TopFlange >= p.Height) throw new ArgumentException("Anima e ala devono essere contenute nella sezione.");
