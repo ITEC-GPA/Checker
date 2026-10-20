@@ -2,8 +2,10 @@
   <PropertyGroup><TargetFramework>net8.0</TargetFramework><IsTestProject>true</IsTestProject><IsPackable>false</IsPackable><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../GPCChecker.Steel/GPCChecker.Steel.csproj" />
+    <Reference Include="GPCModelData"><HintPath>../../../Model/ModelData/bin/Release/netstandard2.0/GPCModelData.dll</HintPath></Reference>
     <Reference Include="GPCModel"><HintPath>../../../Model/Model/bin/Release/netstandard2.0/GPCModel.dll</HintPath></Reference>
     <Reference Include="GPCGeometry"><HintPath>../../../Geometry/GPCGeometry/bin/Release/netstandard2.0/GPCGeometry.dll</HintPath></Reference>
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.6.4" />
     <PackageReference Include="MSTest.TestFramework" Version="3.6.4" />

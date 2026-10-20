@@ -1,0 +1,111 @@
+EC3 / NTC 2018 - verifica numerica e perimetro (20 ottobre 2026)
+
+Questa batteria non qualifica ancora un verificatore completo per ogni sezione di Model.
+Le verifiche numeriche delle primitive e le prove del percorso pubblico sono distinte.
+Il conteggio dei casi parametrizzati non equivale al numero di meccanismi implementati.
+
+Riferimenti verificati
+- EN 1993-1-1:2005, corrigenda 2006/2009: tab. 5.2, 6.2.5-6.2.9, 6.3.1.2.
+  Testo normativo: https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+  Si conserva l'edizione 2005 già usata dalla libreria; nessuna migrazione alla seconda generazione.
+- D.M. 17 gennaio 2018, cap. 4.2: 4.2.4.1.2.1-4, 4.2.4.1.3.1, tab. 4.2.VII.
+  https://www.gazzettaufficiale.it/eli/id/2018/02/20/18A00716/sg
+- Circolare n. 7 del 21 gennaio 2019: identificata la pubblicazione ufficiale;
+  le formulazioni aggiuntive di C4.2 non sono ancora integrate/qualificate in questi metodi.
+  https://www.gazzettaufficiale.it/eli/id/2019/02/11/19A00855/sg
+
+Convenzioni
+N, mm, MPa, Nmm; N positivo a trazione. Assi principali baricentrici 1 e 2.
+Le azioni sono già di progetto; nessuna combinazione o conversione automatica.
+Nei test il materiale ha fy=235 MPa assegnato: non si testa la scelta di fy in funzione dello spessore.
+La resistenza del materiale per prodotto/spessore resta un dato del chiamante.
+Le tolleranze sono relative: 1e-10 per aritmetica/formule, 2e-6 per moduli geometrici.
+Le prove di simmetria del percorso legacy usano 1e-12.
+
+Attesi
+Fixtures/section-oracles.json è NUOVA. Non modifica alcuna fixture preesistente.
+Fixtures/generate_section_oracles.py usa integrali di rettangoli disgiunti, rotazione
+agli assi principali e taglio dei poligoni per individuare l'asse plastico di equiarea.
+Per cerchi/corone usa integrali analitici. Non legge DLL o risultati GPC.
+Il generatore rifiuta la sovrascrittura: fornire un nuovo percorso per un controllo indipendente.
+Per il C 300x100, tw=10, tf=15, r=0: A=5700 mm2, Wpl,2=136425 mm3.
+La vecchia formula Model produceva 149931.818... mm3: rimosso il difetto nel branch Model abbinato.
+
+Casi aggiunti a Steel.Members.Tests (CodeVerificationTests)
+96 flessione: 8 famiglie x 2 norme x 3 classi assegnate x 2 assi.
+24 compressione NTC: 8 famiglie x 3 classi assegnate.
+20 taglio: H/C/T/RHS/CHS x 2 norme x 2 direzioni.
+25 instabilità: 5 curve x 5 snellezze, con controllo Euler e limite plastico.
+18 classificazione: entrambi i lati delle 3 soglie per piatti interni, esterni e CHS.
+6 interazioni flessione-taglio e segno; 4 interazioni N-M H/RHS.
+8 interazioni elastiche NTC e rottura della sezione netta.
+4 input non validi; 1 classe 4; 1 larghezza libera ala; 1 limite N=0.
+6 carichi puri nel percorso pubblico H/RHS; 3 geometrie speciali rifiutate; 2 torsioni rifiutate.
+Totale: 219 nuovi casi generali, oltre ai 13 preesistenti della suite.
+Ulteriori 17 casi in EN1993ResultIntegrityTests: stazioni/gruppi, segni, NaN, recupero dopo errore.
+Ulteriori 4 casi di geometria nel repository Model: ChannelPlasticModulusRegressionTest.
+
+Matrice per famiglie Model
+Famiglia                             Resistenza      Classificazione       Interazione          Instabilità
+SectionH (doppiamente simmetrica)     NTC N/M, EC3 M/V soglie + ala, parziale N-M e M-V provate    chi provato; LTB aperto
+SectionC                             NTC N/M, EC3 M/V piatti, parziale       elastica NTC         LTB/torsionale aperti
+SectionT                             NTC N/M, EC3 M/V piatti, parziale       elastica NTC         torsionale aperta
+SectionL                             NTC N/M, EC3 M   non qualificata        elastica NTC         flesso-torsionale aperta
+SectionRHS (anche SHS)                NTC N/M, EC3 M/V piatti, parziale       N-M e M-V provate    chi provato; asta aperta
+SectionCHS                           NTC N/M, EC3 M/V soglie D/t             elastica + API CHS   API assiale preesistente
+SectionRectangular                   NTC N/M, EC3 M   classe assegnata       elastica NTC         classe/curva da fornire
+SectionCircular                      NTC N/M, EC3 M   API assiale esistente  elastica NTC         API assiale preesistente
+SectionH asimmetrica                  primitive M     non qualificata        formula simmetrica rifiutata; asta aperta
+SectionRHSRoundedCorners             non qualificata automaticamente; richiesta geometria/classe verificata
+SectionHTaperFlange                   non qualificata automaticamente; rifiutata nel percorso bulk
+SectionCTaperFlange                   non qualificata automaticamente; rifiutata nel percorso bulk
+SectionTTaperFlange                   non qualificata automaticamente; rifiutata nel percorso bulk
+SectionHDoubleBottomFlange            non qualificata automaticamente; rifiutata nel percorso bulk
+SectionHInclinedWeb                   non qualificata automaticamente; rifiutata nel percorso bulk
+SectionSteelBox                       non qualificata automaticamente; rifiutata nel percorso bulk
+SectionColdFormed                     richiede norme/instabilità locale e distorsionale dedicate
+SectionBuiltUp, SectionWelded         aste composte e collegamento dei componenti non qualificati
+Section, ThinWallSection              geometria generica: nessuna classificazione o curva implicita
+SectionEllipse, SectionRegularPolygon, SectionStadium, SectionTrapezoid:
+                                     primitive NTC utilizzabili solo con proprietà/classe/curva fornite; nessuna qualifica geometrica automatica
+SectionHaunchedI, SectionBoxGirder, SectionMultiWebDeck, SectionHollowCore, SectionUBeam:
+                                     geometrie speciali/variabili: verifica automatica non implementata
+SectionParametric è astratta; SectionOutline/SectionCurveOutline sono contorni, non famiglie verificabili.
+Sezioni Concrete/Rebar/Bolt non sono famiglie di asta in acciaio strutturale di questo perimetro.
+
+"NTC N/M" indica capacità elementari con classe assegnata, non classificazione automatica.
+"chi provato" indica curva matematica/Euler, non selezione automatica della curva per ogni prodotto.
+I controlli di rifiuto non sono conteggiati come verifiche resistenti superate.
+Non si usa il successo di una primitiva per abilitare nuovi meccanismi in ModelChecker.
+
+Limitazioni ancora da risolvere nel perimetro richiesto
+- Classe 4: proprietà efficaci/instabilità locale; CHS snelli: gusci.
+- Classificazione completa sotto N-M1-M2, sezioni asimmetriche, angolari e geometrie speciali.
+- Selezione e validazione delle curve per tutte le sezioni e condizioni di fabbricazione.
+- Instabilità latero-torsionale, torsionale e flesso-torsionale; interazione di asta N-M.
+- Instabilità a taglio: il vecchio CalculateVbRd1 e il criterio RHS richiedono revisione dedicata.
+- Torsione e tensioni da ingobbamento: il percorso bulk ora rifiuta T diverso da zero.
+- Fori: il legacy assume area netta=lorda. NTC Tension permette area netta esplicita.
+- N-M-V simultaneo: i test attuali non costituiscono una validazione generale.
+- Flessione/taglio elevato: fuori dal caso H simmetrico asse forte si usa riduzione uniforme
+  conservativa di fy, non l'integrazione plastica ottimale della sola area a taglio.
+
+Regressioni storiche
+Rimangono 17 test legacy falliti già presenti nella baseline. Nessun atteso è stato cambiato.
+Due test RHS costruiscono una sola stazione ma ne asseriscono 5/6; inoltre chiedono classi
+diverse al variare della sola entità della compressione uniforme. Questo richiede revisione
+del significato dei casi di riferimento, non un ritocco delle soglie per farli passare.
+Altri confronti SAP/Cordova e LTB/interazione devono essere ricostruiti con ipotesi e coefficienti coerenti.
+
+Esecuzione riproducibile
+1. Compilare Model, ModelData e GPC.Model.Persistence nel branch Model con il fix del profilo C.
+2. Dal repository Checker:
+   dotnet test tests/Steel.Members.Tests/Steel.Members.Tests.csproj -c Release -p:SteelModelRoot=<percorso-assoluto-Model>
+3. La proprietà facoltativa SteelModelRoot seleziona solo le DLL del Model abbinato.
+   Senza di essa restano i riferimenti preesistenti al checkout fratello ../Model.
+4. build/Verify.ps1 include già Steel.Members.Tests nelle suite ordinarie.
+   Per il rilascio occorrono tutte le suite e il set coerente previsto in build/RILASCIO.txt.
+   Le modifiche di questa lavorazione non sono un rilascio e non estendono l'adapter ModelChecker.
+
+Fuori dal perimetro attuale, su indicazione dell'utente: norme americane, collegamenti,
+fatica, incendio, sisma e revisione dell'architettura.

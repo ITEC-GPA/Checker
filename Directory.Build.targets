@@ -1,0 +1,14 @@
+<Project>
+  <!-- Optional paired-worktree verification. Default builds keep the existing sibling Model references. -->
+  <ItemGroup Condition="'$(SteelModelRoot)' != ''">
+    <Reference Update="GPCModel">
+      <HintPath>$(SteelModelRoot)/Model/bin/Release/netstandard2.0/GPCModel.dll</HintPath>
+    </Reference>
+    <Reference Update="GPCModelData">
+      <HintPath>$(SteelModelRoot)/ModelData/bin/Release/netstandard2.0/GPCModelData.dll</HintPath>
+    </Reference>
+    <Reference Update="GPC.Model.Persistence">
+      <HintPath>$(SteelModelRoot)/GPC.Model.Persistence/bin/Release/netstandard2.0/GPC.Model.Persistence.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>
