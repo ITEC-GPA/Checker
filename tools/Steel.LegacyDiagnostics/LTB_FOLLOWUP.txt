@@ -139,3 +139,31 @@ and shear-centre are explicit Model inputs, not separately certified by the
 H eigenproblem. No general boundary condition qualification is claimed.
 1226/1226 members,14/14 ModelChecker Steel,111/122 legacy,same11 failures.
 Audit prefix:mono-mcr. No legacy fixture modified.
+
+Step 6c - Steel2.4.0.17: channel slenderness follows EC3 eq6.56.
+The unconditional additive lambdaT was traced to the modified methods in
+Ekstrom/Wesley, Chalmers Master's Thesis2017:52,4.5.1-4.5.2,pp47-48
+(PDF65-66),eq4.87-4.92. It is not part of EN1993-1-1:2005 eq6.56.
+Removed that implicit method mixing; curve d and the class-dependent
+resistance modulus remain. Eccentric loading/torsion requires separate
+analysis; removing this correction does NOT validate web-loaded channels.
+https://publications.lib.chalmers.se/records/fulltext/252188/252188.pdf
+SHA256:9654A63EC763A692A7486C0EA545C027E0395FF3BDCE0F8CA743EBECE696AA27
+27 tests:24 EC3 lambda/chi cases with supplied SCI PFC properties and explicit
+classes/strengths,3 former piecewise thresholds. Before20fail/7pass.
+After1253/1253 members,14/14 integration,111/122 legacy,same11,zero ignored.
+Audit prefix:channel-ec3. No legacy fixture modified.
+The current C legacy has Mc230.145014kNm,Mcr113.448258kNm,Mb68.611511kNm.
+Its original expectations remain173.775 and100.38kNm: this fix does not
+reproduce the missing Cordova case.
+
+Independent lead for the UPN legacy (INFERENCE, not proof of its source):
+ArcelorMittal UPN300 table,p99:Wpl,y632cm3,A58.8cm2,Iy8030cm4,
+Iz495cm4,It37.4cm4,Iw69.1e9mm6; tapered flanges,unlike legacy SectionC.
+632000*275/1.05=165.523810kNm, matching the pre-rescaled legacy165.5
+within its published rounding. This suggests S275/UPN300 as a candidate,
+but it is not enough to alter the fixture. The table footnote limits use
+of its plastic modulus to a double-symmetric combination of channels
+without associated torsion. It cannot certify the isolated legacy beam.
+https://constructalia.arcelormittal.com/files/UPN--a31ee316da5e451343f5b857f275013d.pdf
+SHA256:733FD744359742B5F06D8437A979792949B9DE781331FB096BA0DE7E29E9748E

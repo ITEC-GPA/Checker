@@ -1495,24 +1495,10 @@ namespace GPC.Checkers.Steel.Checkers
                 case SectionClass.Class4: modulus = GetWeffMin1(section); break;
                 default: throw new ArgumentOutOfRangeException(nameof(sectionClass));
             }
-            if (section.SectionShape is SectionC)
-            {
-                double lambdaLT = Math.Pow(modulus * Fy / Mcr, 0.5);
-                double lambdaT;
-                if (lambdaLT < 0.50)
-                    return Math.Pow(modulus * Fy / Mcr, 0.5);
-                else if (lambdaLT >= 0.5 && lambdaLT < 0.75)
-                    lambdaT = 1.11 - lambdaLT;
-                else if (lambdaLT >= 0.75 && lambdaLT < 1.14)
-                    lambdaT = 0.69 - 0.44 * lambdaLT;
-                else if (lambdaLT >= 1.14)
-                    lambdaT = 0.19;
-                else
-                    throw new ArgumentException("Lateral torsional buckling: not implemented lambdaT");
-                return lambdaLT + lambdaT;
-            }
-            else
-                return Math.Pow(modulus * Fy / Mcr, 0.5);
+            // EN1993-1-1:2005 eq6.56. The channel-only additive lambdaT
+            // from the modified DIN/research methods is not part of this definition.
+            // Loading eccentricity/torsion needs its own qualified analysis.
+            return Math.Sqrt(modulus * Fy / Mcr);
         }
 
         protected double CalculateMcr(ISteelSection section, ResultBeamForces forces, double length,
