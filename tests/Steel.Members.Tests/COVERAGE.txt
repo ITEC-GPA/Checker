@@ -92,7 +92,8 @@ Limitazioni ancora da risolvere nel perimetro richiesto
   conservativa di fy, non l'integrazione plastica ottimale della sola area a taglio.
 
 Regressioni storiche
-Rimangono 17 test legacy falliti già presenti nella baseline. Nessun atteso è stato cambiato.
+Rimangono 16 dei 17 test legacy falliti nella baseline. SectionHBucklingExample2 ora passa
+dopo la correzione dei limiti di classificazione. Nessun atteso è stato cambiato.
 Due test RHS costruiscono una sola stazione ma ne asseriscono 5/6; inoltre chiedono classi
 diverse al variare della sola entità della compressione uniforme. Questo richiede revisione
 del significato dei casi di riferimento, non un ritocco delle soglie per farli passare.
