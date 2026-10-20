@@ -1,3 +1,5 @@
+using GPC.Geometry;
+using System.Collections.Generic;
 using GPC.Checkers.Steel.Results;
 using GPC.Model.Elements;
 using GPC.Model.Materials;
@@ -2376,8 +2378,8 @@ namespace GPC.Checkers.Steel.Checkers
         {
             sectionClass = SectionClass.Class4;
             // Qualified scope: sharp, parallel-flange T; N plus geometric X bending.
-            // A biaxial plastic neutral axis and worked/tapered corners need separate
-            // qualification. Preserve the conservative compression fallback there.
+            // Biaxial loading is handled by the next helper. Worked/tapered
+            // corners retain the conservative compression fallback.
             if (section.SectionShape.GetType() != typeof(SectionT))
                 return false;
             var tee = (SectionT)section.SectionShape;
@@ -2427,6 +2429,134 @@ namespace GPC.Checkers.Steel.Checkers
                 : SectionClass.Class1;
             sectionClass = SetWorstClass(stemClass, flangeClass);
             return true;
+        }
+
+        private bool TryGetTeeBiaxialBendingClass(ResultBeamForces forces, ISteelSection section, out SectionClass sectionClass)
+        {
+            sectionClass = SectionClass.Class4;
+            if (section.SectionShape.GetType() != typeof(SectionT)) return false;
+            var tee = (SectionT)section.SectionShape;
+            if (tee.R != 0 || Math.Abs(forces.N) >= tee.Area * Fy / GammaM0) return false;
+            double mx, my;
+            if (Math.Abs(tee.AngleX1) < 1e-12) { mx = forces.M1; my = forces.M2; }
+            else if (Math.Abs(tee.AngleX1 + Math.PI / 2) < 1e-12) { mx = forces.M2; my = -forces.M1; }
+            else return false;
+            if (my == 0) return false; // The separately qualified uniaxial path handles this.
+
+            double Elastic(double x, double y) =>
+                -(forces.N / tee.Area + mx * (y - tee.Centroid.Y) / tee.Jxx - my * x / tee.Jyy);
+            double b = tee.LenghtFlange, h = tee.Height, hw = tee.HeightWeb;
+            double tw = tee.ThicknessWeb, tf = tee.ThicknessFlange;
+            // Maximum compression is attained at a vertex of the two rectangles.
+            if (new[] { Elastic(-tw / 2, 0), Elastic(tw / 2, 0),
+                Elastic(-b / 2, hw), Elastic(b / 2, hw),
+                Elastic(-b / 2, h), Elastic(b / 2, h) }.Max() <= 0)
+            {
+                sectionClass = SectionClass.Class1;
+                return true;
+            }
+            double ac = (tee.Area - forces.N / (Fy / GammaM0)) / 2;
+            double[] plane = CalculateTeePlasticStressPlane(tee, ac, mx, my);
+            double Plastic(double x, double y) => plane[0] * x + plane[1] * y - plane[2];
+            SectionClass Plate(double xr, double yr, double xt, double yt, double c, double t)
+            {
+                double root = Plastic(xr, yr), tip = Plastic(xt, yt);
+                double alpha = Math.Min(root, tip) >= 0 ? 1 :
+                    Math.Max(root, tip) <= 0 ? 0 : Math.Max(root, tip) / Math.Abs(root - tip);
+                return GetClassBendingOuterPlate(c, t, alpha, tip > root,
+                    Elastic(xr, yr), Elastic(xt, yt));
+            }
+            // Conservative envelope across the thickness of each outstand.
+            // The larger compression field on either face bounds the membrane
+            // field. Do not use only the mid-line to claim a plastic class when
+            // weak-axis bending gives a strong through-thickness gradient.
+            sectionClass = SetWorstClass(new[] {
+                Plate(-tw / 2, hw, -tw / 2, 0, hw, tw),
+                Plate(tw / 2, hw, tw / 2, 0, hw, tw),
+                Plate(-tw / 2, hw, -b / 2, hw, (b - tw) / 2, tf),
+                Plate(-tw / 2, h, -b / 2, h, (b - tw) / 2, tf),
+                Plate(tw / 2, hw, b / 2, hw, (b - tw) / 2, tf),
+                Plate(tw / 2, h, b / 2, h, (b - tw) / 2, tf)
+            });
+            return true;
+        }
+
+        // Equilibrium at fixed axial force: compressed area Ac and moment
+        // direction (Mx,My). The half-plane a*x+b*y-c>=0 is compressed;
+        // x is centred on the web, y is measured from the stem tip.
+        // Coordinates/areas are normalized to avoid geometry-scale sensitivity.
+        protected static double[] CalculateTeePlasticStressPlane(SectionT tee, double compressedArea, double mx, double my)
+        {
+            if (!(compressedArea > 0 && compressedArea < tee.Area) ||
+                double.IsNaN(mx) || double.IsNaN(my) || double.IsInfinity(mx) || double.IsInfinity(my) ||
+                (mx == 0 && my == 0))
+                throw new ArgumentException("Plastic T equilibrium requires 0<Ac<A and a finite nonzero moment direction.");
+            double scale = Math.Max(tee.Height, tee.LenghtFlange), yc = tee.Centroid.Y / scale;
+            double targetArea = compressedArea / (scale * scale);
+            var rectangles = new[] {
+                new[] { tee.ThicknessWeb / scale, -yc, tee.HeightWeb / scale - yc },
+                new[] { tee.LenghtFlange / scale, tee.HeightWeb / scale - yc, tee.Height / scale - yc }
+            };
+            double[] Integrate(double a, double b, double c)
+            {
+                double area = 0, qx = 0, qy = 0;
+                foreach (double[] r in rectangles)
+                {
+                    var vertices = new[] { new Point2d(-r[0] / 2, r[1]), new Point2d(r[0] / 2, r[1]),
+                        new Point2d(r[0] / 2, r[2]), new Point2d(-r[0] / 2, r[2]) };
+                    var polygon = new List<Point2d>(6);
+                    Point2d previous = vertices[3];
+                    double gp = a * previous.X + b * previous.Y - c;
+                    foreach (Point2d current in vertices)
+                    {
+                        double g = a * current.X + b * current.Y - c;
+                        if ((g >= 0) != (gp >= 0))
+                        {
+                            double f = gp / (gp - g);
+                            polygon.Add(new Point2d(previous.X + f * (current.X - previous.X),
+                                previous.Y + f * (current.Y - previous.Y)));
+                        }
+                        if (g >= 0) polygon.Add(current);
+                        previous = current; gp = g;
+                    }
+                    for (int i = 0; i < polygon.Count; i++)
+                    {
+                        Point2d p = polygon[i], q = polygon[(i + 1) % polygon.Count];
+                        double cross = p.X * q.Y - q.X * p.Y;
+                        area += cross / 2;
+                        qx += (p.X + q.X) * cross / 6;
+                        qy += (p.Y + q.Y) * cross / 6;
+                    }
+                }
+                return new[] { area, qx, qy };
+            }
+            double[] Evaluate(double angle)
+            {
+                double a = Math.Sin(angle) * (my < 0 ? -1 : 1), b = Math.Cos(angle);
+                // |x|,|y|<=1 after normalization, so +/-2 bounds all projections.
+                double lo = -2, hi = 2;
+                for (int j = 0; j < 64; j++)
+                {
+                    double c = (lo + hi) / 2;
+                    if (Integrate(a, b, c)[0] > targetArea) lo = c; else hi = c;
+                }
+                double offset = (lo + hi) / 2;
+                double[] integrals = Integrate(a, b, offset);
+                return new[] { a, b, offset, integrals[0], integrals[1], integrals[2] };
+            }
+            double targetAngle = Math.Atan2(Math.Abs(my), -mx), low = 0, high = Math.PI;
+            for (int i = 0; i < 64; i++)
+            {
+                double angle = (low + high) / 2;
+                double[] trial = Evaluate(angle);
+                double observed = Math.Atan2(Math.Abs(trial[4]), trial[5]);
+                if (observed < targetAngle) low = angle; else high = angle;
+            }
+            double[] answer = Evaluate((low + high) / 2);
+            if (Math.Abs(answer[3] - targetArea) > 1e-11 ||
+                Math.Abs(Math.Atan2(Math.Abs(answer[4]), answer[5]) - targetAngle) > 1e-9)
+                throw new ArithmeticException("Biaxial T plastic equilibrium did not converge.");
+            return new[] { answer[0] / scale, answer[1] / scale, answer[2] + answer[1] * yc };
         }
 
         /// <summary>
@@ -2509,6 +2639,9 @@ namespace GPC.Checkers.Steel.Checkers
         protected SectionClass CalculateSectionClassDueToCombinedBendingAndCompression(ResultBeamForces resultBeamForces, ISteelSection section)
         {
             if (TryGetTeeUniaxialBendingClass(resultBeamForces, section, out SectionClass teeClass))
+                return teeClass;
+
+            if (TryGetTeeBiaxialBendingClass(resultBeamForces, section, out teeClass))
                 return teeClass;
 
             if (TryGetRhsPureBendingClass(resultBeamForces, section, out SectionClass rhsClass))
@@ -2598,6 +2731,9 @@ namespace GPC.Checkers.Steel.Checkers
         protected SectionClass CalculateSectionClassDueToBending(ResultBeamForces resultBeamForces, ISteelSection section)
         {
             if (TryGetTeeUniaxialBendingClass(resultBeamForces, section, out SectionClass teeClass))
+                return teeClass;
+
+            if (TryGetTeeBiaxialBendingClass(resultBeamForces, section, out teeClass))
                 return teeClass;
 
             if (TryGetRhsPureBendingClass(resultBeamForces, section, out SectionClass rhsClass))

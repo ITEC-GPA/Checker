@@ -17,7 +17,7 @@ using Opt = GPC.Checkers.Steel.Checkers.EN1993p11Checker.EN1993p11Options;
 namespace Steel.Members.Tests;
 
 // N-mm-MPa, tension positive. Mx > 0 compresses the bottom/free end of the stem.
-// References and the intentionally unqualified biaxial case: TEE_CLASSIFICATION.txt.
+// References and classification scope: TEE_CLASSIFICATION.txt.
 [TestClass]
 public class TeeClassificationRegressionTests
 {
@@ -99,13 +99,14 @@ public class TeeClassificationRegressionTests
     }
 
     [TestMethod]
-    public void BiaxialLegacyRemainsOnTheConservativeFallback()
+    public void BiaxialLegacyRemainsClass3WithThroughThicknessEnvelope()
     {
         var p = LegacyProbe();
         var forces = new ResultBeamForces(100000, 50000, -50000, 0, -100e6, 100e6, CoordinateSystem.Global);
         Assert.AreEqual(3, p.Bending(forces));
         Assert.AreEqual(3, p.Combined(forces));
-        // This is a scope guard, not independent validation of biaxial classification.
+        // The conservative envelope over the web faces still requires class 3.
+        // The inverse equilibrium benchmarks are in TeeBiaxialClassificationTests.
     }
 
     [TestMethod]

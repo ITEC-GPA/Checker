@@ -101,3 +101,20 @@ tee-final-modelchecker.trx, tee-final-legacy.trx, tee-final-diagnostics.json.
 Public PDF SHA256 (retrieved 2026-10-20):
 JRC:2C9F63CBDAAD67B8F5E74932E5CF0790A8FC5169D2EFC300785F41FF192B02AB
 SCI:355047C883BDA481D97C1F93E4E2C890BFCBB8EBE6DCCBD49EE7D8EE3D36DA70
+
+Step 1 - Steel 2.4.0.14: sharp parallel-flange T under N+Mx+My.
+Plastic half-plane equilibrium now satisfies compressed area and moment
+orientation. Independent strip integration (two-point Gauss on exact split
+intervals) validates polygon clipping on 72 inverse problems, including
+mirrored loading and geometric scaling. Classification takes a conservative
+envelope over both web faces and both flange faces; it does not treat a
+midline compressed fraction as a complete through-thickness plate check.
+Twenty additional tests cover small secondary moments, slender stems,
+fully tensile flanges, the legacy class3 result and wide-T axis mapping.
+Before routing the new helper:74/92 passed,18 failed. After:1129/1129 total.
+Integration14/14; legacy111/122,same11 failures;29 cases/221 assertions.
+Audit prefix:tee-biaxial. No legacy expected value changed.
+This is mathematical/normative qualification of a conservative algorithm,
+not an independently published worked biaxial-T resistance example. Rounded
+or tapered T remain outside this qualification. The legacy T class1 cannot
+be justified from its uniaxial SAP alpha in a biaxial load case.

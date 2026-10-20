@@ -89,3 +89,20 @@ No numerical expected value in the11 remaining legacy failures was changed.
 Current diagnostics29 cases/221 assertions. Audit prefix:interaction-scope.
 Original source can be replayed at commit a2a82faf with Run.ps1 -SourceRevision.
 Updated legacy source SHA256: 773022095F2659B4292116A0C5C08065747457BDDA0F2EB8A8AF3B8C6BD0F47F
+
+Step 1 - Steel 2.4.0.14: sharp parallel-flange T under N+Mx+My.
+Plastic half-plane equilibrium now satisfies compressed area and moment
+orientation. Independent strip integration (two-point Gauss on exact split
+intervals) validates polygon clipping on 72 inverse problems, including
+mirrored loading and geometric scaling. Classification takes a conservative
+envelope over both web faces and both flange faces; it does not treat a
+midline compressed fraction as a complete through-thickness plate check.
+Twenty additional tests cover small secondary moments, slender stems,
+fully tensile flanges, the legacy class3 result and wide-T axis mapping.
+Before routing the new helper:74/92 passed,18 failed. After:1129/1129 total.
+Integration14/14; legacy111/122,same11 failures;29 cases/221 assertions.
+Audit prefix:tee-biaxial. No legacy expected value changed.
+This is mathematical/normative qualification of a conservative algorithm,
+not an independently published worked biaxial-T resistance example. Rounded
+or tapered T remain outside this qualification. The legacy T class1 cannot
+be justified from its uniaxial SAP alpha in a biaxial load case.
