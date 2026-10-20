@@ -8,6 +8,11 @@ non confermata, HInteraction2 ancora aperto.
 RHS_CLASSIFICATION_STUDY.txt documenta la correzione successiva dei due test RHS,
 con attesi ricalcolati indipendentemente per gli input a spigoli vivi.
 La suite legacy corrente ha 111 successi e 11 fallimenti.
+L'indagine successiva su SectionHBuckling1 e i benchmark SCI/CIC sono in
+../../tests/Steel.Members.Tests/BUCKLING_BENCHMARKS.txt.
+La ricostruzione indipendente conferma il calcolo S355 del checker; S275
+spiega numericamente gli attesi legacy, ma manca la pagina originale.
+Il fix delle curve I/H (Steel 2.4.0.1) non chiude alcuno degli 11 fallimenti.
 Usare -SourceRevision 55ac7438 per riprodurre gli input precedenti al
 riallineamento, senza modificare il checkout. -Scenario consente Baseline,
 HollowColdFormed, HollowWelded, HollowAlpha049Only e InteractionGamma105.

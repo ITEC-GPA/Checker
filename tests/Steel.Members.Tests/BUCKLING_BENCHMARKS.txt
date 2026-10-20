@@ -16,6 +16,7 @@ Fonti primarie tecniche consultate
    Sections. File con copyright 2008, esempi controllati luglio 2009 e
    premessa aggiornata novembre 2010.
    https://www.steelconstruction.info/images/6/6b/SCI_P374.pdf
+   SHA256 3D67F52869045136D5A706068A5ABA99E01F64C9CA29ED6FCB1107E548263530
 3. Construction Industry Council / Hong Kong Polytechnic University,
    K. F. Chung, M. C. H. Yam, H. C. Ho, Technical Guide on Effective Design
    and Construction to Structural Eurocodes: EN1993-1-1 Design of Steel
@@ -30,22 +31,35 @@ alle prove. Le pagine SCI indicate sotto sono quelle stampate; aggiungere 8
 per ottenere il numero di pagina PDF a base 1. CIC: D26 = PDF244.
 
 PublishedBucklingBenchmarks
-- 18 casi di instabilita' flessionale (9 configurazioni, due assi):
+- 20 casi di instabilita' flessionale (10 configurazioni, due assi):
   P364 esempi 9 (pp.97-102), 10 (104-107), 11/13 (112,116-117,143-145),
-  12 (126,131); CIC II-3/II-4 (D26-D28,D30-D33);
+  12 (126,131); CIC II-3/II-4 (D26-D28,D30-D33), II-5 (D37-D39);
   P374 esempi 2 (18-21), 5 (37,40), 6 (46,50-51), 7 (57,59).
   Gli esempi 11/13 e II-3/II-4 hanno identici termini assiali: non si contano
   due volte. Verificati selezione automatica curva, Euler, lambda, Phi, chi,
   e Nb quando pubblicato. Inclusi ritegni intermedi e Lcr differenti.
-- Altri 18 casi usano gli stessi input pubblicati ma un oracolo indipendente
+- Altri 20 casi usano gli stessi input pubblicati ma un oracolo indipendente
   ad alta precisione: bisezione della relazione quadratica per chi, senza
   richiamare formule del checker per calcolare gli attesi.
-- 7 casi LTB: P364 3/4/11/13 (27,38,118,146) e CIC II-2 B2-I/B2-II,
-  II-4 (D19,D21,D33). Verificano SOLTANTO Phi, chi, f, chi_mod.
+- 12 casi LTB: P364 3/4/5/7/11/12/13 (27,38,47-48,71-72,118,133,146)
+  e CIC II-2 B2-I/B2-II/B3-II, II-4, II-5 (D19,D21,D25,D33,D39).
+  Verificano SOLTANTO Phi, chi, f, chi_mod.
   Lambda, alpha, beta, lambda0 e kc sono input espliciti della fonte.
   Non qualificano Mcr, la scelta automatica dei parametri NA o N-M.
   Nei casi P364 11/13 kc=1 isola il valore chi prima della modifica: non
   riproduce il diagramma di momento completo.
+- 1 caso CIC B3-I D23: distingue chi=.18 NON limitato dal valore EC3
+  limitato a 1/lambda^2=0.173611...; la capacita' 70.3 kNm non e' qualificata.
+- 3 casi sul plateau lambdaLT=.4 e i due lati della soglia, con coefficienti
+  del caso di trave continua SCI7; attesi normativi, non ulteriori esempi.
+- 5 casi Mcr con proprieta' pubblicate e C1 esplicito. Due confronti CIC
+  II-2 D18 e II-4 D32 verificano anche i valori pubblicati 63.8/740.2 kNm.
+  Tre confronti usano gli input SCI P364-13 p146, P364-5 p47 (proprieta'
+  della stessa UKC in P364-10), P374-4 p35; attesi da calcolo indipendente,
+  senza validare i valori editoriali Mcr arrotondati/incoerenti.
+  Sono casi a carico nel centro di taglio, vincoli a forcella, ingobbamento
+  libero. P374 trascura Iw esplicitamente. Non qualificano C1 automatico,
+  carico sull'ala, ne' geometrie monosimmetriche.
 - 2 casi torsionali P364 9/10 (pp.100-101,108-109): Ncr,T e riduzione.
   GPC calcola G=E/[2(1+nu)]; SCI arrotonda G a 81000 MPa.
   La tolleranza Ncr include tale scarto noto e l'ultima cifra stampata.
@@ -67,7 +81,7 @@ Gli esempi arrotondano epsilon, lambda, Phi e chi a ogni passaggio.
 Per i confronti editoriali si propaga l'intervallo delle cifre stampate:
 lambda +/-0.01 (include epsilon arrotondato), Phi +/-0.005, chi +/-0.005.
 Gli intervalli sono ricavati DAI DATI DELLA FONTE, mai dai risultati GPC.
-I 18 controlli indipendenti paralleli impongono 1e-12 relativo sulle forze e
+I 20 controlli indipendenti paralleli impongono 1e-12 relativo sulle forze e
 1e-12 assoluto su lambda/chi: l'intervallo editoriale non copre bug numerici.
 - P364 p.107 scrive (lambda-.5) in una formula simbolica, ma usa correttamente
   (lambda-.2) nella sostituzione numerica. Si segue EC3 eq.(6.49).
@@ -84,6 +98,18 @@ I 18 controlli indipendenti paralleli impongono 1e-12 relativo sulle forze e
   sostituita pur usando 5000 nel prefattore: Mcr=225.5 kNm non e' adottato
   come riferimento per CalculateMcr. Il caso LTB verifica la riduzione
   per il lambda=1.31 pubblicato, senza dichiarare corretta l'intera verifica.
+- CIC B3 D23 omette il limite 1/lambda^2. A D25 il riepilogo di B2-I
+  non coincide con lo svolgimento (lambda/Phi/f); usati D18-D19 espliciti.
+- CIC II-5 D37 tabula Iz=1550 cm4 ma D38 usa 1548: il caso dichiara
+  quest'ultimo come input, senza modificare implicitamente la geometria.
+- P364-12 p133 sostituisce .69 al posto di lambda=.61 nel calcolo di f:
+  entrambi arrotondano a .88. Il test usa lambda=.61 coerente con la formula.
+- P374-4 p35 dichiara Mcr=5500 kNm, mentre gli input riportati danno
+  5410.946 kNm con G=81000. Il test usa l'oracolo indipendente sugli input,
+  non una tolleranza allargata al valore pubblicato.
+- P364-13 p146 dichiara Mcr=345.7 kNm; con gli input scritti e G=81000
+  si ottengono 346.584 kNm. Anche qui si qualifica l'aritmetica sugli input,
+  non l'accordo con quel valore stampato.
 
 IBucklingCurveTableTests
 94 casi: 80 su righe/soglie h/b=1.2, tf=40/100 e fy=235/275/355/420/460;
@@ -115,3 +141,12 @@ Le presenti prove di componenti NON sono verifiche complete di questi casi.
 Non si converte un confronto Annex B in Annex A solo per farlo coincidere.
 Il percorso pubblico e la propagazione di tali capacita' al ModelChecker
 restano da qualificare con casi end-to-end dedicati.
+
+Esito del passo
+161 nuovi casi: 63 PublishedBucklingBenchmarks, 94 tabella 6.2,
+4 Hea300BucklingArithmeticTests. Versione Steel 2.4.0.1.
+Prima del fix: 50/139 casi iniziali fallivano; quattro ulteriori casi HEA
+passavano. Il fix elimina i 50 fallimenti senza cambiare attesi o tolleranze.
+I 18 casi dell'estensione Mcr/LTB sono aggiunti successivamente.
+Regressione net472: 111/122, stessi 11 nomi gia' noti; ModelChecker Steel 14/14.
+Nessuna release, merge o push effettuato.

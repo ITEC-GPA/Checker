@@ -1,7 +1,9 @@
 using GPC.Checkers.Steel.Checkers;
 using GPC.Geometry;
+using GPC.Model;
 using GPC.Model.Elements;
 using GPC.Model.Materials;
+using GPC.Model.Results;
 using GPC.Model.Sections;
 using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
@@ -44,6 +46,10 @@ public class PublishedBucklingBenchmarks
         new("CIC-II-3-and-II-4",254.1,254.6,8.6,14.2,12.7,355,9310,
             114e6,39.1e6,9000,6300,2,"b","c",1.06,1.27,1.21,1.57,.56,.40,
             1850800,1322000),
+        // CIC II-5 D37-D39 uses Iz=1548 cm4 in the substitution, 1550 in its table.
+        new("CIC-II-5",203.2,203.6,7.2,11,10.2,275,5870,
+            45.7e6,15.48e6,5000,5000,1,"b","c",null,1.12,null,1.35,null,.48,
+            null,774000),
         // SCI P374 Ex.2 pp.18-21: hot-finished SHS, not cold-formed.
         new("SCI374-2",200,200,6.3,6.3,0,355,4840,
             4840*78.9*78.9,4840*78.9*78.9,6000,6000,2,"a","a",
@@ -98,7 +104,7 @@ public class PublishedBucklingBenchmarks
         double? nb = axis == 1 ? c.NbY : c.NbZ;
         if (nb.HasValue)
         {
-            // 0.01 chi budget covers rounding of the printed intermediate quantities.
+            // Propagate the independently bounded chi to the resistance.
             // For the Blue Book value only (Ex.9 y), allow 0.3% table-property rounding.
             if (chi.HasValue)
                 Assert.IsTrue(a.Nb>=chiLow*c.A*c.Fy-1000 && a.Nb<=chiHigh*c.A*c.Fy+1000,
@@ -144,11 +150,16 @@ public class PublishedBucklingBenchmarks
     [DataTestMethod]
     [DataRow("SCI364-3 p27", 1.07, .49, .75, .4, .61, 1.09, .60, .83, .72)]
     [DataRow("SCI364-4 p38", .62, .49, .75, .4, .92, .70, .87, .96, double.NaN)]
+    [DataRow("SCI364-5 p47-48 class3", .92, .34, .75, .4, .87, .91, .74, .94, .79)]
+    [DataRow("SCI364-7 p71-72 continuous", .46, .49, .75, .4, .79, .59, .98, .92, 1d)]
     [DataRow("SCI364-11 p118", .76, .34, .75, .4, 1d, .78, .83, 1d, .83)]
+    [DataRow("SCI364-12 p133 class3", .61, .49, .75, .4, .75, .69, .88, .88, 1d)]
     [DataRow("SCI364-13 p146", .63, .34, .75, .4, 1d, .69, .90, 1d, .90)]
     [DataRow("CIC-II-2 B2-I D19", 2.47, .49, .75, .4, .94, 3.29, .16, 1d, .16)]
     [DataRow("CIC-II-2 B2-II D21", 1.31, .49, .75, .4, 1d, 1.37, .47, 1d, .47)]
     [DataRow("CIC-II-4 D33 general", .69, .21, 1d, .2, 1d, .79, .85, 1d, .85)]
+    [DataRow("CIC-II-2 B3-II D25", 1.57, .49, .75, .4, 1d, 1.71, .36, 1d, .36)]
+    [DataRow("CIC-II-5 D39", .57, .34, .75, .4, 1d, .65, .93, 1d, .93)]
     public void PublishedLtbReductionStage(string source, double lambda, double alpha,
         double beta, double lambda0, double kc, double phi, double chi, double f, double modified)
     {
@@ -170,6 +181,52 @@ public class PublishedBucklingBenchmarks
                 a.Modified<=Math.Max(upper,modified+.005),source+" modified");
         }
         Assert.IsTrue(a.Modified<=1 && a.Modified<=1/(lambda*lambda)+1e-14);
+    }
+
+    [TestMethod]
+    public void CicB3LongBeamRawReductionAndSeparateEc3EulerCap()
+    {
+        // CIC D23 prints the uncapped .18. EC3 eq.(6.57) additionally requires
+        // chi <= 1/lambda^2=.173611... . Do not validate the book's 70.3 kNm as EC3.
+        var p=new BucklingProbe(TabulatedSection.For(Columns[0]),10000,10000);
+        Assert.AreEqual(3.15,p.Ltb(2.4,.49,.75,.4,1).Phi,.005);
+        Assert.AreEqual(.18,p.RawReduction(3.15,2.4,.75),.005);
+        Assert.AreEqual(1/(2.4*2.4),p.Ltb(2.4,.49,.75,.4,1).Chi,1e-14);
+    }
+
+    [DataTestMethod]
+    [DataRow("CIC-II-2 D18",10000d,6.45e6,214000d,311e9,1.132,63.8e6)]
+    [DataRow("CIC-II-4 D32",6300d,39.1e6,576000d,562e9,1.879,740.2e6)]
+    [DataRow("SCI364-13 p146 inputs",5000d,15.5e6,222000d,143e9,1.77,double.NaN)]
+    [DataRow("SCI364-5 p47 uniform moment",9000d,12300*76.9*76.9,912000d,1.56e12,1d,double.NaN)]
+    [DataRow("SCI374-4 p35 inputs warping neglected",5000d,38.7e6,88.7e6,0d,1.127,double.NaN)]
+    public void ElasticCriticalMomentUsingPublishedProperties(string source,double length,
+        double iz,double it,double iw,double c1,double published)
+    {
+        var s=TabulatedSection.For(Columns[0]); s.J22=iz; s.It=it; s.Iw=iw;
+        var p=new BucklingProbe(s,length,length);
+        double actual=p.Mcr(s,length,c1);
+        // Independent product form: C1*sqrt(Ncr,z*(G*It+pi^2*E*Iw/L^2)).
+        double euler=Math.PI*Math.PI*210000*iz/(length*length);
+        double expected=c1*Math.Sqrt(euler*(210000/2.6*it+Math.PI*Math.PI*210000*iw/(length*length)));
+        Assert.AreEqual(expected,actual,expected*1e-12,source);
+        if (double.IsFinite(published))
+        {
+            // Exact effect of G=81000 in the publication, plus its 0.1 kNm digit.
+            double sourceG=c1*Math.Sqrt(euler*(81000*it+Math.PI*Math.PI*210000*iw/(length*length)));
+            Assert.AreEqual(published,sourceG,50000,source+" published arithmetic");
+            Assert.AreEqual(published,actual,Math.Abs(sourceG-expected)+50000,source);
+        }
+    }
+
+    [DataTestMethod]
+    [DataRow(.4)] [DataRow(.4-1e-8)] [DataRow(.4+1e-8)]
+    public void LtbPlateauAtTheLimitUsedInSciContinuousBeam(double lambda)
+    {
+        var p=new BucklingProbe(TabulatedSection.For(Columns[0]),3000,3000);
+        var a=p.Ltb(lambda,.49,.75,.4,1);
+        if (lambda<=.4) Assert.AreEqual(1d,a.Modified,1e-14);
+        else Assert.IsTrue(a.Modified<1 && a.Modified>1-1e-7);
     }
 
     [DataTestMethod]
@@ -199,7 +256,7 @@ public class PublishedBucklingBenchmarks
     {
         public new double Area { get; }
         public new double J11 { get; }
-        public new double J22 { get; }
+        public new double J22 { get; set; }
         public new double R11 => Math.Sqrt(J22/Area);
         public new double R22 => Math.Sqrt(J11/Area);
         public double It { get; set; }
@@ -250,5 +307,11 @@ public class PublishedBucklingBenchmarks
             double phi=GetPhiForBuckling(.49,lambda);
             return (ncr,lambda,phi,GetChi(phi,lambda));
         }
+        public double RawReduction(double phi,double lambda,double beta) => GetChi(phi,lambda,beta);
+        public double Mcr(ISteelSection s,double length,double c1) =>
+            CalculateMcr(s,new ResultBeamForces(0,0,0,0,1e6,0,CoordinateSystem.Global),length,
+                Opt.SupportConditions.HingesAtEnds,Opt.LoadConditions.NotDirectlyLoaded,
+                Opt.LateralSupportConditions.HingesAtEnds,Opt.LateralWarpingConditions.HingesAtEnds,
+                1,Opt.LoadApplicationPoints.ShearCenter,c1,0);
     }
 }

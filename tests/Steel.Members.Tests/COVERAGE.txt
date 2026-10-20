@@ -49,7 +49,13 @@ S235/S355, tutte le classi e 12 verifiche pubbliche di capacita' M1.
 HollowManufacturingConfigurationTests: 8 confronti hot-finished/cold-formed sui due assi,
 con Ncr/Phi ricavati da integrali geometrici e formule indipendenti.
 Ec3StressBasedClassificationTests: 59 casi per EN 1993-1-1:2005, 5.5.2(9)-(10).
-Totale: 413 nuovi casi generali + 13 preesistenti = 426, tutti superati.
+PublishedBucklingBenchmarks: 63 casi da SCI P364/P374 e CIC, con riferimenti,
+input tabulati, intervalli editoriali e oracoli indipendenti.
+IBucklingCurveTableTests: 94 casi EC3 tabella 6.2 (laminati I/H simmetrici).
+Hea300BucklingArithmeticTests: 4 casi di geometria e sensibilita' al materiale.
+BUCKLING_BENCHMARKS.txt esplicita la copertura per componente e le incongruenze
+nelle fonti: non equivale a qualificazione completa N-M/LTB delle aste.
+Totale: 574 nuovi casi generali + 13 preesistenti = 587, tutti superati.
 EC3_STRESS_CLASSIFICATION.txt descrive l'API esplicita per parti piane, sigma_com,Ed,
 la separazione dalla classe per instabilita' e i limiti d'integrazione nel percorso legacy.
 Il fix C elimina 17 fallimenti dei nuovi casi; il fix RHS ne elimina 36.
