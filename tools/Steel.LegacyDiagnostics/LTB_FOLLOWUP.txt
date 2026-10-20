@@ -66,3 +66,8 @@ Table6.5 include h/b=2 in the lower row. Corrected the welded boundary and
 kept the public modified-method curve label consistent with its alpha.
 Six table/boundary/report tests: before3fail/3pass; after1003/1003 total.
 Integration14/14; legacy111/122, same11 failures. Audit prefix: ltb-curves.
+
+Step 3/4c - Steel2.4.0.12: see TEE_TORSION_STUDY.txt.
+Corrected T compression-side sign and exact Wagner integral;25 new tests.
+1028/1028 members,14/14 integration,111/122 legacy,same11 failures.
+

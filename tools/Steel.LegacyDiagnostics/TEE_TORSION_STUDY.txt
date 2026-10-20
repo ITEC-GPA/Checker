@@ -1,0 +1,76 @@
+T TORSION AND SIGNED LTB - Steel 2.4.0.12, 2026-10-20
+
+Independent mechanical reference:
+CISC, Torsional section properties of steel shapes, revised August2002,
+pp.4,7,8,9, equations3,9-19. A copy of the original CISC publication:
+https://forums.futura-sciences.com/attachments/technologies/190399d1343976813-constante-de-torsion-de-st-venant-torsionprop.pdf
+SHA256 D9242832DF192917E3537AB2681F5FF4D980D4ABAAA00F60EB2809AB941607AB
+This is a geometric/elastic-mechanical source, not adoption of CSA design.
+EN1993-1-1:2005 remains the resistance standard.
+
+T, without fillets:
+J=(b tf^3+(h-tf/2) tw^3)/3
+Iw=b^3 tf^3/144+(h-tf/2)^3 tw^3/36
+shear centre at the intersection of plate middle lines.
+The source explicitly notes that warping of tees/angles is small and often
+neglected. A nonzero Iw is not, by itself, a Model bug. These are thin-wall
+approximations, not exact Saint-Venant solutions for thick solids.
+
+WT180x67 published example: h178,b369,tf18,tw11.2 mm;
+J796e3 mm4,Iw2.22e9 mm6. Model reproduces the rounded reference.
+L203x102x13: the source rounds d'=196.65 to197 and b'=95.65 to95.7 before
+reporting Iw0.485e9. Tests explicitly transfer this intermediate rounding;
+they do not enlarge tolerances to hide the 0.5% difference.
+C310x31: torsion assumes parallel flanges and rounds d'=292.3 to292.
+Its supplied centroid17.5 mm does not equal the19.711... mm centroid of
+the parallel-flange rectangular idealization. The test therefore checks
+the absolute shear-centre coordinate using the supplied centroid, plus
+the full-precision torsion/warping equations. It does not claim that the
+source and the rectangular idealization have identical centroids.
+
+Exact Wagner integral for the sharp T:
+S=integral[(x^2+y^2)y dA], centroidal coordinates;
+zj_geometric=ys-S/(2 Ix)=-betaX/2 (CISC equation3).
+For a rectangle of width b, depth d, centroid ordinate y:
+S_rect=b*d*y*(y^2+d^2/4+b^2/12).
+This replaces the former20x4/4x30 midpoint quadrature.
+Legacy T400x200,tw40,tf50:
+A24000;yc775/3;Ix1135000000/3;S=-211400000000/9;
+zj_geometric=33530/227=147.7092511013216 mm.
+
+Sign qualification, independent of a SAP report:
+ResultBeamForces defines moments on the positive section face about axes1/2
+by the right-hand rule. M1=integral(y*sigma dA), tension-positive sigma.
+Thus positive M1 tensions the top flange and compresses the free stem tip.
+The old Mcr implementation assigned the opposite compression-side parameter
+and sign of zj. Both are corrected. Zero M1 chooses the more adverse
+compressed-stem direction for the otherwise auxiliary calculation.
+
+Independent eigenproblem in TeeTorsionReferenceTests:
+Uniform moment, fork supports, free warping, elastic prismatic beam.
+Use a sine mode for lateral deflection and twist. With k=pi/L,
+Ny=k^2 E Iz, Kt=GJ+k^2 EIw and
+g=integral[(y-yc)/Ix * (x^2+(y-ys_absolute)^2) dA],
+determinant=Ny*(Kt+M1*g)-M1^2=0.
+The tests integrate g using a3x3 Gaussian rule over the two rectangles and
+solve the positive critical magnitude by bisection for each moment sign.
+They do not call the production Wagner integral or its radical expression.
+18 eigenproblems cover both signs, three lengths and three geometric scales.
+One order check verifies the compressed-stem critical moment is lower.
+One rational-integral check and two unsupported-geometry checks complete
+the mechanical tests. Three published property examples are also tested.
+
+Scope: Mcr for sharp parallel-flange T, principal axis1=geometricX.
+Rounded/tapered T and wide T with axis1 along geometricY are refused
+explicitly: the existing two-rectangle/symmetry formula does not qualify
+them. The source does not validate general biaxial member interaction.
+The previously tabulated C3 values for nonuniform moments still require
+full source qualification; the exact eigenproblem above has C1=C3=1,C2=0.
+
+Verification:25 new cases,1028/1028 Steel.Members;14/14 ModelChecker Steel;
+111/122 net472 legacy, same11 failures, zero ignored. Original legacy
+source SHA256 remains C344C8C1BACF16501DEC837ADD7D819E9DBDA064820BDA814683972353B3BD45.
+No Model library modification. No legacy expected value was changed.
+Audit prefix:tee-torsion. Before the mechanical fix all18 eigenvalue cases
+and the ordering check failed. Initial source-fixture discrepancies were
+resolved through the documented rounding/centroid reconstruction above.

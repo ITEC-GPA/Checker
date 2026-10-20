@@ -1685,48 +1685,18 @@ namespace GPC.Checkers.Steel.Checkers
                     }
                     else if (section.SectionShape is SectionT sectionT)
                     {
-                        double psif;
-                        if (forces.M1 > 0)
-                            psif = 1;
+                        if (sectionT.GetType() != typeof(SectionT) || sectionT.R != 0 ||
+                            Math.Abs(sectionT.AngleX1) > 1e-10)
+                            throw new NotSupportedException("McrLT for a T requires a sharp parallel-flange section with principal axis 1 along geometric X.");
 
-                        else
-                            psif = -1;
-
-
-                        //calculation of Wagner coefficiente: zj = zs - 0.5 integral((y^2 + z^2) * z dA) / Jy
-                        //needed for for Mcr calculation
-                        int nxFlange = 20;
-                        int nyFlange = 4;
-                        int nxWeb = 4;
-                        int nyWeb = 30;
-                        double integral = 0;
-
-                        for (int i = 0; i < nxFlange; i++)
-                        {
-                            for (int j = 0; j < nyFlange; j++)
-                            {
-                                double Ai = (sectionT.LenghtFlange / nxFlange) * (sectionT.ThicknessFlange / nyFlange);
-                                double zi = sectionT.Height - (2.0 * j + 1.0) / (2.0 * nyFlange) * sectionT.ThicknessFlange - sectionT.Centroid.Y;
-                                double yi = -sectionT.LenghtFlange / 2.0 + (2.0 * i + 1.0) / (2.0 * nxFlange) * sectionT.LenghtFlange;
-
-                                integral += (yi * yi + zi * zi) * zi * Ai;
-                            }
-                        }
-
-                        for (int i = 0; i < nxWeb; i++)
-                        {
-                            for (int j = 0; j < nyWeb; j++)
-                            {
-                                double Ai = (sectionT.HeightWeb / nyWeb) * (sectionT.ThicknessWeb / nxWeb);
-                                double zi = (2.0 * j + 1.0) / (2.0 * nyWeb) * (sectionT.HeightWeb) - sectionT.Centroid.Y;
-                                double yi = -sectionT.ThicknessWeb / 2.0 + (2.0 * i + 1.0) * sectionT.ThicknessWeb / (2.0 * nxWeb);
-
-                                integral += (yi * yi + zi * zi) * zi * Ai;
-                            }
-                        }
-                        zj = (sectionT.ShearCenter.Y - sectionT.Centroid.Y) - 0.5 * integral / sectionT.J11;
-                        if (forces.M1 < 0)
-                            zj = -zj; //check this                           
+                        // GPC positive-face convention: positive M1 tensions the
+                        // top flange. C3 uses the compression-flange parameter.
+                        double psif = forces.M1 < 0 ? 1 : -1;
+                        double geometricZj = GetTeeWagnerCoefficient(sectionT);
+                        // zj in the critical-moment expression is oriented with
+                        // the compression side, not the fixed geometric Y axis.
+                        // M1=0 takes the compressed-stem direction conservatively.
+                        zj = forces.M1 < 0 ? geometricZj : -geometricZj;
 
                         //this should be used if -0.9 < psif < 0.9. There is no data...so...what to do?
                         GetC1C2C3ForMcr(supportCondition, loadCondition, k, psi, psif, out c1, out c2, out c3);
@@ -1751,6 +1721,22 @@ namespace GPC.Checkers.Steel.Checkers
                 (Math.Pow(Math.Pow(k / kw, 2.0) * section.Jw / section.J22 +
                 Math.Pow(k * length, 2.0) * G * section.Jt / (Math.Pow(Math.PI, 2.0) * Material.E * section.J22) +
                 Math.Pow(c2 * zg - c3 * zj, 2.0), 0.5) - (c2 * zg - c3 * zj));
+        }
+
+        // CISC Torsional section properties (2002), eq.(3): zj=-betaX/2.
+        // Exact area integral of (x^2+y^2)*y over the two sharp rectangles,
+        // with coordinates referred to the centroid. No quadrature mesh.
+        protected double GetTeeWagnerCoefficient(SectionT section)
+        {
+            double RectangleIntegral(double width, double depth, double y)
+            {
+                return width * depth * y * (y * y + depth * depth / 4 + width * width / 12);
+            }
+            double yc = section.Centroid.Y;
+            double integral = RectangleIntegral(section.LenghtFlange, section.ThicknessFlange,
+                section.Height - section.ThicknessFlange / 2 - yc) +
+                RectangleIntegral(section.ThicknessWeb, section.HeightWeb, section.HeightWeb / 2 - yc);
+            return section.ShearCenter.Y - yc - integral / (2 * section.Jxx);
         }
 
         protected double GetKForLTB(EN1993p11Options.LateralSupportConditions supportCondition)
