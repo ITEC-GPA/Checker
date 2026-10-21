@@ -1,0 +1,120 @@
+{
+  "Date": "2026-10-21",
+  "SteelVersion": "2.18.0.0",
+  "ModelVersion": "5.17.0.0",
+  "Task1Commit": "58ebf436",
+  "Task2ModelCommit": "90b0ad09",
+  "Task3": "Qualified plane analysis and component checks; complete member qualification remains open",
+  "WholeBuiltUpMemberQualificationComplete": false,
+  "AutomaticModelCheckerEnabled": false,
+  "NewNtcBuiltUpQualification": false,
+  "LegacyDecisionDeferred": true,
+  "NewSteelCases": 109,
+  "NewModelCases": 26,
+  "Checker": [
+    {
+      "File": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\coupled-checker-full\\Design.Checks.trx",
+      "Sha256": "4E5A446986E1AC1CBAFE983274A71E0A1ACF578A0EBCB1530226BE66B23388DE",
+      "Passed": 100,
+      "Failed": [],
+      "Other": []
+    },
+    {
+      "File": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\coupled-checker-full\\EmbeddedWalls.Tests.trx",
+      "Sha256": "DCA05D7E462ED540158D34565636278AA3E27AB09EDB4F899DA9BDC435ADB13A",
+      "Passed": 74,
+      "Failed": [],
+      "Other": []
+    },
+    {
+      "File": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\coupled-checker-full\\GPCChecker.Test.Calculation.trx",
+      "Sha256": "3D4543C22355344C4A39B37DC906B311C61C92EFD4C5D41919AF3DC4F54EE250",
+      "Passed": 174,
+      "Failed": [],
+      "Other": []
+    },
+    {
+      "File": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\coupled-checker-full\\GPCChecker.Test.CompositeBridge.trx",
+      "Sha256": "1EADF9E76487B7D7B41386A6F202561E69C948F1B3E7118EE9611E32A566E013",
+      "Passed": 284,
+      "Failed": [],
+      "Other": []
+    },
+    {
+      "File": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\coupled-checker-full\\GPCChecker.Test.Concrete.trx",
+      "Sha256": "3ADD08D9C861BFA3CAC7B50EEB465C2CD723E131ED7D354A94D97230B8B6B767",
+      "Passed": 795,
+      "Failed": [],
+      "Other": []
+    },
+    {
+      "File": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\coupled-checker-full\\GPCChecker.Test.Geotechnics.trx",
+      "Sha256": "7FEE182CF9D3EC155FD02266F0FB647B66A28BB60BEAEF494CB7C40E7FA43C6A",
+      "Passed": 191,
+      "Failed": [],
+      "Other": []
+    },
+    {
+      "File": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\coupled-checker-full\\GPCChecker.Test.Steel.trx",
+      "Sha256": "6B27BCC6D0AE150F5DB9EF87C502FD80FCEB2AC32B58F8821FEFC567C1B0D5AF",
+      "Passed": 111,
+      "Failed": [
+        "SectionHLateralTorsionalBuckling2",
+        "Sap_SectionTTest2",
+        "SectionCLateralTorsionalBuckling2",
+        "SectionHLateralTorsionalBuckling1",
+        "Sap_SectionLTest",
+        "SectionHInteraction2",
+        "SectionHBuckling1",
+        "Sap_SectionTTest",
+        "Sap_SectionHAsymmetricTest1",
+        "Sap_SectionHAsymmetricTest2",
+        "SectionHInteraction3"
+      ],
+      "Other": []
+    },
+    {
+      "File": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\coupled-checker-full\\ModelChecker.Tests.trx",
+      "Sha256": "EF570AC505EEEFA3F6ECF2D554240B7D3DCA452B461AD60A0E0CA12471B33DC1",
+      "Passed": 271,
+      "Failed": [],
+      "Other": []
+    },
+    {
+      "File": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\coupled-checker-full\\ShallowFoundation.Tests.trx",
+      "Sha256": "C4AD14ED110FE5ECE415515EE237310126C5C87C59A2DAE8F5E7DFB798718354",
+      "Passed": 28,
+      "Failed": [],
+      "Other": []
+    },
+    {
+      "File": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\coupled-checker-full\\Steel.Members.Tests.trx",
+      "Sha256": "2512412840CDD34BBF31C4DFAAC94084BB6629FA3DA6B8FFA94B83D3929A7987",
+      "Passed": 1859,
+      "Failed": [],
+      "Other": []
+    }
+  ],
+  "Model": [
+    {
+      "File": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\coupled-model-final\\Model.Core.Tests.trx",
+      "Sha256": "FBA7187F8FE155A8E92AF36A420B0B808A9C8792E2C6ADEC22EAE26C1FC782C3",
+      "Passed": 19,
+      "Failed": [],
+      "Other": []
+    },
+    {
+      "File": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\coupled-model-final\\UnitTest.trx",
+      "Sha256": "3C018617199282FF4DA176EADEBBF370F3795EC7D2F3399F0AABBDA8019642E4",
+      "Passed": 1279,
+      "Failed": [],
+      "Other": [
+        "NativeLinearStaticBenchmark_EquilibriumAndMembraneResultants",
+        "NativeAssignments_LoadsAndGravityBalanceTheSolverReactions"
+      ]
+    }
+  ],
+  "LegacySourceSha256": "773022095F2659B4292116A0C5C08065747457BDDA0F2EB8A8AF3B8C6BD0F47F",
+  "ReleasePerformed": false,
+  "PushPerformed": false
+}

@@ -2637,6 +2637,17 @@ namespace GPC.Checkers.Steel.Checkers
         {
             if (section.GetMinSigma(resultBeamForces.N, resultBeamForces.M1, resultBeamForces.M2) < 0.0)
             {
+                // Isolated equal-thickness angles: Table 5.2 sheet 3 is a whole-section
+                // requirement. Use a conservative class 3/4 in uniform compression.
+                if (resultBeamForces.M1 == 0 && resultBeamForces.M2 == 0 &&
+                    section.SectionShape.GetType() == typeof(SectionL))
+                {
+                    var angle = (SectionL)section.SectionShape;
+                    if (angle.HorizontalLegThickness != angle.VerticalLegThickness)
+                        throw new NotSupportedException("AngleUniformCompressionRequiresEqualThickness");
+                    return (SectionClass)Ec3AngleCompression.Classify(angle.HorizontalLegLength,
+                        angle.VerticalLegLength, angle.HorizontalLegThickness, Fy, angle.R);
+                }
                 if (ModelCompressionGeometry.CanMap(section))
                 {
                     var nominal = Ec3UniformCompressionClassification.Evaluate(ModelCompressionGeometry.Create(section), Fy);

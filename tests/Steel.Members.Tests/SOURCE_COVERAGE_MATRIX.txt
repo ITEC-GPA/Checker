@@ -20,7 +20,7 @@ Famiglia           Geometria  Ntraz/Ncomp     M1/M2          V1/V2          Clas
 H simmetrica       A          N/N,Pcomp      N/P            N/P           P/P/P campioni
 C                  P/A        N/N            P/N            P/N           N/P/N campioni
 T                  P/A        N/N            P+N/P+N        N/N           N/N/N parziale (T1)
-L                  P(A,I)/A   N/N            N/N            ?/?           ?/?/?
+L                  P(A,I)/A   N/N            N/N            ?/?           P/N in N; ?/? in M/NM
 RHS spigoli vivi   A          N/N            N/N            N/N           N/N/? parziale
 RHS raccordato     P/A        N/N            P/P cl.esplicita N/P          N/U/U (R1)
 CHS                P/A        N/P            P/P            P/P           N/P/? parziale
@@ -99,7 +99,8 @@ SectionHDoubleBottomFlange: U.
 SectionHInclinedWeb: U.
 SectionSteelBox: U; Caffe A3.3 candidato, non un RHS simmetrico equivalente.
 SectionColdFormed: U; distorsione/locali/EN1993-1-3 richiedono percorso dedicato.
-SectionBuiltUp: U; collegamento fra componenti e instabilita' composta.
+SectionBuiltUp: A geometria 2C/2L; P/N/A modello piano EC3 6.4 e azioni
+  nei componenti; verifica completa U. Vedere nota B1.
 SectionWelded: U come assemblaggio generico; i casi geometrici H/C saldati
   non qualificano automaticamente ogni assemblaggio.
 Section / ThinWallSection: U per classificazione/curva automatica.
@@ -209,3 +210,19 @@ cartella tools/Steel.LegacyDiagnostics: tutti ancora attivi. Esempi analoghi
 non provano le ipotesi mancanti delle loro fonti originali.
 La coda approvata comprende connessioni e profili accoppiati almeno C/L;
 questi ultimi non sono qualificati come asta dal solo aggregato geometrico.
+
+
+B1 - Aste composte e C/L, 21 ottobre2026 (task1-3)
+AngleChannelQualificationTests: classeN degli angolari P/N, compressione
+centrata di C ad ali uguali e L a spessore uguale N/A, incluse rotazioni
+degli assi e TF a modi comuni. Solo hot-rolled esatti, classi1-3; no N-M.
+BuiltUpColumnReferenceTests: 66casi; CTICM/SCI SBE_SS6, NSC2021 ed energia
+di deformazione indipendente. Model2C/2L collegato a Ieff/Sv/Ncr/MEd/VEd;
+le resistenze fornite ai controlli dei componenti devono provenire da una
+verifica indipendente appropriata. Non si qualifica per questo la verifica
+completa dei giunti o l'interazione N-M-V dei correnti calastrellati C/L.
+Moduli, vincoli e diagrammi di carico dichiarati in
+src/Steel/COUPLED_MEMBERS_VERIFICATION.txt e nella documentazione API.
+Model/UnitTest/CoupledSectionQualificationTest: 26casi geometrici/contratti.
+Restano U i modelli composti generici, torsione del composto, classe4,
+NTC automatica e gli schemi non coperti dalle ipotesi EC3 implementate.
