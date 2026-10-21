@@ -1,0 +1,32 @@
+C/L e aste composte - task 1-3, 21 ottobre 2026
+
+Task 1 - Steel 2.17.0.0
+Ec3AngleCompression: angolare isolato a spessore costante, compressione
+uniforme; classe prudente 3/4. EN 1993-1-1:2005 con AC:2009, tabella 5.2,
+fogli 2 e 3, pp.43-44. Limiti esterni h/t <= 15 epsilon e
+(h+b)/(2t) <= 11.5 epsilon, oltre al limite dei piatti sporgenti.
+Nessuna promozione automatica a classe 1/2 o uso di Ag in luogo di Aeff.
+La facciata legacy applica la regola nuova a L esatti in N puro.
+Le classificazioni legacy in pressoflessione non sono qualificate da questo passo.
+
+Ec3OpenSectionCompression: C paralleli/L esatti, laminati a caldo, classi
+1-3; forza assiale baricentrica. Estremi a forcella, ingobbamento libero,
+stessa lunghezza e forma sinusoidale per flessione e torsione. Include
+Euler sui due assi principali e il minimo autovalore flesso-torsionale;
+curva c per C, b per L (tabella 6.2). GammaM1 e provenienza espliciti.
+E' un calcolo EC3; scegliere gamma=1.05 non lo rinomina come verifica NTC.
+Esclusi collegamenti eccentrici attraverso una gamba, vincoli diversi,
+classe 4, pareti fredde, interazione N-M e instabilita laterale in flessione.
+
+Fonti indipendenti:
+- https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+- CTICM/SCI, Steel Buildings in Europe, Single-Storey Steel Buildings,
+  Part 6, Appendix A pp.6-29/6-30: L90x90x9 e L80x80x8 S355 classe 4.
+  https://www.steelconstruction.info/images/4/40/SBE_SS6.pdf
+- Snijder/Balaz/Stroetmann, ce/papers 8 (2025), eq.17 p.618: autovalore
+  elastico con accoppiamento nei due assi; confronto con matrici simmetriche
+  in assi geometrici e integrazione indipendente dei rettangoli C/L.
+  Jt, Jw e centro di taglio di Model restano soggetti alle approssimazioni
+  documentate e ai benchmark CISC gia presenti (TeeTorsionReferenceTests).
+
+Il blocco legacy (11 fallimenti noti) resta attivo: decisione rinviata.
