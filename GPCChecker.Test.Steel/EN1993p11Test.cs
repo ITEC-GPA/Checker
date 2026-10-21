@@ -741,14 +741,45 @@ namespace SteelTests
 
             EN1993P11Checker.PerformCheck();
 
-            double expMbRd = 95.6 * 1.05; // lui usa gammaM1 = 1.05 => UNIEN1993-1-1
-            double expMcRd = 165.5 * 1.05;
-
-            UnitsSystem units = new UnitsSystem(GPC.Utilities.Units.UnitsConvert.LengthUnits.m, GPC.Utilities.Units.UnitsConvert.ForceUnits.kN,
-                GPC.Utilities.Units.UnitsConvert.MassUnits.kg, GPC.Utilities.Units.UnitsConvert.PressureUnits.kPa, GPC.Utilities.Units.UnitsConvert.TemperatureUnits.C);
-
-            Assert.IsTrue((Math.Abs(Units.ConverMomentFromDefault(EN1993P11Checker.EN1993p11BeamStationResults[0].LateralTosionalBucklingCapacity, units) - expMbRd) / expMbRd * 100) < 1);
-            Assert.IsTrue((Math.Abs(Units.ConverMomentFromDefault(EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment1Capacity, units) - expMcRd) / expMcRd * 100) < 1);
+            // Conditional arithmetic benchmark, not reproduction of Cordova p.211
+            // or a complete web-loaded channel check. See LEGACY_CLOSURE_06.txt.
+            Assert.AreEqual(355.0, EN1993P11Checker.Fy);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM0);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM1);
+            Assert.AreEqual(0, EN1993P11Checker.GetErrorLog().Count, string.Join("; ", EN1993P11Checker.GetErrorLog()));
+            Assert.AreEqual(1, EN1993P11Checker.EN1993p11BeamStationResults.Length);
+            var result = EN1993P11Checker.EN1993p11BeamStationResults[0];
+            Assert.AreEqual(EN1993p11Checker.SectionClass.Class1, result.BendingCompressionClass);
+            Assert.AreEqual(EN1993p11Checker.EN1993p11Options.LateralTorsionalBuckingCurves.d, result.LateraltorsionalBucklingCurve);
+            Assert.AreEqual(5000.0, EN1993P11Checker.GetLengthCriticalMoment1());
+            Assert.IsFalse(sectionC.IsDoubleSymmetric);
+            // A/I/Wel: exact independent integrals. It/Iw/Wpl: pinned Model inputs.
+            Assert.AreEqual(5989.876140340506d, sectionC.Area, 5989.876140340506d * 1e-10, "Area");
+            Assert.AreEqual(82503848.784416333d, sectionC.J11, 82503848.784416333d * 1e-10, "J11");
+            Assert.AreEqual(5670781.1767174806d, sectionC.J22, 5670781.1767174806d * 1e-10, "J22");
+            Assert.AreEqual(550025.65856277558d, sectionC.Wel1, 550025.65856277558d * 1e-10, "Wel1");
+            Assert.AreEqual(80093.336023861237d, sectionC.Wel2, 80093.336023861237d * 1e-10, "Wel2");
+            Assert.AreEqual(648295.81394674582d, sectionC.Wpl1, 648295.81394674582d * 1e-10, "Wpl1");
+            Assert.AreEqual(354080d, sectionC.Jt, 354080d * 1e-10, "Jt");
+            Assert.AreEqual(78943251406.911942d, sectionC.Jw, 78943251406.911942d * 1e-10, "Jw");
+            // Two internal quarter-circle fillets discretized with 64 chords.
+            double areaExcess = 2 * r * r / 2 * (Math.PI / 2 - 64 * Math.Sin(Math.PI / 128));
+            Assert.AreEqual(648290.71789351315d, sectionC.Wpl1, areaExcess * h / 2, "Wpl1 geometric bound");
+            var expected = new[] {
+                new { Name = nameof(result.BendingMoment1Capacity), Value = 230145013.95109475d },
+                new { Name = nameof(result.MCr), Value = 113448258.07184538d },
+                new { Name = nameof(result.LambdaSignedLTBuckling), Value = 1.4243012952645475d },
+                new { Name = nameof(result.AlphaLTBuckling), Value = 0.76000000000000001d },
+                new { Name = nameof(result.PhiLTBuckling), Value = 1.979551582046662d },
+                new { Name = nameof(result.ChiLTBuckling), Value = 0.29812295014073709d },
+                new { Name = nameof(result.LateralTosionalBucklingCapacity), Value = 68611510.519281462d },
+            };
+            foreach (var item in expected)
+            {
+                double actual = (double)result.GetType().GetProperty(item.Name).GetValue(result);
+                Assert.IsFalse(double.IsNaN(actual) || double.IsInfinity(actual), item.Name);
+                Assert.AreEqual(item.Value, actual, 1e-10 * Math.Max(1, Math.Abs(item.Value)), item.Name);
+            }
         }
 
         [TestMethod]
