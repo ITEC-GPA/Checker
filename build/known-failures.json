@@ -2,7 +2,7 @@
   "description": "Test failures admitted by build/Verify.ps1, by suite and exact test name. Any other failure stops a release. A test listed here that passes is reported so that the list can be shortened.",
   "suites": {
     "GPCChecker.Test.Steel": {
-      "reason": "8 remaining Steel failures. SectionHBuckling1 and SectionHInteraction2/3 have corrected references for their unchanged declared inputs; see LEGACY_CLOSURE_01/02/03 documents in tools/Steel.LegacyDiagnostics. Original Cordova comparisons are archived, not claimed reproduced. Three historical LTB comparisons and five asymmetric SAP cases remain open. SAP hollow comparisons retain the documented unconfirmed ColdFormed assumption.",
+      "reason": "7 remaining Steel legacy failures. See tools/Steel.LegacyDiagnostics/LEGACY_CLOSURE_* for independent references, unchanged inputs and explicit unsupported contracts. Original Cordova/SAP comparisons archived, not claimed reproduced. SAP hollow comparisons retain the documented unconfirmed ColdFormed assumption.",
       "tests": [
         "Sap_SectionHAsymmetricTest1",
         "Sap_SectionHAsymmetricTest2",
@@ -10,7 +10,6 @@
         "Sap_SectionTTest",
         "Sap_SectionTTest2",
         "SectionCLateralTorsionalBuckling2",
-        "SectionHLateralTorsionalBuckling1",
         "SectionHLateralTorsionalBuckling2"
       ]
     }

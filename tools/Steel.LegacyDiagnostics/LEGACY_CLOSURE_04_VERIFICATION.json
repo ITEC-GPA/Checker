@@ -1,0 +1,47 @@
+{
+  "step": 4,
+  "name": "SectionHLateralTorsionalBuckling1",
+  "base": "3f5d71d4f5af24c8aaaaad258e25195d6998f6c5",
+  "remaining": 7,
+  "production_changed": false,
+  "inputs_unchanged": true,
+  "historical_source_reproduced": false,
+  "before": {
+    "passed": 114,
+    "failed": [
+      "Sap_SectionHAsymmetricTest1",
+      "Sap_SectionHAsymmetricTest2",
+      "Sap_SectionLTest",
+      "Sap_SectionTTest",
+      "Sap_SectionTTest2",
+      "SectionCLateralTorsionalBuckling2",
+      "SectionHLateralTorsionalBuckling1",
+      "SectionHLateralTorsionalBuckling2"
+    ],
+    "other": [],
+    "sha256": "f1000a392e9218c8adb5ef6581690b16e32d18e03bd8122bd34ee6d533bc371b"
+  },
+  "after": {
+    "passed": 115,
+    "failed": [
+      "Sap_SectionHAsymmetricTest1",
+      "Sap_SectionHAsymmetricTest2",
+      "Sap_SectionLTest",
+      "Sap_SectionTTest",
+      "Sap_SectionTTest2",
+      "SectionCLateralTorsionalBuckling2",
+      "SectionHLateralTorsionalBuckling2"
+    ],
+    "other": [],
+    "sha256": "50b50c9e8ca2b793fad23bc029fb46441e7b90f3aa431226f89688ddd0034f8b"
+  },
+  "other_legacy_methods_unchanged": true,
+  "original_preserved": true,
+  "unexpected_failures": [],
+  "evidence": {
+    "GPCChecker.Test.Steel/EN1993p11Test.cs": "0cf581b00a14fb1d06814e913cec5a5cf1f48feac14f6419753ba9b1513f6274",
+    "build/known-failures.json": "0809179220a0b1820f78f2b738584a51211ec4c145704984847404f84be68d49",
+    "tools/Steel.LegacyDiagnostics/closed-cases/SectionHLateralTorsionalBuckling1.original.cs.txt": "f2786c07ce7b8dd7353b14a6949f28cc7a3bca926b3730c31f3d20c9f152d271",
+    "tools/Steel.LegacyDiagnostics/closed-cases/SectionHLateralTorsionalBuckling1.reference.json": "57340fb9eae4db5c188fae35af9a8b96c48f4739ada928e113badb3548d7e564"
+  }
+}
