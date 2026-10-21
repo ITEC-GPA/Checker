@@ -15,7 +15,7 @@ using Opt = GPC.Checkers.Steel.Checkers.EN1993p11Checker.EN1993p11Options;
 
 namespace Steel.Members.Tests;
 
-// Negative capability tests for the two still-active legacy comparisons.
+// Negative capability tests retained after closing the historical legacy comparisons.
 // Passing these tests means refusal is explicit, NOT that resistance is implemented.
 [TestClass]
 public class UnsupportedLegacyCapabilitiesTests

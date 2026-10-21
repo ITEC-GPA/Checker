@@ -136,16 +136,37 @@ public static class LegacyDiagnostics
 
 public static class DiagnosticAssert
 {
-    public static void IsTrue(bool condition, [CallerArgumentExpression("condition")] string expression = "",
-        [CallerLineNumber] int line = 0)
-        => LegacyDiagnostics.Current.Assertions.Add(new(condition, expression, null, null, null, line));
+    public static void IsTrue(bool condition, string? message = null,
+        [CallerArgumentExpression("condition")] string expression = "", [CallerLineNumber] int line = 0)
+        => Record(condition, expression, message, line);
 
-    public static void AreEqual(double first, double second, double tolerance,
+    public static void IsFalse(bool condition, string? message = null,
+        [CallerArgumentExpression("condition")] string expression = "", [CallerLineNumber] int line = 0)
+        => Record(!condition, "!(" + expression + ")", message, line);
+
+    public static void AreEqual<T>(T first, T second, string? message = null,
+        [CallerArgumentExpression("first")] string firstExpression = "",
+        [CallerArgumentExpression("second")] string secondExpression = "", [CallerLineNumber] int line = 0)
+        => Record(EqualityComparer<T>.Default.Equals(first, second),
+            firstExpression + " == " + secondExpression, message, line);
+
+    public static void AreEqual(double first, double second, double tolerance, string? message = null,
         [CallerArgumentExpression("first")] string firstExpression = "",
         [CallerArgumentExpression("second")] string secondExpression = "", [CallerLineNumber] int line = 0)
         => LegacyDiagnostics.Current.Assertions.Add(new(
             double.IsFinite(first) && double.IsFinite(second) && Math.Abs(first - second) <= tolerance,
-            firstExpression + " == " + secondExpression, first, second, tolerance, line));
+            firstExpression + " == " + secondExpression + (message is null ? "" : " : " + message),
+            first, second, tolerance, line));
+
+    public static void Contains(string value, string substring, string? message = null,
+        [CallerArgumentExpression("value")] string valueExpression = "",
+        [CallerArgumentExpression("substring")] string substringExpression = "", [CallerLineNumber] int line = 0)
+        => Record(value is not null && substring is not null && value.Contains(substring, StringComparison.Ordinal),
+            valueExpression + " contains " + substringExpression, message, line);
+
+    private static void Record(bool passed, string expression, string? message, int line)
+        => LegacyDiagnostics.Current.Assertions.Add(new(passed,
+            expression + (message is null ? "" : " : " + message), null, null, null, line));
 }
 
 // Discovery markers for this isolated replay; no replacement is made in the test project.

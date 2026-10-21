@@ -1,3 +1,8 @@
+AGGIORNAMENTO21/10/2026: conclusa la chiusura dei11legacy.
+Vedere tools/Steel.LegacyDiagnostics/LEGACY_CLOSURE_SUMMARY_20261021.txt.
+Il conteggio verde include5rifiuti espliciti;restano aperte le
+funzionalita indicate nel riepilogo. Le note seguenti sono storiche.
+
 C/L e aste composte - task 1-3, 21 ottobre 2026
 
 Task 1 - Steel 2.17.0.0

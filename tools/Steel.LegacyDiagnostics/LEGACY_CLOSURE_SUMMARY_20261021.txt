@@ -1,0 +1,101 @@
+CHIUSURA DEGLI 11 TEST LEGACY STEEL - 21 OTTOBRE 2026
+
+Esito: 122/122 legacy superati, zero falliti e zero ignorati.
+Intero Checker: 3898/3898 su10suite,zero falliti/ignorati;
+API pubbliche compatibili. Allowlist vuota.
+Questi esiti NON significano che tutte le verifiche di ogni sezione siano
+implementate: cinque test controllano espressamente una funzionalita' assente,
+e il canale ha una qualifica aritmetica condizionata al modello Mcr dichiarato.
+
+Procedura comune
+Originale archiviato per ognuno in closed-cases/*.original.cs.txt.
+Input eseguibili invariati rispetto a master dafeea29; tutti gli altri metodi
+legacy invariati. Riferimenti Python indipendenti e JSON riproducibili.
+Ogni passo ha test,nota tecnica,manifest e commit separato. Nessun test
+ignorato/commentato; nessun atteso approvato per mera vicinanza al checker.
+La fonte Cordova originale e i modelli SAP non sono stati riprodotti.
+
+Passo | Caso                              | Decisione e risultato                         | Commit
+------+-----------------------------------+-----------------------------------------------+---------
+  1   | HEA300 - SectionHBuckling1         | Attesi S355: Nb1638.514/1859.223 kN             | 28de5bbb
+  2   | IPE300 - SectionHInteraction2      | Allegato A: rapporti .895534/.863419           | 9e4dfbbd
+  3   | HEA260 - SectionHInteraction3      | Biassiale: rapporti .800584/.787087            | 3f5d71d4
+  4   | IPE300 - LTB1                     | Mc223.069686;Mb93.732162 kNm                   | d22bcb0b
+  5   | IPE300 - LTB2                     | Lcr assegnata4m;Mb124.374494 kNm               | e46c4126
+  6   | C - LTB2                          | Catena condizionata:Mb68.611511 kNm            | 5dc53d4d
+  7   | Sap_SectionHAsymmetricTest1        | Componenti esatte;interazione fuori campo     | 7378f724
+  8   | Sap_SectionHAsymmetricTest2        | Geometria diversa da SAP;MN,Rd non disponibile | e69c4be7
+  9   | Sap_SectionTTest                  | Classe3;Mc519.903/124.960;interazione assente   | 958c1b7c
+ 10   | Sap_SectionTTest2                 | N positivo=trazione;classe2;interazione assente| 74fe9d49
+ 11   | Sap_SectionLTest                  | Geometria/assi esatti;McrLT non disponibile   | 95da9f2f
+
+Differenze dimostrate nei confronti SAP
+- H1: il test confrontava Mcr del report con Mb del codice;chi e kzz
+  copiati non corrispondevano alle rispettive righe del report.
+- H2: h300 e A17500mm2 nel codice contro h400 e A~13880mm2 nel report.
+- T1: classe3 dall'inviluppo biassiale conservativo,non classe1 uniaxiale.
+- T2: trazione+100kN eseguita contro compressione-100kN del report;
+  tagli e alcuni coefficienti diversi. Classe2 mantiene Wpl,come classe1,
+  percio' una Mc coincidente non conferma la classificazione storica.
+- L: il report stesso avvertiva che la formula Mcr non era applicabile.
+- Nei cinque SAP: fu490MPa del preset eseguito contro510MPa del report.
+  Gli input sono conservati;il criterio Nt del codice e' ricostruito con
+  l'area netta assegnata,non con un modello indipendente dei fori.
+
+Limiti ancora aperti, separati dai legacy chiusi
+1. Interazione completa N-My-Mz per T/H monosimmetriche e L mediante metodo
+   applicabile;6.3.3(1) EC3:2005 richiede doppia simmetria. I5test negativi
+   richiedono diagnostica specifica e rapporto globale NaN,mai un esito OK.
+2. MN,Rd plastico della H asimmetrica compatta e McrLT senza simmetria della L.
+3. C: qualificare C1/C2 e l'eccentricita' orizzontale del carico,la torsione
+   primaria e l'ingobbamento. Il benchmark usa C1=1.127,C2=.45 come dati
+   dichiarati; non li certifica. SN003b e' per doppiamente simmetriche e
+   usa C2=.454;Chalmers tab4.1 riporta1.12/.45,con schemi da riesaminare.
+4. Per i benchmark Mcr,It/Iw dichiarati non sono qualificati solo perche'
+   chi e Mb coincidono. Le prove meccaniche specifiche hanno ambiti propri.
+5. Il fattore.5 dell'IPE LTB2 non prova l'esistenza di un ritegno fisico;
+   il test verifica i parametri assegnati. Restano le qualifiche generali
+   delle tabelle C3 non uniformi e dei vincoli/modi non coperti.
+
+Fonti e calcoli dettagliati
+Note LEGACY_CLOSURE_01...11 e relativi JSON. Normativa implementata:
+EN1993-1-1:2005+AC2006/2009,nessuna migrazione di edizione o AN.
+https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+NCCI SN003b-EN-EU per IPE:
+https://www.steelconstruction.info/images/0/0f/SN003b.pdf
+Chalmers2017:52 per discussione del modello C e dei suoi limiti:
+https://publications.lib.chalmers.se/records/fulltext/252188/252188.pdf
+
+Riproduzione
+python tools/Steel.LegacyDiagnostics/verify_legacy_closures.py
+  --results <cartella-output-di-build/Verify.ps1>
+Verifica originali,input,riferimenti,asserzioni dei passi4-11,allowlist,
+assenza di cambiamenti di produzione,e tutti i10fileTRX.
+build/Verify.ps1 -Suites all -Results <nuova-cartella>
+Esecuzione integrale interrotta dopo8suite: riprese solo Concrete e
+ModelChecker con le medesime DLL;poi eseguita la coda originale di Verify.ps1
+per lettura TRX,controlli API e summary. Nessun risultato parziale contato.
+Evidenze/hash nel manifest LEGACY_CLOSURE_FINAL_VERIFICATION.json.
+GPCChecker.Test.Concrete: 795 superati.
+GPCChecker.Test.Steel: 122 superati.
+GPCChecker.Test.CompositeBridge: 284 superati.
+GPCChecker.Test.Geotechnics: 191 superati.
+GPCChecker.Test.Calculation: 174 superati.
+ShallowFoundation.Tests: 28 superati.
+EmbeddedWalls.Tests: 74 superati.
+Steel.Members.Tests: 1859 superati.
+Design.Checks: 100 superati.
+ModelChecker.Tests: 271 superati.
+
+Versioni Steel2.18.0.0,Model5.17.0.0,ModelChecker2.6.0.0 invariate:
+questo ciclo modifica test,documentazione e strumenti di audit;nessuna
+formula/API di produzione. Model invariato su b83c1f35;
+la sua suite completa non e' stata ripetuta. Nessuna release o push.
+Le note precedenti restano storiche; questo riepilogo ne aggiorna lo stato.
+
+Replay diagnostico aggiornato per uguaglianze esatte,IsFalse e Contains;
+la sostituzione distingue Assert e StringAssert con confini di identificatore.
+Verifica incrociata: originale dafeea29 ->29casi,221asserzioni,11discrepanze;
+attuale ->29casi,611asserzioni,0discrepanze. Il replay registra ancora le
+diagnostiche previste dei5casi non supportati;non le dichiara verifiche OK.
+Il tool non modifica i test;archivia e strumenta una copia temporanea.

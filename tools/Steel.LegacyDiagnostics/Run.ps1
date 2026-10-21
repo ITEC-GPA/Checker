@@ -26,7 +26,7 @@ $source = [IO.File]::ReadAllText($snapshotPath)
 # Instrument only a disposable copy: legacy inputs, expressions and expected values stay unchanged.
 $source = [regex]::Replace($source, '(\b\w+)\.PerformCheck\(\);',
     'LegacyDiagnostics.Configure($1); $0 LegacyDiagnostics.Capture($1);')
-$source = $source.Replace('Assert.', 'DiagnosticAssert.')
+$source = [regex]::Replace($source, '(?<![\w])(?:StringAssert|Assert)\.', 'DiagnosticAssert.')
 [IO.File]::WriteAllText((Join-Path $generatedDirectory 'LegacyTests.g.cs'), $source)
 $buildArguments = @('build', $PSScriptRoot, '-c', 'Release', '-v:q', '-nologo')
 if ($ModelRoot) { $buildArguments += "-p:SteelModelRoot=$ModelRoot" }

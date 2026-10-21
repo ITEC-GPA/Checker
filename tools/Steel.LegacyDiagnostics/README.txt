@@ -1,3 +1,9 @@
+STATO CORRENTE 21/10/2026: tutti gli11legacy chiusi,122/122 superati.
+Cinque riferimenti numerici,un benchmark C condizionato e cinque
+contratti di rifiuto esplicito: NON tutti i metodi sono implementati.
+Vedere LEGACY_CLOSURE_SUMMARY_20261021.txt e manifest finale.
+Le annotazioni successive descrivono fasi storiche.
+
 AGGIORNAMENTO 21/10/2026 - Passo3: SectionHInteraction3 corretto per
 gli input biassiali dichiarati e il metodo Allegato A. Restano8 casi.
 Vedere LEGACY_CLOSURE_03_HEA260.txt per calcoli, fonti e limiti.

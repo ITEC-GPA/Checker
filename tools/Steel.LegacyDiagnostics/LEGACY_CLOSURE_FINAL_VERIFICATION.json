@@ -1,0 +1,183 @@
+{
+  "base_checker": "dafeea29",
+  "cases": [
+    {
+      "step": 1,
+      "test": "SectionHBuckling1",
+      "original_preserved": true,
+      "inputs_unchanged": true,
+      "reference_reproduced": true,
+      "closure_kind": "independent_arithmetic_for_declared_inputs"
+    },
+    {
+      "step": 2,
+      "test": "SectionHInteraction2",
+      "original_preserved": true,
+      "inputs_unchanged": true,
+      "reference_reproduced": true,
+      "closure_kind": "independent_arithmetic_for_declared_inputs"
+    },
+    {
+      "step": 3,
+      "test": "SectionHInteraction3",
+      "original_preserved": true,
+      "inputs_unchanged": true,
+      "reference_reproduced": true,
+      "closure_kind": "independent_arithmetic_for_declared_inputs"
+    },
+    {
+      "step": 4,
+      "test": "SectionHLateralTorsionalBuckling1",
+      "original_preserved": true,
+      "inputs_unchanged": true,
+      "reference_reproduced": true,
+      "closure_kind": "independent_arithmetic_for_declared_inputs"
+    },
+    {
+      "step": 5,
+      "test": "SectionHLateralTorsionalBuckling2",
+      "original_preserved": true,
+      "inputs_unchanged": true,
+      "reference_reproduced": true,
+      "closure_kind": "independent_arithmetic_for_declared_inputs"
+    },
+    {
+      "step": 6,
+      "test": "SectionCLateralTorsionalBuckling2",
+      "original_preserved": true,
+      "inputs_unchanged": true,
+      "reference_reproduced": true,
+      "closure_kind": "conditional_channel_arithmetic"
+    },
+    {
+      "step": 7,
+      "test": "Sap_SectionHAsymmetricTest1",
+      "original_preserved": true,
+      "inputs_unchanged": true,
+      "reference_reproduced": true,
+      "closure_kind": "explicit_unsupported_contract"
+    },
+    {
+      "step": 8,
+      "test": "Sap_SectionHAsymmetricTest2",
+      "original_preserved": true,
+      "inputs_unchanged": true,
+      "reference_reproduced": true,
+      "closure_kind": "explicit_unsupported_contract"
+    },
+    {
+      "step": 9,
+      "test": "Sap_SectionTTest",
+      "original_preserved": true,
+      "inputs_unchanged": true,
+      "reference_reproduced": true,
+      "closure_kind": "explicit_unsupported_contract"
+    },
+    {
+      "step": 10,
+      "test": "Sap_SectionTTest2",
+      "original_preserved": true,
+      "inputs_unchanged": true,
+      "reference_reproduced": true,
+      "closure_kind": "explicit_unsupported_contract"
+    },
+    {
+      "step": 11,
+      "test": "Sap_SectionLTest",
+      "original_preserved": true,
+      "inputs_unchanged": true,
+      "reference_reproduced": true,
+      "closure_kind": "explicit_unsupported_contract"
+    }
+  ],
+  "production_changed": false,
+  "other_legacy_methods_unchanged": true,
+  "allowlist_empty": true,
+  "total_passed": 3898,
+  "failed": 0,
+  "skipped": 0,
+  "api_compatible": true,
+  "suites": [
+    {
+      "name": "GPCChecker.Test.Concrete",
+      "passed": 795,
+      "trx_sha256": "e750965a62669b3a70c3572a40a2dc8540a239bcc307bd41aeaa5f1a8f7dd0b3"
+    },
+    {
+      "name": "GPCChecker.Test.Steel",
+      "passed": 122,
+      "trx_sha256": "65a3e7e64deb8df30b5b2b8c8842d67e99c2db4aa3cf01b5f7030e4ec2b56230"
+    },
+    {
+      "name": "GPCChecker.Test.CompositeBridge",
+      "passed": 284,
+      "trx_sha256": "43e5b65edfed806b5c5b4e92a143deef015d82648dd48545510aa77f8bd20f63"
+    },
+    {
+      "name": "GPCChecker.Test.Geotechnics",
+      "passed": 191,
+      "trx_sha256": "689d959107f32cddf37c1548bc9a9b1715c710cd01d52c45e83aa3a2949de503"
+    },
+    {
+      "name": "GPCChecker.Test.Calculation",
+      "passed": 174,
+      "trx_sha256": "fb353e34cffd54c0669e3c827cd32cf3ea542f6204407929ebf4f68a61bbf60b"
+    },
+    {
+      "name": "ShallowFoundation.Tests",
+      "passed": 28,
+      "trx_sha256": "f2459035c9b1a6c08d00572ecbf3ac835540bac3d14f2fe3f705dfe0a420bac6"
+    },
+    {
+      "name": "EmbeddedWalls.Tests",
+      "passed": 74,
+      "trx_sha256": "6374362745bcd411c532ea557b91042d840e32f4babd7ce821169b6f439cfefe"
+    },
+    {
+      "name": "Steel.Members.Tests",
+      "passed": 1859,
+      "trx_sha256": "1375dbe7c662c3bcc6272423e2008a70876954fb2e910be2c4112fa9f3dccf70"
+    },
+    {
+      "name": "Design.Checks",
+      "passed": 100,
+      "trx_sha256": "016a31ce165f2616528e231d17f90f3a8527e1f6b7fa20940e5a372b155ba912"
+    },
+    {
+      "name": "ModelChecker.Tests",
+      "passed": 271,
+      "trx_sha256": "2a976259717ddcf60d819b1793afcb646330f2cae25742ea4d93b7902379e2e7"
+    }
+  ],
+  "summary_sha256": "293a578d7711dcc8b4de1f03257225628e58116acdec0ee65ab13a280fda925e",
+  "checker_tested_commit": "95da9f2f",
+  "model_commit": "b83c1f35",
+  "steel_version": "2.18.0.0",
+  "model_version": "5.17.0.0",
+  "release": false,
+  "pushed": false,
+  "results_directory": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\legacy-closure-all",
+  "execution_note": "Verify.ps1 all built all projects and completed eight suites before interruption; only Concrete and ModelChecker were resumed with the same binaries. Exact Verify.ps1 Read-Trx/API/summary tail then completed all checks.",
+  "diagnostic_replay": {
+    "current_cases": 29,
+    "current_assertions": 611,
+    "current_discrepancies": 0,
+    "original_cases": 29,
+    "original_assertions": 221,
+    "original_discrepancies": [
+      "Sap_SectionHAsymmetricTest1",
+      "Sap_SectionHAsymmetricTest2",
+      "Sap_SectionLTest",
+      "Sap_SectionTTest",
+      "Sap_SectionTTest2",
+      "SectionCLateralTorsionalBuckling2",
+      "SectionHBuckling1",
+      "SectionHInteraction2",
+      "SectionHInteraction3",
+      "SectionHLateralTorsionalBuckling1",
+      "SectionHLateralTorsionalBuckling2"
+    ],
+    "current_sha256": "fcdd78e0e2d8d5c5f8c205ad185e7030040527dc1acfa401f6a45d65410e3ef5",
+    "original_sha256": "afe7988dc3af028cd63948647a299af3fe9995c65f1ba841b3a2520017faa608"
+  }
+}

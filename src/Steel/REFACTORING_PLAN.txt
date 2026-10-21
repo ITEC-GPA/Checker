@@ -1,3 +1,8 @@
+AGGIORNAMENTO21/10/2026: conclusa la chiusura dei11legacy.
+Vedere tools/Steel.LegacyDiagnostics/LEGACY_CLOSURE_SUMMARY_20261021.txt.
+Il conteggio verde include5rifiuti espliciti;restano aperte le
+funzionalita indicate nel riepilogo. Le note seguenti sono storiche.
+
 TASK GENERALE STEEL - PRIMO BLOCCO APPROVATO - 21 OTTOBRE 2026
 Branch: codex/steel-section-architecture
 Baseline: 328d4f60, Steel 2.5.0.0, ModelChecker 2.3.0.0.
