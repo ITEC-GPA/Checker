@@ -1,0 +1,88 @@
+CHIUSURA LEGACY 01 - SectionHBuckling1 - 21 OTTOBRE 2026
+
+Esito: corretto il riferimento del test per gli input S355 gia' presenti.
+Nessuna modifica al codice di produzione, a materiale, geometria, azioni,
+opzioni, curve o preset. Il caso resta attivo, con lo stesso nome.
+Non si dichiara riprodotta la pagina 149 di Cordova, che non e' disponibile.
+L'errore dimostrato e' l'incoerenza degli attesi rispetto agli input eseguiti;
+non e' dimostrato un errore del libro o la causa della trascrizione originale.
+
+Provenienza
+- Base Checker dafeea29 (Steel 2.18.0.0), Model b83c1f35 (5.17.0.0).
+- SHA256 sorgente completo prima della correzione: 773022095F2659B4292116A0C5C08065747457BDDA0F2EB8A8AF3B8C6BD0F47F.
+- Metodo originario integrale: closed-cases/SectionHBuckling1.original.cs.txt.
+- Calcolo riproducibile, senza dipendenze GPC: python hea300_flexural_reference.py.
+- Output indipendente a 50 cifre: closed-cases/SectionHBuckling1.reference.json.
+- EN 1993-1-1:2005 + AC2006/2009, tabella5.2 pp42-43,
+  6.3.1.1-3 pp56-59, tabelle6.1/6.2 pp57-58. Copia controllata:
+  https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+  Non si qualifica un'Appendice Nazionale, NTC2018 o una nuova edizione EC3.
+
+Input e limiti
+HEA300 raccordato: h290,b300,tw8.5,tf14,r27 mm; laminato, HotFinished.
+E210000 MPa, fy355 MPa, NEd=-1320000 N (compressione negativa in GPC).
+Momenti, tagli e torsione nulli; L6500 mm, fattori assiali2/1,
+Lcr1=13000 mm, Lcr2=6500 mm; gammaM1=1 del preset EN.
+Le lunghezze efficaci sono DATI del test: l'etichetta EndsRestrained non
+dimostra uno schema fisico che le produca. Non viene validata qui l'analisi
+di un telaio o la scelta dei vincoli; si verifica la resistenza assegnate Lcr.
+
+Geometria indipendente
+Per ciascuno dei quattro raccordi (quadrato meno quarto di cerchio), rispetto
+allo spigolo teorico anima/ala: Af=(1-pi/4)r^2, Qf=(5/6-pi/4)r^3,
+Jf=(1-5pi/16)r^4. Con hw=h-2tf:
+A=2b tf+hw tw+4Af;
+Iy=2[b tf^3/12+b tf((h-tf)/2)^2]+tw hw^3/12
+   +4[(hw/2)^2 Af-hw Qf+Jf];
+Iz=2tf b^3/12+hw tw^3/12+4[(tw/2)^2 Af+tw Qf+Jf].
+A=11252.778955533041 mm2;
+Iy=182634978.73102460 mm4; Iz=63095590.87174197 mm4.
+Iy>Iz: asse1=y, asse2=z. L'area/inerzia non sono lette da Model per
+generare gli attesi; il test le confronta anche con Model.
+
+Classe e riduzione
+epsilon=sqrt(235/355). Ala c/t=8.482142857: >10epsilon, <=14epsilon,
+quindi classe3; anima c/t=24.470588235 <=33epsilon, classe1.
+Classe complessiva3. h/b<=1.2 e tf<=100 mm: curve b/c, alpha .34/.49.
+Ncr=pi^2 E I/Lcr^2; lambda_bar=sqrt(A fy/Ncr);
+Phi=[1+alpha(lambda_bar-.2)+lambda_bar^2]/2;
+chi e' la radice minore di lambda_bar^2 chi^2-2Phi chi+1=0,
+calcolata per bisezione (160 iterazioni), diversa dal radicale di produzione;
+Nb,Rd=chi A fy/gammaM1, rapporto=abs(NEd)/Nb,Rd.
+
+Risultati [forze in kN]
+                         Asse1               Asse2
+Ncr                      2239.836377953       3095.218686035
+lambda_bar               1.335475495223       1.136052498513
+Phi                      1.584778233358       1.374640501825
+chi                      .410168341837        .465418233804
+Nb,Rd S355               1638.514458263       1859.223219939
+NEd/Nb,Rd                .805607782918        .709973921283
+Attesi originali         1522.500000000       1667.400000000
+Scarto/risultato S355     7.0805%              10.3174%
+Nb,Rd S275 (sensibilita') 1521.420834845       1671.053358406
+Scarto/risultato S275     .0709%               .2186%
+La vecchia tolleranza era .5%, con denominatore il risultato del checker.
+La vicinanza S275 suggerisce un possibile scambio di materiale, senza
+provarlo. Il test corretto conserva S355 e non attribuisce nuovi dati al libro.
+
+Asserzioni
+Il test net472 ora controlla A,Iy,Iz,fy,gammaM1,classe,curve,lunghezze,
+Ncr,lambda_bar,Phi,chi,Nb,Rd e rapporti per entrambi gli assi, senza errori.
+Tolleranza numerica relativa1e-10: arrotondamento dei riferimenti stampati
+e aritmetica double, non intervallo ricavato dallo scarto storico e non
+tolleranza geometrica di un prodotto commerciale. I quattro test net8
+Hea300BucklingArithmeticTests conservano il confronto S355/S275 su due assi.
+Non si certificano con questo caso torsione/flesso-torsione, LTB o N+M.
+
+Verifica eseguita:
+- Prima: SectionHBuckling1 fallisce nel percorso originale net472.
+- Dopo: net472 Steel 112/122 superati, i soli 10 fallimenti rimasti
+  coincidono esattamente con la whitelist; zero ignorati.
+- Steel.Members net8: 1859/1859 superati, zero ignorati.
+- Confronto automatico: setup eseguibile originale invariato; tutti
+  gli altri metodi del file legacy sono identici alla base.
+- Manifest e hash: LEGACY_CLOSURE_01_VERIFICATION.json.
+- Non rieseguite le suite di altri domini: nessuna modifica di produzione.
+Versioni delle librerie invariate: intervento solo su test e documentazione,
+nessun fix di produzione o nuova API. Nessuna release o push.

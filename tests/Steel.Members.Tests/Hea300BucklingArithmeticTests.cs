@@ -10,7 +10,8 @@ namespace Steel.Members.Tests;
 public class Hea300BucklingArithmeticTests
 {
     // Independent rounded-section integration, Euler load and characteristic equation.
-    // These are NOT Cordova benchmark values. The old SectionHBuckling1 remains intact.
+    // These are NOT Cordova benchmark values. SectionHBuckling1 now checks the S355 chain.
+    // Reproducible Decimal reference: tools/Steel.LegacyDiagnostics/hea300_flexural_reference.py.
     [DataTestMethod]
     [DataRow(355d,3,1,1638514.4582632633)]
     [DataRow(355d,3,2,1859223.2199390416)]

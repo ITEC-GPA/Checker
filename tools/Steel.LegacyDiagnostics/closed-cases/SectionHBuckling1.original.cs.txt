@@ -1,0 +1,42 @@
+        [TestMethod]
+        public void SectionHBuckling1()
+        {
+            // Cordova Costruzioni in acciaio pagina 149
+            double L = 6500;
+
+            double h = 290.0;
+            double width = 300.0;
+            double flangeThickness = 14.0;
+            double webThickness = 8.5;
+            double r = 27.0;
+
+            var sectionH = new SteelSection(new SectionH(h, webThickness, width, flangeThickness, width, flangeThickness,
+                string.Empty, r), SteelMaterialEN1993Data.S355, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
+            ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-1320 * 1000, 0, 0, 0, 0, 0, CoordinateSystem.Global) };
+            LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
+
+            double psiy = 0.5;
+
+            StationResultBeamForces[] resultLocationStations = new StationResultBeamForces[] { new StationResultBeamForces(loadCase, resultBeamForces[0], 0.0) };
+            BeamResult[] beamResults = new BeamResult[1] { new BeamResult(resultLocationStations) };
+            BeamElement beamElement = new BeamElement(new Point3d(0, 0, 0), new Point3d(0 + L, 0, 0), sectionH);
+            beamElement.Results.AddRange(beamResults);
+            EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.NotDirectlyLoaded,
+                EN1993p11Checker.EN1993p11Options.SupportConditions.EndsRestrained, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds,
+                psiy, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1);
+            StandardEN1993p11 standardEN1993P11 = new StandardEN1993p11();
+            EN1993p11Checker EN1993P11Checker = new EN1993p11Checker(beamElement, options, standardEN1993P11);
+
+            EN1993P11Checker.PerformCheck();
+
+            double expNbRd1 = 1450000.0 * 1.05; // lui usa gammaM1 = 1.05
+            double expNbRd2 = 1588000.0 * 1.05;
+            //double expWR = 0.910/1.05;
+
+            Assert.IsTrue(Math.Abs(EN1993P11Checker.EN1993p11BeamStationResults[0].AxialBuckling1Capacity - expNbRd1) /
+                EN1993P11Checker.EN1993p11BeamStationResults[0].AxialBuckling1Capacity * 100 < 0.5);
+            Assert.IsTrue(Math.Abs(EN1993P11Checker.EN1993p11BeamStationResults[0].AxialBuckling2Capacity - expNbRd2) /
+                EN1993P11Checker.EN1993p11BeamStationResults[0].AxialBuckling2Capacity * 100 < 0.5);
+            //Assert.IsTrue(Math.Abs(EN1993P11Checker.EN1993p11BeamStationResults[0].WorkingRatio - expWR) < 0.01);
+        }

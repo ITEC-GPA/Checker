@@ -1,0 +1,68 @@
+{
+  "case": "SectionHInteraction3",
+  "disposition": "Corrected unqualified historical reference for declared biaxial Annex A inputs",
+  "created_utc": "2026-10-21T11:37:27.916166+00:00",
+  "base_checker": "9e4dfbbd",
+  "base_model": "b83c1f35",
+  "steel_version": "2.18.0.0",
+  "model_version": "5.17.0.0",
+  "production_changed": false,
+  "historical_source_reproduced": false,
+  "inputs_unchanged": true,
+  "other_legacy_methods_unchanged": true,
+  "independently_integrated_properties": [
+    "A",
+    "Iy",
+    "Iz",
+    "Wel1",
+    "Wel2"
+  ],
+  "plastic_moduli_geometric_bounds_verified": true,
+  "declared_torsion_properties_not_independently_qualified_here": [
+    "It",
+    "Iw"
+  ],
+  "python_and_csharp_terms_compared": 37,
+  "numeric_results_asserted": 39,
+  "original_method_preserved": true,
+  "before": {
+    "passed": 0,
+    "failed": [
+      "SectionHInteraction3"
+    ],
+    "other": [],
+    "trx_sha256": "c34176ddd5517375d2c9996cf23e137f41f0ec916b25846a12ae127e18e38519"
+  },
+  "legacy_after": {
+    "passed": 114,
+    "failed": [
+      "Sap_SectionHAsymmetricTest1",
+      "Sap_SectionHAsymmetricTest2",
+      "Sap_SectionLTest",
+      "Sap_SectionTTest",
+      "Sap_SectionTTest2",
+      "SectionCLateralTorsionalBuckling2",
+      "SectionHLateralTorsionalBuckling1",
+      "SectionHLateralTorsionalBuckling2"
+    ],
+    "other": [],
+    "trx_sha256": "f1000a392e9218c8adb5ef6581690b16e32d18e03bd8122bd34ee6d533bc371b"
+  },
+  "members_after": {
+    "passed": 1859,
+    "failed": [],
+    "other": [],
+    "trx_sha256": "f920f9f1fa2956b9b35fd3e08e97026ce4adba8d0fc7c12dfa62a17830b121ad"
+  },
+  "unexpected_failures": [],
+  "outputs_directory": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\legacy-closure-03",
+  "evidence": {
+    "GPCChecker.Test.Steel/EN1993p11Test.cs": "710b4544fa5054fffa38dc98ba1c948d3a9d713382b992a0a45d6afea872ec99",
+    "build/known-failures.json": "f985994da909dd9eb93333b3823a4782abc7927fb55b0004ba4513c7eacaff66",
+    "tests/Steel.Members.Tests/LegacyHInteractionArithmeticTests.cs": "6a2fa681b7acd10851dc4f3ea8e0bac463be14aca0faae7ff0ee9133f55f8176",
+    "tools/Steel.LegacyDiagnostics/hea260_annex_a_reference.py": "0ffdad529240e1bd8b928137ef68609f5aa81b4c3100cdbd7559f74268f4fc02",
+    "tools/Steel.LegacyDiagnostics/ipe300_annex_a_reference.py": "66291abfb1b1d98d89aed56086a46587f6124251d39e9ae20532cb1c865d404a",
+    "tools/Steel.LegacyDiagnostics/closed-cases/SectionHInteraction3.original.cs.txt": "d2e3f5b03dd17824c51d826ca3ed20ef52c403d016b48762b2363fcfd92de87f",
+    "tools/Steel.LegacyDiagnostics/closed-cases/SectionHInteraction3.reference.json": "940f85c2c85eb64f13326b3e4084e0c80fb368ac001f0a39e5622a527358dead"
+  }
+}

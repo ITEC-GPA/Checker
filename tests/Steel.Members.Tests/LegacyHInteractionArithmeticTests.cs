@@ -52,6 +52,9 @@ public class LegacyHInteractionArithmeticTests
         checker.PerformCheck();
         Assert.AreEqual(0, checker.GetErrorLog().Count, string.Join("; ", checker.GetErrorLog()));
         Assert.IsTrue(section.IsDoubleSymmetric, "No bending-torsion coupling in axial buckling.");
+        TestContext.WriteLine($"Declared section inputs (mm): A={section.Area:R}; Iy={section.J11:R}; Iz={section.J22:R}; " +
+            $"Wel1={section.Wel1:R}; Wel2={section.Wel2:R}; Wpl1={section.Wpl1:R}; Wpl2={section.Wpl2:R}; " +
+            $"It={section.Jt:R}; Iw={section.Jw:R}");
         var expected = Independent(section, ipe, length, n, m1, m2, g0, g1);
         var actual = checker.EN1993p11BeamStationResults.Single();
         var errors = new List<string>();

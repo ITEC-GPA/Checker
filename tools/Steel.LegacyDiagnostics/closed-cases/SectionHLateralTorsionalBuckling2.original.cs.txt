@@ -1,0 +1,40 @@
+        [TestMethod]
+        public void SectionHLateralTorsionalBuckling2()
+        {
+            // Cordova Costruzioni in acciaio pagina 190
+            double L = 8000;
+
+            double h = 300.0;
+            double width = 150.0;
+            double flangeThickness = 10.7;
+            double webThickness = 7.1;
+            double r = 15.0;
+
+            var sectionH = new SteelSection(new SectionH(h, webThickness, width, flangeThickness, width, flangeThickness,
+                string.Empty, r), SteelMaterialEN1993Data.S355, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
+            ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(0, 0, 0, 0, 66.0 * 1000000, 0, CoordinateSystem.Global) };
+            LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
+
+            double psiy = 1;
+            StationResultBeamForces[] resultLocationStations = new StationResultBeamForces[] { new StationResultBeamForces(loadCase, resultBeamForces[0], 0.0) };
+            BeamResult[] beamResults = new BeamResult[1] { new BeamResult(resultLocationStations) };
+            BeamElement beamElement = new BeamElement(new Point3d(0, 0, 0), new Point3d(0 + L, 0, 0), sectionH);
+            beamElement.Results.AddRange(beamResults);
+
+            EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.SingleForce,
+                EN1993p11Checker.EN1993p11Options.SupportConditions.HingesAtEnds, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds,
+                psiy, 1, 1, 1, 1, 1, 1, 0.5, 1, 0.5, 1, 0.5, 1, 1, 1,
+                EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.TopSection);
+            StandardEN1993p11 standardEN1993P11 = new StandardEN1993p11();
+            EN1993p11Checker EN1993P11Checker = new EN1993p11Checker(beamElement, options, standardEN1993P11);
+
+            EN1993P11Checker.PerformCheck();
+
+            double expMbRd = 101.8 * 1.05; // lui usa gammaM1 = 1.05 => UNIEN1993-1-1
+
+            UnitsSystem units = new UnitsSystem(GPC.Utilities.Units.UnitsConvert.LengthUnits.m, GPC.Utilities.Units.UnitsConvert.ForceUnits.kN,
+                GPC.Utilities.Units.UnitsConvert.MassUnits.kg, GPC.Utilities.Units.UnitsConvert.PressureUnits.kPa, GPC  .Utilities.Units.UnitsConvert.TemperatureUnits.C);
+
+            Assert.IsTrue((Math.Abs(Units.ConverMomentFromDefault(EN1993P11Checker.EN1993p11BeamStationResults[0].LateralTosionalBucklingCapacity, units) - expMbRd) / expMbRd * 100) < 1);
+        }

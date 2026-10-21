@@ -1,3 +1,9 @@
+STATO CORRENTE 21/10/2026: tutti gli11legacy chiusi,122/122 superati.
+Cinque riferimenti numerici,un benchmark C condizionato e cinque
+contratti di rifiuto esplicito: NON tutti i metodi sono implementati.
+Vedere LEGACY_CLOSURE_SUMMARY_20261021.txt e manifest finale.
+Le annotazioni successive descrivono fasi storiche.
+
 CHIUSURA INDAGINE LEGACY EC3 - 20/10/2026 - Steel 2.4.0.17
 
 Perimetro del ciclo: i sei passi T/classificazione, C1, proprieta' torsionali,

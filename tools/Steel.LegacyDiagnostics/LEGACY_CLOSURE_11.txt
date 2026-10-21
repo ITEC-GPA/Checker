@@ -1,0 +1,49 @@
+CHIUSURA LEGACY 11 - Sap_SectionLTest - 21/10/2026
+
+Esito: CHIUSO IL TEST LEGACY; FUNZIONALITA' COMPLETA NON IMPLEMENTATA.
+Il test attivo verifica diagnostica specifica,risultati non disponibili e
+geometria indipendente. Non e' ignorato o commentato. Il report e le vecchie
+asserzioni sono archiviati integralmente,senza approvarne gli attesi.
+Nessun input,formula o codice di produzione modificato.
+
+L,ramo orizzontale350x80mm,verticale350x40mm;L1000mm;
+N=+100kN (trazione),My=-100kNm,Mz=+100kNm,V1=+50kN,V2=-50kN,T=0.
+Area38800mm2. Due rettangoli senza sovrapposizione,baricentro e matrice
+d'inerzia; autovalori(Ixx+Iyy +/- sqrt((Ixx-Iyy)^2+4Ixy^2))/2.
+Il report SAP avverte esso stesso che la formula Mcr non si applica alla L.
+Il rifiuto McrLT senza simmetria e' quindi conservato,non aggirato.
+Le capacita' in questa esecuzione restano NaN per il fallimento anticipato.
+I test Ncr flesso-torsionale negli assi principali qualificano un diverso
+problema elastico e non sostituiscono il Mcr o la verifica N-My-Mz della L.
+Backlog: percorso resistente completo per L con torsione/ingobbamento e
+interazione mediante metodo applicabile,prima di approvare questa asta.
+
+Preset eseguito: S355,fy355,fu490MPa,E210000MPa,nu.3,
+gammaM0=gammaM1=1,gammaM2=1.25. Il report SAP usa invece fu510MPa.
+Per Nt si ricostruisce il criterio prudenziale implementato:
+min(Afy/gammaM0,.9Anfu/gammaM2),con An/A=1 dichiarato nel test.
+Ne risulta352.8A,non355A. Non si qualifica la geometria di fori/connessioni;
+il ricalcolo della rottura e' condizionato all'area netta dichiarata.
+psi1=psi2=.5;NotDirectlyLoaded;supporti EndsRestrained e fattori efficaci
+esplicitamente1 nel test. Si verifica l'aritmetica dei parametri assegnati,
+non l'identificazione di un sistema fisico dal solo nome del vincolo.
+Convenzioni GPC: N positivo=trazione,negativo=compressione;N,mm,MPa,Nmm.
+
+Fonti: EN1993-1-1:2005+AC2006/2009,6.3.3(1),p64:
+il metodo semplificato di interazione richiede doppia simmetria.
+https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+Geometria da integrazione dei rettangoli,d'area A=bd,inerzie bd^3/12 e
+trasporto al baricentro;Euler Ncr=pi^2 EI/Lcr^2;sezione 6.2.3/6.2.5.
+Riferimento Python senza DLL: sap_legacy_section_reference.py 11.
+Output nel JSON omonimo in closed-cases;classificazione distingue il
+risultato conservativo qualificato dai test specifici dall'atteso SAP.
+Nessun valore resistente e certificato da questo test negativo; si controlla la geometria.
+Il successo del test prova il corretto rifiuto,NON una verifica soddisfatta.
+Tolleranza sui componenti geometrici/numerici1e-10 relativa.
+Steel2.18.0.0/Model5.17.0.0 invariati: solo test/documentazione.
+
+BASE CHECKER: 74fe9d49e8a967d82e5ad27d1362e6ea8179babe
+VERIFICA: legacy 122/122 superati, 0 fallimenti noti, zero inattesi/ignorati.
+Input e altri metodi invariati; originale archiviato e controllato.
+Versioni invariate: solo test/documentazione. Nessuna release/push.
+Manifest e hash: LEGACY_CLOSURE_11_VERIFICATION.json.

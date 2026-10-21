@@ -1,0 +1,61 @@
+CHIUSURA LEGACY 06 - SectionCLateralTorsionalBuckling2 - 21/10/2026
+
+Esito: confronto storico sostituito da benchmark ARITMETICO CONDIZIONATO.
+Non e' la qualifica completa di una trave C caricata sull'anima.
+Originale archiviato; input,curve e metodo invariati. Nessuna modifica alla
+produzione. Cordova p211 non disponibile; nessun errore attribuito al libro.
+
+Geometria eseguita: C ad ali parallele,h300,b100,tw10,tf16,r interno16,
+r esterno0 mm. Laminato,S355,E210000 MPa,nu.3,gamma0=gamma1=1.
+L5000mm,forcelle/ingobbamento libero; M1=64.4kNm,N/V/T/M2=0.
+LoadConditions.Constant e' carico trasversale uniforme; TopSection rappresenta
+la sola quota zg150. Si considera qui il modello ideale con carico sulla
+verticale del centro di taglio, senza torsione primaria. Tale modello NON
+descrive automaticamente il carico reale sull'anima del canale.
+
+Proprieta' A/I/Wel: integrali indipendenti dei3rettangoli e2raccordi.
+Il modulo Wpl1 Model648295.8139467458mm3 e' un input dichiarato e verificato
+contro l'integrale esatto entro il limite geometrico dei64segmenti/raccordo:
+deltaA=2r^2/2[pi/2-64sin(pi/128)],abs(deltaWpl)<=deltaA*h/2.
+It354080mm4 e Iw78943251406.91194mm6 sono input dichiarati di Model,
+non soluzioni torsionali indipendentemente qualificate in questo passo.
+Le proprietà sono acquisite direttamente dal modello geometrico, non
+ricavate invertendo le resistenze del checker.
+
+Ricalcolo Python Decimal40: channel_ltb_reference.py,nessuna DLL GPC.
+Mcr: radice razionalizzata del modello a3fattori,con zj=0 per la simmetria
+orizzontale. C1=1.127,C2=.45 sono INPUT DICHIARATI del modello esistente.
+Non si sostiene che la coppia sia stata qualificata da una fonte primaria:
+NCCI SN003b(tab3.2) riguarda le doppiamente simmetriche e usa C2=.454;
+Chalmers2017:52,tab4.1,p39,riporta C1=1.12,C2=.45.
+Questa differenza resta esplicita: non si corregge il coefficiente per
+adattare il test e non si estende il NCCI alla C senza qualificazione.
+
+La catena resistente e' indipendente e normativa CONDIZIONATAMENTE a Mcr:
+EN1993-1-1:2005+AC2006/2009,6.3.2.1(3),6.3.2.2,tab6.4:
+classe1 in flessione,Wpl,curva d,alpha=.76,lambda0=.2,beta=1.
+lambda=sqrt(Wpl fy/Mcr); chi da bisezione del polinomio caratteristico;
+Mb=chi Wpl fy/gammaM1. Nessuna correzione DIN/ricerca implicita.
+Mc230.145013951kNm; Mcr113.448258072kNm;
+lambda1.424301295265; chi.298122950141; Mb68.611510519kNm.
+Originali Mc173.775/Mb100.38kNm non riprodotti. Il possibile UPN300 S275
+ha ali inclinate: non identifica questa geometria ne' dimostra la fonte.
+
+Fonti:
+https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+https://www.steelconstruction.info/images/0/0f/SN003b.pdf
+Ekstrom/Wesley,Chalmers2017:52,2.8p11 e4.3p36-40 (campo/limiti modello):
+https://publications.lib.chalmers.se/records/fulltext/252188/252188.pdf
+La tesi non e' una norma; il confronto normativo usa la riduzione EC3.
+Test complementari: ChannelEc3SlendernessTests(27),continuita' e classi1/2/3.
+
+Restano da qualificare coefficienti Mcr e carico eccentrico/torsione e
+ingobbamento di un canale reale; non viene approvato il WorkingRatio globale.
+Tolleranza aritmetica1e-10*max(1,abs(atteso)),separata dal limite geometrico.
+Steel2.18.0.0/Model5.17.0.0 invariati: solo test/documentazione.
+
+BASE CHECKER: e46c41263e2bf765ba85e8ad61a4f5624a1c300a
+VERIFICA: legacy 117/122 superati, 5 fallimenti noti, zero inattesi/ignorati.
+Input e altri metodi invariati; originale archiviato e controllato.
+Versioni invariate: solo test/documentazione. Nessuna release/push.
+Manifest e hash: LEGACY_CLOSURE_06_VERIFICATION.json.

@@ -410,7 +410,10 @@ namespace SteelTests
         [TestMethod]
         public void SectionHBuckling1()
         {
-            // Cordova Costruzioni in acciaio pagina 149
+            // Requalified for the declared S355 inputs; not a reproduction of Cordova p.149.
+            // Independent reference and unchanged historical test:
+            // tools/Steel.LegacyDiagnostics/LEGACY_CLOSURE_01_HEA300.txt.
+            // Effective lengths are explicit inputs (13000/6500 mm), not inferred restraints.
             double L = 6500;
 
             double h = 290.0;
@@ -439,15 +442,43 @@ namespace SteelTests
 
             EN1993P11Checker.PerformCheck();
 
-            double expNbRd1 = 1450000.0 * 1.05; // lui usa gammaM1 = 1.05
-            double expNbRd2 = 1588000.0 * 1.05;
-            //double expWR = 0.910/1.05;
+            // Decimal reference: exact rectangle/fillet integration and bisection of
+            // lambda^2*chi^2 - 2*Phi*chi + 1 = 0, independently of GPC.
+            // EN 1993-1-1:2005 + AC:2006/2009, 6.3.1.1-3, tables 5.2, 6.1, 6.2.
+            Assert.AreEqual(355.0, EN1993P11Checker.Fy);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM1);
+            Assert.AreEqual(11252.778955533041, sectionH.Area, 11252.778955533041 * 1e-10);
+            Assert.AreEqual(182634978.73102460, sectionH.J11, 182634978.73102460 * 1e-10);
+            Assert.AreEqual(63095590.87174197, sectionH.J22, 63095590.87174197 * 1e-10);
+            Assert.AreEqual(0, EN1993P11Checker.GetErrorLog().Count);
+            Assert.AreEqual(1, EN1993P11Checker.EN1993p11BeamStationResults.Length);
+            var result = EN1993P11Checker.EN1993p11BeamStationResults[0];
+            Assert.AreEqual(EN1993p11Checker.SectionClass.Class3, result.AxialCompressionClass);
+            Assert.AreEqual(EN1993p11Checker.EN1993p11Options.AxialBuckingCurves.b, result.BuckingCurve1);
+            Assert.AreEqual(EN1993p11Checker.EN1993p11Options.AxialBuckingCurves.c, result.BuckingCurve2);
 
-            Assert.IsTrue(Math.Abs(EN1993P11Checker.EN1993p11BeamStationResults[0].AxialBuckling1Capacity - expNbRd1) /
-                EN1993P11Checker.EN1993p11BeamStationResults[0].AxialBuckling1Capacity * 100 < 0.5);
-            Assert.IsTrue(Math.Abs(EN1993P11Checker.EN1993p11BeamStationResults[0].AxialBuckling2Capacity - expNbRd2) /
-                EN1993P11Checker.EN1993p11BeamStationResults[0].AxialBuckling2Capacity * 100 < 0.5);
-            //Assert.IsTrue(Math.Abs(EN1993P11Checker.EN1993p11BeamStationResults[0].WorkingRatio - expWR) < 0.01);
+            // Rows: principal axes 1 (y, strong) and 2 (z, weak).
+            // Columns: Lcr [mm], alpha, Ncr [N], lambda_bar, Phi, chi, Nb,Rd [N], NEd/Nb,Rd.
+            double[][] expected = {
+                new[] { 13000.0, .34, 2239836.377953149, 1.335475495222930,
+                    1.584778233358363, .410168341836943, 1638514.458263264, .805607782917661 },
+                new[] { 6500.0, .49, 3095218.686035181, 1.136052498513295,
+                    1.374640501824907, .465418233803958, 1859223.219939041, .709973921282717 }
+            };
+            double[][] actual = {
+                new[] { result.LengthAxialBuckling1, result.AlphaAxialBuckling1, result.NCr1,
+                    result.LambdaSignedAxialBuckling1, result.PhiAxialBuckling1, result.ChiAxialBuckling1,
+                    result.AxialBuckling1Capacity, result.AxialBuckling1WorkingRatio },
+                new[] { result.LengthAxialBuckling2, result.AlphaAxialBuckling2, result.NCr2,
+                    result.LambdaSignedAxialBuckling2, result.PhiAxialBuckling2, result.ChiAxialBuckling2,
+                    result.AxialBuckling2Capacity, result.AxialBuckling2WorkingRatio }
+            };
+            string[] quantities = { "Lcr", "alpha", "Ncr", "lambda_bar", "Phi", "chi", "Nb,Rd", "NEd/Nb,Rd" };
+            for (int axis = 0; axis < 2; axis++)
+                for (int quantity = 0; quantity < quantities.Length; quantity++)
+                    Assert.AreEqual(expected[axis][quantity], actual[axis][quantity],
+                        Math.Abs(expected[axis][quantity]) * 1e-10,
+                        "Axis " + (axis + 1) + ": " + quantities[quantity]);
         }
 
         [TestMethod]
@@ -563,14 +594,45 @@ namespace SteelTests
 
             EN1993P11Checker.PerformCheck();
 
-            double expMbRd = 74.7 * 1.05; // lui usa gammaM1 = 1.05 => UNIEN1993-1-1
-            double expMcRd = 164.6 * 1.05;
-
-            UnitsSystem units = new UnitsSystem(GPC.Utilities.Units.UnitsConvert.LengthUnits.m, GPC.Utilities.Units.UnitsConvert.ForceUnits.kN,
-                GPC.Utilities.Units.UnitsConvert.MassUnits.kg, GPC.Utilities.Units.UnitsConvert.PressureUnits.kPa, GPC.Utilities.Units.UnitsConvert.TemperatureUnits.C);
-
-            Assert.IsTrue((Math.Abs(Units.ConverMomentFromDefault(EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment1Capacity, units) - expMcRd) / expMcRd) < 0.01);
-            Assert.IsTrue((Math.Abs(Units.ConverMomentFromDefault(EN1993P11Checker.EN1993p11BeamStationResults[0].LateralTosionalBucklingCapacity, units) - expMbRd) / expMbRd * 100) < 1);
+            // Requalified arithmetic for unchanged S355 inputs; Cordova p.190
+            // is not reproduced. See LEGACY_CLOSURE_04.txt and archived original.
+            Assert.AreEqual(355.0, EN1993P11Checker.Fy);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM0);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM1);
+            Assert.AreEqual(0, EN1993P11Checker.GetErrorLog().Count, string.Join("; ", EN1993P11Checker.GetErrorLog()));
+            Assert.AreEqual(1, EN1993P11Checker.EN1993p11BeamStationResults.Length);
+            var result = EN1993P11Checker.EN1993p11BeamStationResults[0];
+            Assert.AreEqual(EN1993p11Checker.SectionClass.Class1, result.BendingCompressionClass);
+            Assert.AreEqual(EN1993p11Checker.EN1993p11Options.LateralTorsionalBuckingCurves.b, result.LateraltorsionalBucklingCurve);
+            Assert.AreEqual(5000.0, EN1993P11Checker.GetLengthCriticalMoment1());
+            Assert.AreEqual(5000.0, EN1993P11Checker.GetLengthLatTorsBuckling());
+            // Analytic geometry; pinned torsion properties are explicit Model inputs.
+            Assert.AreEqual(5381.2016529422963d, sectionH.Area, 5381.2016529422963d * 1e-10, "Area");
+            Assert.AreEqual(83561091.858479753d, sectionH.J11, 83561091.858479753d * 1e-10, "J11");
+            Assert.AreEqual(6037784.2439929144d, sectionH.J22, 6037784.2439929144d * 1e-10, "J22");
+            Assert.AreEqual(557073.94572319835d, sectionH.Wel1, 557073.94572319835d * 1e-10, "Wel1");
+            Assert.AreEqual(80503.789919905525d, sectionH.Wel2, 80503.789919905525d * 1e-10, "Wel2");
+            Assert.AreEqual(628365.31263994751d, sectionH.Wpl1, 628365.31263994751d * 1e-10, "Wpl1");
+            Assert.AreEqual(199186.91786049944d, sectionH.Jt, 199186.91786049944d * 1e-10, "Jt");
+            Assert.AreEqual(125760427779.96912d, sectionH.Jw, 125760427779.96912d * 1e-10, "Jw");
+            // Four fillets, 64 chords each: geometric bound independent of observed error.
+            double areaExcess = 4 * r * r / 2 * (Math.PI / 2 - 64 * Math.Sin(Math.PI / 128));
+            Assert.AreEqual(628355.88646072743d, sectionH.Wpl1, areaExcess * h / 2, "Wpl1 bound");
+            var expected = new[] {
+                new { Name = nameof(result.BendingMoment1Capacity), Value = 223069685.98718137d },
+                new { Name = nameof(result.MCr), Value = 96982272.846838504d },
+                new { Name = nameof(result.LambdaSignedLTBuckling), Value = 1.5166106417506757d },
+                new { Name = nameof(result.AlphaLTBuckling), Value = 0.34000000000000002d },
+                new { Name = nameof(result.PhiLTBuckling), Value = 1.5523642485993885d },
+                new { Name = nameof(result.ChiLTBuckling), Value = 0.42019228700876371d },
+                new { Name = nameof(result.LateralTosionalBucklingCapacity), Value = 93732161.517280504d },
+            };
+            foreach (var item in expected)
+            {
+                double actual = (double)result.GetType().GetProperty(item.Name).GetValue(result);
+                Assert.IsFalse(double.IsNaN(actual) || double.IsInfinity(actual), item.Name);
+                Assert.AreEqual(item.Value, actual, 1e-10 * Math.Max(1, Math.Abs(item.Value)), item.Name);
+            }
         }
 
         [TestMethod]
@@ -606,12 +668,45 @@ namespace SteelTests
 
             EN1993P11Checker.PerformCheck();
 
-            double expMbRd = 101.8 * 1.05; // lui usa gammaM1 = 1.05 => UNIEN1993-1-1
-
-            UnitsSystem units = new UnitsSystem(GPC.Utilities.Units.UnitsConvert.LengthUnits.m, GPC.Utilities.Units.UnitsConvert.ForceUnits.kN,
-                GPC.Utilities.Units.UnitsConvert.MassUnits.kg, GPC.Utilities.Units.UnitsConvert.PressureUnits.kPa, GPC  .Utilities.Units.UnitsConvert.TemperatureUnits.C);
-
-            Assert.IsTrue((Math.Abs(Units.ConverMomentFromDefault(EN1993P11Checker.EN1993p11BeamStationResults[0].LateralTosionalBucklingCapacity, units) - expMbRd) / expMbRd * 100) < 1);
+            // Requalified arithmetic for unchanged S355 inputs; Cordova p.190
+            // is not reproduced. See LEGACY_CLOSURE_05.txt and archived original.
+            Assert.AreEqual(355.0, EN1993P11Checker.Fy);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM0);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM1);
+            Assert.AreEqual(0, EN1993P11Checker.GetErrorLog().Count, string.Join("; ", EN1993P11Checker.GetErrorLog()));
+            Assert.AreEqual(1, EN1993P11Checker.EN1993p11BeamStationResults.Length);
+            var result = EN1993P11Checker.EN1993p11BeamStationResults[0];
+            Assert.AreEqual(EN1993p11Checker.SectionClass.Class1, result.BendingCompressionClass);
+            Assert.AreEqual(EN1993p11Checker.EN1993p11Options.LateralTorsionalBuckingCurves.b, result.LateraltorsionalBucklingCurve);
+            Assert.AreEqual(4000.0, EN1993P11Checker.GetLengthCriticalMoment1());
+            Assert.AreEqual(4000.0, EN1993P11Checker.GetLengthLatTorsBuckling());
+            // Analytic geometry; pinned torsion properties are explicit Model inputs.
+            Assert.AreEqual(5381.2016529422963d, sectionH.Area, 5381.2016529422963d * 1e-10, "Area");
+            Assert.AreEqual(83561091.858479753d, sectionH.J11, 83561091.858479753d * 1e-10, "J11");
+            Assert.AreEqual(6037784.2439929144d, sectionH.J22, 6037784.2439929144d * 1e-10, "J22");
+            Assert.AreEqual(557073.94572319835d, sectionH.Wel1, 557073.94572319835d * 1e-10, "Wel1");
+            Assert.AreEqual(80503.789919905525d, sectionH.Wel2, 80503.789919905525d * 1e-10, "Wel2");
+            Assert.AreEqual(628365.31263994751d, sectionH.Wpl1, 628365.31263994751d * 1e-10, "Wpl1");
+            Assert.AreEqual(199186.91786049944d, sectionH.Jt, 199186.91786049944d * 1e-10, "Jt");
+            Assert.AreEqual(125760427779.96912d, sectionH.Jw, 125760427779.96912d * 1e-10, "Jw");
+            // Four fillets, 64 chords each: geometric bound independent of observed error.
+            double areaExcess = 4 * r * r / 2 * (Math.PI / 2 - 64 * Math.Sin(Math.PI / 128));
+            Assert.AreEqual(628355.88646072743d, sectionH.Wpl1, areaExcess * h / 2, "Wpl1 bound");
+            var expected = new[] {
+                new { Name = nameof(result.BendingMoment1Capacity), Value = 223069685.98718137d },
+                new { Name = nameof(result.MCr), Value = 136892269.90632012d },
+                new { Name = nameof(result.LambdaSignedLTBuckling), Value = 1.2765293821886032d },
+                new { Name = nameof(result.AlphaLTBuckling), Value = 0.34000000000000002d },
+                new { Name = nameof(result.PhiLTBuckling), Value = 1.260082718818619d },
+                new { Name = nameof(result.ChiLTBuckling), Value = 0.55755892462217771d },
+                new { Name = nameof(result.LateralTosionalBucklingCapacity), Value = 124374494.23481971d },
+            };
+            foreach (var item in expected)
+            {
+                double actual = (double)result.GetType().GetProperty(item.Name).GetValue(result);
+                Assert.IsFalse(double.IsNaN(actual) || double.IsInfinity(actual), item.Name);
+                Assert.AreEqual(item.Value, actual, 1e-10 * Math.Max(1, Math.Abs(item.Value)), item.Name);
+            }
         }
 
         [TestMethod]
@@ -646,14 +741,45 @@ namespace SteelTests
 
             EN1993P11Checker.PerformCheck();
 
-            double expMbRd = 95.6 * 1.05; // lui usa gammaM1 = 1.05 => UNIEN1993-1-1
-            double expMcRd = 165.5 * 1.05;
-
-            UnitsSystem units = new UnitsSystem(GPC.Utilities.Units.UnitsConvert.LengthUnits.m, GPC.Utilities.Units.UnitsConvert.ForceUnits.kN,
-                GPC.Utilities.Units.UnitsConvert.MassUnits.kg, GPC.Utilities.Units.UnitsConvert.PressureUnits.kPa, GPC.Utilities.Units.UnitsConvert.TemperatureUnits.C);
-
-            Assert.IsTrue((Math.Abs(Units.ConverMomentFromDefault(EN1993P11Checker.EN1993p11BeamStationResults[0].LateralTosionalBucklingCapacity, units) - expMbRd) / expMbRd * 100) < 1);
-            Assert.IsTrue((Math.Abs(Units.ConverMomentFromDefault(EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment1Capacity, units) - expMcRd) / expMcRd * 100) < 1);
+            // Conditional arithmetic benchmark, not reproduction of Cordova p.211
+            // or a complete web-loaded channel check. See LEGACY_CLOSURE_06.txt.
+            Assert.AreEqual(355.0, EN1993P11Checker.Fy);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM0);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM1);
+            Assert.AreEqual(0, EN1993P11Checker.GetErrorLog().Count, string.Join("; ", EN1993P11Checker.GetErrorLog()));
+            Assert.AreEqual(1, EN1993P11Checker.EN1993p11BeamStationResults.Length);
+            var result = EN1993P11Checker.EN1993p11BeamStationResults[0];
+            Assert.AreEqual(EN1993p11Checker.SectionClass.Class1, result.BendingCompressionClass);
+            Assert.AreEqual(EN1993p11Checker.EN1993p11Options.LateralTorsionalBuckingCurves.d, result.LateraltorsionalBucklingCurve);
+            Assert.AreEqual(5000.0, EN1993P11Checker.GetLengthCriticalMoment1());
+            Assert.IsFalse(sectionC.IsDoubleSymmetric);
+            // A/I/Wel: exact independent integrals. It/Iw/Wpl: pinned Model inputs.
+            Assert.AreEqual(5989.876140340506d, sectionC.Area, 5989.876140340506d * 1e-10, "Area");
+            Assert.AreEqual(82503848.784416333d, sectionC.J11, 82503848.784416333d * 1e-10, "J11");
+            Assert.AreEqual(5670781.1767174806d, sectionC.J22, 5670781.1767174806d * 1e-10, "J22");
+            Assert.AreEqual(550025.65856277558d, sectionC.Wel1, 550025.65856277558d * 1e-10, "Wel1");
+            Assert.AreEqual(80093.336023861237d, sectionC.Wel2, 80093.336023861237d * 1e-10, "Wel2");
+            Assert.AreEqual(648295.81394674582d, sectionC.Wpl1, 648295.81394674582d * 1e-10, "Wpl1");
+            Assert.AreEqual(354080d, sectionC.Jt, 354080d * 1e-10, "Jt");
+            Assert.AreEqual(78943251406.911942d, sectionC.Jw, 78943251406.911942d * 1e-10, "Jw");
+            // Two internal quarter-circle fillets discretized with 64 chords.
+            double areaExcess = 2 * r * r / 2 * (Math.PI / 2 - 64 * Math.Sin(Math.PI / 128));
+            Assert.AreEqual(648290.71789351315d, sectionC.Wpl1, areaExcess * h / 2, "Wpl1 geometric bound");
+            var expected = new[] {
+                new { Name = nameof(result.BendingMoment1Capacity), Value = 230145013.95109475d },
+                new { Name = nameof(result.MCr), Value = 113448258.07184538d },
+                new { Name = nameof(result.LambdaSignedLTBuckling), Value = 1.4243012952645475d },
+                new { Name = nameof(result.AlphaLTBuckling), Value = 0.76000000000000001d },
+                new { Name = nameof(result.PhiLTBuckling), Value = 1.979551582046662d },
+                new { Name = nameof(result.ChiLTBuckling), Value = 0.29812295014073709d },
+                new { Name = nameof(result.LateralTosionalBucklingCapacity), Value = 68611510.519281462d },
+            };
+            foreach (var item in expected)
+            {
+                double actual = (double)result.GetType().GetProperty(item.Name).GetValue(result);
+                Assert.IsFalse(double.IsNaN(actual) || double.IsInfinity(actual), item.Name);
+                Assert.AreEqual(item.Value, actual, 1e-10 * Math.Max(1, Math.Abs(item.Value)), item.Name);
+            }
         }
 
         [TestMethod]
@@ -698,9 +824,9 @@ namespace SteelTests
         [TestMethod]
         public void SectionHInteraction2()
         {
-            // Cordova Costruzioni in acciaio pagina 232
-            // NOTA: i risultati dei tassi di lavoro delle interazioni che si usano per confronto sono presi dal Cordova.
-            // Lui usa un metodo semplificato, per questo i valori che ottengo col metodo esatto sono distanti quel 2/3 %
+            // Annex A, Method 1, for the unchanged declared inputs. The former
+            // comparison with an unidentified simplified method is archived, not reproduced.
+            // See tools/Steel.LegacyDiagnostics/LEGACY_CLOSURE_02_IPE300.txt.
             double L = 5000;
 
             double h = 300.0;
@@ -725,25 +851,97 @@ namespace SteelTests
                 EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds,
                 psiy, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                 EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
-            // Reproduce gammaM1=1.05 stated in this legacy comparison, without changing the
-            // global UNI preset (1.10). The second interaction still needs independent validation.
+            // Preserve this benchmark's gammaM0=gammaM1=1.05. This is an explicit
+            // arithmetic configuration, not qualification of a current National Annex.
             StandardUNIEN1993p11 standard = new StandardUNIEN1993p11 { GammaM1 = 1.05 };
             EN1993p11Checker Checker = new EN1993p11Checker(beamElement, options, standard);
 
             Checker.PerformCheck();
 
-            double expInteraction1WR = 1.00; // lui usa gammaM1 = 1.05 => UNIEN1993-1-1
-            double expInteraction2WR = 0.92; // lui usa gammaM1 = 1.05 => UNIEN1993-1-1
+            Assert.AreEqual(235.0, Checker.Fy);
+            Assert.AreEqual(1.05, standard.GammaM0);
+            Assert.AreEqual(1.05, standard.GammaM1);
+            Assert.AreEqual(0, Checker.GetErrorLog().Count, string.Join("; ", Checker.GetErrorLog()));
+            Assert.AreEqual(1, Checker.EN1993p11BeamStationResults.Length);
+            var result = Checker.EN1993p11BeamStationResults[0];
+            Assert.AreEqual(EN1993p11Checker.SectionClass.Class1, result.BendingCompressionClass);
+            Assert.AreEqual(EN1993p11Checker.EN1993p11Options.AxialBuckingCurves.a, result.BuckingCurve1);
+            Assert.AreEqual(EN1993p11Checker.EN1993p11Options.AxialBuckingCurves.b, result.BuckingCurve2);
+            Assert.AreEqual(5000.0, result.LengthAxialBuckling1);
+            Assert.AreEqual(5000.0, result.LengthAxialBuckling2);
 
-            Assert.IsTrue((Math.Abs(Checker.EN1993p11BeamStationResults[0].BucklingInteraction1Axis - expInteraction1WR) * 100) < 3.0);
-            Assert.IsTrue((Math.Abs(Checker.EN1993p11BeamStationResults[0].BucklingInteraction2Axis - expInteraction2WR) * 100) < 2.5);
+            // A/I/Wel: independent rectangle/fillet integrals. Wpl/It/Iw: declared
+            // Model inputs to the interaction benchmark, not independent torsion validation.
+            Assert.AreEqual(5381.2016529422963d, sectionH.Area, 5381.2016529422963d * 1e-10, "Area");
+            Assert.AreEqual(83561091.858479753d, sectionH.J11, 83561091.858479753d * 1e-10, "J11");
+            Assert.AreEqual(6037784.2439929144d, sectionH.J22, 6037784.2439929144d * 1e-10, "J22");
+            Assert.AreEqual(557073.94572319835d, sectionH.Wel1, 557073.94572319835d * 1e-10, "Wel1");
+            Assert.AreEqual(80503.789919905525d, sectionH.Wel2, 80503.789919905525d * 1e-10, "Wel2");
+            Assert.AreEqual(199186.91786049944d, sectionH.Jt, 199186.91786049944d * 1e-10, "Jt");
+            Assert.AreEqual(125760427779.96912d, sectionH.Jw, 125760427779.96912d * 1e-10, "Jw");
+            Assert.AreEqual(628365.31263994751d, sectionH.Wpl1, 628365.31263994751d * 1e-10, "Wpl1");
+            Assert.AreEqual(125219.46804033165d, sectionH.Wpl2, 125219.46804033165d * 1e-10, "Wpl2");
+
+            // Frozen Decimal reference from ipe300_annex_a_reference.py; no SUT outputs
+            // were used as interaction expectations. Wpl/It/Iw remain declared inputs.
+            // The separate axial capacity may use 6.3.1.2(4) when N/Ncr <= .04;
+            // Annex A interaction denominators retain the full buckling reductions.
+            var expected = new[] {
+                new { Name = nameof(result.NCr1), Value = 6927605.3277167855d },
+                new { Name = nameof(result.NCr2), Value = 500560.55235765979d },
+                new { Name = nameof(result.NcrTorsional), Value = 1592417.3465935264d },
+                new { Name = nameof(result.NcrFlexuralTorsional), Value = 1592417.3465935264d },
+                new { Name = nameof(result.LambdaSignedAxialBuckling1), Value = 0.42724992565953912d },
+                new { Name = nameof(result.LambdaSignedAxialBuckling2), Value = 1.5894440831975896d },
+                new { Name = nameof(result.ChiAxialBuckling1), Value = 0.94546838903303043d },
+                new { Name = nameof(result.ChiAxialBuckling2), Value = 0.31130502928139725d },
+                new { Name = nameof(result.MCr), Value = 203911478.89732334d },
+                new { Name = nameof(result.Lambda0LTBuckling), Value = 1.1321548426377908d },
+                new { Name = nameof(result.LambdaSignedLTBuckling), Value = 0.85097969055286327d },
+                new { Name = nameof(result.ChiLTBuckling), Value = 0.89954248930128566d },
+                new { Name = nameof(result.LateralTosionalBucklingCapacity), Value = 126506385.6360371d },
+                new { Name = nameof(result.CmX0), Value = 0.78674173124301827d },
+                new { Name = nameof(result.CmY0), Value = 0.74490655447440879d },
+                new { Name = nameof(result.Cmx), Value = 0.92859571204491853d },
+                new { Name = nameof(result.Cmy), Value = 0.74490655447440879d },
+                new { Name = nameof(result.CmLT), Value = 1.1637557769200739d },
+                new { Name = nameof(result.Mux), Value = 0.99846457353649998d },
+                new { Name = nameof(result.Muy), Value = 0.70356069267877419d },
+                new { Name = nameof(result.Wx), Value = 1.127974692523446d },
+                new { Name = nameof(result.Wy), Value = 1.5d },
+                new { Name = nameof(result.EpsilonX), Value = 3.9655864469387834d },
+                new { Name = nameof(result.BLT), Value = 0d },
+                new { Name = nameof(result.CLT), Value = 0.74593073599183501d },
+                new { Name = nameof(result.DLT), Value = 0d },
+                new { Name = nameof(result.ELT), Value = 0.19667125351543499d },
+                new { Name = nameof(result.Cxx), Value = 0.93874292261700043d },
+                new { Name = nameof(result.Cxy), Value = 0.58093441279657043d },
+                new { Name = nameof(result.Cyx), Value = 0.70317271530203174d },
+                new { Name = nameof(result.Cyy), Value = 0.95009200252252168d },
+                new { Name = nameof(result.Kxx), Value = 1.1818220219494955d },
+                new { Name = nameof(result.Kxy), Value = 1.4277918057622121d },
+                new { Name = nameof(result.Kyx), Value = 0.57844350580181003d },
+                new { Name = nameof(result.Kyy), Value = 0.8890947213803142d },
+                new { Name = nameof(result.BucklingInteraction1Axis), Value = 0.89553427227618121d },
+                new { Name = nameof(result.BucklingInteraction2Axis), Value = 0.86341924503317513d },
+                new { Name = nameof(result.AxialBuckling1Capacity), Value = 1204364.1794680378d },
+                new { Name = nameof(result.AxialBuckling2Capacity), Value = 374924.62615476345d },
+            };
+            foreach (var item in expected)
+            {
+                var property = result.GetType().GetProperty(item.Name);
+                double actual = (double)property.GetValue(result);
+                Assert.IsFalse(double.IsNaN(actual) || double.IsInfinity(actual), item.Name);
+                Assert.AreEqual(item.Value, actual, 1e-10 * Math.Max(1, Math.Abs(item.Value)), item.Name);
+            }
         }
 
         [TestMethod]
         public void SectionHInteraction3()
         {
-            // Cordova Costruzioni in acciaio pagina 237
-            // NOTA: in questo esempio utilizza il metodo esatto
+            // Requalified Annex A biaxial benchmark for the unchanged declared inputs.
+            // The original Cordova p.237 comparison is archived, not reproduced.
+            // See tools/Steel.LegacyDiagnostics/LEGACY_CLOSURE_03_HEA260.txt.
             double L = 4000;
 
             double h = 250.0;
@@ -773,11 +971,90 @@ namespace SteelTests
 
             Checker.PerformCheck();
 
-            double expInteraction1WR = 0.77;
-            double expInteraction2WR = 0.73;
+            Assert.AreEqual(235.0, Checker.Fy);
+            Assert.AreEqual(1.0, standard.GammaM0);
+            Assert.AreEqual(1.0, standard.GammaM1);
+            Assert.AreEqual(0, Checker.GetErrorLog().Count, string.Join("; ", Checker.GetErrorLog()));
+            Assert.AreEqual(1, Checker.EN1993p11BeamStationResults.Length);
+            Assert.IsTrue(sectionH.IsDoubleSymmetric);
+            var result = Checker.EN1993p11BeamStationResults[0];
+            Assert.AreEqual(EN1993p11Checker.SectionClass.Class1, result.AxialCompressionClass);
+            Assert.AreEqual(EN1993p11Checker.SectionClass.Class1, result.BendingCompressionClass);
+            Assert.AreEqual(EN1993p11Checker.EN1993p11Options.AxialBuckingCurves.b, result.BuckingCurve1);
+            Assert.AreEqual(EN1993p11Checker.EN1993p11Options.AxialBuckingCurves.c, result.BuckingCurve2);
+            Assert.AreEqual(4000.0, result.LengthAxialBuckling1);
+            Assert.AreEqual(4000.0, result.LengthAxialBuckling2);
 
-            Assert.IsTrue((Math.Abs(Checker.EN1993p11BeamStationResults[0].BucklingInteraction1Axis - expInteraction1WR) * 100) < 2.5);
-            Assert.IsTrue((Math.Abs(Checker.EN1993p11BeamStationResults[0].BucklingInteraction2Axis - expInteraction2WR) * 100) < 1);
+            // A/I/Wel are independently integrated. It/Iw remain declared Model inputs.
+            // Wpl values used in the chain are pinned and also checked against the
+            // independent exact integrals with a geometric discretization bound below.
+            Assert.AreEqual(8681.9426315322798d, sectionH.Area, 8681.9426315322798d * 1e-10, "Area");
+            Assert.AreEqual(104549554.33142601d, sectionH.J11, 104549554.33142601d * 1e-10, "J11");
+            Assert.AreEqual(36675632.290801637d, sectionH.J22, 36675632.290801637d * 1e-10, "J22");
+            Assert.AreEqual(836396.43465140811d, sectionH.Wel1, 836396.43465140811d * 1e-10, "Wel1");
+            Assert.AreEqual(282120.24839078187d, sectionH.Wel2, 282120.24839078187d * 1e-10, "Wel2");
+            Assert.AreEqual(541937.28763577028d, sectionH.Jt, 541937.28763577028d * 1e-10, "Jt");
+            Assert.AreEqual(516240692070.47272d, sectionH.Jw, 516240692070.47272d * 1e-10, "Jw");
+            Assert.AreEqual(919789.9015433467d, sectionH.Wpl1, 919789.9015433467d * 1e-10, "Wpl1");
+            Assert.AreEqual(430171.11123419553d, sectionH.Wpl2, 430171.11123419553d * 1e-10, "Wpl2");
+
+            // Four quarter-circle fillets, each replaced by 64 chords. Missing segment
+            // area times the maximum lever arm bounds the plastic modulus error.
+            double areaExcess = 4 * r * r / 2 * (Math.PI / 2 - 64 * Math.Sin(Math.PI / 128));
+            Assert.AreEqual(919771.04789060669d, sectionH.Wpl1, areaExcess * h / 2, "Wpl1 geometric bound");
+            Assert.AreEqual(430168.84552502073d, sectionH.Wpl2, areaExcess * width / 2, "Wpl2 geometric bound");
+
+            // Independent Decimal reference: full N/My/Mz Annex A chain, including
+            // nonzero bLT/dLT. Separate axial checks may use the 6.3.1.2(4) exemption;
+            // interaction denominators retain full buckling reductions.
+            var expected = new[] {
+                new { Name = nameof(result.NCr1), Value = 13543198.482993022d },
+                new { Name = nameof(result.NCr2), Value = 4750908.512044155d },
+                new { Name = nameof(result.NcrTorsional), Value = 6801994.6010343712d },
+                new { Name = nameof(result.NcrFlexuralTorsional), Value = 6801994.6010343712d },
+                new { Name = nameof(result.LambdaSignedAxialBuckling1), Value = 0.38813406913755449d },
+                new { Name = nameof(result.LambdaSignedAxialBuckling2), Value = 0.65532095181324068d },
+                new { Name = nameof(result.ChiAxialBuckling1), Value = 0.93075438615487527d },
+                new { Name = nameof(result.ChiAxialBuckling2), Value = 0.7521325820671303d },
+                new { Name = nameof(result.MCr), Value = 817105274.46936047d },
+                new { Name = nameof(result.Lambda0LTBuckling), Value = 0.54601075938846644d },
+                new { Name = nameof(result.LambdaSignedLTBuckling), Value = 0.51432690429251449d },
+                new { Name = nameof(result.ChiLTBuckling), Value = 0.97881668146255096d },
+                new { Name = nameof(result.LateralTosionalBucklingCapacity), Value = 211571839.28178489d },
+                new { Name = nameof(result.CmX0), Value = 1.0008860536168815d },
+                new { Name = nameof(result.CmY0), Value = 1.0025258326843336d },
+                new { Name = nameof(result.Cmx), Value = 1.0003769888629279d },
+                new { Name = nameof(result.Cmy), Value = 1.0025258326843336d },
+                new { Name = nameof(result.CmLT), Value = 1.072331823387348d },
+                new { Name = nameof(result.Mux), Value = 0.99789701141016096d },
+                new { Name = nameof(result.Muy), Value = 0.97772006042706994d },
+                new { Name = nameof(result.Wx), Value = 1.0997056699873371d },
+                new { Name = nameof(result.Wy), Value = 1.5d },
+                new { Name = nameof(result.EpsilonX), Value = 1.8424813321200415d },
+                new { Name = nameof(result.BLT), Value = 0.014768214936021942d },
+                new { Name = nameof(result.CLT), Value = 0.19190296585538072d },
+                new { Name = nameof(result.DLT), Value = 0.37928186969109473d },
+                new { Name = nameof(result.ELT), Value = 1.0890916540935902d },
+                new { Name = nameof(result.Cxx), Value = 1.0067482076784615d },
+                new { Name = nameof(result.Cxy), Value = 1.0220984144395637d },
+                new { Name = nameof(result.Cyx), Value = 0.92815204228664516d },
+                new { Name = nameof(result.Cyy), Value = 0.97529442941831157d },
+                new { Name = nameof(result.Kxx), Value = 1.0956653354560697d },
+                new { Name = nameof(result.Kxy), Value = 0.74893468331944246d },
+                new { Name = nameof(result.Kyx), Value = 0.59820814113468201d },
+                new { Name = nameof(result.Kyy), Value = 1.097415450709013d },
+                new { Name = nameof(result.BucklingInteraction1Axis), Value = 0.80058409463551239d },
+                new { Name = nameof(result.BucklingInteraction2Axis), Value = 0.78708668535197812d },
+                new { Name = nameof(result.AxialBuckling1Capacity), Value = 2040256.5184100857d },
+                new { Name = nameof(result.AxialBuckling2Capacity), Value = 1534543.4032710711d },
+            };
+            foreach (var item in expected)
+            {
+                var property = result.GetType().GetProperty(item.Name);
+                double actual = (double)property.GetValue(result);
+                Assert.IsFalse(double.IsNaN(actual) || double.IsInfinity(actual), item.Name);
+                Assert.AreEqual(item.Value, actual, 1e-10 * Math.Max(1, Math.Abs(item.Value)), item.Name);
+            }
         }
 
         [TestMethod]
@@ -1075,19 +1352,41 @@ namespace SteelTests
 
             EN1993P11Checker.PerformCheck();
 
-            Assert.AreEqual(4927.4 * 1000.0 / EN1993P11Checker.EN1993p11BeamStationResults[0].AxialTensionCapacity, 1, 0.01);
-            Assert.AreEqual(418.54 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment1Capacity, 1, 0.01);
-            Assert.AreEqual(149.027 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment2Capacity, 1, 0.01);
-            Assert.AreEqual(484.759 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].LateralTosionalBucklingCapacity, 1, 0.01);
-
-            Assert.AreEqual(0.575 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiAxialBuckling1, 1, 0.01);
-            Assert.AreEqual(0.15 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiAxialBuckling2, 1, 0.01);
-            Assert.AreEqual(0.775 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiLTBuckling, 1, 0.01);
-
-            Assert.AreEqual(1.005 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxx, 1, 0.01);
-            Assert.AreEqual(1.004 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxy, 1, 0.01);
-            Assert.AreEqual(0.918 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyx, 1, 0.01);
-            Assert.AreEqual(0.901 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyy, 1, 0.01);
+            // Historical SAP comparison is archived, NOT reproduced or approved.
+            // Active unsupported-capability contract; see LEGACY_CLOSURE_07.txt.
+            Assert.AreEqual(355.0, EN1993P11Checker.Fy);
+            Assert.AreEqual(490.0, EN1993P11Checker.Fu);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM0);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM1);
+            Assert.AreEqual(1.25, standardEN1993P11.GammaM2);
+            Assert.AreEqual(1, EN1993P11Checker.GetErrorLog().Count);
+            string error = EN1993P11Checker.GetErrorLog()[0].ToString();
+            StringAssert.Contains(error, "SelfWeight");
+            StringAssert.Contains(error, "6.3.3 requires doubly symmetric sections");
+            StringAssert.Contains(error, "combined member interaction");
+            Assert.AreEqual(1, EN1993P11Checker.EN1993p11BeamStationResults.Length);
+            var result = EN1993P11Checker.EN1993p11BeamStationResults[0];
+            Assert.IsFalse(section.IsDoubleSymmetric);
+            Assert.IsTrue(double.IsNaN(result.WorkingRatio), "Unsupported member check cannot appear verified.");
+            Assert.IsTrue(double.IsNaN(result.BucklingInteraction1Axis));
+            Assert.IsTrue(double.IsNaN(result.BucklingInteraction2Axis));
+            Assert.AreEqual(EN1993p11Checker.SectionClass.Class3, result.BendingCompressionClass);
+            // Independent exact rectangular integration, not copied SAP properties.
+            Assert.AreEqual(13880d, section.Area, 13880d * 1e-10, "Area");
+            Assert.AreEqual(319328634.96637851d, section.J11, 319328634.96637851d * 1e-10, "J11");
+            Assert.AreEqual(62969226.666666664d, section.J22, 62969226.666666664d * 1e-10, "J22");
+            Assert.AreEqual(1178986.3949921087d, section.Wel1, 1178986.3949921087d * 1e-10, "Wel1");
+            Assert.AreEqual(419794.84444444446d, section.Wel2, 419794.84444444446d * 1e-10, "Wel2");
+            Assert.IsTrue(double.IsNaN(result.Kxx), "Annex A coefficient must be invalidated");
+            Assert.IsTrue(double.IsNaN(result.Kxy), "Annex A coefficient must be invalidated");
+            Assert.IsTrue(double.IsNaN(result.Kyx), "Annex A coefficient must be invalidated");
+            Assert.IsTrue(double.IsNaN(result.Kyy), "Annex A coefficient must be invalidated");
+            // Available section/Euler components remain numerically qualified.
+            Assert.AreEqual(4896864d, result.AxialTensionCapacity, 4896864d * 1e-10, "AxialTensionCapacity");
+            Assert.AreEqual(418540170.22219861d, result.BendingMoment1Capacity, 418540170.22219861d * 1e-10, "BendingMoment1Capacity");
+            Assert.AreEqual(149027169.77777779d, result.BendingMoment2Capacity, 149027169.77777779d * 1e-10, "BendingMoment2Capacity");
+            Assert.AreEqual(4596152.3140429547d, result.NCr1, 4596152.3140429547d * 1e-10, "NCr1");
+            Assert.AreEqual(906326.97843701812d, result.NCr2, 906326.97843701812d * 1e-10, "NCr2");
         }
 
         [TestMethod]
@@ -1203,18 +1502,32 @@ namespace SteelTests
 
             EN1993P11Checker.PerformCheck();
 
-            Assert.AreEqual(6212.5 * 1000.0 / EN1993P11Checker.EN1993p11BeamStationResults[0].AxialTensionCapacity, 1, 0.01);
-            Assert.AreEqual(637.891 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment1Capacity, 1, 0.01);
-            Assert.AreEqual(263.477 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment2Capacity, 1, 0.01);
-
-            Assert.AreEqual(0.396 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiAxialBuckling1, 1, 0.01);
-            Assert.AreEqual(0.123 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiAxialBuckling2, 1, 0.01);
-            Assert.AreEqual(0.121 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiLTBuckling, 1, 0.01);
-
-            Assert.AreEqual(1.073 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxx, 1, 0.01);
-            Assert.AreEqual(0.683 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxy, 1, 0.01);
-            Assert.AreEqual(0.586 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyx, 1, 0.01);
-            Assert.AreEqual(0.901 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyy, 1, 0.01);
+            // Historical SAP comparison is archived, NOT reproduced or approved.
+            // Active unsupported-capability contract; see LEGACY_CLOSURE_08.txt.
+            Assert.AreEqual(355.0, EN1993P11Checker.Fy);
+            Assert.AreEqual(490.0, EN1993P11Checker.Fu);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM0);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM1);
+            Assert.AreEqual(1.25, standardEN1993P11.GammaM2);
+            Assert.AreEqual(1, EN1993P11Checker.GetErrorLog().Count);
+            string error = EN1993P11Checker.GetErrorLog()[0].ToString();
+            StringAssert.Contains(error, "SelfWeight");
+            StringAssert.Contains(error, "MN,Rd");
+            StringAssert.Contains(error, "not implemented");
+            Assert.AreEqual(1, EN1993P11Checker.EN1993p11BeamStationResults.Length);
+            var result = EN1993P11Checker.EN1993p11BeamStationResults[0];
+            Assert.IsFalse(section.IsDoubleSymmetric);
+            Assert.IsTrue(double.IsNaN(result.WorkingRatio), "Unsupported member check cannot appear verified.");
+            Assert.IsTrue(double.IsNaN(result.BucklingInteraction1Axis));
+            Assert.IsTrue(double.IsNaN(result.BucklingInteraction2Axis));
+            Assert.AreEqual(EN1993p11Checker.SectionClass.Class1, result.BendingCompressionClass);
+            // Independent exact rectangular integration, not copied SAP properties.
+            Assert.AreEqual(17500d, section.Area, 17500d * 1e-10, "Area");
+            Assert.AreEqual(230640811.01190478d, section.J11, 230640811.01190478d * 1e-10, "J11");
+            Assert.AreEqual(63606770.833333336d, section.J22, 63606770.833333336d * 1e-10, "J22");
+            Assert.IsTrue(double.IsNaN(result.BendingMoment1Capacity), "Result unavailable after explicit rejection");
+            Assert.IsTrue(double.IsNaN(result.BendingMoment2Capacity), "Result unavailable after explicit rejection");
+            Assert.IsTrue(double.IsNaN(result.LateralTosionalBucklingCapacity), "Result unavailable after explicit rejection");
         }
 
         [TestMethod]
@@ -1749,22 +2062,41 @@ namespace SteelTests
 
             EN1993P11Checker.PerformCheck();
 
-            Assert.AreEqual(8520 * 1000.0 / EN1993P11Checker.EN1993p11BeamStationResults[0].AxialBuckling1Capacity, 1, 0.01);
-            Assert.AreEqual(923.0 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment1Capacity, 1, 0.03);
-            Assert.AreEqual(227.3 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment2Capacity, 1, 0.03);
-
-            Assert.AreEqual(1.000 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiAxialBuckling1, 1, 0.001);
-            Assert.AreEqual(0.928 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiAxialBuckling2, 1, 0.001);
-            Assert.AreEqual(0.987 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiLTBuckling, 1, 0.001);
-
-            Assert.AreEqual(1.001 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxx, 1, 0.01);
-            Assert.AreEqual(0.54 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxy, 1, 0.0206);
-            Assert.AreEqual(0.676 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyx, 1, 0.019);
-            Assert.AreEqual(0.901 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyy, 1, 0.0205);
-
-            Assert.AreEqual(0.482 / EN1993P11Checker.EN1993p11BeamStationResults[0].PhiAxialBuckling1, 1, 0.01);
-            Assert.AreEqual(0.593 / EN1993P11Checker.EN1993p11BeamStationResults[0].PhiAxialBuckling2, 1, 0.01);
-            Assert.AreEqual(0.530 / EN1993P11Checker.EN1993p11BeamStationResults[0].PhiLTBuckling, 1, 0.1);
+            // Historical SAP comparison is archived, NOT reproduced or approved.
+            // Active unsupported-capability contract; see LEGACY_CLOSURE_09.txt.
+            Assert.AreEqual(355.0, EN1993P11Checker.Fy);
+            Assert.AreEqual(490.0, EN1993P11Checker.Fu);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM0);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM1);
+            Assert.AreEqual(1.25, standardEN1993P11.GammaM2);
+            Assert.AreEqual(1, EN1993P11Checker.GetErrorLog().Count);
+            string error = EN1993P11Checker.GetErrorLog()[0].ToString();
+            StringAssert.Contains(error, "SelfWeight");
+            StringAssert.Contains(error, "6.3.3 requires doubly symmetric sections");
+            StringAssert.Contains(error, "combined member interaction");
+            Assert.AreEqual(1, EN1993P11Checker.EN1993p11BeamStationResults.Length);
+            var result = EN1993P11Checker.EN1993p11BeamStationResults[0];
+            Assert.IsFalse(section.IsDoubleSymmetric);
+            Assert.IsTrue(double.IsNaN(result.WorkingRatio), "Unsupported member check cannot appear verified.");
+            Assert.IsTrue(double.IsNaN(result.BucklingInteraction1Axis));
+            Assert.IsTrue(double.IsNaN(result.BucklingInteraction2Axis));
+            Assert.AreEqual(EN1993p11Checker.SectionClass.Class3, result.BendingCompressionClass);
+            // Independent exact rectangular integration, not copied SAP properties.
+            Assert.AreEqual(24000d, section.Area, 24000d * 1e-10, "Area");
+            Assert.AreEqual(378333333.33333331d, section.J11, 378333333.33333331d * 1e-10, "J11");
+            Assert.AreEqual(35200000d, section.J22, 35200000d * 1e-10, "J22");
+            Assert.AreEqual(1464516.1290322582d, section.Wel1, 1464516.1290322582d * 1e-10, "Wel1");
+            Assert.AreEqual(352000d, section.Wel2, 352000d * 1e-10, "Wel2");
+            Assert.IsTrue(double.IsNaN(result.Kxx), "Annex A coefficient must be invalidated");
+            Assert.IsTrue(double.IsNaN(result.Kxy), "Annex A coefficient must be invalidated");
+            Assert.IsTrue(double.IsNaN(result.Kyx), "Annex A coefficient must be invalidated");
+            Assert.IsTrue(double.IsNaN(result.Kyy), "Annex A coefficient must be invalidated");
+            // Available section/Euler components remain numerically qualified.
+            Assert.AreEqual(8467200d, result.AxialTensionCapacity, 8467200d * 1e-10, "AxialTensionCapacity");
+            Assert.AreEqual(519903225.80645162d, result.BendingMoment1Capacity, 519903225.80645162d * 1e-10, "BendingMoment1Capacity");
+            Assert.AreEqual(124960000d, result.BendingMoment2Capacity, 124960000d * 1e-10, "BendingMoment2Capacity");
+            Assert.AreEqual(784140069.66654956d, result.NCr1, 784140069.66654956d * 1e-10, "NCr1");
+            Assert.AreEqual(72956115.732852533d, result.NCr2, 72956115.732852533d * 1e-10, "NCr2");
         }
 
         [TestMethod]
@@ -1877,22 +2209,43 @@ namespace SteelTests
 
             EN1993P11Checker.PerformCheck();
 
-            Assert.AreEqual(9141.25 * 1000.0 / EN1993P11Checker.EN1993p11BeamStationResults[0].AxialBuckling1Capacity, 1, 0.01);
-            Assert.AreEqual(1002.012 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment1Capacity, 1, 0.01);
-            Assert.AreEqual(240.402 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment2Capacity, 1, 0.01);
-
-            Assert.AreEqual(0.411 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiAxialBuckling1, 1, 0.01);
-            Assert.AreEqual(0.051 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiAxialBuckling2, 1, 0.01);
-            Assert.AreEqual(0.511 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiLTBuckling, 1, 0.001);
-
-            Assert.AreEqual(1.158 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxx, 1, 0.01);
-            Assert.AreEqual(0.775 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxy, 1, 0.01);
-            Assert.AreEqual(0.591 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyx, 1, 0.01);
-            Assert.AreEqual(0.901 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyy, 1, 0.01);
-
-            Assert.AreEqual(1.536 / EN1993P11Checker.EN1993p11BeamStationResults[0].PhiAxialBuckling1, 1, 0.01);
-            Assert.AreEqual(10.303 / EN1993P11Checker.EN1993p11BeamStationResults[0].PhiAxialBuckling2, 1, 0.01);
-            Assert.AreEqual(1.193 / EN1993P11Checker.EN1993p11BeamStationResults[0].PhiLTBuckling, 1, 0.1);
+            // Historical SAP comparison is archived, NOT reproduced or approved.
+            // Active unsupported-capability contract; see LEGACY_CLOSURE_10.txt.
+            Assert.AreEqual(355.0, EN1993P11Checker.Fy);
+            Assert.AreEqual(490.0, EN1993P11Checker.Fu);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM0);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM1);
+            Assert.AreEqual(1.25, standardEN1993P11.GammaM2);
+            Assert.AreEqual(1, EN1993P11Checker.GetErrorLog().Count);
+            string error = EN1993P11Checker.GetErrorLog()[0].ToString();
+            StringAssert.Contains(error, "SelfWeight");
+            StringAssert.Contains(error, "6.3.3 requires doubly symmetric sections");
+            StringAssert.Contains(error, "combined member interaction");
+            Assert.AreEqual(1, EN1993P11Checker.EN1993p11BeamStationResults.Length);
+            var result = EN1993P11Checker.EN1993p11BeamStationResults[0];
+            Assert.IsFalse(section.IsDoubleSymmetric);
+            Assert.IsTrue(double.IsNaN(result.WorkingRatio), "Unsupported member check cannot appear verified.");
+            Assert.IsTrue(double.IsNaN(result.BucklingInteraction1Axis));
+            Assert.IsTrue(double.IsNaN(result.BucklingInteraction2Axis));
+            Assert.AreEqual(EN1993p11Checker.SectionClass.Class2, result.BendingCompressionClass);
+            // Independent exact rectangular integration, not copied SAP properties.
+            Assert.AreEqual(25750d, section.Area, 25750d * 1e-10, "Area");
+            Assert.AreEqual(407524777.50809062d, section.J11, 407524777.50809062d * 1e-10, "J11");
+            Assert.AreEqual(35991145.833333336d, section.J22, 35991145.833333336d * 1e-10, "J22");
+            Assert.AreEqual(1612874.2395132885d, section.Wel1, 1612874.2395132885d * 1e-10, "Wel1");
+            Assert.AreEqual(359911.45833333331d, section.Wel2, 359911.45833333331d * 1e-10, "Wel2");
+            Assert.AreEqual(2822569.4444444445d, section.Wpl1, 2822569.4444444445d * 1e-10, "Wpl1");
+            Assert.AreEqual(677187.5d, section.Wpl2, 677187.5d * 1e-10, "Wpl2");
+            Assert.IsTrue(double.IsNaN(result.Kxx), "Annex A coefficient must be invalidated");
+            Assert.IsTrue(double.IsNaN(result.Kxy), "Annex A coefficient must be invalidated");
+            Assert.IsTrue(double.IsNaN(result.Kyx), "Annex A coefficient must be invalidated");
+            Assert.IsTrue(double.IsNaN(result.Kyy), "Annex A coefficient must be invalidated");
+            // Available section/Euler components remain numerically qualified.
+            Assert.AreEqual(9084600d, result.AxialTensionCapacity, 9084600d * 1e-10, "AxialTensionCapacity");
+            Assert.AreEqual(1002012152.7777778d, result.BendingMoment1Capacity, 1002012152.7777778d * 1e-10, "BendingMoment1Capacity");
+            Assert.AreEqual(240401562.5d, result.BendingMoment2Capacity, 240401562.5d * 1e-10, "BendingMoment2Capacity");
+            Assert.AreEqual(5865574.6590682687d, result.NCr1, 5865574.6590682687d * 1e-10, "NCr1");
+            Assert.AreEqual(518026.79150383524d, result.NCr2, 518026.79150383524d * 1e-10, "NCr2");
         }
 
         #endregion
@@ -2013,9 +2366,32 @@ namespace SteelTests
 
             EN1993P11Checker.PerformCheck();
 
-            Assert.AreEqual(13774.0 * 1000.0 / EN1993P11Checker.EN1993p11BeamStationResults[0].AxialTensionCapacity, 1, 0.01);
-            Assert.AreEqual(772.216 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment1Capacity, 1, 0.03);
-            Assert.AreEqual(433.721 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment2Capacity, 1, 0.03);
+            // Historical SAP comparison is archived, NOT reproduced or approved.
+            // Active unsupported-capability contract; see LEGACY_CLOSURE_11.txt.
+            Assert.AreEqual(355.0, EN1993P11Checker.Fy);
+            Assert.AreEqual(490.0, EN1993P11Checker.Fu);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM0);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM1);
+            Assert.AreEqual(1.25, standardEN1993P11.GammaM2);
+            Assert.AreEqual(1, EN1993P11Checker.GetErrorLog().Count);
+            string error = EN1993P11Checker.GetErrorLog()[0].ToString();
+            StringAssert.Contains(error, "SelfWeight");
+            StringAssert.Contains(error, "McrLT");
+            StringAssert.Contains(error, "without symmetry");
+            Assert.AreEqual(1, EN1993P11Checker.EN1993p11BeamStationResults.Length);
+            var result = EN1993P11Checker.EN1993p11BeamStationResults[0];
+            Assert.IsFalse(section.IsDoubleSymmetric);
+            Assert.IsTrue(double.IsNaN(result.WorkingRatio), "Unsupported member check cannot appear verified.");
+            Assert.IsTrue(double.IsNaN(result.BucklingInteraction1Axis));
+            Assert.IsTrue(double.IsNaN(result.BucklingInteraction2Axis));
+            Assert.AreEqual(EN1993p11Checker.SectionClass.Class3, result.BendingCompressionClass);
+            // Independent exact rectangular integration, not copied SAP properties.
+            Assert.AreEqual(38800d, section.Area, 38800d * 1e-10, "Area");
+            Assert.AreEqual(622089368.26919973d, section.J11, 622089368.26919973d * 1e-10, "J11");
+            Assert.AreEqual(171659257.16035357d, section.J22, 171659257.16035357d * 1e-10, "J22");
+            Assert.IsTrue(double.IsNaN(result.BendingMoment1Capacity), "Result unavailable after explicit rejection");
+            Assert.IsTrue(double.IsNaN(result.BendingMoment2Capacity), "Result unavailable after explicit rejection");
+            Assert.IsTrue(double.IsNaN(result.LateralTosionalBucklingCapacity), "Result unavailable after explicit rejection");
         }
 
         #endregion

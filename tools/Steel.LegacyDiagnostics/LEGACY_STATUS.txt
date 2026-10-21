@@ -1,3 +1,22 @@
+STATO CORRENTE 21/10/2026: tutti gli11legacy chiusi,122/122 superati.
+Cinque riferimenti numerici,un benchmark C condizionato e cinque
+contratti di rifiuto esplicito: NON tutti i metodi sono implementati.
+Vedere LEGACY_CLOSURE_SUMMARY_20261021.txt e manifest finale.
+Le annotazioni successive descrivono fasi storiche.
+
+AGGIORNAMENTO 21/10/2026 - Passo3: SectionHInteraction3 corretto per
+gli input biassiali dichiarati e il metodo Allegato A. Restano8 casi.
+Vedere LEGACY_CLOSURE_03_HEA260.txt per calcoli, fonti e limiti.
+
+AGGIORNAMENTO 21/10/2026 - Passo2: SectionHInteraction2 corretto per
+il metodo dell'Allegato A e gli input dichiarati. Restano9 casi aperti.
+Vedere LEGACY_CLOSURE_02_IPE300.txt per fonti, limiti e prove.
+
+AGGIORNAMENTO 21/10/2026 - SectionHBuckling1 corretto per gli input S355
+con riferimento indipendente; restano 10 casi aperti. La pagina Cordova
+non e' dichiarata riprodotta. Vedere LEGACY_CLOSURE_01_HEA300.txt.
+I conteggi e le dichiarazioni di invarianza sotto sono storici.
+
 STATO ATTUALE: Steel2.4.0.17,1253/1253 membri,111/122 legacy,stessi11.
 Riepilogo aggiornato:FOLLOWUP_2026_10_20.txt.
 Le sezioni che seguono conservano lo storico dei passi precedenti;

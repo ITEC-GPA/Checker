@@ -1,0 +1,86 @@
+{
+  "case": "SectionHInteraction2",
+  "disposition": "Corrected unqualified comparison for declared Annex A Method 1 inputs",
+  "created_utc": "2026-10-21T11:00:44.612704+00:00",
+  "base_checker": "28de5bbb",
+  "base_model": "b83c1f35",
+  "steel_version": "2.18.0.0",
+  "model_version": "5.17.0.0",
+  "production_changed": false,
+  "historical_source_reproduced": false,
+  "inputs_unchanged": true,
+  "other_legacy_methods_unchanged": true,
+  "independently_integrated_properties": [
+    "A",
+    "Iy",
+    "Iz",
+    "Wel1",
+    "Wel2"
+  ],
+  "declared_model_properties_not_independently_qualified_here": [
+    "Wpl1",
+    "Wpl2",
+    "It",
+    "Iw"
+  ],
+  "python_and_csharp_terms_compared": 37,
+  "numeric_results_asserted": 39,
+  "original_method_preserved": true,
+  "before": {
+    "passed": 0,
+    "failed": [
+      "SectionHInteraction2"
+    ],
+    "other": [],
+    "trx_sha256": "8e8ca15ff45da962038be1c2cafc3e578d9c8dba5d91ec6fd2906ee0308fe6cb"
+  },
+  "legacy_after": {
+    "passed": 113,
+    "failed": [
+      "Sap_SectionHAsymmetricTest1",
+      "Sap_SectionHAsymmetricTest2",
+      "Sap_SectionLTest",
+      "Sap_SectionTTest",
+      "Sap_SectionTTest2",
+      "SectionCLateralTorsionalBuckling2",
+      "SectionHInteraction3",
+      "SectionHLateralTorsionalBuckling1",
+      "SectionHLateralTorsionalBuckling2"
+    ],
+    "other": [],
+    "trx_sha256": "8ab9060bcd68169d27a3e1e8972403d90bf7051964923b846ab0365ab0c892ec"
+  },
+  "members_after": {
+    "passed": 1859,
+    "failed": [],
+    "other": [],
+    "trx_sha256": "c7605f2b5a9ff02f776ebe7abd802138d9619410fbac75591858483adf1b9b6b"
+  },
+  "expanded_check_before_reference_correction": {
+    "passed": 112,
+    "failed": [
+      "Sap_SectionHAsymmetricTest1",
+      "Sap_SectionHAsymmetricTest2",
+      "Sap_SectionLTest",
+      "Sap_SectionTTest",
+      "Sap_SectionTTest2",
+      "SectionCLateralTorsionalBuckling2",
+      "SectionHInteraction2",
+      "SectionHInteraction3",
+      "SectionHLateralTorsionalBuckling1",
+      "SectionHLateralTorsionalBuckling2"
+    ],
+    "other": [],
+    "trx_sha256": "852a545e67e455005b202904ceef38c14d4daad2614eea8d8a4271a78dc8fc8d"
+  },
+  "unexpected_failures": [],
+  "outputs_directory": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\legacy-closure-02",
+  "evidence": {
+    "GPCChecker.Test.Steel/EN1993p11Test.cs": "e13447c39a479b478c627b751c39106357aa5ea7e5f24084a2b0eff7520597f3",
+    "build/known-failures.json": "cda61c707fa02ad84de22b0f7d004ba14ec12102158d4a35a266de201adf8e86",
+    "tests/Steel.Members.Tests/LegacyHInteractionArithmeticTests.cs": "6a2fa681b7acd10851dc4f3ea8e0bac463be14aca0faae7ff0ee9133f55f8176",
+    "tools/Steel.LegacyDiagnostics/ipe300_annex_a_reference.py": "66291abfb1b1d98d89aed56086a46587f6124251d39e9ae20532cb1c865d404a",
+    "tools/Steel.LegacyDiagnostics/closed-cases/SectionHInteraction2.original.cs.txt": "12ebcbbf6b013248ca8bdc7b7b7df94ed42f425e867d3e76b590824db60b9822",
+    "tools/Steel.LegacyDiagnostics/closed-cases/SectionHInteraction2.reference.json": "48c39bcd6bca373e93b6e3cf86d8f797b3524f7e790962a892a92321566f620c"
+  }
+}

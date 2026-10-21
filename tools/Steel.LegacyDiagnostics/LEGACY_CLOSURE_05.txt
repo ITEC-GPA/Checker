@@ -1,0 +1,52 @@
+CHIUSURA LEGACY 05 - SectionHLateralTorsionalBuckling2 - 21/10/2026
+
+Esito: attesi corretti con calcolo indipendente per gli input invariati.
+Nessuna curva forzata, nessun materiale/metodo/coefficienti modificati.
+La pagina Cordova190 non e' disponibile; il test originale resta archiviato.
+Non si attribuisce al libro l'errore di un confronto non riproducibile.
+
+Fonti verificate: EN1993-1-1:2005+AC2006/2009,6.3.2.3,eq6.57-6.58,
+tabelle6.5-6.6,pp62-63; NCCI SN003b-EN-EU,eq(2),tab3.2,p6.
+https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+https://www.steelconstruction.info/images/0/0f/SN003b.pdf
+Riferimento riproducibile: python ltb_ipe_reference.py 2 (Decimal40),
+nessuna DLL GPC. Controllo C# distinto: Ipe300LtbLegacyInvestigationTests.
+
+IPE300,h300,b150,tw7.1,tf10.7,r15 mm; S355,E210000 MPa,nu.3,
+gammaM0=gammaM1=1. N,V,T,Mz=0; My=66 kNm.
+L=8000 mm; lunghezza Mcr=4000 mm;
+forcelle, ingobbamento libero,k=kw=1; carico in sommita',zg=150mm.
+Carico concentrato in mezzeria;
+C1=1.348,C2=0.630,kc=0.86.
+Classe1 in flessione: ala c/t<=9epsilon,anima c/t<=72epsilon,
+epsilon=sqrt(235/355). Non si assume classe1 in compressione uniforme.
+Metodo laminati: curva b,alpha=.34,beta=.75,lambda0=.4.
+
+Area,Iy,Iz,Wel e Wpl esatto: integrali di rettangoli e raccordi circolari.
+Wpl Model628365.3126399475mm3 e' usato nella catena, distinto dal valore
+esatto628355.8864607274; errore limitato da deltaA*h/2 con
+deltaA=4r^2/2[pi/2-64sin(pi/128)]. It199186.91786049944mm4 e
+Iw125760427779.96912mm6 sono input dichiarati, non qualificati qui.
+
+Calcolo: n=pi^2 E Iz/Lcr^2; s=GIt+pi^2 EIw/Lcr^2; a=n C2 zg;
+Mcr=C1*n*s/[sqrt(a^2+n*s)+a] (radice razionalizzata).
+lambda=sqrt(Wpl fy/Mcr); Phi=[1+alpha(lambda-lambda0)+beta lambda^2]/2;
+chi dalla radice minore di beta lambda^2 chi^2-2Phi chi+1=0,
+ricavata per bisezione. Correzione f della6.3.2.3 e limiti applicati.
+Mc=223.069685987181 kNm;
+Mcr=136.892269906320 kNm;
+chiLT=0.5575589246221777519921276449200004850638;
+Mb=124.374494234820 kNm.
+Originale Mb=106.89 kNm.
+Il fattore .5 e conservato come parametro: NON prova un ritegno fisico intermedio. Il benchmark verifica il calcolo sul tratto assegnato di4m, non la validita del modello fisico della trave8m.
+
+Tolleranza aritmetica1e-10*max(1,abs(atteso)), separata dal limite
+geometrico dei raccordi. Tutti i risultati sono in N,mm,MPa,Nmm.
+Non si qualifica l'edizione EC3 successiva o un diverso AN nazionale.
+Steel2.18.0.0/Model5.17.0.0 invariati: solo test/documentazione.
+
+BASE CHECKER: d22bcb0b5e763526377a357d15d7d12ac5dd58ef
+VERIFICA: legacy 116/122 superati, 6 fallimenti noti, zero inattesi/ignorati.
+Input e altri metodi invariati; originale archiviato e controllato.
+Versioni invariate: solo test/documentazione. Nessuna release/push.
+Manifest e hash: LEGACY_CLOSURE_05_VERIFICATION.json.
