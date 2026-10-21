@@ -224,3 +224,11 @@ API scalare per quattro resistenze di sezione e nucleo aritmetico condiviso;
 nessuna nuova famiglia o verifica d'asta abilitata in ModelChecker.
 Disegno e limiti:../../src/Steel/ARCHITECTURE.txt.
 Manifest:../../src/Steel/SECTION_ARCHITECTURE_VERIFICATION.json.
+
+REFACTORING21/10/2026: vedere src/Steel/ARCHITECTURE.txt e
+CLASSIFICATION_REFACTOR_VERIFICATION.json per estrazioni e prove per passo.
+Nuovi benchmark: WeldedBucklingCurveTests (normativi),
+RoundedRhsCompressionTests (SCI P363 + integrazione indipendente),
+WebShearBucklingTests (SCI AD368 + EN1993-1-5). Fonti/pagine e limiti nella
+matrice SOURCE_COVERAGE_MATRIX.txt. Il requisito di copertura integrale di
+ogni calcolo/famiglia rimane aperto; non e' implicato dal refactoring.

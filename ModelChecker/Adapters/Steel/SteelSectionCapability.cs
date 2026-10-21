@@ -1,5 +1,4 @@
 using System;
-using GPC.Checkers.Steel.Checkers;
 using GPC.Model.Checking.Contracts;
 using GPC.Model.Results;
 using GPC.Model.Sections;
@@ -46,20 +45,8 @@ namespace GPC.Model.Checker
         internal static CheckResult TorsionFailure(ResultBeamForces forces)
             => forces.T != 0 ? NativeResults.Unavailable("SteelTorsionInteractionNotQualified") : null;
 
-        internal static CheckResult ClassificationFailure(EN1993p11Checker.SectionClass sectionClass)
-            => sectionClass > EN1993p11Checker.SectionClass.Class2 ? NativeResults.Unavailable("SteelSlenderSectionNotQualified") : null;
-
-        internal static CheckResult ShearBucklingFailure(double plasticResistance, double fullResistance)
-        {
-            if (!(fullResistance > 0) || double.IsInfinity(fullResistance))
-            {
-                var error = NativeResults.Missing("SteelShearBucklingNumericalRange");
-                error.Execution = ExecutionStatus.Error;
-                return error;
-            }
-            return Math.Abs(fullResistance - plasticResistance) > 1e-9 * Math.Max(1, plasticResistance)
-                ? NativeResults.Unavailable("SteelShearBucklingNotQualified") : null;
-        }
+        internal static CheckResult ClassificationFailure(int sectionClass)
+            => sectionClass > 2 ? NativeResults.Unavailable("SteelSlenderSectionNotQualified") : null;
 
         internal static CheckResult BendingActionsFailure(ResultBeamForces forces, double shearResistance1, double shearResistance2)
         {

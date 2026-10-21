@@ -999,6 +999,99 @@
           }
         }
       ]
+    },
+    {
+      "Step": 10,
+      "Version": "Steel2.16.0.0 / ModelChecker2.6.0.0",
+      "BaseCommit": "b05210f1",
+      "Date": "2026-10-21",
+      "NewModelCheckerCases": 8,
+      "Scope": "Remove legacy adapter inheritance; cache immutable scalar preparation; explicit web-slenderness applicability and trace.",
+      "LegacyCasesExactlyEqual": true,
+      "Suites": [
+        {
+          "File": "final-refactor-members.trx",
+          "Sha256": "e5f9ab7a1bf0320cb78a6dc599daab4f889ef8a5eb4f540aba0e8e10c1244132",
+          "Counters": {
+            "total": "1750",
+            "executed": "1750",
+            "passed": "1750",
+            "failed": "0",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          },
+          "FailedTests": []
+        },
+        {
+          "File": "final-refactor-compat-modelchecker.trx",
+          "Sha256": "c89af53ef42bbe69bc4b3114063c4f9464293bbf5d799a8d4a2ee53a16d5dac3",
+          "Counters": {
+            "total": "111",
+            "executed": "111",
+            "passed": "111",
+            "failed": "0",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          },
+          "FailedTests": []
+        },
+        {
+          "File": "final-refactor-compat-legacy.trx",
+          "Sha256": "f30e16fff2f85957e2cec7f9809bb22cb99d6855710abce578fba69c861b96f9",
+          "Counters": {
+            "total": "122",
+            "executed": "122",
+            "passed": "111",
+            "failed": "11",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          },
+          "FailedTests": [
+            "Sap_SectionHAsymmetricTest1",
+            "Sap_SectionHAsymmetricTest2",
+            "Sap_SectionLTest",
+            "Sap_SectionTTest",
+            "Sap_SectionTTest2",
+            "SectionCLateralTorsionalBuckling2",
+            "SectionHBuckling1",
+            "SectionHInteraction2",
+            "SectionHInteraction3",
+            "SectionHLateralTorsionalBuckling1",
+            "SectionHLateralTorsionalBuckling2"
+          ]
+        }
+      ],
+      "CompleteRepositoryVerification": "REFACTORING_FINAL_VERIFICATION.json"
     }
   ]
 }

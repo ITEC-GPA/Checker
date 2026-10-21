@@ -20,8 +20,15 @@ Le norme americane restano fuori da questo lavoro.
    COMPLETATO per le formule esistenti (Steel2.12.0.0).
 8. Consolidare NTC2018: formule comuni distinte dalle prescrizioni.
    COMPLETATO per i percorsi qualificati esistenti (Steel2.13.0.0).
-9. Colmare copertura indipendente e riesaminare gli11 legacy. DA FARE.
-10. Completare ModelChecker, pulizia mirata, verifica e master. DA FARE.
+9. Colmare copertura indipendente e riesaminare gli11 legacy.
+   ESEGUITO il ciclo di qualifica delle modifiche: curve saldate, RHS
+   raccordati in N, instabilita' a taglio; riesame degli11 documentato.
+   La copertura globale per ogni calcolo/famiglia resta APERTA nella matrice;
+   gli11 restano attivi, non risolti artificialmente.
+10. Completare ModelChecker, pulizia mirata, verifica e master.
+    INTEGRAZIONE COMPLETATA (Steel2.16.0.0,ModelChecker2.6.0.0);
+    VERIFICA COMPLETATA:3778superati,11legacy noti,0inattesi,0ignorati.
+    Compatibilita' API verificata; integrazione locale tramite commit di merge.
 
 Ogni passo viene verificato e committato. Nessun atteso preesistente viene
 rigenerato per ottenere test verdi. Una verifica non supportata non e' positiva.
@@ -218,3 +225,27 @@ https://www.steelconstruction.info/images/6/6f/AD-368.pdf
 30casi nuovi: benchmark SCI, rami/soglie, eta, pareti singole e casi stocky.
 Steel1750/1750; ModelChecker Steel103/103; legacy111/122, stessi11 e
 identica diagnostica. Nessun atteso/fixture/whitelist esistente modificato.
+
+PUNTO 10 - INTEGRAZIONE E PULIZIA
+Rimossa NativeSectionProperties: ModelChecker non deriva piu' dal checker
+legacy e non istanzia vincoli per verifiche di sezione. Snapshot immutabili
+di Av, classe e geometria nella cache, azioni/risultati sempre ricalcolati.
+Filtro di instabilita' a taglio scalare, hw distinto da c; eta invalidi
+diagnosticati. Aggiunti8casi per limiti, input e traccia; ModelChecker Steel111.
+Rimossa GetMin privata non piu' usata dopo l'estrazione delle riduzioni.
+Documentazione finale riscritta, matrici aggiornate, nessuna cancellazione
+di dati/fonti o cleanup di altri worktree. Le API/firme pubbliche esistenti
+e i contratti persistiti restano; si aggiungono valori alla traccia esistente.
+Il requisito generale di qualifica completa EC3/NTC di ogni famiglia NON
+viene dichiarato chiuso: le lacune della matrice richiedono ulteriori metodi
+e fonti, non modifiche arbitrarie ai test per rendere verde il conteggio.
+
+VERIFICA COMPLESSIVA21/10/2026
+build/Verify.ps1 -Suites all completato: Concrete795/795,legacySteel111/122,
+CompositeBridge284/284,Geotechnics191/191,Calculation174/174,
+ShallowFoundation28/28,EmbeddedWalls74/74,Steel.Members1750/1750,
+Design.Checks100/100,ModelChecker271/271. Totale3778superati,11noti,
+0inattesi,0ignorati. API pubbliche controllate compatibili; whitelist invariata.
+Rispetto all'inizio dei10punti:425nuovi casiSteel e14ModelChecker.
+Manifest con hashTRX:REFACTORING_FINAL_VERIFICATION.json.
+Non e' stato eseguito un rilascio di pacchetti ne' un push.

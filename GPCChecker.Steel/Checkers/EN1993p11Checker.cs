@@ -2789,16 +2789,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         #endregion
 
-        private double GetMin(double[] array)
-        {
-            double outvalue = double.MaxValue;
 
-            for (int i = 0; i < array.Length; i++)
-                if (array[i] < outvalue)
-                    outvalue = array[i];
-
-            return outvalue;
-        }
 
         #endregion
 

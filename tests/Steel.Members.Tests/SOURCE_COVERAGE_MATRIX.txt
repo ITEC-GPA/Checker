@@ -1,4 +1,4 @@
-Matrice fonte / tipo di sezione / calcolo - 20 ottobre 2026
+Matrice fonte / tipo di sezione / calcolo - aggiornata al21 ottobre2026
 
 Requisito utente: almeno un controllo indipendente per ogni calcolo
 applicabile a ogni tipo di sezione. STATO: NON ANCORA SODDISFATTO.
@@ -22,7 +22,7 @@ C                  P/A        N/N            P/N            P/N           N/P/N 
 T                  P/A        N/N            P+N/P+N        N/N           N/N/N parziale (T1)
 L                  P(A,I)/A   N/N            N/N            ?/?           ?/?/?
 RHS spigoli vivi   A          N/N            N/N            N/N           N/N/? parziale
-RHS raccordato     P          ?/?            P/P cl.esplicita ?/?          U/U/U
+RHS raccordato     P/A        N/N            P/P cl.esplicita N/P          N/U/U (R1)
 CHS                P/A        N/P            P/P            P/P           N/P/? parziale
 Rectangular        A          N/N            N/N            ?/?           assegnata
 Circular           A          N/N            N/N            ?/?           assegnata
@@ -34,7 +34,7 @@ C                  P/N                    P/A componenti   ?/N componenti  Ael/?
 T                  N                      P/A componenti   A/N parziale    Ael/?/?           U 6.3.3
 L                  N                      P/A componenti   U/U             Ael/?/?           U
 RHS spigoli vivi   P/N*                   ?/?              P**/?           N/N/?             ?
-RHS raccordato     U                      ?/?              U/U             U/U/U             U
+RHS raccordato     P/N/A (R1)             ?/?              U/U             U/U/U             U
 CHS                P/N                    ?/?              ?/?             A*** / N / A***   ?
 Rectangular        N NTC; EC3 U            ?/?              U/U             Ael/?/?           U
 Circular           N NTC; API assiale A    ?/?              U/U             Ael/?/?           U
@@ -167,3 +167,45 @@ Il requisito di un riferimento indipendente per ogni calcolo/famiglia
 NON e' ancora soddisfatto. NTC2018 non estesa in questo ciclo di fix EC3.
 Per gli11 legacy e le condizioni per sostituirli:
 ../../tools/Steel.LegacyDiagnostics/FOLLOWUP_2026_10_20.txt.
+
+AGGIORNAMENTO REFACTORING - Steel2.16.0.0, ModelChecker2.6.0.0
+Il requisito globale sopra rimane NON completo; il blocco di refactoring
+estrae e verifica i percorsi esistenti qualificati. Test negativi, compatibilita'
+e ripetizioni su parametri non aumentano il numero di fonti indipendenti.
+
+Classificazione/contratti e geometria:
+CompressionPartClassificationTests, CompressionGeometryTests, PlateClassificationTests
+e relativi test di trattamento sigma_com,Ed: EC3 tabella5.2 e5.5.2(9)-(10),
+EN1993-1-5 tab4.2, JRC EUR22898EN e SCI NSC Technical Digest2019 p20-21.
+Proprieta' Av: ShearAreaExtractionTests, EC3 6.2.6(3), NTC4.2.4.1.2.4;
+T NTC .9(A-btf) distinto da EC3. Non qualifica ogni geometria/asse ruotato.
+NtcPolicyContractTests e i test di integrazione ModelChecker sono prove
+di contratto/applicabilita', NON nuovi benchmark ingegneristici pubblicati.
+
+Curve saldate (WeldedBucklingCurveTests,78casi):
+N: EN1993-1-1:2005/AC2009 tab6.2 p58: cassone b/c con gola e rapporti,
+H saldata simmetrica b/c o c/d con tf<=40 e mappatura assi principali.
+A: integrazione rettangoli ed equazione caratteristica della riduzione.
+Gola mancante nel cassone compatto: inviluppo c, non deduzione di saldatura sottile.
+
+R1 - RHS raccordato (RoundedRhsCompressionTests,62casi):
+P: SCI P363,ristampa2015,B-22/PDF88,D-22/PDF328,D-112/PDF418;
+HF50x30x4,S355,ro6/ri4mm,13lunghezze x2assi per Nb,Rd,taglio maggiore.
+N: classeN e resistenza di compressione/taglio, EC3tab5.2/6.2.4/6.2.6.
+A: area e inerzie per sottrazione di rettangoli e quarti di cerchio.
+Larghezza piana conservativa h/b-2min(ro,t+ri); il campioneSCI produce h/b-3t.
+Raggi indipendenti,mai sostituiti con ri=ro-t. N/M,LTB,classe4 e verifica
+completa dell'asta restano fuori da questa qualifica. ModelChecker resta H.
+
+Instabilita' a taglio (WebShearBucklingTests,30casi):
+P: SCI AD368, NSC giugno2012 p28,UKB406x140x39,S355,Vbw488kN,UK eta1.
+N: EN1993-1-5:2006 tab5.1,eq5.2/5.5; rami non-rigid e pareti RHS separate.
+Assunti irrigidimenti agli appoggi; nessun contributo flange o beneficio
+montante rigido. Verifica di irrigidimenti/saldature non compresa.
+https://www.steelconstruction.info/images/6/6f/AD-368.pdf
+
+Gli11 legacy sono riesaminati in REFACTORING_REVIEW_20261021.txt nella
+cartella tools/Steel.LegacyDiagnostics: tutti ancora attivi. Esempi analoghi
+non provano le ipotesi mancanti delle loro fonti originali.
+La coda approvata comprende connessioni e profili accoppiati almeno C/L;
+questi ultimi non sono qualificati come asta dal solo aggregato geometrico.

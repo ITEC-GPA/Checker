@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using GPC.Checkers.Steel.Checkers;
 using GPC.Checkers.Steel.Sections;
 using GPC.Checkers.Steel.ModelAdapters;
 using GPC.Model.Elements;
@@ -25,7 +24,7 @@ namespace GPC.Model.Checker
         public bool IncludeUniaxialBending { get; }
         internal SteelSectionCapability Capability => IncludeUniaxialBending ? SteelSectionCapability.Section : SteelSectionCapability.Shear;
         public string Id => Capability.Id;
-        public string Version => NativeResults.Version(typeof(EN1993p11Checker));
+        public string Version => NativeResults.Version(typeof(SectionResistanceVerifier));
         public string Configuration => ModelValues.Fingerprint(new object[] { Id, Code, Edition, NationalAnnex });
         public CheckStandardContext Standard => new CheckStandardContext(Code.Name, Edition, NationalAnnex, Id, Configuration,
             Capability.Limitations);
@@ -40,19 +39,26 @@ namespace GPC.Model.Checker
         }
         public bool Accepts(BeamElement element) => element.BeamProperty is SteelSection;
         public IMaterialCheckSession CreateSession() => new Session(this);
-        private sealed class NativeSectionProperties : EN1993p11Checker
+        private sealed class PreparedSection
         {
-            // These native constructor fields are not consumed by the section-only primitives below.
-            internal NativeSectionProperties(BeamElement beam, StandardEN1993p11 code) : base(beam, new EN1993p11Options(
-                EN1993p11Options.LoadConditions.Constant, EN1993p11Options.SupportConditions.HingesAtEnds,
-                EN1993p11Options.LateralSupportConditions.HingesAtEnds, EN1993p11Options.LateralWarpingConditions.HingesAtEnds, null, null), code) { }
-            internal double FullCapacity2(GPC.Model.Results.ResultBeamForces forces, ISteelSection section) => CalculateShear2Capacity(forces, section);
+            internal double Area1 { get; }
+            internal double Area2 { get; }
+            internal double WebHeight { get; }
+            internal double WebThickness { get; }
+            internal UniformCompressionClassification Classification { get; }
+            internal PreparedSection(SteelSection section, SectionResistanceStandard standard)
+            {
+                Area1 = ModelShearAreas.GetArea1(section); Area2 = ModelShearAreas.GetArea2(section, standard);
+                var h = (SectionH)section.SectionShape;
+                WebHeight = h.HeightWeb; WebThickness = h.ThicknessWeb;
+                Classification = Ec3UniformCompressionClassification.Evaluate(ModelCompressionGeometry.Create(section), section.SteelMaterial.Fyk);
+            }
         }
         private sealed class Session : IMaterialCheckSession
         {
             private readonly SteelMaterialChecker _owner;
-            private readonly Dictionary<string, NativeSectionProperties> _native = new Dictionary<string, NativeSectionProperties>();
-            public int CreatedCheckers => _native.Count;
+            private readonly Dictionary<string, PreparedSection> _prepared = new Dictionary<string, PreparedSection>();
+            public int CreatedCheckers => _prepared.Count;
             internal Session(SteelMaterialChecker owner) { _owner = owner; }
             public CheckResult Verify(BeamActionInput input, CheckMechanism mechanism, CancellationToken token)
             {
@@ -74,24 +80,25 @@ namespace GPC.Model.Checker
                 if (failure != null) return failure;
                 // Uniform-compression classification is a conservative stockiness gate for both flange directions.
                 string key = ModelValues.Fingerprint(new object[] { input.Property, _owner.Configuration });
-                if (!_native.TryGetValue(key, out var checker))
+                if (!_prepared.TryGetValue(key, out var prepared))
                 {
-                    checker = new NativeSectionProperties(new BeamElement(input.Element.StartPoint, input.Element.EndPoint, section), _owner.Code);
-                    _native.Add(key, checker);
+                    prepared = new PreparedSection(section, code.Standard);
+                    _prepared.Add(key, prepared);
                 }
-                var shear1 = SectionResistanceVerifier.Shear(code, input.Forces.V1, ModelShearAreas.GetArea1(section), section.SteelMaterial.Fyk);
-                var shear2 = SectionResistanceVerifier.Shear(code, input.Forces.V2, ModelShearAreas.GetArea2(section, code.Standard), section.SteelMaterial.Fyk);
+                var shear1 = SectionResistanceVerifier.Shear(code, input.Forces.V1, prepared.Area1, section.SteelMaterial.Fyk);
+                var shear2 = SectionResistanceVerifier.Shear(code, input.Forces.V2, prepared.Area2, section.SteelMaterial.Fyk);
                 failure = SteelSectionResults.Failure("V1", shear1) ?? SteelSectionResults.Failure("V2", shear2);
                 if (failure != null) return failure;
-                var classification = Ec3UniformCompressionClassification.Evaluate(
-                    ModelCompressionGeometry.Create(section), section.SteelMaterial.Fyk);
+                var classification = prepared.Classification;
                 failure = SteelSectionResults.ClassificationFailure(classification);
                 if (failure != null) return failure;
-                var sectionClass = (EN1993p11Checker.SectionClass)classification.NominalClass.Value;
+                int sectionClass = classification.NominalClass.Value;
                 failure = SteelSectionCapability.ClassificationFailure(sectionClass);
                 if (failure != null) return failure;
-                failure = SteelSectionCapability.ShearBucklingFailure(shear2.Resistance.Value, checker.FullCapacity2(input.Forces, section));
-                if (failure != null) return failure;
+                double eta = section.SteelMaterial.Fyk <= 460 ? _owner.Code.NShearBucklingLowGradeOfSteel : _owner.Code.NShearBucklingHighGradeOfSteel;
+                if (!(eta > 0) || double.IsInfinity(eta)) return NativeResults.Missing("InvalidShearBucklingEta");
+                if (Ec3WebShearBuckling.RequiresCheck(prepared.WebHeight, prepared.WebThickness, section.SteelMaterial.Fyk, eta))
+                    return NativeResults.Unavailable("SteelShearBucklingNotQualified");
                 if (bending)
                 {
                     failure = SteelSectionCapability.BendingActionsFailure(input.Forces, shear1.Resistance.Value, shear2.Resistance.Value);
@@ -102,6 +109,9 @@ namespace GPC.Model.Checker
                     if (failure != null) return failure;
                     var trace = new List<CheckCalculationValue> {
                         new CheckCalculationValue("GammaM0", _owner.Code.GammaM0, "1", "Explicit code parameter"),
+                        new CheckCalculationValue("Web.ClearHeight", prepared.WebHeight, "mm", "Clear height between flanges"),
+                        new CheckCalculationValue("Web.Thickness", prepared.WebThickness, "mm", "Web thickness"),
+                        new CheckCalculationValue("Web.Eta", eta, "1", "EN1993-1-1:2005 6.2.6(6)") ,
                         new CheckCalculationValue("ShearRatio1", shear1.Utilization, "1", "Low shear <= 0.5"),
                         new CheckCalculationValue("ShearRatio2", shear2.Utilization, "1", "Low shear <= 0.5")
                     };
@@ -116,6 +126,9 @@ namespace GPC.Model.Checker
                 }
                 var shearTrace = new List<CheckCalculationValue> {
                     new CheckCalculationValue("GammaM0", _owner.Code.GammaM0, "1", "Explicit code parameter"),
+                        new CheckCalculationValue("Web.ClearHeight", prepared.WebHeight, "mm", "Clear height between flanges"),
+                        new CheckCalculationValue("Web.Thickness", prepared.WebThickness, "mm", "Web thickness"),
+                        new CheckCalculationValue("Web.Eta", eta, "1", "EN1993-1-1:2005 6.2.6(6)") ,
                     new CheckCalculationValue("Fy", section.SteelMaterial.Fyk, "MPa", "Model steel material")
                 };
                 SteelSectionResults.AddClassificationTrace(shearTrace, classification);
@@ -124,7 +137,7 @@ namespace GPC.Model.Checker
                     new[] { SteelSectionResults.Metric("V1", input.Forces.V1, shear1), SteelSectionResults.Metric("V2", input.Forces.V2, shear2) },
                     trace: shearTrace,
                     warnings: new[] { "R02: legacy EN1993 suite has unresolved failures. R03 bulk-result indexing path is not called.",
-                        "SectionResistanceVerifier applies GammaM0; native section properties and shear-buckling applicability remain in use." }));
+                        "SectionResistanceVerifier applies GammaM0; scalar web-slenderness applicability excludes shear buckling." }));
             }
         }
     }
