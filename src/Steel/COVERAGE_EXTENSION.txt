@@ -77,7 +77,19 @@ collegato alle aree gia' confrontate con SCI; serve assessment a taglio esterno.
 Steel sui limiti del metodo d'asta/curve e2 ModelChecker sui coefficienti mutati.
 Nessun campo persistito nuovo: parametri e fonti passano nei contratti esistenti.
 Versioni funzionali: Steel2.27.0.0,ModelChecker2.10.0.0; Model5.18 invariato.
-4 DA COMPLETARE - COLLAUDO GLOBALE, VERSIONI E MERGE LOCALE
+4 PREDISPOSTO - COLLAUDO GLOBALE, VERSIONI E MERGE LOCALE
+Il collaudo finale e' build/Release-Set.ps1 -Candidate da alberi puliti:
+tutte le suite Model/Checker e controllo compatibilita' API, senza nuovi
+fallimenti ammessi. Il manifest e verification-summary.json esterni ai
+sorgenti registrano l'esito effettivo e l'identita' esatta dei commit verificati.
+373 casi nuovi complessivi (360 Steel,13 ModelChecker); prove intermedie
+passate, il conteggio definitivo resta quello del manifest finale.
+Le versioni delle DLL companion Checker aumentano per il nuovo set coerente:
+Concrete0.15,CompositeBridge1.9,Geotechnics0.16,Masonry0.3,Design0.32.
+Non ci sono modifiche ingegneristiche in queste librerie: il commit entra
+nei metadati della build deterministica. Nessun sorgente o versione Model,
+Geometry o Utilities e' stato modificato da questo ciclo.
+Il merge richiesto resta locale; nessun push o aggiornamento ANTHEA implicito.
 
 Limiti deliberatamente aperti: classe4/Aeff/Weff automatici, torsione con
 ingobbamento, instabilita' biassiale generale, profili sottili EN1993-1-3,
