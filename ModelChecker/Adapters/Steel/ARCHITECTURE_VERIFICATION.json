@@ -1,0 +1,96 @@
+{
+  "Purpose": "Architecture step 2: qualified ModelChecker Steel adapter; not a release certificate",
+  "Date": "2026-10-21",
+  "Branch": "codex/steel-section-architecture",
+  "BaseCommit": "dd54d9d1",
+  "Versions": {
+    "GPCModelChecker": "2.2.0.0",
+    "Steel": "2.5.0.0"
+  },
+  "NewAdapterCases": 59,
+  "Suites": [
+    {
+      "File": "steel-adapter-all.trx",
+      "Sha256": "6d5188f5e420009777fe20f31c2a6bade23f7e72f3e2c60eca24d9dade931d34",
+      "Counters": {
+        "total": "233",
+        "executed": "233",
+        "passed": "233",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "FailedTests": []
+    },
+    {
+      "File": "steel-adapter-members.trx",
+      "Sha256": "a7e51ff19a06ca3f0d60617657469ec263d5ab76d85435a623b238e6653b5466",
+      "Counters": {
+        "total": "1325",
+        "executed": "1325",
+        "passed": "1325",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "FailedTests": []
+    },
+    {
+      "File": "steel-adapter-compat-legacy.trx",
+      "Sha256": "1e697047a4ee8a5fc4da3a3af7711a710e8317de9c1d93cd5eae5201f2fc14f6",
+      "Counters": {
+        "total": "122",
+        "executed": "122",
+        "passed": "111",
+        "failed": "11",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "FailedTests": [
+        "Sap_SectionHAsymmetricTest1",
+        "Sap_SectionHAsymmetricTest2",
+        "Sap_SectionLTest",
+        "Sap_SectionTTest",
+        "Sap_SectionTTest2",
+        "SectionCLateralTorsionalBuckling2",
+        "SectionHBuckling1",
+        "SectionHInteraction2",
+        "SectionHInteraction3",
+        "SectionHLateralTorsionalBuckling1",
+        "SectionHLateralTorsionalBuckling2"
+      ]
+    }
+  ],
+  "LegacyCasesExactlyEqualToStep1": true,
+  "LegacySourceSha256": "773022095f2659b4292116a0c5c08065747457bdda0f2eb8a8af3b8c6bd0f47f"
+}

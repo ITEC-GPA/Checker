@@ -107,3 +107,47 @@ classe/modulo richiesto, fori, errori, overflow/underflow, profilo e traccia.
 Le prove di compatibilita' non sono dichiarate nuove fonti indipendenti.
 Gli oracoli geometrici/normativi esistenti continuano a verificare i calcoli.
 Esecuzione e confronto diagnostico documentati in SECTION_ARCHITECTURE_VERIFICATION.json.
+
+SECONDO PASSO - ADAPTER MODELCHECKER - 21 OTTOBRE 2026
+GPCModelChecker 2.2.0.0; Steel resta 2.5.0.0.
+
+SteelMaterialChecker usa SectionResistanceVerifier per taglio e flessione.
+NativeSectionProperties conserva temporaneamente Av, classe in compressione
+e confronto con la resistenza comprensiva dell'instabilita' a taglio.
+La cache riguarda queste proprieta', non i risultati delle singole azioni.
+Non cambiano il verso delle azioni, le capacita' sui dati validi o i filtri
+su H simmetriche compatte, edizione 2005, torsione, azioni combinate e taglio
+basso. NTC, altre famiglie, assiale e stabilita' non vengono abilitati.
+
+SteelSectionResults traduce gli esiti senza estendere i contratti di Model:
+- Passed/Failed: Completed, Ready, Satisfied/NotSatisfied; Rd e rapporto.
+- NotSupported: NotExecuted, NotSupported, NotEvaluated.
+- MissingInput/InvalidInput: NotExecuted, Insufficient, NotEvaluated.
+- CalculationError: Error, Ready, NotEvaluated: input presente, calcolo fallito.
+Gli esiti non valutati non espongono rapporto o metriche di resistenza.
+La diagnostica del core conserva asse e causa (SteelSection.V1.*, M1.*, ...).
+Anche un risultato non finito del controllo legacy a taglio viene rifiutato.
+
+Il profilo scalare richiede entrambi i fattori dichiarati: GammaM2 non valido
+ora produce InvalidGammaM2 anche se il meccanismo usa soltanto GammaM0.
+Non si sostituiscono fattori errati con valori predefiniti. Il nome dell'AN
+rimane una provenienza dichiarata, senza certificazione dei suoi coefficienti.
+
+I report mantengono ID, chiavi delle metriche, chiavi storiche della traccia
+e definizione dell'impronta di configurazione. Si popolano campi gia' previsti:
+Passed/Reference delle metriche e tracce per asse (V1.Av, M1.Wpl, ...), con
+azioni, fattori, classe, fy, resistenza e rapporto. Nessun nuovo record o campo
+persistito e nessuna modifica ai contratti delle impronte. La nuova versione
+dell'adapter distingue comunque la nuova implementazione nei report.
+
+59 nuovi casi di integrazione: H laminate/saldate sui due assi, segni e soglia
+Rd, limite del taglio basso, input non finiti, materiale e fattori invalidi,
+overflow, input mancante, cancellazione, riuso cache, filtri di applicabilita'
+e roundtrip dei report. I rettangoli H danno proprieta' analitiche indipendenti;
+queste prove non sono una nuova qualifica normativa di altre famiglie.
+I test non modificano le fixture preesistenti. Il requisito indipendente per
+ogni calcolo/famiglia rimane aperto, come riportato nella matrice di copertura.
+
+Eseguiti: ModelChecker 233/233, Steel.Members 1325/1325; legacy net472
+111/122 con gli stessi11 fallimenti, zero esclusioni e diagnostica invariata.
+Evidenze: ../../ModelChecker/Adapters/Steel/ARCHITECTURE_VERIFICATION.json.
