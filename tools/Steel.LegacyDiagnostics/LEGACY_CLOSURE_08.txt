@@ -1,0 +1,46 @@
+CHIUSURA LEGACY 08 - Sap_SectionHAsymmetricTest2 - 21/10/2026
+
+Esito: CHIUSO IL TEST LEGACY; FUNZIONALITA' COMPLETA NON IMPLEMENTATA.
+Il test attivo verifica diagnostica specifica,risultati non disponibili e
+geometria indipendente. Non e' ignorato o commentato. Il report e le vecchie
+asserzioni sono archiviati integralmente,senza approvarne gli attesi.
+Nessun input,formula o codice di produzione modificato.
+
+H monosimmetrica,h300,tw25,bt300,tt25,bb150,tb25mm;L12000mm;
+N=-100kN,My=-100kNm,Mz=+100kNm,V1=V2=50kN,T=0.
+Area17500mm2,mentre il report incorporato indica h400,A~13880mm2.
+Il codice raggiunge MN,Rd per sezione compatta asimmetrica,non implementato;
+il test ora deve conservare il rifiuto specifico e le capacita' NaN.
+La geometria e le inerzie principali sono verificate indipendentemente.
+Backlog: resistenza plastica N-My-Mz della H monosimmetrica e successiva
+verifica d'asta mediante metodo applicabile,con nuovi esempi indipendenti.
+
+Preset eseguito: S355,fy355,fu490MPa,E210000MPa,nu.3,
+gammaM0=gammaM1=1,gammaM2=1.25. Il report SAP usa invece fu510MPa.
+Per Nt si ricostruisce il criterio prudenziale implementato:
+min(Afy/gammaM0,.9Anfu/gammaM2),con An/A=1 dichiarato nel test.
+Ne risulta352.8A,non355A. Non si qualifica la geometria di fori/connessioni;
+il ricalcolo della rottura e' condizionato all'area netta dichiarata.
+psi1=psi2=.5;NotDirectlyLoaded;supporti EndsRestrained e fattori efficaci
+esplicitamente1 nel test. Si verifica l'aritmetica dei parametri assegnati,
+non l'identificazione di un sistema fisico dal solo nome del vincolo.
+Convenzioni GPC: N positivo=trazione,negativo=compressione;N,mm,MPa,Nmm.
+
+Fonti: EN1993-1-1:2005+AC2006/2009,6.3.3(1),p64:
+il metodo semplificato di interazione richiede doppia simmetria.
+https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+Geometria da integrazione dei rettangoli,d'area A=bd,inerzie bd^3/12 e
+trasporto al baricentro;Euler Ncr=pi^2 EI/Lcr^2;sezione 6.2.3/6.2.5.
+Riferimento Python senza DLL: sap_legacy_section_reference.py 8.
+Output nel JSON omonimo in closed-cases;classificazione distingue il
+risultato conservativo qualificato dai test specifici dall'atteso SAP.
+Nessun valore resistente e certificato da questo test negativo; si controlla la geometria.
+Il successo del test prova il corretto rifiuto,NON una verifica soddisfatta.
+Tolleranza sui componenti geometrici/numerici1e-10 relativa.
+Steel2.18.0.0/Model5.17.0.0 invariati: solo test/documentazione.
+
+BASE CHECKER: 7378f7244e54e43630cd09ca510507b475db8853
+VERIFICA: legacy 119/122 superati, 3 fallimenti noti, zero inattesi/ignorati.
+Input e altri metodi invariati; originale archiviato e controllato.
+Versioni invariate: solo test/documentazione. Nessuna release/push.
+Manifest e hash: LEGACY_CLOSURE_08_VERIFICATION.json.

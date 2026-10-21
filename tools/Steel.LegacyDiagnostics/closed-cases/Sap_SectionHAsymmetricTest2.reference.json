@@ -1,0 +1,50 @@
+{
+  "case": 8,
+  "rectangles": [
+    {
+      "width": "300",
+      "depth": "25",
+      "x": "0",
+      "y": "287.5"
+    },
+    {
+      "width": "25",
+      "depth": "250",
+      "x": "0",
+      "y": "150"
+    },
+    {
+      "width": "150",
+      "depth": "25",
+      "x": "0",
+      "y": "12.5"
+    }
+  ],
+  "centroid": {
+    "x": "0",
+    "y": "179.4642857142857142857142857142857142857"
+  },
+  "geometric_inertia": {
+    "Ixx": "230640811.0119047619047619047619047619047",
+    "Iyy": "63606770.83333333333333333333333333333333",
+    "Ixy": "0E-37"
+  },
+  "properties": {
+    "Area": "17500",
+    "J11": "230640811.0119047619047619047619047619047",
+    "J22": "63606770.8333333333333333333333333333333"
+  },
+  "values": {},
+  "parameters": {
+    "E": 210000,
+    "Fy": 355,
+    "Fu": 490,
+    "L": "12000",
+    "gammaM0": 1,
+    "gammaM1": 1,
+    "gammaM2": "1.25",
+    "An_over_A": 1
+  },
+  "classification": 1,
+  "disposition": "Explicit unsupported complete member check; only named components qualified"
+}

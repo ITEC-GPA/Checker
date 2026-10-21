@@ -1502,18 +1502,32 @@ namespace SteelTests
 
             EN1993P11Checker.PerformCheck();
 
-            Assert.AreEqual(6212.5 * 1000.0 / EN1993P11Checker.EN1993p11BeamStationResults[0].AxialTensionCapacity, 1, 0.01);
-            Assert.AreEqual(637.891 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment1Capacity, 1, 0.01);
-            Assert.AreEqual(263.477 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment2Capacity, 1, 0.01);
-
-            Assert.AreEqual(0.396 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiAxialBuckling1, 1, 0.01);
-            Assert.AreEqual(0.123 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiAxialBuckling2, 1, 0.01);
-            Assert.AreEqual(0.121 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiLTBuckling, 1, 0.01);
-
-            Assert.AreEqual(1.073 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxx, 1, 0.01);
-            Assert.AreEqual(0.683 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxy, 1, 0.01);
-            Assert.AreEqual(0.586 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyx, 1, 0.01);
-            Assert.AreEqual(0.901 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyy, 1, 0.01);
+            // Historical SAP comparison is archived, NOT reproduced or approved.
+            // Active unsupported-capability contract; see LEGACY_CLOSURE_08.txt.
+            Assert.AreEqual(355.0, EN1993P11Checker.Fy);
+            Assert.AreEqual(490.0, EN1993P11Checker.Fu);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM0);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM1);
+            Assert.AreEqual(1.25, standardEN1993P11.GammaM2);
+            Assert.AreEqual(1, EN1993P11Checker.GetErrorLog().Count);
+            string error = EN1993P11Checker.GetErrorLog()[0].ToString();
+            StringAssert.Contains(error, "SelfWeight");
+            StringAssert.Contains(error, "MN,Rd");
+            StringAssert.Contains(error, "not implemented");
+            Assert.AreEqual(1, EN1993P11Checker.EN1993p11BeamStationResults.Length);
+            var result = EN1993P11Checker.EN1993p11BeamStationResults[0];
+            Assert.IsFalse(section.IsDoubleSymmetric);
+            Assert.IsTrue(double.IsNaN(result.WorkingRatio), "Unsupported member check cannot appear verified.");
+            Assert.IsTrue(double.IsNaN(result.BucklingInteraction1Axis));
+            Assert.IsTrue(double.IsNaN(result.BucklingInteraction2Axis));
+            Assert.AreEqual(EN1993p11Checker.SectionClass.Class1, result.BendingCompressionClass);
+            // Independent exact rectangular integration, not copied SAP properties.
+            Assert.AreEqual(17500d, section.Area, 17500d * 1e-10, "Area");
+            Assert.AreEqual(230640811.01190478d, section.J11, 230640811.01190478d * 1e-10, "J11");
+            Assert.AreEqual(63606770.833333336d, section.J22, 63606770.833333336d * 1e-10, "J22");
+            Assert.IsTrue(double.IsNaN(result.BendingMoment1Capacity), "Result unavailable after explicit rejection");
+            Assert.IsTrue(double.IsNaN(result.BendingMoment2Capacity), "Result unavailable after explicit rejection");
+            Assert.IsTrue(double.IsNaN(result.LateralTosionalBucklingCapacity), "Result unavailable after explicit rejection");
         }
 
         [TestMethod]

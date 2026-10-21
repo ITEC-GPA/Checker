@@ -2,9 +2,8 @@
   "description": "Test failures admitted by build/Verify.ps1, by suite and exact test name. Any other failure stops a release. A test listed here that passes is reported so that the list can be shortened.",
   "suites": {
     "GPCChecker.Test.Steel": {
-      "reason": "4 remaining Steel legacy failures. See tools/Steel.LegacyDiagnostics/LEGACY_CLOSURE_* for independent references, unchanged inputs and explicit unsupported contracts. Original Cordova/SAP comparisons archived, not claimed reproduced. SAP hollow comparisons retain the documented unconfirmed ColdFormed assumption.",
+      "reason": "3 remaining Steel legacy failures. See tools/Steel.LegacyDiagnostics/LEGACY_CLOSURE_* for independent references, unchanged inputs and explicit unsupported contracts. Original Cordova/SAP comparisons archived, not claimed reproduced. SAP hollow comparisons retain the documented unconfirmed ColdFormed assumption.",
       "tests": [
-        "Sap_SectionHAsymmetricTest2",
         "Sap_SectionLTest",
         "Sap_SectionTTest",
         "Sap_SectionTTest2"
