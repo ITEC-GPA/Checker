@@ -46,8 +46,6 @@ namespace GPC.Model.Checker
             internal NativeSectionProperties(BeamElement beam, StandardEN1993p11 code) : base(beam, new EN1993p11Options(
                 EN1993p11Options.LoadConditions.Constant, EN1993p11Options.SupportConditions.HingesAtEnds,
                 EN1993p11Options.LateralSupportConditions.HingesAtEnds, EN1993p11Options.LateralWarpingConditions.HingesAtEnds, null, null), code) { }
-            internal double ShearArea1(ISteelSection section) => GetShearArea1(section);
-            internal double ShearArea2(ISteelSection section) => GetShearArea2(section);
             internal double FullCapacity2(GPC.Model.Results.ResultBeamForces forces, ISteelSection section) => CalculateShear2Capacity(forces, section);
         }
         private sealed class Session : IMaterialCheckSession
@@ -81,8 +79,8 @@ namespace GPC.Model.Checker
                     checker = new NativeSectionProperties(new BeamElement(input.Element.StartPoint, input.Element.EndPoint, section), _owner.Code);
                     _native.Add(key, checker);
                 }
-                var shear1 = SectionResistanceVerifier.Shear(code, input.Forces.V1, checker.ShearArea1(section), section.SteelMaterial.Fyk);
-                var shear2 = SectionResistanceVerifier.Shear(code, input.Forces.V2, checker.ShearArea2(section), section.SteelMaterial.Fyk);
+                var shear1 = SectionResistanceVerifier.Shear(code, input.Forces.V1, ModelShearAreas.GetArea1(section), section.SteelMaterial.Fyk);
+                var shear2 = SectionResistanceVerifier.Shear(code, input.Forces.V2, ModelShearAreas.GetArea2(section, code.Standard), section.SteelMaterial.Fyk);
                 failure = SteelSectionResults.Failure("V1", shear1) ?? SteelSectionResults.Failure("V2", shear2);
                 if (failure != null) return failure;
                 var classification = Ec3UniformCompressionClassification.Evaluate(

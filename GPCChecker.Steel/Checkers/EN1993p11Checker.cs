@@ -1159,77 +1159,10 @@ namespace GPC.Checkers.Steel.Checkers
         /// EN1993-1-1: 2005 Chapter 6.2.6(3)
         /// </summary>
         protected double GetShearArea2(ISteelSection section)
-        {
-            if (section.SectionShape is SectionH sech && section.SectionType == Section.SectionTypes.Rolled)
-                return sech.Area - (sech.LenghtTopFlange * sech.ThicknessTopFlange) - (sech.LenghtBottomFlange * sech.ThicknessBottomFlange) +
-                    (sech.ThicknessWeb + 2 * sech.R) * (sech.ThicknessTopFlange + sech.ThicknessBottomFlange) / 2;
+            => ModelShearAreas.GetArea2(section, EN1993P11 is StandardNTC2018Steel
+                ? SectionResistanceStandard.Ntc2018 : SectionResistanceStandard.Eurocode3_2005);
 
-            else if (section.SectionShape is SectionH secH && section.SectionType == Section.SectionTypes.Welded)
-                return secH.ThicknessWeb * secH.HeightWeb;
-
-            else if (section.SectionShape is SectionC secC && section.SectionType == Section.SectionTypes.Rolled)
-                return secC.Area - (secC.LengthTop * secC.ThicknessTop) - (secC.LengthBottom * secC.ThicknessBottom) +
-                    (secC.ThicknessWeb + secC.R1) * (secC.ThicknessTop + secC.ThicknessBottom) / 2;
-
-            else if (section.SectionShape is SectionC sectC && section.SectionType == Section.SectionTypes.Welded)
-                return sectC.ThicknessWeb * (sectC.Height - sectC.ThicknessBottom - sectC.ThicknessTop);
-
-            else if (section.SectionShape is SectionRHS sectionRHS && section.SectionType == Section.SectionTypes.Welded)
-                return (sectionRHS.ThicknessWebLeft + sectionRHS.ThicknessWebRight) * sectionRHS.Heightinternal;
-
-            else if (section.SectionShape is SectionRHS sectionRhs && section.SectionType == Section.SectionTypes.Rolled)
-                return sectionRhs.Area * sectionRhs.Height / (sectionRhs.Base + sectionRhs.Height);
-
-            else if (section.SectionShape is SectionCHS sectionCHS)
-                return 2 * sectionCHS.Area / Math.PI;
-
-            else if (section.SectionShape is SectionT sectionT)
-                {
-                // NTC 2018 [4.2.21] differs from EN 1993-1-1:2005/AC:2009 6.2.6(3).
-                if (EN1993P11 is StandardNTC2018Steel)
-                    return 0.9 * (sectionT.Area - sectionT.LenghtFlange * sectionT.ThicknessFlange);
-                if (section.SectionType == Section.SectionTypes.Welded)
-                    return sectionT.ThicknessWeb * (sectionT.Height - sectionT.ThicknessFlange / 2);
-                return sectionT.Area - sectionT.LenghtFlange * sectionT.ThicknessFlange +
-                    (sectionT.ThicknessWeb + 2 * sectionT.R) * sectionT.ThicknessFlange / 2;
-            }
-
-            else if (section.SectionShape is SectionL sectionL)
-                return sectionL.HorizontalLegLength * sectionL.HorizontalLegThickness;
-
-            else
-                throw new NotImplementedException("GetShearArea: not implemented section");
-        }
-
-        /// <summary>
-        /// EN1993-1-1: 2005 Chapter 6.2.6(3)
-        /// </summary>
-        protected double GetShearArea1(ISteelSection section)
-        {
-            if (section.SectionShape is SectionH sech)
-                return sech.LenghtTopFlange * sech.ThicknessTopFlange + sech.LenghtBottomFlange * sech.ThicknessBottomFlange;
-
-            else if (section.SectionShape is SectionC secC)
-                return secC.LengthTop * secC.ThicknessTop + secC.LengthBottom * secC.ThicknessBottom;
-
-            else if (section.SectionShape is SectionRHS sectionRHS && section.SectionType == Section.SectionTypes.Welded)
-                return sectionRHS.Area - (sectionRHS.ThicknessWebLeft + sectionRHS.ThicknessWebRight) * sectionRHS.Heightinternal;
-
-            else if (section.SectionShape is SectionRHS sectionRhs && section.SectionType == Section.SectionTypes.Rolled)
-                return sectionRhs.Area * sectionRhs.Base / (sectionRhs.Base + sectionRhs.Height);
-
-            else if (section.SectionShape is SectionCHS sectionCHS)
-                return 2 * sectionCHS.Area / Math.PI;
-
-            else if (section.SectionShape is SectionT sectionT)
-                return sectionT.LenghtFlange * sectionT.ThicknessFlange;
-
-            else if (section.SectionShape is SectionL sectionL)
-                return sectionL.VerticalLegLength * sectionL.VerticalLegThickness;
-
-            else
-                throw new NotImplementedException("GetShearArea: not implemented section");
-        }
+        protected double GetShearArea1(ISteelSection section) => ModelShearAreas.GetArea1(section);
 
         /// <summary>
         /// Shear reduction factor in case of torsion. EN1993-1-1: 2005 Chapter 6.2.7(9)

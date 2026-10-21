@@ -337,6 +337,98 @@
           ]
         }
       ]
+    },
+    {
+      "Step": 5,
+      "Version": "Steel2.10.0.0;ModelChecker2.5.0.0",
+      "BaseCommit": "e19dff41",
+      "Date": "2026-10-21",
+      "NewCases": 22,
+      "Scope": "Shear area Model adapter, scalar derived-property arithmetic, explicit tee EC3/NTC policies; original direction conventions preserved.",
+      "LegacyCasesExactlyEqual": true,
+      "Suites": [
+        {
+          "File": "properties-members.trx",
+          "Sha256": "d150ebff117a74617d20af71fb20735868312326fd74845872baf112aff81737",
+          "Counters": {
+            "total": "1572",
+            "executed": "1572",
+            "passed": "1572",
+            "failed": "0",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          },
+          "FailedTests": []
+        },
+        {
+          "File": "properties-compat-modelchecker.trx",
+          "Sha256": "5a16758b3a3e341f3ce8e830bb670c870f21bdec7bae5b50757ac3ad225e781b",
+          "Counters": {
+            "total": "103",
+            "executed": "103",
+            "passed": "103",
+            "failed": "0",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          },
+          "FailedTests": []
+        },
+        {
+          "File": "properties-compat-legacy.trx",
+          "Sha256": "85e730732865043b32000b437a109c98425da459c1069b33469ef88deaec00aa",
+          "Counters": {
+            "total": "122",
+            "executed": "122",
+            "passed": "111",
+            "failed": "11",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          },
+          "FailedTests": [
+            "Sap_SectionHAsymmetricTest1",
+            "Sap_SectionHAsymmetricTest2",
+            "Sap_SectionLTest",
+            "Sap_SectionTTest",
+            "Sap_SectionTTest2",
+            "SectionCLateralTorsionalBuckling2",
+            "SectionHBuckling1",
+            "SectionHInteraction2",
+            "SectionHInteraction3",
+            "SectionHLateralTorsionalBuckling1",
+            "SectionHLateralTorsionalBuckling2"
+          ]
+        }
+      ]
     }
   ]
 }

@@ -12,7 +12,8 @@ Le norme americane restano fuori da questo lavoro.
    e nelle formule delle facade (2.8.0.0); nuovi campi geometrici al punto 9.
 4. Migrare i chiamanti con confronto vecchio/nuovo e oracoli. COMPLETATO
    nei campi gia' qualificati (Steel2.9.0.0,ModelChecker2.4.0.0).
-5. Estrarre aree resistenti/proprieta' derivate, differenze EC3/NTC. DA FARE.
+5. Estrarre aree resistenti/proprieta' derivate, differenze EC3/NTC. COMPLETATO
+   per le formule di taglio esistenti (Steel2.10.0.0,ModelChecker2.5.0.0).
 6. Separare instabilita': Ncr/Mcr, snellezze, curve, riduzioni. DA FARE.
 7. Isolare interazioni di sezione e d'asta, con campi di applicazione. DA FARE.
 8. Consolidare NTC2018: formule comuni distinte dalle prescrizioni. DA FARE.
@@ -103,3 +104,21 @@ valori della traccia preesistente, senza nuovi campi persistiti o impronte.
 6 casi nuovi su tracciabilita' e confine classe2/3, piu' regressioni esistenti.
 Steel1550/1550; ModelChecker completo263/263 (Steel103/103).
 Legacy111/122, stessi11, diagnostica29casi/221asserzioni identica.
+
+PUNTO 5 - AREE RESISTENTI E PROPRIETA'
+ModelShearAreas ricostruisce i dati da Model; SectionPropertyArithmetic
+esegue solo formule scalari. Le facade conservano firme e convenzioni degli
+assi. ModelChecker non ricava piu' Av mediante ereditarieta' da EN1993p11Checker;
+NativeSectionProperties resta solo per il filtro sull'instabilita' a taglio.
+La politica T NTC e' distinta da T EC3; eta=1 resta l'ipotesi della facade.
+Area netta e moduli per classe sono gia' espliciti nel contratto di resistenza:
+nessuna deduzione di fori o proprieta' efficaci. Il vecchio GetAreaNet=Ag resta
+solo nel percorso legacy, come gia' documentato.
+La separazione NON qualifica nuovi orientamenti, assi principali ruotati,
+forme derivate, saldature/raccordi o intere famiglie per ogni metodo.
+22 nuovi casi su 5 famiglie, 2 produzioni, 2 norme; raccordi T e input mancanti.
+Steel1572/1572; ModelChecker Steel103/103; legacy111/122, stessi11 e
+diagnostica29casi/221asserzioni identica. Nessuna fixture modificata.
+Fonti riconsultate: EC3:2005/AC2009 6.2.6(3), pagina stampata51;
+NTC2018 4.2.4.1.2.4 [4.2.18-23], GU pagina99 (PDF cap4 pagina31):
+https://www.gazzettaufficiale.it/do/atto/serie_generale/caricaPdf?art.codiceRedazionale=18A00716&art.dataPubblicazioneGazzetta=2018-02-20&art.num=1&art.tiposerie=SG&cdimg=18A0071600100010110005&dgu=2018-02-20
