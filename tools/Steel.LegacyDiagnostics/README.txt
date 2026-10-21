@@ -1,3 +1,8 @@
+AGGIORNAMENTO 21/10/2026 - SectionHBuckling1 corretto per gli input S355
+con riferimento indipendente; restano 10 casi aperti. La pagina Cordova
+non e' dichiarata riprodotta. Vedere LEGACY_CLOSURE_01_HEA300.txt.
+I conteggi e le dichiarazioni di invarianza sotto sono storici.
+
 DIAGNOSTICA DEI CONFRONTI EC3 LEGACY
 20 ottobre 2026 - passo 1
 

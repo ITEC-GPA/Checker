@@ -1,0 +1,54 @@
+{
+  "case": "SectionHBuckling1",
+  "disposition": "Corrected test reference for unchanged S355 inputs",
+  "created_utc": "2026-10-21T10:28:31.358042+00:00",
+  "base_checker": "dafeea29",
+  "base_model": "b83c1f35",
+  "steel_version": "2.18.0.0",
+  "model_version": "5.17.0.0",
+  "production_changed": false,
+  "historical_source_reproduced": false,
+  "original_method_preserved": true,
+  "inputs_unchanged": true,
+  "other_legacy_methods_unchanged": true,
+  "before": {
+    "passed": 0,
+    "failed": [
+      "SectionHBuckling1"
+    ],
+    "other": [],
+    "trx_sha256": "103ddc14416acfb89762a67b08998874842a45ae852c47286cebd2073cfb8008"
+  },
+  "legacy_after": {
+    "passed": 112,
+    "failed": [
+      "Sap_SectionHAsymmetricTest1",
+      "Sap_SectionHAsymmetricTest2",
+      "Sap_SectionLTest",
+      "Sap_SectionTTest",
+      "Sap_SectionTTest2",
+      "SectionCLateralTorsionalBuckling2",
+      "SectionHInteraction2",
+      "SectionHInteraction3",
+      "SectionHLateralTorsionalBuckling1",
+      "SectionHLateralTorsionalBuckling2"
+    ],
+    "other": [],
+    "trx_sha256": "0e5d2030c5ae0c62df201217cdaf819deb3459e062821d6c87688cd019dd34f3"
+  },
+  "members_after": {
+    "passed": 1859,
+    "failed": [],
+    "other": [],
+    "trx_sha256": "1ad5d96c4c6e9cf94f7cf5f9e75631f5cbe6978f80a7a063fb11585b37f7fc46"
+  },
+  "unexpected_failures": [],
+  "outputs_directory": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\legacy-closure-01",
+  "evidence": {
+    "GPCChecker.Test.Steel/EN1993p11Test.cs": "99f838b6594ced3159e7644565a7057dd837569122cc46751fe8e80fbb0f792b",
+    "build/known-failures.json": "cf9d57d2bb303e8d079f5eeea98dea1f8f9e290ba3b005e705a9dbd5020f7940",
+    "tools/Steel.LegacyDiagnostics/hea300_flexural_reference.py": "01637c7c78ed1fc4cd0faccd431f3e38f534dd0b3bd3d4fad5a006ce67cc5a80",
+    "tools/Steel.LegacyDiagnostics/closed-cases/SectionHBuckling1.original.cs.txt": "2786217589514484d0a56c4794c9924d96030b18fa5fdccdc792dbe338aad2eb",
+    "tools/Steel.LegacyDiagnostics/closed-cases/SectionHBuckling1.reference.json": "851de370b020768f5cb30339ea76036369b47719ec908097058ddbfcb40b6bab"
+  }
+}

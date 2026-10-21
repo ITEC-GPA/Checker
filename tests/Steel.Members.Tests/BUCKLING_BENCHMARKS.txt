@@ -150,3 +150,8 @@ passavano. Il fix elimina i 50 fallimenti senza cambiare attesi o tolleranze.
 I 18 casi dell'estensione Mcr/LTB sono aggiunti successivamente.
 Regressione net472: 111/122, stessi 11 nomi gia' noti; ModelChecker Steel 14/14.
 Nessuna release, merge o push effettuato.
+
+Aggiornamento 21/10/2026: SectionHBuckling1 e' ora corretto per gli input
+S355, con riferimento indipendente e catena completa nel percorso pubblico.
+La precedente dichiarazione di test originale invariato e' storica.
+Vedere tools/Steel.LegacyDiagnostics/LEGACY_CLOSURE_01_HEA300.txt.

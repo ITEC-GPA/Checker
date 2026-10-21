@@ -410,7 +410,10 @@ namespace SteelTests
         [TestMethod]
         public void SectionHBuckling1()
         {
-            // Cordova Costruzioni in acciaio pagina 149
+            // Requalified for the declared S355 inputs; not a reproduction of Cordova p.149.
+            // Independent reference and unchanged historical test:
+            // tools/Steel.LegacyDiagnostics/LEGACY_CLOSURE_01_HEA300.txt.
+            // Effective lengths are explicit inputs (13000/6500 mm), not inferred restraints.
             double L = 6500;
 
             double h = 290.0;
@@ -439,15 +442,43 @@ namespace SteelTests
 
             EN1993P11Checker.PerformCheck();
 
-            double expNbRd1 = 1450000.0 * 1.05; // lui usa gammaM1 = 1.05
-            double expNbRd2 = 1588000.0 * 1.05;
-            //double expWR = 0.910/1.05;
+            // Decimal reference: exact rectangle/fillet integration and bisection of
+            // lambda^2*chi^2 - 2*Phi*chi + 1 = 0, independently of GPC.
+            // EN 1993-1-1:2005 + AC:2006/2009, 6.3.1.1-3, tables 5.2, 6.1, 6.2.
+            Assert.AreEqual(355.0, EN1993P11Checker.Fy);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM1);
+            Assert.AreEqual(11252.778955533041, sectionH.Area, 11252.778955533041 * 1e-10);
+            Assert.AreEqual(182634978.73102460, sectionH.J11, 182634978.73102460 * 1e-10);
+            Assert.AreEqual(63095590.87174197, sectionH.J22, 63095590.87174197 * 1e-10);
+            Assert.AreEqual(0, EN1993P11Checker.GetErrorLog().Count);
+            Assert.AreEqual(1, EN1993P11Checker.EN1993p11BeamStationResults.Length);
+            var result = EN1993P11Checker.EN1993p11BeamStationResults[0];
+            Assert.AreEqual(EN1993p11Checker.SectionClass.Class3, result.AxialCompressionClass);
+            Assert.AreEqual(EN1993p11Checker.EN1993p11Options.AxialBuckingCurves.b, result.BuckingCurve1);
+            Assert.AreEqual(EN1993p11Checker.EN1993p11Options.AxialBuckingCurves.c, result.BuckingCurve2);
 
-            Assert.IsTrue(Math.Abs(EN1993P11Checker.EN1993p11BeamStationResults[0].AxialBuckling1Capacity - expNbRd1) /
-                EN1993P11Checker.EN1993p11BeamStationResults[0].AxialBuckling1Capacity * 100 < 0.5);
-            Assert.IsTrue(Math.Abs(EN1993P11Checker.EN1993p11BeamStationResults[0].AxialBuckling2Capacity - expNbRd2) /
-                EN1993P11Checker.EN1993p11BeamStationResults[0].AxialBuckling2Capacity * 100 < 0.5);
-            //Assert.IsTrue(Math.Abs(EN1993P11Checker.EN1993p11BeamStationResults[0].WorkingRatio - expWR) < 0.01);
+            // Rows: principal axes 1 (y, strong) and 2 (z, weak).
+            // Columns: Lcr [mm], alpha, Ncr [N], lambda_bar, Phi, chi, Nb,Rd [N], NEd/Nb,Rd.
+            double[][] expected = {
+                new[] { 13000.0, .34, 2239836.377953149, 1.335475495222930,
+                    1.584778233358363, .410168341836943, 1638514.458263264, .805607782917661 },
+                new[] { 6500.0, .49, 3095218.686035181, 1.136052498513295,
+                    1.374640501824907, .465418233803958, 1859223.219939041, .709973921282717 }
+            };
+            double[][] actual = {
+                new[] { result.LengthAxialBuckling1, result.AlphaAxialBuckling1, result.NCr1,
+                    result.LambdaSignedAxialBuckling1, result.PhiAxialBuckling1, result.ChiAxialBuckling1,
+                    result.AxialBuckling1Capacity, result.AxialBuckling1WorkingRatio },
+                new[] { result.LengthAxialBuckling2, result.AlphaAxialBuckling2, result.NCr2,
+                    result.LambdaSignedAxialBuckling2, result.PhiAxialBuckling2, result.ChiAxialBuckling2,
+                    result.AxialBuckling2Capacity, result.AxialBuckling2WorkingRatio }
+            };
+            string[] quantities = { "Lcr", "alpha", "Ncr", "lambda_bar", "Phi", "chi", "Nb,Rd", "NEd/Nb,Rd" };
+            for (int axis = 0; axis < 2; axis++)
+                for (int quantity = 0; quantity < quantities.Length; quantity++)
+                    Assert.AreEqual(expected[axis][quantity], actual[axis][quantity],
+                        Math.Abs(expected[axis][quantity]) * 1e-10,
+                        "Axis " + (axis + 1) + ": " + quantities[quantity]);
         }
 
         [TestMethod]
