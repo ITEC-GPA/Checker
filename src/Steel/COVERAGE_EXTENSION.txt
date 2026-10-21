@@ -29,7 +29,39 @@ ModelChecker pipeline47/47. Nessuna fixture o atteso NUMERICO preesistente cambi
 Aggiornati esclusivamente i test che descrivevano come non disponibile una
 funzionalita' ora introdotta; i rifiuti ancora pertinenti restano verificati.
 
-2 IN CORSO - ASTE COMPRESSE E LTB CON DATI DI ANALISI ESPLICITI
+2 COMPLETATO - ASTE COMPRESSE E LTB CON DATI DI ANALISI ESPLICITI
+SteelMemberAnalysis.Compression: N costante e centrato, sezione prismatica
+classe1-3; Ncr1/2 esterni oppure Euler con lunghezze efficaci esplicite.
+NcrT e NcrFT richiedono ciascuno un valore oppure un'esclusione motivata.
+Curve1/2/T dichiarate dal chiamante, da verificare per prodotto/acciaio/asse.
+La capacita' e' il minimo delle resistenze di tutti i modi e della sezione.
+Il controllo non calcola automaticamente vincoli, curve o esclusioni torsionali.
+
+SteelMemberAnalysis.Bending: M1 massimo sull'asta, Mcr esterno con unita'/fonte,
+sezione costante e flessione principale senza N/M2/T. LTB EC3 generale6.3.2.2
+con curve raccomandate tab6.4; NTC4.2.4.1.3.2 tab4.2.IX, f=beta=Kchi=1,
+lambda0=.2. Per NTC Mcr deve essere riferito al momento uniforme: non si
+riutilizza un Mcr gia' amplificato per il diagramma reale. Per EC3 entrambe
+le basi sono esplicite; nessun beneficio del metodo modificato e' applicato.
+H asimmetriche e L non entrano in questo percorso LTB semplificato.
+RHS raccordato usa Wel conservativo. Taglio/sezione rimangono controlli separati.
+
+ModelChecker Steel.Pipeline.Member: nuovi AnalysisMode Compression/Bending;
+stesso motore selezionabile con contesto2005 EC3 o2018 NTC. Solo un elemento
+FEM orientato I-J, intero tratto deformabile e proprieta' uniformi: la mappatura
+di assi tra piu' elementi resta da qualificare. Non basta un taglio isolato.
+Compression richiede CompressionCurve1/2,TorsionalCurve e dati Ncr oppure
+EffectiveLength1/2 del MemberDesignContext; TorsionalExclusionSource e
+FlexuralTorsionalExclusionSource sostituiscono solo i rispettivi modi esclusi.
+Bending richiede McrBasis e Mcr.Value/Unit/Source; esamina tutti i tagli e usa
+il massimo M1 in assi principali. MemberFingerprint lega analisi, sorgenti e
+configurazione all'intero snapshot. Le fonti restano nel report archiviato.
+
+Validazione blocco2:117 nuovi casi Steel (48 famiglie/Euler,8 modi governanti,
+56 LTB norma/classe/segno,2 confronti SCI e3 casi di contratto) e9 ModelChecker.
+SuiteSteel2679/2679; flussiModelChecker56/56. Tolleranze dichiarate nei test.
+Gli esempi EC3 pubblicati confrontati con NTC tramite gamma sono esplicitamente
+confronti normativi aggiuntivi, non nuovi esempi pubblicati NTC.
 3 DA COMPLETARE - TAGLIO ELEVATO H E INTEGRAZIONE MODEL CHECKER
 4 DA COMPLETARE - COLLAUDO GLOBALE, VERSIONI E MERGE LOCALE
 

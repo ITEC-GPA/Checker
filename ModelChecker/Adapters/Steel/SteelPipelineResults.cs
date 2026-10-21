@@ -31,10 +31,25 @@ namespace GPC.Model.Checker
                 trace.Add(new CheckCalculationValue("Member.LoadPattern", null, null, analysis.LoadPatternReference));
                 trace.Add(new CheckCalculationValue("Member.ParameterSet", null, null, analysis.ParameterSet));
                 trace.Add(new CheckCalculationValue("Member.ClassificationSource", null, null, analysis.ClassificationSource));
-                trace.Add(new CheckCalculationValue("Member.LateralCurve", null, null, analysis.LateralCurve.ToString()));
-                trace.Add(new CheckCalculationValue("Member.LateralTorsionalCurve", null, null, analysis.LateralTorsionalCurve.ToString()));
-                if (analysis.Kind == GPC.Checkers.Steel.Inputs.SteelMemberAnalysisKind.UniformForkHOrT)
-                    trace.Add(new CheckCalculationValue("Member.InPlaneCurve", null, null, analysis.InPlaneCurve.ToString()));
+                if (analysis.Prismatic != null)
+                {
+                    if (analysis.Kind == GPC.Checkers.Steel.Inputs.SteelMemberAnalysisKind.PrismaticCompression)
+                    {
+                        trace.Add(new CheckCalculationValue("Member.CompressionCurve1", null, null, analysis.Prismatic.Curve1.ToString()));
+                        trace.Add(new CheckCalculationValue("Member.CompressionCurve2", null, null, analysis.Prismatic.Curve2.ToString()));
+                        trace.Add(new CheckCalculationValue("Member.TorsionalCurve", null, null, analysis.Prismatic.TorsionalCurve.ToString()));
+                        trace.Add(new CheckCalculationValue("Member.TorsionalExclusionSource", null, null, analysis.Prismatic.TorsionalExclusionSource));
+                        trace.Add(new CheckCalculationValue("Member.FlexuralTorsionalExclusionSource", null, null, analysis.Prismatic.FlexuralTorsionalExclusionSource));
+                    }
+                    else trace.Add(new CheckCalculationValue("Member.McrBasis", null, null, analysis.Prismatic.CriticalMomentBasis.ToString()));
+                }
+                else
+                {
+                    trace.Add(new CheckCalculationValue("Member.LateralCurve", null, null, analysis.LateralCurve.ToString()));
+                    trace.Add(new CheckCalculationValue("Member.LateralTorsionalCurve", null, null, analysis.LateralTorsionalCurve.ToString()));
+                    if (analysis.Kind == GPC.Checkers.Steel.Inputs.SteelMemberAnalysisKind.UniformForkHOrT)
+                        trace.Add(new CheckCalculationValue("Member.InPlaneCurve", null, null, analysis.InPlaneCurve.ToString()));
+                }
                 foreach (var v in analysis.Values)
                 {
                     trace.Add(new CheckCalculationValue("Member.External." + v.Quantity, v.Value, v.Unit, v.Source));
@@ -69,8 +84,8 @@ namespace GPC.Model.Checker
                     diagnostics.Add(ModelDiagnostic.Error("SteelPipeline." + prefix + "." + check.DiagnosticCode, message: check.Message));
                 if (check.IsEvaluated)
                 {
-                    double? demand = check.Decision.Method == SteelMethod.SectionTension || check.Decision.Method == SteelMethod.SectionCompression ? a.N
-                        : check.Decision.Method == SteelMethod.SectionBending1 ? a.M1
+                    double? demand = check.Decision.Method == SteelMethod.SectionTension || check.Decision.Method == SteelMethod.SectionCompression || check.Decision.Method == SteelMethod.PrismaticCompression ? a.N
+                        : check.Decision.Method == SteelMethod.SectionBending1 || check.Decision.Method == SteelMethod.PrismaticLateralTorsionalBuckling ? a.M1
                         : check.Decision.Method == SteelMethod.SectionBending2 ? a.M2
                         : check.Decision.Method == SteelMethod.SectionShear1 ? a.V1
                         : check.Decision.Method == SteelMethod.SectionShear2 ? (double?)a.V2 : null;

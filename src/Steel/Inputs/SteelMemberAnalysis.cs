@@ -7,7 +7,7 @@ namespace GPC.Checkers.Steel.Inputs
 {
     public enum SteelStabilityQuantity { Ncr1, Ncr2, NcrT, NcrFT, Mcr, AlphaUltK, AlphaCrOp }
     public enum SteelStabilityUnit { N, KN, Nmm, KNm, One }
-    public enum SteelMemberAnalysisKind { UniformForkHOrT, ExternalInPlane }
+    public enum SteelMemberAnalysisKind { UniformForkHOrT, ExternalInPlane, PrismaticCompression, PrismaticBending }
 
     /// <summary>Positive analysis value with explicit original units and source.
     /// Ncr/Mcr are elastic bifurcation values, never design resistances.
@@ -54,11 +54,12 @@ namespace GPC.Checkers.Steel.Inputs
         public IReadOnlyList<SteelStabilityValue> Values { get; }
         public int? ExternalMemberClass { get; }
         public string ClassificationSource { get; }
+        public SteelPrismaticMemberData Prismatic { get; }
 
         private SteelMemberAnalysis(SteelVerificationInput input, SteelMemberAnalysisKind kind,
             string loadPatternReference, string parameterSet, Ec3GeneralMethodCurve inPlane,
             Ec3GeneralMethodCurve lateral, Ec3GeneralMethodCurve lt, IEnumerable<SteelStabilityValue> values,
-            int? memberClass, string classificationSource)
+            int? memberClass, string classificationSource, SteelPrismaticMemberData prismatic = null)
         {
             Input = input ?? throw new ArgumentNullException(nameof(input));
             if (string.IsNullOrWhiteSpace(loadPatternReference) || string.IsNullOrWhiteSpace(parameterSet))
@@ -74,8 +75,34 @@ namespace GPC.Checkers.Steel.Inputs
                 throw new ArgumentException("Member class and classification source must be supplied together.");
             Kind = kind; LoadPatternReference = loadPatternReference; ParameterSet = parameterSet;
             InPlaneCurve = inPlane; LateralCurve = lateral; LateralTorsionalCurve = lt;
-            Values = Array.AsReadOnly(copy); ExternalMemberClass = memberClass; ClassificationSource = classificationSource;
+            Values = Array.AsReadOnly(copy); ExternalMemberClass = memberClass; ClassificationSource = classificationSource; Prismatic = prismatic;
         }
+
+        /// <summary>EC3/NTC prismatic concentric CONSTANT compression. Curves must
+        /// be established for the fabrication/grade/axis. Ncr1/2 may be supplied or
+        /// calculated by Euler from explicit effective lengths. NcrT and NcrFT each
+        /// require either a value or a reasoned exclusion source. No absence inference.</summary>
+        public static SteelMemberAnalysis Compression(SteelVerificationInput input, string loadPatternReference,
+            string parameterSet, SteelBucklingCurve curve1, SteelBucklingCurve curve2, SteelBucklingCurve torsionalCurve,
+            IEnumerable<SteelStabilityValue> values = null, string torsionalExclusionSource = null,
+            string flexuralTorsionalExclusionSource = null, int? memberClass = null, string classificationSource = null)
+            => new SteelMemberAnalysis(input, SteelMemberAnalysisKind.PrismaticCompression, loadPatternReference, parameterSet,
+                Ec3GeneralMethodCurve.A, Ec3GeneralMethodCurve.A, Ec3GeneralMethodCurve.D, values, memberClass, classificationSource,
+                new SteelPrismaticMemberData(curve1, curve2, torsionalCurve, torsionalExclusionSource, flexuralTorsionalExclusionSource,
+                    SteelCriticalMomentBasis.ActualMomentDiagram));
+
+        /// <summary>Prismatic pure major-axis bending. M1 is the member maximum,
+        /// Mcr describes gross-section elastic bifurcation and the full restraint/load
+        /// model. NTC requires UniformMoment basis, using f=beta=Kchi=1,lambda0=.2.
+        /// EC3 uses 6.3.2.2 recommended Table6.4 curves; NTC uses its Table4.2.IX.
+        /// Shear resistance/interaction at every cut must be checked separately.</summary>
+        public static SteelMemberAnalysis Bending(SteelVerificationInput input, string loadPatternReference,
+            string parameterSet, SteelCriticalMomentBasis basis, SteelStabilityValue criticalMoment,
+            int? memberClass = null, string classificationSource = null)
+            => new SteelMemberAnalysis(input, SteelMemberAnalysisKind.PrismaticBending, loadPatternReference, parameterSet,
+                Ec3GeneralMethodCurve.A, Ec3GeneralMethodCurve.A, Ec3GeneralMethodCurve.D,
+                criticalMoment == null ? null : new[] { criticalMoment }, memberClass, classificationSource,
+                new SteelPrismaticMemberData(SteelBucklingCurve.A, SteelBucklingCurve.A, SteelBucklingCurve.D, null, null, basis));
 
         /// <summary>Caller explicitly declares a uniform sharp H/T, fork ends/free
         /// warping, no sway/intermediate restraints/transverse loads/plastic hinges,

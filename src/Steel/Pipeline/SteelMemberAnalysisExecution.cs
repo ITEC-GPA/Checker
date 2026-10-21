@@ -14,6 +14,7 @@ namespace GPC.Checkers.Steel.Pipeline
     {
         internal static SteelMethodDecision Select(SteelMemberAnalysis analysis)
         {
+            if (analysis.Prismatic != null) return SteelPrismaticMemberExecution.Select(analysis);
             var i = analysis.Input; var missing = new List<string>();
             if (i.Member == null) missing.Add("Member");
             if (!i.Code.GammaM1.HasValue) missing.Add("Code.GammaM1");
@@ -60,6 +61,7 @@ namespace GPC.Checkers.Steel.Pipeline
 
         internal static SteelCheckExecution Execute(SteelMemberAnalysis analysis, SteelMethodDecision decision)
         {
+            if (analysis.Prismatic != null) return SteelPrismaticMemberExecution.Execute(analysis, decision);
             var i = analysis.Input; var trace = new List<SectionResistanceValue>();
             Ec3GeneralMethodResult result; double utilization;
             if (analysis.Kind == SteelMemberAnalysisKind.UniformForkHOrT)

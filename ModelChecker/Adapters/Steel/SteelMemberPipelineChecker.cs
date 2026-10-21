@@ -28,7 +28,7 @@ namespace GPC.Model.Checker
     public sealed class SteelMemberPipelineChecker : IMaterialChecker, IPhysicalMemberVerifier
     {
         public const string EngineId = "Steel.Pipeline.Member";
-        internal const string Limitations = "Explicit EC3:2005 member analysis; internal uniform sharp H/T fork route or source-bound external in-plane general method. NTC member route not qualified. No biaxial member method, transverse actions, torsion, plastic hinges or connections.";
+        internal const string Limitations = "EC3:2005/NTC2018 prismatic compression and major-axis LTB with explicit critical values/mode assessments. EC3 also has uniform H/T fork and external in-plane general methods. No general biaxial member method, torsion, plastic hinges or connections. Section/shear checks are separate.";
         private readonly Dictionary<string, string> _parameters;
         public IReadOnlyDictionary<string, string> Parameters { get; }
         public StandardEN1993p11 Code { get; }
@@ -47,7 +47,8 @@ namespace GPC.Model.Checker
             Edition = edition; NationalAnnex = nationalAnnex;
             _parameters = parameters == null ? new Dictionary<string, string>(StringComparer.Ordinal) : new Dictionary<string, string>(parameters, StringComparer.Ordinal);
             var keys = new HashSet<string>(new[] { "AnalysisMode", "LoadPatternReference", "ParameterSet", "MemberFingerprint", "Unperforated",
-                "InPlaneCurve", "LateralCurve", "LateralTorsionalCurve", "MemberClass", "ClassificationSource" }, StringComparer.Ordinal);
+                "InPlaneCurve", "LateralCurve", "LateralTorsionalCurve", "MemberClass", "ClassificationSource",
+                "CompressionCurve1", "CompressionCurve2", "TorsionalCurve", "TorsionalExclusionSource", "FlexuralTorsionalExclusionSource", "McrBasis" }, StringComparer.Ordinal);
             foreach (SteelStabilityQuantity quantity in Enum.GetValues(typeof(SteelStabilityQuantity)))
                 foreach (var suffix in new[] { ".Value", ".Unit", ".Source" }) keys.Add(quantity + suffix);
             foreach (var pair in _parameters)
@@ -56,7 +57,9 @@ namespace GPC.Model.Checker
         }
         public bool Accepts(BeamElement element) => element?.BeamProperty is ISteelSection;
         public bool Supports(string methodId, CheckMechanism mechanism) => methodId == Id && mechanism == CheckMechanism.Stability
-            && Code.GetType() == typeof(StandardEN1993p11) && Edition == "2005";
+            && (Code.GetType() == typeof(StandardEN1993p11) && Edition == "2005"
+                || Code.GetType() == typeof(StandardNTC2018Steel) && Edition == "2018"
+                    && _parameters.TryGetValue("AnalysisMode", out var mode) && (mode == "Compression" || mode == "Bending"));
         public IMaterialCheckSession CreateSession() => new NoSectionSession();
         private sealed class NoSectionSession : IMaterialCheckSession
         {
@@ -90,15 +93,28 @@ namespace GPC.Model.Checker
                 string fingerprint = ModelValues.Fingerprint(new object[] { input.Snapshot });
                 if (Required("MemberFingerprint") != fingerprint) return NativeResults.Missing("SteelMember.AnalysisSnapshotMismatch");
                 if (!bool.TryParse(Required("Unperforated"), out bool unperforated)) throw new ArgumentException("InvalidUnperforatedDeclaration");
-                var first = input.ActionSections.FirstOrDefault(c => c.Forces.N != 0 || c.Forces.M1 != 0 || c.Forces.M2 != 0) ?? input.ActionSections[0];
+                string mode = Required("AnalysisMode");
+                var first = mode == "Compression" ? input.ActionSections.OrderByDescending(c => Math.Abs(c.Forces.N)).First()
+                    : mode == "Bending" ? input.ActionSections.OrderByDescending(c => Math.Abs(c.Forces.M1)).First()
+                    : input.ActionSections.FirstOrDefault(c => c.Forces.N != 0 || c.Forces.M1 != 0 || c.Forces.M2 != 0) ?? input.ActionSections[0];
                 var snapshot = input.Snapshot;
                 if (!(first.Property is ISteelSection section)) return NativeResults.Unavailable("SteelMember.SteelSectionRequired");
-                var context = new SteelDesignContext(SectionResistanceCode.Eurocode3(Code.GammaM0, Code.GammaM2, Required("ParameterSet")), Code.GammaM1);
+                var context = Code.GetType() == typeof(StandardNTC2018Steel) ? SteelDesignContext.Ntc2018()
+                    : new SteelDesignContext(SectionResistanceCode.Eurocode3(Code.GammaM0, Code.GammaM2, Required("ParameterSet")), Code.GammaM1);
+                if (Code.GetType() == typeof(StandardNTC2018Steel) && (Code.GammaM0 != context.SectionCode.GammaM0
+                    || Code.GammaM1 != context.GammaM1 || Code.GammaM2 != context.SectionCode.GammaM2))
+                    return NativeResults.Unavailable("SteelMember.NtcFactorsNotQualified");
                 var member = new SteelMemberInput(snapshot.SpanEnd - snapshot.SpanStart,
                     snapshot.Context.EffectiveLength1, snapshot.Context.EffectiveLength2);
                 var common = ModelSteelInput.FromSectionAxes(new SteelSectionInput(section, unperforated), first.Forces, context, member);
+                SteelMemberAnalysis analysis;
+                if (mode == "Compression" || mode == "Bending")
+                    analysis = Prismatic(input, common, context, mode);
+                else
+                {
+                if (new[] { "CompressionCurve1", "CompressionCurve2", "TorsionalCurve", "TorsionalExclusionSource", "FlexuralTorsionalExclusionSource", "McrBasis" }.Any(_parameters.ContainsKey))
+                    throw new ArgumentException("PrismaticParametersOnGeneralMethodRoute");
                 var lateral = EnumValue<Ec3GeneralMethodCurve>("LateralCurve"); var lt = EnumValue<Ec3GeneralMethodCurve>("LateralTorsionalCurve");
-                string mode = Required("AnalysisMode"); SteelMemberAnalysis analysis;
                 if (mode == "UniformFork")
                 {
                     if (_parameters.ContainsKey("MemberClass") || _parameters.ContainsKey("ClassificationSource") || _parameters.Keys.Any(k => k.EndsWith(".Value") || k.EndsWith(".Unit") || k.EndsWith(".Source")))
@@ -140,6 +156,7 @@ namespace GPC.Model.Checker
                         memberClass, _parameters.TryGetValue("ClassificationSource", out var source) ? source : null);
                 }
                 else throw new ArgumentException("UnknownSteelMemberAnalysisMode");
+                }
                 var result = SteelVerificationPipeline.Execute(SteelMethodSelector.SelectMember(analysis), cancellationToken: token);
                 return SteelPipelineResults.Map(result, fingerprint, Id, Limitations);
             }
@@ -150,6 +167,49 @@ namespace GPC.Model.Checker
             }
             catch (NotSupportedException ex) { return NativeResults.Unavailable("SteelMember.NotSupported", ex.Message); }
         }
+        private SteelMemberAnalysis Prismatic(PhysicalMemberCheckInput input, SteelVerificationInput common, SteelDesignContext context, string mode)
+        {
+            bool compression = mode == "Compression";
+            if (new[] { "InPlaneCurve", "LateralCurve", "LateralTorsionalCurve" }.Any(_parameters.ContainsKey))
+                throw new ArgumentException("GeneralMethodCurvesOnPrismaticRoute");
+            if (compression ? _parameters.ContainsKey("McrBasis") : new[] { "CompressionCurve1", "CompressionCurve2", "TorsionalCurve", "TorsionalExclusionSource", "FlexuralTorsionalExclusionSource" }.Any(_parameters.ContainsKey))
+                throw new ArgumentException("ParametersForAnotherPrismaticMechanism");
+            // The Model adapter does not yet reconcile principal frames across multiple
+            // FEM elements; the native API remains available for independently prepared data.
+            var snapshot = input.Snapshot;
+            if (snapshot.Definition.Parts.Count != 1 || !snapshot.Definition.Parts[0].AlongIJ
+                || snapshot.SpanStart != 0 || snapshot.SpanEnd != snapshot.Length || snapshot.Length != snapshot.DeformableLength)
+                throw new NotSupportedException("Prismatic adapter requires one complete forward deformable FEM member.");
+            string sectionKey = ModelValues.Fingerprint(new object[] { input.ActionSections[0].Property });
+            foreach (var cut in input.ActionSections)
+            {
+                if (ModelValues.Fingerprint(new object[] { cut.Property }) != sectionKey) throw new NotSupportedException("Nonuniform prismatic section.");
+                var a = ModelSteelInput.FromSectionAxes(common.Section, cut.Forces, context).Actions;
+                if (a.T != 0 || a.M2 != 0 || a.V1 != 0 || compression && (a.M1 != 0 || a.V2 != 0 || a.N > 0)
+                    || !compression && a.N != 0) throw new NotSupportedException("Actions outside selected prismatic mechanism.");
+                if (compression && Math.Abs(a.N - common.Actions.N) > 1e-10 * Math.Max(1, Math.Abs(common.Actions.N)))
+                    throw new NotSupportedException("Compression must be constant over the full member.");
+                if (!compression && Math.Abs(a.M1) > Math.Abs(common.Actions.M1))
+                    common = new SteelVerificationInput(common.Section, a, common.Code, common.Member);
+            }
+            int? memberClass = null;
+            if (_parameters.ContainsKey("MemberClass"))
+            { if (!int.TryParse(Required("MemberClass"), NumberStyles.None, CultureInfo.InvariantCulture, out int cls)) throw new ArgumentException("InvalidMemberClass"); memberClass = cls; }
+            string source = _parameters.TryGetValue("ClassificationSource", out var supplied) ? supplied : null;
+            var values = new List<SteelStabilityValue>();
+            foreach (SteelStabilityQuantity q in Enum.GetValues(typeof(SteelStabilityQuantity)))
+                if (new[] { ".Value", ".Unit", ".Source" }.Any(s => _parameters.ContainsKey(q + s)))
+                    values.Add(new SteelStabilityValue(q, Number(q + ".Value"), EnumValue<SteelStabilityUnit>(q + ".Unit"), Required(q + ".Source")));
+            if (compression)
+                return SteelMemberAnalysis.Compression(common, Required("LoadPatternReference"), Required("ParameterSet"),
+                    EnumValue<SteelBucklingCurve>("CompressionCurve1"), EnumValue<SteelBucklingCurve>("CompressionCurve2"), EnumValue<SteelBucklingCurve>("TorsionalCurve"), values,
+                    _parameters.TryGetValue("TorsionalExclusionSource", out var excludeT) ? excludeT : null,
+                    _parameters.TryGetValue("FlexuralTorsionalExclusionSource", out var excludeFT) ? excludeFT : null, memberClass, source);
+            if (values.Any(v => v.Quantity != SteelStabilityQuantity.Mcr)) throw new ArgumentException("OnlyMcrOnBendingRoute");
+            return SteelMemberAnalysis.Bending(common, Required("LoadPatternReference"), Required("ParameterSet"),
+                EnumValue<SteelCriticalMomentBasis>("McrBasis"), values.SingleOrDefault(), memberClass, source);
+        }
+
         private static bool Same(SteelActions a, SteelActions b)
         {
             var first = new[] { a.N, a.V1, a.V2, a.T, a.M1, a.M2 }; var second = new[] { b.N, b.V1, b.V2, b.T, b.M1, b.M2 };
