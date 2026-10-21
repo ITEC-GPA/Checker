@@ -429,6 +429,98 @@
           ]
         }
       ]
+    },
+    {
+      "Step": 6,
+      "Version": "Steel2.11.0.0",
+      "BaseCommit": "da065d9a",
+      "Date": "2026-10-21",
+      "NewCases": 0,
+      "Scope": "Extract elastic Ncr/Mcr arithmetic and separate slenderness/reductions. Existing independent stability benchmarks rerun.",
+      "LegacyCasesExactlyEqual": true,
+      "Suites": [
+        {
+          "File": "stability-extraction-members.trx",
+          "Sha256": "54c520c9e0f522290a0fcd07e2a476d78996f32efe38e45b98e76a6ddeece563",
+          "Counters": {
+            "total": "1572",
+            "executed": "1572",
+            "passed": "1572",
+            "failed": "0",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          },
+          "FailedTests": []
+        },
+        {
+          "File": "stability-extraction-compat-modelchecker.trx",
+          "Sha256": "65d2619854e86e3597eddb9837ec3918e1f84c8afa32d7a1f88fda3926863807",
+          "Counters": {
+            "total": "103",
+            "executed": "103",
+            "passed": "103",
+            "failed": "0",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          },
+          "FailedTests": []
+        },
+        {
+          "File": "stability-extraction-compat-legacy.trx",
+          "Sha256": "111e09a691eeb1a89d7d208d9f650670a5aef945995498c6b789e467386b67c4",
+          "Counters": {
+            "total": "122",
+            "executed": "122",
+            "passed": "111",
+            "failed": "11",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          },
+          "FailedTests": [
+            "Sap_SectionHAsymmetricTest1",
+            "Sap_SectionHAsymmetricTest2",
+            "Sap_SectionLTest",
+            "Sap_SectionTTest",
+            "Sap_SectionTTest2",
+            "SectionCLateralTorsionalBuckling2",
+            "SectionHBuckling1",
+            "SectionHInteraction2",
+            "SectionHInteraction3",
+            "SectionHLateralTorsionalBuckling1",
+            "SectionHLateralTorsionalBuckling2"
+          ]
+        }
+      ]
     }
   ]
 }

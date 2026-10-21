@@ -1,4 +1,5 @@
 using GPC.Checkers.Steel.Sections;
+using GPC.Checkers.Steel.Members;
 using GPC.Checkers.Steel.ModelAdapters;
 using GPC.Geometry;
 using System.Collections.Generic;
@@ -627,7 +628,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         protected double GetNcrEuler(double length, double J)
         {
-            return Math.Pow(Math.PI, 2.0) * Material.E * J / (Math.Pow(length, 2.0));
+            return ElasticStabilityArithmetic.Euler(length, J, Material.E);
         }
 
         /// <summary>
@@ -636,7 +637,7 @@ namespace GPC.Checkers.Steel.Checkers
         protected double GetLambdaSigned(SectionClass sectionClass, ISteelSection section, double Ncr)
         {
             if (sectionClass != SectionClass.Class4)
-                return Math.Pow(section.Area * Fy / Ncr, 0.5);
+                return BucklingReductionArithmetic.AxialSlenderness(section.Area, Fy, Ncr);
             else
                 return Math.Sqrt(GetAreaEff(section) * Fy / Ncr);
         }
@@ -646,7 +647,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         protected double GetChi(double phi, double lambdaSigned, double beta = 1.0)
         {
-            return Math.Min(1.0 / (phi + Math.Pow(Math.Pow(phi, 2.0) - beta * Math.Pow(lambdaSigned, 2.0), 0.5)), 1.0);
+            return BucklingReductionArithmetic.AxialChi(phi, lambdaSigned, beta);
         }
 
         /// <summary>
@@ -654,7 +655,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         protected double GetPhiForBuckling(double alphaImperfectionFactor, double lambdaSigned, double beta = 1.0, double lambda_LT0 = 0.2) //default beta=1, lambda_LT0 = 0.2
         {
-            return 0.5 * (1 + alphaImperfectionFactor * (lambdaSigned - lambda_LT0) + beta * Math.Pow(lambdaSigned, 2.0));
+            return BucklingReductionArithmetic.Phi(alphaImperfectionFactor, lambdaSigned, beta, lambda_LT0);
         }
 
         /// <summary>
@@ -1310,7 +1311,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         protected double GetFactorFForLTB(double kc, double lambdaLT)
         {
-            return Math.Min(1.0, 1.0 - 0.5 * (1.0 - kc) * (1.0 - 2.0 * Math.Pow(lambdaLT - 0.8, 2.0)));
+            return BucklingReductionArithmetic.MomentGradientFactor(kc, lambdaLT);
         }
 
         /// <summary>
@@ -1433,7 +1434,7 @@ namespace GPC.Checkers.Steel.Checkers
             // EN1993-1-1:2005 eq6.56. The channel-only additive lambdaT
             // from the modified DIN/research methods is not part of this definition.
             // Loading eccentricity/torsion needs its own qualified analysis.
-            return Math.Sqrt(modulus * Fy / Mcr);
+            return BucklingReductionArithmetic.MomentSlenderness(modulus, Fy, Mcr);
         }
 
         protected double CalculateMcr(ISteelSection section, ResultBeamForces forces, double length,
@@ -1643,10 +1644,8 @@ namespace GPC.Checkers.Steel.Checkers
                 zj = 0;
             }
 
-            return c1 * (Math.Pow(Math.PI, 2.0) * Material.E * section.J22 / Math.Pow(k * length, 2.0)) *
-                (Math.Pow(Math.Pow(k / kw, 2.0) * section.Jw / section.J22 +
-                Math.Pow(k * length, 2.0) * G * section.Jt / (Math.Pow(Math.PI, 2.0) * Material.E * section.J22) +
-                Math.Pow(c2 * zg - c3 * zj, 2.0), 0.5) - (c2 * zg - c3 * zj));
+            return ElasticStabilityArithmetic.LateralTorsional(Material.E, G, section.J22, section.Jt,
+                section.Jw, length, k, kw, c1, c2 * zg - c3 * zj);
         }
 
         // CISC Torsional section properties (2002), eq.(3): zj=-betaX/2.
@@ -1751,12 +1750,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         protected double GetChiLTmod(double Phi, double lambdaSigned, double beta = 1.0, double f = 1.0) //beta_default = 1, f=1
         {
-            double Chi = 1.0 / (Phi + Math.Pow(Math.Pow(Phi, 2.0) - beta * Math.Pow(lambdaSigned, 2.0), 0.5));
-            Chi = GetMin(new double[] { Chi, 1.0, 1.0 / Math.Pow(lambdaSigned, 2.0) });
-
-            double ChiLTMod = Math.Min(Chi / f, 1.0);
-            ChiLTMod = Math.Min(ChiLTMod, 1.0 / Math.Pow(lambdaSigned, 2.0));
-            return ChiLTMod;
+            return BucklingReductionArithmetic.LateralChi(Phi, lambdaSigned, beta, f);
         }
 
         protected void GetC1C2C3ForMcr(EN1993p11Options.SupportConditions supportCondition, EN1993p11Options.LoadConditions loadCondition,
@@ -1997,11 +1991,9 @@ namespace GPC.Checkers.Steel.Checkers
 
         protected double GetNcrT(ISteelSection section)  //EN 1993-1-3 eq 6.33a => SOLO COLD FORMED
         {
-            double G = Material.E / (2.0 * (1.0 + Material.Ni));
-            double i0 = Math.Pow(Math.Pow(section.R11, 2.0) + Math.Pow(section.R22, 2.0) +
-                Math.Pow((section.ShearCenter.X - section.Centroid.X), 2.0) + Math.Pow((section.ShearCenter.Y - section.Centroid.Y), 2.0), 0.5);
-
-            return 1.0 / Math.Pow(i0, 2.0) * (G * section.Jt + Math.Pow(Math.PI, 2.0) * Material.E * section.Jw / Math.Pow(GetLengthLatTorsBuckling(), 2.0));
+            return ElasticStabilityArithmetic.Torsional(Material.E, Material.Ni, section.R11, section.R22,
+                section.ShearCenter.X - section.Centroid.X, section.ShearCenter.Y - section.Centroid.Y,
+                section.Jt, section.Jw, GetLengthLatTorsBuckling());
         }
 
         protected double GetNcrTF(ISteelSection section, double Ncr1, double Ncr2, double NcrT)
@@ -2028,23 +2020,7 @@ namespace GPC.Checkers.Steel.Checkers
             if (dx == 0 && dy == 0)
                 return NcrT;
 
-            // Coupled elastic characteristic determinant. Exact for a shared sine
-            // mode with fork ends and free warping (coupling integrals equal 1).
-            // Snijder/Balaz/Stroetmann, ce/papers8(2025),eq17,p618. Other effective
-            // lengths remain an approximation; no general restraint eigenproblem
-            // is claimed here. Normalize to avoid force-unit sensitivity and poles.
-            double ax = x0 * x0 / i02, ay = y0 * y0 / i02;
-            double lower = 0, upper = Math.Min(Ncr1, Math.Min(Ncr2, NcrT));
-            for (int i = 0; i < 80; i++)
-            {
-                double n = lower + (upper - lower) / 2;
-                double u = n / Ncr1, v = n / Ncr2, w = n / NcrT;
-                double determinant = (1 - u) * (1 - v) * (1 - w)
-                    - u * w * ax * (1 - v) - v * w * ay * (1 - u);
-                if (determinant > 0) lower = n;
-                else upper = n;
-            }
-            return lower + (upper - lower) / 2;
+            return ElasticStabilityArithmetic.FlexuralTorsional(Ncr1, Ncr2, NcrT, x0, y0, i02);
         }
 
         //protected double CalculateMcr0(ISteelSection section, SectionClass sectionClass)

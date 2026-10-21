@@ -138,11 +138,11 @@ namespace GPC.Checkers.Steel.Members
                 string curve = coldOrSolid ? "c" : member.NominalGrade == 460 ? "a0" : "a";
                 double alpha = coldOrSolid ? basis.AlphaImperfectionFactorForCurveC
                     : member.NominalGrade == 460 ? basis.AlphaImperfectionFactorForCurveA0 : basis.AlphaImperfectionFactorForCurveA;
-                double critical = Math.PI * Math.PI * member.ElasticModulus * inertia / (length.Value * length.Value);
-                double normalized = Math.Sqrt(member.Area * member.YieldStrength / critical);
+                double critical = ElasticStabilityArithmetic.Euler(length.Value, inertia, member.ElasticModulus);
+                double normalized = BucklingReductionArithmetic.AxialSlenderness(member.Area, member.YieldStrength, critical);
                 double geometric = length.Value / Math.Sqrt(inertia / member.Area);
-                double phi = .5 * (1 + alpha * (normalized - .2) + normalized * normalized);
-                double reduction = normalized <= .2 ? 1 : Math.Min(1, 1 / (phi + Math.Sqrt(phi * phi - normalized * normalized)));
+                double phi = BucklingReductionArithmetic.Phi(alpha, normalized);
+                double reduction = normalized <= .2 ? 1 : BucklingReductionArithmetic.AxialChi(phi, normalized);
                 double capacity = reduction * member.Area * member.YieldStrength / basis.GammaM1;
                 if (!Finite(critical) || critical <= 0 || !Finite(normalized) || !Finite(geometric) || !Finite(capacity) || capacity <= 0)
                     throw new ArithmeticException("Axial buckling calculation outside finite numerical range.");

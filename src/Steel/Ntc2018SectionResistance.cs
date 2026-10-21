@@ -66,10 +66,10 @@ namespace GPC.Checkers.Steel.Members
             Positive(yieldStrength, nameof(yieldStrength));
             if (imperfection != .13 && imperfection != .21 && imperfection != .34 && imperfection != .49 && imperfection != .76)
                 throw new ArgumentOutOfRangeException(nameof(imperfection), "Select an NTC curve: a0, a, b, c or d.");
-            double critical = PositiveResult(Math.PI * Math.PI * elasticModulus * inertia / (effectiveLength * effectiveLength));
-            double slenderness = PositiveResult(Math.Sqrt(area * yieldStrength / critical));
-            double phi = .5 * (1 + imperfection * (slenderness - .2) + slenderness * slenderness);
-            double reduction = slenderness <= .2 ? 1 : Math.Min(1, 1 / (phi + Math.Sqrt(phi * phi - slenderness * slenderness)));
+            double critical = PositiveResult(ElasticStabilityArithmetic.Euler(effectiveLength, inertia, elasticModulus));
+            double slenderness = PositiveResult(BucklingReductionArithmetic.AxialSlenderness(area, yieldStrength, critical));
+            double phi = BucklingReductionArithmetic.Phi(imperfection, slenderness);
+            double reduction = slenderness <= .2 ? 1 : BucklingReductionArithmetic.AxialChi(phi, slenderness);
             return new FlexuralBucklingResistance(critical, slenderness, reduction,
                 PositiveResult(reduction * area * yieldStrength / GammaM1));
         }

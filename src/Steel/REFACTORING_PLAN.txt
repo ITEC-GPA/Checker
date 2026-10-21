@@ -14,7 +14,8 @@ Le norme americane restano fuori da questo lavoro.
    nei campi gia' qualificati (Steel2.9.0.0,ModelChecker2.4.0.0).
 5. Estrarre aree resistenti/proprieta' derivate, differenze EC3/NTC. COMPLETATO
    per le formule di taglio esistenti (Steel2.10.0.0,ModelChecker2.5.0.0).
-6. Separare instabilita': Ncr/Mcr, snellezze, curve, riduzioni. DA FARE.
+6. Separare instabilita': Ncr/Mcr e snellezze/riduzioni estratti; selezione
+   di curve/vincoli distinta nei chiamanti. COMPLETATO (Steel2.11.0.0).
 7. Isolare interazioni di sezione e d'asta, con campi di applicazione. DA FARE.
 8. Consolidare NTC2018: formule comuni distinte dalle prescrizioni. DA FARE.
 9. Colmare copertura indipendente e riesaminare gli11 legacy. DA FARE.
@@ -122,3 +123,23 @@ diagnostica29casi/221asserzioni identica. Nessuna fixture modificata.
 Fonti riconsultate: EC3:2005/AC2009 6.2.6(3), pagina stampata51;
 NTC2018 4.2.4.1.2.4 [4.2.18-23], GU pagina99 (PDF cap4 pagina31):
 https://www.gazzettaufficiale.it/do/atto/serie_generale/caricaPdf?art.codiceRedazionale=18A00716&art.dataPubblicazioneGazzetta=2018-02-20&art.num=1&art.tiposerie=SG&cdimg=18A0071600100010110005&dgu=2018-02-20
+
+PUNTO 6 - INSTABILITA' ELASTICA E RIDUZIONI
+ElasticStabilityArithmetic contiene Euler, torsione, determinante accoppiato
+flesso-torsionale e Mcr con coefficienti/termini geometrici gia' determinati.
+Non riceve fy, curva o gamma. BucklingReductionArithmetic contiene snellezze,
+Phi, chi, f e chiLT. Geometria, curva, condizioni al contorno e scelta del
+metodo restano nei chiamanti EC3/NTC; le politiche non vengono fuse.
+Anche i percorsi NTC condividono il solo nucleo elastico/flessionale compatibile.
+Nessuna nuova qualifica dei vincoli e nessun modello generale FEM introdotto.
+Ordine delle operazioni EC3 e comportamento legacy preservati. Nessun test
+ridondante aggiunto: rieseguiti tutti i benchmark indipendenti gia' presenti.
+Steel1572/1572; ModelChecker Steel103/103; legacy111/122, stessi11,
+identici29casi/221asserzioni diagnostici. Zero test ignorati.
+
+OSSERVAZIONE PER IL PUNTO 9
+Rivedere la selezione delle curve per cassoni saldati: i due selettori legacy
+confrontano t/b e t/h con40/30, mentre la tabella6.2 EC3 usa b/tf e h/tw
+e distingue il caso di saldature spesse a>0.5tf. Non basta invertire rapporti:
+va esplicitata la disponibilita'/provenienza dello spessore di gola a.
+Fonte riconsultata: EN1993-1-1:2005/AC2009 tabella6.2, pagina stampata58.
