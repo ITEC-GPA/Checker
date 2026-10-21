@@ -1,3 +1,6 @@
+using GPC.Checkers.Steel.Sections;
+using GPC.Checkers.Steel.Members;
+using GPC.Checkers.Steel.ModelAdapters;
 using GPC.Geometry;
 using System.Collections.Generic;
 using GPC.Checkers.Steel.Results;
@@ -492,8 +495,7 @@ namespace GPC.Checkers.Steel.Checkers
                             // interaction is limited to doubly symmetric sections.
                             // Keep section/LTB components readable, but do not
                             // present Annex A outside its scope as a valid check.
-                            bool combinedMemberAction = (rbf.M1 != 0 || rbf.M2 != 0) &&
-                                (rbf.N != 0 || (rbf.M1 != 0 && rbf.M2 != 0));
+                            bool combinedMemberAction = MemberInteractionArithmetic.IsCombinedAction(rbf.N, rbf.M1, rbf.M2);
                             if (!steelSection.IsDoubleSymmetric && combinedMemberAction)
                             {
                                 stationResults[stationIndex].InvalidateMemberInteraction();
@@ -528,20 +530,20 @@ namespace GPC.Checkers.Steel.Checkers
 
         private double CalculateNplRd(ISteelSection section)
         {
-            return section.Area * Fy / GammaM0;
+            return SectionResistanceArithmetic.Normal(section.Area, Fy, GammaM0);
         }
 
         private double CalculateNulRd(ISteelSection section)
         {
-            return 0.90 * GetAreaNet(section) * Fu / GammaM2;
+            return SectionResistanceArithmetic.NetTension(GetAreaNet(section), Fu, GammaM2);
         }
 
         private double CalculateAxialCompressionCapacity(SectionClass sectionClass, ISteelSection section)
         {
             if (sectionClass != SectionClass.Class4)
-                return section.Area * Fy / GammaM0;
+                return SectionResistanceArithmetic.Normal(section.Area, Fy, GammaM0);
             else
-                return GetAreaEff(section) * Fy / GammaM0;
+                return SectionResistanceArithmetic.Normal(GetAreaEff(section), Fy, GammaM0);
         }
 
         #endregion
@@ -625,7 +627,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         protected double GetNcrEuler(double length, double J)
         {
-            return Math.Pow(Math.PI, 2.0) * Material.E * J / (Math.Pow(length, 2.0));
+            return ElasticStabilityArithmetic.Euler(length, J, Material.E);
         }
 
         /// <summary>
@@ -634,7 +636,7 @@ namespace GPC.Checkers.Steel.Checkers
         protected double GetLambdaSigned(SectionClass sectionClass, ISteelSection section, double Ncr)
         {
             if (sectionClass != SectionClass.Class4)
-                return Math.Pow(section.Area * Fy / Ncr, 0.5);
+                return BucklingReductionArithmetic.AxialSlenderness(section.Area, Fy, Ncr);
             else
                 return Math.Sqrt(GetAreaEff(section) * Fy / Ncr);
         }
@@ -644,7 +646,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         protected double GetChi(double phi, double lambdaSigned, double beta = 1.0)
         {
-            return Math.Min(1.0 / (phi + Math.Pow(Math.Pow(phi, 2.0) - beta * Math.Pow(lambdaSigned, 2.0), 0.5)), 1.0);
+            return BucklingReductionArithmetic.AxialChi(phi, lambdaSigned, beta);
         }
 
         /// <summary>
@@ -652,7 +654,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         protected double GetPhiForBuckling(double alphaImperfectionFactor, double lambdaSigned, double beta = 1.0, double lambda_LT0 = 0.2) //default beta=1, lambda_LT0 = 0.2
         {
-            return 0.5 * (1 + alphaImperfectionFactor * (lambdaSigned - lambda_LT0) + beta * Math.Pow(lambdaSigned, 2.0));
+            return BucklingReductionArithmetic.Phi(alphaImperfectionFactor, lambdaSigned, beta, lambda_LT0);
         }
 
         /// <summary>
@@ -723,6 +725,30 @@ namespace GPC.Checkers.Steel.Checkers
             return geometricY ? y : z;
         }
 
+        private static EN1993p11Options.AxialBuckingCurves GetWeldedBoxBucklingCurve(SectionRHS shape)
+        {
+            // Model documents R as corner radius OR weld throat. Only the exact
+            // sharp RHS with Welded production uses the latter interpretation.
+            // Zero means unspecified; rounded/derived shapes and unequal walls
+            // are not represented by the single tf/tw table sketch: envelope c.
+            if (shape.GetType() != typeof(SectionRHS) ||
+                shape.ThicknessTop != shape.ThicknessBottom || shape.ThicknessWebLeft != shape.ThicknessWebRight)
+                return EN1993p11Options.AxialBuckingCurves.c;
+            double? throat = shape.R == 0 ? (double?)null : shape.R;
+            return Ec3WeldedBucklingPolicy.BoxRequiresCurveC(shape.Base, shape.Height,
+                shape.ThicknessTop, shape.ThicknessWebLeft, throat)
+                ? EN1993p11Options.AxialBuckingCurves.c : EN1993p11Options.AxialBuckingCurves.b;
+        }
+
+        private static EN1993p11Options.AxialBuckingCurves GetWeldedSymmetricIBucklingCurve(SectionH shape, int principalAxis)
+        {
+            // Table6.2 uses tf (inclusive 40mm), not tw. Same rows for S235-S460.
+            bool thickFlange = shape.ThicknessTopFlange > 40;
+            bool geometricY = (shape.Jxx >= shape.Jyy) == (principalAxis == 1);
+            if (geometricY) return thickFlange ? EN1993p11Options.AxialBuckingCurves.c : EN1993p11Options.AxialBuckingCurves.b;
+            return thickFlange ? EN1993p11Options.AxialBuckingCurves.d : EN1993p11Options.AxialBuckingCurves.c;
+        }
+
         protected EN1993p11Options.AxialBuckingCurves GetBucklingCurve2Axis(ISteelSection section)
         {
             if (section.SectionShape is SectionCHS sectionCHS)
@@ -747,11 +773,7 @@ namespace GPC.Checkers.Steel.Checkers
             {
                 if (section.SectionType == Section.SectionTypes.Welded)
                 {
-                    if (sectionRHS.ThicknessBottom / sectionRHS.Base < 40 && sectionRHS.ThicknessTop / sectionRHS.Base < 40 &&
-                        sectionRHS.ThicknessWebLeft / sectionRHS.Height < 30 && sectionRHS.ThicknessWebRight / sectionRHS.Height < 30)
-                        return EN1993p11Options.AxialBuckingCurves.b;
-                    else
-                        return EN1993p11Options.AxialBuckingCurves.c;
+                    return GetWeldedBoxBucklingCurve(sectionRHS);
                 }
                 else if (section.FormedType == Section.FormedTypes.HotFinished)
                 {
@@ -768,6 +790,8 @@ namespace GPC.Checkers.Steel.Checkers
             {
                 if (section.SectionType == Section.SectionTypes.Rolled && sectionH.IsDoubleSymmetric)
                     return GetRolledSymmetricIBucklingCurve(section, sectionH, 2);
+                if (section.SectionType == Section.SectionTypes.Welded && sectionH.GetType() == typeof(SectionH) && sectionH.IsDoubleSymmetric)
+                    return GetWeldedSymmetricIBucklingCurve(sectionH, 2);
 
                 if (section.SectionType == Section.SectionTypes.Rolled)
                 {
@@ -862,11 +886,7 @@ namespace GPC.Checkers.Steel.Checkers
             {
                 if (section.SectionType == Section.SectionTypes.Welded)
                 {
-                    if (sectionRHS.ThicknessBottom / sectionRHS.Base < 40 && sectionRHS.ThicknessTop / sectionRHS.Base < 40 &&
-                        sectionRHS.ThicknessWebLeft / sectionRHS.Height < 30 && sectionRHS.ThicknessWebRight / sectionRHS.Height < 30)
-                        return EN1993p11Options.AxialBuckingCurves.b;
-                    else
-                        return EN1993p11Options.AxialBuckingCurves.c;
+                    return GetWeldedBoxBucklingCurve(sectionRHS);
                 }
                 else if (section.FormedType == Section.FormedTypes.HotFinished)
                 {
@@ -883,6 +903,8 @@ namespace GPC.Checkers.Steel.Checkers
             {
                 if (section.SectionType == Section.SectionTypes.Rolled && sectionH.IsDoubleSymmetric)
                     return GetRolledSymmetricIBucklingCurve(section, sectionH, 1);
+                if (section.SectionType == Section.SectionTypes.Welded && sectionH.GetType() == typeof(SectionH) && sectionH.IsDoubleSymmetric)
+                    return GetWeldedSymmetricIBucklingCurve(sectionH, 1);
 
                 if (section.SectionType == Section.SectionTypes.Rolled)
                 {
@@ -952,12 +974,11 @@ namespace GPC.Checkers.Steel.Checkers
                     double a = Math.Min((sectionH.Area -
                         sectionH.LenghtTopFlange * sectionH.ThicknessTopFlange -
                         sectionH.LenghtBottomFlange * sectionH.ThicknessBottomFlange) / sectionH.Area, 0.5);
-                    mNxRd = Math.Min(bending1Rd, bending1Rd * (1 - n) / (1 - 0.5 * a));
+                    mNxRd = SectionInteractionArithmetic.LinearAxialMoment(n, a, bending1Rd);
                     if (Math.Abs(Ned) <= 0.25 * axialCompressionRd &&
                         Math.Abs(Ned) <= 0.5 * sectionH.HeightWeb * sectionH.ThicknessWeb * Fy / GammaM0)
                         mNxRd = bending1Rd;
-                    mNyRd = n <= a ? bending2Rd :
-                        bending2Rd * (1 - Math.Pow((n - a) / (1 - a), 2));
+                    mNyRd = SectionInteractionArithmetic.MinorIMoment(n, a, bending2Rd);
                     if (Math.Abs(Ned) <= sectionH.HeightWeb * sectionH.ThicknessWeb * Fy / GammaM0)
                         mNyRd = bending2Rd;
                 }
@@ -967,8 +988,8 @@ namespace GPC.Checkers.Steel.Checkers
                         (sectionRHS.ThicknessTop + sectionRHS.ThicknessBottom)) / sectionRHS.Area, 0.5);
                     double af = Math.Min((sectionRHS.Area - sectionRHS.Height *
                         (sectionRHS.ThicknessWebLeft + sectionRHS.ThicknessWebRight)) / sectionRHS.Area, 0.5);
-                    mNxRd = Math.Min(bending1Rd * (1 - n) / (1 - 0.5 * aw), bending1Rd);
-                    mNyRd = Math.Min(bending2Rd * (1 - n) / (1 - 0.5 * af), bending2Rd);
+                    mNxRd = SectionInteractionArithmetic.LinearAxialMoment(n, aw, bending1Rd);
+                    mNyRd = SectionInteractionArithmetic.LinearAxialMoment(n, af, bending2Rd);
                 }
                 else
                     throw new ArgumentException("MN,Rd EN1993-1-1 §6.2.9.1 not implemented this section");
@@ -1011,11 +1032,11 @@ namespace GPC.Checkers.Steel.Checkers
         protected double CalculateMcRd1(SectionClass sectionClass, ISteelSection section)
         {
             if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2)
-                return section.Wpl1 * Fy / GammaM0;
+                return SectionResistanceArithmetic.Normal(section.Wpl1, Fy, GammaM0);
             else if (sectionClass == SectionClass.Class3)
-                return section.Wel1 * Fy / GammaM0;
+                return SectionResistanceArithmetic.Normal(section.Wel1, Fy, GammaM0);
             else
-                return GetWeffMin1(section) * Fy / GammaM0;
+                return SectionResistanceArithmetic.Normal(GetWeffMin1(section), Fy, GammaM0);
         }
 
         /// <summary>
@@ -1024,67 +1045,49 @@ namespace GPC.Checkers.Steel.Checkers
         protected double CalculateMcRd2(SectionClass sectionClass, ISteelSection section)
         {
             if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2)
-                return section.Wpl2 * Fy / GammaM0;
+                return SectionResistanceArithmetic.Normal(section.Wpl2, Fy, GammaM0);
             else if (sectionClass == SectionClass.Class3)
-                return section.Wel2 * Fy / GammaM0;
+                return SectionResistanceArithmetic.Normal(section.Wel2, Fy, GammaM0);
             else
-                return GetWeffMin2(section) * Fy / GammaM0;
+                return SectionResistanceArithmetic.Normal(GetWeffMin2(section), Fy, GammaM0);
         }
 
         #endregion
 
         #region Shear
 
+        private double ShearBucklingEta(ISteelSection section)
+            => section.SteelMaterial.Fyk <= 460 ? EN1993P11.NShearBucklingLowGradeOfSteel : EN1993P11.NShearBucklingHighGradeOfSteel;
+
         protected double CalculateShear2Capacity(ResultBeamForces resultBeamForces, ISteelSection section)
         {
-            double n;
-            if (section.SteelMaterial.Fyk <= 460)
-                n = EN1993P11.NShearBucklingLowGradeOfSteel;
-            else
-                n = EN1993P11.NShearBucklingHighGradeOfSteel;
-
-            if (section.SectionShape is SectionH sectionH)
-                if (section.SectionType == Section.SectionTypes.Rolled)
-                {
-                    if (sectionH.HeightWeb / sectionH.ThicknessWeb > 72.0 * Epsilon / n)
-                        return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVbRd1(section);
-                }
-                else
-                {
-                    if (sectionH.HeightWeb / sectionH.ThicknessWeb > 72.0 * Epsilon / n)
-                        return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVbRd1(section);
-                }
-            if (section.SectionShape is SectionRHS sectionRHS)
-                if (section.SectionType == Section.SectionTypes.Rolled)
-                {
-                    if (sectionRHS.ThicknessWebLeft / sectionRHS.Heightinternal > 72.0 * Epsilon / n ||
-                        sectionRHS.ThicknessWebRight / sectionRHS.Heightinternal > 72.0 * Epsilon / n)
-                        return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVbRd1(section);
-                }
-                else
-                {
-                    if (sectionRHS.ThicknessWebLeft / sectionRHS.Heightinternal > 72.0 * Epsilon / n ||
-                        sectionRHS.ThicknessWebRight / sectionRHS.Heightinternal > 72.0 * Epsilon / n)
-                        return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVbRd1(section);
-                }
-            if (section.SectionShape is SectionC sectionC)
-                if (section.SectionType == Section.SectionTypes.Rolled)
-                {
-                    if (sectionC.HeightWeb / sectionC.ThicknessWeb > 72.0 * Epsilon / n)
-                        return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVbRd1(section);
-                }
-                else
-                {
-                    if (sectionC.HeightWeb / sectionC.ThicknessWeb > 72.0 * Epsilon / n)
-                        return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVbRd1(section);
-                }
-
-            return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVcRd2(section);
+            double eta = ShearBucklingEta(section);
+            bool required = false;
+            if (section.SectionShape is SectionH h)
+                required = Ec3WebShearBuckling.RequiresCheck(h.HeightWeb, h.ThicknessWeb, Fy, eta);
+            else if (section.SectionShape is SectionC c)
+                required = Ec3WebShearBuckling.RequiresCheck(c.HeightWeb, c.ThicknessWeb, Fy, eta);
+            else if (section.SectionShape is SectionRHS r)
+                required = Ec3WebShearBuckling.RequiresCheck(r.Heightinternal, r.ThicknessWebLeft, Fy, eta)
+                    || Ec3WebShearBuckling.RequiresCheck(r.Heightinternal, r.ThicknessWebRight, Fy, eta);
+            double resistance = CalculateVcRd2(section);
+            if (required) resistance = Math.Min(resistance, CalculateVbRd1(section));
+            return CalculateShearReductionDueToTorsion(resultBeamForces, section) * resistance;
         }
 
         protected double CalculateShear1Capacity(ResultBeamForces resultBeamForces, ISteelSection section)
         {
-            return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVcRd1(section);
+            double resistance = CalculateVcRd1(section);
+            if (section.SectionShape is SectionRHS r)
+            {
+                double eta = ShearBucklingEta(section);
+                if (Ec3WebShearBuckling.RequiresCheck(r.BaseInternal, r.ThicknessTop, Fy, eta)
+                    || Ec3WebShearBuckling.RequiresCheck(r.BaseInternal, r.ThicknessBottom, Fy, eta))
+                    resistance = Math.Min(resistance,
+                        Ec3WebShearBuckling.NonRigidEndPostResistance(r.BaseInternal, r.ThicknessTop, Fy, GammaM1, eta)
+                        + Ec3WebShearBuckling.NonRigidEndPostResistance(r.BaseInternal, r.ThicknessBottom, Fy, GammaM1, eta));
+            }
+            return CalculateShearReductionDueToTorsion(resultBeamForces, section) * resistance;
         }
 
         /// <summary>
@@ -1093,7 +1096,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// <returns></returns>
         protected double CalculateVcRd1(ISteelSection section)
         {
-            return GetShearArea1(section) * (Fy / Math.Sqrt(3)) / GammaM0;
+            return SectionResistanceArithmetic.Shear(GetShearArea1(section), Fy, GammaM0);
         }
 
         /// <summary>
@@ -1102,132 +1105,34 @@ namespace GPC.Checkers.Steel.Checkers
         /// <returns></returns>
         protected double CalculateVcRd2(ISteelSection section)
         {
-            return GetShearArea2(section) * (Fy / Math.Sqrt(3)) / GammaM0;
+            return SectionResistanceArithmetic.Shear(GetShearArea2(section), Fy, GammaM0);
         }
 
+        // Conservative web-only component, transverse support stiffeners and
+        // non-rigid end post assumed. Their design/weld checks remain external.
         protected double CalculateVbRd1(ISteelSection section)
         {
-            double n;
-            if (section.SteelMaterial.Fyk <= 460)
-                n = EN1993P11.NShearBucklingLowGradeOfSteel;
-            else
-                n = EN1993P11.NShearBucklingHighGradeOfSteel;
-
-            double hw;
-            double t;
-
-            if (section.SectionShape is SectionH sectionH)
-            {
-                hw = sectionH.HeightWeb;
-                t = sectionH.ThicknessWeb;
-            }
-            else if (section.SectionShape is SectionRHS sectionRHS)
-            {
-                hw = sectionRHS.Heightinternal;
-                t = sectionRHS.ThicknessWebLeft + sectionRHS.ThicknessWebRight;
-            }
-            else if (section.SectionShape is SectionC sectionC)
-            {
-                hw = sectionC.HeightWeb;
-                t = sectionC.ThicknessWeb;
-            }
-            else if (section.SectionShape is SectionT sectionT)
-            {
-                hw = sectionT.HeightWeb;
-                t = sectionT.ThicknessWeb;
-            }
-            else
-                throw new ArgumentException($"ShearBucklingCheck: EN1993-1-5 §5.1 not implemented this section {section}");
-
-            double lambdaSignedW = hw / (86.4 * t * Epsilon);
-
-            double chi;
-            if (lambdaSignedW < 0.83 / n)
-                chi = n;
-            else
-                chi = 0.83 / n;
-
-            double vbfRd = 0.0;
-            double vbwRd = chi * Fy * hw * t / (Math.Pow(3, 0.5) * GammaM1);
-
-            return Math.Min(vbwRd + vbfRd, n * Fy * hw * t / (Math.Pow(3, 0.5) * GammaM1));
+            double eta = ShearBucklingEta(section);
+            if (section.SectionShape is SectionH h)
+                return Ec3WebShearBuckling.NonRigidEndPostResistance(h.HeightWeb, h.ThicknessWeb, Fy, GammaM1, eta);
+            if (section.SectionShape is SectionC c)
+                return Ec3WebShearBuckling.NonRigidEndPostResistance(c.HeightWeb, c.ThicknessWeb, Fy, GammaM1, eta);
+            if (section.SectionShape is SectionT t)
+                return Ec3WebShearBuckling.NonRigidEndPostResistance(t.HeightWeb, t.ThicknessWeb, Fy, GammaM1, eta);
+            if (section.SectionShape is SectionRHS r)
+                return Ec3WebShearBuckling.NonRigidEndPostResistance(r.Heightinternal, r.ThicknessWebLeft, Fy, GammaM1, eta)
+                    + Ec3WebShearBuckling.NonRigidEndPostResistance(r.Heightinternal, r.ThicknessWebRight, Fy, GammaM1, eta);
+            throw new ArgumentException("ShearBucklingCheck: EN1993-1-5 5.1 not implemented this section");
         }
 
         /// <summary>
         /// EN1993-1-1: 2005 Chapter 6.2.6(3)
         /// </summary>
         protected double GetShearArea2(ISteelSection section)
-        {
-            if (section.SectionShape is SectionH sech && section.SectionType == Section.SectionTypes.Rolled)
-                return sech.Area - (sech.LenghtTopFlange * sech.ThicknessTopFlange) - (sech.LenghtBottomFlange * sech.ThicknessBottomFlange) +
-                    (sech.ThicknessWeb + 2 * sech.R) * (sech.ThicknessTopFlange + sech.ThicknessBottomFlange) / 2;
+            => ModelShearAreas.GetArea2(section, EN1993P11 is StandardNTC2018Steel
+                ? SectionResistanceStandard.Ntc2018 : SectionResistanceStandard.Eurocode3_2005);
 
-            else if (section.SectionShape is SectionH secH && section.SectionType == Section.SectionTypes.Welded)
-                return secH.ThicknessWeb * secH.HeightWeb;
-
-            else if (section.SectionShape is SectionC secC && section.SectionType == Section.SectionTypes.Rolled)
-                return secC.Area - (secC.LengthTop * secC.ThicknessTop) - (secC.LengthBottom * secC.ThicknessBottom) +
-                    (secC.ThicknessWeb + secC.R1) * (secC.ThicknessTop + secC.ThicknessBottom) / 2;
-
-            else if (section.SectionShape is SectionC sectC && section.SectionType == Section.SectionTypes.Welded)
-                return sectC.ThicknessWeb * (sectC.Height - sectC.ThicknessBottom - sectC.ThicknessTop);
-
-            else if (section.SectionShape is SectionRHS sectionRHS && section.SectionType == Section.SectionTypes.Welded)
-                return (sectionRHS.ThicknessWebLeft + sectionRHS.ThicknessWebRight) * sectionRHS.Heightinternal;
-
-            else if (section.SectionShape is SectionRHS sectionRhs && section.SectionType == Section.SectionTypes.Rolled)
-                return sectionRhs.Area * sectionRhs.Height / (sectionRhs.Base + sectionRhs.Height);
-
-            else if (section.SectionShape is SectionCHS sectionCHS)
-                return 2 * sectionCHS.Area / Math.PI;
-
-            else if (section.SectionShape is SectionT sectionT)
-                {
-                // NTC 2018 [4.2.21] differs from EN 1993-1-1:2005/AC:2009 6.2.6(3).
-                if (EN1993P11 is StandardNTC2018Steel)
-                    return 0.9 * (sectionT.Area - sectionT.LenghtFlange * sectionT.ThicknessFlange);
-                if (section.SectionType == Section.SectionTypes.Welded)
-                    return sectionT.ThicknessWeb * (sectionT.Height - sectionT.ThicknessFlange / 2);
-                return sectionT.Area - sectionT.LenghtFlange * sectionT.ThicknessFlange +
-                    (sectionT.ThicknessWeb + 2 * sectionT.R) * sectionT.ThicknessFlange / 2;
-            }
-
-            else if (section.SectionShape is SectionL sectionL)
-                return sectionL.HorizontalLegLength * sectionL.HorizontalLegThickness;
-
-            else
-                throw new NotImplementedException("GetShearArea: not implemented section");
-        }
-
-        /// <summary>
-        /// EN1993-1-1: 2005 Chapter 6.2.6(3)
-        /// </summary>
-        protected double GetShearArea1(ISteelSection section)
-        {
-            if (section.SectionShape is SectionH sech)
-                return sech.LenghtTopFlange * sech.ThicknessTopFlange + sech.LenghtBottomFlange * sech.ThicknessBottomFlange;
-
-            else if (section.SectionShape is SectionC secC)
-                return secC.LengthTop * secC.ThicknessTop + secC.LengthBottom * secC.ThicknessBottom;
-
-            else if (section.SectionShape is SectionRHS sectionRHS && section.SectionType == Section.SectionTypes.Welded)
-                return sectionRHS.Area - (sectionRHS.ThicknessWebLeft + sectionRHS.ThicknessWebRight) * sectionRHS.Heightinternal;
-
-            else if (section.SectionShape is SectionRHS sectionRhs && section.SectionType == Section.SectionTypes.Rolled)
-                return sectionRhs.Area * sectionRhs.Base / (sectionRhs.Base + sectionRhs.Height);
-
-            else if (section.SectionShape is SectionCHS sectionCHS)
-                return 2 * sectionCHS.Area / Math.PI;
-
-            else if (section.SectionShape is SectionT sectionT)
-                return sectionT.LenghtFlange * sectionT.ThicknessFlange;
-
-            else if (section.SectionShape is SectionL sectionL)
-                return sectionL.VerticalLegLength * sectionL.VerticalLegThickness;
-
-            else
-                throw new NotImplementedException("GetShearArea: not implemented section");
-        }
+        protected double GetShearArea1(ISteelSection section) => ModelShearAreas.GetArea1(section);
 
         /// <summary>
         /// Shear reduction factor in case of torsion. EN1993-1-1: 2005 Chapter 6.2.7(9)
@@ -1277,14 +1182,15 @@ namespace GPC.Checkers.Steel.Checkers
             if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2)
             {
                 if (section.SectionShape is SectionH steelSectionH && steelSectionH.IsDoubleSymmetric)
-                    return (section.Wpl1 - CalculateRhoForMomentAndShearInteraction2(resultBeamForces, section) *
-                        Math.Pow(steelSectionH.HeightWeb * steelSectionH.ThicknessWeb, 2) / (4 * steelSectionH.ThicknessWeb)) * Fy / GammaM0;
+                    return SectionInteractionArithmetic.MajorIMomentWithShear(section.Wpl1,
+                        CalculateRhoForMomentAndShearInteraction2(resultBeamForces, section),
+                        steelSectionH.HeightWeb * steelSectionH.ThicknessWeb, steelSectionH.ThicknessWeb, Fy, GammaM0);
             }
 
             // Conservative uniform yield reduction; the specialized 6.2.8(5) expression above
             // applies only to a doubly symmetric I/H section bent about its major axis.
-            return (1 - CalculateRhoForMomentAndShearInteraction2(resultBeamForces, section)) *
-                CalculateMcRd1(sectionClass, section);
+            return SectionInteractionArithmetic.UniformMomentWithShear(
+                CalculateRhoForMomentAndShearInteraction2(resultBeamForces, section), CalculateMcRd1(sectionClass, section));
         }
 
         /// <summary>
@@ -1293,7 +1199,7 @@ namespace GPC.Checkers.Steel.Checkers
         protected double CalculateMVRd2(SectionClass sectionClass, ResultBeamForces resultBeamForces, ISteelSection section)
         {
             double rho = CalculateRhoForMomentAndShearInteraction1(resultBeamForces, section);
-            return (1 - rho) * CalculateMcRd2(sectionClass, section);
+            return SectionInteractionArithmetic.UniformMomentWithShear(rho, CalculateMcRd2(sectionClass, section));
         }
 
         /// <summary>
@@ -1316,11 +1222,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         private static double ShearReductionRho(double shear, double capacity)
         {
-            if (double.IsNaN(shear) || double.IsInfinity(shear) ||
-                double.IsNaN(capacity) || double.IsInfinity(capacity) || capacity <= 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), "Finite shear and positive resistance required.");
-            double ratio = Math.Abs(shear) / capacity;
-            return ratio <= 0.5 ? 0 : Math.Min(1, Math.Pow(2 * ratio - 1, 2));
+            return SectionInteractionArithmetic.ShearReductionRho(shear, capacity);
         }
 
         #region Lateral Torsional Buckling
@@ -1375,7 +1277,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         protected double GetFactorFForLTB(double kc, double lambdaLT)
         {
-            return Math.Min(1.0, 1.0 - 0.5 * (1.0 - kc) * (1.0 - 2.0 * Math.Pow(lambdaLT - 0.8, 2.0)));
+            return BucklingReductionArithmetic.MomentGradientFactor(kc, lambdaLT);
         }
 
         /// <summary>
@@ -1498,7 +1400,7 @@ namespace GPC.Checkers.Steel.Checkers
             // EN1993-1-1:2005 eq6.56. The channel-only additive lambdaT
             // from the modified DIN/research methods is not part of this definition.
             // Loading eccentricity/torsion needs its own qualified analysis.
-            return Math.Sqrt(modulus * Fy / Mcr);
+            return BucklingReductionArithmetic.MomentSlenderness(modulus, Fy, Mcr);
         }
 
         protected double CalculateMcr(ISteelSection section, ResultBeamForces forces, double length,
@@ -1708,10 +1610,8 @@ namespace GPC.Checkers.Steel.Checkers
                 zj = 0;
             }
 
-            return c1 * (Math.Pow(Math.PI, 2.0) * Material.E * section.J22 / Math.Pow(k * length, 2.0)) *
-                (Math.Pow(Math.Pow(k / kw, 2.0) * section.Jw / section.J22 +
-                Math.Pow(k * length, 2.0) * G * section.Jt / (Math.Pow(Math.PI, 2.0) * Material.E * section.J22) +
-                Math.Pow(c2 * zg - c3 * zj, 2.0), 0.5) - (c2 * zg - c3 * zj));
+            return ElasticStabilityArithmetic.LateralTorsional(Material.E, G, section.J22, section.Jt,
+                section.Jw, length, k, kw, c1, c2 * zg - c3 * zj);
         }
 
         // CISC Torsional section properties (2002), eq.(3): zj=-betaX/2.
@@ -1816,12 +1716,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         protected double GetChiLTmod(double Phi, double lambdaSigned, double beta = 1.0, double f = 1.0) //beta_default = 1, f=1
         {
-            double Chi = 1.0 / (Phi + Math.Pow(Math.Pow(Phi, 2.0) - beta * Math.Pow(lambdaSigned, 2.0), 0.5));
-            Chi = GetMin(new double[] { Chi, 1.0, 1.0 / Math.Pow(lambdaSigned, 2.0) });
-
-            double ChiLTMod = Math.Min(Chi / f, 1.0);
-            ChiLTMod = Math.Min(ChiLTMod, 1.0 / Math.Pow(lambdaSigned, 2.0));
-            return ChiLTMod;
+            return BucklingReductionArithmetic.LateralChi(Phi, lambdaSigned, beta, f);
         }
 
         protected void GetC1C2C3ForMcr(EN1993p11Options.SupportConditions supportCondition, EN1993p11Options.LoadConditions loadCondition,
@@ -2062,11 +1957,9 @@ namespace GPC.Checkers.Steel.Checkers
 
         protected double GetNcrT(ISteelSection section)  //EN 1993-1-3 eq 6.33a => SOLO COLD FORMED
         {
-            double G = Material.E / (2.0 * (1.0 + Material.Ni));
-            double i0 = Math.Pow(Math.Pow(section.R11, 2.0) + Math.Pow(section.R22, 2.0) +
-                Math.Pow((section.ShearCenter.X - section.Centroid.X), 2.0) + Math.Pow((section.ShearCenter.Y - section.Centroid.Y), 2.0), 0.5);
-
-            return 1.0 / Math.Pow(i0, 2.0) * (G * section.Jt + Math.Pow(Math.PI, 2.0) * Material.E * section.Jw / Math.Pow(GetLengthLatTorsBuckling(), 2.0));
+            return ElasticStabilityArithmetic.Torsional(Material.E, Material.Ni, section.R11, section.R22,
+                section.ShearCenter.X - section.Centroid.X, section.ShearCenter.Y - section.Centroid.Y,
+                section.Jt, section.Jw, GetLengthLatTorsBuckling());
         }
 
         protected double GetNcrTF(ISteelSection section, double Ncr1, double Ncr2, double NcrT)
@@ -2093,23 +1986,7 @@ namespace GPC.Checkers.Steel.Checkers
             if (dx == 0 && dy == 0)
                 return NcrT;
 
-            // Coupled elastic characteristic determinant. Exact for a shared sine
-            // mode with fork ends and free warping (coupling integrals equal 1).
-            // Snijder/Balaz/Stroetmann, ce/papers8(2025),eq17,p618. Other effective
-            // lengths remain an approximation; no general restraint eigenproblem
-            // is claimed here. Normalize to avoid force-unit sensitivity and poles.
-            double ax = x0 * x0 / i02, ay = y0 * y0 / i02;
-            double lower = 0, upper = Math.Min(Ncr1, Math.Min(Ncr2, NcrT));
-            for (int i = 0; i < 80; i++)
-            {
-                double n = lower + (upper - lower) / 2;
-                double u = n / Ncr1, v = n / Ncr2, w = n / NcrT;
-                double determinant = (1 - u) * (1 - v) * (1 - w)
-                    - u * w * ax * (1 - v) - v * w * ay * (1 - u);
-                if (determinant > 0) lower = n;
-                else upper = n;
-            }
-            return lower + (upper - lower) / 2;
+            return ElasticStabilityArithmetic.FlexuralTorsional(Ncr1, Ncr2, NcrT, x0, y0, i02);
         }
 
         //protected double CalculateMcr0(ISteelSection section, SectionClass sectionClass)
@@ -2148,7 +2025,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         protected double GetMu(double Ned, double Ncr, double Chi)
         {
-            return (1.0 - Ned / Ncr) / (1.0 - Chi * Ned / Ncr);
+            return MemberInteractionArithmetic.Mu(Ned, Ncr, Chi);
         }
 
         /// <summary>
@@ -2184,7 +2061,7 @@ namespace GPC.Checkers.Steel.Checkers
         // NcrTorsional is retained for source compatibility; pass Ncr,z here.
         protected double CalculateLambda0LimitForFlexuralTorsionaBuckling(ResultBeamForces forces, double kc, double NcrFlexTors, double NcrTorsional)
         {
-            return 0.2 * Math.Pow(Math.Pow(kc, -2.0), 0.5) * Math.Pow((1.0 - Math.Abs(forces.N) / NcrTorsional) * (1.0 - Math.Abs(forces.N) / NcrFlexTors), 0.25);
+            return MemberInteractionArithmetic.Lambda0Limit(forces.N, kc, NcrFlexTors, NcrTorsional);
         }
 
         protected void CalculateCmFactorsForInteraction(ISteelSection section, SectionClass sectionClass, ResultBeamForces forces,
@@ -2296,22 +2173,14 @@ namespace GPC.Checkers.Steel.Checkers
             double lambda0 = GetLambdaSignedLTB(section, sectionClass, Mcr0);
             double alphaLT = CalculateAlphaLTForInteraction(section);
 
-            bLT = 0.5 * alphaLT * lambda0 * lambda0 * Math.Abs(forces.M1) * Math.Abs(forces.M2) / (chiMod * mrd1 * mrd2);
-            cLT = 10.0 * alphaLT * lambda0 * lambda0 * Math.Abs(forces.M1) / ((5.0 + Math.Pow(lambda2, 4.0)) * cmx * chiMod * mrd1);
-            dLT = 2.0 * alphaLT * lambda0 * Math.Abs(forces.M1) * Math.Abs(forces.M2) / ((0.1 + Math.Pow(lambda2, 4.0)) * cmx * chiMod * mrd1 * cmy * mrd2);
-            eLT = 1.7 * alphaLT * lambda0 * Math.Abs(forces.M1) / ((0.1 + Math.Pow(lambda2, 4.0)) * cmx * chiMod * mrd1);
+            MemberInteractionArithmetic.LateralTerms(alphaLT, lambda0, lambda2, forces.M1, forces.M2,
+                chiMod, mrd1, mrd2, cmx, cmy, out bLT, out cLT, out dLT, out eLT);
 
             // EC3 Table A.1: normalize by section resistance Npl,Rk / gammaM0.
             double npl = Math.Abs(forces.N) / (Material.Fyk * section.Area / GammaM0);
 
-            cxx = Math.Max(1.0 + (wx - 1.0) * ((2.0 - 1.6 / wx * Math.Pow(cmx, 2) * lambdaMax - 1.6 / wx * Math.Pow(cmx, 2) * Math.Pow(lambdaMax, 2)) * npl - bLT),
-                section.Wel1 / section.Wpl1);
-            cxy = Math.Max(1.0 + (wy - 1.0) * ((2.0 - 14.0 * Math.Pow(cmy, 2) * Math.Pow(lambdaMax, 2) / Math.Pow(wy, 5.0)) * npl - cLT),
-                0.6 * Math.Sqrt(wy / wx) * section.Wel2 / section.Wpl2);
-            cyx = Math.Max(1.0 + (wx - 1.0) * ((2.0 - 14.0 * Math.Pow(cmx, 2) * Math.Pow(lambdaMax, 2) / Math.Pow(wx, 5.0)) * npl - dLT),
-                0.6 * Math.Sqrt(wx / wy) * section.Wel1 / section.Wpl1);
-            cyy = Math.Max(1.0 + (wy - 1.0) * ((2.0 - 1.6 / wy * Math.Pow(cmy, 2) * lambdaMax - 1.6 / wy * Math.Pow(cmy, 2) * Math.Pow(lambdaMax, 2)) - eLT) * npl,
-                section.Wel2 / section.Wpl2); //RIGHT VERSION
+            MemberInteractionArithmetic.Coefficients(npl, lambdaMax, wx, wy, cmx, cmy, bLT, cLT, dLT, eLT,
+                section.Wel1, section.Wpl1, section.Wel2, section.Wpl2, out cxx, out cxy, out cyx, out cyy);
         }
 
         protected void CalculateKCoefficientForInteraction(ISteelSection section, SectionClass sectionClass, ResultBeamForces forces,
@@ -2326,20 +2195,9 @@ namespace GPC.Checkers.Steel.Checkers
             double ncr1 = GetNcrEuler(GetLengthAxialBuckling1(), section.J11);
             double ncr2 = GetNcrEuler(GetLengthAxialBuckling2(), section.J22);
 
-            if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2)
-            {
-                kxx = cmx * cmLT * mux / (1.0 - Math.Abs(forces.N) / ncr1) * 1.0 / cxx;
-                kxy = cmy * mux / (1.0 - Math.Abs(forces.N) / ncr2) * 1.0 / cxy * 0.6 * Math.Sqrt(wy / wx);
-                kyx = cmx * cmLT * muy / (1.0 - Math.Abs(forces.N) / ncr1) * 1.0 / cyx * 0.6 * Math.Sqrt(wx / wy);
-                kyy = cmy * muy / (1.0 - Math.Abs(forces.N) / ncr2) * 1.0 / cyy;
-            }
-            else
-            {
-                kxx = cmx * cmLT * mux / (1.0 - Math.Abs(forces.N) / ncr1);
-                kxy = cmy * mux / (1.0 - Math.Abs(forces.N) / ncr2);
-                kyx = cmx * cmLT * muy / (1.0 - Math.Abs(forces.N) / ncr1);
-                kyy = cmy * muy / (1.0 - Math.Abs(forces.N) / ncr2);
-            }
+            MemberInteractionArithmetic.KFactors(sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2,
+                forces.N, ncr1, ncr2, cmx, cmy, cmLT, mux, muy, wx, wy, cxx, cxy, cyx, cyy,
+                out kxx, out kxy, out kyx, out kyy);
         }
 
         protected double CalculateAlphaLTForInteraction(ISteelSection section)
@@ -2555,39 +2413,8 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         protected SectionClass GetClassBendingOuterPlate(double length, double thickness, double alpha,
             bool tipInCompression, double sigmaRoot, double sigmaTip)
-        {
-            if (alpha <= 0 || Math.Max(sigmaRoot, sigmaTip) <= 0)
-                return SectionClass.Class1;
-            alpha = Math.Min(alpha, 1);
-            double ratio = length / thickness;
-            double divisor = tipInCompression ? alpha : alpha * Math.Sqrt(alpha);
-            if (ratio <= 9 * Epsilon / divisor) return SectionClass.Class1;
-            if (ratio <= 10 * Epsilon / divisor) return SectionClass.Class2;
-
-            double limit3;
-            if (sigmaRoot == sigmaTip)
-                limit3 = 14 * Epsilon; // Uniform compression, Table 5.2.
-            else
-            {
-                double psi, kSigma;
-                if (sigmaTip > sigmaRoot)
-                {
-                    // Table 4.2 domain: -3 <= psi <= 1. For more tension use
-                    // the conservative endpoint, without extrapolating the polynomial.
-                    psi = Math.Max(-3, sigmaRoot / sigmaTip);
-                    kSigma = 0.57 - 0.21 * psi + 0.07 * psi * psi;
-                }
-                else
-                {
-                    // Maximum compression at the supported edge; domain [-1,1].
-                    psi = Math.Max(-1, sigmaTip / sigmaRoot);
-                    kSigma = psi > 0 ? 0.578 / (psi + 0.34) : 1.7 - 5 * psi + 17.1 * psi * psi;
-                }
-                limit3 = 21 * Epsilon * Math.Sqrt(kSigma);
-            }
-            return ratio <= limit3 ? SectionClass.Class3 : SectionClass.Class4;
-        }
-
+            => (SectionClass)PlateClassificationArithmetic.Outstand(length, thickness, alpha,
+                tipInCompression, sigmaRoot, sigmaTip, Epsilon);
 
         private bool TryGetRhsPureBendingClass(ResultBeamForces forces, ISteelSection section, out SectionClass sectionClass)
         {
@@ -2810,6 +2637,14 @@ namespace GPC.Checkers.Steel.Checkers
         {
             if (section.GetMinSigma(resultBeamForces.N, resultBeamForces.M1, resultBeamForces.M2) < 0.0)
             {
+                if (ModelCompressionGeometry.CanMap(section))
+                {
+                    var nominal = Ec3UniformCompressionClassification.Evaluate(ModelCompressionGeometry.Create(section), Fy);
+                    if (nominal.IsEvaluated) return (SectionClass)nominal.NominalClass.Value;
+                    // Preserve the legacy facade's invalid-input behavior. The new
+                    // scalar API and ModelChecker return explicit diagnostics instead.
+                }
+                // Compatibility path for derived/unqualified legacy shapes.
                 if (section.SectionShape is SectionH sectionH)
                 {
                     return SetWorstClass(new SectionClass[] {
@@ -2883,134 +2718,23 @@ namespace GPC.Checkers.Steel.Checkers
         }
 
         protected SectionClass GetClassCHSBending(double diameter, double thickness)
-        {
-            if (diameter / thickness <= 50.0 * Epsilon * Epsilon)
-                return SectionClass.Class1;
-
-            else if (diameter / thickness <= 70.0 * Epsilon * Epsilon)
-                return SectionClass.Class2;
-
-            else if (diameter / thickness <= 90.0 * Epsilon * Epsilon)
-                return SectionClass.Class3;
-
-            else
-                return SectionClass.Class4;
-        }
+            => (SectionClass)SectionClassificationArithmetic.Classify(CompressionPartKind.CircularHollow, diameter, thickness, Epsilon);
 
         protected SectionClass GetClassCompressedOuterPlate(double length, double thickness)
-        {
-            double ratio = length / thickness;
-
-            if (ratio <= 9.0 * Epsilon)
-                return SectionClass.Class1;
-
-            else if (ratio <= 10.0 * Epsilon)
-                return SectionClass.Class2;
-
-            else if (ratio <= 14.0 * Epsilon)
-                return SectionClass.Class3;
-
-            else
-                return SectionClass.Class4;
-        }
+            => (SectionClass)SectionClassificationArithmetic.Classify(CompressionPartKind.OutstandFlat, length, thickness, Epsilon);
 
         protected SectionClass GetClassBendingInnerPlate(ResultBeamForces resultBeamForces, double length, double thickness, ISteelSection section, SectionClass sectionClass)
         {
+            // Legacy stress reconstruction stays in the facade; the Table 5.2
+            // arithmetic receives only scalar alpha, psi, c/t and epsilon.
             double alpha = -resultBeamForces.N / (2.0 * thickness * Fy * length) + 0.5;
-            double ctRatio = length / thickness;
-            // Endpoints of the compressed fraction: no compressed plate, or conservatively
-            // uniform compression. In particular alpha == 1 must not fall through the branches.
-            if (alpha <= 0) return SectionClass.Class1;
-            if (alpha >= 1) return GetClassCompressedInnerPlate(length, thickness);
-
-            double psi = 1;
-            if (sectionClass != SectionClass.Class4)
-                psi = -resultBeamForces.N * 2.0 / (section.Area * Fy) - 1.0;
-
-            if (alpha > 0.5 && alpha < 1)
-            {
-                if (ctRatio <= 396.0 * Epsilon / (13.0 * alpha - 1.0))
-                    return SectionClass.Class1;
-
-                else if (ctRatio <= 456.0 * Epsilon / (13.0 * alpha - 1.0))
-                    return SectionClass.Class2;
-
-                else
-                {
-                    if (psi > -1)
-                    {
-                        if (ctRatio <= 42.0 * Epsilon / (0.67 + 0.33 * psi))
-                            return SectionClass.Class3;
-
-                        else
-                            return SectionClass.Class4;
-                    }
-
-                    else if (psi <= -1)
-                    {
-                        if (ctRatio <= 62.0 * Epsilon * (1 - psi) * Math.Sqrt(-psi))
-                            return SectionClass.Class3;
-
-                        else
-                            return SectionClass.Class4;
-                    }
-                    else
-                        return SectionClass.Class4;
-                }
-            }
-
-            else if (alpha <= 0.5 && alpha > 0)
-            {
-                if (ctRatio <= 36.0 * Epsilon / alpha)
-                    return SectionClass.Class1;
-
-                else if (ctRatio <= 41.5 * Epsilon / alpha)
-                    return SectionClass.Class2;
-
-                else
-                {
-                    if (psi > -1)
-                    {
-                        if (ctRatio <= 42.0 * Epsilon / (0.67 + 0.33 * psi))
-                            return SectionClass.Class3;
-
-                        else
-                            return SectionClass.Class4;
-                    }
-                    else if (psi <= -1)
-                    {
-                        if (ctRatio <= 62.0 * Epsilon * (1 - psi) * Math.Sqrt(-psi))
-                            return SectionClass.Class3;
-
-                        else
-                            return SectionClass.Class4;
-                    }
-                    else
-                        return SectionClass.Class4;
-                }
-            }
-
-            else
-                throw new Exception("Section classification error");
-
+            double psi = sectionClass == SectionClass.Class4 ? 1
+                : -resultBeamForces.N * 2.0 / (section.Area * Fy) - 1.0;
+            return (SectionClass)PlateClassificationArithmetic.Internal(length, thickness, alpha, psi, Epsilon);
         }
 
         protected SectionClass GetClassCompressedInnerPlate(double length, double thickness)
-        {
-            double ctRatio = length / thickness;
-
-            if (ctRatio <= 33.0 * Epsilon)
-                return SectionClass.Class1;
-
-            else if (ctRatio <= 38.0 * Epsilon)
-                return SectionClass.Class2;
-
-            else if (ctRatio <= 42.0 * Epsilon)
-                return SectionClass.Class3;
-
-            else
-                return SectionClass.Class4;
-        }
+            => (SectionClass)SectionClassificationArithmetic.Classify(CompressionPartKind.InternalFlat, length, thickness, Epsilon);
 
         /// <summary>
         /// Return the worst <see cref="SectionClass"/> section between <paramref name="obj1"/> e <paramref name="obj2"/>
@@ -3065,16 +2789,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         #endregion
 
-        private double GetMin(double[] array)
-        {
-            double outvalue = double.MaxValue;
 
-            for (int i = 0; i < array.Length; i++)
-                if (array[i] < outvalue)
-                    outvalue = array[i];
-
-            return outvalue;
-        }
 
         #endregion
 

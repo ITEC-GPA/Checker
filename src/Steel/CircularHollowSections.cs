@@ -1,3 +1,4 @@
+using GPC.Checkers.Steel.ModelAdapters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -73,21 +74,18 @@ namespace GPC.Checkers.Steel.Sections
                 checks.Add(new SteelSectionResistanceCheck("Applicabilità sezione CHS", "NTC 2018 §4.2", "", 0, null, applicabilityNote));
                 return new CircularHollowSectionResult(section, normalForce, shear, moment, sectionClass, null, null, null, null, checks);
             }
-            var basis = new StandardNTC2018Steel();
-            if (standard == null || standard.GetType() != typeof(StandardNTC2018Steel) || standard.GammaM0 != basis.GammaM0 || section.IsBridge)
+            if (!Ntc2018ModelPolicy.SupportsSection(standard) || section.IsBridge)
                 return Missing("Serve il profilo NTC 2018 per costruzioni ordinarie statiche, con coefficienti GPC non modificati.");
-            if (section.MaterialType != SteelMaterial.SteelTypes.Structural || !new[] { 235, 275, 355, 420, 460 }.Contains(section.NominalGrade)
+            if (section.MaterialType != SteelMaterial.SteelTypes.Structural || !Ntc2018DesignPolicy.IsNominalGrade(section.NominalGrade)
                 || section.YieldStrength > section.NominalGrade || string.IsNullOrWhiteSpace(section.MaterialSource))
                 return Missing("Documentare grado strutturale S235–S460 e resistenza per lo spessore effettivo del prodotto.");
             if (!section.UnperforatedConfirmed) return Missing("Confermare sezione integra senza aperture, fori o riduzioni locali; non si sostituiscono proprietà nette/efficaci con quelle lorde.");
-            double epsilon2 = 235 / section.YieldStrength, slenderness = section.Diameter / section.Thickness;
-            sectionClass = slenderness <= 50 * epsilon2 ? 1 : slenderness <= 70 * epsilon2 ? 2 : slenderness <= 90 * epsilon2 ? 3 : 4;
+            sectionClass = Ntc2018DesignPolicy.CircularClass(section.Diameter, section.Thickness, section.YieldStrength);
             if (sectionClass > 2) return Missing("Percorso plastico limitato alle CHS di classe 1–2; classe " + sectionClass + " richiede un percorso elastico/locale distinto.");
-            double gamma = basis.GammaM0, yield = section.YieldStrength / gamma;
+            double gamma = Ntc2018DesignPolicy.GammaM0, yield = section.YieldStrength / gamma;
             double shearCapacity = 2 * section.Area / Math.PI * yield / Math.Sqrt(3);
             if (!Finite(shearCapacity) || shearCapacity <= 0) throw new ArithmeticException("Invalid finite shear resistance.");
-            double shearRatio = Math.Abs(shear) / shearCapacity;
-            double reduction = shearRatio <= .5 ? 0 : shearRatio >= 1 ? 1 : Math.Pow(2 * shearRatio - 1, 2);
+            double reduction = SectionInteractionArithmetic.ShearReductionRho(shear, shearCapacity);
             double reducedYield = yield * (1 - reduction), normalCapacity = section.Area * reducedYield;
             double radius = section.Diameter / 2, inner = radius - section.Thickness, axis = radius, residual = 0, momentCapacity = 0;
             string note = reduction > 0 ? "Riduzione per taglio applicata cautelativamente a tutta la sezione. " : "Taglio non superiore a metà Vrd. ";

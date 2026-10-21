@@ -97,7 +97,10 @@ namespace GPC.Checkers.Steel.Members
                 if (part == null) throw new ArgumentException("A compression part is null.", nameof(compressionParts));
                 double nominalLimit = part.Class3LimitCoefficient * epsilon;
                 PositiveResult(nominalLimit);
-                if ((part.NominalClass == 4) != (part.WidthThicknessRatio > nominalLimit))
+                // Plastic classes 1/2 use their own alpha-dependent limits, which
+                // need not lie below the elastic class-3 limit (outstands in bending).
+                if ((part.NominalClass == 4 && part.WidthThicknessRatio <= nominalLimit) ||
+                    (part.NominalClass == 3 && part.WidthThicknessRatio > nominalLimit))
                     throw new ArgumentException("Nominal class and Table 5.2 class-3 limit disagree.", nameof(compressionParts));
                 // Increase epsilon only; an overstressed part cannot use the exemption.
                 double factor = Math.Max(1, Math.Sqrt(designYield) / Math.Sqrt(part.SigmaComEd));

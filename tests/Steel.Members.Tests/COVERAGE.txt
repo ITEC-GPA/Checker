@@ -215,3 +215,20 @@ la classificazione biassiale del caso SAP originale NON e' ancora qualificata.
 Nove gruppi di fix EC3,con fonti e limiti in SOURCE_COVERAGE_MATRIX.txt e
 ../../tools/Steel.LegacyDiagnostics/FOLLOWUP_2026_10_20.txt.
 Legacy111/122,stessi11,zero ignorati;nessuna modifica della whitelist.
+
+21/10/2026 - Primo passo architetturale, Steel2.5.0.0, branch dedicato.
+SectionResistanceContractTests:72 nuovi casi;1325/1325 Steel.Members.
+ModelChecker Steel14/14;net472111/122,stessi11,zero ignorati.
+Confronto esatto dei29 casi/221 asserzioni diagnostiche con2.4.0.17:identici.
+API scalare per quattro resistenze di sezione e nucleo aritmetico condiviso;
+nessuna nuova famiglia o verifica d'asta abilitata in ModelChecker.
+Disegno e limiti:../../src/Steel/ARCHITECTURE.txt.
+Manifest:../../src/Steel/SECTION_ARCHITECTURE_VERIFICATION.json.
+
+REFACTORING21/10/2026: vedere src/Steel/ARCHITECTURE.txt e
+CLASSIFICATION_REFACTOR_VERIFICATION.json per estrazioni e prove per passo.
+Nuovi benchmark: WeldedBucklingCurveTests (normativi),
+RoundedRhsCompressionTests (SCI P363 + integrazione indipendente),
+WebShearBucklingTests (SCI AD368 + EN1993-1-5). Fonti/pagine e limiti nella
+matrice SOURCE_COVERAGE_MATRIX.txt. Il requisito di copertura integrale di
+ogni calcolo/famiglia rimane aperto; non e' implicato dal refactoring.

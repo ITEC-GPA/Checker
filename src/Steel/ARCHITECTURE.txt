@@ -1,0 +1,100 @@
+ARCHITETTURA CHECKER.STEEL - PRIMO BLOCCO DI REFACTORING - 21 OTTOBRE 2026
+Steel2.16.0.0; GPCModelChecker2.6.0.0. Unita': N,mm,MPa,Nmm; N positivo a trazione.
+Stessa DLL e framework netstandard2.0. Model resta a monte di Checker.
+
+STRUTTURA
+Sections/: contratti scalari di resistenza e classificazione, trattamento
+sigma_com,Ed, proprieta'/aree resistenti, politica NTC e instabilita' a taglio.
+Stability/: Ncr flessionale/torsionale/accoppiato, Mcr, snellezze/riduzioni,
+politica per le curve dei cassoni saldati. Il nucleo elastico non usa fy/gamma.
+Interactions/: formule di sezione distinte dai coefficienti d'asta Annex A.
+ModelAdapters/: ricostruzione delle parti/aree e compatibilita' del profilo NTC.
+I nuclei scalari non ricevono BeamElement, sezioni Model o report persistiti.
+Le facade storiche mantengono le firme e orchestrano geometria, azioni,
+vincoli e scelte normative. Non sono qualificate automaticamente in ogni ramo.
+
+CONTRATTI PUBBLICI
+- SectionResistanceCode: norma/edizione, gamma e provenienza espliciti.
+- SectionResistanceVerifier: trazione, compressione, flessione retta, taglio.
+  Rd, utilizzo, unita', riferimento, dati usati e diagnostica nel risultato.
+  Area netta/assenza di fori e classe/modulo richiesto non vengono indovinati.
+- Ec3CompressionPartClassification ed Ec3UniformCompressionClassification:
+  parti interne/sporgenti/CHS, soglie e parti governanti. Classe4 completata
+  come classificazione NON equivale a resistenza valutata con area lorda.
+- Ec3PlateClassification: alpha plastico e diagramma elastico sono input
+  distinti; non si ricava uno dall'altro. Traccia dei limiti psi applicati.
+- Ec3ClassifiedSectionTreatment: classe nominale, classe per resistenza
+  secondo5.5.2(9), classe d'instabilita' separata. Nessun trasferimento
+  dell'agevolazione sigma_com,Ed alla verifica d'asta o a NTC.
+- ModelCompressionGeometry: H/C/T esatte, RHS a spigoli vivi, CHS;
+  RHS raccordato esplicito a pareti uniformi per sola compressione uniforme.
+  R del tipo RHS base non diventa una geometria raccordata. Angoli interi,
+  sezioni derivate/speciali e altri stati di tensione richiedono qualifica.
+- Ec3WebShearBuckling: soglia della parete non irrigidita e contributo Vbw
+  con montante terminale non rigido; ipotesi di irrigidimenti agli appoggi,
+  senza contributo delle flange. Non verifica irrigidimenti o saldature.
+
+RISULTATI E DIAGNOSTICA
+Passed/Failed significano verifica eseguita. NotSupported, MissingInput,
+InvalidInput e CalculationError non hanno un esito resistente positivo.
+I contratti scalari controllano dati finiti/positivi e intervalli numerici.
+I metodi aritmetici interni restano governati dai controlli dei chiamanti.
+Le firme legacy conservano le proprie eccezioni e convenzioni documentate.
+
+MODELCHECKER
+SteelMaterialChecker usa direttamente i contratti scalari, senza derivare
+da EN1993p11Checker e senza costruire vincoli fittizi per verificare sezioni.
+La cache contiene snapshot di geometria/classificazione/Av; le azioni e
+i risultati sono calcolati a ogni chiamata. Chiave: impronta di proprieta'
+e configurazione. CreatedCheckers conta le preparazioni distinte, come prima.
+Il filtro a taglio usa hw/t >72epsilon/eta, con hw fra le flange, distinto
+da c che esclude i raccordi nella classificazione. Eta errato non disattiva
+il filtro. Report: mantenuti ID, metriche e contratti delle impronte;
+aggiunti valori alla traccia gia' persistita, nessun nuovo campo persistito.
+
+Campo automatico invariato: EC3:2005, sezioni H esatte simmetriche,
+classe1/2 in compressione, torsione nulla, assenza di instabilita' a taglio.
+Taglio sui due assi oppure flessione retta con N=0 e taglio basso.
+Catalogo e runtime condividono la politica; il catalogo da solo non prova
+l'applicabilita' alle azioni/geometrie effettive. NTC, altre famiglie,
+interazioni N-M e stabilita' globale non sono abilitate da questo adapter.
+
+NTC2018
+Ntc2018DesignPolicy centralizza gammaM0/M1=1.05, gammaM2=1.25,
+imperfezioni, gradi e classe CHS del profilo italiano ordinario gia' coperto.
+Ntc2018ModelPolicy rifiuta varianti o parametri usati modificati senza
+qualifica esplicita. Condivisa solo aritmetica compatibile, non le politiche.
+Restano le primitive NTC di sezione/flessione-instabilita', l'API assiale
+per barre circolari/CHS e quella CHS N-M-V con i loro campi dichiarati.
+Non e' una qualifica integrale NTC di tutte le famiglie Model.
+
+FIX EMERSI DURANTE IL REFACTORING
+- Coerenza della classificazione: una classe plastica1/2 non viene rifiutata
+  per il superamento del diverso limite elastico della classe3.
+- Cassoni saldati: b/tf,h/tw e gola; caso compatto con gola ignota inviluppato
+  con c. Solo RHS esatta saldata interpreta R come gola secondo Model.
+- H saldate simmetriche: tf<=40, non tw; corretta corrispondenza degli assi.
+- Taglio instabile: chi dipende da lambda_w; rapporti RHS corretti;
+  pareti singole, senza sommare gli spessori nella snellezza; limite plastico.
+Fonti e prove: REFACTORING_PLAN.txt e test collegati dalla matrice di copertura.
+
+LIMITI CHE RESTANO APERTI
+La copertura indipendente per ogni calcolo di ogni famiglia Model NON e'
+completa. SOURCE_COVERAGE_MATRIX.txt distingue P(pubblicato),N(normativo),
+A(analitico),U(non qualificato) e lacune. Nessun test di sola coerenza interna
+e' presentato come fonte indipendente. In particolare restano proprieta'
+efficaci/classe4, angolari completi, interazioni d'asta non doppiamente
+simmetriche, geometrie speciali e stati/vincoli non coperti dai benchmark.
+Le formule Ncr,TF sono qualificate per modi sinusoidali comuni, forcelle e
+ingobbamento libero; lunghezze diverse non sono un generico problema FEM.
+Gli11 test legacy restano attivi e falliti, con ipotesi non riproducibili o
+metodi fuori campo: tools/Steel.LegacyDiagnostics/REFACTORING_REVIEW_20261021.txt.
+Non sono stati trasformati in test superati o commentati.
+
+VERIFICA E CONTINUAZIONE
+CLASSIFICATION_REFACTOR_VERIFICATION.json conserva evidenze dei singoli passi;
+REFACTORING_FINAL_VERIFICATION.json contiene suite e hash del controllo finale.
+La verifica non pubblica pacchetti e non sostituisce Release-Set.ps1.
+In coda dopo il blocco: connessioni e profili accoppiati almeno C/L, distinguendo
+proprieta' geometriche composte e collaborazione strutturale dei componenti.
+La storia dei passi preliminari e' conservata in Git e nei manifest dedicati.

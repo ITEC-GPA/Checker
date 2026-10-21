@@ -1,0 +1,44 @@
+RIESAME DEGLI11 LEGACY NEL REFACTORING - 21 OTTOBRE 2026
+Baseline dettagliata: FOLLOWUP_2026_10_20.txt e relativo manifest.
+Non cambiano input, attesi, fixture o whitelist. Tutti i casi restano attivi.
+Il confronto diagnostico riguarda29casi/221asserzioni, inclusi i risultati
+intermedi e i rifiuti: identita' verificata a ogni passo del refactoring.
+
+Caso                                      Motivo residuo / confronto pertinente
+Sap_SectionTTest                           Biassiale/classi, proprieta' diverse e
+                                          kij fuori campo6.3.3. Test indipendenti:
+                                          TeeBiaxialClassificationTests,
+                                          TeeTorsionReferenceTests.
+Sap_SectionTTest2                          Segno N del test opposto al report;
+                                          stesso limite d'interazione d'asta.
+Sap_SectionHAsymmetricTest1                 Mcr/Wagner coperti parzialmente da
+                                          MonosymmetricCriticalMomentTests;
+                                          manca una verifica completa pertinente.
+Sap_SectionHAsymmetricTest2                 Geometria del report diversa e MN,Rd
+                                          non implementato per quel caso.
+Sap_SectionLTest                           Ncr,TF: CoupledBucklingEigenvalueTests;
+                                          LTB e interazione completa non coperti.
+SectionCLateralTorsionalBuckling2           Prodotto tabulato UPN e sezione test
+                                          ad ali parallele non equivalenti;
+                                          ChannelEc3SlendernessTests qualifica
+                                          l'aritmetica EC3, non l'atteso storico.
+SectionHBuckling1                          S355 dichiarato riproducibile; S275
+                                          non sostituibile senza fonte originale.
+SectionHLateralTorsionalBuckling1           Componenti IPE300 coperti dai test
+SectionHLateralTorsionalBuckling2           Caffe/SCI; mancano ipotesi del libro
+                                          originario su vincoli/materiale/carico.
+SectionHInteraction2                       Catena AnnexA verificata indipendente;
+SectionHInteraction3                       metodo/input della fonte da accertare.
+
+Decisione: non attribuire un errore all'autore in assenza di dati riproducibili.
+I test analoghi restano aggiunte con fonti e scope espliciti, non sostituzioni
+arbitrarie degli attesi. I nuovi78casi curve saldate,62RHS raccordati e30taglio
+colmavano lacune dimostrate del codice, ma non ricostruiscono quelle fonti.
+Chiudiamo il riesame richiesto per questo refactoring conservando gli11 aperti.
+Per sostituire un caso: stessa geometria/prodotto, materiale/spessore,
+vincoli/lunghezze, carico/quota, norma/AN/metodo e intermedi verificabili.
+Un rifiuto del metodo e' NotEvaluated, mai una verifica resistente superata.
+
+SHA256 sorgente EN1993p11Test.cs invariato:
+773022095F2659B4292116A0C5C08065747457BDDA0F2EB8A8AF3B8C6BD0F47F
+Evidenze finali: ../../src/Steel/REFACTORING_FINAL_VERIFICATION.json.

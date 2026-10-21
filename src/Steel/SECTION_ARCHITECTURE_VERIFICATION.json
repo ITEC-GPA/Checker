@@ -1,0 +1,94 @@
+{
+  "Purpose": "Architecture step1 verification; not a release certificate or expected fixture",
+  "Version": "2.5.0.0",
+  "BaseCommit": "eddcdb36",
+  "Branch": "codex/steel-section-architecture",
+  "Date": "2026-10-21",
+  "LegacySourceSha256": "773022095F2659B4292116A0C5C08065747457BDDA0F2EB8A8AF3B8C6BD0F47F",
+  "LegacyCasesExactlyEqualToBase": true,
+  "LegacyCases": 29,
+  "LegacyAssertions": 221,
+  "Suites": [
+    {
+      "File": "section-architecture-final.trx",
+      "Sha256": "8a5fe31cacf450c9d8291d58830f0810d39e566d15aae3b41519313a74a2e228",
+      "Counters": {
+        "total": "1325",
+        "executed": "1325",
+        "passed": "1325",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "FailedTests": []
+    },
+    {
+      "File": "section-architecture-final-modelchecker.trx",
+      "Sha256": "27a94211db12a61e156f1a947306849555e20a38d459a18809098f730eacc181",
+      "Counters": {
+        "total": "14",
+        "executed": "14",
+        "passed": "14",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "FailedTests": []
+    },
+    {
+      "File": "section-architecture-final-legacy.trx",
+      "Sha256": "ba515e484f2a018b216beac9bd4256ea27a61a82c6b59da04962813aa413347e",
+      "Counters": {
+        "total": "122",
+        "executed": "122",
+        "passed": "111",
+        "failed": "11",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      },
+      "FailedTests": [
+        "SectionHInteraction2",
+        "Sap_SectionHAsymmetricTest1",
+        "Sap_SectionHAsymmetricTest2",
+        "SectionHLateralTorsionalBuckling1",
+        "SectionHBuckling1",
+        "Sap_SectionTTest2",
+        "SectionHLateralTorsionalBuckling2",
+        "Sap_SectionLTest",
+        "SectionCLateralTorsionalBuckling2",
+        "SectionHInteraction3",
+        "Sap_SectionTTest"
+      ]
+    }
+  ]
+}

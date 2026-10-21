@@ -1,0 +1,251 @@
+TASK GENERALE STEEL - PRIMO BLOCCO APPROVATO - 21 OTTOBRE 2026
+Branch: codex/steel-section-architecture
+Baseline: 328d4f60, Steel 2.5.0.0, ModelChecker 2.3.0.0.
+Il blocco connessioni (11-16) e' concordato come sviluppo successivo.
+Le norme americane restano fuori da questo lavoro.
+
+1. Estrarre primitive di classificazione interne/sporgenti/CHS. COMPLETATO (2.6.0.0).
+2. Separare ricostruzione geometrica e classificazione. COMPLETATO per
+   compressione uniforme (2.7.0.0); distribuzioni N/M proseguono al punto 3.
+3. Integrare flessione/pressoflessione e sigma_com,Ed con classi distinte
+   per resistenza di sezione e instabilita'. COMPLETATO nel contratto scalare
+   e nelle formule delle facade (2.8.0.0); nuovi campi geometrici al punto 9.
+4. Migrare i chiamanti con confronto vecchio/nuovo e oracoli. COMPLETATO
+   nei campi gia' qualificati (Steel2.9.0.0,ModelChecker2.4.0.0).
+5. Estrarre aree resistenti/proprieta' derivate, differenze EC3/NTC. COMPLETATO
+   per le formule di taglio esistenti (Steel2.10.0.0,ModelChecker2.5.0.0).
+6. Separare instabilita': Ncr/Mcr e snellezze/riduzioni estratti; selezione
+   di curve/vincoli distinta nei chiamanti. COMPLETATO (Steel2.11.0.0).
+7. Isolare interazioni di sezione e d'asta, con campi di applicazione.
+   COMPLETATO per le formule esistenti (Steel2.12.0.0).
+8. Consolidare NTC2018: formule comuni distinte dalle prescrizioni.
+   COMPLETATO per i percorsi qualificati esistenti (Steel2.13.0.0).
+9. Colmare copertura indipendente e riesaminare gli11 legacy.
+   ESEGUITO il ciclo di qualifica delle modifiche: curve saldate, RHS
+   raccordati in N, instabilita' a taglio; riesame degli11 documentato.
+   La copertura globale per ogni calcolo/famiglia resta APERTA nella matrice;
+   gli11 restano attivi, non risolti artificialmente.
+10. Completare ModelChecker, pulizia mirata, verifica e master.
+    INTEGRAZIONE COMPLETATA (Steel2.16.0.0,ModelChecker2.6.0.0);
+    VERIFICA COMPLETATA:3778superati,11legacy noti,0inattesi,0ignorati.
+    Compatibilita' API verificata; integrazione locale tramite commit di merge.
+
+Ogni passo viene verificato e committato. Nessun atteso preesistente viene
+rigenerato per ottenere test verdi. Una verifica non supportata non e' positiva.
+Il merge finale segue il completamento e la verifica dell'intero blocco;
+nessun push incluso. Il refactoring non rende automaticamente qualificati
+tutti i metodi/famiglie gia' presenti nelle facade legacy.
+
+PUNTO1 - AMBITO E FONTE
+EN1993-1-1:2005, corrigenda2006/2009, tabella5.2, pagine stampate42-44
+(paginePDF44-46), consultata il21/10/2026:
+https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+Solo compressione uniforme delle parti piane e CHS in N/M.
+L'API scalare contiene dimensioni inmm e fy inMPa; nessuna dipendenza Model.
+Classe4 e' una classificazione completata, non una verifica resistente.
+Non include da sola i requisiti aggiuntivi per angolari della terza pagina
+della tabella, i raccordi/cordoni, la ricostruzione delle tensioni o 5.5.2(9).
+Le facade conservano il comportamento di input preesistente: la validazione
+esplicita del nuovo contratto non viene imposta implicitamente ai chiamanti.
+L'ordine dei prodotti epsilon*epsilon CHS resta quello legacy.
+
+PUNTO1 - VERIFICA ESEGUITA
+138 nuovi casi: soglie inclusive e lati, cinque gradi, scala geometrica,
+input mancanti/non validi, errori numerici, traccia e confronto delle facade.
+Steel.Members1463/1463, ModelChecker Steel97/97; legacy111/122, stessi11
+fallimenti e identica diagnostica29casi/221asserzioni. Zero test ignorati.
+Nessuna fixture, atteso o whitelist preesistente modificato.
+Evidenze: CLASSIFICATION_REFACTOR_VERIFICATION.json.
+
+PUNTO 2 - GEOMETRIA E VERIFICA
+Snapshot scalari immutabili delle parti: H, C, T, RHS a spigoli vivi, CHS.
+Il mapper Model ricostruisce le larghezze; il classificatore riceve solo
+dimensioni e fy esplicito e conserva risultati e parti governanti.
+Un dato non valido impedisce una classe globale. Nessuna migrazione dei
+chiamanti in questo passo. 32 casi nuovi, Steel.Members 1495/1495, zero ignorati.
+Controlli geometrici per sottrazione dimensionale, soglie della tabella 5.2,
+confronto legacy su cinque famiglie e cinque gradi, immutabilita' e rifiuti.
+RHS raccordati: Model contiene gia' SectionRHSRoundedCorners (geometria e
+proprieta' proprie); la qualificazione automatica in Checker resta distinta.
+SectionRHS.R invece non entra nei calcoli geometrici di quel tipo base.
+Entrambe le varianti con raccordi restano escluse da questo mapper finche'
+le larghezze piane e il campo normativo non sono qualificati al punto 9.
+Gli angolari richiedono anche i requisiti sull'intera sezione della tabella 5.2.
+
+CODA APPROVATA DOPO I PRIMI 10 PUNTI
+- Connessioni: blocco successivo gia' concordato (11-16).
+- Profili accoppiati, almeno C e L (aggiunto su richiesta il 21/10/2026):
+  geometria e orientamento dei componenti, distanze, proprieta' composte;
+  resistenza della sezione, instabilita' globale e dei singoli componenti;
+  effetto di calastrelli/tralicciature e verifica dei collegamenti tra profili.
+  Distinguere accoppiamento geometrico da collaborazione strutturale effettiva.
+  Definire i campi coperti con benchmark indipendenti prima dell'abilitazione
+  automatica. Il dettaglio e la priorita' rispetto alle connessioni verranno
+  definiti dopo la chiusura del blocco corrente.
+
+PUNTO 3 - CLASSIFICAZIONE N/M E TRATTAMENTO DELLE TENSIONI
+Ec3PlateClassification riceve c/t, fy, alpha plastico e distribuzione elastica
+espliciti, senza ricavare alpha da psi. Mantiene la traccia delle soglie e dei
+limiti conservativi usati fuori dal dominio psi degli outstand. Il chiamante
+deve verificare la condizione della nota della tabella 5.2 per psi<-1 interni.
+Le facade delegano l'aritmetica, mantenendo la ricostruzione dei diagrammi.
+Ec3ClassifiedSectionTreatment collega le classificazioni delle parti alla API
+gia' esistente di 5.5.2(9)-(10): classe nominale, resistenza di sezione e
+instabilita' distinte; niente estensione implicita a CHS, NTC o altri materiali.
+Corretto un controllo di coerenza: una classe plastica 1/2 non deve essere
+rifiutata solo per superamento del diverso limite elastico della classe 3.
+Caso riproducibile: outstand alpha=.5, tip compresso, psi=-1, fy235,
+c/t19.5: classe2 (limite20), limite elastico classe3=21*sqrt(.85)=19.361...
+55 casi nuovi. Steel.Members1550/1550, ModelChecker Steel97/97,
+legacy111/122 con gli stessi11 e identici29casi/221asserzioni diagnostici.
+Il nuovo test SCI confronta k=.616 con tolleranza .0005 (3 decimali pubblicati)
+e classe4: il limite13.3 dell'articolo usa intermedi arrotondati e non e' imposto
+al calcolo con epsilon esatto. Nessun atteso o fixture esistente modificato.
+
+PUNTO 4 - CHIAMANTI E TRACCIA
+La facade EC3 usa il mapper e il classificatore uniforme per i tipi esatti
+coperti. Le forme derivate, i campi non qualificati e gli input invalidi
+conservano il percorso di compatibilita' precedente, non una nuova qualifica.
+ModelChecker usa direttamente il contratto con esiti diagnostici: i limiti
+di applicabilita' restano H simmetriche stocky, edizione2005, taglio e flessione
+retta gia' qualificati. La traccia riporta larghezze, spessori, rapporti,
+classi e soglie delle tre parti. Niente memorizzazione di nuovi tipi: sono
+valori della traccia preesistente, senza nuovi campi persistiti o impronte.
+6 casi nuovi su tracciabilita' e confine classe2/3, piu' regressioni esistenti.
+Steel1550/1550; ModelChecker completo263/263 (Steel103/103).
+Legacy111/122, stessi11, diagnostica29casi/221asserzioni identica.
+
+PUNTO 5 - AREE RESISTENTI E PROPRIETA'
+ModelShearAreas ricostruisce i dati da Model; SectionPropertyArithmetic
+esegue solo formule scalari. Le facade conservano firme e convenzioni degli
+assi. ModelChecker non ricava piu' Av mediante ereditarieta' da EN1993p11Checker;
+NativeSectionProperties resta solo per il filtro sull'instabilita' a taglio.
+La politica T NTC e' distinta da T EC3; eta=1 resta l'ipotesi della facade.
+Area netta e moduli per classe sono gia' espliciti nel contratto di resistenza:
+nessuna deduzione di fori o proprieta' efficaci. Il vecchio GetAreaNet=Ag resta
+solo nel percorso legacy, come gia' documentato.
+La separazione NON qualifica nuovi orientamenti, assi principali ruotati,
+forme derivate, saldature/raccordi o intere famiglie per ogni metodo.
+22 nuovi casi su 5 famiglie, 2 produzioni, 2 norme; raccordi T e input mancanti.
+Steel1572/1572; ModelChecker Steel103/103; legacy111/122, stessi11 e
+diagnostica29casi/221asserzioni identica. Nessuna fixture modificata.
+Fonti riconsultate: EC3:2005/AC2009 6.2.6(3), pagina stampata51;
+NTC2018 4.2.4.1.2.4 [4.2.18-23], GU pagina99 (PDF cap4 pagina31):
+https://www.gazzettaufficiale.it/do/atto/serie_generale/caricaPdf?art.codiceRedazionale=18A00716&art.dataPubblicazioneGazzetta=2018-02-20&art.num=1&art.tiposerie=SG&cdimg=18A0071600100010110005&dgu=2018-02-20
+
+PUNTO 6 - INSTABILITA' ELASTICA E RIDUZIONI
+ElasticStabilityArithmetic contiene Euler, torsione, determinante accoppiato
+flesso-torsionale e Mcr con coefficienti/termini geometrici gia' determinati.
+Non riceve fy, curva o gamma. BucklingReductionArithmetic contiene snellezze,
+Phi, chi, f e chiLT. Geometria, curva, condizioni al contorno e scelta del
+metodo restano nei chiamanti EC3/NTC; le politiche non vengono fuse.
+Anche i percorsi NTC condividono il solo nucleo elastico/flessionale compatibile.
+Nessuna nuova qualifica dei vincoli e nessun modello generale FEM introdotto.
+Ordine delle operazioni EC3 e comportamento legacy preservati. Nessun test
+ridondante aggiunto: rieseguiti tutti i benchmark indipendenti gia' presenti.
+Steel1572/1572; ModelChecker Steel103/103; legacy111/122, stessi11,
+identici29casi/221asserzioni diagnostici. Zero test ignorati.
+
+OSSERVAZIONE PER IL PUNTO 9
+Rivedere la selezione delle curve per cassoni saldati: i due selettori legacy
+confrontano t/b e t/h con40/30, mentre la tabella6.2 EC3 usa b/tf e h/tw
+e distingue il caso di saldature spesse a>0.5tf. Non basta invertire rapporti:
+va esplicitata la disponibilita'/provenienza dello spessore di gola a.
+Fonte riconsultata: EN1993-1-1:2005/AC2009 tabella6.2, pagina stampata58.
+
+PUNTO 7 - INTERAZIONI
+SectionInteractionArithmetic riceve resistenze di sezione: N-M per H/RHS,
+M-V e limite elastico N-M. MemberInteractionArithmetic contiene mu, limite
+lambda0 e termini/coefficienti dell'Annex A, con Ncr e capacita' separati.
+I nuclei non dipendono da Model. Geometria, classe, controlli del campo
+applicativo e scelte del metodo restano nel chiamante. La guardia sulle
+sezioni non doppiamente simmetriche non e' rimossa ne' aggirata.
+Conservato l'ordine moltiplicazioni/divisioni anche nei limiti dei coefficienti.
+Nessuna estensione implicita delle formule di interazione EC3 a NTC.
+Eseguiti i benchmark indipendenti gia' presenti su N-M, M-V, Annex A,
+normalizzazione con Npl,Rd, Cyy e integrita' del report/campo applicativo.
+Steel1572/1572; ModelChecker Steel103/103; legacy111/122, stessi11,
+identici29casi/221asserzioni diagnostici. Nessun nuovo atteso artificiale.
+
+PUNTO 8 - POLITICA NTC2018
+Ntc2018DesignPolicy centralizza gamma, imperfezioni, gradi nominali e classe
+CHS. Ntc2018ModelPolicy controlla il profilo normativo esplicito: una modifica
+dei parametri usati o una norma derivata non eredita tacitamente la qualifica.
+Solo aritmetica compatibile condivisa con EC3; nessuna estensione di sigma_com,Ed
+o Annex A al percorso NTC. Conservati i campi assiali e CHS gia' supportati.
+8 casi nuovi per profili normativi modificati, varianti e classi CHS ai confini.
+Steel1580/1580; ModelChecker Steel103/103; legacy111/122, stessi11,
+identici29casi/221asserzioni diagnostici. Nessun atteso preesistente cambiato.
+
+PUNTO 9a - CURVE DI SEZIONI SALDATE (Steel2.13.0.1)
+Tabella6.2 EC3:2005/AC2009, pagina58 verificata anche sul disegno originale.
+Cassone simmetrico: curva c se a>0.5tf E b/tf<30 E h/tw<30, b altrimenti.
+R della sola SectionRHS esatta saldata e' gola, come da contratto Model;
+R=0 significa dato non specificato: se il caso c non puo' essere escluso,
+si usa l'inviluppo conservativo c. Raggi di sottotipi e pareti disuguali
+non ricevono una curva b non qualificata. Non varia Ncr elastico.
+H saldata doppiamente simmetrica esatta: confine tf<=40, senza usare tw,
+curve b/c oppure c/d e corrispondenza assi geometrici/principali esplicita.
+78 nuovi casi normativi/analitici:39 fallivano prima,78 superati dopo.
+Steel1658/1658; ModelChecker Steel103/103; legacy111/122, stessi11 e
+diagnostica identica. Nessun atteso preesistente modificato.
+
+PUNTO 9b - RHS RACCORDATI (Steel2.14.0.0)
+Il mapper supporta ora SectionRHSRoundedCorners esatta con pareti uniformi.
+Larghezza piana conservativa: h/b-2min(ro,t+ri), ossia la faccia rettilinea
+piu' lunga. Coincide con h/b-2ro per raggi concentrici e con h/b-3t del
+profilo SCI hot-finished ro=1.5t,ri=t. Non si alterano i raggi di Model.
+Raggi non finiti o spessori resi disuguali tramite mutazione sono rifiutati.
+La vecchia prova negativa sul tipo raccordato e' sostituita dalla nuova
+qualifica positiva; nessun atteso numerico o fixture esistente rigenerato.
+62 casi nuovi: classificazione uniforme e soglie su5gradi; integrazione
+indipendente area/inerzie mediante rettangoli e quarti di cerchio;
+26resistenze SCI P363 D-22 (13lunghezze,2assi), taglio D-112 e compressione.
+Il confronto pubblicato tiene conto solo delle cifre stampate e della
+differenza ricostruita fra proprieta' geometriche e raggi tabulati.
+La copertura NON include automaticamente N/M,LTB,classe4 o bulk completo.
+Steel1720/1720; ModelChecker Steel103/103; legacy111/122, stessi11 e
+identici29casi/221asserzioni diagnostici. Zero ignorati.
+
+PUNTO 9c - INSTABILITA' A TAGLIO (Steel2.15.0.0)
+Ec3WebShearBuckling separa soglia72epsilon/eta e contributo dell'anima
+con montante terminale non rigido: chi=min(eta,.83/lambda_w).
+Corretto il precedente .83/eta, indipendente dalla snellezza. RHS: rapporti
+h/t corretti e contributi delle due pareti calcolati separatamente, su
+entrambi gli assi di taglio. Non si sommano gli spessori nella snellezza.
+Resistenza finale limitata anche dalla resistenza plastica della sezione.
+Ipotesi esplicite: irrigidimenti trasversali agli appoggi, nessun contributo
+delle flange, nessun beneficio del montante rigido. Irrigidimenti/saldature
+non verificati da questa componente; non e' un nuovo metodo NTC autonomo.
+SCI AD368, NSC giugno2012 p28: UKB406x140x39,S355,eta=gammaM1=1,
+Vbw,Rd pubblicata488kN. Tolleranza da arrotondamenti dichiarati, confronto
+analitico esatto separato. Fonti: EN1993-1-1:2005 6.2.6(6),
+EN1993-1-5:2006 5.2/5.3 tab5.1 ed eq5.5;
+https://www.steelconstruction.info/images/6/6f/AD-368.pdf
+30casi nuovi: benchmark SCI, rami/soglie, eta, pareti singole e casi stocky.
+Steel1750/1750; ModelChecker Steel103/103; legacy111/122, stessi11 e
+identica diagnostica. Nessun atteso/fixture/whitelist esistente modificato.
+
+PUNTO 10 - INTEGRAZIONE E PULIZIA
+Rimossa NativeSectionProperties: ModelChecker non deriva piu' dal checker
+legacy e non istanzia vincoli per verifiche di sezione. Snapshot immutabili
+di Av, classe e geometria nella cache, azioni/risultati sempre ricalcolati.
+Filtro di instabilita' a taglio scalare, hw distinto da c; eta invalidi
+diagnosticati. Aggiunti8casi per limiti, input e traccia; ModelChecker Steel111.
+Rimossa GetMin privata non piu' usata dopo l'estrazione delle riduzioni.
+Documentazione finale riscritta, matrici aggiornate, nessuna cancellazione
+di dati/fonti o cleanup di altri worktree. Le API/firme pubbliche esistenti
+e i contratti persistiti restano; si aggiungono valori alla traccia esistente.
+Il requisito generale di qualifica completa EC3/NTC di ogni famiglia NON
+viene dichiarato chiuso: le lacune della matrice richiedono ulteriori metodi
+e fonti, non modifiche arbitrarie ai test per rendere verde il conteggio.
+
+VERIFICA COMPLESSIVA21/10/2026
+build/Verify.ps1 -Suites all completato: Concrete795/795,legacySteel111/122,
+CompositeBridge284/284,Geotechnics191/191,Calculation174/174,
+ShallowFoundation28/28,EmbeddedWalls74/74,Steel.Members1750/1750,
+Design.Checks100/100,ModelChecker271/271. Totale3778superati,11noti,
+0inattesi,0ignorati. API pubbliche controllate compatibili; whitelist invariata.
+Rispetto all'inizio dei10punti:425nuovi casiSteel e14ModelChecker.
+Manifest con hashTRX:REFACTORING_FINAL_VERIFICATION.json.
+Non e' stato eseguito un rilascio di pacchetti ne' un push.
