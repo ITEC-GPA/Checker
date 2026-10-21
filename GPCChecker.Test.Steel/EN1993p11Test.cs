@@ -1,4 +1,4 @@
-using GPC.Checkers.Steel.Checkers;
+﻿using GPC.Checkers.Steel.Checkers;
 using GPC.Geometry;
 using GPC.Model;
 using GPC.Model.Data.Steel;
@@ -1503,7 +1503,8 @@ namespace SteelTests
             EN1993P11Checker.PerformCheck();
 
             // Historical SAP comparison is archived, NOT reproduced or approved.
-            // Active unsupported-capability contract; see LEGACY_CLOSURE_08.txt.
+            // Historical closure: LEGACY_CLOSURE_08.txt. Plastic section equilibrium is now available;
+            // the original biaxial member state still requires a general second-order analysis.
             Assert.AreEqual(355.0, EN1993P11Checker.Fy);
             Assert.AreEqual(490.0, EN1993P11Checker.Fu);
             Assert.AreEqual(1.0, standardEN1993P11.GammaM0);
@@ -1512,8 +1513,8 @@ namespace SteelTests
             Assert.AreEqual(1, EN1993P11Checker.GetErrorLog().Count);
             string error = EN1993P11Checker.GetErrorLog()[0].ToString();
             StringAssert.Contains(error, "SelfWeight");
-            StringAssert.Contains(error, "MN,Rd");
-            StringAssert.Contains(error, "not implemented");
+            StringAssert.Contains(error, "6.3.3");
+            StringAssert.Contains(error, "doubly symmetric");
             Assert.AreEqual(1, EN1993P11Checker.EN1993p11BeamStationResults.Length);
             var result = EN1993P11Checker.EN1993p11BeamStationResults[0];
             Assert.IsFalse(section.IsDoubleSymmetric);
@@ -1525,9 +1526,9 @@ namespace SteelTests
             Assert.AreEqual(17500d, section.Area, 17500d * 1e-10, "Area");
             Assert.AreEqual(230640811.01190478d, section.J11, 230640811.01190478d * 1e-10, "J11");
             Assert.AreEqual(63606770.833333336d, section.J22, 63606770.833333336d * 1e-10, "J22");
-            Assert.IsTrue(double.IsNaN(result.BendingMoment1Capacity), "Result unavailable after explicit rejection");
-            Assert.IsTrue(double.IsNaN(result.BendingMoment2Capacity), "Result unavailable after explicit rejection");
-            Assert.IsTrue(double.IsNaN(result.LateralTosionalBucklingCapacity), "Result unavailable after explicit rejection");
+            Assert.IsTrue(result.BendingMoment1Capacity > 0, "Section/LTB component is available; biaxial member interaction remains outside 6.3.4.");
+            Assert.IsTrue(result.BendingMoment2Capacity > 0, "Section/LTB component is available; biaxial member interaction remains outside 6.3.4.");
+            Assert.IsTrue(result.LateralTosionalBucklingCapacity > 0, "Section/LTB component is available; biaxial member interaction remains outside 6.3.4.");
         }
 
         [TestMethod]

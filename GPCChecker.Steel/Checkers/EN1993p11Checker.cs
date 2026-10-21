@@ -1,4 +1,4 @@
-using GPC.Checkers.Steel.Sections;
+﻿using GPC.Checkers.Steel.Sections;
 using GPC.Checkers.Steel.Members;
 using GPC.Checkers.Steel.ModelAdapters;
 using GPC.Geometry;
@@ -240,7 +240,15 @@ namespace GPC.Checkers.Steel.Checkers
 
                             if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2)
                             {
-                                if (steelSection.SectionShape is SectionH || steelSection.SectionShape is SectionRHS)
+                                if (steelSection.SectionShape is SectionH monosymmetricH && !monosymmetricH.IsDoubleSymmetric)
+                                {
+                                    // Direct plastic equilibrium: the doubly-symmetric H power
+                                    // interaction in 6.2.9.1(6) is not used for unequal flanges.
+                                    crossSectionInteraction = Ec3PlasticHSection.Evaluate(monosymmetricH,
+                                        (int)sectionClass, Fy, GammaM0, rbf.N, rbf.M1, rbf.M2,
+                                        rbf.V1 / shear1Rd, rbf.V2 / shear2Rd, rbf.T).Utilization;
+                                }
+                                else if (steelSection.SectionShape is SectionH || steelSection.SectionShape is SectionRHS)
                                 {
                                     CalculateMNRd1(sectionClass, steelSection, rbf.N, axialBuck1Rd, axialBuck2Rd, axialCompressionRd,
                                         bending1Rd, bending2Rd, out double mNxRd, out double mNyRd);
@@ -981,6 +989,15 @@ namespace GPC.Checkers.Steel.Checkers
                     mNyRd = SectionInteractionArithmetic.MinorIMoment(n, a, bending2Rd);
                     if (Math.Abs(Ned) <= sectionH.HeightWeb * sectionH.ThicknessWeb * Fy / GammaM0)
                         mNyRd = bending2Rd;
+                }
+                else if (section.SectionShape is SectionH monoH)
+                {
+                    // This legacy signature has no moment signs. Return the smaller
+                    // absolute major-axis capacity; signed/biaxial checks use Evaluate.
+                    double positive = Ec3PlasticHSection.Evaluate(monoH, (int)sectionClass, Fy, GammaM0, Ned, 1, 0).Moment1Rd;
+                    double negative = Ec3PlasticHSection.Evaluate(monoH, (int)sectionClass, Fy, GammaM0, Ned, -1, 0).Moment1Rd;
+                    mNxRd = Math.Min(positive, -negative);
+                    mNyRd = Ec3PlasticHSection.Evaluate(monoH, (int)sectionClass, Fy, GammaM0, Ned, 0, 1).Moment2Rd;
                 }
                 else if (section.SectionShape is SectionRHS sectionRHS && sectionRHS.IsDoubleSymmetric)
                 {

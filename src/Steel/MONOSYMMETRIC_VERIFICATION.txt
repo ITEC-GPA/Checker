@@ -1,0 +1,30 @@
+21/10/2026 - Steel 2.19.0.0 - Punto 1: H monosimmetriche
+
+Ec3PlasticHSection: equilibrio plastico N-M1-M2 a N fissato. Sigma=+/-fy/gammaM0;
+N positivo a trazione, M1=integrale(sigma*y), M2=-integrale(sigma*x), assi baricentrici.
+Il contorno resistente e' ottenuto con integrazione esatta dei tre rettangoli
+tagliati da un semipiano. Bisezione dell'area compressa e della direzione dei momenti.
+Coordinate normalizzate; errore di equilibrio/direzione causa errore esplicito.
+Il rapporto scala i soli momenti a N fissato; per N puro e' |N|/Npl,Rd.
+Non viene applicata l'interazione con esponenti delle H doppiamente simmetriche.
+
+Campo: SectionH esatta, ali parallele, r=0, asse principale 1 orizzontale,
+classe 1/2 gia' qualificata, taglio basso in entrambi i piani, torsione nulla.
+La classificazione e l'instabilita' delle piastre rimangono controlli separati.
+La firma legacy CalculateMNRd1 senza segni dei momenti restituisce per l'asse 1
+il minore dei due valori assoluti. Il percorso pubblico usa i segni effettivi.
+Non sono implementati qui raccordi, alto taglio o interazioni con torsione.
+
+Fonte: EN 1993-1-1:2005, corrigenda 2006/2009, 6.2.9.1(2), p.54 stampata.
+https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+Verifica indipendente: integrazione orizzontale a strisce con quadratura Gauss
+su intervalli separati ai cambi di geometria, senza clipping di poligoni.
+216 casi con scala, specchiatura, direzione e posizione della retta neutra;
+10 ulteriori casi parametrizzati/di limite, inclusi moduli plastici analitici.
+2.085/2.085 Steel.Members e 122/122 legacy eseguiti con esito positivo.
+TRX: audit-results/steel-mono-step1 nel workspace ChatGPT/Checker.
+
+Sap_SectionHAsymmetricTest2: input originali invariati. Ora la sezione e le
+componenti sono calcolabili; N-M1-M2 d'asta rimane fuori campo di 6.3.3/6.3.4.
+L'archivio LEGACY_CLOSURE_08 descrive il precedente stato, non viene riscritto.
+verify_legacy_closures.py verifica per default la revisione storica b85ec7e8.

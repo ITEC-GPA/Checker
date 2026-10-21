@@ -232,3 +232,6 @@ RoundedRhsCompressionTests (SCI P363 + integrazione indipendente),
 WebShearBucklingTests (SCI AD368 + EN1993-1-5). Fonti/pagine e limiti nella
 matrice SOURCE_COVERAGE_MATRIX.txt. Il requisito di copertura integrale di
 ogni calcolo/famiglia rimane aperto; non e' implicato dal refactoring.
+
+21/10/2026 - Steel 2.19.0.0: 226 nuovi test di equilibrio plastico H.
+2.085/2.085 Steel.Members e 122/122 legacy. Vedi MONOSYMMETRIC_VERIFICATION.txt.

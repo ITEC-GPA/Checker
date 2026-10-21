@@ -21,7 +21,7 @@ namespace Steel.Members.Tests;
 public class UnsupportedLegacyCapabilitiesTests
 {
     [DataTestMethod]
-    [DataRow("Sap_SectionHAsymmetricTest2", "MN,Rd", "not implemented")]
+    [DataRow("Sap_SectionHAsymmetricTest2", "6.3.3", "doubly symmetric")]
     [DataRow("Sap_SectionLTest", "McrLT", "without symmetry")]
     public void UnavailableCheckHasAnExplicitDiagnosticAndCannotAppearVerified(
         string legacyName, string mechanism, string reason)
@@ -50,6 +50,7 @@ public class UnsupportedLegacyCapabilitiesTests
         Assert.IsTrue(double.IsNaN(result.WorkingRatio), "An unavailable check cannot have a passing aggregate.");
         Assert.IsTrue(double.IsNaN(result.BucklingInteraction1Axis));
         Assert.IsTrue(double.IsNaN(result.BucklingInteraction2Axis));
-        Assert.IsTrue(double.IsNaN(result.BendingMoment1Capacity));
+        if (angle) Assert.IsTrue(double.IsNaN(result.BendingMoment1Capacity));
+        else { Assert.IsTrue(double.IsFinite(result.BendingMoment1Capacity)); Assert.IsTrue(double.IsFinite(result.CrossSectionInteraction)); }
     }
 }

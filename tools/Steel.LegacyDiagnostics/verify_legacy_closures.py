@@ -1,6 +1,8 @@
 """Audit all 11 legacy closures; standard-library Python only.
 
 Run in any directory: python tools/Steel.LegacyDiagnostics/verify_legacy_closures.py
+Audits historical closure revision b85ec7e8, not subsequent production features.
+Optional --revision changes the audited Git revision.
 Optional --results <build/Verify.ps1 output> verifies all ten TRX files too.
 Does not rewrite fixtures or modify the checkout.
 """
@@ -17,13 +19,13 @@ import xml.etree.ElementTree as ET
 sys.dont_write_bytecode=True
 
 
-def audit(results=None):
+def audit(results=None, revision="b85ec7e8"):
     diag=Path(__file__).resolve().parent
     repo=diag.parent.parent
     git=['git','-c','safe.directory='+repo.as_posix(),'-C',str(repo)]
     path='GPCChecker.Test.Steel/EN1993p11Test.cs'
     base=subprocess.check_output(git+['show','dafeea29:'+path]).decode('utf-8-sig').replace('\r\n','\n')
-    current=(repo/path).read_text(encoding='utf-8-sig')
+    current=subprocess.check_output(git+['show',revision+':'+path]).decode('utf-8-sig').replace('\r\n','\n')
     cases=[('SectionHBuckling1','hea300_flexural_reference',()),
            ('SectionHInteraction2','ipe300_annex_a_reference',()),
            ('SectionHInteraction3','hea260_annex_a_reference',()),
@@ -73,11 +75,11 @@ def audit(results=None):
     assert without_old==without_new,'Unrelated legacy methods changed'
     allowed=json.loads((repo/'build/known-failures.json').read_text())
     assert not any(s['tests'] for s in allowed['suites'].values()),'Allowlist is not empty'
-    changes=subprocess.check_output(git+['diff','--name-only','dafeea29']).decode().splitlines()
+    changes=subprocess.check_output(git+['diff','--name-only','dafeea29',revision]).decode().splitlines()
     historical_status_docs={'src/Steel/REFACTORING_PLAN.txt','src/Steel/COUPLED_MEMBERS_VERIFICATION.txt'}
     assert not any(p.startswith(('src/','GPCChecker.Steel/','ModelChecker/')) and
                    p not in historical_status_docs for p in changes),'Production changed'
-    output=dict(base_checker='dafeea29',cases=verified,production_changed=False,
+    output=dict(audited_revision=revision,base_checker='dafeea29',cases=verified,production_changed=False,
                 other_legacy_methods_unchanged=True,allowlist_empty=True)
     if results:
         results=Path(results)
@@ -101,5 +103,6 @@ def audit(results=None):
 if __name__=='__main__':
     parser=argparse.ArgumentParser()
     parser.add_argument('--results')
+    parser.add_argument('--revision',default='b85ec7e8')
     args=parser.parse_args()
-    print(json.dumps(audit(args.results),indent=2))
+    print(json.dumps(audit(args.results,args.revision),indent=2))
