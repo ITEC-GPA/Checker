@@ -8,7 +8,8 @@ Le norme americane restano fuori da questo lavoro.
 2. Separare ricostruzione geometrica e classificazione. COMPLETATO per
    compressione uniforme (2.7.0.0); distribuzioni N/M proseguono al punto 3.
 3. Integrare flessione/pressoflessione e sigma_com,Ed con classi distinte
-   per resistenza di sezione e instabilita'. DA FARE.
+   per resistenza di sezione e instabilita'. COMPLETATO nel contratto scalare
+   e nelle formule delle facade (2.8.0.0); nuovi campi geometrici al punto 9.
 4. Migrare i chiamanti con confronto vecchio/nuovo e oracoli. DA FARE.
 5. Estrarre aree resistenti/proprieta' derivate, differenze EC3/NTC. DA FARE.
 6. Separare instabilita': Ncr/Mcr, snellezze, curve, riduzioni. DA FARE.
@@ -69,3 +70,22 @@ CODA APPROVATA DOPO I PRIMI 10 PUNTI
   Definire i campi coperti con benchmark indipendenti prima dell'abilitazione
   automatica. Il dettaglio e la priorita' rispetto alle connessioni verranno
   definiti dopo la chiusura del blocco corrente.
+
+PUNTO 3 - CLASSIFICAZIONE N/M E TRATTAMENTO DELLE TENSIONI
+Ec3PlateClassification riceve c/t, fy, alpha plastico e distribuzione elastica
+espliciti, senza ricavare alpha da psi. Mantiene la traccia delle soglie e dei
+limiti conservativi usati fuori dal dominio psi degli outstand. Il chiamante
+deve verificare la condizione della nota della tabella 5.2 per psi<-1 interni.
+Le facade delegano l'aritmetica, mantenendo la ricostruzione dei diagrammi.
+Ec3ClassifiedSectionTreatment collega le classificazioni delle parti alla API
+gia' esistente di 5.5.2(9)-(10): classe nominale, resistenza di sezione e
+instabilita' distinte; niente estensione implicita a CHS, NTC o altri materiali.
+Corretto un controllo di coerenza: una classe plastica 1/2 non deve essere
+rifiutata solo per superamento del diverso limite elastico della classe 3.
+Caso riproducibile: outstand alpha=.5, tip compresso, psi=-1, fy235,
+c/t19.5: classe2 (limite20), limite elastico classe3=21*sqrt(.85)=19.361...
+55 casi nuovi. Steel.Members1550/1550, ModelChecker Steel97/97,
+legacy111/122 con gli stessi11 e identici29casi/221asserzioni diagnostici.
+Il nuovo test SCI confronta k=.616 con tolleranza .0005 (3 decimali pubblicati)
+e classe4: il limite13.3 dell'articolo usa intermedi arrotondati e non e' imposto
+al calcolo con epsilon esatto. Nessun atteso o fixture esistente modificato.

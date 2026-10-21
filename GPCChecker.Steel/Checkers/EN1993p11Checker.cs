@@ -2556,39 +2556,8 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         protected SectionClass GetClassBendingOuterPlate(double length, double thickness, double alpha,
             bool tipInCompression, double sigmaRoot, double sigmaTip)
-        {
-            if (alpha <= 0 || Math.Max(sigmaRoot, sigmaTip) <= 0)
-                return SectionClass.Class1;
-            alpha = Math.Min(alpha, 1);
-            double ratio = length / thickness;
-            double divisor = tipInCompression ? alpha : alpha * Math.Sqrt(alpha);
-            if (ratio <= 9 * Epsilon / divisor) return SectionClass.Class1;
-            if (ratio <= 10 * Epsilon / divisor) return SectionClass.Class2;
-
-            double limit3;
-            if (sigmaRoot == sigmaTip)
-                limit3 = 14 * Epsilon; // Uniform compression, Table 5.2.
-            else
-            {
-                double psi, kSigma;
-                if (sigmaTip > sigmaRoot)
-                {
-                    // Table 4.2 domain: -3 <= psi <= 1. For more tension use
-                    // the conservative endpoint, without extrapolating the polynomial.
-                    psi = Math.Max(-3, sigmaRoot / sigmaTip);
-                    kSigma = 0.57 - 0.21 * psi + 0.07 * psi * psi;
-                }
-                else
-                {
-                    // Maximum compression at the supported edge; domain [-1,1].
-                    psi = Math.Max(-1, sigmaTip / sigmaRoot);
-                    kSigma = psi > 0 ? 0.578 / (psi + 0.34) : 1.7 - 5 * psi + 17.1 * psi * psi;
-                }
-                limit3 = 21 * Epsilon * Math.Sqrt(kSigma);
-            }
-            return ratio <= limit3 ? SectionClass.Class3 : SectionClass.Class4;
-        }
-
+            => (SectionClass)PlateClassificationArithmetic.Outstand(length, thickness, alpha,
+                tipInCompression, sigmaRoot, sigmaTip, Epsilon);
 
         private bool TryGetRhsPureBendingClass(ResultBeamForces forces, ISteelSection section, out SectionClass sectionClass)
         {
@@ -2891,83 +2860,12 @@ namespace GPC.Checkers.Steel.Checkers
 
         protected SectionClass GetClassBendingInnerPlate(ResultBeamForces resultBeamForces, double length, double thickness, ISteelSection section, SectionClass sectionClass)
         {
+            // Legacy stress reconstruction stays in the facade; the Table 5.2
+            // arithmetic receives only scalar alpha, psi, c/t and epsilon.
             double alpha = -resultBeamForces.N / (2.0 * thickness * Fy * length) + 0.5;
-            double ctRatio = length / thickness;
-            // Endpoints of the compressed fraction: no compressed plate, or conservatively
-            // uniform compression. In particular alpha == 1 must not fall through the branches.
-            if (alpha <= 0) return SectionClass.Class1;
-            if (alpha >= 1) return GetClassCompressedInnerPlate(length, thickness);
-
-            double psi = 1;
-            if (sectionClass != SectionClass.Class4)
-                psi = -resultBeamForces.N * 2.0 / (section.Area * Fy) - 1.0;
-
-            if (alpha > 0.5 && alpha < 1)
-            {
-                if (ctRatio <= 396.0 * Epsilon / (13.0 * alpha - 1.0))
-                    return SectionClass.Class1;
-
-                else if (ctRatio <= 456.0 * Epsilon / (13.0 * alpha - 1.0))
-                    return SectionClass.Class2;
-
-                else
-                {
-                    if (psi > -1)
-                    {
-                        if (ctRatio <= 42.0 * Epsilon / (0.67 + 0.33 * psi))
-                            return SectionClass.Class3;
-
-                        else
-                            return SectionClass.Class4;
-                    }
-
-                    else if (psi <= -1)
-                    {
-                        if (ctRatio <= 62.0 * Epsilon * (1 - psi) * Math.Sqrt(-psi))
-                            return SectionClass.Class3;
-
-                        else
-                            return SectionClass.Class4;
-                    }
-                    else
-                        return SectionClass.Class4;
-                }
-            }
-
-            else if (alpha <= 0.5 && alpha > 0)
-            {
-                if (ctRatio <= 36.0 * Epsilon / alpha)
-                    return SectionClass.Class1;
-
-                else if (ctRatio <= 41.5 * Epsilon / alpha)
-                    return SectionClass.Class2;
-
-                else
-                {
-                    if (psi > -1)
-                    {
-                        if (ctRatio <= 42.0 * Epsilon / (0.67 + 0.33 * psi))
-                            return SectionClass.Class3;
-
-                        else
-                            return SectionClass.Class4;
-                    }
-                    else if (psi <= -1)
-                    {
-                        if (ctRatio <= 62.0 * Epsilon * (1 - psi) * Math.Sqrt(-psi))
-                            return SectionClass.Class3;
-
-                        else
-                            return SectionClass.Class4;
-                    }
-                    else
-                        return SectionClass.Class4;
-                }
-            }
-
-            else
-                throw new Exception("Section classification error");
-
+            double psi = sectionClass == SectionClass.Class4 ? 1
+                : -resultBeamForces.N * 2.0 / (section.Area * Fy) - 1.0;
+            return (SectionClass)PlateClassificationArithmetic.Internal(length, thickness, alpha, psi, Epsilon);
         }
 
         protected SectionClass GetClassCompressedInnerPlate(double length, double thickness)
