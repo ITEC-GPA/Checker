@@ -1,0 +1,35 @@
+FASE 4 - PIPELINE DI SEZIONE IN MODELCHECKER - 21 OTTOBRE 2026
+GPCModelChecker 2.7.0.0; Steel 2.23.0.0.
+
+Motore opt-in Steel.Pipeline.Section, meccanismo UlsBiaxialSection.
+Usa i tagli concomitanti preparati da Model (unita', assi, assegnazioni,
+revisione), ruota negli assi principali e richiama selettore e pipeline.
+EC3:2005 e NTC:2018 conservano politiche distinte. I due motori storici
+Steel.EN1993.PlasticShear e Steel.EN1993.Section conservano i propri contratti.
+
+EngineDefinition.Parameters: vocabolario chiuso, cultura numerica invariant.
+- Unperforated: true/false; assenza del parametro significa dato mancante.
+- NetArea: mm2, richiede Unperforated=false e SectionFingerprint.
+- UniformCompressionClass (1..4) e ClassificationSource: dichiarazione
+  conservativa per compressione uniforme, mai classe agevolata sigma_com,Ed.
+- ShearBucklingExcluded1/2 e ShearBucklingSource1/2: valutazioni esplicite
+  di esclusione dell'instabilita' a taglio; false non abilita la resistenza.
+- SectionFingerprint: ModelValues.Fingerprint(new object[] { property });
+  obbligatoria per area netta, classe o valutazioni esterne. Cambiare sezione,
+  materiale o fabbricazione invalida la dichiarazione. Una rotta con questi
+  dati deve selezionare solo sezioni con la stessa impronta.
+Le fonti registrano dichiarazioni del chiamante, non certificazioni.
+Senza valutazione esterna viene usato il solo filtro interno EC3 H/V2
+gia' qualificato, con eta del profilo normativo effettivamente utilizzato.
+
+La cache contiene solo snapshot di sezione, chiave proprieta'+configurazione.
+Azioni, piano ed esiti vengono ricalcolati per ogni taglio/stato.
+Ogni decisione compare nella traccia, anche senza una metrica resistente.
+Metriche valutate: domanda con segno, resistenza se scalare, utilizzo e
+riferimento del singolo metodo. Nessun massimo fra utilizzi incompatibili.
+Una riga incompleta e' NotEvaluated; eventuali componenti fallite restano
+nelle metriche e nell'esito nativo della traccia. Caso tutto-zero non valutato.
+Archivi e impronte usano i campi gia' persistiti, senza migrazione del formato.
+
+Verifica mirata: SteelPipelineAdapterTest, 23 casi, nessun atteso legacy cambiato.
+Evidenza completa di suite/API registrata nel commit di questa fase.
