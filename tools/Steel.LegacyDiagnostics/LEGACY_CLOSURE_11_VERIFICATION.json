@@ -1,0 +1,32 @@
+{
+  "step": 11,
+  "name": "Sap_SectionLTest",
+  "base": "74fe9d49e8a967d82e5ad27d1362e6ea8179babe",
+  "remaining": 0,
+  "production_changed": false,
+  "inputs_unchanged": true,
+  "historical_source_reproduced": false,
+  "before": {
+    "passed": 121,
+    "failed": [
+      "Sap_SectionLTest"
+    ],
+    "other": [],
+    "sha256": "6fbb1d669c0573c849148a23027ac2a56b8b7ed83a8252bbe590899e2bc357d6"
+  },
+  "after": {
+    "passed": 122,
+    "failed": [],
+    "other": [],
+    "sha256": "532baee538ba87c2c8dc9efca9611e9803dd40b9b1ebc0125be11d7ff7cd6b20"
+  },
+  "other_legacy_methods_unchanged": true,
+  "original_preserved": true,
+  "unexpected_failures": [],
+  "evidence": {
+    "GPCChecker.Test.Steel/EN1993p11Test.cs": "2db0af24aae6526f41e7c41055e55f1b1aae5af5a29aa69e2c5477a46d655b0a",
+    "build/known-failures.json": "6cd9c27573f3fd63b72b4386a3fd25c177666b5d2e923d1eb73bd8dd6e61e513",
+    "tools/Steel.LegacyDiagnostics/closed-cases/Sap_SectionLTest.original.cs.txt": "b95c2dc9374d6ab182bfc63647e85e0ed123da6296ee215b9013164a29eca093",
+    "tools/Steel.LegacyDiagnostics/closed-cases/Sap_SectionLTest.reference.json": "50c108b0555c118b5f7006296f851afefc5f84bde17bf7abbee2b9b840137cf1"
+  }
+}

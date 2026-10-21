@@ -2366,9 +2366,32 @@ namespace SteelTests
 
             EN1993P11Checker.PerformCheck();
 
-            Assert.AreEqual(13774.0 * 1000.0 / EN1993P11Checker.EN1993p11BeamStationResults[0].AxialTensionCapacity, 1, 0.01);
-            Assert.AreEqual(772.216 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment1Capacity, 1, 0.03);
-            Assert.AreEqual(433.721 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment2Capacity, 1, 0.03);
+            // Historical SAP comparison is archived, NOT reproduced or approved.
+            // Active unsupported-capability contract; see LEGACY_CLOSURE_11.txt.
+            Assert.AreEqual(355.0, EN1993P11Checker.Fy);
+            Assert.AreEqual(490.0, EN1993P11Checker.Fu);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM0);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM1);
+            Assert.AreEqual(1.25, standardEN1993P11.GammaM2);
+            Assert.AreEqual(1, EN1993P11Checker.GetErrorLog().Count);
+            string error = EN1993P11Checker.GetErrorLog()[0].ToString();
+            StringAssert.Contains(error, "SelfWeight");
+            StringAssert.Contains(error, "McrLT");
+            StringAssert.Contains(error, "without symmetry");
+            Assert.AreEqual(1, EN1993P11Checker.EN1993p11BeamStationResults.Length);
+            var result = EN1993P11Checker.EN1993p11BeamStationResults[0];
+            Assert.IsFalse(section.IsDoubleSymmetric);
+            Assert.IsTrue(double.IsNaN(result.WorkingRatio), "Unsupported member check cannot appear verified.");
+            Assert.IsTrue(double.IsNaN(result.BucklingInteraction1Axis));
+            Assert.IsTrue(double.IsNaN(result.BucklingInteraction2Axis));
+            Assert.AreEqual(EN1993p11Checker.SectionClass.Class3, result.BendingCompressionClass);
+            // Independent exact rectangular integration, not copied SAP properties.
+            Assert.AreEqual(38800d, section.Area, 38800d * 1e-10, "Area");
+            Assert.AreEqual(622089368.26919973d, section.J11, 622089368.26919973d * 1e-10, "J11");
+            Assert.AreEqual(171659257.16035357d, section.J22, 171659257.16035357d * 1e-10, "J22");
+            Assert.IsTrue(double.IsNaN(result.BendingMoment1Capacity), "Result unavailable after explicit rejection");
+            Assert.IsTrue(double.IsNaN(result.BendingMoment2Capacity), "Result unavailable after explicit rejection");
+            Assert.IsTrue(double.IsNaN(result.LateralTosionalBucklingCapacity), "Result unavailable after explicit rejection");
         }
 
         #endregion
