@@ -1,4 +1,5 @@
 using GPC.Checkers.Steel.Sections;
+using GPC.Checkers.Steel.ModelAdapters;
 using GPC.Geometry;
 using System.Collections.Generic;
 using GPC.Checkers.Steel.Results;
@@ -2780,6 +2781,14 @@ namespace GPC.Checkers.Steel.Checkers
         {
             if (section.GetMinSigma(resultBeamForces.N, resultBeamForces.M1, resultBeamForces.M2) < 0.0)
             {
+                if (ModelCompressionGeometry.CanMap(section))
+                {
+                    var nominal = Ec3UniformCompressionClassification.Evaluate(ModelCompressionGeometry.Create(section), Fy);
+                    if (nominal.IsEvaluated) return (SectionClass)nominal.NominalClass.Value;
+                    // Preserve the legacy facade's invalid-input behavior. The new
+                    // scalar API and ModelChecker return explicit diagnostics instead.
+                }
+                // Compatibility path for derived/unqualified legacy shapes.
                 if (section.SectionShape is SectionH sectionH)
                 {
                     return SetWorstClass(new SectionClass[] {

@@ -37,6 +37,34 @@ namespace GPC.Model.Checker
             return failure;
         }
 
+        internal static CheckResult ClassificationFailure(UniformCompressionClassification result)
+        {
+            if (result.IsEvaluated) return null;
+            var failure = NativeResults.Missing("SteelClassification." + result.DiagnosticCode);
+            if (result.Status == SectionClassificationStatus.CalculationError)
+            {
+                failure.Data = DataStatus.Ready;
+                failure.Execution = ExecutionStatus.Error;
+            }
+            return failure;
+        }
+
+        internal static void AddClassificationTrace(List<CheckCalculationValue> trace, UniformCompressionClassification result)
+        {
+            trace.Add(new CheckCalculationValue("CompressionClass", result.NominalClass, "1", "Conservative uniform-compression stockiness gate"));
+            foreach (var part in result.Parts)
+            {
+                var c = part.Classification; string key = "Classification." + part.Id + ".";
+                trace.Add(new CheckCalculationValue(key + "ClearWidth", c.WidthOrDiameter, "mm", c.Reference));
+                trace.Add(new CheckCalculationValue(key + "Thickness", c.Thickness, "mm", c.Reference));
+                trace.Add(new CheckCalculationValue(key + "Ratio", c.WidthThicknessRatio, "1", c.Reference));
+                trace.Add(new CheckCalculationValue(key + "Class", c.NominalClass, "1", c.Reference));
+                trace.Add(new CheckCalculationValue(key + "Class1Limit", c.Class1Limit, "1", c.Reference));
+                trace.Add(new CheckCalculationValue(key + "Class2Limit", c.Class2Limit, "1", c.Reference));
+                trace.Add(new CheckCalculationValue(key + "Class3Limit", c.Class3Limit, "1", c.Reference));
+            }
+        }
+
         internal static CheckMetric Metric(string axis, double demand, SectionResistanceResult result)
         {
             if (!result.IsEvaluated) throw new ArgumentException("An evaluated section result is required.", nameof(result));

@@ -255,6 +255,39 @@ public class SteelSectionAdapterContractTest
         Assert.AreEqual(expected ? DataStatus.Ready : DataStatus.NotSupported, result.Data);
     }
 
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public void ScalarClassificationTraceIdentifiesPartsAndClearDimensions(bool bending)
+    {
+        var result = new SteelMaterialChecker(new StandardEN1993p11(), "2005", null, bending).CreateSession()
+            .Verify(Input(), bending ? CheckMechanism.UlsBiaxialSection : CheckMechanism.Shear, default);
+        Assert.AreEqual(EngineeringOutcome.Satisfied, result.Outcome);
+        var trace = result.Details.Trace;
+        Assert.AreEqual(1d, trace.Single(v => v.Key == "CompressionClass").Value);
+        Assert.AreEqual(264d, trace.Single(v => v.Key == "Classification.Web.ClearWidth").Value);
+        Assert.AreEqual(22d, trace.Single(v => v.Key == "Classification.Web.Ratio").Value);
+        Assert.AreEqual(69d, trace.Single(v => v.Key == "Classification.TopFlange.ClearWidth").Value);
+        Assert.AreEqual(69d, trace.Single(v => v.Key == "Classification.BottomFlange.ClearWidth").Value);
+        Assert.AreEqual(3, trace.Count(v => v.Key.StartsWith("Classification.") && v.Key.EndsWith(".Class")));
+    }
+
+    [DataTestMethod]
+    [DataRow(33d, 1, true)] [DataRow(38d, 2, true)]
+    [DataRow(38.000001, 3, false)] [DataRow(42.000001, 4, false)]
+    public void ClassificationMigrationPreservesTheStockinessGateAtTable52Boundaries(double webRatio, int expected, bool qualified)
+    {
+        // fy235=>epsilon1; web is the governing part of this sharp H.
+        var input = Input(shape: new SectionH(webRatio * 12 + 36, 12, 150, 18, 150, 18, "boundary"));
+        ((SteelSection)input.Property).SteelMaterial = SteelMaterialEN1993Data.S235;
+        var result = new SteelMaterialChecker(new StandardEN1993p11(), "2005").CreateSession().Verify(input, CheckMechanism.Shear, default);
+        if (qualified)
+        {
+            Assert.AreEqual(EngineeringOutcome.Satisfied, result.Outcome);
+            Assert.AreEqual((double)expected, result.Details.Trace.Single(v => v.Key == "CompressionClass").Value);
+        }
+        else AssertUnavailable(result, "SteelSlenderSectionNotQualified");
+    }
+
     private static void AssertUnavailable(CheckResult result, string code)
     { Assert.AreEqual(DataStatus.NotSupported, result.Data); AssertNoDecision(result, code); }
     private static void AssertNoDecision(CheckResult result, string code)

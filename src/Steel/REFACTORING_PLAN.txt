@@ -10,7 +10,8 @@ Le norme americane restano fuori da questo lavoro.
 3. Integrare flessione/pressoflessione e sigma_com,Ed con classi distinte
    per resistenza di sezione e instabilita'. COMPLETATO nel contratto scalare
    e nelle formule delle facade (2.8.0.0); nuovi campi geometrici al punto 9.
-4. Migrare i chiamanti con confronto vecchio/nuovo e oracoli. DA FARE.
+4. Migrare i chiamanti con confronto vecchio/nuovo e oracoli. COMPLETATO
+   nei campi gia' qualificati (Steel2.9.0.0,ModelChecker2.4.0.0).
 5. Estrarre aree resistenti/proprieta' derivate, differenze EC3/NTC. DA FARE.
 6. Separare instabilita': Ncr/Mcr, snellezze, curve, riduzioni. DA FARE.
 7. Isolare interazioni di sezione e d'asta, con campi di applicazione. DA FARE.
@@ -89,3 +90,16 @@ legacy111/122 con gli stessi11 e identici29casi/221asserzioni diagnostici.
 Il nuovo test SCI confronta k=.616 con tolleranza .0005 (3 decimali pubblicati)
 e classe4: il limite13.3 dell'articolo usa intermedi arrotondati e non e' imposto
 al calcolo con epsilon esatto. Nessun atteso o fixture esistente modificato.
+
+PUNTO 4 - CHIAMANTI E TRACCIA
+La facade EC3 usa il mapper e il classificatore uniforme per i tipi esatti
+coperti. Le forme derivate, i campi non qualificati e gli input invalidi
+conservano il percorso di compatibilita' precedente, non una nuova qualifica.
+ModelChecker usa direttamente il contratto con esiti diagnostici: i limiti
+di applicabilita' restano H simmetriche stocky, edizione2005, taglio e flessione
+retta gia' qualificati. La traccia riporta larghezze, spessori, rapporti,
+classi e soglie delle tre parti. Niente memorizzazione di nuovi tipi: sono
+valori della traccia preesistente, senza nuovi campi persistiti o impronte.
+6 casi nuovi su tracciabilita' e confine classe2/3, piu' regressioni esistenti.
+Steel1550/1550; ModelChecker completo263/263 (Steel103/103).
+Legacy111/122, stessi11, diagnostica29casi/221asserzioni identica.

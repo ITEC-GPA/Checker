@@ -222,6 +222,121 @@
           ]
         }
       ]
+    },
+    {
+      "Step": 4,
+      "Version": "Steel2.9.0.0;ModelChecker2.4.0.0",
+      "BaseCommit": "744b9f52",
+      "Date": "2026-10-21",
+      "NewCases": 6,
+      "Scope": "Uniform-compression facade migration for mapped shapes; ModelChecker stockiness gate and part trace.",
+      "LegacyCasesExactlyEqual": true,
+      "Suites": [
+        {
+          "File": "class-migration-members.trx",
+          "Sha256": "2d65e4b3653df2e35c8978d049b467f2078bcfecb1584123dfeffc18aaa629cd",
+          "Counters": {
+            "total": "1550",
+            "executed": "1550",
+            "passed": "1550",
+            "failed": "0",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          },
+          "FailedTests": []
+        },
+        {
+          "File": "class-migration-compat-modelchecker.trx",
+          "Sha256": "fe1736563bbcc5b317ef5c6e3dcd7e418b93a69b63e002c138557d03030382bf",
+          "Counters": {
+            "total": "103",
+            "executed": "103",
+            "passed": "103",
+            "failed": "0",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          },
+          "FailedTests": []
+        },
+        {
+          "File": "class-migration-modelchecker-full.trx",
+          "Sha256": "b6bc2a20cdefb3bde2f23d51fb2fd95781e7f6f92526ae4fea59e19745e0e688",
+          "Counters": {
+            "total": "263",
+            "executed": "263",
+            "passed": "263",
+            "failed": "0",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          },
+          "FailedTests": []
+        },
+        {
+          "File": "class-migration-compat-legacy.trx",
+          "Sha256": "84cc7f474e78a888c9d89c15098639700f9c37ce3404f4904995f9baafe78027",
+          "Counters": {
+            "total": "122",
+            "executed": "122",
+            "passed": "111",
+            "failed": "11",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          },
+          "FailedTests": [
+            "Sap_SectionHAsymmetricTest1",
+            "Sap_SectionHAsymmetricTest2",
+            "Sap_SectionLTest",
+            "Sap_SectionTTest",
+            "Sap_SectionTTest2",
+            "SectionCLateralTorsionalBuckling2",
+            "SectionHBuckling1",
+            "SectionHInteraction2",
+            "SectionHInteraction3",
+            "SectionHLateralTorsionalBuckling1",
+            "SectionHLateralTorsionalBuckling2"
+          ]
+        }
+      ]
     }
   ]
 }

@@ -10,6 +10,16 @@ namespace GPC.Checkers.Steel.ModelAdapters
     /// Other families/derived shapes require an explicitly qualified mapper.</summary>
     public static class ModelCompressionGeometry
     {
+        /// <summary>Mapping coverage only, not numerical validity or resistance qualification.</summary>
+        public static bool CanMap(ISteelSection section)
+        {
+            var shape = section?.SectionShape;
+            if (shape == null) return false;
+            var type = shape.GetType();
+            return type == typeof(SectionH) || type == typeof(SectionT) || type == typeof(SectionC)
+                || type == typeof(SectionCHS) || (type == typeof(SectionRHS) && ((SectionRHS)shape).R == 0);
+        }
+
         public static CompressionSectionGeometry Create(ISteelSection section)
         {
             if (section == null) throw new ArgumentNullException(nameof(section));
