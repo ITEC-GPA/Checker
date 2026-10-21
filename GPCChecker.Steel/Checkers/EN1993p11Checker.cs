@@ -495,8 +495,7 @@ namespace GPC.Checkers.Steel.Checkers
                             // interaction is limited to doubly symmetric sections.
                             // Keep section/LTB components readable, but do not
                             // present Annex A outside its scope as a valid check.
-                            bool combinedMemberAction = (rbf.M1 != 0 || rbf.M2 != 0) &&
-                                (rbf.N != 0 || (rbf.M1 != 0 && rbf.M2 != 0));
+                            bool combinedMemberAction = MemberInteractionArithmetic.IsCombinedAction(rbf.N, rbf.M1, rbf.M2);
                             if (!steelSection.IsDoubleSymmetric && combinedMemberAction)
                             {
                                 stationResults[stationIndex].InvalidateMemberInteraction();
@@ -955,12 +954,11 @@ namespace GPC.Checkers.Steel.Checkers
                     double a = Math.Min((sectionH.Area -
                         sectionH.LenghtTopFlange * sectionH.ThicknessTopFlange -
                         sectionH.LenghtBottomFlange * sectionH.ThicknessBottomFlange) / sectionH.Area, 0.5);
-                    mNxRd = Math.Min(bending1Rd, bending1Rd * (1 - n) / (1 - 0.5 * a));
+                    mNxRd = SectionInteractionArithmetic.LinearAxialMoment(n, a, bending1Rd);
                     if (Math.Abs(Ned) <= 0.25 * axialCompressionRd &&
                         Math.Abs(Ned) <= 0.5 * sectionH.HeightWeb * sectionH.ThicknessWeb * Fy / GammaM0)
                         mNxRd = bending1Rd;
-                    mNyRd = n <= a ? bending2Rd :
-                        bending2Rd * (1 - Math.Pow((n - a) / (1 - a), 2));
+                    mNyRd = SectionInteractionArithmetic.MinorIMoment(n, a, bending2Rd);
                     if (Math.Abs(Ned) <= sectionH.HeightWeb * sectionH.ThicknessWeb * Fy / GammaM0)
                         mNyRd = bending2Rd;
                 }
@@ -970,8 +968,8 @@ namespace GPC.Checkers.Steel.Checkers
                         (sectionRHS.ThicknessTop + sectionRHS.ThicknessBottom)) / sectionRHS.Area, 0.5);
                     double af = Math.Min((sectionRHS.Area - sectionRHS.Height *
                         (sectionRHS.ThicknessWebLeft + sectionRHS.ThicknessWebRight)) / sectionRHS.Area, 0.5);
-                    mNxRd = Math.Min(bending1Rd * (1 - n) / (1 - 0.5 * aw), bending1Rd);
-                    mNyRd = Math.Min(bending2Rd * (1 - n) / (1 - 0.5 * af), bending2Rd);
+                    mNxRd = SectionInteractionArithmetic.LinearAxialMoment(n, aw, bending1Rd);
+                    mNyRd = SectionInteractionArithmetic.LinearAxialMoment(n, af, bending2Rd);
                 }
                 else
                     throw new ArgumentException("MN,Rd EN1993-1-1 §6.2.9.1 not implemented this section");
@@ -1213,14 +1211,15 @@ namespace GPC.Checkers.Steel.Checkers
             if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2)
             {
                 if (section.SectionShape is SectionH steelSectionH && steelSectionH.IsDoubleSymmetric)
-                    return (section.Wpl1 - CalculateRhoForMomentAndShearInteraction2(resultBeamForces, section) *
-                        Math.Pow(steelSectionH.HeightWeb * steelSectionH.ThicknessWeb, 2) / (4 * steelSectionH.ThicknessWeb)) * Fy / GammaM0;
+                    return SectionInteractionArithmetic.MajorIMomentWithShear(section.Wpl1,
+                        CalculateRhoForMomentAndShearInteraction2(resultBeamForces, section),
+                        steelSectionH.HeightWeb * steelSectionH.ThicknessWeb, steelSectionH.ThicknessWeb, Fy, GammaM0);
             }
 
             // Conservative uniform yield reduction; the specialized 6.2.8(5) expression above
             // applies only to a doubly symmetric I/H section bent about its major axis.
-            return (1 - CalculateRhoForMomentAndShearInteraction2(resultBeamForces, section)) *
-                CalculateMcRd1(sectionClass, section);
+            return SectionInteractionArithmetic.UniformMomentWithShear(
+                CalculateRhoForMomentAndShearInteraction2(resultBeamForces, section), CalculateMcRd1(sectionClass, section));
         }
 
         /// <summary>
@@ -1229,7 +1228,7 @@ namespace GPC.Checkers.Steel.Checkers
         protected double CalculateMVRd2(SectionClass sectionClass, ResultBeamForces resultBeamForces, ISteelSection section)
         {
             double rho = CalculateRhoForMomentAndShearInteraction1(resultBeamForces, section);
-            return (1 - rho) * CalculateMcRd2(sectionClass, section);
+            return SectionInteractionArithmetic.UniformMomentWithShear(rho, CalculateMcRd2(sectionClass, section));
         }
 
         /// <summary>
@@ -1252,11 +1251,7 @@ namespace GPC.Checkers.Steel.Checkers
 
         private static double ShearReductionRho(double shear, double capacity)
         {
-            if (double.IsNaN(shear) || double.IsInfinity(shear) ||
-                double.IsNaN(capacity) || double.IsInfinity(capacity) || capacity <= 0)
-                throw new ArgumentOutOfRangeException(nameof(capacity), "Finite shear and positive resistance required.");
-            double ratio = Math.Abs(shear) / capacity;
-            return ratio <= 0.5 ? 0 : Math.Min(1, Math.Pow(2 * ratio - 1, 2));
+            return SectionInteractionArithmetic.ShearReductionRho(shear, capacity);
         }
 
         #region Lateral Torsional Buckling
@@ -2059,7 +2054,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         protected double GetMu(double Ned, double Ncr, double Chi)
         {
-            return (1.0 - Ned / Ncr) / (1.0 - Chi * Ned / Ncr);
+            return MemberInteractionArithmetic.Mu(Ned, Ncr, Chi);
         }
 
         /// <summary>
@@ -2095,7 +2090,7 @@ namespace GPC.Checkers.Steel.Checkers
         // NcrTorsional is retained for source compatibility; pass Ncr,z here.
         protected double CalculateLambda0LimitForFlexuralTorsionaBuckling(ResultBeamForces forces, double kc, double NcrFlexTors, double NcrTorsional)
         {
-            return 0.2 * Math.Pow(Math.Pow(kc, -2.0), 0.5) * Math.Pow((1.0 - Math.Abs(forces.N) / NcrTorsional) * (1.0 - Math.Abs(forces.N) / NcrFlexTors), 0.25);
+            return MemberInteractionArithmetic.Lambda0Limit(forces.N, kc, NcrFlexTors, NcrTorsional);
         }
 
         protected void CalculateCmFactorsForInteraction(ISteelSection section, SectionClass sectionClass, ResultBeamForces forces,
@@ -2207,22 +2202,14 @@ namespace GPC.Checkers.Steel.Checkers
             double lambda0 = GetLambdaSignedLTB(section, sectionClass, Mcr0);
             double alphaLT = CalculateAlphaLTForInteraction(section);
 
-            bLT = 0.5 * alphaLT * lambda0 * lambda0 * Math.Abs(forces.M1) * Math.Abs(forces.M2) / (chiMod * mrd1 * mrd2);
-            cLT = 10.0 * alphaLT * lambda0 * lambda0 * Math.Abs(forces.M1) / ((5.0 + Math.Pow(lambda2, 4.0)) * cmx * chiMod * mrd1);
-            dLT = 2.0 * alphaLT * lambda0 * Math.Abs(forces.M1) * Math.Abs(forces.M2) / ((0.1 + Math.Pow(lambda2, 4.0)) * cmx * chiMod * mrd1 * cmy * mrd2);
-            eLT = 1.7 * alphaLT * lambda0 * Math.Abs(forces.M1) / ((0.1 + Math.Pow(lambda2, 4.0)) * cmx * chiMod * mrd1);
+            MemberInteractionArithmetic.LateralTerms(alphaLT, lambda0, lambda2, forces.M1, forces.M2,
+                chiMod, mrd1, mrd2, cmx, cmy, out bLT, out cLT, out dLT, out eLT);
 
             // EC3 Table A.1: normalize by section resistance Npl,Rk / gammaM0.
             double npl = Math.Abs(forces.N) / (Material.Fyk * section.Area / GammaM0);
 
-            cxx = Math.Max(1.0 + (wx - 1.0) * ((2.0 - 1.6 / wx * Math.Pow(cmx, 2) * lambdaMax - 1.6 / wx * Math.Pow(cmx, 2) * Math.Pow(lambdaMax, 2)) * npl - bLT),
-                section.Wel1 / section.Wpl1);
-            cxy = Math.Max(1.0 + (wy - 1.0) * ((2.0 - 14.0 * Math.Pow(cmy, 2) * Math.Pow(lambdaMax, 2) / Math.Pow(wy, 5.0)) * npl - cLT),
-                0.6 * Math.Sqrt(wy / wx) * section.Wel2 / section.Wpl2);
-            cyx = Math.Max(1.0 + (wx - 1.0) * ((2.0 - 14.0 * Math.Pow(cmx, 2) * Math.Pow(lambdaMax, 2) / Math.Pow(wx, 5.0)) * npl - dLT),
-                0.6 * Math.Sqrt(wx / wy) * section.Wel1 / section.Wpl1);
-            cyy = Math.Max(1.0 + (wy - 1.0) * ((2.0 - 1.6 / wy * Math.Pow(cmy, 2) * lambdaMax - 1.6 / wy * Math.Pow(cmy, 2) * Math.Pow(lambdaMax, 2)) - eLT) * npl,
-                section.Wel2 / section.Wpl2); //RIGHT VERSION
+            MemberInteractionArithmetic.Coefficients(npl, lambdaMax, wx, wy, cmx, cmy, bLT, cLT, dLT, eLT,
+                section.Wel1, section.Wpl1, section.Wel2, section.Wpl2, out cxx, out cxy, out cyx, out cyy);
         }
 
         protected void CalculateKCoefficientForInteraction(ISteelSection section, SectionClass sectionClass, ResultBeamForces forces,
@@ -2237,20 +2224,9 @@ namespace GPC.Checkers.Steel.Checkers
             double ncr1 = GetNcrEuler(GetLengthAxialBuckling1(), section.J11);
             double ncr2 = GetNcrEuler(GetLengthAxialBuckling2(), section.J22);
 
-            if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2)
-            {
-                kxx = cmx * cmLT * mux / (1.0 - Math.Abs(forces.N) / ncr1) * 1.0 / cxx;
-                kxy = cmy * mux / (1.0 - Math.Abs(forces.N) / ncr2) * 1.0 / cxy * 0.6 * Math.Sqrt(wy / wx);
-                kyx = cmx * cmLT * muy / (1.0 - Math.Abs(forces.N) / ncr1) * 1.0 / cyx * 0.6 * Math.Sqrt(wx / wy);
-                kyy = cmy * muy / (1.0 - Math.Abs(forces.N) / ncr2) * 1.0 / cyy;
-            }
-            else
-            {
-                kxx = cmx * cmLT * mux / (1.0 - Math.Abs(forces.N) / ncr1);
-                kxy = cmy * mux / (1.0 - Math.Abs(forces.N) / ncr2);
-                kyx = cmx * cmLT * muy / (1.0 - Math.Abs(forces.N) / ncr1);
-                kyy = cmy * muy / (1.0 - Math.Abs(forces.N) / ncr2);
-            }
+            MemberInteractionArithmetic.KFactors(sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2,
+                forces.N, ncr1, ncr2, cmx, cmy, cmLT, mux, muy, wx, wy, cxx, cxy, cyx, cyy,
+                out kxx, out kxy, out kyx, out kyy);
         }
 
         protected double CalculateAlphaLTForInteraction(ISteelSection section)

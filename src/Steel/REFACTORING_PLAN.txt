@@ -16,7 +16,8 @@ Le norme americane restano fuori da questo lavoro.
    per le formule di taglio esistenti (Steel2.10.0.0,ModelChecker2.5.0.0).
 6. Separare instabilita': Ncr/Mcr e snellezze/riduzioni estratti; selezione
    di curve/vincoli distinta nei chiamanti. COMPLETATO (Steel2.11.0.0).
-7. Isolare interazioni di sezione e d'asta, con campi di applicazione. DA FARE.
+7. Isolare interazioni di sezione e d'asta, con campi di applicazione.
+   COMPLETATO per le formule esistenti (Steel2.12.0.0).
 8. Consolidare NTC2018: formule comuni distinte dalle prescrizioni. DA FARE.
 9. Colmare copertura indipendente e riesaminare gli11 legacy. DA FARE.
 10. Completare ModelChecker, pulizia mirata, verifica e master. DA FARE.
@@ -143,3 +144,17 @@ confrontano t/b e t/h con40/30, mentre la tabella6.2 EC3 usa b/tf e h/tw
 e distingue il caso di saldature spesse a>0.5tf. Non basta invertire rapporti:
 va esplicitata la disponibilita'/provenienza dello spessore di gola a.
 Fonte riconsultata: EN1993-1-1:2005/AC2009 tabella6.2, pagina stampata58.
+
+PUNTO 7 - INTERAZIONI
+SectionInteractionArithmetic riceve resistenze di sezione: N-M per H/RHS,
+M-V e limite elastico N-M. MemberInteractionArithmetic contiene mu, limite
+lambda0 e termini/coefficienti dell'Annex A, con Ncr e capacita' separati.
+I nuclei non dipendono da Model. Geometria, classe, controlli del campo
+applicativo e scelte del metodo restano nel chiamante. La guardia sulle
+sezioni non doppiamente simmetriche non e' rimossa ne' aggirata.
+Conservato l'ordine moltiplicazioni/divisioni anche nei limiti dei coefficienti.
+Nessuna estensione implicita delle formule di interazione EC3 a NTC.
+Eseguiti i benchmark indipendenti gia' presenti su N-M, M-V, Annex A,
+normalizzazione con Npl,Rd, Cyy e integrita' del report/campo applicativo.
+Steel1572/1572; ModelChecker Steel103/103; legacy111/122, stessi11,
+identici29casi/221asserzioni diagnostici. Nessun nuovo atteso artificiale.

@@ -521,6 +521,98 @@
           ]
         }
       ]
+    },
+    {
+      "Step": 7,
+      "Version": "Steel2.12.0.0",
+      "BaseCommit": "00f716d3",
+      "Date": "2026-10-21",
+      "NewCases": 0,
+      "Scope": "Separate section N-M/M-V/elastic interactions from Annex A member coefficients; keep method applicability checks.",
+      "LegacyCasesExactlyEqual": true,
+      "Suites": [
+        {
+          "File": "interaction-extraction-members.trx",
+          "Sha256": "9271996d83ab99a80eb3236c04d3e474a0a32f836c520e001fec81ced2fdac48",
+          "Counters": {
+            "total": "1572",
+            "executed": "1572",
+            "passed": "1572",
+            "failed": "0",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          },
+          "FailedTests": []
+        },
+        {
+          "File": "interaction-extraction-compat-modelchecker.trx",
+          "Sha256": "a1a691ab20596da01debe127b0bb0b6ce827de2988c80214c7eb3f52ddbcfb13",
+          "Counters": {
+            "total": "103",
+            "executed": "103",
+            "passed": "103",
+            "failed": "0",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          },
+          "FailedTests": []
+        },
+        {
+          "File": "interaction-extraction-compat-legacy.trx",
+          "Sha256": "bbef20d646f22425fc002b39cdcbff9159c06a5ed8778ffad7b4838ac1339b5d",
+          "Counters": {
+            "total": "122",
+            "executed": "122",
+            "passed": "111",
+            "failed": "11",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          },
+          "FailedTests": [
+            "Sap_SectionHAsymmetricTest1",
+            "Sap_SectionHAsymmetricTest2",
+            "Sap_SectionLTest",
+            "Sap_SectionTTest",
+            "Sap_SectionTTest2",
+            "SectionCLateralTorsionalBuckling2",
+            "SectionHBuckling1",
+            "SectionHInteraction2",
+            "SectionHInteraction3",
+            "SectionHLateralTorsionalBuckling1",
+            "SectionHLateralTorsionalBuckling2"
+          ]
+        }
+      ]
     }
   ]
 }

@@ -85,8 +85,8 @@ namespace GPC.Checkers.Steel.Members
             Finite(moment1, nameof(moment1)); Finite(moment2, nameof(moment2));
             Positive(area, nameof(area)); Positive(modulus1, nameof(modulus1));
             Positive(modulus2, nameof(modulus2)); Positive(yieldStrength, nameof(yieldStrength));
-            double ratio = (Math.Abs(normalForce) / area + Math.Abs(moment1) / modulus1 +
-                Math.Abs(moment2) / modulus2) * GammaM0 / yieldStrength;
+            double ratio = SectionInteractionArithmetic.ElasticNormalRatio(normalForce, moment1, moment2,
+                area, modulus1, modulus2, yieldStrength, GammaM0);
             if (double.IsInfinity(ratio) || double.IsNaN(ratio)) throw new ArithmeticException("Nonfinite interaction.");
             return ratio;
         }
