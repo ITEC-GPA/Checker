@@ -1,5 +1,5 @@
 ARCHITETTURA CHECKER.STEEL - REFACTORING E PRIMO SUPPORTO ASTE COMPOSTE - 21 OTTOBRE 2026
-Steel2.18.0.0; GPCModelChecker2.6.0.0; Model5.17.0.0. Unita': N,mm,MPa,Nmm.
+Steel2.20.0.0; GPCModelChecker2.6.0.0; Model5.17.0.0. Unita': N,mm,MPa,Nmm.
 N positivo a trazione nelle facade; Ec3BuiltUpColumn riceve compressione positiva.
 Stessa DLL e framework netstandard2.0. Model resta a monte di Checker.
 
@@ -89,9 +89,13 @@ efficaci/classe4, angolari completi, interazioni d'asta non doppiamente
 simmetriche, geometrie speciali e stati/vincoli non coperti dai benchmark.
 Le formule Ncr,TF sono qualificate per modi sinusoidali comuni, forcelle e
 ingobbamento libero; lunghezze diverse non sono un generico problema FEM.
-Gli11 test legacy restano attivi e falliti, con ipotesi non riproducibili o
-metodi fuori campo: tools/Steel.LegacyDiagnostics/REFACTORING_REVIEW_20261021.txt.
-Non sono stati trasformati in test superati o commentati.
+Gli11 legacy sono stati chiusi con riferimenti indipendenti o contratti
+espliciti di non supporto, senza approvare i vecchi numeri non riproducibili.
+Vedi tools/Steel.LegacyDiagnostics/LEGACY_CLOSURE_SUMMARY_20261021.txt.
+H monosimmetrica: ora N-M1-M2 plastico di sezione (sharp, classe1/2,
+taglio basso). H/T d'asta: metodo generale6.3.4 per il campo piano qualificato
+tramite API esplicita, non selezionato automaticamente dal facade/ModelChecker.
+Ipotesi, metodi e fonti: MONOSYMMETRIC_VERIFICATION.txt.
 
 VERIFICA E CONTINUAZIONE
 CLASSIFICATION_REFACTOR_VERIFICATION.json conserva evidenze dei singoli passi;
