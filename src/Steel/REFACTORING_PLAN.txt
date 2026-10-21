@@ -182,3 +182,20 @@ curve b/c oppure c/d e corrispondenza assi geometrici/principali esplicita.
 78 nuovi casi normativi/analitici:39 fallivano prima,78 superati dopo.
 Steel1658/1658; ModelChecker Steel103/103; legacy111/122, stessi11 e
 diagnostica identica. Nessun atteso preesistente modificato.
+
+PUNTO 9b - RHS RACCORDATI (Steel2.14.0.0)
+Il mapper supporta ora SectionRHSRoundedCorners esatta con pareti uniformi.
+Larghezza piana conservativa: h/b-2min(ro,t+ri), ossia la faccia rettilinea
+piu' lunga. Coincide con h/b-2ro per raggi concentrici e con h/b-3t del
+profilo SCI hot-finished ro=1.5t,ri=t. Non si alterano i raggi di Model.
+Raggi non finiti o spessori resi disuguali tramite mutazione sono rifiutati.
+La vecchia prova negativa sul tipo raccordato e' sostituita dalla nuova
+qualifica positiva; nessun atteso numerico o fixture esistente rigenerato.
+62 casi nuovi: classificazione uniforme e soglie su5gradi; integrazione
+indipendente area/inerzie mediante rettangoli e quarti di cerchio;
+26resistenze SCI P363 D-22 (13lunghezze,2assi), taglio D-112 e compressione.
+Il confronto pubblicato tiene conto solo delle cifre stampate e della
+differenza ricostruita fra proprieta' geometriche e raggi tabulati.
+La copertura NON include automaticamente N/M,LTB,classe4 o bulk completo.
+Steel1720/1720; ModelChecker Steel103/103; legacy111/122, stessi11 e
+identici29casi/221asserzioni diagnostici. Zero ignorati.

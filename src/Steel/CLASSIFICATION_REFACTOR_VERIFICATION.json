@@ -845,6 +845,83 @@
           ]
         }
       ]
+    },
+    {
+      "Step": "9b",
+      "Version": "Steel2.14.0.0",
+      "BaseCommit": "9af8e148",
+      "Date": "2026-10-21",
+      "NewCases": 62,
+      "Scope": "Rounded RHS uniform compression geometry/classification and independent SCI P363 axial buckling benchmark; no automatic NM/bulk qualification.",
+      "LegacyCasesExactlyEqual": true,
+      "Suites": [
+        {
+          "File": "rounded-rhs-members.trx",
+          "Sha256": "1c4c3d8d92952f3bed811ec7cf78dca54de2bc8b8680b59581ac9a8f7b9ac30b",
+          "Counters": {
+            "total": "1720",
+            "executed": "1720",
+            "passed": "1720",
+            "failed": "0",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          }
+        },
+        {
+          "File": "rounded-rhs-compat-modelchecker.trx",
+          "Sha256": "09f27315c8199acf79a859ca30bd5212d4603e015cb4924ff1423d43016cdcdc",
+          "Counters": {
+            "total": "103",
+            "executed": "103",
+            "passed": "103",
+            "failed": "0",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          }
+        },
+        {
+          "File": "rounded-rhs-compat-legacy.trx",
+          "Sha256": "dc2596c11d0ecf6ce943d39f99b13f602fcc806846ca7bc5b07f2ed8e2b87554",
+          "Counters": {
+            "total": "122",
+            "executed": "122",
+            "passed": "111",
+            "failed": "11",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          }
+        }
+      ]
     }
   ]
 }

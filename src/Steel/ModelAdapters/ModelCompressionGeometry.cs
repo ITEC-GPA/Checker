@@ -17,7 +17,7 @@ namespace GPC.Checkers.Steel.ModelAdapters
             if (shape == null) return false;
             var type = shape.GetType();
             return type == typeof(SectionH) || type == typeof(SectionT) || type == typeof(SectionC)
-                || type == typeof(SectionCHS) || (type == typeof(SectionRHS) && ((SectionRHS)shape).R == 0);
+                || type == typeof(SectionCHS) || type == typeof(SectionRHSRoundedCorners) || (type == typeof(SectionRHS) && ((SectionRHS)shape).R == 0);
         }
 
         public static CompressionSectionGeometry Create(ISteelSection section)
@@ -49,6 +49,25 @@ namespace GPC.Checkers.Steel.ModelAdapters
                     Outstand("TopFlange", c.LengthTop - c.ThicknessWeb - c.R1, c.ThicknessTop),
                     Outstand("BottomFlange", c.LengthBottom - c.ThicknessWeb - c.R1, c.ThicknessBottom),
                     Internal("Web", c.HeightWeb - 2 * c.R1, c.ThicknessWeb)
+                });
+            }
+            if (shape.GetType() == typeof(SectionRHSRoundedCorners))
+            {
+                var r = (SectionRHSRoundedCorners)shape;
+                if (r.ThicknessTop != r.ThicknessBottom || r.ThicknessTop != r.ThicknessWebLeft || r.ThicknessTop != r.ThicknessWebRight)
+                    throw new NotSupportedException("RoundedRhsRequiresUniformWallThickness");
+                if (double.IsNaN(r.OutsideRadius) || double.IsInfinity(r.OutsideRadius) || r.OutsideRadius < 0 ||
+                    double.IsNaN(r.InsideRadius) || double.IsInfinity(r.InsideRadius) || r.InsideRadius < 0)
+                    throw new ArgumentException("RoundedRhsRequiresFiniteNonNegativeRadii", nameof(section));
+                // Longer straight face, conservatively retaining the transition
+                // when the two radii are nonconcentric. For concentric radii this
+                // is h/b-2ro; SCI P363 B-22 with ro=1.5t,ri=t gives h/b-3t.
+                double corner = Math.Min(r.OutsideRadius, r.Thickness + r.InsideRadius);
+                return new CompressionSectionGeometry("RHSRounded", new[] {
+                    Internal("TopWall", r.Base - 2 * corner, r.Thickness),
+                    Internal("BottomWall", r.Base - 2 * corner, r.Thickness),
+                    Internal("LeftWall", r.Height - 2 * corner, r.Thickness),
+                    Internal("RightWall", r.Height - 2 * corner, r.Thickness)
                 });
             }
             if (shape.GetType() == typeof(SectionRHS))

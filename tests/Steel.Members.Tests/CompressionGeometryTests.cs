@@ -112,13 +112,11 @@ public class CompressionGeometryTests
     }
 
     [TestMethod]
-    public void RoundedRhsAndAdditionalAngleRequirementsAreNotSilentlyMapped()
+    public void AmbiguousBaseRhsRadiusAndAdditionalAngleRequirementsAreNotSilentlyMapped()
     {
         var rhs = new SteelSection(new SectionRHS(300, 200, 10, 10, 10, 10, "rounded", 15), SteelMaterialEN1993Data.S355);
-        var curved = new SteelSection(new SectionRHSRoundedCorners(300, 200, 10, 20, 10, "curved"), SteelMaterialEN1993Data.S355);
         var angle = new SteelSection(new SectionL(100, 10, 100, 10, "angle"), SteelMaterialEN1993Data.S355);
         Assert.ThrowsException<NotSupportedException>(() => ModelCompressionGeometry.Create(rhs));
-        Assert.ThrowsException<NotSupportedException>(() => ModelCompressionGeometry.Create(curved));
         Assert.ThrowsException<NotSupportedException>(() => ModelCompressionGeometry.Create(angle));
         Assert.ThrowsException<ArgumentNullException>(() => ModelCompressionGeometry.Create(null!));
     }
