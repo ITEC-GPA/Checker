@@ -1,0 +1,106 @@
+{
+  "date": "2026-10-21",
+  "steel_version": "2.21.0.0",
+  "base_checker_commit": "51f82e0b3d73da04fef2a1537ee4743b23c60a05",
+  "tested_state": "Base commit plus the new/changed source files identified by source_sha256 below.",
+  "model_commit": "b83c1f3561c32a7f4b7d6d27692a866cc05a4a04",
+  "command": "build/Verify.ps1 -Suites all",
+  "results_directory": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\steel-common-input-full-20261021",
+  "total_passed": 4299,
+  "failed": 0,
+  "skipped": 0,
+  "new_tests": 45,
+  "api_compatible": true,
+  "api_checked_assemblies": [
+    "GPCModelChecker",
+    "GPCChecker.Concrete",
+    "GPC.Design",
+    "GPCChecker.Masonry"
+  ],
+  "suites": [
+    {
+      "name": "GPCChecker.Test.Concrete",
+      "passed": 795,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "0f0edcbad90cd618913214151bf36c37d194da3d71f320707b45905e789f28db"
+    },
+    {
+      "name": "GPCChecker.Test.Steel",
+      "passed": 122,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "989cab2cf2f4cae691d91d596e785399d678c920273db761b106c5e1a56d8b01"
+    },
+    {
+      "name": "GPCChecker.Test.CompositeBridge",
+      "passed": 284,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "86723f452a3c277a91fee02193d4d6c1673a451574764898a95dc4b1af13ec72"
+    },
+    {
+      "name": "GPCChecker.Test.Geotechnics",
+      "passed": 191,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "787e58e1427ee0b965a30eee1f81f8be34285936a41d35da4164cb4b211ef34d"
+    },
+    {
+      "name": "GPCChecker.Test.Calculation",
+      "passed": 174,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "9a1b83ae7340566ae237413fbc67b23e934a965cf834b7bfce198709a0e9d117"
+    },
+    {
+      "name": "ShallowFoundation.Tests",
+      "passed": 28,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "67f28cd17cf930f0bd3995897c440287c2f4d603339a118435fd1c64dd6e3c48"
+    },
+    {
+      "name": "EmbeddedWalls.Tests",
+      "passed": 74,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "6a3b8aee1197bdf76d9fd8db299b0e1909107232693f9110d3a9b491920ddc31"
+    },
+    {
+      "name": "Steel.Members.Tests",
+      "passed": 2260,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "751f656f42cf19fedcf11c2abd7329955a2415d5e94b9007daac8e960182f74d"
+    },
+    {
+      "name": "Design.Checks",
+      "passed": 100,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "375e7968add2d967fca274553cc3015ee08424d3e986a866d1dde05b58537d36"
+    },
+    {
+      "name": "ModelChecker.Tests",
+      "passed": 271,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "019de3b3f713006dc4f9758a29d37cd87e8143b7fa01c149771ff53dc4f8d6cb"
+    }
+  ],
+  "summary_sha256": "0c35dd85a87bbd20be49a339c14fcd1cb664beaa0d6b59cf527aebaf461cc4d7",
+  "source_sha256": {
+    "GPCChecker.Steel/GPCChecker.Steel.csproj": "f5648b11d30055dd2335586bcd252d3c6d7bb74800f72416c51cfddc2246ca7f",
+    "GPCChecker.Steel/Properties/AssemblyInfo.cs": "0ec3f552170cb335c96411e645188913911aab8df93a8bee9168e19121ca8f79",
+    "src/Steel/Inputs/SteelMemberInput.cs": "248d69a2d1bf4befe080eb17b72f2103823e4b1786ffa52a68651df19e832ce9",
+    "src/Steel/Inputs/SteelVerificationInput.cs": "1fd1d8fcaf95ba860973bcf91b60e42387895b4da47436bfebd69c1d0d1e94a0",
+    "src/Steel/ModelAdapters/ModelSteelInput.cs": "1809586f916adf170d8663c86916bf5222abf223770d1b4569b440eaa06cb328",
+    "src/Steel/ModelAdapters/SteelSectionInput.cs": "cc7c13fc24c57d971f341001588235c6f880302c704c49de58df6220d2f2ca40",
+    "tests/Steel.Members.Tests/SteelVerificationInputTests.cs": "5fb6b6f5a60eb1193a031c00ca844c89160a54921e512eb1bf81e6ac62e64101"
+  },
+  "scope": "Common immutable Steel input, Model snapshots/axes adapter, separate member metadata; software contract tests.",
+  "new_engineering_methods": false,
+  "automatic_modelchecker_routing": false,
+  "persisted_contract_changes": false
+}

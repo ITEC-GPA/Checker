@@ -1,0 +1,85 @@
+INGRESSO COMUNE STEEL - PUNTO 1 - 21 OTTOBRE 2026
+Steel 2.21.0.0. API applicativa, nessun nuovo algoritmo resistente.
+
+SteelVerificationInput raccoglie:
+- Section: snapshot della sezione Model e del suo materiale;
+- Actions: un solo stato concomitante di azioni di progetto al baricentro;
+- Code: contesto EC3:2005 o NTC2018, riusando SectionResistanceCode;
+- Member: dati d'asta opzionali, separati da quelli necessari alla sezione.
+
+CONVENZIONI
+N, V1, V2 in N; M1, M2, T in Nmm. N positivo a trazione.
+Assi principali 1/2 della sezione; asse 3 longitudinale. Momenti secondo
+la mano destra, azioni sulla faccia positiva. Lunghezze in mm, tensioni
+e moduli in MPa. Il chiamante fornisce tutte le sei azioni, anche nulle.
+Una sezione non conosce il diagramma d'asta: lo stato al singolo taglio
+non dichiara momenti costanti, estremi o inviluppi lungo l'asta.
+
+ModelSteelInput.FromSectionAxes riceve azioni GIA' normalizzate sugli
+assi geometrici X/Y della sezione e ruota tagli/momenti con AngleX1.
+Non assume che CoordinateSystem.Global sia il sistema della sezione:
+e' il chiamante, usando questo metodo esplicito, a dichiarare la base.
+Non trasferisce il punto di riduzione, non applica coefficienti alle
+azioni, non verifica concomitanza o aggiornamento dei risultati Model.
+Queste responsabilita' restano a BeamActionPreparation/ModelChecker.
+Con SteelActions si possono fornire direttamente componenti principali;
+non passare di nuovo FromSectionAxes su azioni gia' principali.
+Anche vincoli e imperfezioni d'asta devono essere negli assi principali.
+
+SNAPSHOT E VALIDAZIONE
+SteelSectionInput usa ModelValues.CopyValue: conserva famiglia esatta,
+materiale, tipo di fabbricazione e geometria completa senza duplicare
+la gerarchia Model. CreateSectionCopy restituisce una copia modificabile
+indipendente per i calcolatori esistenti. Il chiamante deve evitare
+modifiche concorrenti al sorgente durante la cattura dello snapshot.
+Il contratto richiede materiale isotropo con E unico positivo,
+fy/fu positivi e -1<nu<0.5; non ricava resistenze da nome o spessore.
+I tipi Model non registrati sono rifiutati, non convertiti in una base.
+Accettare una famiglia come input NON ne qualifica tutte le verifiche.
+
+Fori non dichiarati restano null; area netta richiede fori dichiarati.
+Le verifiche di trazione continuano a poter segnalare dati mancanti.
+NaN, infiniti, lunghezze non positive e dichiarazioni incompatibili
+producono eccezioni di argomento. Non sono esiti resistenti negativi.
+Classe, proprieta' efficaci, curve, Ncr/Mcr e resistenze NON sono
+fabbricati dal costruttore: spettano ai metodi di calcolo successivi.
+
+DATI D'ASTA
+SteelMemberInput richiede solo la lunghezza fisica. Lunghezze efficaci
+flessionali attorno a 1/2 e torsionale sono opzionali, non vengono
+calcolate dai vincoli e possono superare la lunghezza fisica.
+SteelEndRestraints distingue Unknown/Free/Fixed per le traslazioni,
+rotazioni e l'ingobbamento alle estremita'. Molle e ritegni intermedi
+richiedono un futuro contratto dedicato, non equivalenze implicite.
+SteelMemberImperfections registra fonte, inclusione nell'analisi,
+eventuali ampiezze sinusoidali firmate lungo 1/2 e pendenze di sway.
+Null non equivale a zero. Non applica ne' somma imperfezioni.
+GammaM1 resta separato dai gamma di sezione, facoltativo per EC3;
+SteelDesignContext.Ntc2018 riusa la politica NTC esistente. Il contesto
+non e' ancora una politica completa di selezione delle verifiche d'asta.
+
+ESEMPIO (using GPC.Checkers.Steel.Inputs e .Sections)
+// modelSection e' una ISteelSection esistente. Azioni principali in N/Nmm.
+var section = new SteelSectionInput(modelSection, unperforated: true);
+var code = new SteelDesignContext(
+    SectionResistanceCode.Eurocode3(1.0, 1.25, "parametri espliciti progetto"));
+var input = new SteelVerificationInput(section,
+    new SteelActions(-100000, 0, 0, 0, 0, 0), code);
+// Una volta determinata la classe con il metodo applicabile:
+var result = SectionResistanceVerifier.Compression(input.Code.SectionCode,
+    input.Actions.N, input.Section.Area, input.Section.YieldStrength, classe);
+
+Questa API e' transitoria in memoria: nessun formato persistito,
+fingerprint o collegamento automatico a ModelChecker cambia.
+Il punto 2 introdurra' la selezione esplicita dei metodi applicabili.
+La pipeline e l'integrazione ModelChecker restano passi successivi.
+
+VERIFICA
+SteelVerificationInputTests: copie isolate, famiglie H/T/C/L/CHS/RHS
+anche raccordato, rotazione indipendente su L a lati uguali, segni/unita',
+dati mancanti, dichiarazioni d'asta, input invalidi e uso delle primitive.
+Sono test del contratto software; non nuovi benchmark normativi.
+
+Esito finale: 45 nuovi test; 4299 test superati nelle 10 suite,
+0 falliti, 0 ignorati. Controlli API esistenti superati.
+Evidenza, versioni e hash: COMMON_INPUT_VERIFICATION.json.
