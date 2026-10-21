@@ -1,0 +1,221 @@
+{
+  "units": "N, mm, Nmm; values on a 1000 mm strip",
+  "method": "independent lumped-spring solver, meshes 50/25 mm, Richardson 2*f25 - f50; energy line search",
+  "tolerance": "0.5 % relative on displacement, moment and support force (engine mesh 250 mm)",
+  "cases": {
+    "cantilever_sand": [
+      {
+        "id": "S0",
+        "top_displacement": 0.0,
+        "max_moment": 0.0,
+        "max_moment_elevation": 0.0,
+        "support_forces": {},
+        "mesh50": {
+          "id": "S0",
+          "top_displacement": 0.0,
+          "max_moment": -0.0,
+          "max_moment_elevation": 0.0,
+          "support_forces": {}
+        },
+        "mesh25": {
+          "id": "S0",
+          "top_displacement": 0.0,
+          "max_moment": -0.0,
+          "max_moment_elevation": 0.0,
+          "support_forces": {}
+        }
+      },
+      {
+        "id": "S1",
+        "top_displacement": 3.167972609422563,
+        "max_moment": 23866945.080249786,
+        "max_moment_elevation": -4100.0,
+        "support_forces": {},
+        "mesh50": {
+          "id": "S1",
+          "top_displacement": 3.1708735198987164,
+          "max_moment": 23894486.005142212,
+          "max_moment_elevation": -4100.0,
+          "support_forces": {}
+        },
+        "mesh25": {
+          "id": "S1",
+          "top_displacement": 3.1694230646606396,
+          "max_moment": 23880715.542696,
+          "max_moment_elevation": -4100.0,
+          "support_forces": {}
+        }
+      },
+      {
+        "id": "S2",
+        "top_displacement": 26.276850280599657,
+        "max_moment": 146336188.46102905,
+        "max_moment_elevation": -6225.0,
+        "support_forces": {},
+        "mesh50": {
+          "id": "S2",
+          "top_displacement": 26.28135898282773,
+          "max_moment": 146369806.7857666,
+          "max_moment_elevation": -6250.0,
+          "support_forces": {}
+        },
+        "mesh25": {
+          "id": "S2",
+          "top_displacement": 26.279104631713693,
+          "max_moment": 146352997.62339783,
+          "max_moment_elevation": -6225.0,
+          "support_forces": {}
+        }
+      }
+    ],
+    "anchored_water": [
+      {
+        "id": "S0",
+        "top_displacement": 0.35732216634473957,
+        "max_moment": 686867.657115221,
+        "max_moment_elevation": -2150.0,
+        "support_forces": {},
+        "mesh50": {
+          "id": "S0",
+          "top_displacement": 0.3522608507431445,
+          "max_moment": 536881.7416844368,
+          "max_moment_elevation": -2150.0,
+          "support_forces": {}
+        },
+        "mesh25": {
+          "id": "S0",
+          "top_displacement": 0.35479150854394204,
+          "max_moment": 611874.6993998289,
+          "max_moment_elevation": -2150.0,
+          "support_forces": {}
+        }
+      },
+      {
+        "id": "S1",
+        "top_displacement": 5.221998835447073,
+        "max_moment": 59121961.65520096,
+        "max_moment_elevation": -4200.0,
+        "support_forces": {},
+        "mesh50": {
+          "id": "S1",
+          "top_displacement": 5.185888241935765,
+          "max_moment": 58613078.2944603,
+          "max_moment_elevation": -4200.0,
+          "support_forces": {}
+        },
+        "mesh25": {
+          "id": "S1",
+          "top_displacement": 5.203943538691419,
+          "max_moment": 58867519.97483063,
+          "max_moment_elevation": -4200.0,
+          "support_forces": {}
+        }
+      },
+      {
+        "id": "S2",
+        "top_displacement": 4.139926996327676,
+        "max_moment": 40268348.35245514,
+        "max_moment_elevation": -4325.0,
+        "support_forces": {
+          "T1": 135549.90654505452
+        },
+        "mesh50": {
+          "id": "S2",
+          "top_displacement": 4.087417519139751,
+          "max_moment": 39484179.14802551,
+          "max_moment_elevation": -4350.0,
+          "support_forces": {
+            "T1": 135396.69846646755
+          }
+        },
+        "mesh25": {
+          "id": "S2",
+          "top_displacement": 4.113672257733714,
+          "max_moment": 39876263.750240326,
+          "max_moment_elevation": -4325.0,
+          "support_forces": {
+            "T1": 135473.30250576104
+          }
+        }
+      },
+      {
+        "id": "S3",
+        "top_displacement": 17.962496220200105,
+        "max_moment": -621538256.529335,
+        "max_moment_elevation": -6550.0,
+        "support_forces": {
+          "T1": 579123.7259511705
+        },
+        "mesh50": {
+          "id": "S3",
+          "top_displacement": 17.901227404841055,
+          "max_moment": -621752474.9215164,
+          "max_moment_elevation": -6550.0,
+          "support_forces": {
+            "T1": 578654.438600854
+          }
+        },
+        "mesh25": {
+          "id": "S3",
+          "top_displacement": 17.93186181252058,
+          "max_moment": -621645365.7254257,
+          "max_moment_elevation": -6550.0,
+          "support_forces": {
+            "T1": 578889.0822760123
+          }
+        }
+      }
+    ],
+    "cantilever_undrained": [
+      {
+        "id": "S0",
+        "top_displacement": 0.3745591965108902,
+        "max_moment": 524237.299608171,
+        "max_moment_elevation": -7775.0,
+        "support_forces": {},
+        "mesh50": {
+          "id": "S0",
+          "top_displacement": 0.37454787879757767,
+          "max_moment": 528392.284286797,
+          "max_moment_elevation": -7750.0,
+          "support_forces": {}
+        },
+        "mesh25": {
+          "id": "S0",
+          "top_displacement": 0.37455353765423394,
+          "max_moment": 526314.791947484,
+          "max_moment_elevation": -7775.0,
+          "support_forces": {}
+        }
+      },
+      {
+        "id": "S1",
+        "top_displacement": 3.2998680963206097,
+        "max_moment": 21970035.48914385,
+        "max_moment_elevation": -6000.0,
+        "support_forces": {},
+        "mesh50": {
+          "id": "S1",
+          "top_displacement": 3.3291865299536014,
+          "max_moment": 22158286.848309994,
+          "max_moment_elevation": -6000.0,
+          "support_forces": {}
+        },
+        "mesh25": {
+          "id": "S1",
+          "top_displacement": 3.3145273131371056,
+          "max_moment": 22064161.16872692,
+          "max_moment_elevation": -6000.0,
+          "support_forces": {}
+        }
+      }
+    ]
+  },
+  "free_earth_support_ratio_anchored_water": 1.1665784388719411,
+  "unilateral_reload": {
+    "note": "Cantilever L=6 m, EI=2e14, top support EA/L=10000 N/mm: away -10 kN, back +10 kN",
+    "away_displacement": -3.6,
+    "back_displacement": 0.782608695652174,
+    "back_force": 7826.086956521739
+  }
+}
