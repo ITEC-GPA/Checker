@@ -613,6 +613,83 @@
           ]
         }
       ]
+    },
+    {
+      "Step": 8,
+      "Version": "Steel2.13.0.0",
+      "BaseCommit": "9c5890e5",
+      "Date": "2026-10-21",
+      "NewCases": 8,
+      "Scope": "Centralize NTC 2018 coefficients and explicit compatibility guards; retain nominal classification and existing applicability.",
+      "LegacyCasesExactlyEqual": true,
+      "Suites": [
+        {
+          "File": "ntc-policy-members.trx",
+          "Sha256": "aac6b84c31a9fc3acd16f5859b735b435dfb5c5b1237fbbd1ca927ed80a3d60f",
+          "Counters": {
+            "total": "1580",
+            "executed": "1580",
+            "passed": "1580",
+            "failed": "0",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          }
+        },
+        {
+          "File": "ntc-policy-compat-modelchecker.trx",
+          "Sha256": "706e344fd35583ae805c8b9ee1394b36718ebd2a90326061d2a02841d3a44d30",
+          "Counters": {
+            "total": "103",
+            "executed": "103",
+            "passed": "103",
+            "failed": "0",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          }
+        },
+        {
+          "File": "ntc-policy-compat-legacy.trx",
+          "Sha256": "c29c9643e208dbd3d3cc7632a746013697d6704fb40b8f9f9624e5d69f7b255a",
+          "Counters": {
+            "total": "122",
+            "executed": "122",
+            "passed": "111",
+            "failed": "11",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          }
+        }
+      ]
     }
   ]
 }

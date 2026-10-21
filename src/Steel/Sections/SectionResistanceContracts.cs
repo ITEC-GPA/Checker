@@ -15,8 +15,8 @@ namespace GPC.Checkers.Steel.Sections
     /// No implicit national annex selection and no member-stability parameters.</summary>
     public sealed class SectionResistanceCode
     {
-        internal const double NtcGammaM0 = 1.05;
-        internal const double NtcGammaM2 = 1.25;
+        internal const double NtcGammaM0 = Ntc2018DesignPolicy.GammaM0;
+        internal const double NtcGammaM2 = Ntc2018DesignPolicy.GammaM2;
         public SectionResistanceStandard Standard { get; }
         public string Name { get; }
         public string Edition { get; }

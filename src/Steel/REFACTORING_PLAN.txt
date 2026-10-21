@@ -18,7 +18,8 @@ Le norme americane restano fuori da questo lavoro.
    di curve/vincoli distinta nei chiamanti. COMPLETATO (Steel2.11.0.0).
 7. Isolare interazioni di sezione e d'asta, con campi di applicazione.
    COMPLETATO per le formule esistenti (Steel2.12.0.0).
-8. Consolidare NTC2018: formule comuni distinte dalle prescrizioni. DA FARE.
+8. Consolidare NTC2018: formule comuni distinte dalle prescrizioni.
+   COMPLETATO per i percorsi qualificati esistenti (Steel2.13.0.0).
 9. Colmare copertura indipendente e riesaminare gli11 legacy. DA FARE.
 10. Completare ModelChecker, pulizia mirata, verifica e master. DA FARE.
 
@@ -158,3 +159,13 @@ Eseguiti i benchmark indipendenti gia' presenti su N-M, M-V, Annex A,
 normalizzazione con Npl,Rd, Cyy e integrita' del report/campo applicativo.
 Steel1572/1572; ModelChecker Steel103/103; legacy111/122, stessi11,
 identici29casi/221asserzioni diagnostici. Nessun nuovo atteso artificiale.
+
+PUNTO 8 - POLITICA NTC2018
+Ntc2018DesignPolicy centralizza gamma, imperfezioni, gradi nominali e classe
+CHS. Ntc2018ModelPolicy controlla il profilo normativo esplicito: una modifica
+dei parametri usati o una norma derivata non eredita tacitamente la qualifica.
+Solo aritmetica compatibile condivisa con EC3; nessuna estensione di sigma_com,Ed
+o Annex A al percorso NTC. Conservati i campi assiali e CHS gia' supportati.
+8 casi nuovi per profili normativi modificati, varianti e classi CHS ai confini.
+Steel1580/1580; ModelChecker Steel103/103; legacy111/122, stessi11,
+identici29casi/221asserzioni diagnostici. Nessun atteso preesistente cambiato.

@@ -13,7 +13,7 @@ namespace GPC.Checkers.Steel.Members
     public static class Ntc2018SectionResistance
     {
         public const double GammaM0 = SectionResistanceCode.NtcGammaM0;
-        public const double GammaM1 = 1.05;
+        public const double GammaM1 = Ntc2018DesignPolicy.GammaM1;
         public const double GammaM2 = SectionResistanceCode.NtcGammaM2;
 
         /// <summary>NTC 2018 4.2.4.1.2.1. Null netArea explicitly means an unperforated section.</summary>
@@ -64,7 +64,7 @@ namespace GPC.Checkers.Steel.Members
             SupportedClass(sectionClass); Positive(area, nameof(area)); Positive(inertia, nameof(inertia));
             Positive(effectiveLength, nameof(effectiveLength)); Positive(elasticModulus, nameof(elasticModulus));
             Positive(yieldStrength, nameof(yieldStrength));
-            if (imperfection != .13 && imperfection != .21 && imperfection != .34 && imperfection != .49 && imperfection != .76)
+            if (!Ntc2018DesignPolicy.IsImperfectionFactor(imperfection))
                 throw new ArgumentOutOfRangeException(nameof(imperfection), "Select an NTC curve: a0, a, b, c or d.");
             double critical = PositiveResult(ElasticStabilityArithmetic.Euler(effectiveLength, inertia, elasticModulus));
             double slenderness = PositiveResult(BucklingReductionArithmetic.AxialSlenderness(area, yieldStrength, critical));
