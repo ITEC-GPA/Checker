@@ -1056,56 +1056,38 @@ namespace GPC.Checkers.Steel.Checkers
 
         #region Shear
 
+        private double ShearBucklingEta(ISteelSection section)
+            => section.SteelMaterial.Fyk <= 460 ? EN1993P11.NShearBucklingLowGradeOfSteel : EN1993P11.NShearBucklingHighGradeOfSteel;
+
         protected double CalculateShear2Capacity(ResultBeamForces resultBeamForces, ISteelSection section)
         {
-            double n;
-            if (section.SteelMaterial.Fyk <= 460)
-                n = EN1993P11.NShearBucklingLowGradeOfSteel;
-            else
-                n = EN1993P11.NShearBucklingHighGradeOfSteel;
-
-            if (section.SectionShape is SectionH sectionH)
-                if (section.SectionType == Section.SectionTypes.Rolled)
-                {
-                    if (sectionH.HeightWeb / sectionH.ThicknessWeb > 72.0 * Epsilon / n)
-                        return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVbRd1(section);
-                }
-                else
-                {
-                    if (sectionH.HeightWeb / sectionH.ThicknessWeb > 72.0 * Epsilon / n)
-                        return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVbRd1(section);
-                }
-            if (section.SectionShape is SectionRHS sectionRHS)
-                if (section.SectionType == Section.SectionTypes.Rolled)
-                {
-                    if (sectionRHS.ThicknessWebLeft / sectionRHS.Heightinternal > 72.0 * Epsilon / n ||
-                        sectionRHS.ThicknessWebRight / sectionRHS.Heightinternal > 72.0 * Epsilon / n)
-                        return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVbRd1(section);
-                }
-                else
-                {
-                    if (sectionRHS.ThicknessWebLeft / sectionRHS.Heightinternal > 72.0 * Epsilon / n ||
-                        sectionRHS.ThicknessWebRight / sectionRHS.Heightinternal > 72.0 * Epsilon / n)
-                        return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVbRd1(section);
-                }
-            if (section.SectionShape is SectionC sectionC)
-                if (section.SectionType == Section.SectionTypes.Rolled)
-                {
-                    if (sectionC.HeightWeb / sectionC.ThicknessWeb > 72.0 * Epsilon / n)
-                        return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVbRd1(section);
-                }
-                else
-                {
-                    if (sectionC.HeightWeb / sectionC.ThicknessWeb > 72.0 * Epsilon / n)
-                        return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVbRd1(section);
-                }
-
-            return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVcRd2(section);
+            double eta = ShearBucklingEta(section);
+            bool required = false;
+            if (section.SectionShape is SectionH h)
+                required = Ec3WebShearBuckling.RequiresCheck(h.HeightWeb, h.ThicknessWeb, Fy, eta);
+            else if (section.SectionShape is SectionC c)
+                required = Ec3WebShearBuckling.RequiresCheck(c.HeightWeb, c.ThicknessWeb, Fy, eta);
+            else if (section.SectionShape is SectionRHS r)
+                required = Ec3WebShearBuckling.RequiresCheck(r.Heightinternal, r.ThicknessWebLeft, Fy, eta)
+                    || Ec3WebShearBuckling.RequiresCheck(r.Heightinternal, r.ThicknessWebRight, Fy, eta);
+            double resistance = CalculateVcRd2(section);
+            if (required) resistance = Math.Min(resistance, CalculateVbRd1(section));
+            return CalculateShearReductionDueToTorsion(resultBeamForces, section) * resistance;
         }
 
         protected double CalculateShear1Capacity(ResultBeamForces resultBeamForces, ISteelSection section)
         {
-            return CalculateShearReductionDueToTorsion(resultBeamForces, section) * CalculateVcRd1(section);
+            double resistance = CalculateVcRd1(section);
+            if (section.SectionShape is SectionRHS r)
+            {
+                double eta = ShearBucklingEta(section);
+                if (Ec3WebShearBuckling.RequiresCheck(r.BaseInternal, r.ThicknessTop, Fy, eta)
+                    || Ec3WebShearBuckling.RequiresCheck(r.BaseInternal, r.ThicknessBottom, Fy, eta))
+                    resistance = Math.Min(resistance,
+                        Ec3WebShearBuckling.NonRigidEndPostResistance(r.BaseInternal, r.ThicknessTop, Fy, GammaM1, eta)
+                        + Ec3WebShearBuckling.NonRigidEndPostResistance(r.BaseInternal, r.ThicknessBottom, Fy, GammaM1, eta));
+            }
+            return CalculateShearReductionDueToTorsion(resultBeamForces, section) * resistance;
         }
 
         /// <summary>
@@ -1126,52 +1108,21 @@ namespace GPC.Checkers.Steel.Checkers
             return SectionResistanceArithmetic.Shear(GetShearArea2(section), Fy, GammaM0);
         }
 
+        // Conservative web-only component, transverse support stiffeners and
+        // non-rigid end post assumed. Their design/weld checks remain external.
         protected double CalculateVbRd1(ISteelSection section)
         {
-            double n;
-            if (section.SteelMaterial.Fyk <= 460)
-                n = EN1993P11.NShearBucklingLowGradeOfSteel;
-            else
-                n = EN1993P11.NShearBucklingHighGradeOfSteel;
-
-            double hw;
-            double t;
-
-            if (section.SectionShape is SectionH sectionH)
-            {
-                hw = sectionH.HeightWeb;
-                t = sectionH.ThicknessWeb;
-            }
-            else if (section.SectionShape is SectionRHS sectionRHS)
-            {
-                hw = sectionRHS.Heightinternal;
-                t = sectionRHS.ThicknessWebLeft + sectionRHS.ThicknessWebRight;
-            }
-            else if (section.SectionShape is SectionC sectionC)
-            {
-                hw = sectionC.HeightWeb;
-                t = sectionC.ThicknessWeb;
-            }
-            else if (section.SectionShape is SectionT sectionT)
-            {
-                hw = sectionT.HeightWeb;
-                t = sectionT.ThicknessWeb;
-            }
-            else
-                throw new ArgumentException($"ShearBucklingCheck: EN1993-1-5 §5.1 not implemented this section {section}");
-
-            double lambdaSignedW = hw / (86.4 * t * Epsilon);
-
-            double chi;
-            if (lambdaSignedW < 0.83 / n)
-                chi = n;
-            else
-                chi = 0.83 / n;
-
-            double vbfRd = 0.0;
-            double vbwRd = chi * Fy * hw * t / (Math.Pow(3, 0.5) * GammaM1);
-
-            return Math.Min(vbwRd + vbfRd, n * Fy * hw * t / (Math.Pow(3, 0.5) * GammaM1));
+            double eta = ShearBucklingEta(section);
+            if (section.SectionShape is SectionH h)
+                return Ec3WebShearBuckling.NonRigidEndPostResistance(h.HeightWeb, h.ThicknessWeb, Fy, GammaM1, eta);
+            if (section.SectionShape is SectionC c)
+                return Ec3WebShearBuckling.NonRigidEndPostResistance(c.HeightWeb, c.ThicknessWeb, Fy, GammaM1, eta);
+            if (section.SectionShape is SectionT t)
+                return Ec3WebShearBuckling.NonRigidEndPostResistance(t.HeightWeb, t.ThicknessWeb, Fy, GammaM1, eta);
+            if (section.SectionShape is SectionRHS r)
+                return Ec3WebShearBuckling.NonRigidEndPostResistance(r.Heightinternal, r.ThicknessWebLeft, Fy, GammaM1, eta)
+                    + Ec3WebShearBuckling.NonRigidEndPostResistance(r.Heightinternal, r.ThicknessWebRight, Fy, GammaM1, eta);
+            throw new ArgumentException("ShearBucklingCheck: EN1993-1-5 5.1 not implemented this section");
         }
 
         /// <summary>

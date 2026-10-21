@@ -199,3 +199,22 @@ differenza ricostruita fra proprieta' geometriche e raggi tabulati.
 La copertura NON include automaticamente N/M,LTB,classe4 o bulk completo.
 Steel1720/1720; ModelChecker Steel103/103; legacy111/122, stessi11 e
 identici29casi/221asserzioni diagnostici. Zero ignorati.
+
+PUNTO 9c - INSTABILITA' A TAGLIO (Steel2.15.0.0)
+Ec3WebShearBuckling separa soglia72epsilon/eta e contributo dell'anima
+con montante terminale non rigido: chi=min(eta,.83/lambda_w).
+Corretto il precedente .83/eta, indipendente dalla snellezza. RHS: rapporti
+h/t corretti e contributi delle due pareti calcolati separatamente, su
+entrambi gli assi di taglio. Non si sommano gli spessori nella snellezza.
+Resistenza finale limitata anche dalla resistenza plastica della sezione.
+Ipotesi esplicite: irrigidimenti trasversali agli appoggi, nessun contributo
+delle flange, nessun beneficio del montante rigido. Irrigidimenti/saldature
+non verificati da questa componente; non e' un nuovo metodo NTC autonomo.
+SCI AD368, NSC giugno2012 p28: UKB406x140x39,S355,eta=gammaM1=1,
+Vbw,Rd pubblicata488kN. Tolleranza da arrotondamenti dichiarati, confronto
+analitico esatto separato. Fonti: EN1993-1-1:2005 6.2.6(6),
+EN1993-1-5:2006 5.2/5.3 tab5.1 ed eq5.5;
+https://www.steelconstruction.info/images/6/6f/AD-368.pdf
+30casi nuovi: benchmark SCI, rami/soglie, eta, pareti singole e casi stocky.
+Steel1750/1750; ModelChecker Steel103/103; legacy111/122, stessi11 e
+identica diagnostica. Nessun atteso/fixture/whitelist esistente modificato.
