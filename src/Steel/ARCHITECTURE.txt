@@ -1,5 +1,6 @@
-ARCHITETTURA CHECKER.STEEL - PRIMO BLOCCO DI REFACTORING - 21 OTTOBRE 2026
-Steel2.16.0.0; GPCModelChecker2.6.0.0. Unita': N,mm,MPa,Nmm; N positivo a trazione.
+ARCHITETTURA CHECKER.STEEL - REFACTORING E PRIMO SUPPORTO ASTE COMPOSTE - 21 OTTOBRE 2026
+Steel2.18.0.0; GPCModelChecker2.6.0.0; Model5.17.0.0. Unita': N,mm,MPa,Nmm.
+N positivo a trazione nelle facade; Ec3BuiltUpColumn riceve compressione positiva.
 Stessa DLL e framework netstandard2.0. Model resta a monte di Checker.
 
 STRUTTURA
@@ -8,6 +9,7 @@ sigma_com,Ed, proprieta'/aree resistenti, politica NTC e instabilita' a taglio.
 Stability/: Ncr flessionale/torsionale/accoppiato, Mcr, snellezze/riduzioni,
 politica per le curve dei cassoni saldati. Il nucleo elastico non usa fy/gamma.
 Interactions/: formule di sezione distinte dai coefficienti d'asta Annex A.
+Members/: modelli piani EC3 delle aste composte, azioni e controlli dei componenti.
 ModelAdapters/: ricostruzione delle parti/aree e compatibilita' del profilo NTC.
 I nuclei scalari non ricevono BeamElement, sezioni Model o report persistiti.
 Le facade storiche mantengono le firme e orchestrano geometria, azioni,
@@ -95,6 +97,10 @@ VERIFICA E CONTINUAZIONE
 CLASSIFICATION_REFACTOR_VERIFICATION.json conserva evidenze dei singoli passi;
 REFACTORING_FINAL_VERIFICATION.json contiene suite e hash del controllo finale.
 La verifica non pubblica pacchetti e non sostituisce Release-Set.ps1.
-In coda dopo il blocco: connessioni e profili accoppiati almeno C/L, distinguendo
-proprieta' geometriche composte e collaborazione strutturale dei componenti.
+Dopo il blocco: primo supporto C/L accoppiati in Members/Ec3BuiltUpColumn,
+BuiltUpComponentChecks e ModelAdapters/ModelBuiltUpGeometry. Geometria in
+Model; modello EC3, azioni e controlli dei componenti in Checker. Resta
+aperta la verifica completa (interazioni locali/giunti/torsione globale).
+Fonti, ipotesi e stato in COUPLED_MEMBERS_VERIFICATION.txt. Connessioni e
+integrazione automatica ModelChecker restano nel blocco successivo.
 La storia dei passi preliminari e' conservata in Git e nei manifest dedicati.

@@ -249,3 +249,18 @@ Design.Checks100/100,ModelChecker271/271. Totale3778superati,11noti,
 Rispetto all'inizio dei10punti:425nuovi casiSteel e14ModelChecker.
 Manifest con hashTRX:REFACTORING_FINAL_VERIFICATION.json.
 Non e' stato eseguito un rilascio di pacchetti ne' un push.
+
+
+SEGUITO AUTORIZZATO - TASK1/2/3 C/L E ASTE COMPOSTE (21/10/2026)
+Task1: classe3/4 degli angolari isolati in N e compressione C/L con TF
+entro lo schema di vincolo qualificato; Steel2.17,commit58ebf436.
+Task2: geometria2C/2L, orientamento, contratti e qualifica indipendente;
+Model5.17,commit90b0ad09,26casi nuovi.
+Task3: Steel2.18, modello pianoEC3 6.4, azioni e controlli dei componenti,
+66casi nuovi. La qualifica completa d'asta resta APERTA per interazioni
+N-M-V dei correnti calastrellati non doppiamente simmetrici, giunti e
+torsione globale. Non abilitato il percorso automatico ModelChecker.
+Task5(legacy) rinviata dall'utente. Tutti gli11fallimenti restano attivi.
+Dettagli/fonti: COUPLED_MEMBERS_VERIFICATION.txt; evidenze/hashTRX nelJSON.
+Verifica finale Checker3887pass,11noti,0inattesi; Model1298pass,0fail,
+2test nativi inconclusive. Nessun rilascio o push.

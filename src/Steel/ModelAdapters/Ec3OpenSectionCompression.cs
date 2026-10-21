@@ -35,6 +35,9 @@ namespace GPC.Checkers.Steel.ModelAdapters
             }
             else
             {
+                var channel = (SectionC)shape;
+                if (channel.LengthTop != channel.LengthBottom || channel.ThicknessTop != channel.ThicknessBottom)
+                    throw new NotSupportedException("Channel torsional qualification requires equal flanges.");
                 var classification = Ec3UniformCompressionClassification.Evaluate(ModelCompressionGeometry.Create(section), yieldStrength);
                 if (!classification.IsEvaluated) throw new ArgumentException(classification.DiagnosticCode, nameof(section));
                 nominalClass = classification.NominalClass.Value;

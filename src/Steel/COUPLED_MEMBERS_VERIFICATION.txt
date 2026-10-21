@@ -9,7 +9,7 @@ Nessuna promozione automatica a classe 1/2 o uso di Ag in luogo di Aeff.
 La facciata legacy applica la regola nuova a L esatti in N puro.
 Le classificazioni legacy in pressoflessione non sono qualificate da questo passo.
 
-Ec3OpenSectionCompression: C paralleli/L esatti, laminati a caldo, classi
+Ec3OpenSectionCompression: C paralleli con ali uguali/L esatti, laminati a caldo, classi
 1-3; forza assiale baricentrica. Estremi a forcella, ingobbamento libero,
 stessa lunghezza e forma sinusoidale per flessione e torsione. Include
 Euler sui due assi principali e il minimo autovalore flesso-torsionale;
@@ -30,3 +30,83 @@ Fonti indipendenti:
   documentate e ai benchmark CISC gia presenti (TeeTorsionReferenceTests).
 
 Il blocco legacy (11 fallimenti noti) resta attivo: decisione rinviata.
+
+
+Task 2 - GPCModel 5.17.0.0 (repository fratello Model, commit 90b0ad09)
+Geometrie accoppiate, orientamento esplicito degli angolari, contratti degli
+archivi/impronte e 26 oracoli analitici nuovi: si veda il documento
+Model/Sections/COUPLED_SECTIONS_VERIFICATION.txt in Model.
+Nessuna dipendenza Model -> Checker. Nessuna rigidezza torsionale del
+composto dedotta dalla sola distanza fra componenti.
+
+Task 3 - Steel 2.18.0.0: modelli e controlli dei componenti
+Ec3BuiltUpColumn: due correnti uguali, paralleli, incernierati nel piano,
+almeno tre moduli uniformi, due piani di tralicci/calastrelli corrispondenti.
+EN 1993-1-1:2005/AC:2009 6.4.1-6.4.4, pp.69-74:
+- imperfezione L/500; Ieff e Sv specifici del sistema;
+- tre schemi tralicciati della figura 6.9 (NON traliccio a X);
+- calastrelli: limite superiore di Sv e fattore mu della tabella 6.8;
+- Ncr di Eulero e Ncr comprensivo della deformabilita a taglio distinti;
+- MEd amplificato, Nch massimo e forza nell'altro corrente con segno;
+- taglio sinusoidale (6.70) o correzione SCI per carico trasversale uniforme;
+- forze nei diagonali/montanti e M,V locali di correnti/calastrelli;
+- controllo del passo 15*i_min per i soli casi della figura 6.12;
+- stato Unstable senza azioni/resistenze numeriche al superamento di Ncr.
+I due segni dell'imperfezione sono inviluppati; N positivo a compressione.
+L'analisi ha un solo piano. Azioni di natura diversa, estremi incastrati,
+correnti differenti, piani di tralicci opposti, torsione globale, carichi
+non sinusoidali/uniformi non rientrano in queste formule.
+
+ModelBuiltUpGeometry copia le grandezze dei 2C/2L ottenuti dalle factory
+Model; distingue il gap libero dall'interasse fra baricentri. Richiede due
+istanze della stessa definizione di corrente, disposte per riflessione
+senza sovrapposizione. Segnala se gli assi del corrente sono principali.
+Il prodotto d'inerzia di un L non sparisce nel singolo corrente per il
+solo fatto che l'insieme dei due L sia simmetrico.
+
+BuiltUpComponentChecks confronta le azioni con resistenze di progetto
+esplicite e tracciate: compressione/trazione dei correnti, diagonali e
+montanti; M/V dei calastrelli con resistenza flessionale gia ridotta per
+il taglio effettivo. I casi d'asta C/L possono usare l'API della task1
+solo entro i suoi vincoli dichiarati. Per i correnti calastrellati il
+controllo solo assiale e rifiutato: serve N-M-V con instabilita.
+I successi dei componenti non producono un Passed dell'asta completa.
+RequiredChecks conserva esplicitamente interazioni, vincoli, giunti,
+pannelli terminali e introduzione dei carichi ancora da verificare.
+
+Qualifica indipendente nuova: BuiltUpColumnReferenceTests.
+- CTICM/SCI SBE_SS6 Appendix A pp.6-24..6-31: 2HE220A, L10m, h0=800mm,
+  a1250mm, N900kN, M1=450kNm. Ieff205800cm4, Sv134100kN,
+  Ncr42650kN, MEd481.4kNm, Nch1052kN, V191.2kN, Nd176.86kN;
+  resistenze Nb dei correnti 2203/1767kN, diagonale285.9kN, montante310kN.
+  Le resistenze dei componenti dell'esempio sono INPUT indipendenti:
+  le loro verifiche con lunghezze diverse non sono attribuite alla nuova
+  API C/L a modi sinusoidali comuni. Classe4/Aeff non e calcolata qui.
+- SCI NSC Technical Digest2021 pp.24-25: stessa asta, N4167kN,
+  M1=0, MEd95.66kNm, Nch2203kN.
+  https://www.steelconstruction.info/images/5/54/NSC_Technical_Digest_2021.pdf
+- Sv verificato per energia di deformazione sotto taglio unitario:
+  diagonali/montanti assiali e correnti/calastrelli flessionali.
+  ESDEP Lecture7.6 sezioni3.1/3.2 come derivazione meccanica; i limiti
+  normativi (minimo3moduli, Sv massimo, mu) vengono dall'EC3:2005.
+  https://fgg-web.fgg.uni-lj.si/~/pmoze/esdep/master/wg07/l0600.htm
+- limiti mu a75/150, passo15*i_min, zero carico, simmetria di segno,
+  singolarita e superamento del critico, input invalidi, mapping2C/2L.
+Tolleranze: mezza unita dell'ultima cifra pubblicata piu propagazione
+indipendente degli arrotondamenti d=1480mm, Ieff205800cm4, Ncr42650kN,
+Sv134100kN e, per V della guida, MEd arrotondato a482kNm.
+L'atteso stampato non e sostituito dal valore del codice.
+
+Resta aperta la qualifica COMPLETA delle aste composte: N-M-V locale
+dei correnti non doppiamente simmetrici, verifiche progettuali dei giunti,
+torsione globale del composto, casi diversi dal modello piano indicato,
+classe4 e integrazione automatica ModelChecker. Non e una nuova qualifica
+NTC2018: fattori nazionali non vengono applicati per semplice analogia.
+La task5 sui legacy e rinviata; nessun test storico commentato o corretto.
+
+Verifica finale: build/Verify.ps1 -Suites all, contro Model5.17.0.0.
+3887superati,11legacy noti,0inattesi,0ignorati; Steel.Members1859/1859,
+ModelChecker271/271. Tutti i controlli API senza rimozioni inattese.
+Model:1298superati,0fallimenti,2test nativi inconclusive per fixture assenti.
+109nuovi testSteel e26Model in questo blocco; hashTRX nel manifestJSON.
+File legacy e whitelist invariati; nessun pacchetto pubblicato.
