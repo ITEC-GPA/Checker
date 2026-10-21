@@ -6,15 +6,14 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace EmbeddedWalls.Tests;
 
-/// <summary>Findings of the October 2026 review. Each test states the physically expected behaviour with an independent
-/// expected value and FAILS on the reviewed code (master 57f87bf8); it must pass once the finding is fixed.
-/// Exclude with --filter "TestCategory!=ReviewFinding". Details: docs/verifiche/paratie-revisione-2026-10.md.</summary>
+/// <summary>Findings of the October 2026 review fixed in Geotechnics 0.14.0.1. Each test failed on the reviewed code
+/// (master 57f87bf8) and states the physically expected behaviour with an independent expected value.
+/// Details: docs/verifiche/paratie-revisione-2026-10.md.</summary>
 [TestClass]
-[TestCategory("ReviewFinding")]
-public class ReviewFindingsTests
+public class ReviewFixesTests
 {
     // P1. A unilateral support that went slack must re-engage where its force vanished, not follow the wall
-    // (EmbeddedWallAnalysis.cs:250-252 moves the offset also on the zero-force branch).
+    // (before 0.14.0.1 the offset moved also on the zero-force branch).
     [TestMethod]
     [DataRow(EmbeddedWallSupportKind.Strut)]
     [DataRow(EmbeddedWallSupportKind.Anchor)]
@@ -29,8 +28,9 @@ public class ReviewFindingsTests
         Assert.AreEqual(expected.GetProperty("back_force").GetDouble(), r.Stages[2].Supports[0].AxialForce, 1e-3);
     }
 
-    // P2. Newton line search measured on the max-norm of the residual stalls at a plastic kink although an equilibrium
+    // P2. A Newton line search measured on the max-norm of the residual stalled at a plastic kink although an equilibrium
     // exists (free-earth-support margin 1.17, independent solver converged). Reviewed code: NonConvergent at S3, fraction 0.875.
+    // Fixed by an Armijo line search on the potential energy.
     [TestMethod]
     public void AnchoredExcavationWithPassiveMarginConverges()
     {
@@ -41,8 +41,8 @@ public class ReviewFindingsTests
         IndependentVerificationTests.CompareStage(r.Stages.Single(s => s.Id == "S3"), ReviewModels.ExpectedStage("anchored_water", "S3"), "anchored_water");
     }
 
-    // P3. The default residual tolerance (1e-5 N + 1e-8 × a scale without bending forces) is below double round-off of
-    // EI terms on fine meshes. Reviewed code: NonConvergent at S2 with a 50 mm mesh; converges with 0.01 N.
+    // P3. The default residual tolerance (1e-5 N + 1e-8 × a scale without bending forces) was below double round-off of
+    // EI terms on fine meshes. Reviewed code: NonConvergent at S2 with a 50 mm mesh; the scale now includes bending forces.
     [TestMethod]
     public void FineMeshConvergesWithDefaultTolerances()
     {
@@ -50,7 +50,15 @@ public class ReviewFindingsTests
         Assert.IsTrue(r.IsComplete, r.Diagnostic);
         IndependentVerificationTests.CompareStage(r.Stages.Single(s => s.Id == "S2"), ReviewModels.ExpectedStage("cantilever_sand", "S2"), "cantilever_sand");
     }
+}
 
+/// <summary>Open findings of the October 2026 review. Each test states the physically expected behaviour with an independent
+/// expected value and FAILS on the current code; it must pass once the finding is fixed. Admitted by name in
+/// build/known-failures.json. Exclude with --filter "TestCategory!=ReviewFinding". Details: docs/verifiche/paratie-revisione-2026-10.md.</summary>
+[TestClass]
+[TestCategory("ReviewFinding")]
+public class ReviewFindingsTests
+{
     // P4. Global stability reads only WaterElevation: a prescribed pore-pressure profile (allowed by validation) is ignored and
     // the section is computed dry (EmbeddedWallGlobalStability.cs:130-139). Reviewed code: F = 5.9407 instead of 4.4414.
     [TestMethod]

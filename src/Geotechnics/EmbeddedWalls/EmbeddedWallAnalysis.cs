@@ -82,21 +82,38 @@ public static partial class EmbeddedWallAnalysis
             try { delta = current.Tangent.Solve(current.Residual.Select(v => -v).ToArray(), step.Mesh.Fixed); }
             catch (InvalidOperationException ex) { status = WallAnalysisStatus.Unstable; diagnostic = ex.Message; return false; }
             if (norm <= tolerance) { current.MaximumResidual = norm; accepted = current; return true; }
+            // Armijo on the potential energy, convex and C1 with elastic-perfectly-plastic springs and supports: every direction
+            // of the positive definite tangent descends. The max-norm of the residual is no merit function at plastic kinks.
+            // The 2-norm decrease only covers energy differences lost in round-off near convergence.
+            double slope = 0, norm2 = Norm2(current.Residual, step.Mesh.Fixed);
+            for (int i = 0; i < delta.Length; i++) if (!step.Mesh.Fixed[i]) slope += current.Residual[i] * delta[i];
             bool improved = false;
             for (double factor = 1; factor >= 1d / 1024; factor /= 2)
             {
                 cancellation.ThrowIfCancellationRequested();
                 var candidate = u.Select((v, i) => v + factor * delta[i]).ToArray();
-                var check = step.Evaluate(candidate);
-                if (Norm(check.Residual, step.Mesh.Fixed) <= norm * (1 - 1e-4 * factor) || Norm(check.Residual, step.Mesh.Fixed) <= tolerance)
-                { Array.Copy(candidate, u, u.Length); improved = true; break; }
+                bool descent = step.EnergyChange(u, delta, factor) <= 1e-4 * factor * slope;
+                if (!descent)
+                {
+                    var check = step.Evaluate(candidate);
+                    descent = Norm2(check.Residual, step.Mesh.Fixed) <= norm2 * (1 - 1e-4 * factor) || Norm(check.Residual, step.Mesh.Fixed) <= tolerance;
+                }
+                if (descent) { Array.Copy(candidate, u, u.Length); improved = true; break; }
             }
-            if (!improved) { diagnostic = "Line search did not reduce the equilibrium residual"; return false; }
+            if (!improved) { diagnostic = "Line search did not reduce the potential energy or the equilibrium residual"; return false; }
         }
         return false;
     }
     private static double Norm(double[] residual, bool[] fixedDofs)
     { double value = 0; for (int i = 0; i < residual.Length; i++) if (!fixedDofs[i]) value = Math.Max(value, Math.Abs(residual[i])); return value; }
+    private static double Norm2(double[] residual, bool[] fixedDofs)
+    { double value = 0; for (int i = 0; i < residual.Length; i++) if (!fixedDofs[i]) value += residual[i] * residual[i]; return Math.Sqrt(value); }
+    /// <summary>Antiderivative of clamp(p0 + k s, lower, upper): energy of an elastic-perfectly-plastic spring, convex and C1.</summary>
+    private static double SpringEnergy(double s, double p0, double k, double lower, double upper)
+    {
+        double sl = (lower - p0) / k, su = (upper - p0) / k, c = Math.Min(Math.Max(s, sl), su);
+        return p0 * c + .5 * k * c * c + (double.IsInfinity(lower) ? 0 : lower * Math.Min(s - sl, 0)) + (double.IsInfinity(upper) ? 0 : upper * Math.Max(s - su, 0));
+    }
 
     private sealed class Mesh
     {
@@ -228,7 +245,9 @@ public static partial class EmbeddedWallAnalysis
                         int row = 2 * e + i;
                         r.Residual[row] += weight * (bending * curvature[i] - (qSoil + qExternal) * shape[i]);
                         r.External[row] += weight * qExternal * shape[i]; r.Soil[row] += weight * qSoil * shape[i];
-                        r.Scale = Math.Max(r.Scale, weight * (Math.Abs(qExternal) + (r.Left[at] + r.Right[at]) * model.TributaryWidth) * Math.Abs(shape[i]));
+                        // Internal bending forces enter the scale: their round-off grows with EI/h³ and would exceed a load-only tolerance.
+                        r.Scale = Math.Max(r.Scale, Math.Max(weight * (Math.Abs(qExternal) + (r.Left[at] + r.Right[at]) * model.TributaryWidth) * Math.Abs(shape[i]),
+                            Math.Abs(weight * bending * curvature[i])));
                         for (int j = 0; j <= i; j++) r.Tangent.Add(row, 2 * e + j,
                             weight * (ei * curvature[i] * curvature[j] + tangent * model.TributaryWidth * shape[i] * shape[j]));
                     }
@@ -249,7 +268,9 @@ public static partial class EmbeddedWallAnalysis
                 double limit = activation * (support.Capacity ?? double.PositiveInfinity);
                 double force = Math.Max(support.Kind == EmbeddedWallSupportKind.Bilateral ? -limit : 0, Math.Min(limit, trial));
                 bool plastic = force != trial;
-                if (plastic) r.History.SupportPlastic[i] = extension - (force - lockOff) / stiffness;
+                // A slack strut or anchor keeps its zero-force point: it re-engages there. Only yielding at capacity moves the reference.
+                bool slack = support.Kind != EmbeddedWallSupportKind.Bilateral && trial < 0;
+                if (plastic && !slack) r.History.SupportPlastic[i] = extension - (force - lockOff) / stiffness;
                 double reaction = -support.ResistingDirection * cos * force * multiplicity;
                 r.Residual[row] -= reaction; r.Support[row] += reaction;
                 if (!plastic) r.Tangent.Add(row, row, stiffness * cos * cos * multiplicity);
@@ -258,6 +279,57 @@ public static partial class EmbeddedWallAnalysis
                     ReferenceDisplacement = history.SupportReference[i], AtCapacity = support.Capacity.HasValue && Math.Abs(force) >= limit * (1 - 1e-10) });
             }
             return r;
+        }
+        /// <summary>E(u + factor·delta) − E(u) for the committed history of this step, summed term by term against cancellation.
+        /// Its gradient is the residual of <see cref="Evaluate"/>: beam, soil springs with water, loads and supports.</summary>
+        internal double EnergyChange(double[] u, double[] delta, double factor)
+        {
+            double change = 0, eiFactor = Blend(from.StiffnessFactor, to.StiffnessFactor, fraction), uniform = Blend(from.DistributedLoad, to.DistributedLoad, fraction);
+            for (int e = 0; e < Mesh.Depth.Length - 1; e++)
+            {
+                double h = Mesh.Depth[e + 1] - Mesh.Depth[e], ei = Mesh.Sections[e].FlexuralRigidity * eiFactor;
+                for (int g = 0; g < 4; g++)
+                {
+                    int at = 4 * e + g; double t = Gauss[g], weight = Weights[g] * h, z = model.Top - Mesh.Depth[e] - t * h;
+                    double[] shape = Shape(t, h, Mesh.RotationScale), curvature = Curvature(t, h, Mesh.RotationScale);
+                    double kappa = Dot(curvature, u, 2 * e), dKappa = factor * Dot(curvature, delta, 2 * e);
+                    double displacement = Dot(shape, u, 2 * e), dDisplacement = factor * Dot(shape, delta, 2 * e);
+                    double qExternal = uniform + Blend(IntervalLoad(from, z), IntervalLoad(to, z), fraction);
+                    change += weight * (ei * dKappa * (kappa + .5 * dKappa) - qExternal * dDisplacement);
+                    for (int side = 0; side < 2; side++)
+                    {
+                        var a = oldPressures[at, side]; var b = newPressures[at, side];
+                        int state = 2 * at + side, sign = side == 0 ? 1 : -1;
+                        double k = Blend(a.Stiffness, b.Stiffness, fraction), water = Blend(a.Water, b.Water, fraction);
+                        change -= weight * model.TributaryWidth * sign * water * dDisplacement;
+                        if (k <= 0) continue;
+                        double offset = history.Active[state] ? history.Plastic[state] : -sign * Dot(shape, committedU, 2 * e);
+                        double p0 = Blend(a.AtRest, b.AtRest, fraction), lower = Blend(a.Active, b.Active, fraction), upper = Blend(a.Passive, b.Passive, fraction);
+                        double s = -sign * displacement - offset;
+                        change += weight * model.TributaryWidth * (SpringEnergy(s - sign * dDisplacement, p0, k, lower, upper) - SpringEnergy(s, p0, k, lower, upper));
+                    }
+                }
+            }
+            foreach (var (stage, share) in new[] { (from, 1 - fraction), (to, fraction) })
+                foreach (var p in stage.PointLoads)
+                {
+                    int row = 2 * Mesh.Node(p.Elevation);
+                    change -= factor * share * (p.HorizontalForce * delta[row] + p.Moment / Mesh.RotationScale * delta[row + 1]);
+                }
+            for (int i = 0; i < model.Supports.Count; i++)
+            {
+                var support = model.Supports[i]; var a = from.ActiveSupports.FirstOrDefault(s => s.SupportId == support.Id); var b = to.ActiveSupports.FirstOrDefault(s => s.SupportId == support.Id);
+                double activation = Blend(a == null ? 0 : 1, b == null ? 0 : 1, fraction);
+                if (activation == 0) continue;
+                int row = 2 * Mesh.Node(support.Elevation);
+                double cos = Math.Cos(support.Inclination), multiplicity = model.TributaryWidth / support.Spacing;
+                double lockOff = Blend(a?.Prestress ?? 0, b?.Prestress ?? 0, fraction), stiffness = activation * support.AxialStiffness;
+                double limit = activation * (support.Capacity ?? double.PositiveInfinity), lower = support.Kind == EmbeddedWallSupportKind.Bilateral ? -limit : 0;
+                double s = support.ResistingDirection * cos * (u[row] - history.SupportReference[i]) - history.SupportPlastic[i];
+                double ds = support.ResistingDirection * cos * factor * delta[row];
+                change += multiplicity * (SpringEnergy(s + ds, lockOff, stiffness, lower, limit) - SpringEnergy(s, lockOff, stiffness, lower, limit));
+            }
+            return change;
         }
         private void AddPoints(EmbeddedWallStage stage, double factor, Evaluation r)
         {

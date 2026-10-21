@@ -3,7 +3,8 @@
 Revisione dei calcoli del modulo paratie sviluppato con Codex sul modello di Paratie Plus: molle elasto-plastiche
 alla Winkler, fasi costruttive, sostegni, filtrazione, verifiche idrauliche, stabilità globale, tiranti, infissione,
 verifiche strutturali e collegamento in ANTHEA. Codice esaminato: Checker master `57f87bf8`, Model e ANTHEA del 21/10/2026.
-Branch dei test: `claude/verifica-paratie`.
+Branch dei test: `claude/verifica-paratie`. Correzioni applicate sullo stesso branch: P1, P2 e P3 in Geotechnics 0.14.0.1
+(con GPC.Design 0.30.0.1, ricompilato contro la nuova Geotechnics). Restano aperti P4, P5, S1 e i punti ANTHEA.
 
 ## Metodo
 
@@ -32,9 +33,9 @@ I problemi trovati, in ordine di gravità:
 | # | Problema | Effetto | Dove |
 |---|---|---|---|
 | A1 | In ANTHEA una fase successiva che rielenca un tirante riparte con pretensione 0 e la rilascia; la guida teorica dice il contrario | **a sfavore di sicurezza**: forza nel tirante sottostimata fino alla pretensione | `ANTHEA.Application/EmbeddedWalls/EmbeddedWallAdapter.cs:64-65`, `EmbeddedWallDocument.cs:35`, `guida-teorica-anthea.md:3538` |
-| P1 | Puntone o tirante che si stacca: il motore lo fa "seguire" la paratia invece di lasciare il distacco | risultati errati quando la paratia torna indietro (esempio: 15,7 kN invece di 7,8 kN, −2,03 mm invece di +0,78 mm) | `EmbeddedWallAnalysis.cs:250-252` |
-| P2 | Falsa non convergenza: la ricerca lineare usa il massimo del residuo e si blocca sui punti angolosi della plasticità | paratia stabile dichiarata "non convergente" (caso tirantato con margine 1,17) | `EmbeddedWallAnalysis.cs:91` |
-| P3 | Tolleranze più strette della precisione di macchina sui termini EI | falsa non convergenza con mesh fini (50 mm) o pareti rigide | `WallAnalysisResults.cs:10-11`, `EmbeddedWallAnalysis.cs:80` |
+| P1 | Puntone o tirante che si stacca: il motore lo fa "seguire" la paratia invece di lasciare il distacco | risultati errati quando la paratia torna indietro (esempio: 15,7 kN invece di 7,8 kN, −2,03 mm invece di +0,78 mm) — **corretto in 0.14.0.1** | `EmbeddedWallAnalysis.cs:250-252` (su `57f87bf8`) |
+| P2 | Falsa non convergenza: la ricerca lineare usa il massimo del residuo e si blocca sui punti angolosi della plasticità | paratia stabile dichiarata "non convergente" (caso tirantato con margine 1,17) — **corretto in 0.14.0.1** | `EmbeddedWallAnalysis.cs:91` (su `57f87bf8`) |
+| P3 | Tolleranze più strette della precisione di macchina sui termini EI | falsa non convergenza con mesh fini (50 mm) o pareti rigide — **corretto in 0.14.0.1** | `WallAnalysisResults.cs:10-11`, `EmbeddedWallAnalysis.cs:80` (su `57f87bf8`) |
 | P4 | Stabilità globale: il profilo di pressioni interstiziali assegnato viene ignorato | **a sfavore di sicurezza** (F = 5,94 invece di 4,44); oggi ANTHEA non ci arriva | `EmbeddedWallGlobalStability.cs:130-139` |
 | P5 | Filtrazione: il bordo laterale lato scavo ha sempre carico imposto; con la semilarghezza di uno scavo simmetrico l'asse fa da dreno | **a sfavore di sicurezza**: gradiente medio 0,22 invece di 0,55, verifica HYD 0,65 invece di 1,59 | `EmbeddedWallSeepageMesh.cs:49` |
 | A2 | Nessun coefficiente parziale applicato alle azioni o agli effetti; le verifiche SLU si attivano con un testo libero | azioni SLU 23–33 % troppo basse se si marca SLU una storia caratteristica | `EmbeddedWallModule.cs:30` e verificatori ANTHEA |
@@ -69,7 +70,8 @@ di ANTHEA (m→mm, kN→N, kNm→Nmm, kPa→MPa, kN/m³→N/mm³, gradi→radian
 
 ### Confronto numerico motore / risolutore indipendente
 
-Motore con mesh 250 mm e opzioni predefinite; risolutore indipendente con valore di Richardson (mesh 50 e 25 mm).
+Motore Geotechnics 0.14.0.1 con mesh 250 mm e opzioni predefinite; risolutore indipendente con valore di Richardson
+(mesh 50 e 25 mm). Fino a S2 i valori coincidono con quelli di `57f87bf8`.
 
 | Caso | Fase | Grandezza | Motore | Indipendente | Scarto |
 |---|---|---|---|---|---|
@@ -88,8 +90,8 @@ Motore con mesh 250 mm e opzioni predefinite; risolutore indipendente con valore
 | Tirantata con falda | S3 (*) | M max [kNm/m] | −621,62 | −621,54 | 0,01 % |
 | Tirantata con falda | S3 (*) | T1 [kN] | 579,17 | 579,12 | 0,01 % |
 
-(*) Con il codice attuale la fase S3 non converge (P2). I valori del motore sono quelli ottenuti con la correzione di prova
-descritta più sotto, in una copia isolata. Il rapporto di equilibrio limite della fase S3 è 1,17.
+(*) Su `57f87bf8` la fase S3 non convergeva (P2); con 0.14.0.1 converge. Il rapporto di equilibrio limite della fase S3 è 1,17.
+Con mesh 50 mm (P3) il motore 0.14.0.1 converge su tutti i casi con le opzioni predefinite.
 
 ## Problemi in dettaglio
 
@@ -103,8 +105,9 @@ Esempio (`ReviewModels.ReversedSupport`): mensola L = 6 m, EI = 2e14 Nmm², punt
 Fase "Away" con −10 kN: il puntone si stacca, testa a −3,6 mm (corretto). Fase "Back" con +10 kN: il risultato fisico è
 +0,7826 mm e 7,83 kN nel puntone; il motore dà −2,0348 mm e 15,65 kN. Stesso comportamento per i tiranti.
 
-Correzione suggerita: sul ramo a forza nulla dei sostegni monolateri non aggiornare `SupportPlastic`; aggiornarlo solo
-quando si raggiunge la capacità.
+Correzione applicata (0.14.0.1): un puntone o tirante con forza di prova negativa resta scarico senza spostare
+`SupportPlastic`; il riferimento si sposta solo al raggiungimento della capacità (allungamento permanente). I sostegni
+bilaterali non cambiano.
 
 ### P2. Ricerca lineare sul massimo del residuo
 
@@ -114,12 +117,15 @@ si ferma, anche dimezzando l'incremento fino a 1/4096.
 
 Esempio (`ReviewModels.AnchoredWater`): scavo a −7 m con un tirante, rapporto fra momento passivo e momento spingente
 attorno al tirante 1,17 (equilibrio limite indipendente). Il motore si ferma alla frazione 0,875 dell'ultima fase con ogni
-mesh e ogni tolleranza. Con il solo cambio del criterio in norma 2 (prova in una copia isolata, non applicata al codice)
-converge a 17,97 mm, 621,6 kNm/m e 579,2 kN nel tirante, contro 17,90 mm, 621,8 kNm/m e 578,7 kN del risolutore
-indipendente.
+mesh e ogni tolleranza.
 
-Correzione suggerita: ricerca lineare sull'energia potenziale (convessa e derivabile una volta: ogni direzione di Newton
-è di discesa), oppure almeno sulla norma 2.
+Correzione applicata (0.14.0.1): ricerca lineare di Armijo sull'energia potenziale. Con molle e sostegni elasto-plastici
+l'energia è convessa e derivabile una volta, quindi ogni direzione di Newton con tangente definita positiva la riduce.
+La variazione di energia (`Step.EnergyChange`) è sommata termine per termine (trave, molle con acqua, carichi, sostegni)
+per non perderla nelle cancellazioni; la riduzione della norma 2 del residuo resta come ripiego per le differenze perse per
+arrotondamento vicino alla convergenza. In una copia isolata, togliendo il ripiego, tutti i test passano ugualmente: il
+criterio energetico basta da solo. Il caso converge a 17,967 mm, 621,6 kNm/m e 579,2 kN nel tirante, contro 17,963 mm,
+621,5 kNm/m e 579,1 kN del risolutore indipendente.
 
 ### P3. Tolleranze sotto la precisione di macchina
 
@@ -127,8 +133,9 @@ Correzione suggerita: ricerca lineare sull'energia potenziale (convessa e deriva
 di flessione EI·u''. Con elementi corti i termini EI/h³ arrivano a 1e10 N/mm e gli arrotondamenti del residuo superano
 1e-5 N. Esempio: `ReviewModels.CantileverSand(50)` non converge con le opzioni predefinite e converge con 0,01 N.
 
-Correzione suggerita: includere nella scala le forze interne di flessione, o una tolleranza assoluta proporzionale a
-EI·max|u|/h³ · eps.
+Correzione applicata (0.14.0.1): la scala della tolleranza relativa comprende anche i contributi di flessione
+`|w·EI·κ·N''|` ai punti di Gauss. Con la mesh 50 mm e i momenti del caso la tolleranza sale a qualche centesimo di newton,
+trascurabile rispetto alle forze nodali del terreno (dell'ordine di 10⁴ N), e sopra l'arrotondamento.
 
 ### P4. Stabilità globale senza profilo interstiziale
 
@@ -182,9 +189,10 @@ e vanno tradotti nei test di ANTHEA (`tests/ANTHEA.Presentation.Tests`), che sta
 
 ## Test aggiunti
 
-Tutti in Checker, branch `claude/verifica-paratie`. La categoria `ReviewFinding` raccoglie i test che oggi falliscono.
+Tutti in Checker, branch `claude/verifica-paratie`. La categoria `ReviewFinding` raccoglie i test dei problemi ancora aperti;
+`ReviewFixesTests` quelli dei problemi corretti in 0.14.0.1.
 
-| Test | Progetto / file | Cosa verifica | Atteso | Esito su master `57f87bf8` |
+| Test | Progetto / file | Cosa verifica | Atteso | Esito su `57f87bf8` → 0.14.0.1 |
 |---|---|---|---|---|
 | `RankineLimitsWaterAndSurchargeMatchHandArithmetic` | EmbeddedWalls.Tests / `IndependentVerificationTests.cs` | pressioni drenate e non drenate in 10 punti | aritmetica nel test | passa |
 | `CantileverInSandMatchesIndependentSolver` | idem | mensola in sabbia, S1 e S2: u, M max e sua quota | `independent-expected.json` (0,5 %) | passa |
@@ -197,34 +205,17 @@ Tutti in Checker, branch `claude/verifica-paratie`. La categoria `ReviewFinding`
 | `VanGenuchtenMualemMatchesFiftyDigitArithmetic` | idem | Se e kr in 3 casi | `filtrazione/testcases.py` | passa |
 | `ProfileZeroCrossingControlsTheSaturatedWeight` | idem | profilo con zero inserito, peso saturo | aritmetica nel test | passa |
 | `FreeOutflowGradientsUseNtc2018ResistanceFactors` | idem | gradiente medio e di uscita NTC | ic/3, ic/2 | passa |
-| `UnilateralSupportReengagesAtItsSlackPoint` (Strut, Anchor) | `ReviewFindingsTests.cs` | P1 | formula chiusa: 0,7826 mm, 7,83 kN | **fallisce**: −2,0348 mm |
-| `AnchoredExcavationWithPassiveMarginConverges` | idem | P2 | risolutore indipendente, S3 | **fallisce**: non converge a 0,875 |
-| `FineMeshConvergesWithDefaultTolerances` | idem | P3 | risolutore indipendente, mesh 50 mm | **fallisce**: non converge a 0,585 |
-| `GlobalStabilityHonoursPrescribedPorePressures` | idem | P4 | F = 4,4414 o rifiuto esplicito | **fallisce**: F = 5,9407 |
-| `SymmetricExcavationAxisCarriesNoFlow` | idem | P5 | FEM indipendente con asse a flusso nullo: 0,5497 | **fallisce**: 0,2236 |
+| `UnilateralSupportReengagesAtItsSlackPoint` (Strut, Anchor) | `ReviewFindingsTests.cs`, classe `ReviewFixesTests` | P1 | formula chiusa: 0,7826 mm, 7,83 kN | fallisce (−2,0348 mm) → **passa** |
+| `AnchoredExcavationWithPassiveMarginConverges` | idem | P2 | risolutore indipendente, S3 | fallisce (non converge a 0,875) → **passa** |
+| `FineMeshConvergesWithDefaultTolerances` | idem | P3 | risolutore indipendente, mesh 50 mm | fallisce (non converge a 0,585) → **passa** |
+| `GlobalStabilityHonoursPrescribedPorePressures` | `ReviewFindingsTests.cs`, classe `ReviewFindingsTests` | P4 | F = 4,4414 o rifiuto esplicito | **fallisce** (F = 5,9407), ammesso |
+| `SymmetricExcavationAxisCarriesNoFlow` | idem | P5 | FEM indipendente con asse a flusso nullo: 0,5497 | **fallisce** (0,2236), ammesso |
 | `StripShearWithoutLinksMatchesNtc2018Formula41` | Design.Checks / `EmbeddedWallReviewTests.cs` | taglio senza staffe in 4 casi | formula NTC nel test e script | passa |
-| `ChecksRefuseAWidthDifferentFromTheAnalysedStrip` | idem | S1 per pali, tubi e diaframmi | eccezione | **fallisce**: nessuna eccezione |
+| `ChecksRefuseAWidthDifferentFromTheAnalysedStrip` | idem | S1 per pali, tubi e diaframmi | eccezione | **fallisce** (nessuna eccezione), ammesso |
 
-Totale: EmbeddedWalls.Tests 91 test (74 esistenti + 17 nuovi), di cui 85 passano e 6 falliscono (tutti `ReviewFinding`);
-Design.Checks, filtro `EmbeddedWall`: 26 test, 25 passano, 1 fallisce (`ReviewFinding`).
-
-### Correzioni di prova (non applicate)
-
-Per controllare che i test P1–P3 siano raggiungibili ho applicato in una copia isolata tre modifiche minime a
-`EmbeddedWallAnalysis.cs`. Con queste passano 89 test su 91: restano rossi solo P4 e P5, non toccati, e tutti i 74 test
-esistenti restano verdi.
-
-```diff
--                if (Norm(check.Residual, step.Mesh.Fixed) <= norm * (1 - 1e-4 * factor) || Norm(check.Residual, step.Mesh.Fixed) <= tolerance)
-+                if (Norm2(check.Residual, step.Mesh.Fixed) <= Norm2(current.Residual, step.Mesh.Fixed) * (1 - 1e-4 * factor) || Norm(check.Residual, step.Mesh.Fixed) <= tolerance)
-+    private static double Norm2(double[] r, bool[] f) { double v = 0; for (int i = 0; i < r.Length; i++) if (!f[i]) v += r[i] * r[i]; return Math.Sqrt(v); }
--                        r.External[row] += weight * qExternal * shape[i]; r.Soil[row] += weight * qSoil * shape[i];
-+                        r.External[row] += weight * qExternal * shape[i]; r.Soil[row] += weight * qSoil * shape[i]; r.Scale = Math.Max(r.Scale, Math.Abs(weight * bending * curvature[i]));
--                if (plastic) r.History.SupportPlastic[i] = extension - (force - lockOff) / stiffness;
-+                if (plastic && !(force == 0 && support.Kind != EmbeddedWallSupportKind.Bilateral)) r.History.SupportPlastic[i] = extension - (force - lockOff) / stiffness;
-```
-
-La norma 2 è il rimedio minimo; quello robusto è la ricerca lineare sull'energia potenziale, come nel risolutore indipendente.
+Totale con 0.14.0.1: EmbeddedWalls.Tests 91 test (74 esistenti + 17 nuovi), 89 passano e 2 falliscono (P4, P5);
+Design.Checks 102 test, 101 passano e 1 fallisce (S1). I tre fallimenti aperti sono ammessi per nome in
+`build/known-failures.json`, con motivo e rimando a questo resoconto: vanno tolti da lì quando arriva la correzione.
 
 Esecuzione:
 
@@ -234,8 +225,7 @@ dotnet test tests/Design.Checks -c Release --filter "FullyQualifiedName~Embedded
 dotnet test tests/EmbeddedWalls.Tests -c Release --filter "TestCategory!=ReviewFinding"
 ```
 
-I test `ReviewFinding` non sono in `build/known-failures.json`: prima di unire il branch a master vanno corretti i problemi
-o dichiarati lì, altrimenti bloccano il rilascio.
+Verifica completa: `powershell -NoProfile -ExecutionPolicy Bypass -File build\Verify.ps1` (tutte le suite, net472 comprese).
 
 ## Domande aperte
 
