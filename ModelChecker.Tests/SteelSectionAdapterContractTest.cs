@@ -227,6 +227,34 @@ public class SteelSectionAdapterContractTest
         Assert.IsTrue(after.Details.Metrics.All(m => m.Reference != null && m.Passed.HasValue));
     }
 
+    public static IEnumerable<object[]> CapabilityCases()
+    {
+        foreach (bool bending in new[] { false, true })
+        foreach (bool ntc in new[] { false, true })
+        foreach (string edition in new[] { "2005", "2022" })
+        foreach (var mechanism in new[] { CheckMechanism.Shear, CheckMechanism.UlsBiaxialSection, CheckMechanism.Stability })
+            yield return new object[] { bending, ntc, edition, mechanism };
+    }
+
+    [DataTestMethod]
+    [DynamicData(nameof(CapabilityCases), DynamicDataSourceType.Method)]
+    public void CatalogAndRuntimeUseTheSameNormAndMechanismQualification(bool bending, bool ntc, string edition, CheckMechanism mechanism)
+    {
+        var (_, request) = MultiMaterialWorkflow.Create();
+        var config = ConfiguredPlateWorkflowTest.BeamConfiguration(request);
+        var definition = config.Engines[1]; var context = config.Contexts[1];
+        definition.Kind = bending ? "Steel.EN1993.Section" : "Steel.EN1993.PlasticShear";
+        context.Code = ntc ? new StandardNTC2018Steel() : new StandardEN1993p11(); context.Edition = edition;
+        bool expected = !ntc && edition == "2005" && (mechanism == CheckMechanism.Shear || bending && mechanism == CheckMechanism.UlsBiaxialSection);
+        var catalog = GPC.Model.Checker.Configuration.EngineCatalog.BuiltIn();
+        Assert.AreEqual(expected, catalog.Supports(definition, context, mechanism));
+        var checker = (SteelMaterialChecker)catalog.Compile(config).Jobs[1].Assignments[0].Checker;
+        Assert.AreEqual(definition.Kind, checker.Id); Assert.AreEqual(bending, checker.IncludeUniaxialBending);
+        var result = checker.CreateSession().Verify(Input(), mechanism, default);
+        Assert.AreEqual(expected ? EngineeringOutcome.Satisfied : EngineeringOutcome.NotEvaluated, result.Outcome);
+        Assert.AreEqual(expected ? DataStatus.Ready : DataStatus.NotSupported, result.Data);
+    }
+
     private static void AssertUnavailable(CheckResult result, string code)
     { Assert.AreEqual(DataStatus.NotSupported, result.Data); AssertNoDecision(result, code); }
     private static void AssertNoDecision(CheckResult result, string code)

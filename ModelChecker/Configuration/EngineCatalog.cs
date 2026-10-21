@@ -108,21 +108,16 @@ namespace GPC.Model.Checker.Configuration
                     var verifier = ((ConcreteMaterialChecker)engine).CreateVerifier();
                     return check == null ? verifier.Capabilities.Contains(mechanism) : check.Mechanism == mechanism && verifier.Supports(check);
                 }));
-            catalog.Register(new EngineCapability("Steel.EN1993.PlasticShear", 1, "Steel section shear", "Qualified stocky symmetric H sections, EN1993-1-1:2005, no torsion/global stability.",
-                (definition, context) => {
-                    NoExtraParameters(definition);
-                    if (!(context.Code is StandardEN1993p11 code) || context.BridgeCode.HasValue) throw new ArgumentException("SteelCodeRequired");
-                    return new SteelMaterialChecker(code, context.Edition, context.NationalAnnex);
-                }, (engine, mechanism, check) => check == null && mechanism == CheckMechanism.Shear
-                    && ((SteelMaterialChecker)engine).Edition == "2005" && ((SteelMaterialChecker)engine).Code.GetType() == typeof(StandardEN1993p11)));
-            catalog.Register(new EngineCapability("Steel.EN1993.Section", 1, "Steel section shear and uniaxial bending",
-                "EN1993-1-1:2005; symmetric H stocky in compression; bending requires N=T=0, one moment axis and low shear. No global stability.",
-                (definition, context) => {
-                    NoExtraParameters(definition);
-                    if (!(context.Code is StandardEN1993p11 code) || context.BridgeCode.HasValue) throw new ArgumentException("SteelCodeRequired");
-                    return new SteelMaterialChecker(code, context.Edition, context.NationalAnnex, true);
-                }, (engine, mechanism, check) => check == null && (mechanism == CheckMechanism.Shear || mechanism == CheckMechanism.UlsBiaxialSection)
-                    && ((SteelMaterialChecker)engine).Edition == "2005" && ((SteelMaterialChecker)engine).Code.GetType() == typeof(StandardEN1993p11)));
+            foreach (var capability in new[] { SteelSectionCapability.Shear, SteelSectionCapability.Section })
+                catalog.Register(new EngineCapability(capability.Id, 1, capability.Description, capability.Limitations,
+                    (definition, context) => {
+                        NoExtraParameters(definition);
+                        if (!(context.Code is StandardEN1993p11 code) || context.BridgeCode.HasValue) throw new ArgumentException("SteelCodeRequired");
+                        return new SteelMaterialChecker(code, context.Edition, context.NationalAnnex, capability.IncludesBending);
+                    }, (engine, mechanism, check) => {
+                        var steel = (SteelMaterialChecker)engine;
+                        return check == null && steel.Capability.ContextFailure(steel.Code, steel.Edition, mechanism) == null;
+                    }));
             catalog.Register(new EngineCapability("CompositeBridge.Section", 1, "Composite bridge section", "Explicit phase history and moment reference required; SLE stresses and web shear only.",
                 (definition, context) => {
                     NoExtraParameters(definition);

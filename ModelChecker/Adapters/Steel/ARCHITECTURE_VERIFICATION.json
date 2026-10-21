@@ -92,5 +92,34 @@
     }
   ],
   "LegacyCasesExactlyEqualToStep1": true,
-  "LegacySourceSha256": "773022095f2659b4292116a0c5c08065747457bdda0f2eb8a8af3b8c6bd0f47f"
+  "LegacySourceSha256": "773022095f2659b4292116a0c5c08065747457bdda0f2eb8a8af3b8c6bd0f47f",
+  "Step3": {
+    "Purpose": "Shared Steel capability policy for catalog and runtime; no additional qualified mechanisms",
+    "Version": "2.3.0.0",
+    "NewCapabilityCases": 24,
+    "BaseCommit": "946fe8219fa7efdef53258bf191158e0966f43b6",
+    "Suite": {
+      "File": "steel-capabilities-all.trx",
+      "Sha256": "d6654b4d17010cc15107c6c5b92f52ac1b87758eb9bf20fc69ee52a53482ef68",
+      "Counters": {
+        "total": "257",
+        "executed": "257",
+        "passed": "257",
+        "failed": "0",
+        "error": "0",
+        "timeout": "0",
+        "aborted": "0",
+        "inconclusive": "0",
+        "passedButRunAborted": "0",
+        "notRunnable": "0",
+        "notExecuted": "0",
+        "disconnected": "0",
+        "warning": "0",
+        "completed": "0",
+        "inProgress": "0",
+        "pending": "0"
+      }
+    },
+    "SteelAndLegacyUnchangedSinceStep2": true
+  }
 }

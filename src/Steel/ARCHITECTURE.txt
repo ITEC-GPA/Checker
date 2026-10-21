@@ -1,4 +1,4 @@
-ARCHITETTURA CHECKER.STEEL - PRIMO PASSO - 21 OTTOBRE 2026
+ARCHITETTURA CHECKER.STEEL - PASSI 1-3 - 21 OTTOBRE 2026
 Branch: codex/steel-section-architecture
 Versione: 2.5.0.0 (nuova API; incremento funzionale secondo AGENTS.md)
 
@@ -89,7 +89,7 @@ var result = SectionResistanceVerifier.Compression(
 // Rd=223809.5238095238N, rapporto=0.4468085106382979, Status=Passed.
 // Esito della sola resistenza di sezione; non include l'instabilita' dell'asta.
 
-Sequenza successiva
+Sequenza prevista dopo il primo passo (punti 1-2 completati sotto)
 1. Collegare i soli percorsi gia' qualificati di SteelMaterialChecker al
    nuovo contratto, mappando gli esiti su Execution/Data/EngineeringOutcome
    esistenti e preservando i filtri di applicabilita'.
@@ -151,3 +151,46 @@ ogni calcolo/famiglia rimane aperto, come riportato nella matrice di copertura.
 Eseguiti: ModelChecker 233/233, Steel.Members 1325/1325; legacy net472
 111/122 con gli stessi11 fallimenti, zero esclusioni e diagnostica invariata.
 Evidenze: ../../ModelChecker/Adapters/Steel/ARCHITECTURE_VERIFICATION.json.
+
+TERZO PASSO - CAPACITA' CONDIVISE - 21 OTTOBRE 2026
+GPCModelChecker 2.3.0.0; Steel resta 2.5.0.0.
+
+SteelSectionCapability descrive i due percorsi gia' esistenti, senza creare
+un framework generico: solo taglio oppure taglio e flessione retta.
+EngineCatalog e SteelMaterialChecker condividono gli identificatori,
+le descrizioni e i controlli su norma, edizione e meccanismo. I filtri di
+geometria, classe, torsione, instabilita' a taglio e flessione a taglio basso
+sono raccolti nella stessa politica e applicati a ogni sezione campionata.
+Il catalogo conosce soltanto la configurazione: il suo Supports non attesta
+l'applicabilita' alla geometria/azioni, che richiede l'esecuzione dei filtri.
+I fattori invalidi rimangono errori dei dati, non metodi non supportati.
+
+Non cambiano ID/schema del catalogo, configurazioni o campi persistiti.
+La descrizione delle limitazioni del contesto e' ora quella del catalogo.
+I codici di rifiuto restano gli stessi; i controlli sul contesto precedono
+quelli geometrici quando un input contiene piu' cause di non applicabilita'.
+Nessun ampliamento a NTC/altre famiglie o alle verifiche d'asta.
+
+24 ulteriori casi confrontano catalogo e runtime sui due percorsi, EC3/NTC,
+due edizioni e taglio/flessione/stabilita'. Totale nuovi casi in questo ciclo:
+83. Suite ModelChecker completa:257/257. Steel e legacy non sono stati
+modificati rispetto al secondo passo e mantengono le sue evidenze.
+
+Prossimo confine da estrarre: classificazione, quindi stabilita'/interazioni.
+Occorrono contratti delle proprieta' geometriche e confronto con gli oracoli
+indipendenti esistenti prima di rimuovere NativeSectionProperties.
+
+Sequenza proposta per la classificazione (non implementata in questo passo)
+1. Estrarre le primitive scalari di classificazione degli elementi compressi
+   interni, sporgenti e CHS, conservando le soglie e i confronti ai confini.
+2. Separare la ricostruzione delle parti dalla geometria Model; includere
+   tipo di elemento, c/t, tensioni e ipotesi della distribuzione delle azioni
+   nella traccia, senza trasportare BeamElement nel nucleo scalare.
+3. Riutilizzare il trattamento Ec3StressBasedClassification gia' esistente,
+   mantenendo distinte classe nominale, classe per resistenza di sezione
+   e classe per instabilita'. Nessuna riduzione implicita trasferita all'asta.
+4. Confrontare i percorsi vecchio/nuovo anche su C, T e RHS, con i test
+   ChannelClassificationRegressionTests, TeeClassificationRegressionTests,
+   TeeBiaxialClassificationTests, RhsBendingClassificationRegressionTests
+   ed Ec3StressBasedClassificationTests, prima di migrare il chiamante.
+   Le prove di confronto affiancano gli oracoli; non li sostituiscono.
