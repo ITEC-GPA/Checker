@@ -1,0 +1,113 @@
+SELETTORE DEI METODI STEEL - PUNTO 2 - 21 OTTOBRE 2026
+Steel 2.22.0.0. Selezione delle API esistenti dall'ingresso comune.
+Nessun nuovo algoritmo resistente e nessuna selezione delle norme americane.
+
+USO
+using GPC.Checkers.Steel.Selection;
+var plan = SteelMethodSelector.Select(input, SteelCheckScope.Section);
+// input e' lo SteelVerificationInput immutabile del punto 1.
+// plan.Decisions contiene sempre normale, taglio1, taglio2 e torsione.
+// Con SectionAndMember si aggiunge la decisione d'instabilita' dell'asta.
+
+STATI
+Ready: dati disponibili per chiamare il metodo indicato; nessuna verifica
+resistente e' stata eseguita. Anche un carico superiore alla resistenza
+puo' avere un percorso Ready: l'esito verra' dalla successiva esecuzione.
+RequiresPreparation: metodo individuato, ma bloccato dai prerequisiti
+espliciti in RequiredPreparation (attualmente l'instabilita' a taglio).
+MissingInput: mancano dati identificati in MissingInputs.
+NotSupported: il caso non ha un percorso qualificato nel selettore.
+NotRequired: azione nulla AL TAGLIO CORRENTE, non una verifica superata.
+InvalidInput: geometria/proprieta' non valida o intervallo numerico errato.
+
+IsFullyRouted richiede che tutte le decisioni siano Ready,
+RequiresPreparation oppure NotRequired. IsReadyForExecution richiede
+inoltre almeno un metodo e nessun prerequisito ancora aperto. Un taglio
+scarico ha solo NotRequired e non genera un controllo riuscito fittizio.
+Nessun piano/decisione espone resistenza, utilizzo o esito ingegneristico.
+Tutte le collezioni sono in sola lettura; ordine e scelte sono deterministici.
+
+PERCORSI E METODI
+SectionTension -> SectionResistanceVerifier.Tension, EC3 e NTC.
+  Sola N positiva, senza taglio/flessione/torsione; dichiarazione fori
+  obbligatoria, area netta richiesta se forata. Famiglie esatte sotto.
+SectionCompression -> SectionResistanceVerifier.Compression, classi1-3.
+  Sola N negativa, sezione dichiarata integra, senza taglio o torsione.
+SectionBending1/2 -> SectionResistanceVerifier.Bending, classi1-3.
+  Flessione retta; classi1/2 usano Wpl, classe3 il Wel minimo dell'asse.
+Ec3PlasticHInteraction -> Ec3PlasticHSection.Evaluate.
+  H esatta a spigoli vivi, asse principale1 orizzontale, classi1/2.
+  N-M e flessione biassiale; usato anche per H monosimmetriche in flessione
+  retta. T=0, taglio basso. Nessun ripiego implicito per H raccordate,
+  classe3, altre famiglie o norme diverse.
+NtcElasticNormalInteraction -> Ntc2018SectionResistance.ElasticNormalInteraction.
+  H esatta, classificazione NTC esplicita, classi1-3, V=T=0. Limite elastico
+  conservativo gia' disponibile; non e' la superficie plastica EC3.
+SectionShear1/2 -> SectionResistanceVerifier.Shear.
+  Un solo taglio non nullo, T=0, sezione integra e mappatura Av qualificata.
+  Stato RequiresPreparation finche' non e' esclusa l'instabilita' a taglio.
+
+FAMIGLIE E CLASSIFICAZIONE
+Tipi esatti H, T, C, L, CHS, RHS sharp e RHSRoundedCorners. Le geometrie
+derivate/speciali non ereditano automaticamente la qualifica della base.
+RHS base con R!=0 non viene reinterpretata come RHS raccordata.
+Sezioni aperte formate a freddo richiedono un percorso dedicato.
+La classificazione automatica EC3 riusa ModelCompressionGeometry e
+Ec3UniformCompressionClassification, conservativamente in compressione
+uniforme; L usa Ec3AngleCompression per spessori uguali, classe3/4.
+NTC CHS riusa Ntc2018DesignPolicy.CircularClass. Per le altre famiglie NTC
+occorre una SteelSectionClassification esplicita. Il classificatore EC3
+non viene scelto automaticamente per la norma italiana.
+
+Una classificazione fornita deve riferirsi allo STESSO oggetto input:
+var classified = new SteelSectionClassification(input, classe,
+    "fonte della classificazione per norma e stato di sollecitazione");
+var plan = SteelMethodSelector.Select(input, classification: classified);
+Il chiamante/preparatore deve aver verificato classe, norma e stato.
+L'etichetta della fonte e' tracciabilita', non certificazione automatica.
+Si puo' cosi' fornire la classe per lo stato effettivo quando la classe
+di compressione uniforme sarebbe troppo conservativa. La classe resta
+di SEZIONE; non viene trasferita alla verifica d'instabilita' dell'asta.
+Input diversi, anche numericamente uguali, non possono riusare la stessa
+classificazione. Una classe esterna non abilita geometrie/metodi esclusi.
+Classe4 blocca i percorsi con proprieta' lorde; occorre un metodo efficace
+o una diversa classificazione dello stato stabilita e documentata a monte.
+
+L: compressione, non flessione; RHSRoundedCorners: compressione, non
+flessione/taglio. H/T/C/CHS/RHS sharp: flessione retta con i moduli
+principali Model e classe determinata come sopra. Per il taglio si usano
+solo H/T/C/CHS/RHS sharp con asse principale1 coincidente con X, conservando
+la mappatura qualificata di ModelShearAreas e la distinta politica NTC.
+Angolari, sezioni ruotate e raccordate non ricevono aree di taglio presunte.
+
+COMPLETEZZA DEL PIANO E LIMITI
+N-M usa una singola interazione: non viene sostituita con controlli N e M
+indipendenti. N-V senza flessione e taglio biassiale simultaneo restano
+esclusi; torsione resta visibile e blocca i metodi concomitanti incompatibili.
+Con taglio basso, la scelta della flessione/interazione richiede anche
+l'esclusione dell'instabilita' locale a taglio. Il selettore controlla
+|V1|/Vrd1 e |V2|/Vrd2 con le primitive esistenti, senza assumere eta,
+schema dei pannelli o irrigidimenti. Un rapporto >0.5 blocca i percorsi
+qui integrati. Un singolo controllo di taglio non completa un piano che
+contiene una interazione non supportata.
+
+Scope Member richiede dati d'asta e gammaM1. Anche fornendoli, un taglio
+non dimostra diagrammi costanti, uniformita', ordine dell'analisi o curve.
+MemberRouting.NotIntegrated rende esplicito che le API specialistiche
+restano richiamabili direttamente ma non ancora tramite questo ingresso.
+Nessun vincolo, Ncr/Mcr o imperfezione viene inventato dal selettore.
+
+Questo passo non aggiorna il routing automatico ModelChecker, i report o
+le impronte persistite. Il punto3 dovra' risolvere i prerequisiti, eseguire
+i metodi tramite una dispatch unica e raccogliere gli esiti senza perdere
+le decisioni MissingInput/NotSupported/RequiresPreparation.
+
+TEST
+SteelMethodSelectorTests verifica percorsi, classificazione separata per
+norma, tutti gli stati, limiti di taglio, geometrie escluse, immutabilita',
+assenza di ripieghi e collegamento delle scelte Ready alle API esistenti.
+Sono test del contratto/routing software; nessun nuovo benchmark normativo.
+
+Esito finale: 56 nuovi test; 4355 test superati nelle 10 suite,
+0 falliti, 0 ignorati. Controlli API esistenti superati.
+Evidenza, versioni e hash: METHOD_SELECTION_VERIFICATION.json.
