@@ -100,7 +100,8 @@ namespace GPC.Checkers.Steel.Pipeline
                     case SteelMethod.Ec3PlasticHInteraction:
                         return PlasticH(input, decision, section, used);
                     case SteelMethod.NtcElasticNormalInteraction:
-                        return ElasticNtc(input, decision, section, used);
+                    case SteelMethod.ElasticNormalInteraction:
+                        return ElasticNormal(input, decision, section, used);
                     default: throw new InvalidOperationException("Selected method has no pipeline executor.");
                 }
                 return new SteelCheckExecution(decision, ResistanceStatus(result.Status), result.DiagnosticCode,
@@ -152,18 +153,20 @@ namespace GPC.Checkers.Steel.Pipeline
                 reference: result.Reference, scope: scope, utilization: result.Utilization, trace: trace, shearAssessments: used);
         }
 
-        private static SteelCheckExecution ElasticNtc(SteelVerificationInput input, SteelMethodDecision decision,
+        private static SteelCheckExecution ElasticNormal(SteelVerificationInput input, SteelMethodDecision decision,
             ISteelSection section, IEnumerable<SteelShearBucklingAssessment> used)
         {
             var a = input.Actions; var s = input.Section;
-            double utilization = Ntc2018SectionResistance.ElasticNormalInteraction(a.N, a.M1, a.M2,
+            double utilization = SectionNormalInteraction.Elastic(input.Code.SectionCode, a.N, a.M1, a.M2,
                 s.Area, section.Wel1, section.Wel2, s.YieldStrength, decision.SectionClass.Value);
             var trace = NormalTrace(input, decision);
             Add(trace, "Wel1", section.Wel1, "mm3"); Add(trace, "Wel2", section.Wel2, "mm3");
             Add(trace, "Utilization", utilization, "1");
             return new SteelCheckExecution(decision, utilization <= 1 ? SteelExecutionStatus.Passed : SteelExecutionStatus.Failed,
-                reference: "NTC 2018 4.2.4.1.2.1-3; Ntc2018SectionResistance.ElasticNormalInteraction",
-                scope: "Conservative elastic normal-stress bound, classes 1-3; shear, torsion and member stability excluded.",
+                reference: input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018
+                    ? "NTC 2018 4.2.3.2; 4.2.4.1.2.8-9; conservative elastic normal bound"
+                    : "EN 1993-1-1:2005 6.2.1(4), 6.2.9.2; conservative elastic normal bound",
+                scope: "Conservative elastic normal-stress bound, classes 1-3; any admitted low shear needs separate assessment; torsion and member stability excluded.",
                 utilization: utilization, trace: trace, shearAssessments: used);
         }
 

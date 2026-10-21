@@ -122,7 +122,7 @@ public class SteelPipelineAdapterTest
     public void NtcClassificationCannotLeakFromTheEc3Policy()
     {
         var input = Input(); input.Forces.N = -1e4;
-        Assert.AreEqual(EngineeringOutcome.NotEvaluated, Run(input, ntc: true).Outcome);
+        Assert.AreEqual(EngineeringOutcome.Satisfied, Run(input, ntc: true).Outcome);
         var options = Options(); Bind(options, input);
         options["UniformCompressionClass"] = "1"; options["ClassificationSource"] = "NTC uniform-compression section assessment A";
         var result = Run(input, options, true);

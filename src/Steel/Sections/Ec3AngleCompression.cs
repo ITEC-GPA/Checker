@@ -10,6 +10,14 @@ namespace GPC.Checkers.Steel.Sections
     public static class Ec3AngleCompression
     {
         public static int Classify(double leg1, double leg2, double thickness, double yieldStrength, double rootRadius = 0)
+            => AngleCompressionArithmetic.Classify(leg1, leg2, thickness, yieldStrength, rootRadius);
+
+        internal static void Positive(double value, string name) => AngleCompressionArithmetic.Positive(value, name);
+    }
+
+    internal static class AngleCompressionArithmetic
+    {
+        internal static int Classify(double leg1, double leg2, double thickness, double yieldStrength, double rootRadius)
         {
             Positive(leg1, nameof(leg1)); Positive(leg2, nameof(leg2));
             Positive(thickness, nameof(thickness)); Positive(yieldStrength, nameof(yieldStrength));

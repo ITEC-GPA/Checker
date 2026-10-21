@@ -79,30 +79,24 @@ namespace GPC.Checkers.Steel.Selection
             bool asymmetricH = shape is SectionH h &&
                 (h.LenghtTopFlange != h.LenghtBottomFlange || h.ThicknessTopFlange != h.ThicknessBottomFlange);
             bool interaction = combined || moment && asymmetricH;
-            if (interaction && (shape.GetType() != typeof(SectionH)
-                || ec3 && (((SectionH)shape).R != 0 || Math.Abs(shape.AngleX1) > 1e-10)))
-                return Unsupported(target, "NormalInteraction.GeometryNotQualified", "The integrated N-M route requires exact H geometry; EC3 additionally requires sharp edges and horizontal principal axis 1.");
-            if (moment && shape.GetType() == typeof(SectionL))
-                return Unsupported(target, "AngleBending.NotQualified", "Angle bending is not enabled by the compression-only classification route.");
-            if (moment && shape.GetType() == typeof(SectionRHSRoundedCorners))
-                return Unsupported(target, "RoundedRhs.BendingNotQualified", "Rounded RHS mapping is currently qualified for uniform compression only.");
-            if (moment && !ec3 && interaction && shear)
-                return Unsupported(target, "NtcElasticInteraction.ShearExcluded", "The NTC elastic normal-stress bound excludes shear.");
-
             var classInfo = Classification(input, section, suppliedClass);
             if (classInfo.Failure != null) return classInfo.Failure;
             int cl = classInfo.Class.Value;
             if (cl == 4) return new SteelMethodDecision(target, SteelSelectionStatus.NotSupported, null,
                 "Class4.EffectivePropertiesRequired", "A qualified effective-section method or a separately established state classification is required.", cl, classInfo.Source);
-            if (interaction && ec3 && cl > 2) return new SteelMethodDecision(target, SteelSelectionStatus.NotSupported, null,
-                "PlasticH.Class1Or2Required", "Plastic H equilibrium requires class 1 or 2; no elastic fallback is inferred.", cl, classInfo.Source);
-
+            bool plasticH = interaction && ec3 && cl <= 2 && shape.GetType() == typeof(SectionH)
+                && ((SectionH)shape).R == 0 && Math.Abs(shape.AngleX1) <= 1e-10;
+            bool elastic = interaction && !plasticH || moment &&
+                (shape.GetType() == typeof(SectionL) || shape.GetType() == typeof(SectionRHSRoundedCorners));
             SteelMethod method = !moment ? SteelMethod.SectionCompression
-                : interaction ? (ec3 ? SteelMethod.Ec3PlasticHInteraction : SteelMethod.NtcElasticNormalInteraction)
+                : plasticH ? SteelMethod.Ec3PlasticHInteraction
+                : elastic ? (ec3 ? SteelMethod.ElasticNormalInteraction : SteelMethod.NtcElasticNormalInteraction)
                 : a.M1 != 0 ? SteelMethod.SectionBending1 : SteelMethod.SectionBending2;
+            if (elastic && shear && cl == 3)
+                return Unsupported(target, "ElasticInteraction.ShearStressRequired", "Class 3 normal/shear interaction requires the elastic shear-stress field; plastic shear areas alone do not establish it.");
             if (moment)
             {
-                if (method == SteelMethod.NtcElasticNormalInteraction)
+                if (elastic)
                 { Positive(section.Wel1); Positive(section.Wel2); }
                 else if (method != SteelMethod.Ec3PlasticHInteraction)
                     Positive(a.M1 != 0 ? (cl <= 2 ? section.Wpl1 : section.Wel1) : (cl <= 2 ? section.Wpl2 : section.Wel2));
@@ -115,36 +109,32 @@ namespace GPC.Checkers.Steel.Selection
             return AwaitShearAssessment(target, method, cl, classInfo.Source);
         }
 
-        private static ClassificationInfo Classification(SteelVerificationInput input, ISteelSection section,
+        internal static ClassificationInfo Classification(SteelVerificationInput input, ISteelSection section,
             SteelSectionClassification supplied)
         {
             if (supplied != null) return new ClassificationInfo(supplied.SectionClass, supplied.Source);
             var shape = section.SectionShape;
-            if (input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018)
-            {
-                if (shape.GetType() == typeof(SectionCHS))
-                {
-                    var chs = (SectionCHS)shape; Positive(chs.Diameter); Positive(chs.Thickness);
-                    if (2 * chs.Thickness >= chs.Diameter) throw new ArgumentException("Invalid hollow geometry.");
-                    return new ClassificationInfo(Ntc2018DesignPolicy.CircularClass(chs.Diameter, chs.Thickness, input.Section.YieldStrength),
-                        "Ntc2018DesignPolicy.CircularClass; nominal uniform compression");
-                }
-                return new ClassificationInfo(Missing(SteelCheckTarget.NormalResistance, "NtcClassification.Required",
-                    "Supply a classification for this NTC input. The selector does not use the EC3 classifier for NTC.", "Classification"));
-            }
+            bool ntc = input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018;
+            if (shape.GetType() == typeof(SectionRectangular) || shape.GetType() == typeof(SectionCircular))
+                return new ClassificationInfo(3, (ntc ? "NTC 2018 4.2.3.2" : "EN 1993-1-1:2005 6.2.1(4)")
+                    + "; solid section, conservative elastic resistance; no plate local buckling");
             if (shape.GetType() == typeof(SectionL))
             {
                 var angle = (SectionL)shape;
                 if (angle.HorizontalLegThickness != angle.VerticalLegThickness)
                     return new ClassificationInfo(Unsupported(SteelCheckTarget.NormalResistance, "AngleThickness.NotQualified", "Automatic angle compression classification requires equal leg thicknesses."));
-                return new ClassificationInfo(Ec3AngleCompression.Classify(angle.VerticalLegLength, angle.HorizontalLegLength,
-                    angle.VerticalLegThickness, input.Section.YieldStrength, angle.R), "Ec3AngleCompression; nominal uniform compression");
+                return new ClassificationInfo(AngleCompressionArithmetic.Classify(angle.VerticalLegLength, angle.HorizontalLegLength,
+                    angle.VerticalLegThickness, input.Section.YieldStrength, angle.R),
+                    (ntc ? "Ntc2018CompressionClassification; Table 4.2.V" : "Ec3AngleCompression; Table 5.2") + "; nominal uniform compression");
             }
             if (!ModelCompressionGeometry.CanMap(section))
                 return new ClassificationInfo(Unsupported(SteelCheckTarget.NormalResistance, "Classification.GeometryNotQualified", "No automatic uniform-compression mapping for this exact geometry."));
-            var result = Ec3UniformCompressionClassification.Evaluate(ModelCompressionGeometry.Create(section), input.Section.YieldStrength);
+            var result = ntc ? Ntc2018CompressionClassification.Evaluate(ModelCompressionGeometry.Create(section), input.Section.YieldStrength)
+                : Ec3UniformCompressionClassification.Evaluate(ModelCompressionGeometry.Create(section), input.Section.YieldStrength);
             if (!result.IsEvaluated) return new ClassificationInfo(Invalid(SteelCheckTarget.NormalResistance, result.DiagnosticCode, "Uniform-compression classification could not be established."));
-            return new ClassificationInfo(result.NominalClass.Value, "Ec3UniformCompressionClassification; conservative nominal uniform-compression class");
+            return new ClassificationInfo(result.NominalClass.Value,
+                (ntc ? "Ntc2018CompressionClassification (Ntc2018DesignPolicy); Tables 4.2.III-V" : "Ec3UniformCompressionClassification; Table 5.2")
+                + "; conservative nominal uniform-compression class");
         }
 
         private static SteelMethodDecision Shear(SteelVerificationInput input, ISteelSection section, int axis)
@@ -175,10 +165,10 @@ namespace GPC.Checkers.Steel.Selection
                 "One cut and end restraints do not establish a member load diagram, uniformity, first/second-order analysis or curve selection. Existing specialized member APIs remain explicit until the member-analysis adapter is implemented.");
         }
 
-        private static bool KnownGeometry(ISectionShape shape)
+        internal static bool KnownGeometry(ISectionShape shape)
         {
             var t = shape.GetType();
-            return t == typeof(SectionH) || t == typeof(SectionT) || t == typeof(SectionC) || t == typeof(SectionL)
+            return t == typeof(SectionRectangular) || t == typeof(SectionCircular) || t == typeof(SectionH) || t == typeof(SectionT) || t == typeof(SectionC) || t == typeof(SectionL)
                 || t == typeof(SectionCHS) || t == typeof(SectionRHSRoundedCorners)
                 || t == typeof(SectionRHS) && ((SectionRHS)shape).R == 0;
         }
@@ -191,19 +181,21 @@ namespace GPC.Checkers.Steel.Selection
             return mapped && Math.Abs(section.AngleX1) <= 1e-10;
         }
 
-        private static bool ColdFormedOpen(ISteelSection section)
+        internal static bool ColdFormedOpen(ISteelSection section)
         {
             var t = section.SectionShape.GetType();
             return section.FormedType == Section.FormedTypes.ColdFormed
                 && (t == typeof(SectionH) || t == typeof(SectionT) || t == typeof(SectionC) || t == typeof(SectionL));
         }
 
-        private static void ValidateGeometry(ISteelSection section)
+        internal static void ValidateGeometry(ISteelSection section)
         {
             if (!Enum.IsDefined(typeof(Section.SectionTypes), section.SectionType)
                 || !Enum.IsDefined(typeof(Section.FormedTypes), section.FormedType))
                 throw new ArgumentException("Unknown section fabrication/formation.");
             var shape = section.SectionShape;
+            if (shape.GetType() == typeof(SectionRectangular) || shape.GetType() == typeof(SectionCircular))
+            { Positive(shape.Height); Positive(shape.Width); Positive(shape.Area); return; }
             if (shape.GetType() == typeof(SectionL))
             {
                 var angle = (SectionL)shape;
@@ -258,7 +250,7 @@ namespace GPC.Checkers.Steel.Selection
         private static SteelMethodDecision Missing(SteelCheckTarget target, string code, string message, params string[] names)
             => new SteelMethodDecision(target, SteelSelectionStatus.MissingInput, null, code, message, missing: names);
 
-        private sealed class ClassificationInfo
+        internal sealed class ClassificationInfo
         {
             internal int? Class { get; }
             internal string Source { get; }

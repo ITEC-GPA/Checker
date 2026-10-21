@@ -1,0 +1,50 @@
+ESTENSIONE VERIFICHE EC3 / NTC2018 - 21 OTTOBRE2026
+
+Perimetro scelto su delega dell'utente: chiudere i principali buchi del flusso
+ordinario per aste prismatiche e sezioni H,C,T,L,RHS,CHS,rettangoli e cerchi pieni.
+Stessi input/risultati, prescrizioni normative e fonti esplicite.
+Norme: EN1993-1-1:2005 con AC2009; Italia DM17/01/2018.
+Non viene introdotta in silenzio l'edizione2022 dell'Eurocodice.
+
+1 COMPLETATO - CLASSIFICAZIONE E INTERAZIONI DI SEZIONE
+Ntc2018CompressionClassification: tabelle4.2.III-V, parti interne33/38/42eps,
+esterne9/10/14eps, CHS50/70/90eps^2; angolari isolati a spessore uguale,
+classe3/4 e controllo aggiuntivo delle parti sporgenti. Parti e riferimenti
+sono conservati. Nessuna riduzione della classe basata sulla domanda.
+H,C,T,RHS e CHS usano le geometrie gia' verificate; RHS raccordato conserva
+raggi interno/esterno distinti. Solidi: percorso elastico conservativo classe3.
+
+SectionNormalInteraction: limite |N|/A+|M1|/Wel1,min+|M2|/Wel2,min <= fy/gammaM0.
+Valido come condizione sufficiente elastica, non superficie plastica esatta.
+Abilita N-M biassiale delle nove famiglie, L su assi principali e RHS raccordato
+anche in flessione semplice. Mantiene l'equilibrio plastico H EC3 gia' qualificato.
+La classe esplicita esterna resta possibile, legata all'input; non sana geometrie
+invalide. L a spessori diversi richiede ancora classe esterna. Classe4 esclusa.
+Taglio basso ammesso insieme all'interazione nelle classi1/2 solo dopo esclusione
+dell'instabilita' a taglio; classe3 richiede il campo tensionale tangenziale.
+
+Validazione blocco1:161 nuovi casi (96 N-M da integrali indipendenti preesistenti,
+54 soglieNTC,7 classi automatiche,2 RHS raccordati,2 angolari). SuiteSteel2562/2562;
+ModelChecker pipeline47/47. Nessuna fixture o atteso NUMERICO preesistente cambiato.
+Aggiornati esclusivamente i test che descrivevano come non disponibile una
+funzionalita' ora introdotta; i rifiuti ancora pertinenti restano verificati.
+
+2 IN CORSO - ASTE COMPRESSE E LTB CON DATI DI ANALISI ESPLICITI
+3 DA COMPLETARE - TAGLIO ELEVATO H E INTEGRAZIONE MODEL CHECKER
+4 DA COMPLETARE - COLLAUDO GLOBALE, VERSIONI E MERGE LOCALE
+
+Limiti deliberatamente aperti: classe4/Aeff/Weff automatici, torsione con
+ingobbamento, instabilita' biassiale generale, profili sottili EN1993-1-3,
+instabilita' di pannelli con irrigidimenti, completamento correnti/giunti2C/2L,
+connessioni, fatica, fuoco e sisma. Non diventano esiti positivi fittizi.
+
+FONTI CONSULTATE
+DM17/01/2018, GU42 S.O.8 del20/02/2018, pp94-95(classi),97-101(resistenze),
+101-104(instabilita'). PDF locale tmp/pdfs/NTC2018.pdf, paginePDF98-108.
+https://www.gazzettaufficiale.it/eli/id/2018/02/20/18A00716/sg
+Circolare21/01/2019n7: https://www.gazzettaufficiale.it/eli/id/2019/02/11/19A00855/sg
+EN1993-1-1:2005/AC2009, tab5.2,6.2.1(4),6.2.9.2,6.2.10,6.3.1-2:
+https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+SCI P363 ristampa2015 B-22 per geometria50x30x4 ro6/ri4; integrazione indipendente
+di rettangoli e quarti di cerchio. Non si afferma un nuovo benchmark pubblicato
+di interazione solo perche' la geometria proviene da una tabella pubblicata.

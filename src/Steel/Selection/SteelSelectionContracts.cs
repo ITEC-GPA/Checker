@@ -11,7 +11,7 @@ namespace GPC.Checkers.Steel.Selection
     public enum SteelMethod
     {
         SectionTension, SectionCompression, SectionBending1, SectionBending2,
-        SectionShear1, SectionShear2, Ec3PlasticHInteraction, NtcElasticNormalInteraction, Ec3UniformForkMember, Ec3ExternalGeneralMember
+        SectionShear1, SectionShear2, Ec3PlasticHInteraction, NtcElasticNormalInteraction, Ec3UniformForkMember, Ec3ExternalGeneralMember, ElasticNormalInteraction
     }
     public enum SteelPreparationRequirement { ShearBucklingAssessment }
 

@@ -28,12 +28,13 @@ namespace GPC.Checkers.Steel.Sections
         internal CompressionPartClassification(CompressionPartKind kind, SectionClassificationStatus status,
             string diagnostic = null, string message = null, int? nominalClass = null,
             double? width = null, double? thickness = null, double? fy = null, double? ratio = null,
-            double? epsilon = null, double? first = null, double? second = null, double? third = null)
+            double? epsilon = null, double? first = null, double? second = null, double? third = null,
+            string reference = "EN 1993-1-1:2005 Table 5.2")
         {
             Kind = kind; Status = status; DiagnosticCode = diagnostic; Message = message;
             NominalClass = nominalClass; WidthOrDiameter = width; Thickness = thickness; YieldStrength = fy;
             WidthThicknessRatio = ratio; Epsilon = epsilon; Class1Limit = first; Class2Limit = second; Class3Limit = third;
-            Reference = "EN 1993-1-1:2005 Table 5.2";
+            Reference = reference;
         }
     }
 
@@ -46,31 +47,43 @@ namespace GPC.Checkers.Steel.Sections
     {
         public static CompressionPartClassification Evaluate(CompressionPartKind kind,
             double? widthOrDiameter, double? thickness, double? yieldStrength)
+            => CompressionPartEvaluator.Evaluate(kind, widthOrDiameter, thickness, yieldStrength, false);
+    }
+
+    // Shared numerical rules, with separately identified EC3 and NTC prescriptions.
+    internal static class CompressionPartEvaluator
+    {
+        internal static CompressionPartClassification Evaluate(CompressionPartKind kind,
+            double? widthOrDiameter, double? thickness, double? yieldStrength, bool ntc)
         {
             if (!Enum.IsDefined(typeof(CompressionPartKind), kind))
-                return Failure(kind, SectionClassificationStatus.InvalidInput, "PartKind.Invalid", "Unknown compression-part kind.");
+                return Failure(kind, SectionClassificationStatus.InvalidInput, "PartKind.Invalid", "Unknown compression-part kind.", ntc);
             string[] names = { "WidthOrDiameter", "Thickness", "Fy" };
             double?[] values = { widthOrDiameter, thickness, yieldStrength };
             for (int i = 0; i < values.Length; i++)
             {
                 if (!values[i].HasValue)
-                    return Failure(kind, SectionClassificationStatus.MissingInput, names[i] + ".Required", names[i] + " is required.");
+                    return Failure(kind, SectionClassificationStatus.MissingInput, names[i] + ".Required", names[i] + " is required.", ntc);
                 if (!(values[i].Value > 0) || double.IsInfinity(values[i].Value))
-                    return Failure(kind, SectionClassificationStatus.InvalidInput, names[i] + ".NotPositiveFinite", names[i] + " must be positive and finite.");
+                    return Failure(kind, SectionClassificationStatus.InvalidInput, names[i] + ".NotPositiveFinite", names[i] + " must be positive and finite.", ntc);
             }
             double width = widthOrDiameter.Value, t = thickness.Value, fy = yieldStrength.Value;
             if (kind == CompressionPartKind.CircularHollow && t >= width / 2)
-                return Failure(kind, SectionClassificationStatus.InvalidInput, "Chs.NoHollowCore", "CHS thickness must be less than half the outer diameter.");
+                return Failure(kind, SectionClassificationStatus.InvalidInput, "Chs.NoHollowCore", "CHS thickness must be less than half the outer diameter.", ntc);
             double ratio = width / t, epsilon = Math.Sqrt(235 / fy);
             SectionClassificationArithmetic.Limits(kind, epsilon, out var first, out var second, out var third);
+            if (ntc && kind == CompressionPartKind.CircularHollow)
+            { first = 50 * (235 / fy); second = 70 * (235 / fy); third = 90 * (235 / fy); }
             if (!PositiveFinite(ratio) || !PositiveFinite(epsilon) || !PositiveFinite(first) || !PositiveFinite(second) || !PositiveFinite(third))
-                return Failure(kind, SectionClassificationStatus.CalculationError, "NumericalRange", "The ratio or classification limits are outside the positive finite range.");
+                return Failure(kind, SectionClassificationStatus.CalculationError, "NumericalRange", "The ratio or classification limits are outside the positive finite range.", ntc);
             return new CompressionPartClassification(kind, SectionClassificationStatus.Completed,
-                nominalClass: SectionClassificationArithmetic.Classify(kind, width, t, epsilon),
-                width: width, thickness: t, fy: fy, ratio: ratio, epsilon: epsilon, first: first, second: second, third: third);
+                nominalClass: ratio <= first ? 1 : ratio <= second ? 2 : ratio <= third ? 3 : 4,
+                width: width, thickness: t, fy: fy, ratio: ratio, epsilon: epsilon, first: first, second: second, third: third,
+                reference: ntc ? "NTC 2018 4.2.3.1 Tables 4.2.III-V" : "EN 1993-1-1:2005 Table 5.2");
         }
         private static bool PositiveFinite(double v) => v > 0 && !double.IsInfinity(v);
-        private static CompressionPartClassification Failure(CompressionPartKind kind, SectionClassificationStatus status, string code, string message)
-            => new CompressionPartClassification(kind, status, code, message);
+        private static CompressionPartClassification Failure(CompressionPartKind kind, SectionClassificationStatus status, string code, string message, bool ntc)
+            => new CompressionPartClassification(kind, status, code, message,
+                reference: ntc ? "NTC 2018 4.2.3.1 Tables 4.2.III-V" : "EN 1993-1-1:2005 Table 5.2");
     }
 }

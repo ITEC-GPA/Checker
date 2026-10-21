@@ -88,12 +88,12 @@ public class SteelMethodSelectorTests
     }
 
     [TestMethod]
-    public void NtcDoesNotBorrowEc3ClassificationAndAcceptsExplicitBoundEvidence()
+    public void NtcAutomaticClassificationRetainsItsPolicyAndAcceptsExplicitBoundEvidence()
     {
         var input = Input(n: -1000, ntc: true);
         var missing = SteelMethodSelector.Select(input);
-        Assert.AreEqual(Status.MissingInput, Normal(missing).Status);
-        Assert.AreEqual("NtcClassification.Required", Normal(missing).DiagnosticCode);
+        Assert.AreEqual(Status.Ready, Normal(missing).Status);
+        StringAssert.Contains(Normal(missing).ClassificationSource, "Ntc2018CompressionClassification");
         var evidence = new SteelSectionClassification(input, 2, "NTC classification calculation A-42");
         var plan = SteelMethodSelector.Select(input, classification: evidence);
         Assert.AreEqual(SteelMethod.SectionCompression, Normal(plan).Method);
@@ -160,20 +160,20 @@ public class SteelMethodSelectorTests
         Assert.AreEqual(SteelMethod.NtcElasticNormalInteraction, Normal(plan).Method);
         Assert.IsTrue(plan.IsReadyForExecution);
         var withShear = Input(n: -1000, m1: 1e6, v2: 1, ntc: true);
-        Assert.AreEqual("NtcElasticInteraction.ShearExcluded", Normal(SteelMethodSelector.Select(withShear)).DiagnosticCode);
+        Assert.AreEqual(Status.RequiresPreparation, Normal(SteelMethodSelector.Select(withShear)).Status);
     }
 
     [TestMethod]
-    public void UnqualifiedInteractionsDoNotFallBackToOtherMethods()
+    public void PreviouslyUnqualifiedInteractionsNowSelectAnExplicitElasticMethod()
     {
         var roundedH = SteelMethodSelector.Select(Input(H(radius: 5), n: -1000, m1: 1e6));
-        Assert.AreEqual("NormalInteraction.GeometryNotQualified", Normal(roundedH).DiagnosticCode);
+        Assert.AreEqual(SteelMethod.ElasticNormalInteraction, Normal(roundedH).Method);
         var tee = SteelMethodSelector.Select(Input(new SectionT(120, 100, 20, 20, "T"), n: -1000, m1: 1e6));
-        Assert.AreEqual(Status.NotSupported, Normal(tee).Status);
+        Assert.AreEqual(SteelMethod.ElasticNormalInteraction, Normal(tee).Method);
         var input = Input(n: -1000, m1: 1e6);
         var class3 = SteelMethodSelector.Select(input, classification: new SteelSectionClassification(input, 3, "state class 3"));
-        Assert.AreEqual("PlasticH.Class1Or2Required", Normal(class3).DiagnosticCode);
-        Assert.IsFalse(roundedH.IsFullyRouted || tee.IsFullyRouted || class3.IsFullyRouted);
+        Assert.AreEqual(SteelMethod.ElasticNormalInteraction, Normal(class3).Method);
+        Assert.IsTrue(roundedH.IsFullyRouted && tee.IsFullyRouted && class3.IsFullyRouted);
     }
 
     [DataTestMethod]
@@ -235,21 +235,21 @@ public class SteelMethodSelectorTests
     }
 
     [TestMethod]
-    public void RoundedRhsCompressionSupportDoesNotEnableBendingOrShear()
+    public void RoundedRhsBendingIsElasticWhileShearStillRequiresQualification()
     {
         var shape = new SectionRHSRoundedCorners(200, 100, 10, 20, 10, "rounded RHS");
         var bending = SteelMethodSelector.Select(Input(shape, m1: 1e6));
-        Assert.AreEqual("RoundedRhs.BendingNotQualified", Normal(bending).DiagnosticCode);
+        Assert.AreEqual(SteelMethod.ElasticNormalInteraction, Normal(bending).Method);
         Assert.IsFalse(SteelMethodSelector.Select(Input(shape, v2: 1000)).IsFullyRouted);
         var genericRadius = SteelMethodSelector.Select(Input(new SectionRHS(200, 100, 10, 10, 10, 10, "base RHS", 5), n: -1000));
         Assert.AreEqual("Geometry.NotQualified", Normal(genericRadius).DiagnosticCode);
     }
 
     [TestMethod]
-    public void UnknownAndPerforatedGeometryAreNotSilentlyEnabled()
+    public void SolidCircularTensionIsSupportedButPerforatedCompressionIsNot()
     {
         var circular = SteelMethodSelector.Select(Input(new SectionCircular(50, "circle"), n: 1000));
-        Assert.AreEqual("Geometry.NotQualified", Normal(circular).DiagnosticCode);
+        Assert.AreEqual(SteelMethod.SectionTension, Normal(circular).Method);
         var perforated = SteelMethodSelector.Select(Input(n: -1000, unperforated: false, netArea: 5000));
         Assert.AreEqual("PerforatedSection.NotQualified", Normal(perforated).DiagnosticCode);
         Assert.AreEqual(Status.MissingInput, Normal(SteelMethodSelector.Select(Input(n: -1000, unperforated: null))).Status);
