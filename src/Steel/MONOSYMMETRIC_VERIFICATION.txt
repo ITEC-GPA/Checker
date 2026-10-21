@@ -102,3 +102,9 @@ Il facade EN1993p11Checker non deduce uno schema uniforme da una sola
 stazione: per questo il nuovo metodo d'asta richiede la chiamata esplicita.
 L'integrazione in ModelChecker e la verifica biassiale tramite analisi del
 secondo ordine con tutte le imperfezioni sono sviluppi successivi distinti.
+
+VERIFICA FINALE - revisione b462f7bc7eae86751d8d2a74dc2f6997393166ca
+build/Verify.ps1 -Suites all: 4.254 superati,0falliti,0ignorati,10suite; API compatibili.
+Steel.Members2.215/2.215; legacy122/122.356nuovi test rispetto a b85ec7e8.
+HashTRX e sorgenti nel manifest MONOSYMMETRIC_FINAL_VERIFICATION.json.
+Model invariato; nessun rilascio pacchetti o aggiornamento ANTHEA eseguito.

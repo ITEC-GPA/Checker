@@ -1,0 +1,103 @@
+{
+  "date": "2026-10-21",
+  "steel_version": "2.20.0.0",
+  "tested_checker_commit": "b462f7bc7eae86751d8d2a74dc2f6997393166ca",
+  "model_commit": "b83c1f3561c32a7f4b7d6d27692a866cc05a4a04",
+  "command": "build/Verify.ps1 -Suites all",
+  "results_directory": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\steel-mono-final-20261021",
+  "total_passed": 4254,
+  "failed": 0,
+  "skipped": 0,
+  "new_tests": 356,
+  "api_compatible": true,
+  "suites": [
+    {
+      "name": "GPCChecker.Test.Concrete",
+      "passed": 795,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "4583bb28caf2342bc0b5c6f547b9ff1ac9652e65f02f41bcc969489c20340ffe"
+    },
+    {
+      "name": "GPCChecker.Test.Steel",
+      "passed": 122,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "fc20af77901853b30feaa47e7335d54ced3379688ef32027c75f89061095c59e"
+    },
+    {
+      "name": "GPCChecker.Test.CompositeBridge",
+      "passed": 284,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "5e02872a71ca61f3b22f631eb4f30026c3ad2a523d3ec1a1ac4b489e9ab28d0d"
+    },
+    {
+      "name": "GPCChecker.Test.Geotechnics",
+      "passed": 191,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "5faa82be9285f8deda6c5fabc10182fa381ad5c9e5e948a8ae62f5eaabfd138c"
+    },
+    {
+      "name": "GPCChecker.Test.Calculation",
+      "passed": 174,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "5d0f67e3d922260e2484fac1d5fd9d6dcd8439e157b2239943f727be35c17adb"
+    },
+    {
+      "name": "ShallowFoundation.Tests",
+      "passed": 28,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "c9280dfde1c3d9d2ebef0472fa0cf36753ac1d9b5b618b58a81375fd69404adb"
+    },
+    {
+      "name": "EmbeddedWalls.Tests",
+      "passed": 74,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "81e1ac7316acf3a87e6ed02ac1d4634372f1865b995ec0e4d554f86844fd4c0f"
+    },
+    {
+      "name": "Steel.Members.Tests",
+      "passed": 2215,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "bafb9fe3035f6706f1baaf3ef2936b1a2e8d14c63006547c659402ebac21466c"
+    },
+    {
+      "name": "Design.Checks",
+      "passed": 100,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "de210dff6b1e6c229e9e860d11836578f307ec1009f75583838e7b13c4f57495"
+    },
+    {
+      "name": "ModelChecker.Tests",
+      "passed": 271,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "fa0ac16710f0dcc6be6314f760548d65086981bb191d3612d0c1c4eace685c33"
+    }
+  ],
+  "summary_sha256": "b7267f46d765fac5c6cdba05ed173386bf65cb591e99b21d12d98ad5c25ff782",
+  "source_sha256": {
+    "src/Steel/ModelAdapters/Ec3PlasticHSection.cs": "988b684fa556722800cd759159f3d9434ae85ed91356a4c9dcf00e380f51c2d3",
+    "src/Steel/ModelAdapters/Ec3MonosymmetricMember.cs": "3782f2b721e827c436437893a0c41591b9f248dfdd69842557fee5c6af0a06d3",
+    "src/Steel/Stability/Ec3GeneralMethod.cs": "2773b11d7a10ff9bc49b867a3983ad7c558ec0f743143f3ac396a824538a36bb",
+    "GPCChecker.Steel/Checkers/EN1993p11Checker.cs": "93041b7e7ed68c36eb067d81f654a624b422d58cb95f4d275ee1803f0b20be6b",
+    "tests/Steel.Members.Tests/PlasticHResistanceTests.cs": "30dd3d5787b30c6f428d6c66de673390d680358a4907106247f452c28d50d3f8",
+    "tests/Steel.Members.Tests/MonosymmetricGeneralMethodTests.cs": "a149cf724b86cdf7457b9dbac77c61e8cdb29f654cc03e6ffb7a434af4785dd0"
+  },
+  "scope": {
+    "section": "Sharp parallel-flange H, class1/2, low shear, zero torsion; fixed-N plastic biaxial equilibrium",
+    "member": "Sharp uniform H/T, nominal compression class1-3, fork/free-warping, constant centroidal compression and major-axis first-order moment; elastic in-plane resistance",
+    "automatic_modelchecker_routing": false,
+    "biaxial_member_interaction": false,
+    "ntc_extension": false
+  },
+  "published_numeric_examples_claimed": false,
+  "evidence": "EC3 normative curves and limits; independent stress-block integration, energy eigenproblem, finite-difference mesh convergence, published elastic limiting equations"
+}
