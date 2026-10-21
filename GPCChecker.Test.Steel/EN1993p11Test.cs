@@ -729,9 +729,9 @@ namespace SteelTests
         [TestMethod]
         public void SectionHInteraction2()
         {
-            // Cordova Costruzioni in acciaio pagina 232
-            // NOTA: i risultati dei tassi di lavoro delle interazioni che si usano per confronto sono presi dal Cordova.
-            // Lui usa un metodo semplificato, per questo i valori che ottengo col metodo esatto sono distanti quel 2/3 %
+            // Annex A, Method 1, for the unchanged declared inputs. The former
+            // comparison with an unidentified simplified method is archived, not reproduced.
+            // See tools/Steel.LegacyDiagnostics/LEGACY_CLOSURE_02_IPE300.txt.
             double L = 5000;
 
             double h = 300.0;
@@ -756,18 +756,89 @@ namespace SteelTests
                 EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds,
                 psiy, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                 EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
-            // Reproduce gammaM1=1.05 stated in this legacy comparison, without changing the
-            // global UNI preset (1.10). The second interaction still needs independent validation.
+            // Preserve this benchmark's gammaM0=gammaM1=1.05. This is an explicit
+            // arithmetic configuration, not qualification of a current National Annex.
             StandardUNIEN1993p11 standard = new StandardUNIEN1993p11 { GammaM1 = 1.05 };
             EN1993p11Checker Checker = new EN1993p11Checker(beamElement, options, standard);
 
             Checker.PerformCheck();
 
-            double expInteraction1WR = 1.00; // lui usa gammaM1 = 1.05 => UNIEN1993-1-1
-            double expInteraction2WR = 0.92; // lui usa gammaM1 = 1.05 => UNIEN1993-1-1
+            Assert.AreEqual(235.0, Checker.Fy);
+            Assert.AreEqual(1.05, standard.GammaM0);
+            Assert.AreEqual(1.05, standard.GammaM1);
+            Assert.AreEqual(0, Checker.GetErrorLog().Count, string.Join("; ", Checker.GetErrorLog()));
+            Assert.AreEqual(1, Checker.EN1993p11BeamStationResults.Length);
+            var result = Checker.EN1993p11BeamStationResults[0];
+            Assert.AreEqual(EN1993p11Checker.SectionClass.Class1, result.BendingCompressionClass);
+            Assert.AreEqual(EN1993p11Checker.EN1993p11Options.AxialBuckingCurves.a, result.BuckingCurve1);
+            Assert.AreEqual(EN1993p11Checker.EN1993p11Options.AxialBuckingCurves.b, result.BuckingCurve2);
+            Assert.AreEqual(5000.0, result.LengthAxialBuckling1);
+            Assert.AreEqual(5000.0, result.LengthAxialBuckling2);
 
-            Assert.IsTrue((Math.Abs(Checker.EN1993p11BeamStationResults[0].BucklingInteraction1Axis - expInteraction1WR) * 100) < 3.0);
-            Assert.IsTrue((Math.Abs(Checker.EN1993p11BeamStationResults[0].BucklingInteraction2Axis - expInteraction2WR) * 100) < 2.5);
+            // A/I/Wel: independent rectangle/fillet integrals. Wpl/It/Iw: declared
+            // Model inputs to the interaction benchmark, not independent torsion validation.
+            Assert.AreEqual(5381.2016529422963d, sectionH.Area, 5381.2016529422963d * 1e-10, "Area");
+            Assert.AreEqual(83561091.858479753d, sectionH.J11, 83561091.858479753d * 1e-10, "J11");
+            Assert.AreEqual(6037784.2439929144d, sectionH.J22, 6037784.2439929144d * 1e-10, "J22");
+            Assert.AreEqual(557073.94572319835d, sectionH.Wel1, 557073.94572319835d * 1e-10, "Wel1");
+            Assert.AreEqual(80503.789919905525d, sectionH.Wel2, 80503.789919905525d * 1e-10, "Wel2");
+            Assert.AreEqual(199186.91786049944d, sectionH.Jt, 199186.91786049944d * 1e-10, "Jt");
+            Assert.AreEqual(125760427779.96912d, sectionH.Jw, 125760427779.96912d * 1e-10, "Jw");
+            Assert.AreEqual(628365.31263994751d, sectionH.Wpl1, 628365.31263994751d * 1e-10, "Wpl1");
+            Assert.AreEqual(125219.46804033165d, sectionH.Wpl2, 125219.46804033165d * 1e-10, "Wpl2");
+
+            // Frozen Decimal reference from ipe300_annex_a_reference.py; no SUT outputs
+            // were used as interaction expectations. Wpl/It/Iw remain declared inputs.
+            // The separate axial capacity may use 6.3.1.2(4) when N/Ncr <= .04;
+            // Annex A interaction denominators retain the full buckling reductions.
+            var expected = new[] {
+                new { Name = nameof(result.NCr1), Value = 6927605.3277167855d },
+                new { Name = nameof(result.NCr2), Value = 500560.55235765979d },
+                new { Name = nameof(result.NcrTorsional), Value = 1592417.3465935264d },
+                new { Name = nameof(result.NcrFlexuralTorsional), Value = 1592417.3465935264d },
+                new { Name = nameof(result.LambdaSignedAxialBuckling1), Value = 0.42724992565953912d },
+                new { Name = nameof(result.LambdaSignedAxialBuckling2), Value = 1.5894440831975896d },
+                new { Name = nameof(result.ChiAxialBuckling1), Value = 0.94546838903303043d },
+                new { Name = nameof(result.ChiAxialBuckling2), Value = 0.31130502928139725d },
+                new { Name = nameof(result.MCr), Value = 203911478.89732334d },
+                new { Name = nameof(result.Lambda0LTBuckling), Value = 1.1321548426377908d },
+                new { Name = nameof(result.LambdaSignedLTBuckling), Value = 0.85097969055286327d },
+                new { Name = nameof(result.ChiLTBuckling), Value = 0.89954248930128566d },
+                new { Name = nameof(result.LateralTosionalBucklingCapacity), Value = 126506385.6360371d },
+                new { Name = nameof(result.CmX0), Value = 0.78674173124301827d },
+                new { Name = nameof(result.CmY0), Value = 0.74490655447440879d },
+                new { Name = nameof(result.Cmx), Value = 0.92859571204491853d },
+                new { Name = nameof(result.Cmy), Value = 0.74490655447440879d },
+                new { Name = nameof(result.CmLT), Value = 1.1637557769200739d },
+                new { Name = nameof(result.Mux), Value = 0.99846457353649998d },
+                new { Name = nameof(result.Muy), Value = 0.70356069267877419d },
+                new { Name = nameof(result.Wx), Value = 1.127974692523446d },
+                new { Name = nameof(result.Wy), Value = 1.5d },
+                new { Name = nameof(result.EpsilonX), Value = 3.9655864469387834d },
+                new { Name = nameof(result.BLT), Value = 0d },
+                new { Name = nameof(result.CLT), Value = 0.74593073599183501d },
+                new { Name = nameof(result.DLT), Value = 0d },
+                new { Name = nameof(result.ELT), Value = 0.19667125351543499d },
+                new { Name = nameof(result.Cxx), Value = 0.93874292261700043d },
+                new { Name = nameof(result.Cxy), Value = 0.58093441279657043d },
+                new { Name = nameof(result.Cyx), Value = 0.70317271530203174d },
+                new { Name = nameof(result.Cyy), Value = 0.95009200252252168d },
+                new { Name = nameof(result.Kxx), Value = 1.1818220219494955d },
+                new { Name = nameof(result.Kxy), Value = 1.4277918057622121d },
+                new { Name = nameof(result.Kyx), Value = 0.57844350580181003d },
+                new { Name = nameof(result.Kyy), Value = 0.8890947213803142d },
+                new { Name = nameof(result.BucklingInteraction1Axis), Value = 0.89553427227618121d },
+                new { Name = nameof(result.BucklingInteraction2Axis), Value = 0.86341924503317513d },
+                new { Name = nameof(result.AxialBuckling1Capacity), Value = 1204364.1794680378d },
+                new { Name = nameof(result.AxialBuckling2Capacity), Value = 374924.62615476345d },
+            };
+            foreach (var item in expected)
+            {
+                var property = result.GetType().GetProperty(item.Name);
+                double actual = (double)property.GetValue(result);
+                Assert.IsFalse(double.IsNaN(actual) || double.IsInfinity(actual), item.Name);
+                Assert.AreEqual(item.Value, actual, 1e-10 * Math.Max(1, Math.Abs(item.Value)), item.Name);
+            }
         }
 
         [TestMethod]

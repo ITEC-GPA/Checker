@@ -1,0 +1,43 @@
+        [TestMethod]
+        public void SectionHInteraction2()
+        {
+            // Cordova Costruzioni in acciaio pagina 232
+            // NOTA: i risultati dei tassi di lavoro delle interazioni che si usano per confronto sono presi dal Cordova.
+            // Lui usa un metodo semplificato, per questo i valori che ottengo col metodo esatto sono distanti quel 2/3 %
+            double L = 5000;
+
+            double h = 300.0;
+            double width = 150.0;
+            double flangeThickness = 10.7;
+            double webThickness = 7.1;
+            double r = 15.0;
+
+            var sectionH = new SteelSection(new SectionH(h, webThickness, width, flangeThickness, width, flangeThickness, string.Empty, r),
+                SteelMaterialEN1993Data.S235, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
+            ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-190.0 * 1000, 0, 0, 0, 78.0 * 1000000, 0, CoordinateSystem.Global) };
+            LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
+
+            double psiy = 0;
+
+            StationResultBeamForces[] resultLocationStations = new StationResultBeamForces[] { new StationResultBeamForces(loadCase, resultBeamForces[0], 0.0) };
+            BeamResult[] beamResults = new BeamResult[1] { new BeamResult(resultLocationStations) };
+            BeamElement beamElement = new BeamElement(new Point3d(0, 0, 0), new Point3d(0 + L, 0, 0), sectionH);
+            beamElement.Results.AddRange(beamResults);
+            EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.NotDirectlyLoaded,
+                EN1993p11Checker.EN1993p11Options.SupportConditions.HingesAtEnds, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds,
+                psiy, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
+            // Reproduce gammaM1=1.05 stated in this legacy comparison, without changing the
+            // global UNI preset (1.10). The second interaction still needs independent validation.
+            StandardUNIEN1993p11 standard = new StandardUNIEN1993p11 { GammaM1 = 1.05 };
+            EN1993p11Checker Checker = new EN1993p11Checker(beamElement, options, standard);
+
+            Checker.PerformCheck();
+
+            double expInteraction1WR = 1.00; // lui usa gammaM1 = 1.05 => UNIEN1993-1-1
+            double expInteraction2WR = 0.92; // lui usa gammaM1 = 1.05 => UNIEN1993-1-1
+
+            Assert.IsTrue((Math.Abs(Checker.EN1993p11BeamStationResults[0].BucklingInteraction1Axis - expInteraction1WR) * 100) < 3.0);
+            Assert.IsTrue((Math.Abs(Checker.EN1993p11BeamStationResults[0].BucklingInteraction2Axis - expInteraction2WR) * 100) < 2.5);
+        }

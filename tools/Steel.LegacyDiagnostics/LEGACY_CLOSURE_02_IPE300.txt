@@ -1,0 +1,108 @@
+CHIUSURA LEGACY 02 - SectionHInteraction2 - 21 OTTOBRE 2026
+
+Esito: corretto il riferimento del test per il metodo effettivamente eseguito,
+EC3 Allegato A (metodo 1), conservando tutti gli input e il nome del test.
+Nessun difetto nuovo dimostrato nel codice di calcolo in questo passo.
+Il commento originale attribuiva 1.00/.92 a un metodo semplificato del libro
+Cordova p.232: non identifica le formule e la pagina non e' disponibile.
+Quella attribuzione non e' verificata. Non si dimostra un errore del libro:
+si chiude un confronto non qualificato rispetto al metodo eseguito.
+
+Provenienza e riproduzione
+- Base Checker 28de5bbb, Steel 2.18.0.0; Model b83c1f35, 5.17.0.0.
+- Sorgente completo prima: SHA256 99F838B6594CED3159E7644565A7057DD837569122CC46751FE8E80FBB0F792B.
+- Test originale: closed-cases/SectionHInteraction2.original.cs.txt.
+- Riferimento Python: python ipe300_annex_a_reference.py (nessuna dipendenza).
+- Riferimento C#: LegacyHInteractionArithmeticTests, caso (2,False);
+  (2,True) controlla separatamente gammaM1=1.10 con gammaM0=1.05.
+- Output Python: closed-cases/SectionHInteraction2.reference.json.
+- EN 1993-1-1:2005 + AC2006/2009, 6.3.1, 6.3.2.3, 6.3.3(4),
+  tabelle 6.2/6.5/6.6 e A.1/A.2, pp.76-78 per i coefficienti d'interazione:
+  https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+- CTICM NCCI SN003b-EN-EU, eq.(3) p.4, tabella 3.1 p.5, psi=0, C1=1.77:
+  https://www.steelconstruction.info/images/0/0f/SN003b.pdf
+  Tabelle A.1/A.2 controllate anche sulle immagini; formule senza coefficienti
+  adattati agli attesi storici. Nessuna qualifica NTC2018 o nuova edizione EC3.
+
+Input e modello
+IPE300 laminato: h300, b150, tf10.7, tw7.1, r15 mm. S235, E210000 MPa,
+nu=.3, G=E/2.6; compressione190 kN (N=-190000 N in GPC), My=78 kNm, Mz=0.
+L=Lcr,y=Lcr,z=LTB=5000 mm; forcelle agli estremi, ingobbamento libero;
+diagramma My lineare, psi=0, momento massimo a una estremita', carico nel
+centro di taglio. Il test valuta una stazione N-My, non l'equilibrio/analisi
+completa di un modello di trave; i tagli forniti sono nulli.
+gammaM0=gammaM1=1.05 sono la configurazione esplicita gia' esistente;
+non sono presentati come conferma dell'Appendice Nazionale attuale.
+
+Proprieta' e perimetro dell'indipendenza
+A=5381.201652942297 mm2, Iy=83561091.85847976 mm4,
+Iz=6037784.243992914 mm4, Wel,y=557073.9457231984 mm3,
+Wel,z=80503.78991990552 mm3: integrali analitici di rettangoli e raccordi,
+ricalcolati in Python a 40 cifre senza usare proprieta' GPC.
+Wpl,y=628365.3126399475 e Wpl,z=125219.46804033165 mm3 sono invece
+input dichiarati del modello poligonale, non risultati analitici esatti:
+gli integrali esatti danno 628355.8864607275/125218.8341620796 mm3.
+Il limite di discretizzazione per Wpl,y e' gia' verificato dalla suite
+Ipe300LtbLegacyInvestigationTests (64 corde per quarto di raccordo).
+It=199186.91786049944 mm4 e Iw=125760427779.96912 mm6 sono input
+espliciti Model. NON vengono qualificati come soluzione indipendente
+del problema di torsione/ingobbamento da questa chiusura del test.
+Le proprieta' assunte sono asserite: una futura modifica di Model richiede
+riesame del benchmark e non aggiorna automaticamente i suoi attesi.
+
+Classificazione e metodo
+epsilon=1, ala c/t=5.2757<9; anima c/t=35.0141. Per N-My l'asse neutro
+plastico e' nella parte rettilinea dell'anima, spostato di N/(2tw fy).
+alpha=0.7290320551,
+limite classe1=396/(13alpha-1)=46.7123433071>c/t.
+Classe combinata1 (non la classe di compressione uniforme, che e'2).
+Curve flessionali a/b; LTB laminati h/b=2: curva b, beta=.75, lambda0=.4,
+kc=1/1.33. C1=1.77 e' quello del diagramma lineare dichiarato.
+Riduzioni risolte per bisezione del polinomio caratteristico;
+Mcr^2=C1^2 Ncr,z [G It+pi^2 E Iw/L^2].
+lambda0=1.132154842638 supera la soglia A.1 .228696304933:
+si usa il ramo sensibile alla deformazione torsionale.
+
+Risultati essenziali
+Denominatori assiali delle interazioni: Nb,y=1138.688260571 kN;
+Nb,z=374.924626155 kN. Per la verifica assiale isolata, N/Ncr,y=.0274265
+<=.04 consente di usare la resistenza di sezione (6.3.1.2(4)); il campo
+AxialBuckling1Capacity vale quindi A fy/gammaM0=1204.364179468 kN.
+Il checker conserva le riduzioni complete nelle interazioni. Il report
+contiene sia chi per le interazioni sia la capacita' del controllo assiale
+con esenzione: non vanno usati come se fossero lo stesso denominatore.
+Mcr=203.911478897 kNm; chiLT=.899542489301; Mb,Rd=126.506385636 kNm.
+kyy=1.181822021949; kzy=.578443505802 (nel codice Kxx/Kyx).
+Rapporto asse1=N/Nb,y+kyy My/Mb = .166858662357+.728675609920
+                                  = .895534272276.
+Rapporto asse2=N/Nb,z+kzy My/Mb = .506768525580+.356650719453
+                                  = .863419245033.
+Attesi originali1.00/.92: differenze assolute .104465727724/.056580754967,
+superiori alle tolleranze originali .03/.025. Il commento sullo scarto
+di solo2/3% non descrive l'esito attuale. Le equazioni restano distinte
+per i due piani anche con Mz=0; il contributo My resta in entrambe.
+
+Correzione e verifiche
+Test originale conservato; asserzioni ora riferite alla catena coerente con
+Allegato A. 39 risultati numerici controllati, oltre a input, classe, curve,
+lunghezze e assenza di errori. Tolleranza1e-10*max(1,abs(atteso)):
+copre aritmetica double e arrotondamento dei riferimenti decimali, non
+gli scarti storici. I termini nulli bLT/dLT hanno tolleranza assoluta1e-10.
+Riferimento Python confrontato con tutti i37 termini indipendenti C#:
+accordo entro la tolleranza. Prima della modifica: legacy fallisce;
+21/21 test mirati della catena/intermedi IPE300 gia' superati.
+La prima estensione a39 controlli ha individuato un errore nel nuovo
+oracolo: la capacita' assiale isolata era equiparata al denominatore
+ridotto dell'interazione. Verificato6.3.1.2(4), l'oracolo ora applica
+esplicitamente l'esenzione e registra entrambi i valori. Nessun cambio
+di produzione, di coefficienti o di tolleranza per risolvere lo scarto.
+Risultati dopo la correzione: Steel legacy113/122 superati,9 fallimenti
+identici alla whitelist, zero nuovi fallimenti e zero ignorati.
+Steel.Members1859/1859 superati, zero ignorati.
+Verificati automaticamente: setup originale invariato, tutti gli altri
+metodi legacy invariati (incluso SectionHBuckling1), JSON riproducibile
+dallo script indipendente e39 costanti nel test coincidenti col riferimento.
+Manifest/hash: LEGACY_CLOSURE_02_VERIFICATION.json.
+Suite di altri domini non rieseguite: nessuna modifica di produzione.
+Versioni delle librerie invariate: correzione solo di test/documentazione,
+nessuna modifica di produzione o API. Nessuna release o push.

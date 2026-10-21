@@ -1,3 +1,7 @@
+AGGIORNAMENTO 21/10/2026 - Passo2: SectionHInteraction2 corretto per
+il metodo dell'Allegato A e gli input dichiarati. Restano9 casi aperti.
+Vedere LEGACY_CLOSURE_02_IPE300.txt per fonti, limiti e prove.
+
 AGGIORNAMENTO 21/10/2026 - SectionHBuckling1 corretto per gli input S355
 con riferimento indipendente; restano 10 casi aperti. La pagina Cordova
 non e' dichiarata riprodotta. Vedere LEGACY_CLOSURE_01_HEA300.txt.
