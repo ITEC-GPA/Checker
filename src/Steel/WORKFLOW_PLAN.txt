@@ -1,0 +1,55 @@
+STEEL - PIANO APPLICATIVO IN SEI FASI - 21 OTTOBRE 2026
+Model 5.18.0.0; Steel 2.24.0.0; ModelChecker 2.8.0.0.
+
+1 COMPLETATO - COMMON_INPUT.txt: sezione/materiale/azioni/norma immutabili;
+  dati d'asta distinti e convenzioni N/mm/MPa/Nmm, assi principali.
+2 COMPLETATO - METHOD_SELECTION.txt: instradamento esplicito, prerequisiti e
+  metodi non qualificati restano visibili. EC3 e NTC hanno politiche distinte.
+3 COMPLETATO - VERIFICATION_PIPELINE.txt: esecuzione su nuclei esistenti,
+  tracce intermedie, esiti distinti dalla completezza del perimetro richiesto.
+4 COMPLETATO - MODELCHECKER_PIPELINE.txt: nuovo motore Steel.Pipeline.Section;
+  tagli e combinazioni di Model, cache di sole proprieta', report persistibile.
+5 COMPLETATO - MEMBER_ANALYSIS_PIPELINE.txt: preparazione neutra delle aste in
+  Model, Steel.Pipeline.Member, percorso interno qualificato ed esterno EC3,
+  valori di analisi con unita'/provenienza e legame all'intero stato d'asta.
+6 COMPLETATO - SteelPipelineWorkflowTest: configurazione -> preparazione ->
+  selezione -> calcolo -> report -> archivio -> controllo di validita'.
+
+TEST DI QUESTO BLOCCO
+- Fase4: 23 nuovi test ModelChecker, suite completa 294 passati e API compatibili.
+- Fase5: 17 nuovi test Steel; suite Steel.Members 2401 passati;
+  11 nuovi test ModelChecker d'asta; 5 nuovi test Model.Core.
+- Fase6: 13 test aggiuntivi del flusso completo; tutti passati nella prova mirata.
+  Comprendono selezioni simultanee di sezioni/asta, configurazioni e report
+  archiviati, cache, revisione dei dati e dei parametri, errore di unita',
+  schema non qualificato, concomitanza, estremi mancanti, stato nullo e
+  fallimento resistente senza valori infiniti nel report.
+  Nessun atteso o test numerico preesistente e' stato sostituito.
+
+ESEMPIO ESEGUIBILE
+ModelChecker.Tests/SteelPipelineWorkflowTest.cs:
+SavedConfigurationRunsWholeWorkflowAndSavedReportRetainsEvidence.
+Costruisce il modello, definisce l'asta fisica e la combinazione, prepara
+l'impronta del suo snapshot, configura separatamente i motori di sezione e
+d'asta, esegue e riapre il report. Una configurazione distinta identifica ogni
+analisi esterna; i dati non si riutilizzano su un altro stato dell'asta.
+Eseguire: dotnet test ModelChecker.Tests/ModelChecker.Tests.csproj -c Release
+  --filter FullyQualifiedName~SteelPipelineWorkflowTest
+
+LIMITI CONFERMATI
+La chiusura delle sei fasi riguarda il flusso applicativo dei metodi abilitati.
+Non significa copertura resistente universale di tutte le norme/sezioni.
+NTC di sezione: percorsi documentati, classe esterna quando necessaria.
+NTC d'asta: il nuovo adattatore esplicita che il percorso non e' qualificato.
+Internal member ModelChecker: un elemento FEM orientato I-J, intero intervallo
+deformabile e dichiarazione uniforme a forcella; la qualifica nativa H/T resta
+quella documentata. Altri schemi usano fattori di analisi esterna appropriati.
+Classi4, interazioni biaxiali d'asta, torsione, connessioni e completamento dei
+profili accoppiati non vengono dichiarati verificati da questo piano.
+
+RILASCIO E RISULTATI COMPLETI
+I test sopra sono evidenze per fase. Il set finale deve essere prodotto dal
+controllo build/Release-Set.ps1 dopo i commit e il merge, da alberi puliti;
+release-set.json conserva versioni, commit, SHA-256 ed esiti di TUTTE le suite
+Model/Checker. Le evidenze finali sono esterne ai sorgenti, per non cambiare
+il commit deterministico della build dopo il collaudo.

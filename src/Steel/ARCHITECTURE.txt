@@ -4,6 +4,7 @@ N positivo a trazione nelle facade; Ec3BuiltUpColumn riceve compressione positiv
 Stessa DLL e framework netstandard2.0. Model resta a monte di Checker.
 
 STRUTTURA
+Il piano applicativo corrente in sei fasi e' riepilogato in WORKFLOW_PLAN.txt.
 Pipeline applicativa: MODELCHECKER_PIPELINE.txt (sezioni) e MEMBER_ANALYSIS_PIPELINE.txt (aste).
 Pipeline/: risoluzione dei prerequisiti, esecuzione dei metodi selezionati e raccolta esiti.
 Vedi VERIFICATION_PIPELINE.txt; esito limitato al perimetro richiesto e completezza esplicita.
@@ -50,7 +51,7 @@ I contratti scalari controllano dati finiti/positivi e intervalli numerici.
 I metodi aritmetici interni restano governati dai controlli dei chiamanti.
 Le firme legacy conservano le proprie eccezioni e convenzioni documentate.
 
-MODELCHECKER
+MODELCHECKER - MOTORI STORICI (COMPATIBILITA')
 SteelMaterialChecker usa direttamente i contratti scalari, senza derivare
 da EN1993p11Checker e senza costruire vincoli fittizi per verificare sezioni.
 La cache contiene snapshot di geometria/classificazione/Av; le azioni e
