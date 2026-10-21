@@ -1,3 +1,7 @@
+AGGIORNAMENTO: il campo attuale EC3/NTC e' in COVERAGE_EXTENSION.txt.
+Questo documento conserva la descrizione e le evidenze del passo originario;
+i limiti superati dall'estensione non sono piu' quelli del selettore corrente.
+
 ARCHITETTURA CHECKER.STEEL - REFACTORING E PRIMO SUPPORTO ASTE COMPOSTE - 21 OTTOBRE 2026
 Steel2.24.0.0; GPCModelChecker2.8.0.0; Model5.18.0.0. Unita': N,mm,MPa,Nmm.
 N positivo a trazione nelle facade; Ec3BuiltUpColumn riceve compressione positiva.

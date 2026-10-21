@@ -125,4 +125,34 @@ public class CommonMemberCoverageTests
         // documented property/last-digit rounding; NTC is a gamma-scaled normative comparison.
         Assert.AreEqual(33600/(ntc?1.05:1),r.Resistance!.Value,300/(ntc?1.05:1));
     }
+    [TestMethod]
+    public void MissingLengthsClassFourAndRotatedHDoNotReachTheGrossMemberExecutor()
+    {
+        var original=Input("H",false);
+        var noLengths=new SteelVerificationInput(original.Section,original.Actions,original.Code,new SteelMemberInput(4000));
+        var r=Run(SteelMemberAnalysis.Compression(noLengths,"constant N","curves",SteelBucklingCurve.B,SteelBucklingCurve.C,SteelBucklingCurve.C,
+            torsionalExclusionSource:"assessed",flexuralTorsionalExclusionSource:"assessed"));
+        Assert.AreEqual(SteelExecutionStatus.MissingInput,r.Status);Assert.AreEqual(2,r.Decision.MissingInputs.Count);
+        r=Run(SteelMemberAnalysis.Compression(original,"N","curves",SteelBucklingCurve.B,SteelBucklingCurve.C,SteelBucklingCurve.C,
+            torsionalExclusionSource:"assessed",flexuralTorsionalExclusionSource:"assessed",memberClass:4,classificationSource:"class4"));
+        Assert.AreEqual("Member.Class4NotQualified",r.DiagnosticCode);
+        var wide=CommonSectionCoverageTests.Input(new SectionH(100,10,500,20,500,20,"wide H"),false,m1:10000);
+        Assert.IsTrue(Math.Abs(wide.Section.PrincipalAxisAngle)>1);
+        var i=new SteelVerificationInput(wide.Section,wide.Actions,wide.Code,new SteelMemberInput(3000));
+        r=Run(SteelMemberAnalysis.Bending(i,"M1","profile",SteelCriticalMomentBasis.ActualMomentDiagram,
+            new(SteelStabilityQuantity.Mcr,1e8,SteelStabilityUnit.Nmm,"source")));
+        Assert.AreEqual("Member.LtbGeometry",r.DiagnosticCode);
+    }
+
+    [DataTestMethod] [DataRow(300d,false,.21)] [DataRow(300d,true,.34)]
+    [DataRow(300.001,false,.34)] [DataRow(300.001,true,.49)]
+    public void RolledHLtbTablesUseTheVerifiedDepthWidthBoundary(double height,bool ntc,double alpha)
+    {
+        var b=CommonSectionCoverageTests.Input(new SectionH(height,12,150,18,150,18,"boundary H"),ntc,m1:1e6);
+        var i=new SteelVerificationInput(b.Section,b.Actions,b.Code,new SteelMemberInput(3000));
+        var r=Run(SteelMemberAnalysis.Bending(i,"major M1","recommended tables",SteelCriticalMomentBasis.UniformMoment,
+            new(SteelStabilityQuantity.Mcr,1e8,SteelStabilityUnit.Nmm,"source")));
+        Assert.IsTrue(r.IsEvaluated,r.Message);Assert.AreEqual(alpha,r.Trace.Single(v=>v.Name=="AlphaLT").Value);
+    }
+
 }

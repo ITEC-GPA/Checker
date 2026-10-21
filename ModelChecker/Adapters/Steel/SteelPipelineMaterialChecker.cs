@@ -133,9 +133,13 @@ namespace GPC.Model.Checker
                             axis == 1 ? options.ShearSource1 : options.ShearSource2);
                         continue;
                     }
-                    if (axis == 2 && input.Code.SectionCode.Standard == SectionResistanceStandard.Eurocode3_2005
-                        && input.Section.GeometryType == typeof(SectionH) && Math.Abs(input.Section.PrincipalAxisAngle) <= 1e-10)
+                    if (axis == 2 && input.Section.GeometryType == typeof(SectionH) && Math.Abs(input.Section.PrincipalAxisAngle) <= 1e-10)
                     {
+                        if (input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018)
+                        {
+                            yield return SteelShearBucklingAssessment.EvaluateNtcHWeb(input, "NTC 2018 equation4.2.27 conservative eta=1");
+                            continue;
+                        }
                         bool lowGrade = input.Section.YieldStrength <= 460;
                         double eta = lowGrade ? _owner.Code.NShearBucklingLowGradeOfSteel : _owner.Code.NShearBucklingHighGradeOfSteel;
                         yield return SteelShearBucklingAssessment.EvaluateEc3HWeb(input, eta,

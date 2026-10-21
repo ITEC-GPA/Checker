@@ -1,3 +1,16 @@
+AGGIORNAMENTO CORRENTE - Steel2.27/ModelChecker2.10,21/10/2026
+La matrice storica seguente e' integrata da src/Steel/COVERAGE_EXTENSION.txt.
+Nuovi test: CommonSectionCoverageTests,CommonMemberCoverageTests,
+CommonShearCoverageTests,CommonMemberPipelineTest.
+NTC: classificazione automatica delle parti/famiglie mappate; N-M elastico
+su H,C,T,L,RHS,RHS raccordati,CHS,rettangolo/cerchio pieni; classi1-3.
+EC3: nuove interazioni elastiche sulle stesse famiglie, mantenendo il plastico H.
+Entrambe: compressione d'asta con tutti i modi valutati/esclusi esplicitamente;
+LTB con Mcr esterno e curve/basi normative distinte; M-V H classe1/2.
+Gli attesi N/A derivano da integrali indipendenti e soluzione della caratteristica;
+P solo per il confronto SCI dei campioni RHS indicati. Unita', classe, vincoli e
+limiti restano parte della qualifica. Non si dichiara completa ogni famiglia Model.
+
 Matrice fonte / tipo di sezione / calcolo - aggiornata al21 ottobre2026
 
 Requisito utente: almeno un controllo indipendente per ogni calcolo

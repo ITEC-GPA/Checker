@@ -99,6 +99,8 @@ namespace GPC.Checkers.Steel.Pipeline
                         result = Shear(input, section, 2); break;
                     case SteelMethod.Ec3PlasticHInteraction:
                         return PlasticH(input, decision, section, used);
+                    case SteelMethod.HMajorBendingShear:
+                        return HShear(input, decision, section, used);
                     case SteelMethod.NtcElasticNormalInteraction:
                     case SteelMethod.ElasticNormalInteraction:
                         return ElasticNormal(input, decision, section, used);
@@ -151,6 +153,34 @@ namespace GPC.Checkers.Steel.Pipeline
             Add(trace, "Utilization", result.Utilization, "1");
             return new SteelCheckExecution(decision, result.IsSatisfied ? SteelExecutionStatus.Passed : SteelExecutionStatus.Failed,
                 reference: result.Reference, scope: scope, utilization: result.Utilization, trace: trace, shearAssessments: used);
+        }
+
+        private static SteelCheckExecution HShear(SteelVerificationInput input, SteelMethodDecision decision,
+            ISteelSection section, IEnumerable<SteelShearBucklingAssessment> used)
+        {
+            var h = (SectionH)section.SectionShape;
+            double fy = input.Section.YieldStrength, gamma = input.Code.SectionCode.GammaM0;
+            double av = ModelShearAreas.GetArea2(section, input.Code.SectionCode.Standard);
+            double vpl = av * fy / (Math.Sqrt(3) * gamma), ratio = Math.Abs(input.Actions.V2) / vpl;
+            var trace = NormalTrace(input, decision);
+            Add(trace, "V2", input.Actions.V2, "N"); Add(trace, "Av2", av, "mm2");
+            Add(trace, "VplRd", vpl, "N"); Add(trace, "ShearRatio2", ratio, "1");
+            string reference = input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018
+                ? "NTC 2018 4.2.4.1.2.6 equations4.2.30-32" : "EN 1993-1-1:2005 6.2.8 equations6.29-30";
+            const string scope = "Symmetric H, class1/2, major-axis M1 and web V2, N=M2=V1=T=0; shear buckling excluded; no member-stability conclusion.";
+            if (ratio > 1)
+                return new SteelCheckExecution(decision, SteelExecutionStatus.Failed, "HighShear.PlasticShearExceeded",
+                    "Shear exceeds VplRd; no admissible M-V resistance is asserted.", reference, scope, trace: trace, shearAssessments: used);
+            double rho = SectionInteractionArithmetic.ShearReductionRho(input.Actions.V2, vpl);
+            double aw = h.HeightWeb * h.ThicknessWeb;
+            double mpl = section.Wpl1 * fy / gamma;
+            double mvr = Math.Min(mpl, SectionInteractionArithmetic.MajorIMomentWithShear(section.Wpl1, rho, aw, h.ThicknessWeb, fy, gamma));
+            if (!(mvr > 0) || double.IsInfinity(mvr)) throw new ArithmeticException("Nonpositive or nonfinite M-V resistance.");
+            double utilization = Math.Abs(input.Actions.M1) / mvr;
+            Add(trace, "Rho", rho, "1"); Add(trace, "WebArea", aw, "mm2"); Add(trace, "WebThickness", h.ThicknessWeb, "mm");
+            Add(trace, "Wpl1", section.Wpl1, "mm3"); Add(trace, "MplRd", mpl, "Nmm"); Add(trace, "MvRd", mvr, "Nmm"); Add(trace, "Utilization", utilization, "1");
+            return new SteelCheckExecution(decision, utilization <= 1 ? SteelExecutionStatus.Passed : SteelExecutionStatus.Failed,
+                reference: reference, scope: scope, resistance: mvr, resistanceUnit: "Nmm", utilization: utilization, trace: trace, shearAssessments: used);
         }
 
         private static SteelCheckExecution ElasticNormal(SteelVerificationInput input, SteelMethodDecision decision,

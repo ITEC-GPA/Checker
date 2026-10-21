@@ -10,9 +10,9 @@ using GPC.Model.Sections.Steel;
 
 namespace GPC.Checkers.Steel.Selection
 {
-    /// <summary>Deterministic routing over existing APIs. Uses existing classification
-    /// and shear-area/capacity helpers only as applicability gates. No new resistance
-    /// method, implicit national profile, member model or legacy-checker fallback.</summary>
+    /// <summary>Deterministic routing over qualified section and member methods.
+    /// EC3 and NTC share contracts/arithmetic, retaining explicit policy references.
+    /// No implicit national profile, whole-member model or legacy-checker fallback.</summary>
     public static class SteelMethodSelector
     {
         public static SteelSelectionPlan Select(SteelVerificationInput input,
@@ -105,7 +105,12 @@ namespace GPC.Checkers.Steel.Selection
             if (!ShearMappingQualified(section)) return Unsupported(target, "ShearAxes.NotQualified", "Low shear cannot be established from an unqualified principal-axis shear mapping.");
             if (Math.Abs(a.V1) > .5 * ShearResistance(input, section, 1)
                 || Math.Abs(a.V2) > .5 * ShearResistance(input, section, 2))
-                return Unsupported(target, "HighShearInteraction.NotIntegrated", "The selected normal-resistance method requires both shear ratios <= 0.5.");
+            {
+                if (cl <= 2 && shape.GetType() == typeof(SectionH) && !asymmetricH
+                    && a.N == 0 && a.M2 == 0 && a.V1 == 0 && Math.Abs(shape.AngleX1) <= 1e-10)
+                    return AwaitShearAssessment(target, SteelMethod.HMajorBendingShear, cl, classInfo.Source);
+                return Unsupported(target, "HighShearInteraction.NotIntegrated", "High-shear bending currently requires a symmetric H, class1/2, major bending and web shear only.");
+            }
             return AwaitShearAssessment(target, method, cl, classInfo.Source);
         }
 
@@ -177,7 +182,9 @@ namespace GPC.Checkers.Steel.Selection
         {
             var t = section.SectionShape.GetType();
             bool mapped = t == typeof(SectionH) || t == typeof(SectionT) || t == typeof(SectionC)
-                || t == typeof(SectionCHS) || t == typeof(SectionRHS) && ((SectionRHS)section.SectionShape).R == 0;
+                || t == typeof(SectionCHS) || t == typeof(SectionRHS) && ((SectionRHS)section.SectionShape).R == 0
+                || t == typeof(SectionRHSRoundedCorners) && section.SectionType == Section.SectionTypes.Rolled
+                    && section.FormedType == Section.FormedTypes.HotFinished;
             return mapped && Math.Abs(section.AngleX1) <= 1e-10;
         }
 

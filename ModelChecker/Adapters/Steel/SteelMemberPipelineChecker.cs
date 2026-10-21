@@ -170,6 +170,13 @@ namespace GPC.Model.Checker
         private SteelMemberAnalysis Prismatic(PhysicalMemberCheckInput input, SteelVerificationInput common, SteelDesignContext context, string mode)
         {
             bool compression = mode == "Compression";
+            if (compression && (Code.AlphaImperfectionFactorForCurveA0 != .13 || Code.AlphaImperfectionFactorForCurveA != .21
+                || Code.AlphaImperfectionFactorForCurveB != .34 || Code.AlphaImperfectionFactorForCurveC != .49 || Code.AlphaImperfectionFactorForCurveD != .76))
+                throw new NotSupportedException("Prismatic compression requires the qualified standard imperfection factors.");
+            if (!compression && (Code.AlphaLTImperfectionFactorForCurveA != .21 || Code.AlphaLTImperfectionFactorForCurveB != .34
+                || Code.AlphaLTImperfectionFactorForCurveC != .49 || Code.AlphaLTImperfectionFactorForCurveD != .76
+                || Code.BetaForLateralTorsionalBuckling != 1 || Code.LambdaLT0ForLateralTorsionalBuckling != .2))
+                throw new NotSupportedException("This LTB route requires the qualified general curve parameters; a modified national curve needs its own method.");
             if (new[] { "InPlaneCurve", "LateralCurve", "LateralTorsionalCurve" }.Any(_parameters.ContainsKey))
                 throw new ArgumentException("GeneralMethodCurvesOnPrismaticRoute");
             if (compression ? _parameters.ContainsKey("McrBasis") : new[] { "CompressionCurve1", "CompressionCurve2", "TorsionalCurve", "TorsionalExclusionSource", "FlexuralTorsionalExclusionSource" }.Any(_parameters.ContainsKey))

@@ -226,13 +226,14 @@ public class SteelVerificationPipelineTests
     }
 
     [TestMethod]
-    public void ShearEvidenceCannotOverrideHighShearInteractionRejection()
+    public void ShearBeyondPlasticCapacityFailsTheNewCombinedMethod()
     {
         var input = Input(m1: 1000, v2: 1e9);
         var result = SteelVerificationPipeline.Execute(Plan(input), new[] { SteelShearBucklingAssessment.EvaluateEc3HWeb(input, 1, "eta") });
-        Assert.AreEqual("HighShearInteraction.NotIntegrated", Normal(result).DiagnosticCode); NoNumbers(Normal(result));
+        Assert.AreEqual("HighShear.PlasticShearExceeded", Normal(result).DiagnosticCode);
+        Assert.AreEqual(Status.Failed, Normal(result).Status); Assert.IsNull(Normal(result).Resistance); Assert.IsNull(Normal(result).Utilization);
         Assert.AreEqual(Status.Failed, Shear(result, 2).Status);
-        Assert.AreEqual(EngineeringOutcome.NotSatisfied, result.Outcome); Assert.IsFalse(result.IsComplete);
+        Assert.AreEqual(EngineeringOutcome.NotSatisfied, result.Outcome); Assert.IsTrue(result.IsComplete);
     }
 
     [DataTestMethod]

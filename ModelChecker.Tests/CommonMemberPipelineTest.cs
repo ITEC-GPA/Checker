@@ -86,4 +86,16 @@ public class CommonMemberPipelineTest
         r=new Service().Verify(model,SteelMemberPipelineTest.Request(plan,options,new StandardNTC2018Steel())).Jobs[0].Results.Single();
         Assert.AreEqual(EngineeringOutcome.NotEvaluated,r.Outcome);
     }
+    [DataTestMethod] [DataRow(false)] [DataRow(true)]
+    public void ConfiguredImperfectionFactorsCannotBeSilentlyIgnored(bool bending)
+    {
+        var (model,plan)=SteelMemberPipelineTest.Fixture();
+        if(bending)foreach(var sample in ResultQueries.Samples<StationResultBeamForces>(model.BeamElements[250],plan.Results[0]))
+            { sample.ResultBeamForces.N=0;sample.ResultBeamForces.M1=1e6; }
+        var code=new StandardEN1993p11();
+        if(bending)code.AlphaLTImperfectionFactorForCurveA=.3;else code.AlphaImperfectionFactorForCurveB=.5;
+        var r=new Service().Verify(model,SteelMemberPipelineTest.Request(plan,Options(model,plan,bending),code)).Jobs[0].Results.Single();
+        Assert.AreEqual(EngineeringOutcome.NotEvaluated,r.Outcome);Assert.IsNull(r.Utilization);
+    }
+
 }

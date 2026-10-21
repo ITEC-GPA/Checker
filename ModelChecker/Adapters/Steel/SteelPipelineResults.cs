@@ -85,7 +85,7 @@ namespace GPC.Model.Checker
                 if (check.IsEvaluated)
                 {
                     double? demand = check.Decision.Method == SteelMethod.SectionTension || check.Decision.Method == SteelMethod.SectionCompression || check.Decision.Method == SteelMethod.PrismaticCompression ? a.N
-                        : check.Decision.Method == SteelMethod.SectionBending1 || check.Decision.Method == SteelMethod.PrismaticLateralTorsionalBuckling ? a.M1
+                        : check.Decision.Method == SteelMethod.SectionBending1 || check.Decision.Method == SteelMethod.PrismaticLateralTorsionalBuckling || check.Decision.Method == SteelMethod.HMajorBendingShear ? a.M1
                         : check.Decision.Method == SteelMethod.SectionBending2 ? a.M2
                         : check.Decision.Method == SteelMethod.SectionShear1 ? a.V1
                         : check.Decision.Method == SteelMethod.SectionShear2 ? (double?)a.V2 : null;

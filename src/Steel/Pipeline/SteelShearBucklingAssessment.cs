@@ -47,6 +47,22 @@ namespace GPC.Checkers.Steel.Pipeline
             if (input == null) throw new ArgumentNullException(nameof(input));
             if (input.Code.SectionCode.Standard != SectionResistanceStandard.Eurocode3_2005)
                 throw new NotSupportedException("The EC3 H-web assessment is not an NTC assessment.");
+            return EvaluateHWeb(input, eta, source, false);
+        }
+
+        /// <summary>NTC 2018 4.2.4.1.2.4 equation4.2.27, conservative eta=1.
+        /// Exact H, web-direction shear, principal axis1 horizontal. This excludes
+        /// shear buckling only; it is not a slender-web resistance calculation.</summary>
+        public static SteelShearBucklingAssessment EvaluateNtcHWeb(SteelVerificationInput input, string source)
+        {
+            if (input == null) throw new ArgumentNullException(nameof(input));
+            if (input.Code.SectionCode.Standard != SectionResistanceStandard.Ntc2018)
+                throw new NotSupportedException("The NTC H-web assessment requires an NTC input.");
+            return EvaluateHWeb(input, 1, source, true);
+        }
+
+        private static SteelShearBucklingAssessment EvaluateHWeb(SteelVerificationInput input, double eta, string source, bool ntc)
+        {
             var shape = input.Section.CreateSectionCopy().SectionShape;
             if (shape.GetType() != typeof(SectionH) || Math.Abs(shape.AngleX1) > 1e-10)
                 throw new NotSupportedException("Exact H geometry with horizontal principal axis 1 is required.");
@@ -58,7 +74,7 @@ namespace GPC.Checkers.Steel.Pipeline
             if (!(slenderness > 0) || double.IsInfinity(slenderness) || !(limit > 0) || double.IsInfinity(limit))
                 throw new ArithmeticException("Shear-buckling assessment is outside the finite positive numerical range.");
             return new SteelShearBucklingAssessment(input, 2, !required, source,
-                "EN 1993-1-1:2005 6.2.6(6); Ec3WebShearBuckling.RequiresCheck", new[] {
+                ntc ? "NTC 2018 4.2.4.1.2.4 equation 4.2.27; eta=1" : "EN 1993-1-1:2005 6.2.6(6); Ec3WebShearBuckling.RequiresCheck", new[] {
                     new SectionResistanceValue("ClearWebHeight", h.HeightWeb, "mm"),
                     new SectionResistanceValue("WebThickness", h.ThicknessWeb, "mm"),
                     new SectionResistanceValue("Fy", input.Section.YieldStrength, "MPa"),

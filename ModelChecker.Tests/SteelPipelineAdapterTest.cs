@@ -59,6 +59,20 @@ public class SteelPipelineAdapterTest
         Assert.AreEqual(4, result.Details.Trace.Count(t => t.Key.EndsWith(".Status")));
     }
 
+    [DataTestMethod] [DataRow(false)] [DataRow(true)]
+    public void HighShearHCompletesForBothCodesAndRecordsTheCorrectWebAssessment(bool ntc)
+    {
+        var input = Input(); double gamma = ntc ? 1.05 : 1;
+        input.Forces.M1 = 1e7; input.Forces.V2 = .75 * 3384 * 355 / (Math.Sqrt(3) * gamma);
+        var result = Run(input, ntc: ntc);
+        Assert.AreEqual(EngineeringOutcome.Satisfied, result.Outcome, string.Join(";", result.Diagnostics.Select(d => d.Message)));
+        var normal = result.Details.Metrics.Single(m => m.Key == "NormalResistance");
+        double expected = (970488 - .25 * 12 * 264 * 264 / 4) * 355 / gamma;
+        Assert.AreEqual(expected, normal.Capacity!.Value, 1e-7);
+        Assert.IsTrue(result.Details.Trace.Any(t => t.Key.EndsWith(".Eta") && t.Value == (ntc ? 1 : 1.2)));
+        Assert.IsTrue(result.Details.Trace.Any(t => t.Key == "NormalResistance.Method" && t.Expression == "HMajorBendingShear"));
+    }
+
     [TestMethod]
     public void DefaultDoesNotInventTheAbsenceOfHoles()
     {

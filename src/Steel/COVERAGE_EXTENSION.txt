@@ -62,7 +62,21 @@ Validazione blocco2:117 nuovi casi Steel (48 famiglie/Euler,8 modi governanti,
 SuiteSteel2679/2679; flussiModelChecker56/56. Tolleranze dichiarate nei test.
 Gli esempi EC3 pubblicati confrontati con NTC tramite gamma sono esplicitamente
 confronti normativi aggiuntivi, non nuovi esempi pubblicati NTC.
-3 DA COMPLETARE - TAGLIO ELEVATO H E INTEGRAZIONE MODEL CHECKER
+3 COMPLETATO - TAGLIO ELEVATO H E INTEGRAZIONE MODEL CHECKER
+H simmetriche classe1/2, solo M1/V2: eqEC3(6.30),NTC(4.2.32), rho=(2|V|/Vpl-1)^2.
+L'anima usa hw*tw e la riduzione interessa la sua quota di momento plastico.
+|V|>Vpl produce un fallimento fisico esplicito senza inventare una resistenza M-V.
+N,M2,V1,T e classe3 non vengono ammessi da questa estensione.
+EvaluateNtcHWeb applica eq4.2.27 con eta1, distinta dall'assessmentEC3 con eta
+esplicito. ModelChecker prepara automaticamente entrambi gli assessment H.
+RHS raccordati hot-finished/rolled a spessore uniforme: taglio monodirezionale
+collegato alle aree gia' confrontate con SCI; serve assessment a taglio esterno.
+
+77 nuovi casi Steel (64 integrazioni indipendenti M-V,2 oltre Vpl,4 rifiuti,
+3 soglieNTC,4RHS) e2 casi ModelChecker per M-V. Revisione finale:5 ulteriori casi
+Steel sui limiti del metodo d'asta/curve e2 ModelChecker sui coefficienti mutati.
+Nessun campo persistito nuovo: parametri e fonti passano nei contratti esistenti.
+Versioni funzionali: Steel2.27.0.0,ModelChecker2.10.0.0; Model5.18 invariato.
 4 DA COMPLETARE - COLLAUDO GLOBALE, VERSIONI E MERGE LOCALE
 
 Limiti deliberatamente aperti: classe4/Aeff/Weff automatici, torsione con

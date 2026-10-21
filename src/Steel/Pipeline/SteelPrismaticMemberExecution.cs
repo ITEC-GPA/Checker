@@ -29,11 +29,12 @@ namespace GPC.Checkers.Steel.Pipeline
             if (!SteelMethodSelector.KnownGeometry(shape) || SteelMethodSelector.ColdFormedOpen(section))
                 return Unsupported("Member.PrismaticGeometry", "This exact family/manufacturing route is not qualified.");
             SteelMethodSelector.ValidateGeometry(section);
+            if (i.Section.UltimateStrength < i.Section.YieldStrength) throw new ArgumentException("Ultimate strength below yield strength.");
             // No implicit use of a coupled-angle principal bending model for LTB.
             if (!compression && (shape.GetType() == typeof(SectionL) || section.J11 < section.J22
-                || shape.GetType() == typeof(SectionH) && (((SectionH)shape).LenghtTopFlange != ((SectionH)shape).LenghtBottomFlange
+                || shape.GetType() == typeof(SectionH) && (Math.Abs(shape.AngleX1) > 1e-10 || ((SectionH)shape).LenghtTopFlange != ((SectionH)shape).LenghtBottomFlange
                     || ((SectionH)shape).ThicknessTopFlange != ((SectionH)shape).ThicknessBottomFlange)))
-                return Unsupported("Member.LtbGeometry", "Use the qualified general method for asymmetric H or angle bending; this LTB route uses the major principal axis.");
+                return Unsupported("Member.LtbGeometry", "Use a separately qualified method for asymmetric/rotated H or angle bending; this LTB route uses the major principal axis.");
             var cl = SteelMethodSelector.Classification(i, section, analysis.ExternalMemberClass.HasValue
                 ? new SteelSectionClassification(i, analysis.ExternalMemberClass.Value, analysis.ClassificationSource) : null);
             if (cl.Failure != null) return new SteelMethodDecision(SteelCheckTarget.MemberStability, cl.Failure.Status, null,

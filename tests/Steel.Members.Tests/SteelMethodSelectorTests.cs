@@ -190,7 +190,7 @@ public class SteelMethodSelectorTests
     }
 
     [TestMethod]
-    public void ExactLowShearBoundaryIsRetainedAndHighShearHasNoFallback()
+    public void ExactLowShearBoundaryIsRetainedAndHighShearSelectsItsOwnMethod()
     {
         // Existing sharp rolled H: Av2=A-2*b*tf+tw*tf=3456 mm2; gammaM0=1.
         double half = .5 * 3456 * 235 / Math.Sqrt(3);
@@ -198,8 +198,8 @@ public class SteelMethodSelectorTests
         Assert.AreEqual(Status.RequiresPreparation, Normal(boundary).Status);
         Assert.AreEqual(SteelMethod.SectionBending1, Normal(boundary).Method);
         var high = SteelMethodSelector.Select(Input(m1: 1e6, v2: half * 1.000001));
-        Assert.AreEqual("HighShearInteraction.NotIntegrated", Normal(high).DiagnosticCode);
-        Assert.IsFalse(high.IsFullyRouted);
+        Assert.AreEqual(SteelMethod.HMajorBendingShear, Normal(high).Method);
+        Assert.IsTrue(high.IsFullyRouted);
     }
 
     [TestMethod]
@@ -235,12 +235,13 @@ public class SteelMethodSelectorTests
     }
 
     [TestMethod]
-    public void RoundedRhsBendingIsElasticWhileShearStillRequiresQualification()
+    public void RoundedRhsBendingIsElasticAndHotFinishedShearRequiresAssessment()
     {
         var shape = new SectionRHSRoundedCorners(200, 100, 10, 20, 10, "rounded RHS");
         var bending = SteelMethodSelector.Select(Input(shape, m1: 1e6));
         Assert.AreEqual(SteelMethod.ElasticNormalInteraction, Normal(bending).Method);
-        Assert.IsFalse(SteelMethodSelector.Select(Input(shape, v2: 1000)).IsFullyRouted);
+        Assert.IsTrue(SteelMethodSelector.Select(Input(shape, v2: 1000)).IsFullyRouted);
+        Assert.IsFalse(SteelMethodSelector.Select(Input(shape, v2: 1000)).IsReadyForExecution);
         var genericRadius = SteelMethodSelector.Select(Input(new SectionRHS(200, 100, 10, 10, 10, 10, "base RHS", 5), n: -1000));
         Assert.AreEqual("Geometry.NotQualified", Normal(genericRadius).DiagnosticCode);
     }

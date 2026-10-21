@@ -1,3 +1,7 @@
+AGGIORNAMENTO: il campo attuale EC3/NTC e' in COVERAGE_EXTENSION.txt.
+Questo documento conserva la descrizione e le evidenze del passo originario;
+i limiti superati dall'estensione non sono piu' quelli del selettore corrente.
+
 FASE 4 - PIPELINE DI SEZIONE IN MODELCHECKER - 21 OTTOBRE 2026
 GPCModelChecker 2.7.0.0; Steel 2.23.0.0.
 
