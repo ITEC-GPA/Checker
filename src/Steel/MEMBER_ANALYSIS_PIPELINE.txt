@@ -1,0 +1,63 @@
+FASE 5 - INPUT ESPLICITI DI ANALISI D'ASTA - 21 OTTOBRE 2026
+Steel 2.24.0.0; ModelChecker 2.8.0.0; Model 5.18.0.0.
+
+Model: BeamCheckPlan.PrepareActions prepara ora anche aste fisiche tramite
+BeamActionPreparation, con proprieta' di qualunque materiale. Gli input sono
+PhysicalMemberCheckInput.ActionSections; Sections conserva il percorso storico
+del cemento armato. Snapshot, copertura, concomitanza, estremi dell'intervallo,
+revisione e persistenza riusano i contratti esistenti. Nessun campo persistito nuovo.
+Un oggetto preparato modificato invalida il piano anche senza modificare la sorgente.
+
+SteelMemberAnalysis e' legato allo SteelVerificationInput immutabile e a una
+descrizione dello stato di carico dell'intera asta. SteelMethodSelector.SelectMember
+e SteelVerificationPipeline.Execute gestiscono due percorsi espliciti:
+1. UniformFork: riuso di Ec3MonosymmetricMember.EvaluateUniformFork. H/T esatte
+   a spigoli vivi, asse maggiore orizzontale, sezione uniforme, forcelle e
+   ingobbamento libero, N<=0 baricentrico e M1 di primo ordine costanti.
+   Niente carichi trasversali, M2, T, sway, vincoli intermedi o cerniere plastiche.
+   Curve esplicite; imperfezione iniziale e secondo ordine sono quelli del metodo
+   gia' qualificato. Metadati in conflitto vengono rifiutati.
+2. ExternalInPlane: riuso di Ec3GeneralMethod.EvaluateInPlane; AlphaUltK include
+   secondo ordine e imperfezioni nel piano, AlphaCrOp e' il moltiplicatore elastico
+   fuori piano dello STESSO stato proporzionale. Classe nominale d'asta 1..3 e
+   fonte esplicite; nessuna agevolazione sigma_com,Ed. Analisi e applicabilita'
+   dell'annesso nazionale rimangono responsabilita' del chiamante.
+Ncr1/2/T/FT e Mcr possono essere allegati come dati di analisi: da soli NON
+forniscono una resistenza. Non sono trasformati in alphaUltK/alphaCrOp.
+
+SteelStabilityValue richiede quantita', valore positivo finito, unita' e fonte.
+Unita' originali: N, KN, Nmm, KNm, One. Normalizzazione N/Nmm/1; dimensioni
+incompatibili o overflow rifiutati. Originali e valori normalizzati nel report.
+Nessun nuovo solutore e nessuna estensione delle formule normative.
+NTC attraversa la selezione ma questo metodo d'asta EC3 NON e' qualificato NTC.
+Le verifiche NTC di sezione gia' abilitate restano disponibili separatamente.
+
+ModelChecker: motore opt-in Steel.Pipeline.Member e MemberCheckSpecification
+con MethodId omonimo, meccanismo Stability. Una riga per asta/stato/intervallo.
+Tutte le parti devono appartenere alla medesima assegnazione del motore.
+Il percorso interno automatico richiede un unico elemento FEM orientato I-J,
+intero intervallo deformabile, proprieta' uniforme e azioni esportate costanti.
+Questi controlli non dimostrano uniformita' continua: e' necessaria la dichiarazione
+esplicita dello schema completo, legata all'impronta dell'asta e dello stato.
+I vincoli non sono dedotti dai nomi o dalle etichette degli appoggi FEM.
+Restraints del MemberDesignContext non vuoti richiedono il percorso esterno;
+il primo percorso interno usa la dichiarazione a forcella del motore.
+
+EngineDefinition.Parameters, vocabolario chiuso:
+- AnalysisMode: UniformFork oppure ExternalInPlane.
+- MemberFingerprint: ModelValues.Fingerprint(new object[] { preparedMember.Snapshot }).
+  Preparare prima BeamCheckPlan.PrepareActions con stessa asta/stato/intervallo;
+  modifiche a geometria, materiale, azioni o contesto invalidano l'analisi.
+- Unperforated, LoadPatternReference, ParameterSet, LateralCurve,
+  LateralTorsionalCurve; solo UniformFork richiede InPlaneCurve.
+- Solo ExternalInPlane: MemberClass, ClassificationSource e per ciascuna
+  quantita' Q le chiavi Q.Value, Q.Unit, Q.Source. Q = AlphaUltK, AlphaCrOp,
+  Ncr1, Ncr2, NcrT, NcrFT, Mcr. Le due alpha sono obbligatorie per calcolare.
+Numeri invariant; curve A0/A/B/C/D (LTB: A/B/C/D). Nessun default implicito.
+Usare una configurazione distinta per ciascuna impronta di analisi esterna.
+Non aggregare gli utilizzi di sezione con quelli del percorso d'asta.
+
+Verifica della fase: 17 test nativi nuovi; intera Steel.Members 2401 passati;
+11 test nuovi di adattatore d'asta e 23 precedenti di sezione passati;
+5 test nuovi in Model sulla preparazione neutra. Nessun test/atteso legacy cambiato.
+La fase 6 aggiunge i controlli di configurazione, archiviazione e regressione completa.

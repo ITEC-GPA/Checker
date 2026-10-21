@@ -16,7 +16,7 @@ namespace GPC.Model.Checker
     /// one component failed; that failure remains explicit in its metric.</summary>
     internal static class SteelPipelineResults
     {
-        internal static CheckResult Map(SteelVerificationResult native, string inputFingerprint)
+        internal static CheckResult Map(SteelVerificationResult native, string inputFingerprint, string methodId = SteelPipelineMaterialChecker.EngineId, string scope = SteelPipelineMaterialChecker.Limitations)
         {
             var metrics = new List<CheckMetric>(); var diagnostics = new List<ModelDiagnostic>();
             var trace = new List<CheckCalculationValue> {
@@ -24,6 +24,23 @@ namespace GPC.Model.Checker
                 new CheckCalculationValue("Pipeline.Outcome", (int)native.Outcome, "1", native.Outcome.ToString()),
                 new CheckCalculationValue("Section.PrincipalAxisAngle", native.Plan.Input.Section.PrincipalAxisAngle, "rad", "Angle from section geometry X to principal axis 1")
             };
+            if (native.Plan.MemberAnalysis != null)
+            {
+                var analysis = native.Plan.MemberAnalysis;
+                trace.Add(new CheckCalculationValue("Member.AnalysisKind", null, null, analysis.Kind.ToString()));
+                trace.Add(new CheckCalculationValue("Member.LoadPattern", null, null, analysis.LoadPatternReference));
+                trace.Add(new CheckCalculationValue("Member.ParameterSet", null, null, analysis.ParameterSet));
+                trace.Add(new CheckCalculationValue("Member.ClassificationSource", null, null, analysis.ClassificationSource));
+                trace.Add(new CheckCalculationValue("Member.LateralCurve", null, null, analysis.LateralCurve.ToString()));
+                trace.Add(new CheckCalculationValue("Member.LateralTorsionalCurve", null, null, analysis.LateralTorsionalCurve.ToString()));
+                if (analysis.Kind == GPC.Checkers.Steel.Inputs.SteelMemberAnalysisKind.UniformForkHOrT)
+                    trace.Add(new CheckCalculationValue("Member.InPlaneCurve", null, null, analysis.InPlaneCurve.ToString()));
+                foreach (var v in analysis.Values)
+                {
+                    trace.Add(new CheckCalculationValue("Member.External." + v.Quantity, v.Value, v.Unit, v.Source));
+                    trace.Add(new CheckCalculationValue("Member.External." + v.Quantity + ".Original", v.OriginalValue, v.OriginalUnit.ToString(), v.Source));
+                }
+            }
             var a = native.Plan.Input.Actions;
             foreach (var value in new[] { ("N", a.N, "N"), ("V1", a.V1, "N"), ("V2", a.V2, "N"),
                 ("T", a.T, "Nmm"), ("M1", a.M1, "Nmm"), ("M2", a.M2, "Nmm") })
@@ -64,11 +81,11 @@ namespace GPC.Model.Checker
             // Different interactions use different utilization definitions. Preserve only
             // a single evaluated method's ratio as the row ratio; never take a global max.
             var result = new CheckResult {
-                Details = new NativeMethodDetails(SteelPipelineMaterialChecker.EngineId, SteelPipelineMaterialChecker.Limitations,
+                Details = new NativeMethodDetails(methodId, scope,
                     inputFingerprint, metrics, trace, new[] {
-                        "Section scope only. Each metric retains its own method and utilization definition; EC3 plastic H scales moments at fixed N.",
+                        "Requested scope: " + native.Plan.Scope + ". Each metric retains its own utilization definition; EC3 plastic H scales moments at fixed N.",
                         "External classifications and shear assessments are caller declarations bound to the section fingerprint, not independent certification."
-                    }, null, null, "Steel.Pipeline.Section:per-method-utilization"),
+                    }, null, null, methodId + ":per-method-utilization"),
                 Diagnostics = diagnostics,
                 Execution = ExecutionStatus.Completed,
                 Data = DataStatus.Ready,

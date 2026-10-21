@@ -38,14 +38,14 @@ namespace GPC.Checkers.Steel.Pipeline
             foreach (var decision in plan.Decisions)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                checks.Add(ExecuteOne(plan.Input, decision, assessments));
+                checks.Add(ExecuteOne(plan.Input, decision, assessments, plan.MemberAnalysis));
                 cancellationToken.ThrowIfCancellationRequested();
             }
             return new SteelVerificationResult(plan, checks);
         }
 
         private static SteelCheckExecution ExecuteOne(SteelVerificationInput input, SteelMethodDecision decision,
-            IDictionary<int, SteelShearBucklingAssessment> assessments)
+            IDictionary<int, SteelShearBucklingAssessment> assessments, SteelMemberAnalysis memberAnalysis)
         {
             if (decision.Status != SteelSelectionStatus.Ready && decision.Status != SteelSelectionStatus.RequiresPreparation)
                 return new SteelCheckExecution(decision, SelectionStatus(decision.Status), decision.DiagnosticCode, decision.Message);
@@ -78,6 +78,8 @@ namespace GPC.Checkers.Steel.Pipeline
             try
             {
                 if (!decision.Method.HasValue) throw new InvalidOperationException("A ready decision must name a method.");
+                if (decision.Target == SteelCheckTarget.MemberStability)
+                    return SteelMemberAnalysisExecution.Execute(memberAnalysis, decision);
                 var section = input.Section.CreateSectionCopy();
                 var a = input.Actions; var s = input.Section; var code = input.Code.SectionCode;
                 SectionResistanceResult result;

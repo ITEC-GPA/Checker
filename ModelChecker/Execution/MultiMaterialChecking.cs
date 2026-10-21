@@ -7,6 +7,7 @@ using GPC.Model.Elements;
 using GPC.Model.Core;
 using GPC.Model.Analysis;
 using GPC.Model.Checking.Contracts;
+using GPC.Model.Checking.Execution;
 using GPC.Model.Checking.Preparation;
 using GPC.Model.Checking.Reports;
 using GPC.Model.Core.Diagnostics;
@@ -30,6 +31,8 @@ namespace GPC.Model.Checker
             c.GetType().AssemblyQualifiedName, c.Id, c.Version, c.Configuration, c.Standard?.Identity });
         private static string RouteId(int beam, CheckMechanism mechanism, SectionCheckSpecification check)
             => beam.ToString(System.Globalization.CultureInfo.InvariantCulture) + ":" + (check?.Key ?? mechanism.ToString());
+        private static string MemberRouteId(string member, CheckMechanism mechanism, string method)
+            => "Member:" + member + ":" + mechanism + ":" + method;
         private static MaterialPlan PrepareMaterialJob(Models.Model model, MultiMaterialCheckJob job, CancellationToken token)
         {
             var result = ResolveMaterialJob(model, job);
@@ -57,6 +60,16 @@ namespace GPC.Model.Checker
                     .Select(a => a.Checker).GroupBy(EngineKey, StringComparer.Ordinal).Select(g => g.First()).ToArray();
                 if (matches.Length > 1) throw new ArgumentException("ConflictingMaterialAssignments: " + RouteId(id, check.Mechanism, check.Check) + "; select one engine for each check.");
                 routes[RouteId(id, check.Mechanism, check.Check)] = matches.SingleOrDefault();
+            }
+            foreach (var spec in planRequest.MemberChecks)
+            {
+                var parts = model.PhysicalMembers[spec.MemberId].Parts;
+                var matches = resolved.Where(a => a.Checker is IPhysicalMemberVerifier && a.Assignment.Matches(spec.Mechanism, null)
+                    && parts.All(p => (a.Ids == null || a.Ids.Contains(p.BeamId)) && a.Checker.Accepts(model.BeamElements[p.BeamId])))
+                    .Select(a => a.Checker).GroupBy(EngineKey, StringComparer.Ordinal).Select(g => g.First()).ToArray();
+                string route = MemberRouteId(spec.MemberId, spec.Mechanism, spec.MethodId);
+                if (matches.Length > 1) throw new ArgumentException("ConflictingMaterialAssignments: " + route);
+                routes[route] = matches.SingleOrDefault();
             }
             var keys = routes.ToDictionary(p => p.Key, p => EngineKey(p.Value));
             // Persist a digest of selectors AND resolved configurations through the existing scope/settings contract.
@@ -93,7 +106,8 @@ namespace GPC.Model.Checker
                 var results = new List<CheckResult>();
                 foreach (var item in plan.Plan.WorkItems)
                 {
-                    var route = item.Target.BeamId.HasValue ? RouteId(item.Target.BeamId.Value, item.Mechanism, item.Check) : null;
+                    var route = item.Scope == CheckScope.PhysicalMember ? MemberRouteId(item.Target.MemberId, item.Mechanism, item.MethodId)
+                        : item.Target.BeamId.HasValue ? RouteId(item.Target.BeamId.Value, item.Mechanism, item.Check) : null;
                     var engine = route != null && plan.Routes.TryGetValue(route, out var routed) ? routed : null;
                     var key = route != null && plan.Keys.TryGetValue(route, out var routedKey) ? routedKey : null;
                     var result = new CheckResult { Data = item.Data };
@@ -101,7 +115,14 @@ namespace GPC.Model.Checker
                     {
                         if (token.IsCancellationRequested) result.Execution = ExecutionStatus.Cancelled;
                         else if (!Current(model, plan)) result.Data = DataStatus.Stale;
-                        else if (item.Scope == CheckScope.PhysicalMember) result = NativeResults.Unavailable("MaterialGlobalCheckerUnavailable");
+                        else if (item.Scope == CheckScope.PhysicalMember)
+                        {
+                            result = engine is IPhysicalMemberVerifier memberVerifier
+                                ? MemberCheckExecution.Run(plan.Plan, item, memberVerifier, token)
+                                : NativeResults.Unavailable("MaterialGlobalCheckerUnavailable");
+                            token.ThrowIfCancellationRequested();
+                            if (engine != null && EngineKey(engine) != key || !Current(model, plan)) result = new CheckResult { Data = DataStatus.Stale };
+                        }
                         else if (engine == null) result = NativeResults.Unavailable("NoMaterialCheckerAssignment");
                         else if (item.Data == DataStatus.Ready && item.Actions?.Input != null)
                         {

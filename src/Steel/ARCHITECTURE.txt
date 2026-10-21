@@ -1,9 +1,10 @@
 ARCHITETTURA CHECKER.STEEL - REFACTORING E PRIMO SUPPORTO ASTE COMPOSTE - 21 OTTOBRE 2026
-Steel2.23.0.0; GPCModelChecker2.7.0.0; Model5.17.0.0. Unita': N,mm,MPa,Nmm.
+Steel2.24.0.0; GPCModelChecker2.8.0.0; Model5.18.0.0. Unita': N,mm,MPa,Nmm.
 N positivo a trazione nelle facade; Ec3BuiltUpColumn riceve compressione positiva.
 Stessa DLL e framework netstandard2.0. Model resta a monte di Checker.
 
 STRUTTURA
+Pipeline applicativa: MODELCHECKER_PIPELINE.txt (sezioni) e MEMBER_ANALYSIS_PIPELINE.txt (aste).
 Pipeline/: risoluzione dei prerequisiti, esecuzione dei metodi selezionati e raccolta esiti.
 Vedi VERIFICATION_PIPELINE.txt; esito limitato al perimetro richiesto e completezza esplicita.
 Selection/: piano esplicito dei metodi per sezione/asta, dati mancanti e prerequisiti.

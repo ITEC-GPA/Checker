@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using GPC.Checkers.Steel.Pipeline;
 using GPC.Checkers.Steel.Inputs;
 using GPC.Checkers.Steel.ModelAdapters;
 using GPC.Checkers.Steel.Sections;
@@ -32,6 +34,18 @@ namespace GPC.Checkers.Steel.Selection
             }
             if (scope != SteelCheckScope.Section) decisions.Add(Member(input));
             return new SteelSelectionPlan(input, scope, decisions);
+        }
+
+        /// <summary>Explicit member-analysis route; the original section-only selection remains unchanged.</summary>
+        public static SteelSelectionPlan SelectMember(SteelMemberAnalysis analysis,
+            SteelCheckScope scope = SteelCheckScope.Member, SteelSectionClassification classification = null)
+        {
+            if (analysis == null) throw new ArgumentNullException(nameof(analysis));
+            if (scope != SteelCheckScope.Member && scope != SteelCheckScope.SectionAndMember) throw new ArgumentOutOfRangeException(nameof(scope));
+            var original = Select(analysis.Input, scope, classification);
+            var decisions = original.Decisions.Where(d => d.Target != SteelCheckTarget.MemberStability).ToList();
+            decisions.Add(Guard(SteelCheckTarget.MemberStability, () => SteelMemberAnalysisExecution.Select(analysis)));
+            return new SteelSelectionPlan(analysis.Input, scope, decisions, analysis);
         }
 
         private static SteelMethodDecision Normal(SteelVerificationInput input, ISteelSection section,

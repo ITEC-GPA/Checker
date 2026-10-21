@@ -117,6 +117,13 @@ namespace GPC.Model.Checker.Configuration
                         throw new ArgumentException("OptionsOnDifferentEngine");
                     return new SteelPipelineMaterialChecker(code, context.Edition, context.NationalAnnex, definition.Parameters);
                 }, (engine, mechanism, check) => check == null && ((SteelPipelineMaterialChecker)engine).Supports(mechanism)));
+            catalog.Register(new EngineCapability(SteelMemberPipelineChecker.EngineId, 1,
+                "Steel physical-member analysis pipeline", SteelMemberPipelineChecker.Limitations,
+                (definition, context) => {
+                    if (!(context.Code is StandardEN1993p11 code) || context.BridgeCode.HasValue) throw new ArgumentException("SteelCodeRequired");
+                    if (definition.Concrete != null || definition.BridgeCases != null || definition.BridgeHistory != null) throw new ArgumentException("OptionsOnDifferentEngine");
+                    return new SteelMemberPipelineChecker(code, context.Edition, context.NationalAnnex, definition.Parameters);
+                }, (engine, mechanism, check) => check == null && ((SteelMemberPipelineChecker)engine).Supports(SteelMemberPipelineChecker.EngineId, mechanism)));
             foreach (var capability in new[] { SteelSectionCapability.Shear, SteelSectionCapability.Section })
                 catalog.Register(new EngineCapability(capability.Id, 1, capability.Description, capability.Limitations,
                     (definition, context) => {

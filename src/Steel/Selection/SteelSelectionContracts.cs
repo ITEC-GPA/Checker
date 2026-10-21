@@ -11,7 +11,7 @@ namespace GPC.Checkers.Steel.Selection
     public enum SteelMethod
     {
         SectionTension, SectionCompression, SectionBending1, SectionBending2,
-        SectionShear1, SectionShear2, Ec3PlasticHInteraction, NtcElasticNormalInteraction
+        SectionShear1, SectionShear2, Ec3PlasticHInteraction, NtcElasticNormalInteraction, Ec3UniformForkMember, Ec3ExternalGeneralMember
     }
     public enum SteelPreparationRequirement { ShearBucklingAssessment }
 
@@ -68,6 +68,7 @@ namespace GPC.Checkers.Steel.Selection
     {
         public SteelVerificationInput Input { get; }
         public SteelCheckScope Scope { get; }
+        public SteelMemberAnalysis MemberAnalysis { get; }
         public IReadOnlyList<SteelMethodDecision> Decisions { get; }
         public bool HasSelectedMethods => Decisions.Any(d => d.Method.HasValue);
         public bool IsFullyRouted => Decisions.All(d => d.Status == SteelSelectionStatus.Ready
@@ -75,7 +76,7 @@ namespace GPC.Checkers.Steel.Selection
         public bool IsReadyForExecution => HasSelectedMethods && Decisions.All(d =>
             d.Status == SteelSelectionStatus.Ready || d.Status == SteelSelectionStatus.NotRequired);
 
-        internal SteelSelectionPlan(SteelVerificationInput input, SteelCheckScope scope, IEnumerable<SteelMethodDecision> decisions)
-        { Input = input; Scope = scope; Decisions = Array.AsReadOnly(decisions.ToArray()); }
+        internal SteelSelectionPlan(SteelVerificationInput input, SteelCheckScope scope, IEnumerable<SteelMethodDecision> decisions, SteelMemberAnalysis memberAnalysis = null)
+        { Input = input; Scope = scope; Decisions = Array.AsReadOnly(decisions.ToArray()); MemberAnalysis = memberAnalysis; }
     }
 }
