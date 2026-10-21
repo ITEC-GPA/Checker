@@ -1,0 +1,107 @@
+{
+  "date": "2026-10-21",
+  "steel_version": "2.23.0.0",
+  "base_checker_commit": "57f87bf83a459a3d1e7070d8fcb67b25144c0213",
+  "tested_state": "Base commit plus the new/changed source files identified by source_sha256 below.",
+  "model_commit": "b83c1f3561c32a7f4b7d6d27692a866cc05a4a04",
+  "command": "build/Verify.ps1 -Suites all",
+  "results_directory": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\steel-verification-pipeline-full-20261021",
+  "total_passed": 4423,
+  "failed": 0,
+  "skipped": 0,
+  "new_tests": 68,
+  "api_compatible": true,
+  "api_checked_assemblies": [
+    "GPCModelChecker",
+    "GPCChecker.Concrete",
+    "GPC.Design",
+    "GPCChecker.Masonry"
+  ],
+  "suites": [
+    {
+      "name": "GPCChecker.Test.Concrete",
+      "passed": 795,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "223baf9e33f5e943bbcfac9aa9943ba46ccdaed1fb2f48baeaa32816fa814826"
+    },
+    {
+      "name": "GPCChecker.Test.Steel",
+      "passed": 122,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "14c254568a092ed036a37246bf0785364cbb46a5bbc5b54e3ab915af77f38de8"
+    },
+    {
+      "name": "GPCChecker.Test.CompositeBridge",
+      "passed": 284,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "807966fefd9e5976696d569952d3476f13d4e82478baf229a402b13ba5a11efa"
+    },
+    {
+      "name": "GPCChecker.Test.Geotechnics",
+      "passed": 191,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "4c625c9784bfb4210507a0c78ac7f2a1d54c05175780e6c3093e0c48c8833e50"
+    },
+    {
+      "name": "GPCChecker.Test.Calculation",
+      "passed": 174,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "16040b3b722da0b6de87a19bef7fd2e331b1299af131e1e5ff78d00df111c720"
+    },
+    {
+      "name": "ShallowFoundation.Tests",
+      "passed": 28,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "13badbac87655361c0e66aa9887dcdcd756fdd8eefc234e9c26cf1bda57a6c31"
+    },
+    {
+      "name": "EmbeddedWalls.Tests",
+      "passed": 74,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "94cd79ab80a2711b55e98268c3c1b4d4daadb3eef5a501113308dd8304d34ced"
+    },
+    {
+      "name": "Steel.Members.Tests",
+      "passed": 2384,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "333c75da83e853bd2bd812a7162914df5e30699e393aca294e5eca9609894753"
+    },
+    {
+      "name": "Design.Checks",
+      "passed": 100,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "42398f4b0514384e128718d9f0a3601d5527fa00e47aad458afd2757b1bfbffb"
+    },
+    {
+      "name": "ModelChecker.Tests",
+      "passed": 271,
+      "failed": 0,
+      "skipped": 0,
+      "trx_sha256": "83942a728cc07fa8e7e3e9060450de290c9fb38c71979f1634945ef7d89f8aed"
+    }
+  ],
+  "summary_sha256": "c48bc37070acdda4310d8308b83d92924b3049070cd60535ce0a84ad7edec1e9",
+  "targeted_trx_sha256": "87dec68569bd618a414f9efde4dcd11fba88921a3c2e56e145d2facf0b387944",
+  "source_sha256": {
+    "GPCChecker.Steel/GPCChecker.Steel.csproj": "2ad208a0efb57974908fc2fb453cdfa9bb30f684f986c05e663c74bb072a0a4f",
+    "GPCChecker.Steel/Properties/AssemblyInfo.cs": "e8e9a2581e0f84c3df9eea2862bc4f3df23458d3e9a82518d7604bdbecaacd46",
+    "src/Steel/Pipeline/SteelShearBucklingAssessment.cs": "b03b2d56c39749cb3dc0e04d085843719e11079a8bfaa8a3f56030fcaae56c0f",
+    "src/Steel/Pipeline/SteelVerificationPipeline.cs": "6c0c7cf116d3c955d00f62e0a20fcdde76322cde6d5c25bc60b3c1d9ce29a4ba",
+    "src/Steel/Pipeline/SteelVerificationResult.cs": "e3daee4f2a8ac5fbc8565afef0c39f28c53e8db74fc488c9cf7d45b62f106d59",
+    "tests/Steel.Members.Tests/SteelVerificationPipelineTests.cs": "eb438e952699a68c4a7aff7d9f5b0e4746a03459b95d21758ea38d8ea8275fa8"
+  },
+  "scope": "Execute selected section methods, resolve explicit shear-buckling prerequisites, retain unavailable checks and collect finite immutable outcomes for the requested scope.",
+  "new_engineering_methods": false,
+  "automatic_modelchecker_routing": false,
+  "automatic_member_routing": false,
+  "persisted_contract_changes": false
+}

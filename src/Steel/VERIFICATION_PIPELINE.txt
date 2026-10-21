@@ -1,0 +1,110 @@
+PIPELINE DI VERIFICA STEEL - FASE 3 - 21 OTTOBRE 2026
+Steel2.23.0.0. Unita': N, mm, MPa, Nmm. N positivo a trazione.
+
+SCOPO
+SteelVerificationPipeline.Execute riceve il piano immutabile prodotto da
+SteelMethodSelector.Select: risolve i prerequisiti disponibili, esegue i metodi
+selezionati e restituisce una voce per ogni decisione, nello stesso ordine.
+Riusa gli algoritmi esistenti. Non cambia formule resistenti, classificazioni,
+coefficienti, fixture o contratti persistiti. Nessun fallback ai checker legacy.
+Input comune: COMMON_INPUT.txt. Campo della selezione: METHOD_SELECTION.txt.
+
+METODI ESEGUITI
+- SectionTension, SectionCompression, SectionBending1/2, SectionShear1/2:
+  delega a SectionResistanceVerifier, conservando resistenza, utilizzo, unita',
+  riferimento, campo del metodo, diagnostica e traccia. Av mantiene la politica
+  della norma e dell'asse; la flessione usa Wpl per classe1/2 e Wel minimo per3.
+- Ec3PlasticHInteraction: delega a Ec3PlasticHSection. Registra Npl,Rd e le
+  componenti della frontiera resistente dei momenti al valore assegnato di N.
+  L'utilizzo scala i momenti a N fisso; non e' un moltiplicatore di tutte le azioni.
+- NtcElasticNormalInteraction: delega al limite elastico conservativo esistente
+  Ntc2018SectionResistance.ElasticNormalInteraction. Nessuna superficie plastica
+  NTC implicita; traccia di N, M, A, Wel, fy, gammaM0 e classe.
+Le interazioni non espongono una resistenza scalare artificiale.
+
+PREPARAZIONE DEL TAGLIO
+SteelShearBucklingAssessment e' una valutazione preliminare per un asse
+principale di taglio, legata all'esatto oggetto SteelVerificationInput.
+Non puo' essere riutilizzata su un'altra istanza, anche numericamente uguale.
+- EvaluateEc3HWeb(input, eta, source) riusa Ec3WebShearBuckling.RequiresCheck:
+  EC3:2005, H esatta, asse1 orizzontale, V2. Eta e provenienza sono obbligatori.
+  hw e' l'altezza fra le flange, comprese le zone raccordate: non si sottraggono
+  i raccordi come nella larghezza di classificazione. Traccia hw, tw, fy, eta,
+  snellezza e limite. Non applica automaticamente questa regola a V1 o NTC.
+- FromExternal(input, axis, isBucklingExcluded, source) riceve una valutazione
+  ingegneristica esplicita secondo la norma dell'input. La fonte rende
+  tracciabile la dichiarazione del chiamante, non ne certifica la correttezza.
+  Serve anche per direzioni/famiglie/norme prive di preparazione automatica.
+Per il taglio isolato serve la valutazione del suo asse. Per la resistenza
+normale con taglio basso servono quelle di tutti gli assi con taglio non nullo.
+Una valutazione mancante mantiene RequiresPreparation; una valutazione negativa
+produce NotSupported con ShearBuckling.ResistanceMethodRequired. Non sostituiamo
+Vpl,Rd con il solo contributo dell'anima Vbw,Rd per dichiarare verificata la
+sezione. Duplicati per asse, voci nulle o fonti relative ad altri input vengono
+rifiutati con ArgumentException prima di eseguire i metodi.
+La preparazione non abilita casi respinti dalla selezione: classe4, taglio alto,
+interazioni non qualificate, geometrie escluse e torsione rimangono visibili.
+
+ESITI E COMPLETEZZA
+Ogni SteelCheckExecution conserva la Decision originale (metodo, classe e fonte,
+dati mancanti e prerequisiti), lo stato di esecuzione e le valutazioni di taglio
+usate. Il piano non viene modificato: puo' rimanere RequiresPreparation mentre
+la corrispondente esecuzione e' Passed/Failed grazie alle evidenze fornite.
+Passed/Failed sono gli unici stati IsEvaluated. NotRequired non e' una verifica
+eseguita. MissingInput, RequiresPreparation, NotSupported, InvalidInput e
+CalculationError non portano resistenza o utilizzo. La traccia puo' conservare
+input finiti in caso di errore del metodo scalare.
+Caso particolare EC3 H: |N|>=Npl,Rd con momenti non nulli produce Failed, con
+diagnostica PlasticH.NoRemainingMomentCapacity, capacita' dei momenti nulle e
+utilizzo null. L'infinito positivo nativo non entra nella traccia numerica e
+non viene scambiato per un calcolo mancante.
+
+SteelVerificationResult riusa EngineeringOutcome di Model:
+- almeno un Failed -> NotSatisfied, anche se altri controlli sono incompleti;
+- almeno un controllo eseguito e tutti gli altri eseguiti/NotRequired ->
+  IsComplete=true; Satisfied solo se nessuno e' Failed;
+- negli altri casi -> IsComplete=false e NotEvaluated, salvo il Failed sopra.
+Un caso con tutte le azioni nulle e tutti i controlli NotRequired e' NotEvaluated.
+IsComplete si riferisce esclusivamente al perimetro del piano richiesto. Un piano
+Section non include instabilita' d'asta. Il risultato non calcola un massimo
+globale fra utilizzi con significati diversi, in particolare N-M a N fisso.
+Un controllo indisponibile non impedisce di eseguire gli altri controlli pronti.
+
+CANCELLAZIONE ED ERRORI
+CancellationToken viene controllato prima/dopo ogni metodo e durante la raccolta
+delle evidenze. I nuclei sincroni esistenti non sono interrotti internamente.
+OperationCanceledException risale al chiamante senza risultato parziale.
+Le eccezioni numeriche/applicative dei metodi vengono tradotte nei rispettivi
+stati. Errori di programmazione inattesi non sono nascosti da catch generici.
+I risultati, le tracce e le raccolte delle evidenze sono snapshot in sola lettura.
+
+ESEMPIO DI INTEGRAZIONE
+Dato input comune di una H con flessione e V2 basso, EC3 e coefficiente eta
+stabilito dal chiamante per il proprio caso:
+
+var plan = SteelMethodSelector.Select(input);
+var shear = SteelShearBucklingAssessment.EvaluateEc3HWeb(input, eta, etaSource);
+var result = SteelVerificationPipeline.Execute(plan, new[] { shear }, cancellationToken);
+// Leggere insieme result.Outcome, result.IsComplete e result.Checks.
+// Per NTC non usare EvaluateEc3HWeb: fornire la valutazione NTC pertinente.
+
+LIMITI E PASSO SUCCESSIVO
+Questa fase aggiunge l'esecuzione alla selezione, non nuovi campi di qualifica.
+ModelChecker usa ancora il percorso precedente: la migrazione del suo adapter,
+la conversione nei report e la gestione della preparazione/cache sono la fase4.
+Member/SectionAndMember conservano la voce d'instabilita' d'asta non disponibile:
+un taglio di sollecitazioni non determina diagrammi, analisi, vincoli o curve.
+Le API specialistiche d'asta esistenti non sono ancora instradate dalla pipeline.
+Nessuna modifica a Model e nessuna dipendenza Model->Checker.
+
+VERIFICA
+SteelVerificationPipelineTests controlla i flussi di esecuzione, gli otto metodi,
+le sette famiglie in compressione per le due norme, gli assi, la classe, le
+evidenze del taglio, gli esiti parziali, gli errori numerici, la cancellazione e
+l'immutabilita'. I benchmark ingegneristici preesistenti restano nelle loro suite.
+La nuova suite verifica l'integrazione; non estende la qualifica normativa dei
+metodi esistenti. Regressione completa: build/Verify.ps1 -Suites all.
+
+Esito finale: 68 nuovi test; 4423 test superati nelle 10 suite,
+0 falliti, 0 ignorati. Controlli API esistenti superati.
+Evidenza, versioni e hash: VERIFICATION_PIPELINE_VERIFICATION.json.
