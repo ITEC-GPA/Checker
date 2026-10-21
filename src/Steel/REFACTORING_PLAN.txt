@@ -5,7 +5,8 @@ Il blocco connessioni (11-16) e' concordato come sviluppo successivo.
 Le norme americane restano fuori da questo lavoro.
 
 1. Estrarre primitive di classificazione interne/sporgenti/CHS. COMPLETATO (2.6.0.0).
-2. Separare ricostruzione geometrica e classificazione. DA FARE.
+2. Separare ricostruzione geometrica e classificazione. COMPLETATO per
+   compressione uniforme (2.7.0.0); distribuzioni N/M proseguono al punto 3.
 3. Integrare flessione/pressoflessione e sigma_com,Ed con classi distinte
    per resistenza di sezione e instabilita'. DA FARE.
 4. Migrare i chiamanti con confronto vecchio/nuovo e oracoli. DA FARE.
@@ -42,3 +43,29 @@ Steel.Members1463/1463, ModelChecker Steel97/97; legacy111/122, stessi11
 fallimenti e identica diagnostica29casi/221asserzioni. Zero test ignorati.
 Nessuna fixture, atteso o whitelist preesistente modificato.
 Evidenze: CLASSIFICATION_REFACTOR_VERIFICATION.json.
+
+PUNTO 2 - GEOMETRIA E VERIFICA
+Snapshot scalari immutabili delle parti: H, C, T, RHS a spigoli vivi, CHS.
+Il mapper Model ricostruisce le larghezze; il classificatore riceve solo
+dimensioni e fy esplicito e conserva risultati e parti governanti.
+Un dato non valido impedisce una classe globale. Nessuna migrazione dei
+chiamanti in questo passo. 32 casi nuovi, Steel.Members 1495/1495, zero ignorati.
+Controlli geometrici per sottrazione dimensionale, soglie della tabella 5.2,
+confronto legacy su cinque famiglie e cinque gradi, immutabilita' e rifiuti.
+RHS raccordati: Model contiene gia' SectionRHSRoundedCorners (geometria e
+proprieta' proprie); la qualificazione automatica in Checker resta distinta.
+SectionRHS.R invece non entra nei calcoli geometrici di quel tipo base.
+Entrambe le varianti con raccordi restano escluse da questo mapper finche'
+le larghezze piane e il campo normativo non sono qualificati al punto 9.
+Gli angolari richiedono anche i requisiti sull'intera sezione della tabella 5.2.
+
+CODA APPROVATA DOPO I PRIMI 10 PUNTI
+- Connessioni: blocco successivo gia' concordato (11-16).
+- Profili accoppiati, almeno C e L (aggiunto su richiesta il 21/10/2026):
+  geometria e orientamento dei componenti, distanze, proprieta' composte;
+  resistenza della sezione, instabilita' globale e dei singoli componenti;
+  effetto di calastrelli/tralicciature e verifica dei collegamenti tra profili.
+  Distinguere accoppiamento geometrico da collaborazione strutturale effettiva.
+  Definire i campi coperti con benchmark indipendenti prima dell'abilitazione
+  automatica. Il dettaglio e la priorita' rispetto alle connessioni verranno
+  definiti dopo la chiusura del blocco corrente.
