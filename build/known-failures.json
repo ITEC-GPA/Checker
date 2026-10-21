@@ -4,6 +4,14 @@
     "GPCChecker.Test.Steel": {
       "reason": "0 remaining Steel legacy failures. See tools/Steel.LegacyDiagnostics/LEGACY_CLOSURE_* for independent references, unchanged inputs and explicit unsupported contracts. Original Cordova/SAP comparisons archived, not claimed reproduced. SAP hollow comparisons retain the documented unconfirmed ColdFormed assumption.",
       "tests": []
+    },
+    "EmbeddedWalls.Tests": {
+      "reason": "Open findings of the 21/10/2026 paratie review (docs/verifiche/paratie-revisione-2026-10.md, category ReviewFinding): P4 global stability ignores prescribed pore-pressure profiles; P5 seepage lateral boundary on the excavation side is always a fixed head, no no-flow symmetry axis. Independent expected values; remove each entry when its fix lands.",
+      "tests": ["GlobalStabilityHonoursPrescribedPorePressures", "SymmetricExcavationAxisCarriesNoFlow"]
+    },
+    "Design.Checks": {
+      "reason": "Open finding S1 of the 21/10/2026 paratie review: RC pile, steel tube and RC strip checks do not compare the width argument with the analysed TributaryWidth. Remove when the check refuses a mismatch.",
+      "tests": ["ChecksRefuseAWidthDifferentFromTheAnalysedStrip"]
     }
   }
 }
