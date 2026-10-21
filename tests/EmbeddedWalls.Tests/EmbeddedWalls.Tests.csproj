@@ -6,6 +6,7 @@
     <None Update="distributed-expected.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="envelope-expected.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="global-distributed-expected.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="independent-expected.json" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="../../GPCChecker.Geotechnics/GPCChecker.Geotechnics.csproj" />
     <Reference Include="GPCModel"><HintPath>../../../Model/Model/bin/Release/netstandard2.0/GPCModel.dll</HintPath></Reference>
     <Reference Include="GPCGeometry"><HintPath>../../../Geometry/GPCGeometry/bin/Release/netstandard2.0/GPCGeometry.dll</HintPath></Reference>

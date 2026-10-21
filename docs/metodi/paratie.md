@@ -52,15 +52,27 @@ gli offset plastici dei punti di integrazione ancora attivi. Un riporto nuovo
 assume la deformata già raggiunta come riferimento locale.
 
 Un sostegno installato assume lo spostamento della fase precedente come
-riferimento, con forza di bloccaggio applicata progressivamente. Sostegni
+riferimento, con forza di bloccaggio applicata progressivamente. Un puntone o
+un tirante che si scarica conserva il punto di forza nulla e riprende carico
+quando lo spostamento vi ritorna; solo il raggiungimento della capacità sposta
+il riferimento (allungamento permanente). Sostegni
 rimossi perdono progressivamente il contributo e cancellano la propria storia;
 una reinstallazione è nuova. Una fase deve separare installazione e scavo quando
 il loro ordine fisico influenza il risultato.
 
 Elementi Hermite, quattro punti di Gauss, carichi consistenti. Rotazioni scalate
 per lunghezza e matrice a banda riequilibrata prima di Cholesky. Newton con
-ricerca lineare, riduzione adattiva dell'incremento, stato di prova distinto
-da quello confermato. Non si introducono rigidezze fittizie contro i meccanismi.
+ricerca lineare di Armijo sull'energia potenziale, riduzione adattiva
+dell'incremento, stato di prova distinto da quello confermato. Con molle e
+sostegni elasto-plastici l'energia è convessa e derivabile una volta: ogni
+direzione di Newton con tangente definita positiva la riduce, mentre il massimo
+modulo del residuo non è una misura adatta nei punti angolosi della plasticità.
+La differenza di energia si somma termine per termine; la riduzione della norma
+2 del residuo copre solo le differenze perse per arrotondamento vicino alla
+convergenza. La tolleranza relativa si riferisce al massimo fra carichi,
+reazioni del terreno e dei sostegni e forze interne di flessione, perché
+l'arrotondamento dei termini EI cresce con EI/h³.
+Non si introducono rigidezze fittizie contro i meccanismi.
 Fallimento di una fase: rollback completo della fase, restano solo quelle concluse.
 Annullamento: eccezione cooperativa, nessun risultato nuovo pubblicato.
 
@@ -90,6 +102,13 @@ con valori aritmetici, tensioni efficaci con falda e conservazione degli input.
 Per il fronte plastico dello scavo si confrontano mesh 500/250/125 mm e si
 richiedono correzioni decrescenti e ultima variazione inferiore a 0.02 mm.
 Non sono attesi rigenerati dal solver e non costituiscono confronto con altri prodotti.
+
+Revisione del 21/10/2026 (`docs/verifiche/paratie-revisione-2026-10.md`): un
+risolutore indipendente a molle concentrate (`tools/attesi/paratie_indipendente.py`,
+mesh 50/25 mm e valore di Richardson) scrive `independent-expected.json`; mensola
+in sabbia, argilla non drenata e paratia tirantata con falda coincidono entro lo
+0,1 %. Geotechnics 0.14.0.1 corregge il sostegno monolatero che seguiva la parete
+staccandosi, la ricerca lineare e la scala della tolleranza (`ReviewFixesTests`).
 
 ## Collegamento Concrete del primo incremento
 
