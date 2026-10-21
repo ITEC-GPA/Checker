@@ -1,0 +1,44 @@
+TASK GENERALE STEEL - PRIMO BLOCCO APPROVATO - 21 OTTOBRE 2026
+Branch: codex/steel-section-architecture
+Baseline: 328d4f60, Steel 2.5.0.0, ModelChecker 2.3.0.0.
+Il blocco connessioni (11-16) e' concordato come sviluppo successivo.
+Le norme americane restano fuori da questo lavoro.
+
+1. Estrarre primitive di classificazione interne/sporgenti/CHS. COMPLETATO (2.6.0.0).
+2. Separare ricostruzione geometrica e classificazione. DA FARE.
+3. Integrare flessione/pressoflessione e sigma_com,Ed con classi distinte
+   per resistenza di sezione e instabilita'. DA FARE.
+4. Migrare i chiamanti con confronto vecchio/nuovo e oracoli. DA FARE.
+5. Estrarre aree resistenti/proprieta' derivate, differenze EC3/NTC. DA FARE.
+6. Separare instabilita': Ncr/Mcr, snellezze, curve, riduzioni. DA FARE.
+7. Isolare interazioni di sezione e d'asta, con campi di applicazione. DA FARE.
+8. Consolidare NTC2018: formule comuni distinte dalle prescrizioni. DA FARE.
+9. Colmare copertura indipendente e riesaminare gli11 legacy. DA FARE.
+10. Completare ModelChecker, pulizia mirata, verifica e master. DA FARE.
+
+Ogni passo viene verificato e committato. Nessun atteso preesistente viene
+rigenerato per ottenere test verdi. Una verifica non supportata non e' positiva.
+Il merge finale segue il completamento e la verifica dell'intero blocco;
+nessun push incluso. Il refactoring non rende automaticamente qualificati
+tutti i metodi/famiglie gia' presenti nelle facade legacy.
+
+PUNTO1 - AMBITO E FONTE
+EN1993-1-1:2005, corrigenda2006/2009, tabella5.2, pagine stampate42-44
+(paginePDF44-46), consultata il21/10/2026:
+https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+Solo compressione uniforme delle parti piane e CHS in N/M.
+L'API scalare contiene dimensioni inmm e fy inMPa; nessuna dipendenza Model.
+Classe4 e' una classificazione completata, non una verifica resistente.
+Non include da sola i requisiti aggiuntivi per angolari della terza pagina
+della tabella, i raccordi/cordoni, la ricostruzione delle tensioni o 5.5.2(9).
+Le facade conservano il comportamento di input preesistente: la validazione
+esplicita del nuovo contratto non viene imposta implicitamente ai chiamanti.
+L'ordine dei prodotti epsilon*epsilon CHS resta quello legacy.
+
+PUNTO1 - VERIFICA ESEGUITA
+138 nuovi casi: soglie inclusive e lati, cinque gradi, scala geometrica,
+input mancanti/non validi, errori numerici, traccia e confronto delle facade.
+Steel.Members1463/1463, ModelChecker Steel97/97; legacy111/122, stessi11
+fallimenti e identica diagnostica29casi/221asserzioni. Zero test ignorati.
+Nessuna fixture, atteso o whitelist preesistente modificato.
+Evidenze: CLASSIFICATION_REFACTOR_VERIFICATION.json.

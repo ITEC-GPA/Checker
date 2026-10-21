@@ -2884,36 +2884,10 @@ namespace GPC.Checkers.Steel.Checkers
         }
 
         protected SectionClass GetClassCHSBending(double diameter, double thickness)
-        {
-            if (diameter / thickness <= 50.0 * Epsilon * Epsilon)
-                return SectionClass.Class1;
-
-            else if (diameter / thickness <= 70.0 * Epsilon * Epsilon)
-                return SectionClass.Class2;
-
-            else if (diameter / thickness <= 90.0 * Epsilon * Epsilon)
-                return SectionClass.Class3;
-
-            else
-                return SectionClass.Class4;
-        }
+            => (SectionClass)SectionClassificationArithmetic.Classify(CompressionPartKind.CircularHollow, diameter, thickness, Epsilon);
 
         protected SectionClass GetClassCompressedOuterPlate(double length, double thickness)
-        {
-            double ratio = length / thickness;
-
-            if (ratio <= 9.0 * Epsilon)
-                return SectionClass.Class1;
-
-            else if (ratio <= 10.0 * Epsilon)
-                return SectionClass.Class2;
-
-            else if (ratio <= 14.0 * Epsilon)
-                return SectionClass.Class3;
-
-            else
-                return SectionClass.Class4;
-        }
+            => (SectionClass)SectionClassificationArithmetic.Classify(CompressionPartKind.OutstandFlat, length, thickness, Epsilon);
 
         protected SectionClass GetClassBendingInnerPlate(ResultBeamForces resultBeamForces, double length, double thickness, ISteelSection section, SectionClass sectionClass)
         {
@@ -2997,21 +2971,7 @@ namespace GPC.Checkers.Steel.Checkers
         }
 
         protected SectionClass GetClassCompressedInnerPlate(double length, double thickness)
-        {
-            double ctRatio = length / thickness;
-
-            if (ctRatio <= 33.0 * Epsilon)
-                return SectionClass.Class1;
-
-            else if (ctRatio <= 38.0 * Epsilon)
-                return SectionClass.Class2;
-
-            else if (ctRatio <= 42.0 * Epsilon)
-                return SectionClass.Class3;
-
-            else
-                return SectionClass.Class4;
-        }
+            => (SectionClass)SectionClassificationArithmetic.Classify(CompressionPartKind.InternalFlat, length, thickness, Epsilon);
 
         /// <summary>
         /// Return the worst <see cref="SectionClass"/> section between <paramref name="obj1"/> e <paramref name="obj2"/>

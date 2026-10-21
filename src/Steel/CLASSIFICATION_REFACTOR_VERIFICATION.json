@@ -1,0 +1,97 @@
+{
+  "Steps": [
+    {
+      "Step": 1,
+      "Version": "2.6.0.0",
+      "BaseCommit": "328d4f60",
+      "Date": "2026-10-21",
+      "NewCases": 138,
+      "Source": "https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf",
+      "Reference": "EN1993-1-1:2005 + AC2006/2009 Table5.2 printed pp42-44",
+      "LegacyCasesExactlyEqual": true,
+      "Suites": [
+        {
+          "File": "class-primitives-members.trx",
+          "Sha256": "ae5a35e538867e13b432f3ce6692385a0b4175b025a597869d90d1e48b1739c4",
+          "Counters": {
+            "total": "1463",
+            "executed": "1463",
+            "passed": "1463",
+            "failed": "0",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          },
+          "FailedTests": []
+        },
+        {
+          "File": "class-primitives-compat-modelchecker.trx",
+          "Sha256": "fbc8231f33f930e0caf51737cdf5be5f97cf865cc901809b9334aefb93e0c989",
+          "Counters": {
+            "total": "97",
+            "executed": "97",
+            "passed": "97",
+            "failed": "0",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          },
+          "FailedTests": []
+        },
+        {
+          "File": "class-primitives-compat-legacy.trx",
+          "Sha256": "14255470101947206e8564a873bedc221b72d53702947aef88b70ab6a83eaa53",
+          "Counters": {
+            "total": "122",
+            "executed": "122",
+            "passed": "111",
+            "failed": "11",
+            "error": "0",
+            "timeout": "0",
+            "aborted": "0",
+            "inconclusive": "0",
+            "passedButRunAborted": "0",
+            "notRunnable": "0",
+            "notExecuted": "0",
+            "disconnected": "0",
+            "warning": "0",
+            "completed": "0",
+            "inProgress": "0",
+            "pending": "0"
+          },
+          "FailedTests": [
+            "Sap_SectionHAsymmetricTest1",
+            "Sap_SectionHAsymmetricTest2",
+            "Sap_SectionLTest",
+            "Sap_SectionTTest",
+            "Sap_SectionTTest2",
+            "SectionCLateralTorsionalBuckling2",
+            "SectionHBuckling1",
+            "SectionHInteraction2",
+            "SectionHInteraction3",
+            "SectionHLateralTorsionalBuckling1",
+            "SectionHLateralTorsionalBuckling2"
+          ]
+        }
+      ]
+    }
+  ]
+}
