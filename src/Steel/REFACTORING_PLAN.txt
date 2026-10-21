@@ -169,3 +169,16 @@ o Annex A al percorso NTC. Conservati i campi assiali e CHS gia' supportati.
 8 casi nuovi per profili normativi modificati, varianti e classi CHS ai confini.
 Steel1580/1580; ModelChecker Steel103/103; legacy111/122, stessi11,
 identici29casi/221asserzioni diagnostici. Nessun atteso preesistente cambiato.
+
+PUNTO 9a - CURVE DI SEZIONI SALDATE (Steel2.13.0.1)
+Tabella6.2 EC3:2005/AC2009, pagina58 verificata anche sul disegno originale.
+Cassone simmetrico: curva c se a>0.5tf E b/tf<30 E h/tw<30, b altrimenti.
+R della sola SectionRHS esatta saldata e' gola, come da contratto Model;
+R=0 significa dato non specificato: se il caso c non puo' essere escluso,
+si usa l'inviluppo conservativo c. Raggi di sottotipi e pareti disuguali
+non ricevono una curva b non qualificata. Non varia Ncr elastico.
+H saldata doppiamente simmetrica esatta: confine tf<=40, senza usare tw,
+curve b/c oppure c/d e corrispondenza assi geometrici/principali esplicita.
+78 nuovi casi normativi/analitici:39 fallivano prima,78 superati dopo.
+Steel1658/1658; ModelChecker Steel103/103; legacy111/122, stessi11 e
+diagnostica identica. Nessun atteso preesistente modificato.

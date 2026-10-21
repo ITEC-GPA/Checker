@@ -725,6 +725,30 @@ namespace GPC.Checkers.Steel.Checkers
             return geometricY ? y : z;
         }
 
+        private static EN1993p11Options.AxialBuckingCurves GetWeldedBoxBucklingCurve(SectionRHS shape)
+        {
+            // Model documents R as corner radius OR weld throat. Only the exact
+            // sharp RHS with Welded production uses the latter interpretation.
+            // Zero means unspecified; rounded/derived shapes and unequal walls
+            // are not represented by the single tf/tw table sketch: envelope c.
+            if (shape.GetType() != typeof(SectionRHS) ||
+                shape.ThicknessTop != shape.ThicknessBottom || shape.ThicknessWebLeft != shape.ThicknessWebRight)
+                return EN1993p11Options.AxialBuckingCurves.c;
+            double? throat = shape.R == 0 ? (double?)null : shape.R;
+            return Ec3WeldedBucklingPolicy.BoxRequiresCurveC(shape.Base, shape.Height,
+                shape.ThicknessTop, shape.ThicknessWebLeft, throat)
+                ? EN1993p11Options.AxialBuckingCurves.c : EN1993p11Options.AxialBuckingCurves.b;
+        }
+
+        private static EN1993p11Options.AxialBuckingCurves GetWeldedSymmetricIBucklingCurve(SectionH shape, int principalAxis)
+        {
+            // Table6.2 uses tf (inclusive 40mm), not tw. Same rows for S235-S460.
+            bool thickFlange = shape.ThicknessTopFlange > 40;
+            bool geometricY = (shape.Jxx >= shape.Jyy) == (principalAxis == 1);
+            if (geometricY) return thickFlange ? EN1993p11Options.AxialBuckingCurves.c : EN1993p11Options.AxialBuckingCurves.b;
+            return thickFlange ? EN1993p11Options.AxialBuckingCurves.d : EN1993p11Options.AxialBuckingCurves.c;
+        }
+
         protected EN1993p11Options.AxialBuckingCurves GetBucklingCurve2Axis(ISteelSection section)
         {
             if (section.SectionShape is SectionCHS sectionCHS)
@@ -749,11 +773,7 @@ namespace GPC.Checkers.Steel.Checkers
             {
                 if (section.SectionType == Section.SectionTypes.Welded)
                 {
-                    if (sectionRHS.ThicknessBottom / sectionRHS.Base < 40 && sectionRHS.ThicknessTop / sectionRHS.Base < 40 &&
-                        sectionRHS.ThicknessWebLeft / sectionRHS.Height < 30 && sectionRHS.ThicknessWebRight / sectionRHS.Height < 30)
-                        return EN1993p11Options.AxialBuckingCurves.b;
-                    else
-                        return EN1993p11Options.AxialBuckingCurves.c;
+                    return GetWeldedBoxBucklingCurve(sectionRHS);
                 }
                 else if (section.FormedType == Section.FormedTypes.HotFinished)
                 {
@@ -770,6 +790,8 @@ namespace GPC.Checkers.Steel.Checkers
             {
                 if (section.SectionType == Section.SectionTypes.Rolled && sectionH.IsDoubleSymmetric)
                     return GetRolledSymmetricIBucklingCurve(section, sectionH, 2);
+                if (section.SectionType == Section.SectionTypes.Welded && sectionH.GetType() == typeof(SectionH) && sectionH.IsDoubleSymmetric)
+                    return GetWeldedSymmetricIBucklingCurve(sectionH, 2);
 
                 if (section.SectionType == Section.SectionTypes.Rolled)
                 {
@@ -864,11 +886,7 @@ namespace GPC.Checkers.Steel.Checkers
             {
                 if (section.SectionType == Section.SectionTypes.Welded)
                 {
-                    if (sectionRHS.ThicknessBottom / sectionRHS.Base < 40 && sectionRHS.ThicknessTop / sectionRHS.Base < 40 &&
-                        sectionRHS.ThicknessWebLeft / sectionRHS.Height < 30 && sectionRHS.ThicknessWebRight / sectionRHS.Height < 30)
-                        return EN1993p11Options.AxialBuckingCurves.b;
-                    else
-                        return EN1993p11Options.AxialBuckingCurves.c;
+                    return GetWeldedBoxBucklingCurve(sectionRHS);
                 }
                 else if (section.FormedType == Section.FormedTypes.HotFinished)
                 {
@@ -885,6 +903,8 @@ namespace GPC.Checkers.Steel.Checkers
             {
                 if (section.SectionType == Section.SectionTypes.Rolled && sectionH.IsDoubleSymmetric)
                     return GetRolledSymmetricIBucklingCurve(section, sectionH, 1);
+                if (section.SectionType == Section.SectionTypes.Welded && sectionH.GetType() == typeof(SectionH) && sectionH.IsDoubleSymmetric)
+                    return GetWeldedSymmetricIBucklingCurve(sectionH, 1);
 
                 if (section.SectionType == Section.SectionTypes.Rolled)
                 {
