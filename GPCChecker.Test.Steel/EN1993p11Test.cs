@@ -1352,19 +1352,41 @@ namespace SteelTests
 
             EN1993P11Checker.PerformCheck();
 
-            Assert.AreEqual(4927.4 * 1000.0 / EN1993P11Checker.EN1993p11BeamStationResults[0].AxialTensionCapacity, 1, 0.01);
-            Assert.AreEqual(418.54 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment1Capacity, 1, 0.01);
-            Assert.AreEqual(149.027 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].BendingMoment2Capacity, 1, 0.01);
-            Assert.AreEqual(484.759 * 1e6 / EN1993P11Checker.EN1993p11BeamStationResults[0].LateralTosionalBucklingCapacity, 1, 0.01);
-
-            Assert.AreEqual(0.575 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiAxialBuckling1, 1, 0.01);
-            Assert.AreEqual(0.15 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiAxialBuckling2, 1, 0.01);
-            Assert.AreEqual(0.775 / EN1993P11Checker.EN1993p11BeamStationResults[0].ChiLTBuckling, 1, 0.01);
-
-            Assert.AreEqual(1.005 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxx, 1, 0.01);
-            Assert.AreEqual(1.004 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kxy, 1, 0.01);
-            Assert.AreEqual(0.918 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyx, 1, 0.01);
-            Assert.AreEqual(0.901 / EN1993P11Checker.EN1993p11BeamStationResults[0].Kyy, 1, 0.01);
+            // Historical SAP comparison is archived, NOT reproduced or approved.
+            // Active unsupported-capability contract; see LEGACY_CLOSURE_07.txt.
+            Assert.AreEqual(355.0, EN1993P11Checker.Fy);
+            Assert.AreEqual(490.0, EN1993P11Checker.Fu);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM0);
+            Assert.AreEqual(1.0, standardEN1993P11.GammaM1);
+            Assert.AreEqual(1.25, standardEN1993P11.GammaM2);
+            Assert.AreEqual(1, EN1993P11Checker.GetErrorLog().Count);
+            string error = EN1993P11Checker.GetErrorLog()[0].ToString();
+            StringAssert.Contains(error, "SelfWeight");
+            StringAssert.Contains(error, "6.3.3 requires doubly symmetric sections");
+            StringAssert.Contains(error, "combined member interaction");
+            Assert.AreEqual(1, EN1993P11Checker.EN1993p11BeamStationResults.Length);
+            var result = EN1993P11Checker.EN1993p11BeamStationResults[0];
+            Assert.IsFalse(section.IsDoubleSymmetric);
+            Assert.IsTrue(double.IsNaN(result.WorkingRatio), "Unsupported member check cannot appear verified.");
+            Assert.IsTrue(double.IsNaN(result.BucklingInteraction1Axis));
+            Assert.IsTrue(double.IsNaN(result.BucklingInteraction2Axis));
+            Assert.AreEqual(EN1993p11Checker.SectionClass.Class3, result.BendingCompressionClass);
+            // Independent exact rectangular integration, not copied SAP properties.
+            Assert.AreEqual(13880d, section.Area, 13880d * 1e-10, "Area");
+            Assert.AreEqual(319328634.96637851d, section.J11, 319328634.96637851d * 1e-10, "J11");
+            Assert.AreEqual(62969226.666666664d, section.J22, 62969226.666666664d * 1e-10, "J22");
+            Assert.AreEqual(1178986.3949921087d, section.Wel1, 1178986.3949921087d * 1e-10, "Wel1");
+            Assert.AreEqual(419794.84444444446d, section.Wel2, 419794.84444444446d * 1e-10, "Wel2");
+            Assert.IsTrue(double.IsNaN(result.Kxx), "Annex A coefficient must be invalidated");
+            Assert.IsTrue(double.IsNaN(result.Kxy), "Annex A coefficient must be invalidated");
+            Assert.IsTrue(double.IsNaN(result.Kyx), "Annex A coefficient must be invalidated");
+            Assert.IsTrue(double.IsNaN(result.Kyy), "Annex A coefficient must be invalidated");
+            // Available section/Euler components remain numerically qualified.
+            Assert.AreEqual(4896864d, result.AxialTensionCapacity, 4896864d * 1e-10, "AxialTensionCapacity");
+            Assert.AreEqual(418540170.22219861d, result.BendingMoment1Capacity, 418540170.22219861d * 1e-10, "BendingMoment1Capacity");
+            Assert.AreEqual(149027169.77777779d, result.BendingMoment2Capacity, 149027169.77777779d * 1e-10, "BendingMoment2Capacity");
+            Assert.AreEqual(4596152.3140429547d, result.NCr1, 4596152.3140429547d * 1e-10, "NCr1");
+            Assert.AreEqual(906326.97843701812d, result.NCr2, 906326.97843701812d * 1e-10, "NCr2");
         }
 
         [TestMethod]
