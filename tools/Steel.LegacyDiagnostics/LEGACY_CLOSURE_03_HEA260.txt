@@ -1,0 +1,95 @@
+CHIUSURA LEGACY 03 - SectionHInteraction3 - 21 OTTOBRE 2026
+
+Esito: test corretto con un riferimento indipendente per il metodo eseguito
+(EC3 Allegato A, metodo 1) e per gli input gia' presenti. Nessuna modifica
+di produzione, di input, di curve o di coefficienti parziali.
+Il commento originale cita Cordova p.237 e un "metodo esatto", senza le
+equazioni/intermedi. La pagina non e' disponibile: non si dimostra un
+errore del libro ne' si identifica la causa precisa della trascrizione.
+Si chiude il confronto non qualificato, sostituito da uno riproducibile.
+
+Provenienza e riproduzione
+Base Checker9e4dfbbd, Steel2.18.0.0; Modelb83c1f35,5.17.0.0.
+SHA256 sorgente prima: E13447C39A479B478C627B751C39106357AA5EA7E5F24084A2B0EFF7520597F3.
+Originale: closed-cases/SectionHInteraction3.original.cs.txt.
+Ricalcolo Python: python hea260_annex_a_reference.py, dalla cartella attuale.
+Usa solo decimal e la bisezione scalare di ipe300_annex_a_reference.py;
+nessuna DLL GPC, nessun risultato del checker letto per generare gli attesi.
+Output: closed-cases/SectionHInteraction3.reference.json.
+Riferimento C# distinto: LegacyHInteractionArithmeticTests, (3,False);
+(3,True) verifica separatamente gammaM1=1.10 con gammaM0=1.
+Fonti: EN1993-1-1:2005+AC2006/2009,6.3.1,6.3.2.3,6.3.3(4),
+tabelle5.2,6.2,6.5,6.6,A.1/A.2 (pp.76-78 per i fattori d'interazione):
+https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+CTICM NCCI SN003b-EN-EU,eq.(3)p.4,tabella3.2p.6:
+https://www.steelconstruction.info/images/0/0f/SN003b.pdf
+Non si qualifica una nuova edizione EC3 o NTC2018.
+
+Input e interpretazione
+HEA260 laminato: h250,b260,tf12.5,tw7.5,r24 mm; S235,E210000 MPa,nu=.3.
+L=Lcr,y=Lcr,z=LTB=4000 mm, forcelle e ingobbamento libero.
+N=-400 kN in GPC (compressione), My=71 kNm, Mz=30 kNm; tagli/torsione nulli.
+LoadConditions.Constant significa carico trasversale uniforme, quindi
+diagrammi parabolici nei due piani: non momento costante. Carico nel centro
+di taglio; C1=1.127, kc=.94. Il benchmark conserva la stazione0 originale
+come contenitore degli input. Non certifica la corrispondenza fra quella
+coordinata e i massimi dei diagrammi, ne' risolve l'equilibrio della trave.
+GammaM0=GammaM1=1 del preset EN, invariati. Nessuna qualifica dell'AN italiano.
+
+Proprieta' e classificazione
+Integrali indipendenti di rettangoli e quattro raccordi a quarto di cerchio:
+A=8681.942631532279 mm2, Iy=104549554.33142601 mm4,
+Iz=36675632.29080164 mm4, Wel,y=836396.4346514081 mm3,
+Wel,z=282120.2483907819 mm3.
+Wpl esatti=919771.0478906067/430168.8455250207 mm3.
+Wpl Model usati nell'interazione=919789.9015433467/430171.11123419553 mm3.
+Il loro errore geometrico e' controllato indipendentemente: ciascuno dei
+4 raccordi usa64corde, deltaA=4*r^2/2*[pi/2-64*sin(pi/128)].
+Per simmetria gli assi plastici restano centrali: |deltaWpl,y|<=deltaA*h/2,
+|deltaWpl,z|<=deltaA*b/2. Questo limite non deriva dallo scarto osservato.
+It=541937.2876357703 mm4 e Iw=516240692070.4727 mm6 sono invece input
+espliciti Model, non soluzioni torsionali indipendentemente qualificate qui.
+I valori sono fissati nel test: cambiamenti futuri richiedono riesame.
+epsilon=1; ala c/t=8.18<=9, anima c/t=23.6<=33: classe1 gia' in
+compressione uniforme, sufficiente anche per lo stato biassiale in esame.
+Iy>Iz:1=y,2=z. Curve b/c (alpha .34/.49); LTB laminati curva b,
+beta=.75,lambdaLT0=.4. La doppia simmetria mantiene disaccoppiati i modi:
+Ncr,TF=Ncr,T=6801.994601034 kN, distinto da Ncr,z=4750.908512044 kN.
+
+Catena e risultati
+Riduzioni da bisezione del polinomio, Mcr^2=C1^2 Ncr,z [GIt+pi^2 EIw/L^2].
+lambda0=.546010759388 > soglia A.1 .205008901348: ramo suscettibile.
+Mcr=817.105274469 kNm,chiLT=.978816681463,Mb,Rd=211.571839282 kNm.
+Cm,y0=1+.03N/Ncr,y=1.000886053617;
+Cm,z0=1+.03N/Ncr,z=1.002525832684.
+I quattro termini ausiliari sono non nulli:
+bLT=.014768214936,cLT=.191902965855,dLT=.379281869691,eLT=1.089091654094.
+kyy=1.095665335456,kyz=.748934683319,
+kzy=.598208141135,kzz=1.097415450709 (nel codice Kxx/Kxy/Kyx/Kyy).
+Denominatori assiali delle interazioni Nb,y=1898.977703391 kN,
+Nb,z=1534.543403271 kN; resistenza debole Mz,Rk/gammaM1=Wpl,z fy.
+Asse1: N/Nb,y + kyy My/Mb + kyz Mz/Mz,Rd
+      = .210639650632+.367687113188+.222257330816=.800584094636.
+Asse2: N/Nb,z + kzy My/Mb + kzz Mz/Mz,Rd
+      = .260663855546+.200748729910+.325674099895=.787086685352.
+Attesi originali .77/.73: scarti assoluti .030584094636/.057086685352,
+oltre le tolleranze .025/.01. Gli attesi nuovi non sono output GPC copiati.
+Per il controllo assiale isolato N/Ncr,y=.029535120563<=.04 consente
+6.3.1.2(4): AxialBuckling1Capacity=Afy/gammaM0=2040.256518410 kN.
+L'interazione conserva chi_y=.930754386155 e il denominatore ridotto.
+Sul secondo asse N/Ncr,z=.084194422811>.04, resta la capacita' ridotta.
+
+Verifica
+Il test originale resta archiviato; il nome del test attivo non cambia.
+39 risultati numerici, geometria, classi, curve, lunghezze, simmetria e
+assenza di errori sono asseriti. Tolleranza aritmetica1e-10*max(1,|atteso|),
+per double/riferimenti decimali; distinta dal limite geometrico dei Wpl.
+Python e C# concordano su37risultati con gli input dichiarati; i4casi della
+catena indipendente passano prima della modifica, mentre il legacy fallisce.
+Risultati finali: legacy114/122 superati,8 fallimenti identici alla whitelist,
+zero nuovi fallimenti e zero ignorati; Steel.Members1859/1859 superati.
+Setup originale invariato, tutti gli altri metodi legacy invariati,
+JSON riproducibile e39 costanti del test coincidenti con il riferimento.
+Manifest/hash: LEGACY_CLOSURE_03_VERIFICATION.json. Suite di altri domini
+non rieseguite: nessuna modifica di produzione.
+Versioni invariate: intervento solo su test/documentazione. Nessuna release/push.

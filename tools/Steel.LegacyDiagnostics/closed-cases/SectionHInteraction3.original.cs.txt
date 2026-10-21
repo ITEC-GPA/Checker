@@ -1,0 +1,40 @@
+        [TestMethod]
+        public void SectionHInteraction3()
+        {
+            // Cordova Costruzioni in acciaio pagina 237
+            // NOTA: in questo esempio utilizza il metodo esatto
+            double L = 4000;
+
+            double h = 250.0;
+            double width = 260;
+            double flangeThickness = 12.5;
+            double webThickness = 7.5;
+            double r = 24.0;
+
+            var sectionH = new SteelSection(new SectionH(h, webThickness, width, flangeThickness, width, flangeThickness, string.Empty, r),
+                SteelMaterialEN1993Data.S235, Section.SectionTypes.Rolled, Section.FormedTypes.HotFinished);
+            ResultBeamForces[] resultBeamForces = new ResultBeamForces[] { new ResultBeamForces(-400.0 * 1000, 0, 0, 0, 71.0 * 1000000, 30 * 1000000, CoordinateSystem.Global) };
+            LoadCase loadCase = new LoadCase("SelfWeight", LoadCase.LoadCaseTypes.SelfWeight);
+
+            double psiy = 0;
+
+            StationResultBeamForces[] resultLocationStations = new StationResultBeamForces[] { new StationResultBeamForces(loadCase, resultBeamForces[0], 0.0) };
+            BeamResult[] beamResults = new BeamResult[1] { new BeamResult(resultLocationStations) };
+            BeamElement beamElement = new BeamElement(new Point3d(0, 0, 0), new Point3d(0 + L, 0, 0), sectionH);
+            beamElement.Results.AddRange(beamResults);
+            EN1993p11Checker.EN1993p11Options options = new EN1993p11Checker.EN1993p11Options(EN1993p11Checker.EN1993p11Options.LoadConditions.Constant,
+                EN1993p11Checker.EN1993p11Options.SupportConditions.HingesAtEnds, EN1993p11Checker.EN1993p11Options.LateralSupportConditions.HingesAtEnds,
+                EN1993p11Checker.EN1993p11Options.LateralWarpingConditions.HingesAtEnds,
+                psiy, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                EN1993p11Checker.EN1993p11Options.LoadApplicationPoints.ShearCenter);
+            StandardEN1993p11 standard = new StandardEN1993p11();
+            EN1993p11Checker Checker = new EN1993p11Checker(beamElement, options, standard);
+
+            Checker.PerformCheck();
+
+            double expInteraction1WR = 0.77;
+            double expInteraction2WR = 0.73;
+
+            Assert.IsTrue((Math.Abs(Checker.EN1993p11BeamStationResults[0].BucklingInteraction1Axis - expInteraction1WR) * 100) < 2.5);
+            Assert.IsTrue((Math.Abs(Checker.EN1993p11BeamStationResults[0].BucklingInteraction2Axis - expInteraction2WR) * 100) < 1);
+        }

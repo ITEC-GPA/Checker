@@ -844,8 +844,9 @@ namespace SteelTests
         [TestMethod]
         public void SectionHInteraction3()
         {
-            // Cordova Costruzioni in acciaio pagina 237
-            // NOTA: in questo esempio utilizza il metodo esatto
+            // Requalified Annex A biaxial benchmark for the unchanged declared inputs.
+            // The original Cordova p.237 comparison is archived, not reproduced.
+            // See tools/Steel.LegacyDiagnostics/LEGACY_CLOSURE_03_HEA260.txt.
             double L = 4000;
 
             double h = 250.0;
@@ -875,11 +876,90 @@ namespace SteelTests
 
             Checker.PerformCheck();
 
-            double expInteraction1WR = 0.77;
-            double expInteraction2WR = 0.73;
+            Assert.AreEqual(235.0, Checker.Fy);
+            Assert.AreEqual(1.0, standard.GammaM0);
+            Assert.AreEqual(1.0, standard.GammaM1);
+            Assert.AreEqual(0, Checker.GetErrorLog().Count, string.Join("; ", Checker.GetErrorLog()));
+            Assert.AreEqual(1, Checker.EN1993p11BeamStationResults.Length);
+            Assert.IsTrue(sectionH.IsDoubleSymmetric);
+            var result = Checker.EN1993p11BeamStationResults[0];
+            Assert.AreEqual(EN1993p11Checker.SectionClass.Class1, result.AxialCompressionClass);
+            Assert.AreEqual(EN1993p11Checker.SectionClass.Class1, result.BendingCompressionClass);
+            Assert.AreEqual(EN1993p11Checker.EN1993p11Options.AxialBuckingCurves.b, result.BuckingCurve1);
+            Assert.AreEqual(EN1993p11Checker.EN1993p11Options.AxialBuckingCurves.c, result.BuckingCurve2);
+            Assert.AreEqual(4000.0, result.LengthAxialBuckling1);
+            Assert.AreEqual(4000.0, result.LengthAxialBuckling2);
 
-            Assert.IsTrue((Math.Abs(Checker.EN1993p11BeamStationResults[0].BucklingInteraction1Axis - expInteraction1WR) * 100) < 2.5);
-            Assert.IsTrue((Math.Abs(Checker.EN1993p11BeamStationResults[0].BucklingInteraction2Axis - expInteraction2WR) * 100) < 1);
+            // A/I/Wel are independently integrated. It/Iw remain declared Model inputs.
+            // Wpl values used in the chain are pinned and also checked against the
+            // independent exact integrals with a geometric discretization bound below.
+            Assert.AreEqual(8681.9426315322798d, sectionH.Area, 8681.9426315322798d * 1e-10, "Area");
+            Assert.AreEqual(104549554.33142601d, sectionH.J11, 104549554.33142601d * 1e-10, "J11");
+            Assert.AreEqual(36675632.290801637d, sectionH.J22, 36675632.290801637d * 1e-10, "J22");
+            Assert.AreEqual(836396.43465140811d, sectionH.Wel1, 836396.43465140811d * 1e-10, "Wel1");
+            Assert.AreEqual(282120.24839078187d, sectionH.Wel2, 282120.24839078187d * 1e-10, "Wel2");
+            Assert.AreEqual(541937.28763577028d, sectionH.Jt, 541937.28763577028d * 1e-10, "Jt");
+            Assert.AreEqual(516240692070.47272d, sectionH.Jw, 516240692070.47272d * 1e-10, "Jw");
+            Assert.AreEqual(919789.9015433467d, sectionH.Wpl1, 919789.9015433467d * 1e-10, "Wpl1");
+            Assert.AreEqual(430171.11123419553d, sectionH.Wpl2, 430171.11123419553d * 1e-10, "Wpl2");
+
+            // Four quarter-circle fillets, each replaced by 64 chords. Missing segment
+            // area times the maximum lever arm bounds the plastic modulus error.
+            double areaExcess = 4 * r * r / 2 * (Math.PI / 2 - 64 * Math.Sin(Math.PI / 128));
+            Assert.AreEqual(919771.04789060669d, sectionH.Wpl1, areaExcess * h / 2, "Wpl1 geometric bound");
+            Assert.AreEqual(430168.84552502073d, sectionH.Wpl2, areaExcess * width / 2, "Wpl2 geometric bound");
+
+            // Independent Decimal reference: full N/My/Mz Annex A chain, including
+            // nonzero bLT/dLT. Separate axial checks may use the 6.3.1.2(4) exemption;
+            // interaction denominators retain full buckling reductions.
+            var expected = new[] {
+                new { Name = nameof(result.NCr1), Value = 13543198.482993022d },
+                new { Name = nameof(result.NCr2), Value = 4750908.512044155d },
+                new { Name = nameof(result.NcrTorsional), Value = 6801994.6010343712d },
+                new { Name = nameof(result.NcrFlexuralTorsional), Value = 6801994.6010343712d },
+                new { Name = nameof(result.LambdaSignedAxialBuckling1), Value = 0.38813406913755449d },
+                new { Name = nameof(result.LambdaSignedAxialBuckling2), Value = 0.65532095181324068d },
+                new { Name = nameof(result.ChiAxialBuckling1), Value = 0.93075438615487527d },
+                new { Name = nameof(result.ChiAxialBuckling2), Value = 0.7521325820671303d },
+                new { Name = nameof(result.MCr), Value = 817105274.46936047d },
+                new { Name = nameof(result.Lambda0LTBuckling), Value = 0.54601075938846644d },
+                new { Name = nameof(result.LambdaSignedLTBuckling), Value = 0.51432690429251449d },
+                new { Name = nameof(result.ChiLTBuckling), Value = 0.97881668146255096d },
+                new { Name = nameof(result.LateralTosionalBucklingCapacity), Value = 211571839.28178489d },
+                new { Name = nameof(result.CmX0), Value = 1.0008860536168815d },
+                new { Name = nameof(result.CmY0), Value = 1.0025258326843336d },
+                new { Name = nameof(result.Cmx), Value = 1.0003769888629279d },
+                new { Name = nameof(result.Cmy), Value = 1.0025258326843336d },
+                new { Name = nameof(result.CmLT), Value = 1.072331823387348d },
+                new { Name = nameof(result.Mux), Value = 0.99789701141016096d },
+                new { Name = nameof(result.Muy), Value = 0.97772006042706994d },
+                new { Name = nameof(result.Wx), Value = 1.0997056699873371d },
+                new { Name = nameof(result.Wy), Value = 1.5d },
+                new { Name = nameof(result.EpsilonX), Value = 1.8424813321200415d },
+                new { Name = nameof(result.BLT), Value = 0.014768214936021942d },
+                new { Name = nameof(result.CLT), Value = 0.19190296585538072d },
+                new { Name = nameof(result.DLT), Value = 0.37928186969109473d },
+                new { Name = nameof(result.ELT), Value = 1.0890916540935902d },
+                new { Name = nameof(result.Cxx), Value = 1.0067482076784615d },
+                new { Name = nameof(result.Cxy), Value = 1.0220984144395637d },
+                new { Name = nameof(result.Cyx), Value = 0.92815204228664516d },
+                new { Name = nameof(result.Cyy), Value = 0.97529442941831157d },
+                new { Name = nameof(result.Kxx), Value = 1.0956653354560697d },
+                new { Name = nameof(result.Kxy), Value = 0.74893468331944246d },
+                new { Name = nameof(result.Kyx), Value = 0.59820814113468201d },
+                new { Name = nameof(result.Kyy), Value = 1.097415450709013d },
+                new { Name = nameof(result.BucklingInteraction1Axis), Value = 0.80058409463551239d },
+                new { Name = nameof(result.BucklingInteraction2Axis), Value = 0.78708668535197812d },
+                new { Name = nameof(result.AxialBuckling1Capacity), Value = 2040256.5184100857d },
+                new { Name = nameof(result.AxialBuckling2Capacity), Value = 1534543.4032710711d },
+            };
+            foreach (var item in expected)
+            {
+                var property = result.GetType().GetProperty(item.Name);
+                double actual = (double)property.GetValue(result);
+                Assert.IsFalse(double.IsNaN(actual) || double.IsInfinity(actual), item.Name);
+                Assert.AreEqual(item.Value, actual, 1e-10 * Math.Max(1, Math.Abs(item.Value)), item.Name);
+            }
         }
 
         [TestMethod]

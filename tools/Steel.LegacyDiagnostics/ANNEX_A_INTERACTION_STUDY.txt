@@ -221,3 +221,8 @@ restano da accertare: nessuna attribuzione automatica di errore all'autore.
 per il metodo Allegato A e gli input esistenti. Il riferimento Cordova
 e' conservato come storico non riprodotto. SectionHInteraction3 resta
 aperto. Vedere LEGACY_CLOSURE_02_IPE300.txt e relativo manifest.
+
+21/10/2026 - Anche SectionHInteraction3 e' chiuso con un riferimento
+indipendente per gli input dichiarati. Il confronto Cordova originale
+e' archiviato senza dichiararlo riprodotto. Vedere
+LEGACY_CLOSURE_03_HEA260.txt e relativo manifest.

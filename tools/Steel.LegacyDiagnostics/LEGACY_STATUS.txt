@@ -1,3 +1,7 @@
+AGGIORNAMENTO 21/10/2026 - Passo3: SectionHInteraction3 corretto per
+gli input biassiali dichiarati e il metodo Allegato A. Restano8 casi.
+Vedere LEGACY_CLOSURE_03_HEA260.txt per calcoli, fonti e limiti.
+
 AGGIORNAMENTO 21/10/2026 - Passo2: SectionHInteraction2 corretto per
 il metodo dell'Allegato A e gli input dichiarati. Restano9 casi aperti.
 Vedere LEGACY_CLOSURE_02_IPE300.txt per fonti, limiti e prove.
