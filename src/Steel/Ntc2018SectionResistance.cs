@@ -1,3 +1,4 @@
+using GPC.Checkers.Steel.Sections;
 using System;
 
 namespace GPC.Checkers.Steel.Members
@@ -11,9 +12,9 @@ namespace GPC.Checkers.Steel.Members
     /// </summary>
     public static class Ntc2018SectionResistance
     {
-        public const double GammaM0 = 1.05;
+        public const double GammaM0 = SectionResistanceCode.NtcGammaM0;
         public const double GammaM1 = 1.05;
-        public const double GammaM2 = 1.25;
+        public const double GammaM2 = SectionResistanceCode.NtcGammaM2;
 
         /// <summary>NTC 2018 4.2.4.1.2.1. Null netArea explicitly means an unperforated section.</summary>
         public static double Tension(double area, double yieldStrength, double ultimateStrength, double? netArea = null)
@@ -21,12 +22,12 @@ namespace GPC.Checkers.Steel.Members
             Positive(area, nameof(area)); Positive(yieldStrength, nameof(yieldStrength));
             Positive(ultimateStrength, nameof(ultimateStrength));
             if (ultimateStrength < yieldStrength) throw new ArgumentOutOfRangeException(nameof(ultimateStrength));
-            double resistance = area * yieldStrength / GammaM0;
+            double resistance = SectionResistanceArithmetic.Normal(area, yieldStrength, GammaM0);
             if (netArea.HasValue)
             {
                 Positive(netArea.Value, nameof(netArea));
                 if (netArea.Value > area) throw new ArgumentOutOfRangeException(nameof(netArea));
-                resistance = Math.Min(resistance, .9 * netArea.Value * ultimateStrength / GammaM2);
+                resistance = Math.Min(resistance, SectionResistanceArithmetic.NetTension(netArea.Value, ultimateStrength, GammaM2));
             }
             return PositiveResult(resistance);
         }
@@ -35,7 +36,7 @@ namespace GPC.Checkers.Steel.Members
         public static double Compression(double area, double yieldStrength, int sectionClass)
         {
             SupportedClass(sectionClass); Positive(area, nameof(area)); Positive(yieldStrength, nameof(yieldStrength));
-            return PositiveResult(area * yieldStrength / GammaM0);
+            return PositiveResult(SectionResistanceArithmetic.Normal(area, yieldStrength, GammaM0));
         }
 
         /// <summary>NTC 2018 4.2.4.1.2.3, low shear only. Wel is the smaller elastic modulus of the two extreme fibers.</summary>
@@ -44,14 +45,14 @@ namespace GPC.Checkers.Steel.Members
             SupportedClass(sectionClass); Positive(yieldStrength, nameof(yieldStrength));
             double modulus = sectionClass <= 2 ? plasticModulus : minimumElasticModulus;
             Positive(modulus, sectionClass <= 2 ? nameof(plasticModulus) : nameof(minimumElasticModulus));
-            return PositiveResult(modulus * yieldStrength / GammaM0);
+            return PositiveResult(SectionResistanceArithmetic.Normal(modulus, yieldStrength, GammaM0));
         }
 
         /// <summary>NTC 2018 4.2.4.1.2.4. Caller supplies Av for the specific direction and excludes shear buckling and torsion.</summary>
         public static double Shear(double shearArea, double yieldStrength)
         {
             Positive(shearArea, nameof(shearArea)); Positive(yieldStrength, nameof(yieldStrength));
-            return PositiveResult(shearArea * yieldStrength / (Math.Sqrt(3) * GammaM0));
+            return PositiveResult(SectionResistanceArithmetic.Shear(shearArea, yieldStrength, GammaM0));
         }
 
         /// <summary>NTC 2018 4.2.4.1.3.1. One flexural buckling axis, uniform member, classes 1-3.

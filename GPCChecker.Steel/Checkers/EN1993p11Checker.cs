@@ -1,3 +1,4 @@
+using GPC.Checkers.Steel.Sections;
 using GPC.Geometry;
 using System.Collections.Generic;
 using GPC.Checkers.Steel.Results;
@@ -528,20 +529,20 @@ namespace GPC.Checkers.Steel.Checkers
 
         private double CalculateNplRd(ISteelSection section)
         {
-            return section.Area * Fy / GammaM0;
+            return SectionResistanceArithmetic.Normal(section.Area, Fy, GammaM0);
         }
 
         private double CalculateNulRd(ISteelSection section)
         {
-            return 0.90 * GetAreaNet(section) * Fu / GammaM2;
+            return SectionResistanceArithmetic.NetTension(GetAreaNet(section), Fu, GammaM2);
         }
 
         private double CalculateAxialCompressionCapacity(SectionClass sectionClass, ISteelSection section)
         {
             if (sectionClass != SectionClass.Class4)
-                return section.Area * Fy / GammaM0;
+                return SectionResistanceArithmetic.Normal(section.Area, Fy, GammaM0);
             else
-                return GetAreaEff(section) * Fy / GammaM0;
+                return SectionResistanceArithmetic.Normal(GetAreaEff(section), Fy, GammaM0);
         }
 
         #endregion
@@ -1011,11 +1012,11 @@ namespace GPC.Checkers.Steel.Checkers
         protected double CalculateMcRd1(SectionClass sectionClass, ISteelSection section)
         {
             if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2)
-                return section.Wpl1 * Fy / GammaM0;
+                return SectionResistanceArithmetic.Normal(section.Wpl1, Fy, GammaM0);
             else if (sectionClass == SectionClass.Class3)
-                return section.Wel1 * Fy / GammaM0;
+                return SectionResistanceArithmetic.Normal(section.Wel1, Fy, GammaM0);
             else
-                return GetWeffMin1(section) * Fy / GammaM0;
+                return SectionResistanceArithmetic.Normal(GetWeffMin1(section), Fy, GammaM0);
         }
 
         /// <summary>
@@ -1024,11 +1025,11 @@ namespace GPC.Checkers.Steel.Checkers
         protected double CalculateMcRd2(SectionClass sectionClass, ISteelSection section)
         {
             if (sectionClass == SectionClass.Class1 || sectionClass == SectionClass.Class2)
-                return section.Wpl2 * Fy / GammaM0;
+                return SectionResistanceArithmetic.Normal(section.Wpl2, Fy, GammaM0);
             else if (sectionClass == SectionClass.Class3)
-                return section.Wel2 * Fy / GammaM0;
+                return SectionResistanceArithmetic.Normal(section.Wel2, Fy, GammaM0);
             else
-                return GetWeffMin2(section) * Fy / GammaM0;
+                return SectionResistanceArithmetic.Normal(GetWeffMin2(section), Fy, GammaM0);
         }
 
         #endregion
@@ -1093,7 +1094,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// <returns></returns>
         protected double CalculateVcRd1(ISteelSection section)
         {
-            return GetShearArea1(section) * (Fy / Math.Sqrt(3)) / GammaM0;
+            return SectionResistanceArithmetic.Shear(GetShearArea1(section), Fy, GammaM0);
         }
 
         /// <summary>
@@ -1102,7 +1103,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// <returns></returns>
         protected double CalculateVcRd2(ISteelSection section)
         {
-            return GetShearArea2(section) * (Fy / Math.Sqrt(3)) / GammaM0;
+            return SectionResistanceArithmetic.Shear(GetShearArea2(section), Fy, GammaM0);
         }
 
         protected double CalculateVbRd1(ISteelSection section)

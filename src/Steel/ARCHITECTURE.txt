@@ -1,0 +1,109 @@
+ARCHITETTURA CHECKER.STEEL - PRIMO PASSO - 21 OTTOBRE 2026
+Branch: codex/steel-section-architecture
+Versione: 2.5.0.0 (nuova API; incremento funzionale secondo AGENTS.md)
+
+Obiettivo
+Separare progressivamente i meccanismi di verifica, preservando gli ingressi
+esistenti e confrontando i risultati. Questo passo riguarda quattro primitive
+di sezione: trazione, compressione, flessione retta e taglio plastico.
+Non completa la verifica d'asta, la classificazione automatica o NTC2018.
+
+Struttura implementata (stessa DLL, nessun nuovo progetto/dipendenza)
+
+EN1993p11Checker --------------------------+
+                                          |
+Ntc2018SectionResistance ------------------+--> SectionResistanceArithmetic
+                                          |
+SectionResistanceVerifier ----------------+
+   |                 |
+   |                 +-- SectionResistanceCode: norma, edizione,
+   |                     fattori e provenienza dei parametri
+   +-- SectionResistanceResult: esito, Rd, rapporto, unita', riferimento,
+       ambito del controllo, diagnostica e valori usati nel calcolo
+
+Le sorgenti Sections/ non dipendono dai tipi di Model, dal BeamElement,
+dall'adapter ModelChecker o dalla facade NTC preesistente. Gli altri file
+della DLL conservano le dipendenze esistenti. I fattori condivisi di sezione
+NTC risiedono nel nuovo contesto; le costanti pubbliche precedenti restano
+accessibili con gli stessi valori. GammaM1 e le altre verifiche NTC restano
+nel percorso preesistente, fuori da questa estrazione.
+
+Decisioni del primo passo
+- Una funzione per meccanismo evita una richiesta universale con molti campi
+  geometrici e azioni che potrebbero essere incompatibili fra loro.
+- Le grandezze nullable rappresentano dati mancanti; zero azione e dato assente
+  hanno significati distinti. Area, resistenze e moduli devono essere positivi.
+- N positivo a trazione, negativo a compressione. I due metodi assiali rifiutano
+  il verso opposto. Momento e taglio ammettono entrambi i segni.
+- EC3: edizione2005 e fattori espliciti, con etichetta del set di parametri.
+  L'etichetta documenta il chiamante: non valida un allegato nazionale.
+- NTC2018: fattori di sezione del percorso attuale. La condivisione delle
+  quattro formule non implica identita' di classificazione, Av, instabilita'
+  o interazioni fra EC3 e NTC.
+- Classe e proprieta' sono gia' determinate dal chiamante. Flessione usa Wpl
+  per classi1/2 e Wel minimo per classe3. L'altro modulo puo' mancare.
+- Classe4 restituisce NotSupported; nessuna area efficace viene inventata.
+- Trazione: dichiarazione esplicita di assenza fori, oppure area netta
+  esplicita. Un valore mancante non si trasforma automaticamente in Ag.
+- Le riduzioni per collegamenti particolari, block tearing, instabilita'
+  locale/a taglio, torsione e interazioni restano fuori da queste primitive.
+- Il controllo di flessione presuppone N=T=0 e taglio basso. Queste condizioni
+  devono essere verificate dall'orchestratore che possiede tutte le azioni.
+  La nuova API scalare non puo' attestare condizioni che non riceve.
+
+Esiti
+Passed / Failed: calcolo disponibile; Rd e rapporto finiti. Failed indica
+  il superamento della resistenza, non un guasto del calcolo.
+NotSupported: metodo fuori campo, per esempio classe4.
+MissingInput: informazione necessaria assente.
+InvalidInput: dato presente ma non ammissibile, compreso un segno assiale errato.
+CalculationError: risultato fuori dal dominio numerico finito/positivo.
+Gli ultimi quattro esiti non hanno Rd o rapporto: non usano NaN come stato.
+Il contesto e la traccia sono immutabili. Errori di programmazione imprevisti
+non sono catturati genericamente per trasformarli in un esito ingegneristico.
+Un profilo costruito con fattori invalidi genera ArgumentException: e' un
+vincolo di costruzione del contesto, distinto dai dati della singola verifica.
+
+Compatibilita'
+- I metodi pubblici NTC conservano firme, valori predefiniti ed eccezioni.
+- Il checker EC3 conserva selezione della classe, Av, gamma, logica d'asta
+  e formato dei risultati. Cambiano solo i punti che eseguono l'aritmetica.
+- Il legacy EC3 conserva anche l'ipotesi preesistente Anet=Ag, quando usata;
+  la nuova dichiarazione dei fori non viene imposta ai vecchi chiamanti.
+- La facade NTC conserva netArea=null come sezione senza fori.
+- L'ordine delle operazioni del taglio e' ora quello del percorso EC3;
+  la forma NTC equivalente puo' differire negli ultimi bit. Le tolleranze
+  numeriche indipendenti restano quelle preesistenti, senza modificarle.
+- Nessun test legacy, fixture o whitelist modificato.
+- Nessuna nuova famiglia/verifica abilitata nell'adapter ModelChecker.
+- I nuovi contratti non sono ancora oggetti persistiti di ModelChecker;
+  la futura integrazione deve aggiornare esplicitamente i contratti delle
+  impronte se modifica configurazioni o resoconti persistiti.
+
+Esempio d'uso (risultati attesi)
+using GPC.Checkers.Steel.Sections;
+var code = SectionResistanceCode.Ntc2018();
+var result = SectionResistanceVerifier.Compression(
+    code, normalForce: -100000, area: 1000, yieldStrength: 235, sectionClass: 1);
+// N=-100kN; A=1000mm2; fy=235MPa; gammaM0=1.05.
+// Rd=223809.5238095238N, rapporto=0.4468085106382979, Status=Passed.
+// Esito della sola resistenza di sezione; non include l'instabilita' dell'asta.
+
+Sequenza successiva
+1. Collegare i soli percorsi gia' qualificati di SteelMaterialChecker al
+   nuovo contratto, mappando gli esiti su Execution/Data/EngineeringOutcome
+   esistenti e preservando i filtri di applicabilita'.
+2. Centralizzare la descrizione delle capacita' disponibili: norma, geometria,
+   meccanismo e condizioni. Un rifiuto esplicito non vale come verifica positiva.
+3. Estrarre classificazione e poi stabilita'/interazioni, ciascuna con test
+   indipendenti e confronto del percorso esistente. Le divergenze normative
+   devono avere regole dedicate e riferimenti verificati.
+4. Ampliare il percorso NTC e le famiglie solo dopo la relativa qualifica.
+Gli11 legacy rimangono tracciati nel rapporto FOLLOWUP_2026_10_20.txt.
+
+Verifica del primo passo
+SectionResistanceContractTests:72 nuovi casi, compresi soglia, segni,
+classe/modulo richiesto, fori, errori, overflow/underflow, profilo e traccia.
+Le prove di compatibilita' non sono dichiarate nuove fonti indipendenti.
+Gli oracoli geometrici/normativi esistenti continuano a verificare i calcoli.
+Esecuzione e confronto diagnostico documentati in SECTION_ARCHITECTURE_VERIFICATION.json.
