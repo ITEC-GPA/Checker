@@ -1,0 +1,110 @@
+21/10/2026 - Steel 2.19.0.0 - Punto 1: H monosimmetriche
+
+Ec3PlasticHSection: equilibrio plastico N-M1-M2 a N fissato. Sigma=+/-fy/gammaM0;
+N positivo a trazione, M1=integrale(sigma*y), M2=-integrale(sigma*x), assi baricentrici.
+Il contorno resistente e' ottenuto con integrazione esatta dei tre rettangoli
+tagliati da un semipiano. Bisezione dell'area compressa e della direzione dei momenti.
+Coordinate normalizzate; errore di equilibrio/direzione causa errore esplicito.
+Il rapporto scala i soli momenti a N fissato; per N puro e' |N|/Npl,Rd.
+Non viene applicata l'interazione con esponenti delle H doppiamente simmetriche.
+
+Campo: SectionH esatta, ali parallele, r=0, asse principale 1 orizzontale,
+classe 1/2 gia' qualificata, taglio basso in entrambi i piani, torsione nulla.
+La classificazione e l'instabilita' delle piastre rimangono controlli separati.
+La firma legacy CalculateMNRd1 senza segni dei momenti restituisce per l'asse 1
+il minore dei due valori assoluti. Il percorso pubblico usa i segni effettivi.
+Non sono implementati qui raccordi, alto taglio o interazioni con torsione.
+
+Fonte: EN 1993-1-1:2005, corrigenda 2006/2009, 6.2.9.1(2), p.54 stampata.
+https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+Verifica indipendente: integrazione orizzontale a strisce con quadratura Gauss
+su intervalli separati ai cambi di geometria, senza clipping di poligoni.
+216 casi con scala, specchiatura, direzione e posizione della retta neutra;
+10 ulteriori casi parametrizzati/di limite, inclusi moduli plastici analitici.
+2.085/2.085 Steel.Members e 122/122 legacy eseguiti con esito positivo.
+TRX: audit-results/steel-mono-step1 nel workspace ChatGPT/Checker.
+
+Sap_SectionHAsymmetricTest2: input originali invariati. Ora la sezione e le
+componenti sono calcolabili; N-M1-M2 d'asta rimane fuori campo di 6.3.3/6.3.4.
+L'archivio LEGACY_CLOSURE_08 descrive il precedente stato, non viene riscritto.
+verify_legacy_closures.py verifica per default la revisione storica b85ec7e8.
+
+PUNTO 2 - Steel 2.20.0.0: interazione d'asta H/T nel piano
+
+API indipendenti dal facade legacy e dalla pipeline automatica ModelChecker:
+- Ec3GeneralMethod.EvaluateInPlane(alphaUltK, alphaCrOp, curveLaterale,
+  curvaLT, gammaM1, parameterSet, analysisReference): EC3 6.3.4(4)(a).
+  alphaUltK deve comprendere imperfezioni e secondo ordine nel piano;
+  alphaCrOp riguarda lo stesso schema proporzionale, con soli modi fuori piano.
+  Gli input da analisi esterna sono espliciti, non calcolati o certificati dall'API.
+- Ec3MonosymmetricMember.EvaluateUniformFork calcola entrambi i fattori per
+  H/T esatte a spigoli vivi, uniformi, classe nominale in compressione <=3,
+  asse1 orizzontale, forcelle e ingobbamento libero, assenza di sway/vincoli
+  intermedi, N<=0 applicato al baricentro e M1 di primo ordine costante.
+  Nessun V/M2/T applicato, nessuna cerniera plastica ruotata. Non e' NTC2018.
+  Il metodo usa resistenza elastica anche per classi1/2: scelta conservativa.
+  Curve nei due piani e LTB, coefficienti parziali e provenienza sono espliciti;
+  il chiamante deve selezionarli per la reale fabbricazione e Appendice Nazionale.
+
+Modello meccanico Vlasov/Euler-Bernoulli, Jt/Jw e centro di taglio da Model.
+P=-N>=0, I1 maggiore, I2 minore, y0=ys-yc, i0^2=(I1+I2)/A+y0^2.
+g=integrale[y*(x^2+y^2)]/I1-2*y0, x/y baricentrici, g in mm.
+Ncr,2=pi^2*E*I2/L^2; Kt=G*Jt+pi^2*E*Iw/L^2 in Nmm^2.
+K=diag(Ncr,2,Kt), Ggeo=[[P,M1+P*y0],[M1+P*y0,P*i0^2-M1*g]].
+alphaCrOp e' il reciproco del massimo autovalore positivo di K^-1/2*Ggeo*K^-1/2.
+I modi sinusoidali comuni sono esatti nel modello con queste condizioni;
+i modi superiori hanno maggiore rigidezza e non riducono il primo autovalore.
+Non si confonde il risultato con min(Ncr/P,Mcr/M): l'accoppiamento e' incluso.
+
+Nel piano: e0=L/divisore da tabella5.1 colonna elastica (350/300/250/200/150).
+r=alpha*P/Ncr,1. Momento massimo inviluppato:
+Mmax(alpha)=alpha*|M1|/cos(pi*sqrt(r)/2)+alpha*P*e0/(1-r).
+Si cerca alphaUltK con alpha*P/A+Mmax/Wel,min=fy, prima del polo di Eulero.
+Questo inviluppa entrambi i versi dell'imperfezione e le fibre estreme
+disuguali; non sfrutta la plasticizzazione delle classi1/2.
+lambdaOp=sqrt(alphaUltK/alphaCrOp); chiOp=min(chi,chiLT), curve generali.
+Utilizzo d'asta=gammaM1/(chiOp*alphaUltK). Il risultato include anche
+il controllo elastico di sezione di primo ordine con gammaM0; uso=max dei due.
+
+Fonti verificate:
+- EN1993-1-1:2005/AC2009, tab5.1 p34, 6.3.4 pp65-66,
+  eq6.49/6.56 e6.63/6.64. PDF gia' citato sopra, formule controllate a video.
+- Snijder, Stroetmann, Balaz (2025), CE/Papers8(6), pp614-619,
+  doi10.1002/cepa.70116: p618 eq16 per il limite N puro monosimmetrico,
+  p619 eq21 per Mcr monosimmetrico. Usate soluzioni elastiche, senza
+  importare le prescrizioni normative della diversa edizione citata nell'articolo.
+  https://pure.tue.nl/ws/files/378731248/20260123-ce_papers_-_2026_-_Snijder_-_Eurocode_3_Technical_Report_on_Elastic_Critical_Buckling_of_Members-as_published.pdf
+- Secondo ordine verificato con equazione di equilibrio EI*v''+alpha*P*v
+  =-alpha*M-alpha*P*e0*sin(pi*x/L), v(0)=v(L)=0. Questo e' un controllo
+  analitico/numerico indipendente, non un esempio numerico pubblicato.
+
+130 nuovi test MonosymmetricGeneralMethodTests:
+108 casi H/T x scala x lunghezza x N/M/NM x segno. Matrice geometrica
+integrata con Gauss3x3 e autovalori MathNet, senza coefficienti Wagner della
+produzione. Per alphaUltK: differenze finite su128/256intervalli, errore
+relativo <2e-5 e convergenza quadratica. Controllati anche modi2/3.
+Altri22casi: valori normativi a40cifre, tab5.1, eq16 della fonte, fattori,
+scala dei carichi, specchiatura, fallimento, input non validi e fuori campo.
+I130test sono superati. Non sono130fonti o130esempi pubblicati differenti.
+
+Esempio d'uso (N/mm/MPa, curve da motivare per il progetto):
+var result = Ec3MonosymmetricMember.EvaluateUniformFork(section, 4000,
+    -100000, 80e6, Ec3GeneralMethodCurve.C, Ec3GeneralMethodCurve.C,
+    Ec3GeneralMethodCurve.D, 1.0, 1.0, "EC3:2005, curve/fattori dichiarati");
+result.GeneralMethod espone alphaUltK, alphaCrOp, lambdaOp, chi, chiLT,
+chiOp, fattore resistente e provenienza; result.Utilization include la sezione.
+
+RESTANO FUORI CAMPO
+Le combinazioni biassiali dei legacy H/T, trazione+flessione d'asta,
+momenti non uniformi, carichi trasversali, vincoli differenti, raccordi,
+classe4 e torsione applicata. Non si usa AnnexA per chiudere questi casi.
+Il facade EN1993p11Checker non deduce uno schema uniforme da una sola
+stazione: per questo il nuovo metodo d'asta richiede la chiamata esplicita.
+L'integrazione in ModelChecker e la verifica biassiale tramite analisi del
+secondo ordine con tutte le imperfezioni sono sviluppi successivi distinti.
+
+VERIFICA FINALE - revisione b462f7bc7eae86751d8d2a74dc2f6997393166ca
+build/Verify.ps1 -Suites all: 4.254 superati,0falliti,0ignorati,10suite; API compatibili.
+Steel.Members2.215/2.215; legacy122/122.356nuovi test rispetto a b85ec7e8.
+HashTRX e sorgenti nel manifest MONOSYMMETRIC_FINAL_VERIFICATION.json.
+Model invariato; nessun rilascio pacchetti o aggiornamento ANTHEA eseguito.
