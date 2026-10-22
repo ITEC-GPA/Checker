@@ -1,0 +1,29 @@
+LIBRERIE STEEL: AUTONOMIA E CLASSE 4 CONDIVISA - 22/10/2026
+Piano autorizzato; ANTHEA non coinvolta durante la riscrittura MVVM.
+Branch coordinati Model/Checker: codex/steel-autonomy-class4.
+Base Checker f6916d8e; Model 45c3976c. Nessun push autorizzato.
+
+Task (stato iniziale: da fare)
+1. Contratti interrogabili di configurazione ModelChecker.
+2. Preparazione automatica di curve/Ncr/Mcr negli schemi qualificati.
+3. Coppie da catalogo MIDAS DATATYPE=1 con prova nativa e assi espliciti.
+4. Pressoflessione delle sezioni singole: prima RHS/CHS, poi C/T/L.
+5. Compressione delle coppie con imbottiture e dettaglio locale definito.
+6. Copertura ed esempi completi senza interfaccia.
+7. Revisione dei metodi di classe 4 esistenti e dei riferimenti.
+8. Nucleo comune Steel per le riduzioni, adattatori compatibili CompositeBridge.
+9. Geometria efficace 2D: A, G, I, Ixy, W e spostamenti rispetto alla lorda.
+10. Verifiche di sezione classe 4 N/My/Mz e convergenza.
+11. Verifiche d'asta classe 4 e proprieta' richieste dai singoli metodi.
+12. Qualificazione distinta CHS sottili/accoppiati; interazioni con il taglio.
+13. Confronti Steel/CompositeBridge, suite complete, versioni e merge locale.
+
+Criteri
+- Un solo nucleo per la stessa meccanica; coefficienti EC3/NTC distinti.
+- Geometria e archivi in Model; prescrizioni normative in Checker.
+- Ogni passo: test proporzionati, evidenze, commit con versione motivata.
+- Nessuna sostituzione di attesi/fixture preesistenti per nascondere differenze.
+- I campi non qualificati restano espliciti e non producono esiti favorevoli.
+- Classe 4 dei ponti: riusare riduzioni e convergenza, conservare fasi/soletta
+  nel modulo CompositeBridge; nessuna dipendenza Steel -> CompositeBridge.
+- Non introdurre calastrelli, tralicci, componenti diversi o UI.
