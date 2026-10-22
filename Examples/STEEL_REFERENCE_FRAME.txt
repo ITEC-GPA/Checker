@@ -1,0 +1,31 @@
+ESEMPIO APPLICATIVO STEEL - 22 OTTOBRE 2026
+
+SteelReferenceFrame.cs e' compilato e verificato da ModelChecker.Tests.
+Esecuzione: dotnet test ModelChecker.Tests/ModelChecker.Tests.csproj -c Release
+  --filter FullyQualifiedName~SteelReferenceFrameTest
+
+Schema dichiarato: due colonne H alte 3000mm e traverso RHS lungo 4000mm,
+schema controventato, traverso semplicemente appoggiato, sezioni S355 senza fori.
+Colonne H300x150: tw12, tf18mm; traverso RHS200x100x8mm a spigoli vivi.
+Unita' N,mm,MPa,Nmm; N positivo a trazione. Assi di ogni sezione espliciti.
+Stati ULS-A e ULS-B gia' fattorizzati: q=10 e15 N/mm sul traverso.
+Azioni assegnate analiticamente: colonne N=-qL/2; traverso N=0,
+V2=-q(L/2-x), M1=q*x*(L-x)/2. Il campionamento contiene l'esatto massimo.
+Non e' un solver FEM: geometria e campi analitici sono input sintetici dichiarati.
+Non si attesta una verifica globale del telaio, dei suoi nodi o controventi.
+
+Lunghezze efficaci delle colonne3000mm, indipendenti dalla suddivisione FEM.
+Vincolo torsionale continuo delle colonne dichiarato: modi torsionale e
+flesso-torsionale esclusi esplicitamente. Curve asse1 B, asse2 C conservative
+per questo esempio; la scelta deve sempre essere motivata sul prodotto reale.
+Traverso: forcelle, ingobbamento libero, Mcr per momento uniforme
+pi/L*sqrt(E*I2*G*It), termine di ingobbamento trascurato conservativamente.
+E210000MPa, nu.3; nessun incremento favorevole per il diagramma parabolico.
+L'esempio prova l'integrazione; non costituisce un benchmark pubblicato Mcr.
+
+Una configurazione per norma, sei job distinti per membro/stato: nessun
+massimo di N o M viene trasferito tra combinazioni. Ogni configurazione e'
+archiviabile, e i report conservano dati, fonti, impronte e stato concomitante.
+La variante split prepara due elementi per asta; reverseSecond inverte I/J
+del secondo conservando la stessa fisica. La qualifica del nuovo adattatore
+e' verificata separatamente dai test dei passi successivi.
