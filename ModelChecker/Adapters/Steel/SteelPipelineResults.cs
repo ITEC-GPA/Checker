@@ -31,7 +31,20 @@ namespace GPC.Model.Checker
                 trace.Add(new CheckCalculationValue("Member.LoadPattern", null, null, analysis.LoadPatternReference));
                 trace.Add(new CheckCalculationValue("Member.ParameterSet", null, null, analysis.ParameterSet));
                 trace.Add(new CheckCalculationValue("Member.ClassificationSource", null, null, analysis.ClassificationSource));
-                if (analysis.Prismatic != null)
+                if (analysis.BeamColumnParameters != null)
+                {
+                    var p=analysis.BeamColumnParameters;
+                    trace.Add(new CheckCalculationValue("Member.CompressionCurve1",null,null,p.Curve1.ToString()));
+                    trace.Add(new CheckCalculationValue("Member.CompressionCurve2",null,null,p.Curve2.ToString()));
+                    trace.Add(new CheckCalculationValue("Member.TorsionSusceptible",p.TorsionSusceptible?1:0,"1",p.LateralTorsionalExclusionSource));
+                    trace.Add(new CheckCalculationValue("Member.MomentFactorSource",null,null,p.MomentFactorSource));
+                    trace.Add(new CheckCalculationValue("Member.StabilityModelSource",null,null,p.StabilityModelSource));
+                    trace.Add(new CheckCalculationValue("Member.TorsionalExclusionSource",null,null,p.TorsionalExclusionSource));
+                    trace.Add(new CheckCalculationValue("Member.FlexuralTorsionalExclusionSource",null,null,p.FlexuralTorsionalExclusionSource));
+                    trace.Add(new CheckCalculationValue("Member.ShearBucklingExclusionSource",null,null,p.ShearBucklingExclusionSource));
+                    trace.Add(new CheckCalculationValue("Member.McrBasis",null,null,p.CriticalMomentBasis.ToString()));
+                }
+                else if (analysis.Prismatic != null)
                 {
                     if (analysis.Kind == GPC.Checkers.Steel.Inputs.SteelMemberAnalysisKind.PrismaticCompression)
                     {
@@ -59,7 +72,7 @@ namespace GPC.Model.Checker
             var a = native.Plan.Input.Actions;
             foreach (var value in new[] { ("N", a.N, "N"), ("V1", a.V1, "N"), ("V2", a.V2, "N"),
                 ("T", a.T, "Nmm"), ("M1", a.M1, "Nmm"), ("M2", a.M2, "Nmm") })
-                trace.Add(new CheckCalculationValue("Input." + value.Item1, value.Item2, value.Item3, "Concomitant principal-axis actions; N positive in tension"));
+                trace.Add(new CheckCalculationValue("Input." + value.Item1, value.Item2, value.Item3, native.Plan.MemberAnalysis?.BeamColumnParameters != null ? "Whole-member maxima from ONE design state; section concomitance is preserved separately; N positive in tension" : "Concomitant principal-axis actions; N positive in tension"));
 
             foreach (var check in native.Checks)
             {

@@ -1,3 +1,6 @@
+AGGIORNAMENTO: PHYSICAL_MEMBER_WORKFLOW.txt descrive le estensioni successive
+per aste fisiche su piu' elementi FEM e pressoflessione.
+
 ESTENSIONE VERIFICHE EC3 / NTC2018 - 21 OTTOBRE2026
 
 Perimetro scelto su delega dell'utente: chiudere i principali buchi del flusso

@@ -1,0 +1,114 @@
+ASTE FISICHE E PRESSOFLESSIONE - 22 OTTOBRE 2026
+
+1 COMPLETATO - ESEMPIO APPLICATIVO
+Examples/SteelReferenceFrame.cs: due colonne H e traverso RHS, due stati ULS
+concomitanti assegnati analiticamente, EC3/NTC, configurazione e report archiviati.
+I tre test iniziali verificano esecuzione, fattori normativi e invalidazione.
+La documentazione dello schema e' in Examples/STEEL_REFERENCE_FRAME.txt.
+
+2 COMPLETATO - ASTE COSTITUITE DA PIU' ELEMENTI
+SteelPhysicalMemberPreparation riconcilia sezioni e azioni in un riferimento
+comune. Percorsi Compression/Bending su aste rettilinee prismatiche continue,
+con qualsiasi numero di elementi e un tratto esplicito Start/End. Le lunghezze
+efficaci restano dati di progetto: i nodi FEM non costituiscono ritegni impliciti.
+I/J invertito conserva N e T, e trasforma le componenti trasversali con la
+normalizzazione della faccia positiva. Non si inverte il Model sorgente.
+Per simmetrie H, RHS/CHS e solidi sono ammessi assi paralleli/antiparalleli;
+forme asimmetriche richiedono lo stesso riferimento fisico della geometria.
+Rotazioni fisiche lungo l'asta non vengono assimilate a una semplice mesh.
+
+Per ogni intervallo FEM servono i tagli di entrambe le estremita', inclusi
+entrambi i lati dei nodi interni. Le azioni appartengono a un solo stato
+concomitante; nessuna combinazione viene ricostruita con massimi indipendenti.
+Sezioni e leggi di variazione sono ispezionate anche tra i campioni: un tratto
+diverso non campionato non puo' essere ignorato. Cerniere/molle interne,
+offset e zone rigide richiedono un altro modello d'asta e sono rifiutati.
+I report registrano tratto, elementi, orientamenti, tagli e fonte delle lunghezze.
+Il contratto di archivio Model rimane invariato, cosi' come UniformFork/ExternalInPlane.
+
+12 nuovi test di integrazione: mesh singola/doppia, I/J inverso, EC3/NTC,
+archivio, tratti parziali e lunghezze efficaci indipendenti, rotazioni,
+cerniere, variazioni non campionate e assenza di una faccia del nodo interno.
+Prova mirata:26/26 inclusi i percorsi del passo precedente.
+Versione ModelChecker2.12.0.0; nessuna modifica a Model.
+
+3 COMPLETATO - PRESSOFLESSIONE MONOASSIALE E BIASSIALE H
+SteelMemberAnalysis.BeamColumn + SteelBeamColumnParameters: stesso contratto
+EC3/NTC, sezioni H doppiamente simmetriche, asse1 principale forte, classi1-3,
+asta prismatica rettilinea continua. N costante di compressione; M1/M2 massimi
+in valore assoluto lungo l'asta nello STESSO stato. Le verifiche di sezione
+continuano a utilizzare i tagli concomitanti reali; SectionAndMember su questo
+input e' vietato per non rappresentare massimi distinti come un taglio reale.
+
+EC3: EN1993-1-1:2005, 6.3.3, eq6.61-62, Allegato B Tabelle B.1/B.2.
+NTC2018: 4.2.4.1.3.3; Circolare21/01/2019 n7, C4.2.4.1.3.3.2 Metodo B,
+eqC4.2.37, Tabelle C4.2.IV/V, coefficienti di momento in C4.2.VI.
+Si conservano i diversi gamma e le diverse curve LTB; per NTC il Mcr richiesto
+e' quello a momento uniforme. ChiLT usa il percorso generale conservativo,
+senza importare la curva modificata UK degli esempi pubblicati.
+
+NOTA ESPLICITA SULLA CIRCOLARE: C4.2.IV, riga kzz, stampa indici y per lambda
+e chi; EC3 B.1 e Circolare C4.2.V usano z. Pagina stampata107, paginaPDF111.
+Non e' stata accertata una rettifica ufficiale. Per H vincolate a torsione,
+la politica NTC prende il maggiore dei due kzz (lettura letterale y e lettura
+z coerente con EC3). E' un limite conservativo esplicito di questo software,
+non una correzione ufficiale della norma. Il riferimento nel report lo dichiara;
+k_yz conserva la dipendenza dal kzz cosi' maggiorato. Per torsione deformabile
+si usa la C4.2.V, che non presenta questa incongruenza.
+
+DATI RICHIESTI
+- Curve di compressione1/2 scelte e motivate; Ncr1/2 esterni con unita'/fonte
+  oppure lunghezze efficaci esplicite per Eulero.
+- Cm1,Cm2,CmLT fra0.4 e1, con fonte riferita al diagramma e ai tratti fra
+  ritegni; Cm=1 ammesso come scelta esplicita. Nessuna deduzione da pochi tagli.
+- TorsionSusceptible e Mcr con fonte quando M1 e' attivo, oppure esclusione
+  motivata della flessotorsione. NcrT/NcrFT non sono integrati in questo nuovo
+  metodo: i modi torsionali di compressione devono essere esclusi con motivazione
+  indipendente. Il percorso Compression separato conserva i quattro modi.
+- StabilityModelSource: modello di stabilita', effetti globali del secondo
+  ordine dove necessari, analisi elastica locale, assenza di cerniere plastiche.
+- Con taglio: esclusione motivata dell'instabilita' a taglio e ciascun V <=.5VplRd.
+  Questo filtro NON sostituisce le verifiche di sezione/taglio.
+
+RIFIUTI ESPLICITI
+Classe4, forme diverse da H bisimmetrica, profili aperti formati a freddo,
+torsione applicata/ingobbamento, N variabile, interazioni ad alto taglio,
+modelli con cerniere/offset/variazioni di sezione non qualificati, dati mancanti
+o contrastanti. La classe automatica e' quella nominale in compressione uniforme;
+una classe esterna richiede fonte. Nessuna riclassificazione sigma_com,Ed per
+abbassare implicitamente la classe d'asta. N>=0 richiede un altro percorso.
+
+TRACCIABILITA' E MODEL
+AnalysisMode=BeamColumn nel medesimo adapter EC3/NTC. Tutti i parametri sono
+legati alla configurazione e all'impronta della campagna d'asta. Report con
+Ncr,lambda,chi,chiLT,Cm,k11/k12/k21/k22, entrambe le equazioni, fonti, posizioni
+e ID degli elementi dei massimi. Gli archivi esistenti non cambiano contratto.
+La mesh non altera i risultati; massimi di combinazioni diverse restano separati.
+
+VERIFICA DEL NUOVO METODO
+80 test numerici: SCI P364 esempio11 pp120-121 (PDF128-129), esempio12 pp134-135
+(PDF142-143); sostituzioni manuali C4.2.V/EC3 B.2, soglie lambda_z=.4 e1,
+limiti C4.2.IV, 48 casi nativi con integrali geometrici indipendenti preesistenti,
+radici indipendenti delle curve di riduzione, classi1/3, segni e mono/biassialita',
+limiti di applicabilita' e separazione fra massimi d'asta e tagli di sezione.
+Tolleranza pubblicazioni0.006 per arrotondamenti a2decimali; integrali4e-6
+relativi; sostituzioni manuali1e-12. Nessun atteso legacy e' stato rigenerato.
+SCI esempio12 stampa kzy=.93 e usa .92 nella sostituzione finale: si controllano
+formula e risultato arrotondato, senza copiare la sostituzione incoerente.
+Gli esempi SCI qualificano l'aritmetica dell'interazione con resistenze pubblicate,
+non l'intero percorso nativo di classificazione/LTB UK.
+27 test ModelChecker: esempio completo, mesh/IJ, massimi distinti nella stessa
+combinazione, Mcr, modi, dati mancanti, archivi e invalidazione, rifiuti e mancata
+copertura del taglio biassiale di sezione ancora visibile nell'esito complessivo.
+Versioni: Steel2.28.0.0, ModelChecker2.13.0.0. Model invariato.
+
+FONTI CONSULTATE
+https://www.gazzettaufficiale.it/eli/gu/2019/02/11/35/so/5/sg/pdf
+https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+https://www.steelconstruction.info/images/5/50/Sci_p364.pdf
+
+RESTANO FUORI DAL PERIMETRO DEI TRE PASSI
+Taglio biassiale simultaneo di sezione; campo tangenziale per classe3 N-M-V;
+classe4 e sezioni efficaci; pressoflessione generale C/T/L/RHS/CHS e accoppiati;
+torsione/ingobbamento e connessioni. Un risultato positivo d'asta non chiude
+le verifiche di sezione ancora non supportate, ne' il progetto globale del telaio.
