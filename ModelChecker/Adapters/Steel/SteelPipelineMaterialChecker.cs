@@ -28,7 +28,7 @@ namespace GPC.Model.Checker
     public sealed class SteelPipelineMaterialChecker : IMaterialChecker
     {
         public const string EngineId = "Steel.Pipeline.Section";
-        internal const string Limitations = "Selected section checks at one concomitant cut, EC3:2005 or NTC:2018; unavailable checks remain incomplete. No member stability, connections, fatigue, fire or seismic checks.";
+        internal const string Limitations = "Selected section checks at one concomitant cut, EC3:2005 or NTC:2018; unavailable checks remain incomplete. Class4 N-M1-M2 uses shared iterative effective flat plates, including centroid eccentricity; unsupported geometry and interactions remain explicit. No member stability, connections, fatigue, fire or seismic checks.";
         private readonly SteelPipelineParameters _parameters;
         public StandardEN1993p11 Code { get; }
         public string Edition { get; }

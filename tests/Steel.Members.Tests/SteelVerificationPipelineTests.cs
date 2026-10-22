@@ -322,7 +322,7 @@ public class SteelVerificationPipelineTests
         var cases = new[] {
             (Input(n: 1000, unperforated: null), (int?)null, Status.MissingInput),
             (Input(n: -1000, ntc: true, unperforated: null), (int?)null, Status.MissingInput),
-            (Input(n: -1000), (int?)4, Status.NotSupported),
+            (Input(new SectionCHS(500, 2, "thin shell"), n: -1000), (int?)4, Status.NotSupported),
             (Input(n: 1000, fu: 200), (int?)null, Status.InvalidInput),
             (Input(n: 1000, t: 100), (int?)null, Status.NotSupported)
         };

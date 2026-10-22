@@ -75,7 +75,8 @@ public class CommonSectionCoverageTests
         var input=Input(Shape(family),true,-1000);
         var plan=SteelMethodSelector.Select(input); var normal=plan.Decisions[0];
         Assert.AreEqual(expected,normal.SectionClass); StringAssert.Contains(normal.ClassificationSource.ToUpperInvariant(),"NTC");
-        Assert.AreEqual(expected<4,SteelVerificationPipeline.Execute(plan).IsComplete);
+        Assert.IsTrue(SteelVerificationPipeline.Execute(plan).IsComplete);
+        if(expected==4)Assert.AreEqual(SteelMethod.EffectiveNormalResistance,normal.Method);
     }
 
     [DataTestMethod] [DataRow(false)] [DataRow(true)]
@@ -105,6 +106,8 @@ public class CommonSectionCoverageTests
         var r=SteelVerificationPipeline.Execute(SteelMethodSelector.Select(a));
         Assert.IsTrue(r.IsComplete); Assert.AreEqual(3,r.Checks[0].Decision.SectionClass);
         var slender=Input(new SectionL(200,5,200,5,"slender angle",0,0),ntc,-1000,10000);
-        Assert.AreEqual(SteelSelectionStatus.NotSupported,SteelMethodSelector.Select(slender).Decisions[0].Status);
+        var effective=SteelVerificationPipeline.Execute(SteelMethodSelector.Select(slender));
+        Assert.IsTrue(effective.IsComplete);Assert.AreEqual(SteelMethod.EffectiveNormalResistance,effective.Checks[0].Decision.Method);
+        Assert.IsTrue(effective.Checks[0].Trace.Single(v=>v.Name=="AreaEffective").Value<slender.Section.Area);
     }
 }

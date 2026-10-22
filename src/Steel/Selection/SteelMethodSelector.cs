@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using GPC.Checkers.Steel.Pipeline;
+using GPC.Checkers.Steel.EffectiveSections;
 using GPC.Checkers.Steel.Inputs;
 using GPC.Checkers.Steel.ModelAdapters;
 using GPC.Checkers.Steel.Sections;
@@ -83,8 +84,14 @@ namespace GPC.Checkers.Steel.Selection
             var classInfo = Classification(input, section, suppliedClass);
             if (classInfo.Failure != null) return classInfo.Failure;
             int cl = classInfo.Class.Value;
-            if (cl == 4) return new SteelMethodDecision(target, SteelSelectionStatus.NotSupported, null,
-                "Class4.EffectivePropertiesRequired", "A qualified effective-section method or a separately established state classification is required.", cl, classInfo.Source);
+            if (cl == 4)
+            {
+                if (shear) return Unsupported(target, "Class4.ShearInteractionNotQualified", "Class4 normal/shear interaction needs a qualified resistance method.");
+                try { SteelEffectiveSectionSolver.Qualify(s); }
+                catch (NotSupportedException ex) { return new SteelMethodDecision(target, SteelSelectionStatus.NotSupported, null,
+                    "Class4.GeometryOrMaterialNotQualified", ex.Message, cl, classInfo.Source); }
+                return Ready(target, SteelMethod.EffectiveNormalResistance, cl, classInfo.Source);
+            }
             bool plasticH = interaction && ec3 && cl <= 2 && shape.GetType() == typeof(SectionH)
                 && ((SectionH)shape).R == 0 && Math.Abs(shape.AngleX1) <= 1e-10;
             bool elastic = interaction && !plasticH || moment &&

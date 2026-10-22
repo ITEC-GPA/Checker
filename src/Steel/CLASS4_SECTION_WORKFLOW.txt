@@ -1,0 +1,52 @@
+CLASSE 4 - VERIFICA DI SEZIONE, STEEL 2.36 / MODELCHECKER 2.19
+EN1993-1-1:2005 + EN1993-1-5:2006/AC2009; NTC2018.
+
+SteelEffectiveSectionSolver.Solve(input) risolve una sezione efficace unica per
+N/M1/M2 concomitanti, come consentito dalla nota EN1993-1-5 4.3(4).
+Conserva l'equilibrio rispetto a G lordo: include -N*dY e +N*dX geometrici.
+Norma e gammaM0 restano nel contesto; nessuna modifica alle azioni di progetto.
+La riduzione usa fy e non la rilassazione mediante sigma_com,Ed. Le larghezze
+sono quindi invarianti rispetto alla scala positiva delle azioni. E=210000 MPa,
+nu=0.3, acciaio omogeneo. Il risultato non e' una rigidezza efficace globale.
+UniformCompression restituisce invece Aeff sotto tensione uniforme (4.3(3));
+per sezioni asimmetriche non coincide con N applicato al baricentro lordo.
+
+H/T/C/L/RHS esatti, non forati; aperti non formati a freddo. C/L senza raccordi
+di estremita'; RHS raccordati con angoli concentrici. CHS necessita modello
+di guscio; accoppiati, shear lag, carichi trasversali, torsione e interazione
+col taglio non qualificati da questo metodo. Stabilita' d'asta separata.
+Le classificazioni automatiche conservative non diventano classi 1-3 per
+evitare il calcolo efficace. Il selettore usa EffectiveNormalResistance.
+Per L disuguali EN4.4(2) usa il lato maggiore in entrambe le snellezze;
+le aree inattive sono sottratte dai singoli lati completi, SCI P363 A-10/11.
+Per RHS la larghezza di instabilita' non e' minore del valore b-3t di EN4.4.
+Se la striscia piana fisica e' piu' corta della larghezza normativa, si sottrae
+l'intera larghezza inattiva; non si moltiplica semplicemente la striscia per rho.
+I raccordi conservano le proprieta' esatte del Model. Il limite tensionale e'
+calcolato sui vertici del rettangolo lordo: conservativo, anche se alcuni vertici
+non sono materiale. Ixy resta nel calcolo; nessuna fittizia disaccoppiatura.
+
+Convergenza: residuo relativo massimo sulle larghezze <1e-8, max120 iterazioni,
+rilassamento e accelerazione dal nucleo comune ai ponti. Stato e tensioni sono
+coerenti. Mancata convergenza produce Class4.NonConvergence/CalculationError,
+nessuna capacita' utilizzabile. La cancellazione interrompe il calcolo.
+Trace: Aeff, spostamenti G, Ixx/Iyy/Ixy, moduli nello stato concomitante, rho,
+psi/k/lambda di ogni piastra, iterazioni/residuo, limite tensionale/utilizzazione.
+
+FONTI INDIPENDENTI E TEST
+- NTC2018 G.U.20/2/2018 pp98 e101: 4.2.4.1.2.2-3 e .8; proprieta' efficaci.
+- EN1993-1-5 4.3/4.4, Tables4.1/4.2; JRC EUR22898EN pp46-50.
+- SCI P363 reprint2015: A-10/11, aree efficaci; UB610x178x82 S275/S355:
+  90.7/86.9 cm2, PDF132/B-66; geometria PDF68/B-2.
+  A lorda tabulata104cm2, contro104.22695 integrata dalla geometria nominale.
+  Si confronta anche l'area inattiva rispetto alla A lorda pubblicata (0.05cm2);
+  sul totale 0.55cm2 copre 0.5cm2 di arrotondamento lordo +0.05cm2 efficace.
+  Nessuna geometria o formula corretta per forzare il dato tabellare.
+- Integrazioni indipendenti dei rettangoli, equilibrio N/M, inversione flessione,
+  scala del carico, materiali/casi esclusi, non convergenza, flusso ModelChecker
+  e persistenza del report. I vecchi test sul rifiuto indiscriminato della classe4
+  ora verificano la selezione del metodo efficace; il rifiuto dei gusci rimane.
+
+https://www.steelconstruction.info/images/b/b7/SCI_P363.pdf
+https://eurocodes.jrc.ec.europa.eu/sites/default/files/2021-12/EUR22898EN.pdf
+https://www.phd.eng.br/wp-content/uploads/2015/12/en.1993.1.5.2006.pdf

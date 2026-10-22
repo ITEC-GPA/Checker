@@ -80,11 +80,12 @@ public class SteelMethodSelectorTests
     public void ClassFourIsNotMappedToGrossSectionResistance()
     {
         var plan = SteelMethodSelector.Select(Input(H(web: 5), n: -1000));
-        Assert.AreEqual(Status.NotSupported, Normal(plan).Status);
-        Assert.AreEqual("Class4.EffectivePropertiesRequired", Normal(plan).DiagnosticCode);
+        Assert.AreEqual(Status.Ready, Normal(plan).Status);
         Assert.AreEqual(4, Normal(plan).SectionClass);
-        Assert.IsNull(Normal(plan).Method);
-        Assert.IsFalse(plan.IsFullyRouted);
+        Assert.AreEqual(SteelMethod.EffectiveNormalResistance, Normal(plan).Method);
+        Assert.IsTrue(plan.IsFullyRouted); // dedicated effective method, never gross compression
+        var result = GPC.Checkers.Steel.Pipeline.SteelVerificationPipeline.Execute(plan);
+        Assert.IsTrue(result.Checks[0].Trace.Single(v => v.Name == "AreaEffective").Value < plan.Input.Section.Area);
     }
 
     [TestMethod]

@@ -22,13 +22,17 @@ namespace GPC.Checkers.Steel.EffectiveSections
         public double Thickness { get; }
         public double Length { get; }
         public double BucklingWidth { get; }
-        internal EffectiveSectionPlate(string id,EffectivePlateKind kind,double x1,double y1,double x2,double y2,double t,double? bucklingWidth=null)
+        public double DesignWidth { get; }
+        internal EffectiveSectionPlate(string id,EffectivePlateKind kind,double x1,double y1,double x2,double y2,double t,double? bucklingWidth=null,double? designWidth=null)
         {
             Id=id;Kind=kind;StartX=x1;StartY=y1;EndX=x2;EndY=y2;Thickness=t;
             Length=Math.Sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));BucklingWidth=bucklingWidth??Length;
+            DesignWidth=designWidth??BucklingWidth;
             SteelInputValidation.Positive(Length,"flat plate length");SteelInputValidation.Positive(t,"plate thickness");
             SteelInputValidation.Positive(BucklingWidth,"buckling width");
             if(BucklingWidth<Length-1e-10)throw new ArgumentException("Buckling width cannot be shorter than the mapped flat strip.");
+            SteelInputValidation.Positive(DesignWidth,"design width");
+            if(DesignWidth<Length-1e-10||DesignWidth>BucklingWidth+1e-10)throw new ArgumentException("Design width must lie between the physical and buckling widths.");
         }
     }
 
@@ -61,8 +65,8 @@ namespace GPC.Checkers.Steel.EffectiveSections
             var s=input.CreateSectionCopy();SteelMethodSelector.ValidateGeometry(s);
             if(SteelMethodSelector.ColdFormedOpen(s))throw new NotSupportedException("Cold-formed open sections require distortional/local qualification to EN1993-1-3.");
             var shape=s.SectionShape;var type=shape.GetType();var p=new List<EffectiveSectionPlate>();
-            void Add(string id,EffectivePlateKind kind,double x1,double y1,double x2,double y2,double t,double? b=null)
-                =>p.Add(new EffectiveSectionPlate(id,kind,x1,y1,x2,y2,t,b));
+            void Add(string id,EffectivePlateKind kind,double x1,double y1,double x2,double y2,double t,double? b=null,double? designWidth=null)
+                =>p.Add(new EffectiveSectionPlate(id,kind,x1,y1,x2,y2,t,b,designWidth));
             const EffectivePlateKind I=EffectivePlateKind.Internal,O=EffectivePlateKind.Outstand;
             if(type==typeof(SectionH)) {
                 var h=(SectionH)shape;double x=Math.Max(h.LenghtTopFlange,h.LenghtBottomFlange)/2;
@@ -87,17 +91,20 @@ namespace GPC.Checkers.Steel.EffectiveSections
             } else if(type==typeof(SectionL)) {
                 var l=(SectionL)shape;
                 if(l.R2!=0)throw new NotSupportedException("Angle toe radii require explicit clipped removal geometry.");
-                Add("Horizontal",O,l.VerticalLegThickness+l.R,l.HorizontalLegThickness/2,l.HorizontalLegLength,l.HorizontalLegThickness/2,l.HorizontalLegThickness,l.HorizontalLegLength);
-                Add("Vertical",O,l.VerticalLegThickness/2,l.HorizontalLegThickness+l.R,l.VerticalLegThickness/2,l.VerticalLegLength,l.VerticalLegThickness,l.VerticalLegLength);
+                // EN1993-1-5 4.4(2): h (long leg) controls both leg slendernesses.
+                // Inactive area still uses each complete leg width (SCI P363 A-11).
+                double h=Math.Max(l.HorizontalLegLength,l.VerticalLegLength);
+                Add("Horizontal",O,l.VerticalLegThickness+l.R,l.HorizontalLegThickness/2,l.HorizontalLegLength,l.HorizontalLegThickness/2,l.HorizontalLegThickness,h,l.HorizontalLegLength);
+                Add("Vertical",O,l.VerticalLegThickness/2,l.HorizontalLegThickness+l.R,l.VerticalLegThickness/2,l.VerticalLegLength,l.VerticalLegThickness,h,l.VerticalLegLength);
             } else if(type==typeof(SectionRHSRoundedCorners)) {
                 var r=(SectionRHSRoundedCorners)shape;double t=r.Thickness;
                 // Use only rectangles entirely inside the straight constant-thickness
                 // wall. The larger classification width conservatively controls rho.
                 double corner=Math.Max(r.OutsideRadius,t+r.InsideRadius),calculationCorner=Math.Min(r.OutsideRadius,t+r.InsideRadius);
-                Add("Top",I,corner,r.Height-t/2,r.Base-corner,r.Height-t/2,t,r.Base-2*calculationCorner);
-                Add("Bottom",I,corner,t/2,r.Base-corner,t/2,t,r.Base-2*calculationCorner);
-                Add("Left",I,t/2,corner,t/2,r.Height-corner,t,r.Height-2*calculationCorner);
-                Add("Right",I,r.Base-t/2,corner,r.Base-t/2,r.Height-corner,t,r.Height-2*calculationCorner);
+                Add("Top",I,corner,r.Height-t/2,r.Base-corner,r.Height-t/2,t,Math.Max(r.Base-3*t,r.Base-2*calculationCorner));
+                Add("Bottom",I,corner,t/2,r.Base-corner,t/2,t,Math.Max(r.Base-3*t,r.Base-2*calculationCorner));
+                Add("Left",I,t/2,corner,t/2,r.Height-corner,t,Math.Max(r.Height-3*t,r.Height-2*calculationCorner));
+                Add("Right",I,r.Base-t/2,corner,r.Base-t/2,r.Height-corner,t,Math.Max(r.Height-3*t,r.Height-2*calculationCorner));
             } else if(type==typeof(SectionRHS)&&((SectionRHS)shape).R==0) {
                 var r=(SectionRHS)shape;
                 Add("Top",I,r.ThicknessWebLeft,r.Height-r.ThicknessTop/2,r.Base-r.ThicknessWebRight,r.Height-r.ThicknessTop/2,r.ThicknessTop);

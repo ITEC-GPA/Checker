@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using GPC.Checkers.Steel.Inputs;
+using GPC.Checkers.Steel.EffectiveSections;
 using GPC.Checkers.Steel.Members;
 using GPC.Checkers.Steel.ModelAdapters;
 using GPC.Checkers.Steel.Sections;
@@ -38,14 +39,14 @@ namespace GPC.Checkers.Steel.Pipeline
             foreach (var decision in plan.Decisions)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                checks.Add(ExecuteOne(plan.Input, decision, assessments, plan.MemberAnalysis));
+                checks.Add(ExecuteOne(plan.Input, decision, assessments, plan.MemberAnalysis, cancellationToken));
                 cancellationToken.ThrowIfCancellationRequested();
             }
             return new SteelVerificationResult(plan, checks);
         }
 
         private static SteelCheckExecution ExecuteOne(SteelVerificationInput input, SteelMethodDecision decision,
-            IDictionary<int, SteelShearBucklingAssessment> assessments, SteelMemberAnalysis memberAnalysis)
+            IDictionary<int, SteelShearBucklingAssessment> assessments, SteelMemberAnalysis memberAnalysis, CancellationToken cancellationToken)
         {
             if (decision.Status != SteelSelectionStatus.Ready && decision.Status != SteelSelectionStatus.RequiresPreparation)
                 return new SteelCheckExecution(decision, SelectionStatus(decision.Status), decision.DiagnosticCode, decision.Message);
@@ -86,6 +87,8 @@ namespace GPC.Checkers.Steel.Pipeline
                 SectionResistanceResult result;
                 switch (decision.Method.Value)
                 {
+                    case SteelMethod.EffectiveNormalResistance:
+                        return SteelEffectiveSectionExecution.Execute(input, decision, cancellationToken);
                     case SteelMethod.LinearResistanceInteraction:
                     case SteelMethod.LinearShearInteraction:
                         return LinearInteraction(input, decision, section, used);
@@ -114,6 +117,8 @@ namespace GPC.Checkers.Steel.Pipeline
                     result.Message, result.Reference, result.Scope, result.Resistance, result.ResistanceUnit,
                     result.Utilization, result.Trace, used);
             }
+            catch (EffectiveSectionConvergenceException ex)
+            { return new SteelCheckExecution(decision, SteelExecutionStatus.CalculationError, "Class4.NonConvergence", ex.Message, shearAssessments: used); }
             catch (NotSupportedException ex)
             { return new SteelCheckExecution(decision, SteelExecutionStatus.NotSupported, "Execution.NotSupported", ex.Message, shearAssessments: used); }
             catch (ArgumentException ex)
