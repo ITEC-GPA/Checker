@@ -1,0 +1,35 @@
+CLASSE4 - RICOGNIZIONE E NUCLEO COMUNE, 22/10/2026
+Riferimenti: EN1993-1-5:2006 con AC2009, 4.4 Tables4.1/4.2; JRC EUR22898EN
+Commentary2007 pp46-50, fonte https://eurocodes.jrc.ec.europa.eu/sites/default/files/2021-12/EUR22898EN.pdf
+NTC2018 e Circolare mantengono propria politica; nessun cambio di edizione
+EC3 o estensione a gusci/instabilita' da taglio implicito in questa estrazione.
+
+Esistente: CompositeBridge.EffectivePlateReduction gestiva piastra interna
+con gradiente e sbalzo uniforme. HBridgeSection compone geometrie efficaci
+per H/cassoni con anima inclinata e doppia piattabanda. CumulativePhaseAnalysis
+iterava tutte le fasi sulla stessa geometria; History mantiene memoria diversa.
+I file Steel/EuroCode/ECClass4ThinWallSection ed ECPlate sono codice commentato,
+non una seconda implementazione pubblica funzionante. PanelsStability e le
+verifiche d'anima trattano meccanismi diversi e non vanno sostituiti qui.
+
+Decisione: spostare solo riduzioni locali e punto fisso in Steel.EffectiveSections.
+CompositeBridge referenzia Steel e conserva facade, record/fingerprint e API.
+Steel non dipende da CompositeBridge. Costruzione, soletta, fasi e History
+restano nel ponte. Gli adapter ponte producono gli stessi BridgePlate.
+
+Incongruenze/limiti rilevati: il vecchio sbalzo non aveva gradiente; manca
+geometria efficace 2D generale, Ixy e ricentraggio per sezioni asimmetriche.
+Per psi=0 interno il codice usava 8.2/1.05=7.8095238, mentre Table4.1 riporta
+esplicitamente 7.81: il nucleo usa ora il valore tabellato. Analogamente a
+psi=-1 la tabella riporta23.9, mentre il polinomio dell'intervallo aperto
+produce23.88. Corretto il solo test manuale che usava il polinomio al bordo,
+con il riferimento tabellare indipendente; nessuna fixture rigenerata. Il limite psi<-3 interno conserva l'approccio conservativo
+preesistente (k al bordo tabellato, posizione asse neutro effettiva) e lo espone.
+Analoga saturazione conservativa per sbalzi oltre gli intervalli tabellati;
+nessuna estrapolazione polinomiale. Le tensioni negative indicano compressione.
+La costante28.4 assume E210000MPa e nu0.3; gli adapter devono qualificare il materiale.
+
+Il nuovo solver restituisce la geometria effettivamente usata per le tensioni,
+non quella dell'ultimo aggiornamento non valutato. Non convergenza, residui
+non finiti e cambio dimensione delle coordinate non producono risultati validi.
+Il kernel non costituisce ancora una verifica completa di sezione o asta.

@@ -13,7 +13,7 @@ public sealed record CumulativeSituation<TState, TContribution>(int PhaseIndex, 
 public static class CumulativePhaseAnalysis
 {
     /// <summary>The smallest relaxation factor of the Aitken acceleration</summary>
-    public const double MinimumRelaxation = .05;
+    public const double MinimumRelaxation = GPC.Checkers.Steel.EffectiveSections.EffectiveSectionIteration.MinimumRelaxation;
 
     /// <param name="phases">The load increments, in order</param>
     /// <param name="grossState">The gross geometry</param>
@@ -51,42 +51,16 @@ public static class CumulativePhaseAnalysis
         {
             cancellation.ThrowIfCancellationRequested();
             var state = warmStart && hasPrevious ? previous! : grossState();
-            bool converged = false;
-            double factor = relaxation; double[]? lastResidual = null;
-            for (int iteration = 1; iteration <= maximumIterations; iteration++)
-            {
-                cancellation.ThrowIfCancellationRequested();
-                var contributions = snapshot.Take(end + 1).Select(p => solve(state, p)).ToArray();
-                var next = reduce(contributions);
-                double error = distance(state, next);
-                if (!BridgeNumbers.IsFinite(error) || error < 0) throw new InvalidOperationException("Residuo della sezione efficace non valido.");
-                if (error < tolerance)
-                {
-                    // Return the state actually used to calculate stresses, not the next trial state.
-                    converged = true; previous = state; hasPrevious = true;
-                    yield return new(end, state, Array.AsReadOnly(contributions), iteration, error);
-                    break;
-                }
-                if (coordinates is not null)
-                {
-                    double[] a = coordinates(state), b = coordinates(next), residual = new double[a.Length];
-                    for (int i = 0; i < a.Length; i++) residual[i] = b[i] - a[i];
-                    if (lastResidual is not null)
-                    {
-                        double numerator = 0, denominator = 0;
-                        for (int i = 0; i < residual.Length; i++)
-                        {
-                            double difference = residual[i] - lastResidual[i];
-                            numerator += lastResidual[i] * difference; denominator += difference * difference;
-                        }
-                        if (denominator > 0 && BridgeNumbers.IsFinite(numerator / denominator))
-                            factor = BridgeNumbers.Clamp(-factor * numerator / denominator, MinimumRelaxation, 1);
-                    }
-                    lastResidual = residual;
-                }
-                state = relax(state, next, factor);
+            GPC.Checkers.Steel.EffectiveSections.EffectiveIterationResult<TState,TContribution[]> result;
+            try {
+                result=GPC.Checkers.Steel.EffectiveSections.EffectiveSectionIteration.Solve(state,
+                    trial=>snapshot.Take(end+1).Select(p=>solve(trial,p)).ToArray(),
+                    contributions=>reduce(contributions),distance,relax,maximumIterations,tolerance,relaxation,coordinates,cancellation);
+            } catch(GPC.Checkers.Steel.EffectiveSections.EffectiveSectionConvergenceException ex) {
+                throw new InvalidOperationException($"{phaseName(snapshot[end])}: sezione efficace non convergente dopo {ex.Iterations} iterazioni. Nessun esito utilizzabile.",ex);
             }
-            if (!converged) throw new InvalidOperationException($"{phaseName(snapshot[end])}: sezione efficace non convergente dopo {maximumIterations} iterazioni. Nessun esito utilizzabile.");
+            previous=result.State;hasPrevious=true;
+            yield return new(end,result.State,Array.AsReadOnly(result.Response),result.Iterations,result.Residual);
         }
     }
 }

@@ -43,9 +43,9 @@ public class BridgeHandCalculationTests
     [TestMethod]
     public void InternalPlateInPureBending()
     {
-        // psi = -1: k = 7.81 + 6.29 + 9.78 = 23.88, bc = b / 2, be1 = 0.4 beff at the compressed edge, be2 = 0.6 beff + tension part
+        // psi = -1: Table4.1 explicitly specifies k = 23.9 (JRC2007 p49); the open-interval polynomial applies only for -1 < psi < 0. bc = b/2.
         var p = EffectivePlateReduction.InternalPlate(2000, 12, -300, 300, Fy);
-        double k = 23.88, lambda = 2000 / 12d / (28.4 * Epsilon * Math.Sqrt(k)), rho = (lambda - .055 * 2) / (lambda * lambda);
+        double k = 23.9, lambda = 2000 / 12d / (28.4 * Epsilon * Math.Sqrt(k)), rho = (lambda - .055 * 2) / (lambda * lambda);
         Assert.IsTrue(lambda > .5 + Math.Sqrt(.085 + .055));
         double beff = rho * 1000;
         Rel(-1, p.Psi); Rel(k, p.KSigma); Rel(rho, p.Rho); Rel(1000, p.CompressedWidth);

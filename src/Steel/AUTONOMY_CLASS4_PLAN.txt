@@ -10,8 +10,8 @@ Task (stato iniziale: da fare)
 4. IN CORSO: RHS/SHS/CHS elastici; C/T/L richiedono metodo distinto da Annex B per H.
 5. Compressione delle coppie con imbottiture e dettaglio locale definito.
 6. Copertura ed esempi completi senza interfaccia.
-7. Revisione dei metodi di classe 4 esistenti e dei riferimenti.
-8. Nucleo comune Steel per le riduzioni, adattatori compatibili CompositeBridge.
+7. COMPLETATO audit: vedere CLASS4_AUDIT.txt (ponti, legacy e fonti primarie).
+8. COMPLETATO: nucleo riduzioni/iterazione in Steel2.34; facade CompositeBridge1.13; 27 test kernel e 340 test ponte passati.
 9. Geometria efficace 2D: A, G, I, Ixy, W e spostamenti rispetto alla lorda.
 10. Verifiche di sezione classe 4 N/My/Mz e convergenza.
 11. Verifiche d'asta classe 4 e proprieta' richieste dai singoli metodi.

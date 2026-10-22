@@ -5,9 +5,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>GPC.Checkers.CompositeBridge</RootNamespace>
-    <Version>1.12.0.0</Version>
-    <AssemblyVersion>1.12.0.0</AssemblyVersion>
-    <FileVersion>1.12.0.0</FileVersion>
+    <Version>1.13.0.0</Version>
+    <AssemblyVersion>1.13.0.0</AssemblyVersion>
+    <FileVersion>1.13.0.0</FileVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
@@ -17,6 +17,7 @@
   <!-- Normal Checker checkout: existing libraries are built by the solution. -->
   <ItemGroup Condition="'$(BridgeLibraryDir)' == ''">
     <ProjectReference Include="../GPCChecker.Concrete/GPCChecker.Concrete.csproj" />
+    <ProjectReference Include="../GPCChecker.Steel/GPCChecker.Steel.csproj" />
     <Reference Include="GPCModel"><HintPath>../../Model/Model/bin/Release/netstandard2.0/GPCModel.dll</HintPath></Reference>
     <Reference Include="GPCGeometry"><HintPath>../../Geometry/GPCGeometry/bin/Release/netstandard2.0/GPCGeometry.dll</HintPath></Reference>
     <Reference Include="GPCUtilities"><HintPath>../../Utilities/GPCUtilities/bin/Release/netstandard2.0/GPCUtilities.dll</HintPath></Reference>
@@ -24,6 +25,7 @@
   <!-- Explicit dependency snapshot for application regression/distribution. No dependency on ANTHEA. -->
   <ItemGroup Condition="'$(BridgeLibraryDir)' != ''">
     <Reference Include="GPCChecker.Concrete"><HintPath>$(BridgeLibraryDir)/GPCChecker.Concrete.dll</HintPath></Reference>
+    <Reference Include="GPCChecker.Steel"><HintPath>$(BridgeLibraryDir)/GPCChecker.Steel.dll</HintPath></Reference>
     <Reference Include="GPCModel"><HintPath>$(BridgeLibraryDir)/GPCModel.dll</HintPath></Reference>
     <Reference Include="GPCGeometry"><HintPath>$(BridgeLibraryDir)/GPCGeometry.dll</HintPath></Reference>
     <Reference Include="GPCUtilities"><HintPath>$(BridgeLibraryDir)/GPCUtilities.dll</HintPath></Reference>
