@@ -66,7 +66,8 @@ namespace GPC.Checkers.Steel.Pipeline
                     : new[] { 1, 2 }.Where(axis => (axis == 1 ? input.Actions.V1 : input.Actions.V2) != 0).ToArray();
                 foreach (int axis in axes)
                     if (assessments.TryGetValue(axis, out var assessment)) used.Add(assessment);
-                if (used.Any(a => !a.IsBucklingExcluded))
+                bool acceptsWebResistance = decision.Method == SteelMethod.EffectiveNormalResistance || decision.Method == SteelMethod.SectionShear2;
+                if (used.Any(a => !a.IsBucklingExcluded && (!acceptsWebResistance || !a.BucklingResistance.HasValue)))
                     return new SteelCheckExecution(decision, SteelExecutionStatus.NotSupported,
                         "ShearBuckling.ResistanceMethodRequired",
                         "Shear buckling is not excluded. A qualified resistance/interaction method is required; plastic resistance cannot be used.",
@@ -88,7 +89,7 @@ namespace GPC.Checkers.Steel.Pipeline
                 switch (decision.Method.Value)
                 {
                     case SteelMethod.EffectiveNormalResistance:
-                        return SteelEffectiveSectionExecution.Execute(input, decision, cancellationToken);
+                        return SteelEffectiveSectionExecution.Execute(input, decision, cancellationToken, used);
                     case SteelMethod.LinearResistanceInteraction:
                     case SteelMethod.LinearShearInteraction:
                         return LinearInteraction(input, decision, section, used);
@@ -103,6 +104,14 @@ namespace GPC.Checkers.Steel.Pipeline
                     case SteelMethod.SectionShear1:
                         result = Shear(input, section, 1); break;
                     case SteelMethod.SectionShear2:
+                        if (used.Any(v => v.BucklingResistance.HasValue)) {
+                            var web = used.Single(v => v.BucklingResistance.HasValue);
+                            double utilization = Math.Abs(a.V2) / web.BucklingResistance.Value;
+                            SteelInputValidation.Finite(utilization, "web utilization");
+                            return new SteelCheckExecution(decision, utilization <= 1 ? SteelExecutionStatus.Passed : SteelExecutionStatus.Failed,
+                                reference: web.Reference, scope: "H web-only shear resistance; non-rigid end post, support detailing assessed separately; no flange contribution or normal interaction.",
+                                resistance: web.BucklingResistance, resistanceUnit: "N", utilization: utilization, trace: web.Trace, shearAssessments: used);
+                        }
                         result = Shear(input, section, 2); break;
                     case SteelMethod.Ec3PlasticHInteraction:
                         return PlasticH(input, decision, section, used);

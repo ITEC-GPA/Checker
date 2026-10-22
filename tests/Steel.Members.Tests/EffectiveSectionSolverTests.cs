@@ -134,7 +134,7 @@ public class EffectiveSectionSolverTests
         var section=new SteelSectionInput(new SteelSection(Shape("H"),new SteelMaterial("nonstandard",200000,355,550)),true);
         Assert.ThrowsException<NotSupportedException>(()=>SteelEffectiveSectionSolver.Qualify(section));
         Assert.ThrowsException<NotSupportedException>(()=>SteelEffectiveSectionSolver.Qualify(CommonSectionCoverageTests.Input(new SectionCHS(500,2,"shell"),false).Section));
-        var input=Input("H");var shear=new SteelVerificationInput(input.Section,new SteelActions(-1e5,0,1,0,0,0),input.Code);
+        var input=Input("RHS");var shear=new SteelVerificationInput(input.Section,new SteelActions(-1e5,0,1,0,0,0),input.Code);
         var result=Run(shear);Assert.IsFalse(result.IsEvaluated);Assert.AreEqual("Class4.ShearInteractionNotQualified",result.DiagnosticCode);
     }
 }

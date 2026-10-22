@@ -11,6 +11,8 @@ namespace GPC.Model.Checker
     internal sealed class SteelPipelineParameters
     {
         internal readonly Dictionary<string, string> Values;
+        internal string HWebResistance { get; }
+        internal string HWebSupportSource { get; }
         internal bool? Unperforated { get; }
         internal double? NetArea { get; }
         internal int? UniformCompressionClass { get; }
@@ -41,10 +43,14 @@ namespace GPC.Model.Checker
             ClassificationSource = Text("ClassificationSource"); SectionFingerprint = Text("SectionFingerprint");
             ShearExcluded1 = Boolean("ShearBucklingExcluded1"); ShearExcluded2 = Boolean("ShearBucklingExcluded2");
             ShearSource1 = Text("ShearBucklingSource1"); ShearSource2 = Text("ShearBucklingSource2");
+            HWebResistance = Text("HWebResistance"); HWebSupportSource = Text("HWebSupportSource");
+            Pair(HWebResistance != null, HWebSupportSource, "HWebSupport");
+            if (HWebResistance != null && (HWebResistance != "NonRigidEndPost" || ShearExcluded2.HasValue || ShearSource2 != null))
+                throw new ArgumentException("InvalidOrConflictingHWebResistance");
             Pair(UniformCompressionClass.HasValue, ClassificationSource, "Classification");
             Pair(ShearExcluded1.HasValue, ShearSource1, "ShearBuckling1");
             Pair(ShearExcluded2.HasValue, ShearSource2, "ShearBuckling2");
-            if ((NetArea.HasValue || UniformCompressionClass.HasValue || ShearExcluded1.HasValue || ShearExcluded2.HasValue)
+            if ((NetArea.HasValue || UniformCompressionClass.HasValue || ShearExcluded1.HasValue || ShearExcluded2.HasValue || HWebResistance != null)
                 && SectionFingerprint == null) throw new ArgumentException("SectionFingerprintRequiredForSteelAssessment");
         }
 

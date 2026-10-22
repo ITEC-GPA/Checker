@@ -10,7 +10,7 @@ namespace GPC.Checkers.Steel.Pipeline
     /// <summary>Exclusion of shear buckling for one principal shear direction and the
     /// exact immutable input. This is a prerequisite, not a shear resistance result.
     /// External provenance is caller supplied, not independent certification.</summary>
-    public sealed class SteelShearBucklingAssessment
+    public sealed partial class SteelShearBucklingAssessment
     {
         public SteelVerificationInput Input { get; }
         public int Axis { get; }

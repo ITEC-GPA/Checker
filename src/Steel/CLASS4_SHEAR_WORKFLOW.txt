@@ -1,0 +1,39 @@
+ANIMA SNELLA E CLASSE4 - STEEL2.38 / MODELCHECKER2.21
+
+EvaluateNonRigidHWeb(input,gammaM1,eta,supportDetailSource) riusa il calcolo
+Ec3WebShearBuckling: H esatto, asse1 maggiore orizzontale, senza fori/aperti
+formati a freddo, irrigidimenti ai soli appoggi, montante terminale non rigido.
+Vbw e' il solo contributo dell'anima, limitato anche da Vpl. Non si assume
+l'esclusione dell'instabilita': IsBucklingExcluded resta false.
+Il chiamante deve identificare la verifica separata di irrigidimenti,
+attacchi e trasmissione della forza agli appoggi. La fonte non li verifica.
+EC3 usa gammaM1/eta espliciti; NTC2018 richiede gammaM1=1.05, eta=1.
+In ModelChecker: HWebResistance=NonRigidEndPost, HWebSupportSource e
+SectionFingerprint. Non abbinare un'esclusione esterna sullo stesso asse.
+Senza questi dati il vecchio controllo di esclusione rimane insufficiente
+per un'anima instabile e non produce un esito favorevole.
+
+Interazione normale classe4 con solo V2 su H:
+- |V2|/VRd<=0.5: nessuna riduzione N/M, EN1993-1-5 7.1(1).
+- >0.5: solo H doppiamente simmetrico, N=M2=0, M1+V2. Si usa
+  u = max(|V2|/VRd, u_normale + (2*|V2|/VRd-1)^2).
+  E' il limite conservativo di7.1(1) con MfRd=0 e MplRd sostituito dalla
+  resistenza elastica efficace. Questa e' minore o uguale alla resistenza
+  plastica delle ali efficaci con anima interamente efficace richiesta da7.1.
+  Si conservano separatamente il controllo tensionale efficace e |V|<=VRd.
+- N o M2 con alto taglio, V1 o interazioni non H restano non qualificati.
+Non si trasferisce Vbw alle vecchie interazioni plastiche basate su Vpl.
+
+Verifica indipendente: SCI AD368, NSC giugno2012 p28, UKB406x140x39 S355,
+hw380.8,tw6.4. Pubblica epsilon0.81,lambda0.85,chi0.976,VRd488kN.
+La precisione completa normativa produce489.823kN (gammaM1=1).
+I test distinguono il risultato con chi pubblicato, l'effetto arrotondamenti
+intermedi e la tolleranza di stampa0.5kN; nessun coefficiente forzato.
+https://www.steelconstruction.info/images/6/6f/AD-368.pdf
+Fonti normative: EN1993-1-5:2006 5.1(2),5.2/5.3,Table5.1,eq5.5,7.1;
+NTC2018 4.2.4.1.2.4 e4.2.4.1.2.9, coefficienti propri.
+
+Questo passo non qualifica gusci CHS sottili (EN1993-1-6), interazione globale
+di profili accoppiati classe4, shear lag, patch loading o flange-induced buckling.
+Non chiamare completa una verifica globale della struttura sulla base di
+questo controllo locale di sezione/anima.

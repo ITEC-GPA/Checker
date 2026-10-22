@@ -28,7 +28,7 @@ namespace GPC.Model.Checker
     public sealed class SteelPipelineMaterialChecker : IMaterialChecker
     {
         public const string EngineId = "Steel.Pipeline.Section";
-        internal const string Limitations = "Selected section checks at one concomitant cut, EC3:2005 or NTC:2018; unavailable checks remain incomplete. Class4 N-M1-M2 uses shared iterative effective flat plates, including centroid eccentricity; unsupported geometry and interactions remain explicit. No member stability, connections, fatigue, fire or seismic checks.";
+        internal const string Limitations = "Selected section checks at one concomitant cut, EC3:2005 or NTC:2018; unavailable checks remain incomplete. Class4 N-M1-M2 uses shared iterative effective flat plates, including centroid eccentricity; optional H web shear resistance requires separately assessed supports; unsupported geometry and interactions remain explicit. No member stability, connections, fatigue, fire or seismic checks.";
         private readonly SteelPipelineParameters _parameters;
         public StandardEN1993p11 Code { get; }
         public string Edition { get; }
@@ -126,6 +126,13 @@ namespace GPC.Model.Checker
                 for (int axis = 1; axis <= 2; axis++)
                 {
                     if ((axis == 1 ? input.Actions.V1 : input.Actions.V2) == 0) continue;
+                    if (axis == 2 && options.HWebResistance != null)
+                    {
+                        double eta = input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018 ? 1
+                            : input.Section.YieldStrength <= 460 ? _owner.Code.NShearBucklingLowGradeOfSteel : _owner.Code.NShearBucklingHighGradeOfSteel;
+                        yield return SteelShearBucklingAssessment.EvaluateNonRigidHWeb(input, _owner.Code.GammaM1, eta, options.HWebSupportSource);
+                        continue;
+                    }
                     bool? excluded = axis == 1 ? options.ShearExcluded1 : options.ShearExcluded2;
                     if (excluded.HasValue)
                     {

@@ -28,6 +28,11 @@ namespace GPC.Model.Checker.Configuration
             Add("Unperforated",EngineParameterKind.Boolean,description:"Explicit absence/presence of holes; never inferred from the outline.");
             Add("ClassificationSource",description:"Source of the externally supplied nominal section/member class.",modes:member?new[]{"ExternalInPlane","Compression","Bending","BeamColumn"}:null);
             if(!member) {
+                Add("HWebResistance",EngineParameterKind.Choice,choices:new[]{"NonRigidEndPost"},description:"Web-only H shear buckling resistance; support stiffeners and attachments verified separately.");
+                Add("HWebSupportSource",description:"Evidence for support stiffeners, attachments and end force transfer, same section and load state.");
+                Together("HWebSupportPair","HWebResistance","HWebSupportSource");
+                Require("HWebFingerprintRequired","Web support assessment must bind to the section.",new[]{"SectionFingerprint"},Has("HWebResistance"));
+                rules.Add(new EngineParameterRule("HWebAssessmentConflict","Choose exclusion or computed web resistance.",new[]{Has("HWebResistance")},null,new[]{"ShearBucklingExcluded2","ShearBucklingSource2"}));
                 Add("NetArea",EngineParameterKind.Number,"mm²",min:0,exclusive:true);
                 Add("UniformCompressionClass",EngineParameterKind.Integer,min:1,max:4);
                 Add("SectionFingerprint",description:"Fingerprint of the complete Model steel property to which the assessment applies.");

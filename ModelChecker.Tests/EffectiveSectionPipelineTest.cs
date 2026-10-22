@@ -15,6 +15,34 @@ namespace ModelChecker.Tests;
 [TestClass]
 public class EffectiveSectionPipelineTest
 {
+    [DataTestMethod] [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public void SlenderHWebResistanceRequiresBoundSupportDetail(bool ntc,bool supplied)
+    {
+        var (model,plan)=SteelMemberPipelineTest.Fixture(sectionFactory:()=>new SteelSection(
+            new SectionH(398,6.4,141.8,8.6,141.8,8.6,"SCI",10.2),SteelMaterialEN1993Data.S355));
+        foreach(var sample in ResultQueries.Samples<StationResultBeamForces>(model.BeamElements[250],plan.Results[0])) {
+            sample.ResultBeamForces.N=0;sample.ResultBeamForces.M1=1e7;sample.ResultBeamForces.V2=3e5;
+        }
+        plan.SectionMechanisms=new[]{CheckMechanism.UlsBiaxialSection};plan.MemberChecks=Array.Empty<MemberCheckSpecification>();
+        var p=new Dictionary<string,string>{{"Unperforated","true"}};
+        if(supplied) {
+            p["HWebResistance"]="NonRigidEndPost";p["HWebSupportSource"]="Support stiffeners and attachments independently verified";
+            p["SectionFingerprint"]=ModelValues.Fingerprint(new object[]{model.BeamElements[250].BeamProperty});
+        }
+        Assert.AreEqual(0,GPC.Model.Checker.Configuration.SteelParameterSchemas.Section.Validate(p).Count);
+        var request=new MultiMaterialCheckRequest();request.Jobs.Add(new MultiMaterialCheckJob {Name="Class4 web",Plan=plan,
+            Assignments=new[]{new MaterialCheckerAssignment {Checker=new SteelPipelineMaterialChecker(ntc?new StandardNTC2018Steel():new StandardEN1993p11(),
+                ntc?"2018":"2005",parameters:p),Mechanisms=new[]{CheckMechanism.UlsBiaxialSection}}}});
+        var report=new Service().Verify(model,request);
+        Assert.AreEqual(supplied?EngineeringOutcome.Satisfied:EngineeringOutcome.NotEvaluated,report.Outcome,
+            string.Join(";",report.Jobs[0].Results.SelectMany(r=>r.Diagnostics).Select(d=>d.Code+" "+d.Message)));
+        if(supplied) {
+            Assert.IsTrue(report.Jobs[0].Results.All(r=>r.Details.Trace.Any(t=>t.Key.EndsWith("ShearInteractionPenalty")&&t.Value>0)));
+            using var stream=new MemoryStream();CheckReportArchive.Save(report.Jobs,stream);stream.Position=0;
+            Assert.AreEqual(EngineeringOutcome.Satisfied,Service.CurrentOutcome(CheckReportArchive.Load(stream),model,request));
+        }
+    }
+
     [DataTestMethod] [DataRow(false)] [DataRow(true)]
     public void Class4MemberCompressionUsesEffectiveAreaThroughCommonAdapter(bool ntc)
     {

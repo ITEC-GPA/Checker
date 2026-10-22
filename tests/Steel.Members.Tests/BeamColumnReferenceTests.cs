@@ -136,7 +136,7 @@ public class BeamColumnReferenceTests
     }
     [DataTestMethod] [DataRow("missing-mcr")] [DataRow("class4")] [DataRow("torque")] [DataRow("tension")]
     [DataRow("high-shear")] [DataRow("shear-assessment")] [DataRow("ntc-mcr-basis")]
-    public void UnqualifiedInputsNeverProduceAPassingBeamColumn(string problem)
+    public void BeamColumnQualificationRetainsUnsupportedCasesAndSelectsEffectiveClass4(string problem)
     {
         var i=Input(true,3,3);
         if(problem=="torque"||problem=="tension"||problem.Contains("shear"))i=new(i.Section,
@@ -144,7 +144,12 @@ public class BeamColumnReferenceTests
         var original=Analysis(i,problem=="class4"?4:3,basis:problem=="ntc-mcr-basis"?SteelCriticalMomentBasis.ActualMomentDiagram:SteelCriticalMomentBasis.UniformMoment,
             shear:problem=="high-shear"?"Independent buckling screen":null);
         var a=problem=="missing-mcr"?SteelMemberAnalysis.BeamColumn(i,"state","policy",Parameters(),original.Values.Where(v=>v.Quantity!=SteelStabilityQuantity.Mcr),3,"class3"):original;
-        var r=Run(a);Assert.IsFalse(r.IsEvaluated);Assert.IsNull(r.Utilization);
+        var r=Run(a);
+        if(problem=="class4") {
+            Assert.IsTrue(r.IsEvaluated,r.Message);Assert.IsTrue(r.Trace.Any(t=>t.Name=="AreaEffective"));
+            Assert.IsTrue(r.Trace.Any(t=>t.Name=="Weff1Min"));return;
+        }
+        Assert.IsFalse(r.IsEvaluated);Assert.IsNull(r.Utilization);
     }
     [DataTestMethod] [DataRow("C")] [DataRow("T")] [DataRow("L")] [DataRow("RHS")]
     public void OtherFamiliesDoNotSilentlyUseTheSymmetricHCoefficients(string family)

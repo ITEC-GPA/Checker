@@ -86,11 +86,13 @@ namespace GPC.Checkers.Steel.Selection
             int cl = classInfo.Class.Value;
             if (cl == 4)
             {
-                if (shear) return Unsupported(target, "Class4.ShearInteractionNotQualified", "Class4 normal/shear interaction needs a qualified resistance method.");
+                if (shear && (shape.GetType()!=typeof(SectionH) || a.V1!=0 || Math.Abs(shape.AngleX1)>1e-10))
+                    return Unsupported(target, "Class4.ShearInteractionNotQualified", "Class4 shear interaction currently requires H web-direction shear only.");
                 try { SteelEffectiveSectionSolver.Qualify(s); }
                 catch (NotSupportedException ex) { return new SteelMethodDecision(target, SteelSelectionStatus.NotSupported, null,
                     "Class4.GeometryOrMaterialNotQualified", ex.Message, cl, classInfo.Source); }
-                return Ready(target, SteelMethod.EffectiveNormalResistance, cl, classInfo.Source);
+                return shear ? AwaitShearAssessment(target, SteelMethod.EffectiveNormalResistance, cl, classInfo.Source)
+                    : Ready(target, SteelMethod.EffectiveNormalResistance, cl, classInfo.Source);
             }
             bool plasticH = interaction && ec3 && cl <= 2 && shape.GetType() == typeof(SectionH)
                 && ((SectionH)shape).R == 0 && Math.Abs(shape.AngleX1) <= 1e-10;
