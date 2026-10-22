@@ -14,7 +14,7 @@ Task (stato iniziale: da fare)
 8. COMPLETATO: nucleo riduzioni/iterazione in Steel2.34; facade CompositeBridge1.13; 27 test kernel e 340 test ponte passati.
 9. COMPLETATO nucleo geometrico2D: A/G/I/Ixy/W, ricentraggio e casi H/T/C/L/RHS qualificati; vedere EFFECTIVE_GEOMETRY.txt.
 10. COMPLETATO nel campo qualificato H/C/T/L/RHS: sezione efficace N/My/Mz, EC3/NTC, convergenza e report ModelChecker; CLASS4_SECTION_WORKFLOW.txt.
-11. Verifiche d'asta classe 4 e proprieta' richieste dai singoli metodi.
+11. IMPLEMENTATO per H/RHS doppiamente simmetrici: compressione, LTB e pressoflessione con Aeff/Weff; asimmetrici con eN richiedono un metodo d'asta distinto. CLASS4_MEMBER_WORKFLOW.txt.
 12. Qualificazione distinta CHS sottili/accoppiati; interazioni con il taglio.
 13. Confronti Steel/CompositeBridge, suite complete, versioni e merge locale.
 

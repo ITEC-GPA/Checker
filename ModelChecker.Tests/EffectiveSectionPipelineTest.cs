@@ -16,6 +16,26 @@ namespace ModelChecker.Tests;
 public class EffectiveSectionPipelineTest
 {
     [DataTestMethod] [DataRow(false)] [DataRow(true)]
+    public void Class4MemberCompressionUsesEffectiveAreaThroughCommonAdapter(bool ntc)
+    {
+        var (model,plan)=SteelMemberPipelineTest.Fixture(sectionFactory:()=>new SteelSection(
+            new SectionRHS(400,200,4,4,4,4,"Class4 RHS"),SteelMaterialEN1993Data.S355));
+        var p=SteelMemberPipelineTest.Options(model,plan);
+        foreach(var key in new[]{"InPlaneCurve","LateralCurve","LateralTorsionalCurve"})p.Remove(key);
+        p["AnalysisMode"]="Compression";p["CurveSelection"]="Automatic";
+        p["TorsionalExclusionSource"]="Continuous independent torsional restraint";
+        p["FlexuralTorsionalExclusionSource"]="Continuous restraint excludes coupled mode";
+        p["Ncr1.Value"]="3000000";p["Ncr2.Value"]="1500000";
+        foreach(var q in new[]{"Ncr1","Ncr2"}) {p[q+".Unit"]="N";p[q+".Source"]="Gross elastic eigenvalue";}
+        var report=new Service().Verify(model,SteelMemberPipelineTest.Request(plan,p,ntc?new StandardNTC2018Steel():new StandardEN1993p11()));
+        Assert.AreEqual(EngineeringOutcome.Satisfied,report.Outcome,string.Join(";",report.Jobs[0].Results.SelectMany(r=>r.Diagnostics).Select(d=>d.Code+" "+d.Message)));
+        var result=report.Jobs[0].Results.Single();Assert.IsTrue(result.Details.Trace.Any(t=>t.Key.EndsWith(".AreaEffective")&&t.Value<4736));
+        Assert.IsTrue(result.Details.Trace.Any(t=>t.Key.EndsWith(".MemberClass")&&t.Value==4));
+        using var stream=new MemoryStream();CheckReportArchive.Save(report.Jobs,stream);stream.Position=0;
+        Assert.AreEqual(EngineeringOutcome.Satisfied,Service.CurrentOutcome(CheckReportArchive.Load(stream),model,SteelMemberPipelineTest.Request(plan,p,ntc?new StandardNTC2018Steel():new StandardEN1993p11())));
+    }
+
+    [DataTestMethod] [DataRow(false)] [DataRow(true)]
     public void Class4SectionWorkflowAndArchiveRetainEffectiveProperties(bool ntc)
     {
         var (model,plan)=SteelMemberPipelineTest.Fixture(sectionFactory:()=>new SteelSection(

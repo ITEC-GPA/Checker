@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using GPC.Checkers.Steel.Inputs;
+using GPC.Checkers.Steel.EffectiveSections;
 using GPC.Checkers.Steel.Members;
 using GPC.Checkers.Steel.ModelAdapters;
 using GPC.Checkers.Steel.Sections;
@@ -61,10 +62,14 @@ namespace GPC.Checkers.Steel.Pipeline
             var comp=Compression(analysis);var compression=SteelPrismaticMemberExecution.Execute(comp,SteelPrismaticMemberExecution.Select(comp));
             var trace=new List<SectionResistanceValue>(compression.Trace.Where(v=>v.Name!="Resistance"&&v.Name!="Utilization"));
             double Value(string name)=>compression.Trace.Single(v=>v.Name==name).Value;
-            double gamma=i.Code.GammaM1.Value,fy=i.Section.YieldStrength,nrk=section.Area*fy;
+            bool effective=decision.SectionClass==4;
+            double gamma=i.Code.GammaM1.Value,fy=i.Section.YieldStrength,nrk=(effective?Value("AreaEffective"):section.Area)*fy;
             double lambda1=Value("Ncr1.Slenderness"),lambda2=Value("Ncr2.Slenderness"),chi1=Value("Ncr1.Chi"),chi2=Value("Ncr2.Chi");
-            bool elastic=decision.SectionClass==3||Hollow(section.SectionShape),ntc=i.Code.SectionCode.Standard==SectionResistanceStandard.Ntc2018;
-            double m1rk=(elastic?section.Wel1:section.Wpl1)*fy,m2rk=(elastic?section.Wel2:section.Wpl2)*fy,chiLT=1;
+            bool elastic=decision.SectionClass>=3||Hollow(section.SectionShape),ntc=i.Code.SectionCode.Standard==SectionResistanceStandard.Ntc2018;
+            double w1=effective?SteelEffectiveMemberProperties.BendingModulus(i,1):(elastic?section.Wel1:section.Wpl1);
+            double w2=effective?SteelEffectiveMemberProperties.BendingModulus(i,2):(elastic?section.Wel2:section.Wpl2);
+            double m1rk=w1*fy,m2rk=w2*fy,chiLT=1;
+            if(effective) {Add(trace,"Weff1Min",w1,"mm3");Add(trace,"Weff2Min",w2,"mm3");}
             if(p.TorsionSusceptible&&i.Actions.M1!=0)
             {
                 double mcr=analysis.Values.Single(v=>v.Quantity==SteelStabilityQuantity.Mcr).Value;
@@ -83,7 +88,7 @@ namespace GPC.Checkers.Steel.Pipeline
             double utilization=Math.Max(result.Utilization,compression.Utilization.Value);
             Add(trace,"Utilization",utilization,"1");
             return new SteelCheckExecution(decision,utilization<=1?SteelExecutionStatus.Passed:SteelExecutionStatus.Failed,
-                reference:result.Reference,scope:"Doubly symmetric prismatic H/RHS/SHS/CHS, classes 1-3; hollow sections use conservative elastic moduli and elastic interaction coefficients; N constant, M1/M2 maxima from one design state; explicit Cm, global-analysis and mode assessments. Section/shear verification is separate.",
+                reference:result.Reference+(effective?"; EN1993-1-5:2006 4.3(3)/(4), class4 Aeff/Weff at fy; gross critical values":""),scope:"Doubly symmetric prismatic H/RHS/SHS/CHS classes1-3, qualified H/RHS class4 with zero uniform-compression centroid shift; hollow sections use conservative elastic moduli and elastic interaction coefficients; N constant, M1/M2 maxima from one design state; explicit Cm, global-analysis and mode assessments. Section/shear verification is separate.",
                 utilization:utilization,trace:trace);
         }
         private static bool Hollow(ISectionShape shape) => shape.GetType()==typeof(SectionCHS)||shape.GetType()==typeof(SectionRHS)||shape.GetType()==typeof(SectionRHSRoundedCorners);

@@ -135,7 +135,8 @@ public class CommonMemberCoverageTests
         Assert.AreEqual(SteelExecutionStatus.MissingInput,r.Status);Assert.AreEqual(2,r.Decision.MissingInputs.Count);
         r=Run(SteelMemberAnalysis.Compression(original,"N","curves",SteelBucklingCurve.B,SteelBucklingCurve.C,SteelBucklingCurve.C,
             torsionalExclusionSource:"assessed",flexuralTorsionalExclusionSource:"assessed",memberClass:4,classificationSource:"class4"));
-        Assert.AreEqual("Member.Class4NotQualified",r.DiagnosticCode);
+        Assert.IsTrue(r.IsEvaluated,r.Message);
+        Assert.IsTrue(r.Trace.Any(t=>t.Name=="AreaEffective")); // explicit class4 selects effective properties even for a stocky test H
         var wide=CommonSectionCoverageTests.Input(new SectionH(100,10,500,20,500,20,"wide H"),false,m1:10000);
         Assert.IsTrue(Math.Abs(wide.Section.PrincipalAxisAngle)>1);
         var i=new SteelVerificationInput(wide.Section,wide.Actions,wide.Code,new SteelMemberInput(3000));

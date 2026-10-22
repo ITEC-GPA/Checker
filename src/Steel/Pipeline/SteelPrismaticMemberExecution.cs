@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using GPC.Checkers.Steel.Inputs;
+using GPC.Checkers.Steel.EffectiveSections;
 using GPC.Checkers.Steel.Sections;
 using GPC.Checkers.Steel.Selection;
 using GPC.Model.Sections;
@@ -46,7 +47,11 @@ namespace GPC.Checkers.Steel.Pipeline
                 ? new SteelSectionClassification(i, analysis.ExternalMemberClass.Value, analysis.ClassificationSource) : null);
             if (cl.Failure != null) return new SteelMethodDecision(SteelCheckTarget.MemberStability, cl.Failure.Status, null,
                 cl.Failure.DiagnosticCode, cl.Failure.Message, missing: cl.Failure.MissingInputs);
-            if (cl.Class == 4) return Unsupported("Member.Class4NotQualified", "Effective section properties and the associated analysis are required.");
+            if (cl.Class == 4)
+            {
+                try { SteelEffectiveMemberProperties.Qualify(i.Section); }
+                catch (NotSupportedException ex) { return Unsupported("Member.Class4NotQualified", ex.Message); }
+            }
             if (compression)
             {
                 if (!Has(analysis, SteelStabilityQuantity.Ncr1) && !i.Member.BucklingLength1.HasValue) missing.Add("Ncr1 or Member.BucklingLength1");
@@ -85,10 +90,13 @@ namespace GPC.Checkers.Steel.Pipeline
             double fy = i.Section.YieldStrength, gamma = i.Code.GammaM1.Value;
             Add(trace, "GammaM0", i.Code.SectionCode.GammaM0, "1"); Add(trace, "GammaM1", gamma, "1");
             Add(trace, "Fy", fy, "MPa"); Add(trace, "MemberClass", decision.SectionClass.Value, "1");
+            bool effective = decision.SectionClass == 4;
             double resistance; string reference, scope, unit;
             if (compression)
             {
-                double characteristic = section.Area * fy;
+                double area = effective ? SteelEffectiveMemberProperties.Compression(i.Section).Area : section.Area;
+                if (effective) { Add(trace, "AreaEffective", area, "mm2"); Add(trace, "EffectiveCentroidShiftX", 0, "mm"); Add(trace, "EffectiveCentroidShiftY", 0, "mm"); }
+                double characteristic = area * fy;
                 Positive(characteristic, "Characteristic axial resistance"); Add(trace, "Area", section.Area, "mm2");
                 resistance = characteristic / i.Code.SectionCode.GammaM0; Add(trace, "SectionResistance", resistance, "N");
                 foreach (var mode in new[] { SteelStabilityQuantity.Ncr1, SteelStabilityQuantity.Ncr2, SteelStabilityQuantity.NcrT, SteelStabilityQuantity.NcrFT })
@@ -125,19 +133,23 @@ namespace GPC.Checkers.Steel.Pipeline
                 // Rounded RHS uses its independently qualified elastic modulus;
                 // a conservative elastic check is also permitted for compact sections.
                 bool elastic = decision.SectionClass >= 3 || section.SectionShape.GetType() == typeof(SectionRHSRoundedCorners);
-                double w = elastic ? section.Wel1 : section.Wpl1; Positive(w, "Section modulus");
+                double w = effective ? SteelEffectiveMemberProperties.BendingModulus(i, 1) : elastic ? section.Wel1 : section.Wpl1; Positive(w, "Section modulus");
                 double mcr = analysis.Values.Single(v => v.Quantity == SteelStabilityQuantity.Mcr).Value;
                 double characteristic = w * fy; Positive(characteristic, "Characteristic moment resistance");
                 var curve = LtbCurve(section, ntc);
                 double slenderness = Math.Sqrt(characteristic) / Math.Sqrt(mcr), chi = Reduction(slenderness, curve);
                 resistance = Math.Min(chi * characteristic / gamma, characteristic / i.Code.SectionCode.GammaM0);
-                Add(trace, elastic ? "Wel1Min" : "Wpl1", w, "mm3"); Add(trace, "Mcr", mcr, "Nmm");
+                Add(trace, effective ? "Weff1Min" : elastic ? "Wel1Min" : "Wpl1", w, "mm3"); Add(trace, "Mcr", mcr, "Nmm");
                 Add(trace, "AlphaLT", Alpha(curve), "1"); Add(trace, "SlendernessLT", slenderness, "1"); Add(trace, "ChiLT", chi, "1");
                 Add(trace, "BetaLT", 1, "1"); Add(trace, "LambdaLT0", .2, "1"); Add(trace, "MomentCorrectionF", 1, "1");
                 unit = "Nmm";
                 reference = ntc ? "NTC 2018 4.2.4.1.3.2, equations 4.2.48-51; Table 4.2.IX (general conservative case)"
                     : "EN 1993-1-1:2005 6.3.2.1-2, equations 6.55-56; recommended Table 6.4 curves";
                 scope = "Prismatic major-axis LTB; explicit gross-section elastic Mcr and whole-member maximum M1. Shear/section checks remain separate. " + analysis.Prismatic.CriticalMomentBasis;
+            }
+            if (effective) {
+                reference += "; EN1993-1-5:2006 4.3(3)/(4), 4.4; EN1993-1-1:2005 6.3.1.1(3), 6.3.1.2, 6.3.2.1";
+                scope = "Class4 doubly symmetric H/RHS; Aeff under uniform compression / Weff under pure bending at fy. Effective centroid under N unchanged. Elastic critical values use gross properties. Section/shear interaction remains separate. " + analysis.Prismatic.CriticalMomentBasis;
             }
             Positive(resistance, "Design resistance"); double demand = compression ? Math.Abs(i.Actions.N) : Math.Abs(i.Actions.M1);
             double utilization = demand / resistance; SteelInputValidation.Finite(utilization, "Utilization");
