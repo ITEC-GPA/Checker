@@ -1,0 +1,36 @@
+ASTE FISICHE E PRESSOFLESSIONE - 22 OTTOBRE 2026
+
+1 COMPLETATO - ESEMPIO APPLICATIVO
+Examples/SteelReferenceFrame.cs: due colonne H e traverso RHS, due stati ULS
+concomitanti assegnati analiticamente, EC3/NTC, configurazione e report archiviati.
+I tre test iniziali verificano esecuzione, fattori normativi e invalidazione.
+La documentazione dello schema e' in Examples/STEEL_REFERENCE_FRAME.txt.
+
+2 COMPLETATO - ASTE COSTITUITE DA PIU' ELEMENTI
+SteelPhysicalMemberPreparation riconcilia sezioni e azioni in un riferimento
+comune. Percorsi Compression/Bending su aste rettilinee prismatiche continue,
+con qualsiasi numero di elementi e un tratto esplicito Start/End. Le lunghezze
+efficaci restano dati di progetto: i nodi FEM non costituiscono ritegni impliciti.
+I/J invertito conserva N e T, e trasforma le componenti trasversali con la
+normalizzazione della faccia positiva. Non si inverte il Model sorgente.
+Per simmetrie H, RHS/CHS e solidi sono ammessi assi paralleli/antiparalleli;
+forme asimmetriche richiedono lo stesso riferimento fisico della geometria.
+Rotazioni fisiche lungo l'asta non vengono assimilate a una semplice mesh.
+
+Per ogni intervallo FEM servono i tagli di entrambe le estremita', inclusi
+entrambi i lati dei nodi interni. Le azioni appartengono a un solo stato
+concomitante; nessuna combinazione viene ricostruita con massimi indipendenti.
+Sezioni e leggi di variazione sono ispezionate anche tra i campioni: un tratto
+diverso non campionato non puo' essere ignorato. Cerniere/molle interne,
+offset e zone rigide richiedono un altro modello d'asta e sono rifiutati.
+I report registrano tratto, elementi, orientamenti, tagli e fonte delle lunghezze.
+Il contratto di archivio Model rimane invariato, cosi' come UniformFork/ExternalInPlane.
+
+12 nuovi test di integrazione: mesh singola/doppia, I/J inverso, EC3/NTC,
+archivio, tratti parziali e lunghezze efficaci indipendenti, rotazioni,
+cerniere, variazioni non campionate e assenza di una faccia del nodo interno.
+Prova mirata:26/26 inclusi i percorsi del passo precedente.
+Versione ModelChecker2.12.0.0; nessuna modifica a Model.
+
+3 IN CORSO - PRESSOFLESSIONE MONOASSIALE E BIASSIALE H
+La qualifica e i riferimenti saranno descritti con l'implementazione.

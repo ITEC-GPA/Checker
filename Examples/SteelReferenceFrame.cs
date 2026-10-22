@@ -37,7 +37,8 @@ namespace GPC.Examples
     /// See STEEL_REFERENCE_FRAME.txt for restraints, sources and coverage.</summary>
     public static class SteelReferenceFrame
     {
-        public static GPC.Model.Models.Model Create(bool split = false, bool reverseSecond = false)
+        public static GPC.Model.Models.Model Create(bool split = false, bool reverseSecond = false,
+            Action<GPC.Model.Models.Model> configureBeforeResults = null)
         {
             var model = new GPC.Model.Models.Model("Steel reference frame: analytical design-action states");
             foreach (var n in new[] { (1,0d,0d),(2,0d,1500d),(3,0d,3000d),
@@ -71,6 +72,7 @@ namespace GPC.Examples
             Member("B1",3,7,6,300,rhs,new Vector3d(0,1,0));
             var cases = new[]{new LoadCaseBase("ULS-A"),new LoadCaseBase("ULS-B")};
             foreach(var lc in cases)model.LoadCases.Add(lc);
+            configureBeforeResults?.Invoke(model);
             model.CaptureAnalysis(ReinforcementAnalysisRole.ExcludedFromAnalysis,"Assigned analytical qL/2 and qx(L-x)/2 design-action states; no FE solution.");
             string fp=model.AnalysisFingerprint();
             model.Datasets.Add("steel-reference",new AnalysisDataset{Id="steel-reference",Program="Analytical example",ModelRevision="r1",

@@ -21,10 +21,10 @@ using GPC.Model.Standards;
 
 namespace GPC.Model.Checker
 {
-    /// <summary>Explicit physical-member adapter. Internal route requires one forward
-    /// FEM element, full deformable span, uniform section and constant exported actions,
-    /// PLUS a source-bound declaration of the qualified fork/first-order load model.
-    /// External route uses the EC3 general-method factors; Ncr/Mcr alone never suffice.</summary>
+    /// <summary>Physical-member adapter with a common frame over complete or explicit
+    /// partial straight prismatic spans, including reversed FEM connectivity.
+    /// The historical UniformFork route retains its single-element qualification.
+    /// Critical values, restraints and concomitant states remain source-bound.</summary>
     public sealed class SteelMemberPipelineChecker : IMaterialChecker, IPhysicalMemberVerifier
     {
         public const string EngineId = "Steel.Pipeline.Member";
@@ -108,8 +108,13 @@ namespace GPC.Model.Checker
                     snapshot.Context.EffectiveLength1, snapshot.Context.EffectiveLength2);
                 var common = ModelSteelInput.FromSectionAxes(new SteelSectionInput(section, unperforated), first.Forces, context, member);
                 SteelMemberAnalysis analysis;
+                SteelPhysicalMemberPreparation physical = null;
                 if (mode == "Compression" || mode == "Bending")
-                    analysis = Prismatic(input, common, context, mode);
+                    {
+                    physical = SteelPhysicalMemberPreparation.Create(input, common.Section, context);
+                    common = new SteelVerificationInput(common.Section, physical.Cuts[0].Actions, common.Code, common.Member);
+                    analysis = Prismatic(input, common, context, mode, physical);
+                }
                 else
                 {
                 if (new[] { "CompressionCurve1", "CompressionCurve2", "TorsionalCurve", "TorsionalExclusionSource", "FlexuralTorsionalExclusionSource", "McrBasis" }.Any(_parameters.ContainsKey))
@@ -158,7 +163,9 @@ namespace GPC.Model.Checker
                 else throw new ArgumentException("UnknownSteelMemberAnalysisMode");
                 }
                 var result = SteelVerificationPipeline.Execute(SteelMethodSelector.SelectMember(analysis), cancellationToken: token);
-                return SteelPipelineResults.Map(result, fingerprint, Id, Limitations);
+                var mapped = SteelPipelineResults.Map(result, fingerprint, Id, Limitations);
+                physical?.AddTrace(mapped);
+                return mapped;
             }
             catch (ArgumentException ex)
             {
@@ -167,7 +174,7 @@ namespace GPC.Model.Checker
             }
             catch (NotSupportedException ex) { return NativeResults.Unavailable("SteelMember.NotSupported", ex.Message); }
         }
-        private SteelMemberAnalysis Prismatic(PhysicalMemberCheckInput input, SteelVerificationInput common, SteelDesignContext context, string mode)
+        private SteelMemberAnalysis Prismatic(PhysicalMemberCheckInput input, SteelVerificationInput common, SteelDesignContext context, string mode, SteelPhysicalMemberPreparation physical)
         {
             bool compression = mode == "Compression";
             if (compression && (Code.AlphaImperfectionFactorForCurveA0 != .13 || Code.AlphaImperfectionFactorForCurveA != .21
@@ -181,17 +188,9 @@ namespace GPC.Model.Checker
                 throw new ArgumentException("GeneralMethodCurvesOnPrismaticRoute");
             if (compression ? _parameters.ContainsKey("McrBasis") : new[] { "CompressionCurve1", "CompressionCurve2", "TorsionalCurve", "TorsionalExclusionSource", "FlexuralTorsionalExclusionSource" }.Any(_parameters.ContainsKey))
                 throw new ArgumentException("ParametersForAnotherPrismaticMechanism");
-            // The Model adapter does not yet reconcile principal frames across multiple
-            // FEM elements; the native API remains available for independently prepared data.
-            var snapshot = input.Snapshot;
-            if (snapshot.Definition.Parts.Count != 1 || !snapshot.Definition.Parts[0].AlongIJ
-                || snapshot.SpanStart != 0 || snapshot.SpanEnd != snapshot.Length || snapshot.Length != snapshot.DeformableLength)
-                throw new NotSupportedException("Prismatic adapter requires one complete forward deformable FEM member.");
-            string sectionKey = ModelValues.Fingerprint(new object[] { input.ActionSections[0].Property });
-            foreach (var cut in input.ActionSections)
+            foreach (var cut in physical.Cuts)
             {
-                if (ModelValues.Fingerprint(new object[] { cut.Property }) != sectionKey) throw new NotSupportedException("Nonuniform prismatic section.");
-                var a = ModelSteelInput.FromSectionAxes(common.Section, cut.Forces, context).Actions;
+                var a = cut.Actions;
                 if (a.T != 0 || a.M2 != 0 || a.V1 != 0 || compression && (a.M1 != 0 || a.V2 != 0 || a.N > 0)
                     || !compression && a.N != 0) throw new NotSupportedException("Actions outside selected prismatic mechanism.");
                 if (compression && Math.Abs(a.N - common.Actions.N) > 1e-10 * Math.Max(1, Math.Abs(common.Actions.N)))
