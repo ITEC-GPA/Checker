@@ -19,6 +19,7 @@ namespace GPC.Model.Checker.Configuration
                 =>fields.Add(new EngineParameterDescriptor(key,kind,unit,description??key,min,max,exclusive,choices,modes));
             EngineParameterCondition Has(string key)=>new EngineParameterCondition(key);
             EngineParameterCondition Is(string key,string value)=>new EngineParameterCondition(key,value);
+            EngineParameterCondition IsNot(string key,string value)=>new EngineParameterCondition(key,value,true);
             void Require(string code,string description,string[] keys,params EngineParameterCondition[] when)
                 =>rules.Add(new EngineParameterRule(code,description,when,new[]{keys}));
             void Together(string code,params string[] keys) {
@@ -54,6 +55,13 @@ namespace GPC.Model.Checker.Configuration
                 Add(key,EngineParameterKind.Choice,choices:key=="LateralTorsionalCurve"?new[]{"A","B","C","D"}:curves,modes:key=="InPlaneCurve"?new[]{"UniformFork"}:general);
             foreach(var key in new[]{"CompressionCurve1","CompressionCurve2","TorsionalCurve"})
                 Add(key,EngineParameterKind.Choice,choices:curves,modes:key=="TorsionalCurve"?new[]{"Compression"}:new[]{"Compression","BeamColumn"});
+            Add("CurveSelection",EngineParameterKind.Choice,choices:new[]{"Automatic"},modes:new[]{"Compression","BeamColumn"});
+            Add("CriticalValues",EngineParameterKind.Choice,choices:new[]{"UniformFork"},modes:new[]{"Compression","Bending"});
+            Add("CriticalValuesSource",description:"Explicit full-span fork/free-warping declaration, no offsets or intermediate restraints.",modes:new[]{"Compression","Bending"});
+            Together("CriticalPreparationPair","CriticalValues","CriticalValuesSource");
+            rules.Add(new EngineParameterRule("AutomaticCurvesConflict","Choose automatic or explicit curves.",new[]{Is("CurveSelection","Automatic")},null,new[]{"CompressionCurve1","CompressionCurve2","TorsionalCurve"}));
+            rules.Add(new EngineParameterRule("AutomaticCriticalConflict","Automatic critical values cannot accompany external values or mode exclusions.",new[]{Is("CriticalValues","UniformFork")},null,
+                new[]{"Ncr1","Ncr2","NcrT","NcrFT","Mcr","AlphaUltK","AlphaCrOp"}.SelectMany(q=>new[]{q+".Value",q+".Unit",q+".Source"}).Concat(new[]{"TorsionalExclusionSource","FlexuralTorsionalExclusionSource"})));
             Add("MemberClass",EngineParameterKind.Integer,min:1,max:4,modes:new[]{"ExternalInPlane","Compression","Bending","BeamColumn"});
             Together("MemberClassificationPair","MemberClass","ClassificationSource");
             foreach(var key in new[]{"TorsionalExclusionSource","FlexuralTorsionalExclusionSource"})
@@ -67,10 +75,12 @@ namespace GPC.Model.Checker.Configuration
             Require("GeneralMethodInputs","The external general method requires both multipliers and lateral curves.",
                 new[]{"LateralCurve","LateralTorsionalCurve","AlphaUltK.Value","AlphaUltK.Unit","AlphaUltK.Source","AlphaCrOp.Value","AlphaCrOp.Unit","AlphaCrOp.Source"},Is("AnalysisMode","ExternalInPlane"));
             Require("CompressionCurves","Compression needs explicit curves for both flexural axes and the torsional mode.",
-                new[]{"CompressionCurve1","CompressionCurve2","TorsionalCurve"},Is("AnalysisMode","Compression"));
-            Require("BendingCriticalMoment","Bending requires a sourced critical moment and its basis.",new[]{"Mcr.Value","Mcr.Unit","Mcr.Source","McrBasis"},Is("AnalysisMode","Bending"));
+                new[]{"CompressionCurve1","CompressionCurve2","TorsionalCurve"},Is("AnalysisMode","Compression"),IsNot("CurveSelection","Automatic"));
+            Require("BendingCriticalMoment","Bending requires a sourced critical moment and its basis.",new[]{"Mcr.Value","Mcr.Unit","Mcr.Source","McrBasis"},Is("AnalysisMode","Bending"),IsNot("CriticalValues","UniformFork"));
+            Require("AutomaticMomentBasis","Automatic Mcr requires its uniform-moment basis.",new[]{"McrBasis"},Is("AnalysisMode","Bending"),Is("CriticalValues","UniformFork"));
             Require("BeamColumnModel","Beam-column checks require curves, moment factors and the explicit stability model.",
-                new[]{"CompressionCurve1","CompressionCurve2","TorsionSusceptible","Cm1","Cm2","CmLT","MomentFactorSource","StabilityModelSource", "TorsionalExclusionSource","FlexuralTorsionalExclusionSource","McrBasis"},Is("AnalysisMode","BeamColumn"));
+                new[]{"TorsionSusceptible","Cm1","Cm2","CmLT","MomentFactorSource","StabilityModelSource", "TorsionalExclusionSource","FlexuralTorsionalExclusionSource","McrBasis"},Is("AnalysisMode","BeamColumn"));
+            Require("BeamColumnCurves","Provide the two flexural curves or select automatic preparation.",new[]{"CompressionCurve1","CompressionCurve2"},Is("AnalysisMode","BeamColumn"),IsNot("CurveSelection","Automatic"));
             Require("LateralModeAssessment","A reasoned exclusion is required when lateral-torsional susceptibility is false.",new[]{"LateralTorsionalExclusionSource"},Is("AnalysisMode","BeamColumn"),Is("TorsionSusceptible","false"));
             rules.Add(new EngineParameterRule("ConflictingLateralMode","Susceptibility and exclusion cannot both be declared.",new[]{Is("TorsionSusceptible","true")},null,new[]{"LateralTorsionalExclusionSource"}));
             foreach(var q in new[]{"Ncr1","Ncr2","NcrT","NcrFT","Mcr","AlphaUltK","AlphaCrOp"}) {
@@ -84,7 +94,7 @@ namespace GPC.Model.Checker.Configuration
             }
             foreach(var mode in new[]{"T","FT"}) {
                 string source=mode=="T"?"TorsionalExclusionSource":"FlexuralTorsionalExclusionSource";
-                rules.Add(new EngineParameterRule("CompressionMode"+mode,"Supply this critical mode or a reasoned exclusion.",new[]{Is("AnalysisMode","Compression")},
+                rules.Add(new EngineParameterRule("CompressionMode"+mode,"Supply this critical mode or a reasoned exclusion.",new[]{Is("AnalysisMode","Compression"),IsNot("CriticalValues","UniformFork")},
                     new[]{new[]{"Ncr"+mode+".Value","Ncr"+mode+".Unit","Ncr"+mode+".Source"},new[]{source}}));
                 rules.Add(new EngineParameterRule("ConflictingCompressionMode"+mode,"A mode cannot be both supplied and excluded.",new[]{Is("AnalysisMode","Compression"),Has(source)},null,new[]{"Ncr"+mode+".Value","Ncr"+mode+".Unit","Ncr"+mode+".Source"}));
             }

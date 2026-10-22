@@ -20,7 +20,7 @@ namespace GPC.Model.Checker
             if(!bool.TryParse(Required("TorsionSusceptible"),out bool susceptible))throw new ArgumentException("InvalidTorsionalSusceptibility");
             var actions=physical.BeamColumnEnvelope();
             common=new SteelVerificationInput(common.Section,actions,common.Code,common.Member);
-            var data=new SteelBeamColumnParameters(EnumValue<SteelBucklingCurve>("CompressionCurve1"),EnumValue<SteelBucklingCurve>("CompressionCurve2"),
+            var data=new SteelBeamColumnParameters(CompressionCurve(common,"CompressionCurve1"),CompressionCurve(common,"CompressionCurve2"),
                 susceptible,Number("Cm1"),Number("Cm2"),Number("CmLT"),Required("MomentFactorSource"),Required("StabilityModelSource"),
                 Required("TorsionalExclusionSource"),Required("FlexuralTorsionalExclusionSource"),EnumValue<SteelCriticalMomentBasis>("McrBasis"),
                 _parameters.TryGetValue("LateralTorsionalExclusionSource",out var excludeLT)?excludeLT:null,
@@ -34,7 +34,7 @@ namespace GPC.Model.Checker
             foreach(SteelStabilityQuantity q in Enum.GetValues(typeof(SteelStabilityQuantity)))
                 if(new[]{".Value",".Unit",".Source"}.Any(s=>_parameters.ContainsKey(q+s)))
                     values.Add(new SteelStabilityValue(q,Number(q+".Value"),EnumValue<SteelStabilityUnit>(q+".Unit"),Required(q+".Source")));
-            return SteelMemberAnalysis.BeamColumn(common,Required("LoadPatternReference"),Required("ParameterSet"),data,values,memberClass,
+            return SteelMemberAnalysis.BeamColumn(common,Required("LoadPatternReference"),PreparedParameterSet(common),data,values,memberClass,
                 _parameters.TryGetValue("ClassificationSource",out var source)?source:null);
         }
 

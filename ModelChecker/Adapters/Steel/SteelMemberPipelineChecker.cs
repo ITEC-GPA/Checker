@@ -91,6 +91,7 @@ namespace GPC.Model.Checker
                 if (Required("MemberFingerprint") != fingerprint) return NativeResults.Missing("SteelMember.AnalysisSnapshotMismatch");
                 if (!bool.TryParse(Required("Unperforated"), out bool unperforated)) throw new ArgumentException("InvalidUnperforatedDeclaration");
                 string mode = Required("AnalysisMode");
+                ValidatePreparationOptions(mode);
                 if (mode != "BeamColumn" && BeamColumnKeys.Any(_parameters.ContainsKey)) throw new ArgumentException("BeamColumnParametersOnAnotherRoute");
                 if(mode!="Compression" && PackedPairKeys.Any(_parameters.ContainsKey))throw new ArgumentException("PackedPairRequiresCompression");
                 var first = mode == "Compression" ? input.ActionSections.OrderByDescending(c => Math.Abs(c.Forces.N)).First()
@@ -199,18 +200,19 @@ namespace GPC.Model.Checker
             foreach (SteelStabilityQuantity q in Enum.GetValues(typeof(SteelStabilityQuantity)))
                 if (new[] { ".Value", ".Unit", ".Source" }.Any(s => _parameters.ContainsKey(q + s)))
                     values.Add(new SteelStabilityValue(q, Number(q + ".Value"), EnumValue<SteelStabilityUnit>(q + ".Unit"), Required(q + ".Source")));
+            values = PrepareCriticalValues(input,common,physical,compression,values).ToList();
             if(compression && PackedPairKeys.Any(_parameters.ContainsKey))
-                return SteelMemberAnalysis.PackedCompression(Packing(common),Required("LoadPatternReference"),Required("ParameterSet"),
-                    EnumValue<SteelBucklingCurve>("CompressionCurve1"),EnumValue<SteelBucklingCurve>("CompressionCurve2"),EnumValue<SteelBucklingCurve>("TorsionalCurve"),values,
+                return SteelMemberAnalysis.PackedCompression(Packing(common),Required("LoadPatternReference"),PreparedParameterSet(common),
+                    CompressionCurve(common,"CompressionCurve1"),CompressionCurve(common,"CompressionCurve2"),CompressionCurve(common,"TorsionalCurve"),values,
                     _parameters.TryGetValue("TorsionalExclusionSource",out var pt)?pt:null,
                     _parameters.TryGetValue("FlexuralTorsionalExclusionSource",out var pft)?pft:null,memberClass,source);
             if (compression)
-                return SteelMemberAnalysis.Compression(common, Required("LoadPatternReference"), Required("ParameterSet"),
-                    EnumValue<SteelBucklingCurve>("CompressionCurve1"), EnumValue<SteelBucklingCurve>("CompressionCurve2"), EnumValue<SteelBucklingCurve>("TorsionalCurve"), values,
+                return SteelMemberAnalysis.Compression(common, Required("LoadPatternReference"), PreparedParameterSet(common),
+                    CompressionCurve(common,"CompressionCurve1"), CompressionCurve(common,"CompressionCurve2"), CompressionCurve(common,"TorsionalCurve"), values,
                     _parameters.TryGetValue("TorsionalExclusionSource", out var excludeT) ? excludeT : null,
                     _parameters.TryGetValue("FlexuralTorsionalExclusionSource", out var excludeFT) ? excludeFT : null, memberClass, source);
             if (values.Any(v => v.Quantity != SteelStabilityQuantity.Mcr)) throw new ArgumentException("OnlyMcrOnBendingRoute");
-            return SteelMemberAnalysis.Bending(common, Required("LoadPatternReference"), Required("ParameterSet"),
+            return SteelMemberAnalysis.Bending(common, Required("LoadPatternReference"), PreparedParameterSet(common),
                 EnumValue<SteelCriticalMomentBasis>("McrBasis"), values.SingleOrDefault(), memberClass, source);
         }
 

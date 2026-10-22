@@ -1,0 +1,28 @@
+PREPARAZIONE AUTOMATICA INSTABILITA' - TASK2, 22/10/2026
+SteelAutomaticStability separa curve normative e autovalori elastici lordi.
+CompressionCurves: EC3:2005 Table6.2 / NTC2018 Table4.2.VIII, testi verificati
+visivamente pp58/102. Nominali Fyk 235/275/355/420/460 MPa; nessuna inferenza
+del grado da resistenze ridotte per spessore. H doppiamente simmetrico con
+assi geometrici mappati nei principali; stessa tabella usata dal legacy.
+RHS/CHS, C/T/L e pieni nelle righe qualificate; coppie e piegati aperti esclusi.
+Per T/FT la curva peggiore tra quelle flessionali e' una scelta conservativa
+esplicita. Il dato SectionType/FormedType deve descrivere il prodotto reale.
+
+UniformFork: aste prismatiche H/C/T/L, forcelle, ingobbamento libero,
+unico modo sinusoidale e lunghezza L in entrambi i piani e torsione.
+Compressione centrata costante: Ncr1,Ncr2,NcrT,NcrFT; Mcr in sola flessione
+uniforme maggiore di H doppiamente simmetrico. Si usano le proprieta' lorde
+di Model. Non ricava vincoli dalla mesh. Nessun C1 implicito per altri diagrammi.
+Il confronto FT usa un problema matriciale simmetrico risolto con autovalori,
+indipendente dalla bisezione del determinante di produzione. Le proprieta'
+geometriche sono coperte anche dai benchmark Model/Steel preesistenti.
+
+ModelChecker: CurveSelection=Automatic (Compression/BeamColumn), oppure
+curve esplicite. CriticalValues=UniformFork (Compression/Bending) richiede
+CriticalValuesSource; per Bending McrBasis=UniformMoment. Verifica tutte le
+sezioni del membro, intero tratto deformabile, assenza di vincoli intermedi,
+azioni costanti e lunghezze compatibili. Valori esterni/esclusioni e curve
+manuali non vengono sovrascritti: il conflitto viene segnalato.
+I valori conservano unita' e provenienza nel tracciato Member.External per
+compatibilita' del report (il nome storico non implica origine esterna).
+Nessuna modifica al contratto di archivio: i parametri restano fingerprintati.

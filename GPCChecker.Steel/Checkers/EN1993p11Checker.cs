@@ -701,36 +701,9 @@ namespace GPC.Checkers.Steel.Checkers
         private static EN1993p11Options.AxialBuckingCurves GetRolledSymmetricIBucklingCurve(
             ISteelSection section, SectionH shape, int principalAxis)
         {
-            double ratio = shape.Height / shape.LenghtTopFlange;
-            double tf = shape.ThicknessTopFlange;
-            bool s460 = section.SteelMaterial.Fyk >= 460;
-            EN1993p11Options.AxialBuckingCurves y, z;
-            if (ratio > 1.2)
-            {
-                if (tf <= 40)
-                {
-                    y = s460 ? EN1993p11Options.AxialBuckingCurves.a0 : EN1993p11Options.AxialBuckingCurves.a;
-                    z = s460 ? EN1993p11Options.AxialBuckingCurves.a0 : EN1993p11Options.AxialBuckingCurves.b;
-                }
-                else if (tf <= 100)
-                {
-                    y = s460 ? EN1993p11Options.AxialBuckingCurves.a : EN1993p11Options.AxialBuckingCurves.b;
-                    z = s460 ? EN1993p11Options.AxialBuckingCurves.a : EN1993p11Options.AxialBuckingCurves.c;
-                }
-                else
-                    throw new NotSupportedException("EN 1993-1-1 Table 6.2 has no rolled I-section row for h/b > 1.2 and tf > 100 mm.");
-            }
-            else if (tf <= 100)
-            {
-                y = s460 ? EN1993p11Options.AxialBuckingCurves.a : EN1993p11Options.AxialBuckingCurves.b;
-                z = s460 ? EN1993p11Options.AxialBuckingCurves.a : EN1993p11Options.AxialBuckingCurves.c;
-            }
-            else
-            {
-                y = z = s460 ? EN1993p11Options.AxialBuckingCurves.c : EN1993p11Options.AxialBuckingCurves.d;
-            }
-            bool geometricY = (shape.Jxx >= shape.Jyy) == (principalAxis == 1);
-            return geometricY ? y : z;
+            var curves=GPC.Checkers.Steel.ModelAdapters.SteelAutomaticStability.HCurves(shape,Section.SectionTypes.Rolled,section.SteelMaterial.Fyk >= 460);
+            return (EN1993p11Options.AxialBuckingCurves)Enum.Parse(typeof(EN1993p11Options.AxialBuckingCurves),
+                (principalAxis==1?curves.First:curves.Second).ToString().ToLowerInvariant());
         }
 
         private static EN1993p11Options.AxialBuckingCurves GetWeldedBoxBucklingCurve(SectionRHS shape)
@@ -750,11 +723,9 @@ namespace GPC.Checkers.Steel.Checkers
 
         private static EN1993p11Options.AxialBuckingCurves GetWeldedSymmetricIBucklingCurve(SectionH shape, int principalAxis)
         {
-            // Table6.2 uses tf (inclusive 40mm), not tw. Same rows for S235-S460.
-            bool thickFlange = shape.ThicknessTopFlange > 40;
-            bool geometricY = (shape.Jxx >= shape.Jyy) == (principalAxis == 1);
-            if (geometricY) return thickFlange ? EN1993p11Options.AxialBuckingCurves.c : EN1993p11Options.AxialBuckingCurves.b;
-            return thickFlange ? EN1993p11Options.AxialBuckingCurves.d : EN1993p11Options.AxialBuckingCurves.c;
+            var curves=GPC.Checkers.Steel.ModelAdapters.SteelAutomaticStability.HCurves(shape,Section.SectionTypes.Welded,false);
+            return (EN1993p11Options.AxialBuckingCurves)Enum.Parse(typeof(EN1993p11Options.AxialBuckingCurves),
+                (principalAxis==1?curves.First:curves.Second).ToString().ToLowerInvariant());
         }
 
         protected EN1993p11Options.AxialBuckingCurves GetBucklingCurve2Axis(ISteelSection section)

@@ -49,9 +49,10 @@ namespace GPC.Model.Checker.Configuration
     {
         public string Key { get; }
         public string Value { get; }
-        internal EngineParameterCondition(string key,string value=null) { Key=key;Value=value; }
-        internal bool Matches(IReadOnlyDictionary<string,string> values) => values.TryGetValue(Key,out var v)
-            && !string.IsNullOrWhiteSpace(v) && (Value==null||string.Equals(v,Value,StringComparison.OrdinalIgnoreCase));
+        public bool Negated { get; }
+        internal EngineParameterCondition(string key,string value=null,bool negated=false) { Key=key;Value=value;Negated=negated; }
+        internal bool Matches(IReadOnlyDictionary<string,string> values) => Negated != (values.TryGetValue(Key,out var v)
+            && !string.IsNullOrWhiteSpace(v) && (Value==null||string.Equals(v,Value,StringComparison.OrdinalIgnoreCase)));
     }
 
     /// <summary>At least one alternative must be complete. An empty alternatives list imposes no presence requirement.</summary>
