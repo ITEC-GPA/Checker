@@ -18,9 +18,9 @@ namespace ModelChecker.Tests;
 [TestClass]
 public class PackedPairPipelineTest
 {
-    private static (GPC.Model.Models.Model Model, BeamCheckPlanRequest Plan, Dictionary<string, string> Options) Fixture(bool channel, bool shortLeg = false)
+    private static (GPC.Model.Models.Model Model, BeamCheckPlanRequest Plan, Dictionary<string, string> Options) Fixture(bool channel, bool shortLeg = false, bool compactChord = false)
     {
-        Section component = channel ? new SectionC(200, 8, 80, 12, 80, 12, "C") : new SectionL(100, 10, 150, 10, "L");
+        Section component = channel ? new SectionC(200, 8, 80, 12, 80, 12, "C") : new SectionL(100, compactChord ? 16 : 10, 150, compactChord ? 16 : 10, "L");
         component.SetEdgeTypeFromSteelType(Section.SectionTypes.Rolled);
         var pair = channel ? SectionBuiltUp.DoubleChannel((SectionC)component, 10, true, "2C")
             : SectionBuiltUp.DoubleAngle((SectionL)component, 10, shortLeg ? SectionBuiltUp.AnglePairJoinedLeg.Short : SectionBuiltUp.AnglePairJoinedLeg.Long, "2L");
@@ -53,6 +53,36 @@ public class PackedPairPipelineTest
         options["Packed.AnalysisSource"] = "Synthetic complete local envelopes including imperfections, second order and introduction eccentricities";
         options["Packed.ResistanceSource"] = "Synthetic minimum design resistances including local stability and every connection failure mode";
         return (model, plan, options);
+    }
+
+    [TestMethod]
+    public void GlobalClassDeclarationCannotHideAClass4LocalAngle()
+    {
+        var (model,plan,p)=Fixture(false);
+        p.Remove("Packed.ChordCompressionResistance");p.Remove("Packed.ChordTensionResistance");
+        p["Packed.ChordModel"]="UniformFork";p["Packed.ChordModelSource"]="Explicit local fork model";
+        var r=new Service().Verify(model,SteelMemberPipelineTest.Request(plan,p)).Jobs[0].Results.Single();
+        Assert.AreEqual(EngineeringOutcome.NotEvaluated,r.Outcome);
+        Assert.IsTrue(r.Diagnostics.Any(d=>d.Message!=null&&d.Message.Contains("Class4")));
+    }
+
+    [DataTestMethod] [DataRow(false,false)] [DataRow(false,true)] [DataRow(true,false)] [DataRow(true,true)]
+    public void ComputedChordResistanceIsOptionalAndPersisted(bool channel,bool ntc)
+    {
+        var (model,plan,p)=Fixture(channel,compactChord:true);
+        p.Remove("Packed.ChordCompressionResistance");p.Remove("Packed.ChordTensionResistance");
+        p["Packed.ChordModel"]="UniformFork";p["Packed.ChordModelSource"]="Each chord panel: centroidal axial force, no M/V, fork/free warping over pitch";
+        Assert.AreEqual(0,SteelParameterSchemas.Member.Validate(p).Count);
+        var request=SteelMemberPipelineTest.Request(plan,p,ntc?new StandardNTC2018Steel():new StandardEN1993p11());
+        var report=new Service().Verify(model,request);var result=report.Jobs[0].Results.Single();
+        Assert.AreEqual(EngineeringOutcome.Satisfied,result.Outcome,string.Join(";",result.Diagnostics.Select(d=>d.Message)));
+        Assert.IsTrue(result.Details.Trace.Any(t=>t.Key=="MemberStability.PackedPair.Chord.NcrFT"));
+        Assert.IsTrue(result.Details.Trace.Any(t=>t.Key=="Member.PackedPair.ChordModelSource"&&t.Expression==p["Packed.ChordModelSource"]));
+        using var stream=new MemoryStream();CheckReportArchive.Save(report.Jobs,stream);stream.Position=0;
+        Assert.AreEqual(EngineeringOutcome.Satisfied,Service.CurrentOutcome(CheckReportArchive.Load(stream),model,request));
+        p["Packed.ChordCompressionResistance"]="1e9";
+        Assert.IsTrue(SteelParameterSchemas.Member.Validate(p).Count>0);
+        Assert.AreEqual(EngineeringOutcome.NotEvaluated,new Service().Verify(model,SteelMemberPipelineTest.Request(plan,p)).Outcome);
     }
 
     [DataTestMethod]

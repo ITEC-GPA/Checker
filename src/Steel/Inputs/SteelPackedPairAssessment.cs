@@ -1,4 +1,5 @@
 using System;
+using GPC.Checkers.Steel.ModelAdapters;
 
 namespace GPC.Checkers.Steel.Inputs
 {
@@ -12,6 +13,22 @@ namespace GPC.Checkers.Steel.Inputs
     public sealed class SteelPackedPairAssessment
     {
         public SteelVerificationInput Input { get; }
+        public SteelPackedChordResistance ChordCalculation { get; private set; }
+
+        /// <summary>Optional computed class1-3 chord resistances for a qualified axial
+        /// fork panel model. Full local force envelopes and complete connection/packing
+        /// resistance are still externally established for the same design state.</summary>
+        public static SteelPackedPairAssessment FromUniformForkChords(SteelVerificationInput input,double maximumPitch,
+            double packingThickness,double gussetThickness,double chordCompression,double chordTension,
+            double connectionDemand,double connectionResistance,string detailingSource,string localAnalysisSource,
+            string connectionResistanceSource,string chordModelSource)
+        {
+            var calculated=SteelPackedChordResistance.UniformFork(input,maximumPitch,chordCompression,chordModelSource);
+            return new SteelPackedPairAssessment(input,maximumPitch,packingThickness,gussetThickness,chordCompression,
+                calculated.Compression.Resistance.Value,chordTension,calculated.TensionResistance,connectionDemand,connectionResistance,
+                detailingSource,localAnalysisSource,connectionResistanceSource) { ChordCalculation=calculated };
+        }
+
         public double MaximumPitch { get; }
         public double PackingThickness { get; }
         public double GussetThickness { get; }

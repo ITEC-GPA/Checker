@@ -1,0 +1,38 @@
+COMPONENTI DI PROFILI DOPPI CON IMBOTTITURE - Steel2.40 / ModelChecker2.23
+23/10/2026. Nessun calastrello, traliccio o componente diverso.
+
+FromUniformForkChords aggiunge una preparazione FACOLTATIVA della resistenza
+del singolo C/L alle verifiche globali gia' esistenti della coppia. Conserva
+gli assi principali del componente, anche per L disuguali uniti sul lato
+lungo/corto. Non usa l'inerzia dell'insieme o l'area delle imbottiture.
+
+Campo: due componenti identici non forati, classi1-3, geometria e produzione
+qualificate da SteelAutomaticStability. Nucleo geometrico sharp per i valori
+critici locali; niente interpretazione silenziosa di raccordi non qualificati.
+Modello locale esplicito: ogni pannello tra imbottiture ha N costante baricentrico,
+senza M/V locali, estremi a forcella e ingobbamento libero; lunghezza pari al
+massimo passo (inclusi pannelli terminali). Curve automatiche per la norma scelta.
+Ncr1/2/T/FT riusano il motore qualificato del profilo singolo; compressione prende
+il minimo fra resistenza di sezione e quattro modi. Trazione: A fy/gammaM0.
+La classe locale viene ricalcolata, senza ereditare una classe imposta alla coppia.
+
+Questa automazione NON ricostruisce la domanda locale: ChordCompression,
+ChordTension e ConnectionDemand rimangono inviluppi espliciti, includendo
+imperfezioni, secondo ordine, eccentricita' di introduzione pertinenti.
+Se questi effetti producono momenti/tagli locali il modello assiale non e'
+applicabile: usare le resistenze complete da analisi esterna.
+ConnectionResistance e ResistanceSource restano esterni e devono comprendere
+imbottiture, piastre, bulloni/saldature, eccentricita' e tutti i modi pertinenti.
+Non e' implementata una verifica automatica generica delle connessioni.
+
+ModelChecker: Packed.ChordModel=UniformFork + Packed.ChordModelSource sostituiscono
+Packed.ChordCompressionResistance/ChordTensionResistance. Le due alternative sono
+incompatibili. Tutte le altre evidenze Packed restano obbligatorie. Report e
+archivi conservano modello, curve, valori critici e traccia della verifica locale.
+La verifica globale conserva i propri Ncr e le proprie esclusioni T/FT: il
+modello del singolo pannello non e' automaticamente il modello della coppia.
+
+Test: integrazione indipendente di rettangoli per A/I/Ixy e diagonalizzazione,
+Euler sui due assi principali, lato lungo/corto, EC3/NTC, due passi, class4
+rifiutata, conflitti della configurazione, archivio, fallimenti locali/connessione.
+30 Steel e35 ModelChecker (nuovi e regressione) passati il23/10/2026.

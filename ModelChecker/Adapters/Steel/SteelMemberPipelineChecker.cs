@@ -224,11 +224,22 @@ namespace GPC.Model.Checker
 
         private static readonly string[] PackedPairKeys = {"Packed.Pitch","Packed.Thickness","Packed.GussetThickness",
             "Packed.ChordCompression","Packed.ChordCompressionResistance","Packed.ChordTension","Packed.ChordTensionResistance",
-            "Packed.ConnectionDemand","Packed.ConnectionResistance","Packed.DetailingSource","Packed.AnalysisSource","Packed.ResistanceSource"};
+            "Packed.ConnectionDemand","Packed.ConnectionResistance","Packed.DetailingSource","Packed.AnalysisSource","Packed.ResistanceSource",
+            "Packed.ChordModel","Packed.ChordModelSource"};
         private SteelPackedPairAssessment Packing(SteelVerificationInput input)
-            => new SteelPackedPairAssessment(input,Number("Packed.Pitch"),Number("Packed.Thickness"),Number("Packed.GussetThickness"),
+        {
+            if(_parameters.TryGetValue("Packed.ChordModel",out var model)) {
+                if(model!="UniformFork"||_parameters.ContainsKey("Packed.ChordCompressionResistance")||_parameters.ContainsKey("Packed.ChordTensionResistance"))
+                    throw new ArgumentException("ConflictingOrUnknownPackedChordModel");
+                return SteelPackedPairAssessment.FromUniformForkChords(input,Number("Packed.Pitch"),Number("Packed.Thickness"),Number("Packed.GussetThickness"),
+                    Number("Packed.ChordCompression"),Number("Packed.ChordTension"),Number("Packed.ConnectionDemand"),Number("Packed.ConnectionResistance"),
+                    Required("Packed.DetailingSource"),Required("Packed.AnalysisSource"),Required("Packed.ResistanceSource"),Required("Packed.ChordModelSource"));
+            }
+            if(_parameters.ContainsKey("Packed.ChordModelSource"))throw new ArgumentException("PackedChordModelRequired");
+            return new SteelPackedPairAssessment(input,Number("Packed.Pitch"),Number("Packed.Thickness"),Number("Packed.GussetThickness"),
                 Number("Packed.ChordCompression"),Number("Packed.ChordCompressionResistance"),Number("Packed.ChordTension"),Number("Packed.ChordTensionResistance"),
                 Number("Packed.ConnectionDemand"),Number("Packed.ConnectionResistance"),Required("Packed.DetailingSource"),Required("Packed.AnalysisSource"),Required("Packed.ResistanceSource"));
+        }
 
         private static bool Same(SteelActions a, SteelActions b)
         {

@@ -8,7 +8,7 @@ Task (stato iniziale: da fare)
 2. COMPLETATO: preparazione curve/Ncr/Mcr qualificata (Steel2.32, ModelChecker2.17).
 3. PENDENTE prova nativa: Civil NX risponde HTTP404 (22/10). DATATYPE=1 richiede il catalogo completo della coppia, non il nome del componente; verificato manuale MIDAS. Non inferire gap/orientamento dal solo nome.
 4. IMPLEMENTATO nel campo qualificato: RHS/SHS/CHS elastici; C/T/L uguali tramite metodo generale esterno EC3/NTC. L disuguali richiedono analisi distinta; EXTERNAL_GENERAL_METHOD.txt.
-5. Compressione delle coppie con imbottiture e dettaglio locale definito.
+5. PARZIALE: resistenze locali automatiche per pannelli assiali a forcella C/L classe1-3; domande locali e connessioni restano esterne. PACKED_CHORD_AUTOMATION.txt.
 6. Copertura ed esempi completi senza interfaccia.
 7. COMPLETATO audit: vedere CLASS4_AUDIT.txt (ponti, legacy e fonti primarie).
 8. COMPLETATO: nucleo riduzioni/iterazione in Steel2.34; facade CompositeBridge1.13; 27 test kernel e 340 test ponte passati.

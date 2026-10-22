@@ -49,6 +49,8 @@ namespace GPC.Checkers.Steel.Pipeline
             void Add(string name,double value,string unit) {
                 SteelInputValidation.Finite(value,name);trace.Add(new SectionResistanceValue("PackedPair."+name,value,unit));
             }
+            if(p.ChordCalculation!=null)
+                foreach(var value in p.ChordCalculation.Compression.Trace)Add("Chord."+value.Name,value.Value,value.Unit);
             Add("GlobalUtilization",global.Utilization.Value,"1");Add("Pitch",p.MaximumPitch,"mm");
             Add("PitchLimit",15*g.MinimumRadius,"mm");Add("ClearGap",p.PackingThickness,"mm");
             Add("ChordCompression",p.ChordCompression,"N");Add("ChordCompressionResistance",p.ChordCompressionResistance,"N");
@@ -59,7 +61,7 @@ namespace GPC.Checkers.Steel.Pipeline
             bool ntc=analysis.Input.Code.SectionCode.Standard==SectionResistanceStandard.Ntc2018;
             return new SteelCheckExecution(decision,u<=1?SteelExecutionStatus.Passed:SteelExecutionStatus.Failed,
                 reference:global.Reference+(ntc?"; Circular7/2019 C4.2.4.1.3.1.5, Table C4.2.III":"; EN1993-1-1:2005 6.4.4, Figure6.12, Table6.9"),
-                scope:"Identical hot-finished packed 2C/2L, constant concentric compression, class1-3; integral global stability plus externally established local component and complete connection envelopes/resistances. Packing excluded from longitudinal area. No batten/lacing or beam-column method.",
+                scope:(p.ChordCalculation==null?"External chord resistances. ":"Computed axial fork chord panel resistances; full connection resistance external. ")+"Identical hot-finished packed 2C/2L, constant concentric compression, class1-3; integral global stability plus explicitly qualified local component and complete connection envelopes/resistances. Packing excluded from longitudinal area. No batten/lacing or beam-column method.",
                 utilization:u,trace:trace);
         }
     }

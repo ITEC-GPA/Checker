@@ -38,6 +38,13 @@ namespace GPC.Model.Checker
                     trace.Add(new CheckCalculationValue("Member.PackedPair.DetailingSource",null,null,analysis.PackedPair.DetailingSource));
                     trace.Add(new CheckCalculationValue("Member.PackedPair.LocalAnalysisSource",null,null,analysis.PackedPair.LocalAnalysisSource));
                     trace.Add(new CheckCalculationValue("Member.PackedPair.ResistanceSource",null,null,analysis.PackedPair.ResistanceSource));
+                    var chord=analysis.PackedPair.ChordCalculation;
+                    if(chord!=null) {
+                        trace.Add(new CheckCalculationValue("Member.PackedPair.ChordModelSource",null,null,chord.ModelSource));
+                        trace.Add(new CheckCalculationValue("Member.PackedPair.ChordCurves",null,null,chord.Analysis.ParameterSet));
+                        foreach(var v in chord.Analysis.Values)
+                            trace.Add(new CheckCalculationValue("Member.PackedPair.ChordCritical."+v.Quantity,v.Value,v.Unit,v.Source));
+                    }
                 }
                 if (analysis.BeamColumnParameters != null)
                 {

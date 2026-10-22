@@ -111,7 +111,18 @@ namespace GPC.Model.Checker.Configuration
                 Add("Packed."+key,EngineParameterKind.Number,key=="Pitch"||key.Contains("Thickness")?"mm":"N",min:0,
                     exclusive:key=="Pitch"||key.Contains("Thickness")||key.EndsWith("Resistance",StringComparison.Ordinal),modes:new[]{"Compression"});
             foreach(var key in new[]{"DetailingSource","AnalysisSource","ResistanceSource"}) Add("Packed."+key,modes:new[]{"Compression"});
-            Together("PackedAssessmentComplete",fields.Where(f=>f.Key.StartsWith("Packed.",StringComparison.Ordinal)).Select(f=>f.Key).ToArray());
+            Add("Packed.ChordModel",EngineParameterKind.Choice,choices:new[]{"UniformFork"},modes:new[]{"Compression"});
+            Add("Packed.ChordModelSource",description:"Qualification of each axial chord panel: centroidal force, no moments/shear, fork/free warping over maximum pitch.",modes:new[]{"Compression"});
+            Together("PackedChordModelPair","Packed.ChordModel","Packed.ChordModelSource");
+            var commonPacked=fields.Where(f=>f.Key.StartsWith("Packed.",StringComparison.Ordinal)
+                &&!new[]{"Packed.ChordCompressionResistance","Packed.ChordTensionResistance","Packed.ChordModel","Packed.ChordModelSource"}.Contains(f.Key)).Select(f=>f.Key).ToArray();
+            foreach(var field in fields.Where(f=>f.Key.StartsWith("Packed.",StringComparison.Ordinal)).ToArray()) {
+                Require("PackedAssessmentComplete","Complete local envelopes and connection evidence required.",commonPacked,Has(field.Key));
+                Require("PackedExternalResistances","External component resistances or explicit computed chord model required.",
+                    new[]{"Packed.ChordCompressionResistance","Packed.ChordTensionResistance"},Has(field.Key),IsNot("Packed.ChordModel","UniformFork"));
+            }
+            rules.Add(new EngineParameterRule("PackedChordResistanceConflict","Choose computed or external component resistances.",new[]{Has("Packed.ChordModel")},null,
+                new[]{"Packed.ChordCompressionResistance","Packed.ChordTensionResistance"}));
             return new EngineParameterSchema(SteelMemberPipelineChecker.EngineId,fields,rules,new[]{
                 "Ncr1/Ncr2 or explicit effective lengths in MemberDesignContext are required; FEM nodes do not imply restraints.",
                 "Beam-column Mcr is required when the active major moment and torsional susceptibility demand it; shear assessments depend on the actual actions.",
