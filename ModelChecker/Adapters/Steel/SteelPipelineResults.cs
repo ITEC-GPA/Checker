@@ -31,6 +31,8 @@ namespace GPC.Model.Checker
                 trace.Add(new CheckCalculationValue("Member.LoadPattern", null, null, analysis.LoadPatternReference));
                 trace.Add(new CheckCalculationValue("Member.ParameterSet", null, null, analysis.ParameterSet));
                 trace.Add(new CheckCalculationValue("Member.ClassificationSource", null, null, analysis.ClassificationSource));
+                if(analysis.EffectiveSectionAnalysisSource!=null)
+                    trace.Add(new CheckCalculationValue("Member.EffectiveSectionAnalysisSource",null,null,analysis.EffectiveSectionAnalysisSource));
                 if(analysis.PackedPair!=null)
                 {
                     trace.Add(new CheckCalculationValue("Member.PackedPair.DetailingSource",null,null,analysis.PackedPair.DetailingSource));

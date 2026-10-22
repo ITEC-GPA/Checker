@@ -29,7 +29,7 @@ namespace GPC.Model.Checker
     public sealed partial class SteelMemberPipelineChecker : IMaterialChecker, IPhysicalMemberVerifier
     {
         public const string EngineId = "Steel.Pipeline.Member";
-        internal const string Limitations = "EC3:2005/NTC2018 prismatic compression and major-axis LTB with explicit critical values/mode assessments. EC3 also has uniform H/T fork and external in-plane general methods. Doubly symmetric H and hollow beam-columns use EC3 Annex B / NTC Circular Method B with explicit model and equivalent-moment factors; hollow sections use conservative elastic properties. Class4 H/RHS double symmetry uses Aeff/Weff at fy and gross elastic critical values; asymmetric class4 needs a separate eccentric-member method. Packed identical 2C/2L compression requires explicit detailing, complete local envelopes and design resistances; connection design is external. No general arbitrary-section biaxial method, torsion or plastic hinges. Section/shear checks are separate.";
+        internal const string Limitations = "EC3:2005/NTC2018 prismatic compression and major-axis LTB with explicit critical values/mode assessments. EC3 also has uniform H/T fork. External in-plane EN6.3.4 supports EC3/NTC with mono/double symmetry and explicit analysis; class4 requires effective-analysis provenance. Doubly symmetric H and hollow beam-columns use EC3 Annex B / NTC Circular Method B with explicit model and equivalent-moment factors; hollow sections use conservative elastic properties. Class4 H/RHS double symmetry uses Aeff/Weff at fy and gross elastic critical values; asymmetric class4 needs a separate eccentric-member method. Packed identical 2C/2L compression requires explicit detailing, complete local envelopes and design resistances; connection design is external. No general arbitrary-section biaxial method, torsion or plastic hinges. Section/shear checks are separate.";
         private readonly Dictionary<string, string> _parameters;
         public IReadOnlyDictionary<string, string> Parameters { get; }
         public StandardEN1993p11 Code { get; }
@@ -56,7 +56,7 @@ namespace GPC.Model.Checker
         public bool Supports(string methodId, CheckMechanism mechanism) => methodId == Id && mechanism == CheckMechanism.Stability
             && (Code.GetType() == typeof(StandardEN1993p11) && Edition == "2005"
                 || Code.GetType() == typeof(StandardNTC2018Steel) && Edition == "2018"
-                    && _parameters.TryGetValue("AnalysisMode", out var mode) && (mode == "Compression" || mode == "Bending" || mode == "BeamColumn"));
+                    && _parameters.TryGetValue("AnalysisMode", out var mode) && (mode == "Compression" || mode == "Bending" || mode == "BeamColumn" || mode == "ExternalInPlane"));
         public IMaterialCheckSession CreateSession() => new NoSectionSession();
         private sealed class NoSectionSession : IMaterialCheckSession
         {
@@ -92,6 +92,8 @@ namespace GPC.Model.Checker
                 if (!bool.TryParse(Required("Unperforated"), out bool unperforated)) throw new ArgumentException("InvalidUnperforatedDeclaration");
                 string mode = Required("AnalysisMode");
                 ValidatePreparationOptions(mode);
+                if(_parameters.ContainsKey("EffectiveSectionAnalysisSource") && (mode!="ExternalInPlane"||Required("MemberClass")!="4"))
+                    throw new ArgumentException("EffectiveExternalAnalysisRequiresClass4ExternalMode");
                 if (mode != "BeamColumn" && BeamColumnKeys.Any(_parameters.ContainsKey)) throw new ArgumentException("BeamColumnParametersOnAnotherRoute");
                 if(mode!="Compression" && PackedPairKeys.Any(_parameters.ContainsKey))throw new ArgumentException("PackedPairRequiresCompression");
                 var first = mode == "Compression" ? input.ActionSections.OrderByDescending(c => Math.Abs(c.Forces.N)).First()
@@ -154,11 +156,15 @@ namespace GPC.Model.Checker
                     foreach (var cut in input.ActionSections)
                     {
                         if (!(cut.Property is ISteelSection steel)) return NativeResults.Unavailable("SteelMember.NonSteelSection");
-                        var a = ModelSteelInput.FromSectionAxes(new SteelSectionInput(steel, unperforated), cut.Forces, context).Actions;
+                        var sectionInput = new SteelSectionInput(steel, unperforated);
+                        if(memberClass.HasValue)SteelGeneralMethodApplicability.QualifySection(sectionInput,memberClass.Value);
+                        var a = ModelSteelInput.FromSectionAxes(sectionInput, cut.Forces, context).Actions;
                         if (a.N > 0 || a.V1 != 0 || a.V2 != 0 || a.T != 0 || a.M2 != 0) return NativeResults.Unavailable("SteelMember.ExternalPatternNotInPlane");
                     }
-                    analysis = SteelMemberAnalysis.FromExternal(common, Required("LoadPatternReference"), Required("ParameterSet"), lateral, lt, values,
-                        memberClass, _parameters.TryGetValue("ClassificationSource", out var source) ? source : null);
+                    string source = _parameters.TryGetValue("ClassificationSource", out var supplied) ? supplied : null;
+                    analysis = _parameters.TryGetValue("EffectiveSectionAnalysisSource",out var effectiveSource)
+                        ? SteelMemberAnalysis.FromExternalEffective(common,Required("LoadPatternReference"),Required("ParameterSet"),lateral,lt,values,source,effectiveSource)
+                        : SteelMemberAnalysis.FromExternal(common,Required("LoadPatternReference"),Required("ParameterSet"),lateral,lt,values,memberClass,source);
                 }
                 else throw new ArgumentException("UnknownSteelMemberAnalysisMode");
                 }

@@ -1,0 +1,42 @@
+METODO GENERALE ESTERNO EC3 / NTC - 23/10/2026
+Steel2.39 / ModelChecker2.22
+
+EN1993-1-1:2005, corrigenda2006/2009, 6.3.4(1)-(4)(a), eq6.63-6.64.
+NTC2018 4.2.4.1.3.3 richiama normative di comprovata validita' per pressoflessione.
+NTC usa gammaM1=1.05; non riutilizza implicitamente i coefficienti EC3.
+UniformFork interno rimane qualificato solo EC3.
+
+Campo geometrico: H/T, C con ali uguali, L uguali (simmetria diagonale), RHS/CHS.
+Per classe4 anche la geometria efficace deve essere qualificata: niente CHS,
+accoppiati, profili aperti formati a freddo o raccordi fuori dal campo del kernel.
+L disuguali e C asimmetrici non rientrano nella simmetria di 6.3.4(1).
+Tutte le sezioni campionate dell'asta sono controllate, non soltanto la prima.
+
+Due fattori positivi adimensionali riferiti allo STESSO schema proporzionale:
+- AlphaUltK: minima amplificazione fino alla resistenza caratteristica nel piano,
+  incluse imperfezioni globali/locali e secondo ordine pertinenti;
+- AlphaCrOp: minima amplificazione elastica per instabilita' fuori piano,
+  escludendo il modo flessionale nel piano.
+Sono risultati di analisi ESTERNE: il metodo scalare non li calcola ne' li certifica.
+ParameterSet identifica applicabilita' nazionale, curve e ipotesi; niente cerniere
+plastiche ruotate. Azioni in compressione e M1, senza M2/taglio/torsione qui.
+Le resistenze di sezione e le altre combinazioni rimangono verifiche separate.
+
+Classe4: FromExternalEffective conserva EffectiveSectionAnalysisSource; questa
+fonte deve attestare larghezze efficaci, eccentricita' del baricentro efficace e
+secondo ordine/imperfezioni nell'analisi che determina AlphaUltK. Non basta
+calcolare Aeff su una sezione isolata o classificare al livello sigma_com,Ed.
+FromExternal precedente con classe4, privo della fonte, resta non valutabile.
+ModelChecker usa lo stesso parametro, legato all'impronta dell'asta/stato;
+lo registra nel report e invalida l'archivio quando cambia la configurazione.
+
+Calcolo: lambda_op=sqrt(AlphaUltK/AlphaCrOp), chi_op=min(chi,chiLT),
+amplificazione resistente=chi_op*AlphaUltK/gammaM1; utilizzo reciproco.
+Le curve sono esplicite, non selezionate automaticamente da Ncr/Mcr.
+
+Test: 17 casi nuovi Steel, 7 ModelChecker. Oracolo indipendente per la radice
+di riduzione ottenuto per bisezione del polinomio EC3, entrambe le norme,
+C/T/L uguali, classe3/4, rifiuto L/C asimmetrici, fonti obbligatorie e archivio.
+34 test Steel e 34 ModelChecker con regressioni preesistenti passati il23/10.
+Fonti: tmp/pdfs/NTC2018.pdf p108 (stampata104), EN1993-1-1 p67-68 (65-66).
+https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf

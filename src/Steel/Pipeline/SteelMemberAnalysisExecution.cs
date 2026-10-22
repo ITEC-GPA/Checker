@@ -21,7 +21,7 @@ namespace GPC.Checkers.Steel.Pipeline
             if (!i.Code.GammaM1.HasValue) missing.Add("Code.GammaM1");
             if (i.Section.Unperforated == null) missing.Add("Section.Unperforated");
             if (missing.Count > 0) return Decision(SteelSelectionStatus.MissingInput, "Member.InputRequired", string.Join(", ", missing), missing);
-            if (i.Code.SectionCode.Standard != SectionResistanceStandard.Eurocode3_2005)
+            if (analysis.Kind == SteelMemberAnalysisKind.UniformForkHOrT && i.Code.SectionCode.Standard != SectionResistanceStandard.Eurocode3_2005)
                 return Decision(SteelSelectionStatus.NotSupported, "Member.NtcMethodNotQualified", "This EC3 general-method route is not qualified as an NTC method.");
             var a = i.Actions;
             if (i.Section.Unperforated != true || a.N > 0 || a.M2 != 0 || a.V1 != 0 || a.V2 != 0 || a.T != 0)
@@ -45,8 +45,10 @@ namespace GPC.Checkers.Steel.Pipeline
                 if (!analysis.Values.Any(v => v.Quantity == quantity)) missing.Add(quantity.ToString());
             if (!analysis.ExternalMemberClass.HasValue) missing.Add("MemberClassification");
             if (missing.Count > 0) return Decision(SteelSelectionStatus.MissingInput, "Member.ExternalAnalysisIncomplete", string.Join(", ", missing), missing);
-            if (analysis.ExternalMemberClass == 4)
+            if (analysis.ExternalMemberClass == 4 && analysis.EffectiveSectionAnalysisSource == null)
                 return Decision(SteelSelectionStatus.NotSupported, "Member.Class4NotQualified", "A qualified effective-section analysis route is required.");
+            try { SteelGeneralMethodApplicability.QualifySection(i.Section,analysis.ExternalMemberClass.Value); }
+            catch(NotSupportedException ex) { return Decision(SteelSelectionStatus.NotSupported,"Member.GeneralGeometryNotQualified",ex.Message); }
             return Ready(SteelMethod.Ec3ExternalGeneralMember);
         }
 
@@ -92,7 +94,7 @@ namespace GPC.Checkers.Steel.Pipeline
             Add(trace, "GammaM1", result.GammaM1, "1"); Add(trace, "DesignLoadAmplifier", result.DesignLoadAmplifier, "1");
             SteelInputValidation.Finite(utilization, "member utilization");
             return new SteelCheckExecution(decision, utilization <= 1 ? SteelExecutionStatus.Passed : SteelExecutionStatus.Failed,
-                reference: result.Reference, scope: analysis.Kind + "; " + analysis.LoadPatternReference + "; " + analysis.ParameterSet,
+                reference: (i.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018 ? "NTC2018 4.2.4.1.3.3; " : "") + result.Reference, scope: analysis.Kind + "; " + analysis.LoadPatternReference + "; " + analysis.ParameterSet,
                 utilization: utilization, trace: trace);
         }
         private static void Add(List<SectionResistanceValue> trace, string name, double value, string unit)

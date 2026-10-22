@@ -69,6 +69,10 @@ namespace GPC.Model.Checker.Configuration
                 new[]{"Ncr1","Ncr2","NcrT","NcrFT","Mcr","AlphaUltK","AlphaCrOp"}.SelectMany(q=>new[]{q+".Value",q+".Unit",q+".Source"}).Concat(new[]{"TorsionalExclusionSource","FlexuralTorsionalExclusionSource"})));
             Add("MemberClass",EngineParameterKind.Integer,min:1,max:4,modes:new[]{"ExternalInPlane","Compression","Bending","BeamColumn"});
             Together("MemberClassificationPair","MemberClass","ClassificationSource");
+            Add("EffectiveSectionAnalysisSource",description:"External characteristic analysis with effective widths, centroid shifts, imperfections and second order; same load pattern as the critical factor.",modes:new[]{"ExternalInPlane"});
+            Require("EffectiveExternalAnalysisRequired","Class4 external general method requires effective-section analysis evidence.",new[]{"EffectiveSectionAnalysisSource"},Is("AnalysisMode","ExternalInPlane"),Is("MemberClass","4"));
+            Require("EffectiveExternalClassRequired","Effective analysis requires an explicit class4 member.",new[]{"MemberClass","ClassificationSource"},Has("EffectiveSectionAnalysisSource"));
+            rules.Add(new EngineParameterRule("EffectiveExternalClassConflict","Effective analysis evidence is only for class4.",new[]{IsNot("MemberClass","4")},null,new[]{"EffectiveSectionAnalysisSource"}));
             foreach(var key in new[]{"TorsionalExclusionSource","FlexuralTorsionalExclusionSource"})
                 Add(key,description:"Reasoned exclusion of this critical mode; missing critical data is not an exclusion.",modes:new[]{"Compression","BeamColumn"});
             Add("McrBasis",EngineParameterKind.Choice,choices:new[]{"ActualMomentDiagram","UniformMoment"},modes:new[]{"Bending","BeamColumn"});
@@ -112,7 +116,7 @@ namespace GPC.Model.Checker.Configuration
                 "Ncr1/Ncr2 or explicit effective lengths in MemberDesignContext are required; FEM nodes do not imply restraints.",
                 "Beam-column Mcr is required when the active major moment and torsional susceptibility demand it; shear assessments depend on the actual actions.",
                 "Geometry, full-span actions, norm/edition, mode applicability and connection/detailing qualification remain execution checks.",
-                "UniformFork/ExternalInPlane are qualified only for EC3; prismatic modes also expose the distinct NTC policy."});
+                "UniformFork is EC3 only. ExternalInPlane also supports EN6.3.4 under NTC4.2.4.1.3.3 with NTC factors; class4 requires effective-analysis evidence."});
         }
     }
 }

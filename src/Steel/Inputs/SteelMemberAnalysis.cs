@@ -54,6 +54,7 @@ namespace GPC.Checkers.Steel.Inputs
         public IReadOnlyList<SteelStabilityValue> Values { get; }
         public int? ExternalMemberClass { get; }
         public string ClassificationSource { get; }
+        public string EffectiveSectionAnalysisSource { get; }
         public SteelPrismaticMemberData Prismatic { get; }
         public SteelBeamColumnParameters BeamColumnParameters { get; }
         public SteelPackedPairAssessment PackedPair { get; }
@@ -61,7 +62,7 @@ namespace GPC.Checkers.Steel.Inputs
         private SteelMemberAnalysis(SteelVerificationInput input, SteelMemberAnalysisKind kind,
             string loadPatternReference, string parameterSet, Ec3GeneralMethodCurve inPlane,
             Ec3GeneralMethodCurve lateral, Ec3GeneralMethodCurve lt, IEnumerable<SteelStabilityValue> values,
-            int? memberClass, string classificationSource, SteelPrismaticMemberData prismatic = null, SteelBeamColumnParameters beamColumn = null, SteelPackedPairAssessment packedPair = null)
+            int? memberClass, string classificationSource, SteelPrismaticMemberData prismatic = null, SteelBeamColumnParameters beamColumn = null, SteelPackedPairAssessment packedPair = null, string effectiveSectionAnalysisSource = null)
         {
             Input = input ?? throw new ArgumentNullException(nameof(input));
             if (string.IsNullOrWhiteSpace(loadPatternReference) || string.IsNullOrWhiteSpace(parameterSet))
@@ -75,6 +76,7 @@ namespace GPC.Checkers.Steel.Inputs
             if (memberClass.HasValue && (memberClass < 1 || memberClass > 4)) throw new ArgumentOutOfRangeException(nameof(memberClass));
             if (memberClass.HasValue != !string.IsNullOrWhiteSpace(classificationSource))
                 throw new ArgumentException("Member class and classification source must be supplied together.");
+            EffectiveSectionAnalysisSource = effectiveSectionAnalysisSource;
             Kind = kind; LoadPatternReference = loadPatternReference; ParameterSet = parameterSet;
             InPlaneCurve = inPlane; LateralCurve = lateral; LateralTorsionalCurve = lt;
             Values = Array.AsReadOnly(copy); ExternalMemberClass = memberClass; ClassificationSource = classificationSource; Prismatic = prismatic; BeamColumnParameters = beamColumn; PackedPair = packedPair;
@@ -146,11 +148,28 @@ namespace GPC.Checkers.Steel.Inputs
         /// <summary>EC3 general method in-plane route. AlphaUltK must include relevant
         /// second-order effects and imperfections; AlphaCrOp must use the same
         /// proportional load pattern. Ncr/Mcr alone are insufficient. The member class
-        /// is not the section-only sigma_com,Ed reclassification. No NTC inference.</summary>
+        /// is not the section-only sigma_com,Ed reclassification. For NTC2018 the
+        /// caller selects EN6.3.4 under NTC4.2.4.1.3.3 with NTC gammaM1. ParameterSet
+        /// identifies the assessed national applicability, curves and absence of rotated plastic hinges.</summary>
         public static SteelMemberAnalysis FromExternal(SteelVerificationInput input, string loadPatternReference,
             string parameterSet, Ec3GeneralMethodCurve lateral, Ec3GeneralMethodCurve lt,
             IEnumerable<SteelStabilityValue> values, int? memberClass = null, string classificationSource = null)
             => new SteelMemberAnalysis(input, SteelMemberAnalysisKind.ExternalInPlane, loadPatternReference, parameterSet,
                 Ec3GeneralMethodCurve.A, lateral, lt, values, memberClass, classificationSource);
+
+        /// <summary>External general method for class4. The source must identify an
+        /// in-plane analysis using effective sections, centroid-shift moments and all
+        /// relevant imperfections/second order at characteristic resistance. It must
+        /// also identify the elastic out-of-plane analysis of the SAME load pattern.
+        /// This factory does not compute or certify either external multiplier.</summary>
+        public static SteelMemberAnalysis FromExternalEffective(SteelVerificationInput input, string loadPatternReference,
+            string parameterSet, Ec3GeneralMethodCurve lateral, Ec3GeneralMethodCurve lt,
+            IEnumerable<SteelStabilityValue> values, string classificationSource, string effectiveSectionAnalysisSource)
+        {
+            if(string.IsNullOrWhiteSpace(effectiveSectionAnalysisSource))
+                throw new ArgumentException("Effective-section analysis provenance required.",nameof(effectiveSectionAnalysisSource));
+            return new SteelMemberAnalysis(input,SteelMemberAnalysisKind.ExternalInPlane,loadPatternReference,parameterSet,
+                Ec3GeneralMethodCurve.A,lateral,lt,values,4,classificationSource,effectiveSectionAnalysisSource:effectiveSectionAnalysisSource);
+        }
     }
 }
