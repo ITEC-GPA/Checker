@@ -14,10 +14,16 @@ namespace GeotechnicsTests;
 [TestClass]
 public class GeneralGeotechnicsMigrationTests
 {
+    /// <summary>
+    /// Rows the legacy solver rejected for N' &lt; 0 on slices with φ = 0, whose resistance c·l does not depend on N': since 22/10/2026 (user decision,
+    /// docs/verifiche/paratie-revisione-2026-10.md) the port solves them. Documented difference: the fixture keeps the legacy output.
+    /// </summary>
+    private static readonly HashSet<string> TensionWithoutFriction = new() { "72", "98", "125", "177", "227", "231", "353" };
+
     [TestMethod]
     public void LegacyBishopSolutionsAreReproduced()
     {
-        int ok = 0, none = 0, errors = 0;
+        int ok = 0, none = 0, tension = 0, errors = 0;
         foreach (var row in Rows("geotechnics-bishop.csv"))
         {
             var c = row.Split(';'); string id = "Bishop " + c[0];
@@ -34,6 +40,11 @@ public class GeneralGeotechnicsMigrationTests
                 Assert.AreEqual("error:ArgumentException", c[3], id); Assert.ThrowsException<ArgumentException>(() => BishopSolver.Solve(circle, slices, gammaR), id); errors++; continue;
             }
             var r = BishopSolver.Solve(circle, slices, gammaR);
+            if (TensionWithoutFriction.Contains(c[0]))
+            {
+                Assert.AreEqual("null", c[3], id + ": legacy rejection"); Assert.IsNotNull(r, id);
+                SolvedWithTensionOnlyWithoutFriction(r, id); tension++; continue;
+            }
             if (c[3] == "null") { Assert.IsNull(r, id); none++; continue; }
             Assert.IsNotNull(r, id);
             Close(D(c[4]), r.Factor, id + " F", 1e-9); Close(D(c[5]), r.Ratio, id + " ratio", 1e-9);
@@ -50,7 +61,21 @@ public class GeneralGeotechnicsMigrationTests
             }
             ok++;
         }
-        Assert.AreEqual(321, ok); Assert.AreEqual(90, none); Assert.AreEqual(3, errors);
+        Assert.AreEqual(321, ok); Assert.AreEqual(83, none); Assert.AreEqual(7, tension); Assert.AreEqual(3, errors);
+    }
+
+    /// <summary>A Bishop solution with N' &lt; 0 only on slices with φ = 0, R = c l there, and the slice and moment equilibrium of the analytic test.</summary>
+    private static void SolvedWithTensionOnlyWithoutFriction(SlopeSurfaceResult r, string id)
+    {
+        Assert.IsTrue(r.Slices.Any(s => s.NormalEffective < -1e-6), id + ": the legacy rejected N' < 0");
+        foreach (var s in r.Slices)
+        {
+            double l = s.Width / Math.Cos(s.Alpha);
+            if (s.NormalEffective < -1e-6) Assert.AreEqual(0, s.FrictionAngle, id + ": N' < 0 only where φ = 0, slice " + s.Index);
+            if (s.FrictionAngle == 0) Close(s.Cohesion * l, s.Resistance, id + " R = c l, slice " + s.Index, 1e-12, 1e-9);
+            Close(s.Vertical, (s.NormalEffective + s.PorePressure * l) * Math.Cos(s.Alpha) + s.Mobilized * Math.Sin(s.Alpha), id + " vertical equilibrium " + s.Index, 1e-8, 1e-8);
+        }
+        Close(r.Driving, r.Resistance / r.Factor, id + " moment equilibrium", 1e-8);
     }
 
     private static Dictionary<string, SlopeSection> Sections(string[] rows)
@@ -75,6 +100,14 @@ public class GeneralGeotechnicsMigrationTests
                 // Section S2: the legacy filter on the depth drops by rounding part of the circles built exactly at the bounds (with grid 3 and no
                 // refinement it tries 15 of the 24 circles that exist); the port keeps them (1e-9 mm), so the search explores another set of circles.
                 if (c[1] == "S2") { SameEvaluationOfTheLegacyCircle(c, sections["S2"], searches[c[2]], r, id); continue; }
+                // Section S3, undrained cases: the legacy rejected the circles with N' < 0 on slices with φ = 0 (15 and 323 numerical failures); the port solves
+                // them (user decision 22/10/2026), so it explores another set of circles and with the earthquake finds a lower minimum (F 1.269 against 1.521).
+                if (c[1] == "S3" && r.Factors.Undrained)
+                {
+                    Assert.IsTrue(int.Parse(c[15]) > 0 && r.Solved > int.Parse(c[14]), id + ": circles the legacy rejected are solved");
+                    Assert.IsTrue(r.Critical!.Slices.All(s => s.NormalEffective >= -1e-6 || s.FrictionAngle == 0), id + ": N' < 0 only where φ = 0");
+                    SameEvaluationOfTheLegacyCircle(c, sections["S3"], searches[c[2]], r, id); continue;
+                }
                 Assert.AreEqual(int.Parse(c[12]), r.Tried, id + " tried"); Assert.AreEqual(int.Parse(c[13]), r.GeometricallyValid, id + " valid");
                 Assert.AreEqual(int.Parse(c[14]), r.Solved, id + " solved"); Assert.AreEqual(int.Parse(c[15]), r.NumericalFailures, id + " failures");
                 Assert.AreEqual(bool.Parse(c[16]), r.Boundary, id + " boundary");

@@ -207,8 +207,11 @@ namespace GPC.Checkers.Concrete.Piles
             if(new[]{p.Diameter,p.Fcd,p.Fyd,p.Fctk05,p.Es,p.LinkDiameter,p.LinkSpacing,p.StockLength}.Any(v=>!Finite(v)||v<=0)||new[]{p.Cover,p.HeadAnchorage,p.ToeAnchorage}.Any(v=>!Finite(v)||v<0)||!Finite(p.LeverFactor)||p.LeverFactor<=0||p.LeverFactor>.9)throw new ArgumentException("Materiali, staffe, lunghezze o copriferro non validi.");
             var lower=geometry.Bars.Where(b=>b.Y<0).ToArray();var upper=geometry.Bars.Where(b=>b.Y>0).ToArray();
             if(lower.Length==0||upper.Length==0)throw new ArgumentException("Armatura richiesta sui due semicerchi.");
-            d=p.Diameter/2+Math.Min(-lower.Sum(b=>b.Y*b.Area)/lower.Sum(b=>b.Area),upper.Sum(b=>b.Y*b.Area)/upper.Sum(b=>b.Area));
-            area=Math.PI*p.Diameter*p.Diameter/4;asl=Math.Min(lower.Sum(b=>b.Area),upper.Sum(b=>b.Area));
+            // Continuous ring of radius rs: the tension half has its centroid 2rs/π from the centre and half of the bars.
+            // Independent of bar count and of rounding of the bars lying on the neutral axis (12 bars: a bar at 180° fell in one half).
+            double bars=geometry.Bars.Sum(b=>b.Area),ring=geometry.Bars.Sum(b=>b.Area*Math.Sqrt(b.X*b.X+b.Y*b.Y))/bars;
+            d=p.Diameter/2+2*ring/Math.PI;
+            area=Math.PI*p.Diameter*p.Diameter/4;asl=bars/2;
         }
         public PileSectionCheck Check(PileAction action)
         {

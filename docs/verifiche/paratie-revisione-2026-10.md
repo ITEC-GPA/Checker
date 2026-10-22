@@ -5,7 +5,10 @@ alla Winkler, fasi costruttive, sostegni, filtrazione, verifiche idrauliche, sta
 verifiche strutturali e collegamento in ANTHEA. Codice esaminato: Checker master `57f87bf8`, Model e ANTHEA del 21/10/2026.
 Branch dei test: `claude/verifica-paratie`. Correzioni applicate sullo stesso branch: P1, P2 e P3 in Geotechnics 0.14.0.1
 (con GPC.Design 0.30.0.1, ricompilato contro la nuova Geotechnics). A1 è corretto in ANTHEA (`refactoring/f5` 573d9c73,
-guide Rev57), con i test `LockOffBetweenStagesTests` in Checker. Restano aperti P4, P5, S1, A2–A4 e i punti minori ANTHEA.
+guide Rev57), con i test `LockOffBetweenStagesTests` in Checker. Il 22/10/2026, sul branch `claude/paratie-bug-aperti`
+(Checker) e `claude/paratie-flusso-nullo` (Model), sono stati corretti anche P4, P5, S1 e S2, e i cerchi non drenati con
+N' < 0 non vengono più scartati. Restano aperti A2–A4, S3 e i punti minori ANTHEA; il campo del bordo a flusso nullo
+in ANTHEA richiede prima il set di librerie con il nuovo Model.
 
 ## Metodo
 
@@ -37,13 +40,13 @@ I problemi trovati, in ordine di gravità:
 | P1 | Puntone o tirante che si stacca: il motore lo fa "seguire" la paratia invece di lasciare il distacco | risultati errati quando la paratia torna indietro (esempio: 15,7 kN invece di 7,8 kN, −2,03 mm invece di +0,78 mm) — **corretto in 0.14.0.1** | `EmbeddedWallAnalysis.cs:250-252` (su `57f87bf8`) |
 | P2 | Falsa non convergenza: la ricerca lineare usa il massimo del residuo e si blocca sui punti angolosi della plasticità | paratia stabile dichiarata "non convergente" (caso tirantato con margine 1,17) — **corretto in 0.14.0.1** | `EmbeddedWallAnalysis.cs:91` (su `57f87bf8`) |
 | P3 | Tolleranze più strette della precisione di macchina sui termini EI | falsa non convergenza con mesh fini (50 mm) o pareti rigide — **corretto in 0.14.0.1** | `WallAnalysisResults.cs:10-11`, `EmbeddedWallAnalysis.cs:80` (su `57f87bf8`) |
-| P4 | Stabilità globale: il profilo di pressioni interstiziali assegnato viene ignorato | **a sfavore di sicurezza** (F = 5,94 invece di 4,44); oggi ANTHEA non ci arriva | `EmbeddedWallGlobalStability.cs:130-139` |
-| P5 | Filtrazione: il bordo laterale lato scavo ha sempre carico imposto; con la semilarghezza di uno scavo simmetrico l'asse fa da dreno | **a sfavore di sicurezza**: gradiente medio 0,22 invece di 0,55, verifica HYD 0,65 invece di 1,59 | `EmbeddedWallSeepageMesh.cs:49` |
+| P4 | Stabilità globale: il profilo di pressioni interstiziali assegnato viene ignorato | **a sfavore di sicurezza** (F = 5,94 invece di 4,44); oggi ANTHEA non ci arriva — **corretto 22/10 con rifiuto esplicito** | `EmbeddedWallGlobalStability.cs:130-139` |
+| P5 | Filtrazione: il bordo laterale lato scavo ha sempre carico imposto; con la semilarghezza di uno scavo simmetrico l'asse fa da dreno | **a sfavore di sicurezza**: gradiente medio 0,22 invece di 0,55, verifica HYD 0,65 invece di 1,59 — **corretto 22/10: opzione `NoFlow` (Model), campo ANTHEA dopo il set di librerie** | `EmbeddedWallSeepageMesh.cs:49` |
 | A2 | Nessun coefficiente parziale applicato alle azioni o agli effetti; le verifiche SLU si attivano con un testo libero | azioni SLU 23–33 % troppo basse se si marca SLU una storia caratteristica | `EmbeddedWallModule.cs:30` e verificatori ANTHEA |
-| S1 | Le verifiche di pali, tubi e diaframmi non confrontano la larghezza passata con quella dell'analisi | azioni scalate male se il chiamante sbaglia; oggi ANTHEA passa quella giusta | `EmbeddedWallRcPiles.cs:48,75`, `EmbeddedWallSteelTubes.cs:41,66`, `EmbeddedWallConcrete.cs:71,90` |
+| S1 | Le verifiche di pali, tubi e diaframmi non confrontano la larghezza passata con quella dell'analisi | azioni scalate male se il chiamante sbaglia; oggi ANTHEA passa quella giusta — **corretto 22/10** | `EmbeddedWallRcPiles.cs:48,75`, `EmbeddedWallSteelTubes.cs:41,66`, `EmbeddedWallConcrete.cs:71,90` |
 | A3 | Una fase nuova in ANTHEA riparte da terreno e falda a quota 0 | rischio di "riempire" lo scavo per errore | `EmbeddedWallDocument.cs:33-34` |
 | A4 | Prima fase non geostatica: lo squilibrio iniziale non viene applicato per incrementi | possibile non convergenza e risultato diverso da una storia a fasi | `EmbeddedWallAnalysis.cs:33` |
-| S2 | Taglio dei pali: d dipende da un arrotondamento (una barra a 180° cade nella metà sbagliata); modello bw = D non documentato | −6 % sul taglio resistente (a favore di sicurezza) | `PileReinforcement.cs:208-211,227` |
+| S2 | Taglio dei pali: d dipende da un arrotondamento (una barra a 180° cade nella metà sbagliata); modello bw = D non documentato | −6 % sul taglio resistente (a favore di sicurezza) — **corretto 22/10: d = R + 2rs/π, As/2, bw = D documentato** (vale anche per i pali di fondazione) | `PileReinforcement.cs:208-211,227` |
 | S3 | Passo delle barre per la fessurazione preso sulla faccia più rada | a favore di sicurezza | `WallSectionSession.cs:215` |
 | — | Punti minori ANTHEA: verso resistente ±1 non spiegato, segni diversi fra le schede, etichette senza "per fascia", schema globale sempre con valle a sinistra, "1.000" letto come 1 | interpretazione dei risultati | vedi § ANTHEA |
 
@@ -144,7 +147,12 @@ trascurabile rispetto alle forze nodali del terreno (dell'ordine di 10⁴ N), e 
 Un profilo `PorePressures` assegnato (permesso dalla validazione con `WaterElevation` nullo) viene ignorato e la sezione è
 calcolata asciutta. Con il modello di `EmbeddedWallGlobalTests` e un profilo idrostatico da −1,5 m: F = 5,9407 invece di
 4,4414 (sopravvalutato di 1,34 volte). In ANTHEA i profili si usano solo con la filtrazione FEM, che passa il campo:
-oggi non è raggiungibile dall'interfaccia. Il test accetta come correzione anche un rifiuto esplicito (`NotSupportedException`).
+oggi non è raggiungibile dall'interfaccia.
+
+Correzione (22/10/2026, decisione dell'utente: per ora rifiuto): senza profilo piezometrico globale né campo FEM, un profilo
+`PorePressures` alla parete fa rifiutare la verifica con `NotSupportedException`, come già per falde diverse. Il profilo alla
+parete non determina la pressione sulle basi dei conci lontano dalla parete e sotto il piede. In futuro si valuterà se
+estenderlo al pendio con un'ipotesi dichiarata. Test: `ReviewFixesTests.GlobalStabilityRefusesWallFacePorePressureProfiles`.
 
 ### P5. Asse di simmetria nella filtrazione
 
@@ -154,11 +162,59 @@ sotto lo scavo fa da dreno. Scavo 6 m, infissione 6 m, B = 10 m: gradiente medio
 utilizzo HYD 0,65 invece di 1,59, pressione al piede lato scavo 72 kPa invece di 91 kPa (resistenza passiva al piede
 sovrastimata di circa il 67 %). Non dipende dalla mesh (250 mm: 0,221 contro 0,547). Serve un'opzione di bordo a flusso nullo.
 
+Correzione (22/10/2026): `EmbeddedWallSeepageDomain` (Model) ha `LeftBoundary` e `RightBoundary` di tipo
+`SeepageLateralBoundary` (`FixedHead` predefinito, `NoFlow`). `EmbeddedWallSeepageMesh` non impone il carico sotto il terreno
+sul lato a flusso nullo; il nodo d'angolo al piano campagna segue la regola della superficie. Il test
+`ReviewFixesTests.SymmetricExcavationAxisCanCarryNoFlow` controlla entrambi i casi contro il FEM indipendente: 0,22362 a
+carico imposto e 0,54969 con l'asse a flusso nullo (pressione al piede lato scavo 91,2 kPa). Il campo nell'interfaccia di
+ANTHEA va aggiunto dopo l'installazione del set di librerie con il nuovo Model.
+
 ### S1. Larghezza delle verifiche strutturali
 
 I verificatori ricevono la larghezza come argomento e non la confrontano con `analysis.TributaryWidth`. Con analisi su
 1500 mm e verifica chiamata con 1000 mm le azioni per palo sono moltiplicate per 1,0 invece di 0,667 (tubi: 2,0 invece di
 1,333). Con un diaframma da 2000 mm su un'analisi da 1000 mm le azioni di 1 m sono confrontate con 2 m di sezione.
+
+Correzione (22/10/2026): le tre verifiche rifiutano con `ArgumentException` una larghezza diversa da `analysis.TributaryWidth`.
+Test: `EmbeddedWallReviewTests.ChecksRefuseAWidthDifferentFromTheAnalysedStrip`.
+
+### S2. Taglio dei pali circolari
+
+`PileReinforcement` prendeva d = R + baricentro delle barre della metà più povera e As,l = area di quella metà. Con 12 barre
+la barra a 180° ha y = 4·10⁻¹⁴ e cadeva nella metà superiore: d = 605,26 mm invece dei 646 della metà tesa effettiva.
+Correzione (22/10/2026, scelta dell'utente: anello continuo): d = R + 2rs/π e As,l = As/2, indipendenti dal numero di barre;
+bw = D e z = (z/d)·d restano e sono documentati in `docs/metodi/sezioni-circolari-ca-paratie.md`. Palo D 800, 12φ20,
+staffe φ10/150: d = 610,08 mm e VRd = 562,5 kN invece di 558,0. La correzione vale per tutti gli usi di `PileReinforcement`,
+anche per i pali di fondazione. Test: `EmbeddedWallReviewTests.CircularPileShearUsesTheContinuousRingEffectiveDepth`.
+
+### Stabilità globale non drenata
+
+`BishopSolver` scartava un cerchio quando un concio aveva N' < 0. Con φ = 0 la resistenza è c·l e non dipende da N': il
+cerchio di prova (F indipendente 3,7086) veniva scartato e la ricerca poteva perdere il cerchio critico. Correzione
+(22/10/2026): il rifiuto resta solo per i conci con attrito. Vale per tutti gli usi di `BishopSolver` (pendii e muri compresi).
+Test: `GlobalStabilityIndependentTests.UndrainedCircleEqualsCohesionAlongTheArc`.
+
+La correzione cambia tre test dei pendii di Geotechnics, che riproducono le catture del vecchio calcolo ANTHEA. Le fixture
+non sono state rigenerate: i tre test dichiarano le differenze (ok dell'utente, 22/10/2026).
+
+- **Casi di Bishop** (`GeneralGeotechnicsMigrationTests.LegacyBishopSolutionsAreReproduced`). Su 90 casi che il vecchio
+  calcolo scartava, 7 ora hanno una soluzione: le righe 72, 98, 125, 177, 227, 231 e 353. In ognuna N' < 0 compare solo su
+  conci con φ = 0. Il test controlla questo, R = c·l su quei conci e l'equilibrio verticale dei conci e dei momenti.
+  Le altre 321 soluzioni restano identiche.
+- **Ricerche sulla sezione S3, casi non drenati** (`LegacySlopeSearchesAreReproduced`).
+  - «Non drenata»: stesso cerchio critico, F = 1,0394. I 15 cerchi prima scartati ora sono risolti (391 → 405). Con il
+    doppio dei conci F vale 1,0409, quindi lo stato passa da «discretizzazione non convergente» a «minimo sul bordo».
+  - «Non drenata sisma»: il vecchio calcolo scartava 323 cerchi su 519, ora nessuno. Il minimo scende da F = 1,521 a
+    1,269 su un altro cerchio (rapporto da 0,789 a 0,945). Il vecchio risultato era a sfavore di sicurezza.
+
+  Per questi due casi il test fa come per S2. Ricalcola il cerchio critico del vecchio calcolo esattamente come allora e
+  richiede un minimo non più alto. Tutti gli altri casi (S1, S2, S3 drenata, S4, cerchi assegnati) non cambiano.
+- **Concio ripido coesivo** (`SlopeEdgeCaseTests`). Con φ = 0 il caso ora ha soluzione, F = 11,88, ricontrollata a mano nel
+  nuovo test `BishopKeepsTensionOnSlicesWithoutFriction`: R1 = 100 kPa · 1 m / cos 60° = 200 kN/m e F = (R1 + R2)/D.
+  Lo stesso concio con φ = 5° resta scartato.
+
+ANTHEA ha le stesse catture: quando si aggiornano lì le librerie, queste differenze vanno registrate anche nei suoi test
+di equivalenza.
 
 ### ANTHEA
 
@@ -205,8 +261,8 @@ minori non hanno ancora test: dipendono dalle decisioni elencate sotto.
 
 ## Test aggiunti
 
-Tutti in Checker, branch `claude/verifica-paratie`. La categoria `ReviewFinding` raccoglie i test dei problemi ancora aperti;
-`ReviewFixesTests` quelli dei problemi corretti in 0.14.0.1.
+Tutti in Checker. `ReviewFixesTests` raccoglie i test dei problemi corretti (P1–P3 il 21/10, P4 e P5 il 22/10); non ci
+sono più test della categoria `ReviewFinding` né fallimenti ammessi per la revisione in `build/known-failures.json`.
 
 | Test | Progetto / file | Cosa verifica | Atteso | Esito su `57f87bf8` → 0.14.0.1 |
 |---|---|---|---|---|
@@ -224,33 +280,53 @@ Tutti in Checker, branch `claude/verifica-paratie`. La categoria `ReviewFinding`
 | `UnilateralSupportReengagesAtItsSlackPoint` (Strut, Anchor) | `ReviewFindingsTests.cs`, classe `ReviewFixesTests` | P1 | formula chiusa: 0,7826 mm, 7,83 kN | fallisce (−2,0348 mm) → **passa** |
 | `AnchoredExcavationWithPassiveMarginConverges` | idem | P2 | risolutore indipendente, S3 | fallisce (non converge a 0,875) → **passa** |
 | `FineMeshConvergesWithDefaultTolerances` | idem | P3 | risolutore indipendente, mesh 50 mm | fallisce (non converge a 0,585) → **passa** |
-| `GlobalStabilityHonoursPrescribedPorePressures` | `ReviewFindingsTests.cs`, classe `ReviewFindingsTests` | P4 | F = 4,4414 o rifiuto esplicito | **fallisce** (F = 5,9407), ammesso |
-| `SymmetricExcavationAxisCarriesNoFlow` | idem | P5 | FEM indipendente con asse a flusso nullo: 0,5497 | **fallisce** (0,2236), ammesso |
+| `GlobalStabilityRefusesWallFacePorePressureProfiles` | idem | P4 | rifiuto esplicito (decisione dell'utente) | prima F = 5,9407 → **passa** (22/10) |
+| `SymmetricExcavationAxisCanCarryNoFlow` | idem | P5 | FEM indipendente: 0,22362 a carico imposto, 0,54969 a flusso nullo | prima solo 0,2236 → **passa** (22/10) |
+| `UndrainedCircleEqualsCohesionAlongTheArc` | `GlobalStabilityIndependentTests.cs` | cerchio non drenato con un concio a N' < 0 | F = 3,7086 = (cu/1,4)·R·arco/D | prima nessun risultato → **passa** (22/10) |
 | `StripShearWithoutLinksMatchesNtc2018Formula41` | Design.Checks / `EmbeddedWallReviewTests.cs` | taglio senza staffe in 4 casi | formula NTC nel test e script | passa |
-| `ChecksRefuseAWidthDifferentFromTheAnalysedStrip` | idem | S1 per pali, tubi e diaframmi | eccezione | **fallisce** (nessuna eccezione), ammesso |
+| `ChecksRefuseAWidthDifferentFromTheAnalysedStrip` | idem | S1 per pali, tubi e diaframmi | eccezione | prima nessuna eccezione → **passa** (22/10) |
+| `CircularPileShearUsesTheContinuousRingEffectiveDepth` | idem | S2, palo D 800, 12φ20 | NTC con d = R + 2rs/π: 562,5 kN | prima 558,0 kN → **passa** (22/10) |
+| `BishopKeepsTensionOnSlicesWithoutFriction` | GPCChecker.Test.Geotechnics / `SlopeEdgeCaseTests.cs` | concio ripido con φ = 0 e N' < 0 | a mano: R1 = 200 kN/m, F = (R1 + R2)/D | nuovo → **passa** (22/10) |
+| `LegacyBishopSolutionsAreReproduced`, `LegacySlopeSearchesAreReproduced` | `GeneralGeotechnicsMigrationTests.cs` | catture ANTHEA con φ = 0 | differenze dichiarate, fixture invariate | 3 fallimenti dopo la correzione → **passano** (22/10) |
 
-Totale con 0.14.0.1: EmbeddedWalls.Tests 91 test (74 esistenti + 17 nuovi), 89 passano e 2 falliscono (P4, P5);
-Design.Checks 102 test, 101 passano e 1 fallisce (S1). I tre fallimenti aperti sono ammessi per nome in
-`build/known-failures.json`, con motivo e rimando a questo resoconto: vanno tolti da lì quando arriva la correzione.
+Totale sul branch del 22/10: EmbeddedWalls.Tests 99 test, tutti verdi (74 della prima versione, 18 della revisione, 7 della
+pretensione A1); Design.Checks 103 test, tutti verdi.
 
 Esecuzione:
 
 ```
 dotnet test tests/EmbeddedWalls.Tests -c Release
 dotnet test tests/Design.Checks -c Release --filter "FullyQualifiedName~EmbeddedWall"
-dotnet test tests/EmbeddedWalls.Tests -c Release --filter "TestCategory!=ReviewFinding"
 ```
 
 Verifica completa: `powershell -NoProfile -ExecutionPolicy Bypass -File build\Verify.ps1` (tutte le suite, net472 comprese).
+Esito del 22/10/2026 sul branch, contro Model 5.20.0.0 (`claude/paratie-flusso-nullo`), senza fallimenti ammessi.
+
+| Suite | Test superati |
+|---|---|
+| Concrete (net472) | 795 |
+| Steel (net472) | 122 |
+| CompositeBridge | 284 |
+| Geotechnics | 192 |
+| Calculation | 174 |
+| ShallowFoundation | 28 |
+| EmbeddedWalls | 99 |
+| Steel.Members | 2918 |
+| Design.Checks | 103 |
+| ModelChecker | 388 |
+
+Nessuna firma pubblica rimossa. Model: UnitTest 1332 superati e 3 ignorati, Model.Core 24 superati.
 
 ## Domande aperte
 
 1. ~~Pretensione: deve restare implicitamente dopo l'installazione, o l'interfaccia deve copiarla e avvisare quando cala?~~
    Decisa il 21/10/2026: resta, con avviso quando cala, senza migrazione dei documenti (vedi A1).
 2. SLU in un'analisi non lineare: fattorizzare gli effetti di una storia caratteristica (come Paratie Plus) o le azioni?
-3. Taglio dei pali: quale d (metà tesa effettiva, anello continuo R + 2rs/π, 0,45D + 0,64rs) e quale bw?
-4. Filtrazione: aggiungere il bordo a flusso nullo e chiarire l'etichetta "Estensione a destra dall'asse"?
+3. ~~Taglio dei pali: quale d e quale bw?~~ Decisa il 22/10/2026: anello continuo, d = R + 2rs/π (vedi S2); bw = D invariato.
+4. ~~Filtrazione: aggiungere il bordo a flusso nullo?~~ Decisa il 22/10/2026: opzione `NoFlow` in Model e Checker; resta da
+   aggiungere il campo in ANTHEA dopo il set di librerie e da chiarire l'etichetta "Estensione a destra dall'asse".
 5. Avviso quando la prima fase non è geostatica o con falde diverse senza filtrazione (pressioni passive sovrastimate)?
-6. Stabilità globale non drenata: lo stesso cerchio di prova (F indipendente 3,7086 = cu/1,4 · R · arco / D) viene scartato da
-   `BishopSolver.cs:50` perché un concio avrebbe N' < 0. Con φ = 0 la resistenza non dipende da N': scartare il cerchio può far
-   perdere quello critico. Va mantenuto il rifiuto anche in condizioni non drenate?
+6. ~~Stabilità globale non drenata: va mantenuto il rifiuto dei cerchi con N' < 0?~~ Decisa il 22/10/2026: con φ = 0 il
+   cerchio non viene più scartato; il rifiuto resta per i conci con attrito.
+7. Stabilità globale con profilo interstiziale alla parete: per ora rifiuto esplicito; in futuro si valuterà se estenderlo
+   al pendio con un'ipotesi dichiarata.

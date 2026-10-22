@@ -11,7 +11,8 @@ namespace GPC.Checkers.Geotechnics.Slopes
 
         /// <summary>
         /// Factor of safety F of the circle by bisection on the residual Σ R(F) − F·D, above every singularity of mα. Null when the driving moment
-        /// is not positive, when no root exists, or when a slice would need tension (N' &lt; 0) or mα ≤ 0: no tensile strength and no clipping.
+        /// is not positive, when no root exists, or when a frictional slice would need tension (N' &lt; 0) or mα ≤ 0: no tensile strength and no
+        /// clipping. With φ = 0 the resistance c·l does not depend on N', so a negative N' does not reject the circle.
         /// </summary>
         public static SlopeSurfaceResult? Solve(SlipCircle circle, IReadOnlyList<SlopeSlice> input, double resistanceFactor, CancellationToken token = default)
         {
@@ -47,7 +48,7 @@ namespace GPC.Checkers.Geotechnics.Slopes
                 double tan = Math.Tan(s.FrictionAngle), b = s.Width, l = b / Math.Cos(s.Alpha);
                 double m = Math.Cos(s.Alpha) + Math.Sin(s.Alpha) * tan / factor;
                 double normal = (s.Vertical - s.PorePressure * b - s.Cohesion * l * Math.Sin(s.Alpha) / factor) / m;
-                if (normal < -1e-6 || m <= 0 || double.IsNaN(normal) || double.IsInfinity(normal)) return null;
+                if (normal < -1e-6 && tan > 0 || m <= 0 || double.IsNaN(normal) || double.IsInfinity(normal)) return null;
                 double r = Resistance(s, factor);
                 output[i] = s.Solved(normal, r, r / factor, m);
             }

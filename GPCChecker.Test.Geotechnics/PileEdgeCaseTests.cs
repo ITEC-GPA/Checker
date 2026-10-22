@@ -130,7 +130,7 @@ public class PileEdgeCaseTests
         Close(tube.Area, w.SteelArea, "steel area = Model SectionCHS", 1e-12); Close(Math.PI * 240 * 240 / 4 - tube.Area, w.GroutArea, "grout", 1e-12);
         Close(77.0085 * KN3 * w.SteelArea + 25 * KN3 * w.GroutArea, w.Total, "q = 77.0085 As + 25 Ac (kN/m³)", 1e-12);
         Assert.ThrowsException<ArgumentException>(() => MicropileTube.Weight(tube, TubeSteel, 139.7, 25 * KN3), "tube as wide as the borehole");
-        foreach (var (d, g) in new[] { (0.0, 25.0), (-240.0, 25.0), (double.NaN, 25.0), (240.0, 0.0), (240.0, double.NaN) })
+        foreach (var (d, g) in new[] { (0.0, 25.0), (-240.0, 25.0), (double.NaN, 25.0), (240.0, -1.0), (240.0, double.NaN) })
             Assert.ThrowsException<ArgumentException>(() => MicropileTube.Weight(tube, TubeSteel, d, g * KN3));
         Assert.AreEqual(1, MicropileTube.AxisCosine(0)); Assert.ThrowsException<ArgumentException>(() => MicropileTube.AxisCosine(Math.PI / 2)); Assert.ThrowsException<ArgumentException>(() => MicropileTube.AxisCosine(-1e-9));
         // Classes: D/t/(235/fy) ≤ 50, 70, 90.
@@ -453,7 +453,8 @@ public class PileEdgeCaseTests
         Assert.AreEqual(1.3, PileResistanceFactors.FromStandard(new StandardNTC2018Geotechnics { PileExecution = PileExecution.ContinuousFlightAuger }, 1).Base);
         // Checks.
         Assert.ThrowsException<ArgumentException>(() => Axial(new AxialPile(PileInstallation.Bored, 0, 10 * M), S(30)));
-        Assert.ThrowsException<ArgumentException>(() => Axial(new AxialPile(PileInstallation.Bored, 600, 10 * M, unitWeight: 0), S(30)));
+        Assert.ThrowsException<ArgumentException>(() => Axial(new AxialPile(PileInstallation.Bored, 600, 10 * M, unitWeight: -1 * KN3), S(30)));
+        Assert.ThrowsException<ArgumentException>(() => Axial(new AxialPile(PileInstallation.Bored, 600, 10 * M, unitWeight: double.NaN), S(30)));
         Assert.ThrowsException<ArgumentException>(() => Axial(new AxialPile(PileInstallation.Bored, 600, 10 * M, compressionAction: double.NaN), S(30)));
         Assert.ThrowsException<ArgumentException>(() => AxialPileCapacity.Calculate(pile, new AxialPileSurvey[0], ntc, PileGroupEfficiency.None()));
         var wet = new AxialPileSurvey(Profile(3, (Sand(30), 20)), new[] { new AxialPileLayer(SoilBehaviour.Granular, SoilDensity.Dense) });
@@ -465,6 +466,33 @@ public class PileEdgeCaseTests
         // Shorter profile than the pile: curves up to the covered depth only.
         var shortProfile = Axial(new AxialPile(PileInstallation.Bored, 600, 25 * M), S(30));
         Assert.IsFalse(shortProfile.FullCoverage); Assert.AreEqual(20 * M, shortProfile.MaximumDepth);
+    }
+
+    [TestMethod]
+    public void ZeroUnitWeightLeavesThePileWeightOutOfTheActions()
+    {
+        // γ = 0 (user request 22/10/2026): W = W' = 0 at every depth, the design actions are the assigned ones, the resistances do not change and a
+        // warning says so. With the water table at 3 m and buoyancy W' would be negative: it stays 0.
+        var survey = new AxialPileSurvey(Profile(3, (Sand(32), 20)), new[] { new AxialPileLayer(SoilBehaviour.Granular, SoilDensity.Dense) });
+        var weightless = Axial(new AxialPile(PileInstallation.Bored, 600, 10 * M, unitWeight: 0, buoyancy: true, compressionAction: 500e3, tensionAction: 200e3), survey);
+        var heavy = Axial(new AxialPile(PileInstallation.Bored, 600, 10 * M, buoyancy: true, compressionAction: 500e3, tensionAction: 200e3), survey);
+        Assert.IsTrue(weightless.Depths.All(x => x.Weight == 0), "W = 0");
+        foreach (var (key, list) in weightless.Actions) Assert.IsTrue(list.All(p => p.Value == (key.Compression ? 500e3 : 200e3)), "actions as assigned " + key);
+        Assert.IsTrue(heavy.CompressionActions.Last().Value > 500e3 && heavy.TensionActions.Last().Value < 200e3, "the weight of the 25 kN/m³ pile enters the actions");
+        foreach (var key in heavy.Curves.Keys)
+            CollectionAssert.AreEqual(heavy.Curves[key].Design.ToArray(), weightless.Curves[key].Design.ToArray(), "resistances " + key);
+        Assert.AreEqual(1, weightless.Warnings.Count(w => w == "Peso specifico del palo nullo: peso proprio non considerato nelle azioni."));
+        Assert.IsFalse(heavy.Warnings.Any(w => w.StartsWith("Peso specifico del palo nullo")));
+        // Micropile with grout γ = 0: only the tube weighs.
+        var tube = (SectionCHS)SectionMappings.CreateSection("CHS 139.7 x 8");
+        var w = MicropileTube.Weight(tube, TubeSteel, 250, 0);
+        Assert.AreEqual(0, w.Grout); Assert.AreEqual(w.Steel, w.Total); Assert.IsTrue(w.Steel > 0);
+        Assert.ThrowsException<ArgumentException>(() => MicropileTube.Weight(tube, TubeSteel, 250, -1 * KN3));
+        var micro = new MicropileSurvey(Profile(null, (Sand(32), 20)), new[] { (BustamanteDoixSoil.MediumSand, 1.4, true) });
+        var grout0 = AxialPileCapacity.Calculate(new Micropile(250, 10 * M, 0, MicropileInjection.IGU, 2, 0, null, tube, TubeSteel, groutUnitWeight: 0),
+            new[] { micro }, PileResistanceFactors.FromStandard(Ntc, 1), PileGroupEfficiency.None());
+        Close(w.Steel * 10 * M, grout0.Depths.Last().Weight, "tube only", 1e-12);
+        Assert.AreEqual(1, grout0.Warnings.Count(x => x == "Peso specifico della malta nullo: nel peso proprio entra solo il tubo."));
     }
 
     [TestMethod]

@@ -51,6 +51,8 @@ public static class EmbeddedWallRcPiles
         ArgumentNullException.ThrowIfNull(analysis); ArgumentNullException.ThrowIfNull(definitions); cancellation.ThrowIfCancellationRequested();
         if (!analysis.IsComplete) throw new InvalidOperationException("Incomplete history cannot be certified by RC section checks.");
         if (!double.IsFinite(tributaryWidth) || tributaryWidth <= 0 || !Enum.IsDefined(kind)) throw new ArgumentException("Explicit width/check kind required.");
+        // Pile actions are strip actions × spacing/width: a width other than the analysed one would scale them wrongly.
+        if (Math.Abs(tributaryWidth - analysis.TributaryWidth) > 1e-7) throw new ArgumentException("The checked width must be the analysed tributary width.");
         var sections = new Dictionary<string, EmbeddedWallRcPile>(StringComparer.Ordinal);
         foreach (var definition in definitions)
         {

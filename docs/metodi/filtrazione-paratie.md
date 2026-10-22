@@ -53,8 +53,13 @@ percorso/volume fisico esplicito e una prova di sensibilità alla mesh.
 ## Dominio della paratia e trasferimento
 
 `EmbeddedWallSeepageMesh` genera un dominio a due colonne stratificate con
-parete verticale impermeabile di spessore finito. Lati esterni a carico imposto,
-fondo impermeabile, terreno esposto sommerso o drenante. Le distanze dei bordi
+parete verticale impermeabile di spessore finito. Ciascun lato esterno, sotto il
+proprio piano campagna, è a carico imposto (predefinito) o a flusso nullo
+(`SeepageLateralBoundary.NoFlow`): il flusso nullo rappresenta l'asse di uno scavo
+simmetrico largo 2·RightExtent, che altrimenti farebbe da dreno. Con B = 10 m,
+scavo 6 m e infissione 6 m il gradiente medio lungo la parete vale 0,224 a carico
+imposto e 0,550 con l'asse a flusso nullo. L'angolo al piano campagna segue la
+regola della superficie. Fondo impermeabile, terreno esposto sommerso o drenante. Le distanze dei bordi
 e la quota inferiore sono input ingegneristici da controllare. La parete deve
 attraversare entrambi i piani campagna e non raggiungere il fondo del dominio.
 Interfacce, scavo, piede e livelli d'acqua sono linee di mesh. Non usa Gmsh.

@@ -4,7 +4,8 @@ namespace GPC.Checkers.Geotechnics.Seepage;
 
 /// <summary>Structured conforming triangles around a finite impermeable cutoff. Layers, water levels,
 /// excavation surfaces and wall toe are mesh lines; rectangular cells are split with alternating diagonals.
-/// Domain extent and bottom are engineering inputs, not inferred boundaries.</summary>
+/// Domain extent and bottom are engineering inputs, not inferred boundaries. Each lateral side is a fixed
+/// reservoir head or a no-flow line (symmetry axis), as declared by the domain.</summary>
 public static class EmbeddedWallSeepageMesh
 {
     public static SeepageModel Create(EmbeddedWallSeepageDomain d)
@@ -15,6 +16,8 @@ public static class EmbeddedWallSeepageMesh
             || d.LeftExtent <= d.WallThickness / 2 || d.RightExtent <= d.WallThickness / 2 || d.Bottom >= d.WallBottom
             || d.WallBottom >= Math.Min(d.LeftGround, d.RightGround) || d.WallTop < Math.Max(d.LeftGround, d.RightGround))
             throw new ArgumentException("Dominio idraulico non valido: la parete deve attraversare entrambi i terreni ed essere interna ai bordi laterali e inferiore.");
+        if (!Enum.IsDefined(typeof(SeepageLateralBoundary), d.LeftBoundary) || !Enum.IsDefined(typeof(SeepageLateralBoundary), d.RightBoundary))
+            throw new ArgumentException("Condizione dei bordi laterali non valida.");
         var left = d.LeftLayers?.ToArray() ?? throw new ArgumentException("Strati idraulici sinistri mancanti.");
         var right = d.RightLayers?.ToArray() ?? throw new ArgumentException("Strati idraulici destri mancanti.");
         ValidateLayers(left, d.LeftGround, d.LeftHead, d.Bottom); ValidateLayers(right, d.RightGround, d.RightHead, d.Bottom);
@@ -46,7 +49,9 @@ public static class EmbeddedWallSeepageMesh
         {
             var p = nodes[i]; bool leftSide = p.X < 0;
             double ground = leftSide ? d.LeftGround : d.RightGround, water = leftSide ? d.LeftHead : d.RightHead;
-            if (p.X == -d.LeftExtent || p.X == d.RightExtent) heads.Add(i, water);
+            bool lateral = p.X == -d.LeftExtent || p.X == d.RightExtent;
+            // A no-flow side (symmetry axis) is a natural boundary: no head below ground; its ground corner follows the surface rule.
+            if (lateral && (leftSide ? d.LeftBoundary : d.RightBoundary) == SeepageLateralBoundary.FixedHead) heads.Add(i, water);
             else if (Math.Abs(p.X) >= half && p.Z == ground)
             { if (water >= ground) heads.Add(i, water); else faces.Add(i); }
         }

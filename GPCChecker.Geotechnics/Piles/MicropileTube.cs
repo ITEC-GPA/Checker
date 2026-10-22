@@ -53,7 +53,9 @@ namespace GPC.Checkers.Geotechnics.Piles
             if (material == null) throw new ArgumentNullException(nameof(material));
             double steelUnitWeight = material.GetUnitWeight(SoilUnits.Gravity);
             if (!Positive(drillDiameter)) throw new ArgumentException("Invalid drilling diameter.");
-            if (!Positive(groutUnitWeight) || !Positive(steelUnitWeight)) throw new ArgumentException("Invalid unit weight of the grout or of the steel.");
+            // Grout γ = 0 is accepted (only the tube weighs); the steel weight comes from the Model material and must be positive.
+            if (double.IsNaN(groutUnitWeight) || double.IsInfinity(groutUnitWeight) || groutUnitWeight < 0 || !Positive(steelUnitWeight))
+                throw new ArgumentException("Invalid unit weight of the grout or of the steel.");
             if (tube.Diameter >= drillDiameter) throw new ArgumentException("The outer diameter of the CHS must be smaller than the drilling diameter.");
             double d = tube.Diameter, t = tube.Thickness;
             double steel = Math.PI * (d * d - Math.Pow(d - 2 * t, 2)) / 4, grout = Math.PI * drillDiameter * drillDiameter / 4 - steel;

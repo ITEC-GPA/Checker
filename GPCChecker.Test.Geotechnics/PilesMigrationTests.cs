@@ -101,13 +101,19 @@ public class PilesMigrationTests
     [TestMethod]
     public void LegacyTubeWeightsAndSectionsAreReproduced()
     {
-        int weights = 0, sections = 0, skipped = 0;
+        int weights = 0, sections = 0, skipped = 0, weightlessGrout = 0;
         foreach (var line in Lines("piles-chs.jsonl"))
         {
             var r = line["result"];
             if (Str(line["kind"]) == "weight")
             {
                 string profile = Str(line["profile"]); double? drill = Num(line["diameter"]); double gamma = Req(line["gamma"], "γ");
+                // Grout γ = 0: refused by the legacy, accepted since 22/10/2026 (user request): only the tube weighs. Documented difference, fixture unchanged.
+                if (line["D"] == null && gamma == 0 && drill.HasValue)
+                {
+                    var zero = MicropileTube.Weight(new SectionCHS(139.7, 8), TubeSteel, drill.Value * M, 0);
+                    Assert.AreEqual(0, zero.Grout, profile); Assert.AreEqual(zero.Steel, zero.Total, profile); weightlessGrout++; weights++; continue;
+                }
                 if (line["D"] == null) { if (profile.Contains("999")) skipped++; else Assert.ThrowsException<ArgumentException>(() => MicropileTube.Weight(new SectionCHS(139.7, 8), TubeSteel, (drill ?? double.NaN) * M, gamma * KN3)); weights++; continue; }
                 var tube = new SectionCHS(Req(line["D"], "D"), Req(line["t"], "t")); string id = profile + " D=" + drill + " γ=" + gamma;
                 if (IsError(r)) { Assert.ThrowsException<ArgumentException>(() => MicropileTube.Weight(tube, TubeSteel, drill!.Value * M, gamma * KN3), id); weights++; continue; }
@@ -136,6 +142,6 @@ public class PilesMigrationTests
             Close(Req(r["mpl_knm"], "Mpl") * 1e6, res.PlasticMoment, sid + " Mpl", 1e-12); Close(Req(r["momento_knm"], "My") * 1e6, res.ResistingMoment, sid + " My", 1e-12);
             Assert.AreEqual(1, res.SectionClass); sections++;
         }
-        Assert.AreEqual(64 * 6 + 4, weights); Assert.AreEqual(7 * 4 * 4 + 8 + 1, sections); Assert.AreEqual(1 + 2, skipped);
+        Assert.AreEqual(64 * 6 + 4, weights); Assert.AreEqual(7 * 4 * 4 + 8 + 1, sections); Assert.AreEqual(1 + 2, skipped); Assert.AreEqual(1, weightlessGrout);
     }
 }

@@ -45,6 +45,8 @@ public static class EmbeddedWallSteelTubes
         ArgumentNullException.ThrowIfNull(analysis); ArgumentNullException.ThrowIfNull(definitions); cancellation.ThrowIfCancellationRequested();
         if (!analysis.IsComplete) throw new InvalidOperationException("Incomplete histories cannot be certified by section verification.");
         if (!double.IsFinite(tributaryWidth) || tributaryWidth <= 0 || !Enum.IsDefined(kind)) throw new ArgumentException("Explicit width and check kind required.");
+        // Tube actions are strip actions × spacing/width: a width other than the analysed one would scale them wrongly.
+        if (Math.Abs(tributaryWidth - analysis.TributaryWidth) > 1e-7) throw new ArgumentException("The checked width must be the analysed tributary width.");
         var sections = new Dictionary<string, EmbeddedWallSteelTube>(StringComparer.Ordinal);
         foreach (var item in definitions)
         {
