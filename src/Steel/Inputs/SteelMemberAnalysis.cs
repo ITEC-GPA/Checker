@@ -56,11 +56,12 @@ namespace GPC.Checkers.Steel.Inputs
         public string ClassificationSource { get; }
         public SteelPrismaticMemberData Prismatic { get; }
         public SteelBeamColumnParameters BeamColumnParameters { get; }
+        public SteelPackedPairAssessment PackedPair { get; }
 
         private SteelMemberAnalysis(SteelVerificationInput input, SteelMemberAnalysisKind kind,
             string loadPatternReference, string parameterSet, Ec3GeneralMethodCurve inPlane,
             Ec3GeneralMethodCurve lateral, Ec3GeneralMethodCurve lt, IEnumerable<SteelStabilityValue> values,
-            int? memberClass, string classificationSource, SteelPrismaticMemberData prismatic = null, SteelBeamColumnParameters beamColumn = null)
+            int? memberClass, string classificationSource, SteelPrismaticMemberData prismatic = null, SteelBeamColumnParameters beamColumn = null, SteelPackedPairAssessment packedPair = null)
         {
             Input = input ?? throw new ArgumentNullException(nameof(input));
             if (string.IsNullOrWhiteSpace(loadPatternReference) || string.IsNullOrWhiteSpace(parameterSet))
@@ -76,7 +77,7 @@ namespace GPC.Checkers.Steel.Inputs
                 throw new ArgumentException("Member class and classification source must be supplied together.");
             Kind = kind; LoadPatternReference = loadPatternReference; ParameterSet = parameterSet;
             InPlaneCurve = inPlane; LateralCurve = lateral; LateralTorsionalCurve = lt;
-            Values = Array.AsReadOnly(copy); ExternalMemberClass = memberClass; ClassificationSource = classificationSource; Prismatic = prismatic; BeamColumnParameters = beamColumn;
+            Values = Array.AsReadOnly(copy); ExternalMemberClass = memberClass; ClassificationSource = classificationSource; Prismatic = prismatic; BeamColumnParameters = beamColumn; PackedPair = packedPair;
         }
 
         /// <summary>EC3/NTC prismatic concentric CONSTANT compression. Curves must
@@ -91,6 +92,19 @@ namespace GPC.Checkers.Steel.Inputs
                 Ec3GeneralMethodCurve.A, Ec3GeneralMethodCurve.A, Ec3GeneralMethodCurve.D, values, memberClass, classificationSource,
                 new SteelPrismaticMemberData(curve1, curve2, torsionalCurve, torsionalExclusionSource, flexuralTorsionalExclusionSource,
                     SteelCriticalMomentBasis.ActualMomentDiagram));
+
+        /// <summary>Integral compression of identical packed 2C/2L. Local envelopes and
+        /// complete component/connection resistances remain explicit, bound to this input.
+        /// Global T/FT modes are never inferred from the sum of the component torsion constants.</summary>
+        public static SteelMemberAnalysis PackedCompression(SteelPackedPairAssessment packing, string loadPatternReference,
+            string parameterSet, SteelBucklingCurve curve1, SteelBucklingCurve curve2, SteelBucklingCurve torsionalCurve,
+            IEnumerable<SteelStabilityValue> values = null, string torsionalExclusionSource = null,
+            string flexuralTorsionalExclusionSource = null, int? memberClass = null, string classificationSource = null)
+            => new SteelMemberAnalysis(packing?.Input ?? throw new ArgumentNullException(nameof(packing)),
+                SteelMemberAnalysisKind.PrismaticCompression, loadPatternReference, parameterSet,
+                Ec3GeneralMethodCurve.A, Ec3GeneralMethodCurve.A, Ec3GeneralMethodCurve.D, values, memberClass, classificationSource,
+                new SteelPrismaticMemberData(curve1,curve2,torsionalCurve,torsionalExclusionSource,flexuralTorsionalExclusionSource,
+                    SteelCriticalMomentBasis.ActualMomentDiagram), packedPair:packing);
 
         /// <summary>Prismatic pure major-axis bending. M1 is the member maximum,
         /// Mcr describes gross-section elastic bifurcation and the full restraint/load

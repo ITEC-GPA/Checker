@@ -28,7 +28,7 @@ namespace GPC.Model.Checker
     public sealed partial class SteelMemberPipelineChecker : IMaterialChecker, IPhysicalMemberVerifier
     {
         public const string EngineId = "Steel.Pipeline.Member";
-        internal const string Limitations = "EC3:2005/NTC2018 prismatic compression and major-axis LTB with explicit critical values/mode assessments. EC3 also has uniform H/T fork and external in-plane general methods. Doubly symmetric H beam-columns use EC3 Annex B / NTC Circular Method B with explicit model and equivalent-moment factors. No general arbitrary-section biaxial method, torsion, plastic hinges or connections. Section/shear checks are separate.";
+        internal const string Limitations = "EC3:2005/NTC2018 prismatic compression and major-axis LTB with explicit critical values/mode assessments. EC3 also has uniform H/T fork and external in-plane general methods. Doubly symmetric H beam-columns use EC3 Annex B / NTC Circular Method B with explicit model and equivalent-moment factors. Packed identical 2C/2L compression requires explicit detailing, complete local envelopes and design resistances; connection design is external. No general arbitrary-section biaxial method, torsion or plastic hinges. Section/shear checks are separate.";
         private readonly Dictionary<string, string> _parameters;
         public IReadOnlyDictionary<string, string> Parameters { get; }
         public StandardEN1993p11 Code { get; }
@@ -49,7 +49,7 @@ namespace GPC.Model.Checker
             var keys = new HashSet<string>(new[] { "AnalysisMode", "LoadPatternReference", "ParameterSet", "MemberFingerprint", "Unperforated",
                 "InPlaneCurve", "LateralCurve", "LateralTorsionalCurve", "MemberClass", "ClassificationSource",
                 "CompressionCurve1", "CompressionCurve2", "TorsionalCurve", "TorsionalExclusionSource", "FlexuralTorsionalExclusionSource", "McrBasis" }, StringComparer.Ordinal);
-            foreach (string key in BeamColumnKeys) keys.Add(key);
+            foreach (string key in BeamColumnKeys.Concat(PackedPairKeys)) keys.Add(key);
             foreach (SteelStabilityQuantity quantity in Enum.GetValues(typeof(SteelStabilityQuantity)))
                 foreach (var suffix in new[] { ".Value", ".Unit", ".Source" }) keys.Add(quantity + suffix);
             foreach (var pair in _parameters)
@@ -96,6 +96,7 @@ namespace GPC.Model.Checker
                 if (!bool.TryParse(Required("Unperforated"), out bool unperforated)) throw new ArgumentException("InvalidUnperforatedDeclaration");
                 string mode = Required("AnalysisMode");
                 if (mode != "BeamColumn" && BeamColumnKeys.Any(_parameters.ContainsKey)) throw new ArgumentException("BeamColumnParametersOnAnotherRoute");
+                if(mode!="Compression" && PackedPairKeys.Any(_parameters.ContainsKey))throw new ArgumentException("PackedPairRequiresCompression");
                 var first = mode == "Compression" ? input.ActionSections.OrderByDescending(c => Math.Abs(c.Forces.N)).First()
                     : mode == "Bending" ? input.ActionSections.OrderByDescending(c => Math.Abs(c.Forces.M1)).First()
                     : input.ActionSections.FirstOrDefault(c => c.Forces.N != 0 || c.Forces.M1 != 0 || c.Forces.M2 != 0) ?? input.ActionSections[0];
@@ -202,6 +203,11 @@ namespace GPC.Model.Checker
             foreach (SteelStabilityQuantity q in Enum.GetValues(typeof(SteelStabilityQuantity)))
                 if (new[] { ".Value", ".Unit", ".Source" }.Any(s => _parameters.ContainsKey(q + s)))
                     values.Add(new SteelStabilityValue(q, Number(q + ".Value"), EnumValue<SteelStabilityUnit>(q + ".Unit"), Required(q + ".Source")));
+            if(compression && PackedPairKeys.Any(_parameters.ContainsKey))
+                return SteelMemberAnalysis.PackedCompression(Packing(common),Required("LoadPatternReference"),Required("ParameterSet"),
+                    EnumValue<SteelBucklingCurve>("CompressionCurve1"),EnumValue<SteelBucklingCurve>("CompressionCurve2"),EnumValue<SteelBucklingCurve>("TorsionalCurve"),values,
+                    _parameters.TryGetValue("TorsionalExclusionSource",out var pt)?pt:null,
+                    _parameters.TryGetValue("FlexuralTorsionalExclusionSource",out var pft)?pft:null,memberClass,source);
             if (compression)
                 return SteelMemberAnalysis.Compression(common, Required("LoadPatternReference"), Required("ParameterSet"),
                     EnumValue<SteelBucklingCurve>("CompressionCurve1"), EnumValue<SteelBucklingCurve>("CompressionCurve2"), EnumValue<SteelBucklingCurve>("TorsionalCurve"), values,
@@ -211,6 +217,14 @@ namespace GPC.Model.Checker
             return SteelMemberAnalysis.Bending(common, Required("LoadPatternReference"), Required("ParameterSet"),
                 EnumValue<SteelCriticalMomentBasis>("McrBasis"), values.SingleOrDefault(), memberClass, source);
         }
+
+        private static readonly string[] PackedPairKeys = {"Packed.Pitch","Packed.Thickness","Packed.GussetThickness",
+            "Packed.ChordCompression","Packed.ChordCompressionResistance","Packed.ChordTension","Packed.ChordTensionResistance",
+            "Packed.ConnectionDemand","Packed.ConnectionResistance","Packed.DetailingSource","Packed.AnalysisSource","Packed.ResistanceSource"};
+        private SteelPackedPairAssessment Packing(SteelVerificationInput input)
+            => new SteelPackedPairAssessment(input,Number("Packed.Pitch"),Number("Packed.Thickness"),Number("Packed.GussetThickness"),
+                Number("Packed.ChordCompression"),Number("Packed.ChordCompressionResistance"),Number("Packed.ChordTension"),Number("Packed.ChordTensionResistance"),
+                Number("Packed.ConnectionDemand"),Number("Packed.ConnectionResistance"),Required("Packed.DetailingSource"),Required("Packed.AnalysisSource"),Required("Packed.ResistanceSource"));
 
         private static bool Same(SteelActions a, SteelActions b)
         {

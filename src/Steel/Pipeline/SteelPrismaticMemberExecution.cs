@@ -28,6 +28,13 @@ namespace GPC.Checkers.Steel.Pipeline
             var section = i.Section.CreateSectionCopy(); var shape = section.SectionShape;
             if (!SteelMethodSelector.KnownGeometry(shape) || SteelMethodSelector.ColdFormedOpen(section))
                 return Unsupported("Member.PrismaticGeometry", "This exact family/manufacturing route is not qualified.");
+            if(shape is SectionBuiltUp)
+            {
+                if(!compression || analysis.PackedPair==null)
+                    return Unsupported("Member.PackingAssessmentRequired","Built-up members require the packed-pair compression route and local assessments.");
+                SteelPackedPairExecution.Validate(analysis);
+            }
+            else if(analysis.PackedPair!=null)throw new ArgumentException("Packed-pair assessment on a single profile.");
             SteelMethodSelector.ValidateGeometry(section);
             if (i.Section.UltimateStrength < i.Section.YieldStrength) throw new ArgumentException("Ultimate strength below yield strength.");
             // No implicit use of a coupled-angle principal bending model for LTB.
@@ -135,8 +142,9 @@ namespace GPC.Checkers.Steel.Pipeline
             Positive(resistance, "Design resistance"); double demand = compression ? Math.Abs(i.Actions.N) : Math.Abs(i.Actions.M1);
             double utilization = demand / resistance; SteelInputValidation.Finite(utilization, "Utilization");
             Add(trace, "Resistance", resistance, unit); Add(trace, "Utilization", utilization, "1");
-            return new SteelCheckExecution(decision, utilization <= 1 ? SteelExecutionStatus.Passed : SteelExecutionStatus.Failed,
+            var result = new SteelCheckExecution(decision, utilization <= 1 ? SteelExecutionStatus.Passed : SteelExecutionStatus.Failed,
                 reference: reference, scope: scope, resistance: resistance, resistanceUnit: unit, utilization: utilization, trace: trace);
+            return analysis.PackedPair==null?result:SteelPackedPairExecution.Complete(analysis,decision,result);
         }
 
         internal static SteelBucklingCurve LtbCurve(GPC.Model.Sections.Steel.ISteelSection s, bool ntc)

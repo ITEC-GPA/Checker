@@ -1,0 +1,77 @@
+PROFILI IDENTICI RAVVICINATI CON IMBOTTITURE - 22 OTTOBRE 2026
+
+Campo implementato
+Due C simmetrici ad ali parallele, dorsi contrapposti, oppure due L identici
+accoppiati sul dorso del lato verticale o orizzontale. Angolari disuguali:
+SectionBuiltUp.DoubleAngle(single, gap, AnglePairJoinedLeg.Long/Short, name)
+seleziona il lato senza scambiare gli assi geometrici del componente.
+La fabbrica usa UNA definizione condivisa del profilo, anche da profilario.
+Sezioni diverse non qualificano il percorso. Nessun calastrello o traliccio.
+
+Compressione centrata, costante sull'asta prismatica, classe 1-3;
+sezioni lorde senza fori, condizioni statiche ordinarie, componenti non
+formati a freddo. Flessione composta dei profili doppi e classe 4 rinviate.
+L'importazione della geometria NON attesta la collaborazione dei componenti.
+
+Meccanica e geometria
+Area e inerzie globali derivano dall'unione dei soli due profili; le
+imbottiture non incrementano area longitudinale o inerzie della sezione.
+Il raggio minimo del SINGOLO profilo e' sqrt(min(J11,J22)/A), includendo
+l'inerzia centrifuga degli angolari disuguali. Non usare R22 di Model:
+i nomi R11/R22 seguono la direzione geometrica e R22=sqrt(J11/A).
+Regressione indipendente per rettangoli: C 200x75, tw10, tf12 ->
+15*i_min=337.1356 mm; L 150x100x12 -> 326.5537 mm (valori arrotondati).
+
+Qualificazione del dettaglio
+SteelMemberAnalysis.PackedCompression richiede SteelPackedPairAssessment.
+L'interasse massimo comprende i campi di estremita'; deve essere <=15*i_min
+e non superare la lunghezza d'asta. Spessore imbottiture e fazzoletti uguali
+alla luce tra i dorsi. Luce positiva <=3 volte lo spessore minimo del
+componente: limite prudenziale adottato anche per EC3. Solo dorsi affacciati;
+configurazioni punta-punta, a stella o sovrapposte non qualificano il percorso.
+Fonti: EN1993-1-1:2005/AC:2009 6.4.4, figura6.12, tabella6.9, p74;
+Circolare7/2019 C4.2.4.1.3.1.5, figuraC4.2.10/tabellaC4.2.III, pp104-105.
+La classificazione automatica usa il singolo componente identico; una
+classificazione esterna esplicita resta possibile con provenienza registrata.
+
+Controlli globali e locali
+Il percorso globale applica il metodo di compressione EC3 o NTC con i propri
+coefficienti. Ogni modo flessionale/torsionale/flesso-torsionale richiede il
+carico critico o l'esclusione motivata prevista dal contratto comune.
+Jt della somma geometrica non qualifica la rigidezza torsionale collaborante;
+Jw non disponibile non viene sostituito da zero.
+
+L'analisi locale e il dimensionamento completo dei collegamenti non sono
+automatizzati da questo passo. Occorrono inviluppi locali e resistenze di
+progetto determinati separatamente per LO STESSO stato e norma, comprendenti
+imperfezioni, secondo ordine, introduzione del carico, eccentricita',
+instabilita' dei componenti, sezioni nette, imbottiture, piatti, bulloni o
+saldature e relativi modi di rottura. Il rapporto domanda/resistenza del
+collegamento e' un controllo equivalente gia' ridotto a forze in N: non
+inserire un momento in Nmm. I valori esterni devono coprire tutte le azioni
+del collegamento, non il solo taglio di un bullone.
+Una stringa di provenienza non costituisce certificazione dei valori.
+Non si deducono forze locali pari a N/2 o nulle dalla sola distanza 15*i_min.
+La domanda massima compressiva sul componente deve essere almeno |N|/2.
+
+Il risultato e' il massimo di: utilizzo globale, compressione locale,
+trazione locale, collegamento. Tutti i termini sono tracciati; non si espone
+una fittizia resistenza totale unica. Dati mancanti/incompatibili producono
+NotEvaluated, non un esito favorevole. Se cambia un parametro o la geometria,
+il report salvato perde attualita'. Le verifiche di sezione restano separate.
+
+Parametri ModelChecker (AnalysisMode=Compression)
+Packed.Pitch, Packed.Thickness, Packed.GussetThickness: mm.
+Packed.ChordCompression, Packed.ChordCompressionResistance,
+Packed.ChordTension, Packed.ChordTensionResistance,
+Packed.ConnectionDemand, Packed.ConnectionResistance: N.
+Packed.DetailingSource, Packed.AnalysisSource, Packed.ResistanceSource:
+provenienze del dettaglio, analisi locale e resistenze complete.
+Sono obbligatori insieme ai parametri comuni del metodo di compressione.
+
+Verifica eseguita
+PackedPairCompressionTests: integrali indipendenti dei rettangoli, rotazione
+agli assi principali, Eulero, chi, entrambi i codici, limiti geometrici,
+classe4 esclusa, dati mancanti e prevalenza del controllo locale sfavorevole.
+PackedPairPipelineTest: 2C, 2L lungo/corto, EC3/NTC, report/archivio,
+invalidazione delle impronte e rifiuto della verifica incompleta.

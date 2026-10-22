@@ -40,7 +40,8 @@ namespace GPC.Checkers.Steel.ModelAdapters
             Sections.Ec3AngleCompression.Positive(distance,"ChordCentroidSpacing");
             Sections.Ec3AngleCompression.Positive(s.Area,"ChordArea");
             Sections.Ec3AngleCompression.Positive(inertia,"ChordInertia");
-            Sections.Ec3AngleCompression.Positive(s.R22,"MinimumChordRadius");
+            double minimumRadius=Math.Sqrt(Math.Min(s.J11,s.J22)/s.Area);
+            Sections.Ec3AngleCompression.Positive(minimumRadius,"MinimumChordRadius");
             // Bounds are a sufficient non-overlap test for the supported mirrored
             // layouts. Generic interleaved/overlapping assemblies remain unsupported.
             double lo1=double.MaxValue,hi1=double.MinValue,lo2=double.MaxValue,hi2=double.MinValue;
@@ -51,7 +52,7 @@ namespace GPC.Checkers.Steel.ModelAdapters
                 lo1=Math.Min(lo1,c1);hi1=Math.Max(hi1,c1);lo2=Math.Min(lo2,c2);hi2=Math.Max(hi2,c2);
             }
             if(hi1>lo2&&hi2>lo1)throw new NotSupportedException("Chord regions overlap in the assembly direction.");
-            return new BuiltUpChordGeometry(s is SectionL?"2L":"2C",s.Area,distance,inertia,s.R22,s.Jxy==0);
+            return new BuiltUpChordGeometry(s is SectionL?"2L":"2C",s.Area,distance,inertia,minimumRadius,s.Jxy==0);
         }
     }
 }

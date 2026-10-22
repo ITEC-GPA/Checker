@@ -121,6 +121,14 @@ namespace GPC.Checkers.Steel.Selection
             SteelSectionClassification supplied)
         {
             if (supplied != null) return new ClassificationInfo(supplied.SectionClass, supplied.Source);
+            if (section.SectionShape is SectionBuiltUp pair)
+            {
+                ModelBuiltUpGeometry.Create(pair);
+                var chord = new SteelSection(pair.Parts[0].Section, section.SteelMaterial, section.SectionType, section.FormedType);
+                var chordInput = new SteelVerificationInput(new SteelSectionInput(chord,true),input.Actions,input.Code);
+                var info = Classification(chordInput,chord,null);
+                return info.Failure != null ? info : new ClassificationInfo(info.Class.Value,"Identical component: "+info.Source);
+            }
             var shape = section.SectionShape;
             bool ntc = input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018;
             if (shape.GetType() == typeof(SectionRectangular) || shape.GetType() == typeof(SectionCircular))
@@ -186,7 +194,7 @@ namespace GPC.Checkers.Steel.Selection
         internal static bool KnownGeometry(ISectionShape shape)
         {
             var t = shape.GetType();
-            return t == typeof(SectionRectangular) || t == typeof(SectionCircular) || t == typeof(SectionH) || t == typeof(SectionT) || t == typeof(SectionC) || t == typeof(SectionL)
+            return t == typeof(SectionBuiltUp) || t == typeof(SectionRectangular) || t == typeof(SectionCircular) || t == typeof(SectionH) || t == typeof(SectionT) || t == typeof(SectionC) || t == typeof(SectionL)
                 || t == typeof(SectionCHS) || t == typeof(SectionRHSRoundedCorners)
                 || t == typeof(SectionRHS) && ((SectionRHS)shape).R == 0;
         }
@@ -205,7 +213,7 @@ namespace GPC.Checkers.Steel.Selection
         {
             var t = section.SectionShape.GetType();
             return section.FormedType == Section.FormedTypes.ColdFormed
-                && (t == typeof(SectionH) || t == typeof(SectionT) || t == typeof(SectionC) || t == typeof(SectionL));
+                && (t == typeof(SectionBuiltUp) || t == typeof(SectionH) || t == typeof(SectionT) || t == typeof(SectionC) || t == typeof(SectionL));
         }
 
         internal static void ValidateGeometry(ISteelSection section)
@@ -229,6 +237,12 @@ namespace GPC.Checkers.Steel.Selection
             {
                 var chs = (SectionCHS)shape;
                 Positive(chs.Diameter - 2 * chs.Thickness);
+            }
+            if (shape.GetType() == typeof(SectionBuiltUp))
+            {
+                var pair=(SectionBuiltUp)shape; ModelBuiltUpGeometry.Create(pair);
+                ValidateGeometry(new SteelSection(pair.Parts[0].Section,section.SteelMaterial,section.SectionType,section.FormedType));
+                return;
             }
             // Validate mapped widths even when a caller supplies a section class.
             // External classification cannot make impossible geometry acceptable.
