@@ -1,0 +1,28 @@
+GEOMETRIA EFFICACE2D - TASK9, 22/10/2026
+SteelEffectiveGeometry.Create copia la sezione Model tramite SteelSectionInput.
+Mappa piastre piane interne e sbalzi (Start sempre bordo vincolato). Con WithWidths
+sottrae rettangoli inefficaci agli integrali lordi esatti di Model; conserva raccordi
+e zone di giunzione. Non crea gerarchie persistite o una seconda geometria in Model.
+E' un servizio geometrico: le larghezze fornite non sono automaticamente normative.
+
+Output Aeff, G_eff, Ixx/Iyy/Ixy, inerzie principali ordinate, angolo, spostamenti
+baricentrici, moduli elastici rispetto agli assi principali LORDI. Le tensioni
+impiegano l'intero tensore accoppiato e i momenti rispetto a G_eff. Convenzioni:
+X/Y geometrici; N positivo in trazione; M1/M2 destrorsi sugli assi principali
+lordi; al cambio di polo Mx_eff=Mx-N*dY, My_eff=My+N*dX. N,mm,Nmm,MPa.
+MaximumAbsoluteStress e i moduli usano un inviluppo conservativo sul rettangolo
+lordo: il vertice governante puo' non appartenere al materiale. Non si presenta
+questo punto come fibra fisica. Ixy e l'accoppiamento non vengono annullati.
+
+Famiglie: H e T, anche raccordati; C/L senza raccordi alle estremita' libere;
+RHS a spigoli vivi o curvi. Nei raccordati non concentrici si sottraggono solo
+rettangoli interamente materiali e si usa per rho la larghezza maggiore della
+classificazione. I raccordi restano efficaci; nessuna piastra viene assegnata
+alla curvatura di un CHS. Per L la larghezza d'instabilita' conserva l'intera
+dimensione del lato, conservativamente rispetto alla sola parte piana mappata.
+CHS, doppi e geometrie derivate non sono qualificati da questo mapper.
+
+Prove: recupero di cinque integrali di sezione indipendenti; sottrazione
+asimmetrica H confrontata con quadratura esatta su tre rettangoli residui;
+equilibrio di N/Mx/My sul polo lordo sotto tre stati; raccordi RHS concentrici
+e non concentrici; input invalidi e snapshot immutabili. Test9 passati.
