@@ -74,6 +74,7 @@ public static class EmbeddedWallConcrete
         ArgumentNullException.ThrowIfNull(analysis); ArgumentNullException.ThrowIfNull(sections);
         if (!analysis.IsComplete) throw new InvalidOperationException("A partial or nonconvergent history cannot be certified by section checks.");
         if (!Enum.IsDefined(kind) || !double.IsFinite(tributaryWidth) || tributaryWidth <= 0) throw new ArgumentException("Explicit check type and positive represented width required.");
+        if (Math.Abs(tributaryWidth - analysis.TributaryWidth) > 1e-7) throw new ArgumentException("The checked width must be the analysed tributary width; implicit action scaling is forbidden.");
         var definitions = sections.ToDictionary(s => s.Id, StringComparer.Ordinal);
         var sessions = new Dictionary<string, WallSectionSession>(StringComparer.Ordinal);
         var results = new List<EmbeddedWallSectionResult>();

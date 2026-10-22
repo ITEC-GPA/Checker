@@ -12,9 +12,9 @@ public class GlobalStabilityIndependentTests
     internal static readonly SlipCircle Circle = new(0, 2000, 10000, -Math.Sqrt(8.4e7), Math.Sqrt(9.6e7));
     internal static EmbeddedWallGlobalProfile Profile() => new(600, 20000, 20000, 1, true,
         "Continuous diaphragm, characteristic input", new SlopeSearch(-16000, -1000, 1000, 16000, 6500, 15000, 3, 20, 0));
-    internal static SlopeSurfaceResult Solve(EmbeddedWallGlobalPrepared prepared, double loadFactor = 1)
+    internal static SlopeSurfaceResult Solve(EmbeddedWallGlobalPrepared prepared, double loadFactor = 1, bool undrained = false)
     {
-        var factors = new SlopeFactors("M2", 1, 1, 1.25, 1.25, 1.4, 1.1, 0, 0, false, prepared.Section.Loads.ToDictionary(l => l.Id, _ => loadFactor));
+        var factors = new SlopeFactors("M2", 1, 1, 1.25, 1.25, 1.4, 1.1, 0, 0, undrained, prepared.Section.Loads.ToDictionary(l => l.Id, _ => loadFactor));
         var result = BishopSolver.Solve(Circle, SlopeStability.Slices(prepared.Section, Circle, factors, 200), 1.1);
         Assert.IsNotNull(result); return result!;
     }
@@ -33,5 +33,15 @@ public class GlobalStabilityIndependentTests
     {
         var model = EmbeddedWallGlobalTests.Model(); model.Stages[0].Left.WaterElevation = model.Stages[0].Right.WaterElevation = -1500;
         Assert.AreEqual(4.441361, Solve(EmbeddedWallGlobalStability.Prepare(model, "F2", Profile())).Factor, 1e-3 * 4.441361);
+    }
+
+    [TestMethod]
+    public void UndrainedCircleEqualsCohesionAlongTheArc()
+    {
+        // φ = 0: F = (cu/1.4) R (θr − θl) / D. A slice with N' < 0 no longer rejects the circle, since c·l does not depend on N'
+        // (decision of 22/10/2026; before, BishopSolver returned no result for this circle).
+        var r = Solve(EmbeddedWallGlobalStability.Prepare(EmbeddedWallGlobalTests.Model(), "F2", Profile()), undrained: true);
+        Assert.AreEqual(3.708590, r.Factor, 1e-3 * 3.708590);
+        Assert.IsTrue(r.Slices.Any(s => s.NormalEffective < 0), "The test circle does contain a slice with N' < 0.");
     }
 }

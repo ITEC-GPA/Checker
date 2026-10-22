@@ -50,6 +50,14 @@ trascurarla; non aumenta implicitamente la resistenza. Nell'analisi non drenata
 la pressione alla base è zero nel bilancio in tensioni totali, mentre i pesi
 rimangono coerenti con il campo. Acqua sopra il piano campagna e sue forze sulle
 frontiere richiedono un'estensione specifica; il solo campo interstiziale non basta.
+Un profilo di pressioni interstiziali assegnato alla parete (`PorePressures`) non
+determina la pressione sulle basi dei conci lontano dalla parete e sotto il piede:
+senza profilo piezometrico globale o campo FEM la verifica si rifiuta esplicitamente
+(prima la sezione veniva calcolata asciutta).
+
+Con φ = 0 la resistenza di un concio è c·l e non dipende da N': un concio con N' < 0
+non fa più scartare il cerchio. Il rifiuto resta per i conci con attrito, che non
+hanno resistenza a trazione.
 
 ## Esiti e prove
 

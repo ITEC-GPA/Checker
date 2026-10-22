@@ -41,22 +41,24 @@ public sealed class EmbeddedWallReviewTests
             Assert.AreEqual(independent, capacity, 1e-6 * independent, "Value printed by the review script.");
         }
     }
-}
 
-/// <summary>Findings of the October 2026 review: FAIL on the reviewed code (master 57f87bf8), pass once fixed.</summary>
-[TestClass]
-[TestCategory("ReviewFinding")]
-public sealed class EmbeddedWallReviewFindingsTests
-{
-    static WallAnalysisResult Cantilever(double width, double ei) => EmbeddedWallAnalysis.Calculate(new EmbeddedWallModel
+    [TestMethod]
+    public void CircularPileShearUsesTheContinuousRingEffectiveDepth()
     {
-        CaseId = "ULS", Top = 0, Bottom = -6000, TributaryWidth = width, MaximumElementLength = 6000, FixBottomDisplacement = true, FixBottomRotation = true,
-        Segments = [new() { Top = 0, Bottom = -6000, FlexuralRigidity = ei, SectionId = "S", Source = "review" }],
-        Stages = [new() { Id = "F1", Left = new() { Elevation = -6000 }, Right = new() { Elevation = -6000 }, PointLoads = [new() { Elevation = 0, HorizontalForce = 1000 }] }]
-    });
+        // D 800, 12φ20 on rs = 400 − 50 − 10 − 10 = 330 mm, links φ10/150 (2 legs), C30, B450, z = 0.9 d, bw = D, N = 0.
+        // Continuous ring (decision of 22/10/2026): d = R + 2 rs/π = 610.08 mm, independent of the bar count; before, rounding put the
+        // bar at 180° in one half and gave d = 605.26 mm. NTC (4.1.27-29) with cotθ = 2.5: the links govern, VRd = 0.9 d Asw/s fyd cotθ.
+        var pile = new EmbeddedWallRcPile("S", new CircularRcSection(800, 50, 12, 20, 10, 150, 30, 450, 200000, .075, "review", 64), 1000, true,
+            "Single row; uniform strip transfer", true, .9, 0, "XC2", 20, 35, 10, PileDetailingMode.Beam, true, true);
+        double d = 400 + 2 * 330 / Math.PI, asw = 2 * Math.PI * 25, fyd = 450 / 1.15, fcd = .85 * 30 / 1.5;
+        double links = .9 * d * asw / 150 * fyd * 2.5, strut = .9 * d * 800 * .5 * fcd * 2.5 / (1 + 2.5 * 2.5);
+        Assert.IsTrue(links < strut);
+        var shear = pile.CreateSession().CheckUltimate(new WallSectionActions(0, 1000, 10e6))[1];
+        Assert.AreEqual(links, shear.Capacity!.Value, 1e-9 * links, "VRd ≈ 562 491 N (558 046 N with the rounding-dependent d).");
+    }
 
-    // S1. The width passed to the checks is never compared with analysis.TributaryWidth: pile and tube actions are scaled by
-    // spacing/width with the caller's number, and the RC strip only compares its own width with that same number.
+    // S1. The width passed to the checks was never compared with analysis.TributaryWidth: pile and tube actions were scaled by
+    // spacing/width with the caller's number, and the RC strip only compared its own width with that same number. Fixed 22/10/2026.
     [TestMethod]
     public void ChecksRefuseAWidthDifferentFromTheAnalysedStrip()
     {
@@ -71,7 +73,14 @@ public sealed class EmbeddedWallReviewFindingsTests
         Assert.ThrowsException<ArgumentException>(() => EmbeddedWallSteelTubes.Check(tubes, 1000, [tube], new StandardNTC2018Steel(), EmbeddedWallSteelCheckKind.StaticUltimate),
             "Tube actions ×2.0 instead of ×1.333.");
         var strip = Cantilever(1000, 2e14); Assert.IsTrue(strip.IsComplete, strip.Diagnostic);
-        Assert.ThrowsException<ArgumentException>(() => EmbeddedWallConcrete.Check(strip, 2000, [EmbeddedWallReviewTests.Strip(2000)], EmbeddedWallSectionCheckKind.Ultimate),
+        Assert.ThrowsException<ArgumentException>(() => EmbeddedWallConcrete.Check(strip, 2000, [Strip(2000)], EmbeddedWallSectionCheckKind.Ultimate),
             "1000 mm actions against a 2000 mm section.");
     }
+
+    static WallAnalysisResult Cantilever(double width, double ei) => EmbeddedWallAnalysis.Calculate(new EmbeddedWallModel
+    {
+        CaseId = "ULS", Top = 0, Bottom = -6000, TributaryWidth = width, MaximumElementLength = 6000, FixBottomDisplacement = true, FixBottomRotation = true,
+        Segments = [new() { Top = 0, Bottom = -6000, FlexuralRigidity = ei, SectionId = "S", Source = "review" }],
+        Stages = [new() { Id = "F1", Left = new() { Elevation = -6000 }, Right = new() { Elevation = -6000 }, PointLoads = [new() { Elevation = 0, HorizontalForce = 1000 }] }]
+    });
 }

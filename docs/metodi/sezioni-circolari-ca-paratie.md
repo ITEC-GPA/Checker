@@ -20,7 +20,13 @@ diagramma elastico perfettamente plastico e deformazione ultima assegnata.
 Profilo italiano NTC 2018, SLU statici e combinazioni SLE caratteristica,
 frequente e quasi permanente. La verifica N–M mantiene N assegnato e segno
 del momento. Taglio con staffe singole e modello circolare equivalente:
-serve conferma esplicita di applicabilità e z/d. Una spirale non è
+serve conferma esplicita di applicabilità e z/d. Il modello è quello dell'anello
+continuo di barre di raggio rs: altezza utile d = R + 2rs/π (baricentro del
+semianello teso), armatura tesa As/2, bw = D, z = (z/d)·d, staffe a due bracci.
+È indipendente dal numero di barre: prima d era il baricentro delle barre di una
+metà e l'arrotondamento di una barra sull'asse lo spostava (12φ20 su D 800:
+605 mm invece di 610). La scelta bw = D è la meno cautelativa fra quelle usate
+in letteratura (con 0,9D il taglio con staffe fitte cala di circa il 3 %). Una spirale non è
 automaticamente equiparata a staffe singole. Capacità/risposte non ottenute
 o non applicabili restano Non valutato anche con domanda nulla.
 

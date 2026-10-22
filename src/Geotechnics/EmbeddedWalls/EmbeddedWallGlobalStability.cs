@@ -128,6 +128,9 @@ public static class EmbeddedWallGlobalStability
                 profile.ValleyDirection * p.HorizontalForce / m.TributaryWidth, profile.ValleyDirection * p.Moment / m.TributaryWidth, false));
         }
         IReadOnlyList<SlopePoint> water = profile.Water;
+        // Prescribed wall-face profiles do not determine the pore pressure on slice bases away from the wall and below the toe.
+        if (field == null && water.Count == 0 && (stage.Left.PorePressures.Count > 0 || stage.Right.PorePressures.Count > 0))
+            throw new NotSupportedException("Pressioni interstiziali assegnate alla paratia: assegnare il profilo piezometrico globale o un campo FEM convergente; il profilo alla parete non viene esteso implicitamente al pendio.");
         if (field == null && water.Count == 0 && (stage.Left.WaterElevation.HasValue || stage.Right.WaterElevation.HasValue))
         {
             if (stage.Left.WaterElevation != stage.Right.WaterElevation)
