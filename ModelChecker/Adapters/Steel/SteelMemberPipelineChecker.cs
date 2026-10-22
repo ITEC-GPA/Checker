@@ -25,10 +25,10 @@ namespace GPC.Model.Checker
     /// partial straight prismatic spans, including reversed FEM connectivity.
     /// The historical UniformFork route retains its single-element qualification.
     /// Critical values, restraints and concomitant states remain source-bound.</summary>
-    public sealed class SteelMemberPipelineChecker : IMaterialChecker, IPhysicalMemberVerifier
+    public sealed partial class SteelMemberPipelineChecker : IMaterialChecker, IPhysicalMemberVerifier
     {
         public const string EngineId = "Steel.Pipeline.Member";
-        internal const string Limitations = "EC3:2005/NTC2018 prismatic compression and major-axis LTB with explicit critical values/mode assessments. EC3 also has uniform H/T fork and external in-plane general methods. No general biaxial member method, torsion, plastic hinges or connections. Section/shear checks are separate.";
+        internal const string Limitations = "EC3:2005/NTC2018 prismatic compression and major-axis LTB with explicit critical values/mode assessments. EC3 also has uniform H/T fork and external in-plane general methods. Doubly symmetric H beam-columns use EC3 Annex B / NTC Circular Method B with explicit model and equivalent-moment factors. No general arbitrary-section biaxial method, torsion, plastic hinges or connections. Section/shear checks are separate.";
         private readonly Dictionary<string, string> _parameters;
         public IReadOnlyDictionary<string, string> Parameters { get; }
         public StandardEN1993p11 Code { get; }
@@ -49,6 +49,7 @@ namespace GPC.Model.Checker
             var keys = new HashSet<string>(new[] { "AnalysisMode", "LoadPatternReference", "ParameterSet", "MemberFingerprint", "Unperforated",
                 "InPlaneCurve", "LateralCurve", "LateralTorsionalCurve", "MemberClass", "ClassificationSource",
                 "CompressionCurve1", "CompressionCurve2", "TorsionalCurve", "TorsionalExclusionSource", "FlexuralTorsionalExclusionSource", "McrBasis" }, StringComparer.Ordinal);
+            foreach (string key in BeamColumnKeys) keys.Add(key);
             foreach (SteelStabilityQuantity quantity in Enum.GetValues(typeof(SteelStabilityQuantity)))
                 foreach (var suffix in new[] { ".Value", ".Unit", ".Source" }) keys.Add(quantity + suffix);
             foreach (var pair in _parameters)
@@ -59,7 +60,7 @@ namespace GPC.Model.Checker
         public bool Supports(string methodId, CheckMechanism mechanism) => methodId == Id && mechanism == CheckMechanism.Stability
             && (Code.GetType() == typeof(StandardEN1993p11) && Edition == "2005"
                 || Code.GetType() == typeof(StandardNTC2018Steel) && Edition == "2018"
-                    && _parameters.TryGetValue("AnalysisMode", out var mode) && (mode == "Compression" || mode == "Bending"));
+                    && _parameters.TryGetValue("AnalysisMode", out var mode) && (mode == "Compression" || mode == "Bending" || mode == "BeamColumn"));
         public IMaterialCheckSession CreateSession() => new NoSectionSession();
         private sealed class NoSectionSession : IMaterialCheckSession
         {
@@ -94,6 +95,7 @@ namespace GPC.Model.Checker
                 if (Required("MemberFingerprint") != fingerprint) return NativeResults.Missing("SteelMember.AnalysisSnapshotMismatch");
                 if (!bool.TryParse(Required("Unperforated"), out bool unperforated)) throw new ArgumentException("InvalidUnperforatedDeclaration");
                 string mode = Required("AnalysisMode");
+                if (mode != "BeamColumn" && BeamColumnKeys.Any(_parameters.ContainsKey)) throw new ArgumentException("BeamColumnParametersOnAnotherRoute");
                 var first = mode == "Compression" ? input.ActionSections.OrderByDescending(c => Math.Abs(c.Forces.N)).First()
                     : mode == "Bending" ? input.ActionSections.OrderByDescending(c => Math.Abs(c.Forces.M1)).First()
                     : input.ActionSections.FirstOrDefault(c => c.Forces.N != 0 || c.Forces.M1 != 0 || c.Forces.M2 != 0) ?? input.ActionSections[0];
@@ -109,11 +111,11 @@ namespace GPC.Model.Checker
                 var common = ModelSteelInput.FromSectionAxes(new SteelSectionInput(section, unperforated), first.Forces, context, member);
                 SteelMemberAnalysis analysis;
                 SteelPhysicalMemberPreparation physical = null;
-                if (mode == "Compression" || mode == "Bending")
+                if (mode == "Compression" || mode == "Bending" || mode == "BeamColumn")
                     {
                     physical = SteelPhysicalMemberPreparation.Create(input, common.Section, context);
                     common = new SteelVerificationInput(common.Section, physical.Cuts[0].Actions, common.Code, common.Member);
-                    analysis = Prismatic(input, common, context, mode, physical);
+                    analysis = mode == "BeamColumn" ? BeamColumn(input, common, physical) : Prismatic(input, common, context, mode, physical);
                 }
                 else
                 {
@@ -177,13 +179,7 @@ namespace GPC.Model.Checker
         private SteelMemberAnalysis Prismatic(PhysicalMemberCheckInput input, SteelVerificationInput common, SteelDesignContext context, string mode, SteelPhysicalMemberPreparation physical)
         {
             bool compression = mode == "Compression";
-            if (compression && (Code.AlphaImperfectionFactorForCurveA0 != .13 || Code.AlphaImperfectionFactorForCurveA != .21
-                || Code.AlphaImperfectionFactorForCurveB != .34 || Code.AlphaImperfectionFactorForCurveC != .49 || Code.AlphaImperfectionFactorForCurveD != .76))
-                throw new NotSupportedException("Prismatic compression requires the qualified standard imperfection factors.");
-            if (!compression && (Code.AlphaLTImperfectionFactorForCurveA != .21 || Code.AlphaLTImperfectionFactorForCurveB != .34
-                || Code.AlphaLTImperfectionFactorForCurveC != .49 || Code.AlphaLTImperfectionFactorForCurveD != .76
-                || Code.BetaForLateralTorsionalBuckling != 1 || Code.LambdaLT0ForLateralTorsionalBuckling != .2))
-                throw new NotSupportedException("This LTB route requires the qualified general curve parameters; a modified national curve needs its own method.");
+            ValidatePrismaticCoefficients(compression, !compression);
             if (new[] { "InPlaneCurve", "LateralCurve", "LateralTorsionalCurve" }.Any(_parameters.ContainsKey))
                 throw new ArgumentException("GeneralMethodCurvesOnPrismaticRoute");
             if (compression ? _parameters.ContainsKey("McrBasis") : new[] { "CompressionCurve1", "CompressionCurve2", "TorsionalCurve", "TorsionalExclusionSource", "FlexuralTorsionalExclusionSource" }.Any(_parameters.ContainsKey))

@@ -139,7 +139,7 @@ namespace GPC.Checkers.Steel.Pipeline
                 reference: reference, scope: scope, resistance: resistance, resistanceUnit: unit, utilization: utilization, trace: trace);
         }
 
-        private static SteelBucklingCurve LtbCurve(GPC.Model.Sections.Steel.ISteelSection s, bool ntc)
+        internal static SteelBucklingCurve LtbCurve(GPC.Model.Sections.Steel.ISteelSection s, bool ntc)
         {
             if (s.SectionShape.GetType() != typeof(SectionH)) return SteelBucklingCurve.D;
             var h = (SectionH)s.SectionShape;
@@ -147,13 +147,13 @@ namespace GPC.Checkers.Steel.Pipeline
             return s.SectionType == Section.SectionTypes.Welded ? (deep ? SteelBucklingCurve.D : SteelBucklingCurve.C)
                 : ntc ? (deep ? SteelBucklingCurve.C : SteelBucklingCurve.B) : (deep ? SteelBucklingCurve.B : SteelBucklingCurve.A);
         }
-        private static double Alpha(SteelBucklingCurve curve)
+        internal static double Alpha(SteelBucklingCurve curve)
         {
             switch (curve) { case SteelBucklingCurve.A0: return .13; case SteelBucklingCurve.A: return .21;
                 case SteelBucklingCurve.B: return .34; case SteelBucklingCurve.C: return .49; case SteelBucklingCurve.D: return .76;
                 default: throw new ArgumentOutOfRangeException(nameof(curve)); }
         }
-        private static double Reduction(double slenderness, SteelBucklingCurve curve)
+        internal static double Reduction(double slenderness, SteelBucklingCurve curve)
         {
             Positive(slenderness, "Slenderness"); if (slenderness <= .2) return 1;
             double phi = .5 * (1 + Alpha(curve) * (slenderness - .2) + slenderness * slenderness);

@@ -20,5 +20,6 @@
     <!-- Shared synthetic fixture of the Model repository (also used by Model's UnitTest and Model.Core.Tests). -->
     <Compile Include="..\..\Model\Examples\MixedModelFactory.cs" Link="MixedModelFactory.cs" />
     <Compile Include="..\Examples\SteelReferenceFrame.cs" Link="Examples\SteelReferenceFrame.cs" />
+    <Compile Include="..\Examples\SteelBeamColumnFrame.cs" Link="Examples\SteelBeamColumnFrame.cs" />
   </ItemGroup>
 </Project>

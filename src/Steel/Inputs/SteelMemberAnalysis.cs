@@ -7,7 +7,7 @@ namespace GPC.Checkers.Steel.Inputs
 {
     public enum SteelStabilityQuantity { Ncr1, Ncr2, NcrT, NcrFT, Mcr, AlphaUltK, AlphaCrOp }
     public enum SteelStabilityUnit { N, KN, Nmm, KNm, One }
-    public enum SteelMemberAnalysisKind { UniformForkHOrT, ExternalInPlane, PrismaticCompression, PrismaticBending }
+    public enum SteelMemberAnalysisKind { UniformForkHOrT, ExternalInPlane, PrismaticCompression, PrismaticBending, HBeamColumn }
 
     /// <summary>Positive analysis value with explicit original units and source.
     /// Ncr/Mcr are elastic bifurcation values, never design resistances.
@@ -55,11 +55,12 @@ namespace GPC.Checkers.Steel.Inputs
         public int? ExternalMemberClass { get; }
         public string ClassificationSource { get; }
         public SteelPrismaticMemberData Prismatic { get; }
+        public SteelBeamColumnParameters BeamColumnParameters { get; }
 
         private SteelMemberAnalysis(SteelVerificationInput input, SteelMemberAnalysisKind kind,
             string loadPatternReference, string parameterSet, Ec3GeneralMethodCurve inPlane,
             Ec3GeneralMethodCurve lateral, Ec3GeneralMethodCurve lt, IEnumerable<SteelStabilityValue> values,
-            int? memberClass, string classificationSource, SteelPrismaticMemberData prismatic = null)
+            int? memberClass, string classificationSource, SteelPrismaticMemberData prismatic = null, SteelBeamColumnParameters beamColumn = null)
         {
             Input = input ?? throw new ArgumentNullException(nameof(input));
             if (string.IsNullOrWhiteSpace(loadPatternReference) || string.IsNullOrWhiteSpace(parameterSet))
@@ -75,7 +76,7 @@ namespace GPC.Checkers.Steel.Inputs
                 throw new ArgumentException("Member class and classification source must be supplied together.");
             Kind = kind; LoadPatternReference = loadPatternReference; ParameterSet = parameterSet;
             InPlaneCurve = inPlane; LateralCurve = lateral; LateralTorsionalCurve = lt;
-            Values = Array.AsReadOnly(copy); ExternalMemberClass = memberClass; ClassificationSource = classificationSource; Prismatic = prismatic;
+            Values = Array.AsReadOnly(copy); ExternalMemberClass = memberClass; ClassificationSource = classificationSource; Prismatic = prismatic; BeamColumnParameters = beamColumn;
         }
 
         /// <summary>EC3/NTC prismatic concentric CONSTANT compression. Curves must
@@ -103,6 +104,21 @@ namespace GPC.Checkers.Steel.Inputs
                 Ec3GeneralMethodCurve.A, Ec3GeneralMethodCurve.A, Ec3GeneralMethodCurve.D,
                 criticalMoment == null ? null : new[] { criticalMoment }, memberClass, classificationSource,
                 new SteelPrismaticMemberData(SteelBucklingCurve.A, SteelBucklingCurve.A, SteelBucklingCurve.D, null, null, basis));
+
+        /// <summary>Prismatic doubly symmetric H beam-column, EC3 Annex B / NTC
+        /// Circular Method B. N is constant compression; M1/M2 are signed absolute
+        /// maxima over ONE whole-member design state, not a concomitant section cut.
+        /// Values are Ncr1/Ncr2 (or explicit effective lengths) and Mcr if susceptible.
+        /// Cm and global analysis assumptions are explicit. Other compression modes
+        /// must be independently assessed as excluded; no generic warping analysis.
+        /// Section resistance and shear checks remain separately required; use
+        /// SelectMember with Member scope only, never SectionAndMember.</summary>
+        public static SteelMemberAnalysis BeamColumn(SteelVerificationInput input, string loadPatternReference,
+            string parameterSet, SteelBeamColumnParameters parameters, IEnumerable<SteelStabilityValue> values = null,
+            int? memberClass = null, string classificationSource = null)
+            => new SteelMemberAnalysis(input, SteelMemberAnalysisKind.HBeamColumn, loadPatternReference, parameterSet,
+                Ec3GeneralMethodCurve.A, Ec3GeneralMethodCurve.A, Ec3GeneralMethodCurve.D, values, memberClass, classificationSource,
+                beamColumn: parameters ?? throw new ArgumentNullException(nameof(parameters)));
 
         /// <summary>Caller explicitly declares a uniform sharp H/T, fork ends/free
         /// warping, no sway/intermediate restraints/transverse loads/plastic hinges,

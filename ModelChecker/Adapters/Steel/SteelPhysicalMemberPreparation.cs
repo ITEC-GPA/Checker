@@ -20,7 +20,8 @@ namespace GPC.Model.Checker
 {
     /// <summary>Qualifies a straight, continuous, prismatic physical span and puts
     /// every concomitant cut into one section frame. FE nodes do not create design
-    /// restraints or effective lengths. No interpolation or component envelopes.</summary>
+    /// restraints or effective lengths. No interpolation or cross-state envelopes.
+    /// The beam-column route extracts member maxima within one state only.</summary>
     internal sealed class SteelPhysicalMemberPreparation
     {
         internal sealed class Cut
@@ -96,6 +97,26 @@ namespace GPC.Model.Checker
             trace.Add(new CheckCalculationValue("Member.Geometry.ElementCount",count,"1","Number of participating FE elements; not a restraint count"));
             trace.Add(new CheckCalculationValue("Member.Geometry.CutCount",cuts.Count,"1","Exported concomitant cuts; no assertion of continuous coverage"));
             return new SteelPhysicalMemberPreparation{Cuts=cuts.OrderBy(c=>c.Distance).ToArray(),Trace=trace};
+        }
+        internal SteelActions BeamColumnEnvelope()
+        {
+            double n=Cuts[0].Actions.N;
+            foreach(var cut in Cuts)
+            {
+                if(cut.Actions.T!=0)throw new NotSupportedException("Applied torque is outside the beam-column route.");
+                if(Math.Abs(cut.Actions.N-n)>1e-10*Math.Max(1,Math.Abs(n)))throw new NotSupportedException("Beam-column compression must be constant over the selected span.");
+            }
+            var evidence=new List<CheckCalculationValue>(Trace);
+            double Maximum(string name,Func<SteelActions,double> component)
+            {
+                var cut=Cuts.OrderByDescending(c=>Math.Abs(component(c.Actions))).First();double value=component(cut.Actions);
+                evidence.Add(new CheckCalculationValue("Member.Envelope."+name,value,name.StartsWith("V")?"N":"Nmm","Signed absolute maximum within this ONE design state; not a fictitious section cut"));
+                evidence.Add(new CheckCalculationValue("Member.Envelope."+name+".Distance",cut.Distance,"mm","Physical-member coordinate of controlling exported cut"));
+                evidence.Add(new CheckCalculationValue("Member.Envelope."+name+".BeamId",cut.Source.Element.Id,"1","Original FE element; concomitant state retained in member snapshot"));
+                return value;
+            }
+            double v1=Maximum("V1",a=>a.V1),v2=Maximum("V2",a=>a.V2),m1=Maximum("M1",a=>a.M1),m2=Maximum("M2",a=>a.M2);
+            Trace=evidence;return new SteelActions(n,v1,v2,0,m1,m2);
         }
         internal void AddTrace(CheckResult result)
         {

@@ -29,3 +29,22 @@ archiviabile, e i report conservano dati, fonti, impronte e stato concomitante.
 La variante split prepara due elementi per asta; reverseSecond inverte I/J
 del secondo conservando la stessa fisica. La qualifica del nuovo adattatore
 e' verificata separatamente dai test dei passi successivi.
+
+VARIANTE PRESSOFLESSIONE: Examples/SteelBeamColumnFrame.cs
+Create() e Configure(model,ntc) aggiungono alle colonne N costante e momenti
+biassiali. ULS-A: N=-20kN, M1=10(1-x/3000)kNm, M2=8kNm;
+ULS-B: N=-30kN, M1=30(1-x/3000)kNm, M2=5kNm.
+V2=-dM1/dx; V1=0, T=0. Diagrammi assegnati, non soluzione di un telaio FEM.
+Cm=1 esplicito, lunghezze3000mm, vincolo torsionale continuo delle colonne.
+La stessa coppia Create/Configure verifica sezioni, aste, EC3/NTC e archivi.
+
+Create(true,true,true) varia anche M2 linearmente da0 al massimo in fondo
+all'asta, con V1=dM2/dx. M1 e M2 massimi appartengono a sezioni diverse ma
+alla stessa combinazione; il report d'asta registra entrambe le posizioni.
+Questa variante NON ha esito complessivo completo: il taglio biassiale simultaneo
+di sezione non e' ancora integrato. Il test impone che rimanga segnalato.
+
+Esecuzione dei test di integrazione:
+dotnet test ModelChecker.Tests/ModelChecker.Tests.csproj -c Release
+  --filter FullyQualifiedName~SteelBeamColumnWorkflowTest
+Perimetro/formule/fonti e test numerici: src/Steel/PHYSICAL_MEMBER_WORKFLOW.txt.

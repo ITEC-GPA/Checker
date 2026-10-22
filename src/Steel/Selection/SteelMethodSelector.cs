@@ -42,6 +42,8 @@ namespace GPC.Checkers.Steel.Selection
         {
             if (analysis == null) throw new ArgumentNullException(nameof(analysis));
             if (scope != SteelCheckScope.Member && scope != SteelCheckScope.SectionAndMember) throw new ArgumentOutOfRangeException(nameof(scope));
+            if (analysis.BeamColumnParameters != null && scope != SteelCheckScope.Member)
+                throw new ArgumentException("Beam-column input contains whole-member maxima; evaluate sections separately with concomitant cut actions.", nameof(scope));
             var original = Select(analysis.Input, scope, classification);
             var decisions = original.Decisions.Where(d => d.Target != SteelCheckTarget.MemberStability).ToList();
             decisions.Add(Guard(SteelCheckTarget.MemberStability, () => SteelMemberAnalysisExecution.Select(analysis)));
