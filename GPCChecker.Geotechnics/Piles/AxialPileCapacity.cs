@@ -66,7 +66,7 @@ namespace GPC.Checkers.Geotechnics.Piles
             if (efficiency == null) throw new ArgumentNullException(nameof(efficiency));
             double d = pile.Diameter, l = pile.Length;
             if (!Positive(d) || !Positive(l)) throw new ArgumentException("Pile: positive diameter and length are required.");
-            if (!Positive(pile.UnitWeight)) throw new ArgumentException("Pile: positive unit weight is required.");
+            if (!NonNegative(pile.UnitWeight)) throw new ArgumentException("Pile: a non-negative unit weight is required.");
             if (!Finite(pile.CompressionAction) || !Finite(pile.TensionAction)) throw new ArgumentException("Pile: finite actions are required.");
             if (surveys.Count == 0) throw new ArgumentException("Add at least one investigated vertical.");
             var water = Water(surveys.Select(s => s?.Profile ?? throw new ArgumentNullException(nameof(surveys))));
@@ -158,6 +158,7 @@ namespace GPC.Checkers.Geotechnics.Piles
                 => !compression ? BuoyantWeight(z) : condition == AxialCondition.Undrained && falda && z > zf && tips.Any(s => s.Nc.HasValue) ? FullWeight(z) : Weight(z);
             var warnings = new List<string>();
             if (efficiency.Method == PileGroupMethod.Feld || efficiency.Method == PileGroupMethod.ConverseLabarre) warnings.Add("Scelta progettuale 2026-09-15: efficienza geometrica applicata sia a compressione sia a trazione.");
+            if (pile.UnitWeight == 0) warnings.Add("Peso specifico del palo nullo: peso proprio non considerato nelle azioni.");
             var result = Assemble(depths, z => strata.Select(s => Resistances(s, z)).ToArray(), Weight, ActionWeight, new[] { AxialCondition.Drained, AxialCondition.Undrained },
                 (s, c) => c == AxialCondition.Drained ? (s.DrainedShaft, s.DrainedBase) : (s.UndrainedShaft, s.UndrainedBase), false, 0, pile.CompressionAction, pile.TensionAction, factors, efficiency);
             warnings.Add("Ipotesi progettuale 2026-09-15: nella verifica non drenata la porzione sopra falda è drenata; senza falda le due verifiche coincidono.");
@@ -245,6 +246,7 @@ namespace GPC.Checkers.Geotechnics.Piles
             var warnings = new List<string>();
             if (efficiency.Method == PileGroupMethod.Feld || efficiency.Method == PileGroupMethod.ConverseLabarre) warnings.Add("Scelta progettuale 2026-09-15: efficienza geometrica applicata sia a compressione sia a trazione.");
             warnings.Add("Strati orizzontali; θ dalla verticale. L, sb e coordinate delle curve sono lungo l'asse; z = s cos θ. Azioni inserite assiali; peso proprio proiettato sull'asse. Verifiche trasversali non comprese.");
+            if (pile.GroutUnitWeight == 0) warnings.Add("Peso specifico della malta nullo: nel peso proprio entra solo il tubo.");
             warnings.Add(BustamanteDoix.Source + ". Abachi digitalizzati dalla scansione: letture approssimate, senza estrapolazione.");
             if (sb == 0 && pile.Injection == MicropileInjection.IRS) warnings.Add("Scelta di progetto: IRS applicato anche nei primi 5 m, in deroga alla raccomandazione IGU superficiale di Viggiani p. 396.");
             if (l - sb < 4000) warnings.Add("ATTENZIONE: zona iniettata inferiore ai 4 m raccomandati.");
@@ -326,6 +328,7 @@ namespace GPC.Checkers.Geotechnics.Piles
         }
 
         private static bool Positive(double v) => !double.IsNaN(v) && !double.IsInfinity(v) && v > 0;
+        private static bool NonNegative(double v) => !double.IsNaN(v) && !double.IsInfinity(v) && v >= 0;
         private static bool Finite(double? v) => !v.HasValue || !double.IsNaN(v.Value) && !double.IsInfinity(v.Value);
     }
 }
