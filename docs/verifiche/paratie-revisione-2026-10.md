@@ -4,7 +4,8 @@ Revisione dei calcoli del modulo paratie sviluppato con Codex sul modello di Par
 alla Winkler, fasi costruttive, sostegni, filtrazione, verifiche idrauliche, stabilità globale, tiranti, infissione,
 verifiche strutturali e collegamento in ANTHEA. Codice esaminato: Checker master `57f87bf8`, Model e ANTHEA del 21/10/2026.
 Branch dei test: `claude/verifica-paratie`. Correzioni applicate sullo stesso branch: P1, P2 e P3 in Geotechnics 0.14.0.1
-(con GPC.Design 0.30.0.1, ricompilato contro la nuova Geotechnics). Restano aperti P4, P5, S1 e i punti ANTHEA.
+(con GPC.Design 0.30.0.1, ricompilato contro la nuova Geotechnics). A1 è corretto in ANTHEA (`refactoring/f5` 573d9c73,
+guide Rev57), con i test `LockOffBetweenStagesTests` in Checker. Restano aperti P4, P5, S1, A2–A4 e i punti minori ANTHEA.
 
 ## Metodo
 
@@ -32,7 +33,7 @@ I problemi trovati, in ordine di gravità:
 
 | # | Problema | Effetto | Dove |
 |---|---|---|---|
-| A1 | In ANTHEA una fase successiva che rielenca un tirante riparte con pretensione 0 e la rilascia; la guida teorica dice il contrario | **a sfavore di sicurezza**: forza nel tirante sottostimata fino alla pretensione | `ANTHEA.Application/EmbeddedWalls/EmbeddedWallAdapter.cs:64-65`, `EmbeddedWallDocument.cs:35`, `guida-teorica-anthea.md:3538` |
+| A1 | In ANTHEA una fase successiva che rielenca un tirante riparte con pretensione 0 e la rilascia; la guida teorica dice il contrario | **a sfavore di sicurezza**: forza nel tirante sottostimata fino alla pretensione — **corretto in ANTHEA** (`refactoring/f5` 573d9c73) | `ANTHEA.Application/EmbeddedWalls/EmbeddedWallAdapter.cs:64-65`, `EmbeddedWallDocument.cs:35`, `guida-teorica-anthea.md:3538` (prima della correzione) |
 | P1 | Puntone o tirante che si stacca: il motore lo fa "seguire" la paratia invece di lasciare il distacco | risultati errati quando la paratia torna indietro (esempio: 15,7 kN invece di 7,8 kN, −2,03 mm invece di +0,78 mm) — **corretto in 0.14.0.1** | `EmbeddedWallAnalysis.cs:250-252` (su `57f87bf8`) |
 | P2 | Falsa non convergenza: la ricerca lineare usa il massimo del residuo e si blocca sui punti angolosi della plasticità | paratia stabile dichiarata "non convergente" (caso tirantato con margine 1,17) — **corretto in 0.14.0.1** | `EmbeddedWallAnalysis.cs:91` (su `57f87bf8`) |
 | P3 | Tolleranze più strette della precisione di macchina sui termini EI | falsa non convergenza con mesh fini (50 mm) o pareti rigide — **corretto in 0.14.0.1** | `WallAnalysisResults.cs:10-11`, `EmbeddedWallAnalysis.cs:80` (su `57f87bf8`) |
@@ -164,8 +165,22 @@ I verificatori ricevono la larghezza come argomento e non la confrontano con `an
 - **A1 pretensione.** Il motore ricalcola a ogni fase `F = P0 + k·(e − ep)` e interpola P0 fra fase precedente e fase
   corrente. In ANTHEA ogni riga di attivazione nuova parte con 0 kN e nessuno copia il valore della fase precedente. Nell'esempio
   della guida (mensola 6 m, tirante in testa EA/L 10 000 kN/m, P0 50 kN) il tirante passa da 10,9 kN a 0 e la testa da −0,31
-  a +3,60 mm. Va deciso se la pretensione deve restare implicitamente o se l'interfaccia deve copiarla e avvisare quando cala.
-  Va corretta anche la frase della guida teorica.
+  a +3,60 mm.
+  **Corretto il 21/10/2026** in ANTHEA (`fix/paratie-pretensione`, unito in `refactoring/f5` come 573d9c73) con l'opzione
+  scelta dall'utente: la pretensione resta, con avviso, senza migrazione dei documenti.
+  - Una riga nuova di attivazione nasce con la pretensione vuota.
+  - Se il sostegno era già presente nella fase precedente, la cella vuota ne mantiene la pretensione; all'installazione o alla
+    reinstallazione vale 0.
+  - Un numero sostituisce la pretensione e 0 la rilascia.
+  - Una riduzione rispetto alla fase precedente viene segnalata nel disegno e nei risultati.
+  - I documenti già salvati conservano i valori scritti, con risultati e impronte invariati.
+
+  Il codice sta in `EmbeddedWallDocument.LockOffs` (`EmbeddedWallLockOffs.cs`). Le guide sono state aggiornate alla Rev57,
+  compresa la frase della guida teorica. Le prove ANTHEA stanno in `tests/ANTHEA.Presentation.Tests/EmbeddedWallPrestressChecks.cs`
+  (C1–C11: conversioni, tirante in testa, esempio della guida, ripetizione, rilascio, ritesatura, reinstallazione, editor) e
+  sono documentate in `docs/paratie/pretensione-fra-le-fasi.md` di ANTHEA. In Checker, `tests/EmbeddedWalls.Tests/LockOffBetweenStagesTests.cs`
+  (7 test, master 5a01af62) controlla la stessa semantica sul motore. Gli attesi vengono da `tools/attesi/paratie_revisione/anthea`,
+  in aritmetica razionale esatta.
 - **A2 coefficienti parziali.** I fattori A1/A2/M2 per le paratie sono definiti in Model ma non usati. Paratie Plus di solito
   moltiplica gli effetti di una storia caratteristica (1,3 sulle spinte in A1+M1); qui una storia marcata SLU deve essere già
   fattorizzata e nessun controllo lo garantisce.
@@ -173,8 +188,9 @@ I verificatori ricevono la larghezza come argomento e non la confrontano con `an
   e −30 in un'altra; momento del palo con segno opposto alla parete; etichette di EI e delle azioni senza "per fascia"; schema
   della stabilità globale sempre con valle a sinistra; "1.000" letto come 1 (`StratigraphyDocument.cs:43`).
 
-I casi di prova ANTHEA (conversioni, pretensione fra le fasi, righe nuove) sono negli script `tools/attesi/paratie_revisione/anthea`
-e vanno tradotti nei test di ANTHEA (`tests/ANTHEA.Presentation.Tests`), che stanno in un altro repository.
+I casi di prova ANTHEA di conversioni, pretensione fra le fasi e righe nuove (script `tools/attesi/paratie_revisione/anthea`)
+sono stati tradotti nei test ANTHEA `EmbeddedWallPrestressChecks` e nei test Checker `LockOffBetweenStagesTests`. A2–A4 e i punti
+minori non hanno ancora test: dipendono dalle decisioni elencate sotto.
 
 ## Differenze rispetto a Paratie Plus (non sono bug)
 
@@ -229,7 +245,8 @@ Verifica completa: `powershell -NoProfile -ExecutionPolicy Bypass -File build\Ve
 
 ## Domande aperte
 
-1. Pretensione: deve restare implicitamente dopo l'installazione, o l'interfaccia deve copiarla e avvisare quando cala?
+1. ~~Pretensione: deve restare implicitamente dopo l'installazione, o l'interfaccia deve copiarla e avvisare quando cala?~~
+   Decisa il 21/10/2026: resta, con avviso quando cala, senza migrazione dei documenti (vedi A1).
 2. SLU in un'analisi non lineare: fattorizzare gli effetti di una storia caratteristica (come Paratie Plus) o le azioni?
 3. Taglio dei pali: quale d (metà tesa effettiva, anello continuo R + 2rs/π, 0,45D + 0,64rs) e quale bw?
 4. Filtrazione: aggiungere il bordo a flusso nullo e chiarire l'etichetta "Estensione a destra dall'asse"?
