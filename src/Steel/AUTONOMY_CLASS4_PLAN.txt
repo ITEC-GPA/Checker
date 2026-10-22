@@ -6,8 +6,8 @@ Base Checker f6916d8e; Model 45c3976c. Nessun push autorizzato.
 Task (stato iniziale: da fare)
 1. COMPLETATO: contratti interrogabili di configurazione ModelChecker (2.16.0.0).
 2. COMPLETATO: preparazione curve/Ncr/Mcr qualificata (Steel2.32, ModelChecker2.17).
-3. Coppie da catalogo MIDAS DATATYPE=1 con prova nativa e assi espliciti.
-4. Pressoflessione delle sezioni singole: prima RHS/CHS, poi C/T/L.
+3. PENDENTE prova nativa: Civil NX risponde HTTP404 (22/10). DATATYPE=1 richiede il catalogo completo della coppia, non il nome del componente; verificato manuale MIDAS. Non inferire gap/orientamento dal solo nome.
+4. IN CORSO: RHS/SHS/CHS elastici; C/T/L richiedono metodo distinto da Annex B per H.
 5. Compressione delle coppie con imbottiture e dettaglio locale definito.
 6. Copertura ed esempi completi senza interfaccia.
 7. Revisione dei metodi di classe 4 esistenti e dei riferimenti.

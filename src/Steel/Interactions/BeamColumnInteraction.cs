@@ -15,7 +15,7 @@ namespace GPC.Checkers.Steel.Members
         public string Reference { get; internal set; }
     }
 
-    /// <summary>Scalar H beam-column interaction only. The caller owns section class,
+    /// <summary>Scalar beam-column interaction: plastic coefficients for H, elastic coefficients for H/hollow sections. The caller owns section class,
     /// design capacities, global analysis and method applicability. Ratios n1/n2 are
     /// NEd/(chi_i NRk/gammaM1), m1 is |M1|max/(chiLT M1Rk/gammaM1), and m2 is
     /// |M2|max/(M2Rk/gammaM1); all nonnegative, from ONE whole-member load state.

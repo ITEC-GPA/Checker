@@ -2,7 +2,7 @@ using System;
 
 namespace GPC.Checkers.Steel.Inputs
 {
-    /// <summary>Qualified H beam-column assumptions. Cm factors refer to the actual
+    /// <summary>Qualified doubly symmetric H/hollow beam-column assumptions. Cm factors refer to the actual
     /// restraint intervals and the same load state; Cm=1 is an explicit conservative
     /// choice, never inferred from a few exported cuts. Global second-order effects
     /// must be accounted for by the declared analysis model where relevant.</summary>

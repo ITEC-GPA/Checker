@@ -1,0 +1,23 @@
+PRESSOFLESSIONE CAVE - TASK4 PRIMA PARTE, 22/10/2026
+Percorso BeamColumn esteso a RHS/SHS/CHS doppiamente simmetriche, comprese
+SectionRHSRoundedCorners. Restano necessari Ncr1/Ncr2 o lunghezze efficaci,
+valutazioni T/FT, esclusione motivata LTB, coefficienti di momento e conferma
+del modello globale. Non si deduce la non-suscettibilita' LTB dal nome RHS.
+Le classi 1/2 usano conservativamente Wel e i coefficienti elastici classe3.
+Nessuna sostituzione dei coefficienti plastici kzz delle cave con quelli H.
+La somma dei contributi dei due momenti del CHS e' conservativa rispetto
+alla resistenza elastica alla risultante; conserva gli assi del membro.
+La classificazione per compressione uniforme resta conservativa e comune.
+
+Meccanica e numeri EC3/NTC passano attraverso gli stessi contratti; restano
+distinti gamma e riferimenti. EN1993-1-1:2005 6.3.3 / AnnexB TableB.1 p79
+e Circolare2019 TableC4.2.IV p107 ispezionate visivamente. NTC conserva
+l'inviluppo conservativo dei due indici stampati nella riga kzz, senza
+presentarlo come errata-corrige ufficiale. Le verifiche di sezione e taglio
+restano separate e il percorso richiede V<=0.5VplRd e valutazione imbozzamento.
+Metodo/enum HBeamColumn mantiene il nome storico per compatibilita'.
+
+Non completata la seconda parte task4: C/T/L asimmetriche non vengono
+instradate nelle formule H/cave; richiedono analisi generale adeguata.
+L'EC3 ExternalInPlane preesistente continua a richiedere alphaUltK/alphaCrOp
+indipendenti; non costituisce una qualifica automatica NTC.

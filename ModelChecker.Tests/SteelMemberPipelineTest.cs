@@ -19,12 +19,12 @@ namespace ModelChecker.Tests;
 [TestClass]
 public class SteelMemberPipelineTest
 {
-    internal static (GPC.Model.Models.Model Model, BeamCheckPlanRequest Plan) Fixture(bool split = false)
+    internal static (GPC.Model.Models.Model Model, BeamCheckPlanRequest Plan) Fixture(bool split = false, Func<SteelSection>? sectionFactory = null)
     {
         var model = ElementScopeCharacterizationTest.Model(axial: -1e5, shear: 0, configureBeforeResults: m => {
             foreach (var beam in m.BeamElements.Values)
             {
-                var section = new SteelSection(new SectionH(300, 12, 150, 18, 150, 18, "H"), SteelMaterialEN1993Data.S355);
+                var section = sectionFactory?.Invoke() ?? new SteelSection(new SectionH(300, 12, 150, 18, 150, 18, "H"), SteelMaterialEN1993Data.S355);
                 beam.BeamProperty = section; beam.Assignments.Sections.Clear();
                 beam.Assignments.Sections.Add(new BeamSectionAssignment { Start = 0, End = 1, Property = section });
             }

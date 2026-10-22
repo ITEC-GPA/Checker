@@ -29,7 +29,7 @@ namespace GPC.Model.Checker
     public sealed partial class SteelMemberPipelineChecker : IMaterialChecker, IPhysicalMemberVerifier
     {
         public const string EngineId = "Steel.Pipeline.Member";
-        internal const string Limitations = "EC3:2005/NTC2018 prismatic compression and major-axis LTB with explicit critical values/mode assessments. EC3 also has uniform H/T fork and external in-plane general methods. Doubly symmetric H beam-columns use EC3 Annex B / NTC Circular Method B with explicit model and equivalent-moment factors. Packed identical 2C/2L compression requires explicit detailing, complete local envelopes and design resistances; connection design is external. No general arbitrary-section biaxial method, torsion or plastic hinges. Section/shear checks are separate.";
+        internal const string Limitations = "EC3:2005/NTC2018 prismatic compression and major-axis LTB with explicit critical values/mode assessments. EC3 also has uniform H/T fork and external in-plane general methods. Doubly symmetric H and hollow beam-columns use EC3 Annex B / NTC Circular Method B with explicit model and equivalent-moment factors; hollow sections use conservative elastic properties. Packed identical 2C/2L compression requires explicit detailing, complete local envelopes and design resistances; connection design is external. No general arbitrary-section biaxial method, torsion or plastic hinges. Section/shear checks are separate.";
         private readonly Dictionary<string, string> _parameters;
         public IReadOnlyDictionary<string, string> Parameters { get; }
         public StandardEN1993p11 Code { get; }
