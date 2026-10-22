@@ -194,6 +194,28 @@ cerchio di prova (F indipendente 3,7086) veniva scartato e la ricerca poteva per
 (22/10/2026): il rifiuto resta solo per i conci con attrito. Vale per tutti gli usi di `BishopSolver` (pendii e muri compresi).
 Test: `GlobalStabilityIndependentTests.UndrainedCircleEqualsCohesionAlongTheArc`.
 
+La correzione cambia tre test dei pendii di Geotechnics, che riproducono le catture del vecchio calcolo ANTHEA. Le fixture
+non sono state rigenerate: i tre test dichiarano le differenze (ok dell'utente, 22/10/2026).
+
+- **Casi di Bishop** (`GeneralGeotechnicsMigrationTests.LegacyBishopSolutionsAreReproduced`). Su 90 casi che il vecchio
+  calcolo scartava, 7 ora hanno una soluzione: le righe 72, 98, 125, 177, 227, 231 e 353. In ognuna N' < 0 compare solo su
+  conci con φ = 0. Il test controlla questo, R = c·l su quei conci e l'equilibrio verticale dei conci e dei momenti.
+  Le altre 321 soluzioni restano identiche.
+- **Ricerche sulla sezione S3, casi non drenati** (`LegacySlopeSearchesAreReproduced`).
+  - «Non drenata»: stesso cerchio critico, F = 1,0394. I 15 cerchi prima scartati ora sono risolti (391 → 405). Con il
+    doppio dei conci F vale 1,0409, quindi lo stato passa da «discretizzazione non convergente» a «minimo sul bordo».
+  - «Non drenata sisma»: il vecchio calcolo scartava 323 cerchi su 519, ora nessuno. Il minimo scende da F = 1,521 a
+    1,269 su un altro cerchio (rapporto da 0,789 a 0,945). Il vecchio risultato era a sfavore di sicurezza.
+
+  Per questi due casi il test fa come per S2. Ricalcola il cerchio critico del vecchio calcolo esattamente come allora e
+  richiede un minimo non più alto. Tutti gli altri casi (S1, S2, S3 drenata, S4, cerchi assegnati) non cambiano.
+- **Concio ripido coesivo** (`SlopeEdgeCaseTests`). Con φ = 0 il caso ora ha soluzione, F = 11,88, ricontrollata a mano nel
+  nuovo test `BishopKeepsTensionOnSlicesWithoutFriction`: R1 = 100 kPa · 1 m / cos 60° = 200 kN/m e F = (R1 + R2)/D.
+  Lo stesso concio con φ = 5° resta scartato.
+
+ANTHEA ha le stesse catture: quando si aggiornano lì le librerie, queste differenze vanno registrate anche nei suoi test
+di equivalenza.
+
 ### ANTHEA
 
 - **A1 pretensione.** Il motore ricalcola a ogni fase `F = P0 + k·(e − ep)` e interpola P0 fra fase precedente e fase
@@ -264,6 +286,8 @@ sono più test della categoria `ReviewFinding` né fallimenti ammessi per la rev
 | `StripShearWithoutLinksMatchesNtc2018Formula41` | Design.Checks / `EmbeddedWallReviewTests.cs` | taglio senza staffe in 4 casi | formula NTC nel test e script | passa |
 | `ChecksRefuseAWidthDifferentFromTheAnalysedStrip` | idem | S1 per pali, tubi e diaframmi | eccezione | prima nessuna eccezione → **passa** (22/10) |
 | `CircularPileShearUsesTheContinuousRingEffectiveDepth` | idem | S2, palo D 800, 12φ20 | NTC con d = R + 2rs/π: 562,5 kN | prima 558,0 kN → **passa** (22/10) |
+| `BishopKeepsTensionOnSlicesWithoutFriction` | GPCChecker.Test.Geotechnics / `SlopeEdgeCaseTests.cs` | concio ripido con φ = 0 e N' < 0 | a mano: R1 = 200 kN/m, F = (R1 + R2)/D | nuovo → **passa** (22/10) |
+| `LegacyBishopSolutionsAreReproduced`, `LegacySlopeSearchesAreReproduced` | `GeneralGeotechnicsMigrationTests.cs` | catture ANTHEA con φ = 0 | differenze dichiarate, fixture invariate | 3 fallimenti dopo la correzione → **passano** (22/10) |
 
 Totale sul branch del 22/10: EmbeddedWalls.Tests 99 test, tutti verdi (74 della prima versione, 18 della revisione, 7 della
 pretensione A1); Design.Checks 103 test, tutti verdi.
@@ -276,6 +300,22 @@ dotnet test tests/Design.Checks -c Release --filter "FullyQualifiedName~Embedded
 ```
 
 Verifica completa: `powershell -NoProfile -ExecutionPolicy Bypass -File build\Verify.ps1` (tutte le suite, net472 comprese).
+Esito del 22/10/2026 sul branch, contro Model 5.20.0.0 (`claude/paratie-flusso-nullo`), senza fallimenti ammessi.
+
+| Suite | Test superati |
+|---|---|
+| Concrete (net472) | 795 |
+| Steel (net472) | 122 |
+| CompositeBridge | 284 |
+| Geotechnics | 192 |
+| Calculation | 174 |
+| ShallowFoundation | 28 |
+| EmbeddedWalls | 99 |
+| Steel.Members | 2918 |
+| Design.Checks | 103 |
+| ModelChecker | 388 |
+
+Nessuna firma pubblica rimossa. Model: UnitTest 1332 superati e 3 ignorati, Model.Core 24 superati.
 
 ## Domande aperte
 

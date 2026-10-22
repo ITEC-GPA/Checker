@@ -58,7 +58,7 @@ public class SlopeEdgeCaseTests
         Assert.IsNull(BishopSolver.Solve(Unit, new[] { Slice(30, 30, 0, 0, 1, 100, 1e-9) }, 1), "driving at the 1e-9 N/mm threshold");
         Assert.IsNull(BishopSolver.Solve(Unit, new[] { Slice(30, 30, 0, 0, 1, 100, 1e-6) }, 1), "F above 1e5: no root in the bracket");
         Assert.IsNull(BishopSolver.Solve(Unit, new[] { Slice(30, 30, 0, 500, 1, 100, 50) }, 1), "u·b > V: tension at the base");
-        Assert.IsNull(BishopSolver.Solve(Unit, new[] { Slice(60, 0, 100, 0, 1, 5, 4.33), Slice(10, 30, 0, 0, 1, 100, 17.4, 2, M) }, 1), "N' < 0 on the steep cohesive slice: (5 − 100·2·sin 60°/11.9)/0.5");
+        Assert.IsNull(BishopSolver.Solve(Unit, new[] { Slice(60, 5, 100, 0, 1, 5, 4.33), Slice(10, 30, 0, 0, 1, 100, 17.4, 2, M) }, 1), "N' < 0 on the steep frictional slice (φ = 5°)");
         // α = −40°, φ = 45°: mα vanishes for F = tan 40° · tan 45° = 0.839; the bisection starts above it.
         var pole = BishopSolver.Solve(Unit, new[] { Slice(-40, 45, 30, 0, 1, 50, -5), Slice(50, 45, 0, 0, 1, 200, 150, 2, M) }, 1);
         Assert.IsTrue(pole == null || pole.Factor > Math.Tan(40 * Deg) && pole.Slices.All(s => s.MAlpha > 0));
@@ -68,6 +68,20 @@ public class SlopeEdgeCaseTests
         Assert.ThrowsException<ArgumentNullException>(() => BishopSolver.Solve(Unit, null!, 1));
         using var cancelled = new CancellationTokenSource(); cancelled.Cancel();
         Assert.ThrowsException<OperationCanceledException>(() => BishopSolver.Solve(Unit, new[] { Slice(30, 30, 0, 0, 1, 100, 50) }, 1, cancelled.Token));
+    }
+
+    [TestMethod]
+    public void BishopKeepsTensionOnSlicesWithoutFriction()
+    {
+        // φ = 0: R = c l does not depend on N', so N' < 0 does not reject the circle (user decision 22/10/2026). Steep slice: R1 = 100 kPa · 1 m / cos 60° = 200 kN/m,
+        // N'1 = (5 − 100·2·sin 60°/F)/0.5 < 0; frictional slice: R2 = 100 tan 30° / (cos 10° + sin 10° tan 30° / F); moments: F = (R1 + R2) / (4.33 + 17.4).
+        var r = BishopSolver.Solve(Unit, new[] { Slice(60, 0, 100, 0, 1, 5, 4.33), Slice(10, 30, 0, 0, 1, 100, 17.4, 2, M) }, 1)!;
+        double t = Math.Tan(30 * Deg), r2 = 100 * t / (Math.Cos(10 * Deg) + Math.Sin(10 * Deg) * t / r.Factor);
+        Close(200, r.Slices[0].Resistance, "c l", 1e-12);
+        Close((5 - 100 * 2 * Math.Sin(60 * Deg) / r.Factor) / .5, r.Slices[0].NormalEffective, "N' of the steep slice", 1e-12);
+        Assert.IsTrue(r.Slices[0].NormalEffective < 0 && r.Slices[1].NormalEffective > 0);
+        Close(r2, r.Slices[1].Resistance, "R of the frictional slice", 1e-12);
+        Close((200 + r2) / 21.73, r.Factor, "F", 1e-8);
     }
 
     [TestMethod]
