@@ -3,7 +3,7 @@ Piano autorizzato; ANTHEA non coinvolta durante la riscrittura MVVM.
 Branch coordinati Model/Checker: codex/steel-autonomy-class4.
 Base Checker f6916d8e; Model 45c3976c. Nessun push autorizzato.
 
-Task (stato iniziale: da fare)
+Task (stato aggiornato23/10/2026; limiti espliciti, nessuna chiusura convenzionale)
 1. COMPLETATO: contratti interrogabili di configurazione ModelChecker (2.16.0.0).
 2. COMPLETATO: preparazione curve/Ncr/Mcr qualificata (Steel2.32, ModelChecker2.17).
 3. PENDENTE prova nativa: Civil NX risponde HTTP404 (22/10 e ricontrollo23/10). DATATYPE=1 richiede il catalogo completo della coppia, non il nome del componente; verificato manuale MIDAS. Non inferire gap/orientamento dal solo nome.
@@ -16,7 +16,7 @@ Task (stato iniziale: da fare)
 10. COMPLETATO nel campo qualificato H/C/T/L/RHS: sezione efficace N/My/Mz, EC3/NTC, convergenza e report ModelChecker; CLASS4_SECTION_WORKFLOW.txt.
 11. IMPLEMENTATO per H/RHS doppiamente simmetrici: compressione, LTB e pressoflessione con Aeff/Weff; C/T/L uguali anche via analisi efficace esterna con eN esplicito. L disuguali restano esclusi; CLASS4_MEMBER_WORKFLOW.txt e EXTERNAL_GENERAL_METHOD.txt.
 12. PARZIALE: anima H Vbw e interazione classe4 M1/V2 con dettaglio appoggi esplicito; sezioni2C/2L classe4 N-M implementate; gusci CHS, aste accoppiate classe4 e interazioni generali ancora non qualificati. CLASS4_SHEAR_WORKFLOW.txt.
-13. Confronti Steel/CompositeBridge, suite complete, versioni e merge locale.
+13. COLLAUDO/INTEGRAZIONE: confronti Steel/CompositeBridge e suite Checker verdi; set finale e merge locale secondo AUTONOMY_CLASS4_VALIDATION.txt. Il manifest esterno contiene gli esiti definitivi Model+Checker.
 
 Criteri
 - Un solo nucleo per la stessa meccanica; coefficienti EC3/NTC distinti.

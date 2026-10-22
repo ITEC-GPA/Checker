@@ -1,3 +1,6 @@
+AGGIORNAMENTO23/10/2026: campo corrente in COVERAGE_CLASS4.txt; metodo generale
+esterno in EXTERNAL_GENERAL_METHOD.txt. Il seguito documenta il passo originario.
+
 AGGIORNAMENTO: PHYSICAL_MEMBER_WORKFLOW.txt descrive le estensioni successive
 per aste fisiche su piu' elementi FEM e pressoflessione.
 

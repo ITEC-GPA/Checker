@@ -1,4 +1,4 @@
-AGGIORNAMENTO: il campo attuale EC3/NTC e' in COVERAGE_EXTENSION.txt.
+AGGIORNAMENTO: il campo attuale EC3/NTC e' in COVERAGE_CLASS4.txt.
 Questo documento conserva la descrizione e le evidenze del passo originario;
 i limiti superati dall'estensione non sono piu' quelli del selettore corrente.
 

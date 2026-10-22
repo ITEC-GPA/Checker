@@ -1,0 +1,45 @@
+COLLAUDO AUTONOMIA / CLASSE4 - 23/10/2026
+Versioni: Steel2.41.0.1, ModelChecker2.23, CompositeBridge1.13.
+Set coerente con Model5.20, Persistence3.3, Converter2.6, ModelData0.3 gia'
+presenti su master per il lavoro sulle paratie; nessuna modifica Model in
+questa implementazione. ANTHEA esclusa. Nessun push.
+
+COLLAUDO PRELIMINARE COMPLETO CHECKER
+build/Verify.ps1, audit-results/autonomy-class4/full-checker-20261023:
+Concrete net472795; Steel net472122; CompositeBridge340; Geotechnics193;
+Calculation174; ShallowFoundation28; EmbeddedWalls99; Steel.Members3200;
+Design103; ModelChecker444. Zero fallimenti/skip, API compatibili.
+Successivo fix controlli forcella2.41.0.1:45 test mirati superati, incluse
+due nuove prove con12 combinazioni di vincolo ciascuna, oltre alle lunghezze.
+
+COLLAUDO DEL SET FINALE
+build/Release-Set.ps1 -Candidate esegue nuovamente tutte le suite Model/Checker,
+API e audit, su checkout puliti. L'esito definitivo e gli hash delle DLL sono
+nel manifest esterno (creato solo dal processo di confezionamento):
+C:/Users/g.pacini/Documents/ChatGPT/Checker/releases/gpc-steel-class4-20261023/release-set.json
+Non sostituire tale evidenza con i soli conteggi preliminari qui sopra.
+Il candidato non richiede push; il merge locale autorizzato conserva i commit.
+Il confronto delle versioni con gpc-steel-packed-pairs-20261022 e' anche
+controllato esplicitamente, dato che -Candidate non lo impone.
+
+FONTI E PROVE INDIPENDENTI
+- EN1993-1-1 Table6.2 / NTC Table4.2.VIII per curve e soglie geometriche;
+  problemi agli autovalori indipendenti per Ncr/T/FT e Rayleigh per Mcr.
+- EN1993-1-5 Tables4.1/4.2 e JRC EUR22898EN pp46-50 per piastre efficaci;
+  integrazione indipendente di rettangoli/poligoni per A/G/I/Ixy/equilibrio.
+- SCI P363 tabellaB66, UB610x178x82 S275/S355, per Aeff pubblicata.
+- SCI AD368 per Vbw UKB406x140x39 e distinzione arrotondamenti/formula esatta.
+- NTC4.2.4.1.3.3 ed EN6.3.4 per metodo generale esterno; fonti dell'analisi
+  restano dichiarazioni del chiamante, mai autocertificazione dei fattori.
+- Identita' aritmetica Steel/CompositeBridge per lo stesso kernel; tutte le
+  fasi e le verifiche ponte continuano ad appartenere a CompositeBridge.
+
+PUNTI APERTI, NON INCLUSI IN UN ESITO FAVOREVOLE
+Task3: MIDAS DATATYPE1 nativo, HTTP404 anche al ricontrollo23/10.
+Task5: progettazione automatica completa delle connessioni e inviluppi locali
+  generali; ora restano esterni, con automazione dei soli pannelli assiali.
+Task12: gusci CHS classe4, instabilita' aste accoppiate classe4 e interazioni
+  generali con taglio/torsione. Sezione2C/2L N-M classe4 invece implementata.
+L disuguali: resistenza di sezione efficace disponibile, metodo generale
+d'asta6.3.4 non esteso a geometrie prive della simmetria richiesta.
+Questi limiti sono controllati: non sono test commentati o pass convenzionali.

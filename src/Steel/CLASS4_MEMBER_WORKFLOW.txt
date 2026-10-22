@@ -1,3 +1,6 @@
+AGGIORNAMENTO23/10/2026: campo corrente in COVERAGE_CLASS4.txt; metodo generale
+esterno in EXTERNAL_GENERAL_METHOD.txt. Il seguito documenta il passo originario.
+
 CLASSE4 NELLE VERIFICHE D'ASTA - STEEL2.37 / MODELCHECKER2.20
 
 Stesso ingresso Compression/Bending/BeamColumn, stesse azioni e coefficienti
