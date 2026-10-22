@@ -213,7 +213,7 @@ public class SteelVerificationPipelineTests
     }
 
     [TestMethod]
-    public void BiaxialShearRequiresBothAssessmentsAndStillDoesNotBecomeACompleteCheck()
+    public void BiaxialShearRequiresBothAssessmentsAndCompletesTheLinearBound()
     {
         var input = Input(m1: 1000, v1: 1000, v2: 1000); var plan = Plan(input);
         var one = SteelShearBucklingAssessment.FromExternal(input, 1, true, "axis1");
@@ -221,8 +221,8 @@ public class SteelVerificationPipelineTests
         Assert.AreEqual(Status.RequiresPreparation, Normal(SteelVerificationPipeline.Execute(plan, new[] { one })).Status);
         var result = SteelVerificationPipeline.Execute(plan, new[] { one, two });
         Assert.AreEqual(Status.Passed, Normal(result).Status);
-        Assert.AreEqual(Status.NotSupported, Shear(result, 1).Status); Assert.AreEqual(Status.NotSupported, Shear(result, 2).Status);
-        Assert.IsFalse(result.IsComplete); Assert.AreEqual(EngineeringOutcome.NotEvaluated, result.Outcome);
+        Assert.AreEqual(Status.Passed, Shear(result, 1).Status); Assert.AreEqual(Status.Passed, Shear(result, 2).Status);
+        Assert.IsTrue(result.IsComplete); Assert.AreEqual(EngineeringOutcome.Satisfied, result.Outcome);
     }
 
     [TestMethod]

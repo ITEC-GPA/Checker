@@ -59,7 +59,8 @@ public class CommonShearCoverageTests
         var i=Input(true,false,235,300000,1000,missing=="N"?-1000:0,missing=="M2"?1000:0);
         var plan=SteelMethodSelector.Select(i,classification:missing=="class3"?new SteelSectionClassification(i,3,"explicit class"):null);
         var r=SteelVerificationPipeline.Execute(plan,new[]{SteelShearBucklingAssessment.FromExternal(i,2,missing!="buckling","assessment")});
-        Assert.IsFalse(r.IsComplete);Assert.IsFalse(r.Checks[0].IsEvaluated);
+        if(missing=="buckling") { Assert.IsFalse(r.IsComplete);Assert.IsFalse(r.Checks[0].IsEvaluated); }
+        else { Assert.IsTrue(r.IsComplete);Assert.AreEqual(SteelMethod.LinearResistanceInteraction,r.Checks[0].Decision.Method); }
     }
 
     [DataTestMethod] [DataRow(235d)] [DataRow(355d)] [DataRow(460d)]

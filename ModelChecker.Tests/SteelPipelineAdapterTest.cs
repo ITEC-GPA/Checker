@@ -73,6 +73,17 @@ public class SteelPipelineAdapterTest
         Assert.IsTrue(result.Details.Trace.Any(t => t.Key == "NormalResistance.Method" && t.Expression == "HMajorBendingShear"));
     }
 
+    [DataTestMethod] [DataRow(false)] [DataRow(true)]
+    public void AxialShearUsesConservativeCombinedResistanceAndRetainsCode(bool ntc)
+    {
+        var input=Input(); input.Forces.N=-1e4; input.Forces.V2=1e3;
+        var result=Run(input,ntc:ntc);
+        Assert.AreEqual(EngineeringOutcome.Satisfied,result.Outcome);
+        double fd=355/(ntc?1.05:1);
+        double expected=1e4/(8568*fd)+1e3/(3384*fd/Math.Sqrt(3));
+        Assert.AreEqual(expected,result.Details.Metrics.Single(m=>m.Key=="NormalResistance").Utilization!.Value,1e-12);
+    }
+
     [TestMethod]
     public void DefaultDoesNotInventTheAbsenceOfHoles()
     {
@@ -83,13 +94,12 @@ public class SteelPipelineAdapterTest
     }
 
     [DataTestMethod]
-    [DataRow("zero")] [DataRow("torsion")] [DataRow("two shears")] [DataRow("N-V")]
+    [DataRow("zero")] [DataRow("torsion")] [DataRow("two shears")]
     public void UncoveredInventoryCannotBeReportedAsACompletePass(string kind)
     {
         var input = Input();
         if (kind == "torsion") { input.Forces.N = 1e4; input.Forces.T = 1; }
         if (kind == "two shears") input.Forces.V1 = input.Forces.V2 = 1e3;
-        if (kind == "N-V") { input.Forces.N = -1e4; input.Forces.V2 = 1e3; }
         var result = Run(input);
         Assert.AreEqual(EngineeringOutcome.NotEvaluated, result.Outcome);
         Assert.IsNull(result.Utilization);
@@ -97,12 +107,13 @@ public class SteelPipelineAdapterTest
     }
 
     [TestMethod]
-    public void PartialFailureRemainsVisibleWithoutClaimingCompleteEvaluation()
+    public void AxialShearFailureIsNowCompletelyEvaluated()
     {
         var input = Input(); input.Forces.N = -1e4; input.Forces.V2 = 1e8;
         var result = Run(input);
-        Assert.AreEqual(EngineeringOutcome.NotEvaluated, result.Outcome);
-        Assert.IsFalse(result.Details.Metrics.Single().Passed);
+        Assert.AreEqual(EngineeringOutcome.NotSatisfied, result.Outcome);
+        Assert.AreEqual(2,result.Details.Metrics.Count);
+        Assert.IsTrue(result.Details.Metrics.All(m=>m.Passed==false));
         Assert.AreEqual("NotSatisfied", result.Details.Trace.Single(t => t.Key == "Pipeline.Outcome").Expression);
     }
 

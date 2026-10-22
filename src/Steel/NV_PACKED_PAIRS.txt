@@ -1,0 +1,37 @@
+ESTENSIONE 4 E 6 - PERIMETRO APPROVATO 22 OTTOBRE 2026
+4. Interazioni N-V e N-M-V, incluse classi 3. Si preferiscono i metodi gia'
+   qualificati; i casi residui usano un limite conservativo di resistenza.
+5. Classe 4 RINVIATA su richiesta: nessuna proprieta' efficace introdotta.
+6. Due C o due L ravvicinati con sole imbottiture; esclusi calastrelli e tralicci.
+
+PUNTO 4 - SOMMA CONSERVATIVA, NON CAMPO TENSIONALE
+u=|N|/(A fd)+|M1|/(Wel1,min fd)+|M2|/(Wel2,min fd)
+  +|V1|/Vpl1,Rd+|V2|/Vpl2,Rd, fd=fy/gammaM0. Verifica u<=1.
+EN1993-1-1:2005/AC:2009 6.2.1(7), prima frase: somma lineare degli
+utilizzi di ciascuna sollecitazione. La formula a cinque termini e' una
+specializzazione conservativa, NON la trascrizione dell'equazione (6.2).
+Per NTC2018: 4.2.4.1.2 e 4.2.4.1.2.8-9, metodo conservativo di resistenza
+con riferimento EC3 esplicito e coefficienti NTC distinti.
+La sovrapposizione scalata di stati resistenti ammissibili resta nel dominio
+convesso di resistenza. I momenti usano sempre Wel, anche in classe 1/2.
+Non si assumono massimi di taglio V/Av ne' una distribuzione elastica di tau.
+Per un solo taglio v<=1, la riduzione uniforme della resistenza normale di v
+e' almeno pari a rho=max(0,2v-1)^2; essa agisce sull'intera sezione e non
+soltanto sull'area a taglio. E' volutamente piu' severa del metodo 6.2.10.
+La somma dei due tagli evita di dichiarare sufficiente il solo controllo
+separato delle direzioni. Ogni riga di interazione richiede le valutazioni
+di instabilita' per ENTRAMBI gli assi attivi.
+Restano esclusi fori, torsione, classe 4 e mappature delle aree non qualificate
+(es. L sugli assi principali, solidi). H/T/C/CHS/RHS seguono le condizioni
+geometriche e produttive gia' documentate in COVERAGE_EXTENSION.txt.
+Le resistenze da taglio possono includere la redistribuzione ammessa dalle
+norme anche nel progetto elastico: non e' una verifica di primo snervamento.
+
+FONTI CONTROLLATE
+EN1993-1-1:2005/AC:2009 pp45-46,51-56,74; figura6.12, tabella6.9.
+https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+SCI P362 6.2.1 conferma la somma conservativa delle resistenze.
+https://www.steelconstruction.info/images/6/6a/SCI_P362.pdf
+NTC2018 GU20/02/2018, pp97-101; Circolare7/2019 pp104-105,
+C4.2.4.1.3.1.5, figuraC4.2.10 e tabellaC4.2.III.
+https://www.gazzettaufficiale.it/eli/gu/2019/02/11/35/so/5/sg/pdf

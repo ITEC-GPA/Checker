@@ -206,10 +206,10 @@ public class SteelMethodSelectorTests
     public void SimultaneousShearsAndAxialShearAreNotIndependentCompleteChecks()
     {
         var biaxial = SteelMethodSelector.Select(Input(v1: 1000, v2: 1000));
-        Assert.IsFalse(biaxial.IsFullyRouted);
+        Assert.IsTrue(biaxial.IsFullyRouted);
         Assert.IsTrue(biaxial.Decisions.Where(d => d.Target is SteelCheckTarget.Shear1 or SteelCheckTarget.Shear2)
-            .All(d => d.DiagnosticCode == "BiaxialShear.NotIntegrated"));
-        Assert.AreEqual("AxialShearInteraction.NotIntegrated", Normal(SteelMethodSelector.Select(Input(n: -1000, v2: 1000))).DiagnosticCode);
+            .All(d => d.Method == SteelMethod.LinearShearInteraction));
+        Assert.AreEqual(SteelMethod.LinearResistanceInteraction, Normal(SteelMethodSelector.Select(Input(n: -1000, v2: 1000))).Method);
     }
 
     [TestMethod]

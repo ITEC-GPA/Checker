@@ -59,7 +59,8 @@ namespace GPC.Checkers.Steel.Pipeline
                     if (requirement != SteelPreparationRequirement.ShearBucklingAssessment)
                         return new SteelCheckExecution(decision, SteelExecutionStatus.NotSupported,
                             "Preparation.NotIntegrated", "This prerequisite has no pipeline handler.");
-                int[] axes = decision.Target == SteelCheckTarget.Shear1 ? new[] { 1 }
+                int[] axes = decision.Method == SteelMethod.LinearShearInteraction ? new[] { 1, 2 }
+                    : decision.Target == SteelCheckTarget.Shear1 ? new[] { 1 }
                     : decision.Target == SteelCheckTarget.Shear2 ? new[] { 2 }
                     : new[] { 1, 2 }.Where(axis => (axis == 1 ? input.Actions.V1 : input.Actions.V2) != 0).ToArray();
                 foreach (int axis in axes)
@@ -85,6 +86,9 @@ namespace GPC.Checkers.Steel.Pipeline
                 SectionResistanceResult result;
                 switch (decision.Method.Value)
                 {
+                    case SteelMethod.LinearResistanceInteraction:
+                    case SteelMethod.LinearShearInteraction:
+                        return LinearInteraction(input, decision, section, used);
                     case SteelMethod.SectionTension:
                         result = SectionResistanceVerifier.Tension(code, a.N, s.Area, s.YieldStrength, s.UltimateStrength, s.Unperforated, s.NetArea); break;
                     case SteelMethod.SectionCompression:
@@ -116,6 +120,32 @@ namespace GPC.Checkers.Steel.Pipeline
             { return new SteelCheckExecution(decision, SteelExecutionStatus.InvalidInput, "Execution.InvalidInput", ex.Message, shearAssessments: used); }
             catch (ArithmeticException ex)
             { return new SteelCheckExecution(decision, SteelExecutionStatus.CalculationError, "Execution.NumericalRange", ex.Message, shearAssessments: used); }
+        }
+
+        private static SteelCheckExecution LinearInteraction(SteelVerificationInput input, SteelMethodDecision decision,
+            ISteelSection section, IEnumerable<SteelShearBucklingAssessment> used)
+        {
+            bool shearOnly = decision.Method == SteelMethod.LinearShearInteraction;
+            var a = input.Actions;
+            double fd = input.Section.YieldStrength / input.Code.SectionCode.GammaM0;
+            double n = shearOnly ? 0 : Math.Abs(a.N) / (input.Section.Area * fd);
+            double m1 = shearOnly || a.M1 == 0 ? 0 : Math.Abs(a.M1) / (section.Wel1 * fd);
+            double m2 = shearOnly || a.M2 == 0 ? 0 : Math.Abs(a.M2) / (section.Wel2 * fd);
+            double v1 = ShearRatio(input, section, 1), v2 = ShearRatio(input, section, 2);
+            double utilization = n + m1 + m2 + v1 + v2;
+            var trace = new List<SectionResistanceValue>();
+            Add(trace, "NormalRatio", n, "1"); Add(trace, "ElasticMomentRatio1", m1, "1");
+            Add(trace, "ElasticMomentRatio2", m2, "1"); Add(trace, "ShearRatio1", v1, "1");
+            Add(trace, "ShearRatio2", v2, "1"); Add(trace, "Fy", input.Section.YieldStrength, "MPa");
+            Add(trace, "GammaM0", input.Code.SectionCode.GammaM0, "1"); Add(trace, "Utilization", utilization, "1");
+            string reference = input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018
+                ? "NTC 2018 4.2.4.1.2, 4.2.4.1.2.8-9; conservative resistance superposition per EN 1993-1-1:2005 6.2.1(7)"
+                : "EN 1993-1-1:2005 6.2.1(7), 6.2.6, 6.2.10; conservative resistance superposition";
+            return new SteelCheckExecution(decision, utilization <= 1 ? SteelExecutionStatus.Passed : SteelExecutionStatus.Failed,
+                reference: reference, scope: shearOnly
+                    ? "Conservative sum |V1|/V1Rd+|V2|/V2Rd; both shear-buckling exclusions required. Normal interaction is a separate check."
+                    : "Conservative linear N-M1-M2-V1-V2 resistance bound, gross class 1-3, elastic bending moduli; no local stress field, torsion or member stability.",
+                utilization: utilization, trace: trace, shearAssessments: used);
         }
 
         private static SectionResistanceResult Shear(SteelVerificationInput input, ISteelSection section, int axis)

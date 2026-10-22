@@ -58,11 +58,11 @@ public class SteelBeamColumnWorkflowTest
     }
 
     [DataTestMethod] [DataRow(false)] [DataRow(true)]
-    public void DifferentControllingCutsDoNotMixStatesOrHideTheSeparateBiaxialShearGap(bool ntc)
+    public void DifferentControllingCutsDoNotMixStatesAndConcomitantBiaxialShearCompletes(bool ntc)
     {
         var model=SteelBeamColumnFrame.Create(true,true,true);
         var report=new Service().Verify(model,EngineCatalog.BuiltIn().Compile(SteelBeamColumnFrame.Configure(model,ntc)));
-        Assert.AreEqual(EngineeringOutcome.NotEvaluated,report.Outcome); // simultaneous V1/V2 section resistance is not integrated
+        Assert.AreEqual(EngineeringOutcome.Satisfied,report.Outcome); // both shear assessments are present in this example
         for(int j=0;j<4;j++) {
             var r=report.Jobs[j].Results.Single(r=>r.Scope==CheckScope.PhysicalMember);
             Assert.AreEqual(EngineeringOutcome.Satisfied,r.Outcome,Diagnostics(new[]{r}));
@@ -70,7 +70,7 @@ public class SteelBeamColumnWorkflowTest
             Assert.AreEqual(j%2==0?8e6:5e6,Value(r,"Input.M2"),1e-6);
             Assert.AreEqual(0d,Value(r,"Member.Envelope.M1.Distance"));Assert.AreEqual(3000d,Value(r,"Member.Envelope.M2.Distance"));
             Assert.IsTrue(report.Jobs[j].Results.Where(r=>r.Scope!=CheckScope.PhysicalMember)
-                .Any(r=>r.Diagnostics.Any(d=>d.Code.Contains("BiaxialShear.NotIntegrated"))));
+                .All(r=>r.Outcome==EngineeringOutcome.Satisfied));
         }
     }
 

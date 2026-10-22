@@ -63,9 +63,8 @@ namespace GPC.Checkers.Steel.Selection
             if (s.UltimateStrength < s.YieldStrength) return Invalid(target, "Fu.BelowFy", "Ultimate strength must not be below yield strength.");
             bool moment = a.M1 != 0 || a.M2 != 0;
             bool shear = a.V1 != 0 || a.V2 != 0;
-            if (!moment && shear) return Unsupported(target, "AxialShearInteraction.NotIntegrated", "Isolated axial and shear checks do not establish N-V interaction.");
 
-            if (!moment && a.N > 0)
+            if (!moment && !shear && a.N > 0)
             {
                 if (!s.Unperforated.HasValue) return Missing(target, "NetSection.DeclarationRequired", "Declare holes before selecting tension.", "Section.Unperforated");
                 if (!s.Unperforated.Value && !s.NetArea.HasValue) return Missing(target, "NetArea.Required", "Supply the net area for a perforated section.", "Section.NetArea");
@@ -94,8 +93,10 @@ namespace GPC.Checkers.Steel.Selection
                 : plasticH ? SteelMethod.Ec3PlasticHInteraction
                 : elastic ? (ec3 ? SteelMethod.ElasticNormalInteraction : SteelMethod.NtcElasticNormalInteraction)
                 : a.M1 != 0 ? SteelMethod.SectionBending1 : SteelMethod.SectionBending2;
-            if (elastic && shear && cl == 3)
-                return Unsupported(target, "ElasticInteraction.ShearStressRequired", "Class 3 normal/shear interaction requires the elastic shear-stress field; plastic shear areas alone do not establish it.");
+            // A resistance-domain bound, not a shear-stress field or a von Mises check.
+            // It also bounds simultaneous shears by superposition of admitted pure-action states.
+            if (shear && (!moment || cl == 3 || a.V1 != 0 && a.V2 != 0))
+                return LinearInteraction(input, section, cl, classInfo.Source);
             if (moment)
             {
                 if (elastic)
@@ -111,7 +112,7 @@ namespace GPC.Checkers.Steel.Selection
                 if (cl <= 2 && shape.GetType() == typeof(SectionH) && !asymmetricH
                     && a.N == 0 && a.M2 == 0 && a.V1 == 0 && Math.Abs(shape.AngleX1) <= 1e-10)
                     return AwaitShearAssessment(target, SteelMethod.HMajorBendingShear, cl, classInfo.Source);
-                return Unsupported(target, "HighShearInteraction.NotIntegrated", "High-shear bending currently requires a symmetric H, class1/2, major bending and web shear only.");
+                return LinearInteraction(input, section, cl, classInfo.Source);
             }
             return AwaitShearAssessment(target, method, cl, classInfo.Source);
         }
@@ -150,7 +151,6 @@ namespace GPC.Checkers.Steel.Selection
             var a = input.Actions;
             if ((axis == 1 ? a.V1 : a.V2) == 0) return NotRequired(target);
             if (a.T != 0) return Unsupported(target, "ShearTorsionInteraction.NotIntegrated", "Shear with torsion requires a qualified interaction method.");
-            if (a.V1 != 0 && a.V2 != 0) return Unsupported(target, "BiaxialShear.NotIntegrated", "Two independent directional checks do not certify simultaneous biaxial shear.");
             if (!ShearMappingQualified(section)) return Unsupported(target, "ShearAxes.NotQualified", "No qualified shear-area mapping for this exact geometry and principal-axis orientation.");
             if (ColdFormedOpen(section)) return Unsupported(target, "ColdFormedOpenSection.NotQualified", "Cold-formed open sections require their own qualified design route.");
             ValidateGeometry(section);
@@ -158,7 +158,18 @@ namespace GPC.Checkers.Steel.Selection
                 return input.Section.Unperforated == false ? Unsupported(target, "PerforatedSection.NotQualified", "Gross shear areas cannot qualify a perforated section.")
                     : Missing(target, "NetSection.DeclarationRequired", "Declare an unperforated section for the gross shear-area route.", "Section.Unperforated");
             ShearResistance(input, section, axis); // Check mapping and finite arithmetic; no demand verdict.
+            if (a.V1 != 0 && a.V2 != 0)
+                return AwaitShearAssessment(target, SteelMethod.LinearShearInteraction);
             return AwaitShearAssessment(target, axis == 1 ? SteelMethod.SectionShear1 : SteelMethod.SectionShear2);
+        }
+
+        private static SteelMethodDecision LinearInteraction(SteelVerificationInput input, ISteelSection section, int cl, string source)
+        {
+            if (!ShearMappingQualified(section)) return Unsupported(SteelCheckTarget.NormalResistance,
+                "ShearAxes.NotQualified", "The linear interaction requires qualified pure-shear resistances on both active axes.");
+            if (input.Actions.M1 != 0) Positive(section.Wel1);
+            if (input.Actions.M2 != 0) Positive(section.Wel2);
+            return AwaitShearAssessment(SteelCheckTarget.NormalResistance, SteelMethod.LinearResistanceInteraction, cl, source);
         }
 
         private static SteelMethodDecision Member(SteelVerificationInput input)
