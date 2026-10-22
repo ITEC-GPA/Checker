@@ -13,6 +13,7 @@ namespace GPC.Model.Checker.Configuration
         public int Schema { get; }
         public string Description { get; }
         public string Limitations { get; }
+        public EngineParameterSchema ParameterSchema { get; internal set; }
         internal Func<EngineDefinition, DesignContextDefinition, IMaterialChecker> Factory { get; }
         internal Func<IMaterialChecker, CheckMechanism, SectionCheckSpecification, bool> Supports { get; }
         public EngineCapability(string kind, int schema, string description, string limitations,
@@ -153,6 +154,8 @@ namespace GPC.Model.Checker.Configuration
                     && ((CompositeBridgeMaterialChecker)engine).Edition == (((CompositeBridgeMaterialChecker)engine).Code == GPC.Checkers.CompositeBridge.BridgeStandard.Ntc2018 ? "2018" : "2005")));
             catalog.RegisterPlate(new PlateEngineCapability("Concrete.Plate", 1, "Concrete plate checks", "No qualified resistant implementation is installed; explicit method, faces and reinforcement are required."));
             catalog.RegisterPlate(new PlateEngineCapability("Steel.Plate", 1, "Steel plate checks", "No qualified plate resistance/stability implementation is installed."));
+            catalog._engines[SteelPipelineMaterialChecker.EngineId].ParameterSchema = SteelParameterSchemas.Section;
+            catalog._engines[SteelMemberPipelineChecker.EngineId].ParameterSchema = SteelParameterSchemas.Member;
             return catalog;
         }
         private static void NoExtraParameters(EngineDefinition definition)

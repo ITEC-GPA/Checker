@@ -10,6 +10,7 @@ using GPC.Checkers.Steel.ModelAdapters;
 using GPC.Checkers.Steel.Pipeline;
 using GPC.Checkers.Steel.Sections;
 using GPC.Checkers.Steel.Selection;
+using GPC.Model.Checker.Configuration;
 using GPC.Model.Checking.Contracts;
 using GPC.Model.Checking.Preparation;
 using GPC.Model.Checking.Reports;
@@ -46,12 +47,7 @@ namespace GPC.Model.Checker
             if (string.IsNullOrWhiteSpace(edition)) throw new ArgumentException("ExplicitSteelEditionRequired");
             Edition = edition; NationalAnnex = nationalAnnex;
             _parameters = parameters == null ? new Dictionary<string, string>(StringComparer.Ordinal) : new Dictionary<string, string>(parameters, StringComparer.Ordinal);
-            var keys = new HashSet<string>(new[] { "AnalysisMode", "LoadPatternReference", "ParameterSet", "MemberFingerprint", "Unperforated",
-                "InPlaneCurve", "LateralCurve", "LateralTorsionalCurve", "MemberClass", "ClassificationSource",
-                "CompressionCurve1", "CompressionCurve2", "TorsionalCurve", "TorsionalExclusionSource", "FlexuralTorsionalExclusionSource", "McrBasis" }, StringComparer.Ordinal);
-            foreach (string key in BeamColumnKeys.Concat(PackedPairKeys)) keys.Add(key);
-            foreach (SteelStabilityQuantity quantity in Enum.GetValues(typeof(SteelStabilityQuantity)))
-                foreach (var suffix in new[] { ".Value", ".Unit", ".Source" }) keys.Add(quantity + suffix);
+            var keys = new HashSet<string>(SteelParameterSchemas.Member.Parameters.Select(p => p.Key), StringComparer.Ordinal);
             foreach (var pair in _parameters)
                 if (!keys.Contains(pair.Key) || string.IsNullOrWhiteSpace(pair.Value)) throw new ArgumentException("UnknownOrEmptySteelMemberParameter: " + pair.Key);
             Parameters = new ReadOnlyDictionary<string, string>(_parameters);

@@ -1,0 +1,19 @@
+SCHEMA DEI PARAMETRI STEEL - TASK 1, 22/10/2026
+EngineCatalog.BuiltIn().Capabilities espone ParameterSchema per i motori
+Steel.Pipeline.Section e Steel.Pipeline.Member. Null significa metadata non
+disponibili per quel motore; non significa assenza di parametri obbligatori.
+
+EngineParameterSchema contiene descrittori immutabili: chiave, tipo, unita',
+intervalli, valori ammessi, modi applicabili e descrizione. Rules contiene
+condizioni AND, alternative di gruppi completi e parametri incompatibili.
+ExternalRequirements elenca i dati che richiedono il Model e il contesto.
+Validate controlla una copia della mappa e restituisce tutti i problemi,
+senza eseguire verifiche strutturali e senza modificare i dati ricevuti.
+Un esito vuoto non certifica geometria, materiale, analisi o resistenza.
+
+I due adapter usano il medesimo catalogo per il vocabolario delle chiavi.
+Restano i controlli numerici e ingegneristici in esecuzione. Le configurazioni
+persistite conservano EngineDefinition.Parameters e i contratti precedenti;
+nessun descrittore e nessuna funzione entra nell'archivio o nelle impronte.
+La UI futura puo' leggere metadata e chiamare Validate; non deve riscrivere
+la logica delle condizioni. Provenienza e fingerprint restano dati richiesti.

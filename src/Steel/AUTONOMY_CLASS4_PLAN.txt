@@ -4,7 +4,7 @@ Branch coordinati Model/Checker: codex/steel-autonomy-class4.
 Base Checker f6916d8e; Model 45c3976c. Nessun push autorizzato.
 
 Task (stato iniziale: da fare)
-1. Contratti interrogabili di configurazione ModelChecker.
+1. COMPLETATO: contratti interrogabili di configurazione ModelChecker (2.16.0.0).
 2. Preparazione automatica di curve/Ncr/Mcr negli schemi qualificati.
 3. Coppie da catalogo MIDAS DATATYPE=1 con prova nativa e assi espliciti.
 4. Pressoflessione delle sezioni singole: prima RHS/CHS, poi C/T/L.

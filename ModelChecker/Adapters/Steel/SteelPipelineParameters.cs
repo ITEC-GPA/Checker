@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using GPC.Model.Checker.Configuration;
 
 namespace GPC.Model.Checker
 {
@@ -23,9 +25,7 @@ namespace GPC.Model.Checker
         {
             Values = parameters == null ? new Dictionary<string, string>(StringComparer.Ordinal)
                 : new Dictionary<string, string>(parameters, StringComparer.Ordinal);
-            var known = new HashSet<string>(new[] { "Unperforated", "NetArea", "UniformCompressionClass",
-                "ClassificationSource", "SectionFingerprint", "ShearBucklingExcluded1", "ShearBucklingExcluded2",
-                "ShearBucklingSource1", "ShearBucklingSource2" }, StringComparer.Ordinal);
+            var known = new HashSet<string>(SteelParameterSchemas.Section.Parameters.Select(p => p.Key), StringComparer.Ordinal);
             foreach (var pair in Values)
                 if (!known.Contains(pair.Key) || string.IsNullOrWhiteSpace(pair.Value))
                     throw new ArgumentException("UnknownOrEmptySteelPipelineParameter: " + pair.Key);
