@@ -1,0 +1,30 @@
+CLASSE4 DELLA SEZIONE 2C/2L - Steel2.41, 23/10/2026
+
+Due componenti identici, una riflessione con baricentri allineati, senza
+sovrapposizione; forme C/L gia' qualificate dal kernel efficace. Nessun
+calastrello, traliccio, rinforzo da imbottiture o contributo longitudinale
+delle connessioni. Geometria e trasformazioni restano in SectionBuiltUp.
+
+La decomposizione in piastre riusa esattamente quella del componente:
+trasforma gli estremi con Part.Place, conserva il bordo appoggiato dello
+sbalzo e non riordina gli estremi dopo la riflessione. Area/G/I/Ixy lordi
+provengono da Model; si sottraggono le strisce inattive dei due componenti
+nelle rispettive posizioni. Non si duplicano formule di riduzione.
+Le tensioni sono compatibili con N/M1/M2 applicati al baricentro lordo
+dell'insieme, con eccentricita' della sezione efficace convergente.
+La verifica assume il comportamento composto definito in Model, che va
+giustificato dalle connessioni: il calcolo di sezione non ne verifica la capacita'.
+
+Questo passo qualifica SOLO resistenza normale della sezione, EC3/NTC.
+Instabilita' globale e locale della coppia classe4, azioni trasversali,
+torsione e connessioni non ricevono un'estensione implicita. PackedCompression
+classe4 resta non supportato, anche quando il calcolo di sezione riesce.
+L disuguali: entrambe le scelte del lato unito sono implementate nel calcolo
+di sezione, senza cambiare gli assi del modello o ignorare il ricentraggio.
+
+Test indipendenti: rettangoli efficaci sotto compressione uniforme, rho dalle
+tabelle4.1/4.2, integrali A/G/I/Ixy dopo riflessione; C, L lato lungo/corto.
+30 casi N/M1/M2 nelle due norme, piu' controllo del limite d'asta.
+122 test Steel (nuovi e regressioni) e16 ModelChecker passati.
+Report/archivi conservano le piastre Chord1.* e Chord2.* con le rispettive
+tensioni, larghezze, coefficienti e convergenza.

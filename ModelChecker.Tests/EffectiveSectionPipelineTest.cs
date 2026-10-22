@@ -15,6 +15,26 @@ namespace ModelChecker.Tests;
 [TestClass]
 public class EffectiveSectionPipelineTest
 {
+    [DataTestMethod] [DataRow("C",false)] [DataRow("C",true)] [DataRow("L-long",false)] [DataRow("L-long",true)] [DataRow("L-short",false)] [DataRow("L-short",true)]
+    public void Class4PairsUseTransformedEffectivePlatesAndPersist(string family,bool ntc)
+    {
+        var pair=family=="C"?SectionBuiltUp.DoubleChannel(new SectionC(300,3,120,3,120,3,"C"),8,true,"2C"):
+            SectionBuiltUp.DoubleAngle(new SectionL(100,4,150,4,"L"),8,family=="L-long"?SectionBuiltUp.AnglePairJoinedLeg.Long:SectionBuiltUp.AnglePairJoinedLeg.Short,"2L");
+        var (model,plan)=SteelMemberPipelineTest.Fixture(sectionFactory:()=>new SteelSection(pair,SteelMaterialEN1993Data.S355));
+        foreach(var s in ResultQueries.Samples<StationResultBeamForces>(model.BeamElements[250],plan.Results[0])) {
+            s.ResultBeamForces.N=-10000;s.ResultBeamForces.M1=1e5;s.ResultBeamForces.M2=-1e5;
+        }
+        plan.SectionMechanisms=new[]{CheckMechanism.UlsBiaxialSection};plan.MemberChecks=Array.Empty<MemberCheckSpecification>();
+        var request=new MultiMaterialCheckRequest();request.Jobs.Add(new MultiMaterialCheckJob {Name="Effective pair section",Plan=plan,
+            Assignments=new[]{new MaterialCheckerAssignment {Checker=new SteelPipelineMaterialChecker(ntc?new StandardNTC2018Steel():new StandardEN1993p11(),
+                ntc?"2018":"2005",parameters:new Dictionary<string,string>{{"Unperforated","true"}}),Mechanisms=new[]{CheckMechanism.UlsBiaxialSection}}}});
+        var report=new Service().Verify(model,request);
+        Assert.AreEqual(EngineeringOutcome.Satisfied,report.Outcome,string.Join(";",report.Jobs[0].Results.SelectMany(r=>r.Diagnostics).Select(d=>d.Message)));
+        Assert.IsTrue(report.Jobs[0].Results.All(r=>r.Details.Trace.Any(t=>t.Key.EndsWith(".Method")&&t.Expression=="EffectiveNormalResistance")));
+        using var stream=new MemoryStream();CheckReportArchive.Save(report.Jobs,stream);stream.Position=0;
+        Assert.AreEqual(EngineeringOutcome.Satisfied,Service.CurrentOutcome(CheckReportArchive.Load(stream),model,request));
+    }
+
     [DataTestMethod] [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
     public void SlenderHWebResistanceRequiresBoundSupportDetail(bool ntc,bool supplied)
     {

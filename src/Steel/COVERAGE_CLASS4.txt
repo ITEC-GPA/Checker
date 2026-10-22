@@ -11,7 +11,7 @@ T                elastico N-M    si              metodo generale esterno
 L uguali         elastico N-M    si (**)         metodo generale esterno
 L disuguali      elastico N-M    si (**)         non qualificata
 CHS              si              gusci esclusi   non qualificata
-2C/2L identici   qualificato     non qualificato non qualificata
+2C/2L identici   qualificato     si (**)         non qualificata
 pieni rett./circ.si              non pertinente  non pertinente
 
 (*) RHS spigoli vivi; raggi uniformi concentrici per RHSRoundedCorners.

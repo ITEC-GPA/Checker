@@ -5,6 +5,7 @@ using GPC.Checkers.Steel.Inputs;
 using GPC.Checkers.Steel.ModelAdapters;
 using GPC.Checkers.Steel.Selection;
 using GPC.Model.Sections;
+using GPC.Model.Sections.Steel;
 
 namespace GPC.Checkers.Steel.EffectiveSections
 {
@@ -56,7 +57,9 @@ namespace GPC.Checkers.Steel.EffectiveSections
         {
             Section=input;Plates=Array.AsReadOnly(plates.ToArray());var s=input.CreateSectionCopy();
             GrossX=s.Centroid.X;GrossY=s.Centroid.Y;GrossIxx=s.Jxx;GrossIyy=s.Jyy;GrossIxy=s.Jxy;
-            var points=s.SectionShape.GetSectionPoints();
+            var points=s.SectionShape is SectionBuiltUp assembled
+                ?assembled.Parts.SelectMany(part=>part.Section.GetSectionPoints().Select(v=>part.Place(v.X,v.Y))).ToArray()
+                :s.SectionShape.GetSectionPoints().ToArray();
             MinX=points.Min(p=>p.X);MaxX=points.Max(p=>p.X);MinY=points.Min(p=>p.Y);MaxY=points.Max(p=>p.Y);
         }
         public static SteelEffectiveGeometry Create(SteelSectionInput input)
@@ -68,7 +71,19 @@ namespace GPC.Checkers.Steel.EffectiveSections
             void Add(string id,EffectivePlateKind kind,double x1,double y1,double x2,double y2,double t,double? b=null,double? designWidth=null)
                 =>p.Add(new EffectiveSectionPlate(id,kind,x1,y1,x2,y2,t,b,designWidth));
             const EffectivePlateKind I=EffectivePlateKind.Internal,O=EffectivePlateKind.Outstand;
-            if(type==typeof(SectionH)) {
+            if(type==typeof(SectionBuiltUp)) {
+                var pair=(SectionBuiltUp)shape;ModelBuiltUpGeometry.Create(pair);
+                for(int index=0;index<pair.Parts.Count;index++) {
+                    var part=pair.Parts[index];
+                    var component=new SteelSectionInput(new SteelSection(part.Section,s.SteelMaterial,s.SectionType,s.FormedType),input.Unperforated);
+                    foreach(var plate in Create(component).Plates) {
+                        var start=part.Place(plate.StartX,plate.StartY);var end=part.Place(plate.EndX,plate.EndY);
+                        // Reflection preserves the physical supported edge: never sort endpoints.
+                        Add("Chord"+(index+1)+"."+plate.Id,plate.Kind,start.X,start.Y,end.X,end.Y,
+                            plate.Thickness,plate.BucklingWidth,plate.DesignWidth);
+                    }
+                }
+            } else if(type==typeof(SectionH)) {
                 var h=(SectionH)shape;double x=Math.Max(h.LenghtTopFlange,h.LenghtBottomFlange)/2;
                 Add("Web",I,x,h.ThicknessBottomFlange+h.R,x,h.Height-h.ThicknessTopFlange-h.R,h.ThicknessWeb);
                 void Flange(string id,double b,double t,double y) {
@@ -111,7 +126,7 @@ namespace GPC.Checkers.Steel.EffectiveSections
                 Add("Bottom",I,r.ThicknessWebLeft,r.ThicknessBottom/2,r.Base-r.ThicknessWebRight,r.ThicknessBottom/2,r.ThicknessBottom);
                 Add("Left",I,r.ThicknessWebLeft/2,r.ThicknessBottom,r.ThicknessWebLeft/2,r.Height-r.ThicknessTop,r.ThicknessWebLeft);
                 Add("Right",I,r.Base-r.ThicknessWebRight/2,r.ThicknessBottom,r.Base-r.ThicknessWebRight/2,r.Height-r.ThicknessTop,r.ThicknessWebRight);
-            } else throw new NotSupportedException("Effective flat-plate geometry requires exact H/T/C/L/RHS. CHS needs a shell method; built-up assembly requires separate qualification.");
+            } else throw new NotSupportedException("Effective flat-plate geometry requires exact H/T/C/L/RHS or identical mirrored 2C/2L. CHS needs a shell method.");
             return new SteelEffectiveGeometry(input,p);
         }
         public EffectiveSectionState Gross()=>WithWidths(Plates.SelectMany(p=>new[]{p.Length/2,p.Length/2}).ToArray());
