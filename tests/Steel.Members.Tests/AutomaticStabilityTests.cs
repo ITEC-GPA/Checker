@@ -85,6 +85,26 @@ public class AutomaticStabilityTests
         var input=new SteelVerificationInput(s,new SteelActions(0,0,0,0,-1e7,0),SteelDesignContext.Ntc2018(),new SteelMemberInput(l));
         Assert.AreEqual(m,SteelAutomaticStability.UniformFork(input,true,"uniform moment, forks").Single().Value,m*2e-12);
     }
+    [DataTestMethod] [DataRow(false)] [DataRow(true)]
+    public void AutomaticForkRejectsConflictingTorsionalLengthAndAllEndConstraints(bool bending)
+    {
+        var b=CommonSectionCoverageTests.Input(CommonSectionCoverageTests.Shape("H"),false,-10000);
+        var actions=bending?new SteelActions(0,0,0,0,1e7,0):b.Actions;
+        Assert.ThrowsException<ArgumentException>(()=>SteelAutomaticStability.UniformFork(
+            new(b.Section,actions,b.Code,new SteelMemberInput(3000,torsionalBucklingLength:6000)),bending,"fork/free warping"));
+        foreach(var end in new[]{new SteelEndRestraints(translation1:SteelRestraintState.Free),
+            new SteelEndRestraints(translation2:SteelRestraintState.Free),new SteelEndRestraints(rotation1:SteelRestraintState.Fixed),
+            new SteelEndRestraints(rotation2:SteelRestraintState.Fixed),new SteelEndRestraints(rotation3:SteelRestraintState.Free),
+            new SteelEndRestraints(warping:SteelRestraintState.Fixed)})foreach(bool start in new[]{true,false})
+            Assert.ThrowsException<ArgumentException>(()=>SteelAutomaticStability.UniformFork(new(b.Section,actions,b.Code,
+                new SteelMemberInput(3000,startRestraints:start?end:null,endRestraints:start?null:end)),bending,"fork/free warping"));
+        var fork=new SteelEndRestraints(translation1:SteelRestraintState.Fixed,translation2:SteelRestraintState.Fixed,
+            rotation1:SteelRestraintState.Free,rotation2:SteelRestraintState.Free,rotation3:SteelRestraintState.Fixed,warping:SteelRestraintState.Free);
+        var supplied=SteelAutomaticStability.UniformFork(new(b.Section,actions,b.Code,new SteelMemberInput(3000,3000,3000,3000,fork,fork)),bending,"fork");
+        var declared=SteelAutomaticStability.UniformFork(new(b.Section,actions,b.Code,new SteelMemberInput(3000)),bending,"fork");
+        CollectionAssert.AreEqual(declared.Select(v=>v.Value).ToArray(),supplied.Select(v=>v.Value).ToArray());
+    }
+
     [TestMethod]
     public void AutomaticPreparationRejectsUnqualifiedGradeGeometryActionsAndLengths()
     {

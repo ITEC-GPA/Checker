@@ -88,8 +88,14 @@ namespace GPC.Checkers.Steel.ModelAdapters
             if(type==typeof(SectionC)&&(((SectionC)shape).LengthTop!=((SectionC)shape).LengthBottom||((SectionC)shape).ThicknessTop!=((SectionC)shape).ThicknessBottom))
                 throw new NotSupportedException("Automatic channel torsional properties require equal flanges.");
             double length=input.Member.Length;
-            foreach(var effective in new[]{input.Member.BucklingLength1,input.Member.BucklingLength2})
+            foreach(var effective in new[]{input.Member.BucklingLength1,input.Member.BucklingLength2,input.Member.TorsionalBucklingLength})
                 if(effective.HasValue&&Math.Abs(effective.Value-length)>1e-10*length)throw new ArgumentException("Effective lengths conflict with the declared full-span fork scheme.");
+            bool Compatible(SteelRestraintState actual,SteelRestraintState expected)=>actual==SteelRestraintState.Unknown||actual==expected;
+            foreach(var end in new[]{input.Member.StartRestraints,input.Member.EndRestraints})
+                if(end!=null&&(!Compatible(end.Translation1,SteelRestraintState.Fixed)||!Compatible(end.Translation2,SteelRestraintState.Fixed)
+                    ||!Compatible(end.Rotation1,SteelRestraintState.Free)||!Compatible(end.Rotation2,SteelRestraintState.Free)
+                    ||!Compatible(end.Rotation3,SteelRestraintState.Fixed)||!Compatible(end.Warping,SteelRestraintState.Free)))
+                    throw new ArgumentException("End restraints conflict with the declared fork/free-warping scheme.");
             double e=input.Section.ElasticModulus,g=e/(2*(1+input.Section.PoissonRatio));
             double ix=s.J11,iy=s.J22,j=s.Jt,iw=s.Jw,area=s.Area;
             foreach(var v in new[]{ix,iy,j,area})SteelInputValidation.Positive(v,"gross section property");
