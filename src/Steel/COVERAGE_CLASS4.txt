@@ -1,0 +1,59 @@
+COPERTURA OPERATIVA STEEL / MODELCHECKER - 23/10/2026
+EC3: EN1993-1-1:2005 / EN1993-1-5:2006. Italia: NTC2018 e Circolare2019.
+Stati statici ordinari, unita' N/mm/MPa/Nmm; coefficienti separati per norma.
+
+Famiglia         N/M classe1-3    N/M classe4      Asta classe4
+H                si              si              comp./LTB/N-M doppia simmetria
+RHS/SHS          si              si (*)          comp./LTB/N-M doppia simmetria
+RHS raccordati   elastico        si (*)          comp./LTB/N-M doppia simmetria
+C                elastico N-M    si (**)         metodo generale esterno se simmetrico
+T                elastico N-M    si              metodo generale esterno
+L uguali         elastico N-M    si (**)         metodo generale esterno
+L disuguali      elastico N-M    si (**)         non qualificata
+CHS              si              gusci esclusi   non qualificata
+2C/2L identici   qualificato     non qualificato non qualificata
+pieni rett./circ.si              non pertinente  non pertinente
+
+(*) RHS spigoli vivi; raggi uniformi concentrici per RHSRoundedCorners.
+(**) Raccordo di radice ammesso; raggio alle punte C/L escluso dalla rimozione
+rettangolare corrente. Non significa che un profilo di catalogo non esista.
+Sono esclusi profili aperti formati a freddo e geometrie arbitrarie.
+
+AZIONI E METODI
+- N positivo trazione: area netta se forata; dichiarazione fori obbligatoria.
+- Classi1-3: primitive N/M/V; interazioni elastiche o plastiche H nel campo
+  qualificato; bounds conservativi N-V e M-V dove implementati.
+- Classe4: sezione efficace simultanea N/M1/M2, Ixy e spostamento baricentro.
+  E=210000MPa, nu=.3; nessun uso di Aeff come rigidezza globale implicita.
+- Classe4 + V: H, direzione anima; sotto0.5Vrd nessuna penalita' normale;
+  sopra0.5Vrd solo H doppiamente simmetrico, puro M1/V2, bound conservativo7.1.
+  Vrd da esclusione instabilita' o da Vbw con appoggi esplicitamente qualificati.
+- Torsione e interazioni con T non integrate nel selettore comune.
+- Aste classe1-3: compressione quattro modi su famiglie qualificate;
+  LTB principale H/C/T/RHS/CHS qualificati, L esclusi dal metodo prismatico.
+  N-M: H e tubolari doppiamente simmetrici Annex B; C/T/L uguali mediante
+  fattori da analisi esterna6.3.4. L disuguali non diventano mono-simmetrici.
+- Coppie con imbottiture: compressione globale classe1-3, passo/gap/lati
+  controllati; automazione opzionale componente assiale a forcella; inviluppi
+  e connessioni completi restano esterni. Nessun calastrello/traliccio.
+
+AUTOMAZIONI E TRACCIABILITA'
+EngineCatalog espone SteelParameterSchemas.Section/Member: chiavi, unita',
+tipi, alternative e obblighi. La validita' geometrica resta verificata a runtime.
+UniformFork calcola Ncr/Mcr solo nel proprio schema, senza dedurlo dalla mesh.
+Impronte di sezione/asta/stato associano le valutazioni esterne al modello.
+Report archiviati conservano formule, coefficienti, valori critici e fonti.
+Non valutabile, input mancante e mancata convergenza non producono un pass.
+
+ESEMPI E TEST
+Examples/SteelReferenceFrame: classi1-3, due stati, sezione+asta+archivio.
+Examples/SteelBeamColumnFrame: pressoflessione, azioni concomitanti/max d'asta.
+Examples/SteelClass4Frame: RHS/H classe4, taglio, mesh invertita, EC3/NTC.
+EffectiveSectionSolverTests: sei famiglie, entrambi i codici, carichi e limiti;
+benchmark SCI P363 UB610x178x82 S275/S355, tabellaB66, Aeff90.7/86.9cm2.
+EffectiveShearTests: SCI AD368 UKB406x140x39, arrotondamenti dichiarati.
+SharedEffectiveKernelTests: identita' del nucleo Steel e facade CompositeBridge.
+ExternalEffectiveMemberTests: fattori esterni, root indipendente, ambito normativo.
+PackedChordResistanceTests: integrali rettangolari e assi principali indipendenti.
+Ogni test definisce il proprio perimetro: nessun conteggio implica copertura
+di meccanismi esplicitamente esclusi sopra.

@@ -1,0 +1,27 @@
+ESEMPIO SENZA INTERFACCIA: SteelClass4Frame - 23/10/2026
+
+Modello di verifica con azioni analitiche gia' fattorizzate; non un solutore FEM.
+Due colonne RHS400x200x4 S355 di3m e traverso H UKB406x140x39 S355 di4m.
+Geometria traverso: h398, b141.8, tw6.4, tf8.6, r10.2 mm (SCI AD368).
+Due stati concomitanti q=10/15 N/mm: colonne N=-qL/2, traverso M=qx(L-x)/2,
+V=-q(L/2-x). Unita' N/mm/MPa/Nmm, N positivo a trazione.
+
+Colonne: lunghezze efficaci esplicite, ritegno torsionale ideale continuo,
+curve automatiche per la norma, Aeff e proprieta' lorde per Euler.
+Traverso: forcelle, ingobbamento libero, Mcr conservativo a momento uniforme
+pi/L sqrt(E I2 G It) senza contributo d'ingobbamento; Weff per LTB.
+Taglio: sola anima, appoggi non rigidi. La capacita' degli irrigidimenti,
+attacchi e introduzione della forza e' una condizione esterna dell'esempio.
+Nessun dimensionamento delle connessioni/appoggi e nessuna analisi globale FEM.
+
+Uso (riferimenti Model, ModelData, Persistence e Checker del medesimo set):
+  var model = SteelClass4Frame.Create(split:true, reverseSecond:true);
+  var configuration = SteelClass4Frame.Configure(model, ntc:true);
+  var request = EngineCatalog.BuiltIn().Compile(configuration);
+  var report = new GPC.Model.Checker.ModelChecker().Verify(model, request);
+  CheckReportArchive.Save(report.Jobs, stream);
+
+La classe e' sorgente di esempio, compilata in ModelChecker.Tests, non una
+nuova API della libreria. Configure usa lo stesso modello/azioni per EC3/NTC.
+I test confrontano asta intera con asta divisa e seconda parte invertita,
+verificano classe4, Aeff/Weff, Vbw e archiviazione. Entrambe le norme passano.
