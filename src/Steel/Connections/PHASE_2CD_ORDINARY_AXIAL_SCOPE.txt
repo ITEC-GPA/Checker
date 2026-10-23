@@ -1,0 +1,155 @@
+FASE 2c/2d - N ORDINARIA CONCOMITANTE A V: RISCONTRO E CAMPO APERTO
+Data: 24 ottobre 2026. Ricerca e test di dominio; nessuna nuova resistenza.
+
+CONCLUSIONE
+-----------
+N+V ordinaria rimane NotSupported nelle attuali FlexibleEndPlate e DoubleAngle.
+Le fonti primarie lette NON forniscono un campo ridotto, una soglia di 5 kN o
+una rigidezza minima del supporto che consenta di chiudere queste famiglie.
+AD395 non contiene formule o soglie numeriche di N. La piccolezza del rapporto
+N/V non autorizza a cancellare N. Le formule di tying non diventano ordinarie
+cambiando soltanto fu, fy o il coefficiente parziale.
+
+Non sono duplicati i kernel gia' disponibili e non viene introdotto un input
+di capacita' arbitraria del supporto accompagnato solo da una stringa-fonte.
+
+RISCONTRO NUOVO: SCI AD395 E AD396
+--------------------------------
+A. SCI, Advisory Desk 395, Abdul Malik, "Nominally pinned connections and
+axial forces", pubblicazione web 15 aprile 2016; ristampa NSC Technical
+Digest 2016, p.25. Testo completo letto il24/10/2026:
+https://www.newsteelconstruction.com/wp/ad-395-nominally-pinned-connections-and-axial-forces/
+https://www.newsteelconstruction.com/wp/wp-content/uploads/digi/2016pdf/NSCTechnicalDigest2016.pdf
+
+P358/P212 non trattano la combinazione ordinaria di sforzo normale e taglio.
+Il tiro accidentale viene controllato separatamente e ammette deformazioni
+irreversibili. Aumentare gli spessori per N puo' alterare la rotazione e il
+modello globale. AD395 non propone una deroga per N<=5kN ne' un algoritmo
+di interazione. Questo riscontro integra la precedente nota2c, non estende
+automaticamente una raccomandazione UK alla normativa italiana.
+
+B. SCI, Advisory Desk 396, Abdul Malik, "Tying resistance of flexible end
+plates in one-sided connections", pubblicazione web 11 marzo 2016;
+NSC Technical Digest 2016, p.25, Figure1-2. Testo completo letto:
+https://www.newsteelconstruction.com/wp/ad-396-tying-resistance-of-flexible-end-plates-in-one-sided-connections/
+
+Su anima o parete sottile unilateralmente collegata puo' verificarsi distacco,
+senza prying. SCI ha studiato il caso con analisi FE: nel tying la plasticita'
+locale dovuta al serraggio testa/dado fornisce resistenza aggiuntiva e rende
+ancora cautelativo il modello del Green Book. La nota non dimostra lo stesso
+risultato per N+V ordinaria, non pubblica una rigidezza limite e non contiene
+un benchmark numerico riproducibile per tale combinazione.
+
+FORMULE GIA' VERIFICATE E DIFFERENZA DI MODELLO
+---------------------------------------------
+EN1993-1-8:2005,6.2.4/Table6.2, p.68/PDF70, componente T-stub:
+  Mpl,i = 0.25*leff,i*t^2*fy/gammaM0;
+  F1 = 4*Mpl,1/m                       (forza concentrata, con prying);
+  F2 = (2*Mpl,2 + n*sum(Ft,Rd))/(m+n);
+  F3 = sum(Ft,Rd);
+  F_no_prying = min(2*Mpl,1/m, sum(Ft,Rd)).
+Il kernel distingue gia' questi modelli; non basta cambiare un enum dopo
+aver assunto il supporto indeformabile. Sono da stabilire contatto, effettive
+lunghezze, deformazione del supporto e risposta delle viti nel sistema reale.
+
+SCI P358(2014),Check11 p.26/PDF36 eAppendiciA-B pp277-278/PDF287-288:
+nel tying usa fu/gammaMu e grandi deformazioni; gammaMu=1.1 e' la proposta
+della guida. SBE-MS5(2009),4.3.1 pp63-65/PDF73-75, applica analogamente i tre
+modi alle doppie L e poi controlla bulloni, rifollamento e block tearing.
+Il modello non descrive la concomitanza ordinaria con V e con la rotazione.
+
+SCI P358 Check14 p.29/PDF39, formula letta anche nell'immagine locale:
+  Mpl,u = fu,w*tw^2/(4*gammaMu);
+  Fw,u = 8*Mpl,u/(1-beta) * [eta + 1.5*sqrt(1-beta)*sqrt(1-gamma)];
+  beta = gauge/dc;
+  eta = ((nRows-1)*pitch - nRows*d0/2)/dc;
+  gamma = d0/dc.
+dc e' la luce rettilinea tra raccordi dell'anima del pilastro. Mpl,u e' un
+momento per unita' di lunghezza [Nmm/mm=N], non [kNm/mm]. Il fattore1.5 include
+una allowance della fonte per compressione assiale del pilastro: non e' una
+legge d'interazione generale e non determina la rigidezza fuori piano.
+Il controllo riguarda una trave o due travi con tiri sbilanciati; l'assenza
+di risultante fuori piano per due tiri uguali non verifica le piastre, il
+contatto locale o i bulloni comuni. L'esempio di p.49 con405kN rimane tying.
+
+Fonti primarie:
+https://www.steelconstruction.info/images/a/a9/SCI_P358.pdf
+https://steelconstruction.info/images/5/53/SBE_MS5.pdf
+EN1993-1-8:2005 disponibile localmente, inclusi i corrigenda dell'esemplare.
+
+PRIMO BLOCCO RACCOMANDATO PER UN FUTURO N+V ORDINARIO
+--------------------------------------------------
+La prima nuova verifica necessaria per FlexibleEndPlate su ANIMA e' il
+componente fuori piano del supporto, accoppiato al contatto della piastra.
+Non e' ColumnWebComponents.TransverseTension: quest'ultimo riceve il tiro
+dalla flangia e lavora nel piano dell'anima. Non propongo per ora un nuovo
+calcolatore: mancano una legge analitica qualificata e un benchmark ordinario.
+
+Specificare e validare prima della codifica:
+1. Una sola trave, piastra parziale centrata, due colonne simmetriche di fori,
+   N di trazione e V verticale applicati in un centro dichiarato; nessuna
+   compressione implicita, momento cancellato o combinazione mescolata.
+2. Pannello reale del pilastro con spessore, luce, limiti longitudinali,
+   vincolo fornito dalle ali e loro deformabilita'. Il campo con azioni
+   preesistenti nulle e' accettabile come primo limite esplicito.
+3. Reazioni normali di ogni bullone e pressioni di contatto, compatibili con
+   deformazioni di piatto, anima e bulloni; restituzione di Q e T o inviluppo
+   resistente dimostrato. La sola somma di forze non determina questo stato.
+4. Resistenza/rigidezza fuori piano dell'anima, interazione con il taglio
+   introdotto e controllo delle superfici di contatto/punzonamento. Nessun
+   passaggio automatico dalla resistenza ultima di tying allo SLU ordinario.
+5. Chiusura con i kernel ordinari: BoltStrength/Bearing/Punching e assemblaggio
+   NTC4.2.71; FilletWeldGroup per azioni concomitanti; anima della trave;
+   interazione locale della piastra; compatibilita' della rotazione richiesta.
+6. Benchmark indipendente che comprenda geometria, materiale, carichi N+V,
+   vincoli, forze dei bulloni/contatto e almeno una grandezza di deformazione.
+
+Per DoubleAngle su FLANGIA il supporto4a/4b e' piu' vicino al modello fisico,
+ma resta da qualificare la L caricata alla gamba bullonata verso la trave:
+eccentricita', flessione delle due gambe, prying, riparto e interazione N/V.
+EN6.2.6.6 riguarda il flange cleat nel suo dettaglio; la rotazione degli assi
+non dimostra da sola che il modello copra il web cleat. Non aggiungere due
+T-stub in parallelo senza dimostrare le azioni e la compatibilita'.
+
+I kernel esistenti gia' consentono verifiche isolate con N+V, ad esempio dei
+cordoni mediante FilletWeldGroup. Un ulteriore wrapper per questo solo fatto
+non chiuderebbe nessun punto resistente mancante della catena2c/2d.
+
+ALTERNATIVA DI GEOMETRIA, DA NON INSERIRE SILENZIOSAMENTE NELLE DUE API
+-------------------------------------------------------------------
+SCI P416(2017),2.2 pp6-7,Figura2.3 e2.3 p.8:
+https://www.steelconstruction.info/images/e/e5/SCI_P416.pdf
+propone, per collegamenti ad elementi in calcestruzzo, un percorso distinto:
+piastra orizzontale di trazione, appoggio per V e ritegno torsionale che non
+trasmetta N. E' un'indicazione progettuale per una nuova famiglia, non una
+formula verificata per queste due famiglie su pilastro d'acciaio. Il momento
+N*e dovuto al percorso eccentrico va conservato anche nell'asta. Mancano qui
+le verifiche di dettaglio del relativo supporto metallico e il benchmark:
+non viene implementata una connessione per sola analogia.
+
+TEST DI DOMINIO ESEGUITI
+--------------------------
+SimpleJointOrdinaryAxialScopeTests.cs:22casi, nessuna modifica produzione.
+- EC eNTC ordinari distinti: gammaM2=1.25, nessun gammaMu UK implicito.
+- Ogni famiglia rifiuta N=+/-5000N e+/-1e-12N con V100000N; nessuna soglia
+  numerica priva di fonte, ne' cancellazione di una piccola azione.
+- Coppia di endplate con tiri locali uguali: il bilancio globale normale
+  non deve aggirare il campo delle singole piastre o dei bulloni comuni.
+- Due controlli N=0 mostrano che le fixture sono nel campo ordinario attuale.
+- NotSupported implica zero check e nessun utilizzo; gli input conservano N.
+
+Non sono test di resistenza N+V: impediscono di dichiararla implementata
+mediante una regressione del gate. Installati ed eseguiti centralmente:
+22/22passati al primo run. Nessuna formula resistente aggiunta.
+
+
+2c/2d - REGRESSIONI DEL DOMINIO ORDINARIO, STEEL2.71.0.0
+22/22nuovi casi passati al primo run, nessuna formula di produzione nuova.
+SCI AD395/AD396: tying accidentale distinto da N+V ordinaria. Nessuna
+soglia inventata5kN o cancellazione di piccole azioni; tiri locali opposti
+non sbloccano piastre/contatto/bulloni comuni solo per equilibrio globale.
+Per EC/NTC, azione fuori campo implica NotSupported e nessun utilizzo.
+La resistenza ordinaria N+V rimane aperta, esplicitamente documentata.
+Log/TRX workspace audit-results/connections/night-2cd-ordinary-axial-scope.
+Versione incrementata per estensione della validazione, nessuna pretesa
+di nuova funzionalita resistente o modifica agli attesi legacy.

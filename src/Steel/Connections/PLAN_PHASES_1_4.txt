@@ -37,10 +37,10 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1522 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 1544 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,
    83componenti doppie squadrette/supporto,208precarico/scorrimento,300continuitaI,
-   40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,26rigidezza rotazionale,70classificazione/criteri rotazione.
+   40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,26rigidezza rotazionale,70classificazione/criteri rotazione,22dominioN+V.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
@@ -77,6 +77,12 @@ FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
 2g PARZIALE - Casi completi indipendenti per famiglia, meccanismo governante,
    esito fuori campo ed esempio utilizzabile dalla futura interfaccia.
    Disponibili per2a/2b e per il campo ordinario2d.1/2d.2; tying escluso.
+
+2c/2d DOMINIO -22test SCI AD395/396: N+V ordinaria resta esplicitamente
+   fuori campo, anche per piccoliN o tiri opposti che si annullano sul
+   supporto. Nessuna nuova resistenza dichiarata; tying e separato.
+   PHASE_2CD_ORDINARY_AXIAL_SCOPE.txt precisa il componente fuori piano
+   e il benchmark ordinario ancora necessari.
 
 FASE 3 - CONTROVENTI E PROFILI ACCOPPIATI
 3a PARZIALE - Chiusa3a.1: unico gruppo bullonato, fazzoletto rettangolare

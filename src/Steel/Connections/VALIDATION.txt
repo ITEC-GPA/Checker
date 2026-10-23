@@ -378,3 +378,15 @@ La resistenza completa e fornita come evidenza esterna; un ComponentSubset
 non puo diventarlo implicitamente. Nessuna capacita in radianti inventata,
 nessuna equivalenza rigido/full-strength e nessuna qualifica globale.
 Log/TRX workspace audit-results/connections/night-4f-classification-rotation.
+
+
+2c/2d - REGRESSIONI DEL DOMINIO ORDINARIO, STEEL2.71.0.0
+22/22nuovi casi passati al primo run, nessuna formula di produzione nuova.
+SCI AD395/AD396: tying accidentale distinto da N+V ordinaria. Nessuna
+soglia inventata5kN o cancellazione di piccole azioni; tiri locali opposti
+non sbloccano piastre/contatto/bulloni comuni solo per equilibrio globale.
+Per EC/NTC, azione fuori campo implica NotSupported e nessun utilizzo.
+La resistenza ordinaria N+V rimane aperta, esplicitamente documentata.
+Log/TRX workspace audit-results/connections/night-2cd-ordinary-axial-scope.
+Versione incrementata per estensione della validazione, nessuna pretesa
+di nuova funzionalita resistente o modifica agli attesi legacy.
