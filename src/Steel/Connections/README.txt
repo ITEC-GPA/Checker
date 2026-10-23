@@ -1,0 +1,135 @@
+CONNESSIONI STANDARD - PRIMO CASO QUALIFICATO
+==========================================
+
+API: GPC.Checkers.Steel.Connections.DoubleCoverSplice.Verify(input)
+Metodo: Steel.Connection.DoubleCoverSplice.Tension
+
+CAMPO DEL METODO
+Giunto piano tra due piatti rettangolari identici, con due coprigiunti identici,
+uno per faccia, disposti simmetricamente rispetto al piano medio. Trasmissione
+per taglio/rifollamento, senza precarico, imbotiture, saldature o contatto di testa.
+Carico statico di sola trazione centrata. I bulloni non sono tesi lungo il gambo.
+Due colonne trasversali di bulloni, Rows file longitudinali per ciascun lato
+della giunzione. Fori tondi normali, non svasati; classi 8.8 o 10.9, acciaio al
+carbonio ordinario con fy <= 460 MPa. Resistenze del materiale assegnate dal
+chiamante per il prodotto e lo spessore effettivi. Non acciaio patinabile.
+
+Non e' un giunto completo trave/colonna a I: eventuali ali/anima, ripartizioni
+fra componenti e verifiche della membratura vanno trattate dal relativo nodo.
+Nessuna modifica ad ANTHEA, persistenza, converter o Model in questa fase.
+
+GEOMETRIA E AZIONI
+Unita': mm, mm2, MPa=N/mm2, N, Nmm. N positivo a trazione lungo asse locale 3.
+V1 e' nel piano dei piatti, V2 fuori piano; T attorno a 3, M1/M2 attorno a 1/2,
+con la convenzione di SteelActions. Le sei azioni concomitanti sono obbligatorie
+e gia' fattorizzate dal chiamante. Il motore non genera combinazioni.
+
+Vista longitudinale (ciascuna 'o' rappresenta due bulloni distanti Gauge):
+
+     bordo coprigiunto                                  bordo coprigiunto
+       |--CoverEnd--o--Pitch--o--MainEnd--| |--MainEnd--o--Pitch--o--CoverEnd--|
+    <- N          piatto sinistro       | |       piatto destro           N ->
+                                      gap
+       <---------------- due coprigiunti continui identici ---------------->
+
+Rows=2 nel disegno; per Rows generico Lj=(Rows-1)*Pitch.
+CoverLength=2*(CoverEnd+Lj+MainEnd)+ButtGap.
+Ogni gruppo ha 2*Rows bulloni: il totale e' 4*Rows. Ogni lato trasferisce N.
+Le file sono numerate dal giunto verso l'esterno: Row1 adiacente alla testa del
+piatto; RowRows adiacente al bordo libero del coprigiunto. I due gruppi sono
+speculari. Gauge e' centrato: e2=(Width-Gauge)/2 per ciascun tipo di piatto.
+Il coprigiunto non puo' essere piu' largo del piatto centrale.
+
+Riparto simmetrico: ciascun coprigiunto trasferisce N/2, ciascun bullone N/(2*Rows)
+su due piani di taglio, ciascun piano N/(4*Rows). Nessuna eccentricita' secondaria
+da singolo coprigiunto. Entrambi i piani hanno la medesima condizione di filettatura.
+Le due lamiere principali sono identiche; i controlli 'Main' valgono per entrambe.
+Gli esiti 'EachCoverBearing' valgono separatamente per ognuno dei due coprigiunti.
+
+VERIFICHE SLU
+- Taglio di ogni bullone sui due piani, inclusa riduzione per giunti lunghi.
+- Rifollamento della lamiera centrale e di ogni coprigiunto, distinguendo bulloni
+  di estremita' e interni lungo N. Trasversalmente le due colonne sono di bordo.
+- Snervamento lordo e rottura netta di ogni tipo di piatto.
+- Block tearing: percorsi simmetrici interno ed esterno; si considera il peggiore.
+  Anv=2*t*(e1+Lj-(Rows-0.5)*d0); Ant interno=t*(Gauge-d0);
+  Ant esterno=t*(2*e2-d0). Non vengono sommate resistenze di percorsi alternativi.
+
+Si impone un riparto uguale della forza fra bulloni e si verifica ciascun bullone:
+non si usa la maggiore capacita' ottenibile con redistribuzione plastica del gruppo.
+Per la sezione netta viene cautelativamente utilizzata la forza intera del piatto.
+Minimi geometrici: e1,e2 >= 1.2*d0; p1 >= 2.2*d0; Gauge >= 2.4*d0.
+Massimo qualificato per entrambi i passi: min(14*t_min,200 mm), anche quando la
+norma consente geometrie piu' ampie per una specifica disposizione. Per esposizione
+corrosiva: bordi <= 4*t_min+40 mm. t_min e' il minore spessore collegato.
+Per una sola fila Pitch non entra nei controlli fisici o nelle resistenze.
+
+NORME E COEFFICIENTI
+EC: EN 1993-1-8:2005 (corrigenda della copia consultata) e EN 1993-1-1:2005.
+NTC: D.M. 17/01/2018, Capitolo 4.2. Non si mescolano edizioni con gli Eurocodici
+di seconda generazione. Il metodo NTC usa EN 1993-1-8 per giunti lunghi e block
+tearing non esplicitati dalle formule NTC del paragrafo bullonature; i riferimenti
+integrativi rimangono visibili nel risultato.
+
+ConnectionDesignCode.Ntc2018(): gammaM0=1.05, gammaM2 piatti=1.25,
+gammaM2 bulloni/rifollamento=1.25. La formula NTC di rifollamento per bullone di
+bordo non contiene il termine trasversale di passo presente nella Tabella3.4 EC3.
+ConnectionDesignCode.Eurocode3(gammaM0,gammaM2Plate,gammaM2Connection,parameterSet):
+tutti i fattori sono espliciti, senza selezione implicita dell'annesso nazionale.
+GammaM2Plate governa rottura netta e termine a trazione del block tearing;
+GammaM2Connection governa taglio bulloni e rifollamento. SCI P358 usa rispettivamente
+1.1 e 1.25 nel contesto UK: questi valori sono riprodotti solo nel suo benchmark.
+ParameterSet documenta la provenienza dichiarata; non certifica i valori forniti.
+
+Diametri qualificati 12..36 mm. Gioco diametrale massimo qualificato: 1 mm per
+d <= 14, 2 mm per 14 < d <= 24, 3 mm oltre. M12/M14 con gioco 2 mm sono esclusi:
+richiedono le condizioni aggiuntive e il fattore 0.85 di EN1993-1-8 3.6.1(5).
+NTC: se il gioco supera 1 mm per d<=20 o 1.5 mm per d>20, occorre la provenienza
+di una verifica SLE dei possibili assestamenti, HoleClearanceServiceabilitySource.
+Questa evidenza e' fornita dal chiamante, conservata nell'input, non calcolata qui.
+La presenza di un testo non equivale a una verifica SLE eseguita dal motore.
+
+ESITI E TRACCIABILITA'
+Input immutabili, risultato immutabile, controlli con ID stabili, azione, resistenza,
+utilizzazione e riferimento; traccia di aree, fattori e riparto con unita'.
+Passed/Failed riguardano solo le verifiche SLU nel campo dichiarato in Scope.
+IsComplete significa che tale insieme e' stato valutato, non che l'intera struttura
+sia verificata. NotSupported non contiene controlli parziali favorevoli o rapporto
+globale: azioni anche minime fuori campo non vengono trascurate.
+Dimensioni non positive, NaN/infinito e materiali incoerenti sollevano eccezioni
+di input; non generano un esito positivo. Fy/Fu sono valori caratteristici forniti,
+non ricavati automaticamente da un nome di acciaio.
+
+FUORI CAMPO
+Compressione, momenti/tagli globali, fatica, duttilita' sismica, rigidezza/rotazione,
+scorrimento e deformabilita' SLE, bulloni precaricati/svasati, fori asolati o
+maggiorati, imbotiture, saldature, coprigiunti diversi, passi non uniformi,
+acciaio patinabile, gruppi non centrati. Sono sviluppi separati, non implicitamente
+coperti da una verifica del solo bullone o piatto.
+
+FONTI CONTROLLATE IL 23/10/2026
+1. EN1993-1-8:2005, Tabella3.4 p27 (PDF29), 3.6.1(5) p25 (PDF27), 3.7/3.8
+   p30 (PDF32), 3.10.2 p32 (PDF34). Copia del testo normativo:
+   https://www.phd.eng.br/wp-content/uploads/2015/12/en.1993.1.8.2005-1.pdf
+2. NTC2018, Tabella4.2.XVIII e prescrizione fori p110; formule4.2.63-71 p111.
+   Testo D.M.17/01/2018, Supplemento ordinario n8 alla G.U. n42 del20/02/2018.
+   https://www.gazzettaufficiale.it/eli/id/2018/02/20/18A00716/sg
+3. SCI/BCSA P358, ristampa2014, cap6: p179 procedura piatto teso e block tearing;
+   cap6.9 esempio3 foglio9/9 p225 (PDF235), aree e resistenze del coprigiunto.
+   https://www.steelconstruction.info/images/a/a9/SCI_P358.pdf
+
+PROVE E LIMITI DEL CONFRONTO INDIPENDENTE
+DoubleCoverSpliceTests: esempio SCI per un componente, calcolo manuale del giunto
+rettangolare completo (EC e NTC), riparto, materiali, piani di taglio, percorsi,
+giunti lunghi, geometria limite e rifiuto dei casi fuori campo. SCI non pubblica
+qui questo esatto doppio coprigiunto rettangolare: non viene presentato come tale.
+Le aree del benchmark SCI sono 3000,2376,888,4776 mm2; resistenze pubblicate
+825 e797 kN, con tolleranza 0.5 kN sul valore arrotondato. Gli altri attesi sono
+formule indipendenti nei test, senza chiamare il motore per costruire gli attesi.
+
+PASSI SUCCESSIVI
+1. Componenti saldati e gruppi eccentrici: qualificazione separata con benchmark.
+2. Fin plate e squadrette: includere lamiera, saldature e parte del supporto.
+3. Fazzoletto di controvento, poi nodi a momento con metodo delle componenti.
+4. Piastre di base e ancoraggi, quindi nodi tubolari entro i limiti normativi.
+I risultati restano consumabili dalle librerie; integrazione ANTHEA da decidere.
