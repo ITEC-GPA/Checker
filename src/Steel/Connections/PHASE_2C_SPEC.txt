@@ -213,3 +213,9 @@ F) La fonte consente benchmark di tying, ma solo dopo qualificazione separata;
   piccoli non ammessi, compressione/contact e supporti non qualificati.
 - Tying futuro: modi T-stub, effetto leva, punzonamento, pressione di contatto,
   combinazioni corrette e distinzione fra fattori accidentali e ordinari.
+
+RIESAME2c.3 - 23/10/2026
+Il Check10 SCI P358 riguarda le piastre di estremita; il documento non include
+le squadrette. Non se ne assume automaticamente l'equivalenza per il supporto
+delle L, soprattutto per flessione locale e azioni parassite. Nessun nuovo
+esito complessivo introdotto senza modello qualificato. Avanza intanto2e.

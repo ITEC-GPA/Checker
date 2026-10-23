@@ -57,9 +57,9 @@ FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
    non intagliata su anima di pilastro. Anche coppia contrapposta con bulloni
    comuni e domanda sommata sul supporto; 56test passati. Trazione parassita
    SCI e piena resistenza saldature esplicite. Tying2d.3 attende4a; PHASE_2D_SPEC.txt.
-2e DA FARE - Continuita con piatti: estendere il coprigiunto alle configurazioni
-   di continuita previste e al riparto fra parti del profilo; definire azioni
-   combinate ammesse e non generalizzare il solo caso in trazione gia chiuso.
+2e PARZIALE - Chiusa2e.1: riparto elastico N-V-M fra ali/anima e sei gruppi
+   bullonati sui due lati,75test SCI P398 e analitici. Restano2e.2 bulloni,
+   2e.3 piatti/stabilita/interazioni e2e.4 nodo completo; PHASE_2E_SPEC.txt.
 2f PARZIALE - Fin plate/end plate distinguono conformita al dettaglio SCI e
    qualificazione esterna del modello globale. Restano rigidezza/rotazione
    calcolate e classificazione generale; Passed a taglio non certifica cerniera.

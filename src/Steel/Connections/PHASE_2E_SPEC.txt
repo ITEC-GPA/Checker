@@ -1,0 +1,68 @@
+FASE 2e - GIUNTI DI CONTINUITA DI PROFILI I/H CON COPRIGIUNTI
+==========================================================
+23/10/2026. Ambito iniziale: due sezioni laminate I/H uguali, allineate,
+gruppi rettangolari speculari, azioni statiche nel piano dell'anima.
+Nessun appoggio diretto delle estremita in compressione viene assunto.
+
+2e.1 CHIUSA - Riparto elastico N-V-M fra ali e anima e forze bulloni su entrambi
+i lati. IBeamSpliceForces.Calculate; 75 test passati, benchmark e ricalcoli
+indipendenti, tutti i segni, equilibrio di sei azioni e fuori campo.
+2e.2 DA FARE - Componenti bullonati: resistenza SLU e scorrimento con azioni
+SLE/SLU distinte; doppio taglio nell'anima, singolo alle ali nel primo dettaglio.
+2e.3 DA FARE - Piatti e sezioni: rifollamento, lordo/netto, block tearing,
+compressione e instabilita dei coprigiunti, interazione N-V-M dell'anima.
+2e.4 DA FARE - Assemblaggio del nodo con geometria completa, distanze, materiali
+per spessore, classificazione, collegamento al contratto Model e benchmark
+completo EC/NTC. Nessun esito complessivo prima della chiusura dei meccanismi.
+
+FONTI VERIFICATE
+SCI P398 (2013), cap4 Step1 p53, esempio D.1 pp129-140 (pagine PDF+8).
+https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
+EN1993-1-8:2005 6.2.7.1(16): all'anima restano taglio, eccentricita dei gruppi
+e quota propria del momento. Non trasferire quest'ultima alle ali per rendere
+favorevole una verifica. La distribuzione e' meccanica e comune a EC/NTC;
+i fattori britannici del benchmark non diventano fattori NTC.
+
+CONTRATTO E SEGNI
+Input immutabili in N, mm, Nmm. Base globale destra: X lungo trave verso
+destra, Y alto, Z normale all'anima. Azioni trasmesse AL MEMBRO SINISTRO;
+il destro riceve azioni opposte. Fx positivo=tensione; Mz positivo comprime
+l'ala superiore. Il polo puo' essere spostato nel piano; M0=Mz+x*Fy-y*Fx.
+Fz, Mx, My o un polo fuori piano non vengono scartati: NotSupported.
+Le posizioni bulloni sono riferite alla mezzeria del giunto, non al bordo
+libero. Layout identici sopra/sotto, speculari a destra/sinistra.
+Anima: base locale(X,Y,Z). Ali: base locale(X,Z,-Y), collocate alle ordinate
++/-(h-tf)/2. Le forze delle ali sono concentrate nelle rispettive mezzerie;
+la flessione secondaria dei singoli coprigiunti non e' qui verificata.
+
+RIPARTO SCI
+hw=h-2tf; Aw=hw*tw; Iw=tw*hw^3/12; z=h-tf.
+Nw=N*Aw/A; Mw=M*Iw/Iy; Vw=V.
+Ntop=(1-Aw/A)*N/2-(1-Iw/Iy)*M/z;
+Nbottom=(1-Aw/A)*N/2+(1-Iw/Iy)*M/z.
+A e Iy sono lordi, comprensivi dei raccordi. Iy e' fornito e confrontato con
+l'integrale geometrico dei rettangoli e dei quattro raccordi circolari:
+tolleranza0.5%, coerente con gli arrotondamenti del profilario gia ammessi per A.
+ElasticBoltGroup trasporta le azioni ai baricentri dei sei gruppi. Si ricostruisce
+poi l'equilibrio dei tagli dei due membri dalle effettive forze bulloni.
+I test ricostruiscono anche tutte le sei azioni nella base globale.
+Non si somma |V*e| a entrambi i gruppi; i bracci sono firmati.
+
+BENCHMARK E REFUSO DELLA FONTE
+457x191x67UKB: h453.4,b189.9,tw8.5,tf12.7,r10.2,A8550,Iy294000000.
+SLU N=-150000,V=-150000,M=-200000000; SLE -100000,-100000,-133000000.
+Gruppo anima per lato:2colonne a70/155mm,3file ordinate-120/0/120.
+Gruppo per ciascuna ala/lato:3file a60/140/220mm,2colonne a+/-60mm.
+P133 stampa150*(0.070+0.085/2)=16.6kNm; il prodotto esatto e'16.875kNm.
+Jbulloni=68437.5mm2, arrotondato nella fonte a68400.
+Il codice usa quote esatte: massimo SLU121695.045301N, SLE81014.502915N.
+Confronto con121/81kN pubblicati separato dai ricalcoli a tolleranza stretta.
+Fixture immutata rispetto alla trascrizione; nessun atteso legacy alterato.
+
+LIMITI DEL RISULTATO
+Balanced significa solo riparto equilibrato, non resistenza o nodo verificato.
+Il risultato non espone un rapporto di utilizzo o Passed. Su errore, Resultants
+e BoltGroups non sono disponibili; sono restituiti diagnostici espliciti.
+Nessuna rigidezza/capacita rotazionale, resistenza dei piatti o stabilita e'
+dedotta dal solo equilibrio. I minimi convenzionali di progetto, gli effetti
+del secondo ordine e le azioni aggiuntive restano input del modello globale.

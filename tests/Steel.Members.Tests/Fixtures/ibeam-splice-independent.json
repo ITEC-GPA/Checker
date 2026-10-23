@@ -1,0 +1,30 @@
+{
+  "source": "SCI P398 (2013), section 4 Step 1 p53; Example D.1 pp129-134 (PDF137-142)",
+  "url": "https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf",
+  "field": "Force distribution only. Source UK factors do not enter these mechanical calculations.",
+  "geometry": {"h_mm":453.4,"b_mm":189.9,"tw_mm":8.5,"tf_mm":12.7,"r_mm":10.2,"A_mm2":8550,"Iy_mm4":294000000},
+  "notes": [
+    "Source axial compression is positive. API actions on the left member use Fx<0 for compression, Fy<0 downward, Mz<0 for top flange tension.",
+    "p133 prints 16.6kNm for 150kN*(0.070+0.085/2)m. Exact multiplication gives 16.875kNm. The published value is retained below, never used to calibrate code.",
+    "p133 rounds the bolt polar moment 68437.5mm2 to 68400mm2. Ratios of web area/inertia are also rounded in the publication.",
+    "Independent calculations use 35-digit decimal arithmetic from stated dimensions, not production-code output. No source capacity is inferred from Balanced."
+  ],
+  "published": {
+    "ulsTop_N":325000,"ulsBottom_N":-411000,"ulsWebAxial_N":-63900,"ulsWebMoment_Nmm":-37800000,
+    "ulsAdditionalMomentPrinted_Nmm":16600000,"ulsMaximumBolt_N":121000,
+    "slsTop_N":216000,"slsBottom_N":-274000,"slsWebAxial_N":-42600,"slsWebMoment_Nmm":-25100000,"slsMaximumBolt_N":81000
+  },
+  "independent": {
+    "webArea_mm2":3638,"webIy_mm4":55535282.666666666666666666666666667,
+    "webAxialFraction":0.42549707602339181286549707602339181,"webMomentFraction":0.18889551927437641723356009070294785,
+    "boltJ_mm2":68437.5,"ulsAdditionalMoment_Nmm":16875000,
+    "ulsTop_N":325010.52473425884830502569540429678,"ulsBottom_N":-411185.96333075007637520113400078800,
+    "ulsWebAxial_N":-63824.561403508771929824561403508772,"ulsWebMoment_Nmm":-37779103.854875283446712018140589570,
+    "ulsLeftMoment_Nmm":-54654103.854875283446712018140589570,"ulsRightMoment_Nmm":20904103.854875283446712018140589570,
+    "ulsMaximumBolt_N":121695.04530109138200852778771580567,
+    "slsTop_N":216060.18608278505809945027457836029,"slsBottom_N":-273510.47848044587681290056697602111,
+    "slsWebAxial_N":-42549.707602339181286549707602339181,"slsWebMoment_Nmm":-25123104.063492063492063492063492064,
+    "slsLeftMoment_Nmm":-36373104.063492063492063492063492064,"slsRightMoment_Nmm":13873104.063492063492063492063492064,
+    "slsMaximumBolt_N":81014.502915240958764203024916026042
+  }
+}
