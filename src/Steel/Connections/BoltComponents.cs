@@ -5,7 +5,7 @@ using GPC.Checkers.Steel.Sections;
 
 namespace GPC.Checkers.Steel.Connections
 {
-    /// <summary>Force resultants on one non-preloaded bolt; N/mm. No clamping/contact model.
+    /// <summary>Force resultants for bolt strength; N/mm. Preload/slip and contact are separate.
     /// JointLength is the distance between the end fasteners in the force-transfer direction.
     /// PackingThickness is the thicker packing for a connection with two shear planes.</summary>
     public sealed class BoltStrengthInput
@@ -73,7 +73,7 @@ namespace GPC.Checkers.Steel.Connections
             }
             trace.RemoveAll(v => double.IsNaN(v.Value) || double.IsInfinity(v.Value));
             return new ConnectionVerification<BoltStrengthInput>(p, p.Code, "Steel.Connection.Bolt.Strength",
-                "One 8.8/10.9 non-preloaded bolt, normal round hole, one/two identical shear planes. "
+                "One 8.8/10.9 bolt strength check, normal round hole, one/two identical shear planes. "
                 + "Only bolt shear/tension/interaction; no bearing, punching, slip or parent-joint qualification. "
                 + "NTC2018 equation 4.2.71 additionally requires the assembled plate/bearing/punching resistances.",
                 checks, trace, issues, new[] { "Bolts conform to the referenced product/thread execution standards; no countersunk or fitted bolts.",

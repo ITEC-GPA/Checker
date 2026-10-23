@@ -7,8 +7,12 @@ Nessun appoggio diretto delle estremita in compressione viene assunto.
 2e.1 CHIUSA - Riparto elastico N-V-M fra ali e anima e forze bulloni su entrambi
 i lati. IBeamSpliceForces.Calculate; 75 test passati, benchmark e ricalcoli
 indipendenti, tutti i segni, equilibrio di sei azioni e fuori campo.
-2e.2 DA FARE - Componenti bullonati: resistenza SLU e scorrimento con azioni
-SLE/SLU distinte; doppio taglio nell'anima, singolo alle ali nel primo dettaglio.
+2e.2 CHIUSA nel campo dei soli componenti bullonati - Resistenza SLU e
+scorrimento con azioni SLE/SLU distinte; doppio taglio nell'anima, singolo alle
+ali. IBeamSpliceBolts.VerifyStrength/VerifySlip;39test nuovi passati.
+Sono incluse entrambe le facce del giunto, le riduzioni Lj e la verifica degli
+ingombri geometrici dell'hardware. Rifollamento e distanze normative dei piatti
+richiedono2e.3/2e.4: Passed di questi componenti non qualifica il nodo.
 2e.3 DA FARE - Piatti e sezioni: rifollamento, lordo/netto, block tearing,
 compressione e instabilita dei coprigiunti, interazione N-V-M dell'anima.
 2e.4 DA FARE - Assemblaggio del nodo con geometria completa, distanze, materiali
@@ -66,3 +70,55 @@ e BoltGroups non sono disponibili; sono restituiti diagnostici espliciti.
 Nessuna rigidezza/capacita rotazionale, resistenza dei piatti o stabilita e'
 dedotta dal solo equilibrio. I minimi convenzionali di progetto, gli effetti
 del secondo ordine e le azioni aggiuntive restano input del modello globale.
+
+
+2e.2 - RESISTENZA E SCORRIMENTO DEI BULLONI
+IBeamSpliceBoltSet dichiara un coprigiunto esterno per ala e due coprigiunti
+uguali nell'anima. La domanda del bullone nell'anima e' totale: i due piani
+entrano una sola volta nella resistenza. La forza assiale dell'ala, anche tesa,
+e' taglio nel bullone, non trazione lungo il gambo.
+Si riusano BoltStrength e BoltSlip, con politiche EC/NTC esplicite. La sola
+descrizione del primo e' aggiornata per includere il controllo resistente SLU
+dei bulloni precaricati di categoria B: EN1993-1-8 3.4.1, senza modifica delle
+formule comuni. Il controllo del rifollamento richiesto dalla categoriaB
+appartiene alla successiva2e.3, non e' stato omesso implicitamente.
+Le azioni sono obbligatorie per ogni combinazione, senza conversione SLE/SLU.
+Le superfici di attrito delle ali e dell'anima possono avere coefficienti diversi;
+serraggio, qualificazione degli assemblaggi e fonte delle combinazioni espliciti.
+In NTC rimane necessaria l'evidenza SLE del gioco M20/22.
+
+Lj delle ali e' lo sviluppo longitudinale del singolo gruppo. Per l'anima,
+con direzioni variabili delle forze, si usa prudenzialmente la diagonale del
+gruppo, che maggiora tutte le sue proiezioni. Non e' presentata come definizione
+letterale della norma. Nessuna esenzione automatica dai giunti lunghi.
+Gli ingombri reali di testa/dado/rondella sono forniti dal chiamante, almeno
+pari al diametro foro; si controllano sovrapposizioni, bordo disponibile,
+interferenza con anima/raccordi sotto le ali. Questi controlli non sostituiscono
+le distanze minime/massime normative, gli spessori dei piatti o l'accesso utensili.
+
+Benchmark P398 p132: Fv singolo94080N,doppio188160N; scorrimento SLE singolo
+62363.636364N,doppio124727.272727N (mu0.5,8.8,M20,As245,gammaM3ser1.10).
+Con le azioni esatte della fixture: utilizzo massimo dei soli bulloni
+0.728433183338SLU e0.730956089233SLE, governano quelli dell'ala compressa.
+Questi due rapporti non sono l'utilizzo dei piatti o del giunto completo.
+Il ricalcolo indipendente e' riproducibile anche con il solo Python standard:
+tests/Steel.Members.Tests/Fixtures/derive_ibeam_splice.py (non modifica fixture).
+
+ESEMPIO MINIMO C# (N/mm, esempio SCI, non progetto completo)
+var code = ConnectionDesignCode.Eurocode3(1, 1.1, 1.25, "SCI P398 UK example");
+var section = new ConnectionRolledISection(453.4,189.9,8.5,12.7,10.2,8550,275,410);
+var web = new SpliceBoltLayout(2,3,85,120,70);
+var flange = new SpliceBoltLayout(3,2,80,120,60);
+var ultimate = new IBeamSpliceForceInput(section,294000000,
+    new PlanarConnectionActions(-150000,-150000,0,0,0,-200000000),web,flange);
+var service = new IBeamSpliceForceInput(section,294000000,
+    new PlanarConnectionActions(-100000,-100000,0,0,0,-133000000),web,flange);
+var bolt = new ConnectionBolt(20,22,245,ConnectionBoltGrade.Class8_8,true);
+var set = new IBeamSpliceBoltSet(bolt,bolt,37,37);
+var strength = IBeamSpliceBolts.VerifyStrength(
+    new IBeamSpliceBoltStrengthInput(code,ultimate,set,"P398 D.1 SLU"));
+var slip = IBeamSpliceBolts.VerifySlip(new IBeamSpliceBoltSlipInput(
+    BoltSlipPolicy.Eurocode3(code,1.25,1.10),service,set,BoltSlipLimitState.Serviceability,
+    0.5,0.5,BoltTighteningControl.Controlled,"assemblaggi qualificati",
+    "superfici qualificate per mu0.5","P398 D.1 SLE"));
+// strength/slip.Scope dichiarano i controlli mancanti del nodo.
