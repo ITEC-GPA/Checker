@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
-Versione sorgenteSteel2.54.0.0. Solo librerie, nessuna interfacciaANTHEA.
+Versione sorgenteSteel2.57.0.0. Solo librerie, nessuna interfacciaANTHEA.
 Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
 
 COMPONENTI
@@ -8,11 +8,20 @@ COMPONENTI
 - BoltSlip: precarico e scorrimento, azioniSLE/SLU distinte; PHASE_1B_SLIP.txt.
 - ElasticBoltGroup: riparto/equilibrio, non resistenza; PHASE_1C.txt.
 - FilletWeldResistance/FilletWeldGroup: cordoni e gruppi; PHASE_1D.txt.
+- TStubTension/TStubBoltRows: modi resistenti, leva, file singole e tutti i
+  gruppi contigui; PHASE_4A_TSTUB.txt. Forze concomitanti fornite dal chiamante.
+- TStubEffectiveGeometry: lunghezze da flangia di pilastro non irrigidita e
+  singola fila esterna di piastra estesa; PHASE_4A_GEOMETRY.txt. CreateInput
+  collega geometria e resistenza senza sommare capacita delle singole file.
+- BraceAngleTension: lordo/netto efficace dell'angolare collegato su un lato,
+  lato lungo/corto fisico esplicito; PHASE_3A_ANGLE_NET.txt.
 
 NODI E COMPONENTI ASSEMBLATI
 - DoubleCoverSplice.Verify: doppio coprigiunto rettangolare in trazione,
   dettagli e chiamata riproducibile nel seguito di questo documento.
 - FinPlate.Verify: piastra corta su anima di pilastro, PHASE_2B_SPEC.txt.
+- GussetTwinFlatTension.Verify: gruppo unico, fazzoletto rettangolare centrale
+  e due piatti uguali tesi; PHASE_3A_TWIN_FLAT.txt. Attacco al supporto escluso.
 - FlexibleEndPlate.Verify/VerifyPair: piastra parziale a taglio ordinario,
   anche due travi contrapposte sul medesimo supporto; PHASE_2D_SPEC.txt.
 - DoubleAngleCleatComponents.Verify: solo trave/squadrette/bulloni;

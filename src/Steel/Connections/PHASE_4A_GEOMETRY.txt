@@ -1,0 +1,91 @@
+FASE4a.2a - LUNGHEZZE EFFICACI DA GEOMETRIE DEFINITE
+===================================================
+24/10/2026. EN1993-1-8:2005, Figure6.8/6.10 e Tabelle6.4/6.6 verificate
+visivamente. La geometria del modello e comune a EC3 e NTC2018; i fattori e
+il carattere supplementare del modello EC restano espliciti nel kernel4a.1.
+
+FLANGIA DI PILASTRO LAMINATO NON IRRIGIDITA
+Due colonne di bulloni simmetriche, anima centrata, raccordi r, larghezze bc/bp,
+gauge w, coordinate fisiche delle file ordinate lungo il pilastro. Nessuna
+contropiastra, haunch o irrigidimento attraversa la zona.
+  m=(w-tw)/2-0.8r; e=(bc-w)/2; emin=min(e,(bp-w)/2).
+Ogni fila isolata: leff,cp=2 pi m, leff,nc=4m+1.25e.
+Ogni sottogruppo contiguo e generato automaticamente; ai due estremi:
+  leff,cp=pi m+p; leff,nc=2m+0.625e+0.5p.
+Per ogni fila interna: leff,cp=2p; leff,nc=p, con p medio dei due passi
+adiacenti, come nel benchmark SCI P398 C.1 p96 (passi100/90, medio95).
+Si sommano i contributi circolari e non circolari separatamente; solo dopo
+si applica leff,1=min(SUMcp,SUMnc), leff,2=SUMnc.
+I gruppi non ereditano la somma delle lunghezze efficaci delle file isolate.
+
+ESTREMITA FISICHE DEL PILASTRO
+Il chiamante fornisce la distanza reale dalle file estreme alle estremita
+libere della flangia, su entrambi i lati. Il primo campo le ammette soltanto
+se e1>=max(pi m/2,2m+0.625e). In questo modo nessuno dei termini di fine
+flangia della Tabella6.4 puo ridurre i meccanismi; non si assume una flangia
+infinita quando manca il dato. Estremita vicine sono NotSupported: occorre
+la futura estensione con i rispettivi percorsi troncati.
+
+FILA ESTERNA DI PIASTRA ESTESA
+Una sola fila esterna, due bulloni simmetrici, piastra rettangolare e cordone
+ad angolo a lati uguali sul lato esterno dell'ala tesa. Il dato WeldLeg e
+il lato effettivo del cordone, non la gola: mx=x-0.8*WeldLeg, e=(bp-w)/2.
+L'emin da usare nel T-stub esterno e ex (distanza dal bordo superiore), come
+EN6.2.6.5(3) e Figura6.10, non l'edge laterale e.
+  cp=min(2 pi mx,pi mx+w,pi mx+2e)
+  nc=min(4mx+1.25ex,e+2mx+0.625ex,bp/2,w/2+2mx+0.625ex)
+  leff1=min(cp,nc), leff2=nc.
+La fila esterna resta un T-stub distinto da tutte quelle interne alla trave.
+Il metodo non ammette gruppi che attraversino l'ala tesa.
+
+RISULTATI E INTEGRAZIONE
+TStubDerivedGeometry e un risultato geometrico: IsSupported non significa
+Passed di un componente resistente. Espone m/e/emin, lunghezze di ogni fila
+e sottogruppo, fonte normativa e dettaglio, tracce dei candidati governanti.
+CreateInput associa il bolt/code immutabile, materiale e spessore, forze
+concomitanti e modello di leva; costruisce tutti gli input4a.1 coerenti.
+In questa associazione verifica gauge e passo minimo2.4d0 in entrambe le
+direzioni (campo conservativo), edge>=1.2d0 e assenza di interferenza del
+foro/impronta di contatto con raccordo o cordone reali. Il controllo effettivo
+del raccordo usa la distanza intera r, non solo la linea plastica a0.8r.
+Per il metodo2 la stessa impronta deve anche restare dentro l'edge laterale E
+(distinto da ex per la fila esterna) e non sovrapporsi fra colonne o file:
+E>=dw/2, gauge>=dw, passo>=dw. Il metodo1 non qualifica ingombri hardware,
+poiche il dato non e fornito; tale limite resta responsabilita del nodo chiamante.
+Restano verifiche del nodo: passo massimo e dettagli esecutivi, pressioni di
+contatto/punzonamento, altre componenti, equilibrio, rigidezza e duttilita.
+Se la geometria e fuori campo non espone lunghezze; non puo creare un input
+di verifica. Illecite combinazioni con un bullone concreto generano un errore
+di argomento prima di calcolare una resistenza.
+
+BENCHMARK
+SCI/BCSA P398,2013,C.1 pp86,88,92,96:
+https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
+Flangia bc258.8,tw12.8,r12.7,w100,bp250,passi100/90:
+  m33.44,e79.4,emin75; fila leff1=210.109716672085mm,leff2=233.01mm;
+  gruppi1-2=333.01,2-3=323.01,1-2-3=423.01mm (modo2).
+Il libro arrotonda m33.4 e i contributi delle singole file a mm interi,
+riportando233,332,422; tali arrotondamenti non vengono introdotti nel codice.
+Il libro dichiara e1 grande senza numerarlo; i test della geometria usano
+400mm su ciascun lato come IPOTESI ESPLICITA, non come dato pubblicato.
+Fila esterna bp250,w100,x40,lato cordone12,ex50:
+  mx30.4,e75,emin50,leff1=leff2=125mm;
+  nel kernel4a.1:377258.633041N con i fattori UK del solo benchmark.
+Test aggiuntivi per ogni candidato circolare/non circolare della fila esterna,
+passi diversi, inversione/traslazione delle coordinate, confini, geometrie
+non ammesse, compatibilita del bullone e immutabilita degli input.
+Il primo test di riflessione conteneva un input erroneo: il riflesso ordinato
+di[0,100,190] e[-190,-100,0], non[-190,-90,0]. Corretto soltanto quell'input
+del nuovo test; atteso333.01mm per il gruppo con passo100mm mantenuto.
+La revisione ha inoltre aggiunto3regressioni per impronta oltre l'edge
+laterale della fila esterna e per sovrapposizione attraverso gauge/passo.
+
+LIMITI ANCORA APERTI
+Flange irrigidite/contropiastre, estremita libere vicine, piastre a filo e file
+interne con alpha della Figura6.11 non sono comprese. La4a generale e quindi
+ancora parziale; questi due modelli alimentano solo i rispettivi componenti
+dei futuri nodi4b-4d. Non si attribuisce alcuna qualifica globale al nodo.
+
+VERIFICA CENTRALIZZATA24/10/2026
+27 nuovi test geometrici superati;102/102 nell'insieme T-stub, file e geometrie.
+Log/TRX: workspace audit-results/connections/night-4a-geometry-fixed.

@@ -145,3 +145,15 @@ Benchmarks SCI P398 C.1 e ricalcolo Decimal indipendente, nb corretto AC2,
 effetto leva, ramo senza leva, modi governanti e sottogruppi contigui.
 Lunghezze ancora esterne/tracciabili:4a.2 geometrie e4b-4g rimangono aperte.
 Log/TRX workspace audit-results/connections/night-3a-4a-components.
+
+
+NOTTE24/10/2026 - GEOMETRIE T-STUB4a.2a, STEEL2.57.0.0
+27 nuovi test superati,102/102 nel filtro TStub. Geometria reale, estremita
+libere, tutti i gruppi contigui, fila esterna e impronte di contatto.
+La prima prova aveva98/99 passati: il nuovo caso di riflessione usava
+coordinate errate. Corrette le sole coordinate, conservando l'atteso fisico;
+nessun atteso legacy o fixture di regressione preesistente modificato.
+La revisione ha aggiunto controlli per impronte oltre il bordo laterale e
+sovrapposizioni fra bulloni, con tre regressioni. Scope4a rimane parziale:
+file interne/alpha e nodo assemblato ancora da sviluppare.
+Log/TRX workspace audit-results/connections/night-4a-geometry-fixed.
