@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
-Versione sorgenteSteel2.68.0.0. Solo librerie, nessuna interfacciaANTHEA.
+Versione sorgenteSteel2.69.0.0. Solo librerie, nessuna interfacciaANTHEA.
 Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
 
 COMPONENTI
@@ -227,3 +227,6 @@ I risultati restano consumabili dalle librerie; integrazioneANTHEA rinviata.
 
 - EndPlateBoltComponents: bulloni con leva, V-T, rifollamento/punzonamento
   su entrambe le lamiere e giunti lunghi; PHASE_4CDE_BOLT_COMPONENTS.txt.
+
+- EndPlateWeldComponents: inviluppo locale delle saldature per piastra estesa,
+  tutto il taglio nell'anima; PHASE_4CDE_WELD_COMPONENTS.txt.

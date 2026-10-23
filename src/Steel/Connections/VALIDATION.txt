@@ -347,3 +347,18 @@ Restano saldature, netto/block e resistenza completa del nodo; risultato
 CanQualifyWholeJoint=false. Il precedente difetto numerico sul passo minimo
 e risolto separatamente in2.67.0.1, senza rilassare i minimi geometrici.
 Log/TRX: night-4cde-bearing-isolated-red e night-4cde-bolts-validated.
+
+
+4d.3/4e.3 - SALDATURE PIASTRA ESTESA, STEEL2.69.0.0
+23/23nuovi casi passati al primo run;68/68con bulloni e assemblaggio momento.
+Riusa FilletWeldResistance e i cateti della stessa geometria T-stub.
+EN1993-1-8:2005 6.2.2(1): tuttoV e trasferito dai due cordoni d'anima.
+Insieme si applica l'inviluppo fy*t/gammaM0, distinti materiali ala/anima,
+lunghezze efficaci EC/NTC e contatto compresso esplicito oppure weld piena.
+SCI C1 verifica le gole; derivazione Decimal indipendente della variante
+conV300kN: equivalente anima360.318501661912MPa, limite385.882352941176MPa;
+frontiera localeV524211.498092853N. Il valore non e capacita del nodo.
+Raccordi, transizioni, continuita e contatto sono evidenze esterne esplicite.
+Il campo a filo resta fuori modello: non si inventa un cordone superiore
+su una piastra assente. CanQualifyWholeJoint=false; nessuna capacita rad.
+Log/TRX workspace audit-results/connections/night-4de-welds.

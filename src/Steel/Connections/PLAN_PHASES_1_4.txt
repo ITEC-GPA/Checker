@@ -37,10 +37,10 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1429 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 1452 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,
    83componenti doppie squadrette/supporto,208precarico/scorrimento,300continuitaI,
-   40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,26rigidezza rotazionale.
+   40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,26rigidezza rotazionale.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
@@ -126,7 +126,10 @@ FASE 4 - NODI A MOMENTO
    Chiuse4c.2/4d.2/4e.2:24test su taglio-trazione bulloni con inviluppo di
    leva, rifollamento e punzonamento su entrambi i piatti e giunti lunghi.
    Nglobale=0; tagli per bullone prescritti/equilibrati nello stesso caso.
-   Restano saldature, netto/block e resistenza completa a taglio del nodo.
+   Chiuse4d.3/4e.3 nel campo piastra ESTESA:23test saldature a coppia,
+   inviluppo normale e tuttoV nell'anima, contatto compresso esplicito.
+   Restano saldature piastra a filo4c.3, netto/block e resistenza completa
+   a taglio del nodo. Vedere PHASE_4CDE_WELD_COMPONENTS.txt.
    Nessuna qualifica globale; PHASE_4CDE_MOMENT_COMPONENTS.txt e
    PHASE_4CDE_BOLT_COMPONENTS.txt.
 4f PARZIALE - Chiusa4f.1: rigidezza iniziale/secante delle end plate sul

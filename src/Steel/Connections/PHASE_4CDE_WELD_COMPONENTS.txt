@@ -1,0 +1,154 @@
+4d.3/4e.3 - INVILUPPO LOCALE DELLE SALDATURE TRAVE/PIASTRA
+============================================================
+
+Perimetro e contratti
+--------------------
+EndPlateWeldComponents collega il risultato del percorso a momento Passed
+alle saldature, usando gli stessi cateti del parent: una modifica del cateto
+richiede la nuova valutazione della geometria T-stub e dei relativi bracci.
+Non accetta un secondo insieme di cateti scollegato dal risultato precedente.
+
+Primo campo: piastra estesa, ampia almeno quanto l'ala della trave; coppie
+continue di cordoni simmetrici a cateti uguali, facce a90gradi, senza gap,
+penetrazione aggiuntiva, haunch o azioni fuori piano. Una piastra flush
+richiede un diverso dettaglio del cordone superiore e restituisce NotSupported.
+Il risultato e un COMPONENTE LOCALE: CanQualifyWholeJoint=false. Non prova
+la capacita di rotazione, la verifica del nodo, le superfici di contatto,
+le tolleranze esecutive o la redistribuzione tridimensionale nei raccordi.
+
+EndPlateWeldDetail rende obbligatorie le qualificazioni del dettaglio
+continuo, del trasferimento normale attraverso raccordi e transizioni,
+del trasferimento uniforme del taglio nei due cordoni d'anima, dei
+consumabili e delle eccentricita locali. Sono evidenze esterne, non verifiche
+che la libreria pretende di eseguire. Le condizioni d'estremita sono
+esplicite e separate per ala tesa, anima e ala compressa.
+
+Materiali: fy/fu dell'ala della trave sono forniti per lo spessore effettivo,
+distinti da fy/fu dell'anima nel parent. I gradi dichiarati determinano beta_w
+nel kernel FilletWeldResistance, riusato senza duplicare le resistenze.
+Gli spessori minimi, i consumabili e i limiti del campo seguono il modulo
+dei cordoni comune. Una fonte mancante non produce un Passed parziale.
+
+Modello e unita
+--------------
+ForzeN, lunghezzemm, tensioniMPa.
+Il cateto e s; per il cordone simmetrico a90gradi la gola e a=s/sqrt(2).
+Per ogni coppia simmetrica si applica un inviluppo normale a pieno
+snervamento dell'elemento collegato, anche se il momento di domanda e nullo:
+
+ q_n = fy*t/gammaM0             [N/mm di linea nominale]
+ sigma_perp = tau_perp = q_n/(2*s) * Lnom/Leff    [MPa]
+
+Il termine Lnom/Leff mantiene il trasferimento totale richiesto quando la
+lunghezza efficace e ridotta agli estremi. Per l'ala si usa conservativamente
+il tratto rettilineo piu corto, ossia lo sbalzo netto (b-tw)/2-r; il cordone
+esterno e piu lungo. Per l'anima Lnom=h-2(tf+r), senza attribuire lunghezza
+utile ai raccordi curvi. Il trasferimento in tali raccordi rimane parte
+della qualifica esterna esplicitamente richiesta.
+
+TUTTO il taglio concomitante del parent e applicato ai soli due cordoni
+d'anima:
+
+ tau_parallel = VEd / (2*a_web*Leff_web).
+
+Le ali non ricevono una quota del taglio. Si verifica l'interazione
+sigma_perp^2 +3*tau_perp^2 +3*tau_parallel^2 tramite il kernel normativo,
+oltre al limite separato della tensione normale. La sovrapposizione del
+massimo inviluppo normale e del taglio e conservativa; non e una ricostruzione
+dello stato reale di deformazione o una dimostrazione di equilibrio globale
+del nodo. Il fallimento dell'inviluppo non dimostra automaticamente il
+collasso del nodo reale al minor carico applicato.
+
+Leff: EN1993-1-8:2005 4.5.1 sottrae2a quando manca la prova di estremi
+full-size; NTC usa la lunghezza nominale dei cordoni non mancanti/difettosi,
+come il kernel comune FilletWeldGroup. Non si mescolano silenziosamente
+le due regole. Restano richiesti a>=3mm e Leff>=max(30mm,6a). Estremi
+difettosi e cordoni rettilinei non-lap oltre1700mm sono fuori dal campo.
+
+Ala compressa
+-------------
+QualifiedDirectBearing richiede una fonte specifica del contatto; al
+cordone nominale non si assegna la compressione e non viene generata una
+fittizia verifica della pressione di contatto. Il suo dettaglio geometrico
+resta controllato. Senza contatto, FullStrengthWelds applica ai cordoni
+l'inviluppo compresso: sigma_perp negativo, termine quadratico attivo.
+La capacita di momento del parent non viene modificata da questo adapter.
+
+Fonti primarie verificate
+------------------------
+EN1993-1-8:2005 6.2.2(1), p65/PDF67: il taglio della trave viene trasferito
+dalle saldature dell'anima senza contributo delle saldature delle ali.
+4.5.1-4.5.3, p42-43/PDF44-45: gola, lunghezze efficaci e criterio direzionale.
+
+SCI P398, STEP7 p38-39/PDF46-47: coppie simmetriche, inviluppo a piena
+resistenza, distinzione contatto/saldatura nell'ala compressa.
+SCI P398 C.1 p105/PDF113: cateto12mm ala tesa e8mm anima, gola indicata
+8.5/5.7mm; cordone compresso8mm nominale con estremita segata in contatto.
+https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
+
+Il semplice confronto pubblicato usa a>=t/2 perS275. La presente verifica
+delle tensioni usa invece materiali/fattori dichiarati ed espone tutte le
+componenti. Non trasforma il criterio semplificato SCI in una prescrizione
+letterale NTC, ne assume proprieta rotazionali dall'esito delle saldature.
+
+Benchmark indipendenti
+---------------------
+derive_endplate_welds.py usa Decimal40 senza importare Checker.
+Caso locale ispirato aC.1: S275, fy275, fu410, gammaM0=1,
+gammaM2=1.25, beta_w=.85, tf15.6, tw10.1, sf12, sw8.
+La stampa C.1 arrotonda il tw a10.2 nel controllo gola (t/2=5.1), mentre
+la tabella di sezione e la fixture usano10.1 (t/2=5.05). Nessun dato
+esistente viene riscritto per allineare artificialmente il risultato.
+
+a_f=8.485281374239mm; a_w=5.656854249492mm;
+L_flange=86.9mm; L_web=476.5mm. Le lunghezze rettilinee e il taglio300kN
+appartengono alla variante analitica dichiarata, non a una nuova quota SCI.
+Con estremi full-size:
+ sigma_ala=178.75MPa;
+ sigma_anima=tau_perp_anima=173.59375MPa;
+ tau_parallel_anima=55.648487501565MPa;
+ equivalente_anima=360.318501661912MPa;
+ limite=385.882352941176MPa.
+La frontiera dell'interazione locale e V=524211.498092853N, valida per
+questo specifico inviluppo. Non e una capacita a taglio del nodo.
+
+Senza estremi full-size EC:
+ Leff_ala69.929437251523mm, Leff_anima465.186291501015mm;
+ sigma_ala222.129272170880MPa, sigma_anima177.815691017239MPa;
+ tau_parallel_anima57.001903923125MPa.
+L'ala non soddisfa l'inviluppo completo in questa variante.
+
+Con NTC2018 gammaM0=1.05 e medesimi materiali/azioni:
+ sigma_ala170.238095238095MPa;
+ equivalente_anima344.416657631320MPa.
+Il confronto separa correttamente fattore del materiale e resistenza delle
+saldature. L'estremita nominale non difettosa segue la policyNTC.
+
+Senza contatto, il cordone compresso8mm avrebbe sigma=-268.125MPa ed
+equivalente536.25MPa: fallisce l'inviluppo. Con12mm si ottiene
+sigma=-178.75MPa e il controllo locale e soddisfatto.
+
+Controlli eseguiti
+--------------------
+Test EC/NTC, valori indipendenti, interazione con taglio completo d'anima,
+frontiera analitica, casoVsolo favorevole ma interazione sfavorevole, Mzero,
+contatto esplicito/assente, cateto/gola, lunghezze efficaci separate per norma,
+materiali dell'ala separati dall'anima, qualificazioni mancanti, parentFailed,
+estremi difettosi, gola minima, tratto efficace corto, piastra flush o piu
+stretta dell'ala, input non validi. Esecuzione C# centralizzata:23/23nuovi
+casi e68/68con bulloni/assemblaggio momento passati.
+
+
+4d.3/4e.3 - SALDATURE PIASTRA ESTESA, STEEL2.69.0.0
+23/23nuovi casi passati al primo run;68/68con bulloni e assemblaggio momento.
+Riusa FilletWeldResistance e i cateti della stessa geometria T-stub.
+EN1993-1-8:2005 6.2.2(1): tuttoV e trasferito dai due cordoni d'anima.
+Insieme si applica l'inviluppo fy*t/gammaM0, distinti materiali ala/anima,
+lunghezze efficaci EC/NTC e contatto compresso esplicito oppure weld piena.
+SCI C1 verifica le gole; derivazione Decimal indipendente della variante
+conV300kN: equivalente anima360.318501661912MPa, limite385.882352941176MPa;
+frontiera localeV524211.498092853N. Il valore non e capacita del nodo.
+Raccordi, transizioni, continuita e contatto sono evidenze esterne esplicite.
+Il campo a filo resta fuori modello: non si inventa un cordone superiore
+su una piastra assente. CanQualifyWholeJoint=false; nessuna capacita rad.
+Log/TRX workspace audit-results/connections/night-4de-welds.
