@@ -37,10 +37,10 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1339 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 1365 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,
    83componenti doppie squadrette/supporto,208precarico/scorrimento,300continuitaI,
-   40fazzoletto/due piatti,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,122T-stub/file/geometrie,46anima pilastro,21assemblaggio momento.
+   40fazzoletto/due piatti,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,122T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,26rigidezza rotazionale.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
@@ -108,10 +108,10 @@ FASE 4 - NODI A MOMENTO
    esterna di piastra estesa,27test; PHASE_4A_GEOMETRY.txt.
    Chiusa4a.2b file interne con alpha esplicito e tutti i gruppi,20test;
    PHASE_4A_INTERNAL_END_PLATE.txt. Restano altri dettagli/irrigidimenti
-   e l'integrazione con equilibrio e resistenza del nodo4c-4e.
+   e le verifiche residue del nodo4c-4e; i componenti base sono assemblati.
 4b PARZIALE - Chiusa4b.1: anima non irrigidita in trazione/compressione,
    taglio di pannello, interazioni omega/kw/rho e diffusione end plate;46test.
-   Flangia nel campo4a. Restano rinforzi/irrigidimenti e assemblaggio nel nodo;
+   Flangia nel campo4a e assemblaggio4cde. Restano rinforzi/irrigidimenti;
    PHASE_4B_COLUMN_WEB.txt. Vincolo column-sway esplicitamente richiesto.
 4c PARZIALE - Chiusa4c.1: assemblaggio componenti della piastra a filo,
    file interne, ala/anima pilastro e trave, compressione e pannello.
@@ -122,9 +122,11 @@ FASE 4 - NODI A MOMENTO
    N=0; taglio conservato ma non verificato. Restano saldature, punzonamento,
    interazione bulloni N-V e resistenza a taglio del nodo. Nessuna qualifica
    globale; PHASE_4CDE_MOMENT_COMPONENTS.txt.
-4f DA FARE - Rigidezza rotazionale/classificazione e capacita rotazionale:
-   distinguere un nodo resistente da un nodo coerente con l'incastro/cerniera
-   assunto nel modello globale; dati necessari e limiti espliciti.
+4f PARZIALE - Chiusa4f.1: rigidezza iniziale/secante delle end plate sul
+   pilastro non irrigidito, file singole/multiple e tutti i componenti in serie.
+   26test, benchmark JRC96658 e limiti N/M, lunghezze efficaci per fila/gruppo.
+   Restano classificazione globale e capacita rotazionale, non desumibili
+   dalla sola rigidezza. PHASE_4F_JRC_STIFFNESS_REVIEW.txt.
 4g PARZIALE - SCI P398 C.1 riprodotto415.771kNm rispetto a416pubblicati,
    con meccanismi governanti e varianti a filo/NTC/pannello. Restano esempi
    del nodo completo con tutti i meccanismi, incluso taglio e saldature.

@@ -1,0 +1,174 @@
+FASE4f - BENCHMARK DI RIGIDEZZA JRC96658 E CAVEAT DEL METODO
+24 ottobre2026. Componente4f.1 implementato;26test superati.
+Il benchmark conserva separati risultato pubblicato e ricalcolo indipendente.
+
+FONTE PRIMARIA PRINCIPALE
+
+Design of Steel Buildings, JRC96658, 2015, capitolo3 di J.-P. Jaspart e
+K. Weynand, esempio3.3: nodo bullonato con piastra estesa in zona tesa,
+IPE500 su HEA340, S235, quattro file di due M24 classe10.9.
+https://publications.jrc.ec.europa.eu/repository/bitstream/JRC96658/jrc_steel_report_2015_07_22.pdf
+Scaricato integralmente dall'URL ufficiale in staging/connections/JRC96658.pdf.
+Testo estratto JRC96658.txt. Geometria e tabella di rigidezza ispezionate
+visivamente, non dedotte da OCR delle formule.
+
+Pagine stampate / pagine PDF:
+-156/172, Figura3.13: configurazione e quote;
+-157/173: Av4495 e beff,compressione274.81;
+-159-162/175-178: geometria e lunghezze efficaci della flangia del pilastro;
+-165-167/181-183: geometria e lunghezze efficaci della piastra;
+-174/190: Tabella3.8 con tutti i coefficienti di rigidezza;
+-175/191: Eq3.63-3.65, assemblaggio e Sj,ini pubblicato75.214MNm/rad.
+
+DATI PER I TEST
+
+Unita' di base: N,mm,MPa. I coefficienti ki sono in mm, E*ki in N/mm,
+la rigidezza rotazionale risultante e' in Nmm/rad. Conversione in MNm/rad: /1e9.
+E210000MPa; beta1.0; membro senza rilevante sforzo assiale per il campo6.3.
+Momento resistente o Npl,Rd richiesti dal contratto di verifica non devono
+essere spacciati come nuovi risultati dell'esempio: per il test di sola
+rigidezza si puo' dichiarare NEd=MEd=0 e capacita' positive esterne esplicite.
+
+Colonna HEA340: h330,b300,tw9.5,tf16.5,r27mm, dc=243mm.
+La quota h330 segue la sezione dichiarata e dc+2tf+2r.
+Av=4495mm2 e' pubblicata; A non e' indicata nell'esempio.
+Area geometrica coerente con il contratto delle quattro radici circolari:
+A=2*b*tf+(h-2tf)*tw+4*(1-pi/4)*r^2=13347.27895553304mm2.
+Con Av=A-2*b*tf+(tw+2*r)*tf risulta Av4495.02895553304mm2.
+NON modificare A per fare coincidere artificialmente Av con4495.
+
+beff,compressione=274.81mm;
+m_colonna=33.65mm per ciascuna fila;
+leff_colonna_minime per fila=[166.05,82.5,163.55]mm;
+spessore piastra tp15mm;
+m_piastra per fila=[25.95,49.24,49.24]mm;
+leff_piastra_minime per fila=[120,234.69,175.98]mm;
+altezza rispetto centro compressione h=[527,442,362]mm;
+As=353mm2 per bullone M24; Lb=15+16.5+(15+19)/2=48.5mm.
+La fonte non aggiunge spessori delle rondelle: il benchmark conserva Lb48.5;
+il contratto generale deve invece comprendere anche le rondelle realmente usate.
+La formula k10=1.6*As/Lb e' gia' riferita alla fila del dettaglio con due
+bulloni: non usare ulteriormente2*As nella stessa formula.
+
+FORMULE DI RICALCOLO INDIPENDENTE
+
+k2=.7*beff,c*tw/dc;
+k3,r=.7*leff,col,r*tw/dc;
+k4,r=.9*leff,col,r*tf^3/m_col^3;
+k5,r=.9*leff,plate,r*tp^3/m_plate,r^3;
+k10,r=1.6*As/Lb;
+keff,r=1/(1/k3,r+1/k4,r+1/k5,r+1/k10,r);
+zeq=sum(keff,r*hr^2)/sum(keff,r*hr);
+keq=sum(keff,r*hr)/zeq;
+k1=.38*Av/(beta*zeq) nella scelta esplicita piu' accurata;
+Sj,ini=E*zeq^2/(1/k1+1/k2+1/keq).
+
+Il derivatore indipendente derive_jrc96658_rotational_stiffness.py fornisce
+tre percorsi separati e non importa la DLL:
+1. dati pubblicati mantenuti: Sj75.214MNm/rad;
+2. Av pubblicata4495 e tutti i coefficienti ricalcolati senza arrotondamento,
+   con zeq anche nel pannello: Sj76.55235734982176MNm/rad;
+3. A geometrica e Av derivata, con zeq anche nel pannello:
+   Sj=76552582907.97441Nmm/rad=76.55258290797441MNm/rad,
+   adatto al contratto produzione che deriva Av.
+Derivatore eseguito: confermati tutti e tre i percorsi. Le differenze a circa
+1e-13MNm/rad fra ordini equivalenti delle somme sono arrotondamento floating
+point, non tolleranze da applicare ai numeri pubblicati.
+Nessun atteso/fixture preesistente e' stato modificato.
+
+DISTINZIONE DAL VALORE PUBBLICATO E REFUSI
+
+JRC pubblica k1=3.53, k2=7.52, keff=[2.43,1.23,1.70], zeq466.44, keq5.23.
+La sola sostituzione di questi ultimi valori arrotondati nella somma corretta
+restituisce75.2118791535465MNm/rad, compatibile col75.214pubblicato.
+k1=3.53 corrisponde al braccio APPROSSIMATO (527+442)/2=484.5mm:
+.38*4495/484.5=3.5254901960784313mm, arrotondato3.53.
+La Figura6.15e della norma consente tale approssimazione, oppure il braccio
+piu' accurato zeq. Quindi non si qualifica automaticamente come errore l'uso
+del braccio approssimato nel pannello; e' distinto dalla scelta esplicita zeq.
+La produzione con zeq non va calibrata per ottenere il75.214pubblicato.
+
+Refusi effettivamente visibili:
+-Tab3.8 formula k1 stampa16/3 anziche' il16/2 compatibile con il braccio
+  medio e contiene10^-3 non coerente con il risultato in mm;
+-Eq3.65 stampa un prodotto fra due termini di cedevolezza nel denominatore;
+  la somma dei tre termini e' quella che restituisce il risultato dichiarato;
+-Eq3.65 stampa10^-6, ma per datiN/mm/MPa la conversione in MNm richiede10^-9;
+-il richiamo EN1998-1-8 e' un refuso del rapporto, non una diversa fonte;
+-il simbolo k6 attribuito a trave in compressione e' numerazione locale della
+  tabella del rapporto, non la numerazione normativa dei componenti.
+
+CAVEAT NORMATIVI VERIFICATI VISIVAMENTE
+
+EN1993-1-8:2005 6.3.1(4), p92/PDF94:
+modello di rigidezza del nodo trave-pilastro/giunto trave con NEd non oltre5%
+di Npl,Rd e momento nel campo resistente. Gate coerente su |N|, compresi
+compressione e trazione, senza ignorare un N negativo per convenzione.
+Il risultato di rigidezza non determina la resistenza del nodo.
+
+Table6.10 p94/PDF96: nodo endplate monolaterale con >=2file:
+k1,k2,keq; a una fila k1,k2,k3,k4,k5,k10. k2 va mantenuto e non si omette
+perche' 6.3.1(8) cita sinteticamente k1 e keq. Il doppio lato con momenti
+uguali/opposti elimina il contributo di pannello, non quello di compressione.
+
+Table6.11 p95/PDF97: per k3,k4,k5 serve la MINIMA lunghezza pertinente di
+CIASCUNA FILA, includendo contributi da tutti i gruppi applicabili. Non usare
+la sola lunghezza individuale, la media del gruppo o la ripartizione del
+meccanismo che governa la resistenza totale.
+Esempio colonna: gruppo1-2-3 ha166.05+82.5+163.55=412.1mm; le tre lunghezze
+non sono412.1/3. Fila2 piastra usa234.69mm (circolare del gruppo), anche se
+la resistenza del gruppo2-3 e' governata dal totale non circolare
+259.04+175.98=435.02mm: il minimo locale per rigidezza e' un dato distinto.
+
+6.3.1(3): file omesse solo con tutte le file piu' vicine alla compressione;
+le file considerate in rigidezza possono differire da quelle del momento
+resistente. JRC include la fila3 nella rigidezza anche quando il limite
+globale della resistenza ha annullato la sua forza plastica resistente;
+trasferire quel risultato come k3fila=0 sarebbe errato.
+
+6.3.3.1(4), pp97-98/PDF99-100: keq sostituisce solo k3,k4,k5,k10.
+6.3.3.2 e' un'alternativa semplificata per DUE file specifiche (una esterna
+e una interna), non una regola per raddoppiare ogni coefficiente di un
+gruppo arbitrario o per generare la media delle lunghezze efficaci.
+
+Beta proviene da5.3(7-9), dalle convenzioni di azioni e dalla configurazione.
+Non e' un fattore libero di rigidezza: richiedere fonte e campo0..2.
+Beta0 equivale a cedevolezza di pannello nulla; gestirla esplicitamente,
+senza produrre divisioni per zero o infiniti nei trace numerici.
+Per due travi di altezza disuguale la Table6.11 non fornisce il medesimo
+modello semplificato del pannello; rimane necessaria una distribuzione propria.
+La sola reazione verticale della trave non determina beta o Vwp.
+
+k2 infinito presuppone un irrigidimento pertinente della compressione;
+non segue dall'esistenza generica di un qualsiasi irrigidimento.
+Table6.11 conserva un k3 finito nel collegamento BULLONATO anche se la
+zona e' irrigidita: k3 infinito e' il caso irrigidito SALDATO della tabella.
+Non confondere questi casi con un unico bool Stiffened che annulla tutte
+le cedevolezze.
+
+ALTRO RISCONTRO PRIMARIO, DA NON USARE COME ATTESO GLOBALE
+
+R. Henderson, SCI, Joint stiffness calculation, NSC Technical Digest2020,
+pp4-5 (medesime pagine PDF), esempioC2diP398:
+https://www.steelconstruction.info/images/9/92/NSC_Technical_Digest_2020.pdf
+Documento scaricato e pagine renderizzate. Conferma k1,k2,keq e il riuso
+dei componenti con zeq; e' utile per un secondo confronto di metodo.
+Contiene pero' assegnazioni medie delle lunghezze di gruppo e incongruenze
+aritmetiche tra somme, zeq e braccio nella formula finale. Non usarlo come
+benchmark rigoroso di tutte le lunghezze/rigidezza senza un riesame separato.
+
+
+4f.1 - RIGIDEZZA ROTAZIONALE, STEEL2.66.0.0
+26/26test passati;76/76nel controllo con3d,0ignorati.
+Implementati k1/k2/k3/k4/k5/k10, serie/parallelo delle file, zeq/keq,
+Sj,ini e Sj,secante con mu=(1.5M/Mrd)^2.7 oltre2/3Mrd. N<=5%Npl,Rd.
+Benchmark JRC ricalcolato con la geometria reale e zeq:76.55258290797441
+MNm/rad;75.214pubblicato usa braccio pannello approssimato e arrotondamenti.
+Nessuna area modificata per forzare Av4495 o il risultato del libro.
+Minimi di OGNI fila anche nei gruppi, non media o lunghezza del gruppo totale.
+Revisione indipendente ha aggiunto i gate Lb>tfCol+tp e spessore unico
+della piastra; beta1 monolaterale allineato al campo dell'assemblaggio.
+Primo build bloccato dal nuovo test con prodotto di costanti int E*z*z:
+corretto a double, quindi tutti i test sono passati. Nessun atteso legacy
+modificato. Nessuna capacita rotazionale o qualifica globale viene inferita.
+Log/TRX workspace audit-results/connections/night-3d-4f.

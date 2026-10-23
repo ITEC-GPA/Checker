@@ -263,3 +263,19 @@ Forze assiali opposte1000N, distanti12mm: risultante nulla e coppia12000Nmm,
 correttamente non equilibrate se non sono dichiarate le coppie compensative.
 Non si generano resistenze, riparti automatici o qualifiche del nodo.
 Log/TRX workspace audit-results/connections/night-3d-4f.
+
+
+4f.1 - RIGIDEZZA ROTAZIONALE, STEEL2.66.0.0
+26/26test passati;76/76nel controllo con3d,0ignorati.
+Implementati k1/k2/k3/k4/k5/k10, serie/parallelo delle file, zeq/keq,
+Sj,ini e Sj,secante con mu=(1.5M/Mrd)^2.7 oltre2/3Mrd. N<=5%Npl,Rd.
+Benchmark JRC ricalcolato con la geometria reale e zeq:76.55258290797441
+MNm/rad;75.214pubblicato usa braccio pannello approssimato e arrotondamenti.
+Nessuna area modificata per forzare Av4495 o il risultato del libro.
+Minimi di OGNI fila anche nei gruppi, non media o lunghezza del gruppo totale.
+Revisione indipendente ha aggiunto i gate Lb>tfCol+tp e spessore unico
+della piastra; beta1 monolaterale allineato al campo dell'assemblaggio.
+Primo build bloccato dal nuovo test con prodotto di costanti int E*z*z:
+corretto a double, quindi tutti i test sono passati. Nessun atteso legacy
+modificato. Nessuna capacita rotazionale o qualifica globale viene inferita.
+Log/TRX workspace audit-results/connections/night-3d-4f.
