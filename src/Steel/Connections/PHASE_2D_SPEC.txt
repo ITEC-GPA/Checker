@@ -1,5 +1,40 @@
 FASE 2d - SPECIFICA DELLA PIASTRA DI ESTREMITA' FLESSIBILE
-Data: 23 ottobre 2026. Stato: analisi e benchmark indipendenti; NON produzione.
+Data: 23 ottobre 2026. Stato: 2d.1 e2d.2 implementate e provate; 56test passati.
+
+IMPLEMENTAZIONE QUALIFICATA ATTUALE
+FlexibleEndPlate.Verify: singola trave non intagliata su anima di pilastro I/H.
+FlexibleEndPlate.VerifyPair: due travi contrapposte, bulloni passanti comuni,
+file allineate in alto; stesso supporto, bullone e policy immutabili.
+Prima implementazione: 2..6file M20classe8.8, g90/140, p70, e1=40/e2=30,
+piatto S275 b150/200, t10/12, hp80+(n-1)*70, offset50; anima trave fy275/fu410,
+supporto fy265/275 e fu410. Non sono implementati tutti i tipi proposti sotto:
+supporti in ala, anime di travi e pareti cave restano fuori campo.
+Esiti completi solo nel campo SLU a taglio dichiarato; azioni preesistenti del
+supporto esplicitamente nulle. Il modello di coppia esclude da tali azioni le
+due reazioni che assembla e somma autonomamente. Ogni prefisso delle file e
+ogni bullone comune ricevono le domande concomitanti delle due travi.
+La qualificazione del modello globale a cerniera e' evidenza del chiamante,
+separata da ConformsToSciPinnedDetail. Non si calcolano rigidezza o rotazione.
+Resta da sviluppare2d.3 tying con4a; classificazione automatica demandata a2f.
+
+VALIDAZIONE E DIFFERENZE DALLA FONTE
+56test: componenti pubblicati SCI406/533, supporto condiviso, EC/NTC analitici,
+2..6file, piastra corta, equilibrio dei bulloni e cordoni, piccoli carichi,
+soglie, vincoli geometrici, invalidi e rifiuto senza esito parziale.
+La fonte per il supporto comune riguarda una trave: si confrontano le stesse
+quantita' locali, senza qualificare come implementato il suo intero nodo.
+Il requisito saldature non usa la riduzioneUK0.8: il cordone da6mm di lato
+dell'esempio non soddisfa questa policy e il test conserva tale esito.
+Per6file si conserva betaLj0.9875: capacita' gruppo891878.4N, mentre il valore
+SCI902kN e' confrontato con il nominale senza tale riduzione. Nessuna fixture
+pubblicata modificata. Nei nuovi test corretta una trascrizione aritmetica:
+0.9*290*9.5=2479.5mm2; il valore SCI2480 e' il suo arrotondamento.
+Il caso di coppia con supporto sottile prova il fallimento della domanda
+congiunta anche quando entrambi i giunti isolati passano.
+
+SPECIFICA DI RIFERIMENTO E POSSIBILI ESTENSIONI
+Le voci seguenti descrivono fonti e progetto; il campo implementato e' quello
+del paragrafo precedente, non ogni possibilita' elencata nella proposta.
 
 PROPOSTA DI PERIMETRO E ORDINE
 2d.1 - Resistenza SLU per taglio verticale: piastra parziale saldata ai due lati

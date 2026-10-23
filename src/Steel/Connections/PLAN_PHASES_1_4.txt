@@ -33,8 +33,9 @@ FASE 1 - COMPONENTI COMUNI
 1f PARZIALE - Politiche EC3/NTC: fattori e formule distinti, riferimenti espliciti,
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; vecchio checker NTC ancora da qualificare prima del riuso generale.
-1g PARZIALE - 228 casi connessioni Checker superati:9audit,57coprigiunto,
-   44riparto,61saldature,57componenti bullonati. Inoltre10nuove regressioni
+1g PARZIALE - 338 casi connessioni Checker superati:9audit,57coprigiunto,
+   44riparto,61saldature,57componenti bullonati,54finplate,56endplate.
+   Inoltre10nuove regressioni
    Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
@@ -49,17 +50,19 @@ FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
 2c IN ANALISI - Fonte primaria CTICM/SCI SBE Part5 individuata e fixture
    indipendenti preparate. Il benchmark copre componenti di trave/squadrette,
    ma non la zona di supporto: nessun nodo completo qualificato al momento.
-2d IN ANALISI - Spec SCI e fixture indipendenti completate; implementazione
-   a taglio ordinario in corso, con trazione parassita e supporto locale.
-   Trazione ordinaria e tying sono casi distinti; PHASE_2D_SPEC.txt.
+2d PARZIALE - Chiuse2d.1/2d.2: taglio ordinario, piastra parziale, trave I/H
+   non intagliata su anima di pilastro. Anche coppia contrapposta con bulloni
+   comuni e domanda sommata sul supporto; 56test passati. Trazione parassita
+   SCI e piena resistenza saldature esplicite. Tying2d.3 attende4a; PHASE_2D_SPEC.txt.
 2e DA FARE - Continuita con piatti: estendere il coprigiunto alle configurazioni
    di continuita previste e al riparto fra parti del profilo; definire azioni
    combinate ammesse e non generalizzare il solo caso in trazione gia chiuso.
-2f DA FARE - Coerenza con lo schema globale: limiti per assumere il nodo
-   nominalmente incernierato, deformabilita/rotazione e verifiche mancanti.
+2f PARZIALE - Fin plate/end plate distinguono conformita al dettaglio SCI e
+   qualificazione esterna del modello globale. Restano rigidezza/rotazione
+   calcolate e classificazione generale; Passed a taglio non certifica cerniera.
 2g PARZIALE - Casi completi indipendenti per famiglia, meccanismo governante,
    esito fuori campo ed esempio utilizzabile dalla futura interfaccia.
-   Al momento disponibili solo per2a.
+   Disponibili per2a/2b e per il campo ordinario2d.1/2d.2; tying escluso.
 
 FASE 3 - CONTROVENTI E PROFILI ACCOPPIATI
 3a DA FARE - Fazzoletto teso: piatto, collegamento bullonato/saldato e parte
