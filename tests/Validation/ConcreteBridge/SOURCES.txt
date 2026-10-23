@@ -1,0 +1,96 @@
+CONCRETE / COMPOSITE BRIDGE - SOURCES AND INDEPENDENT ORACLES
+Audit date: 2026-10-23. Units in the new tests: N, mm, MPa; moments N mm.
+
+JRC-EC2
+European Commission JRC, Eurocode 2: Background & Applications - Design of
+Concrete Buildings, Worked examples, EUR 26566 / JRC89037, 2014.
+https://publications.jrc.ec.europa.eu/repository/handle/JRC89037
+Section 3.2.1.4, printed pages 59-60 (PDF pages 71-72, one-based).
+Beam support A: bw=250, d=372, Asl=565, fck=25, gammaC=1.5,
+fcd=25/1.5 (alpha_cc=1 in this example), fyd=435, cot(theta)=2.5.
+VEd=115.52 kN is an ALREADY REDUCED input; the support load-reduction
+procedure is not covered by these tests. The web dimensions model the
+shear check of a T beam, not all checks of a T section.
+VRdc=47.90 kN; VRd,max=259.8 kN. Full precision hand evaluation:
+47902.36530502512 N and 259758.6206896552 N.
+Source inconsistency: nominal two-leg diameter-6 links at 175 mm give
+323.135... mm2/m, not the printed 339. Tests use actual circular bar area.
+Required Asw/s=317.27983... mm2/m; adopted nominal reinforcement suffices.
+The source was visually checked, including formulas and geometry labels.
+
+JRC-BRIDGES
+European Commission JRC, Bridge Design to Eurocodes - Worked examples,
+JRC68415, 2012.
+https://publications.jrc.ec.europa.eu/repository/handle/JRC68415
+Section 6.7.1, printed pages 156-157 (PDF pages 178-179, one-based).
+Stud d=22, h=200, fu=450, fck=35, Ecm=34077.14, gammaV=1.25.
+alpha=1; steel resistance 109.5 kN, concrete resistance 122.6 kN;
+four studs: 438 kN (published rounded results).
+Source inconsistency: SLE text declares ks=.75 but gives .0766 MN from
+.1095 MN. Multiplication by .75 gives .082125 MN; .07665 corresponds
+to .70. This audit does not choose or validate an SLE coefficient from
+that inconsistent example. Only the SLU results are used as benchmarks.
+The piecewise alpha=.2(h/d+1) up to h/d=4, otherwise 1, is exercised
+with concrete-governing cases. h/d just below 3 checks API rejection.
+
+NTC-2018
+Italy, DM 17 January 2018, Supplemento ordinario n.8, Gazzetta Ufficiale
+n.42 of 20 February 2018. Local official text NTC2018.pdf was inspected.
+4.1.2.3.5.2, printed page 80 / PDF84: eqs.4.1.25-29, shear with links,
+cot(theta) in [1,2.5], piecewise alpha_c versus sigma_cp/fcd.
+The tests assign fcd explicitly; they do not derive material partial factors.
+Compression is N<0 in the API, sigma_cp=-N/Ac. The test at sigma_cp=fcd
+checks a non-favourable API result outside the open upper normative interval;
+it is not a claim of a design resistance beyond the formula's scope.
+4.1.2.3.6, printed page 81 / PDF85: eqs.4.1.35-37, peripheral truss,
+concrete strut, closed links, longitudinal reinforcement and centre-line
+geometry. Rectangle, hollow rectangle, circle and annulus are covered.
+
+A-TRUSS: INDEPENDENT ANALYTICAL REFERENCE
+For vertical links: VRs=z q fyd c; VRc=z bw nu fcd c/(1+c^2).
+For inclined links, replace c in the numerator by c+cot(alpha), and
+multiply the steel branch by sin(alpha). Solving branch equality yields
+c^2=bw nu fcd/[q fyd sin(alpha)]-1, then apply the admissible bounds.
+These analytic extrema check the iterative EC2 optimizer independently.
+Tests cover c at each bound and inside, alpha=90 and 60 degrees.
+At N=0, nu=.5 for NTC and .6(1-fck/250)=.528 for base EC2, fck=30.
+Torsion: TRc=2 Ak tef nu fcd c/(1+c^2), TRs=2 Ak Ast/s fyd c,
+TRl=2 Ak Al/uk fyd/c. All expected geometry and capacities are computed
+without calling the production resistance or geometry routines.
+Combined T,V1,V2: concrete sum T/TRc+|V1|/VRc1+|V2|/VRc2;
+link sum T/TRs+max(|V1|/VRs1,|V2|/VRs2), plus longitudinal capacity.
+This extension is an analytical model/API check, not an independently
+published biaxial torsion benchmark. It does not establish reinforcement
+detailing or validate every national annex. Hollow thickness differs between
+the NTC actual-wall and EC2 equivalent-wall API options; both are exercised.
+
+A-PLASTIC: INDEPENDENT EQUILIBRIUM
+Homogeneous rectangular stress block, b=200, h=400, fy=355:
+Npl=b h fy, Mpl=b h^2 fy/4, M=+/-Mpl[1-(N/Npl)^2].
+N is tensile-positive; M=-integral(sigma*y*dA). A pole shift to centre y0
+adds -N*y0 to both signed bounds. Cases include both axial endpoints,
+near endpoints, intermediate forces and y0=0/137 mm. These tests validate
+the stress-block solver; they do not represent complete composite bridges.
+
+A-MV: REFERENCE INTERACTION AND API ENVELOPE
+The existing bridge reference interaction uses eta1=|M|/Mpl and
+eta3=|V|/Vw, adding (1-Mf/Mpl)(2eta3-1)^2 only when eta3>.5 AND |M|>Mf.
+New tabulated analytic cases probe both thresholds, each sign, and eta>1.
+This extends the existing EN1993-1-5 7.1 / EN1994-2 reference tests;
+no new normative clause audit is claimed here. ElasticInteraction is a
+conservative library envelope with no plastic flange reserve, tested as
+that policy rather than labelled an independently published example.
+
+TOLERANCES AND LIMITS
+Published values: half the last displayed unit (0.005/0.05 kN, and 0.2 kN
+for four rounded studs). Analytical capacities/ratios: relative 1e-8 for
+Concrete, 1e-9 for Bridge, with a unit absolute floor. Plastic domain:
+absolute 1e-10*Mpl to remain meaningful at zero moment endpoints.
+No expected value is generated using the function being tested. Existing
+legacy fixtures and OpenSees references are not regenerated or altered.
+OpenSees covers the implemented fibre laws/discretizations, not normative
+coefficients or all global bridge mechanisms. Existing rollback and failed
+iteration tests are retained, not duplicated merely to increase counts.
+Unresolved external benchmarks remain: generic polygon/T RC N-M, PSC,
+FRC experimental reproduction, M-curvature tests and independent complete
+bridge examples beyond the represented fibre models; see COVERAGE.txt.
