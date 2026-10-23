@@ -160,7 +160,7 @@ Ogni sottofase chiusa ha implementazione, campo di validita, riferimenti,
 benchmark eseguiti e commit separato. Aggiornamenti in chat con la stessa sigla.
 
 VERIFICA GENERALE DELLA BASE
-Controllo completo Steel2.66.0.0: 4688 test Steel passati; 6958 passati
+Controllo completo Steel2.71.0.0: 4868 test Steel passati; 7138 passati
 complessivi e cinque fallimenti Concrete/ModelChecker gia documentati in6edf46a7. Nessun atteso
 modificato o fallimento ammesso automaticamente. Vedere VALIDATION.txt.
 Queste pendenze impediscono un rilascio generale dichiarato interamente verde,

@@ -390,3 +390,23 @@ La resistenza ordinaria N+V rimane aperta, esplicitamente documentata.
 Log/TRX workspace audit-results/connections/night-2cd-ordinary-axial-scope.
 Versione incrementata per estensione della validazione, nessuna pretesa
 di nuova funzionalita resistente o modifica agli attesi legacy.
+
+
+VERIFICA GENERALE NOTTURNA - STEEL2.71.0.0, COMMITccc9c1dd
+build/Verify.ps1 -Suites all,24/10/2026.
+Steel.Members4746/4746, Steel legacy net472122/122:4868testSteel passati.
+Totale Checker7138passati,5falliti,0ignorati; API compatibili nei quattro
+contratti controllati. Gli esatti cinque nomi coincidono col controllo2.66:
+Concrete: LargeSectionPointBeyondTheStoppingTestIsAccepted;
+DomainPointContractOf0017IsUnchanged;LegacyMomentCurvatureIsReproduced;
+CurvatureContractOf0017IsUnchanged.
+ModelChecker: RealDetailsMatchNativeResistanceAndKeepThePreparedForceFrame.
+Nessuna fixture/aspettativa legacy o allowlist modificata. Exit1 atteso per
+questi cinque fallimenti: non e un rilascio generale interamente verde.
+Incremento dal2.66:180casi, tutti passati nel controllo complessivo:
+33attacco saldato fazzoletto,8passo minimo T-stub,24bulloni endplate,
+23saldature endplate,70classificazione/rotazione,22dominio N+V ordinaria.
+Registri: workspace audit-results/connections/verify-night-2-71/summary.json
+e relativiTRX; log esterno verify-night-2-71.log.
+Le quattro fasi restano parziali nei campi mancanti del piano: i componenti
+locali non qualificano i nodi interi. Nessun merge/push/rilascio eseguito.
