@@ -26,7 +26,33 @@ superiore dell'eq. (7.14) con le barre tese fuori da Ac,eff, k2 = 0,5 con l'asse
 nelle fasce interne dei fori (0.0.17.0). I test di migrazione li riproducono con la regola corrente, senza casi
 speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedicati.
 
-### Resistenza a N assegnato: tolleranza su N
+### Stress block: integrazione geometrica (candidata 0.18.0.2)
+
+Per il diagramma rettangolare standard, con calcestruzzo teso escluso, `StressBlockIntegration` prepara una volta
+le celle della mesh e a ogni valutazione ritaglia la fascia di deformazioni in cui la tensione è costante.
+Area e momenti statici dei poligoni ritagliati forniscono N, Mx e My senza quadratura su punti di Gauss fissi e
+senza rigenerare la mesh. Il limite superiore della fascia è la soglia di attivazione del blocco, non l'asse neutro;
+il limite inferiore rispetta la deformazione ultima della tabella materiale. Le celle quadrangolari sono suddivise
+in triangoli una volta, conservando fori e geometria poligonale. La precisione delle sezioni curve resta quella
+del contorno della mesh.
+
+La ricerca usa il Newton salvaguardato già introdotto nella 0.18.0.1. Tabelle personalizzate non riconosciute e
+opzioni con calcestruzzo teso mantengono il percorso precedente. Il trattamento delle barre e dei profili metallici
+non cambia: la sottrazione puntuale del calcestruzzo in corrispondenza delle barre può ancora introdurre salti.
+Le tolleranze pubbliche restano invariate.
+
+`StressBlockIntegrationTests` verifica soluzioni geometriche e sezionali indipendenti, soglie della legge,
+invarianza alla suddivisione, scale e traslazioni, concavità, fori e piccole eccentricità. Il confronto prestazionale
+principale riguarda `StressBlock + Plastic`; l'abbinamento al limite elastico resta soltanto diagnostico.
+Report: `docs/stress-block-20261023/report-prima-dopo.html`; riproduzione: `tools/Concrete.DomainBenchmark/README.md`.
+La candidata non costituisce un rilascio ufficiale: la verifica completa conserva i cinque fallimenti storici
+già presenti nella 0.18.0.1, senza aggiornare fixture o attesi.
+
+### Resistenza a N assegnato: tolleranza su N e validazioni storiche
+
+I valori sperimentali riportati qui sotto documentano l'introduzione della tolleranza rispetto alla 0.0.17.0,
+prima del Newton della 0.18.0.1 e dell'integrazione geometrica della 0.18.0.2. Le osservazioni sui gradini dei punti
+di Gauss e sul vecchio arresto iterativo descrivono quel percorso precedente, non le prestazioni della candidata.
 
 - `SectionSolvers.DomainPointAxialTolerance` dice se un punto del dominio cercato a N assegnato (N costante, N e Mx,
   N e My) è la resistenza a quello N: |NRd − N| ≤ tolleranza. `SectionSolver.CalculateDomainPoint` non applica il

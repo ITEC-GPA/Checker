@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][string]$Output, [string]$RepositoryRoot, [string]$Source)
+param([Parameter(Mandatory=$true)][string]$Output, [string]$RepositoryRoot, [string]$Source, [switch]$LegacyStressBlockSearch)
 $ErrorActionPreference='Stop'
 if (!$Source) { $Source=Join-Path $PSScriptRoot '../../GPCChecker.Concrete' }
 if (!$RepositoryRoot) { $RepositoryRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..')) }
@@ -24,6 +24,12 @@ Insert 'SectionSolvers/DomainPointStrategyIterative.cs' 'increment = CalculateIn
 $legacy=Join-Path $copy 'SectionSolvers/DomainPointStrategyIterative.cs'
 $text=[IO.File]::ReadAllText($legacy).Replace('increment = CalculateIncrement(', 'System.Threading.Interlocked.Increment(ref global::DomainBenchmarkCounters.Iterations); increment = CalculateIncrement(')
 [IO.File]::WriteAllText($legacy,$text)
+if ($LegacyStressBlockSearch) {
+    $text=[IO.File]::ReadAllText($legacy)
+    $marker='_solver.TryGetStressBlockLaw(out _)'
+    if (!$text.Contains($marker)) { throw 'Geometric stress-block search marker missing' }
+    [IO.File]::WriteAllText($legacy,$text.Replace($marker,'false'))
+}
 $newton=Join-Path $copy 'SectionSolvers/DomainPointStrategyNewton.cs'
 if (Test-Path $newton) {
     $text=[IO.File]::ReadAllText($newton).Replace('// Domain search iteration.', 'System.Threading.Interlocked.Increment(ref global::DomainBenchmarkCounters.Iterations);')
