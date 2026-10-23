@@ -1,0 +1,159 @@
+4c.2/4d.2/4e.2 - BULLONI, TAGLIO/TRAZIONE E PUNZONAMENTO
+======================================================
+
+Perimetro e riuso
+----------------
+EndPlateBoltComponents completa un blocco coerente del percorso ordinario:
+bulloni in singolo taglio, interazione con trazione comprensiva della leva,
+rifollamento e punzonamento su piastra di estremita e ala del pilastro.
+Riusa BoltStrength, BoltBearing, BoltPunching e BoltSingleShearAssembly:
+nessuna formula di resistenza e duplicata nel nuovo assemblaggio.
+Richiede EndPlateMomentComponentResult Passed nello stesso stato concomitante.
+CanQualifyWholeJoint rimane false; saldature, netto/block, introduzione delle
+azioni e qualifica rotazionale restano elencati nei PendingChecks.
+
+Fonte primaria e modello della leva
+----------------------------------
+EN1993-1-8:2005, 6.2.2(2) e Nota, p.65/PDF67, verificata visivamente:
+si considera la forza totale nel bullone comprensiva di prying. La Nota
+consente piena capacita a trazione quando il taglio non supera la somma delle
+capacita dei bulloni non tesi piu(0.4/1.4)di quelle dei bulloni tesi.
+Table3.4 fornisce interazione e punzonamento; 3.8(1-2) tratta giunti lunghi.
+SCI P398 C.1 p105 applica lo stesso criterio con0.28 arrotondato e2+6 bulloni.
+https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
+
+Ogni bullone delle file tese e verificato con Nt=Ft,Rd, anche quando MEd e
+piccolo. E un inviluppo CONSERVATIVO della trazione totale ammissibile,
+compresa la leva del T-stub: non si usa Ffila/2 ignorando Q. Ne consegue
+Fv,amm=(1-1/1.4)*Fv,Rd=(2/7)*Fv,Rd, prima delle eventuali ulteriori
+limitazioni da rifollamento/punzonamento nell'assemblaggio NTC.
+L'inviluppo e impiegabile solo quando il percorso a momento risulta Passed.
+Non vengono ricavate forze elastiche di esercizio o una Q numerica.
+
+Se il punzonamento e inferiore a Ft,Rd il componente fallisce, anche a carico
+molto piccolo: fallisce la qualificazione dell'inviluppo conservativo scelto,
+non si dimostra automaticamente che il nodo reale collassi a quel carico.
+La resistenza del T-stub non viene aumentata o silenziosamente ricalibrata;
+un eventuale calcolo accoppiato meno conservativo e una sottofase distinta.
+
+Azioni e geometria
+------------------
+Ogni EndPlateBoltShearRow contiene la coordinata reale Y, l'indice della
+corrispondente fila tesa oppure null, e tagli sinistro/destro prescritti.
+Y parte dalla faccia esterna dell'ala tesa e cresce verso quella compressa.
+Le forze sono magnitudini nella stessa direzione verticale; riparto con
+forze opposte, taglio biassiale o torsione non sono in questo primo campo.
+La somma di tutti i tagli deve coincidere con Shear del parent, e
+sum((Vdestro-Vsinistro)*gauge/2)=0. Tolleranza relativa1e-10, senza pavimento
+assoluto sulle forze: una domanda zero non ammette forze spurie piccole.
+Il riparto ha una fonte concomitante obbligatoria; non viene inventato o
+ridistribuito automaticamente per superare una verifica.
+
+Tutte le file tese devono comparire esattamente una volta e nelle coordinate
+del parent; le file solo taglio sono poste dopo tutte quelle tese e richiedono
+una qualificazione esplicita dell'assenza di trazione. Non e sufficiente avere
+chiamato una fila 'compressa'. I passi reali sono almeno2.4d0 nel primo campo.
+Le distanze da bordi piastra/pilastro, saldature e raccordo, i passi e il gauge
+devono contenere l'impronta reale dell'hardware e il perimetro di punzonamento.
+Non si inferisce una quota della quarta fila dal disegno non quotato SCI.
+
+Rifollamento e hardware
+----------------------
+Si verificano entrambi i piatti per ogni bullone. Per resistere in entrambi i
+versi verticali si confrontano il meccanismo di bordo, usando il minore dei
+due margini longitudinali reali, e quello del passo, usando il minore dei
+passi adiacenti. Il confronto vale ANCHE per le file estreme: invertendo il
+verso del taglio il foro vicino puo governare al posto del bordo libero.
+Entrambi i candidati sono valutati da BoltBearing; si passa all'assemblaggio
+il candidato con minore resistenza, distinta per ciascun piatto. Le tracce
+riportano entrambe le capacita e il meccanismo selezionato. Nessuna scelta
+dipende dall'utilizzazione, che a domanda zero non ordina le resistenze.
+Entrambe le colonne di bulloni sono edge-row nel verso trasversale.
+Sono conservate le differenti formule EC/NTC del kernel comune.
+La riduzione da giunto lungo usa Lj reale tra le file estreme, anche quella
+solo taglio. Non si invoca implicitamente l'esenzione di trasferimento uniforme.
+
+EndPlateBoltHardware contiene dimensioni testa/dado fra facce/punte e impronte
+reali di contatto sui due piatti. Il diametro di punzonamento e il minore dei
+due diametri medi testa/dado; una rondella non lo sostituisce. Il diametro di
+contatto usato per il T-stub non puo superare quello reale su nessuno dei lati.
+Fu dell'ala pilastro e fornita per lo spessore reale, separata dal dato dell'anima.
+La qualificazione hardware include idoneita di contatto/esecuzione; non viene
+calcolata la pressione locale di contatto sotto rondelle/teste/dadi.
+Per NTC2018 si riusa l'interazione4.2.71 con min(taglio bullone,rifollamenti)
+e min(trazione bullone,punzonamenti). L'inviluppo di leva resta modello EN
+supplementare dichiarato.
+
+Benchmark indipendenti e arrotondamenti
+--------------------------------------
+derive_endplate_bolts.py calcola autonomamente con Decimal40, senza Checker.
+M24 classe8.8, As353, gamma1.25:
+Ft,Rd203328N; Fv,Rd135552N senza riduzioni.
+6 bulloni tesi+2 solo taglio: (2+6*2/7)*135552=503478.857143N.
+SCI p105 usa136kN e0.28:500.48kN, stampato500kN. Il confronto con la stampa
+ha tolleranza4kN; i valori esatti hanno tolleranze numeriche separate.
+
+La variante di test introduce ESPRESSAMENTE Y quarta fila470mm. Le altre
+file sono-40/60/150mm; nessuna affermazione che470 sia una quota pubblicata.
+Lj510mm, betaLj0.96875, Fv,Rd131316N; residuo per bullone teso37518.857143N;
+inviluppo dei soli bulloni487745.142857N. Questa e la capacita a taglio del
+solo insieme di bulloni nel criterio semplificato, non la capacita del nodo.
+Un riparto con30kN per bullone teso e60kN per bullone solo taglio equilibra300kN
+e produce interazione0.942742261850 sul bullone teso.
+dm=(36+39.55)/2=37.775mm:
+la testa usa le dimensioni del casoSCI; il dado uguale alla testa e la relativa
+qualificazione esecutiva sono assunzioni esplicite della fixture, non una
+certificazione di un prodotto acquistato o quote aggiuntive lette nel libro.
+punzonamento piastra25mm583874.419448N; ala20.5mm478777.023947N;
+piastra8mm186839.814223N, minore dell'inviluppo203328N e quindi Failed.
+
+Correzione P1 durante revisione prima dell'integrazione
+-----------------------------------------------------
+La prima bozza classificava sempre le file estreme come EndBolt=true.
+Questo ignorava il passo verso l'interno e rendeva non conservativo
+l'inviluppo dichiarato per i due versi. La correzione modifica il codice,
+non gli attesi: confronta i due kernel EndBolt=true/false per ogni piatto.
+Il sorgente prima della correzione e conservato SOLO nello staging per
+consentire il controllo red/green; non va installato nel progetto.
+
+Regressione inferiore: piastra9mm, file-40/60/150/212.4mm, soli due bulloni
+inferiori caricati120kN ciascuno. Il passo62.4mm produce alpha=62.4/(3*26)
+-0.25=0.55. Rifollamento piastra corretto97416N anziche177120N della bozza;
+ala pilastro221892N anziche403440N. Il risultato deve essere Failed per
+rifollamento piastra. Il punzonamento210194.791001N supera Ft203328N e non
+maschera il difetto. Il test copre EC3 e NTC2018, entrambi i bulloni e piatti.
+
+Regressione all'estremo opposto: variante flush con file60/122.4mm e
+piastra9mm, domanda nulla per isolare la selezione della capacita. Il bordo
+superiore60mm darebbe136246.153846N, mentre il passo62.4 governa a97416N;
+ala pilastro221892N. Le quote sono varianti analitiche di test esplicite,
+non nuovi benchmark attribuiti a SCI. Anche questa variante copre entrambe
+le policy e dimostra che il confronto non dipende dal segno di carico o da
+un GoverningCheck a domanda zero.
+
+Validazione eseguita
+-----------------------
+Test: percorso EC/NTC, riduzione giunto lungo, confrontoSCI ed equazioni
+indipendenti, testa/dado rispetto alla rondella, inviluppo di leva a basso M,
+sovraccarico di un singolo bullone nonostante somma globale favorevole,
+punzonamento debole senza alterare T-stub, sole file tese, equilibrio/torsione,
+coordinate, fila mancante/duplicata, qualificazioni, interferenze geometriche,
+immutabilita, valori non finiti e overflow. Esecuzione centralizzata:24/24
+nuovi casi passati;53/53con assemblaggio momento e regressioni passo.
+
+
+4c.2/4d.2/4e.2 - BULLONI END PLATE, STEEL2.68.0.0
+24/24nuovi test passati;53/53con assemblaggio momento e regressioni passo.
+Fonte EN1993-1-8:2005 6.2.2(2)Nota, Table3.4 e3.8; SCI P398 C1p105.
+Integrazione dei kernel comuni, piena trazione Ft,Rd comprensiva di leva,
+tagli espliciti equilibrati, rifollamento/punzonamento su entrambi i piatti,
+hardware reale e Lj reale. NTC riusa l'interazione4.2.71 del kernel.
+Correzione di revisione dimostrata con4regressioni isolate: prima4/4fallite,
+dopo4/4passate. La bozza sovrastimava il rifollamento delle file estreme
+ignorando il passo adiacente nell'inviluppo a due versi. Adesso confronta
+bordo e passo per ogni piatto anche a domanda nulla. Nessun atteso esistente
+modificato. Ipotesi di test Yquarta fila470mm esplicita, non attribuita aSCI.
+Restano saldature, netto/block e resistenza completa del nodo; risultato
+CanQualifyWholeJoint=false. Il precedente difetto numerico sul passo minimo
+e risolto separatamente in2.67.0.1, senza rilassare i minimi geometrici.
+Log/TRX: night-4cde-bearing-isolated-red e night-4cde-bolts-validated.

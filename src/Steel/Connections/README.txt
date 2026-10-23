@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
-Versione sorgenteSteel2.67.0.1. Solo librerie, nessuna interfacciaANTHEA.
+Versione sorgenteSteel2.68.0.0. Solo librerie, nessuna interfacciaANTHEA.
 Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
 
 COMPONENTI
@@ -224,3 +224,6 @@ I risultati restano consumabili dalle librerie; integrazioneANTHEA rinviata.
 
 - GussetTwinFlatWeldedSupport: percorso bullonato e attacco aT a due cordoni,
   con domanda sul supporto distinta; PHASE_3A_WELDED_SUPPORT.txt.
+
+- EndPlateBoltComponents: bulloni con leva, V-T, rifollamento/punzonamento
+  su entrambe le lamiere e giunti lunghi; PHASE_4CDE_BOLT_COMPONENTS.txt.

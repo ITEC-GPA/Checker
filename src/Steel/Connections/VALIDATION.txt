@@ -330,3 +330,20 @@ tutta la famiglia T-stub. Durante la scrittura dei nuovi test e stato
 corretto l'input PointForce (contactWidth0 richiesto dal contratto), senza
 cambiare gli attesi o le fixture esistenti.
 Log/TRX: workspace audit-results/connections/night-tstub-roundoff-*.
+
+
+4c.2/4d.2/4e.2 - BULLONI END PLATE, STEEL2.68.0.0
+24/24nuovi test passati;53/53con assemblaggio momento e regressioni passo.
+Fonte EN1993-1-8:2005 6.2.2(2)Nota, Table3.4 e3.8; SCI P398 C1p105.
+Integrazione dei kernel comuni, piena trazione Ft,Rd comprensiva di leva,
+tagli espliciti equilibrati, rifollamento/punzonamento su entrambi i piatti,
+hardware reale e Lj reale. NTC riusa l'interazione4.2.71 del kernel.
+Correzione di revisione dimostrata con4regressioni isolate: prima4/4fallite,
+dopo4/4passate. La bozza sovrastimava il rifollamento delle file estreme
+ignorando il passo adiacente nell'inviluppo a due versi. Adesso confronta
+bordo e passo per ogni piatto anche a domanda nulla. Nessun atteso esistente
+modificato. Ipotesi di test Yquarta fila470mm esplicita, non attribuita aSCI.
+Restano saldature, netto/block e resistenza completa del nodo; risultato
+CanQualifyWholeJoint=false. Il precedente difetto numerico sul passo minimo
+e risolto separatamente in2.67.0.1, senza rilassare i minimi geometrici.
+Log/TRX: night-4cde-bearing-isolated-red e night-4cde-bolts-validated.
