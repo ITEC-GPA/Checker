@@ -28,17 +28,18 @@ FASE 1 - COMPONENTI COMUNI
    semplificato, gruppi elastici sotto sei azioni, lunghezze EC/NTC, gole,
    materiali e giunti lunghi. 61 test superati, inclusi benchmark SCI G.37;
    equilibrio ricostruito e controllato. Campo e limiti in PHASE_1D.txt.
-1e PARZIALE - Piastre: lordo/netto, block tearing, taglio, flessione/interazioni
-   e stabilita locale pertinente. Lordo/netto e block tearing qualificati per
-   piatti rettangolari tesi nel doppio coprigiunto.
+1e PARZIALE - Lordo/netto, block tearing e taglio nei percorsi qualificati di
+   coprigiunto, fin/end plate e doppie squadrette; flessione locale pertinente
+   nei dettagli fin/end plate. Restano estensioni generali, compressione/stabilita
+   dei fazzoletti e piastre in trazione con effetto leva.
 1f PARZIALE - Politiche EC3/NTC: fattori e formule distinti, riferimenti espliciti,
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
-   nodo; vecchio checker NTC ancora da qualificare prima del riuso generale.
+   nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
+   una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
 1g PARZIALE - 615 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,
    69componenti doppie squadrette,208precarico/scorrimento.
-   Inoltre10nuove regressioni
-   Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
+   Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
 FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
@@ -104,7 +105,7 @@ Ogni sottofase chiusa ha implementazione, campo di validita, riferimenti,
 benchmark eseguiti e commit separato. Aggiornamenti in chat con la stessa sigla.
 
 VERIFICA GENERALE DELLA BASE
-Controllo completo Steel2.47.0.0: 3662 test Steel passati; 5932 passati
+Controllo completo Steel2.49.0.0: 3939 test Steel passati; 6209 passati
 complessivi e cinque fallimenti Concrete/ModelChecker gia documentati in6edf46a7. Nessun atteso
 modificato o fallimento ammesso automaticamente. Vedere VALIDATION.txt.
 Queste pendenze impediscono un rilascio generale dichiarato interamente verde,

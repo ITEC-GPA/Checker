@@ -1,5 +1,33 @@
-CONNESSIONI STANDARD - PRIMO CASO QUALIFICATO
+CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
+Versione sorgenteSteel2.49.0.0. Solo librerie, nessuna interfacciaANTHEA.
+Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
+
+COMPONENTI
+- BoltStrength/BoltBearing/BoltPunching/BoltSingleShearAssembly: PHASE_1B.txt.
+- BoltSlip: precarico e scorrimento, azioniSLE/SLU distinte; PHASE_1B_SLIP.txt.
+- ElasticBoltGroup: riparto/equilibrio, non resistenza; PHASE_1C.txt.
+- FilletWeldResistance/FilletWeldGroup: cordoni e gruppi; PHASE_1D.txt.
+
+NODI E COMPONENTI ASSEMBLATI
+- DoubleCoverSplice.Verify: doppio coprigiunto rettangolare in trazione,
+  dettagli e chiamata riproducibile nel seguito di questo documento.
+- FinPlate.Verify: piastra corta su anima di pilastro, PHASE_2B_SPEC.txt.
+- FlexibleEndPlate.Verify/VerifyPair: piastra parziale a taglio ordinario,
+  anche due travi contrapposte sul medesimo supporto; PHASE_2D_SPEC.txt.
+- DoubleAngleCleatComponents.Verify: solo trave/squadrette/bulloni;
+  supporto non qualificato e nessun Passed globale del nodo, PHASE_2C_SPEC.txt.
+
+CONTRATTI
+Ogni metodo dichiara Scope, controlli, tracce e limiti. IsComplete riguarda
+quel campo, non tutta la struttura. Fuori campo =>NotSupported e nessun
+rapporto favorevole. DatiN/mm/MPa; azioni gia combinate e fattorizzate.
+Gli assi non si deducono dal nome: SteelActions, FinPlateActions e
+PlanarConnectionActions hanno convenzioni esplicite nei rispettivi contratti.
+I test omonimi in tests/Steel.Members.Tests contengono esempi eseguibili.
+
+PRIMO CASO QUALIFICATO: DOPPIO COPRIGIUNTO RETTANGOLARE
+==================================================
 
 API: GPC.Checkers.Steel.Connections.DoubleCoverSplice.Verify(input)
 Metodo: Steel.Connection.DoubleCoverSplice.Tension
@@ -146,8 +174,7 @@ Le aree del benchmark SCI sono 3000,2376,888,4776 mm2; resistenze pubblicate
 formule indipendenti nei test, senza chiamare il motore per costruire gli attesi.
 
 PASSI SUCCESSIVI
-1. Componenti saldati e gruppi eccentrici: qualificazione separata con benchmark.
-2. Fin plate e squadrette: includere lamiera, saldature e parte del supporto.
-3. Fazzoletto di controvento, poi nodi a momento con metodo delle componenti.
-4. Piastre di base e ancoraggi, quindi nodi tubolari entro i limiti normativi.
-I risultati restano consumabili dalle librerie; integrazione ANTHEA da decidere.
+Vedere PLAN_PHASES_1_4.txt per il piano effettivo: supporto delle doppieL,
+continuitaI, fazzoletti/controventi, T-stub e nodi a momento, rigidezza/rotazione.
+Piastre di base e nodi tubolari appartengono alle fasi successive5/6.
+I risultati restano consumabili dalle librerie; integrazioneANTHEA rinviata.

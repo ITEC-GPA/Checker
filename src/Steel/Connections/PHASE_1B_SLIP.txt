@@ -39,7 +39,8 @@ INTEGRAZIONE LEGACY
 L'aritmetica del precaricoEC e della resistenza a scorrimento ora e' condivisa
 con EN1993BoltChecker/ENCommonBoltChecker tramite BoltSlipMath. Identiche
 operazioni e parametri, senza cambiare il campo o attivare nuovi check legacy.
-L'adattatore generaleNTC legacy resta nella sottofase1f da qualificare.
+L'uso della normaNTC attraverso il percorsoEN legacy resta nella sottofase1f
+da qualificare; non esiste un BoltCheckerNTC dedicato.
 
 VALIDAZIONE
 208nuovi test passati; insieme a57componenti bullonati e9auditlegacy:274/274.
