@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
-Versione sorgenteSteel2.64.0.0. Solo librerie, nessuna interfacciaANTHEA.
+Versione sorgenteSteel2.65.0.0. Solo librerie, nessuna interfacciaANTHEA.
 Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
 
 COMPONENTI
@@ -215,3 +215,6 @@ I risultati restano consumabili dalle librerie; integrazioneANTHEA rinviata.
 
 - EndPlateMomentComponents: assemblaggio resistenza a momento a filo/estesa,
   tutti i gruppi e compressione/pannello; PHASE_4CDE_MOMENT_COMPONENTS.txt.
+
+- PackingFaceActionAdapter: assi fisici e sei azioni delle due facce delle
+  imbottiture Model2L/2C; PHASE_3D_PACKING_FACE_ACTIONS.txt.

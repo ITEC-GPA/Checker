@@ -37,10 +37,10 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1289 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 1339 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,
    83componenti doppie squadrette/supporto,208precarico/scorrimento,300continuitaI,
-   40fazzoletto/due piatti,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,122T-stub/file/geometrie,46anima pilastro,21assemblaggio momento.
+   40fazzoletto/due piatti,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,122T-stub/file/geometrie,46anima pilastro,21assemblaggio momento.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
@@ -92,9 +92,11 @@ FASE 3 - CONTROVENTI E PROFILI ACCOPPIATI
    Chiusa3c.2 per L/2L identici dorso-dorso: adattatore Model e40test,
    lati fisici, raccordi, assi e riparto esplicito; PHASE_3C_MODEL_ADAPTER.txt.
    Restano C, compressione e resistenza del nodo con le eccentricita esposte.
-3d IN ANALISI - Imbottiture dei profili doppi: domanda locale tracciabile dalla
-   verifica dell'asta, piastra e bulloni/saldature. Fonti/limiti e percorso a
-   due facce in PHASE_3D_PACKING_RESEARCH.txt. Restano esclusi i calastrelli.
+3d PARZIALE - Chiusa3d.1: geometria Model2L/2C e azioni sulle due facce
+   dell'imbottitura,50test di assi/equilibrio. Sei azioni concomitanti esplicite,
+   coppie conservate; nessun N/2 automatico. PHASE_3D_PACKING_FACE_ACTIONS.txt.
+   Restano fissaggi e resistenza del blocco; passo/gap normativo restano nel
+   percorso SteelPackedPair esistente. Esclusi i calastrelli.
 3e PARZIALE - Chiusa3e.1: riuso SteelSectionInput/SteelActions per L/2L,
    senza gerarchie duplicate o modifiche Model. Restano C, altre componenti
    e esempio completo asta-collegamento, incluse le azioni eccentriche.

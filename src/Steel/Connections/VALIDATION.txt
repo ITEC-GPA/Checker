@@ -252,3 +252,14 @@ MC,Rd trave legato allo stesso snapshot/norma/taglio concomitante.
 CanQualifyWholeJoint=false: taglio, interazione, punzonamento e saldature
 non sono certificati dal nuovo calcolo a momento. Non si ignora N: rifiutato.
 Log/TRX workspace audit-results/connections/night-2c-4cde.
+
+
+3d.1 - AZIONI SULLE FACCE DELLE IMBOTTITURE, STEEL2.65.0.0
+50/50test passati;76/76nel controllo con4f,0ignorati.
+Riusati CoordinateSystem e il trasporto delle azioni di Model, su copie
+difensive; lati lungo/corto dei2L,2C, ordine parti e riflessioni verificati.
+Lo stesso stato concomitante deve alimentare entrambe le facce.
+Forze assiali opposte1000N, distanti12mm: risultante nulla e coppia12000Nmm,
+correttamente non equilibrate se non sono dichiarate le coppie compensative.
+Non si generano resistenze, riparti automatici o qualifiche del nodo.
+Log/TRX workspace audit-results/connections/night-3d-4f.

@@ -1,0 +1,138 @@
+FASE 3d.1 - AZIONI SULLE DUE FACCE DELL'IMBOTTITURA
+
+Stato: nuovi file preparati in staging; nessuna installazione, compilazione,
+esecuzione di test .NET o modifica Git effettuata dall'agente incaricato.
+Il codice non calcola ancora la resistenza dell'imbottitura.
+
+Perche' questo adattatore e' necessario
+-------------------------------------
+SteelPackedPairAssessment contiene gia' il riferimento all'input concomitante,
+gli inviluppi e le resistenze esterne del nodo. Non contiene le sei azioni di
+ciascuna faccia ne' la loro posizione fisica. Non viene duplicato o sostituito.
+PackingFaceActionAdapter aggiunge soltanto l'associazione fra facce reali,
+modello locale e azioni; conserva il riferimento allo stesso SteelVerificationInput.
+
+Riusi effettivi
+--------------
+- SteelVerificationInput/SteelSectionInput: input concomitante e copia immutabile
+  della geometria Model, senza aggiungere una dipendenza Model->Checker.
+- ModelBuiltUpGeometry.Create: controllo di due componenti identici condivisi,
+  C/L esatti, riflessione, allineamento e assenza di sovrapposizione.
+- PlanarConnectionActions: le sei componenti e il punto di applicazione.
+- Geometry CoordinateSystem, Point3d, Vector3d: nessun nuovo tipo di vettore,
+  punto o trasformazione parallelo. I frame esportati sono copie difensive.
+- Model ResultBeamForces.ToCoordinateSystemWithEccentricity: rotazione e
+  trasporto M_C=M_A+(A-C)xF; il codice connessioni non reimplementa il kernel.
+
+Contratti e assi
+----------------
+PackingFaceActionState richiede SEMPRE tutte le sei azioni ON BLOCK, il relativo
+PartIndex Model0/1, lo SteelVerificationInput di provenienza, LocalStateId e
+LocalAnalysisSource. L'identificatore locale comprende anche la scelta di
+imperfezione o scenario di introduzione del carico, quando pertinente.
+Le due facce devono avere lo stesso oggetto input, identificatore e sorgente.
+Non si mescolano combinazioni, scenari o inviluppi di massimi indipendenti.
+
+Il sistema globale dell'adattatore usa X/Y della geometria della sezione Model
+e Z longitudinale dell'asta. Non usa automaticamente gli assi principali.
+Per ogni faccia:
+  x_face = +Z_asta;
+  z_face = normale uscente dall'imbottitura verso il profilo associato;
+  y_face = z_face x x_face.
+La terna e' sempre destrorsa, anche con parti riordinate o riflesse.
+Le azioni di faccia sono Fx,Fy,Fz in N e Mx,My,Mz in Nmm in questa terna.
+Le coordinate del punto di applicazione sono in mm rispetto al centro faccia.
+Non e' una trasformazione di SteelActions.N in una domanda locale automatica.
+
+Geometria fisica
+----------------
+FromModel richiede posizione longitudinale del centro blocco, posizione
+trasversale sul dorso del componente, larghezza e lunghezza della faccia.
+La posizione trasversale e' misurata prima della riflessione del componente:
+lungo Y per i dorsi verticali, lungo X per quelli orizzontali degli angolari.
+Il lato degli L disuguali e' quindi quello realmente affacciato nel Model.
+I canali devono avere ali uguali e anime affacciate dorso a dorso, coerentemente
+con il perimetro attuale di SteelPackedPairExecution.
+
+Il centro delle due facce e lo spessore del blocco derivano dai dorsi piazzati
+con Part.Place, non dalla distanza fra i baricentri dei profili. Il blocco deve
+avere spessore positivo, stare sul dorso fisico e, se il membro e' disponibile,
+restare interamente fra le sue stazioni0 eL. La sagoma e' rettangolare.
+La verifica del passo15imin e del limite di ravvicinamento3t resta al percorso
+SteelPackedPairExecution: l'adattatore di sole azioni non la duplica e non la
+qualifica. Un gap grande puo' essere trasformato, ma non diventa per questo
+un elemento composto qualificato dalla procedura normativa.
+
+Risultato e controllo di equilibrio
+----------------------------------
+Ogni PackingFaceDemand conserva input, terna di faccia e azioni ridotte:
+- al centro faccia, ancora nelle coordinate locali della faccia;
+- al centro blocco, nelle coordinate Model X/Y e Z longitudinale.
+Il risultato espone ResidualAtBlockCentre e IsInEquilibrium. Il controllo e'
+componente per componente con tolleranza relativa1e-10 sulla somma dei moduli
+dei due contributi della STESSA componente. Non confronta momenti con forze;
+non usa un unico massimo globale che nasconda un residuo piccolo sotto una
+componente grande. Non vengono azzerati i residui restituiti.
+
+Il blocco e' qui assunto caricato soltanto dalle due facce dichiarate. Eventuali
+ulteriori carichi esterni, comprese azioni di volume da includere nel modello
+locale, richiedono un successivo contratto esplicito: non sono inventati come
+una terza reazione di chiusura. Nessuna proprieta' Passed, IsComplete, resistenza
+o utilizzo strutturale viene assegnata dall'adattatore.
+
+Ricalcoli indipendenti usati nei test
+-----------------------------------
+A) Gap12mm, facce a X=+/-6, centroY30,Z100, assi della prima faccia
+   x=Z, y=-Y, z=X. Azioni locali F=(10,20,30), M=(40,50,60), applicazione
+   r_locale=(2,3,4). In Model:
+     F=(30,-20,10), M=(60,-50,40), r_dal_centro=(10,-3,2);
+     r x F=(10,-40,-110), M_centro=(70,-90,-70).
+   Al centro della prima faccia le azioni locali hanno M=(50,30,70).
+   La seconda faccia, con x=Z,y=Y,z=-X, riceve esplicitamente
+     F_locale=(-10,20,30), M_locale=(190,150,70), applicazione nulla.
+   Il trasporto da X=-6 restituisce F=(-30,20,-10), M=(-70,90,70):
+   tutte e sei le risultanti del blocco sono nulle.
+
+B) Stesso caso sui dorsi orizzontali Y=+/-6 degli L: la prima faccia restituisce
+   F=(20,30,10), M=(90,70,-70), la seconda i vettori opposti. La trasformazione
+   conserva il lato fisico e non riutilizza le componenti del casoA senza ruotarle.
+
+C) Due forze longitudinali1000N e-1000N, senza coppie di faccia, hanno risultante
+   di forza nulla ma coppia residua My=-12000Nmm per dorsi verticali, oppure
+   Mx=+12000Nmm per dorsi orizzontali. IsInEquilibrium DEVE essere false.
+   Soltanto dichiarando anche My_locale=-6000/+6000Nmm sulle due facce il
+   sistema risulta equilibrato. Il codice non introduce tali coppie da solo.
+
+Integrazione successiva concreta
+-------------------------------
+1. L'analisi locale fornisce entrambi i PackingFaceActionState per il medesimo
+   SteelVerificationInput e scenario. FromModel restituisce i due sistemi.
+2. Un residuo non compatibile va corretto nel modello locale; non si trasforma
+   in una resistenza richiesta o in una reazione omessa.
+3. Un futuro dettaglio di saldatura/bullonatura riceve separatamente
+   Faces[i].ActionsOnBlockAtFaceCentre e Faces[i].LocalAxes. Le azioni sulla
+   faccia del profilo hanno segno opposto nelle stesse coordinate; il verso
+   del corpo verificato e dell'eventuale normale di gola deve essere esplicito.
+4. Solo dopo verifica completa di blocco, facce e fissaggi si potra' produrre
+   una resistenza qualificata per SteelPackedPairAssessment del MEDESIMO input.
+   L'API attuale non crea quella resistenza e non sostituisce la domanda con N/2.
+
+Verifica predisposta
+--------------------
+50 test: ricalcoli6D per2L e2C; EC/NTC; coppie residue; facce con azioni normali;
+torsione; ogni componente; tolleranze omogenee; stato zero esplicito; ordine
+delle facce/parti; combinazioni e sorgenti incoerenti; fonti mancanti; traslazioni
+e riflessioni; lato lungo/corto; snapshot immutabili; toe-to-toe; componenti non
+identici; gap nullo; confini geometrici; dimensioni invalide e faccia mancante.
+Filtro centrale: FullyQualifiedName~PackingFaceActionAdapterTests
+
+
+3d.1 - AZIONI SULLE FACCE DELLE IMBOTTITURE, STEEL2.65.0.0
+50/50test passati;76/76nel controllo con4f,0ignorati.
+Riusati CoordinateSystem e il trasporto delle azioni di Model, su copie
+difensive; lati lungo/corto dei2L,2C, ordine parti e riflessioni verificati.
+Lo stesso stato concomitante deve alimentare entrambe le facce.
+Forze assiali opposte1000N, distanti12mm: risultante nulla e coppia12000Nmm,
+correttamente non equilibrate se non sono dichiarate le coppie compensative.
+Non si generano resistenze, riparti automatici o qualifiche del nodo.
+Log/TRX workspace audit-results/connections/night-3d-4f.
