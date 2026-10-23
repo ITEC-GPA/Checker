@@ -127,7 +127,7 @@ namespace GPC.Checkers.Steel.Connections
                 checks, trace, issues, Assumptions());
         }
 
-        private static IBeamSpliceForceResult Prepare(IBeamSpliceForceInput p, IBeamSpliceBoltSet bolts,
+        internal static IBeamSpliceForceResult Prepare(IBeamSpliceForceInput p, IBeamSpliceBoltSet bolts,
             IList<string> issues, IList<SectionResistanceValue> trace)
         {
             var r = IBeamSpliceForces.Calculate(p);
@@ -159,7 +159,7 @@ namespace GPC.Checkers.Steel.Connections
         // Web bolt force direction changes along the group. Its diagonal bounds
         // every projected transfer length; this is a conservative policy, not an
         // exact clause-defined diagonal. Flange transfer is longitudinal only.
-        private static double JointLength(SpliceBoltLayout layout, bool web) => web
+        internal static double JointLength(SpliceBoltLayout layout, bool web) => web
             ? ElasticBoltGroup.Hypot(layout.LongitudinalSpan, layout.TransverseSpan) : layout.LongitudinalSpan;
         private static void Include<T>(IBeamSpliceBoltGroup g, ElasticBoltForce f, ConnectionVerification<T> component,
             IList<ConnectionCheck> checks, IList<SectionResistanceValue> trace, IList<string> issues) where T : class

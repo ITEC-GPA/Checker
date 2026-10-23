@@ -13,8 +13,10 @@ ali. IBeamSpliceBolts.VerifyStrength/VerifySlip;39test nuovi passati.
 Sono incluse entrambe le facce del giunto, le riduzioni Lj e la verifica degli
 ingombri geometrici dell'hardware. Rifollamento e distanze normative dei piatti
 richiedono2e.3/2e.4: Passed di questi componenti non qualifica il nodo.
-2e.3 DA FARE - Piatti e sezioni: rifollamento, lordo/netto, block tearing,
-compressione e instabilita dei coprigiunti, interazione N-V-M dell'anima.
+2e.3 PARZIALE - Chiuse2e.3a rifollamento di tutti i piatti e2e.3b ali:
+lordo/netto, due percorsi block tearing, compressione e instabilita locale
+longitudinale dei coprigiunti. 59nuovi test. Restano interazione N-V-M dei
+coprigiunti d'anima, relativi meccanismi locali e qualificazione del nodo.
 2e.4 DA FARE - Assemblaggio del nodo con geometria completa, distanze, materiali
 per spessore, classificazione, collegamento al contratto Model e benchmark
 completo EC/NTC. Nessun esito complessivo prima della chiusura dei meccanismi.
@@ -122,3 +124,64 @@ var slip = IBeamSpliceBolts.VerifySlip(new IBeamSpliceBoltSlipInput(
     0.5,0.5,BoltTighteningControl.Controlled,"assemblaggi qualificati",
     "superfici qualificate per mu0.5","P398 D.1 SLE"));
 // strength/slip.Scope dichiarano i controlli mancanti del nodo.
+
+
+2e.3a/2e.3b - RIFOLLAMENTO E PIATTI D'ALA
+IBeamSplicePlateInput: un coprigiunto esterno per ala, due uguali nell'anima.
+FlangeCover.Width e' la larghezza trasversale; WebCover.Width e' l'altezza.
+Le distanze CoverEnd si misurano dal bordo esterno del coprigiunto;
+il bordo del membro e' a FirstBoltDistance-ButtGap/2. Il benchmark usa gap0
+come ipotesi esplicita, non come quota ricavata dal libro. Nessun contatto
+favorevole fra le estremita. Materiali delle ali separati da quelli dell'anima.
+IBeamSplicePlatePolicy.Eurocode3 richiede gammaM1; Ntc2018 imposta1.05.
+E210000MPa. Sono riusati BoltBearing, SectionResistanceArithmetic e il kernel
+BucklingReductionArithmetic; non e' stato creato un secondo motore di aste.
+
+VerifyBearing: ogni bullone sui sei gruppi, membro e singolo coprigiunto.
+Per l'anima: |Fx|/Fb,x+|Fy|/Fb,y<=1, SCI P3982013 p55. Le capacita sono
+prudenzialmente le minime end/interior ed edge/interior per il gruppo;
+nessuna redistribuzione plastica. Il coprigiunto d'anima riceve meta forza,
+l'anima del membro la forza intera. BetaLj applicato anche al rifollamento
+secondo la guida SCI, esplicitamente supplementare alle formule normative.
+Distanze minime EN, interassi massimi min(14*tOuter,200) applicati anche
+alla distanza centrale dei bulloni; bordi esposti<=4*tOuter+40.
+Table3.3 nota3 definisce t come il piu' sottile dei piatti ESTERNI: i due
+coprigiunti10mm, non l'anima8.5mm, per il benchmark d'anima.
+
+VerifyFlanges: forza fisica dell'ala positiva a trazione; lordo, netto con
+due fori, block tearing interno ed esterno, compressione lorda. Il membro
+ha spessore/resistenze propri. Il solo coprigiunto riceve anche il controllo
+di instabilita SCI P398 p57: p=max(pitch,2*FirstBoltDistance), Lcr=0.6p,
+Ncr=pi^2*E*I/Lcr^2, lambda=sqrt(Afy/Ncr), curva c alpha0.49.
+Se p/t<=9sqrt(235/fy), instabilita locale trascurabile; altrimenti chiAfy/gammaM1.
+La resistenza lorda rimane verificata separatamente. Holes filled in compression.
+
+RICALCOLO DEL BENCHMARK SCI P398 D.1
+Coprigiunto180x12: A2160,An1632,AntOutside456,AntInside1176,Anv3960mm2.
+Resistenze EC UK: lordo594000N, netto547461.818182N,
+block esterno798698.079511N, interno1067061.715875N.
+Ncr10363084.621144N, lambda0.239413535607, chi0.979948325599,
+Nb582089.305406N. Il p136 stampato sostituisce4 file nella formula pur
+dichiarando3: il suo Anv5352 e il successivo1020kN non corrispondono al disegno.
+Il nuovo test documenta il refuso senza modificare fixture/attesi preesistenti.
+Rifollamento coprigiunto d'ala: k1=2.8*30/22-1.7=2.1181818,
+Fb151584.793388N; non si puo' assumere k1=2.5 per il bordo da30mm.
+L'interazione lineare d'anima risulta Failed per i carichi integrali D.1:
+la risultante121695N da sola era inferiore a Fb139400N, ma |Fx|+|Fy|
+puo' superarlo. E' la differenza del metodo conservativo scelto, non una
+correzione dei carichi per riprodurre un Passed pubblicato. Un caso con
+azioni dimezzate passa e ha esattamente meta utilizzo.
+
+QUALIFICA E TEST
+59nuovi test,287passati insieme a riparto, bulloni e coprigiunti esistenti.
+La prima esecuzione ha rilevato3 attesi nuovi errati: usavano k1=2.5 invece
+del coefficiente di bordo2.11818. Corretti solo questi attesi, con formula
+esplicita; nessuna formula o fixture legacy cambiata per ottenere il passaggio.
+Restano fuori: instabilita/classificazione del membro, flessione secondaria,
+coprigiunti d'anima, rigidezza e qualifica dell'intero nodo. Passed dei
+componenti non e' Passed del giunto. Acciai da carpenteria fino aS460,
+fori tondi normali, almeno due file longitudinali, due colonne nelle ali.
+Fonti: https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
+EN1993-1-8:2005 Table3.3,Table3.4,3.10.2; EN1993-1-1:2005 6.2.3,6.2.4,6.3.1;
+NTC2018 fattori propri e rifollamento4.2.67, metodo SCI/EC complementare
+dichiarato nei risultati dove non e' una prescrizione letterale NTC.
