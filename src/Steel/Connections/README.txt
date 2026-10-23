@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
-Versione sorgenteSteel2.69.0.0. Solo librerie, nessuna interfacciaANTHEA.
+Versione sorgenteSteel2.70.0.0. Solo librerie, nessuna interfacciaANTHEA.
 Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
 
 COMPONENTI
@@ -230,3 +230,7 @@ I risultati restano consumabili dalle librerie; integrazioneANTHEA rinviata.
 
 - EndPlateWeldComponents: inviluppo locale delle saldature per piastra estesa,
   tutto il taglio nell'anima; PHASE_4CDE_WELD_COMPONENTS.txt.
+
+- JointStiffnessClassification, JointStrengthClassification ed
+  EndPlateRotationCapacity: classi e criteri sufficienti distinti, con
+  evidenze esterne esplicite e nessuna capacita rad inventata; PHASE_4F_CLASSIFICATION_ROTATION_IMPLEMENTATION.txt.

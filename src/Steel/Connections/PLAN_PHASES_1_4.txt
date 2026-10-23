@@ -37,10 +37,10 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1452 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 1522 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,
    83componenti doppie squadrette/supporto,208precarico/scorrimento,300continuitaI,
-   40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,26rigidezza rotazionale.
+   40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,26rigidezza rotazionale,70classificazione/criteri rotazione.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
@@ -135,8 +135,13 @@ FASE 4 - NODI A MOMENTO
 4f PARZIALE - Chiusa4f.1: rigidezza iniziale/secante delle end plate sul
    pilastro non irrigidito, file singole/multiple e tutti i componenti in serie.
    26test, benchmark JRC96658 e limiti N/M, lunghezze efficaci per fila/gruppo.
-   Restano classificazione globale e capacita rotazionale, non desumibili
-   dalla sola rigidezza. PHASE_4F_JRC_STIFFNESS_REVIEW.txt.
+   Chiuse4f.2/4f.3 nel campo endplate bullonata su flangia: classificazione
+   rigidezza22test/resistenza16test e criteri sufficienti rotazionali32test.
+   Fonte EN5.2/Fig5.4-5.5/6.4 e JRC;96/96test incluso kernel rigidezza.
+   Resistenza completa e compatibilita globale sono evidenze esterne;
+   nessuna capacita numerica in radianti derivata daM/S. Restano altri
+   dettagli e metodi qualificati per casi fuori dai criteri sufficienti.
+   PHASE_4F_JRC_STIFFNESS_REVIEW.txt e PHASE_4F_CLASSIFICATION_ROTATION_IMPLEMENTATION.txt.
 4g PARZIALE - SCI P398 C.1 riprodotto415.771kNm rispetto a416pubblicati,
    con meccanismi governanti e varianti a filo/NTC/pannello. Restano esempi
    del nodo completo con tutti i meccanismi, incluso taglio e saldature.

@@ -362,3 +362,19 @@ Raccordi, transizioni, continuita e contatto sono evidenze esterne esplicite.
 Il campo a filo resta fuori modello: non si inventa un cordone superiore
 su una piastra assente. CanQualifyWholeJoint=false; nessuna capacita rad.
 Log/TRX workspace audit-results/connections/night-4de-welds.
+
+
+4f.2/4f.3 - CLASSIFICAZIONE E CRITERI ROTAZIONALI, STEEL2.70.0.0
+70/70nuovi casi passati al primo run;96/96con la rigidezza rotazionale.
+Review indipendente prima dell'integrazione: nessun problema concreto.
+Fonti EN1993-1-8:2005 5.2/Fig5.4-5.5 e6.4, benchmark JRC96658.
+Rigidezza: Sjini, limiti0.5/8/25EI/L, riduzione spostamento80%, ogni piano
+con mediaI/L e notaKb/Kc<0.1. Resistenza: soglia OR/min dei membri e pinned
+solo con criterio rotazionale stesso snapshot e compatibilita globale.
+Rotazione: esenzione1.2Mpl,beam distinta, |N|<=5%, S235/275/355, tutti i
+co-governi e priorita negativa del taglio bulloni. Una piastra sottile da
+sola non basta: esempioJRC governato dall'anima compressa non dimostrato.
+La resistenza completa e fornita come evidenza esterna; un ComponentSubset
+non puo diventarlo implicitamente. Nessuna capacita in radianti inventata,
+nessuna equivalenza rigido/full-strength e nessuna qualifica globale.
+Log/TRX workspace audit-results/connections/night-4f-classification-rotation.

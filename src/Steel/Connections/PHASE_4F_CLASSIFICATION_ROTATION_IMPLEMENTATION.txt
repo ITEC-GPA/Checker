@@ -1,0 +1,164 @@
+4f.2 / 4f.3 - IMPLEMENTAZIONE INTEGRATA E VERIFICATA, 24 OTTOBRE 2026
+
+MANIFEST
+
+Produzione -> src/Steel/Connections/:
+  JointClassificationContracts.cs
+  JointStiffnessClassification.cs
+  JointStrengthClassification.cs
+  EndPlateRotationCapacity.cs
+
+Test -> tests/Steel.Members.Tests/:
+  JointClassificationTestData.cs (helper comune, necessario agli altri tre)
+  JointStiffnessClassificationTests.cs (22 casi MSTest)
+  JointStrengthClassificationTests.cs (16 casi MSTest)
+  EndPlateRotationCapacityTests.cs (32 casi MSTest)
+
+Documentazione/derivazione:
+  PHASE_4F_CLASSIFICATION_ROTATION_REVIEW.txt (spec e pagine verificate)
+  PHASE_4F_CLASSIFICATION_ROTATION_IMPLEMENTATION.txt (questa nota)
+  derive_joint_classification_rotation_limits.py
+
+STATO DI VERIFICA
+
+70/70nuovi casi MSTest eseguiti e passati centralmente;96/96con il kernel
+di rigidezza. Review indipendente dei quattro sorgenti e dei test prima
+dell'integrazione. Derivatore Python eseguito senza riferimenti a Checker.
+Nessuna aspettativa o fixture esistente modificata.
+
+PERIMETRO E CONTRATTI
+
+Tre risultati pubblici separati: classificazione di rigidezza, resistenza,
+criterio qualitativo di rotazione. CanQualifyWholeJoint=false per tutti.
+Nessun risultato in radianti per la capacita': RotationCapacityRad e' SEMPRE
+null, anche quando la norma consente l'analisi plastica o esenta dal controllo.
+Non viene usata ModelRotation=M/S di4f.1 come capacita' resistente.
+
+Rigidezza: l'input richiede EndPlateRotationalStiffnessResult supportato e
+usa esclusivamente InitialStiffness. E=210000MPa coincide con quel kernel.
+Non e' disponibile un ingresso Sj libero scollegato dalla relativa verifica.
+L'inerzia trave e' nello stesso piano; L e' centro-centro colonne. Il caller
+deve identificare il legame fra dettaglio/caso rigidezza e telaio globale.
+
+Il contesto globale contiene la riduzione numerica dello spostamento dovuta
+al controvento e una fonte della valutazione (stesso carico/piano/telaio).
+Riduzione>=80% -> kb8. Altrimenti occorrono TUTTI i piani, ciascuno con tutte
+le travi alla sommita' e tutti i pilastri; K=media dei singoli I/L. Rapporto
+minimo<.1 impone AppliedClass=SemiRigid PRIMA dei limiti pinned/rigid e resta
+visibile NumericalZone. Non si media fra piani e non si estende la nota al
+ramo kb8. Dati mancanti non producono classe applicata. Non copre basi.
+La zona pinned di rigidezza da sola non certifica5.2.2.2: restano azioni,
+momenti nocivi e accettabilita' delle rotazioni del modello globale.
+
+Resistenza: EndPlateJointResistanceEvidence e' uno snapshot immutabile di
+dati/evidenze FORNITE DAL CALLER, non un certificatore. Contiene geometria,
+materiali, Mj,Rd, Mpl,Rd dei membri adiacenti, N/Npl, direzione e caso,
+perimetro CompleteJoint/ComponentSubset e meccanismi realmente governanti.
+CompleteJoint richiede una valutazione esterna di TUTTI i modi pertinenti
+(inclusi bulloni/saldature/piastre/membri/azioni concomitanti). Una stringa
+non esegue tali verifiche: il risultato dichiara esplicitamente l'assunzione.
+Non esiste conversione automatica da EndPlateMomentComponentResult, il cui
+perimetro attuale resta parziale, ne' da GoverningCheck a carico nullo.
+
+Figura5.5 nel campo rappresentato: in sommita' Mfull=min(Mbeam,Mcolumn);
+entro pilastro equivalente continuo Mfull=min(Mbeam,2Mcolumn). Non si usa
+max. Il secondo schema richiede equivalenza pertinente sopra/sotto; non
+estende automaticamente la formula a pilastri diversi o piu' travi.
+Membri plastici/resistenze esterne vanno qualificati per sezione/caso/asse.
+Mj>=Mfull e' FullStrength; .25Mfull<Mj<Mfull e' PartialStrength.
+Mj<=.25Mfull senza prova rotazionale rimane PinnedRange ma AppliedClass=null.
+
+La prova pinned richiede risultato rotazionale sufficiente per lo STESSO
+oggetto immutabile di resistenza piu' evidenza esterna di compatibilita'
+del modello semplice con azioni/rotazioni del caso globale. L'uso dello
+stesso oggetto evita il riutilizzo involontario di un risultato da un altro
+verso/caso che abbia solo valori numerici coincidenti. Non si equipara
+full-strength a rigido e non si ricava automaticamente il modello globale.
+
+Rotazione: soli end plate bullonati trave-flangia pilastro in campo statico.
+Le regole e riferimenti sono EN1993-1-8:2005, non una formulazione NTC
+distinta. La policy EC3/NTC resta nei dati delle resistenze di progetto.
+
+Ordine delle valutazioni:
+1. Evidenza di resistenza completa/stesso dettaglio e caso; altrimenti
+   MissingEvidence (anche quando Mj sembra grandissimo).
+2. Mj/Mpl,BEAM>=1.2 -> NotRequiredByOverstrength,6.4.1(3). Non e' duttilita'
+   dimostrata e non usa min(Mbeam,Mcolumn). I limiti S235/275/355 e N5% dei
+   metodi6.4.2/3 non sono estesi automaticamente a questa esenzione.
+3. Per criteri6.4.2 servono gradi nominali espliciti S235/S275/S355 e
+   |N|<=.05Npl (entrambi i segni), fonte dei gradi e TUTTI i meccanismi
+   governanti la resistenza ultima reale del nodo. Fy effettivo e grado
+   nominale sono separati; S355 con fy335 per spessore rimane S355.
+4. Co-governo bulloni in TAGLIO -> CannotAssumeSufficientForPlasticAnalysis,
+   6.4.2(3); il divieto non viene erroneamente attribuito al taglio+trazione
+   o alla sola trazione. Trazione da sola resta non dimostrata dalle route.
+5. Pannello in taglio governante e dw/tw<=69sqrt(235/fyweb) ->6.4.2(1).
+6. Flangia/piastra in flessione governante e ALMENO UNA delle due con
+   t<=.36d sqrt(fub/fyproprio) ->6.4.2(2). Il componente sottile puo' essere
+   diverso dal componente governante. Diametro nominale; fyflangia separato
+   da fyweb. Piastre sottili senza governo flessionale non qualificano.
+7. In caso di co-governo, si richiede che OGNI meccanismo abbia un criterio
+   sufficiente applicabile. E' una gestione prudente delle informazioni
+   multiple, non una nuova interazione normativa. Meccanismi non coperti
+   ->NotDemonstratedBySimplifiedRules. Non si prova insufficienza quantitativa.
+
+Fuori dalle condizioni sufficienti:6.4.1(4), prove o modelli supportati da
+prove. Questi non sono implementati qui. Nessuna capacita' sismica/fatica,
+nessun trasferimento dei0.015rad dei giunti SALDATI ai bullonati.
+
+FONTI PRIMARIE E BENCHMARK
+
+EN1993-1-8:2005 copia locale con AC1/AC2, pagine renderizzate e ispezionate:
+-5.2.1-5.2.2 p54/PDF56; Fig5.4 p55/PDF57;
+-5.2.3/Fig5.5 p56/PDF58;
+-6.4.1 p99/PDF101;6.4.2 p100/PDF102.
+Dettagli e nomi delle immagini nella nota REVIEW.
+
+JRC96658 (2015), esempio3.3, fonte ufficiale:
+https://publications.jrc.ec.europa.eu/repository/bitstream/JRC96658/jrc_steel_report_2015_07_22.pdf
+Rigidezza ricalcolata con geometria non arrotondata e zeq:76.55258290797441
+MNm/rad, gia' derivata indipendentemente in4f.1. NON e' il75.214 pubblicato
+con diverso braccio approssimato del pannello. Usata come fixture tipizzata.
+Per I500e6mm4,L6000mm:EI/L17.5e9Nmm/rad; pinned8.75e9; rigid8:140e9;
+rigid25:437.5e9. Nessun campionamento di rigidezza secante per classificare.
+
+JRC caso negativo rotazione: p173/PDF189 governa anima pilastro compressa
+460.90kN (pannello548.88kN); Mj224.5kNm p174/PDF190; Mplbeam515.59kNm
+p170/PDF186. PiastreS235,tplate15mm,tflange16.5mm,M24classe10.9. Limite
+spessore17.822959135351955mm favorevole per entrambe, ma governo richiesto
+assente;1.2Mplbeam618.708kNm. Esito ricavato da EN:NotDemonstratedBySimplifiedRules.
+Non si afferma che JRC pubblichi un risultato di rotazione insufficiente.
+
+Ulteriori soglie indipendenti eseguite nello script Python:
+Mbeam300/Mcolumn200kNm: top Full200/Pinned50; within Full300/Pinned75.
+M20 classe8.8,S275: tlim12.28036126208316mm.
+Pannello S355:69epsilon56.13953942921107.
+
+TEST
+
+Rigidezza: benchmark JRC/limiti, entrambi i lati e uguaglianze .5/8/25,
+80%, nota Kb/Kc precede sia pinned sia rigid, rapporto.1, tutte le medie e
+tutti i piani, mancanza dati, Sjini vs secante, valori non finiti e snapshot.
+Resistenza: OR/min e doppio pilastro, uguaglianze e soglie, prova rotazionale
+legata allo stesso snapshot, mancanza evidenze, parziali non promossi,
+indipendenza rigidezza/resistenza, overflow evitato quando governa la trave.
+Rotazione: benchmark negativo JRC, soglia M20/S275, componenti diversi per
+governo e snellezza, pannello clear-web e limite, fyflangia!=fyweb, gradi,
+N+/-5%,1.2Mbeam vs FullStrength, esenzione distinta, co-governi/ties incluso
+bolt-shear, trazione bulloni, evidenza incompleta, immutabilita' e no rad.
+
+
+4f.2/4f.3 - CLASSIFICAZIONE E CRITERI ROTAZIONALI, STEEL2.70.0.0
+70/70nuovi casi passati al primo run;96/96con la rigidezza rotazionale.
+Review indipendente prima dell'integrazione: nessun problema concreto.
+Fonti EN1993-1-8:2005 5.2/Fig5.4-5.5 e6.4, benchmark JRC96658.
+Rigidezza: Sjini, limiti0.5/8/25EI/L, riduzione spostamento80%, ogni piano
+con mediaI/L e notaKb/Kc<0.1. Resistenza: soglia OR/min dei membri e pinned
+solo con criterio rotazionale stesso snapshot e compatibilita globale.
+Rotazione: esenzione1.2Mpl,beam distinta, |N|<=5%, S235/275/355, tutti i
+co-governi e priorita negativa del taglio bulloni. Una piastra sottile da
+sola non basta: esempioJRC governato dall'anima compressa non dimostrato.
+La resistenza completa e fornita come evidenza esterna; un ComponentSubset
+non puo diventarlo implicitamente. Nessuna capacita in radianti inventata,
+nessuna equivalenza rigido/full-strength e nessuna qualifica globale.
+Log/TRX workspace audit-results/connections/night-4f-classification-rotation.

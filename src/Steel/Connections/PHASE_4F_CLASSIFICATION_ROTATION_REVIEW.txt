@@ -1,0 +1,262 @@
+4f.2 / 4f.3 - CLASSIFICAZIONE E CAPACITA' ROTAZIONALE DI END PLATE
+24 ottobre2026. Spec di riferimento; implementazione e test eseguiti documentati nella nota IMPLEMENTATION.
+
+CONCLUSIONE OPERATIVA
+
+Implementare tre risultati distinti: classe di rigidezza, classe di resistenza,
+ed esito del criterio di capacita' rotazionale. Non condensarli in IsRigid o
+IsPinned e non fare derivare capacita' rad dal rapporto M/S.
+I criteri6.4.2 per end plate bullonati danno adeguatezza qualitativa per
+analisi plastica, non un valore di phi_Cd. Il valore0.015rad della6.4.3(2)
+appartiene ai nodi SALDATI e non va importato negli end plate bullonati.
+
+FONTE PRIMARIA E PAGINE ISPEZIONATE
+
+EN1993-1-8:2005, copia locale tmp/pdfs/EN1993-1-8-2005.pdf con corrigenda
+marcati AC1/AC2. Non si dichiara applicata una successiva edizione o una NA UK.
+-5.1/Table5.1: p50/PDF52, scelta del modello rispetto al metodo globale;
+-5.2.1-5.2.2: p54/PDF56;
+-Figura5.4: p55/PDF57, limiti di rigidezza, Kb/Kc e definizioni;
+-5.2.3/Figura5.5: pp55-56/PDF57-58, classi di resistenza;
+-6.4.1: p99/PDF101 e continuazione p100/PDF102;
+-6.4.2: p100/PDF102, criteri per giunti bullonati.
+Figure5.4/5.5 e6.4 interamente renderizzate e ispezionate visualmente.
+
+Riscontro primario indipendente: JRC96658(2015), cap3 Jaspart/Weynand,
+pp153-156/PDF169-172: distingue classificazione di rigidezza/resistenza,
+meccanismo di collasso e capacita' di rotazione. Esempio3.3 pp156-175.
+https://publications.jrc.ec.europa.eu/repository/bitstream/JRC96658/jrc_steel_report_2015_07_22.pdf
+File locale in staging/connections/JRC96658.pdf.
+
+4f.2a - CLASSIFICAZIONE PER RIGIDEZZA
+
+Si usa SEMPRE la rigidezza INIZIALE Sj,ini, non la rigidezza secante Sj(M)
+e non Sj,ini/eta del modello semplificato di analisi.
+Con Rb=E*Ib/Lb, unita'Nmm/rad:
+-zona nominalmente incernierata: Sj,ini <=0.5*Rb;
+-zona rigida: Sj,ini >=kb*Rb;
+-zona intermedia: semi-rigida.
+Le uguaglianze appartengono rispettivamente a pinned e rigid.
+E in MPa, Ib in mm4 rispetto all'asse di flessione esaminato;
+Lb e' la luce fra ASSI DEI PILASTRI, non la lunghezza netta della trave.
+
+kb=8 solo se il sistema di controvento riduce lo spostamento orizzontale
+di almeno80%. Un semplice nome Braced o una stringa non dimostra l'80%.
+Servono valutazione globale o evidenza qualificata dello stesso telaio/caso,
+ad esempio spostamento senza/con il sistema e relativo rapporto.
+kb=25 negli altri telai, a condizione che Kb/Kc>=0.1 in OGNI piano.
+Per il piano:
+Kb=media(Ib/Lb) delle travi alla SOMMITA' del piano;
+Kc=media(Ic/Lc) dei pilastri del piano;
+Lc=altezza interpiano. Non sono sommaI/sommaL, rapporto di medie globali,
+valori del solo nodo corrente, o media dei rapporti dei diversi piani.
+
+INTERSEZIONE DELLA NOTA Kb/Kc<0.1 CON LA ZONA PINNED
+
+Il richiamo della nota e' sul ramo kb25 degli altri telai; il testo della
+nota prescrive la classificazione semi-rigida per Kb/Kc<0.1.
+Per l'implementazione raccomandata, in questo ramo valutare la nota PRIMA
+di restituire una classe nominalmente incernierata o rigida dai soli limiti
+numerici. Esempio: Sj=.4Rb, minimo Kb/Kc=.09 -> zona numerica pinned,
+classificazione applicata semi-rigid per la nota dellaFigura5.4.
+Conservare entrambe le informazioni nel trace, senza farle apparire coerenti
+per cancellazione del dato sfavorevole. Non estendere automaticamente la
+nota al ramo kb8, al quale non e' associato il richiamo.
+Rapporto esattamente0.1: condizione del ramo kb25 soddisfatta.
+
+Se mancano i dati globali non inventare kb25 o un Kb/Kc favorevole.
+Si possono fornire i limiti numerici condizionati; una classe applicata che
+dipende dal dato mancante deve restare indeterminata. Usare opzionalmente
+un modello semi-rigido e' consentito anche nelle zone1/3, ma deve risultare
+una scelta esplicita del modello, non una classe di rigidezza ricavata.
+
+La zona pinned non costituisce qualifica completa del modello a cerniera:
+5.2.2.2 richiede trasmissione delle azioni senza momenti nocivi e possibilita'
+di accettare le rotazioni risultanti dai carichi. Separare quindi classe
+geometrico-numerica e CanUsePinnedAnalysisModel; quest'ultimo richiede
+evidenza del comportamento e delle rotazioni, non solo una soglia suSj.
+La presenteFigura5.4 non vale per basi di pilastro, che hanno regole5.2.2.5(2).
+
+4f.2b - CLASSIFICAZIONE PER RESISTENZA
+
+Confrontare Mj,Rd qualificato del nodo con resistenze delle sezioni ADIACENTI
+al nodo, nello stesso asse e verso e con l'opportuna qualificazione delle
+azioni concomitanti. La resistenza parziale dell'attuale componente4c non
+e' automaticamente Mj,Rd dell'intero nodo: mancano ancora meccanismi elencati
+dal suo stesso PendingChecks.
+
+Figura5.5, configurazione trave-pilastro rappresentata:
+-sommita' del pilastro: Mfull=min(Mb,pl,Rd, Mc,pl,Rd);
+-entro l'altezza di un pilastro continuo equivalente sopra/sotto:
+ Mfull=min(Mb,pl,Rd,2*Mc,pl,Rd).
+La figura usa OR, non AND: non prendere il massimo fra le due soglie.
+Non estendere in silenzio2*Mc a colonne diverse sopra/sotto, cambi di asse
+o connessioni con piu' travi; serve la relativa qualificazione del meccanismo.
+Se le sezioni non ammettono la resistenza plastica dichiarata, non inserire
+Wpl*fy come se fosse un valore di progetto qualificato.
+
+Mj>=Mfull: full-strength. La sola full-strength non equivale a rigid.
+Mj<=.25*Mfull: puo' essere nominally-pinned SOLO se dispone anche di
+capacita' rotazionale sufficiente (5.2.3.2(3)) e soddisfa le condizioni del
+modello semplice. Senza prova rotazionale, restituire fascia numerica
+PinnedRange ma classificazione pinned non dimostrata; non trasformare
+l'assenza di informazioni in un esito favorevole.
+Fra le soglie: partial-strength; resistenza e duttilita' rimangono separabili.
+
+Classificazione per rigidezza e per resistenza restano due campi distinti.
+Table5.1 usa la prima per analisi elastica, la seconda per rigido-plastica,
+entrambe per elastoplastica. Non ricavare automaticamente il modello globale
+semplice/continuo/semi-continuo senza il tipo di analisi e le altre condizioni.
+
+4f.3 - CAPACITA' ROTAZIONALE, SOLO END PLATE BULLONATI
+
+6.4.1(1): per analisi globale rigido-plastica, i nodi nelle posizioni di
+cerniera plastica devono disporre di sufficiente capacita' rotazionale.
+6.4.1(2): i metodi6.4.2/6.4.3 sono limitati agli acciaiS235,S275,S355 e
+a |NEd|<=.05*Npl,Rd della sezione del membro collegato.
+Il GRADO va dichiarato: S355 con fy ridotto per spessore non diventa un
+materiale fuori campo; non inferire il grado dal solo numeroFy.
+Il limite suN non va verificato soltanto per N positivo.
+
+ROUTE A: ESENZIONE PER SOVRARESISTENZA,6.4.1(3)
+Se Mj,Rd>=1.2*Mpl,Rd della sezione del MEMBRO COLLEGATO qualificato,
+la capacita' di rotazione del nodo non deve essere verificata con6.4.2/3.
+Output=NotRequiredByOverstrength; non SufficientRotationCapacity e non
+capacita' numerica infinita. Non sostituire automaticamente il riferimento
+del membro con la soglia Mfull della classificazione: sono controlli diversi.
+Per il campo iniziale scegliere esplicitamente la sezione della trave
+collegata e la regione nella quale il modello ammette la plasticizzazione.
+Il limite S235/S275/S355 eN5% e' espresso per i metodi6.4.2/3;6.4.1(3)
+e' un'alternativa e non contiene gli stessi limiti aggiuntivi. Non negarvi
+l'esenzione solo per tali due ragioni, pur richiedendo resistenze qualificate
+con le azioni effettive e validita' del modello del nodo/membro.
+
+ROUTE B: PANNELLO IN TAGLIO,6.4.2(1)
+Prerequisiti: Mj,Rd del nodo trave-pilastro governato dalla resistenza a
+taglio del pannello d'anima e dwc/tw<=69*epsilon, epsilon=sqrt(235/fy,wc).
+dwc e' l'altezza libera effettiva pertinente dell'anima, nonh della sezione.
+Ne segue adeguatezza qualitativa per analisi globale plastica.
+Non basta che la verifica di taglio del pannello sia presente o superata:
+deve essere il meccanismo che governa la resistenza del nodo.
+
+ROUTE C: FLESSIONE DELLA FLANGIA/PIASTRA,6.4.2(2)
+Servono entrambe le condizioni:
+(a) Mj,Rd governato dalla resistenza della flangia del pilastro in flessione
+    o della piastra di estremita' in flessione;
+(b) almeno una fra flangia del pilastro e piastra soddisfa
+    t<=.36*d*sqrt(fub/fy), usando il proprio fy e il diametro NOMINALE del bullone.
+La norma specifica che il componente che soddisfa(b) puo' essere diverso da
+quello che governa(a). Non imporre che sia lo stesso componente o che siano
+entrambe le piastre a rispettare il limite.
+Un piatto sottile non sostituisce la prova di(a). Il modo3 del T-stub e'
+resistenza dei bulloni, non puo' essere rinominato flessione della piastra.
+Per un modo combinato o piu' meccanismi contemporaneamente critici serve
+l'identificazione del meccanismo qualificante del nodo: non basta l'ID della
+prima verifica numericamente massima o il Passed di un T-stub isolato.
+
+CASO NEGATIVO ESPLICITO,6.4.2(3)
+Se Mj,Rd e' governato dai bulloni in TAGLIO, non si deve assumere adeguatezza
+per analisi plastica. Il testo dice TAGLIO, non TRAZIONE. Per rottura a trazione,
+se non si soddisfa un'altra route valida, l'adeguatezza non e' dimostrata dai
+criteri semplificati; non attribuire alla norma una frase che non contiene.
+In caso di co-governo flessione+taglio bulloni, il gate negativo non deve
+sparire perche' il codice ha scelto prima il componente flesso. La routeA
+resta concettualmente un'esenzione diversa, non una prova di duttilita'.
+
+TUTTI GLI ALTRI CASI
+6.4.1(4): prove secondoEN1990AnnexD o modelli di calcolo supportati da prove.
+Return NotDemonstratedBySimplifiedRules/OutOfScope/MissingEvidence, secondo
+la causa. Non return phiRd0 e non dichiarare quantitativamente insufficiente
+una capacita' che non e' stata determinata. Non usare ModelRotation=M/S
+di4f.1 come capacita' di rotazione: e' una rotazione del modello per un carico.
+Non introdurre dati di fire/seismic/fatigue o tying accidentale in tali
+criteri statici ordinari senza il relativo metodo.
+
+PROPOSTA DI CONTRATTI
+
+JointStiffnessClassificationInput:
+-Sj,ini con fonte o risultato tipizzato4f.1 dello stesso asse/verso;
+-E,Ib,Lb centro-centro, identita' del nodo/verso di flessione;
+-qualificazione della riduzione di spostamento per il ramo80%;
+-dati di TUTTI i piani per il ramo alternativo, come liste diI/L o medie
+ esplicite accompagnate da conteggio/perimetro/fonte; nessun minimo implicito.
+Output: NumericalZone, AppliedStiffnessClass, AppliedRule, limiti e rapporti,
+IsClassificationComplete, separate evidenze per uso del modello pinned.
+Sempre CanQualifyWholeJoint=false nel componente autonomo.
+
+JointStrengthClassificationInput:
+-resistenza Mj,Rd qualificata del nodo completo, con fonte/caso/verso;
+-resistenze plastiche di progetto adiacenti della trave/pilastro e perimetro;
+-posizione TopOfColumn oWithinContinuousColumn nel campoFig5.5;
+-evidenza tipizzata della capacita' di accettare le rotazioni dei carichi per
+ la classe pinned (non una flag ottenuta da uno spessore favorevole isolato).
+Output: Mfull, MpinLimit, StrengthRange, AppliedStrengthClass oindeterminato,
+RotationEvidenceRequired/Available; nessuna implicazione sulla rigidezza.
+
+EndPlateRotationCriterionInput:
+-tipo di dettaglio entrocampo, identita' e fonte della qualifica del nodo;
+-Mj,Rd completo e membro Mpl,Rd collegato perrouteA;
+-NEd,Npl,Rd e gradi nominali degli acciai pertinenti perrouteB/C;
+-meccanismo/i governante/i della resistenza del NODO, non del solo piatto;
+-dati dwc,tw,fy del pannello perrouteB;
+-t,fy della flangia e della piastra, d,fub effettivi perrouteC;
+-evidenza che il meccanismo deriva dallo stesso dettaglio/caso resistente.
+Outputenum: NotRequiredByOverstrength, SufficientForPlasticAnalysis,
+CannotAssumeSufficientForPlasticAnalysis, NotDemonstratedBySimplifiedRules,
+OutOfScope, MissingEvidence. PhiCapacityRad=null per tutte queste route.
+Mantenere separati Reference, Scope, Assumptions, Diagnostics e trace limiti.
+
+BENCHMARK NEGATIVO PUBBLICATO, MOLTO IMPORTANTE
+
+JRC96658 esempio3.3: p173/PDF189 dichiara che governa la COMPRESSIONE
+dell'anima del pilastro,460.90kN, mentre pannello548.88kN.
+Mj,Rd224.5kNm; Mpl,Rd,trave515.59kNm (p170/PDF186).
+PiastreS235,tp15mm,tfc16.5mm,M24classe10.9/fub1000MPa.
+Soglia spessore=.36*24*sqrt(1000/235)=17.822959135351955mm:
+entrambi gli spessori sono favorevoli, ma6.4.2(2)a NON lo e'.
+Esenzione1.2*Mpl=618.708kNm NON soddisfatta. CampoS235/N0ammissibile.
+Risultato: NotDemonstratedBySimplifiedRules; phiCapacityRadnull.
+Non affermare che la fonte pubblica una rotazione insufficiente: il risultato
+e' la nostra applicazione dei criteri normativi al meccanismo pubblicato.
+
+TEST NUMERICI/DI CONTRATTO CONSIGLIATI
+
+Rigidezza, E210000MPa,Ib500000000mm4,Lb6000mm:
+Rb17.5e9Nmm/rad; pinned8.75e9; rigid80%140e9; rigidother437.5e9.
+1) uguaglianze sulle tre soglie e punti immediatamente ai due lati;
+2) lo stesso Sj con bracing80% e79.999% usa limiti diversi;
+3) tutti i piani>=.1 ammettono ramo25; rapporto=.1 ammesso;
+4) almeno un piano=.09 ->AppliedSemiRigid, anche se NumericalZonePinned;
+5) lo stesso caso nel ramo80% non applica la nota del ramo25;
+6) due piani con rapporti.05 e1.0: media.525 non sana il piano.05;
+7) mediaI/L distinta da sommaI/sommaL e dalla sola I/L del nodo;
+8) dati globali mancanti ->classe condizionata/indeterminata, mai rigid default;
+9) Sj,ini costante mentre cambiaSjsecante ->classe costante;
+10) zero Sj, input negativi/non finiti, basi di colonna fuori campo, verso non coerente.
+
+Resistenza, Mb300kNm,Mc200kNm:
+Top: Mfull200 eMpin50; Within: Mfull300 eMpin75.
+11) Mj250 ->Full al Top, Partial Within (prova min/OR e fattore2);
+12) Mj50Top/Mj75Within con rotazione adeguata ->Pinned; senza evidenza no;
+13) uguaglianze Full e Quarter, sopra Quarter ->Partial; direzioni asimmetriche;
+14) valori/resistenze parziali senza qualifica nodo non chiudono classe globale;
+15) rigid/partial-strength e semi-rigid/full-strength restano combinazioni valide.
+
+Rotazione:
+16) benchmark JRC negativo sopra, anche con ENTRAMBI i piatti sottili;
+17) M20,fub800,fy275: tlim12.28036126208316mm; uguaglianza e appena sopra;
+18) governa flangia ma solo piastra rispetta tlim ->routeC valida, e viceversa;
+19) pannello governante S355: dw/tlim56.13953942921107; soglia e appena oltre;
+20) taglio bulloni governante non assume sufficient, anche con piatto sottile;
+21) bolts tension non viene etichettato come divieto testuale bolts shear;
+22) Mj=1.2*Mpl ->NotRequired, Phi=null; appena sotto riprende altre route;
+23) N=+/-0.05Npl ammesso per B/C; appena oltre fuori campo; S460 fuori B/C;
+24) S355 con fy335 per spessore resta grado ammesso; non inferire grado da fy;
+25) routeA non rifiutata solo da S460/N>5%, ma richiede resistenze qualificate;
+26) piu' meccanismi co-governanti, incl. taglio bulloni: nessun filtro first-wins;
+27) nessun esito bolted popola0.015rad,0.025hc/hb, infinito o M/S come capacita'.
+
+STATO
+Spec consegnata per revisione; nessuna implementazione, build, installazione
+o operazione Git. I valori numerici elementari sopra sono ricalcolati con
+script indipendente in staging, senza leggere la DLL o creare attesi vecchi.
