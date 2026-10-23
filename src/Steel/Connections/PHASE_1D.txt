@@ -1,0 +1,156 @@
+FASE 1d - CORDONI D'ANGOLO E GRUPPI PLANARI
+Data: 23 ottobre 2026
+
+STATO
+Implementazione e test predisposti. L'esecuzione delle suite e' coordinata dal
+responsabile del branch; questo documento non dichiara test eseguiti autonomamente.
+Il risultato riguarda il componente saldato, non la verifica completa del nodo.
+
+API
+- FilletWeldMaterial: grado S235/S275/S355/S420/S460, fu nominale effettivo per
+  prodotto/spessore [MPa], spessore del metallo base [mm].
+- FilletWeldSegment: estremi della radice in XY [mm], gola effettiva a [mm],
+  condizione delle estremita', normale della gola, angolo delle facce di fusione.
+- FilletWeldResistance.Verify: verifica locale delle tensioni di gola [MPa],
+  metodo direzionale o semplificato; non controlla geometria/esecuzione/nodo.
+- FilletWeldGroup.Verify: riparto elastico delle sei azioni concomitanti
+  PlanarConnectionActions, risultanti, massimi locali, tracciato e diagnostica.
+
+ESEMPIO DI GRUPPO
+var steel = new FilletWeldMaterial(FilletWeldSteelGrade.S275, 410, 10);
+var welds = new[] {
+    new FilletWeldSegment(new ConnectionPoint2D(-50, -30),
+        new ConnectionPoint2D(50, -30), 6, FilletWeldEndCondition.FullSize),
+    new FilletWeldSegment(new ConnectionPoint2D(-50, 30),
+        new ConnectionPoint2D(50, 30), 6, FilletWeldEndCondition.FullSize)
+};
+var input = new FilletWeldGroupInput(ConnectionDesignCode.Ntc2018(), welds,
+    steel, steel, new PlanarConnectionActions(12000, 0, 0, 0, 0, 0),
+    FilletWeldMethod.Simplified,
+    consumableCompatibilitySource: "Riferimento WPS/materiali del progetto",
+    localEccentricityAccounted: true,
+    localEccentricitySource: "Riferimento allo schema locale e alle eccentricita' incluse");
+var result = FilletWeldGroup.Verify(input);
+
+Le stringhe di provenienza registrano una dichiarazione del chiamante. La libreria
+non certifica WPS, materiale d'apporto o assenza di flessione locale della radice.
+L'esempio mostra il contratto: le stringhe vanno sostituite con riferimenti reali.
+
+CONVENZIONI E MODELLO MATEMATICO
+Piano del gruppo XY, normale +Z, momenti secondo mano destra. Forze N, momenti
+Nmm. Le radici sono le linee di trasferimento: EN1993-1-8 4.5.3.2(3).
+Le azioni sono trasportate al baricentro con M(C)=M(A)+(A-C) x F, compreso lo
+scostamento ApplicationZ. Non sono implicitamente gli assi di SteelActions.
+
+Per ciascun segmento t e' il versore Start->End e p=(-t.y,t.x,0).
+n=cos(theta)*p+sin(theta)*Z e' la normale positiva alla gola (trazione positiva).
+La tangente trasversale di gola e' u=-sin(theta)*p+cos(theta)*Z.
+tau_parallel=s.t, sigma_perp=s.n, tau_perp=s.u.
+Invertendo Start/End occorre theta'=pi-theta per mantenere la normale fisica n.
+L'angolo theta identifica l'orientamento della gola, non l'angolo delle facce di
+fusione: FusionAngleDegrees e' un dato distinto, normalmente 90 gradi.
+
+A=sum(a*L_eff). Inerzie integrate analiticamente con dA=a*ds, senza contributi
+artificiali del tipo a^3. Origine traslata prima della somma per stabilita' numerica.
+Con x,y riferiti al baricentro:
+sx=Fx/A-Mz*y/J; sy=Fy/A+Mz*x/J; sz=Fz/A+b_x*x+b_y*y.
+[int x^2 dA, int xy dA; int xy dA, int y^2 dA] [b_x;b_y]=[-My;Mx].
+J=Ix+Iy. Il trasferimento e' elastico con uguale risposta per area di gola.
+Un singolo cordone o gruppo collineare puo' portare la flessione rappresentabile
+dalla distribuzione lineare; la coppia attorno alla sua radice e' rifiutata.
+Il residuo nella direzione nulla usa solo la tolleranza di cancellazione dei due
+prodotti della proiezione, 16*epsilon*(abs(termine1)+abs(termine2)): un piccolo
+momento non equilibrabile non viene nascosto da un grande momento compatibile.
+La direzione di rango uno proviene dalla geometria; gruppi realmente quasi
+collineari sono distinti da quelli collineari e rifiutati per la flessione quando
+il determinante normalizzato e' <=1e-12. Nessuna pseudo-inversa li regolarizza.
+
+Gli estremi di ciascun tratto efficace sono sufficienti: le tensioni sono affini
+e i criteri resistenti sono convessi. Non viene effettuato un campionamento FEM.
+Il risultato riporta le risultanti ricostruite e le forze per unita' di lunghezza.
+Le sei risultanti sono reintegrate dalle forze agli estremi con Simpson (esatto
+per queste funzioni) e somma compensata: e' un controllo bloccante di equilibrio,
+con tolleranza128*epsilon sui singoli contributi di ciascuna risultante. In caso
+di squilibrio l'esito e' NotSupported e i risultati parziali vengono rimossi.
+
+REGOLE E FONTI VERIFICATE
+1. EN1993-1-8:2005, copia con corrigenda dicembre 2005 e luglio 2009:
+   - 4.1-4.2, pagina stampata 38 (PDF40): spessore base >=4 mm, compatibilita'
+     del materiale d'apporto; 4.3.2.1: angolo facce 60-120 gradi.
+   - 4.5.1-4.5.2, pagina 42 (PDF44): L_eff=L-2a se non e' documentata la
+     piena dimensione anche alle estremita'; L_eff>=max(30 mm,6a), a>=3 mm.
+   - 4.5.3.2, pagina 43 (PDF45):
+     sqrt(sigma_perp^2+3*(tau_perp^2+tau_parallel^2))<=fu/(beta*gammaM2),
+     sigma_perp<=0.9fu/gammaM2. La compressione non e' trasformata in trazione,
+     ma rimane nel termine quadratico della prima verifica.
+   - Tabella 4.1 e 4.5.3.3, pagina 44 (PDF46): beta=0.8/0.85/0.9/1/1 per
+     S235/S275/S355/S420/S460; criterio semplificato |F_per_length|<=a*fvw,d,
+     fvw,d=fu/(sqrt(3)*beta*gammaM2), indipendente dall'orientamento della gola.
+   - 4.9, pagina 46 (PDF48): riparto elastico ammesso.
+   - 4.11(3), pagina 48 (PDF50), eq4.9: giunti a sovrapposizione di lunghezza
+     Lj>150a: beta_Lw=1.2-0.2*Lj/(150a), massimo 1. Il fattore minimo 0.6
+     appartiene invece al diverso caso 4.11(4), NON viene usato per il lap joint.
+     Lj e' l'intera sovrapposizione nella direzione del trasferimento, non la
+     somma delle lunghezze dei cordoni. Ogni gola usa il proprio fattore.
+   - 4.12, pagina 48 (PDF50): eccentricita' locali da trattare esplicitamente.
+   URL: https://www.phd.eng.br/wp-content/uploads/2015/12/en.1993.1.8.2005-1.pdf
+
+2. NTC2018, DM 17/01/2018, GU 20/02/2018:
+   - 4.2.8.2.3, pagina stampata 113 (PDF117): lunghezza intera del cordone
+     salvo estremita' palesemente mancanti/difettose.
+   - 4.2.8.2.4, eq4.2.81-83, pagine 113-114 (PDF117-118): gola effettiva,
+     beta per grado e due metodi adottati. Non sono usate le formule della
+     gola ribaltata eq4.2.84-85 con beta1/beta2.
+   - gammaM2=1.25 tramite ConnectionDesignCode.Ntc2018; la resistenza usa
+     GammaM2Connection, mai il fattore della frattura di una piastra.
+   - Per NTC, a>=3, L_eff>=max(30,6a), spessore>=4, angoli60-120 e la riduzione
+     EC4.11 sono limitazioni/modello complementare esplicitamente adottati dal
+     modulo. Non vengono presentati come ulteriori formule scritte nelle NTC.
+   Il testo delle formule e' stato letto e confrontato con le pagine renderizzate.
+
+3. SCI P358, Joints in steel construction: Simple Joints to Eurocode 3, 2014,
+   Tabella G.37, pagina T-144 (PDF442); fu dalla Tabella G.36 della stessa pagina.
+   Benchmark pubblicato: S275 223/273 MPa, S355 241/295 MPa rispettivamente
+   longitudinale/trasversale. Tolleranza 0.5 MPa per arrotondamento a 1 MPa.
+   Fattore saldature UK 1.25; non usare il fattore piastra1.1.
+   La tabella e' un benchmark di componente, non di nodo completo. Il caso
+   trasversale sfrutta la scomposizione sulla gola a45 gradi; non applicare tale
+   incremento al metodo semplificato, indipendente dall'orientamento.
+   URL: https://www.steelconstruction.info/images/a/a9/SCI_P358.pdf
+
+CAMPO E DIAGNOSTICA
+Statica ordinaria, acciai saldabili dei cinque gradi, cordoni d'angolo rettilinei
+con radici nel piano XY e distribuzione compatibile con il modello elastico.
+I materiali e gli effettivi fu per prodotto/spessore sono responsabilita' del
+chiamante. Fu minimo fra le parti e beta del grado nominale inferiore.
+Le estremita' difettose sono rifiutate; nessuna area efficace viene inventata.
+Radici sovrapposte con lunghezza non nulla sono rifiutate per evitare doppio
+conteggio. Gli estremi condivisi fra due segmenti sono ammessi.
+Per giunti lunghi: lapLength=0 dichiara esplicitamente un giunto non a
+sovrapposizione. Fattore lap non positivo => non supportato. Cordoni non-lap oltre
+1700 mm => modello specifico richiesto; non si assume arbitrariamente la regola
+dei soli irrigidimenti trasversali o l'esenzione4.11(2).
+
+Esclusi: cordoni curvi/3D, saldature a tratti con verifiche di passo/durabilita',
+imbottiture, penetrazione aggiuntiva, gap di radice, zone formate a freddo,
+piatti/supporti deformabili con diversa distribuzione locale, resistenza e
+stabilita' delle parti collegate, lacerazione lamellare, fatica, duttilita' sismica,
+capacita' rotazionale e qualificazione dell'esecuzione. Nessun esito favorevole
+del componente rende automaticamente verificato il nodo.
+
+TEST PREDISPOSTI
+Benchmark SCI pubblicati, calcoli indipendenti dalle equazioni EC/NTC, tutti i
+gradi beta, materiale piu' debole, compressione/trazione e piccole azioni;
+gruppi simmetrici sotto sei azioni, gruppi asimmetrici con gole diverse e
+integrazione indipendente dell'equilibrio mediante Simpson; rotazione/traslazione
+assi, inversione radici e normale fisica; lunghezze EC/NTC, limiti geometrici,
+giunti lunghi, singolo cordone e caso degenere, azioni non equilibrabili anche
+piccolissime, sovrapposizioni, immutabilita', input invalidi e diagnostica.
+
+VERIFICA ESEGUITA 23/10/2026
+61/61 casi superati, nessun ignorato, build Release riuscita.
+TRX phase1d.trx nel workspace audit-results/connections.
+La revisione di integrazione ha aggiunto il rifiuto dei momenti incompatibili
+anche piccolissimi accanto a grandi momenti supportati, la distinzione fra
+gruppi esattamente allineati e malcondizionati, e il controllo di equilibrio
+delle sei risultanti reintegrate dagli estremi con Simpson esatto.

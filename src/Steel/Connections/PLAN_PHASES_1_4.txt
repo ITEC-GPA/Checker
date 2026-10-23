@@ -22,9 +22,10 @@ FASE 1 - COMPONENTI COMUNI
    singolo bullone, equilibrio e casi degeneri. Nessun contatto compresso
    implicito. Resta da migrare/correggere il percorso legacy ModelBoltGrid;
    il nuovo kernel non lo richiama e non modifica Model. Vedi PHASE_1C.txt.
-1d IN ANALISI - Saldature: cordoni d'angolo, lunghezza efficace, gola, materiali,
-   gruppi di cordoni e azioni eccentriche. Formule EC3/NTC e fonti in lettura;
-   nessun motore saldature ancora implementato.
+1d CHIUSA - Cordoni d'angolo rettilinei nel piano: metodi direzionale e
+   semplificato, gruppi elastici sotto sei azioni, lunghezze EC/NTC, gole,
+   materiali e giunti lunghi. 61 test superati, inclusi benchmark SCI G.37;
+   equilibrio ricostruito e controllato. Campo e limiti in PHASE_1D.txt.
 1e PARZIALE - Piastre: lordo/netto, block tearing, taglio, flessione/interazioni
    e stabilita locale pertinente. Lordo/netto e block tearing qualificati per
    piatti rettangolari tesi nel doppio coprigiunto.
