@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
-Versione sorgenteSteel2.51.0.0. Solo librerie, nessuna interfacciaANTHEA.
+Versione sorgenteSteel2.54.0.0. Solo librerie, nessuna interfacciaANTHEA.
 Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
 
 COMPONENTI
@@ -20,7 +20,12 @@ NODI E COMPONENTI ASSEMBLATI
 - IBeamSpliceForces.Calculate: riparto N-V-M e sei gruppi sui due lati.
 - IBeamSpliceBolts.VerifyStrength/VerifySlip: soli componenti bullonati, con
   azioni SLU/SLE esplicite; PHASE_2E_SPEC.txt include un esempio C# eseguibile.
-  Piatti/stabilita/rifollamento e verifica completa del giunto ancora aperti.
+- IBeamSplicePlates.VerifyBearing/VerifyFlanges/VerifyWebSections: rifollamento,
+  piatti/instabilita longitudinale dei coprigiunti d'ala, sezioni d'anima N-V-M.
+- IBeamSpliceComponents.Verify: inviluppo dei componenti con coerenza della
+  geometria/norma e stati limite richiesti. CanQualifyWholeJoint=false;
+  le verifiche ancora mancanti sono esposte in MissingWholeJointChecks.
+  Restano meccanismi locali d'anima, membro/modello globale e qualifica del nodo.
 
 CONTRATTI
 Ogni metodo dichiara Scope, controlli, tracce e limiti. IsComplete riguarda

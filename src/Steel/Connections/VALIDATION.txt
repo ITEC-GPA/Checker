@@ -92,3 +92,34 @@ Non e' un set di rilascio. Nessun merge/master o push.
 2e.3/2e.4 restano aperte: le resistenze dei bulloni e il riparto equilibrato
 non sono una verifica completa dei piatti/del giunto. Restano anche supporto
 doppieL2c.3 e gli altri punti esplicitamente aperti nel piano.
+
+
+ITERAZIONE2e.3a/2e.3b/2e.3c/2e.4a - STEEL2.54.0.0
+Funzionalita27271efe,eb68cdfc,72f6ab4c. Versioni dedicate db115b1d,
+927314f1,d8c71f2d. 124nuovi test:59rifollamento/piatti d'ala,
+46sezioni d'anima N-V-M,19assemblaggio dei componenti e coerenza dei casi.
+238/238test continuitaI e853casi connessioni Checker complessivi.
+Ricalcoli SCI P398/EN indipendenti, EC/NTC, tutti i lati/segni, fori/distanze,
+instabilita del coprigiunto compresso, soglieVrd/2,Vrd, capacita esaurita,
+input invalidi, SLE/SLU distinti e geometrie/politiche discordanti.
+La procedura indipendente Fixtures/derive_ibeam_splice_plates.py e' stata
+eseguita con Python standard: non importa la libreria e non modifica fixture.
+
+build/Verify.ps1 -Suites all:4055/4055Steel.Members e122/122Steel legacy,
+totaleSteel4177/4177. TotaleChecker6447passati,5falliti,0ignorati.
+Confronto automatico per nome con verify-after-2e-bolts: stesse quattro
+pendenze Concrete e una ModelChecker; nessun nuovo fallimento.
+Nessun atteso legacy, fixture preesistente o allowlist modificato.
+Quattro superfici API compatibili con zero rimozioni inattese, relative a
+GPCModelChecker/Concrete/Design/Masonry (non una baseline API di Steel).
+TRX/log/summary: workspace audit-results/connections/verify-after-2e-plates.
+Il controllo generale resta non superato per le cinque pendenze preesistenti;
+nessun rilascio, merge master o push dichiarato.
+
+Limite sostanziale: l'inviluppo componenti e' distinto dalla qualifica del
+giunto. CanQualifyWholeJoint=false anche con tutti i componenti Passed.
+Restano2e.3d block tearing/stabilita locale dei coprigiunti d'anima,
+classificazione/resistenza del membro, effetti secondari e compatibilita
+del modello globale; poi2e.4b/c qualifica completa e collegamento Model.
+Il benchmark integrale SCI ha utilizzo rifollamento lineare1.186583416723:
+non si e' cambiato il carico o il metodo per forzare il Passed della fonte.

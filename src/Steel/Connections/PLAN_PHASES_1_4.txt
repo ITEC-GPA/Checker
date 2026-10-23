@@ -30,7 +30,8 @@ FASE 1 - COMPONENTI COMUNI
    equilibrio ricostruito e controllato. Campo e limiti in PHASE_1D.txt.
 1e PARZIALE - Lordo/netto, block tearing e taglio nei percorsi qualificati di
    coprigiunto, fin/end plate e doppie squadrette; flessione locale pertinente
-   nei dettagli fin/end plate. Restano estensioni generali, compressione/stabilita
+   nei dettagli fin/end plate, anche compressione e instabilita longitudinale
+   dei coprigiunti d'ala. Restano estensioni generali, compressione/stabilita
    dei fazzoletti e piastre in trazione con effetto leva.
 1f PARZIALE - Politiche EC3/NTC: fattori e formule distinti, riferimenti espliciti,
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
@@ -108,7 +109,7 @@ Ogni sottofase chiusa ha implementazione, campo di validita, riferimenti,
 benchmark eseguiti e commit separato. Aggiornamenti in chat con la stessa sigla.
 
 VERIFICA GENERALE DELLA BASE
-Controllo completo Steel2.51.0.0: 4053 test Steel passati; 6323 passati
+Controllo completo Steel2.54.0.0: 4177 test Steel passati; 6447 passati
 complessivi e cinque fallimenti Concrete/ModelChecker gia documentati in6edf46a7. Nessun atteso
 modificato o fallimento ammesso automaticamente. Vedere VALIDATION.txt.
 Queste pendenze impediscono un rilascio generale dichiarato interamente verde,
