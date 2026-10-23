@@ -1,0 +1,46 @@
+CONNESSIONI STANDARD - AVVIO 23/10/2026
+Base Checker 6edf46a7. Branch codex/steel-standard-connections. ANTHEA esclusa.
+
+PASSO 1 - AUDIT BULLONI LEGACY
+Nuova suite BoltAuditRegressionTests: 9 casi; prima dei fix 7 falliti, 2 passati.
+1. Trazione positiva <=1 N per bullone omessa nel riparto; violato l'equilibrio.
+2. Taglio/trazione <1 N disattivavano il controllo e il rapporto era comunque
+   limitato inferiormente a .001. Il nuovo rapporto locale dei bulloni conserva
+   la domanda positiva e non modifica la funzione comune degli altri checker.
+3. FpC-.8 FtEd<0 produceva resistenza a scorrimento negativa; il valore assoluto
+   del rapporto poteva rendere favorevole il SOLO controllo di scorrimento.
+   Ora resistenza zero e, con domanda positiva, rapporto infinito/non verificato.
+   La verifica a trazione rimane separata; nessun aumento della resistenza.
+Equilibrio indipendente di un gruppo rettangolare eccentrico: passa invariato.
+Steel 2.41.0.1 -> 2.41.0.2: fix numerici, firme pubbliche preservate.
+
+LIMITI OSSERVATI NEL LEGACY (NON QUALIFICA DI UN NODO COMPLETO)
+- NetIsActive e disabilitato; il gruppo di bulloni non verifica la sezione netta.
+- La piastra e unica; NumBearingPlate non descrive un giunto con materiali/spessori
+  diversi e non sostituisce il controllo separato delle due coprigiunzioni.
+- La via EN1993BoltChecker usa le stesse formule anche con StandardNTC2018Steel:
+  i dettagli normativi di rifollamento e gioco foro richiedono politiche separate.
+- Asolature, bulloni svasati, lunghi giunti e distribuzione elastica con contatto
+  richiedono qualificazione dedicata prima del loro riuso in un nodo completo.
+- Il caso a un bullone di BoltGrid non trasforma gli assi prima del ritorno e
+  trascura T. Il nuovo giunto usa almeno due bulloni per gruppo, carico centrato;
+  il caso isolato resta da correggere nel repository Model prima di abilitarlo.
+
+PASSO SUCCESSIVO AUTORIZZATO
+Primo nodo: giunto di piatti rettangolari uguali, con due coprigiunti uguali
+simmetrici, due file trasversali, bulloni non precaricati, pura trazione nel piano.
+Verificare ogni bullone, piastra principale, singolo coprigiunto, distanze,
+sezione lorda/netta, block tearing e giunti lunghi. Ntc2018/EC3 separati.
+Le altre azioni e configurazioni devono risultare non supportate, non un pass.
+Seguono piastra d'anima e squadrette dopo la chiusura dei relativi modelli.
+
+FONTI LETTE
+EN1993-1-8:2005, copia BS con corrigenda: tabella3.4 (stampata27, PDF29),
+3.7/3.8 (29-30, PDF31-32), 3.9.2 (31, PDF33), 3.10.2 (32, PDF34).
+https://www.phd.eng.br/wp-content/uploads/2015/12/en.1993.1.8.2005-1.pdf
+NTC2018: 4.2.8.1.1, stampate109-111/PDF113-115, tabella4.2.XVIII,
+formule4.2.63-67. Il limite del gioco foro-bullone NTC richiede attenzione:
+1 mm fino a20 mm,1.5 mm oltre; eventuale deroga richiede giustificazione SLE.
+SCI P358, edizione2014: riferimenti e casi numerici saranno documentati per
+ogni nuovo test. I fattori UK degli esempi non sono i default EC3/NTC.
+https://www.steelconstruction.info/images/a/a9/SCI_P358.pdf

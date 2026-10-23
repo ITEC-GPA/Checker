@@ -40,13 +40,13 @@ namespace GPC.Checkers.Steel.Results
         /// Required shear force.
         /// </summary>
         public double SollShear { get; internal set; }
-        public bool SollShearIsNull => SollShear < 1;
+        public bool SollShearIsNull => SollShear <= 0;
 
         /// <summary>
         /// Required tension force.
         /// </summary>
         public double SollTension { get; internal set; }
-        public bool SollTensionIsNull => SollTension < 1;
+        public bool SollTensionIsNull => SollTension <= 0;
 
         /// <summary>
         /// Desgin shear resistance per bolt F_v,Rd.

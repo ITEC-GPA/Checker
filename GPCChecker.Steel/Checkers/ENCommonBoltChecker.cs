@@ -102,7 +102,7 @@ namespace GPC.Checkers.Steel.Checkers
                     case TensionDistributionTypes.Uniform:
                         {
                             var SollN = SolForce.ResBeamForces.N > 0.0 ? SolForce.ResBeamForces.N / SollAllBolts.Count() : 0;
-                            if (SollN > 1) // Positive for tension.
+                            if (SollN > 0) // Positive for tension.
                                 foreach (var SollBolt in SollAllBolts)
                                     SollBolt.Value.N = SollN;
                             break;
@@ -110,7 +110,7 @@ namespace GPC.Checkers.Steel.Checkers
                     case TensionDistributionTypes.SimpleAssign:
                         {
                             var SollN = SolForce.ResBeamForces.N > 0.0 ? SolForce.ResBeamForces.N : 0;
-                            if (SollN > 1) // Positive for tension.
+                            if (SollN > 0) // Positive for tension.
                                 foreach (var SollBolt in SollAllBolts)
                                     SollBolt.Value.N = SollN;
                             break;
@@ -146,7 +146,7 @@ namespace GPC.Checkers.Steel.Checkers
                         CurRes.ShearAlphaV = CalculateAlphaV(SollBolt.Key.BoltDef.BoltMaterial);
                         CurRes.Shearkh = CalculateShearCoeff_kh(holeType);
                         CurRes.ShearResistance = CalculateShearResistance_FvRd(SollBolt.Key.BoltDef, CurRes.ShearAlphaV, CurRes.Shearkh);
-                        CurRes.ShearRatio = GetWorkingRatio(CurRes.SollShear, CurRes.ShearResistance);
+                        CurRes.ShearRatio = BoltWorkingRatio(CurRes.SollShear, CurRes.ShearResistance);
                         // Special case with a special value.
                         if ((holeType == EN1993BoltChecker.HoleShapeType.ShortSlotted || holeType == EN1993BoltChecker.HoleShapeType.LongSlotted) && !holeDir)
                         {
@@ -176,7 +176,7 @@ namespace GPC.Checkers.Steel.Checkers
                         CurRes.BearingAlphaB = CalculateCoeffParallel_AlphaB(AlphaD, SollBolt.Key.BoltDef, CurRes.BearingE1, CurRes.BearingP1, SollBolt.Key.Hole.Diameter, holeType);
                         CurRes.Bearingkh = CalculateBearingCoeff_kh(holeType);
                         CurRes.BearingResistance = CalculateBearingResistance_FbRd(CurRes.Bearingk1, CurRes.BearingAlphaB, SollBolt.Key.BoltDef, _plateWithBolts.Thickness, CurRes.Bearingkh);
-                        CurRes.BearingRatio = GetWorkingRatio(CurRes.SollShear, CurRes.BearingResistance);
+                        CurRes.BearingRatio = BoltWorkingRatio(CurRes.SollShear, CurRes.BearingResistance);
                     }
 
                     // ****** Slip. ******
@@ -186,7 +186,7 @@ namespace GPC.Checkers.Steel.Checkers
                         CurRes.SlipMu = CalculateSlipFactor_Mu();
                         CurRes.SlipFpc = CalculateSlipPreloading(SollBolt.Key.BoltDef);
                         CurRes.SlipResistance = CalculateDesignSlipResistance_FsRd(CurRes.SlipKs, CurRes.SlipMu, CurRes.SollTension, CurRes.SlipFpc);
-                        CurRes.SlipRatio = GetWorkingRatio(CurRes.SollShear, CurRes.SlipResistance);
+                        CurRes.SlipRatio = BoltWorkingRatio(CurRes.SollShear, CurRes.SlipResistance);
                     }
 
                     // ****** SlipSer. ******
@@ -196,7 +196,7 @@ namespace GPC.Checkers.Steel.Checkers
                         CurRes.SlipSerMu = CalculateSlipFactor_Mu();
                         CurRes.SlipSerFpc = CalculateSlipPreloading(SollBolt.Key.BoltDef);
                         CurRes.SlipSerResistance = CalculateDesignSlipResistance_FsRdser(CurRes.SlipSerKs, CurRes.SlipSerMu, CurRes.SollTension, CurRes.SlipSerFpc);
-                        CurRes.SlipSerRatio = GetWorkingRatio(CurRes.SollShear, CurRes.SlipSerResistance);
+                        CurRes.SlipSerRatio = BoltWorkingRatio(CurRes.SollShear, CurRes.SlipSerResistance);
                     }
 
                     // ****** Net. ******
@@ -210,7 +210,7 @@ namespace GPC.Checkers.Steel.Checkers
                     {
                         CurRes.TensionK2 = CalculateK_2();
                         CurRes.TensionResistance = CalculateTensionResistance_FtRd(CurRes.TensionK2, SollBolt.Key.BoltDef);
-                        CurRes.TensionRatio = GetWorkingRatio(CurRes.SollTension, CurRes.TensionResistance);
+                        CurRes.TensionRatio = BoltWorkingRatio(CurRes.SollTension, CurRes.TensionResistance);
                     }
 
                     // ****** Combined Shear and Tension. ******
@@ -224,7 +224,7 @@ namespace GPC.Checkers.Steel.Checkers
                     {
                         CurRes.PunchingDm = SollBolt.Key.BoltDef.CalculateMeanDiameterBoltHead();
                         CurRes.PunchingResistance = CalculatePunchingShearResistance_BpRd(_plateWithBolts.Thickness, CurRes.PunchingDm, SollBolt.Key.Hole.Diameter);
-                        CurRes.PunchingRatio = GetWorkingRatio(CurRes.SollTension, CurRes.PunchingResistance);
+                        CurRes.PunchingRatio = BoltWorkingRatio(CurRes.SollTension, CurRes.PunchingResistance);
                     }
 
                     // ****** Distances warning. ******
@@ -303,6 +303,16 @@ namespace GPC.Checkers.Steel.Checkers
         }
 
         #endregion
+
+        // Bolt checks retain small positive demands. A lost clamping force is zero
+        // resistance, never a negative capacity turned positive by Abs(force/capacity).
+        private static double BoltWorkingRatio(double force, double capacity)
+        {
+            if (double.IsNaN(force) || double.IsInfinity(force) || double.IsNaN(capacity)
+                || double.IsInfinity(capacity) || capacity < 0)
+                throw new ArgumentException("Invalid bolt demand or resistance.");
+            return capacity > 0 ? Math.Abs(force) / capacity : force == 0 ? 0 : double.PositiveInfinity;
+        }
 
         #region Protected methods
 
@@ -538,7 +548,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// <returns>F_s,Rd or F_s,Rd,ser</returns>
         protected double CalculateDesignSlipResistance(in double k_s, in double mu, in double F_tEd, in double gammaM, in double F_pC)
         {
-            return k_s * OptionsENCommon.NumFricionPlane * mu * (F_pC - 0.8 * F_tEd) / gammaM;
+            return k_s * OptionsENCommon.NumFricionPlane * mu * Math.Max(0, F_pC - 0.8 * F_tEd) / gammaM;
         }
 
         protected double CalculateDesignSlipResistance_FsRd(in double k_s, in double mu, in double F_tEd, in double F_pC)
