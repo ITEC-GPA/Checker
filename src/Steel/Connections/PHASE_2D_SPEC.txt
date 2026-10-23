@@ -1,0 +1,170 @@
+FASE 2d - SPECIFICA DELLA PIASTRA DI ESTREMITA' FLESSIBILE
+Data: 23 ottobre 2026. Stato: analisi e benchmark indipendenti; NON produzione.
+
+PROPOSTA DI PERIMETRO E ORDINE
+2d.1 - Resistenza SLU per taglio verticale: piastra parziale saldata ai due lati
+       dell'anima di una trave I/H, due colonne di bulloni ordinari, supporto
+       I/H esplicito, un solo lato collegato. Nessun intaglio, packing, svasatura,
+       foro asolato, bullone cieco, Flowdrill, precarico o trasferimento a frizione.
+2d.2 - Supporto condiviso da due travi: somma delle domande per bullone e su
+       ogni porzione critica comune. Non sommare semplicemente due esiti isolati.
+2d.3 - Tying accidentale separato: T-stub della piastra e bulloni con prying,
+       anima trave, saldature e supporto. Riutilizza il futuro componente4a.
+2d.4 - Classificazione e rotazione: integrazione con2f; non inferire cerniera
+       dal solo esito favorevole a taglio o dallo spessore10/12mm.
+
+Ordinary tension e tying accidentale non sono sinonimi. La prima release2d.1
+rifiuta Fz o momenti applicati non nulli; non aggiunge una verifica N/Ft isolata
+ad un modello basato sulla sola reazione verticale. Una futura estensione a
+trazione ordinaria concomitante richiede interazione, prying e supporto coerenti.
+
+API PROPOSTA (NOMI PROVVISORI, DA COORDINARE CON1a/2b)
+FlexibleEndPlateInput:
+  Code: ConnectionDesignCode; Method: SciP358PartialDepth2014;
+  EndPlate: larghezza, altezza, spessore, fy/fu e grado;
+  Beam: geometria I/H (h,b,tw,tf,r), fy/fu, nessun intaglio;
+  Support: tipo ColumnFlange/ColumnWeb/BeamWeb, spessore interessato, fy/fu,
+           distanze reali dei fori dai bordi e limite del pannello locale;
+  Bolts: ConnectionBolt, numero di file, passo verticale, interasse trasversale,
+         distanze estremita' alto/basso e bordo laterale;
+  Welds: gola effettiva e tratti lungo entrambe le facce dell'anima, estremita'
+         efficaci e fonte di compatibilita' del materiale d'apporto;
+  Actions: PlanarConnectionActions (X trasversale, Y verticale, Z normale alla
+           piastra/asse trave); per2d.1 solo Fy, nel centro del trasferimento;
+  PlateTopOffset: distanza dalla sommita' della trave;
+  DetailingEvidence: dominio del dettaglio ed eventuali assunzioni motivate;
+  HoleClearanceServiceabilitySource: necessario per deroghe ammesse NTC.
+
+FlexibleEndPlate.Verify -> ConnectionVerification<FlexibleEndPlateInput> o
+risultato equivalente con sottorisultati bulloni, piastra, saldature, trave e
+supporto. Scope deve dire esattamente quali stati limite sono stati verificati.
+Rigidita'/capacita' rotazionale e tying restano esiti separati, non bool impliciti.
+Nel risultato manca la qualifica dell'intero nodo finche' un requisito necessario
+non e' trattato. Mai usare Passed del solo componente come Passed globale.
+
+GEOMETRIA MINIMA QUALIFICABILE
+Riferimento: SCI P358(2014),4.3-4.5, pp12-16, PDF22-26.
+- Piastra parziale S275, due sole colonne simmetriche; per il primo dominio
+  dettagliato adottare tp10 o12mm, gauge90..140mm, hp>=0.6h_beam.
+- Piastra vicina all'ala superiore: offset50mm e comunque libera dai raccordi
+  (tf+r). Non estendere i cordoni attraverso i bordi orizzontali della piastra.
+- Verificare ingombro nel tratto rettilineo dell'anima; nessun contatto precoce
+  con l'ala inferiore. Il contatto per rotazioni grandi non e' modellato2d.1.
+- Dettaglio tabellato iniziale: M20classe8.8, p1=70mm, e1=40mm, e2=30mm;
+  g90/b150 o g140/b200; hp=2e1+(rows-1)*p1. La seconda coppia ammette tp10
+  nell'esempio1 lato406, quindi non irrigidire artificialmente tale legame.
+- Il testo raccomanda tagli dimensionali UKB diversi fra pp10-11 e figura4.5
+  p12: non implementare una scelta automatica del dettaglio dal solo nome UKB.
+  Usare dimensioni, compatibilita' geometrica e campo del modello dichiarato.
+- Controlli min/max fori e bulloni dalla norma selezionata; dimensioni foro
+  SCI M20/d0=22 NON sono automaticamente la regola NTC (gioco1mm fino a20).
+  In NTC occorre foro conforme oppure evidenza della specifica derogaSLE.
+- Fu e fy sono quelli del prodotto/spessore effettivo; non confondere la classe
+  S275 con fy=275 per ogni spessore. Esempio1 supporto: fy265, non275.
+- Nessun ampliamento automatico a piastre spesse, acciai oltre il dominio,
+  disposizione asimmetrica, saldature alle ali o full-depth end plate.
+
+CATENA DELLE VERIFICHE PER2d.1
+1) Anima trave: SCI Check4 p17, Av=0.9*hp*tw, Vpl=Av*fy/(sqrt3*gammaM0).
+   Lo0.9 e' della procedura SCI/SN014; tracciarlo, non presentarlo come area
+   geometrica esatta. Il controllo generale dell'asta Steel rimane distinto.
+2) Due cordoni all'anima: resistenza locale con1d e capacita' compatibile con
+   l'impostazione del giunto. Verificare solo Fy applicato non copre la
+   flessione concomitante dovuta alla rotazione dell'estremita' della trave.
+3) Bulloni: SCI Check8 pp21-22, FRd=n*min(Fb,p,Fb,support,0.8*Fv).
+   Lo0.8 considera la trazione parassita; e' un coefficiente della procedura
+   SCI, NON alpha_v della Tabella3.4EC. Non inventare una forza di trazione
+   per bullone ricavandola a posteriori da tale fattore.
+4) Rifollamento separato piastra/supporto con rispettive geometrie e norma:
+   perEC alpha_p=min(e1/(3d0),p1/(3d0)-1/4,fub/fup,1),
+   k1,p=min(2.8e2/d0-1.7,1.4g/d0-1.7,2.5).
+   Il supporto ha proprio e1/e2; non copiare le distanze della piastra.
+   Conservare la distinzione del k ai bordi fraEC eNTC gia' accertata in1b.
+5) Piastra: SCI Check9 p23 (PDF33), due vie di taglio, ciascuna riceveV/2:
+   VRd,g=2*hp*tp*fy/(1.27*sqrt3*gammaM0);
+   Av,net=tp*(hp-rows*d0); VRd,n=2*Av,net*fu/(sqrt3*gammaM2Plate);
+   Ant=tp*(e2-d0/2); Anv=tp*(hp-e1-(rows-0.5)*d0);
+   VRd,b=2*(fu*Ant/gammaM2Plate+fy*Anv/(sqrt3*gammaM0)).
+   Se hp<1.36g e rows>1, usare0.5 sul termine di trazione del block tearing;
+   se hp<1.36g verificare anche VRd,ip=2*tp*hp^2*fy/[3*(g-tw)*gammaM0].
+   Lo1.27 include la flessione locale delle due meta' della piastra: la coppia
+   risultante globale puo' essere nulla senza che tale flessione locale sia nulla.
+6) Supporto: SCI Check10 p24 (PDF34), V/2 su ciascuna via locale:
+   et=min(e1,t,5d); eb=min(e1,b,g/2,5d) per trave, min(g/2,5d) per pilastro;
+   Av=ts*[et+(rows-1)*p1+eb]; Anet=Av-rows*d0*ts;
+   VRd=min(Av*fys/(sqrt3*gammaM0),Anet*fus/(sqrt3*gammaM2Plate)).
+   Il taglio globale del supporto e i carichi di altre connessioni non sono
+   implicitamente nulli: serve collegamento col contesto di verifica dell'asta.
+
+SALDATURE: SCELTA DA RENDERE ESPLICITA NELLA PRODUZIONE
+App.C1-C2 p279(PDF289) non va ridotto a un semplice0.40tw sempre normativo.
+Da piena resistenza trasversale dell'anima si ha:
+  a>=fy_beam*beta_w*gammaM2Connection*tw/(sqrt2*fu_weaker).
+La raccomandazione UK per end plate usa un ulteriore0.8 e conduce ai valori
+arrotondati0.40tw(S275)/0.48tw(S355). La pubblicazione dichiara che la proposta
+0.8 non fu inclusa nella guidaECCS pubblicata, pur raccomandandola perUK.
+Proposta perEC/NTC generici: usare il requisito di piena resistenza senza0.8,
+piu' la verifica locale applicata. Offrire la varianteSCIUK solo come policy
+esplicita separata, necessaria se si vuole riprodurre letteralmente i benchmark
+del libro. Non chiamare difetto numerico il diverso esito di una policy diversa.
+Per fin plate App.C3 p280 la riduzione0.8 NON si applica (coordinamento2b).
+
+TYING E DIPENDENZA4a
+SCI Check11-14 pp26-29, esempio2 pp44-49, App.A-B pp277-278:
+- Analisi accidentale separata da quella verticale nella proceduraSCI;
+  gammaMu=1.1 e' il parametro della pubblicazioneUK, non un defaultNTC.
+- Tre modi del T-stub, lunghezze efficaci, impronta bullone/rondella ew,
+  prying e gruppo di file; utilizzare4a con una policy per tying esplicita.
+- Anima trave a trazione, saldature, parete/anima del supporto necessarie.
+- La connessione381kN dell'esempio2 e' solo il lato trave prima di verificare
+  il pilastro405kN. Non fermarsi al minimo dei soli bulloni e piastra.
+- Non combinare Fu/gammaMu del tying con le resistenze ordinarieFy/gammaM0,
+  ne' riutilizzare il risultato accidentale come interazione ordinariaN-V-M.
+
+CLASSIFICAZIONE
+SCI1.2 pp1-2 basa l'ammissione dei dettagli standard come nominalmente
+incernierati suUKNA/evidenze e sulla capacita' rotazionale. Non basta che il
+momento applicato ininput sia0. La verifica2f deve distinguere evidenza sul
+dettaglio, classificazione perrigidezza/resistenza e rotazione richiesta.
+L'eventuale passaggio alla normativaNTC non importa automaticamente la clausola
+UKNA; dichiarare l'adozione del modello come fonte complementare e il suo campo.
+
+BENCHMARK PREPARATI
+File: tests/Steel.Members.Tests/Fixtures/flexible-end-plate-independent.json
+- Esempio1, componenti del lato406: V340kN, piastra200x290x10, 8M20; anima394,
+  gruppo602, piastra691kN. La fonte ha un intaglio e due travi sul supporto:
+  questi valori validano i componenti, non da soli il nodo2d.1 senzaintagli.
+- Esempio1, lato533: V550kN, piastra200x430x12, 12M20; anima621, gruppo902,
+  piastra1195kN. La riduzione0.8 sul bullone va testata esplicitamente.
+- Esempio1 supporto comune: taglio742kN pervia, rifollamento174kN perbullone,
+  domande arrotondate354/88kN. Necessaria somma delle due travi.
+- Esempio2 tying: trave406, piastra150x290x10, 8M20/g90; modi381/670/1280kN,
+  anima1027kN, supporto405kN. Non e' un benchmark di N ordinaria.
+- Tabelle/Figure e formule viste direttamente sulle pagine PDF renderizzate.
+
+ARROTONDAMENTI E REFUSI DA NON TRASFORMARE IN ORACOLI
+Il libro arrotonda valori intermedi, ad esempio Fv94kN invece94.08, alpha0.61
+invece40/66 e k1=2.12. Le tolleranze dei benchmark pubblicati includono questa
+propagazione; i test formula indipendente dovranno mantenere tolleranze strette.
+Esempio2 p49 scrive Mpl=17.7kNm/mm per il supporto: fu*t^2/(4gammaMu) ha unita'
+N (Nmm/mm), e vale circa17.7kN. Il valoreFRd405kN conferma l'unita' corretta.
+Non importare il testo dell'unita' con un fattore1000 errato.
+
+TEST DI CHIUSURA DA IMPLEMENTARE
+- Benchmark pubblicati con tolleranze dichiarate e calcoli manuali precisi.
+- EC/NTC con fattori separati, regoleforo/rifollamento e provenienza del modello.
+- Limitehp=1.36g dai due lati, piastre sottili, file1 e moltefile, gradi/materiali.
+- Ogni componente governante: bullone, rifollamento, anima, piastra, saldatura,
+  supporto; richiesta di verifica mancante => risultato noncompleto.
+- EquilibrioV/2 per meta'piastra e per via supporto; V/n perbullone.
+- Due travi: dominio condiviso e domande perfile anche con altezze diverse.
+- Azione non prevista piccolissima accanto aVgrande: nessuna cancellazione.
+- Separazione tying/ordinario, rotazione non inferita dalla resistenza.
+- Input invalidi/NaN, geometrie fuori campo, fori in raccordi, snapshotimmutati.
+
+FONTE PRINCIPALE
+SCI/BCSA, P358, Joints in Steel Construction: Simple Joints to Eurocode3,
+edizione2014, capitolo4,1.2 eAppendiciA-C. ISBN978-1-85942-201-4.
+https://www.steelconstruction.info/images/a/a9/SCI_P358.pdf
+I coefficienti di questa specifica sono qualificati comeEC/NTC o proceduraSCI;
+la fonte non e' stata trasformata in una prescrizione normativa italiana.

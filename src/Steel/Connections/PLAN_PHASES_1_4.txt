@@ -14,14 +14,15 @@ FASE 1 - COMPONENTI COMUNI
 1a CHIUSA - Contratti comuni per nuovi componenti: unita, assi/segni, azioni
    concomitanti e punto di applicazione, norma, input immutabili, esiti e tracce.
    ConnectionVerification<TInput> e controlli con unita; vedi PHASE_1A.txt.
-1b PARZIALE - Bullone individuale: taglio, trazione, interazione, rifollamento,
-   punzonamento e scorrimento quando richiesti. Fix legacy eseguiti; completare
-   qualificazione di condizioni di filettatura, foro, precarico e imbotiture.
-1c PARZIALE - Nuovo kernel ElasticBoltGroup implementato e qualificato con
-   44 test: tutte le sei azioni, eccentricita anche Z, gruppi piani/allineati,
-   singolo bullone, equilibrio e casi degeneri. Nessun contatto compresso
-   implicito. Resta da migrare/correggere il percorso legacy ModelBoltGrid;
-   il nuovo kernel non lo richiama e non modifica Model. Vedi PHASE_1C.txt.
+1b PARZIALE - Chiusi componenti non precaricati: taglio, trazione, interazione,
+   rifollamento, punzonamento, giunti lunghi, imbottiture e assemblaggio NTC
+   singolo taglio. 57 test passati; DoubleCoverSplice riusa i nuovi kernel.
+   Resta migrazione/qualificazione del precarico e scorrimento. PHASE_1B.txt.
+1c CHIUSA - Nuovo kernel ElasticBoltGroup qualificato con44test: sei azioni,
+   eccentricita anche Z, gruppi piani/allineati, singolo bullone, equilibrio e
+   casi degeneri. Corretto anche il ramo legacy singolo bullone in Model,
+   con10regressioni (6 fallivano prima): assi trasformati e torsione residua
+   rifiutata. Model5.20.0.1, commit0427fee4/fcf80be9/3e774c04; PHASE_1C.txt.
 1d CHIUSA - Cordoni d'angolo rettilinei nel piano: metodi direzionale e
    semplificato, gruppi elastici sotto sei azioni, lunghezze EC/NTC, gole,
    materiali e giunti lunghi. 61 test superati, inclusi benchmark SCI G.37;
@@ -32,9 +33,10 @@ FASE 1 - COMPONENTI COMUNI
 1f PARZIALE - Politiche EC3/NTC: fattori e formule distinti, riferimenti espliciti,
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; vecchio checker NTC ancora da qualificare prima del riuso generale.
-1g PARZIALE - Benchmark dei componenti: calcoli indipendenti, casi limite,
-   segni, equilibrio e invalid input. Gia aggiunti 66 casi complessivi, di cui
-   9 audit legacy e 57 doppio coprigiunto; estendere insieme ai nuovi componenti.
+1g PARZIALE - 228 casi connessioni Checker superati:9audit,57coprigiunto,
+   44riparto,61saldature,57componenti bullonati. Inoltre10nuove regressioni
+   Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
+   da estendere insieme agli ulteriori meccanismi e nodi.
 
 FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
 2a CHIUSA - Doppio coprigiunto rettangolare in trazione centrata: bulloni,
@@ -45,8 +47,9 @@ FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
    nell'anima di pilastro I/H. Campo e controlli in PHASE_2B_SPEC.txt.
 2c DA FARE - Doppie squadrette: bulloni di entrambi i lati, ali delle squadrette,
    eccentricita, anima della trave e supporto; geometrie qualificate esplicite.
-2d DA FARE - Piastra di estremita flessibile: bulloni, piastra, saldature e
-   supporto, comprese le componenti che possono essere tese.
+2d IN ANALISI - Spec SCI e fixture indipendenti completate; implementazione
+   a taglio ordinario in corso, con trazione parassita e supporto locale.
+   Trazione ordinaria e tying sono casi distinti; PHASE_2D_SPEC.txt.
 2e DA FARE - Continuita con piatti: estendere il coprigiunto alle configurazioni
    di continuita previste e al riparto fra parti del profilo; definire azioni
    combinate ammesse e non generalizzare il solo caso in trazione gia chiuso.

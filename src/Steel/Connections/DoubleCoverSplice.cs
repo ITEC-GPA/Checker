@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using GPC.Checkers.Steel.Sections;
 
 namespace GPC.Checkers.Steel.Connections
@@ -47,13 +48,16 @@ namespace GPC.Checkers.Steel.Connections
             Value("GammaM2Connection", c.GammaM2Connection, "1");
             if (issues.Count != 0) return new DoubleCoverSpliceResult(p, checks, trace, issues);
 
-            double area = b.ThreadedShearPlanes ? b.TensileArea : Math.PI * b.Diameter * b.Diameter / 4;
-            double alphaV = b.ThreadedShearPlanes && b.Grade == ConnectionBoltGrade.Class10_9 ? .5 : .6;
-            double beta = Math.Max(.75, Math.Min(1, 1 - (lj - 15 * b.Diameter) / (200 * b.Diameter)));
-            Value("BoltShearArea", area, "mm2"); Value("AlphaV", alphaV, "1"); Value("BetaLongJoint", beta, "1");
-            double boltRd = 2 * alphaV * b.Fu * area / c.GammaM2Connection * beta;
-            string boltRef = c.IsNtc ? "NTC2018 4.2.8.1.1 (4.2.63-66); EN1993-1-8 3.8 long joints"
-                : "EN1993-1-8:2005 Table3.4; 3.8";
+            var boltComponent = BoltStrength.Verify(new BoltStrengthInput(c, b, a.N / (2 * p.Rows), 0,
+                shearPlanes: 2, jointLength: lj, holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource));
+            if (!boltComponent.IsComplete)
+                return new DoubleCoverSpliceResult(p, checks, trace, boltComponent.Diagnostics.ToList());
+            Value("BoltShearArea", boltComponent.Trace.Single(v => v.Name == "ShearArea").Value, "mm2");
+            Value("AlphaV", boltComponent.Trace.Single(v => v.Name == "AlphaV").Value, "1");
+            Value("BetaLongJoint", boltComponent.Trace.Single(v => v.Name == "BetaLongJoint").Value, "1");
+            var shearCheck = boltComponent.Checks.Single(v => v.Id == "Bolt.Shear");
+            double boltRd = shearCheck.Resistance;
+            string boltRef = shearCheck.Reference;
             for (int side = 1; side <= 2; side++)
                 for (int row = 1; row <= p.Rows; row++)
                     for (int column = 1; column <= 2; column++)
@@ -64,6 +68,7 @@ namespace GPC.Checkers.Steel.Connections
                         // Covers are identical: this per-cover check applies independently to each of the two.
                         Bearing(id + ".EachCoverBearing", p.Cover, p.CoverEnd, eCover, row == p.Rows, a.N / (4 * p.Rows));
                     }
+            if (issues.Count != 0) return new DoubleCoverSpliceResult(p, checks, trace, issues);
             Plate("Main", p.Main, p.MainEnd, eMain, a.N);
             Plate("Cover1", p.Cover, p.CoverEnd, eCover, a.N / 2);
             Plate("Cover2", p.Cover, p.CoverEnd, eCover, a.N / 2);
@@ -71,13 +76,18 @@ namespace GPC.Checkers.Steel.Connections
 
             void Bearing(string id, ConnectionPlate plate, double e1, double e2, bool endBolt, double demand)
             {
-                double ad = endBolt ? e1 / (3 * b.HoleDiameter) : p.Pitch / (3 * b.HoleDiameter) - .25;
-                double ab = Math.Min(1, Math.Min(ad, b.Fu / plate.Fu));
-                double k = Math.Min(2.5, 2.8 * e2 / b.HoleDiameter - 1.7);
-                if (!c.IsNtc) k = Math.Min(k, 1.4 * p.Gauge / b.HoleDiameter - 1.7);
-                double rd = k * ab * plate.Fu * b.Diameter * plate.Thickness / c.GammaM2Connection;
-                Value(id + ".AlphaB", ab, "1"); Value(id + ".K1", k, "1");
-                checks.Add(new ConnectionCheck(id, demand, rd, c.IsNtc ? "NTC2018 (4.2.67)" : "EN1993-1-8 Table3.4"));
+                var component = BoltBearing.Verify(new BoltBearingInput(c, b, plate, demand, e1, e2,
+                    p.Rows > 1 ? (double?)p.Pitch : null, p.Gauge, endBolt, edgeBolt: true,
+                    holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource));
+                if (!component.IsComplete)
+                {
+                    issues.AddRange(component.Diagnostics.Select(d => id + ":" + d));
+                    return;
+                }
+                Value(id + ".AlphaB", component.Trace.Single(v => v.Name == "AlphaB").Value, "1");
+                Value(id + ".K1", component.Trace.Single(v => v.Name == "K1").Value, "1");
+                var bearing = component.Checks.Single();
+                checks.Add(new ConnectionCheck(id, demand, bearing.Resistance, bearing.Reference));
             }
             void Plate(string id, ConnectionPlate plate, double end, double edge, double demand)
             {

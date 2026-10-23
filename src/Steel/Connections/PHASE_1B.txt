@@ -1,0 +1,108 @@
+FASE 1b - COMPONENTI BULLONATI NON PRECARICATI
+===========================================
+
+IMPLEMENTATO
+BoltStrength: taglio, trazione e interazione del bullone 8.8/10.9; uno/due piani
+di taglio con stessa condizione di filettatura e stesso carico per piano;
+riduzioni per giunti lunghi e imbottiture.
+BoltBearing: rifollamento di una piastra per una componente del carico,
+distinguendo bordo/interno nelle due direzioni e le regole EC3/NTC.
+BoltPunching: punzonamento locale della piastra sotto testa/dado.
+BoltSingleShearAssembly: assemblaggio dei componenti di un bullone in singolo
+taglio con due piastre identificate lato testa e lato dado; include entrambe
+le condizioni NTC 4.2.71 con le resistenze effettive della singola unione.
+
+Questi risultati non costituiscono verifica di un intero nodo. Restano da
+assemblare gruppo, equilibrio con il supporto, piastre lorde/nette/block tearing,
+deformabilita', eventuale prying, contatto e altri meccanismi del nodo.
+La sottofase 1b generale comprende anche connessioni precaricate/scorrimento:
+questo file non ne dichiara completata la migrazione dal checker legacy.
+
+FONTI VERIFICATE VISIVAMENTE
+EN1993-1-8:2005, copia BS con corrigenda, pp.25-27 e 29-30
+(PDF27-29,31-32): Tabella3.4; 3.6.1(4-5,10-13); 3.8.
+  https://www.phd.eng.br/wp-content/uploads/2015/12/en.1993.1.8.2005-1.pdf
+NTC2018, DM17/01/2018, G.U.20/02/2018, pp.110-111 (PDF114-115):
+Tabella4.2.XVIII e 4.2.8.1.1, equazioni4.2.63-68,4.2.70-71.
+  File locale tmp/pdfs/NTC2018.pdf
+SCI P358, edizione2014, esempio1, pp.140-141 (PDF150-151): taglio M20 8.8
+e rifollamento della fin plate nelle due direzioni.
+  https://www.steelconstruction.info/images/a/a9/SCI_P358.pdf
+
+FORMULE E DIFFERENZE CHE CONTANO
+Fv,Rd = numero_piani * alphaV*fub*A/gammaM2 * betaLf * betaP.
+Per piano filettato A=As, alphaV=0.6 per8.8 e0.5 per10.9.
+Per piano non filettato A=pi*d^2/4, alphaV=0.6 per entrambe le classi.
+Ft,Rd = 0.9*fub*As/gammaM2; le riduzioni dei giunti lunghi/imbottiture
+non riducono la resistenza a trazione.
+Lj>15d: betaLf=1-(Lj-15d)/(200d), limitato a0.75..1.
+tp>d/3: betaP=9d/(8d+3tp); sotto tale soglia vale1.
+Nel doppio taglio tp e' lo spessore dell'imbottitura piu' spessa.
+L'esenzione per trasferimento uniforme lungo il giunto non e' invocata.
+Le due riduzioni EN sono dichiarate esplicitamente anche quando integrano NTC.
+
+Fb,Rd=k1*alphaB*fu*d*t/gammaM2. Per bulloni di bordo trasversale,
+EC usa anche il termine1.4*p2/d0-1.7 nel minimo di k1; NTC4.2.67 no.
+Senza un vicino trasversale p2 e' assente, non viene inventata una distanza.
+Forza non parallela al bordo: il chiamante esamina le componenti con distanze
+appropriate (Tabella3.4 nota3); il kernel non qualifica una combinazione
+bidirezionale o il riparto del gruppo.
+SingleLapWithSingleBoltRow identifica la geometria della Figura3.3 EN:
+una sola posizione di bullone lungo il trasferimento della forza, NON una
+colonna di una fin plate con piu' bulloni lungo il taglio. Con questa opzione
+Fb,Rd<=1.5*fu*d*t/gammaM2 e servono rondelle temprate sotto testa e dado.
+
+Bp,Rd=0.6*pi*dm*t*fu/gammaM2; dm deriva dalle dimensioni reali testa/dado,
+non dal diametro della rondella. Il perimetro di punzonamento deve essere
+completo entro la piastra; la verifica delle estremita' longitudinali rimane
+al nodo chiamante. Un dm maggiore della larghezza della piastra e' rifiutato.
+
+EN Tabella3.4 verifica il bullone a Fv/Fv,Rd + Ft/(1.4*Ft,Rd)<=1,
+con verifica separata della trazione. NTC4.2.71 chiama invece Fv,Rd/Ft,Rd
+le resistenze della singola unione: occorrono rispettivamente
+min(taglio bullone, rifollamento piastre) e
+min(trazione bullone, punzonamento testa/dado).
+L'aggregatore usa tali minimi e aggiunge Ft/Ft,Rd<=1. Non riutilizza il
+solo rapporto del bullone come verifica dell'unione NTC.
+Per EC rimane l'interazione del bullone e le verifiche separate delle piastre,
+senza importare implicitamente la diversa prescrizione NTC.
+
+CONTRATTO DI ASSEMBLAGGIO
+BoltSingleShearAssemblyInput riceve input per bullone, rifollamento lato testa,
+rifollamento lato dado, punzonamento lato testa e punzonamento lato dado.
+Code e Bolt devono essere gli stessi oggetti immutabili; ogni coppia di
+rifollamento/punzonamento deve identificare la stessa Plate. Le domande devono
+essere quelle concomitanti dello stesso bullone. Nessuna capacita' numerica
+orfana di geometria/provenienza viene accettata. Doppio taglio non supportato
+dall'aggregatore: non si confonde forza totale bullone con forza di un ply.
+
+LIMITI
+Diametri12..36mm, fori circolari ordinari. Nessun foro asolato/maggiorato,
+testa svasata, bullone calibrato o filettatura non conforme.
+M12/M14 con foro+2mm restano fuori campo: EN3.6.1(5) richiede riduzione0.85
+e condizione di gruppo, che non viene implicitamente supposta soddisfatta.
+Per NTC il gioco oltre1mm fino aM20 e1.5mm oltreM20 richiede riferimento
+esplicito alla verifica SLE; il testo inserito dal chiamante non e' un calcolo SLE.
+Acciai delle piastre con fy<=460MPa, resistenze assegnate per prodotto/spessore.
+Minimi e1/e2,p1,p2 controllati; distanze massime, esposizione e instabilita'
+fra bulloni sono responsabilita' del nodo. Compressione/contatto non modellati.
+NotSupported annulla tutti i check e il rapporto, anche se un altro componente
+era calcolabile. Nessun risultato parziale favorevole.
+
+VERIFICHE INDIPENDENTI PREPARATE
+Tabelle manuali M20 8.8/10.9, filettato/non filettato, uno/due piani;
+limiti di15d e0.75, d/3, riduzioni simultanee, combinazione taglio/trazione;
+rifollamento bordo/interno, p2 EC contro NTC, limite single-lap e rondelle;
+punzonamento da perimetro circolare; gioco dei fori, input e campi non validi.
+Regressione NTC: V=18kN,T=15kN, piastra testa2mm S275, M20 As245mm2,
+d0=21,e1=e2=42,p1=70,p2=63mm. Il bullone e le piastre isolati passano,
+ma l'interazione con Rv=21.8666667kN e Rt=11808*pi N fallisce correttamente.
+SCI P358 pp.140-141: Fv,Rd=94kN; Fb,verticale=100kN; Fb,orizzontale=125kN.
+Le tolleranze sono0.1kN e1kN per gli arrotondamenti pubblicati; coefficienti
+interni mantenuti non arrotondati e controllati con tolleranze numeriche strette.
+VERIFICA ESEGUITA23/10/2026
+57/57test del componente superati; integrazione completa dei componenti
+con il doppio coprigiunto:228/228test connessioni passati. Nessun ignorato.
+TRX phase1b.trx e phase1-integrated.trx nel workspace audit-results/connections.
+DoubleCoverSplice ora richiama BoltStrength/BoltBearing conservando ID,
+tracce e resistenze dei57casi precedenti. Nessun atteso legacy modificato.

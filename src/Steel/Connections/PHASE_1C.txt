@@ -76,3 +76,11 @@ Durante l'integrazione corretti un nome locale incompatibile con il compilatore
 e un errore di aritmetica nel NUOVO test di due bulloni verticali: con N=1000 N,
 Mx=10000 Nmm e y=+/-50 mm, T=500+/-100=400/600 N. Il solver non e stato
 modificato per inseguire quell'atteso; nessuna fixture legacy alterata.
+
+CHIUSURA DEL DIFETTO LEGACY
+Nel repository Model, branch codex/steel-connection-boltgrid-fix, il ramo
+singolo bullone ora trasforma assi/polo e rifiuta la torsione residua non nulla.
+10test nuovi:6fallimenti prima,10superati dopo. VerifyModel completo riuscito:
+1471superati e3prove native condizionali ignorate, API ed EqualityAudit riusciti.
+VersioneModel5.20.0.1; commit0427fee4/fcf80be9/3e774c04.
+Il nuovo ElasticBoltGroup resta indipendente dal vecchio metodo Model.

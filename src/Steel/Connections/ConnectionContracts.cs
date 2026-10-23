@@ -127,7 +127,7 @@ namespace GPC.Checkers.Steel.Connections
         internal DoubleCoverSpliceResult(DoubleCoverSpliceInput input, IList<ConnectionCheck> checks,
             IList<SectionResistanceValue> trace, IList<string> diagnostics)
         {
-            Input = input; Checks = Array.AsReadOnly(checks.ToArray()); Trace = Array.AsReadOnly(trace.ToArray());
+            Input = input; Checks = Array.AsReadOnly(diagnostics.Count == 0 ? checks.ToArray() : Array.Empty<ConnectionCheck>()); Trace = Array.AsReadOnly(trace.ToArray());
             Diagnostics = Array.AsReadOnly(diagnostics.ToArray());
             Status = diagnostics.Count != 0 || checks.Count == 0 ? ConnectionStatus.NotSupported
                 : checks.All(c => c.Passed) ? ConnectionStatus.Passed : ConnectionStatus.Failed;
