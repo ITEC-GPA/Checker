@@ -157,3 +157,24 @@ La revisione ha aggiunto controlli per impronte oltre il bordo laterale e
 sovrapposizioni fra bulloni, con tre regressioni. Scope4a rimane parziale:
 file interne/alpha e nodo assemblato ancora da sviluppare.
 Log/TRX workspace audit-results/connections/night-4a-geometry-fixed.
+
+
+VERIFICA GENERALE NOTTURNA - STEEL2.57.0.0
+build/Verify.ps1 -Suites all completato24/10/2026 alle00:46 Europe/Rome.
+Steel.Members4240/4240, Steel legacy net472122/122:4362testSteel superati.
+Totale Checker6632passati,5falliti,0ignorati; API compatibili.
+I cinque nomi falliti sono invariati rispetto alla base6edf46a7:
+Concrete: CurvatureContractOf0017IsUnchanged, LegacyMomentCurvatureIsReproduced,
+LargeSectionPointBeyondTheStoppingTestIsAccepted, DomainPointContractOf0017IsUnchanged.
+ModelChecker: RealDetailsMatchNativeResistanceAndKeepThePreparedForceFrame.
+Non sono inseriti nell'allowlist e non sono modificati gli attesi. Exit1 atteso
+per questi fallimenti: non si dichiara verde un rilascio generale.
+Risultati: workspace audit-results/connections/verify-night-2-57/summary.json.
+
+3c.2/3e.1 - ADATTATORE MODEL, STEEL2.58.0.0
+40/40nuovi test passati, dopo il controllo generale2.57 sopra.
+L e2L identici con lati fisici espliciti, geometria/raccordi/materiali reali,
+assi principali e azioni concomitanti. Nessun N/2 implicito: le due forze
+fornite devono ricostruire N/M della coppia. Eccentricita conservate.
+Non qualifica supporto, fazzoletto o imbottiture; nessuna modifica Model.
+Log/TRX workspace audit-results/connections/night-3c-model-adapter.

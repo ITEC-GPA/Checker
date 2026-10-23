@@ -1,0 +1,103 @@
+FASE 3c.2 / 3e.1 - ADATTATORE MODEL PER L SINGOLI E DOPPI
+========================================================
+Data: 24/10/2026. BraceAngleModelAdapter.
+
+SCOPO
+Trasferisce geometria e materiale reali di Model al componente BraceAngleTension,
+riusando SteelSectionInput, che possiede gia uno snapshot immutabile del valore
+Model. Non introduce una gerarchia alternativa di sezioni, non modifica Model e
+non crea un'interfaccia grafica. L'adattatore NON e una verifica di nodo.
+
+INGRESSI
+FromSingle richiede uno SteelSectionInput contenente un SectionL esatto e le
+sei azioni SteelActions gia concomitanti/fattorizzate, riferite al baricentro.
+Sono ammessi solo N>=0 e le altre cinque azioni nulle. Le dimensioni in mm,
+l'area in mm2 e le resistenze in MPa sono conservate senza cambi di unita.
+Fy/Fu sono quelli assegnati al materiale dello snapshot: il chiamante mantiene
+la responsabilita di averli scelti per prodotto e spessore effettivi.
+
+First = lato ORIZZONTALE di SectionL, Second = lato VERTICALE di SectionL.
+Questa identita fisica NON segue gli assi principali e NON cambia dopo una
+riflessione in SectionBuiltUp. Le lunghezze sono HorizontalLegLength e
+VerticalLegLength; lo spessore deve essere identico sui due lati. L'area reale
+Model include i raccordi/arrotondamenti attivi e non viene approssimata con
+(b+h-t)*t. Sono ammesse sezioni hot-finished laminate o saldate; cold-formed e
+sezioni con spessori disuguali richiedono un metodo distinto.
+
+Il lato corto con2+bulloni richiede una SEZIONE MODEL equivalente, a lati uguali
+della dimensione minore, stesso spessore e lavorazione, con fonte esplicita.
+L'area e quella della geometria equivalente, inclusi i suoi raccordi: non si
+presume che coincidano con i raccordi dell'L disuguale. Il materiale della
+sezione equivalente NON sostituisce quello del membro: si usa soltanto l'area.
+Un'area netta gia dichiarata in SteelSectionInput deve corrispondere a un foro
+per L della linea bullonata dichiarata; un'area diversa o fori dichiarati ma
+non quantificati vengono rifiutati. Le sezioni equivalenti forate sono rifiutate.
+
+DOPPI L
+FromPair riusa ModelBuiltUpGeometry e SectionBuiltUp: soltanto2L con la STESSA
+definizione di sezione condivisa, posti per riflessione con dorsi affrontati.
+Due istanze geometricamente simili non vengono silenziosamente considerate
+identiche. Non sono ammessi C, montaggi punta-punta o gruppi generici. La
+disposizione dorso-dorso determina il lato fisico collegato: riflessioneX ->
+lati verticali/Second; riflessioneY -> lati orizzontali/First. Traslazioni e
+riflessione comune sull'altro asse sono conservate con Part.Place.
+
+Le due trazioni sono entrambe OBBLIGATORIE, con la fonte del loro riparto:
+nessun N/2 implicito. Devono ricostruire tutte le azioni della coppia. Per i
+baricentri (xi,yi) e il baricentro di insieme (xc,yc):
+N=N1+N2; Mx=sum((yi-yc)*Ni); My=-sum((xi-xc)*Ni); Vx=Vy=T=0.
+SteelActions contiene momenti sugli assi principali: l'adattatore applica
+Mx=cos(theta)*M1-sin(theta)*M2 e My=sin(theta)*M1+cos(theta)*M2,
+con theta=SteelSectionInput.PrincipalAxisAngle. Viene verificato l'equilibrio
+relativo1e-10, riferito ai singoli termini, senza una soglia assoluta di forza.
+Il baricentro di calcolo e la media diretta dei due baricentri, controllata
+rispetto al baricentro Model: si conserva cosi la simmetria esatta evitando
+un momento fittizio per l'arrotondamento della media pesata per le aree uguali.
+Sono ammesse trazioni diverse solo con i corrispondenti momenti; compressioni
+dei singoli L o momenti non ricostruiti vengono rifiutati.
+
+USCITE E AZIONI ECCENTRICHE
+Il risultato contiene uno o due BraceAngleModelComponent, ciascuno con:
+- Input BraceAngleTensionInput pronto per il componente normativo;
+- baricentro e punto medio della linea bullonata nelle coordinate geometriche
+  X/Y di Model, gia traslati/riflessi per il componente della coppia;
+- momenti al punto della linea bullonata per trasporto della forza assiale:
+  Mx,bolt=(yc-yb)*N e My,bolt=-(xc-xb)*N.
+Il membro e orientato lungo+Z, normale al piano della SEZIONE Model: queste
+coordinate non sono il piano XY di un generico fazzoletto. I momenti esposti
+non sono una capacita verificata e non vengono eliminati dalla riduzione di
+netto3.10.3. Rimangono azioni da trattare nei bulloni/fazzoletto/supporto.
+
+Non viene aggiunta una proprieta Passed o IsComplete all'adattatore. La
+resistenza dei soli L si ottiene con BraceAngleTension.Verify(component.Input).
+ClearBackGap e la distanza libera fra i dorsi, non quella fra i baricentri e
+non una qualificazione dello spessore del fazzoletto o delle imbottiture.
+
+PROVE
+Tests/BraceAngleModelAdapterTests verifica L reale, materiale, curve/area,
+lati lungo/corto, assi non principali, cambio ordine/traslazione/riflessioni,
+immutabilita degli snapshot, riparti uguali e disuguali con ricostruzione
+indipendente di forze/momenti, preservazione dei riferimenti condivisi Model,
+fori gia dichiarati, vari input fuori campo e rifiuto dei C.
+Il caso da profilario usa L200x100x10 di EN10056_Angles.csv:
+b100,h200,t10,r15,r2=7.5, area geometrica indipendente
+2900+(1-pi/4)*(15^2-2*7.5^2)mm2. La prova verifica il valore geometrico reale,
+non forza la geometria al dato di area arrotondato del produttore.
+L'equilibrio dei casi a spigoli vivi usa l'integrazione indipendente dei due
+rettangoli dell'L, con le eccentricita rispetto alla coppia.
+Nessuna esecuzione di test viene dichiarata prima del run coordinato di root.
+
+FONTI
+Il metodo normativo sottostante rimane quello documentato in
+PHASE_3A_ANGLE_NET.txt: EN1993-1-8:2005 3.10.3 e SCI P3588.2.
+Qui non vengono aggiunte formule di resistenza: i nuovi calcoli sono soltanto
+trasformazioni geometriche ed equilibrio meccanico verificabili.
+
+PENDENZE
+Non sono chiuse3c generale o3e generale: mancano collegamenti C, resistenza di
+bulloni/fazzoletto/supporto degli L e delle coppie, imbottiture, compressione e
+stabilita. La capacita del membro e quella della connessione restano distinte.
+
+VERIFICA CENTRALIZZATA24/10/2026
+40/40test BraceAngleModelAdapterTests superati.
+Log/TRX: workspace audit-results/connections/night-3c-model-adapter.

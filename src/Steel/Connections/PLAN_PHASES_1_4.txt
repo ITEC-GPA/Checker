@@ -37,10 +37,10 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1038 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 1078 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,
    69componenti doppie squadrette,208precarico/scorrimento,238continuitaI,
-   40fazzoletto/due piatti,43netto efficace angolare,102T-stub/file/geometrie.
+   40fazzoletto/due piatti,43netto efficace angolare,40adattatoreL/2L,102T-stub/file/geometrie.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
@@ -82,12 +82,14 @@ FASE 3 - CONTROVENTI E PROFILI ACCOPPIATI
    descritti dalle ipotesi. Nessuna lunghezza efficace inventata.
 3c PARZIALE - Chiusa3c.1: lordo/netto efficace di un L collegato su un lato,
    EN3.10.3 e fattori EC/NTC,43test; lato corto esplicito per L disuguali.
-   Restano adattamento Model/orientamenti3c.2, C e coppie identiche,
-   equilibrio eccentrico del nodo; PHASE_3A_ANGLE_NET.txt.
+   Chiusa3c.2 per L/2L identici dorso-dorso: adattatore Model e40test,
+   lati fisici, raccordi, assi e riparto esplicito; PHASE_3C_MODEL_ADAPTER.txt.
+   Restano C, compressione e resistenza del nodo con le eccentricita esposte.
 3d DA FARE - Imbottiture dei profili doppi: domanda locale tracciabile dalla
    verifica dell'asta, piastra e bulloni/saldature. Restano esclusi i calastrelli.
-3e DA FARE - Collegamento ai contratti Model/Steel esistenti e benchmark
-   indipendenti per famiglie/orientamenti; esempio completo asta-collegamento.
+3e PARZIALE - Chiusa3e.1: riuso SteelSectionInput/SteelActions per L/2L,
+   senza gerarchie duplicate o modifiche Model. Restano C, altre componenti
+   e esempio completo asta-collegamento, incluse le azioni eccentriche.
 
 FASE 4 - NODI A MOMENTO
 4a PARZIALE - Chiusa4a.1: T-stub, metodi1/2, modi1/2/3, leva oppure
@@ -117,7 +119,7 @@ Ogni sottofase chiusa ha implementazione, campo di validita, riferimenti,
 benchmark eseguiti e commit separato. Aggiornamenti in chat con la stessa sigla.
 
 VERIFICA GENERALE DELLA BASE
-Controllo completo Steel2.54.0.0: 4177 test Steel passati; 6447 passati
+Controllo completo Steel2.57.0.0: 4362 test Steel passati; 6632 passati
 complessivi e cinque fallimenti Concrete/ModelChecker gia documentati in6edf46a7. Nessun atteso
 modificato o fallimento ammesso automaticamente. Vedere VALIDATION.txt.
 Queste pendenze impediscono un rilascio generale dichiarato interamente verde,

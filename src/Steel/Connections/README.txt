@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
-Versione sorgenteSteel2.57.0.0. Solo librerie, nessuna interfacciaANTHEA.
+Versione sorgenteSteel2.58.0.0. Solo librerie, nessuna interfacciaANTHEA.
 Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
 
 COMPONENTI
@@ -15,6 +15,9 @@ COMPONENTI
   collega geometria e resistenza senza sommare capacita delle singole file.
 - BraceAngleTension: lordo/netto efficace dell'angolare collegato su un lato,
   lato lungo/corto fisico esplicito; PHASE_3A_ANGLE_NET.txt.
+- BraceAngleModelAdapter.FromSingle/FromPair: snapshot Model L/2L identici,
+  lato fisico e riparto esplicito, equilibrio e momenti alla linea bulloni;
+  PHASE_3C_MODEL_ADAPTER.txt. Nessuna qualifica implicita dell'intero nodo.
 
 NODI E COMPONENTI ASSEMBLATI
 - DoubleCoverSplice.Verify: doppio coprigiunto rettangolare in trazione,
