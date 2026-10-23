@@ -228,3 +228,14 @@ da7.343053807634066. Le due letture restano separate: il gruppo passa da
 813312N modo3 a808032.541920N modo2, senza calibrare il codice al libro.
 Il kernel non distribuisce forze o certifica il nodo completo.
 Log/TRX workspace audit-results/connections/night-3b-4a-internal.
+
+
+2c.3a - RIFOLLAMENTO FLANGIA REALE SUPPORTO, STEEL2.63.0.0
+14/14test superati,35/35nel controllo con4cde,0ignorati.
+Forze dei due gruppi reali, nessuna seconda divisione per due; spessore,
+materiale, bordi/estremi e ingombro ferramenta del supporto espliciti.
+Resistenza analitica278848.484848N/bullone, domanda37500N e somma450000N.
+La flangia sottile vicino all'estremo fisico fallisce a34400N/bullone.
+DA10 e il nodo completo restano aperti. L'anima del supporto delle endplate
+flessibili non e sostituibile con il modello di flangia/4b.
+Log/TRX workspace audit-results/connections/night-2c-4cde.

@@ -1,0 +1,172 @@
+RIESAME 2c.3 / 2c.4 / 2d.3 - SOLO STAGING
+Data: 24 ottobre 2026. Non modifica il piano o il campo del codice installato.
+
+CONCLUSIONE OPERATIVA
+
+1. E' pronto un componente autonomo per il rifollamento della FLANGIA REALE
+   del pilastro delle doppie L. Chiude la sola parte mancante DA06, senza
+   dichiarare chiusa DA10 o il nodo completo. File nuovi:
+   DoubleAngleCleatColumnFlangeBearing.cs e relativo Tests.cs.
+   Non installati, non compilati, non eseguiti. Non sono cambiati file condivisi.
+2. Le fonti disponibili non giustificano la chiusura automatica del trasferimento
+   locale della flangia verso il pilastro, comprese le azioni concomitanti.
+   SBE-MS5 4.2.1.2 verifica bulloni e rifollamento delle L: NON delinea una
+   verifica completa del membro di supporto. Nel benchmark non e' specificata
+   una sezione del supporto. Non importare SCI P358 Check10 per sola analogia.
+3. I componenti 4a/4b sono utilizzabili come elementi di una catena resistente,
+   ma non forniscono automaticamente un modello completo di L sotto N+V.
+   Per la piastra flessibile attuale il supporto e' l'ANIMA del pilastro, caricata
+   fuori piano dalla trazione. ColumnWebComponents tratta invece il pannello e
+   le azioni trasversali nel PIANO dell'anima trasmesse tramite la flangia.
+   Questa differenza fisica impedisce di assemblarli come se fossero equivalenti.
+
+FONTI PRIMARIE E RISCONTRI
+
+SBE-MS5, CTICM/SCI, Steel Buildings in Europe Part5 Joint Design, 2009:
+https://steelconstruction.info/images/5/53/SBE_MS5.pdf
+Cap4, pp51-67; esempio4.4 pp68-82 (pagina PDF = stampata +10).
+4.2.1.2 p55/PDF65: riletta visualmente la pagina, comprese le tre condizioni
+del gruppo e il titolo "Bearing resistance of bolts on the angle cleats".
+4.3 riguarda tying, non la combinazione ordinaria V450kN + N370kN.
+Gli esempi applicano separatamente il taglio e il tiro accidentale.
+
+EN1993-1-8:2005, Table3.4: rifollamento del singolo elemento collegato.
+Si riusa il kernel BoltBearing, inclusa la distinzione EC/NTC gia' accertata.
+EN1993-1-8:2005 6.2.6.6, pp81-82/PDF83-84, Figure6.12-6.13:
+leff=0.5*ba per il flange cleat e geometria m/emin secondo la figura.
+La nota limita a una fila i bulloni verso il pilastro. ATTENZIONE: "fila"
+e' riferita alla geometria LOCALE del T-stub; non si deve confondere una
+colonna verticale di bulloni del web cleat con molte file dopo la rotazione
+degli assi. Il limite, da solo, NON dimostra l'inapplicabilita' al web cleat.
+Rimangono da giustificare caricamento della gamba libera, lunghezze efficaci
+e compatibilita' della coppia di L: non basta ribattezzare flange cleat in web cleat.
+PDF84 ispezionato visualmente; il caso g<=0.4ta e quello g>0.4ta hanno m diverso.
+
+SCI P358(2014), Check14 p29/PDF39, ispezionato visualmente:
+per tiro all'anima del pilastro usa un MECCANISMO DI LINEE DI SNERVAMENTO
+fu*t_w^2/(4*gammaMu), non il componente anima in trazione 6.2.6.3.
+Il fattore1.5 include una allowance per compressione assiale nel pilastro;
+la fonte non fornisce qui un'interazione generale con N/M/V del pilastro.
+Non sostituire soltanto fu con fy e gammaMu con gammaM0 per dichiarare risolta
+la trazione ordinaria. Servono campo, compatibilita' e interazioni motivati.
+
+Jaspart/Demonceau, European Design Recommendations for Simple Joints,
+preprint originale depositato dall'universita':
+https://orbi.uliege.be/bitstream/2268/2867/1/Paper%20Jaspart%20JCSR%20SSDS%20Special%20Issue.pdf
+Fornisce principi di resistenza, duttilita' e rotazione e dettagli di famiglie;
+non e' una fonte di tutte le formule locali del supporto per le doppie L.
+Scheda ufficiale ECCS126(2009), 90pp, ISBN92-9147-000-95:
+https://orbi.uliege.be/handle/2268/19647
+Nessun testo integrale accessibile dalla scheda (Files0). Non si considera
+letto il libro. Il sito CTICM richiede account per i download della raccolta;
+non sono stati usati estratti di terzi come surrogato di una fonte primaria.
+
+COMPONENTE DI RIFOLLAMENTO PRONTO IN STAGING
+
+Input immutabile: il medesimo DoubleAngleCleatComponentInput, sezione reale
+del pilastro ConnectionRolledISection, fy/fu della FLANGIA al suo spessore,
+distanze tra i bulloni estremi e gli ESTREMI REALI del pilastro, fonte del dettaglio.
+Column.Fy/Fu sono le resistenze dell'anima e non vengono copiate sulla flangia.
+
+Percorso di forze e assi:
+- ogni gruppo di bulloni lato supporto porta V/2 secondo il modello SBE;
+- ogni bullone del gruppo porta V/(2n), una sola superficie di rifollamento
+  della flangia fisica del pilastro: non dividere ulteriormente per due;
+- piano della flangia (u,v)=(Z_trave,Y_trave), normale=-X_trave;
+  gruppi a u=-g/2 e +g/2, ordinate effettive gia' disponibili nel gruppo.
+
+Geometria e formula:
+g=tw,trave+2*(90-40), e2=(bf,pilastro-g)/2,
+e1=min(distanza_superiore_reale,distanza_inferiore_reale), p1=70mm.
+Fb,Rd=k1*alpha_b*fu,flangia*d*tflangia/gammaM2Connection.
+Ogni bullone assume cautelativamente il minimo della capacita' di estremita'
+e di quella interna, valutate dal kernel; non si ridistribuiscono le forze.
+Il fattore SBE0.8 sui bulloni a taglio non e' un nuovo fattore di rifollamento
+ne' una trazione parassita ricavata a posteriori.
+
+Compatibilita' geometrica verificata:
+- entrambe le ali delle L devono poggiare interamente sulla flangia;
+- ingombro M20 da37mm sul retro libero da anima/raccordo del pilastro;
+- distanze minime reali bordo/estremita', passo longitudinale nel lap;
+- non si applica un massimo interasse da lap al vuoto fra le due L separate;
+- stesso campo S275/L90x90x10/M20/downward-only del componente di partenza;
+  flangia reale con fy<=460, condizioni della Table3.4.
+
+RICALCOLO INDIPENDENTE, NON ESEMPIO PUBBLICATO DI UN NODO COMPLETO
+
+Trave/esempio SBE: tw=9mm, due L90x90x10, M20/d0=22, n=6, V=450000N.
+Supporto analitico scelto: bf=250, tf=20, tw=10, r=12mm, fy275/fu430MPa;
+estremi reali100mm. Ne segue g109, e2=70.5, k1=2.5.
+alpha_end=min(100/66,800/430,1)=1;
+alpha_interior=min(70/66-1/4,800/430,1)=107/132.
+Fb,end=344000N; Fb,min=278848.4848484848N.
+Domanda ogni bullone37500N; utilizzo0.1344816344272984.
+Dodici forze sommate=450000N, momento trasversale globale nullo per simmetria.
+Con tf=5mm ed estremo inferiore26.4mm: Fb,min=34400N e utilizzo1.0901162790697674.
+Quest'ultimo caso dimostra un supporto insufficiente anche se i componenti
+originari della L risultano adeguati. Script indipendente incluso in staging;
+non importa la DLL e non rigenera alcun atteso o fixture esistente.
+Eseguito lo script indipendente: confermati i due ricalcoli e l'equilibrio.
+
+TEST PROPOSTI (NON ANCORA ESEGUITI)
+
+EC e NTC; riparto e somma delle forze; coordinate; distanza reale al posto
+dell'estremita' della L; materiale/spessore propri; supporto debole; ingombri
+del raccordo; bordo minimo; segni e azioni infinitesime fuori campo; zero;
+immutabilita'; fonte e input invalidi; scope esplicitamente parziale.
+La struttura dei test nuovi non richiede modifiche a test o fixture esistenti.
+
+COME RIUSARE 4a/4b PER LA TRAZIONE ORDINARIA
+
+Doppie L verso FLANGIA del pilastro:
+A. Serve un modello dichiarato dell'angolare: forza assiale nel piano della
+   gamba lungo trave, flessione della gamba lato supporto, contatto/prying.
+   La statica rende disponibili le azioni, non rende uniformi le forze di tiro
+   dei bulloni. Un risultato TStubTension include implicitamente l'effetto leva
+   nei modi resistenti ma non restituisce automaticamente Q e T di ogni bullone.
+B. Una volta giustificata la geometria delle L, TStubTension puo' fornire modi1/2/3.
+   TStubEffectiveGeometry.UnstiffenedColumnFlange puo' derivare i meccanismi
+   della FLANGIA REALE del pilastro, con file/gruppi e vincoli reali.
+C. ColumnWebComponents.Tension e PanelShear sono riutilizzabili solo con le
+   rispettive domande: beff del meccanismo pertinente e taglio del pannello
+   derivato dall'equilibrio del nodo. Il taglio verticale della trave NON e'
+   automaticamente il taglio Vwp del pannello d'anima del pilastro.
+D. Occorrono interazione taglio/trazione dei bulloni con prying, punzonamento
+   delle parti reali, interazione della L sotto N/V e supporto concomitante.
+   Il T-stub attuale usa Ft,Rd non ridotto per taglio: non soddisfa D da solo.
+
+Piastra flessibile attuale verso ANIMA del pilastro:
+A. Prima qualificare un modello fuori piano della parete/supporto; 4b non lo e'.
+B. Geometria efficace del piatto parziale e relativo T-stub devono essere
+   derivati dal proprio dettaglio, non dal caso piastra estesa con fila esterna.
+C. Integrare saldature N+V, anima della trave, bulloni con prying e supporto.
+D. In alternativa, una nuova famiglia esplicita verso FLANGIA del pilastro
+   consentirebbe maggiore riuso di4a/4b, ma e' un'estensione del campo attuale
+   e non deve modificare silenziosamente il significato di FlexibleEndPlate.
+
+TYING ACCIDENTALE
+
+SBE e SCI forniscono benchmark e formule da cui si puo' costruire una policy
+dedicata, con resistenze ultime e coefficienti espliciti della guida. Questa
+e' una via concreta separata; non equivale a completare lo SLU ordinario EC/NTC
+e non trasforma due casi pubblicati distinti in una combinazione N+V provata.
+
+RACCOMANDAZIONE
+
+Integrare il piccolo componente di rifollamento solo dopo la suite coordinata,
+con esito parziale inequivocabile. Mantenere 2c.3/2c.4/2d.3 aperte per i modi
+specifici sopra, senza copertura apparente ottenuta da analogie o stringhe di
+evidenza. Il passo piu' efficace per una nuova catena ordinaria e' definire un
+solo dettaglio verso flangia e il suo modello di contatto/forze; per il caso
+all'anima attuale occorre prima il suo componente di piastra fuori piano.
+
+VERIFICA CENTRALIZZATA24/10/2026
+2c.3a - RIFOLLAMENTO FLANGIA REALE SUPPORTO, STEEL2.63.0.0
+14/14test superati,35/35nel controllo con4cde,0ignorati.
+Forze dei due gruppi reali, nessuna seconda divisione per due; spessore,
+materiale, bordi/estremi e ingombro ferramenta del supporto espliciti.
+Resistenza analitica278848.484848N/bullone, domanda37500N e somma450000N.
+La flangia sottile vicino all'estremo fisico fallisce a34400N/bullone.
+DA10 e il nodo completo restano aperti. L'anima del supporto delle endplate
+flessibili non e sostituibile con il modello di flangia/4b.
+Log/TRX workspace audit-results/connections/night-2c-4cde.

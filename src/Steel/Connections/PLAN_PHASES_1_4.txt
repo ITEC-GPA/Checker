@@ -37,9 +37,9 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1254 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 1268 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,
-   69componenti doppie squadrette,208precarico/scorrimento,300continuitaI,
+   83componenti doppie squadrette/supporto,208precarico/scorrimento,300continuitaI,
    40fazzoletto/due piatti,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,122T-stub/file/geometrie,46anima pilastro.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
@@ -54,11 +54,15 @@ FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
    azione preesistente sul supporto nel primo modello; PHASE_2B_SPEC.txt.
 2c PARZIALE - Chiuse2c.1/2c.2: componenti delle due L90x90x10, bulloni in
    doppio/singolo taglio e anima trave,69test CTICM/SCI e analitici. Supporto
-   non qualificato: CanQualifyWholeJoint=false. Restano2c.3 e2c.4 tying.
+   non qualificato: CanQualifyWholeJoint=false. Chiusa2c.3a rifollamento
+   flangia reale del pilastro,14test; restano altri modi locali2c.3 e2c.4.
+   PHASE_2C_SUPPORT_TENSION_REVIEW.txt distingue trazione ordinaria/tying.
 2d PARZIALE - Chiuse2d.1/2d.2: taglio ordinario, piastra parziale, trave I/H
    non intagliata su anima di pilastro. Anche coppia contrapposta con bulloni
    comuni e domanda sommata sul supporto; 56test passati. Trazione parassita
-   SCI e piena resistenza saldature esplicite. Tying2d.3 attende4a; PHASE_2D_SPEC.txt.
+   SCI e piena resistenza saldature esplicite. Tying2d.3 aperto: anima del
+   supporto fuori piano richiede un proprio modello, non i componenti4b.
+   PHASE_2D_SPEC.txt ePHASE_2C_SUPPORT_TENSION_REVIEW.txt.
 2e PARZIALE - Chiuse2e.1/2e.2: riparto N-V-M e sei gruppi sui due lati,
    resistenza/scorrimento dei soli bulloni,114test SCI P398 e analitici.
    Chiuse2e.3a rifollamento e2e.3b piatti/instabilita locale delle ali,
