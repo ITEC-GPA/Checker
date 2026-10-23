@@ -133,3 +133,15 @@ esplicita. Non e' chiuso il nodo di controvento col supporto.
 Log/TRX workspace audit-results/connections/night-3a-4a-components.
 La prova iniziale aveva un solo fallimento in un nuovo test T-stub, trattato
 separatamente; tutti83test di questa sottofase erano gia passati.
+
+
+NOTTE24/10/2026 - T-STUB4a.1, STEEL2.56.0.0
+75test T-stub passati:55resistenza/modi/benchmark e20vincoli file/gruppi.
+Nel controllo comune,158nuovi test3a/3c/4a passati. Il primo test di overflow
+usava lunghezze1e300, che lasciano i prodotti finiti: corretto soltanto il
+nuovo input sintetico a1e308; aggiunta regressione che conferma1e300 finito.
+Nessuna formula di produzione modificata per forzare il risultato.
+Benchmarks SCI P398 C.1 e ricalcolo Decimal indipendente, nb corretto AC2,
+effetto leva, ramo senza leva, modi governanti e sottogruppi contigui.
+Lunghezze ancora esterne/tracciabili:4a.2 geometrie e4b-4g rimangono aperte.
+Log/TRX workspace audit-results/connections/night-3a-4a-components.

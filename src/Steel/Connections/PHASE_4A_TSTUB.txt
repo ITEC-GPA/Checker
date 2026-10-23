@@ -1,0 +1,96 @@
+FASE4a.1 - KERNEL T-STUB E VINCOLI DELLE FILE
+============================================
+24/10/2026. Unita N, mm, MPa. EC3 EN1993-1-8:2005, con correzione AC2 della
+Tabella6.2; NTC2018 come insieme di fattori con modello EC3 supplementare.
+Questo documento descrive il componente, non la qualifica di un nodo intero.
+
+CAMPO
+TStubTension: T-stub equivalente simmetrico, senza contropiastre, con due
+bulloni identici per fila, acciaio al carbonio fino a S460, carico di trazione
+monotono statico. Bulloni ordinari8.8/10.9 nei fori tondi normali gia qualificati
+dal kernel BoltStrength; no bulloni svasati, ancoraggi, fatica o sisma.
+Lo spessore e fy sono quelli della flangia effettiva; nessun fy viene dedotto
+automaticamente dal nome di un grado. M ed Emin sono le distanze del T-stub
+equivalente, non la semidistanza fra bulloni inserita senza verifica dei raccordi.
+Il primo campo richiede m>d0/2 ed emin>=1.2d0 e, per metodo2, impronta che copra
+il foro e resti interamente entro m/emin. Sono limiti conservativi del kernel,
+non una derivazione della geometria della connessione reale.
+
+LUNGHEZZE EFFICACI
+TStubEffectiveLengths contiene SUM(leff,1) e SUM(leff,2), entrambe positive e
+leff,1<=leff,2. Source identifica obbligatoriamente la derivazione nella geometria
+reale (tabella6.4/6.5/6.6 pertinente, fila singola oppure gruppo). Il kernel non
+inventa lunghezze efficaci dal solo passo: una lunghezza fisica di piastra non
+e automaticamente una lunghezza efficace. La mancanza della fonte blocca l'esito.
+La derivazione automatica dalle geometrie di flange/piastre e dagli irrigidimenti
+resta la fase4a.2, collegata ai successivi nodi4b-4d.
+
+RESISTENZE
+EN1993-1-8 6.2.4 e Tabella6.2, senza contropiastre:
+  Mpl,i = 0.25 SUM(leff,i) tf^2 fy/gammaM0
+  n = min(emin,1.25m)
+  B = SUM(Ft,Rd) = 2 nb (0.9 fub As/gammaM2Connection).
+Quando si sviluppa effetto leva:
+  metodo1: F1=4 Mpl,1/m
+  metodo2: F1=(8n-2ew)Mpl,1 / [2mn-ew(m+n)], ew=dw/4
+  entrambi: F2=(2Mpl,2+nB)/(m+n); F3=B.
+Resistenza=min(F1,F2,F3). Ogni modo rimane disponibile nei controlli e nella
+traccia; un Ft esterno non e trasformato automaticamente in Ft/(numero bulloni).
+L'effetto leva e implicito nelle resistenze; non viene dichiarata una Q elastica
+ne una forza individuale nei bulloni. Punzonamento, taglio/interazione, pareti,
+cordoni e contatto della controparte devono essere verificati nel nodo chiamante.
+
+ASSENZA DI EFFETTO LEVA
+L'opzione Develops invoca esplicitamente la nota1 della Tabella6.2, applicabile
+ai nodi bullonati trave-pilastro e ai giunti di continuita. L'opzione basata sulla
+lunghezza richiede grip incluse rondelle, altezze testa/dado e fonte del dettaglio:
+  Lb=grip+(headHeight+nutHeight)/2
+  Lb*=8.8 m^3 As nb / [SUM(leff,1) tf^3].
+La correzione AC2 definisce nb come NUMERO DI FILE, con2bulloni per fila.
+Lb<=Lb*: tre modi con effetto leva. Lb>Lb*: min(2Mpl,1/m,B), senza incremento
+per la larghezza d'impronta del metodo2. Il grip non puo essere minore di tf.
+Non e disponibile un interruttore che elimini la leva senza questi dati.
+
+GRUPPI E FILE
+TStubBoltRows riceve una distribuzione di trazioni concomitanti gia determinata
+dal chiamante. Ogni fila singola e ogni sottogruppo contiguo devono avere il loro
+componente; per3file servono1,2,3,1-2,2-3,1-2-3. Corrisponde alle disuguaglianze
+EN1993-1-8 6.2.4.2(3), non ad una somma delle capacita individuali.
+Il gruppo usa la somma delle domande delle sue file, con controllo relativo della
+coerenza (nessuna soglia assoluta che nasconda piccoli carichi). File/materiale,
+bolt/code immutabili, m/emin, modello di contatto e grip sono un'unica istantanea.
+Il campo non attraversa irrigidimenti o altri confini che richiedano T-stub
+distinti: ordine fisico e definizione della zona sono espliciti in RowLayoutSource.
+Mancanza/duplicazione di un gruppo, domanda incoerente, fonte assente o componente
+non supportato rendono NotSupported tutto il risultato; nessun Passed parziale.
+Non viene calcolata una resistenza globale a momento da queste sole disuguaglianze.
+
+BENCHMARK E FONTI
+Norma: EN1993-1-8:2005 6.2.4.1/2, Tabella6.2, pagine67-69 (PDF69-71 locale).
+Tabella6.2 verificata visivamente, compresi nb corretto AC2, nota1 e metodo2.
+Fonte indipendente: SCI/BCSA P398,2013, ExampleC.1 pp86-89,92-93,96-97:
+https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
+Parametri di benchmark UK gammaM0=1,gammaM2Connection=1.25, senza trasferirli aNTC.
+Flangia pilastro: tf20.5,fy265,m33.4,emin75,leff210/233,2M24 As353,
+dw39.55. Pubblicato398kN; calcolo non arrotondato398563.621091N.
+Piastra esterna: tf25,fy265,m30.4,emin50,leff125/125: pubblicato377kN,
+calcolo377258.633041N. Il testo del libro riporta anche emin75 nella sostituzione,
+ma n=38 governa in entrambi i casi e la geometria fornisce ex50.
+Gruppo1-2: leff332/332,4bulloni:697kN pubblicati,697838.636061N non arrotondati.
+Gruppo1-2-3:leff422/422,6bulloni:988kN pubblicati,990445.013307N non arrotondati.
+Valori stampati e valori non arrotondati sono distinti nei test. Tolleranza0.6%
+solo per i dati stampati, che arrotondano n,Mpl e Ft; attesi Decimal con1e-6N.
+I restanti test coprono i tre modi governanti, interazione dei gruppi, ramo senza
+leva, limite Lb=Lb*, nb corretto, fattori EC/NTC, fori, input invalidi e overflow.
+Fixtures/derive_tstub.py riproduce indipendentemente i calcoli con Decimal40cifre;
+stampa soltanto e non modifica attesi, fixture legacy o codice di produzione.
+
+STATO
+Nel primo controllo mirato l'unico fallimento T-stub era nel nuovo test di
+overflow: leff=1e300 produce ancora prodotti finiti e non deve essere rifiutato.
+Il test e stato corretto a1e308, che supera realmente il range numerico; aggiunto
+un test distinto per1e300 valido con governo dei bulloni. Nessuna formula,
+capacita o fixture preesistente e stata modificata per ottenere l'esito.
+Implementazione4a.1 verificata centralmente:75test superati (55TStubTension,20TStubBoltRows). Non equivale alla
+chiusura generale4a: restano geometrie/lunghezze efficaci automatiche4a.2,
+contropiastre e integrazione con le altre componenti dei nodi4b-4g.
