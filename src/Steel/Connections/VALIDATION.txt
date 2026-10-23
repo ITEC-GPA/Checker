@@ -410,3 +410,18 @@ Registri: workspace audit-results/connections/verify-night-2-71/summary.json
 e relativiTRX; log esterno verify-night-2-71.log.
 Le quattro fasi restano parziali nei campi mancanti del piano: i componenti
 locali non qualificano i nodi interi. Nessun merge/push/rilascio eseguito.
+
+
+4f FIX - COERENZA FY/GRADO NOMINALE, STEEL2.71.0.1
+La review ha riprodotto3falsi esiti SufficientForPlasticAnalysis dichiarando
+S235 con fy460 dell'anima pilastro, ala pilastro o endplate. Il piatto sottile
+soddisfaceva comunque il limite e aggirava il campo dei metodi6.4.2.
+Ora fycaratteristico non puo superare il grado nominale dichiarato;
+restano ammessi valori ridotti per spessore. La guardia e posta DOPO
+l'esenzione1.2Mpl,beam: non vi trasferisce impropriamente il campo6.4.2.
+Sette test nuovi:3fallivano prima,7/7passati dopo. Verifica completa Steel
+successiva:4753/4753Members e122/122net472,4875totali,0falliti/ignorati.
+Il controllo di TUTTE le librerie resta quello2.71 appena registrato:
+questa patch interessa solo il gate di applicabilita rotazionale Steel.
+Log/TRX: night-4f-grades-red, night-4f-grades-members-green,
+night-4f-grades-net472. Nessun atteso o parametro legacy modificato.

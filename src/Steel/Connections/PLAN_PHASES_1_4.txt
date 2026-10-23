@@ -37,10 +37,10 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1544 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 1551 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,
    83componenti doppie squadrette/supporto,208precarico/scorrimento,300continuitaI,
-   40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,26rigidezza rotazionale,70classificazione/criteri rotazione,22dominioN+V.
+   40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,26rigidezza rotazionale,77classificazione/criteri rotazione,22dominioN+V.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
@@ -142,8 +142,9 @@ FASE 4 - NODI A MOMENTO
    pilastro non irrigidito, file singole/multiple e tutti i componenti in serie.
    26test, benchmark JRC96658 e limiti N/M, lunghezze efficaci per fila/gruppo.
    Chiuse4f.2/4f.3 nel campo endplate bullonata su flangia: classificazione
-   rigidezza22test/resistenza16test e criteri sufficienti rotazionali32test.
-   Fonte EN5.2/Fig5.4-5.5/6.4 e JRC;96/96test incluso kernel rigidezza.
+   rigidezza22test/resistenza16test e criteri sufficienti rotazionali39test.
+   Fonte EN5.2/Fig5.4-5.5/6.4 e JRC;103/103test incluso kernel rigidezza.
+   Guardie fy/grado nominale:7regressioni e3errori riprodotti prima del fix.
    Resistenza completa e compatibilita globale sono evidenze esterne;
    nessuna capacita numerica in radianti derivata daM/S. Restano altri
    dettagli e metodi qualificati per casi fuori dai criteri sufficienti.
@@ -165,3 +166,6 @@ complessivi e cinque fallimenti Concrete/ModelChecker gia documentati in6edf46a7
 modificato o fallimento ammesso automaticamente. Vedere VALIDATION.txt.
 Queste pendenze impediscono un rilascio generale dichiarato interamente verde,
 ma non impediscono l'implementazione e i test dei nuovi componenti di connessione.
+
+Fix successivo Steel2.71.0.1:4753/4753Members e122/122net472,4875Steel.
+Il controllo generale di tutte le altre librerie resta quello2.71 sopra.

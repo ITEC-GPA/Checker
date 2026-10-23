@@ -86,6 +86,12 @@ namespace GPC.Checkers.Steel.Connections
             if (axialRatio > .05) issues.Add("SimplifiedRotationCriteriaRequireAxialForceAtMostFivePercent");
             if (!Permitted(p.BeamGrade) || !Permitted(p.ColumnGrade) || !Permitted(p.EndPlateGrade))
                 issues.Add("SimplifiedRotationCriteriaRequireS235S275OrS355");
+            // Characteristic fy may decrease with product thickness, but cannot exceed
+            // the declared nominal grade. These method restrictions do not apply to
+            // the independent overstrength exemption already evaluated above.
+            if (e.Column.Fy > NominalYield(p.ColumnGrade)) issues.Add("ColumnWebYieldExceedsDeclaredNominalGrade");
+            if (e.ColumnFlangeFy > NominalYield(p.ColumnGrade)) issues.Add("ColumnFlangeYieldExceedsDeclaredNominalGrade");
+            if (e.EndPlate.Fy > NominalYield(p.EndPlateGrade)) issues.Add("EndPlateYieldExceedsDeclaredNominalGrade");
             if (issues.Count != 0) return Result(EndPlateRotationCapacityStatus.OutOfScope);
             double webSlenderness = e.Column.ClearWeb / e.Column.WebThickness;
             double webLimit = 69 * Math.Sqrt(235 / e.Column.Fy);
@@ -132,6 +138,10 @@ namespace GPC.Checkers.Steel.Connections
             EndPlateRotationCapacityResult Result(EndPlateRotationCapacityStatus status)
                 => new EndPlateRotationCapacityResult(p, status, rules, issues, trace);
         }
+        private static double NominalYield(JointNominalSteelGrade grade)
+            => grade == JointNominalSteelGrade.S235 ? 235
+                : grade == JointNominalSteelGrade.S275 ? 275
+                : grade == JointNominalSteelGrade.S355 ? 355 : double.PositiveInfinity;
         private static bool Permitted(JointNominalSteelGrade grade)
             => grade == JointNominalSteelGrade.S235 || grade == JointNominalSteelGrade.S275 || grade == JointNominalSteelGrade.S355;
     }
