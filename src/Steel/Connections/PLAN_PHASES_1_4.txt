@@ -33,8 +33,9 @@ FASE 1 - COMPONENTI COMUNI
 1f PARZIALE - Politiche EC3/NTC: fattori e formule distinti, riferimenti espliciti,
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; vecchio checker NTC ancora da qualificare prima del riuso generale.
-1g PARZIALE - 338 casi connessioni Checker superati:9audit,57coprigiunto,
-   44riparto,61saldature,57componenti bullonati,54finplate,56endplate.
+1g PARZIALE - 407 casi connessioni Checker superati:9audit,57coprigiunto,
+   44riparto,61saldature,57componenti bullonati,54finplate,56endplate,
+   69componenti doppie squadrette.
    Inoltre10nuove regressioni
    Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
@@ -47,9 +48,9 @@ FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
    intagliata e supporto nell'anima di pilastro I/H. 54test passati: benchmark
    SCI286kN, EC/NTC analitici, tutti componenti, assi e fuori campo. Nessuna
    azione preesistente sul supporto nel primo modello; PHASE_2B_SPEC.txt.
-2c IN ANALISI - Fonte primaria CTICM/SCI SBE Part5 individuata e fixture
-   indipendenti preparate. Il benchmark copre componenti di trave/squadrette,
-   ma non la zona di supporto: nessun nodo completo qualificato al momento.
+2c PARZIALE - Chiuse2c.1/2c.2: componenti delle due L90x90x10, bulloni in
+   doppio/singolo taglio e anima trave,69test CTICM/SCI e analitici. Supporto
+   non qualificato: CanQualifyWholeJoint=false. Restano2c.3 e2c.4 tying.
 2d PARZIALE - Chiuse2d.1/2d.2: taglio ordinario, piastra parziale, trave I/H
    non intagliata su anima di pilastro. Anche coppia contrapposta con bulloni
    comuni e domanda sommata sul supporto; 56test passati. Trazione parassita
@@ -102,8 +103,8 @@ Ogni sottofase chiusa ha implementazione, campo di validita, riferimenti,
 benchmark eseguiti e commit separato. Aggiornamenti in chat con la stessa sigla.
 
 VERIFICA GENERALE DELLA BASE
-Ultimo controllo: 3390 test Steel passati; 5660 passati complessivi e cinque
-fallimenti Concrete/ModelChecker gia documentati in6edf46a7. Nessun atteso
+Controllo completo Steel2.47.0.0: 3662 test Steel passati; 5932 passati
+complessivi e cinque fallimenti Concrete/ModelChecker gia documentati in6edf46a7. Nessun atteso
 modificato o fallimento ammesso automaticamente. Vedere VALIDATION.txt.
 Queste pendenze impediscono un rilascio generale dichiarato interamente verde,
 ma non impediscono l'implementazione e i test dei nuovi componenti di connessione.

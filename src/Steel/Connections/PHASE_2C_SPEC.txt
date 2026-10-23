@@ -1,8 +1,31 @@
 FASE 2c - DOPPIE SQUADRETTE BULLONATE: SPECIFICA PRIMA DEL CODICE
 ================================================================
-Stato: analisi e fixture indipendente preparate. Nessun motore 2c implementato,
-nessun test 2c eseguito. Occorre decisione del coordinatore sul campo prima di
-iniziare production. File companion: Fixtures/double-angle-independent.json.
+Stato: 2c.1/2c.2 implementate e provate con69test, 23/10/2026.
+API: DoubleAngleCleatComponents.Verify(DoubleAngleCleatComponentInput).
+Esito esplicitamente ComponentAssessment: trave, quattro ali delle due L,
+bulloni doppi lato trave e singoli lato supporto. Campo iniziale L90x90x10,
+2..6file M20, geometria simmetrica della guida, fy275/fu410o430 assegnati,
+trave non intagliata e trattenuta lateralmente. Assi del nuovo input:
+X lungo trave dal supporto, Y alto, Z normale all'anima (base componente).
+Le basi fisiche del documento sotto rimangono utili per la trasformazione.
+CanQualifyWholeJoint e' sempre false e MissingWholeJointChecks elenca
+rifollamento/supporto locale con azioni concomitanti e qualificazione della
+rotazione del nodo. Questi meccanismi NON sono implicitamente verificati.
+Restano aperte2c.3 supporto e2c.4 tying; le estensioni2c.5 sono fuori campo.
+
+69test superati:16quantita' pubblicate e17ricalcoli indipendenti non arrotondati,
+riparto/equilibrio, confrontoEC/NTC,2..6file, carichi nulli/piccoli, soglia del
+block tearing dell'anima, input invalidi e azioni/geometrie non qualificate.
+Il risultato governante dei componenti e'500724.4712819393N contro501kNSBE.
+Le forze di un bullone lato trave sono totali, ciascuna L ne riceve meta'.
+La riduzione betaLj0.9875 rimane attiva; le capacita' pubblicate senza tale
+riduzione si confrontano separatamente, senza alterare la fixture.
+File companion: Fixtures/double-angle-independent.json. Il campo status della
+trascrizione conserva la data di preparazione; l'esecuzione e' attestata qui.
+
+SPECIFICA DI RIFERIMENTO E POSSIBILI ESTENSIONI
+Le sezioni seguenti conservano fonti/proposta originarie. Il campo implementato
+e quello sopra; la presenza di una voce in proposta non ne indica la chiusura.
 
 1. FONTE PRIMARIA E CAMPO PROPOSTO
 

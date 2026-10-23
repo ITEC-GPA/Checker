@@ -39,3 +39,21 @@ Non e una verifica complessiva verde: nessun set di rilascio prodotto.
 TRX e log: workspace audit-results/connections; riepilogo machine-readable
 connections-validation.json. Le pendenze Concrete appartengono al precedente
 intervento sul risolutore; non sono regressioni introdotte dalle connessioni.
+
+AGGIORNAMENTO COMPLETO DOPO2d - STEEL2.47.0.0
+Commit881ae2ca/6edea6c8, Model5.20.0.1, 23/10/2026.
+build/Verify.ps1 eseguito fino alla fine, dieci suite e quattro superfici API.
+Steel.Members3540/3540, Steel legacy122/122. Altre suite con gli stessi conteggi
+e gli stessi cinque fallimenti sopra:5932passati,5falliti,0ignorati.
+API compatibili: GPCModelChecker600, Concrete2157, Design3210, Masonry9 firme;
+zero rimozioni inattese. Nessun atteso/allowlist modificato.
+Risultati: workspace audit-results/connections/verify-after-2d/summary.json.
+Il comando termina correttamente con esito di verifica NON superata per le
+cinque pendenze: non e' un rilascio e non sono state ammesse eccezioni.
+
+2c.1/2c.2 - COMPONENTI DOPPIE SQUADRETTE
+69test dedicati superati, nessuno ignorato. FonteCTICM/SCI SBE-MS5,
+benchmark componenti501kN e confronto di ogni resistenza, EC/NTC e fuori campo.
+Il supporto rimane esplicitamente non qualificato; nessun esito globale verde.
+TRX phase2c-components.trx nel workspace. Questa integrazione segue la
+verifica completa2d; i relativi conteggi generali non includono i69nuovi casi.
