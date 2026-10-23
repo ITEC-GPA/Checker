@@ -37,10 +37,10 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1078 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 1124 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,
    69componenti doppie squadrette,208precarico/scorrimento,238continuitaI,
-   40fazzoletto/due piatti,43netto efficace angolare,40adattatoreL/2L,102T-stub/file/geometrie.
+   40fazzoletto/due piatti,43netto efficace angolare,40adattatoreL/2L,102T-stub/file/geometrie,46anima pilastro.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
@@ -97,8 +97,10 @@ FASE 4 - NODI A MOMENTO
    Chiusa4a.2a: geometrie di flangia non irrigidita lontana dai bordi e fila
    esterna di piastra estesa,27test; PHASE_4A_GEOMETRY.txt. Restano4a.2b
    file interne/alpha e altri dettagli, oltre all'integrazione di nodo.
-4b DA FARE - Componenti del pilastro: flangia in flessione, anima in trazione,
-   compressione e taglio di pannello, con interazioni pertinenti.
+4b PARZIALE - Chiusa4b.1: anima non irrigidita in trazione/compressione,
+   taglio di pannello, interazioni omega/kw/rho e diffusione end plate;46test.
+   Flangia nel campo4a. Restano rinforzi/irrigidimenti e assemblaggio nel nodo;
+   PHASE_4B_COLUMN_WEB.txt. Vincolo column-sway esplicitamente richiesto.
 4c DA FARE - Piastra di estremita a filo: geometria, file di bulloni, piastra,
    saldature, trave e pilastro assemblati in un unico percorso resistente.
 4d DA FARE - Piastra di estremita estesa: file esterne e interne, interazione

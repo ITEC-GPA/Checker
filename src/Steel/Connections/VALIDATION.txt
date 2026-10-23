@@ -178,3 +178,15 @@ assi principali e azioni concomitanti. Nessun N/2 implicito: le due forze
 fornite devono ricostruire N/M della coppia. Eccentricita conservate.
 Non qualifica supporto, fazzoletto o imbottiture; nessuna modifica Model.
 Log/TRX workspace audit-results/connections/night-3c-model-adapter.
+
+
+4b.1 - COMPONENTI ANIMA PILASTRO, STEEL2.59.0.0
+46/46test passati: taglio di pannello, trazione, compressione con omega,
+kw e rho; gammaM0/M1 distinti; casi SCI C.1 e tabella analitica indipendente.
+Eseguito derive_column_web.py con Decimal40cifre. La snellezza0.59 stampata
+nel benchmark non e riproducibile dai dati: il calcolo corretto0.57648 non
+cambia rho1 o la resistenza841kN. Non forzata alcuna formula o fixture.
+Nel controllo comune2e/4b99/100 test passati: l'unico fallimento riguardava
+il setup del nuovo test di riflessione2e, documentato nel suo blocco.
+Non chiude il nodo4c/4d ne i vincoli globali del pilastro.
+Log/TRX workspace audit-results/connections/night-2e-4b-components.

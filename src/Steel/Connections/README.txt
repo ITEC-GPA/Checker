@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
-Versione sorgenteSteel2.58.0.0. Solo librerie, nessuna interfacciaANTHEA.
+Versione sorgenteSteel2.59.0.0. Solo librerie, nessuna interfacciaANTHEA.
 Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
 
 COMPONENTI
@@ -13,6 +13,8 @@ COMPONENTI
 - TStubEffectiveGeometry: lunghezze da flangia di pilastro non irrigidita e
   singola fila esterna di piastra estesa; PHASE_4A_GEOMETRY.txt. CreateInput
   collega geometria e resistenza senza sommare capacita delle singole file.
+- ColumnWebComponents: pannello a taglio, anima in trazione/compressione,
+  interazioni e diffusione dalla piastra; PHASE_4B_COLUMN_WEB.txt.
 - BraceAngleTension: lordo/netto efficace dell'angolare collegato su un lato,
   lato lungo/corto fisico esplicito; PHASE_3A_ANGLE_NET.txt.
 - BraceAngleModelAdapter.FromSingle/FromPair: snapshot Model L/2L identici,

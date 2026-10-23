@@ -1,0 +1,106 @@
+FASE4b.1 - COMPONENTI DELL'ANIMA DI PILASTRO
+==========================================
+24/10/2026. N, mm, MPa. EN1993-1-8:2005 6.2.6.1-3, Tabella6.3,
+Figure6.6/6.7. Formule e coefficienti verificati sul PDF normativo, incluse
+le riduzioni omega, rho e kwc. NTC2018: fattori nazionali con modello EC3
+supplementare esplicitamente etichettato, non formula nazionale letterale.
+
+CAMPO E CONTRATTI
+ConnectionRolledISection: pilastro I/H laminato doppiamente simmetrico,
+fy/fu dell'anima al suo effettivo spessore. Niente irrigidimenti, rinforzi
+d'anima, contropiastre, intagli o carichi locali interferenti.
+Av deriva dal kernel condiviso SectionPropertyArithmetic.RolledWebArea:
+  Av=A-2b tf+(tw+2r)tf; d=h-2(tf+r).
+Non si usa un'area a taglio arbitraria inserita per aumentare la resistenza.
+ColumnWebPolicy tiene gammaM0 e gammaM1 distinti: EC richiede il secondo
+esplicito; NTC gammaM0=gammaM1=1.05. E=210000MPa.
+Sono tre verifiche di componente; nessuna dichiara il nodo globale verificato.
+
+PANNELLO A TAGLIO
+VerifyPanelShear: Vwp,Rd=0.9 fy Av/(sqrt(3) gammaM0), EN(6.7).
+Richiede d/tw<=69sqrt(235/fy), nodo da un lato o con travi di altezza simile
+su due lati. Il caso esplicitamente dichiarato a profondita diverse e fuori
+campo. La domanda e il taglio del PANNELLO ottenuto dall'equilibrio5.3;
+non si sostituisce automaticamente con il taglio verticale della trave.
+La fonte dell'equilibrio e necessaria anche a domanda nulla.
+
+TRAZIONE TRASVERSALE
+VerifyTransverseTension: Ft,wc,Rd=omega beff tw fy/gammaM0, EN(6.15).
+beff e la lunghezza efficace pertinente al meccanismo T-stub della flangia,
+con derivazione identificata per la singola fila o il gruppo. Non viene
+dedotta automaticamente da un'interasse o dalla somma delle larghezze di
+file isolate. L'assemblaggio futuro deve controllare tutti i gruppi pertinenti.
+
+INTERAZIONE COL TAGLIO
+beta e un parametro esplicito0..2 con riferimento al relativo equilibrio;
+nessun beta=0 favorevole viene assegnato automaticamente.
+x=beff tw/Av; omega1=1/sqrt(1+1.3x^2); omega2=1/sqrt(1+5.2x^2).
+Tabella6.3: omega=1 fino a beta0.5, interpolazione lineare verso omega1 a
+beta1 e poi verso omega2 a beta2. Il codice usa le medesime espressioni per
+trazione e compressione. Quando beta>0 si richiede anche il limite69epsilon
+del pannello. Una verifica trasversale con beta0 non qualifica quel pannello.
+
+COMPRESSIONE TRASVERSALE
+VerifyTransverseCompression considera separatamente:
+  Fc,yield=omega kwc beff tw fy/gammaM0
+  Fc,buckle=omega kwc rho beff tw fy/gammaM1.
+lambda_p=.932sqrt(beff d fy/(E tw^2)). rho=1 fino a lambda.72; altrimenti
+rho=min(1,(lambda-.2)/lambda^2). Il cap1 impedisce una amplificazione nel
+minuscolo intervallo sopra.72 causato dall'arrotondamento della soglia normativa.
+kwc=1 fino a sigma_com,Ed=.7fy; oltre,kwc=1.7-sigma_com,Ed/fy, EN(6.14).
+sigma_com,Ed e la MASSIMA compressione longitudinale concomitante in anima
+presso i raccordi dovuta a N/M del pilastro, non una tensione media. Sono
+richieste fonte del calcolo e combinazione; il primo campo e elastico con
+sigma_com,Ed<=fy, senza redistribuzione plastica longitudinale implicita.
+Serve una fonte esplicita dei vincoli costruttivi contro il modo column-sway
+della Figura6.7: questa verifica non inventa il vincolo e non calcola il relativo
+modo globale. Se manca, l'intera verifica e NotSupported.
+
+DISPERSIONE DELLA COMPRESSIONE ATTRAVERSO END PLATE
+ColumnWebEffectiveWidth.FromBoltedEndPlate calcola EN(6.11) per end plate
+rettangolare con cordone ad angolo a lati uguali sul bordo dell'ala compressa:
+  sp=tp+min(tp,projectionBeyondFlange-weldLeg)
+  beff=tf,beam+2*weldLeg+5(tf,column+r)+sp.
+Il dato e il lato del cordone, non la gola. La proiezione dell'end plate
+oltre l'ala deve contenere tutto il lato del cordone. La porzione oltre il
+piede del cordone determina se e disponibile anche la seconda diffusione
+a45gradi; sp non puo superare2tp. Tracce conservano tutte le dimensioni.
+La larghezza derivata resta legata all'istantanea del pilastro e al meccanismo
+di COMPRESSIONE: il riuso con altra geometria o in trazione e rifiutato.
+Per larghezze fornite direttamente il chiamante deve qualificare i confini:
+estremita libere, irrigidimenti e altre zone caricate non devono troncarle.
+
+BENCHMARK INDIPENDENTI
+SCI/BCSA P398,2013,C.1 pp88,101-102:
+https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
+Pilastro254x254x107: h266.7,b258.8,tw12.8,tf20.5,r12.7,A13600,fy265.
+d200.3mm,Av3772.3mm2 dal datoA adottato. Trazione conbeff233,beta0:
+790336N, coerente con790kN stampati. Compressione conbeff248,kw=omega=rho=1:
+841216N, coerente con841kN stampati.
+Il calcolo geometrico continuo dell'end plate forniscebeff247.6mm (nel libro
+arrotondato248) e839859.2N; entrambe le letture sono mantenute separate.
+La lambda0.59 stampata a p102 non si riproduce con i numeri indicati nella
+formula: conE210000,beff248,dc200.3,tw12.8,fy265 si ottiene0.576481729052.
+Non si forza quel numero nel test: entrambi portano a rho1 e la resistenza
+stampata rimane confermata. derive_column_web.py riproduce la formula con
+Decimal40cifre e non modifica fixture o attesi.
+Tabella analitica aggiuntiva: I300x200,tw10,tf20,r0,A10600,fy275,Av2800,
+beff280=>x1,lambda.909993523786,rho.857388756843. Copre tutti i tratti beta,
+le interazioni e il governo di instabilita locale. Il limite geometrico r0
+e un caso analitico, non un nuovo profilo di catalogo.
+
+VERIFICA E LIMITI
+I test includono policyEC/NTC, fattoriM0/M1 indipendenti, confini beta/.72/
+.7fy/69epsilon, trazione/compressione/taglio, proiezione piastra, fonte assente,
+geometria incoerente, sigma oltre campo e overflow. Nessuna verifica globale
+e derivata dal solo successo di questi componenti.
+Restano4b rinforzi/irrigidimenti e relativo assemblaggio, verifiche di flangia
+gia avviate4a, equilibrio4e e rigidezza/rotazione4f. Fonte degli input e
+applicabilita sono parte del contratto, non certificazione del dettaglio reale.
+
+VERIFICA CENTRALIZZATA24/10/2026
+46/46test ColumnWebComponentsTests superati. Eseguito anche lo script
+Decimal indipendente derive_column_web.py: risultati coerenti con gli attesi.
+Il controllo comune2e/4b aveva un fallimento nel nuovo test di riflessione
+dei coprigiunti d'anima, esterno a questi46test e trattato separatamente.
+Log/TRX: workspace audit-results/connections/night-2e-4b-components.
