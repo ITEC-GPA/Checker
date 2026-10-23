@@ -100,6 +100,24 @@ Dimensioni non positive, NaN/infinito e materiali incoerenti sollevano eccezioni
 di input; non generano un esito positivo. Fy/Fu sono valori caratteristici forniti,
 non ricavati automaticamente da un nome di acciaio.
 
+ESEMPIO DI CHIAMATA (C#, SENZA INTERFACCIA)
+using GPC.Checkers.Steel.Connections;
+using GPC.Checkers.Steel.Inputs;
+
+var input = new DoubleCoverSpliceInput(
+    ConnectionDesignCode.Ntc2018(),
+    new ConnectionPlate(200, 16, 275, 430),
+    new ConnectionPlate(160, 10, 275, 430),
+    new ConnectionBolt(20, 21, 245, ConnectionBoltGrade.Class8_8, true),
+    new SteelActions(100000, 0, 0, 0, 0, 0),
+    rows: 2, pitch: 60, gauge: 80, mainEnd: 40, coverEnd: 50,
+    buttGap: 10, exposed: false);
+var result = DoubleCoverSplice.Verify(input);
+
+Questo esempio e' coperto da CompleteSpliceMatchesIndependentHandCalculation:
+Passed; controllo governante Main.BlockInside; resistenza 656190.04 N,
+utilizzazione 0.1523948763. Leggere sempre Status/Scope prima dei valori.
+
 FUORI CAMPO
 Compressione, momenti/tagli globali, fatica, duttilita' sismica, rigidezza/rotazione,
 scorrimento e deformabilita' SLE, bulloni precaricati/svasati, fori asolati o

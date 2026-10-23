@@ -1,0 +1,41 @@
+VERIFICA CONNESSIONI STANDARD - 23/10/2026
+==========================================
+
+Versione sorgente Steel 2.42.0.0; branch codex/steel-standard-connections.
+Nuovi casi: 9 audit bulloni legacy + 57 doppio coprigiunto = 66.
+Passo giunto: trazione centrata statica SLU, campo in README.txt.
+
+Suite                              Superati  Falliti  Altri
+Design.Checks                           103        0      0
+EmbeddedWalls.Tests                      99        0      0
+GPCChecker.Test.Calculation             174        0      0
+GPCChecker.Test.CompositeBridge         382        0      0
+GPCChecker.Test.Concrete                848        4      0
+GPCChecker.Test.Geotechnics             193        0      0
+GPCChecker.Test.Steel                   122        0      0
+ModelChecker.Tests                      443        1      0
+ShallowFoundation.Tests                  28        0      0
+Steel.Members.Tests                    3268        0      0
+
+API: GPCModelChecker, GPCChecker.Concrete, GPC.Design, GPCChecker.Masonry:
+nessuna rimozione inattesa. Compilazioni Release riuscite.
+
+Il processo iniziale Verify e stato interrotto: le suite Concrete/ModelChecker
+e i controlli API sono stati completati separatamente. Steel.Members ripetuta
+dopo aver aggiunto i tre casi su materiali, carico limite e fila singola.
+
+FALLIMENTI PREESISTENTI, NON AUTORIZZATI COME ECCEZIONI DI RILASCIO
+Gia documentati in master 6edf46a7:
+docs/domain-iteration-20261023/test-da-aggiornare.txt.
+I sorgenti Concrete, ModelChecker e ModelChecker.Tests sono invariati rispetto
+a quel commit. Gli attesi e build/known-failures.json non sono stati modificati.
+GPCChecker.Test.Concrete / LargeSectionPointBeyondTheStoppingTestIsAccepted
+GPCChecker.Test.Concrete / DomainPointContractOf0017IsUnchanged
+GPCChecker.Test.Concrete / CurvatureContractOf0017IsUnchanged
+GPCChecker.Test.Concrete / LegacyMomentCurvatureIsReproduced
+ModelChecker.Tests / RealDetailsMatchNativeResistanceAndKeepThePreparedForceFrame
+
+Non e una verifica complessiva verde: nessun set di rilascio prodotto.
+TRX e log: workspace audit-results/connections; riepilogo machine-readable
+connections-validation.json. Le pendenze Concrete appartengono al precedente
+intervento sul risolutore; non sono regressioni introdotte dalle connessioni.

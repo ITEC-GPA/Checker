@@ -44,3 +44,26 @@ formule4.2.63-67. Il limite del gioco foro-bullone NTC richiede attenzione:
 SCI P358, edizione2014: riferimenti e casi numerici saranno documentati per
 ogni nuovo test. I fattori UK degli esempi non sono i default EC3/NTC.
 https://www.steelconstruction.info/images/a/a9/SCI_P358.pdf
+
+PASSO 2 - IMPLEMENTATO
+DoubleCoverSplice.Verify: trazione centrata SLU, con contratti immutabili e
+politiche EC3/NTC esplicite. Il checker di nodo non usa il legacy BoltGrid.
+57 casi indipendenti: esempio SCI di componente, giunto analitico nelle due norme,
+materiali diversi, riparto sui due coprigiunti, entrambi i piani di taglio,
+giunti lunghi, percorsi di block tearing, carico limite e configurazioni escluse.
+Gli attesi non sono stati ricavati dall'implementazione; fonti in README.txt.
+Versione sorgente Steel 2.42.0.0 per nuova funzionalita'. Nessuna modifica ANTHEA.
+
+PASSO 3 - VERIFICA COMPLETATA
+66 nuovi test totali. Steel.Members 3268 passati, Steel legacy 122 passati.
+Tutte le dieci suite completate; dettagli in VALIDATION.txt. Cinque fallimenti
+Concrete/ModelChecker erano gia documentati nel commit di partenza 6edf46a7:
+rimangono aperti e non sono stati aggiunti alle eccezioni ammesse al rilascio.
+Nessuna fixture rigenerata e nessun set di rilascio distribuito.
+
+PROSECUZIONE
+Prima di riutilizzare i gruppi legacy per nodi eccentrici, qualificare i punti
+sopra riportati (singolo bullone/assi locali e differenze normative NTC).
+Manca un checker dedicato alle saldature: la piastra d'anima necessita di questo
+componente e della resistenza locale del supporto prima di poter essere completa.
+Il primo doppio coprigiunto e autonomo rispetto a tali parti ancora da sviluppare.

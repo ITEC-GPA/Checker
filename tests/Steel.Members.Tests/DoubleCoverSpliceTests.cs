@@ -119,6 +119,47 @@ public class DoubleCoverSpliceTests
         Equal(800.0 / 900, Trace(r, "Side1.Row1.Column1.MainBearing.AlphaB"));
     }
 
+    [TestMethod]
+    public void CoverMaterialAndThicknessAreIndependentOfMainPlate()
+    {
+        var r = DoubleCoverSplice.Verify(Input(main: new(200, 20, 355, 510), cover: new(160, 6, 235, 360)));
+        Assert.IsTrue(r.IsComplete);
+        Equal(1160352, Check(r, "Main.NetRupture").Resistance);
+        foreach (var id in new[] { "Cover1", "Cover2" })
+        {
+            Equal(50000, Check(r, id + ".NetRupture").Demand);
+            Equal(225600, Check(r, id + ".GrossYielding").Resistance);
+            Equal(183513.6, Check(r, id + ".NetRupture").Resistance);
+        }
+        Equal(2.5 * (60.0 / 63 - .25) * 360 * 20 * 6 / 1.25,
+            Check(r, "Side1.Row1.Column1.EachCoverBearing").Resistance);
+        Equal(2.5 * (40.0 / 63) * 510 * 20 * 20 / 1.25,
+            Check(r, "Side1.Row1.Column1.MainBearing").Resistance);
+    }
+
+    [TestMethod]
+    public void AnalyticUltimateLoadSeparatesPassAndFail()
+    {
+        // Governing main-plate inner block from independently constructed areas.
+        double ultimate = 430 * 944 / 1.25 + 275 * 2192 / Math.Sqrt(3);
+        var at = DoubleCoverSplice.Verify(Input(n: ultimate));
+        Equal(1, at.Utilization!.Value); Assert.AreEqual(ConnectionStatus.Passed, at.Status);
+        Assert.AreEqual(ConnectionStatus.Failed, DoubleCoverSplice.Verify(Input(n: ultimate * 1.000001)).Status);
+    }
+
+    [TestMethod]
+    public void SingleRowDoesNotInventLongitudinalPitchOrInteriorBolts()
+    {
+        var small = DoubleCoverSplice.Verify(Input(rows: 1, pitch: 1));
+        var large = DoubleCoverSplice.Verify(Input(rows: 1, pitch: 10000));
+        Assert.IsTrue(small.IsComplete && large.IsComplete);
+        Equal(0, Trace(small, "Lj")); Equal(2, Trace(small, "BoltCountPerSide"));
+        Equal(40.0 / 63, Trace(small, "Side1.Row1.Column1.MainBearing.AlphaB"));
+        Equal(50.0 / 63, Trace(small, "Side1.Row1.Column1.EachCoverBearing.AlphaB"));
+        CollectionAssert.AreEqual(small.Checks.Select(c => (c.Id, c.Demand, c.Resistance)).ToArray(),
+            large.Checks.Select(c => (c.Id, c.Demand, c.Resistance)).ToArray());
+    }
+
     [DataTestMethod]
     [DataRow(1, 100.0, 1.0)] [DataRow(4, 100.0, 1.0)]
     [DataRow(5, 100.0, .975)] [DataRow(14, 100.0, .75)] [DataRow(16, 100.0, .75)]
