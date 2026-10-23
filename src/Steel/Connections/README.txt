@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
-Versione sorgenteSteel2.66.0.0. Solo librerie, nessuna interfacciaANTHEA.
+Versione sorgenteSteel2.67.0.0. Solo librerie, nessuna interfacciaANTHEA.
 Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
 
 COMPONENTI
@@ -221,3 +221,6 @@ I risultati restano consumabili dalle librerie; integrazioneANTHEA rinviata.
 
 - EndPlateRotationalStiffness: molle delle file e componenti comuni, rigidezza
   iniziale/secante; benchmark JRC inPHASE_4F_JRC_STIFFNESS_REVIEW.txt.
+
+- GussetTwinFlatWeldedSupport: percorso bullonato e attacco aT a due cordoni,
+  con domanda sul supporto distinta; PHASE_3A_WELDED_SUPPORT.txt.

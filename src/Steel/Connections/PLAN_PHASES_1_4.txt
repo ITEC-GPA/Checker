@@ -37,10 +37,10 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1364 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 1397 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,
    83componenti doppie squadrette/supporto,208precarico/scorrimento,300continuitaI,
-   40fazzoletto/due piatti,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,121T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,26rigidezza rotazionale.
+   40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,121T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,26rigidezza rotazionale.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
@@ -81,8 +81,10 @@ FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
 FASE 3 - CONTROVENTI E PROFILI ACCOPPIATI
 3a PARZIALE - Chiusa3a.1: unico gruppo bullonato, fazzoletto rettangolare
    centrale e due piatti uguali tesi,40test. Lordo/netto/block, bulloni,
-   rifollamento e azioni trasportate. Restano attacco/supporto3a.2,
-   saldature e campi eccentrici; PHASE_3A_TWIN_FLAT.txt.
+   rifollamento e azioni trasportate. Chiusa3a.2: attacco aT al supporto con
+   due cordoni reali e trasporto6D,33test; PHASE_3A_WELDED_SUPPORT.txt.
+   Restano resistenza/flessibilita del supporto e trasferimenti eccentrici;
+   nodo completo non qualificato. PHASE_3A_TWIN_FLAT.txt.
 3b PARZIALE - Chiusa3b.1: meccanismo fuori piano dei piatti in semplice
    sovrapposizione, quattro bulloni, un bordo perpendicolare e incastri reali;
    48test SCI/analitici e confronto con prove Khoo. PHASE_3B_GUSSET_COMPRESSION.txt.

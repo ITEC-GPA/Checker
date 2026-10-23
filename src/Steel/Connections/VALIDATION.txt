@@ -300,3 +300,19 @@ Audit conteggio nuovi test:4a.2b ha19casi, non20. Il filtro testualeTStub
 aveva incluso un test ColumnWebComponents preesistente. IlTRX170era corretto;
 nessun test eliminato o modificato. Corretto il riepilogo,121casiT-stub e
 1364casi connessioni complessivi. Nuovi casi dall'ultimo Members4388:178.
+
+
+3a.2 - ATTACCO SALDATO DEL FAZZOLETTO, STEEL2.67.0.0
+33/33nuovi test passati al primo run;73/73con il trasferimento3a.1.
+Due cordoni simmetrici90gradi, gole fisiche speculari45/135gradi;
+fazzoletto prosegue verso+X oltre i piatti e la saldatura.
+Transfer.Actions sono azioni sui piatti: il fazzoletto riceve la reazione,
+il supporto trasmette la forza equilibrante e riceve quella opposta.
+Il trasporto di tutte le sei componenti riusa il kernel Model.
+Benchmark SCI G.37 trasversale273/295MPa e caso analitico100kN,
+due gole6x200mm: utilizzo weld0.145600960273, governa block interno gusset
+672762.742N EC e656190.040N NTC. Verificati cedimento weld/trasferimento,
+gole, accesso, ingombri e lunghezze nominali EC/NTC.
+CanQualifyWholeJoint=false: resistenza e flessibilita del supporto escluse.
+Log/TRX workspace audit-results/connections/night-3a-welded-support.
+Il controllo completo di tutte le suite resta il2.66 documentato sopra.

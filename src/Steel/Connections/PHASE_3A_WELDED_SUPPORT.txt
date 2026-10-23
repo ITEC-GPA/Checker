@@ -1,0 +1,129 @@
+FASE 3a.2 - ATTACCO SALDATO DEL FAZZOLETTO TWIN-FLAT AL SUPPORTO
+
+Stato: installato e verificato centralmente;33/33nuovi test passati.
+test .NET o modificato Git. Verifica e integrazione spettano al coordinatore.
+
+Campo analitico effettivo
+------------------------
+GussetTwinFlatWeldedSupport aggrega il componente boltonato3a.1 e il kernel
+FilletWeldGroup gia' esistente. Il fazzoletto rimane una striscia rettangolare
+costante e termina su una faccia piana perpendicolare, con due cordoni continui
+uguali, uno su ciascun lato del suo spessore. Giunto a T di90gradi, due gole
+di uguale dimensione, nessun contatto resistente accreditato, giunto non a
+sovrapposizione. La verifica parte dai due piatti e termina alla faccia del
+supporto; NON chiude la resistenza del supporto o del nodo strutturale completo.
+Il risultato pubblico dichiara sempre CanQualifyWholeJoint=false, anche quando
+tutte le verifiche del perimetro implementato risultano complete e soddisfatte.
+
+La geometria rispetta la convenzione3a.1: il bordo libero del fazzoletto e' sul
+lato-X; i bordi liberi dei piatti sono sul lato+X. Il fazzoletto continua quindi
+verso un supporto posto a X=S positivo, oltre le estremita' dei piatti. S e'
+la distanza dal baricentro del gruppo bulloni, non una lunghezza efficace.
+
+La faccia rettangolare del supporto ha dimensioni esplicite lungo Y e Z e
+materiale/spessore effettivi. Deve contenere lunghezza e impronta dei cordoni.
+Il cateto per la geometria isoscele e' sqrt(2)*a. Fra bordo dei piatti e faccia
+supporto deve esserci almeno quel cateto, altrimenti il cordone interferisce
+con i piatti. Questo e' solo un controllo geometrico; accesso, preparazione,
+esecuzione e compatibilita' del materiale d'apporto sono dichiarazioni distinte.
+L'estensione della faccia e il suo spessore non forniscono una capacita' portante.
+
+Faccia fisica e kernel
+---------------------
+Il piano dei cordoni ha assi(u,v,w)=(Y_gusset,Z_gusset,X_gusset), destrorsi,
+origine(S,0,0). Le due radici vanno da u=-b/2 a+b/2 a v=+/-t/2.
+Entrambe hanno tangente+u. Nel piano(v,w):
+- cordone a v=+t/2: la superficie esterna ha tangente(1,1), quindi la normale
+  positiva di gola e'(-1,1)/sqrt2, angolo135gradi;
+- cordone a v=-t/2: la superficie esterna ha tangente(1,-1), quindi la normale
+  positiva di gola e'(1,1)/sqrt2, angolo45gradi.
+Il segno positivo della componente w produce sigma_perp positiva nella trazione.
+I test controllano perpendicolarita' e segni, oltre alla semplice resistenza.
+Il valore della gola a non viene confuso con il cateto del cordone.
+
+L'assetto a due cordoni elimina l'eccentricita' globale del dettaglio simmetrico
+nel campo assiale di3a.1. Non si estende questo risultato a cordoni unilaterali.
+Il kernel richiede un distributore compatibile con la ripartizione elastica:
+SupportDistributionSource deve descrivere tale valutazione esterna. Non e'
+una verifica automatica della flessibilita' della piastra o del membro supporto.
+
+Forze, eccentricita' e confini
+-----------------------------
+Le azioni originali sono quelle esercitate dai bulloni sui due piatti; il
+fazzoletto riceve le opposte e richiede al supporto la risultante originaria.
+Si riusa Model.ResultBeamForces.ToCoordinateSystemWithEccentricity per tutte
+le sei componenti e per il punto di applicazione reale. Nessun momento viene
+azzerato durante l'adattamento. Il carico normale fuori piano dei cordoni e'
+quindi Fw=N, non un taglio parallelo alle loro radici.
+
+ActionsOnSupport restituisce l'azione opposta ON SUPPORT negli assi originali
+del fazzoletto, al punto(S,0,0). Questa domanda deve essere combinata con le
+altre azioni del supporto nella relativa verifica separata. Se3a.1 non copre
+un'eccentricita'/taglio applicato, l'aggregato e' NotSupported senza verifiche
+parziali favorevoli; la domanda trasferita puo' restare disponibile per diagnosi.
+
+Verifiche aggregate
+------------------
+Le verifiche del percorso bullonato conservano le resistenze e i coefficienti
+del kernel3a.1. Le verifiche ai quattro estremi delle due radici provengono da
+FilletWeldGroup. Il massimo utilizzo governa l'aggregato; un esito negativo
+del bullonato non e' coperto da cordoni abbondanti e viceversa. Se un componente
+non e' calcolabile, l'aggregato non espone un insieme di verifiche favorevoli.
+EN1993-1-8:2005 par.4.5.3 e NTC2018 par.4.2.8.2.4 restano distinti attraverso
+ConnectionDesignCode e il kernel saldature, comprese le convenzioni degli estremi.
+
+Fonti e ricalcoli
+----------------
+EN1993-1-8:2005 par.4.5.3 per il calcolo sulle gole e par.4.12 per il problema
+delle saldature unilaterali eccentriche; testo locale verificato. Il metodo
+implementato e' il giunto simmetrico a due cordoni, non l'esenzione perimetrale
+dei tubolari del punto4.12(3).
+SCI P358:2014, tabelleG.36/G.37, p.T-144, PDF442, verificata visivamente:
+https://www.steelconstruction.info/images/a/a9/SCI_P358.pdf
+Resistenze trasversali pubblicate: S275273MPa, S355295MPa, arrotondate all'unita'.
+Con fu410/470MPa, beta0.85/0.9 e gammaM2=1.25 il ricalcolo sulle gole reali
+produce272.860028505 e295.413499696MPa. Questi sono benchmark del COMPONENTE
+saldatura, non esempi pubblicati di tutto il nodo/supporto.
+
+Caso completo costruito nel campo del componente aggregato:
+N100000N; fazzoletto200x16; due piatti160x10; fy275,fu430MPa;
+quattroM20,d0=21,As245mm2; passo60,interasse80; bordi40/50mm.
+Supporto a S120mm; faccia240x80mm, spessore20mm, stesso fu430 e gradoS275.
+Due gole a6mm, lunghezza piena200mm. A_w=2*6*200=2400mm2.
+  s_w=N/A_w=41.6666666667MPa;
+  sigma_perp=|tau_perp|=s_w/sqrt2=29.4627825494MPa;
+  sigma_equivalente=s_w*sqrt2=58.9255650989MPa;
+  limite430/(0.85*1.25)=404.705882353MPa;
+  utilizzo cordoni direzionale0.145600960273393;
+  capacita' cordoni direzionale686808.65711484N;
+  capacita' cordoni semplificata560776.92028583N.
+Il block tearing interno del fazzoletto governa il caso direzionale:
+672762.742267506N con gammaM0EC=1;656190.040254768N in NTC.
+Il ricalcolo indipendente del trasferimento bullonato e' gia' documentato da
+derive_gusset_twin_flat.py. Il supporto riceve(-100000,0,0)N e momenti nulli;
+la sua resistenza resta da verificare.
+
+Test predisposti
+----------------
+Ricalcolo completo del percorso EC/NTC; benchmarkSCI delle gole; metodo
+direzionale/semplificato; geometria e normali effettive; invarianza alla distanza
+collineare; azioni equivalenti riferite a punti diversi; trasporto6D anche per
+stati fuori campo; fallimento di ciascun componente; estremi EC/NTC; interferenze,
+faccia disponibile, grado/materiali, fonti obbligatorie, limiti del kernel e input
+invalidi. Filtro: FullyQualifiedName~GussetTwinFlatWeldedSupportTests
+
+
+3a.2 - ATTACCO SALDATO DEL FAZZOLETTO, STEEL2.67.0.0
+33/33nuovi test passati al primo run;73/73con il trasferimento3a.1.
+Due cordoni simmetrici90gradi, gole fisiche speculari45/135gradi;
+fazzoletto prosegue verso+X oltre i piatti e la saldatura.
+Transfer.Actions sono azioni sui piatti: il fazzoletto riceve la reazione,
+il supporto trasmette la forza equilibrante e riceve quella opposta.
+Il trasporto di tutte le sei componenti riusa il kernel Model.
+Benchmark SCI G.37 trasversale273/295MPa e caso analitico100kN,
+due gole6x200mm: utilizzo weld0.145600960273, governa block interno gusset
+672762.742N EC e656190.040N NTC. Verificati cedimento weld/trasferimento,
+gole, accesso, ingombri e lunghezze nominali EC/NTC.
+CanQualifyWholeJoint=false: resistenza e flessibilita del supporto escluse.
+Log/TRX workspace audit-results/connections/night-3a-welded-support.
+Il controllo completo di tutte le suite resta il2.66 documentato sopra.
