@@ -1,7 +1,6 @@
 FASE 3a.2 - ATTACCO SALDATO DEL FAZZOLETTO TWIN-FLAT AL SUPPORTO
 
 Stato: installato e verificato centralmente;33/33nuovi test passati.
-test .NET o modificato Git. Verifica e integrazione spettano al coordinatore.
 
 Campo analitico effettivo
 ------------------------

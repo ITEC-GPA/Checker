@@ -135,6 +135,11 @@ namespace GPC.Checkers.Steel.Connections
     }
     internal static class ConnectionValidation
     {
+        // Only absorbs floating-point subtraction/multiplication roundoff at an
+        // inclusive minimum; this is not a manufacturing/detailing tolerance.
+        internal static bool BelowMinimumWithRoundoff(double actual, double minimum)
+            => actual < minimum && minimum - actual > 8 * 2.2204460492503131e-16
+                * Math.Max(Math.Abs(actual), Math.Abs(minimum));
         internal static void Positive(double value, string name)
         { if (!(value > 0) || double.IsInfinity(value)) throw new ArgumentOutOfRangeException(name); }
         internal static void Nonnegative(double value, string name)

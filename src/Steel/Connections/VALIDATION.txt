@@ -316,3 +316,17 @@ gole, accesso, ingombri e lunghezze nominali EC/NTC.
 CanQualifyWholeJoint=false: resistenza e flessibilita del supporto escluse.
 Log/TRX workspace audit-results/connections/night-3a-welded-support.
 Il controllo completo di tutte le suite resta il2.66 documentato sopra.
+
+
+4a FIX - PASSO MINIMO E ARROTONDAMENTO, STEEL2.67.0.1
+Un passo fisico62.4mm=2.4d0 con d0=26mm diventava62.39999999999999
+quando ricavato da coordinate44.4/106.8 traslate di15.6mm. Il confronto
+strettamente numerico rifiutava una geometria al limite inclusivo.
+Il confronto ammette solo8epsilon macchina relativi al passo; non e una
+tolleranza di fabbricazione e non si rilassano le distanze dai raccordi.
+Otto nuovi casi EC/NTC e carico puntuale/distribuito: limite esatto ammesso,
+deficit1e-6mm rifiutato. Red4/8falliti prima del fix; green129/129 per
+tutta la famiglia T-stub. Durante la scrittura dei nuovi test e stato
+corretto l'input PointForce (contactWidth0 richiesto dal contratto), senza
+cambiare gli attesi o le fixture esistenti.
+Log/TRX: workspace audit-results/connections/night-tstub-roundoff-*.

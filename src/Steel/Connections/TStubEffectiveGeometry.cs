@@ -118,11 +118,11 @@ namespace GPC.Checkers.Steel.Connections
             if (bolt == null) throw new ArgumentNullException(nameof(bolt));
             // Conservative minimum pitch in both in-plane directions; full detailing,
             // maximum pitch, contact pressure and punching remain parent-joint checks.
-            if (BoltGauge < 2.4 * bolt.HoleDiameter || MinimumRowPitch < 2.4 * bolt.HoleDiameter
+            if (BoltGauge < 2.4 * bolt.HoleDiameter || MinimumRowPitch.HasValue && ConnectionValidation.BelowMinimumWithRoundoff(MinimumRowPitch.Value, 2.4 * bolt.HoleDiameter)
                 || E < 1.2 * bolt.HoleDiameter || Emin < 1.2 * bolt.HoleDiameter
                 || ClearDistanceToRootOrWeld <= bolt.HoleDiameter / 2
                 || method == TStubMode1Method.DistributedContact && (ClearDistanceToRootOrWeld <= contactWidth / 2
-                    || E < contactWidth / 2 || BoltGauge < contactWidth || MinimumRowPitch < contactWidth))
+                    || E < contactWidth / 2 || BoltGauge < contactWidth || MinimumRowPitch.HasValue && ConnectionValidation.BelowMinimumWithRoundoff(MinimumRowPitch.Value, contactWidth)))
                 throw new ArgumentException("The selected bolt hole/contact footprint does not fit the derived T-stub geometry.");
             if (orderedRowTensions == null) throw new ArgumentNullException(nameof(orderedRowTensions));
             var forces = orderedRowTensions.ToArray();
