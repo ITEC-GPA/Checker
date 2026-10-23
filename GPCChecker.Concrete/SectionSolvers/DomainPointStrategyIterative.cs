@@ -28,6 +28,10 @@ namespace GPC.Checker.SectionSolvers
 
         public FailureDomain.FailureDomainPoint CalculateDomainPoint(ResultBeamForces force, SectionSolver.FailureAnalysisTypes? failureAnalysisTypeOverride = null)
         {
+            // Keep the discontinuous stress-block search unchanged. The safeguarded search is for continuous diagrams.
+            if (_solver.ConcreteMaterial.CompressionStressStrainDiagram != ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock)
+                return new DomainPointStrategyNewton(_solver).CalculateDomainPoint(force, failureAnalysisTypeOverride);
+
             var targetLocalForces = new ForceTuple(force.ToCoordinateSystemWithEccentricity(_solver.SolverAxes));
             var failureAnalysisType = failureAnalysisTypeOverride is null ? _solver.SectionOption.FailureAnalysisType : failureAnalysisTypeOverride.Value;
             switch (failureAnalysisType)

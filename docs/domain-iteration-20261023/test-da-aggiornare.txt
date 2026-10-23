@@ -1,0 +1,20 @@
+ecc-concrete.trx / CurvatureContractOf0017IsUnchanged
+Assert.Fail non riuscita. Contract 0.0.17.0 (curvature-contract-0.0.17.csv) changed at line 4
+expected: R	fixture 0 R300x500 NTC 2018	invariant	ok	192010838.46330708	7.3256903915689821E-06	3.4238094979959878E-05	-200040.82314112864	-40.823141128639691	null	42	Increasing-moment branch at constant N; material laws and factors of the section and standard. First yield refined with 12 bisections, My = 1.806894E+08 Nmm. N at the limit point = -200040.823 N; residual = -40.8231 N. No post-peak branch.
+actual:   R	fixture 0 R300x500 NTC 2018	invariant	ok	192003724.72527868	7.325700300218525E-06	3.4240669129433594E-05	-199999.99239975645	0.0076002435525879264	null	42	Increasing-moment branch at constant N; material laws and factors of the section and standard. First yield refined with 12 bisections, My = 1.806895E+08 Nmm. N at the limit point = -199999.992 N; residual = 0.00760024 N. No post-peak branch.
+Generated text: C:\Users\g.pacini\AppData\Local\Temp\curvature-contract-0.0.17.csv.actual
+
+ecc-concrete.trx / DomainPointContractOf0017IsUnchanged
+Assert.Fail non riuscita. Domain point contract 0.0.17.0 changed at line 6
+expected:     {"section": "R1", "diagram": "ParabolaRectangle", "state": "Plastic", "N": 250000, "direction": "Mx+", "path": "iterative", "logLines": 0, "NRd": 249962.63250335795, "MxRd": 102737799.85946482, "MyRd": 19.294438104365327, "failureIndex": "F3A", "immersione": 0.060464556393250532, "planeId": 19, "chiX": 1.5911325446041874E-11, "chiY": -8.9409747518737445E-05, "strain": -0.0035, "deltaN": 37.367496642051265, "tolerance": 1000, "accepted": true, "acceptedKn": true},
+actual:       {"section": "R1", "diagram": "ParabolaRectangle", "state": "Plastic", "N": 250000, "direction": "Mx+", "path": "iterative", "logLines": 0, "NRd": 250002.13612354192, "MxRd": 102729541.58862431, "MyRd": 6.8412191467359662E-09, "failureIndex": "F3A", "immersione": 0.06045262797288764, "planeId": 5, "chiX": 3.9821931127244288E-21, "chiY": -8.9417177840345573E-05, "strain": -0.0035, "deltaN": 2.1361235419171862, "tolerance": 1000, "accepted": true, "acceptedKn": true},
+Generated text: C:\Users\g.pacini\Documents\ChatGPT\Checker\domain-iteration\GPCChecker.Test.Concrete\bin\Release\domain-point-contract.actual.json
+
+ecc-concrete.trx / LegacyMomentCurvatureIsReproduced
+Assert.AreEqual non riuscita. Prevista una differenza non maggiore di <19.2010838466613> tra il valore previsto <192010838.466613> e il valore effettivo <192003724.725279>. curve 0 R300x500 NTC 2018 limit moment
+
+ecc-concrete.trx / LargeSectionPointBeyondTheStoppingTestIsAccepted
+Assert.AreEqual non riuscita. Previsto:<0>. Effettivo:<2>. S1 x1: iterative strategy, no fallback
+
+ecc-ModelChecker.Tests.trx / RealDetailsMatchNativeResistanceAndKeepThePreparedForceFrame
+Assert.IsFalse non riuscita.

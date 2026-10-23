@@ -21,7 +21,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
     /// <item>rectangular stress block: also at least <see cref="StressBlockFraction"/> times the centred compression resistance
     /// (<see cref="CentredCompressionResistance(SectionSolver)"/>), that is 1/1000 of NRd,c.</item>
     /// </list>
-    /// The rule changes only which points are accepted, never their forces: it is never narrower than the rule of 0.0.17.0, so every point
+    /// This tolerance rule changes only which points are accepted, never their forces: it is never narrower than the rule of 0.0.17.0, so every point
     /// accepted by that rule is still accepted, with the same values. Points returned by the fallbacks of the search on a jump of the forces
     /// (closest point or bisection, up to 10 times the distance tolerance) can still be rejected.<br/>
     /// With the stress block the result can be less precise. The stress jumps from 0 to η fcd at the strain (1 - λ) εcu; the concrete is
@@ -47,8 +47,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         /// <summary>
         /// The factor on the tolerance of the stopping test of the search (<see cref="ConvergenceTolerance(SectionSolver)"/>) in the tolerance on N:
-        /// 2. The search tests the distance to the target of the point before its last step and then returns the point after that step, so the
-        /// returned point is not bounded by the test. In the validation sample of S-1 (13 sections, .NET 8) the points of the iterative strategy
+        /// 2, retained for compatibility. The historical iterative search tested the point before its last step and returned the point after
+        /// that step, so the returned point was not bounded by the test. The safeguarded search introduced in 0.18.0.1 for continuous diagrams
+        /// checks the actual returned resultant, with a target of one tenth of the nominal stopping tolerance. The stress-block search and
+        /// this public acceptance policy are unchanged. In the historical validation sample of S-1 (13 sections, .NET 8) the iterative points
         /// with the continuous diagrams had |NRd - N| up to 1.47 times the tolerance of the test (one point out of 6404, the others within 0.91
         /// times). The factor is a margin on these measurements, not a proven bound
         /// </summary>
@@ -102,8 +104,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// box of the concrete and fck its characteristic strength (for composite sections plus A 15 fck of each steel section). It grows with
         /// the section and does not depend on the diagram: 112.5 N for 300 × 500 in C30/37, 640 N for a circle of D 800 in C40/50, 3500 N for a
         /// circle of D 2000 in C35/45.<br/>
-        /// It is not a bound of the returned point: the search stops when the distance of the point before its last step is within it, and returns
-        /// the point after that step, which can be farther from the assigned axial force (see <see cref="ConvergenceFactor"/>)
+        /// The safeguarded Newton search for continuous diagrams aims at a tighter target (one tenth of this value). If refinement stalls,
+        /// it can retain an evaluated plane satisfying all public tolerances, including <see cref="Calculate(SectionSolver, double)"/>.
+        /// This stopping target does not bound every returned point, including the historical stress-block strategy and fallbacks.
         /// </summary>
         /// <param name="solver">The section solver</param>
         /// <returns>The tolerance; 0 if the scale of the section is not finite or not positive</returns>

@@ -499,7 +499,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// The subdivisions of the failure zones of the domain of the type for the section (the selection of the four Get...FailureDomainResult
         /// methods); null for plain concrete without bars and steel sections, which has no domain
         /// </summary>
-        private (FailureZones, int)[] GetFailureZonesDiscretization(FailureDomainTypes failureDomainType)
+        internal (FailureZones, int)[] GetFailureZonesDiscretization(FailureDomainTypes failureDomainType)
         {
             if (_concreteSection.ConcreteMaterial.ConcreteType == ConcreteMaterial.ConcreteTypes.Concrete && _concreteSection.SteelSections.Count == 0
                 && ConcreteSection.RebarsCount == 0)

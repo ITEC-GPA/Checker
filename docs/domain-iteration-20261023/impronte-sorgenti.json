@@ -1,0 +1,30 @@
+[
+  {
+    "file": "GPCChecker.Concrete/SectionSolvers/DomainPointStrategyNewton.cs",
+    "sha256": "e7e0117d799a82cb7584c6f08e2af30fc389b7188bec632435dfb8ab2e6deb9d",
+    "matchesMeasuredSource": true
+  },
+  {
+    "file": "GPCChecker.Concrete/SectionSolvers/DomainPointStrategyIterative.cs",
+    "sha256": "c512293c7841f2907e9fd7532deb6242c75cf4aed9a5d64a656246bc8da203a5",
+    "matchesMeasuredSource": true
+  },
+  {
+    "file": "GPCChecker.Concrete/SectionSolvers/SectionSolver.cs",
+    "sha256": "6348bfe3cb35f125358a25e90de80b3cde31c7bf3102265bbd142db1d2f5b077",
+    "matchesMeasuredSource": true
+  },
+  {
+    "file": "GPCChecker.Concrete/SectionSolvers/DomainPointAxialTolerance.cs",
+    "sha256": "a309a7f5097175540e18245c6416a19411eae86d50fed76aacc7546927636fc8",
+    "matchesMeasuredSource": true
+  },
+  {
+    "file": "focus-before/bin/GPCChecker.Test.Concrete.dll",
+    "sha256": "1f4e85faa5b68d3e0f9b14178d645eb8b992d4c9e85055edaaf4d2cea5d36bf6"
+  },
+  {
+    "file": "final-corrected/bin/GPCChecker.Test.Concrete.dll",
+    "sha256": "190b32c9067d1e028dbb1df2f33ae3a79768dc48b28a2e11462957ccfc80f270"
+  }
+]
