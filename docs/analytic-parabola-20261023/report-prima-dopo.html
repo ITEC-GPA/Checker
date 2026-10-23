@@ -1,0 +1,155 @@
+<!doctype html><html lang="it"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Parabola analitica — confronto prima e dopo</title>
+<style>body{font:16px/1.55 system-ui,sans-serif;color:#16302c;background:#f2f5f2;margin:0}main{max-width:1250px;margin:auto;padding:36px 28px}h1{font-size:34px;line-height:1.15}h2{margin-top:34px}table{border-collapse:collapse;background:white;width:100%;font-size:14px}td,th{padding:10px;border-bottom:1px solid #dbe3df;text-align:right;white-space:nowrap}td:first-child,th:first-child{text-align:left}th{background:#dfece5}.scroll{overflow:auto}a{color:#076b56}.box{background:white;border-left:5px solid #168166;padding:16px 22px}.warning{border-color:#be7519}li{margin:7px 0}.muted{color:#50625d}pre{white-space:pre-wrap;font-size:13px}</style><main>
+<p>Checker Concrete · candidata 0.19.0.0 · 23 ottobre 2026</p><h1>Parabola analitica e taglio della mesh</h1>
+<p>Confronto con la candidata stress block 0.18.0.2. Il nuovo percorso riguarda il parabola-rettangolo europeo standard con n=2, fck ≤ 50 MPa e calcestruzzo teso ordinario escluso. Le tabelle personalizzate, le alte resistenze e gli altri diagrammi conservano il percorso precedente. L’opzione tension stiffening mantiene la propria legge in trazione; la compressione usa la nuova parabola e in quel percorso misto resta la quadratura di Gauss.</p>
+<div class="box">La mesh è preparata una volta. Si tagliano soltanto le celle attraversate dall’asse neutro e dall’inizio del plateau; i piani di prova oltre la deformazione ultima rispettano anche tale limite. Le risultanti della parabola n=2 sono integrate esattamente sulla geometria poligonale, salvo arrotondamenti. Le barre restano puntuali e usano la stessa legge analitica per il calcestruzzo sottratto.</div>
+<h2>Tempi e confronti su campioni omogenei</h2>
+<div class="scroll"><table><thead><tr><th>Campione</th><th>Casi</th><th>Riusciti prima → dopo</th><th>Totale [s]</th><th>P50 [ms]</th><th>P95 [ms]</th><th>Accelerazione</th></tr></thead><tbody><tr><td>240 casi originali</td><td>240</td><td>238 → 238</td><td>0,875 → 0,096</td><td>2,155 → 0,074</td><td>8,203 → 0,174</td><td>9,10×</td></tr><tr><td>Originali riusciti in entrambi</td><td>238</td><td>238 → 238</td><td>0,777 → 0,021</td><td>2,147 → 0,074</td><td>8,044 → 0,168</td><td>36,43×</td></tr><tr><td>Originali con piani validi in entrambi</td><td>236</td><td>236 → 236</td><td>0,709 → 0,021</td><td>2,111 → 0,074</td><td>7,030 → 0,168</td><td>33,42×</td></tr><tr><td>Campione esteso dei due criteri principali</td><td>1896</td><td>1876 → 1876</td><td>8,552 → 1,319</td><td>1,964 → 0,078</td><td>8,425 → 0,185</td><td>6,48×</td></tr><tr><td>Estesi riusciti in entrambi</td><td>1876</td><td>1876 → 1876</td><td>5,448 → 0,187</td><td>1,927 → 0,078</td><td>8,049 → 0,176</td><td>29,12×</td></tr><tr><td>Estesi con piani validi in entrambi</td><td>1874</td><td>1874 → 1874</td><td>5,386 → 0,187</td><td>1,927 → 0,078</td><td>8,021 → 0,176</td><td>28,80×</td></tr><tr><td>Estesi con entrambi i piani validi sulla parabola esatta</td><td>434</td><td>434 → 434</td><td>1,507 → 0,051</td><td>2,179 → 0,081</td><td>8,917 → 0,189</td><td>29,53×</td></tr></tbody></table></div>
+<p class="muted">Totale = somma delle mediane per caso; non è la durata della campagna. I due cataloghi hanno 24 casi in comune e non vanno sommati. “Piano valido” significa che le forze reintegrate rispettano il criterio, non soltanto quelle dichiarate nel punto interpolato dal fallback.</p>
+<h2>Da dove viene il guadagno?</h2>
+<h3>240 casi originali</h3><div class="scroll"><table><thead><tr><th>Variante</th><th>Totale [s]</th><th>P95 [ms]</th><th>Iterazioni medie</th><th>Piani validi</th><th>Fallback</th></tr></thead><tbody><tr><td>Spezzata + Gauss</td><td>0,875</td><td>8,203</td><td>5,56</td><td>236</td><td>5</td></tr><tr><td>Parabola analitica + Gauss</td><td>0,655</td><td>5,981</td><td>5,39</td><td>236</td><td>5</td></tr><tr><td>Parabola analitica + taglio esatto</td><td>0,096</td><td>0,174</td><td>4,68</td><td>238</td><td>3</td></tr></tbody></table></div>
+<h3>Campione esteso</h3><div class="scroll"><table><thead><tr><th>Variante</th><th>Totale [s]</th><th>P95 [ms]</th><th>Iterazioni medie</th><th>Piani validi</th><th>Fallback</th></tr></thead><tbody><tr><td>Spezzata + Gauss</td><td>8,552</td><td>8,425</td><td>5,59</td><td>1874</td><td>36</td></tr><tr><td>Parabola analitica + Gauss</td><td>9,120</td><td>7,155</td><td>5,52</td><td>1874</td><td>36</td></tr><tr><td>Parabola analitica + taglio esatto</td><td>1,319</td><td>0,185</td><td>5,36</td><td>1876</td><td>34</td></tr></tbody></table></div>
+<h2>Preparazione e prima ricerca</h2>
+<p>Il guadagno della ricerca non coincide con quello dell’intera elaborazione quando la sezione viene ricostruita per ogni azione. Questa tabella include costruzione della sezione, preparazione del solver e prima ricerca. La preparazione è misurata una volta per caso, senza cinque ripetizioni dedicate.</p>
+<div class="scroll"><table><thead><tr><th>Campione</th><th>Preparazione prima → dopo [s]</th><th>Prima ricerca prima → dopo [s]</th><th>Totale prima → dopo [s]</th><th>P95 totale prima → dopo [ms]</th></tr></thead><tbody><tr><td>Originale</td><td>0,732 → 0,671</td><td>1,095 → 0,213</td><td>1,826 → 0,884</td><td>17,143 → 7,819</td></tr><tr><td>Esteso: casi comuni</td><td>4,233 → 4,095</td><td>5,623 → 0,311</td><td>9,857 → 4,406</td><td>13,567 → 5,820</td></tr></tbody></table></div>
+<h2>ConstantN, ConstantEccentricity e piccole eccentricità</h2>
+<div class="scroll"><table><thead><tr><th>Campione</th><th>Casi</th><th>Riusciti prima → dopo</th><th>Totale [s]</th><th>P50 [ms]</th><th>P95 [ms]</th><th>Accelerazione</th></tr></thead><tbody><tr><td>Plastic / ConstantN / casi comuni</td><td>279</td><td>279 → 279</td><td>0,662 → 0,025</td><td>1,798 → 0,073</td><td>5,086 → 0,146</td><td>27,03×</td></tr><tr><td>Plastic / ConstantEccentricity / casi comuni</td><td>660</td><td>660 → 660</td><td>1,537 → 0,058</td><td>1,892 → 0,077</td><td>5,490 → 0,158</td><td>26,35×</td></tr><tr><td>Elastic / ConstantN / casi comuni</td><td>277</td><td>277 → 277</td><td>0,888 → 0,028</td><td>1,886 → 0,082</td><td>8,134 → 0,188</td><td>31,22×</td></tr><tr><td>Elastic / ConstantEccentricity / casi comuni</td><td>660</td><td>660 → 660</td><td>2,361 → 0,076</td><td>2,072 → 0,078</td><td>9,423 → 0,205</td><td>31,14×</td></tr><tr><td>Compressione Plastic / e/D=0,05</td><td>72</td><td>72 → 72</td><td>0,160 → 0,006</td><td>1,704 → 0,068</td><td>5,072 → 0,141</td><td>28,80×</td></tr><tr><td>Compressione Elastic / e/D=0,05</td><td>72</td><td>72 → 72</td><td>0,368 → 0,014</td><td>2,239 → 0,069</td><td>15,684 → 1,503</td><td>25,40×</td></tr><tr><td>Controllo esteso in ordine dopo/prima</td><td>1896</td><td>1876 → 1876</td><td>8,477 → 1,335</td><td>1,870 → 0,079</td><td>7,763 → 0,178</td><td>6,35×</td></tr></tbody></table></div>
+<h2>Distribuzione dei tempi e iterazioni</h2>
+<h3>Tutti i casi originali, inclusi i non riusciti</h3><div class="scroll"><table><thead><tr><th>Misura</th><th>Prima</th><th>Dopo</th></tr></thead><tbody><tr><td>Media [ms]</td><td>3,645</td><td>0,400</td></tr><tr><td>P50 [ms]</td><td>2,155</td><td>0,074</td></tr><tr><td>P90 [ms]</td><td>6,757</td><td>0,158</td></tr><tr><td>P95 [ms]</td><td>8,203</td><td>0,174</td></tr><tr><td>P99 [ms]</td><td>34,065</td><td>0,654</td></tr><tr><td>Massimo [ms]</td><td>49,333</td><td>40,380</td></tr><tr><td>P95 prima ricerca [ms]</td><td>10,488</td><td>0,395</td></tr><tr><td>Iterazioni medie</td><td>5,562</td><td>4,679</td></tr><tr><td>P95 iterazioni</td><td>7,000</td><td>7,000</td></tr><tr><td>Valutazioni scalari medie</td><td>51,971</td><td>33,987</td></tr><tr><td>Fallback</td><td>5</td><td>3</td></tr><tr><td>Casi non ripetibili</td><td>0</td><td>0</td></tr></tbody></table></div>
+<h3>Originali riusciti in entrambi</h3><div class="scroll"><table><thead><tr><th>Misura</th><th>Prima</th><th>Dopo</th></tr></thead><tbody><tr><td>Media [ms]</td><td>3,264</td><td>0,090</td></tr><tr><td>P50 [ms]</td><td>2,147</td><td>0,074</td></tr><tr><td>P90 [ms]</td><td>6,588</td><td>0,147</td></tr><tr><td>P95 [ms]</td><td>8,044</td><td>0,168</td></tr><tr><td>P99 [ms]</td><td>23,065</td><td>0,189</td></tr><tr><td>Massimo [ms]</td><td>34,200</td><td>0,934</td></tr><tr><td>P95 prima ricerca [ms]</td><td>10,097</td><td>0,358</td></tr><tr><td>Iterazioni medie</td><td>5,029</td><td>4,139</td></tr><tr><td>P95 iterazioni</td><td>7,000</td><td>6,000</td></tr><tr><td>Valutazioni scalari medie</td><td>41,181</td><td>23,189</td></tr><tr><td>Fallback</td><td>3</td><td>1</td></tr><tr><td>Casi non ripetibili</td><td>0</td><td>0</td></tr></tbody></table></div>
+<h3>Tutti i casi estesi, inclusi i non riusciti</h3><div class="scroll"><table><thead><tr><th>Misura</th><th>Prima</th><th>Dopo</th></tr></thead><tbody><tr><td>Media [ms]</td><td>4,511</td><td>0,696</td></tr><tr><td>P50 [ms]</td><td>1,964</td><td>0,078</td></tr><tr><td>P90 [ms]</td><td>6,349</td><td>0,163</td></tr><tr><td>P95 [ms]</td><td>8,425</td><td>0,185</td></tr><tr><td>P99 [ms]</td><td>103,811</td><td>30,343</td></tr><tr><td>Massimo [ms]</td><td>225,360</td><td>95,164</td></tr><tr><td>P95 prima ricerca [ms]</td><td>8,516</td><td>0,322</td></tr><tr><td>Iterazioni medie</td><td>5,593</td><td>5,363</td></tr><tr><td>P95 iterazioni</td><td>9,000</td><td>9,000</td></tr><tr><td>Valutazioni scalari medie</td><td>48,166</td><td>45,354</td></tr><tr><td>Fallback</td><td>36</td><td>34</td></tr><tr><td>Casi non ripetibili</td><td>0</td><td>0</td></tr></tbody></table></div>
+<h3>Estesi riusciti in entrambi</h3><div class="scroll"><table><thead><tr><th>Misura</th><th>Prima</th><th>Dopo</th></tr></thead><tbody><tr><td>Media [ms]</td><td>2,904</td><td>0,100</td></tr><tr><td>P50 [ms]</td><td>1,927</td><td>0,078</td></tr><tr><td>P90 [ms]</td><td>5,890</td><td>0,159</td></tr><tr><td>P95 [ms]</td><td>8,049</td><td>0,176</td></tr><tr><td>P99 [ms]</td><td>11,586</td><td>0,342</td></tr><tr><td>Massimo [ms]</td><td>113,792</td><td>2,212</td></tr><tr><td>P95 prima ricerca [ms]</td><td>8,204</td><td>0,302</td></tr><tr><td>Iterazioni medie</td><td>5,092</td><td>4,808</td></tr><tr><td>P95 iterazioni</td><td>8,000</td><td>8,000</td></tr><tr><td>Valutazioni scalari medie</td><td>32,800</td><td>29,557</td></tr><tr><td>Fallback</td><td>16</td><td>14</td></tr><tr><td>Casi non ripetibili</td><td>0</td><td>0</td></tr></tbody></table></div>
+<h2>Precisione e variazione delle resistenze</h2>
+<p>Residui dei piani reintegrati sui casi estesi riusciti in entrambi: le due colonne usano la rispettiva legge di calcolo. I residui non misurano da soli l’errore fisico; i controlli analitici indipendenti verificano l’integrazione della nuova legge.</p>
+<div class="scroll"><table><thead><tr><th>Residuo</th><th>Casi</th><th>P95 prima → dopo</th><th>Massimo prima → dopo</th></tr></thead><tbody><tr><td>focus-ConstantN/N [N]</td><td>556</td><td>22.3802 → 17.0184</td><td>485.082 → 488.488</td></tr><tr><td>focus-ConstantN/SearchAngle [rad]</td><td>556</td><td>1.52916e-05 → 1.08299e-05</td><td>0.000468737 → 6.47873e-05</td></tr><tr><td>focus-ConstantEccentricity/SearchAngle [rad]</td><td>1320</td><td>1.80775e-05 → 1.88338e-05</td><td>2.48872e-05 → 2.477e-05</td></tr></tbody></table></div>
+<p>La differenza di momento resistente a N costante è una variazione del risultato, non un errore rispetto a un riferimento esatto. Sono esclusi i casi con momento precedente inferiore a 1 kNm, per evitare percentuali fuorvianti vicino a zero.</p>
+<div class="scroll"><table><thead><tr><th>Campione</th><th>Casi</th><th>P50 variazione assoluta [%]</th><th>P95 variazione assoluta [%]</th><th>Massima variazione [%]</th></tr></thead><tbody><tr><td>Originale</td><td>144</td><td>0,04549</td><td>0,37602</td><td>1,63233</td></tr><tr><td>Esteso</td><td>556</td><td>0,04549</td><td>0,35412</td><td>-1,89637</td></tr></tbody></table></div>
+<p>I test indipendenti comprendono primitive monodimensionali, tagli obliqui, soglie e scale, resistenza analitica di una sezione semplicemente armata, coerenza delle tensioni riportate e sottrazione alle barre. L’equilibrio non lineare è controllato anche con 600.000 fibre rettangolari che valutano direttamente la parabola, senza usare il nuovo integratore. Vicino alla compressione centrata si integra separatamente il piccolo deficit rispetto al plateau, evitando cancellazioni tra grandi momenti.</p>
+<p>La variazione del legame non è trascurabile in ogni regime: con otto corde uniformi, la pendenza della prima corda è 1,875·fcd/εc2, mentre la tangente iniziale della parabola è 2·fcd/εc2 (+6,67%). La differenza massima di tensione tra parabola e interpolazione è fcd/256, pari allo 0,390625% di fcd. Questo spiega perché alcune curvature a bassi carichi possono variare più delle resistenze ultime.</p>
+<h2>Sensibilità alla mesh</h2>
+<div class="scroll"><table><thead><tr><th>Campione</th><th>Casi</th><th>Riusciti prima → dopo</th><th>Totale [s]</th><th>P50 [ms]</th><th>P95 [ms]</th><th>Accelerazione</th></tr></thead><tbody><tr><td>Dimensione elemento D/4, casi comuni</td><td>48</td><td>48 → 48</td><td>0,050 → 0,003</td><td>0,936 → 0,052</td><td>2,412 → 0,072</td><td>19,26×</td></tr><tr><td>Dimensione elemento D/12, casi comuni</td><td>48</td><td>48 → 48</td><td>0,321 → 0,004</td><td>6,605 → 0,091</td><td>11,182 → 0,134</td><td>72,10×</td></tr><tr><td>Dimensione elemento D/24, casi comuni</td><td>48</td><td>48 → 48</td><td>1,410 → 0,010</td><td>31,646 → 0,210</td><td>48,239 → 0,337</td><td>137,99×</td></tr></tbody></table></div>
+<p>Quattro sezioni rettangolari, due domini, tre direzioni e due criteri. D è la massima dimensione della sezione. La geometria esterna resta identica; il numero effettivo di celle è nel CSV. L’invarianza dell’integrazione rispetto alla suddivisione è verificata anche con primitive indipendenti nei test.</p>
+<div class="scroll"><table><thead><tr><th>Variante</th><th>Famiglie di casi</th><th>P95 escursione del momento [%]</th><th>Massima escursione [%]</th></tr></thead><tbody><tr><td>Spezzata + Gauss</td><td>48</td><td>0.0393532</td><td>0.280362</td></tr><tr><td>Parabola + Gauss</td><td>48</td><td>0.0427255</td><td>0.267418</td></tr><tr><td>Parabola + taglio</td><td>48</td><td>3.18292e-11</td><td>8.38195e-11</td></tr></tbody></table></div>
+<p>Escursione = (massimo − minimo)/massimo del modulo del momento resistente tra le tre mesh, a parità di sezione, domanda, criterio e dominio. Include anche la tolleranza della ricerca inversa.</p>
+<h2>Cosa peggiora e quali casi cambiano esito</h2>
+<h3>Originali</h3><p>Persi: 0; guadagnati: 0; non riusciti dopo: 2. Rallentamenti oltre il 10% e 0,02 ms sui casi comuni: 0.</p>
+<div class="scroll"><table><thead><tr><th>Caso</th><th>Prima [ms]</th><th>Dopo [ms]</th><th>Rapporto dopo/prima</th></tr></thead><tbody></tbody></table></div>
+<details><summary>Casi persi e nuovi riusciti</summary><pre>{
+  &quot;lost&quot;: [],
+  &quot;gained&quot;: [],
+  &quot;failedAfter&quot;: [
+    &quot;S1/ParabolaRectangle/Elastic/ConstantNMx/-1&quot;,
+    &quot;S1/ParabolaRectangle/Elastic/ConstantNMx/1&quot;
+  ]
+}</pre></details>
+<h3>Estesi</h3><p>Persi: 0; guadagnati: 0; non riusciti dopo: 20. Rallentamenti oltre il 10% e 0,02 ms sui casi comuni: 0.</p>
+<div class="scroll"><table><thead><tr><th>Caso</th><th>Prima [ms]</th><th>Dopo [ms]</th><th>Rapporto dopo/prima</th></tr></thead><tbody></tbody></table></div>
+<p>Rallentamenti che superano entrambe le soglie anche nel controllo in ordine inverso: 0. Le differenze su decine di microsecondi non sono automaticamente regressioni riproducibili.</p>
+<details><summary>Casi persi e nuovi riusciti</summary><pre>{
+  &quot;lost&quot;: [],
+  &quot;gained&quot;: [],
+  &quot;failedAfter&quot;: [
+    &quot;Focus/R3/ParabolaRectangle/Plastic/ConstantN/180/60&quot;,
+    &quot;Focus/R3/ParabolaRectangle/Plastic/ConstantN/180/90&quot;,
+    &quot;Focus/R3/ParabolaRectangle/Plastic/ConstantN/180/120&quot;,
+    &quot;Focus/R3/ParabolaRectangle/Plastic/ConstantN/180/150&quot;,
+    &quot;Focus/R3/ParabolaRectangle/Plastic/ConstantN/180/180&quot;,
+    &quot;Focus/R3/ParabolaRectangle/Plastic/ConstantN/180/210&quot;,
+    &quot;Focus/R3/ParabolaRectangle/Plastic/ConstantN/180/240&quot;,
+    &quot;Focus/R3/ParabolaRectangle/Plastic/ConstantN/180/270&quot;,
+    &quot;Focus/R3/ParabolaRectangle/Plastic/ConstantN/180/300&quot;,
+    &quot;Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/30&quot;,
+    &quot;Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/60&quot;,
+    &quot;Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/90&quot;,
+    &quot;Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/120&quot;,
+    &quot;Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/150&quot;,
+    &quot;Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/180&quot;,
+    &quot;Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/210&quot;,
+    &quot;Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/240&quot;,
+    &quot;Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/270&quot;,
+    &quot;Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/300&quot;,
+    &quot;Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/330&quot;
+  ]
+}</pre></details>
+<h3>Mesh</h3><p>Persi: 0; guadagnati: 0; non riusciti dopo: 0. Rallentamenti oltre il 10% e 0,02 ms sui casi comuni: 0.</p>
+<div class="scroll"><table><thead><tr><th>Caso</th><th>Prima [ms]</th><th>Dopo [ms]</th><th>Rapporto dopo/prima</th></tr></thead><tbody></tbody></table></div>
+<details><summary>Casi persi e nuovi riusciti</summary><pre>{
+  &quot;lost&quot;: [],
+  &quot;gained&quot;: [],
+  &quot;failedAfter&quot;: []
+}</pre></details>
+<h3>Piccolo rallentamento osservato nella sessione precedente</h3>
+<p>Caso Focus/S1/ParabolaRectangle/Plastic/ConstantEccentricity/1/0.05/30. La prima sessione mostrava un rallentamento ripetuto anche in ordine inverso; la sessione finale non lo conferma oltre entrambe le soglie. Non si conclude che ogni singolo caso sia sempre più veloce: su queste durate conta anche la variabilità dell’host. I campioni individuali sono conservati in cross-session.json nell’archivio.</p>
+<div class="scroll"><table><thead><tr><th>Sessione</th><th>Ordine</th><th>Prima [ms]</th><th>Dopo [ms]</th><th>Variazione [%]</th></tr></thead><tbody><tr><td>Sessione precedente</td><td>prima/dopo</td><td>0,388</td><td>0,433</td><td>11,47</td></tr><tr><td>Sessione precedente</td><td>dopo/prima</td><td>0,351</td><td>0,407</td><td>15,91</td></tr><tr><td>Sessione finale</td><td>prima/dopo</td><td>0,312</td><td>0,324</td><td>3,88</td></tr><tr><td>Sessione finale</td><td>dopo/prima</td><td>0,815</td><td>0,326</td><td>-60,06</td></tr></tbody></table></div>
+<p>Le due sessioni hanno risultati numerici, esiti e contatori identici in tutti i cataloghi confrontati. Nella campagna finale le tre varianti usano DLL dipendenti identiche per hash; la baseline è stata ricompilata dopo un aggiornamento esterno di Model. Le impronte dei sorgenti e delle DLL sono conservate in campaign.json.</p>
+<h2>Regressioni e stato della candidata</h2>
+<p>Nuovi test analitici: 9/9 superati. Gli output numerici dei controlli indipendenti sono nel riepilogo JSON.</p>
+<p>Altri diagrammi: 720 casi, 0 differenze in forze, esiti, percorsi e contatori. API compatibili: True.</p>
+<div class="scroll"><table><thead><tr><th>Suite</th><th>Superati</th><th>Falliti</th></tr></thead><tbody><tr><td>GPCChecker.Test.Concrete</td><td>860</td><td>10</td></tr><tr><td>GPCChecker.Test.Steel</td><td>122</td><td>0</td></tr><tr><td>GPCChecker.Test.CompositeBridge</td><td>382</td><td>0</td></tr><tr><td>GPCChecker.Test.Geotechnics</td><td>193</td><td>0</td></tr><tr><td>GPCChecker.Test.Calculation</td><td>173</td><td>1</td></tr><tr><td>ShallowFoundation.Tests</td><td>28</td><td>0</td></tr><tr><td>EmbeddedWalls.Tests</td><td>99</td><td>0</td></tr><tr><td>Steel.Members.Tests</td><td>3202</td><td>0</td></tr><tr><td>Design.Checks</td><td>103</td><td>0</td></tr><tr><td>ModelChecker.Tests</td><td>443</td><td>1</td></tr></tbody></table></div>
+<div class="box warning">Gli attesi e le fixture storiche non sono stati rigenerati. La candidata modifica il legame di calcolo rispetto alla spezzata e non è un rilascio ufficiale.</div>
+<p>Nuovi fallimenti rispetto alla 0.18.0.2:</p><ul><li>GPCChecker.Test.Calculation: LegacyStressStatesAreReproduced</li><li>GPCChecker.Test.Concrete: LegacyStressStatesAreReproduced</li><li>GPCChecker.Test.Concrete: ModelCheckerContractOf0017IsUnchanged</li><li>GPCChecker.Test.Concrete: NonLinearAnalysisIsInEquilibrium (-1500,60,-30)</li><li>GPCChecker.Test.Concrete: NonLinearAnalysisIsInEquilibrium (-800,150,0)</li><li>GPCChecker.Test.Concrete: NonLinearAxialCompressionFollowsTheParabola</li><li>GPCChecker.Test.Concrete: StressAnalysisFollowsTheIndependentFibreModel</li></ul>
+<p>I controlli storici di equilibrio e compressione uniforme richiamano il materiale Model, che continua a interpolare la spezzata. Il riferimento a fibre del tension stiffening dichiara esplicitamente otto corde. Le fotografie di tensioni e curve conservano i valori precedenti. Queste differenze vanno rivalidate rispetto alla nuova legge; non sono state nascoste ampliando le tolleranze. Il caso di convergenza vicino al polo, emerso nella prima prova, è stato corretto e i relativi test sono rieseguiti.</p>
+<details><summary>Messaggi completi dei test falliti</summary><pre>[
+  {
+    &quot;suite&quot;: &quot;GPCChecker.Test.Calculation&quot;,
+    &quot;name&quot;: &quot;LegacyStressStatesAreReproduced&quot;,
+    &quot;message&quot;: &quot;Assert.AreEqual non riuscita. Prevista una differenza non maggiore di &lt;6.581745323425157E-09&gt; tra il valore previsto &lt;-6.581745323425157&gt; e il valore effettivo &lt;-6.580233982187994&gt;. state 0 R300x500 NTC 2018 SLE sigmaC&quot;
+  },
+  {
+    &quot;suite&quot;: &quot;GPCChecker.Test.Concrete&quot;,
+    &quot;name&quot;: &quot;NonLinearAnalysisIsInEquilibrium (-1500,60,-30)&quot;,
+    &quot;message&quot;: &quot;Assert.AreEqual non riuscita. Prevista una differenza non maggiore di &lt;3750&gt; tra il valore previsto &lt;-1500000&gt; e il valore effettivo &lt;-1493524.85844484&gt;. N&quot;
+  },
+  {
+    &quot;suite&quot;: &quot;GPCChecker.Test.Concrete&quot;,
+    &quot;name&quot;: &quot;CurvatureContractOf0017IsUnchanged&quot;,
+    &quot;message&quot;: &quot;Assert.Fail non riuscita. Contract 0.0.17.0 (curvature-contract-0.0.17.csv) changed at line 4\nexpected: R\tfixture 0 R300x500 NTC 2018\tinvariant\tok\t192010838.46330708\t7.3256903915689821E-06\t3.4238094979959878E-05\t-200040.82314112864\t-40.823141128639691\tnull\t42\tIncreasing-moment branch at constant N; material laws and factors of the section and standard. First yield refined with 12 bisections, My = 1.806894E+08 Nmm. N at the limit point = -200040.823 N; residual = -40.8231 N. No post-peak branch.\nactual:   R\tfixture 0 R300x500 NTC 2018\tinvariant\tok\t192035098.98581374\t7.3157631182251157E-06\t3.4316247376336519E-05\t-199994.50622065068\t5.4937793493154459\tnull\t42\tIncreasing-moment branch at constant N; material laws and factors of the section and standard. First yield refined with 12 bisections, My = 1.806897E+08 Nmm. N at the limit point = -199994.506 N; residual = 5.49378 N. No post-peak branch.\nGenerated text: C:\\Users\\g.pacini\\AppData\\Local\\Temp\\curvature-contract-0.0.17.csv.actual&quot;
+  },
+  {
+    &quot;suite&quot;: &quot;GPCChecker.Test.Concrete&quot;,
+    &quot;name&quot;: &quot;LegacyStressStatesAreReproduced&quot;,
+    &quot;message&quot;: &quot;Assert.AreEqual non riuscita. Prevista una differenza non maggiore di &lt;6.58174532342516E-09&gt; tra il valore previsto &lt;-6.58174532342516&gt; e il valore effettivo &lt;-6.58023398218799&gt;. state 0 R300x500 NTC 2018 SLE sigmaC&quot;
+  },
+  {
+    &quot;suite&quot;: &quot;GPCChecker.Test.Concrete&quot;,
+    &quot;name&quot;: &quot;StressAnalysisFollowsTheIndependentFibreModel&quot;,
+    &quot;message&quot;: &quot;Assert.AreEqual non riuscita. Prevista una differenza non maggiore di &lt;8.890068E-10&gt; tra il valore previsto &lt;2.963356E-07&gt; e il valore effettivo &lt;2.8889063267935E-07&gt;. N = 0 kN, M = 20 kNm: χ&quot;
+  },
+  {
+    &quot;suite&quot;: &quot;GPCChecker.Test.Concrete&quot;,
+    &quot;name&quot;: &quot;NonLinearAnalysisIsInEquilibrium (-800,150,0)&quot;,
+    &quot;message&quot;: &quot;Assert.AreEqual non riuscita. Prevista una differenza non maggiore di &lt;3750&gt; tra il valore previsto &lt;-800000&gt; e il valore effettivo &lt;-795913.650643677&gt;. N&quot;
+  },
+  {
+    &quot;suite&quot;: &quot;GPCChecker.Test.Concrete&quot;,
+    &quot;name&quot;: &quot;LargeSectionPointBeyondTheStoppingTestIsAccepted&quot;,
+    &quot;message&quot;: &quot;Assert.IsTrue non riuscita. S1 x1: guard, |ΔN| = 0.405376937793335 N within the tolerance of the test 125 N&quot;
+  },
+  {
+    &quot;suite&quot;: &quot;GPCChecker.Test.Concrete&quot;,
+    &quot;name&quot;: &quot;NonLinearAxialCompressionFollowsTheParabola&quot;,
+    &quot;message&quot;: &quot;Assert.AreEqual non riuscita. Prevista una differenza non maggiore di &lt;4.17035998990704E-06&gt; tra il valore previsto &lt;-0.000833871997981407&gt; e il valore effettivo &lt;-0.000828640832541548&gt;. strain at 0; 0&quot;
+  },
+  {
+    &quot;suite&quot;: &quot;GPCChecker.Test.Concrete&quot;,
+    &quot;name&quot;: &quot;ModelCheckerContractOf0017IsUnchanged&quot;,
+    &quot;message&quot;: &quot;Assert.Fail non riuscita. Contract 0.0.17.0 changed at line 47626 (\&quot;id\&quot;: \&quot;stress-legacy 0 SLE\&quot;, \&quot;input\&quot;: \&quot;R300x500 | NTC 2018 | linear False | psi 0 | tension False | factor 1 | SLE\&quot;,)\nexpected:       \&quot;concreteMinStress\&quot;: -6.5817453234251566,\nactual:         \&quot;concreteMinStress\&quot;: -6.5802339821879938,\nGenerated text: C:\\Users\\g.pacini\\AppData\\Local\\Temp\\model-checker-contract.actual.json&quot;
+  },
+  {
+    &quot;suite&quot;: &quot;GPCChecker.Test.Concrete&quot;,
+    &quot;name&quot;: &quot;LegacyMomentCurvatureIsReproduced&quot;,
+    &quot;message&quot;: &quot;Assert.AreEqual non riuscita. Prevista una differenza non maggiore di &lt;19.2010838466613&gt; tra il valore previsto &lt;192010838.466613&gt; e il valore effettivo &lt;192035098.985814&gt;. curve 0 R300x500 NTC 2018 limit moment&quot;
+  },
+  {
+    &quot;suite&quot;: &quot;GPCChecker.Test.Concrete&quot;,
+    &quot;name&quot;: &quot;DomainPointContractOf0017IsUnchanged&quot;,
+    &quot;message&quot;: &quot;Assert.Fail non riuscita. Domain point contract 0.0.17.0 changed at line 6\nexpected:     {\&quot;section\&quot;: \&quot;R1\&quot;, \&quot;diagram\&quot;: \&quot;ParabolaRectangle\&quot;, \&quot;state\&quot;: \&quot;Plastic\&quot;, \&quot;N\&quot;: 250000, \&quot;direction\&quot;: \&quot;Mx+\&quot;, \&quot;path\&quot;: \&quot;iterative\&quot;, \&quot;logLines\&quot;: 0, \&quot;NRd\&quot;: 249962.63250335795, \&quot;MxRd\&quot;: 102737799.85946482, \&quot;MyRd\&quot;: 19.294438104365327, \&quot;failureIndex\&quot;: \&quot;F3A\&quot;, \&quot;immersione\&quot;: 0.060464556393250532, \&quot;planeId\&quot;: 19, \&quot;chiX\&quot;: 1.5911325446041874E-11, \&quot;chiY\&quot;: -8.9409747518737445E-05, \&quot;strain\&quot;: -0.0035, \&quot;deltaN\&quot;: 37.367496642051265, \&quot;tolerance\&quot;: 1000, \&quot;accepted\&quot;: true, \&quot;acceptedKn\&quot;: true},\nactual:       {\&quot;section\&quot;: \&quot;R1\&quot;, \&quot;diagram\&quot;: \&quot;ParabolaRectangle\&quot;, \&quot;state\&quot;: \&quot;Plastic\&quot;, \&quot;N\&quot;: 250000, \&quot;direction\&quot;: \&quot;Mx+\&quot;, \&quot;path\&quot;: \&quot;iterative\&quot;, \&quot;logLines\&quot;: 0, \&quot;NRd\&quot;: 250000.75182525182, \&quot;MxRd\&quot;: 102750159.76660781, \&quot;MyRd\&quot;: 8.1445250543765724E-09, \&quot;failureIndex\&quot;: \&quot;F3A\&quot;, \&quot;immersione\&quot;: 0.060250588464276333, \&quot;planeId\&quot;: 5, \&quot;chiX\&quot;: 8.2866837880442613E-21, \&quot;chiY\&quot;: -8.9543071055635313E-05, \&quot;strain\&quot;: -0.0035, \&quot;deltaN\&quot;: 0.75182525182026438, \&quot;tolerance\&quot;: 1000, \&quot;accepted\&quot;: true, \&quot;acceptedKn\&quot;: true},\nGenerated text: C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\domain-iteration\\GPCChecker.Test.Concrete\\bin\\Release\\domain-point-contract.actual.json&quot;
+  },
+  {
+    &quot;suite&quot;: &quot;ModelChecker.Tests&quot;,
+    &quot;name&quot;: &quot;RealDetailsMatchNativeResistanceAndKeepThePreparedForceFrame&quot;,
+    &quot;message&quot;: &quot;Assert.IsFalse non riuscita. &quot;
+  }
+]</pre></details>
+<h2>Metodo e limiti</h2><ul><li>.NET 8 Release x64, tiered compilation disabilitata, esecuzioni sequenziali su host non dedicato. Suite complete anche su .NET Framework 4.7.2.</li><li>JIT riscaldato; una prima ricerca e cinque ripetizioni per caso. Tre ripetizioni per il controllo in ordine inverso e per Gauss nei cataloghi esteso e mesh. Una ripetizione per la regressione degli altri diagrammi.</li><li>Percentili interpolati sulle mediane per caso. Tempo di ricerca comprensivo dei fallback; preparazione, diagnostica esterna e scrittura escluse. Le valutazioni scalari non contano la costruzione vettoriale del fallback, inclusa invece nei tempi.</li><li>Cataloghi strutturati, non campione casuale dei modelli reali. Precisione esatta riferita alla geometria poligonale e alla legge n=2; non elimina l’approssimazione geometrica di contorni curvi né quella delle barre puntuali.</li><li>Le funzioni materiali di Model e le tabelle salvate restano quelle precedenti: la candidata applica la parabola analitica nei percorsi Checker supportati. Un eventuale rilascio deve rendere esplicita questa scelta anche per i consumatori esterni.</li></ul>
+<p><a href="casi-prima-dopo.csv">Dati caso per caso</a> · <a href="riepilogo.json">Riepilogo completo</a> · <a href="misure.zip">Misure grezze</a> · <a href="impronte.json">Impronte</a></p></main></html>

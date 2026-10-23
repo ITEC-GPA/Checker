@@ -25,7 +25,22 @@ internal static class Program
 {
     private sealed record Case(string Id, DomainPointContractTests.BenchSection Section,
         ConcreteMaterial.CompressionStressStrainDiagrams Diagram, SectionSolver.FailureDomainTypes State,
-        SectionSolver.FailureAnalysisTypes Criterion, double N, double Mx, double My);
+        SectionSolver.FailureAnalysisTypes Criterion, double N, double Mx, double My, double MeshSize = 0);
+
+    private static IEnumerable<Case> MeshCases()
+    {
+        foreach (var s in Sections().Where(s => s.Diameter == 0))
+        foreach (var state in DomainPointContractTests.States)
+        foreach (int divisions in new[] { 4, 12, 24 })
+        foreach (int angle in new[] { 0, 30, 90 })
+        foreach (var criterion in new[] { SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureAnalysisTypes.ConstantEccentricity })
+        {
+            double size = Math.Max(s.Width, s.Height), theta = angle * Math.PI / 180;
+            yield return new Case($"Mesh/{s.Name}/ParabolaRectangle/{state}/{criterion}/{divisions}/{angle}", s,
+                ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle, state, criterion, -100,
+                .005 * size * Math.Cos(theta), .005 * size * Math.Sin(theta), size / divisions);
+        }
+    }
 
     private static IEnumerable<DomainPointContractTests.BenchSection> Sections()
     {
@@ -90,8 +105,8 @@ internal static class Program
         if (args.Length < 1) throw new ArgumentException("Output JSONL path required; optional repeats (default 5), filter, catalogue (all/focus).");
         int repeats = args.Length > 1 ? int.Parse(args[1]) : 5;
         string catalogue=args.Length>3 ? args[3] : "all";
-        if (catalogue!="all" && catalogue!="focus" && catalogue!="stress-small") throw new ArgumentException("Unknown catalogue: "+catalogue);
-        var catalogueCases = catalogue=="focus" ? FocusCases() : catalogue=="stress-small"
+        if (catalogue!="all" && catalogue!="focus" && catalogue!="stress-small" && catalogue!="mesh") throw new ArgumentException("Unknown catalogue: "+catalogue);
+        var catalogueCases = catalogue=="mesh" ? MeshCases() : catalogue=="focus" ? FocusCases() : catalogue=="stress-small"
             ? FocusCases(ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock).Where(c=>c.Id.Contains("/Plastic/ConstantEccentricity/-1/0.05/")) : Cases();
         var cases = catalogueCases.Where(c => args.Length < 3 || (args[2].StartsWith("!") ? !c.Id.Contains(args[2].Substring(1)) : c.Id.Contains(args[2]))).ToArray();
         if (cases.Select(c=>c.Id).Distinct().Count()!=cases.Length) throw new InvalidOperationException("Duplicate case IDs.");
@@ -118,6 +133,7 @@ internal static class Program
         {
             var timer=Stopwatch.StartNew();
             var section=DomainPointContractTests.BuildSection(c.Section,c.Diagram);
+            if (c.MeshSize > 0) section.SetMeshSize(c.MeshSize);
             var checker=DomainPointContractTests.BuildChecker(section,c.State);
             var solver=checker.SectionSolver;
             var force=DomainPointContractTests.Force(DomainPointContractTests.LocalAxes(section),c.N,c.Mx,c.My);
@@ -164,6 +180,7 @@ internal static class Program
                 if (write) output.WriteLine(JsonSerializer.Serialize(new { c.Id,section=c.Section.Name,diagram=c.Diagram.ToString(),state=c.State.ToString(),
                     criterion=c.Criterion.ToString(),demandN=c.N,demandMx=c.Mx,demandMy=c.My,run,cold=run==0,prepareMs,ms,
                     iterations,evaluations,bracketIterations,path,accepted,error,n,mx,my,deltaN,angle,planeN,planeMx,planeMy,residuals,planeAccepted,planeResiduals,
+                    meshSize=c.MeshSize, meshElements=section.Mesh.Faces.Count,
                     strainPlane=point==null ? null : new { x=point.StrainPlane.ReferencePoint.X,y=point.StrainPlane.ReferencePoint.Y,
                         epsilon=point.StrainPlane.StrainReferencePoint,chiX=point.StrainPlane.ChiX,chiY=point.StrainPlane.ChiY } }));
             }
@@ -176,7 +193,7 @@ internal static class Program
     private static int Replay(string source, string destination)
     {
         if (File.Exists(destination)) throw new IOException("Replay output already exists: " + destination);
-        var catalogue = Cases().Concat(FocusCases(ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock))
+        var catalogue = Cases().Concat(FocusCases()).Concat(MeshCases()).Concat(FocusCases(ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock))
             .GroupBy(c=>c.Id).ToDictionary(g=>g.Key,g=>g.First());
         using var output = new StreamWriter(destination);
         foreach (string line in File.ReadLines(source))
@@ -185,6 +202,7 @@ internal static class Program
             if (row.GetProperty("run").GetInt32()!=1 || !row.TryGetProperty("strainPlane",out var p) || p.ValueKind==JsonValueKind.Null) continue;
             var c=catalogue[row.GetProperty("Id").GetString()];
             var section=DomainPointContractTests.BuildSection(c.Section,c.Diagram);
+            if (c.MeshSize > 0) section.SetMeshSize(c.MeshSize);
             var solver=DomainPointContractTests.BuildChecker(section,c.State).SectionSolver;
             var plane=new StrainPlane(p.GetProperty("chiX").GetDouble(),p.GetProperty("chiY").GetDouble(),
                 new Point2d(p.GetProperty("x").GetDouble(),p.GetProperty("y").GetDouble()),p.GetProperty("epsilon").GetDouble());

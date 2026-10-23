@@ -44,3 +44,27 @@ Le mediane sono calcolate sulle ripetizioni di ciascun caso; i percentili interp
 Le iterazioni comprendono i tentativi dell'algoritmo principale; `bracketIterations` descrive la ricerca di bisezione. Le valutazioni scalari non comprendono la costruzione vettoriale del dominio nel fallback, il cui costo è incluso nel tempo. Forze e momenti del JSONL sono in kN e kNm; i residui mantengono le unità indicate dal validatore (N, Nmm o rad). `deltaN` è in kN e non è una misura di errore per criteri che consentono la variazione di N.
 
 Le tolleranze pubbliche non sono allentate. Il catalogo è strutturato e correlato, non rappresenta una distribuzione statistica dei modelli di produzione. I tempi .NET 8 servono al confronto controllato; la suite completa verifica anche Concrete su .NET Framework 4.7.2.
+
+## Parabola analitica n=2
+
+La seconda campagna confronta il commit `aa262e21` (Concrete 0.18.0.2) con la candidata 0.19.0.0. Il cambio di versione segnala un cambiamento del legame effettivo: dalla spezzata alla parabola analitica, non soltanto un'ottimizzazione della quadratura.
+
+Preparare la baseline con gli attuali `Program.cs` e `Prepare.ps1`, passando i sorgenti Concrete esportati dal commit `aa262e21`. Preparare la candidata esatta normalmente e una terza copia con `-ParabolaGauss`: questa conserva la legge analitica per tensioni, barre e profili, ma sostituisce soltanto l'integrazione geometrica del calcestruzzo con la quadratura di Gauss esistente. La legge viene riconosciuta una volta per integrale, fuori dalla funzione di quadratura. Le copie diagnostiche non modificano il codice di produzione.
+
+```powershell
+./tools/Concrete.DomainBenchmark/Prepare.ps1 -Output '<audit>/baseline' -Source '<baseline>/GPCChecker.Concrete' -RepositoryRoot '<repository-root>'
+./tools/Concrete.DomainBenchmark/Prepare.ps1 -Output '<audit>/exact' -RepositoryRoot '<repository-root>'
+./tools/Concrete.DomainBenchmark/Prepare.ps1 -Output '<audit>/gauss' -RepositoryRoot '<repository-root>' -ParabolaGauss
+./tools/Concrete.DomainBenchmark/RunParabola.ps1 `
+  -Before '<audit>/baseline/bin/GPCChecker.Test.Concrete.dll' `
+  -After '<audit>/exact/bin/GPCChecker.Test.Concrete.dll' `
+  -AnalyticGauss '<audit>/gauss/bin/GPCChecker.Test.Concrete.dll' `
+  -Output '<audit>/measurements'
+py -3.9 tools/Concrete.DomainBenchmark/ParabolaReport.py '<audit>/measurements' '<verify-candidate>' '<verify-baseline>' '<report-directory>'
+```
+
+Cataloghi: 240 casi originali; 1896 casi estesi `ConstantN`/`ConstantEccentricity` (24 condivisi con l'originale, non sommare i totali); 144 casi sulle quattro sezioni rettangolari con dimensioni di mesh D/4, D/12, D/24; 720 casi di altri diagrammi come controllo. Plastic ed Elastic sono significativi per questo legame e vengono riportati separatamente. Le misure sono a cinque ripetizioni, salvo i controlli Gauss estesi/mesh e l'ordine dopo/prima (tre) e gli altri diagrammi (una).
+
+Il replay usa la stessa geometria e la stessa mesh dei casi misurati. Reintegra i piani della baseline e della variante Gauss con la candidata esatta. Un ulteriore replay dei piani originali con Gauss e legge analitica distingue il cambio della legge dall'errore di quadratura a piano fissato. I valori originali da confrontare sono quelli reintegrati (`n + planeN`, ecc.), perché le forze di un fallback possono essere interpolate e non appartenere al piano restituito.
+
+Il report include i casi persi e guadagnati, i rallentamenti oltre il 10% e 0,02 ms, i residui dei piani reintegrati e le variazioni del modulo del momento a N costante. Queste variazioni non sono errori rispetto a una soluzione esatta. L'accuratezza è verificata anche con primitive indipendenti, una sezione armata analitica e un'integrazione su 600.000 fibre.

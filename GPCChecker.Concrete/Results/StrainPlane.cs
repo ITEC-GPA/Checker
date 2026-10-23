@@ -218,7 +218,10 @@ namespace GPC.Checkers.Concrete.Results
                             sigmaCMaxbuffer = tensionStiffening.GetStress(epsilonCMax);
                         else
                         {
-                            var buff = _section.ConcreteMaterial.CalculateDesignStressConcrete(_standard, epsilonCMax);
+                            var buff = !_sectionSolver.ConsiderTensileConcrete &&
+                                ParabolaRectangleLaw.TryCreate(_section.ConcreteMaterial, _standard, out var parabola)
+                                ? parabola.At(epsilonCMax)
+                                : _section.ConcreteMaterial.CalculateDesignStressConcrete(_standard, epsilonCMax);
                             if (buff <= 0)
                                 sigmaCMaxbuffer = buff;
                             else
@@ -244,7 +247,10 @@ namespace GPC.Checkers.Concrete.Results
                             sigmaCMinbuffer = tensionStiffening.GetStress(epsilonCMin);
                         else
                         {
-                            var buff = _section.ConcreteMaterial.CalculateDesignStressConcrete(_standard, epsilonCMin);
+                            var buff = !_sectionSolver.ConsiderTensileConcrete &&
+                                ParabolaRectangleLaw.TryCreate(_section.ConcreteMaterial, _standard, out var parabola)
+                                ? parabola.At(epsilonCMin)
+                                : _section.ConcreteMaterial.CalculateDesignStressConcrete(_standard, epsilonCMin);
                             if (buff <= 0)
                                 sigmaCMinbuffer = buff;
                             else

@@ -1060,6 +1060,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Concrete Integration
 
+        internal bool TryGetParabolaLaw(out ParabolaRectangleLaw law)
+        {
+            law = default;
+            return !_considerTensileConcrete && ParabolaRectangleLaw.TryCreate(ConcreteMaterial, _standard, out law);
+        }
+
         // Keep custom tables and tensile-concrete options on the original integration path.
         // Inspect the current material table: its public setters can change the law after solver creation.
         internal bool TryGetStressBlockLaw(out StressBlockIntegration.Law law)
@@ -1105,6 +1111,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 if (TryGetStressBlockLaw(out var block))
                     return GetStressBlockIntegration().Integrate(strainPlane, block);
+                if (TryGetParabolaLaw(out var parabola))
+                    return GetStressBlockIntegration().Integrate(strainPlane, parabola);
                 (double s, double, double) ret = GaussIntegration.IntegrationLinearShapeFunction((x, y) =>
                 {
                     double sigmaC = CalculateSigmaC(strainPlane.GetStrain(x, y));
@@ -1155,6 +1163,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             try
             {
                 ForceTuple[] returnValue = new ForceTuple[strainPlane.Length];
+                if (TryGetParabolaLaw(out var parabola))
+                {
+                    var integration = GetStressBlockIntegration();
+                    for (int i = 0; i < strainPlane.Length; i++) returnValue[i] = integration.Integrate(strainPlane[i], parabola);
+                    return returnValue;
+                }
                 if (TryGetStressBlockLaw(out var block))
                 {
                     var integration = GetStressBlockIntegration();

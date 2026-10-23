@@ -16,7 +16,7 @@ namespace ConcreteTests
     [TestClass]
     public class StressBlockIntegrationTests
     {
-        private static Mesh Grid(double width, double height, int n, bool triangles, bool reverse, Point2d origin)
+        internal static Mesh Grid(double width, double height, int n, bool triangles, bool reverse, Point2d origin)
         {
             var mesh = new Mesh();
             for (int j = 0; j <= n; j++)

@@ -26,6 +26,31 @@ superiore dell'eq. (7.14) con le barre tese fuori da Ac,eff, k2 = 0,5 con l'asse
 nelle fasce interne dei fori (0.0.17.0). I test di migrazione li riproducono con la regola corrente, senza casi
 speciali; l'opzione legacy `NtcK2FromCompressedBars` resta provata nei test dedicati.
 
+### Parabola analitica e integrazione geometrica (candidata 0.19.0.0)
+
+La candidata sostituisce la spezzata del parabola-rettangolo con la legge analitica n=2 nei percorsi Checker
+supportati: materiale europeo standard, fck non oltre 50 MPa, tabella originale non modificata e calcestruzzo teso
+ordinario escluso. `ParabolaRectangleLaw.TryCreate` verifica il contenuto corrente della tabella, comprese le
+mutazioni in-place, evitando di reinterpretare tabelle personalizzate. Alte resistenze, ACI e altri diagrammi
+mantengono il trattamento precedente. Non vengono modificate le tolleranze pubbliche.
+
+La fascia tra asse neutro e plateau ha tensione quadratica nelle coordinate. `StressBlockIntegration` integra
+esattamente i polinomi fino al terzo grado necessari per N, Mx e My sui triangoli ritagliati; il plateau usa area
+e momenti statici. I piani di prova fuori dal campo ammissibile rispettano anche la deformazione ultima.
+Vicino alla compressione centrata, il momento è la piccola differenza rispetto a un blocco uniforme: accumulare
+separatamente tale deficit evita la cancellazione di grandi momenti e conserva la direzione della risultante.
+
+Barre e profili non vengono tagliati. Il calcestruzzo sottratto, le tensioni del solver e i riepiloghi del piano
+usano la medesima parabola analitica. L'opzione tension stiffening conserva la propria legge in trazione; la
+compressione usa quella analitica, mentre l'integrazione del relativo percorso misto resta a Gauss.
+
+Questa è una modifica del legame di calcolo, non solo della sua quadratura: le API materiali di Model e le
+tabelle persistite continuano a rappresentare la spezzata. Un rilascio richiede una decisione esplicita sul
+contratto tra i consumatori del materiale; la candidata non aggiorna fixture o attesi per mascherare differenze.
+I nove nuovi `AnalyticParabolaIntegrationTests` comprendono primitive indipendenti, sezioni armate in forma
+chiusa, equilibrio non lineare con 600.000 fibre, coerenza delle tensioni e ricerca vicino al polo.
+Report: `docs/analytic-parabola-20261023/report-prima-dopo.html`.
+
 ### Stress block: integrazione geometrica (candidata 0.18.0.2)
 
 Per il diagramma rettangolare standard, con calcestruzzo teso escluso, `StressBlockIntegration` prepara una volta

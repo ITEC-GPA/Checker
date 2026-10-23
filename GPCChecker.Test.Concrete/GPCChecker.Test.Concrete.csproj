@@ -97,6 +97,7 @@
     <Compile Include="DomainPointContractTests.cs" />
     <Compile Include="DomainPointNewtonTests.cs" />
     <Compile Include="StressBlockIntegrationTests.cs" />
+    <Compile Include="AnalyticParabolaIntegrationTests.cs" />
     <Compile Include="DomainPointAxialToleranceTests.cs" />
     <Compile Include="BridgeElasticStagesTests.cs" />
     <Compile Include="BridgeLinearSolverAuditTests.cs" />
