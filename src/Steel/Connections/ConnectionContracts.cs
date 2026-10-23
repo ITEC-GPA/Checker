@@ -37,8 +37,8 @@ namespace GPC.Checkers.Steel.Connections
     }
     public enum ConnectionBoltGrade { Class8_8, Class10_9 }
 
-    /// <summary>Non-preloaded, non-countersunk bolt in a round hole. Areas mm2, dimensions mm.
-    /// Both shear planes have the same assigned thread condition; no packings.</summary>
+    /// <summary>Non-countersunk bolt dimensions/material in a round hole. Areas mm2, dimensions mm.
+    /// Preloading/packing applicability belongs to the component input; thread condition is common to assigned shear planes.</summary>
     public sealed class ConnectionBolt
     {
         public double Diameter { get; }

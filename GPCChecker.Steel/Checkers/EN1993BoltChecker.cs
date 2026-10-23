@@ -201,7 +201,7 @@ namespace GPC.Checkers.Steel.Checkers
         /// <returns></returns>
         protected override double CalculateSlipPreloading(in BoltSection boltSection)
         {
-            return 0.7 * boltSection.BoltMaterial.Fu * boltSection.CalculateAreaEff();
+            return GPC.Checkers.Steel.Connections.BoltSlipMath.NominalPreload(boltSection.BoltMaterial.Fu, boltSection.CalculateAreaEff());
         }
 
         /// <summary>

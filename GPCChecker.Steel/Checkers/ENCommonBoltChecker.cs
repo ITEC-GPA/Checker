@@ -542,13 +542,13 @@ namespace GPC.Checkers.Steel.Checkers
         /// </summary>
         /// <param name="k_s"></param>
         /// <param name="mu"></param>
-        /// <param name="F_tEd">F_t,Ed (formula 3.8a) or F_t,Ed,ser (formula 3.8b).</param>
+        /// <param name="F_tEd">F_t,Ed (formula 3.8b) or F_t,Ed,ser (formula 3.8a).</param>
         /// <param name="gammaM">γ_M3 or γ_M3,ser</param>
         /// <param name="F_pC">Nominal minimum preloading force.</param>
         /// <returns>F_s,Rd or F_s,Rd,ser</returns>
         protected double CalculateDesignSlipResistance(in double k_s, in double mu, in double F_tEd, in double gammaM, in double F_pC)
         {
-            return k_s * OptionsENCommon.NumFricionPlane * mu * Math.Max(0, F_pC - 0.8 * F_tEd) / gammaM;
+            return GPC.Checkers.Steel.Connections.BoltSlipMath.DesignResistance(k_s, OptionsENCommon.NumFricionPlane, mu, F_tEd, gammaM, F_pC);
         }
 
         protected double CalculateDesignSlipResistance_FsRd(in double k_s, in double mu, in double F_tEd, in double F_pC)

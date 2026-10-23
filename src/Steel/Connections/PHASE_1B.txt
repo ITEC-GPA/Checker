@@ -106,3 +106,8 @@ con il doppio coprigiunto:228/228test connessioni passati. Nessun ignorato.
 TRX phase1b.trx e phase1-integrated.trx nel workspace audit-results/connections.
 DoubleCoverSplice ora richiama BoltStrength/BoltBearing conservando ID,
 tracce e resistenze dei57casi precedenti. Nessun atteso legacy modificato.
+
+AGGIORNAMENTO23/10/2026 - PRECARICO E SCORRIMENTO
+Componente BoltSlip aggiunto e qualificato con208nuovi test. SLE/SLU espliciti,
+EC/NTC distinti, normale foro tondo; aritmetica condivisa con checkerEN legacy.
+Campo, fonti, limiti e differenze tabellari inPHASE_1B_SLIP.txt.

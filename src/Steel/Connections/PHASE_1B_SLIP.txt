@@ -1,0 +1,69 @@
+FASE1b - PRECARICO E SCORRIMENTO
+23/10/2026 - Steel2.49.0.0, componenti comuni delle connessioni.
+
+API
+BoltSlip.Verify(BoltSlipInput) restituisce ConnectionVerification.
+BoltSlipPolicy tiene distinti i gamma dello scorrimento dai gamma per la
+resistenza delle piastre e dei bulloni. EC: valori espliciti dell'utente con
+provenienza del parametro; NTC:1.25SLU e1.10SLE, senza override EC.
+L'input indica uno stato limite, taglio/trazione concomitanti, combinazione,
+numero di interfacce di attrito, mu qualificato e documentazione dell'assieme.
+Le azioni SLE non vengono derivate implicitamente da quelle SLU.
+
+FORMULE E CAMPO
+EN1993-1-8:2005,3.9.1-3.9.2, equazioni3.6-3.8, Tabelle3.6-3.7:
+FpC=0.7*fub*As; FsRd=ks*n*mu*max(0,FpC-0.8*FtEd)/gammaM3.
+NTC2018,4.2.8.1.1,4.2.72-74 eTabella4.2.XIV: medesima struttura conFpCd;
+gammaM7=1 per serraggio controllato,1.10 per non controllato. EC non eredita
+questa seconda possibilita: richiede il serraggio controllato del proprio testo.
+Il confronto0.8Ft<=Fp viene registrato separatamente: precarico residuo negativo
+non produce esito favorevole neppure se il taglio esterno e' zero.
+Nessuna esenzione favorevole per contatto nelle unioni a momento3.9.2(2).
+Il modulo non risolve prying: Ft deve gia includerlo se pertinente.
+
+Primo campo: bulloni8.8/10.9 e fori tondi normali, ks1. Validazione diametri e
+gioco foro comune agli altri componenti; in NTC l'eventuale deroga richiede
+evidenzaSLE. Fori maggiorati/asolati e riparto ibrido con saldature esclusi.
+Mu e' un dato qualificato: nessun trattamento superficiale dedotto dal nome.
+Numero piani e coefficiente comuni: no distribuzione di pressioni/contact.
+Per JointLength>15d si conserva prudenzialmente betaLf limitato0.75..1,
+come estensione SCI P398 sezione4 Step2; estesa conservativamente ancheSLU.
+Questa riduzione non e' presentata come parte dell'equazioneNTC4.2.72.
+
+Il Passed riguarda scorrimento/precarico del singolo bullone. CategoriaB
+richiede anche le verifiche di resistenzaSLU; categoriaC non elimina netto,
+blocco, membri e altri controlli pertinenti. Nessun Passed globale del nodo.
+Il label delle evidenze registra l'ipotesi del chiamante, non la certifica.
+
+INTEGRAZIONE LEGACY
+L'aritmetica del precaricoEC e della resistenza a scorrimento ora e' condivisa
+con EN1993BoltChecker/ENCommonBoltChecker tramite BoltSlipMath. Identiche
+operazioni e parametri, senza cambiare il campo o attivare nuovi check legacy.
+L'adattatore generaleNTC legacy resta nella sottofase1f da qualificare.
+
+VALIDAZIONE
+208nuovi test passati; insieme a57componenti bullonati e9auditlegacy:274/274.
+144celle SCI P358(2014), G.43/G.45/G.47/G.48, ppT-148..T-151/PDF446..449:
+gradi8.8/10.9, diametri12..30 disponibili nelle tabelle, mu0.2/0.3/0.4/0.5,
+una/due interfacce, SLE/SLU. Valori trascritti visivamente e immutati.
+20valori precaricoNTC, Tabelle4.2.XVI/XVII, p109/PDF113, diametri12..36.
+Ulteriori casi: trazione concomitante, stati limite distinti, serraggio,
+precarico esaurito, carico nullo/piccolo, soglie, giunti lunghi, fonti mancanti,
+input invalidi e qualificazione del solo componente.
+
+PRECISIONE DEI BENCHMARK
+SCI: tolleranza meta' dell'ultima cifra stampata, conservata come stringa kN.
+NTC: propagata la precisione di entrambe le grandezze pubblicate, area e forza:
+tol=mezzaUnitaForza+0.7*fub*mezzaUnitaArea. Non viene modificata la formula.
+Caso esplicitoM36/8.8: area817 =>457520N; tabella457kN. Il test esatto pretende
+457520N e mantiene il457kN nella fixture. Non si afferma che sia un refuso:
+la pubblicazione puo' aver arrotondato indipendentemente le grandezze.
+I test formula/concomitanza usano tolleranze strette separate da quelle tabellari.
+
+FONTI
+SCI P358: https://www.steelconstruction.info/images/a/a9/SCI_P358.pdf
+SCI P398: https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
+EN1993-1-8:2005, pagg30-31, PDF32-33, con corrigenda visibili nel testo.
+NTC2018 GU20-2-2018, pp108,109,111,112, PDF112,113,115,116.
+Fixture: tests/Steel.Members.Tests/Fixtures/bolt-slip-independent.json.
+Log/TRX: workspace audit-results/connections/phase1b-slip.trx.

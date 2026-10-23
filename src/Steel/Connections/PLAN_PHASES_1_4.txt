@@ -14,10 +14,11 @@ FASE 1 - COMPONENTI COMUNI
 1a CHIUSA - Contratti comuni per nuovi componenti: unita, assi/segni, azioni
    concomitanti e punto di applicazione, norma, input immutabili, esiti e tracce.
    ConnectionVerification<TInput> e controlli con unita; vedi PHASE_1A.txt.
-1b PARZIALE - Chiusi componenti non precaricati: taglio, trazione, interazione,
-   rifollamento, punzonamento, giunti lunghi, imbottiture e assemblaggio NTC
-   singolo taglio. 57 test passati; DoubleCoverSplice riusa i nuovi kernel.
-   Resta migrazione/qualificazione del precarico e scorrimento. PHASE_1B.txt.
+1b CHIUSA - Componenti nel campo dichiarato: taglio, trazione, interazione,
+   rifollamento, punzonamento, giunti lunghi, imbottiture, assemblaggioNTC
+   singolo taglio; anche precarico/scorrimento in fori tondi normali, SLE/SLU.
+   57+208test passati. Aritmetica slip condivisa col checkerEN legacy.
+   Estensioni a fori speciali escluse. PHASE_1B.txt ePHASE_1B_SLIP.txt.
 1c CHIUSA - Nuovo kernel ElasticBoltGroup qualificato con44test: sei azioni,
    eccentricita anche Z, gruppi piani/allineati, singolo bullone, equilibrio e
    casi degeneri. Corretto anche il ramo legacy singolo bullone in Model,
@@ -33,9 +34,9 @@ FASE 1 - COMPONENTI COMUNI
 1f PARZIALE - Politiche EC3/NTC: fattori e formule distinti, riferimenti espliciti,
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; vecchio checker NTC ancora da qualificare prima del riuso generale.
-1g PARZIALE - 407 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 615 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,
-   69componenti doppie squadrette.
+   69componenti doppie squadrette,208precarico/scorrimento.
    Inoltre10nuove regressioni
    Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
