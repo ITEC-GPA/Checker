@@ -123,3 +123,13 @@ classificazione/resistenza del membro, effetti secondari e compatibilita
 del modello globale; poi2e.4b/c qualifica completa e collegamento Model.
 Il benchmark integrale SCI ha utilizzo rifollamento lineare1.186583416723:
 non si e' cambiato il carico o il metodo per forzare il Passed della fonte.
+
+
+NOTTE24/10/2026 - FAZZOLETTO E L TESO, STEEL2.55.0.0
+Chiusi i componenti3a.1 e3c.1:40test GussetTwinFlatTension e43BraceAngleTension
+superati nel controllo centralizzato. Nuovi input immutabili, assi/direzione
+e confini del percorso dichiarati, metodi EC/NTC distinti e fonte integrativa
+esplicita. Non e' chiuso il nodo di controvento col supporto.
+Log/TRX workspace audit-results/connections/night-3a-4a-components.
+La prova iniziale aveva un solo fallimento in un nuovo test T-stub, trattato
+separatamente; tutti83test di questa sottofase erano gia passati.

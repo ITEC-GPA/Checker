@@ -1,0 +1,95 @@
+FASE 3a.1 - FAZZOLETTO TESO FRA DUE PIATTI UGUALI
+================================================
+Data: 24/10/2026. Implementazione: GussetTwinFlatTension.
+
+CAMPO ESATTO
+Un unico gruppo passante di 2*Rows bulloni collega un fazzoletto rettangolare
+centrale a due piatti di controvento identici sulle due facce. I piatti sono a
+contatto diretto: niente imbottiture, distacco, resistenza per attrito o per
+contatto di estremita. Il gruppo ha due colonne trasversali e 1..1000 posizioni
+longitudinali non sfalsate. Acciaio al carbonio non patinabile fino a S460,
+resistenze assegnate allo spessore reale; bulloni8.8/10.9, fori tondi normali.
+
+Questo NON e il DoubleCoverSplice rinominato: non esiste un giunto di testa,
+non esistono due gruppi speculari, e il conteggio e 2*Rows bulloni in tutto,
+non 4*Rows. Il percorso termina sulle continuazioni non forate del fazzoletto
+e dei due piatti. L'attacco del fazzoletto al supporto rimane una sottofase
+separata: un esito Passed non qualifica il nodo trave/pilastro/controvento.
+
+ASSI, AZIONI E GEOMETRIA
+X dal bordo libero del fazzoletto verso i bordi liberi dei piatti; Y lungo la
+larghezza; Z normale al fazzoletto. Fx positivo e la risultante esercitata dai
+bulloni sui due piatti; sul fazzoletto agiscono forze opposte. Entrambe le
+parti sono tese. Origine nel baricentro dei bulloni. Forze N, momenti Nmm,
+lunghezze mm, tensioni MPa. La risultante di input e quella totale N: ciascun
+piatto trasferisce N/2, il fazzoletto trasferisce N. I due piani di taglio si
+contano una sola volta. Il bordo libero del fazzoletto e dal lato X negativo,
+i bordi liberi dei piatti dal lato X positivo.
+
+Le azioni al polo dichiarato sono trasportate con M(C)=M(A)+(A-C)xF.
+Sono ammessi solo Fx>=0 e risultanti trasversali/momenti nulli al baricentro.
+Un momento/eccentricita residui, anche piccoli, produce NotSupported: nessuna
+azione viene eliminata o assorbita arbitrariamente dal netto. Un cambio di
+polo accompagnato dai corretti momenti e invece accettato.
+
+Lunghezza gruppo Lj=(Rows-1)*Pitch;
+lunghezza sovrapposizione=GussetEnd+Lj+BraceEnd.
+Non si introduce una larghezza di Whitmore o una diffusione delle tensioni
+non dichiarata: le larghezze sono quelle effettive dei tre tratti rettangolari.
+
+VERIFICHE
+- Minimi bordi/interassi e massimi interassi, massimi bordi se esposti;
+  condizioni sui fori e prova SLE NTC quando richiesta dal componente bulloni.
+- Riparto elastico comune ElasticBoltGroup; forze/coordinate in traccia.
+- Taglio del bullone su due piani, riduzione per giunto lungo comune.
+- Rifollamento del fazzoletto e di ciascun piatto: i bordi di estremita delle
+  due parti sono opposti; le diverse regole EC/NTC sono quelle del kernel.
+- Per ciascuna delle tre parti: snervamento lordo, rottura netta,
+  block tearing interno e coppia simmetrica dei percorsi esterni.
+  Ag=b*t; An=(b-2*d0)*t; Ant,i=(g-d0)*t;
+  Ant,o=(2*e2-d0)*t; Anv=2*t*(end+Lj-(Rows-.5)*d0).
+  Npl=Ag*fy/gammaM0; Nu=.9*An*fu/gammaM2,plate;
+  Veff=fu*Ant/gammaM2,plate+fy*Anv/(sqrt(3)*gammaM0).
+
+POLITICHE
+EN1993-1-8:2005 Tabella3.4, 3.5, 3.8, 3.10.2(2);
+EN1993-1-1:2005 6.2.3.
+NTC2018 4.2.8.1.1 e 4.2.4.1.2.1 per i componenti propri;
+block tearing e giunti lunghi sono esplicitamente metodi integrativi EN.
+GammaM0/gammaM2 delle piastre restano distinti da gammaM2 dei bulloni.
+Non vengono importati automaticamente i fattori dell'appendice nazionale UK.
+
+FONTI E PROVE
+SCI/BCSA P358, ristampa2014, sezioni8.1-8.4, pagine258-260:
+percorso controvento-fazzoletto-supporto e distinzione dei componenti;
+p179 per le due famiglie di percorsi simmetrici di block tearing.
+https://www.steelconstruction.info/images/a/a9/SCI_P358.pdf
+Riferimento bibliografico ufficiale JRC:
+https://eurocodes.jrc.ec.europa.eu/publications/joints-steel-construction-simple-joints-eurocode-3-publication-p358
+
+Il benchmark completo ENTRO QUESTO CAMPO e un ricalcolo indipendente costruito,
+non un esempio completo di nodo pubblicato. Il derivatore Python
+Fixtures/derive_gusset_twin_flat.py stampa gli scalari senza richiamare Checker
+e senza rigenerare fixture. Caso N=100kN, fazzoletto200x16, piatti160x10,
+fy275/fu430, 4M20 con d0=21 e As245, p60/g80, estremita40/50.
+Risultati EC (gamma0=1,gamma2=1.25): bullone188.160kN;
+fazzoletto lordo880/netto782.6688/block interno672.762742kN;
+ciascun piatto lordo440/netto365.328/block452.230979kN.
+Meccanismo governante: block interno del fazzoletto, eta=100/672.762742.
+NTC: lordo fazzoletto838.095238kN e block interno656.190040kN.
+
+I test coprono tutto il percorso ammesso, equilibrio del gruppo, norme,
+fattori separati, grado/filetto, riduzione Lj, esito negativo e carico nullo,
+eccentricita, cambio polo, geometrie/fori fuori campo, overflow e limiti.
+L'esecuzione e coordinata dal processo principale; questo documento non
+dichiara test superati prima della registrazione nel rapporto generale.
+
+PENDENZE DISTINTE
+Attacco al supporto e supporto stesso, SLE/scorrimento, compressione,
+instabilita, azioni eccentriche non nulle, profili C/L, collegamenti saldati,
+fatica/sisma, rigidezza e comportamento globale. Il modello non finge di
+coprire un fazzoletto triangolare generico attraverso una larghezza efficace.
+
+VERIFICA CENTRALIZZATA24/10/2026
+40test GussetTwinFlatTension e43test BraceAngleTension superati.
+Nessuna modifica a fixture/attesi legacy o formule per forzare un Passed.

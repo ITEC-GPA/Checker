@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - PIANO E AVANZAMENTO DELLE PRIME QUATTRO FASI
 ===============================================================
-Aggiornamento 23/10/2026. Branch codex/steel-standard-connections.
+Aggiornamento 24/10/2026. Branch codex/steel-standard-connections.
 Ambito: librerie, statica ordinaria, EC3 2005/NTC2018, modelli analitici o delle
 componenti, senza FEM locale. ANTHEA esclusa. Basi/ancoraggi e nodi tubolari
 appartengono alle fasi5/6, non alle prime quattro.
@@ -37,9 +37,10 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 853 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 936 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,
-   69componenti doppie squadrette,208precarico/scorrimento,238continuitaI.
+   69componenti doppie squadrette,208precarico/scorrimento,238continuitaI,
+   40fazzoletto/due piatti,43netto efficace angolare.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
@@ -72,13 +73,17 @@ FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
    Disponibili per2a/2b e per il campo ordinario2d.1/2d.2; tying escluso.
 
 FASE 3 - CONTROVENTI E PROFILI ACCOPPIATI
-3a DA FARE - Fazzoletto teso: piatto, collegamento bullonato/saldato e parte
-   collegata del controvento; netto, block tearing ed eccentricita.
+3a PARZIALE - Chiusa3a.1: unico gruppo bullonato, fazzoletto rettangolare
+   centrale e due piatti uguali tesi,40test. Lordo/netto/block, bulloni,
+   rifollamento e azioni trasportate. Restano attacco/supporto3a.2,
+   saldature e campi eccentrici; PHASE_3A_TWIN_FLAT.txt.
 3b DA FARE - Fazzoletto compresso: modello analitico di diffusione delle forze,
    vincoli e lunghezza libera, stabilita nel/fuori piano; rifiuto dei casi non
    descritti dalle ipotesi. Nessuna lunghezza efficace inventata.
-3c DA FARE - Collegamenti di C/L singoli e doppi uguali: orientamento, lato
-   collegato degli L disuguali, eccentricita e coerente trasformazione degli assi.
+3c PARZIALE - Chiusa3c.1: lordo/netto efficace di un L collegato su un lato,
+   EN3.10.3 e fattori EC/NTC,43test; lato corto esplicito per L disuguali.
+   Restano adattamento Model/orientamenti3c.2, C e coppie identiche,
+   equilibrio eccentrico del nodo; PHASE_3A_ANGLE_NET.txt.
 3d DA FARE - Imbottiture dei profili doppi: domanda locale tracciabile dalla
    verifica dell'asta, piastra e bulloni/saldature. Restano esclusi i calastrelli.
 3e DA FARE - Collegamento ai contratti Model/Steel esistenti e benchmark

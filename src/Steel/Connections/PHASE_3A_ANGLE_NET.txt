@@ -1,0 +1,66 @@
+INNESTO 3c.1 - L COLLEGATO SU UN SOLO LATO IN TRAZIONE
+===================================================
+Data: 24/10/2026. Implementazione: BraceAngleTension.
+
+Componente di resistenza lorda/netta efficace di UN angolare con UNA linea
+longitudinale di bulloni su un solo lato. La trazione di input e la forza
+effettiva del singolo L: nessun raddoppio implicito per una coppia e nessun
+riparto automatico fra profili. Questo non e un nodo completo.
+
+BraceAngleConnectedLeg.First/Second individua il lato fisico della sezione,
+indipendentemente da quale sia lungo/corto o dalla numerazione degli assi
+principali. Scambiando dimensioni First/Second e il lato scelto, la resistenza
+deve rimanere invariata. L'orientamento del nodo e le trasformazioni Model
+restano un'integrazione successiva, non un'ipotesi nascosta in questo metodo.
+
+Area lorda reale da profilario/geometria, inclusi raccordi; mai sostituita
+automaticamente da (b1+b2-t)*t. Fy/Fu per lo spessore del prodotto.
+e2 si misura dal bordo libero del lato collegato al centro del bullone.
+Per il lato corto di un L disuguale con almeno2bulloni si richiedono l'area
+lorda e la fonte della sezione equivalente a lati uguali della dimensione
+minore e stesso spessore. NON e un secondo profilo fisico: e l'area richiesta
+dal metodo normativo. Non si assume automaticamente che i raccordi siano uguali.
+
+FORMULE E FONTE VERIFICATA
+EN1993-1-8:2005, pagina33, paragrafo3.10.3(2), eq3.11/3.12/3.13 e Tabella3.8;
+testo e pagina renderizzata controllati nel PDF locale EN1993-1-8-2005.pdf.
+SCI P358, ristampa2014, paragrafo8.2, pagina258, rimanda a questo metodo.
+https://www.steelconstruction.info/images/a/a9/SCI_P358.pdf
+
+1bullone: Nu=2*(e2-.5*d0)*t*fu/gammaM2.
+2bulloni: Nu=beta2*Anet*fu/gammaM2.
+3+bulloni: Nu=beta3*Anet*fu/gammaM2.
+Anet=Amodello-d0*t. Se collegato sul lato corto, Amodello e l'area equivalente;
+altrimenti e l'area lorda reale. Per1bullone la formula usa e2 e t e non
+richiede la sezione equivalente. Nessun ulteriore coefficiente .9 e applicato
+alle formule3.11-13. La resistenza lorda usa SEMPRE A reale*fy/gammaM0.
+
+Per p1<=2.5*d0, beta2=.4 e beta3=.5; per p1>=5*d0 entrambi=.7;
+interpolazione lineare fra i due estremi. Minimo interasse2.2*d0.
+
+Sotto NTC2018: lordo 4.2.4.1.2.1 e fattori NTC; metodo netto efficace
+esplicitamente integrativo EN1993-1-8. Non si inventa una formula NTC distinta.
+
+BENCHMARK ANALITICI
+L a spigoli vivi100x75x8, A1336mm2, fy275/fu430, d0=18mm, e2=35mm,
+p1=60mm, gammaM0=1 e gammaM2=1.25:
+- lordo367.4kN; Anet1192mm2;
+- 1bullone143.104kN; 2bulloni205.024kN; 3+bulloni232.360533kN.
+Collegato al lato75: sezione equivalente75x75x8 A1136, Anet992mm2;
+2bulloni170.624kN; 3+bulloni193.373867kN; lordo resta367.4kN.
+Sono ricalcoli delle formule originali, non risultati pubblicati di nodi.
+Il caso di raccordi usa un'area reale assegnata distinta da quella a spigoli
+vivi e verifica che il calcolatore la preservi.
+
+CAMPO NON COPERTO
+La riduzione normativa considera eccentricita/shear lag per la resistenza
+di sezione dell'L. NON elimina i momenti eccentrici nel fazzoletto/supporto.
+Bulloni, rifollamento, block tearing, bordi longitudinali, clearance raccordi/
+rondelle, SLE dei fori, supporto, compressione e stabilita richiedono verifiche
+dedicate. I C e i profili doppi non vengono dichiarati qualificati da questo
+componente. Il chiamante deve verificare separatamente l'idoneita geometrica
+della sezione reale rispetto al raccordo e alle dimensioni della ferramenta.
+
+VERIFICA CENTRALIZZATA24/10/2026
+40test GussetTwinFlatTension e43test BraceAngleTension superati.
+Nessuna modifica a fixture/attesi legacy o formule per forzare un Passed.
