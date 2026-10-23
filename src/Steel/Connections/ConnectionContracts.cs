@@ -100,13 +100,14 @@ namespace GPC.Checkers.Steel.Connections
         public string Id { get; }
         public double Demand { get; }
         public double Resistance { get; }
-        public double Utilization => Demand / Resistance;
+        public double Utilization => Resistance > 0 ? Demand / Resistance : Demand == 0 ? 0 : double.PositiveInfinity;
         public bool Passed => Utilization <= 1;
         public string Reference { get; }
-        internal ConnectionCheck(string id, double demand, double resistance, string reference)
+        public string Unit { get; }
+        internal ConnectionCheck(string id, double demand, double resistance, string reference, string unit = "N")
         {
-            ConnectionValidation.Nonnegative(demand, nameof(demand)); ConnectionValidation.Positive(resistance, nameof(resistance));
-            Id = id; Demand = demand; Resistance = resistance; Reference = reference;
+            ConnectionValidation.Nonnegative(demand, nameof(demand)); ConnectionValidation.Nonnegative(resistance, nameof(resistance));
+            Id = id; Demand = demand; Resistance = resistance; Reference = reference; Unit = unit;
         }
     }
     public sealed class DoubleCoverSpliceResult

@@ -11,16 +11,17 @@ non implementazione conclusa; DA FARE = non ancora avviata.
 Nessuna percentuale stimata. I limiti del metodo restano visibili nei risultati.
 
 FASE 1 - COMPONENTI COMUNI
-1a PARZIALE - Contratti comuni: unita, assi/segni, azioni concomitanti, norma,
-   input immutabili, esiti e tracce. Disponibili per il doppio coprigiunto;
-   estendere ai componenti e agli altri nodi senza duplicare il contratto.
+1a CHIUSA - Contratti comuni per nuovi componenti: unita, assi/segni, azioni
+   concomitanti e punto di applicazione, norma, input immutabili, esiti e tracce.
+   ConnectionVerification<TInput> e controlli con unita; vedi PHASE_1A.txt.
 1b PARZIALE - Bullone individuale: taglio, trazione, interazione, rifollamento,
    punzonamento e scorrimento quando richiesti. Fix legacy eseguiti; completare
    qualificazione di condizioni di filettatura, foro, precarico e imbotiture.
-1c DA FARE - Gruppi bullonati: riparto elastico delle azioni, eccentricita,
-   equilibrio e assi locali; singolo bullone, gruppi allineati e casi degeneri.
-   Il benchmark legacy di taglio eccentrico esiste; il singolo bullone/assi ha
-   un difetto censito da correggere. Nessun contatto compresso implicito.
+1c PARZIALE - Nuovo kernel ElasticBoltGroup implementato e qualificato con
+   44 test: tutte le sei azioni, eccentricita anche Z, gruppi piani/allineati,
+   singolo bullone, equilibrio e casi degeneri. Nessun contatto compresso
+   implicito. Resta da migrare/correggere il percorso legacy ModelBoltGrid;
+   il nuovo kernel non lo richiama e non modifica Model. Vedi PHASE_1C.txt.
 1d IN ANALISI - Saldature: cordoni d'angolo, lunghezza efficace, gola, materiali,
    gruppi di cordoni e azioni eccentriche. Formule EC3/NTC e fonti in lettura;
    nessun motore saldature ancora implementato.
@@ -38,8 +39,9 @@ FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
 2a CHIUSA - Doppio coprigiunto rettangolare in trazione centrata: bulloni,
    piastra centrale e singoli coprigiunti, distanze, lordo/netto, block tearing,
    giunti lunghi. EC3/NTC, 57 test. Non include momento/taglio globale o profili I.
-2b DA FARE - Piastra d'anima (fin plate): gruppo bullonato eccentrico, piastra,
-   saldature, anima della trave e parte interessata del supporto.
+2b IN ANALISI - Spec e fixture indipendenti SCI completate; implementazione
+   in corso: piastra corta, una colonna M20, trave I/H non intagliata e supporto
+   nell'anima di pilastro I/H. Campo e controlli in PHASE_2B_SPEC.txt.
 2c DA FARE - Doppie squadrette: bulloni di entrambi i lati, ali delle squadrette,
    eccentricita, anima della trave e supporto; geometrie qualificate esplicite.
 2d DA FARE - Piastra di estremita flessibile: bulloni, piastra, saldature e

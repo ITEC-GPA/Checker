@@ -1,0 +1,78 @@
+FASE 1c - RIPARTO ELASTICO DEI GRUPPI BULLONATI
+============================================
+
+API
+ElasticBoltGroup.Calculate(IEnumerable<ConnectionPoint2D>, PlanarConnectionActions)
+restituisce ElasticBoltGroupResult. Input geometrici copiati, risultati immutabili.
+Nessuna dipendenza da ANTHEA, nessuna modifica a Model o ai checker legacy.
+
+MODELLO E CAMPO
+Bulloni puntuali identici, rigidezze uguali, parti collegate rigide, piccoli
+spostamenti. Piano XY, normale +Z; Fx/Fy taglio, Fz trazione positiva;
+Mx/My/Mz secondo la mano destra. Unita': N, mm, Nmm.
+La distribuzione non e' una verifica di resistenza e non comprende scorrimento,
+flessibilita' delle piastre, prying, deformabilita' dei bulloni o contatto.
+
+MECCANICA E RIPRODUCIBILITA'
+Il baricentro dei bulloni e' C=(sum Xi/n, sum Yi/n,0). Le azioni, assegnate
+nel punto P=(ApplicationX,ApplicationY,ApplicationZ), vengono trasportate:
+  M_C = M_P + (P-C) x F.
+Con xi=Xi-Cx, yi=Yi-Cy, J=sum(xi^2+yi^2):
+  Fxi = Fx/n - Mz_C*yi/J;
+  Fyi = Fy/n + Mz_C*xi/J;
+  Fzi = Fz/n + a*xi + b*yi.
+I coefficienti normali provengono dall'equilibrio completo:
+  [sum xi^2   sum xi*yi] [a] = [-My_C]
+  [sum xi*yi  sum yi^2 ] [b]   [ Mx_C].
+Non viene omesso il prodotto d'inerzia. Non si utilizzano coefficienti normativi:
+si tratta di equilibrio statico e campo elastico lineare, derivati esplicitamente.
+Per un gruppo allineato si risolve la sola direzione disponibile e si controlla
+la compatibilita' del momento rispetto alla direzione nulla. Un bullone singolo
+trasmette solo forza nel proprio punto, senza momento libero.
+
+NUMERICA
+Coordinate centrate e normalizzate per evitare quadrati dimensionali fuori scala.
+Somme compensate. Collinearita' riconosciuta entro 64 epsilon binary64; gruppi
+piani quasi allineati rifiutati se inerzia min/max <= 1e-12. Il vincolo nullo del
+gruppo allineato usa i termini della proiezione specifica: un momento non
+rappresentabile piccolo non scompare accanto a un altro momento grande.
+Alla fine si ricostruiscono tutte le sei azioni con le forze ottenute:
+residuo = ricostruito - applicato. La tolleranza relativa e' 1e-10 rispetto alla
+somma dei valori assoluti dei termini della singola equazione, senza soglia
+assoluta in N o Nmm. I casi oltre l'intervallo numerico vengono diagnosticati.
+
+STATI
+Balanced: riparto equilibrato e tutte le forze normali non negative; NON equivale
+a Passed di una verifica normativa. Forces e i massimi sono disponibili.
+RequiresContact: almeno una forza normale elastica negativa; Forces e' vuoto,
+MinimumTrialFz conserva il valore firmato. Nessun clipping o riparto parziale.
+UnsupportedGeometry: momento incompatibile con rango del gruppo oppure gruppo
+piano troppo mal condizionato. Nessun risultato resistente utilizzabile.
+NumericalFailure: fuori scala o mancato equilibrio entro la tolleranza.
+Input vuoto/nullo, punti ripetuti e valori non finiti vengono rifiutati.
+
+RIFERIMENTI DEI TEST
+Gli attesi sono calcoli manuali indipendenti esposti nei test, non risultati
+salvati del solver o valori riprodotti con lo stesso algoritmo:
+- Rettangolo (+/-100,+/-50) mm: sum x^2=40000, sum y^2=10000, J=50000 mm2.
+  Con F=(12000,-8000,20000) N e M=(400000,-800000,600000) Nmm,
+  le trazioni sono 1000,5000,9000,5000 N nell'ordine dichiarato nel test.
+- Triangolo (0,0),(90,0),(30,60) mm: C=(40,20), Ixy=-600 mm2.
+  Il campo indipendente T=100+2X+3Y da' 100,280,340 N; le azioni sono
+  sommate a mano e successivamente applicate al solver.
+- Tre punti sulla retta (0.6,0.8), ascisse -100,0,100 mm: il campo
+  T=1000+2s da' 800,1000,1200 N e M=(32000,-24000,0) Nmm.
+- Trasporto r=(30,-20,15) mm, F=(1000,2000,10000) N:
+  r x F=(-230000,-285000,80000) Nmm.
+- Ricostruzione esterna delle sei equazioni usando le coordinate originarie.
+- Invarianti di rotazione/traslazione/ordine, inversione delle forze nel piano,
+  zero, singolo bullone, linee oblique, piccoli momenti, compressione/contatto,
+  neutralita' esatta di una fila, degenerazione, immutabilita' e input invalidi.
+
+VERIFICA ESEGUITA 23/10/2026
+44 test nuovi del riparto e 57 test di regressione DoubleCoverSplice superati:
+101/101, nessun ignorato. TRX phase1a-1c.trx nel workspace audit-results/connections.
+Durante l'integrazione corretti un nome locale incompatibile con il compilatore
+e un errore di aritmetica nel NUOVO test di due bulloni verticali: con N=1000 N,
+Mx=10000 Nmm e y=+/-50 mm, T=500+/-100=400/600 N. Il solver non e stato
+modificato per inseguire quell'atteso; nessuna fixture legacy alterata.

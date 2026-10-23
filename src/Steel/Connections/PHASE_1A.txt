@@ -1,0 +1,28 @@
+FASE 1a - CONTRATTI DEI COMPONENTI
+================================
+
+PlanarConnectionActions conserva una combinazione concomitante gia fattorizzata:
+Fx,Fy,Fz in N; Mx,My,Mz in Nmm; punto di applicazione in mm.
+Piano del componente XY, normale Z, terna destra. Il piano della bullonatura
+puo essere diverso da quello della saldatura dello stesso nodo: il chiamante
+deve trasformare forze, momenti e punto. Non sono gli assi di SteelActions.
+Trasporto al baricentro C: M(C)=M(P)+(P-C) x F, compresa ApplicationZ.
+ConnectionPoint2D e azioni sono immutabili; valori non finiti rifiutati.
+
+ConnectionVerification<TInput> fornisce stato, input, norma, metodo, campo,
+controlli, tracce, assunzioni dichiarate dal chiamante e diagnostiche.
+Tutte le collezioni sono copie di sola lettura. Qualunque diagnostica di
+fuori campo produce NotSupported, nessun controllo parziale e rapporto nullo.
+Passed/Failed e IsComplete riguardano esclusivamente lo Scope del componente,
+non il giunto genitore o la struttura. I risultati specifici possono aggiungere
+dati meccanici senza convertire un riparto equilibrato in un esito resistente.
+
+ConnectionCheck aggiunge Unit (N per compatibilita, Nmm/MPa/1 dove pertinente).
+La capacita nulla da rapporto infinito per domanda positiva, zero per domanda
+nulla; NaN, infinito, domanda o resistenza negativi sono input non validi.
+Il solver ElasticBoltGroup usa invece uno stato Balanced dedicato: non esegue
+verifiche di resistenza e non puo emettere Passed per un nodo.
+
+Nessun cambiamento a Model o ANTHEA. Il contratto e operativo per i nuovi
+componenti; migrazione degli entry point legacy e aggregazione dei futuri
+nodi verranno verificate insieme ai relativi modelli.

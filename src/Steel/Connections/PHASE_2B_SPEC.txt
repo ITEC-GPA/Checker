@@ -1,0 +1,340 @@
+FASE 2b - PIASTRA D'ANIMA: SPECIFICA INGEGNERISTICA E FONTI
+Data: 2026-10-23. Stato: specifica verificata sulle fonti, non attestazione di codice o test eseguiti.
+
+1. PERIMETRO DA IMPLEMENTARE PER PRIMO
+
+Nodo semplice di una trave laminata I/H, non intagliata, ortogonale all'anima
+di un pilastro I/H. Una sola trave collegata a quella porzione di supporto.
+Fin plate rettangolare S275, spessore 10 mm, doppio cordone verticale continuo,
+una colonna di 2-5 bulloni M20 8.8 non precaricati, fori circolari, taglio
+verticale statico. Trave e supporto S275 nel primo caso qualificato.
+La limitazione a 5 file mantiene (n1-1)p1 <= 280 mm < 15d per il passo 70 mm.
+La connessione riceve azioni gia combinate; non genera carichi o combinazioni.
+NTC 2018 ed EC3 hanno policy distinte. Il metodo geometrico/componente SCI
+e dichiarato come modello integrativo, non come formula contenuta nelle NTC.
+
+Geometria standard iniziale: p1=70, e1 alto/basso=40, larghezza piatto=100,
+z_p=50, e2 libero=50, gap trave/supporto=10, e2,b=40 mm. h_p=80+(n1-1)70.
+Trave con profondita nominale <=610 mm; h_p>=0.6h_b; sommità piatto a 50 mm
+dalla sommita trave; piatto e bulloni interamente fuori dai raccordi di radice.
+z_p <= t_p/0.15. Cordoni a completa resistenza; primo dettaglio s=8 mm.
+L'effettiva possibilita di montaggio fra le ali del pilastro va controllata:
+nessuna asportazione implicita di ala o intaglio puo essere ignorata.
+Richiedere controventamento laterale della trave nella configurazione valutata
+come gate iniziale; non dedurre una verifica LTB dell'intera asta da questo nodo.
+
+Per il supporto ad anima I/H, P358 richiede c_w/t_w <= 40 sqrt(235/f_y).
+Il campo del Check 10 comprende esplicitamente anime di travi/pilastri e pareti
+tubolari. NON estenderne automaticamente la formula alla flangia del pilastro.
+La flangia puo diventare una variante successiva con modello locale motivato.
+RHS/CHS comportano controlli propri e restano fuori da questa prima variante.
+
+La doppia colonna di bulloni e un'estensione prevista, non una moltiplicazione
+della resistenza per due. z=z_p+p2/2; z_p resta la distanza alla prima colonna.
+Supporto a due lati, intagli, piatti lunghi, S355, bulloni diversi, fori asolati,
+precarico, imbottiture, azioni N/M/T, fatica, sisma e incendio richiedono proprie
+qualificazioni. Un valore diverso da zero delle azioni fuori campo non va omesso.
+
+2. DODICI BLOCCHI DI CONTROLLO E CORRISPONDENZA SCI
+
+Le sigle seguenti sono interne a questa specifica, NON numeri di paragrafi EC3.
+P358 ha Check 1-16: il 9 e non applicabile; 11-16 trattano la tirantatura.
+
+F01 Campo, dettagli, materiali, fori, bordi/interassi, montaggio, assi e unita.
+    Check SCI 1, pp.109-114. Distingue conformita geometrica da resistenza.
+F02 Gruppo bulloni a taglio eccentrico: risultante di ciascun bullone e residui
+    di equilibrio, comprese entrambe le componenti nel piano. SCI Check 2.
+F03 Rifollamento del piatto nelle due direzioni e loro interazione. SCI Check 2.
+F04 Rifollamento dell'anima della trave: geometria/materiale propri, non quelli
+    del piatto; entrambe le direzioni. SCI Check 2.
+F05 Taglio piatto su sezione lorda e netta. SCI Check 3, p.118.
+F06 Block tearing del piatto, percorso effettivo e carico eccentrico.
+    SCI Check 3, p.118; EN1993-1-8:2005 3.10.2.
+F07 Flessione del piatto e LTB pertinente. SCI Check 3, pp.119-120.
+    Il gate piatto corto deve essere esplicito, non un salto silenzioso.
+F08 Anima trave: taglio lordo/netto; blocco soltanto se percorso cinematicamente
+    ammissibile. SCI Check 4: nel metodo riportato block tearing e pertinente
+    alle travi intagliate, non al caso non intagliato. I Check 5-7 sono per gli
+    intagli: il primo wrapper li esclude geometricamente, non li dichiara PASS.
+F09 Due cordoni: resistenza a V e M=Vz, lunghezze effettive, gola e gerarchia
+    di completa resistenza. SCI Check 8 e Appendice C. Nessun cordone monolato.
+F10 Supporto locale: taglio su due linee e punzonamento dovuto al momento.
+    SCI Check 10, p.128; AD422 chiarisce il coefficiente del punzonamento.
+F11 Compatibilita con modello di nodo semplice: dettagli di flessibilita,
+    capacita rotazionale, spazio di rotazione e restrizioni del campo validato.
+    SCI pp.108-114. Resistenza statica positiva NON certifica da sola cerniera.
+F12 Completezza e tracciabilita: un esito per tutti i blocchi pertinenti,
+    eventuali azioni sul supporto da altri elementi, richieste di tirantatura
+    separate, riferimenti e motivazioni di NotApplicable/NotSupported.
+
+La verifica SLU ordinaria completa e circoscritta alla connessione e alla zona
+locale considerata. Non comprende la verifica globale della trave o del pilastro.
+Le azioni/interazioni globali sugli elementi vanno gestite dal verificatore aste.
+Se si chiede la verifica con concomitanti azioni significative del pilastro,
+il metodo locale deve dimostrare come le considera oppure dichiarare il caso
+non supportato: non interpretare dati assenti come tensioni nulle.
+
+3. ASSI, RIFERIMENTI E DUE MODELLI DI TRASFERIMENTO
+
+Sistema destro del nodo: X lungo l'asse della trave dal supporto verso la luce,
+Z verticale verso l'alto, Y trasversale. Piano fisico del piatto XZ.
+Il carico di riferimento e F=(0,0,-V) in XYZ, V>=0.
+
+Bulloni: sistema destro locale (u_b,v_b,n_b)=(X,Z,-Y).
+Coordinate dei bulloni riferite al baricentro del gruppo, momenti riferiti allo
+stesso polo. Nel modello con linea di trasferimento sulla faccia del supporto,
+il vettore posizione del carico rispetto al gruppo e r=(-z,0,0).
+M=r x F=(0,-Vz,0) in XYZ, quindi azioni locali Fv_b=-V, Mn_b=+Vz.
+
+Cordoni: piano del supporto YZ; sistema destro (u_w,v_w,n_w)=(Y,Z,X).
+Nel modello con trasferimento lungo la linea del gruppo bulloni, rispetto al
+baricentro cordoni si considera la forza sul piatto e il relativo braccio z.
+Sul corpo isolato del piatto, r=(z,0,0), F=(0,0,-V): M=(0,+Vz,0).
+Il modulo resta Vz ed e FLESSIONE attorno a u_w, non torsione attorno a n_w.
+Per questo modello usare Fv_w=-V, Mu_w=+Vz; la reazione sul supporto ha tutti
+i segni opposti. Non sommare le azioni dei due corpi isolati.
+Una rotazione di base non cambia momento o forza fisici; un cambio di polo
+richiede inoltre M_O = M_P + (P-O) x F. Testare entrambi separatamente.
+Non copiare lo stesso SteelActions dal gruppo bulloni al gruppo cordoni.
+
+P358 p.111 copre l'incertezza della flessibilita del supporto con entrambi i
+modelli: gruppo bulloni soggetto a V e Vz, cordoni a completa resistenza.
+Sono modelli alternativi per inviluppo, non due momenti simultanei da sommare.
+Le piccole torsioni da collegamento monolato dell'anima sono trascurate dal
+metodo SCI sulla base dei dettagli sperimentati, non per geometrie arbitrarie.
+
+4. EQUAZIONI E SCELTE DEL MODELLO
+
+Unita: mm, mm2, N, Nmm, MPa. Resistenze e carichi restituiti in N/Nmm.
+n1=file verticali; n2=colonne verticali; n=n1*n2; p1 passo verticale; p2 interasse
+orizzontale; e1 bordo verticale piatto; e2 bordo libero orizzontale;
+e2,b dal bordo della trave alla prima colonna; z_p=e2,b+gap; z=z_p+(n2-1)p2/2.
+
+4.1 Bulloni e rifollamento - P358 pp.115-117
+Resistenza di un piano filettato 8.8: Fv,Rd=0.6*fub*As/gammaM2_connection.
+Applicare equilibrio elastico del gruppo senza arrotondamenti intermedi.
+Per confronto con la forma chiusa SCI, n2=1: alpha=0,
+beta=6z/[n1(n1+1)p1]. Per n2=2:
+I=n1*p2^2/2+n1(n1^2-1)p1^2/6;
+alpha=z*p2/(2I); beta=z*p1(n1-1)/(2I).
+VRd_bolts=n*Fv,Rd/sqrt[(1+alpha*n)^2+(beta*n)^2].
+Il wrapper deve comunque conservare forze vettoriali e risultati per bullone.
+
+Per piatto e anima separatamente: Fb= k1*alpha_b*fu*d*t/gammaM2_connection.
+Le direzioni verticale/orizzontale scambiano bordi e passi.
+Verifica SCI: sqrt[(Fv/Fb_vertical)^2+(Fh/Fb_horizontal)^2] <=1 per bullone.
+Con minimi uniformi SCI il corrispondente limite di gruppo e:
+VRd=n/sqrt[((1+alpha*n)/Fb_vertical)^2+(beta*n/Fb_horizontal)^2].
+Non verificare solo max(Fv/Fb_v,Fh/Fb_h), perche perde l'interazione.
+La formula d'interazione e modello SCI/NCCI, non una trascrizione della tab.3.4.
+Per NTC usare la policy rifollamento NTC, compresa differenza del k dei bulloni
+di bordo; non forzare i coefficienti EC3 per ottenere un benchmark UK.
+
+Single lap, una fila: EN1993-1-8:2005 3.6.1(10-11), fig.3.3 p.26/PDF28,
+limita Fb a 1.5*fu*d*t/gammaM2 e richiede rondelle sui due lati, temprate per
+8.8/10.9. La figura3.4 riguarda invece imbottiture. La fila va letta rispetto
+alla direzione del carico: una colonna verticale di 4 bulloni fin plate contiene
+4 posizioni lungo V. NON porre SingleLapOneRow=true solo per Columns==1.
+Il metodo SCI Check2/esempio1 usa il rifollamento senza questo limite per il
+caso V+Vz, anche sulle componenti orizzontali autoequilibrate del gruppo.
+Questo giustifica l'implementazione del metodo SCI per il campo di questa
+specifica; non costituisce un'esenzione generale per tutte le fin plate.
+In presenza di N/tie orizzontale la stessa geometria ha una sola fila
+trasversale alla forza e la questione va rivalutata; quel caso e fuori campo.
+Il kernel generale deve richiedere un flag geometrico esplicito e riportarlo
+nel risultato; la decisione spetta al wrapper del tipo di connessione.
+
+4.2 Piatto - P358 pp.118-120
+Vgross=hp*tp*fy/(1.27*sqrt(3)*gammaM0).
+Il fattore 1.27 appartiene al modello SCI/NCCI per il momento nominale.
+Av_net=tp*(hp-n1*d0); Vnet=Av_net*fu/(sqrt(3)*gammaM2_plate).
+Per n2=1: Ant=tp*(e2-d0/2).
+Per n2=2: Ant=tp*(p2+e2-1.5*d0).
+Anv=tp*[hp-e1-(n1-0.5)*d0].
+Vblock=0.5*fu*Ant/gammaM2_plate+fy*Anv/(sqrt(3)*gammaM0).
+Il 0.5 e indispensabile per il blocco eccentrico di questo modello.
+Wel=tp*hp^2/6; per piatto corto Vflex=Wel*fy/(z*gammaM0).
+Il metodo SCI permette di omettere il controllo distinto di flessione quando
+hp>=2.73z: codificare NotGoverningByGeometry, non Infinity come resistenza fisica.
+Il controllo finito della resistenza del piatto corto resta disponibile.
+
+Per sviluppo futuro piatto lungo, la procedura p.119 usa:
+lambdaLT=(2.8/86.8)*sqrt[z_p*hp/(1.5*tp^2)], solo S275;
+chiLT dalla curva con alphaLT=0.76 (p.120 richiama EC3-1-1 eq.6.56);
+VRd=min[Wel*chiLT*fy/(0.6*z*gammaM1), Wel*fy/(z*gammaM0)].
+NON attivare automaticamente questa estensione: cfr. incoerenze editoriali
+documentate sotto; richiede anche il controllo aggiuntivo dell'anima trave.
+
+4.3 Anima di trave laminata NON intagliata - P358 p.121
+Av=max[Ag-2*b*tf+(tw+2*r)*tf, hw*tw].
+Av_net=Av-n1*d0*tw. Vgross=Av*fy/(sqrt(3)*gammaM0).
+Vnet=Av_net*fu/(sqrt(3)*gammaM2_plate).
+Non usare hp*tw al posto dell'area resistente dell'anima della trave.
+Non applicare all'anima non intagliata il percorso di blocco dell'esempio
+intagliato (e1,b=40 dal bordo dell'intaglio). I bordi reali sono diversi.
+Richiedere assenza di instabilita a taglio oppure verificarla col motore Steel:
+per il primo wrapper adottare un gate conservativo di anima non snella.
+
+4.4 Cordoni - P358 p.127 e Appendice C, pp.279-280
+Due cordoni simmetrici verticali; gola a, lunghezza efficace L.
+La regola pratica SCI a>=0.5tp per S275 e arrotondata. La derivazione C1 da
+resistenza trasversale da confrontare per i materiali effettivi e:
+a_full >= tp*fy_p*beta_w*gammaM2_weld/[sqrt(2)*fu_min].
+Usare anche vincoli della gola/effettiva lunghezza e metallo d'apporto qualificato.
+Non applicare il fattore 0.8 delle saldature di end plate ai cordoni fin plate.
+Con due linee uguali, domanda nominale al bordo per V e M=Vz:
+sigma_nom=3*M/(a*L^2), tau_parallel=V/(2*a*L).
+Per gola a45 gradi, sigma_perp=tau_perp=sigma_nom/sqrt(2).
+Verifica direzionale: sqrt[2*sigma_nom^2+3*tau_parallel^2]
+<=fu_min/(beta_w*gammaM2_weld), piu limite separato su sigma_perp.
+Il nucleo saldature deve ricevere geometria e orientazione reali dei cordoni.
+
+4.5 Supporto ad anima, un lato - P358 p.128, integrato da AD422
+Av_support=hp*t_support.
+V/2 <= Av_support*fy_support/(sqrt(3)*gammaM0).
+Punzonamento, variante a carico effettivo riscritta senza divisioni per V:
+V <= t_support*fu_support*hp^2/[6*z*gammaM2_plate].
+La variante conservativa indipendente dalla domanda impone:
+tp <= t_support*fu_support/(fy_plate*gammaM2_plate).
+Sono alternative del metodo; il fallimento del criterio conservativo da solo
+non rende fallita la verifica se il criterio a carico effettivo passa.
+AD422 impone gammaM2_plate=1.1 nel benchmark UK, NON gammaM2_connection=1.25.
+In NTC le corrispondenti resistenze ultime adottano gammaM2=1.25.
+
+5. INPUT PROPOSTI E DIAGNOSTICA
+
+FinPlateInput:
+- DesignCode e ParameterSet con edizione; gammaM0, gammaM1, gammaM2_plate,
+  gammaM2_connection e gammaM2_weld distinti anche se numericamente uguali.
+- Geometry: hp,bp,tp,n1,n2,p1,p2,e1_top,e1_bottom,e2_free,gap,e2_beam,
+  distanza piatto da sommita trave; z e z_p DERIVATI, non input incoerenti.
+- Bolt: d,d0,As,classe,numero piani,filettatura,precarico,tipo foro,imbottiture.
+- Plate/beam/support materials: fy e fu appropriati agli spessori, grado.
+- Beam: sezione I/H laminata con h,b,tw,tf,r,Ag,area taglio; nominalDepth,
+  dati/notch=false, restrizione laterale e fonte; eventuali slenderness gates.
+- Support: ColumnWeb, sezione I/H, tw,cw,fy,fu,numero lati caricati, geometria
+  e raccordi sufficienti per verificare ingombri e montaggio; altre azioni locali
+  richieste esplicitamente, oppure ambito di verifica della sola aggiunta locale.
+- Welds: due cordoni, gola, estremi fisici ed efficaci, orientazioni, materiale,
+  qualificazione a piena gola fino alle estremita o riduzione di lunghezza.
+- Actions: sistema di riferimento, punto di riduzione, tutte le sei componenti;
+  nel primo scope solo taglio verticale. Una combinazione per chiamata.
+- ServiceabilityHoleClearanceEvidence obbligatoria NTC per M20/foro22;
+  nessun testo fittizio inserito dal motore. NTC ammette gioco1mm fino a20mm,
+  salvo deroga motivata per gli assestamenti SLE: non ignorare la differenza.
+- AssessmentScope=OrdinaryStaticUls; TyingRequirement=None/SeparateRequested.
+- PinnedDetailQualification: dettaglio SCI esatto e riferimenti; eventuale
+  evidenza specifica necessaria se il dettaglio o la base normativa cambiano.
+
+NotSupported: dati del supporto mancanti, sezione diversa, un lato cordone,
+supporto flangia non qualificato, piatto lungo inizialmente, non-standard
+senza verifica di rotazione, trave intagliata, piu colonne del campo validato,
+carichi fuori piano/assiali/momenti imposti, compressione del nodo, bulloni
+precaricati, asole, imbottiture, richiesta tying senza relativo metodo.
+InvalidInput: NaN/Infinity, dimensioni non positive, array duplicati, incoerenza
+dei bordi con hp, fori sovrapposti, fu<fy, supporto o saldature geometricamente
+inesistenti. Non confondere invalidita con utilizzo>1 di una geometria valida.
+Failed: almeno una resistenza o requisito geometrico verificabile non soddisfa.
+La mancanza di un controllo pertinente deve impedire Complete=true.
+Restituire azioni per componente, resistenze, coefficienti, riferimenti,
+geometria del percorso di rottura, check governante e ambito della completezza.
+
+6. BENCHMARK E TOLLERANZE
+
+6.1 Pubblicato, componenti: SCI P358 esempio1 pp.137-151 (PDF147-161).
+A: 4M20, n2=1, p1=70, hp290,tp10,bp100,e1=40,e2=50,z50,tw_beam9.5.
+B: 10M20, n2=2,n1=5,p1=70,p2=60,hp360,tp10,bp160,e1=40,e2=50,z80,tw10.1.
+Entrambi: d0=22,As245,fub800,fy275,fu410; gammaM0=1, gammaM2_plate=1.1,
+gammaM2_connection=1.25; carichi200 e350kN. Le TRAVI SONO INTAGLIATE.
+Risultati componenti e formule indipendenti sono in fin-plate-independent.json.
+I valori di gruppo stampati arrotondano alpha,beta e Fb prima del risultato:
+ammettere 2% sui gruppi da quelle pagine, senza arrotondare il codice produttivo.
+Sui risultati analitici non arrotondati: tolleranza relativa1e-9 o assoluta1e-6N.
+La tolleranza piu ampia del libro non va applicata indiscriminatamente ai test.
+
+6.2 Pubblicato, connessione NON intagliata: Tab.G18 p.T-82 (PDF380),
+riga406x178x74: 4 file, n2=1, piatto100x10x290, cordoni s8, V_Rd=286kN,
+governante Check2; supporto minimo S2753.4mm. Geometria Tab.G16 p.T-75(PDF373).
+Tab.G15 p.T-74(PDF372) chiarisce che V_Rd copre i check2/3/4/8; il supporto
+si verifica col Check10, non e automaticamente incluso dalla sola tabella.
+Formula non arrotondata boltgroup=285723.444602N; tolleranza tabellare0.5kN.
+
+6.3 Caso completo DERIVATO, non un nuovo esempio pubblicato:
+La stessa trave NON intagliata, h412.8,b179.5,tw9.5,tf16,r10.2,Ag9450mm2,
+supporto ad anima I/H S275 di spessore13.1mm con cw=400mm e ingombri compatibili,
+un lato caricato, V200kN. Materiali275/410MPa. Trave lateralmente trattenuta;
+plate top50mm, bordi90 e112.8mm dal bordo trave ai bulloni estremi; weld a5.6,
+L_eff290, piena gola alle estremita. Geometria supporto scelta: h466,b300,
+tf20,tw13.1,r13mm => cw=400mm, luce fra ali426mm > larghezza trave179.5.
+Il supporto NON e identificato come profilo di catalogo: geometria di prova.
+Rapporto cw/tw=30.534 < 40sqrt(235/275)=36.977.
+Av_beam=4184.4; Av_net=3348.4mm2. No intagli, nessun block tearing dell'anima
+secondo il campo specificato al Check4. I controlli del piatto restano attivi.
+Eseguire identico caso per NTC con gammaM0=1.05,gammaM2_plate=1.25 e
+foro22 solo con evidenza SLE di prova esplicitamente qualificata come fixture.
+L'atteso NTC e un ricalcolo analitico, NON un risultato pubblicato SCI/NTC.
+
+7. ROTAZIONE, ROBUSTEZZA E LIMITI CHE NON DEVONO SCOMPARIRE
+
+P358 e guida UK: il riconoscimento nominalmente incernierato e legato ai dettagli
+e alla base sperimentale descritti, non a qualunque nodo con utilizzo<1.
+Per NTC non importare automaticamente il riconoscimento dell'Annesso UK.
+Separare resistenza statica, conformita al dettaglio SCI e qualificazione
+dello schema globale. In mancanza di quest'ultima indicare cio che e verificato
+e cio che deve essere giustificato, senza un generico PASS del modello globale.
+Nessuna rigidezza rotazionale numerica va inventata da questi controlli.
+
+Tirantatura: P358 pp.112,130-135 e esempio2pp.152-157 trattano robustezza in
+situazione accidentale. Non sommare automaticamente tying e taglio SLU; non
+porre 75kN come azione universale NTC. Servono scenario e combinazione applicabili.
+Se richiesta: piatto e bulloni in trazione/taglio/rifollamento per la direzione
+del tie, sezione netta e blocco dell'anima, cordoni, supporto locale in trazione
+(yield lines/parete), piu fattori dello scenario. Questi non sono chiusi dal
+wrapper SLU ordinario. Fatica, incendio, sisma restano esplicitamente fuori campo.
+
+8. INCONGRUENZE DELLA FONTE E AGGIORNAMENTI CONTROLLATI
+
+- pp.109/119 definiscono lungo con z_p; esempio1p.146 usa z=80 e chiama lungo
+  il piatto a due colonne, mentre p.149 riporta entrambi corti per z_p=50.
+  Il valore finale dell'esempio resta limitato dalla flessione elastica, ma
+  non usare quel ramo per una fixture qualificante la transizione corto/lungo.
+- Il denominatore della snellezza e86.8 nella procedura p.119 e86.4 nella
+  sostituzione dell'esempio p.146. Non estendere a S355 senza derivazione.
+- p.144 indica gammaM1 nella formula simbolica del taglio netto doppia colonna;
+  p.145 usa numericamentegamma=1.1 coerente con gammaM2_plate, come p.118.
+- pp.140-143 usano arrotondamenti intermedi; la tab.G18 da286kN e coerente con
+  il calcolo preciso285.723kN, invece di288kN dell'esempio arrotondato.
+- AD422 (2018) chiarisce gammaM2 del punzonamento: parametro sezioni UK1.1.
+- La pagina tecnica SCI/BCSA aggiornata consultata2026-10-23 riferisce ricerca
+  S355fin plate sp10 del2018 compatibile con dettaglio standard; prima variante
+  resta S275. Non equiparare materiale diverso senza quel campo e i controlli.
+- La ricerca di advisory successivi non ha individuato una correzione primaria
+  specifica z/z_p: questione lasciata visibile, non presunta risolta.
+
+9. FONTI PRIMARIE E LOCATORI
+
+[S1] BCSA/SCI, Joints in steel construction: Simple Joints to Eurocode3,
+SCI P358,2011, ristampa rivista2014. Cap5 pp108-157, AppC279-280,
+TabG15-G18 ppT-74,T-75,T-82. PDF pages1-based riportate sopra.
+https://www.steelconstruction.info/images/a/a9/SCI_P358.pdf
+Le pagine procedurali/disegni118,119,128,137,140-146,T-82 e279 sono state
+ispezionate anche come immagini, oltre all'estrazione testuale.
+
+[S2] SCI Advisory Desk422, Richard Henderson,13settembre2018:
+https://www.newsteelconstruction.com/wp/ad-422-punching-shear-check-for-fin-plates-in-p358/
+
+[S3] EN1993-1-8:2005 (copiaBS con corrigenda), tab3.4,3.10.2,4.5.3;
+edizione del motore attuale, non assimilata automaticamente alla seconda
+generazione Eurocodici. PDF locale EN1993-1-8-2005.pdf.
+https://www.phd.eng.br/wp-content/uploads/2015/12/en.1993.1.8.2005-1.pdf
+
+[S4] Italia, DM17gennaio2018 NTC2018,4.2.8, tab4.2.XVIII ed eq4.2.67,
+pp stampate110-111, PDF locale114-115: distanze, giochi foro/bullone e
+rifollamento. Il metodo fin plate SCI e dichiarato separatamente.
+
+[S5] SCI/BCSA, Simple connections in UK multi-storey braced frames,
+consultato2026-10-23, conferma campo semplice, due eccentricita e dettagli.
+https://steelconstruction.info/topics/design/simple-connections
+
+Nessun software FEM e usato come oracolo dei benchmark. Nessun test della
+libreria e stato eseguito per produrre questa specifica o la relativa fixture.
