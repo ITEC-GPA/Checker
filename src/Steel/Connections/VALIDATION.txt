@@ -190,3 +190,18 @@ Nel controllo comune2e/4b99/100 test passati: l'unico fallimento riguardava
 il setup del nuovo test di riflessione2e, documentato nel suo blocco.
 Non chiude il nodo4c/4d ne i vincoli globali del pilastro.
 Log/TRX workspace audit-results/connections/night-2e-4b-components.
+
+
+2e.3d.1 E INTEGRAZIONE2e.4a - STEEL2.60.0.0
+55test inviluppo/instabilita longitudinale e7test integrazione passati.
+Intera Steel.Members:4388/4388,0falliti,0ignorati. L'ultimo controllo
+generale di tutte le suite resta quelloSteel2.57 sopra, con i cinque fallimenti
+Concrete/ModelChecker preesistenti; non confonderlo con questo run Steel.
+Ricalcolo Python indipendente: sigma massima134.677756923203MPa, rapporto
+0.525966136734, taglio x=-70 subito dopo la colonna. Nessuna formula corretta
+per forzare un benchmark. Il nuovo test di riflessione iniziale confondeva
+riflessioneY con riflessioneX: corretto il test e aggiunti i due casi distinti.
+Il percorso unico dei componenti include ora questo modo e ne propaga gli
+esiti fuori campo. Restano block tearing N-V-M e altri modi di instabilita:
+CanQualifyWholeJoint=false. Nessuna modifica ad attesi legacy o allowlist.
+Log/TRX: workspace audit-results/connections/night-web-integrated.

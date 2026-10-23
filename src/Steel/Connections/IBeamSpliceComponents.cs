@@ -37,15 +37,18 @@ namespace GPC.Checkers.Steel.Connections
         public ConnectionVerification<IBeamSplicePlateInput> Bearing { get; }
         public ConnectionVerification<IBeamSplicePlateInput> Flanges { get; }
         public ConnectionVerification<IBeamSplicePlateInput> WebSections { get; }
+        public ConnectionVerification<IBeamSplicePlateInput> WebLongitudinal { get; }
         public IReadOnlyList<ConnectionVerification<IBeamSpliceBoltSlipInput>> SlipCases { get; }
         public bool CanQualifyWholeJoint => false;
         public IReadOnlyList<string> MissingWholeJointChecks { get; }
         internal IBeamSpliceComponentResult(ConnectionVerification<IBeamSpliceComponentInput> assessment,
             ConnectionVerification<IBeamSpliceBoltStrengthInput> strength, ConnectionVerification<IBeamSplicePlateInput> bearing,
             ConnectionVerification<IBeamSplicePlateInput> flanges, ConnectionVerification<IBeamSplicePlateInput> web,
+            ConnectionVerification<IBeamSplicePlateInput> webLongitudinal,
             IEnumerable<ConnectionVerification<IBeamSpliceBoltSlipInput>> slip, bool ultimateSlip)
         {
             ComponentAssessment = assessment; BoltStrength = strength; Bearing = bearing; Flanges = flanges; WebSections = web;
+            WebLongitudinal = webLongitudinal;
             SlipCases = Array.AsReadOnly(slip.ToArray());
             var missing = new List<string> {
                 "WEB_COVER_BLOCK_TEARING_UNDER_N_V_M", "WEB_COVER_LOCAL_BUCKLING",
@@ -68,10 +71,12 @@ namespace GPC.Checkers.Steel.Connections
             var bearing = IBeamSplicePlates.VerifyBearing(plates);
             var flanges = IBeamSplicePlates.VerifyFlanges(plates);
             var web = IBeamSplicePlates.VerifyWebSections(plates);
+            var webLongitudinal = IBeamSpliceWebLongitudinal.Verify(plates);
             Include("BoltStrength", strength, checks, trace, issues);
             Include("Bearing", bearing, checks, trace, issues);
             Include("Flanges", flanges, checks, trace, issues);
             Include("WebSections", web, checks, trace, issues);
+            Include("WebLongitudinal", webLongitudinal, checks, trace, issues);
             if (p.RequiredSlipLimitState.HasValue && !p.SlipCases.Any(s => s.LimitState == p.RequiredSlipLimitState.Value))
                 issues.Add("REQUIRED_SLIP_LIMIT_STATE_CASE_MISSING:" + p.RequiredSlipLimitState.Value);
             var slips = new List<ConnectionVerification<IBeamSpliceBoltSlipInput>>();
@@ -87,15 +92,16 @@ namespace GPC.Checkers.Steel.Connections
                 slips.Add(result); Include("SlipCase" + slips.Count, result, checks, trace, issues);
             }
             var assessment = new ConnectionVerification<IBeamSpliceComponentInput>(p, code, "Steel.Connection.IBeamSplice.Components",
-                "COMPONENT ENVELOPE ONLY: ULS bolt strength, plate bearing, flange components and web section N-V-M, "
+                "COMPONENT ENVELOPE ONLY: ULS bolt strength, plate bearing, flange components, web section N-V-M and longitudinal web-cover buckling, "
                 + "plus explicitly supplied slip cases of this same detail. Does not qualify the whole splice; read MissingWholeJointChecks.",
                 checks, trace, issues, new[] {
                     "All strength components share one immutable ULS input. Slip demands belong to separately declared concomitant combinations; none are scaled or synthesized.",
                     "Physical geometry, bolt properties/hardware and design factors must agree exactly across cases; independently created equal snapshots are accepted.",
                     "Read each typed component's Scope, Assumptions and source trace. Their Passed envelope is not a whole-joint Passed.",
+                    "WebLongitudinal checks only longitudinal compression between fasteners with its actual section-force envelope. WEB_COVER_LOCAL_BUCKLING remains open for transverse/shear and lateral modes; combined N-V-M block tearing is also still unqualified.",
                     "A required SLS/ULS slip check cannot be satisfied by a case at the other limit state. Ultimate slip alone does not qualify the net-plastic checks of a complete category C connection."
                 });
-            return new IBeamSpliceComponentResult(assessment, strength, bearing, flanges, web, slips,
+            return new IBeamSpliceComponentResult(assessment, strength, bearing, flanges, web, webLongitudinal, slips,
                 p.RequiredSlipLimitState == BoltSlipLimitState.Ultimate || p.SlipCases.Any(s => s.LimitState == BoltSlipLimitState.Ultimate));
         }
 
