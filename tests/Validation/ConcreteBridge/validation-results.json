@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-23",
+  "tested_commit": "36acfd85",
+  "baseline_commit": "0fbe3fac",
+  "production_changed": false,
+  "versions_changed": false,
+  "total_passed": 1224,
+  "results": [
+    {
+      "suite": "concrete",
+      "passed": 842,
+      "failed": 0,
+      "skipped": 0,
+      "new_cases": 47,
+      "trx": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\concrete-bridge-validation\\concrete-full.trx",
+      "sha256": "9b533a11bba9e81639891bc690ff354551609eae249a231bb7644f24ae6c2156",
+      "times": {
+        "creation": "2026-10-23T11:30:42.6555934+02:00",
+        "queuing": "2026-10-23T11:30:42.6555934+02:00",
+        "start": "2026-10-23T11:30:41.5172999+02:00",
+        "finish": "2026-10-23T11:33:29.7142528+02:00"
+      }
+    },
+    {
+      "suite": "bridge",
+      "passed": 382,
+      "failed": 0,
+      "skipped": 0,
+      "new_cases": 42,
+      "trx": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\concrete-bridge-validation\\bridge-full.trx",
+      "sha256": "bb1ee86a003016f179c77239af3fb78b12a5c6daa4dd74ff048d4279fa2e0ee8",
+      "times": {
+        "creation": "2026-10-23T11:30:54.0477934+02:00",
+        "queuing": "2026-10-23T11:30:54.0477938+02:00",
+        "start": "2026-10-23T11:30:53.0225784+02:00",
+        "finish": "2026-10-23T11:31:23.9507778+02:00"
+      }
+    }
+  ],
+  "matrix_rows": 36,
+  "new_cases": 89
+}

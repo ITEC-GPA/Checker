@@ -1,7 +1,7 @@
 MATRICE DI QUALIFICAZIONE CONCRETE / COMPOSITEBRIDGE - 23/10/2026
 
 Librerie Concrete e CompositeBridge. ANTHEA/BridgeAudit, nuove funzionalita e norme USA fuori perimetro.
-Checker 0fbe3fac; Concrete 795 e CompositeBridge 340 test passati nel collaudo 23/10
+Checker 0fbe3fac; Concrete 795 e CompositeBridge 340 test passati nel collaudo 23/10; aggiunti 47 + 42 casi mirati, esiti finali in VALIDATION.txt.
 Questa matrice riguarda percorsi di calcolo e fonti; non e una misura di line/branch coverage.
 Una riga non certifica il prodotto cartesiano sezioni x norme: fanno fede i casi e i limiti richiamati.
 A = analitico; P = pubblicato; E = solver esterno; R = regressione; H = fonte storica da ricostruire.
@@ -65,16 +65,16 @@ C08 | Concrete | M-curvatura, riferimenti deformativi, insuccesso
 C09 | Concrete | taglio senza staffe
   Sezioni: anima rettangolare; T tramite bw,d
   Norme/modello: NTC2018; EC2 base
-  Evidenze: A+R
-  Test: GPCChecker.Test.Concrete/ShearMigrationTests.cs
-  Limiti: Calcolo scalare su bw,d; non valida estrazione automatica di bw,d per ogni forma. Nuovo benchmark JRC pianificato.
+  Evidenze: A+P+R
+  Test: GPCChecker.Test.Concrete/ShearMigrationTests.cs, GPCChecker.Test.Concrete/CriticalBranchReferenceTests.cs
+  Limiti: Benchmark JRC89037 3.2.1.4 pp.59-60 riprodotto. Calcolo scalare su bw,d; non verifica estrazione geometrica automatica o riduzione del taglio vicino agli appoggi.
 
 C10 | Concrete | taglio con staffe e scelta cot(theta)
   Sezioni: anima rettangolare; T tramite bw,d
   Norme/modello: NTC2018; EC2 base
-  Evidenze: A+R
-  Test: GPCChecker.Test.Concrete/ShearMigrationTests.cs
-  Limiti: Soglie di alpha_c e ottimo interno non coperti sistematicamente da un oracolo analitico: nuovi casi pianificati.
+  Evidenze: A+P+R
+  Test: GPCChecker.Test.Concrete/ShearMigrationTests.cs, GPCChecker.Test.Concrete/CriticalBranchReferenceTests.cs
+  Limiti: Benchmark JRC e 12 ottimi analitici cot(theta), 10 transizioni alpha_c, limite superiore e segni/esito della domanda verificati. Incongruenza area staffe JRC documentata in SOURCES.txt.
 
 C11 | Concrete | taglio con eccentricita assiale
   Sezioni: anima equivalente
@@ -94,15 +94,15 @@ C13 | Concrete | geometria resistente a torsione
   Sezioni: rettangolare piena; cava rettangolare; circolare piena; anulare
   Norme/modello: NTC2018; EC2 base
   Evidenze: A+R
-  Test: GPCChecker.Test.Concrete/TorsionMigrationTests.cs
-  Limiti: Geometrie suggerite esplicitamente; servono confronti analitici end-to-end per ogni famiglia, pianificati.
+  Test: GPCChecker.Test.Concrete/TorsionMigrationTests.cs, GPCChecker.Test.Concrete/CriticalBranchReferenceTests.cs
+  Limiti: Otto casi da contorno a resistenza: quattro famiglie per NTC/EC2. Spessore reale/equivalente distinti; non verifica completa dei dettagli di armatura.
 
 C14 | Concrete | torsione e V1-V2-T con cot(theta) comune
-  Sezioni: Ak,uk,tef assegnati
+  Sezioni: rettangolare piena; cava rettangolare; circolare piena; anulare
   Norme/modello: NTC2018; EC2 base
   Evidenze: A+R
-  Test: GPCChecker.Test.Concrete/TorsionMigrationTests.cs
-  Limiti: Resistenze singole indipendenti; nuove prove integrate su due direzioni pianificate.
+  Test: GPCChecker.Test.Concrete/TorsionMigrationTests.cs, GPCChecker.Test.Concrete/CriticalBranchReferenceTests.cs
+  Limiti: Otto interazioni T-V1-V2 con capacita e geometrie calcolate separatamente; cot(theta) comune e segni verificati. Oracolo analitico, non benchmark biassiale pubblicato.
 
 C15 | Concrete | fessurazione e passaggi di ramo
   Sezioni: RC rettangolare
@@ -198,9 +198,9 @@ B07 | CompositeBridge | rigidezza, instabilita, deviazione e secondo ordine
 B08 | CompositeBridge | resistenza acciaio/CLS e limiti geometrici
   Sezioni: pioli in soletta piena
   Norme/modello: EC4-2
-  Evidenze: A+R
-  Test: GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs, GPCChecker.Test.CompositeBridge/CompositeBridgeApiTests.cs
-  Limiti: Benchmark pubblicato JRC e transizioni h/d da aggiungere; non soletta grecata.
+  Evidenze: A+P+R
+  Test: GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs, GPCChecker.Test.CompositeBridge/CompositeBridgeApiTests.cs, GPCChecker.Test.CompositeBridge/CriticalBranchReferenceTests.cs
+  Limiti: Benchmark JRC68415 6.7.1 pp.156-157 SLU e soglie h/d verificati. Incongruenza aritmetica SLE della fonte esclusa dagli attesi; non soletta grecata.
 
 B09 | CompositeBridge | scorrimento, armatura trasversale, ancoraggi
   Sezioni: soletta composta
@@ -220,15 +220,15 @@ B11 | CompositeBridge | momenti plastici e limiti N-M
   Sezioni: rettangoli; H composta
   Norme/modello: equilibrio plastico; EC4 nel campo ammesso
   Evidenze: A+R
-  Test: GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs
-  Limiti: N-M analitico esistente su rettangolo centrato; poli eccentrici ed estremi assiali da aggiungere.
+  Test: GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs, GPCChecker.Test.CompositeBridge/CriticalBranchReferenceTests.cs
+  Limiti: Quattordici domini analitici con polo centrale/traslato ed estremi assiali; due carichi fuori dominio rifiutati. Riferimento rettangolare, non qualifica completa di ogni sezione composta.
 
 B12 | CompositeBridge | interazione M-V ed inviluppo elastico
   Sezioni: H composta/anima equivalente
   Norme/modello: EC3-1-5/EC4 nel campo ammesso
   Evidenze: A+R
-  Test: GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs
-  Limiti: Due soglie e dominio di applicazione da provare sistematicamente; non resistenza plastica classe4.
+  Test: GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs, GPCChecker.Test.CompositeBridge/CriticalBranchReferenceTests.cs
+  Limiti: Dieci casi sulle due soglie e segni M-V, sei sull'inviluppo elastico; criterio distinto dalla resistenza plastica di classe4.
 
 B13 | CompositeBridge | torsione e distorsione
   Sezioni: cassone rettangolare; trapezoidale monocella
@@ -258,7 +258,7 @@ B16 | CompositeBridge | metodo Viviani e confronto altri metodi
   Test: GPCChecker.Test.CompositeBridge/Viviani/VivianiEquivalenceTests.cs, GPCChecker.Test.CompositeBridge/Viviani/VivianiComparisonTests.cs
   Limiti: Equivalenza col metodo originale non e validazione esterna indipendente.
 
-PRIORITA DI QUESTO PASSO
+INTERVENTI COMPLETATI IN QUESTO PASSO
 1. C09-C10: fonte JRC per taglio EC2, ottimo analitico cot(theta) e transizioni alpha_c NTC.
 2. C13-C14: torsione delle quattro famiglie geometriche e interazione V1-V2-T da traliccio indipendente.
 3. B08-B11-B12: pioli JRC/soglie, polo di N-M ed estremi, soglie M-V.

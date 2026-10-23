@@ -1,0 +1,46 @@
+COLLAUDO CONCRETE / COMPOSITEBRIDGE - 23/10/2026
+
+Codice dei test: commit 36acfd85. Base: 0fbe3fac.
+Solo test, configurazione di compilazione dei test e documentazione.
+Nessuna modifica alle formule, API, versioni, fixture legacy o riferimenti OpenSees.
+Model invariato. ANTHEA e BridgeAudit non compilati/eseguiti in questo passo.
+
+Suite completa         Prima  Aggiunti  Superati  Falliti  Ignorati
+Concrete (.NET 4.7.2)     795        47       842        0         0
+CompositeBridge (.NET8)  340        42       382        0         0
+Totale                  1135        89      1224        0         0
+
+Prima del collaudo completo, entrambi i gruppi mirati avevano superato 47/47 e 42/42.
+Compilazione Release; Concrete con MSBuild Visual Studio 2022 e VSTest x64;
+CompositeBridge con dotnet test. I risultati completi includono i riferimenti
+OpenSees e le prove esistenti di mancata convergenza/rollback.
+MSBuild segnala il warning preesistente MSB3270 relativo a GMsh.Net AMD64;
+la suite Concrete e stata eseguita su x64 con esito positivo.
+
+RISULTATO E LIMITI
+Nessun nuovo bug emerso nei percorsi coperti. I numeri sono casi MSTest,
+non il numero di tutti i sottocasi delle fixture o dei confronti interni.
+La matrice di 36 ambiti identifica fonti analitiche, pubblicate, esterne e legacy.
+Non misura copertura di righe/rami e non certifica tutte le combinazioni di
+geometria, azione, materiale e norma. Fonti e tolleranze: SOURCES.txt.
+Rimangono prioritari benchmark esterni PSC, ricostruzione prove FRC,
+curve M-curvatura RC e casi N-M T/poligonali con fonte pienamente tracciata.
+Le due incongruenze aritmetiche JRC sono documentate e non copiate negli attesi.
+
+RIPRODUZIONE
+Dalla root Checker, dopo la normale preparazione delle dipendenze Release:
+  MSBuild GPCChecker.Test.Concrete/GPCChecker.Test.Concrete.csproj
+    /p:Configuration=Release /p:BuildProjectReferences=false
+  vstest.console GPCChecker.Test.Concrete/bin/Release/GPCChecker.Test.Concrete.dll
+    /Platform:x64 /logger:trx
+  dotnet test GPCChecker.Test.CompositeBridge/GPCChecker.Test.CompositeBridge.csproj -c Release
+I comandi su piu righe sono descrittivi; concatenare gli argomenti.
+Filtro mirato facoltativo: FullyQualifiedName~CriticalBranchReferenceTests.
+
+EVIDENZE LOCALI (hash SHA256 per identificare esattamente il collaudo)
+concrete: C:\Users\g.pacini\Documents\ChatGPT\Checker\tmp\concrete-bridge-validation\concrete-full.trx
+SHA256 9b533a11bba9e81639891bc690ff354551609eae249a231bb7644f24ae6c2156
+Tempi TRX: {"creation": "2026-10-23T11:30:42.6555934+02:00", "queuing": "2026-10-23T11:30:42.6555934+02:00", "start": "2026-10-23T11:30:41.5172999+02:00", "finish": "2026-10-23T11:33:29.7142528+02:00"}
+bridge: C:\Users\g.pacini\Documents\ChatGPT\Checker\tmp\concrete-bridge-validation\bridge-full.trx
+SHA256 bb1ee86a003016f179c77239af3fb78b12a5c6daa4dd74ff048d4279fa2e0ee8
+Tempi TRX: {"creation": "2026-10-23T11:30:54.0477934+02:00", "queuing": "2026-10-23T11:30:54.0477938+02:00", "start": "2026-10-23T11:30:53.0225784+02:00", "finish": "2026-10-23T11:31:23.9507778+02:00"}

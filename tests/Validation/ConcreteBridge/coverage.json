@@ -1,0 +1,801 @@
+{
+  "date": "2026-10-23",
+  "baseline": "Checker 0fbe3fac; Concrete 795 e CompositeBridge 340 test passati nel collaudo 23/10; aggiunti 47 + 42 casi mirati, esiti finali in VALIDATION.txt.",
+  "scope": "Librerie Concrete e CompositeBridge. ANTHEA/BridgeAudit, nuove funzionalita e norme USA fuori perimetro.",
+  "legend": {
+    "A": "Soluzione analitica/formula calcolata separatamente dal codice di produzione.",
+    "P": "Risultato numerico pubblicato identificato.",
+    "E": "Solver esterno con dati congelati.",
+    "R": "Regressione, contratto o confronto interno.",
+    "H": "Riferimento storico non completamente ricostruito: non promosso a prova indipendente."
+  },
+  "rows": [
+    {
+      "id": "C01",
+      "module": "Concrete",
+      "sections": [
+        "rettangolare RC"
+      ],
+      "calculation": "resistenza N-M, N assegnato, domanda nulla/fuori dominio",
+      "standards": [
+        "NTC2018"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.Concrete/AssignedAxialForceOutcomeTests.cs",
+        "GPCChecker.Test.Concrete/DomainPointAxialToleranceTests.cs",
+        "GPCChecker.Test.Concrete/FailureDomainRCTest.cs"
+      ],
+      "qualification": "Casi analitici identificati; non tutte le combinazioni biassiali/materiali hanno fonte esterna."
+    },
+    {
+      "id": "C02",
+      "module": "Concrete",
+      "sections": [
+        "circolare RC",
+        "sezioni grandi"
+      ],
+      "calculation": "dominio N-M e tolleranza su N",
+      "standards": [
+        "NTC2018"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.Concrete/DomainPointAxialToleranceTests.cs",
+        "GPCChecker.Test.Concrete/FailureDomainCheckRCTest.cs"
+      ],
+      "qualification": "Soluzioni chiuse su casi selezionati; stress block con precisione ridotta esplicitamente riportata."
+    },
+    {
+      "id": "C03",
+      "module": "Concrete",
+      "sections": [
+        "T",
+        "poligonali RC"
+      ],
+      "calculation": "dominio e ricerca punto resistente",
+      "standards": [
+        "NTC2018"
+      ],
+      "evidence": [
+        "R",
+        "H"
+      ],
+      "tests": [
+        "GPCChecker.Test.Concrete/FailureDomainRCTest.cs",
+        "GPCChecker.Test.Concrete/FailureDomainCheckRCTest.cs",
+        "GPCChecker.Test.Concrete/ValidationTestFailureDomain.cs"
+      ],
+      "qualification": "Abachi storici non tutti identificati con edizione/pagina; nessuna qualificazione esterna completa."
+    },
+    {
+      "id": "C04",
+      "module": "Concrete",
+      "sections": [
+        "rettangolare RC",
+        "circolare RC"
+      ],
+      "calculation": "analisi tensionale lineare/non lineare e assi",
+      "standards": [
+        "NTC2018",
+        "leggi assegnate"
+      ],
+      "evidence": [
+        "A",
+        "R",
+        "H"
+      ],
+      "tests": [
+        "GPCChecker.Test.Concrete/ValidationTestLinearStressAnalysis.cs",
+        "GPCChecker.Test.Concrete/ValidationTestStressAnalysis.cs",
+        "GPCChecker.Test.Concrete/StressAnalysisRCTest.cs",
+        "GPCChecker.Test.Concrete/ElasticTensionPoleTests.cs"
+      ],
+      "qualification": "Valori analitici e legacy distinti; fonte dei casi VCA da consolidare."
+    },
+    {
+      "id": "C05",
+      "module": "Concrete",
+      "sections": [
+        "rettangolare PSC",
+        "T PSC"
+      ],
+      "calculation": "resistenza e tensioni con predeformazione",
+      "standards": [
+        "NTC2018"
+      ],
+      "evidence": [
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.Concrete/FailureDomainPSCTest.cs",
+        "GPCChecker.Test.Concrete/StressAnalysisPSCTest.cs"
+      ],
+      "qualification": "Non classificare il confronto interno fra strategie come riferimento indipendente; benchmark esterno PSC ancora da acquisire."
+    },
+    {
+      "id": "C06",
+      "module": "Concrete",
+      "sections": [
+        "rettangolare FRC",
+        "altre geometrie presenti nei test"
+      ],
+      "calculation": "dominio e verifica FRC",
+      "standards": [
+        "CNR-DT204",
+        "leggi assegnate"
+      ],
+      "evidence": [
+        "R",
+        "H"
+      ],
+      "tests": [
+        "GPCChecker.Test.Concrete/FailureDomainFRCTest.cs",
+        "GPCChecker.Test.Concrete/FailureDomainCheckFRCTest.cs",
+        "GPCChecker.Test.Concrete/ValidationTestFailureDomainCheckFRC.cs",
+        "GPCChecker.Test.Concrete/ValidationTestFailureDomain.cs"
+      ],
+      "qualification": "Articolo Meda/Minelli/Plizzari nominato; ricostruzione completa delle prove sperimentali non rifatta in questo audit."
+    },
+    {
+      "id": "C07",
+      "module": "Concrete",
+      "sections": [
+        "RC con profilo inglobato"
+      ],
+      "calculation": "tensioni, sottrazione CLS spostato, equilibrio",
+      "standards": [
+        "leggi assegnate"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.Concrete/MixedSectionTest.cs",
+        "GPCChecker.Test.Concrete/BridgeLinearSolverAuditTests.cs"
+      ],
+      "qualification": "Controlli del modello sezionale; non equivalgono a qualifica normativa completa di una colonna composta."
+    },
+    {
+      "id": "C08",
+      "module": "Concrete",
+      "sections": [
+        "RC con geometria assegnata"
+      ],
+      "calculation": "M-curvatura, riferimenti deformativi, insuccesso",
+      "standards": [
+        "NTC2018",
+        "leggi assegnate"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.Concrete/MomentCurvatureReferenceStrainTests.cs",
+        "GPCChecker.Test.Concrete/DetailingContractTests.cs"
+      ],
+      "qualification": "Fotografie di regressione distinte da soluzioni analitiche; prove esterne sulle curve RC da ampliare."
+    },
+    {
+      "id": "C09",
+      "module": "Concrete",
+      "sections": [
+        "anima rettangolare",
+        "T tramite bw,d"
+      ],
+      "calculation": "taglio senza staffe",
+      "standards": [
+        "NTC2018",
+        "EC2 base"
+      ],
+      "evidence": [
+        "A",
+        "P",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.Concrete/ShearMigrationTests.cs",
+        "GPCChecker.Test.Concrete/CriticalBranchReferenceTests.cs"
+      ],
+      "qualification": "Benchmark JRC89037 3.2.1.4 pp.59-60 riprodotto. Calcolo scalare su bw,d; non verifica estrazione geometrica automatica o riduzione del taglio vicino agli appoggi."
+    },
+    {
+      "id": "C10",
+      "module": "Concrete",
+      "sections": [
+        "anima rettangolare",
+        "T tramite bw,d"
+      ],
+      "calculation": "taglio con staffe e scelta cot(theta)",
+      "standards": [
+        "NTC2018",
+        "EC2 base"
+      ],
+      "evidence": [
+        "A",
+        "P",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.Concrete/ShearMigrationTests.cs",
+        "GPCChecker.Test.Concrete/CriticalBranchReferenceTests.cs"
+      ],
+      "qualification": "Benchmark JRC e 12 ottimi analitici cot(theta), 10 transizioni alpha_c, limite superiore e segni/esito della domanda verificati. Incongruenza area staffe JRC documentata in SOURCES.txt."
+    },
+    {
+      "id": "C11",
+      "module": "Concrete",
+      "sections": [
+        "anima equivalente"
+      ],
+      "calculation": "taglio con eccentricita assiale",
+      "standards": [
+        "MC2010"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.Concrete/ShearAxialEccentricityTests.cs",
+        "GPCChecker.Test.Concrete/ShearMigrationTests.cs"
+      ],
+      "qualification": "Segno e confronto numerico documentati; MC2010 non equiparato al profilo EC2."
+    },
+    {
+      "id": "C12",
+      "module": "Concrete",
+      "sections": [
+        "anima equivalente FRC"
+      ],
+      "calculation": "taglio senza staffe e rifiuto fibre+staffe",
+      "standards": [
+        "CNR-DT204"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.Concrete/ShearMigrationTests.cs"
+      ],
+      "qualification": "Fibre con staffe non implementate: rifiuto verificato, nessun esito di resistenza attribuito."
+    },
+    {
+      "id": "C13",
+      "module": "Concrete",
+      "sections": [
+        "rettangolare piena",
+        "cava rettangolare",
+        "circolare piena",
+        "anulare"
+      ],
+      "calculation": "geometria resistente a torsione",
+      "standards": [
+        "NTC2018",
+        "EC2 base"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.Concrete/TorsionMigrationTests.cs",
+        "GPCChecker.Test.Concrete/CriticalBranchReferenceTests.cs"
+      ],
+      "qualification": "Otto casi da contorno a resistenza: quattro famiglie per NTC/EC2. Spessore reale/equivalente distinti; non verifica completa dei dettagli di armatura."
+    },
+    {
+      "id": "C14",
+      "module": "Concrete",
+      "sections": [
+        "rettangolare piena",
+        "cava rettangolare",
+        "circolare piena",
+        "anulare"
+      ],
+      "calculation": "torsione e V1-V2-T con cot(theta) comune",
+      "standards": [
+        "NTC2018",
+        "EC2 base"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.Concrete/TorsionMigrationTests.cs",
+        "GPCChecker.Test.Concrete/CriticalBranchReferenceTests.cs"
+      ],
+      "qualification": "Otto interazioni T-V1-V2 con capacita e geometrie calcolate separatamente; cot(theta) comune e segni verificati. Oracolo analitico, non benchmark biassiale pubblicato."
+    },
+    {
+      "id": "C15",
+      "module": "Concrete",
+      "sections": [
+        "RC rettangolare"
+      ],
+      "calculation": "fessurazione e passaggi di ramo",
+      "standards": [
+        "NTC2018",
+        "EC2 base"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.Concrete/CrackMigrationTests.cs"
+      ],
+      "qualification": "Calcolo manuale piu fixture di migrazione; formule NTC/EC separate."
+    },
+    {
+      "id": "C16",
+      "module": "Concrete",
+      "sections": [
+        "circolare",
+        "anulare",
+        "scatolare",
+        "poligonale con fori"
+      ],
+      "calculation": "geometria della fascia tesa e fessure",
+      "standards": [
+        "NTC2018",
+        "EC2 e annessi dichiarati nei test"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.Concrete/CurveGeometryTests.cs",
+        "GPCChecker.Test.Concrete/CrackMigrationTests.cs"
+      ],
+      "qualification": "Molti casi limite; non affermare una copertura cartesiana di ogni geometria con ogni annesso."
+    },
+    {
+      "id": "C17",
+      "module": "Concrete",
+      "sections": [
+        "RC",
+        "PSC"
+      ],
+      "calculation": "limiti tensionali SLE e omogeneizzazione",
+      "standards": [
+        "NTC2018",
+        "EC2 e annessi",
+        "MC2010"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.Concrete/ServiceabilityMigrationTests.cs",
+        "GPCChecker.Test.Concrete/StressAnalysisTensionStiffeningTests.cs"
+      ],
+      "qualification": "Fixture legacy, formule indipendenti e contratti; alcune combinazioni correttamente NotApplicable."
+    },
+    {
+      "id": "C18",
+      "module": "Concrete",
+      "sections": [
+        "travi",
+        "pilastri",
+        "pareti",
+        "piastre",
+        "pali"
+      ],
+      "calculation": "armature minime/massime, ancoraggi, sovrapposizioni",
+      "standards": [
+        "NTC2018",
+        "EC2 e annessi implementati"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.Concrete/DetailingMigrationTests.cs",
+        "GPCChecker.Test.Concrete/DetailingContractTests.cs"
+      ],
+      "qualification": "Annessi incompleti dichiarano NotImplemented; i contratti di testo non validano autonomamente i coefficienti."
+    },
+    {
+      "id": "C19",
+      "module": "Concrete",
+      "sections": [
+        "geometria non dipendente"
+      ],
+      "calculation": "copriferro e durabilita",
+      "standards": [
+        "NTC2018",
+        "EC2 e annessi implementati"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.Concrete/DurabilityExamplesTests.cs",
+        "GPCChecker.Test.Concrete/DurabilityEdgeCaseTests.cs",
+        "GPCChecker.Test.Concrete/DurabilityMigrationTests.cs",
+        "GPCChecker.Test.Concrete/DurabilityContractTests.cs"
+      ],
+      "qualification": "Esempi indipendenti e classi di esposizione; non generalizzare a materiali/ambienti non previsti."
+    },
+    {
+      "id": "C20",
+      "module": "Concrete",
+      "sections": [
+        "geometrie varie"
+      ],
+      "calculation": "integrazione, convergenza, confronto strategie",
+      "standards": [
+        "leggi assegnate"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.Concrete/SectionIntegrationTest.cs",
+        "GPCChecker.Test.Concrete/FailureDomainIntesectVsDirect.cs",
+        "GPCChecker.Test.Concrete/ConstantAxialForcePlaneTests.cs"
+      ],
+      "qualification": "Confrontare due algoritmi della stessa libreria e controllo interno, non solver esterno."
+    },
+    {
+      "id": "B01",
+      "module": "CompositeBridge",
+      "sections": [
+        "H composta",
+        "doppia anima",
+        "cassone",
+        "rettangoli generici"
+      ],
+      "calculation": "geometria e proprieta omogeneizzate",
+      "standards": [
+        "meccanica elastica"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.CompositeBridge/GenericSectionServicesTests.cs",
+        "GPCChecker.Test.CompositeBridge/SectionTypeTests.cs",
+        "GPCChecker.Test.CompositeBridge/ValidationDossierTests.cs"
+      ],
+      "qualification": "Differenza dichiarata tra modello a pareti sottili cumulativo e rettangoli/fibre storico."
+    },
+    {
+      "id": "B02",
+      "module": "CompositeBridge",
+      "sections": [
+        "H composta"
+      ],
+      "calculation": "fasi acciaio/getto, riferimenti N, ritiro multiplo",
+      "standards": [
+        "EC4",
+        "meccanica elastica"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs",
+        "GPCChecker.Test.CompositeBridge/ValidationDossierTests.cs",
+        "GPCChecker.Test.CompositeBridge/HBridgeHistoryTests.cs"
+      ],
+      "qualification": "Moduli efficaci assegnati; non evoluzione viscosa automatica in funzione del tempo."
+    },
+    {
+      "id": "B03",
+      "module": "CompositeBridge",
+      "sections": [
+        "fibre generiche acciaio/CLS",
+        "H"
+      ],
+      "calculation": "storia elastoplastica, inversioni, stato di getto",
+      "standards": [
+        "leggi assegnate"
+      ],
+      "evidence": [
+        "A",
+        "E",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.CompositeBridge/OpenSeesReferenceTests.cs",
+        "GPCChecker.Test.CompositeBridge/HistoryNonlinearTests.cs",
+        "GPCChecker.Test.CompositeBridge/HistoryBehaviorTests.cs"
+      ],
+      "qualification": "29 stati OpenSees, materiali espliciti; non validazione sperimentale/danno ciclico CLS."
+    },
+    {
+      "id": "B04",
+      "module": "CompositeBridge",
+      "sections": [
+        "fibre generiche acciaio/CLS"
+      ],
+      "calculation": "curve M-kappa e N-epsilon",
+      "standards": [
+        "leggi assegnate"
+      ],
+      "evidence": [
+        "A",
+        "E",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.CompositeBridge/SectionResponseOpenSeesTests.cs",
+        "GPCChecker.Test.CompositeBridge/SectionResponseTests.cs"
+      ],
+      "qualification": "35 stati OpenSees su 6 curve; 64 stati esterni totali insieme a B03."
+    },
+    {
+      "id": "B05",
+      "module": "CompositeBridge",
+      "sections": [
+        "H",
+        "piatti interni/sbalzi"
+      ],
+      "calculation": "classe4, iterazione efficacia, convergenza mesh",
+      "standards": [
+        "EC3-1-5",
+        "NTC tramite parametri dichiarati"
+      ],
+      "evidence": [
+        "A",
+        "P",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.CompositeBridge/SharedEffectiveKernelTests.cs",
+        "GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs",
+        "GPCChecker.Test.CompositeBridge/HBridgeHistoryTests.cs"
+      ],
+      "qualification": "Kernel condiviso Steel; non modello di instabilita postcritica con plasticita/danno."
+    },
+    {
+      "id": "B06",
+      "module": "CompositeBridge",
+      "sections": [
+        "anima singola",
+        "anime multiple equivalenti"
+      ],
+      "calculation": "instabilita a taglio e pannelli",
+      "standards": [
+        "EC3-1-5",
+        "NTC tramite opzioni esplicite"
+      ],
+      "evidence": [
+        "A",
+        "P",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs",
+        "GPCChecker.Test.CompositeBridge/SectionTypeTests.cs",
+        "GPCChecker.Test.CompositeBridge/ValidationDossierTests.cs"
+      ],
+      "qualification": "Soglie tra rami da consolidare; non contributo delle piattabande alla resistenza a taglio."
+    },
+    {
+      "id": "B07",
+      "module": "CompositeBridge",
+      "sections": [
+        "piatti/irrigidimenti trasversali"
+      ],
+      "calculation": "rigidezza, instabilita, deviazione e secondo ordine",
+      "standards": [
+        "EC3-1-5"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs"
+      ],
+      "qualification": "Modelli e vincoli specifici; non verifica completa saldature/appoggio/diaframma."
+    },
+    {
+      "id": "B08",
+      "module": "CompositeBridge",
+      "sections": [
+        "pioli in soletta piena"
+      ],
+      "calculation": "resistenza acciaio/CLS e limiti geometrici",
+      "standards": [
+        "EC4-2"
+      ],
+      "evidence": [
+        "A",
+        "P",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs",
+        "GPCChecker.Test.CompositeBridge/CompositeBridgeApiTests.cs",
+        "GPCChecker.Test.CompositeBridge/CriticalBranchReferenceTests.cs"
+      ],
+      "qualification": "Benchmark JRC68415 6.7.1 pp.156-157 SLU e soglie h/d verificati. Incongruenza aritmetica SLE della fonte esclusa dagli attesi; non soletta grecata."
+    },
+    {
+      "id": "B09",
+      "module": "CompositeBridge",
+      "sections": [
+        "soletta composta"
+      ],
+      "calculation": "scorrimento, armatura trasversale, ancoraggi",
+      "standards": [
+        "EC2/EC4",
+        "NTC"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs",
+        "GPCChecker.Test.CompositeBridge/CompositeBridgeApiTests.cs"
+      ],
+      "qualification": "Verifica locale sulle superfici dichiarate; non connessione parziale deformabile."
+    },
+    {
+      "id": "B10",
+      "module": "CompositeBridge",
+      "sections": [
+        "pioli"
+      ],
+      "calculation": "fatica con flangia tesa/compressa",
+      "standards": [
+        "EC4-2"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs"
+      ],
+      "qualification": "Non qualifica fatica di tutti i dettagli metallici o spettri di traffico del ponte."
+    },
+    {
+      "id": "B11",
+      "module": "CompositeBridge",
+      "sections": [
+        "rettangoli",
+        "H composta"
+      ],
+      "calculation": "momenti plastici e limiti N-M",
+      "standards": [
+        "equilibrio plastico",
+        "EC4 nel campo ammesso"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs",
+        "GPCChecker.Test.CompositeBridge/CriticalBranchReferenceTests.cs"
+      ],
+      "qualification": "Quattordici domini analitici con polo centrale/traslato ed estremi assiali; due carichi fuori dominio rifiutati. Riferimento rettangolare, non qualifica completa di ogni sezione composta."
+    },
+    {
+      "id": "B12",
+      "module": "CompositeBridge",
+      "sections": [
+        "H composta/anima equivalente"
+      ],
+      "calculation": "interazione M-V ed inviluppo elastico",
+      "standards": [
+        "EC3-1-5/EC4 nel campo ammesso"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs",
+        "GPCChecker.Test.CompositeBridge/CriticalBranchReferenceTests.cs"
+      ],
+      "qualification": "Dieci casi sulle due soglie e segni M-V, sei sull'inviluppo elastico; criterio distinto dalla resistenza plastica di classe4."
+    },
+    {
+      "id": "B13",
+      "module": "CompositeBridge",
+      "sections": [
+        "cassone rettangolare",
+        "trapezoidale monocella"
+      ],
+      "calculation": "torsione e distorsione",
+      "standards": [
+        "Bredt",
+        "modello su suolo elastico dichiarato"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.CompositeBridge/BoxTorsionTests.cs"
+      ],
+      "qualification": "Non torsione multicella generale o instabilita globale del ponte."
+    },
+    {
+      "id": "B14",
+      "module": "CompositeBridge",
+      "sections": [
+        "soletta fessurata su H"
+      ],
+      "calculation": "tension stiffening e soletta esclusa",
+      "standards": [
+        "EC4",
+        "legge costitutiva dichiarata"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.CompositeBridge/TensionStiffeningTests.cs",
+        "GPCChecker.Test.CompositeBridge/NonlinearCrackedSlabTests.cs"
+      ],
+      "qualification": "Distinguere contributo tension stiffening da verifica SLE e da legge non lineare storica."
+    },
+    {
+      "id": "B15",
+      "module": "CompositeBridge",
+      "sections": [
+        "fibre/H generiche"
+      ],
+      "calculation": "non convergenza, rollback, ingressi non ammessi",
+      "standards": [
+        "contratto numerico"
+      ],
+      "evidence": [
+        "A",
+        "R"
+      ],
+      "tests": [
+        "GPCChecker.Test.CompositeBridge/HistoryNonlinearTests.cs",
+        "GPCChecker.Test.CompositeBridge/GenericSectionServicesTests.cs",
+        "GPCChecker.Test.CompositeBridge/HistoryBehaviorTests.cs"
+      ],
+      "qualification": "Gia provati stato non committato e ultimo stato valido: non duplicare con nuovi test equivalenti."
+    },
+    {
+      "id": "B16",
+      "module": "CompositeBridge",
+      "sections": [
+        "H"
+      ],
+      "calculation": "metodo Viviani e confronto altri metodi",
+      "standards": [
+        "modello Viviani dichiarato"
+      ],
+      "evidence": [
+        "R",
+        "A"
+      ],
+      "tests": [
+        "GPCChecker.Test.CompositeBridge/Viviani/VivianiEquivalenceTests.cs",
+        "GPCChecker.Test.CompositeBridge/Viviani/VivianiComparisonTests.cs"
+      ],
+      "qualification": "Equivalenza col metodo originale non e validazione esterna indipendente."
+    }
+  ]
+}
