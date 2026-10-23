@@ -239,3 +239,16 @@ La flangia sottile vicino all'estremo fisico fallisce a34400N/bullone.
 DA10 e il nodo completo restano aperti. L'anima del supporto delle endplate
 flessibili non e sostituibile con il modello di flangia/4b.
 Log/TRX workspace audit-results/connections/night-2c-4cde.
+
+
+4c.1/4d.1/4e.1 - ASSEMBLAGGIO COMPONENTI MOMENTO, STEEL2.64.0.0
+21/21test passati,35/35nel controllo con2c,0ignorati.
+SCI P398 C.1:415.771287878kNm senza arrotondamenti contro416pubblicati;
+file377258.633041/321033.220445/141567.346514N, governano T-stub esterno,
+gruppo1-2 colonna e compressione anima. NTC398.984921788kNm.
+Piastra a filo295.144242953kNm; beta1/pannello279.420510474kNm.
+Controllati tutti i gruppi e la regolaEN1.9Ft senza eccezioneUK implicita.
+MC,Rd trave legato allo stesso snapshot/norma/taglio concomitante.
+CanQualifyWholeJoint=false: taglio, interazione, punzonamento e saldature
+non sono certificati dal nuovo calcolo a momento. Non si ignora N: rifiutato.
+Log/TRX workspace audit-results/connections/night-2c-4cde.

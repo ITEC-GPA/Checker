@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
-Versione sorgenteSteel2.63.0.0. Solo librerie, nessuna interfacciaANTHEA.
+Versione sorgenteSteel2.64.0.0. Solo librerie, nessuna interfacciaANTHEA.
 Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
 
 COMPONENTI
@@ -212,3 +212,6 @@ I risultati restano consumabili dalle librerie; integrazioneANTHEA rinviata.
 
 - DoubleAngleCleatColumnFlangeBearing: rifollamento della flangia reale del
   supporto;14test, altri modi locali aperti. PHASE_2C_SUPPORT_TENSION_REVIEW.txt.
+
+- EndPlateMomentComponents: assemblaggio resistenza a momento a filo/estesa,
+  tutti i gruppi e compressione/pannello; PHASE_4CDE_MOMENT_COMPONENTS.txt.

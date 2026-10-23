@@ -37,10 +37,10 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1268 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 1289 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,
    83componenti doppie squadrette/supporto,208precarico/scorrimento,300continuitaI,
-   40fazzoletto/due piatti,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,122T-stub/file/geometrie,46anima pilastro.
+   40fazzoletto/due piatti,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,122T-stub/file/geometrie,46anima pilastro,21assemblaggio momento.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
@@ -111,17 +111,21 @@ FASE 4 - NODI A MOMENTO
    taglio di pannello, interazioni omega/kw/rho e diffusione end plate;46test.
    Flangia nel campo4a. Restano rinforzi/irrigidimenti e assemblaggio nel nodo;
    PHASE_4B_COLUMN_WEB.txt. Vincolo column-sway esplicitamente richiesto.
-4c DA FARE - Piastra di estremita a filo: geometria, file di bulloni, piastra,
-   saldature, trave e pilastro assemblati in un unico percorso resistente.
-4d DA FARE - Piastra di estremita estesa: file esterne e interne, interazione
-   fra gruppi, meccanismi della piastra e leva.
-4e DA FARE - Equilibrio del nodo e combinazione delle componenti: resistenza
-   a momento, taglio e sforzo normale nel campo ammesso; controllo governante.
+4c PARZIALE - Chiusa4c.1: assemblaggio componenti della piastra a filo,
+   file interne, ala/anima pilastro e trave, compressione e pannello.
+4d PARZIALE - Chiusa4d.1: piastra estesa, fila esterna separata dalle interne,
+   gruppi comuni sulla flangia del pilastro e leva dei T-stub.
+4e PARZIALE - Chiusa4e.1: riparto sequenziale delle resistenze, tutti i gruppi,
+   limite1.9Ft e limite comune di compressione/taglio pannello.21test4cde.
+   N=0; taglio conservato ma non verificato. Restano saldature, punzonamento,
+   interazione bulloni N-V e resistenza a taglio del nodo. Nessuna qualifica
+   globale; PHASE_4CDE_MOMENT_COMPONENTS.txt.
 4f DA FARE - Rigidezza rotazionale/classificazione e capacita rotazionale:
    distinguere un nodo resistente da un nodo coerente con l'incastro/cerniera
    assunto nel modello globale; dati necessari e limiti espliciti.
-4g DA FARE - Esempi SCI P398 e altre fonti indipendenti, casi completi a filo
-   ed estesi, sensibilita ai fattori EC3/NTC e controlli di tutti i meccanismi.
+4g PARZIALE - SCI P398 C.1 riprodotto415.771kNm rispetto a416pubblicati,
+   con meccanismi governanti e varianti a filo/NTC/pannello. Restano esempi
+   del nodo completo con tutti i meccanismi, incluso taglio e saldature.
 
 ORDINE DI ATTUAZIONE
 Prima1a/1c/1d e completamento dei componenti1b/1e/1f necessari a2b.

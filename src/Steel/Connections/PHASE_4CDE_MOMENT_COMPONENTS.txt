@@ -1,0 +1,141 @@
+FASI4c.1/4d.1/4e.1 - ASSEMBLAGGIO DELLE COMPONENTI A MOMENTO
+=========================================================
+
+Stato e campo
+-------------
+Percorso concreto per piastra a filo o estesa con una sola fila esterna,
+trave/pilastro laminati I/H non irrigiditi, piastra rettangolare saldata e due
+bulloni identici simmetrici per fila. Statica ordinaria, N=0, momento del segno
+che tende le file dichiarate. Il modulo non chiude le fasi4c/4d/4e generali:
+EndPlateMomentComponentResult.CanQualifyWholeJoint e sempre false.
+ComponentAssessment contiene la sola resistenza delle componenti a momento
+descritte; i PendingChecks identificano puntualmente cio che manca al nodo.
+
+Fonti verificate
+----------------
+EN1993-1-8:2005: 6.2.6.2/.3/.4/.5/.7/.8 e6.2.7.2(1-9), eq6.25/6.26,
+Tabelle6.2/6.3/6.4/6.6. Regola1.9Ft verificata visivamente p.88/PDF90.
+SCI P398, C.1 pp.83-105, in particolare riepilogo101, compressione102-103,
+equilibrio/momento104. Fonte primaria:
+https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
+I grafici e le lunghezze efficaci sono quelli gia documentati in4a.2a/4a.2b.
+Per NTC2018 sono usati fattori nazionali e modello EC supplementare esplicito:
+non si presentano formule di componenti EC come prescrizioni letterali NTC.
+
+Input e legame alle componenti
+-----------------------------
+EndPlateMomentComponentInput conserva geometrie/materiali immutabili e tutte
+le azioni concomitanti Moment/Shear/Axial (N,mm,Nmm). N non nullo e rifiutato.
+V viene conservato, mostrato nella Trace e nominato nei PendingChecks; non
+viene annullato, ne considerato verificato in assenza delle verifiche a taglio.
+Il momento positivo pone in trazione le file dichiarate; non viene effettuato
+un ribaltamento automatico per il momento opposto.
+
+La resistenza Mc,Rd della sezione trave resta un input qualificato, dopo
+classificazione e riduzione per il taglio concomitante. EndPlateBeamMomentResistance
+e legata allo stesso oggetto Beam, Code e allo stesso valore Shear dell'input;
+un valore di un'altra sezione/policy/combinazione non viene accettato. La fonte
+deve dichiarare la verifica di sezione a monte; nessuna classe e dedotta qui.
+
+Beta, sigma longitudinali del pilastro, vincolo column-sway e combinazione
+hanno fonti obbligatorie. Per il campo monolaterale beta=1; il campo bilaterale
+con travi di altezza simile ammette beta0..2 qualificato. Altezze diverse sono
+rifiutate dal componente pannello. Il materiale dell'ala del pilastro resta
+distinto da quello dell'anima per usare le resistenze ai rispettivi spessori.
+
+Le geometrie interne devono coincidere con h/tw/tf della trave, larghezza del
+pilastro e della piastra. La fila esterna deve avere stessa piastra, gauge e
+cateto dell'ala tesa. I bracci sono calcolati dal centro dell'ala compressa:
+h_r=hTrave-tfTrave/2-y_r, con y riferito alla faccia esterna dell'ala tesa.
+Si ricavano le stesse coordinate fisiche per tutti i gruppi del pilastro.
+Le distanze dai due estremi liberi del pilastro sono dati reali: la diffusione
+di compressione deve rimanere dentro il supporto, anche quando i T-stub tesi
+sono sufficientemente lontani dal bordo. Il primo criterio conservativo e
+distanzaCentroCompressioneDaEstremo >= beffCompressione/2.
+
+Componenti incluse
+------------------
+1. Tutte le file singole e tutti i sottogruppi contigui della flangia pilastro.
+2. Tutte le file/sottogruppi interni della piastra, piu la fila esterna separata.
+   Nessun gruppo della piastra attraversa l'ala tesa.
+3. Anime di pilastro e trave in trazione per ogni fila/gruppo pertinente.
+   Si usa sempre min(leff1,leff2), scelta esplicitamente conservativa.
+   C.1 p.88 usa leff2 per il pilastro governato dal modo2; qui la scelta minima
+   riduce la relativa capacita, ma non modifica il modo governante di C.1.
+4. Anima pilastro compressa con diffusione nella piastra, omega/kw/rho.
+5. Compressione ala/anima trave = Mc,Rd/(h-tf), eq6.21.
+6. Limite totale del pannello Vwp,Rd/beta quando beta>0.
+   Il pannello e comunque controllato nel suo campo di snellezza e geometria.
+7. Riparto resistente sequenziale EN6.2.7.2, soglia1.9Ft e momento resistente.
+La lunghezza efficace per le anime e la minima capacita dei T-stub sono
+ricavate direttamente dai numeri; non da GoverningCheck con domanda zero.
+
+Algoritmo ed equilibrio
+----------------------
+Le file sono ordinate dalla piu lontana al centro di compressione. Per ciascuna
+fila si prende la capacita residua minima di TUTTI i vincoli che la comprendono,
+sottraendo soltanto le resistenze gia assegnate alle file piu alte. Le file
+successive restano nulle durante il passo (EN6.2.7.2(4)).
+Ogni sottogruppo pertinente e esplicito: non si assume una capacita infinita
+per un gruppo mancante. Pannello e compressione sono vincoli sul totale.
+
+Se la prima precedente fila x ha Ftx,Rd>1.9Ft,Rd del SINGOLO bullone, la
+resistenza della fila r e limitata a Ftx,Rd*hr/hx. Non si applica implicitamente
+l'eccezione UK riportata da SCI per gli spessori delle piastre.
+Mj,Rd=sum(Ftr,Rd*hr), Fc=sum(Ftr,Rd), Vpanel=beta*Fc.
+Le forze alla domanda sono le forze del meccanismo scalate per MEd/Mj,Rd:
+non rappresentano forze elastiche di esercizio nei bulloni o una Q di leva.
+Il controllo del momento conserva la domanda esatta; sui controlli derivati
+dei gruppi si elimina solo errore relativo<=1e-12 quando MEd<=Mj,Rd.
+Il carico superiore alla resistenza resta Failed.
+
+Benchmark e verifiche indipendenti
+---------------------------------
+derive_endplate_moment.py e uno script autonomo (nessun import Checker).
+C.1: geometrie esatte gia in4a/4b, Mc,Rd649e6Nmm pubblicato, cateti8/12/8,
+beta0, sigma0 esplicitamente assunto per riprodurre kw1 dell'esempio.
+Le continuazioni libere del pilastro1000mm ai due lati sono una ASSUNZIONE
+del test coerente con l'assenza di estremi vicini nel libro, non una quota
+ricavata dal disegno SCI.
+Prima fila:377258.633041N, braccio565.3mm, limita piastra esterna.
+Seconda:321033.220445N, braccio465.3mm, limita gruppo1-2 del pilastro.
+Terza:141567.346514N, braccio375.3mm, limita anima pilastro compressa.
+Totale839859.2N; Mj,Rd415771287.877790Nmm=415.771288kNm.
+SCI stampa416kNm, con377/320/144kN e565/465/375mm intermedi arrotondati.
+Tolleranza separata0.6kNm sul pubblicato; sul ricalcolo indipendente0.001Nmm.
+
+Varianti calcolate indipendentemente, non attribuite come esempi pubblicati:
+- piastra a filo con le due file interne:295.144242953kNm;
+- fattoriNTC1.05/1.05/1.25, stesso Mc,Rd esplicitamente fornito:398.984921788kNm;
+- nodo monolaterale beta1:279.420510474kNm, totale limitato da pannello519438.313281N;
+- Mc,RdTrave100kNm:109.236714976kNm, solo prima fila attiva.
+Il valore Mc,Rd della varianteNTC e un dato qualificato di test (non si afferma
+che649kNm sia la resistenza NTC calcolata della stessa sezione).
+
+Test di integrazione includono: interoC.1, gruppi, percorso a filo, policyNTC,
+beta1, compressione della trave, attivazione1.9Ft con piastre spesse,
+domanda zero, limite esatto/oltre limite, immutabilita, N non nullo, V conservato,
+snapshot/qualificazioni incoerenti, troncamento sul supporto, stress fuori campo,
+impronte hardware, overflow/underflow. I test saranno eseguiti centralmente:
+non si riportano risultati non eseguiti.
+
+Verifiche ancora necessarie del nodo
+-----------------------------------
+Taglio verticale e interazioni dei bulloni tesi, rifollamento; punzonamento e
+contatto di dadi/teste/rondelle; saldature e introduzione delle forze inclusa
+la fila esterna; resistenze/stabilita degli elementi e applicabilitaMc,Rd;
+rigidezza/classificazione/capacita rotazionale. L'elenco e nel risultato.
+Il kernel non dichiarera il nodo completo Passed prima della loro integrazione.
+
+VERIFICA CENTRALIZZATA24/10/2026
+4c.1/4d.1/4e.1 - ASSEMBLAGGIO COMPONENTI MOMENTO, STEEL2.64.0.0
+21/21test passati,35/35nel controllo con2c,0ignorati.
+SCI P398 C.1:415.771287878kNm senza arrotondamenti contro416pubblicati;
+file377258.633041/321033.220445/141567.346514N, governano T-stub esterno,
+gruppo1-2 colonna e compressione anima. NTC398.984921788kNm.
+Piastra a filo295.144242953kNm; beta1/pannello279.420510474kNm.
+Controllati tutti i gruppi e la regolaEN1.9Ft senza eccezioneUK implicita.
+MC,Rd trave legato allo stesso snapshot/norma/taglio concomitante.
+CanQualifyWholeJoint=false: taglio, interazione, punzonamento e saldature
+non sono certificati dal nuovo calcolo a momento. Non si ignora N: rifiutato.
+Log/TRX workspace audit-results/connections/night-2c-4cde.
