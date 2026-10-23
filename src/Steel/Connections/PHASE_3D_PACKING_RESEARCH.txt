@@ -1,0 +1,64 @@
+FASE 3d - IMBOTTITURE DI DOPPI L/C: RISULTATO DELL'ANALISI PRELIMINARE
+
+1. Vincoli gia' implementati e da riusare
+SteelPackedPairAssessment/SteelPackedPairExecution lavorano su due profili
+uguali condivisi in Model, con dorsi affacciati e imbottitura che riempie il gap.
+Non inferiscono le sollecitazioni locali come N/2 o zero. L'inviluppo locale
+e le resistenze complete sono attualmente qualificati esternamente.
+L'adattatore BraceAngleModelAdapter conserva il lato fisico degli L disuguali
+e le eccentricita'; non converte automaticamente C in L o in piatti equivalenti.
+
+2. Fonti verificate
+EN1993-1-1:2005, par.6.4.4, figura6.12, tabella6.9, p.74:
+per gli elementi ravvicinati imbottiti di figura6.12 l'interasse massimo tra
+interconnessioni bullonate/saldate e'15imin. La regola dei70imin riguarda invece
+i calastrelli della figura6.13 ed e' fuori dalla richiesta dell'utente.
+Il punto(2) rimanda alla forza di taglio dei BATTENS di6.4.3.1(1): non e'
+un'autorizzazione a imporre una forza nulla o a trasformare l'imbottitura in
+un calastrello senza dichiarare il modello.
+
+Circolare21/01/2019n.7, C4.2.4.1.3.1.5, figuraC4.2.10, tabellaC4.2.III,
+pp.104-105 (PDF108-109 del testo locale): per i tipi1-4, passo15imin;
+gap pari allo spessore dei piatti di nodo e non oltre3t del profilo.
+Anche questi controlli sono gia' nel percorso packed-pair. Il paragrafo non
+fornisce una formula autonoma che determini tutte le azioni sulla singola
+imbottitura per qualsiasi imperfezione e introduzione del carico.
+
+3. Punto meccanico che impedisce il semplice riuso di GussetTwinFlatTension
+Nel nodo terminale con fazzoletto centrale caricato, la forza del fazzoletto
+si divide fra due correnti. Nell'imbottitura intermedia le due facce possono
+trasferire forze longitudinali uguali e opposte: il blocco centrale puo' avere
+risultante nulla e coppia non nulla. Il percorso di taglio e la flessione del
+bullone non sono allora la simmetrica divisione N/2 su due piani del primo nodo.
+Il solo moltiplicatore nPlanes=2 sarebbe una qualificazione fisica non provata.
+BoltStrength dispone gia' di beta_p per i piatti di imbottitura, ma quel fattore
+riduce una resistenza assegnata: non determina la distribuzione delle azioni
+ne' verifica autonomamente il blocco, le sue facce o l'intero collegamento.
+
+4. Primo avanzamento concretamente difendibile
+Un adattatore di domanda locale puo' ricevere, per ciascuna imbottitura e
+per un singolo stato concomitante, le sei azioni sulle due facce e le loro
+posizioni reali. Deve verificare equilibrio al baricentro del blocco prima
+di invocare i kernel locali. La posizione/orientamento viene da Model;
+l'inviluppo deve preservare lo stesso stato, senza mescolare massimi di
+combinazioni diverse. La domanda deriva da un modello dichiarato di correnti,
+imperfezioni e trasferimento, non dal solo sforzo normale globale.
+
+Per la prima resistenza calcolata completa suggerisco un dettaglio saldato
+con blocco rettangolare e saldature definite su entrambe le facce, solo dopo
+aver chiuso le azioni di faccia e la resistenza del blocco a N,V,M. I gruppi
+FilletWeldGroup sono planari e vanno valutati in due piani locali distinti;
+non devono essere sommati come un singolo gruppo piano fittizio. Il loro
+contratto attuale esclude il modello di packing: non basta un wrapper per
+rimuovere quell'esclusione. Per il bullonato serve inoltre un modello
+documentato del bullone attraverso il pacco e del trasferimento fra facce.
+
+5. Stato e benchmark
+Non e' stato trovato un benchmark primario con geometria, vincoli, azioni
+locali e resistenza completa che giustifichi gia' una nuova API di resistenza
+automatica per la packing station. Non viene quindi consegnato codice che
+presenti questa fase come chiusa. Sono riutilizzabili i test gia' disponibili
+del limite di passo/gap, dei correnti e del kernel beta_p; NON costituiscono
+un benchmark del collegamento completo. Prossimo passo circoscritto:
+contratto delle due facce + equilibrio con ricalcolo analitico indipendente,
+poi qualificazione del primo dettaglio di resistenza completo.

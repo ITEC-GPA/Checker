@@ -37,10 +37,10 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1186 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 1234 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,
    69componenti doppie squadrette,208precarico/scorrimento,300continuitaI,
-   40fazzoletto/due piatti,43netto efficace angolare,40adattatoreL/2L,102T-stub/file/geometrie,46anima pilastro.
+   40fazzoletto/due piatti,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,102T-stub/file/geometrie,46anima pilastro.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
@@ -79,16 +79,18 @@ FASE 3 - CONTROVENTI E PROFILI ACCOPPIATI
    centrale e due piatti uguali tesi,40test. Lordo/netto/block, bulloni,
    rifollamento e azioni trasportate. Restano attacco/supporto3a.2,
    saldature e campi eccentrici; PHASE_3A_TWIN_FLAT.txt.
-3b DA FARE - Fazzoletto compresso: modello analitico di diffusione delle forze,
-   vincoli e lunghezza libera, stabilita nel/fuori piano; rifiuto dei casi non
-   descritti dalle ipotesi. Nessuna lunghezza efficace inventata.
+3b PARZIALE - Chiusa3b.1: meccanismo fuori piano dei piatti in semplice
+   sovrapposizione, quattro bulloni, un bordo perpendicolare e incastri reali;
+   48test SCI/analitici e confronto con prove Khoo. PHASE_3B_GUSSET_COMPRESSION.txt.
+   Restano gli altri meccanismi, bulloni/saldature, supporto e nodo completo.
 3c PARZIALE - Chiusa3c.1: lordo/netto efficace di un L collegato su un lato,
    EN3.10.3 e fattori EC/NTC,43test; lato corto esplicito per L disuguali.
    Chiusa3c.2 per L/2L identici dorso-dorso: adattatore Model e40test,
    lati fisici, raccordi, assi e riparto esplicito; PHASE_3C_MODEL_ADAPTER.txt.
    Restano C, compressione e resistenza del nodo con le eccentricita esposte.
-3d DA FARE - Imbottiture dei profili doppi: domanda locale tracciabile dalla
-   verifica dell'asta, piastra e bulloni/saldature. Restano esclusi i calastrelli.
+3d IN ANALISI - Imbottiture dei profili doppi: domanda locale tracciabile dalla
+   verifica dell'asta, piastra e bulloni/saldature. Fonti/limiti e percorso a
+   due facce in PHASE_3D_PACKING_RESEARCH.txt. Restano esclusi i calastrelli.
 3e PARZIALE - Chiusa3e.1: riuso SteelSectionInput/SteelActions per L/2L,
    senza gerarchie duplicate o modifiche Model. Restano C, altre componenti
    e esempio completo asta-collegamento, incluse le azioni eccentriche.

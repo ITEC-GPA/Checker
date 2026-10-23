@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
-Versione sorgenteSteel2.60.0.0. Solo librerie, nessuna interfacciaANTHEA.
+Versione sorgenteSteel2.61.0.0. Solo librerie, nessuna interfacciaANTHEA.
 Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
 
 COMPONENTI
@@ -15,6 +15,8 @@ COMPONENTI
   collega geometria e resistenza senza sommare capacita delle singole file.
 - ColumnWebComponents: pannello a taglio, anima in trazione/compressione,
   interazioni e diffusione dalla piastra; PHASE_4B_COLUMN_WEB.txt.
+- GussetLapCompression: meccanismo fuori piano del tab/fazzoletto a semplice
+  sovrapposizione compresso, SCI P358; PHASE_3B_GUSSET_COMPRESSION.txt.
 - BraceAngleTension: lordo/netto efficace dell'angolare collegato su un lato,
   lato lungo/corto fisico esplicito; PHASE_3A_ANGLE_NET.txt.
 - BraceAngleModelAdapter.FromSingle/FromPair: snapshot Model L/2L identici,

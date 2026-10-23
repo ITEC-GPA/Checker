@@ -205,3 +205,14 @@ Il percorso unico dei componenti include ora questo modo e ne propaga gli
 esiti fuori campo. Restano block tearing N-V-M e altri modi di instabilita:
 CanQualifyWholeJoint=false. Nessuna modifica ad attesi legacy o allowlist.
 Log/TRX: workspace audit-results/connections/night-web-integrated.
+
+
+3b.1 - FAZZOLETTO COMPRESSO, STEEL2.61.0.0
+48/48nuovi test superati; nel controllo comune3b/4a170/170passati.
+Metodo SCI P3588.5, spessori<=20mm, un bordo90gradi, quattro bulloni,
+compattezza e vincoli di rotazione realmente qualificati. Non si assume Lcr.
+Ricalcolo indipendente razionale eseguito; confronto conservativo con cinque
+prove fisiche Khoo2010, mantenendo distinti previsioneSCI144kN e collassi
+sperimentali158.5..186.1kN. Non si forza uguaglianza fra modello ed esperimento.
+Esito dei soli piatti nel modo sway: bulloni, saldature e supporto restano aperti.
+Log/TRX workspace audit-results/connections/night-3b-4a-internal.

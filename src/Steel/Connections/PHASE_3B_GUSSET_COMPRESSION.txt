@@ -1,0 +1,113 @@
+FASE 3b.1 - MECCANISMO FUORI PIANO DEL FAZZOLETTO A SEMPLICE SOVRAPPOSIZIONE
+
+Stato: implementato e verificato centralmente24/10/2026:48/48test passati.
+Il derivatore Python indipendente e' stato eseguito anche dal coordinatore.
+Log/TRX workspace audit-results/connections/night-3b-4a-internal.
+
+Perimetro implementato
+---------------------
+GussetLapCompression verifica il meccanismo dei due piatti sotto compressione
+assiale. Un tab rettangolare e un fazzoletto rettangolare sono sovrapposti in
+contatto diretto; quattro bulloni formano due file e due colonne. Il supporto
+del fazzoletto e' su un solo bordo, perpendicolare all'asse dell'asta (90 gradi).
+Le due estremita' devono impedire la rotazione fuori piano rispetto ai rispettivi
+elementi collegati, consentendo lo sviluppo delle linee di snervamento.
+La traslazione laterale relativa dell'asta e il relativo meccanismo sway NON
+vengono soppressi mediante un artificioso incastro globale dell'asta.
+
+Il contratto richiede classificazione esplicita dei vincoli e della compattezza,
+con riferimenti all'analisi/dettaglio esterno. Le etichette sono tracciabilita',
+non una certificazione dei vincoli. Il metodo non inventa una soglia numerica
+universale di compattezza, assente nella fonte. I dettagli allungati sono esclusi.
+Spessori <=20 mm secondo SCI. Restrizione della prima implementazione a fy<=355
+MPa: e' un limite software prudenziale, non un limite normativo attribuito a SCI.
+
+Il risultato completo riguarda SOLO questo componente. Non chiude la fase 3b
+come nodo completo: bulloni, rifollamento, distanze/fori, saldature, piatti per
+gli altri meccanismi, supporto, asta e servizio conservano verifiche distinte.
+Non si applica al collegamento a doppio coprigiunto GussetTwinFlatTension.
+
+Fonti primarie e metodo
+---------------------
+[1] SCI/BCSA, P358, Joints in steel construction: Simple joints to Eurocode3,
+2014, par.8.5, pp.261-263, figure8.10-8.15 e passi1-5.
+https://www.steelconstruction.info/images/a/a9/SCI_P358.pdf
+Controllo visivo di tutte e tre le pagine, PDF271-273 del file locale.
+[2] Phil Francis, Design of lapped gusset plate connections, New Steel
+Construction, March/April2014, pp.30,32-34. E' il riferimento43 di P358.
+https://www.newsteelconstruction.com/wp/wp-content/uploads/TechPaper/1401NSCTech.pdf
+
+Con larghezze fisiche b_t,b_g e spessori t_t,t_g:
+  w_t=min(b_t,20t_t), w_g=min(b_g,20t_g)
+  I_t=w_t*t_t^3/12; I_g=w_g*t_g^3/12
+  I_lap=(w_t+w_g)*(t_t+t_g)^3/24
+L_t e L_g sono distanze GEOMETRICHE dalla linea di snervamento alla prima fila
+di bulloni; L_lap e' il passo tra le due file esterne, non la sovrapposizione
+totale dei piatti e non una lunghezza efficace di instabilita'.
+  K_t=1/[L_t/(E I_t)+L_lap/(2 E I_lap)]
+  K_g=1/[L_g/(E I_g)+L_lap/(2 E I_lap)]
+  mu_t=K_t/(K_t+K_g), mu_g=K_g/(K_t+K_g)
+  e0=(t_t+t_g)/2; e=1.2e0
+  N_Rd,i=w_i*fy_i*t_i^2/[(5*e*mu_i+t_i)*gammaM0]
+Il codice elimina E comune nelle frazioni di rigidezza. La tracciabilita'
+mantiene inerzie, flessibilita' ridotte, frazioni e momenti N*e*mu_i.
+Il modulo parzialmente plastico e' w*t^2/5, distinto da w*t^2/6 o /4.
+Il fattore1.05 previsto da SCI per UNO specifico caso a due bordi non viene
+usato nel caso a un bordo. Il fattore NTC gammaM0=1.05 e' un'altra grandezza.
+
+Si seguono le equazioni del passo4, che distribuiscono il momento in proporzione
+alle rigidezze. La frase introduttiva di p.261 che parla di proporzione inversa
+non viene trasformata in una seconda implementazione contraddittoria.
+La verifica costituisce un metodo supplementare SCI, con gammaM0 esplicito EC3
+o gammaM0 NTC2018; non viene etichettata come formula EN1993-1-8 o formula NTC.
+
+Assi, carichi e controlli numerici
+--------------------------------
+XY e' il piano dei piatti, +X dal supporto verso l'asta, +Z normale. L'origine
+e' il baricentro della linea di snervamento del tab. Compressione Fx<0, N in N,
+momenti Nmm, coordinate mm. Le sei azioni concomitanti sono trasportate con
+M_O=M_A+r_AxF. Residui di taglio/momento o trazione producono NotSupported,
+senza verifiche parziali favorevoli. L'eccentricita' intrinseca dei piatti viene
+aggiunta internamente una sola volta. Non assorbe un momento applicato esterno.
+
+Ricalcolo indipendente esatto
+----------------------------
+derive_gusset_lap_compression.py usa Fraction, risolve la rotazione comune dei
+due rami e quindi N/Npl+M/Mparziale=1; non importa la libreria di produzione.
+Caso costruito: tab160x10, gusset200x12, fy275MPa, L_t40,L_g50, passo60,
+interasse trasversale80mm; compressione100kN.
+  I_t=13333.333333333334; I_g=28800; I_lap=159720 mm4
+  mu_t=0.3763745965774663; mu_g=0.6236254034225337
+  e0=11mm; e=13.2mm; M_t=496814.4674822556Nmm;
+  M_g=823185.5325177445Nmm; M_t+M_g=1320000Nmm
+  EC3 gammaM0=1: N_t,Rd=126288.99672241799N;
+                N_g,Rd=148986.22597402238N
+  NTC gammaM0=1.05: N_t,Rd=120275.2349737314N;
+                   N_g,Rd=141891.64378478323N
+
+Confronto sperimentale indipendente
+----------------------------------
+[3] X.E.Khoo, M.Perera, F.Albermani, Design of Eccentrically Connected Cleat
+Plates in Compression, Advanced Steel Construction6(2),2010, pp.678-687,
+DOI10.18057/IJASC.2010.6.2.1.
+https://www.ascjournal.com/down/vol6no2/vol6no2_2.pdf
+Figura2 e descrizione p.680, tabelle1/2 p.683. Figura2 verificata visivamente.
+Si usano solo le cinque prove Lc170mm con collasso del collegamento: A1,A2,A3,
+B1,C1. Piatti180x10mm, fy misurato320MPa, L_t=L_g=50mm, passo70, interasse110,
+quattroM20. Il dettaglio usa tab nel CHS con tratto saldato260mm e supporto con
+saldatura a piena penetrazione su piastra20mm. E' evidenza del vincolo reale.
+SCI produce 144000N a gammaM0=1. Carichi sperimentali rispettivamente158500,
+186100,159800,175100,165300N. Rapporti SCI/prova0.908517,0.773778,0.901126,
+0.822387,0.871143. Il risultato SCI e' conservativo nel confronto; NON si
+asserisce uguaglianza fra formula di progetto e collasso sperimentale.
+Non si importano il metodo australiano o i suoi151kN nella formula EC/NTC.
+I casi allungati Lc220/270 e le prove D governate dall'asta sono esclusi.
+
+Test predisposti
+----------------
+Ricalcoli EC/NTC; cinque confronti sperimentali; equilibrio e interazione;
+rigidezza/riparto; scambio dei piatti; similitudine geometrica; limiti20t e20mm;
+fattori distinti; passaggio del carico; trasporto delle sei azioni; rifiuto di
+tagli/momenti residui, trazione, vincoli mancanti, dettaglio allungato, fonti
+mancanti, overflow/underflow e input non validi. Filtro per il coordinatore:
+FullyQualifiedName~GussetLapCompressionTests
