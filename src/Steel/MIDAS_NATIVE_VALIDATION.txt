@@ -1,0 +1,43 @@
+COLLAUDO NATIVO MIDAS - 23/10/2026
+
+Perimetro richiesto: solo MIDAS. Gli altri sviluppi restano temporaneamente fermi; ANTHEA non coinvolta.
+Ambiente effettivamente provato: Civil NX 9.5.5 via API e sua esportazione MCT.
+Nessuna prova nativa dichiarata per altri eseguibili MIDAS.
+
+Esito: 218 test MIDAS/Civil NX superati, 0 fallimenti, 0 saltati; inclusi 105 nuovi test su dati nativi.
+Codice di produzione invariato. Nessuna modifica di versioni/bundle: questo passo aggiunge test ed evidenze, non un rilascio.
+I vecchi test e le vecchie fixture sono rimasti invariati.
+
+Modello QA: 48 mensole isolate da 4 m, 8 sezioni, 6 orientamenti per sezione.
+Sezioni: 2 da catalogo (2L AISC10 e 2C GB-YB05), 6 User (2C e 2L con lato lungo/corto accostato; gap 10/30 mm).
+Orientamenti: orizzontale beta 0/90/-37; verticale ascendente/discendente; inclinata beta37.
+Materiale S355, E=210000 N/mm2, nu=0.3. Sei carichi di estremita globali simultanei.
+Mensole elastiche con taglio deformabile disattivato e senza ingobbamento.
+
+Verifiche eseguite:
+- A e inerzie dei sei profili User contro integrazione indipendente delle piastre e valori nativi SECTIONALL.
+- 240 stazioni di trave: sei azioni ricondotte al riferimento globale, confronto con equilibrio statico.
+- 48 nodi vincolati: sei reazioni native e importate, confronto con equilibrio globale.
+- 48 nodi liberi: traslazioni/rotazioni native e importate, confronto Euler-Bernoulli e torsione Saint-Venant.
+- Assi geometrici nel converter API e nel lettore MCT, compresi aste verticali e beta non ortogonali.
+- Identita dei due componenti, due lati di accostamento L, conservazione dei dati di catalogo senza geometria inventata.
+Le tolleranze e le equazioni sono documentate nella PROVENANCE della nuova fixture Model.
+
+Conclusione sui cataloghi DATATYPE=1:
+La connessione funziona e i due nomi completi delle coppie sono accettati da MIDAS.
+SECT e MCT restituiscono DB_NAME/SECT_NAME, senza vSIZE, componenti, gap esplicito o imbottiture.
+SECTIONALL fornisce A/I/J, ma non basta a identificare la geometria della coppia.
+Il converter conserva questi dati, segnala CivilNxPairCatalogUnresolved e lascia la proprieta geometrica non assegnata.
+La prova nativa e chiusa; il supporto geometrico automatico delle coppie DATATYPE=1 resta da implementare con un catalogo
+esplicitamente qualificato o un'esportazione geometrica aggiuntiva. Non e stato aggirato il limite per far passare i test.
+Per DATATYPE=2 nessuna incongruenza rilevata nei casi provati. Packing e connessioni non sono qualificati da questo benchmark.
+
+Evidenze nel repository Model:
+UnitTest/MidasNativeCatalogTest.cs
+UnitTest/Fixtures/MidasCivil/catalog-pairs-native-9.5.5/PROVENANCE.txt
+UnitTest/Fixtures/MidasCivil/catalog-pairs-native-9.5.5/SHA256.json
+La fixture contiene risposte API native, MCT e log solver. Nessuna credenziale inclusa.
+
+Evidenze locali nel workspace Checker:
+tmp/midas-catalog-native-20261023/catalog-pairs.mcb (modello QA salvato, attualmente aperto in Civil NX)
+audit-results/midas-catalog-native/midas-all-final.trx (218 test)
