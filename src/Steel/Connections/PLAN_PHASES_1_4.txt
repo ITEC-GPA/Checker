@@ -37,10 +37,10 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1234 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 1254 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,
    69componenti doppie squadrette,208precarico/scorrimento,300continuitaI,
-   40fazzoletto/due piatti,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,102T-stub/file/geometrie,46anima pilastro.
+   40fazzoletto/due piatti,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,122T-stub/file/geometrie,46anima pilastro.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
@@ -99,8 +99,10 @@ FASE 4 - NODI A MOMENTO
 4a PARZIALE - Chiusa4a.1: T-stub, metodi1/2, modi1/2/3, leva oppure
    sua assenza da Lb/Lb*, file singole e tutti i gruppi contigui;75test.
    Chiusa4a.2a: geometrie di flangia non irrigidita lontana dai bordi e fila
-   esterna di piastra estesa,27test; PHASE_4A_GEOMETRY.txt. Restano4a.2b
-   file interne/alpha e altri dettagli, oltre all'integrazione di nodo.
+   esterna di piastra estesa,27test; PHASE_4A_GEOMETRY.txt.
+   Chiusa4a.2b file interne con alpha esplicito e tutti i gruppi,20test;
+   PHASE_4A_INTERNAL_END_PLATE.txt. Restano altri dettagli/irrigidimenti
+   e l'integrazione con equilibrio e resistenza del nodo4c-4e.
 4b PARZIALE - Chiusa4b.1: anima non irrigidita in trazione/compressione,
    taglio di pannello, interazioni omega/kw/rho e diffusione end plate;46test.
    Flangia nel campo4a. Restano rinforzi/irrigidimenti e assemblaggio nel nodo;

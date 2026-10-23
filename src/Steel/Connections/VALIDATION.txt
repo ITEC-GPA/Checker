@@ -216,3 +216,15 @@ prove fisiche Khoo2010, mantenendo distinti previsioneSCI144kN e collassi
 sperimentali158.5..186.1kN. Non si forza uguaglianza fra modello ed esperimento.
 Esito dei soli piatti nel modo sway: bulloni, saldature e supporto restano aperti.
 Log/TRX workspace audit-results/connections/night-3b-4a-internal.
+
+
+4a.2b - FILE INTERNE END PLATE, STEEL2.62.0.0
+20/20nuovi test superati;122/122nell'insieme T-stub,170/170con3b.
+Meccanismi di tutte le file e sottogruppi, prima fila sotto ala tesa, distanze
+reali dalle tre saldature e limite della seconda ala. Nessuna extrapolazione
+del grafico alpha. Eseguita la derivazione indipendente Decimal.
+SCI C.1 usa alpha7.5 grafico; l'approssimazione AppendiceG con geometria esatta
+da7.343053807634066. Le due letture restano separate: il gruppo passa da
+813312N modo3 a808032.541920N modo2, senza calibrare il codice al libro.
+Il kernel non distribuisce forze o certifica il nodo completo.
+Log/TRX workspace audit-results/connections/night-3b-4a-internal.
