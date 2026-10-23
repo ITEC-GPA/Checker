@@ -72,3 +72,23 @@ nessun set di rilascio prodotto, nessun merge/master o push effettuato.
 333nuovi test in questa iterazione:56endplate,69doppieL,208precarico/slip.
 Le prime quattro fasi NON sono tutte chiuse. Restano i punti aperti nel piano,
 fra cui supporto doppieL, continuitaI, fazzoletti e nodi a momento/T-stub.
+
+
+ITERAZIONE2e.1/2e.2 - STEEL2.51.0.0
+23/10/2026. Funzionalita35fa2add/9255e691; versione finale ded1c6c7.
+114nuovi test:75riparto/equilibrio e39componenti bullonati. SCI P398 e
+ricalcoli indipendenti, oltre a EC/NTC, segni, azioni SLE/SLU, giunti lunghi,
+ingombri, fuori campo. Test mirati insieme ai kernel esistenti:379/379.
+build/Verify.ps1 all:3931/3931Steel.Members e122/122Steel legacy,
+totaleSteel4053/4053; casi connessioni729.
+TotaleChecker6323passati,5falliti,0ignorati. Confronto automatico dei nomi con
+verify-after-slip: le stesse quattro pendenze Concrete e una ModelChecker,
+nessun nuovo fallimento. Nessun atteso legacy/allowlist modificato.
+Le quattro superfici API controllate restano compatibili, zero rimozioni
+inattese; questi controlli riguardano GPCModelChecker/Concrete/Design/Masonry.
+TRX/log/summary: workspace audit-results/connections/verify-after-2e-bolts.
+La verifica generale resta non superata per le cinque pendenze preesistenti.
+Non e' un set di rilascio. Nessun merge/master o push.
+2e.3/2e.4 restano aperte: le resistenze dei bulloni e il riparto equilibrato
+non sono una verifica completa dei piatti/del giunto. Restano anche supporto
+doppieL2c.3 e gli altri punti esplicitamente aperti nel piano.

@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
-Versione sorgenteSteel2.49.0.0. Solo librerie, nessuna interfacciaANTHEA.
+Versione sorgenteSteel2.51.0.0. Solo librerie, nessuna interfacciaANTHEA.
 Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
 
 COMPONENTI
@@ -17,6 +17,10 @@ NODI E COMPONENTI ASSEMBLATI
   anche due travi contrapposte sul medesimo supporto; PHASE_2D_SPEC.txt.
 - DoubleAngleCleatComponents.Verify: solo trave/squadrette/bulloni;
   supporto non qualificato e nessun Passed globale del nodo, PHASE_2C_SPEC.txt.
+- IBeamSpliceForces.Calculate: riparto N-V-M e sei gruppi sui due lati.
+- IBeamSpliceBolts.VerifyStrength/VerifySlip: soli componenti bullonati, con
+  azioni SLU/SLE esplicite; PHASE_2E_SPEC.txt include un esempio C# eseguibile.
+  Piatti/stabilita/rifollamento e verifica completa del giunto ancora aperti.
 
 CONTRATTI
 Ogni metodo dichiara Scope, controlli, tracce e limiti. IsComplete riguarda
