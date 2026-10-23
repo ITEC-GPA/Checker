@@ -1,0 +1,98 @@
+CONNESSIONI STANDARD - PIANO E AVANZAMENTO DELLE PRIME QUATTRO FASI
+===============================================================
+Aggiornamento 23/10/2026. Branch codex/steel-standard-connections.
+Ambito: librerie, statica ordinaria, EC3 2005/NTC2018, modelli analitici o delle
+componenti, senza FEM locale. ANTHEA esclusa. Basi/ancoraggi e nodi tubolari
+appartengono alle fasi5/6, non alle prime quattro.
+
+Stati: CHIUSA = implementata e provata nel campo dichiarato;
+PARZIALE = solo una parte qualificata; IN ANALISI = fonti/modello in definizione,
+non implementazione conclusa; DA FARE = non ancora avviata.
+Nessuna percentuale stimata. I limiti del metodo restano visibili nei risultati.
+
+FASE 1 - COMPONENTI COMUNI
+1a PARZIALE - Contratti comuni: unita, assi/segni, azioni concomitanti, norma,
+   input immutabili, esiti e tracce. Disponibili per il doppio coprigiunto;
+   estendere ai componenti e agli altri nodi senza duplicare il contratto.
+1b PARZIALE - Bullone individuale: taglio, trazione, interazione, rifollamento,
+   punzonamento e scorrimento quando richiesti. Fix legacy eseguiti; completare
+   qualificazione di condizioni di filettatura, foro, precarico e imbotiture.
+1c DA FARE - Gruppi bullonati: riparto elastico delle azioni, eccentricita,
+   equilibrio e assi locali; singolo bullone, gruppi allineati e casi degeneri.
+   Il benchmark legacy di taglio eccentrico esiste; il singolo bullone/assi ha
+   un difetto censito da correggere. Nessun contatto compresso implicito.
+1d IN ANALISI - Saldature: cordoni d'angolo, lunghezza efficace, gola, materiali,
+   gruppi di cordoni e azioni eccentriche. Formule EC3/NTC e fonti in lettura;
+   nessun motore saldature ancora implementato.
+1e PARZIALE - Piastre: lordo/netto, block tearing, taglio, flessione/interazioni
+   e stabilita locale pertinente. Lordo/netto e block tearing qualificati per
+   piatti rettangolari tesi nel doppio coprigiunto.
+1f PARZIALE - Politiche EC3/NTC: fattori e formule distinti, riferimenti espliciti,
+   controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
+   nodo; vecchio checker NTC ancora da qualificare prima del riuso generale.
+1g PARZIALE - Benchmark dei componenti: calcoli indipendenti, casi limite,
+   segni, equilibrio e invalid input. Gia aggiunti 66 casi complessivi, di cui
+   9 audit legacy e 57 doppio coprigiunto; estendere insieme ai nuovi componenti.
+
+FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
+2a CHIUSA - Doppio coprigiunto rettangolare in trazione centrata: bulloni,
+   piastra centrale e singoli coprigiunti, distanze, lordo/netto, block tearing,
+   giunti lunghi. EC3/NTC, 57 test. Non include momento/taglio globale o profili I.
+2b DA FARE - Piastra d'anima (fin plate): gruppo bullonato eccentrico, piastra,
+   saldature, anima della trave e parte interessata del supporto.
+2c DA FARE - Doppie squadrette: bulloni di entrambi i lati, ali delle squadrette,
+   eccentricita, anima della trave e supporto; geometrie qualificate esplicite.
+2d DA FARE - Piastra di estremita flessibile: bulloni, piastra, saldature e
+   supporto, comprese le componenti che possono essere tese.
+2e DA FARE - Continuita con piatti: estendere il coprigiunto alle configurazioni
+   di continuita previste e al riparto fra parti del profilo; definire azioni
+   combinate ammesse e non generalizzare il solo caso in trazione gia chiuso.
+2f DA FARE - Coerenza con lo schema globale: limiti per assumere il nodo
+   nominalmente incernierato, deformabilita/rotazione e verifiche mancanti.
+2g PARZIALE - Casi completi indipendenti per famiglia, meccanismo governante,
+   esito fuori campo ed esempio utilizzabile dalla futura interfaccia.
+   Al momento disponibili solo per2a.
+
+FASE 3 - CONTROVENTI E PROFILI ACCOPPIATI
+3a DA FARE - Fazzoletto teso: piatto, collegamento bullonato/saldato e parte
+   collegata del controvento; netto, block tearing ed eccentricita.
+3b DA FARE - Fazzoletto compresso: modello analitico di diffusione delle forze,
+   vincoli e lunghezza libera, stabilita nel/fuori piano; rifiuto dei casi non
+   descritti dalle ipotesi. Nessuna lunghezza efficace inventata.
+3c DA FARE - Collegamenti di C/L singoli e doppi uguali: orientamento, lato
+   collegato degli L disuguali, eccentricita e coerente trasformazione degli assi.
+3d DA FARE - Imbottiture dei profili doppi: domanda locale tracciabile dalla
+   verifica dell'asta, piastra e bulloni/saldature. Restano esclusi i calastrelli.
+3e DA FARE - Collegamento ai contratti Model/Steel esistenti e benchmark
+   indipendenti per famiglie/orientamenti; esempio completo asta-collegamento.
+
+FASE 4 - NODI A MOMENTO
+4a DA FARE - T-stub: lunghezze efficaci, modi1/2/3, effetto leva, bulloni
+   singoli e gruppi di file; nessuna capacita ricavata da soli bulloni tesi.
+4b DA FARE - Componenti del pilastro: flangia in flessione, anima in trazione,
+   compressione e taglio di pannello, con interazioni pertinenti.
+4c DA FARE - Piastra di estremita a filo: geometria, file di bulloni, piastra,
+   saldature, trave e pilastro assemblati in un unico percorso resistente.
+4d DA FARE - Piastra di estremita estesa: file esterne e interne, interazione
+   fra gruppi, meccanismi della piastra e leva.
+4e DA FARE - Equilibrio del nodo e combinazione delle componenti: resistenza
+   a momento, taglio e sforzo normale nel campo ammesso; controllo governante.
+4f DA FARE - Rigidezza rotazionale/classificazione e capacita rotazionale:
+   distinguere un nodo resistente da un nodo coerente con l'incastro/cerniera
+   assunto nel modello globale; dati necessari e limiti espliciti.
+4g DA FARE - Esempi SCI P398 e altre fonti indipendenti, casi completi a filo
+   ed estesi, sensibilita ai fattori EC3/NTC e controlli di tutti i meccanismi.
+
+ORDINE DI ATTUAZIONE
+Prima1a/1c/1d e completamento dei componenti1b/1e/1f necessari a2b.
+Poi2b,2c,2d,2e, con1g/2f/2g sviluppati insieme a ogni nodo.
+Seguono3a-3e e4a-4g. Non si rinviano i test alla fine della fase.
+Ogni sottofase chiusa ha implementazione, campo di validita, riferimenti,
+benchmark eseguiti e commit separato. Aggiornamenti in chat con la stessa sigla.
+
+VERIFICA GENERALE DELLA BASE
+Ultimo controllo: 3390 test Steel passati; 5660 passati complessivi e cinque
+fallimenti Concrete/ModelChecker gia documentati in6edf46a7. Nessun atteso
+modificato o fallimento ammesso automaticamente. Vedere VALIDATION.txt.
+Queste pendenze impediscono un rilascio generale dichiarato interamente verde,
+ma non impediscono l'implementazione e i test dei nuovi componenti di connessione.
