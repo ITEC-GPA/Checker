@@ -60,7 +60,8 @@ FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
 2e PARZIALE - Chiuse2e.1/2e.2: riparto N-V-M e sei gruppi sui due lati,
    resistenza/scorrimento dei soli bulloni,114test SCI P398 e analitici.
    Chiuse2e.3a rifollamento e2e.3b piatti/instabilita locale delle ali,
-   altri59test. Restano coprigiunti d'anima e2e.4 nodo; PHASE_2E_SPEC.txt.
+   altri59test. Chiusa2e.3c sezioni/N-V-M dei coprigiunti d'anima,46test.
+   Restano2e.3d block tearing/stabilita d'anima e2e.4 nodo; PHASE_2E_SPEC.txt.
 2f PARZIALE - Fin plate/end plate distinguono conformita al dettaglio SCI e
    qualificazione esterna del modello globale. Restano rigidezza/rotazione
    calcolate e classificazione generale; Passed a taglio non certifica cerniera.

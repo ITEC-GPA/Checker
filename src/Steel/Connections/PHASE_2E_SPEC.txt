@@ -15,8 +15,9 @@ ingombri geometrici dell'hardware. Rifollamento e distanze normative dei piatti
 richiedono2e.3/2e.4: Passed di questi componenti non qualifica il nodo.
 2e.3 PARZIALE - Chiuse2e.3a rifollamento di tutti i piatti e2e.3b ali:
 lordo/netto, due percorsi block tearing, compressione e instabilita locale
-longitudinale dei coprigiunti. 59nuovi test. Restano interazione N-V-M dei
-coprigiunti d'anima, relativi meccanismi locali e qualificazione del nodo.
+longitudinale dei coprigiunti. Chiusa2e.3c limitatamente alle resistenze di
+sezione dell'anima e dei coprigiunti, con interazione N-V-M: altri46test.
+Restano2e.3d block tearing/stabilita locale d'anima e qualificazione del nodo.
 2e.4 DA FARE - Assemblaggio del nodo con geometria completa, distanze, materiali
 per spessore, classificazione, collegamento al contratto Model e benchmark
 completo EC/NTC. Nessun esito complessivo prima della chiusura dei meccanismi.
@@ -185,3 +186,42 @@ Fonti: https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
 EN1993-1-8:2005 Table3.3,Table3.4,3.10.2; EN1993-1-1:2005 6.2.3,6.2.4,6.3.1;
 NTC2018 fattori propri e rifollamento4.2.67, metodo SCI/EC complementare
 dichiarato nei risultati dove non e' una prescrizione letterale NTC.
+
+
+2e.3c - SEZIONI D'ANIMA E INTERAZIONI
+IBeamSplicePlates.VerifyWebSections riusa lo stesso input e riparto.
+Ogni coprigiunto riceve meta N, meta V e meta del momento effettivo del
+gruppo sul proprio lato. L'ala del momento resta nella distribuzione iniziale;
+non si trasferisce tutto il momento alle ali e non si aggiunge |Ve| a due lati.
+SCI P398 pp58-59: Vgross=hp*t*fy/(1.27*sqrt3*gammaM0),
+Vnet=(hp-n*d0)*t*fu/(sqrt3*gammaM2). Mel=hp^2*t*fy/(6*gammaM0).
+rho=0 fino aVrd/2, rho=(2V/Vrd-1)^2 sopra, capacita M nulla aV>=Vrd.
+Per N teso si considera anche0.9Anet*fu/gammaM2; per compressione sezione lorda.
+La condizione lineare N/Nrd+M/Mrd<=1 e' implementata nella forma equivalente
+M<=max(0,1-N/Nrd)*(1-rho)*Mel, con verifiche assiale/taglio indipendenti.
+Questa forma evita divisioni0/0; il rapporto numerico riportato per il solo
+controllo equivalente puo' differire dalla somma SCI, ma il confine Passed/Failed
+e' identico. Un superamento assiale non e' nascosto dal max(0,...).
+Anima del membro: Av=max[A-2*b*tf+(tw+2*r)*tf,ClearWeb*tw], eta1;
+Anet=Av-n*d0*tw. Si usa il raggio reale10.2, senza il10.7 incongruente
+della sostituzione nel benchmark. Av4093.57,Anet3532.57mm2.
+
+Ricalcolo indipendente: ogni coprigiunto Vgross425057.087947N,
+Vnet589632.084007N,Nc935000N,Nt919145.454545N,Mel52983333.333333Nmm.
+SLU N=-31912.280702N,V=75000N, Msin=-27327051.927438Nmm,
+Mdes=10452051.927438Nmm. Momento disponibile dopoN=51174970.760234Nmm.
+Anima del membro: Vgross649941.528898N,Vnet760188.544161N.
+Il test non adotta i numeri arrotondati/incongruenti del libro come attesi esatti.
+Fixture/derive_ibeam_splice_plates.py riproduce i ricalcoli con sola libreria
+Python standard; stampa i risultati e non rigenera attesi.
+
+46nuovi test: benchmark, entrambi i lati, EC/NTC, inversioneN,
+soglieVrd/2 eVrd, annullamento capacita, netto/lordo, geometria fuori campo.
+Un primo test con due file verticali manteneva erroneamente Exposed=true:
+il nuovo bordo110mm supera il limite80mm. Il test sul netto e' ora dichiarato
+non esposto; il codice non e' stato cambiato per ammettere un bordo esposto
+non conforme. Tutti219test continuitaI passati.
+Questa2e.3c e' una verifica delle SEZIONI nel modello SCI. Non comprende
+block tearing dei coprigiunti d'anima, instabilita locale/classificazione,
+flessione secondaria o qualifica completa del membro/nodo. Questi controlli
+restano espliciti in Scope e nel piano2e.3d/2e.4.
