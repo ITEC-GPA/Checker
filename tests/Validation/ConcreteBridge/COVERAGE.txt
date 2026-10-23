@@ -1,0 +1,271 @@
+MATRICE DI QUALIFICAZIONE CONCRETE / COMPOSITEBRIDGE - 23/10/2026
+
+Librerie Concrete e CompositeBridge. ANTHEA/BridgeAudit, nuove funzionalita e norme USA fuori perimetro.
+Checker 0fbe3fac; Concrete 795 e CompositeBridge 340 test passati nel collaudo 23/10
+Questa matrice riguarda percorsi di calcolo e fonti; non e una misura di line/branch coverage.
+Una riga non certifica il prodotto cartesiano sezioni x norme: fanno fede i casi e i limiti richiamati.
+A = analitico; P = pubblicato; E = solver esterno; R = regressione; H = fonte storica da ricostruire.
+
+C01 | Concrete | resistenza N-M, N assegnato, domanda nulla/fuori dominio
+  Sezioni: rettangolare RC
+  Norme/modello: NTC2018
+  Evidenze: A+R
+  Test: GPCChecker.Test.Concrete/AssignedAxialForceOutcomeTests.cs, GPCChecker.Test.Concrete/DomainPointAxialToleranceTests.cs, GPCChecker.Test.Concrete/FailureDomainRCTest.cs
+  Limiti: Casi analitici identificati; non tutte le combinazioni biassiali/materiali hanno fonte esterna.
+
+C02 | Concrete | dominio N-M e tolleranza su N
+  Sezioni: circolare RC; sezioni grandi
+  Norme/modello: NTC2018
+  Evidenze: A+R
+  Test: GPCChecker.Test.Concrete/DomainPointAxialToleranceTests.cs, GPCChecker.Test.Concrete/FailureDomainCheckRCTest.cs
+  Limiti: Soluzioni chiuse su casi selezionati; stress block con precisione ridotta esplicitamente riportata.
+
+C03 | Concrete | dominio e ricerca punto resistente
+  Sezioni: T; poligonali RC
+  Norme/modello: NTC2018
+  Evidenze: R+H
+  Test: GPCChecker.Test.Concrete/FailureDomainRCTest.cs, GPCChecker.Test.Concrete/FailureDomainCheckRCTest.cs, GPCChecker.Test.Concrete/ValidationTestFailureDomain.cs
+  Limiti: Abachi storici non tutti identificati con edizione/pagina; nessuna qualificazione esterna completa.
+
+C04 | Concrete | analisi tensionale lineare/non lineare e assi
+  Sezioni: rettangolare RC; circolare RC
+  Norme/modello: NTC2018; leggi assegnate
+  Evidenze: A+R+H
+  Test: GPCChecker.Test.Concrete/ValidationTestLinearStressAnalysis.cs, GPCChecker.Test.Concrete/ValidationTestStressAnalysis.cs, GPCChecker.Test.Concrete/StressAnalysisRCTest.cs, GPCChecker.Test.Concrete/ElasticTensionPoleTests.cs
+  Limiti: Valori analitici e legacy distinti; fonte dei casi VCA da consolidare.
+
+C05 | Concrete | resistenza e tensioni con predeformazione
+  Sezioni: rettangolare PSC; T PSC
+  Norme/modello: NTC2018
+  Evidenze: R
+  Test: GPCChecker.Test.Concrete/FailureDomainPSCTest.cs, GPCChecker.Test.Concrete/StressAnalysisPSCTest.cs
+  Limiti: Non classificare il confronto interno fra strategie come riferimento indipendente; benchmark esterno PSC ancora da acquisire.
+
+C06 | Concrete | dominio e verifica FRC
+  Sezioni: rettangolare FRC; altre geometrie presenti nei test
+  Norme/modello: CNR-DT204; leggi assegnate
+  Evidenze: R+H
+  Test: GPCChecker.Test.Concrete/FailureDomainFRCTest.cs, GPCChecker.Test.Concrete/FailureDomainCheckFRCTest.cs, GPCChecker.Test.Concrete/ValidationTestFailureDomainCheckFRC.cs, GPCChecker.Test.Concrete/ValidationTestFailureDomain.cs
+  Limiti: Articolo Meda/Minelli/Plizzari nominato; ricostruzione completa delle prove sperimentali non rifatta in questo audit.
+
+C07 | Concrete | tensioni, sottrazione CLS spostato, equilibrio
+  Sezioni: RC con profilo inglobato
+  Norme/modello: leggi assegnate
+  Evidenze: A+R
+  Test: GPCChecker.Test.Concrete/MixedSectionTest.cs, GPCChecker.Test.Concrete/BridgeLinearSolverAuditTests.cs
+  Limiti: Controlli del modello sezionale; non equivalgono a qualifica normativa completa di una colonna composta.
+
+C08 | Concrete | M-curvatura, riferimenti deformativi, insuccesso
+  Sezioni: RC con geometria assegnata
+  Norme/modello: NTC2018; leggi assegnate
+  Evidenze: A+R
+  Test: GPCChecker.Test.Concrete/MomentCurvatureReferenceStrainTests.cs, GPCChecker.Test.Concrete/DetailingContractTests.cs
+  Limiti: Fotografie di regressione distinte da soluzioni analitiche; prove esterne sulle curve RC da ampliare.
+
+C09 | Concrete | taglio senza staffe
+  Sezioni: anima rettangolare; T tramite bw,d
+  Norme/modello: NTC2018; EC2 base
+  Evidenze: A+R
+  Test: GPCChecker.Test.Concrete/ShearMigrationTests.cs
+  Limiti: Calcolo scalare su bw,d; non valida estrazione automatica di bw,d per ogni forma. Nuovo benchmark JRC pianificato.
+
+C10 | Concrete | taglio con staffe e scelta cot(theta)
+  Sezioni: anima rettangolare; T tramite bw,d
+  Norme/modello: NTC2018; EC2 base
+  Evidenze: A+R
+  Test: GPCChecker.Test.Concrete/ShearMigrationTests.cs
+  Limiti: Soglie di alpha_c e ottimo interno non coperti sistematicamente da un oracolo analitico: nuovi casi pianificati.
+
+C11 | Concrete | taglio con eccentricita assiale
+  Sezioni: anima equivalente
+  Norme/modello: MC2010
+  Evidenze: A+R
+  Test: GPCChecker.Test.Concrete/ShearAxialEccentricityTests.cs, GPCChecker.Test.Concrete/ShearMigrationTests.cs
+  Limiti: Segno e confronto numerico documentati; MC2010 non equiparato al profilo EC2.
+
+C12 | Concrete | taglio senza staffe e rifiuto fibre+staffe
+  Sezioni: anima equivalente FRC
+  Norme/modello: CNR-DT204
+  Evidenze: A+R
+  Test: GPCChecker.Test.Concrete/ShearMigrationTests.cs
+  Limiti: Fibre con staffe non implementate: rifiuto verificato, nessun esito di resistenza attribuito.
+
+C13 | Concrete | geometria resistente a torsione
+  Sezioni: rettangolare piena; cava rettangolare; circolare piena; anulare
+  Norme/modello: NTC2018; EC2 base
+  Evidenze: A+R
+  Test: GPCChecker.Test.Concrete/TorsionMigrationTests.cs
+  Limiti: Geometrie suggerite esplicitamente; servono confronti analitici end-to-end per ogni famiglia, pianificati.
+
+C14 | Concrete | torsione e V1-V2-T con cot(theta) comune
+  Sezioni: Ak,uk,tef assegnati
+  Norme/modello: NTC2018; EC2 base
+  Evidenze: A+R
+  Test: GPCChecker.Test.Concrete/TorsionMigrationTests.cs
+  Limiti: Resistenze singole indipendenti; nuove prove integrate su due direzioni pianificate.
+
+C15 | Concrete | fessurazione e passaggi di ramo
+  Sezioni: RC rettangolare
+  Norme/modello: NTC2018; EC2 base
+  Evidenze: A+R
+  Test: GPCChecker.Test.Concrete/CrackMigrationTests.cs
+  Limiti: Calcolo manuale piu fixture di migrazione; formule NTC/EC separate.
+
+C16 | Concrete | geometria della fascia tesa e fessure
+  Sezioni: circolare; anulare; scatolare; poligonale con fori
+  Norme/modello: NTC2018; EC2 e annessi dichiarati nei test
+  Evidenze: A+R
+  Test: GPCChecker.Test.Concrete/CurveGeometryTests.cs, GPCChecker.Test.Concrete/CrackMigrationTests.cs
+  Limiti: Molti casi limite; non affermare una copertura cartesiana di ogni geometria con ogni annesso.
+
+C17 | Concrete | limiti tensionali SLE e omogeneizzazione
+  Sezioni: RC; PSC
+  Norme/modello: NTC2018; EC2 e annessi; MC2010
+  Evidenze: A+R
+  Test: GPCChecker.Test.Concrete/ServiceabilityMigrationTests.cs, GPCChecker.Test.Concrete/StressAnalysisTensionStiffeningTests.cs
+  Limiti: Fixture legacy, formule indipendenti e contratti; alcune combinazioni correttamente NotApplicable.
+
+C18 | Concrete | armature minime/massime, ancoraggi, sovrapposizioni
+  Sezioni: travi; pilastri; pareti; piastre; pali
+  Norme/modello: NTC2018; EC2 e annessi implementati
+  Evidenze: A+R
+  Test: GPCChecker.Test.Concrete/DetailingMigrationTests.cs, GPCChecker.Test.Concrete/DetailingContractTests.cs
+  Limiti: Annessi incompleti dichiarano NotImplemented; i contratti di testo non validano autonomamente i coefficienti.
+
+C19 | Concrete | copriferro e durabilita
+  Sezioni: geometria non dipendente
+  Norme/modello: NTC2018; EC2 e annessi implementati
+  Evidenze: A+R
+  Test: GPCChecker.Test.Concrete/DurabilityExamplesTests.cs, GPCChecker.Test.Concrete/DurabilityEdgeCaseTests.cs, GPCChecker.Test.Concrete/DurabilityMigrationTests.cs, GPCChecker.Test.Concrete/DurabilityContractTests.cs
+  Limiti: Esempi indipendenti e classi di esposizione; non generalizzare a materiali/ambienti non previsti.
+
+C20 | Concrete | integrazione, convergenza, confronto strategie
+  Sezioni: geometrie varie
+  Norme/modello: leggi assegnate
+  Evidenze: A+R
+  Test: GPCChecker.Test.Concrete/SectionIntegrationTest.cs, GPCChecker.Test.Concrete/FailureDomainIntesectVsDirect.cs, GPCChecker.Test.Concrete/ConstantAxialForcePlaneTests.cs
+  Limiti: Confrontare due algoritmi della stessa libreria e controllo interno, non solver esterno.
+
+B01 | CompositeBridge | geometria e proprieta omogeneizzate
+  Sezioni: H composta; doppia anima; cassone; rettangoli generici
+  Norme/modello: meccanica elastica
+  Evidenze: A+R
+  Test: GPCChecker.Test.CompositeBridge/GenericSectionServicesTests.cs, GPCChecker.Test.CompositeBridge/SectionTypeTests.cs, GPCChecker.Test.CompositeBridge/ValidationDossierTests.cs
+  Limiti: Differenza dichiarata tra modello a pareti sottili cumulativo e rettangoli/fibre storico.
+
+B02 | CompositeBridge | fasi acciaio/getto, riferimenti N, ritiro multiplo
+  Sezioni: H composta
+  Norme/modello: EC4; meccanica elastica
+  Evidenze: A+R
+  Test: GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs, GPCChecker.Test.CompositeBridge/ValidationDossierTests.cs, GPCChecker.Test.CompositeBridge/HBridgeHistoryTests.cs
+  Limiti: Moduli efficaci assegnati; non evoluzione viscosa automatica in funzione del tempo.
+
+B03 | CompositeBridge | storia elastoplastica, inversioni, stato di getto
+  Sezioni: fibre generiche acciaio/CLS; H
+  Norme/modello: leggi assegnate
+  Evidenze: A+E+R
+  Test: GPCChecker.Test.CompositeBridge/OpenSeesReferenceTests.cs, GPCChecker.Test.CompositeBridge/HistoryNonlinearTests.cs, GPCChecker.Test.CompositeBridge/HistoryBehaviorTests.cs
+  Limiti: 29 stati OpenSees, materiali espliciti; non validazione sperimentale/danno ciclico CLS.
+
+B04 | CompositeBridge | curve M-kappa e N-epsilon
+  Sezioni: fibre generiche acciaio/CLS
+  Norme/modello: leggi assegnate
+  Evidenze: A+E+R
+  Test: GPCChecker.Test.CompositeBridge/SectionResponseOpenSeesTests.cs, GPCChecker.Test.CompositeBridge/SectionResponseTests.cs
+  Limiti: 35 stati OpenSees su 6 curve; 64 stati esterni totali insieme a B03.
+
+B05 | CompositeBridge | classe4, iterazione efficacia, convergenza mesh
+  Sezioni: H; piatti interni/sbalzi
+  Norme/modello: EC3-1-5; NTC tramite parametri dichiarati
+  Evidenze: A+P+R
+  Test: GPCChecker.Test.CompositeBridge/SharedEffectiveKernelTests.cs, GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs, GPCChecker.Test.CompositeBridge/HBridgeHistoryTests.cs
+  Limiti: Kernel condiviso Steel; non modello di instabilita postcritica con plasticita/danno.
+
+B06 | CompositeBridge | instabilita a taglio e pannelli
+  Sezioni: anima singola; anime multiple equivalenti
+  Norme/modello: EC3-1-5; NTC tramite opzioni esplicite
+  Evidenze: A+P+R
+  Test: GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs, GPCChecker.Test.CompositeBridge/SectionTypeTests.cs, GPCChecker.Test.CompositeBridge/ValidationDossierTests.cs
+  Limiti: Soglie tra rami da consolidare; non contributo delle piattabande alla resistenza a taglio.
+
+B07 | CompositeBridge | rigidezza, instabilita, deviazione e secondo ordine
+  Sezioni: piatti/irrigidimenti trasversali
+  Norme/modello: EC3-1-5
+  Evidenze: A+R
+  Test: GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs
+  Limiti: Modelli e vincoli specifici; non verifica completa saldature/appoggio/diaframma.
+
+B08 | CompositeBridge | resistenza acciaio/CLS e limiti geometrici
+  Sezioni: pioli in soletta piena
+  Norme/modello: EC4-2
+  Evidenze: A+R
+  Test: GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs, GPCChecker.Test.CompositeBridge/CompositeBridgeApiTests.cs
+  Limiti: Benchmark pubblicato JRC e transizioni h/d da aggiungere; non soletta grecata.
+
+B09 | CompositeBridge | scorrimento, armatura trasversale, ancoraggi
+  Sezioni: soletta composta
+  Norme/modello: EC2/EC4; NTC
+  Evidenze: A+R
+  Test: GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs, GPCChecker.Test.CompositeBridge/CompositeBridgeApiTests.cs
+  Limiti: Verifica locale sulle superfici dichiarate; non connessione parziale deformabile.
+
+B10 | CompositeBridge | fatica con flangia tesa/compressa
+  Sezioni: pioli
+  Norme/modello: EC4-2
+  Evidenze: A+R
+  Test: GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs
+  Limiti: Non qualifica fatica di tutti i dettagli metallici o spettri di traffico del ponte.
+
+B11 | CompositeBridge | momenti plastici e limiti N-M
+  Sezioni: rettangoli; H composta
+  Norme/modello: equilibrio plastico; EC4 nel campo ammesso
+  Evidenze: A+R
+  Test: GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs
+  Limiti: N-M analitico esistente su rettangolo centrato; poli eccentrici ed estremi assiali da aggiungere.
+
+B12 | CompositeBridge | interazione M-V ed inviluppo elastico
+  Sezioni: H composta/anima equivalente
+  Norme/modello: EC3-1-5/EC4 nel campo ammesso
+  Evidenze: A+R
+  Test: GPCChecker.Test.CompositeBridge/BridgeHandCalculationTests.cs
+  Limiti: Due soglie e dominio di applicazione da provare sistematicamente; non resistenza plastica classe4.
+
+B13 | CompositeBridge | torsione e distorsione
+  Sezioni: cassone rettangolare; trapezoidale monocella
+  Norme/modello: Bredt; modello su suolo elastico dichiarato
+  Evidenze: A+R
+  Test: GPCChecker.Test.CompositeBridge/BoxTorsionTests.cs
+  Limiti: Non torsione multicella generale o instabilita globale del ponte.
+
+B14 | CompositeBridge | tension stiffening e soletta esclusa
+  Sezioni: soletta fessurata su H
+  Norme/modello: EC4; legge costitutiva dichiarata
+  Evidenze: A+R
+  Test: GPCChecker.Test.CompositeBridge/TensionStiffeningTests.cs, GPCChecker.Test.CompositeBridge/NonlinearCrackedSlabTests.cs
+  Limiti: Distinguere contributo tension stiffening da verifica SLE e da legge non lineare storica.
+
+B15 | CompositeBridge | non convergenza, rollback, ingressi non ammessi
+  Sezioni: fibre/H generiche
+  Norme/modello: contratto numerico
+  Evidenze: A+R
+  Test: GPCChecker.Test.CompositeBridge/HistoryNonlinearTests.cs, GPCChecker.Test.CompositeBridge/GenericSectionServicesTests.cs, GPCChecker.Test.CompositeBridge/HistoryBehaviorTests.cs
+  Limiti: Gia provati stato non committato e ultimo stato valido: non duplicare con nuovi test equivalenti.
+
+B16 | CompositeBridge | metodo Viviani e confronto altri metodi
+  Sezioni: H
+  Norme/modello: modello Viviani dichiarato
+  Evidenze: R+A
+  Test: GPCChecker.Test.CompositeBridge/Viviani/VivianiEquivalenceTests.cs, GPCChecker.Test.CompositeBridge/Viviani/VivianiComparisonTests.cs
+  Limiti: Equivalenza col metodo originale non e validazione esterna indipendente.
+
+PRIORITA DI QUESTO PASSO
+1. C09-C10: fonte JRC per taglio EC2, ottimo analitico cot(theta) e transizioni alpha_c NTC.
+2. C13-C14: torsione delle quattro famiglie geometriche e interazione V1-V2-T da traliccio indipendente.
+3. B08-B11-B12: pioli JRC/soglie, polo di N-M ed estremi, soglie M-V.
+4. B03/B04/B15: riusare le prove esterne e di non convergenza gia presenti, senza rigenerarle.
+
+APERTI ESPLICITI
+C03/C05/C06/C08: completare provenienza di abachi, benchmark PSC/FRC e curve RC con fonti esterne.
+Altri annessi nazionali: censiti, non riqualificati globalmente in questo passo focalizzato NTC/EC base.
+Evoluzione viscosa automatica, scorrimento parziale e modelli fuori campo richiedono implementazione dedicata, non solo test.
+BridgeAudit dipende da ANTHEA: integrazione da riprovare al termine della riscrittura; non inclusa nei conteggi delle due suite.
