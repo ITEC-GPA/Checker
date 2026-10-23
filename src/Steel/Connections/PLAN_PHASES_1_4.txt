@@ -36,9 +36,9 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 729 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 853 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,
-   69componenti doppie squadrette,208precarico/scorrimento,114continuitaI.
+   69componenti doppie squadrette,208precarico/scorrimento,238continuitaI.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
@@ -61,7 +61,8 @@ FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
    resistenza/scorrimento dei soli bulloni,114test SCI P398 e analitici.
    Chiuse2e.3a rifollamento e2e.3b piatti/instabilita locale delle ali,
    altri59test. Chiusa2e.3c sezioni/N-V-M dei coprigiunti d'anima,46test.
-   Restano2e.3d block tearing/stabilita d'anima e2e.4 nodo; PHASE_2E_SPEC.txt.
+   Chiusa2e.4a percorso unico dei componenti,19test. Restano2e.3d
+   block tearing/stabilita d'anima e2e.4b/c qualifica/Model; PHASE_2E_SPEC.txt.
 2f PARZIALE - Fin plate/end plate distinguono conformita al dettaglio SCI e
    qualificazione esterna del modello globale. Restano rigidezza/rotazione
    calcolate e classificazione generale; Passed a taglio non certifica cerniera.

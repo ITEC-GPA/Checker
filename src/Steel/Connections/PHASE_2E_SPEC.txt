@@ -18,9 +18,11 @@ lordo/netto, due percorsi block tearing, compressione e instabilita locale
 longitudinale dei coprigiunti. Chiusa2e.3c limitatamente alle resistenze di
 sezione dell'anima e dei coprigiunti, con interazione N-V-M: altri46test.
 Restano2e.3d block tearing/stabilita locale d'anima e qualificazione del nodo.
-2e.4 DA FARE - Assemblaggio del nodo con geometria completa, distanze, materiali
-per spessore, classificazione, collegamento al contratto Model e benchmark
-completo EC/NTC. Nessun esito complessivo prima della chiusura dei meccanismi.
+2e.4 PARZIALE - Chiusa2e.4a raccolta dei componenti in un percorso unico,
+con coerenza geometria/norma, combinazioni SLE/SLU esplicite e19test.
+Restano2e.4b chiusura dei meccanismi mancanti/qualifica completa e2e.4c
+collegamento al contratto Model/benchmark di nodo qualificato. Nessun Passed
+globale ricavato dall'inviluppo favorevole dei soli componenti disponibili.
 
 FONTI VERIFICATE
 SCI P398 (2013), cap4 Step1 p53, esempio D.1 pp129-140 (pagine PDF+8).
@@ -225,3 +227,49 @@ Questa2e.3c e' una verifica delle SEZIONI nel modello SCI. Non comprende
 block tearing dei coprigiunti d'anima, instabilita locale/classificazione,
 flessione secondaria o qualifica completa del membro/nodo. Questi controlli
 restano espliciti in Scope e nel piano2e.3d/2e.4.
+
+
+2e.4a - PERCORSO UNICO DEI COMPONENTI
+IBeamSpliceComponents.Verify(IBeamSpliceComponentInput) usa gli stessi input
+immutabili per bulloni SLU, rifollamento, piatti d'ala e sezioni d'anima.
+Le combinazioni di scorrimento restano input distinti; lo stato limite richiesto
+non puo' essere omesso ne' sostituito dallo stato diverso. Valuta tutte le
+combinazioni e conserva il controllo governante, le unita e i riferimenti.
+Confronta esattamente geometria/proprieta della sezione, griglie, bulloni,
+ingombri hardware e fattori di progetto. Snapshot distinti ma uguali sono
+ammessi; una geometria o politica diversa produce NotSupported nell'inviluppo.
+Non si convertono automaticamente azioni SLU/SLE e non si aggrega un risultato
+di scorrimento ottenuto per un'altra disposizione di bulloni.
+
+Il risultato segue il contratto gia adottato dalle doppie squadrette:
+ComponentAssessment puo' essere Passed/Failed/NotSupported, mentre
+CanQualifyWholeJoint e' SEMPRE false. MissingWholeJointChecks contiene:
+- block tearing dei coprigiunti d'anima sotto N-V-M;
+- instabilita locale dei coprigiunti d'anima;
+- classificazione e resistenza/stabilita locale/globale del membro;
+- flessione secondaria del coprigiunto singolo e introduzione delle forze;
+- compatibilita rigidezza/rotazione e requisiti di continuita del modello globale;
+- se richiesto scorrimento SLU, controllo netto plastico della categoria pertinente.
+Nessun booleano di input permette di dichiarare implicitamente chiusi i punti.
+Un componente non supportato annulla l'inviluppo favorevole, ma i risultati
+tipizzati dei singoli componenti restano disponibili per diagnosi e report.
+
+19test nuovi,238test continuitaI complessivi. Il benchmark D.1 integrale ha
+inviluppo componenti Failed, rapporto1.186583416723, rifollamento lineare
+dell'anima sul lato sinistro. Con SLU dimezzato e SLE dichiarato del benchmark,
+governa lo scorrimento SLE0.730956089233. In entrambi i casi CanQualifyWholeJoint
+rimane false. La riduzione delle azioni e' solo un distinto caso di prova,
+non una modifica dei carichi o degli attesi pubblicati.
+
+ESEMPIO DI ASSEMBLAGGIO (prosegue l'esempio precedente, nessuna UI)
+var platePolicy = IBeamSplicePlatePolicy.Eurocode3(code, gammaM1: 1);
+var plates = new IBeamSplicePlateInput(platePolicy, ultimate, set,
+    new ConnectionPlate(180,12,275,410), new ConnectionPlate(340,10,275,410),
+    flangeCoverEnd:60, webCoverEnd:50, buttGap:0,
+    beamFlangeFy:275, beamFlangeFu:410, exposed:true,
+    ultimateCombinationSource:"P398 D.1; gap0 assunto per questo confronto");
+var components = IBeamSpliceComponents.Verify(new IBeamSpliceComponentInput(
+    plates, BoltSlipLimitState.Serviceability, new[] { slip.Input }));
+// components.ComponentAssessment: controllo dei soli componenti disponibili.
+// components.CanQualifyWholeJoint=false; leggere MissingWholeJointChecks.
+// Fuori campo/combination mismatch: NotSupported e nessun utilizzo aggregato.
