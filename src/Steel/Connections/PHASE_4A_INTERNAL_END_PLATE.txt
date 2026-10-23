@@ -106,6 +106,10 @@ I test vengono eseguiti centralmente dal coordinatore; non si dichiara un nodo
 completo Passed per il solo superamento dei componenti T-stub.
 
 VERIFICA CENTRALIZZATA24/10/2026
-20/20nuovi test file interne superati,122/122nell'insieme T-stub.
+19/19nuovi test file interne superati,121/121nell'insieme T-stub.
 Controllo comune con3b:170/170passati. Derivatore Python indipendente eseguito.
 Log/TRX workspace audit-results/connections/night-3b-4a-internal.
+
+Conteggio verificato sui className delTRX: il filtro testuale TStub includeva
+anche un test preesistente ColumnWebComponents; il totale del run170 resta
+invariato. Nuovi casi4a.2b=19, senza rimozioni o modifiche di test.

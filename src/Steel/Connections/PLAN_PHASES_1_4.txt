@@ -37,10 +37,10 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1365 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 1364 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,
    83componenti doppie squadrette/supporto,208precarico/scorrimento,300continuitaI,
-   40fazzoletto/due piatti,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,122T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,26rigidezza rotazionale.
+   40fazzoletto/due piatti,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,121T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,26rigidezza rotazionale.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
@@ -106,7 +106,7 @@ FASE 4 - NODI A MOMENTO
    sua assenza da Lb/Lb*, file singole e tutti i gruppi contigui;75test.
    Chiusa4a.2a: geometrie di flangia non irrigidita lontana dai bordi e fila
    esterna di piastra estesa,27test; PHASE_4A_GEOMETRY.txt.
-   Chiusa4a.2b file interne con alpha esplicito e tutti i gruppi,20test;
+   Chiusa4a.2b file interne con alpha esplicito e tutti i gruppi,19test;
    PHASE_4A_INTERNAL_END_PLATE.txt. Restano altri dettagli/irrigidimenti
    e le verifiche residue del nodo4c-4e; i componenti base sono assemblati.
 4b PARZIALE - Chiusa4b.1: anima non irrigidita in trazione/compressione,
@@ -139,7 +139,7 @@ Ogni sottofase chiusa ha implementazione, campo di validita, riferimenti,
 benchmark eseguiti e commit separato. Aggiornamenti in chat con la stessa sigla.
 
 VERIFICA GENERALE DELLA BASE
-Controllo completo Steel2.57.0.0: 4362 test Steel passati; 6632 passati
+Controllo completo Steel2.66.0.0: 4688 test Steel passati; 6958 passati
 complessivi e cinque fallimenti Concrete/ModelChecker gia documentati in6edf46a7. Nessun atteso
 modificato o fallimento ammesso automaticamente. Vedere VALIDATION.txt.
 Queste pendenze impediscono un rilascio generale dichiarato interamente verde,

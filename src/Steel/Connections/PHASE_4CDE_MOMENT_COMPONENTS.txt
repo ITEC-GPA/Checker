@@ -116,8 +116,8 @@ Test di integrazione includono: interoC.1, gruppi, percorso a filo, policyNTC,
 beta1, compressione della trave, attivazione1.9Ft con piastre spesse,
 domanda zero, limite esatto/oltre limite, immutabilita, N non nullo, V conservato,
 snapshot/qualificazioni incoerenti, troncamento sul supporto, stress fuori campo,
-impronte hardware, overflow/underflow. I test saranno eseguiti centralmente:
-non si riportano risultati non eseguiti.
+impronte hardware, overflow/underflow. Verifica centralizzata:21/21test
+passati; inclusi anche nel successivo controllo completoSteel2.66.
 
 Verifiche ancora necessarie del nodo
 -----------------------------------

@@ -1,7 +1,6 @@
 FASE 3d.1 - AZIONI SULLE DUE FACCE DELL'IMBOTTITURA
 
-Stato: nuovi file preparati in staging; nessuna installazione, compilazione,
-esecuzione di test .NET o modifica Git effettuata dall'agente incaricato.
+Stato: installato, compilato e verificato centralmente;50/50test superati.
 Il codice non calcola ancora la resistenza dell'imbottitura.
 
 Perche' questo adattatore e' necessario
@@ -117,7 +116,7 @@ Integrazione successiva concreta
    una resistenza qualificata per SteelPackedPairAssessment del MEDESIMO input.
    L'API attuale non crea quella resistenza e non sostituisce la domanda con N/2.
 
-Verifica predisposta
+Verifica eseguita
 --------------------
 50 test: ricalcoli6D per2L e2C; EC/NTC; coppie residue; facce con azioni normali;
 torsione; ogni componente; tolleranze omogenee; stato zero esplicito; ordine

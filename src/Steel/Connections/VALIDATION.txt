@@ -219,7 +219,7 @@ Log/TRX workspace audit-results/connections/night-3b-4a-internal.
 
 
 4a.2b - FILE INTERNE END PLATE, STEEL2.62.0.0
-20/20nuovi test superati;122/122nell'insieme T-stub,170/170con3b.
+19/19nuovi test superati;121/121nell'insieme T-stub,170/170con3b e1test preesistenteColumnWeb.
 Meccanismi di tutte le file e sottogruppi, prima fila sotto ala tesa, distanze
 reali dalle tre saldature e limite della seconda ala. Nessuna extrapolazione
 del grafico alpha. Eseguita la derivazione indipendente Decimal.
@@ -279,3 +279,24 @@ Primo build bloccato dal nuovo test con prodotto di costanti int E*z*z:
 corretto a double, quindi tutti i test sono passati. Nessun atteso legacy
 modificato. Nessuna capacita rotazionale o qualifica globale viene inferita.
 Log/TRX workspace audit-results/connections/night-3d-4f.
+
+
+VERIFICA GENERALE NOTTURNA - STEEL2.66.0.0, COMMIT9a73041a
+build/Verify.ps1 -Suites all,24/10/2026 ore01:25Europe/Rome.
+Steel.Members4566/4566, Steel legacy net472122/122:4688testSteel passati.
+Totale Checker6958passati,5falliti,0ignorati; API compatibili nei quattro
+contratti controllati (nessuna rimozione imprevista). Nessuna allowlist cambiata.
+Gli esatti cinque nomi coincidono con il controlloSteel2.57 e la base6edf46a7:
+Concrete: LargeSectionPointBeyondTheStoppingTestIsAccepted;
+DomainPointContractOf0017IsUnchanged;LegacyMomentCurvatureIsReproduced;
+CurvatureContractOf0017IsUnchanged.
+ModelChecker: RealDetailsMatchNativeResistanceAndKeepThePreparedForceFrame.
+Pertanto Verify termina con exit1: non e un rilascio generale tutto verde.
+Registri: workspace audit-results/connections/verify-night-2-66/summary.json
+e relativiTRX; log esterno verify-night-2-66.log.
+Derivatori indipendenti JRC, assemblaggioSCI e rifollamento rieseguiti dal root.
+
+Audit conteggio nuovi test:4a.2b ha19casi, non20. Il filtro testualeTStub
+aveva incluso un test ColumnWebComponents preesistente. IlTRX170era corretto;
+nessun test eliminato o modificato. Corretto il riepilogo,121casiT-stub e
+1364casi connessioni complessivi. Nuovi casi dall'ultimo Members4388:178.

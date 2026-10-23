@@ -1,13 +1,14 @@
-RIESAME 2c.3 / 2c.4 / 2d.3 - SOLO STAGING
-Data: 24 ottobre 2026. Non modifica il piano o il campo del codice installato.
+RIESAME 2c.3 / 2c.4 / 2d.3 - COMPONENTE RIFOLLAMENTO E LIMITI APERTI
+Data: 24 ottobre 2026. Rifollamento flangia installato e verificato:14/14test.
 
 CONCLUSIONE OPERATIVA
 
-1. E' pronto un componente autonomo per il rifollamento della FLANGIA REALE
+1. E' implementato un componente autonomo per il rifollamento della FLANGIA REALE
    del pilastro delle doppie L. Chiude la sola parte mancante DA06, senza
    dichiarare chiusa DA10 o il nodo completo. File nuovi:
    DoubleAngleCleatColumnFlangeBearing.cs e relativo Tests.cs.
-   Non installati, non compilati, non eseguiti. Non sono cambiati file condivisi.
+   Compilati e verificati centralmente; piano aggiornato. Gli altri modi
+   del supporto non sono coperti da questo componente.
 2. Le fonti disponibili non giustificano la chiusura automatica del trasferimento
    locale della flangia verso il pilastro, comprese le azioni concomitanti.
    SBE-MS5 4.2.1.2 verifica bulloni e rifollamento delle L: NON delinea una
@@ -104,7 +105,7 @@ Domanda ogni bullone37500N; utilizzo0.1344816344272984.
 Dodici forze sommate=450000N, momento trasversale globale nullo per simmetria.
 Con tf=5mm ed estremo inferiore26.4mm: Fb,min=34400N e utilizzo1.0901162790697674.
 Quest'ultimo caso dimostra un supporto insufficiente anche se i componenti
-originari della L risultano adeguati. Script indipendente incluso in staging;
+originari della L risultano adeguati. Script indipendente incluso nelle fixture;
 non importa la DLL e non rigenera alcun atteso o fixture esistente.
 Eseguito lo script indipendente: confermati i due ricalcoli e l'equilibrio.
 
