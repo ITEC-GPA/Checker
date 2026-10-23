@@ -338,3 +338,59 @@ https://steelconstruction.info/topics/design/simple-connections
 
 Nessun software FEM e usato come oracolo dei benchmark. Nessun test della
 libreria e stato eseguito per produrre questa specifica o la relativa fixture.
+
+10. IMPLEMENTAZIONE INIZIALE PREDISPOSTA
+
+FinPlateContracts.cs, FinPlate.cs e FinPlateTests.cs implementano il sottoinsieme
+standard descritto. Compilazione/esecuzione sono affidate al coordinatore del
+branch: questo documento non attesta il superamento dei test.
+FinPlate.Verify compone ElasticBoltGroup, BoltStrength, BoltBearing e
+FilletWeldGroup; non implementa un secondo ripartitore. Le forze del gruppo
+bullonato e il risultato completo del gruppo saldato restano ispezionabili.
+
+FinPlateActions usa XYZ del nodo e accetta tutte le sei componenti. Il wrapper
+qualifica solo Fz<=0 e tutte le altre nulle. La trasformazione in azioni dei
+componenti e esplicita. Il polo delle azioni e la faccia del supporto a meta
+altezza del piatto; non sono accettati momenti imposti dal modello globale.
+
+Il primo rilascio restringe inoltre il campo a fy=275,fu=410MPa e web<=16mm,
+altezza EFFETTIVA della trave<=610mm, dettagli non esposti agli agenti atmosferici,
+cordoni a piena gola fino alle estremita e anime non snelle. Per l'anima della
+trave usa il gate conservativo cw/tw<=60sqrt(235/fy), corrispondente alla soglia
+di assenza di verifica d'instabilita a taglio con eta=1.2. Nessuna estensione a
+profili con profondita nominale610 ma profondita effettiva maggiore e implicita.
+
+FinPlateResult.Assessment riporta tutti i controlli, anche i requisiti di
+geometria e gerarchia che non scalano col carico. LoadGoverningCheck e
+LoadUtilization selezionano soltanto i controlli dipendenti dal carico: questi
+si confrontano con la resistenza286kN tabellata. Utilization complessivo puo
+invece essere governato dalla gola minima a completa resistenza o da hp>=0.6h.
+
+ConformsToSciPinnedDetail descrive soltanto la conformita al dettaglio verificato.
+PinnedModelQualificationSource e obbligatoria e conserva la giustificazione
+del progettista per lo schema globale. La libreria non genera/certifica tale
+giustificazione e non calcola rigidezza o capacita rotazionale numerica.
+ExistingSupportActions e obbligatorio: ogni componente non nulla blocca il
+metodo iniziale, che non include interazioni con azioni preesistenti.
+
+API essenziale (dati del caso analitico della fixture, unita N/mm/MPa):
+  var code = ConnectionDesignCode.Eurocode3(1, 1.1, 1.25, "SCI UK benchmark");
+  var plate = new ConnectionPlate(100, 10, 275, 410);
+  var bolt = new ConnectionBolt(20, 22, 245, ConnectionBoltGrade.Class8_8, true);
+  var layout = new FinPlateLayout(4, 1, 290, 70, 0, 40, 40, 50, 50, 40, 10);
+  // Beam e Support richiedono geometria e area effettive ConnectionRolledISection.
+  // FinPlateInput richiede inoltre Weld, ExistingSupportActions, restrizione
+  // laterale e riferimenti reali di qualifica schema/materiale d'apporto.
+  var actions = FinPlateActions.DownwardShear(200000);
+  // result = FinPlate.Verify(input);
+I test contengono esempi eseguibili completi; le stringhe fixture non sono
+riferimenti utilizzabili per qualificare un progetto reale.
+
+VERIFICA DI INTEGRAZIONE ESEGUITA23/10/2026
+54/54test superati, nessun ignorato. Ripetuti dopo condivisione del contratto
+ConnectionRolledISection, comune alle famiglie di nodi: dimensioni, raccordi e
+area catalogo coerenti entro0.5%. Nessuna API gia rilasciata rinominata.
+TRX phase2b.trx e phase2b-shared-input.trx in audit-results/connections.
+Corrette in revisione la conformita geometrica (include tutti i Detail checks)
+e la validazione superiore dell'area I/H; aggiunte regressioni, fixture SCI
+immutate. Versione sorgente Steel2.46.0.0, funzionalita nuova; nessun rilascio.

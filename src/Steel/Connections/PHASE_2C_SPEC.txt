@@ -1,0 +1,192 @@
+FASE 2c - DOPPIE SQUADRETTE BULLONATE: SPECIFICA PRIMA DEL CODICE
+================================================================
+Stato: analisi e fixture indipendente preparate. Nessun motore 2c implementato,
+nessun test 2c eseguito. Occorre decisione del coordinatore sul campo prima di
+iniziare production. File companion: Fixtures/double-angle-independent.json.
+
+1. FONTE PRIMARIA E CAMPO PROPOSTO
+
+Steel Buildings in Europe, Multi-Storey Steel Buildings, Part5 Joint Design,
+contenuti CTICM+SCI/Steel Alliance nel progetto europeo SECHALO:
+https://steelconstruction.info/images/5/53/SBE_MS5.pdf
+Capitolo4 pp51-67, esempio4.4 pp68-82 (pagine PDF=stampata+10).
+Esempio preparato06/2009, verificato07/2009. La bibliografia p109 rinvia a
+ECCS126(2009), Jaspart et al., e a Renkin(2003) per la metodologia dei nodi
+semplici. Le prescrizioni normative restano EN1993-1-8:2005 con corrigenda.
+SCI P358 non e' la fonte di questa famiglia: dichiara di averla omessa.
+Non si importano formule AISC, AS4100 o resistenze BS5950 come se fossero EC.
+
+Raccomandazione per il primo caso ordinario:
+- due squadrette L uguali e simmetriche, entrambe bullonate nelle due ali;
+- trave I/H non intagliata, lateralmente trattenuta, solo taglio verticale;
+- geometria iniziale L90x90x10 S275, M20 8.8, fori22mm, p70mm,
+  una colonna lato trave e una colonna per ciascuna ala lato supporto;
+- 2..6 file, e_verticale40mm, e_libero40mm, gap10mm, altezza coerente;
+- una sezione di supporto esplicitamente qualificata, inizialmente flangia I/H;
+- norma EC o NTC distinta; verifica SLE del gioco foro M20/22 richiesta in NTC.
+Questa proposta e' ristretta intenzionalmente alle configurazioni per cui
+metodo, dettaglio deformabile e benchmark sono controllabili. I materiali hanno
+fy/fu assegnati per prodotto/spessore: nell'esempio fu=430MPa, non410MPa.
+
+Il benchmark pubblicato tratta trave, squadrette e bulloni ma non specifica
+sezione e resistenza del membro di supporto. Puo' convalidare questi componenti;
+non puo' da solo qualificare l'intero nodo comprensivo di supporto.
+
+2. SOTTOFASI DI REALIZZAZIONE
+
+2c.1 Contratto geometrico, simmetria e gruppi bullonati.
+     Trasformazioni di assi, riparto V/2 alle squadrette, doppio taglio lato
+     trave, singolo taglio lato supporto; benchmark ordinario dei componenti.
+2c.2 Entrambe le ali: rifollamento bidirezionale, taglio lordo/netto, block
+     tearing, riduzioni del modello, resistenza dell'anima della trave.
+2c.3 Zona del supporto e compatibilita' con nodo nominalmente incernierato.
+     Questa e' una condizione di chiusura: finche' mancano controlli pertinenti
+     del supporto si restituisce NotSupported per il nodo completo.
+2c.4 Tying separato e/o trazione ordinaria: riuso del T-stub condiviso della
+     fase4a, prying e punzonamento, azioni concomitanti corrette. Non applicare
+     automaticamente un benchmark accidentale al normale SLU N+V.
+2c.5 Estensioni con nuovi benchmark: ali diverse della stessa L disuguale,
+     seconda colonna, altri spessori/gradi/diametri, supporto ad anima,
+     travi intagliate e/o piu' lati caricati. Nessuna di queste e' implicita.
+
+3. ASSI E PERCORSO DELLE FORZE
+
+Base destra del nodo: X lungo la trave dal supporto verso la luce, Y trasversale,
+Z verticale. Azione ordinaria sulla trave F=(0,0,-V). Due L speculari in Y.
+La linea assunta di trasferimento del taglio e' sulla faccia del supporto.
+Il gruppo comune di bulloni che attraversa L-anima-L e' nel piano XZ:
+base locale (u,v,n)=(X,Z,-Y), braccio z=50mm nel benchmark.
+Rispetto al baricentro gruppo r=(-z,0,0), quindi M=r x F=(0,-Vz,0)
+globale e Mn_locale=+Vz. Il taglio verticale e' -V in locale v.
+ElasticBoltGroup restituisce la forza TOTALE del bullone. BoltStrength usa
+ShearPlanes=2; ciascuna L riceve META' delle componenti del singolo bullone,
+l'anima della trave riceve la forza totale. Non moltiplicare due volte per2.
+
+Sulle ali del supporto: due gruppi nel piano YZ, basi locali destre (Y,Z,X),
+ciascuno riceve V/2. Il modello SBE per il taglio verticale considera tali
+bulloni in taglio nominalmente concentrico, con riduzione di guida specifica.
+Le eccentricita' rispetto alla mezzeria trave si annullano solo per geometria
+e carico simmetrici: una coppia non simmetrica e' fuori dal primo campo.
+Non copiare le azioni della base XZ nella base YZ. Non applicare simultaneamente
+momenti appartenenti a corpi isolati o ipotesi alternative di trasferimento.
+
+4. ELENCO DEI CONTROLLI PER CHIUDERE IL CASO ORDINARIO
+
+DA01 Campo/dettagli: profili uguali, geometria fisica delle ali e raccordi,
+     ingombri testa/dado/rondelle, montaggio, distanze fori, gap e reversali.
+DA02 Bulloni lato trave: risultante eccentrica, due piani filettati, riduzioni
+     Lj e tp pertinenti; equilibrio completo del gruppo.
+DA03 Rifollamento delle due L lato trave, entrambe le componenti e relativa
+     interazione di guida; non verifica scalare della sola risultante.
+DA04 Rifollamento dell'anima della trave: spessore, materiale e distanze propri.
+DA05 Bulloni lato supporto: ciascuno in singolo taglio, due gruppi; modello0.8
+     tracciato distintamente dalla formula EC del singolo bullone.
+DA06 Rifollamento delle ali lato supporto e della piastra/flangia/anima del
+     supporto reale: entrambe sono parti collegate, non si omette il supporto.
+DA07 Taglio delle due ali lato trave: lordo/netto e block tearing eccentrico.
+DA08 Stessi meccanismi per le due ali lato supporto, con geometria propria.
+DA09 Anima della trave: taglio lordo/netto e block tearing ammissibile. La fonte
+     SBE per le doppie L include il percorso anche per trave non intagliata;
+     non trasferire automaticamente il gate della diversa fin plate P358.
+DA10 Zona del supporto: trasferimento locale verso il resto del membro,
+     meccanismi di sezione netta/blocco/flessione o stabilita' pertinenti,
+     azioni concomitanti del supporto o perimetro locale qualificato esplicito.
+     E' il pezzo NON risolto dal benchmark pubblicato: serve modello verificato.
+DA11 Flessione nominale delle L/deformabilita': applicare il modello di guida
+     solo nel dettaglio qualificato; spessori elevati non significano
+     automaticamente maggior capacita' rotazionale o nodo ancora incernierato.
+DA12 Completezza: un esito motivato per ogni meccanismo, nessun rapporto unico
+     favorevole quando un controllo pertinente e' indisponibile.
+
+5. FORMULE DI GUIDA E TRACCIABILITA'
+
+Per n bulloni in una colonna lato trave con passo p e braccio z:
+alpha=0, beta=6z/[n(n+1)p]. Il massimo taglio del bullone deriva dal riparto
+elastico, non da redistribuzione plastica. Le verifiche di rifollamento usano
+i due assi e l'interazione ellittica della guida, con meta' domanda per L.
+Lato supporto SBE adotta, quando il taglio bulloni governa,
+Rgroup=0.8*ns*Fv,Rd. EN1993-1-8 3.7 di per se' non contiene quel0.8:
+registrare SBE4.2.1.2/ECCS come fonte, non scrivere solo "EC3 3.7".
+
+Per entrambe le ali della coppia il modello SBE4.2.2 usa:
+Vgross =2*h*t*fy/[1.27*sqrt(3)*gammaM0];
+Vnet   =2*t*(h-n*d0)*fu/[sqrt(3)*gammaM2_plate];
+Vblock =2*[0.5*Ant*fu/gammaM2_plate+Anv*fy/(sqrt(3)*gammaM0)].
+Per una colonna Ant=t*(e2-d0/2), Anv=t*[h-e1-(n-0.5)d0].
+Il1.27 e' una correzione del modello per la flessione nominale delle L, con
+rinvio Renkin2003; non un coefficiente universale del taglio secondo EC3.
+
+La verifica di trazione ordinaria e quella accidentale di tying sono distinte.
+La guida usa per tying gammaMu=1.1 e fu in termini di cerniera plastica che
+allo SLU ordinario userebbero fy. Il fatto che dia un esempio EC non autorizza
+a trasferire tali sostituzioni in NTC o nelle combinazioni ordinarie.
+Le ali lato supporto soggette a trazione devono includere T-stub, modi1/2/3,
+prying, bulloni a trazione/taglio concomitanti, punzonamento e resistenza del
+supporto. ElasticBoltGroup a trazione non sostituisce un modello di contatto.
+
+6. API PROPOSTA (NON ANCORA CODICE)
+
+DoubleAngleCleatGeometry: un solo profilo L condiviso dalle due squadrette,
+altezza, raggi, schema fori delle due ali, posizione verticale e gap.
+Le quote z,altezza dal passo, p3 e bordi della trave vengono derivate/verificate:
+  h=etop+(n-1)p+ebottom;
+  z=BeamLegLength-BeamLegFreeEdge;
+  BeamEndEdge=z-gap;
+  SupportGauge=BeamWebThickness+2*(SupportLegLength-SupportLegFreeEdge).
+
+DoubleAngleCleatInput:
+- ConnectionDesignCode;
+- geometria e materiale unico delle L;
+- ConnectionBolt lato trave e lato supporto (inizialmente stessi M20 8.8);
+- dati immutabili sezione I/H della trave e materiale per spessore;
+- dati immutabili supporto, tipo, piastra locale e condizioni al contorno;
+- tutte le sei azioni, base e polo dichiarati;
+- qualificazione del dettaglio nominalmente incernierato e spazio di rotazione;
+- evidenza SLE dei fori per NTC, e politica esplicita dei giunti lunghi;
+- scenario OrdinaryStaticShear distinto da eventuale AccidentalTying.
+
+DoubleAngleCleat.Verify(input) -> ConnectionVerification<DoubleAngleCleatInput>,
+con trace separati BeamBolts, Left/RightBeamLeg, Left/RightSupportLeg,
+SupportBolts, BeamWeb, SupportZone e RigidBodyEquilibrium.
+Riutilizzare ElasticBoltGroup e BoltStrength/Bearing dove le ipotesi coincidono.
+Non riutilizzare l'aggregatore SingleShearAssembly per il bullone centrale in
+doppio taglio. T-stub e prying dovranno essere il motore condiviso della fase4a.
+
+7. BENCHMARK, TOLLERANZE E PUNTI DA RISOLVERE PRIMA DELLA PRODUZIONE
+
+L'esempio pubblicato L90x90x10, IPE A550, M20,6file p70, V450kN e' utile:
+resistenza governante dei componenti501kN, block tearing dell'anima.
+Numeri pubblicati arrotondati e ricalcoli manuali non arrotondati sono campi
+diversi della fixture. Non rigenerare gli attesi dal motore di produzione.
+Tolleranza1% solo per resistenze di gruppo pubblicate, dovuta a beta e
+rifollamenti arrotondati; ricalcoli indipendenti confrontati a1e-9 relativo.
+
+A) Giunti lunghi: Lj=350mm>15d=300mm, mentre il testo usa94kN senza riduzione.
+   La fonte non esplicita l'esenzione. Raccomando applicazione prudente betaLf
+   =0.9875 nel motore finche' non e' giustificato il trasferimento uniforme;
+   conservare il benchmark con la sua ipotesi, senza calibrare il codice.
+B) Supporto: dimensioni e modello locale mancanti nella fonte. Completare DA06
+   eDA10 prima di dichiarare chiusa2c per l'intero nodo.
+C) Pinned: h>=0.6hb e L10/M20/S275 sono dettagli sperimentati, ma non
+   costituiscono una curva momento-rotazione per configurazioni arbitrarie.
+D) NTC: cambiano i fattori materiali, i limiti gioco foro e alcuni coefficienti
+   di rifollamento; guideSBE/ECCS vanno dichiarate come integrazione del modello.
+E) Refusi: p74 stampa V550 invece450; p80 stampa F350 invece370. La fixture
+   conserva gli input dichiarati. p78 arrotonda m31.2mm a31mm per il T-stub.
+F) La fonte consente benchmark di tying, ma solo dopo qualificazione separata;
+   non sommare V450kN e N370kN come se la pubblicazione avesse verificato N+V.
+
+8. TEST DA SCRIVERE DOPO APPROVAZIONE DEL CAMPO
+
+- Numeri SBE di ogni componente/ala e dell'anima, non soltanto il minimo finale.
+- Equilibrio delle sei azioni nei due piani; traslazione/rotazione globali;
+  V/2 su ogni L, V su anima, due piani sul bullone centrale, singolo al supporto.
+- Reversale di V con ricostruzione delle distanze/percorsi pertinenti.
+- Ogni possibile componente governante ottenuto variando solo il dato fisico
+  pertinente, senza cambiare attesi al variare del motore.
+- Distinzione valori arrotondati, calcolo non arrotondato e caso con betaLf.
+- Controlli supporto e dettaglio rotazionale: dato mancante -> NotSupported.
+- Input non fisici, fori fuori campo, asimmetria, ali diverse, momenti/N anche
+  piccoli non ammessi, compressione/contact e supporti non qualificati.
+- Tying futuro: modi T-stub, effetto leva, punzonamento, pressione di contatto,
+  combinazioni corrette e distinzione fra fattori accidentali e ordinari.

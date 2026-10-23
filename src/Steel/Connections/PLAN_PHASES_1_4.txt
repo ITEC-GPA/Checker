@@ -42,11 +42,13 @@ FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
 2a CHIUSA - Doppio coprigiunto rettangolare in trazione centrata: bulloni,
    piastra centrale e singoli coprigiunti, distanze, lordo/netto, block tearing,
    giunti lunghi. EC3/NTC, 57 test. Non include momento/taglio globale o profili I.
-2b IN ANALISI - Spec e fixture indipendenti SCI completate; implementazione
-   in corso: piastra corta, una colonna M20, trave I/H non intagliata e supporto
-   nell'anima di pilastro I/H. Campo e controlli in PHASE_2B_SPEC.txt.
-2c DA FARE - Doppie squadrette: bulloni di entrambi i lati, ali delle squadrette,
-   eccentricita, anima della trave e supporto; geometrie qualificate esplicite.
+2b CHIUSA - Piastra corta S275100x10,2..5M20 in una colonna, trave I/H non
+   intagliata e supporto nell'anima di pilastro I/H. 54test passati: benchmark
+   SCI286kN, EC/NTC analitici, tutti componenti, assi e fuori campo. Nessuna
+   azione preesistente sul supporto nel primo modello; PHASE_2B_SPEC.txt.
+2c IN ANALISI - Fonte primaria CTICM/SCI SBE Part5 individuata e fixture
+   indipendenti preparate. Il benchmark copre componenti di trave/squadrette,
+   ma non la zona di supporto: nessun nodo completo qualificato al momento.
 2d IN ANALISI - Spec SCI e fixture indipendenti completate; implementazione
    a taglio ordinario in corso, con trazione parassita e supporto locale.
    Trazione ordinaria e tying sono casi distinti; PHASE_2D_SPEC.txt.
