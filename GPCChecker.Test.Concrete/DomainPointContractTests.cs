@@ -50,29 +50,37 @@ namespace ConcreteTests
     {
         internal const string FileName = "domain-point-contract.json";
 
+        // Migration explicitly approved by the user on 24/10/2026: the 0.0.17 snapshot is an immutable historical artifact.
+        // StressBlock retains exact output equality. Continuous diagrams are checked against physical contracts and independent integration.
         [TestMethod]
-        public void DomainPointContractOf0017IsUnchanged()
+        public void HistoricalStressBlockAndContinuousPhysicalContractsArePreserved()
         {
             int count;
             string actual = Generate(out count);
             int expectedCount = Sections.Sum(s => s.AxialKn.Length) * Diagrams.Length * States.Length * Directions.Length;
-            Assert.AreEqual(expectedCount, count, "points");
+            Assert.AreEqual(1024, expectedCount); Assert.AreEqual(expectedCount, count, "original catalogue");
             string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixtures", FileName);
-            string actualPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "domain-point-contract.actual.json");
-            if (!File.Exists(path))
-            {
-                File.WriteAllText(actualPath, actual, new UTF8Encoding(false));
-                Assert.Fail("Missing " + path + "; generated text written to " + actualPath);
-            }
-            // The working tree may hold CRLF (core.autocrlf): the contract is compared with LF line ends.
+            Assert.IsTrue(File.Exists(path), "Missing immutable historical fixture " + path);
             string expected = File.ReadAllText(path, new UTF8Encoding(false)).Replace("\r\n", "\n");
-            if (string.Equals(expected, actual, StringComparison.Ordinal)) return;
+            using (var hash = System.Security.Cryptography.SHA256.Create())
+            {
+                string fingerprint = BitConverter.ToString(hash.ComputeHash(Encoding.UTF8.GetBytes(expected))).Replace("-", "").ToLowerInvariant();
+                Assert.AreEqual("1f61a7891eddc10b01f5694062a589ec74780a15241e6c947d3a334f5c047491", fingerprint, "The complete historical fixture must not be regenerated.");
+            }
+            string actualPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "domain-point-contract.actual.json");
             File.WriteAllText(actualPath, actual, new UTF8Encoding(false));
-            var e = expected.Split('\n'); var a = actual.Split('\n');
-            int line = 0;
-            while (line < e.Length && line < a.Length && string.Equals(e[line], a[line], StringComparison.Ordinal)) line++;
-            Assert.Fail("Domain point contract 0.0.17.0 changed at line " + (line + 1) + "\nexpected: " + (line < e.Length ? e[line] : "<end>")
-                + "\nactual:   " + (line < a.Length ? a[line] : "<end>") + "\nGenerated text: " + actualPath);
+            Func<string, string[]> stressBlock = text => text.Split('\n')
+                .Where(line => line.Contains("\"diagram\": \"StressBlock\"")).Select(line => line.TrimEnd(',')).ToArray();
+            string[] historicalStressBlock = stressBlock(expected), currentStressBlock = stressBlock(actual);
+            Assert.AreEqual(256, historicalStressBlock.Length); Assert.AreEqual(256, currentStressBlock.Length);
+            CollectionAssert.AreEqual(historicalStressBlock, currentStressBlock, "StressBlock remains exact; actual capture: " + actualPath);
+            DomainPointContinuousContract.VerifyCatalogue();
+        }
+
+        [TestMethod]
+        public void ContinuousDomainResistancesMatchIndependentStripOracles()
+        {
+            DomainPointContinuousContract.VerifyIndependentResistances();
         }
 
         // ---------------------------------------------------------------- bench

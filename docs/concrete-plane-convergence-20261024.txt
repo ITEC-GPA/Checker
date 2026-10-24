@@ -1,9 +1,11 @@
 INDAGINE DEI CINQUE FALLIMENTI CONCRETE / MODELCHECKER - 24/10/2026
 
-Stato: diagnosi e proposta di migrazione dei cinque contratti storici.
-La guardia di convergenza del piano e' stata integrata e verificata dal root.
-Expected, fixture storiche, baseline e allowlist restano invariati.
-La tabella seguente e' una proposta ancora da approvare, non cinque test chiusi.
+STATO DEL DOCUMENTO: record della diagnosi precedente alla migrazione.
+L'utente ha poi approvato esplicitamente la migrazione dei cinque contratti.
+Implementazione, controlli fisici, prove eseguite e limiti attuali sono descritti
+in concrete-legacy-migration-20261024.txt. Le proposte e le attese operative
+riportate di seguito documentano la diagnosi originaria, non lo stato corrente.
+Le fixture storiche e le allowlist restano integralmente invariate.
 
 CAUSA COMUNE VERIFICATA
 Commit 6edf46a7873cf956ef081170b0f3c5e0cfe7d991, 23/10/2026:

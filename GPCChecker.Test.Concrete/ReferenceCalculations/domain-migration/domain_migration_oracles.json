@@ -1,0 +1,390 @@
+{
+  "description": "Independent affine-strain envelope and exact polygon integration; no .NET.\nThe material tables are reconstructed from their declared input formulas, not\nread from a Checker result. Limits include actual bar radius and pure-compression\npivot. This is a numerical reference, not experimental evidence or a global proof.\n",
+  "R3_compression": [
+    {
+      "diagram": "Bilinear",
+      "state": "Elastic",
+      "target": -2000000.0,
+      "angular_step_degrees": 1,
+      "max_Mx_sampled": {
+        "theta": 0.0,
+        "N": -2000000.000000001,
+        "Mx": -15619701.908773001,
+        "My": 3.725290298461914e-09,
+        "epsilon": -0.0014632726924086626,
+        "curvature": 1.14690923036535e-06
+      },
+      "root_count": 181,
+      "minimum_Mx": -96477276.50692965,
+      "local_refined_max_Mx": {
+        "theta": 0.0,
+        "N": -2000000.000000001,
+        "Mx": -15619701.908773001,
+        "My": 3.725290298461914e-09,
+        "epsilon": -0.0014632726924086626,
+        "curvature": 1.14690923036535e-06
+      },
+      "local_refinement_step_degrees": 0.01,
+      "limitation": "Exhaustive 1-degree angular sample with exact constitutive-strip integration; not a certified continuous angular bound."
+    },
+    {
+      "diagram": "NonLinear",
+      "state": "Plastic",
+      "target": -2000000.0,
+      "angular_step_degrees": 1,
+      "max_Mx_sampled": {
+        "theta": 0.4537856055185257,
+        "N": -1999999.9999999995,
+        "Mx": -4164280.4610947073,
+        "My": 7545272.509191374,
+        "epsilon": -0.001793548122275489,
+        "curvature": 5.203483710139535e-06
+      },
+      "root_count": 181,
+      "minimum_Mx": -127813662.78640483,
+      "local_refined_max_Mx": {
+        "theta": 0.4457570909593518,
+        "N": -2000000.0,
+        "Mx": -4163289.2994893547,
+        "My": 7392621.475547385,
+        "epsilon": -0.001794340237503196,
+        "curvature": 5.192327797563633e-06
+      },
+      "local_refinement_step_degrees": 0.01,
+      "limitation": "Exhaustive 1-degree angular sample with exact constitutive-strip integration; not a certified continuous angular bound."
+    }
+  ],
+  "zero_axial_moment_oracles": [
+    {
+      "section": "R1",
+      "diagram": "ParabolaRectangle",
+      "state": "Plastic",
+      "theta": 0,
+      "N": 2.764863893389702e-10,
+      "Mx": 154063212.01732603,
+      "My": -5.587935447692871e-09,
+      "epsilon": 0.009394644589521538,
+      "curvature": 5.1578578358086154e-05
+    },
+    {
+      "section": "R1",
+      "diagram": "ParabolaRectangle",
+      "state": "Elastic",
+      "theta": 0,
+      "N": 1.8917489796876907e-10,
+      "Mx": 142222384.47822747,
+      "My": 0.0,
+      "epsilon": 0.0006274683696654087,
+      "curvature": 6.328825568881078e-06
+    },
+    {
+      "section": "R1",
+      "diagram": "Bilinear",
+      "state": "Plastic",
+      "theta": 0,
+      "N": -1.8917489796876907e-10,
+      "Mx": 154089958.71528426,
+      "My": 5.587935447692871e-09,
+      "epsilon": 0.008847771458124182,
+      "curvature": 4.9391085832496725e-05
+    },
+    {
+      "section": "R1",
+      "diagram": "Bilinear",
+      "state": "Elastic",
+      "theta": 0,
+      "N": -2.9103830456733704e-10,
+      "Mx": 140657919.43291807,
+      "My": 0.0,
+      "epsilon": 0.000532631104524794,
+      "curvature": 6.780431593360195e-06
+    },
+    {
+      "section": "R1",
+      "diagram": "NonLinear",
+      "state": "Plastic",
+      "theta": 0,
+      "N": -7.8580342233181e-10,
+      "Mx": 153151008.13824502,
+      "My": 3.725290298461914e-09,
+      "epsilon": 0.008699607563921834,
+      "curvature": 4.8798430255687336e-05
+    },
+    {
+      "section": "R1",
+      "diagram": "NonLinear",
+      "state": "Elastic",
+      "theta": 0,
+      "N": -1.7462298274040222e-10,
+      "Mx": 141773894.02430022,
+      "My": -1.862645149230957e-09,
+      "epsilon": 0.00060830581831189,
+      "curvature": 6.420075813421643e-06
+    },
+    {
+      "section": "R2",
+      "diagram": "ParabolaRectangle",
+      "state": "Plastic",
+      "theta": 0,
+      "N": -2.7030182536691427e-09,
+      "Mx": 255500782.40796956,
+      "My": -4.563480615615845e-08,
+      "epsilon": 0.014449439477850972,
+      "curvature": 5.98314649261699e-05
+    },
+    {
+      "section": "R2",
+      "diagram": "ParabolaRectangle",
+      "state": "Elastic",
+      "theta": 0,
+      "N": 3.7834979593753815e-10,
+      "Mx": 239342354.92879388,
+      "My": 1.1641532182693481e-08,
+      "epsilon": 0.0007165336119048641,
+      "curvature": 4.769185104713734e-06
+    },
+    {
+      "section": "R2",
+      "diagram": "Bilinear",
+      "state": "Plastic",
+      "theta": 0,
+      "N": 2.6921043172478676e-10,
+      "Mx": 255379631.27541158,
+      "My": -1.862645149230957e-09,
+      "epsilon": 0.014059693371135877,
+      "curvature": 5.853231123711959e-05
+    },
+    {
+      "section": "R2",
+      "diagram": "Bilinear",
+      "state": "Elastic",
+      "theta": 0,
+      "N": -5.093170329928398e-11,
+      "Mx": 237173381.53781226,
+      "My": 9.313225746154785e-10,
+      "epsilon": 0.0006480594549361032,
+      "curvature": 5.032547246901276e-06
+    },
+    {
+      "section": "R2",
+      "diagram": "NonLinear",
+      "state": "Plastic",
+      "theta": 0,
+      "N": -3.5288394428789616e-09,
+      "Mx": 254390332.0418109,
+      "My": 2.5890767574310303e-07,
+      "epsilon": 0.013857850338281213,
+      "curvature": 5.785950112760404e-05
+    },
+    {
+      "section": "R2",
+      "diagram": "NonLinear",
+      "state": "Elastic",
+      "theta": 0,
+      "N": 5.820766091346741e-10,
+      "Mx": 238402201.58736917,
+      "My": 9.313225746154785e-10,
+      "epsilon": 0.0006924568400077172,
+      "curvature": 4.861788073548915e-06
+    },
+    {
+      "section": "R3",
+      "diagram": "ParabolaRectangle",
+      "state": "Plastic",
+      "theta": 0,
+      "N": 5.820766091346741e-10,
+      "Mx": 149505377.13334846,
+      "My": 5.587935447692871e-09,
+      "epsilon": 0.0046478258662879905,
+      "curvature": 3.259130346515196e-05
+    },
+    {
+      "section": "R3",
+      "diagram": "ParabolaRectangle",
+      "state": "Elastic",
+      "theta": 0,
+      "N": -1.4551915228366852e-10,
+      "Mx": 138106098.3199772,
+      "My": -1.862645149230957e-09,
+      "epsilon": 0.0005142905764901396,
+      "curvature": 6.867767441144263e-06
+    },
+    {
+      "section": "R3",
+      "diagram": "Bilinear",
+      "state": "Plastic",
+      "theta": 0,
+      "N": 1.1641532182693481e-10,
+      "Mx": 149364204.98534018,
+      "My": -1.30385160446167e-08,
+      "epsilon": 0.004062622903515927,
+      "curvature": 3.025049161406371e-05
+    },
+    {
+      "section": "R3",
+      "diagram": "Bilinear",
+      "state": "Elastic",
+      "theta": 0,
+      "N": 1.7462298274040222e-10,
+      "Mx": 136233860.3791079,
+      "My": -1.862645149230957e-09,
+      "epsilon": 0.00038924678307189747,
+      "curvature": 7.463214076469226e-06
+    },
+    {
+      "section": "R3",
+      "diagram": "NonLinear",
+      "state": "Plastic",
+      "theta": 0,
+      "N": -8.149072527885437e-10,
+      "Mx": 147061422.7942438,
+      "My": 2.2351741790771484e-08,
+      "epsilon": 0.00400566685521858,
+      "curvature": 3.0022667420874316e-05
+    },
+    {
+      "section": "R3",
+      "diagram": "NonLinear",
+      "state": "Elastic",
+      "theta": 0,
+      "N": 8.731149137020111e-11,
+      "Mx": 137960536.2451583,
+      "My": -3.725290298461914e-09,
+      "epsilon": 0.0005106803615447433,
+      "curvature": 6.884958940884246e-06
+    },
+    {
+      "section": "C1",
+      "diagram": "ParabolaRectangle",
+      "state": "Plastic",
+      "theta": 0,
+      "N": 2.3283064365386963e-10,
+      "Mx": 225621414.686173,
+      "My": 3.725290298461914e-09,
+      "epsilon": 0.0045477790257084805,
+      "curvature": 2.6825930085694932e-05
+    },
+    {
+      "section": "C1",
+      "diagram": "ParabolaRectangle",
+      "state": "Elastic",
+      "theta": 0,
+      "N": 0.0,
+      "Mx": 158554642.15964603,
+      "My": 2.0489096641540527e-08,
+      "epsilon": 0.0007056424485206208,
+      "curvature": 5.3979778996022635e-06
+    },
+    {
+      "section": "C1",
+      "diagram": "Bilinear",
+      "state": "Plastic",
+      "theta": 0,
+      "N": 5.820766091346741e-11,
+      "Mx": 224274219.16994765,
+      "My": -3.725290298461914e-09,
+      "epsilon": 0.004213967560942602,
+      "curvature": 2.5713225203142006e-05
+    },
+    {
+      "section": "C1",
+      "diagram": "Bilinear",
+      "state": "Elastic",
+      "theta": 0,
+      "N": -1.8917489796876907e-10,
+      "Mx": 153286099.0099277,
+      "My": 2.2351741790771484e-08,
+      "epsilon": 0.0006376386870489618,
+      "curvature": 5.691437711647664e-06
+    },
+    {
+      "section": "C1",
+      "diagram": "NonLinear",
+      "state": "Plastic",
+      "theta": 0,
+      "N": 4.656612873077393e-10,
+      "Mx": 223410201.4432355,
+      "My": 3.3527612686157227e-08,
+      "epsilon": 0.00431550678161558,
+      "curvature": 2.605168927205193e-05
+    },
+    {
+      "section": "C1",
+      "diagram": "NonLinear",
+      "state": "Elastic",
+      "theta": 0,
+      "N": 1.1641532182693481e-10,
+      "Mx": 157386552.5578878,
+      "My": 1.862645149230957e-08,
+      "epsilon": 0.0006923782639586702,
+      "curvature": 5.455217455536353e-06
+    },
+    {
+      "section": "C2",
+      "diagram": "ParabolaRectangle",
+      "state": "Plastic",
+      "theta": 0,
+      "N": 6.111804395914078e-10,
+      "Mx": 317856075.318824,
+      "My": 3.501772880554199e-07,
+      "epsilon": 0.009153220485126762,
+      "curvature": 3.1633051212816906e-05
+    },
+    {
+      "section": "C2",
+      "diagram": "ParabolaRectangle",
+      "state": "Elastic",
+      "theta": 0,
+      "N": 3.2741809263825417e-10,
+      "Mx": 219749731.28912017,
+      "My": 2.2351741790771484e-08,
+      "epsilon": 0.0008072603704343758,
+      "curvature": 3.517190342449897e-06
+    },
+    {
+      "section": "C2",
+      "diagram": "Bilinear",
+      "state": "Plastic",
+      "theta": 0,
+      "N": -2.5320332497358322e-09,
+      "Mx": 316174330.1037559,
+      "My": -5.21540641784668e-08,
+      "epsilon": 0.00860246932542027,
+      "curvature": 3.0256173313550675e-05
+    },
+    {
+      "section": "C2",
+      "diagram": "Bilinear",
+      "state": "Elastic",
+      "theta": 0,
+      "N": -1.964508555829525e-10,
+      "Mx": 212105346.3408273,
+      "My": 3.725290298461914e-08,
+      "epsilon": 0.0007521165177674599,
+      "curvature": 3.6859521501017213e-06
+    },
+    {
+      "section": "C2",
+      "diagram": "NonLinear",
+      "state": "Plastic",
+      "theta": 0,
+      "N": 1.4260876923799515e-09,
+      "Mx": 314595093.063409,
+      "My": 2.905726432800293e-07,
+      "epsilon": 0.008625630517458825,
+      "curvature": 3.031407629364706e-05
+    },
+    {
+      "section": "C2",
+      "diagram": "NonLinear",
+      "state": "Elastic",
+      "theta": 0,
+      "N": 6.766640581190586e-10,
+      "Mx": 215887653.45307207,
+      "My": 3.725290298461914e-08,
+      "epsilon": 0.0007808128509286605,
+      "curvature": 3.598130120572604e-06
+    }
+  ],
+  "R3_tension_lower_Mx": 26560217.033277303
+}

@@ -94,7 +94,10 @@
     <Compile Include="ConcreteControlTests.cs" />
     <Compile Include="CriticalBranchReferenceTests.cs" />
     <Compile Include="CurveGeometryTests.cs" />
+    <Compile Include="CurvaturePhysicalContractTests.cs" />
     <Compile Include="DomainPointContractTests.cs" />
+    <Compile Include="DomainPointContinuousContract.cs" />
+    <Compile Include="DomainPointIndependentData.cs" />
     <Compile Include="DomainPointNewtonTests.cs" />
     <Compile Include="DomainPointFallbackPlaneTests.cs" />
     <Compile Include="DomainPointAxialToleranceTests.cs" />

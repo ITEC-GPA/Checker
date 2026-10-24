@@ -1,0 +1,74 @@
+MIGRAZIONE APPROVATA DEI CINQUE CONTRATTI LEGACY - 24/10/2026
+
+L'utente ha autorizzato esplicitamente: "Si, migra i cinque contratti".
+La migrazione conserva tutti i JSON/CSV/XML storici e le allowlist, senza
+rigenerare gli attesi con i risultati del nuovo solver. Le catture *.actual
+rimangono diagnostiche. Le cinque differenze erano preesistenti ai nuovi
+componenti Steel, introdotte dal solver continuo nel commit 6edf46a7.
+
+CONTRATTI E VERIFICHE MIRATE ESEGUITE
+1. DomainPointContractOf0017IsUnchanged:
+   HistoricalStressBlockAndContinuousPhysicalContractsArePreserved conserva
+   l'hash dell'intero JSON e l'uguaglianza esatta dei 256 casi StressBlock.
+   I 768 continui restano tutti eseguiti: 720 Completed con piano, equilibrio,
+   verso, campi e limiti deformativi; 24 oltre il limite assiale dimostrato;
+   18 esclusi da un certificato statico; 6 rami esplicitamente non qualificati.
+   ContinuousDomainResistancesMatchIndependentStripOracles confronta 30
+   resistenze: cinque sezioni x tre diagrammi x due stati. La tolleranza 2 per
+   mille e' un obiettivo prefissato, non una stima certificata della quadratura.
+   Derivatore Python autonomo e output in ReferenceCalculations/domain-migration.
+   Esecuzione centrale: 2/2 test passati, 52.85 s, closure-domain-field-green.
+   Il primo nuovo assert sul catalogo dei campi era errato: il campionamento
+   Elastic omette F3B, presente anche nella fixture storica. Il test finale
+   ricostruisce il piano dal campo e ne verifica separatamente i limiti fisici.
+
+2. CurvatureContractOf0017IsUnchanged:
+   AnalyticCurvatureContractOf0017IsUnchanged conserva il confronto esatto di
+   tutti i 64 record analitici, punti/errori/testi/culture inclusi. I cinque
+   input nativi sono coperti dal contratto fisico al punto 3. Il CSV e' intatto.
+   Con il contratto detailing: 2/2 test passati, closure-curvature-analytic-green.
+
+3. LegacyMomentCurvatureIsReproduced:
+   HistoricalMomentCurvatureInputsSatisfyIndependentEquilibrium esegue gli
+   stessi cinque input originali. L'oracolo usa una legge esplicita e integrazione
+   esatta dei poligoni tagliati dalle soglie costitutive, senza integrazione core.
+   L'equilibrio discreto e' controllato con somma indipendente sui nodi/pesi del
+   modello. Primo snervamento, limite, ramo, unita', assi e deformazioni verificati.
+   La tolleranza assiale del limite e' min(richiesta, dominio), mai aumentata.
+   16/16 passati: cinque input fisici e undici controlli analitici dell'oracolo.
+   Log closure-curvature-physical-green; Python riproducibile e dieci soluzioni
+   indipendenti limite/snervamento in ReferenceCalculations/curvature.
+   Due scarti iniziali dell'oracolo erano dovuti al plateau erroneamente esteso
+   oltre epsilon_cu. La tabella finita definisce tensione zero oltre il limite;
+   Tri79 ha nodi esterni all'elemento: 9 e 15 nodi superavano epsilon_cu nei due
+   casi. La correzione calcolata spiega interamente gli scarti entro roundoff.
+   Queste prove qualificano l'equilibrio del modello discretizzato, NON una
+   accuratezza del continuo pari alla tolleranza di arresto. Nella T il massimo
+   |integrale esatto - quadratura| assiale e' 3749.385 N, maggiore dei 1000 N
+   richiesti al solver discreto. Tale limite e' misurato e resta esplicito;
+   non si e' modificato il metodo di integrazione per chiudere questa migrazione.
+
+4. LargeSectionPointBeyondTheStoppingTestIsAccepted:
+   LargeSectionFallbackMaintainsScaleAndExposesItsPlaneLimit conserva la S1,
+   le azioni, la scalatura 1:4 e le tolleranze. Non impone il percorso storico
+   del solver o un errore minimo. Ogni Completed deve qualificare il proprio
+   piano esportato, anche se diverso dal primo candidato raw.
+   Il rifiuto e' ammesso solo per l'esplicito errore angolare del piano S1,
+   con direzione presente, stesso semipiano e nessuna capacita' esportata.
+   6/6 passati con DomainPointFallbackPlaneTests, closure-s1-typed-plane-green.
+   La guardia di produzione evita falsa convergenza; la soluzione fisica del
+   salto di S1 rimane aperta. Nessun aumento di tolleranza e nessuna capacita'
+   attribuita a un piano non convergente.
+
+5. RealDetailsMatchNativeResistanceAndKeepThePreparedForceFrame:
+   Il raw corrente soddisfa la convergenza: rimossa la premessa storica opposta,
+   conservati modello, controlli typed/details, assi, azioni ed evidenze.
+   I test deterministici esistenti continuano a respingere candidati fuori
+   vincolo e direzioni opposte. Famiglia 5/5, closure-modelchecker-contract-green.
+
+Le prove complete del set coerente e di ANTHEA sono successive e distinte
+da queste esecuzioni mirate; il loro esito va letto nel rapporto del checkpoint
+Steel 2.84.0.0, senza attribuire loro retroattivamente questi risultati.
+Produzione Concrete 0.18.0.3: guardia del piano e conservazione della diagnostica
+precedente quando il rifiuto riguarda gia' le risultanti. Queste migrazioni sono
+modifiche ai contratti di test e documentazione, non un ulteriore cambio di DLL.

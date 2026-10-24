@@ -295,16 +295,42 @@ namespace ConcreteTests
                 var physical = DomainPointConvergence.Evaluate(solver, force, fromPlane, SectionSolver.FailureAnalysisTypes.ConstantN);
                 var response = new GPC.Checkers.Concrete.Analysis.LegacySectionCalculation(checker)
                     .SolveResistance(new GPC.Checkers.Concrete.Analysis.SectionAnalysisInput(force));
-                if (physical.Accepted)
+                if (response.Diagnostics.Status == GPC.Checkers.Concrete.Analysis.CalculationStatus.Completed)
                 {
-                    Assert.AreEqual(GPC.Checkers.Concrete.Analysis.CalculationStatus.Completed, response.Diagnostics.Status, at);
+                    // The typed API may eventually recover a valid plane after rejecting the first raw fallback candidate.
+                    // Qualify its OWN exported plane, without requiring it to reproduce that earlier candidate.
+                    Assert.IsFalse(response.IsAxialForceOutsideDomain || response.IsZeroDemand || response.IsZeroMomentDemand, at);
+                    Assert.IsNotNull(response.Diagnostics.ResistanceConvergence, at);
                     Assert.IsTrue(response.Diagnostics.ResistanceConvergence.Accepted, at);
                     Assert.IsNotNull(response.Strain, at);
-                    Assert.AreEqual(point.NRd, response.N.Value, 1e-6 * k * k, at);
+                    var exportedPlane = response.Strain.ToStrainPlane();
+                    var exportedIntegrated = solver.GetExternalForces(solver.CalculateForceResultantForDomain(exportedPlane), solver.SectionOption.ForceReferenceCoordinateSystem);
+                    var exportedField = (SectionSolver.FailureZones)Enum.Parse(typeof(SectionSolver.FailureZones), response.FailureMode);
+                    var exportedPoint = new FailureDomain.FailureDomainPoint(exportedIntegrated, exportedField, exportedPlane, 0);
+                    Assert.IsTrue(DomainPointConvergence.Evaluate(solver, force, exportedPoint, SectionSolver.FailureAnalysisTypes.ConstantN).Accepted,
+                        at + ": exported typed plane satisfies every search constraint");
+                    double tn = DomainPointAxialTolerance.Calculate(solver, axial);
+                    double tm1 = solver.FailureAnalysisDistanceTolerance / solver.ConvertToAdimensionalForces(new ForceTuple(0, 1, 0)).Mx;
+                    double tm2 = solver.FailureAnalysisDistanceTolerance / solver.ConvertToAdimensionalForces(new ForceTuple(0, 0, 1)).My;
+                    Assert.AreEqual(axial, response.N.Value, tn, at + ": typed axial equilibrium");
+                    Assert.AreEqual(response.N.Value, exportedIntegrated.N, tn, at + ": typed N reintegration");
+                    Assert.AreEqual(response.M1.Value, exportedIntegrated.Mx, tm1, at + ": typed Mx reintegration");
+                    Assert.AreEqual(response.M2.Value, exportedIntegrated.My, tm2, at + ": typed My reintegration");
+                    Assert.IsTrue(response.Utilization.HasValue && response.Utilization.Value >= 0
+                        && !double.IsNaN(response.Utilization.Value) && !double.IsInfinity(response.Utilization.Value), at);
+                    foreach (var vertex in section.ConcreteShape.Fill2d.Points)
+                        Assert.IsTrue(exportedPlane.GetStrain(vertex) >= -.0035 - 1e-12, at + ": concrete ultimate strain");
+                    foreach (var bar in section.Rebars)
+                    {
+                        double strain = exportedPlane.GetStrain(bar.Position), edge = exportedPlane.Chi * bar.RebarSection.Diameter / 2;
+                        Assert.IsTrue(strain + edge <= .075 * .9 + 1e-12, at + ": steel tensile outer fibre");
+                        Assert.IsTrue(strain - edge >= -.075 - 1e-12, at + ": steel compressive outer fibre");
+                    }
                 }
                 else
                 {
                     // Narrow, evidence-based S1 limitation; never accept a missing point, wrong branch or arbitrary NotConverged.
+                    Assert.IsFalse(physical.Accepted, at + ": a rejected typed result requires the explicit raw-plane limitation");
                     var angle = physical.Residuals.Single(r => r.Quantity == "SearchAngle");
                     Assert.IsTrue(physical.HasSearchDirection, at + ": a physical search direction is required");
                     Assert.IsTrue(angle.Residual < Math.PI / 2, at + ": the opposite half-plane is not an S1 limitation");
