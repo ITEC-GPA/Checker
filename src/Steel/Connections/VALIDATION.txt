@@ -463,3 +463,21 @@ e rimane fuori campo. Tutte le sei azioni conservate; hardware effettivo.
 Saldature, supporto e robustezza globale restano verifiche distinte aperte,
 CanQualifyWholeJoint=false anche conPassed. Nessun atteso legacy modificato.
 Log/TRX workspace audit-results/connections/night-2d-tying-components.
+
+
+3d.2a/b - IMBOTTITURE SALDATE, STEEL2.74.0.0
+50/50nuovi casi e100/100con adattatore di azioni passati.
+Due loop fisici, impronte su tratti piani nativi Model2L/2C, lato lungo/corto
+e sei azioni reali per ogni faccia. Raccordi, traslazioni/riflessioni e
+ordinePart verificati. Revisione indipendente conclusa senza rilievi.
+Normale gola3pi/4 per loopCCW e bloccoz<0: controllato anche il segno della
+tensione nel singolo cordone; non basta il massimo simmetrico del gruppo.
+Benchmark Decimal40 indipendente: blocco36.324157862838946MPa; cordoni
+162.09787217791927MPa,utilizzo0.4200707053391201. Nessuna prova sperimentale
+o qualifica completa del nodo viene inferita da questo ricalcolo analitico.
+Il blocco usa soltanto Fx/Fz/My; Fy/Mx/Mz sono conservati nei cordoni e
+rendono NotSupported il controllo nominale del blocco. Equilibrio6D
+obbligatorio prima dei cordoni; nessunN/2 o falsaresistenza1N/utilizzo.
+Introduzione locale3D e pareti dei correnti restano aperte; qualifica
+stazione/nodo semprefalse. Nessun atteso/fixturelegacy modificato.
+Log/TRX workspace audit-results/connections/night-3d-packing-station.

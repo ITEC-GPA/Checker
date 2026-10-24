@@ -1,0 +1,198 @@
+FASE 3d.2a/b - CORDONI REALI E CONTROLLO NOMINALE DEL BLOCCO
+=========================================================
+
+Campo implementato
+------------------
+PackingWeldedStationComponents riusa PackingFaceActionAdapterResult e i due
+gruppi FilletWeldGroup esistenti. La geometria viene dalla copia immutabile
+Model di due C o L identici, con i dorsi effettivamente affacciati. Per gli
+L disuguali valgono entrambe le scelte lato lungo/lato corto; non si assume
+che il lato connesso sia sempre verticale o il maggiore.
+
+3d.2a: due loop rettangolari REALI, uno per ciascuna faccia del blocco,
+ognuno con le proprie sei azioni, gola, condizioni delle estremita e
+materiali. Il loop segue il contorno della faccia: quattro radici continue
+esterne a 90 gradi, cateto uguale s=sqrt(2)*a, nessuna penetrazione utile
+aggiunta, nessun vuoto alla radice e nessun contatto resistente accreditato.
+Le fonti di esecuzione e distribuzione locale sono obbligatorie: registrano
+le condizioni dichiarate dal chiamante, non una certificazione automatica.
+
+3d.2b: verifica NOMINALE del blocco rettangolare pieno, senza fori, soltanto
+nel campo Fx/Fz/My. Fy, Mx e Mz restano nel contratto, nelle tracce e nei
+gruppi saldati; una qualsiasi componente fuori piano non nulla rende la
+verifica del blocco NotSupported. Non si eliminano piccole componenti con
+una soglia assoluta o rispetto a un'altra azione maggiore.
+
+CoveredComponentsStatus riguarda soltanto i componenti indicati.
+CanQualifyWholeStation e CanQualifyWholeJoint sono SEMPRE false. Non viene
+costruita una falsa resistenza scalare in N da trasferire a
+SteelPackedPairAssessment. Una coppia pura con forze nulle resta una coppia.
+
+Geometria, assi e saldature
+-------------------------
+Le due terne sono quelle gia' restituite dall'adattatore Model:
+ x = asse longitudinale +Z dell'asta;
+ z = normale uscente dal blocco verso il corrente;
+ y = z cross x.
+Le azioni sono ON BLOCK, non azioni sul corrente con segno invertito.
+Sono trasportate al centro della singola faccia dal kernel Model prima di
+entrare nel gruppo saldato. Nessun N/2, divisione automatica del momento,
+inviluppo di combinazioni diverse o correzione del residuo viene introdotto.
+L'equilibrio completo a sei componenti dell'adattatore e' un prerequisito.
+
+La radice del loop ha vertici antiorari:
+ (-L/2,-B/2), (+L/2,-B/2), (+L/2,+B/2), (-L/2,+B/2).
+Nel kernel t e' la tangente orientata e p=(-ty,tx) punta verso l'interno
+del rettangolo. Il blocco e' a z<0 e il cordone esterno occupa il quadrante
+(-p,-z). La normale positiva della gola verso il corrente e' pertanto
+n=(-p+z)/sqrt(2), corrispondente a ThroatNormalAngleRadians=3*pi/4.
+Questa precisazione corregge pi/4 nella nota preliminare di ricerca:
+il benchmark simmetrico ha lo stesso massimo, ma la tensione normale del
+cordone verticale cambia. Un test controlla separatamente il segno reale,
+senza limitarsi al massimo equivalente dell'intero gruppo.
+
+Ogni impronta e' estesa del proprio cateto oltre le quattro radici:
+ - in senso longitudinale deve stare entro gli estremi reali dell'asta;
+ - sul dorso deve stare su UN tratto piano nativo di Model;
+ - nello spessore g deve valere g>=s0+s1, per non sovrapporre i due
+   cordoni contrapposti. Questa e' una restrizione geometrica del dettaglio,
+   non una nuova formula normativa per le imbottiture.
+Si leggono GetCurveOutlines e soltanto LineCurve3d/segmenti rettilinei di
+PolylineCurve3d/PolyCurve3d, mai corde di un raccordo campionato.
+Curve approssimate, fori o isole del contorno non rientrano nel campo.
+La trasformazione inversa della singola Part mantiene traslazioni,
+riflessioni e ordine effettivo dei due correnti.
+
+I raccordi interni e di punta R/R2 dei C e L Model NON vanno sottratti
+automaticamente al dorso esterno: il contorno nativo determina se il
+tratto e' ancora piano. I test comprendono profili raccordati e impronte
+al limite inclusivo, oltre a superamenti sostanziali di 1e-8 mm.
+L'uguaglianza delle distanze ammette solo 8 epsilon relativi per roundoff
+aritmetico, non una tolleranza di fabbricazione.
+
+Si richiede produzione HotFinished e SectionType Rolled/Welded. I valori
+di fu del corrente provengono dal materiale della copia Model; fy/fu del
+blocco e le due classi nominali devono avere fonte per prodotti/spessori
+effettivi. La classe influisce su beta_w; fy non puo' superarla. Le gole
+minime, gli spessori minimi, le lunghezze efficaci, le estremita difettose
+e le saldature lunghe restano controllati dal kernel comune.
+
+Modello nominale del blocco
+--------------------------
+Assi del blocco paralleli alla prima faccia, con origine al centro del
+blocco e facce z=+g/2 e z=-g/2. La sezione ortogonale a z e' L lungo x e B
+lungo y. Nessuna discretizzazione FEM viene effettuata.
+
+ A = L*B                        [mm2]
+ Iy = B*L^3/12                  [mm4]
+ Wy = B*L^2/6                   [mm3]
+ My(z) = My(face0)+(g/2-z)*Fx    [Nmm]
+ sigma_bound = |Fz|/A + max(|My(face0)|,|My(face0)+g*Fx|)/Wy [MPa]
+ tau_bound = 1.5*|Fx|/A                                   [MPa]
+ sigma_eq_bound = sqrt(sigma_bound^2+3*tau_bound^2)         [MPa]
+
+Si confronta sigma_eq_bound con fy/gammaM0. L'uso dei massimi separati di
+tensione normale e taglio e' conservativo SOLO entro questo modello
+prismatico nominale. Il massimo del momento e' alle due facce, non al
+centro; nel benchmark il momento centrale e' zero mentre i due estremi
+sono entrambi sollecitati.
+
+Il campo di Saint-Venant nominale non risolve le tensioni locali 3D
+all'interfaccia di un blocco corto, la diffusione delle forze dei cordoni,
+il contatto, la torsione, il punzonamento o la flessione della parete del
+corrente. La verifica restituisce questa limitazione esplicitamente e non
+chiude automaticamente la stazione completa. Eventuali casi fuori piano
+richiedono un metodo specifico, mantenendo le stesse sei azioni.
+
+Fonti e policy
+--------------
+Fonti primarie locali lette e verificate anche sulle pagine PDF:
+ - EN1993-1-1:2005 6.4.4(1), Fig6.12 e Tab6.9, p74/PDF76:
+   limite15imin del SINGOLO corrente per i componenti ravvicinati.
+   La verifica globale del passo resta nel percorso packed-pair esistente.
+   Il limite70imin del caso stellato Fig6.13 e i calastrelli sono esclusi.
+ - EN1993-1-1:2005 6.2.1(5), eq6.1, p45/PDF47:
+   criterio elastico di snervamento adottato sul campo nominale dichiarato.
+   La norma non costituisce da sola una soluzione locale 3D del blocco.
+ - EN1993-1-8:2005 4.4, p41-42/PDF43-44 e 4.5.1-4.5.3:
+   collegamenti attraverso imbottiture e resistenza dei cordoni. Qui sono
+   due attacchi diretti indipendenti, non un unico cordone attraverso il
+   gioco; il caso di imbottiture sottili 4.4(2) non viene adottato.
+ - EN1993-1-8:2005 3.6.1(12-13), eq3.3, Fig3.4, p25-26/PDF27-28:
+   beta_p riguarda bulloni con imbottiture, non questi gruppi saldati.
+   Non si applica beta_p e non si assume un bullone in doppio taglio.
+
+Il percorso EC3 usa i fattori espliciti e la relativa etichetta del contesto
+SteelVerificationInput. NTC2018 deve coincidere col contesto NTC della
+richiesta originaria: gammaM0=1.05 per il blocco, gammaM2=1.25 per cordoni.
+Il controllo nominale usa il criterio EN supplementare dichiarato, non
+attribuisce alle NTC una formula specifica per il blocco che non e' stata
+verificata nel loro testo. I cordoni riusano le distinte policy EC/NTC del
+kernel comune: estremita nominali EC con deduzione2a, NTC non difettose a
+lunghezza intera. Nessun Annex nazionale viene selezionato implicitamente.
+
+Benchmark analitico indipendente
+--------------------------------
+derive_packing_welded_station.py usa Decimal con40 cifre, senza importare
+Checker. E' una derivazione analitica per verificare l'implementazione,
+NON una prova sperimentale o una validazione completa indipendente del nodo.
+
+L120, B60, g12 mm; gole a0=a1=3 mm; fy275, fu410 MPa; beta_w0.85;
+gammaM0=1, gammaM2=1.25. Correnti con dorso verticale a X=+6 e X=-6:
+ faccia0: Fx=+100000 N, My=-600000 Nmm;
+ faccia1: Fx=-100000 N, My=+600000 Nmm;
+ tutte le altre componenti esplicitamente nulle.
+I sei residui globali sono nulli. Omettendo le due coppie resta invece
+My globale=-1200000 Nmm: il caso deve essere NotSupported.
+
+Blocco: A7200 mm2; Iy8640000 mm4; Wy144000 mm3;
+sigma_bound4.166666666666667 MPa; tau_bound20.83333333333333 MPa;
+sigma_eq_bound36.324157862838946 MPa.
+
+Ciascun loop: Aw1080 mm2, Ix756000 mm4, Iy2160000 mm4;
+sx92.59259259259259 MPa; max|sz|16.66666666666667 MPa.
+Sul cordone verticale destro, con normale fisica3*pi/4:
+ sigma_perp77.25796312964130 MPa;
+ tau_perp53.68773709008972 MPa;
+ equivalente120.89628699221826 MPa.
+Governano i cordoni orizzontali con162.09787217791927 MPa su resistenza
+385.88235294117647 MPa, utilizzo0.4200707053391201.
+Il cateto4.242640687119285 mm lascia3.51471862576143 mm nello spessore.
+Con estremita nominali l'area efficace EC e'1008 mm2; NTC1080 mm2.
+Forza normale pura72000 N ->10 MPa nominali nel blocco.
+Coppia My pura1440000 Nmm ->10 MPa nominali, senza introdurre forze fittizie.
+
+Verifiche e integrazione
+-----------------------
+PackingWeldedStationTests comprende i benchmark per2L lato lungo/corto e
+2C, EC/NTC, raccordi reali, riflessioni/traslazioni, invertire carichi e
+ordine delle Part, segni delle normali di gola, sola coppia, stato nullo,
+azioni fuori piano incluse piccolissime, residui di forza/coppia,
+gole distinte, estremi geometrici inclusivi/esclusivi, sorgenti mancanti,
+incoerenza normativa/materiale, cold-formed, difetti, lunghezze minime e
+overflow. I risultati parziali non producono Passed di stazione/nodo.
+
+Integrato e verificato centralmente:50/50nuovi test passati,
+100/100con adattatore. Derivatore Python indipendente eseguito.
+Revisione indipendente su assi,impronte,azioni e campo conclusa.
+Filtro: FullyQualifiedName~PackingWeldedStationTests
+Installer proposto: install_packing_welded_station.py (solo nuovi file,
+normalizza CRLF; non eseguito dall'agente di sviluppo).
+
+
+3d.2a/b - IMBOTTITURE SALDATE, STEEL2.74.0.0
+50/50nuovi casi e100/100con adattatore di azioni passati.
+Due loop fisici, impronte su tratti piani nativi Model2L/2C, lato lungo/corto
+e sei azioni reali per ogni faccia. Raccordi, traslazioni/riflessioni e
+ordinePart verificati. Revisione indipendente conclusa senza rilievi.
+Normale gola3pi/4 per loopCCW e bloccoz<0: controllato anche il segno della
+tensione nel singolo cordone; non basta il massimo simmetrico del gruppo.
+Benchmark Decimal40 indipendente: blocco36.324157862838946MPa; cordoni
+162.09787217791927MPa,utilizzo0.4200707053391201. Nessuna prova sperimentale
+o qualifica completa del nodo viene inferita da questo ricalcolo analitico.
+Il blocco usa soltanto Fx/Fz/My; Fy/Mx/Mz sono conservati nei cordoni e
+rendono NotSupported il controllo nominale del blocco. Equilibrio6D
+obbligatorio prima dei cordoni; nessunN/2 o falsaresistenza1N/utilizzo.
+Introduzione locale3D e pareti dei correnti restano aperte; qualifica
+stazione/nodo semprefalse. Nessun atteso/fixturelegacy modificato.
+Log/TRX workspace audit-results/connections/night-3d-packing-station.

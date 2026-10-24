@@ -37,10 +37,10 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1651 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 1701 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,35tying piastra/anima,
    83componenti doppie squadrette/supporto,208precarico/scorrimento,365continuitaI,
-   40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,26rigidezza rotazionale,77classificazione/criteri rotazione,22dominioN+V.
+   40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,50cordoni/blocco imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,26rigidezza rotazionale,77classificazione/criteri rotazione,22dominioN+V.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
@@ -110,8 +110,11 @@ FASE 3 - CONTROVENTI E PROFILI ACCOPPIATI
 3d PARZIALE - Chiusa3d.1: geometria Model2L/2C e azioni sulle due facce
    dell'imbottitura,50test di assi/equilibrio. Sei azioni concomitanti esplicite,
    coppie conservate; nessun N/2 automatico. PHASE_3D_PACKING_FACE_ACTIONS.txt.
-   Restano fissaggi e resistenza del blocco; passo/gap normativo restano nel
-   percorso SteelPackedPair esistente. Esclusi i calastrelli.
+   Chiuse3d.2a/b: due gruppi saldati fisici e snervamento nominale del blocco
+   in Fx/Fz/My,50nuovi test;100/100con adattatore. Impronte su dorsi Model,
+   normali gole reali,EC/NTC; PHASE_3D_2_PACKING_STATION.txt.
+   Restano introduzione locale3D, pareti correnti e qualifica della stazione;
+   passo/gap normativo nel percorso SteelPackedPair. Esclusi i calastrelli.
 3e PARZIALE - Chiusa3e.1: riuso SteelSectionInput/SteelActions per L/2L,
    senza gerarchie duplicate o modifiche Model. Restano C, altre componenti
    e esempio completo asta-collegamento, incluse le azioni eccentriche.
