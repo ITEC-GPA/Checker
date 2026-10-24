@@ -747,3 +747,26 @@ night-3c-pair-transfer-baseline,night-3c-pair-transfer-red,
 night-3c-curved-input-diagnostic,night-3c-pair-transfer-green.
 Nessun atteso legacy o allowlist modificato. Mancano netto/block gusset,
 blockL,contatto/prying,forze normali bulloni,supporto e nodo completo.
+
+
+AUDIT COMPLETO STEEL2.82.0.0 / MODEL5.20.0.2 - 24/10/2026
+Eseguito build/Verify.ps1 -Suites all, con ricompilazione dipendenzeModel,
+net472 Concrete/Steel, tutte le suiteChecker e i controlliAPI.
+5458testSteel passati:5336Members+122net472. Totale7728passati,5falliti,
+0saltati. I cinque fallimenti coincidono PER NOME E SUITE con audit2.78,
+2.74/2.71/2.66 e baseline6edf46a7; nessuna nuova regressioneSteel.
+QuattroConcrete e unoModelChecker non sono autorizzati da allowlist:
+la verifica generale termina con exit1, non e' un rilascio verde.
+Nessun atteso legacy, fixture o allowlist modificato.
+
+207casi aggiunti dopo audit2.78:
+-20aggregazioneendplate:7d259079/versioneae8d5dc0(2.79).
+-14dettaglio coppiaendplate:c3918464/versione2824839b(2.80).
+-89adaptertraveSteel:632d0579/versioned45fdd93(2.81).
+-84trasferimentopiano2L:4b855b4e/versione9887cbd4(2.82).
+FixupstreamModel9d3b1043/versioned554c0bd(5.20.0.2): ripristino raccordi
+nelle copie. SuiteModel separata1488passati,3nativeSkipped,API/EqualityAudit.
+L'auditChecker corrente ricompila il nuovo numero di versioneModel.
+
+Risultati nel workspaceaudit-results/connections/verify-night-2-82/summary.json
+e relativiTRX/log; confronto automatico converify-night-2-78/summary.json.

@@ -197,9 +197,9 @@ Ogni sottofase chiusa ha implementazione, campo di validita, riferimenti,
 benchmark eseguiti e commit separato. Aggiornamenti in chat con la stessa sigla.
 
 VERIFICA GENERALE DELLA BASE
-Controllo completo Steel2.78.0.0:5251test Steel passati (5129Members+122net472);
-7521passati complessivi,0saltati e cinque fallimenti Concrete/ModelChecker
-invariati rispetto2.74/2.71/2.66 e gia documentati in6edf46a7. Nessun atteso
+Controllo completo Steel2.82.0.0/Model5.20.0.2:5458test Steel passati
+(5336Members+122net472);7728passati complessivi,0saltati e cinque fallimenti
+Concrete/ModelChecker invariati rispetto2.78/2.74/2.71/2.66 e6edf46a7. Nessun atteso
 modificato o fallimento ammesso automaticamente. Vedere VALIDATION.txt.
 Queste pendenze impediscono un rilascio generale dichiarato interamente verde,
 ma non impediscono l'implementazione e i test dei nuovi componenti di connessione.
@@ -242,3 +242,6 @@ FixModel5.20.0.2 necessario per conservare raccordi nelle copie:17nuovitest,
 
 3c.3 CHIUSA nel solo campo piano:84nuovi test e167/167famiglia passati.
 VersioneSteel2.82.0.0. In avvio audit completo, ultimo audit generale2.78.
+
+Audit2.82 concluso:207nuovi casi rispetto2.78, nessuna nuova regressione.
+ControlliAPI compatibili;5fallimenti legacy non ammessi rimangono visibili.
