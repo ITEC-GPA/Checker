@@ -1,0 +1,232 @@
+FASE 4 - PROSSIMO BLOCCO DOPO ADAPTER DELLA SEZIONE TRAVE
+24 ottobre 2026. Ricerca e specifica proposta; nessun codice, build o Git.
+
+DECISIONE RACCOMANDATA
+
+Chiudere il binding del caso locale trave/momento/bulloni/saldature e della
+sola rigidezza INIZIALE del modello a molle. La capacita' a momento dei
+componenti NON e' una resistenza completa MjRd del nodo: non usarla per
+dedurre rigidezza secante o rotazione mentre net/block/supporto restano aperti.
+Non introdurre ora un presunto modello net/block del nodo a momento copiando
+le formule delle piastre dei collegamenti semplici. Le fonti esaminate non
+qualificano quella estensione alla flessione fuori piano con prying.
+Questo non dimostra che la verifica net/block sia superflua: resta aperta la
+qualificazione del percorso fisico e dell'interazione per il campo generale.
+
+1. COSA COPRONO E COSA NON COPRONO LE FONTI
+
+EN 1993-1-8:2005, 6.2.2(1): l'intero taglio della trave deve passare dai
+cordoni dell'anima. Gia' applicato nei due adapter di saldatura.
+6.2.2(2), Tabella 3.4: interazione del singolo bullone includendo prying;
+nota con residuo 0.4/1.4 per i bulloni a piena resistenza a trazione.
+6.2.2(4): il taglio resistente del nodo dipende dalla distribuzione delle
+azioni interne e dalle resistenze dei componenti. Non e' una formula che
+permetta di sommare indiscriminatamente tutte le capacita' locali.
+3.7: regola per il gruppo di bulloni dipendente da rifollamento/taglio;
+non ignorarla se si introducesse una redistribuzione automatica del taglio.
+3.10.2: definisce il meccanismo in piano di block tearing con superfici
+di taglio e trazione. Da sola non fornisce il meccanismo combinato con la
+flessione fuori piano della piastra del nodo a momento.
+
+SCI P398, capitolo 2, STEP 5, pp.26-27 (PDF34-35): taglio verticale tramite
+bulloni e rifollamento dei due elementi, distinguendo bulloni tesi/non tesi.
+Esempio C.1 p.105 (PDF113): 2 bulloni a taglio pieno e 6 al28%, Fv136kN;
+valore pubblicato500kN. Non pubblica un controllo net/block della piastra
+o della flangia del pilastro in questo esempio.
+Il benchmark e' gia' coperto da EndPlateBoltComponentTests; il test conserva
+la differenza tra28% arrotondato e2/7 esatto e la riduzione del giunto lungo.
+Il solo limite BoltsOnlyShearEnvelope non e' una resistenza del nodo.
+
+SCI P398, pp.56/58-59 (PDF64/66-67): net/block riguarda le piastre di
+coprigiunto; non e' il dettaglio end plate di C.1.
+SCI P358 Check9, p.23 (PDF33), esempio1 pp.40-41 (PDF50-51): gross/net/block
+di end plate di collegamento semplice, con hp290,tp10,d0=22,4file per lato.
+Il fattore1.27 e l'eventuale requisito hp<1.36p3 sono propri del modello
+in piano di quella guida. FlexibleEndPlate li implementa gia'. Non usarli
+come prova di nodo a momento con piastra inflessa e forza normale ai piatti.
+La flangia del pilastro ha inoltre continuita' longitudinale e radice/anima:
+non equivale a una seconda piastra rettangolare libera di altezza hp.
+
+Riferimenti pubblici primari:
+https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
+https://www.steelconstruction.info/images/a/a9/SCI_P358.pdf
+https://publications.jrc.ec.europa.eu/repository/bitstream/JRC96658/jrc_steel_report_2015_07_22.pdf
+Copie PDF e testi normativi disponibili nel workspace; pagine P398 e P358
+individuate nel testo integrale. Nessuna fonte secondaria e' stata usata
+per giustificare un'equazione o un nuovo campo di resistenza.
+
+2. LACUNA FUNZIONALE CONCRETA NELLE API ESISTENTI
+
+EndPlateMomentWithBeamSection associa il token derivato dalla sezione Model
+al risultato del momento: stesso Code, Beam, N/M/V e istanza della capacita'.
+EndPlateConnectionAssessment associa momento, bulloni e una delle due
+saldature tramite identita' dello stesso MomentComponents. Riusarlo.
+EndPlateRotationalStiffness oggi riceve indipendentemente MjRd,NplRd,M,N,
+bracci,m,spessore piastra,As,larghezza compressa e parametri del pannello.
+Il kernel li verifica nel suo campo, ma non puo' dimostrare che appartengano
+al risultato trave/momento/bulloni/saldature utilizzato dal chiamante.
+
+Blocco proposto4g.1: adapter della SOLA Sj,ini dalla geometria del caso concreto.
+Blocco proposto4g.2: stato locale coerente tramite i risultati esistenti.
+Nessuna nuova gerarchia di geometrie, nessun ricalcolo delle verifiche
+di resistenza, nessun FEM/UI e nessuna ricerca di una resistenza globale.
+
+3. CONTRATTI MINIMI PROPOSTI
+
+Nuovo EndPlateStiffnessRowDetail:
+- indice di fila del parent;
+- JointStiffnessEffectiveLength per flangia pilastro e piastra;
+- BoltElongationLength reale comprensivo di piatti, rondelle e meta' delle
+  altezze testa/dado, con provenienza del dettaglio hardware.
+Non riceve nuovamente bracci,spessori,m,As o geometria della trave.
+Una sola lista di record, senza array paralleli o nuove forme di sezione.
+
+EndPlateInitialStiffnessFromMoment.Calculate:
+- input EndPlateMomentWithBeamSectionResult + record per TUTTE le file
+  tese del parent, ordinate e senza omissioni nel primo campo;
+- riusa TStubEffectiveGeometry e TStubInternalEndPlateLengths per ricavare
+  m della flangia pilastro, m interno ed mx della fila esterna;
+- bracci da EffectiveRows del medesimo MomentComponents;
+- tp,As,column,code,beta,panelconfiguration,N,M dal parent immutabile;
+- beff,c da ColumnWebEffectiveWidth.FromBoltedEndPlate sui dati del parent;
+- E effettivo dello snapshot BeamSection.Input.Section.ElasticModulus deve
+  essere210000MPa, come il kernel: materiali Model con E diverso sono fuori
+  campo anche se fy/fu e geometria coincidono. SteelSectionInput conserva E
+  dello snapshot; Model Material.E vale0 se i moduli di trazione/compressione
+  sono diversi e quel caso e' gia' rifiutato alla costruzione dello snapshot;
+- per pilastro/piastra il contratto attuale non porta un E indipendente:
+  resta la policy esplicita acciaio/E210000, non una misura di omogeneita'
+  ricavata dalla sola uguaglianza delle resistenze fy/fu;
+- non usa parent.MomentResistance come MjRd del nodo completo;
+- N reale=0 e' gia' vincolato dal parent; conservarlo nella tracciabilita'
+  senza costruire un caso con M=0 o capacita' positive fittizie;
+- non richiama l'attuale Calculate con valori segnaposto per aggirarne
+  l'obbligo di MjRd/NplRd: estrae e riusa il solo kernel geometrico delle molle.
+
+Patch minima condivisa da proporre separatamente:
+- un input geometrico/risultato di rigidezza iniziale con Column,Code,
+  CompressionWidth,Configuration,Beta,Rows e provenienza;
+- un helper aritmetico interno che conserva l'ordine dei calcoli originali
+  k1,k2,k3,k4,k5,k10,zeq,keq,Sj,ini e relative guardie numeriche/geometriche;
+- l'attuale Calculate usa quell'helper e poi applica le proprie guardie
+  su N/NplRd e M/MjRd e il calcolo secante gia' esistente;
+- il nuovo percorso iniziale usa lo stesso helper senza domande o capacita'
+  inventate. L'adapter resta limitato al parent N=0 nel campo corrente.
+Nessun cambiamento alle equazioni o agli attesi del kernel esistente.
+La patch condivisa richiede revisione root; i nuovi adapter restano in file
+separati. Non produrre un secondo clone della somma delle molle.
+
+Lunghezze efficaci: il primo adapter le conserva come input qualificato
+per la SINGOLA fila in tutti i gruppi rilevanti. L'attuale geometria salva
+lunghezze totali di gruppo: NON dividerle per il numero delle file e NON
+usarle direttamente come leff della singola molla. Il testo Source registra
+provenienza, non certifica che siano stati enumerati tutti i meccanismi.
+Derivarle automaticamente e' un incremento distinto: esporre i contributi
+per fila gia' presenti nei loop geometrici, con audit delle Tabelle6.4/6.6
+e6.11, senza modificare le capacita' T-stub esistenti.
+
+Se il parent e' Failed, conservarlo: una Sj,ini positiva non modifica quel
+fallimento. Per il primo adapter si puo' evitare l'export quando il parent
+non e' Passed, mantenendo esplicita la ragione; una successiva estensione
+potra' distinguere calcolo geometrico e applicabilita' senza occultare il
+fallimento. Se e' NotSupported o incoerente, nessun binding della rigidezza.
+Non azzerare le azioni per superare un limite. Il risultato conserva parent,
+input geometrico derivato, risultato iniziale, diagnostica e limiti esterni.
+
+Nuovo EndPlateLocalCaseAssessment:
+- riceve EndPlateMomentWithBeamSectionResult, EndPlateConnectionAssessmentResult
+  esistente e risultato EndPlateInitialStiffnessFromMoment;
+- ReferenceEquals sullo stesso MomentComponents e sul parent del nuovo
+  adapter: numeri uguali o label Source uguali non sostituiscono il binding;
+- conserva sei azioni originali, pipeline della sezione, ciascun componente,
+  trace e diagnostica senza ricostruire il caso da stringhe;
+- separa HasFailedComponent, HasUnsupportedComponent, HasCoherentCase e
+  risultato dei controlli effettivamente coperti;
+- sola Sj,ini in Nmm/rad, senza falsa utilization, secante o rotazione;
+- WholeJoint e WholeMember restano false.
+Non duplicare il gia' presente EndPlateConnectionAssessment.
+
+4. REPORT DEI RESIDUI
+
+Si possono indicare come valutati separatamente: sezione reale della trave,
+componenti di momento, bulloni/punzonamento/rifollamento per il taglio
+prescritto, cordoni nel dettaglio scelto e rigidezza iniziale dello stesso
+modello geometrico. Questo non qualifica la curva M-rotazione del nodo.
+Conservare verbatim le qualificazioni dei risultati figli. Non cancellare
+un pending generico solo perche' uno dei termini citati e' stato calcolato.
+Una piccola lista esplicita delle coperture puo' affiancare i pending; non
+serve una nuova gerarchia o un motore che interpreti il testo delle note.
+
+Restano aperti:
+- net/block e interazione fuori piano di piastra/supporto;
+- percorso locale di introduzione delle forze e dettagli dei raccordi;
+- pressione hardware e qualificazione esecutiva, contatto compresso quando
+  dichiarato esternamente, lunghezze efficaci/hardware esterni per rigidezza;
+- membro pilastro, stabilita' dei membri e compatibilita' globale;
+- capacita' rotazionale/duttilita' e classificazioni se non collegate in un
+  incremento apposito; questo blocco non estende i criteri gia' implementati;
+- rigidezza secante/rotazione dipendenti da MjRd: escluse finche' manca una
+  resistenza completa realmente qualificata e legata allo stesso caso;
+- N diverso da0, inversione del lato teso, sezioni/classe fuori campo.
+NTC: fattori nazionali del parent; il modello a componenti/molle EC resta
+esplicitamente supplementare, non diventa una formula letterale NTC.
+
+5. BENCHMARK E TEST PERTINENTI
+
+JRC96658(2015) §3.3.5, Tabella3.8 pp.174-175 (PDF190-191), IPE500/HEA340:
+benchmark primario della rigidezza, gia' verificato nel kernel. Sj pubblicato
+75.214MNm/rad; ricalcolo con Av geometrica e braccio zeq nel pannello
+76.55258290797441MNm/rad. Mantenere i due percorsi distinti.
+Riusare il derivatore indipendente derive_jrc96658_rotational_stiffness.py;
+non calibrare area,braccio o lunghezze per ottenere il valore pubblicato.
+Per l'adapter, prima controllare che la geometria dell'esempio sia nel campo
+del parent corrente. Se non lo e', il confronto JRC rimane test del kernel;
+non deformare la fixture per chiamarlo test integrato dell'esempio.
+
+SCI C.1 e' pertinente per integrazione geometrica/momento/taglio; la sua
+rigidezza ricalcolata con EN6.3 e' un nuovo oracle analitico, NON un valore
+di rigidezza pubblicato SCI. Medesima distinzione per eventuali lunghezze
+contributive di fila ricavate dalla norma e assenti nel tabulato C.1.
+
+Test nuovi previsti (circa25-35, numero da finalizzare dopo sviluppo):
+- identita' dei token, istanza del parent e del Code;
+- M,N,V reali e segnoV2 conservati, nessun fake loadcase nullo;
+- bracci, m/mx, tp, As, larghezza compressa derivati dalla geometria;
+- tutte le file incluse, duplicate/mancanti/invertite rifiutate;
+- leff di fila e gruppi conservate senza media dei totali;
+- hardware Lb effettivo e sua insufficienza, stessa sorgente non equivale
+  a stessa geometria;
+- parent Failed e NotSupported visibili, rigidezza geometrica non maschera
+  fallimenti di resistenza; nessun uso di una MjRd dei soli componenti;
+- due dettagli di saldatura supportati dall'aggregatore riusato;
+- EC/NTC e beta0/1 nel campo dei parent;
+- stessa geometria/fy/fu ma materiale Model E diverso: adapter non supportato,
+  nessuna correzione silenziosa del materiale per far coincidere la rigidezza;
+- M reale conservato, Sj,ini indipendente da MjRd; nessuna capacita' o azione
+  segnaposto; vecchi test secanti mantenuti invariati come regressioni della
+  sola estrazione aritmetica;
+- tutti i controlli locali Passed con residui ancora aperti e WholeJointfalse.
+
+6. PREREQUISITI PER UN FUTURO BLOCCO NET/BLOCK
+
+Prima della produzione servono: topologia delle superfici di rottura sul
+piatto realmente inflesso, forza agente su ciascun blocco nel medesimo
+stato, inclusione delle azioni normali/prying e interazione motivata,
+continuita' e limiti fisici della flangia pilastro, un benchmark pertinente.
+Non basta aggiungere un booleano externallyQualified al vecchio modello.
+Un caso puramente in piano a M=0 potrebbe riusare il modello dei nodi
+semplici solo dopo averne dimostrato i requisiti; non chiuderebbe il campo
+del nodo a momento e duplicarlo ora offre poco valore rispetto al binding.
+
+STATO: SPECIFICA PROPOSTA, DA APPROVARE DAL ROOT PRIMA DEL CODICE.
+RETTIFICA ROOT INCORPORATA: esportazione della sola rigidezza iniziale;
+nessun token di resistenza globale ricavato dal parent dei componenti.
+
+APPROVAZIONE TECNICA ROOT - 24/10/2026
+Approvati4g.1/4g.2 nel campo della SOLA rigidezza iniziale e del binding
+locale. Nessun MjRd globale ricavato dalla resistenza parziale dei componenti;
+nessuna secante/rotazione artificiale. Kernel condiviso tramite estrazione
+minima con ordine aritmetico/guardie conservati e test esistenti invariati.
+Verificare E effettivoModel210000, tutte le file reali e le lunghezze efficaci
+di ciascuna fila nei gruppi. Conservare fallimenti/limiti dei figli.
+Revisione indipendente, test centrali e commit prima della chiusura effettiva.

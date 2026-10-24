@@ -1,0 +1,171 @@
+FASE2 - PROSSIMO BLOCCO PROPOSTO: INVILUPPO DEI CASI SLU DEL GIUNTO I
+24/10/2026. SPECIFICA PER APPROVAZIONE, non implementazione.
+Nessuna produzione, build, test.NET, installazione o operazione Git.
+Eseguito solo derive_ibeam_splice_envelope_cases.py (Python indipendente).
+
+1. DECISIONE E RICOGNIZIONE DELLE APERTURE
+2c: SBE-MS5 cap4 e benchmark4.4 non definiscono un supporto reale completo
+    con contatto, prying e azioni concomitanti. Rifollamento gia implementato;
+    le tre resistenze T-stub non sono il tiro effettivo F/(2n) dei bulloni.
+2d: SCI P358 Check14 definisce il pannello interno continuo. Non assegna il
+    criterio generale per una distanza da estremita finite o per N/V/M
+    preesistenti. AD396 non colma questo limite; non importare la soglia5d
+    del diverso controllo a taglio. Il campo finito rimane aperto.
+2e: EN1993-1-8 3.10.2 e SCI P398/P358 non danno nelle pagine esaminate un
+    meccanismo completo di block tearing sotto N-V-M. Non riproporre la
+    somma lineare non approvata; per il netto plastico occorre anche quanto
+    richiesto da EN1993-1-1 6.2.1(6), non solo equilibrio e una disuguaglianza.
+
+Non propongo di dichiarare chiuse queste tre aperture generali. Il passo
+scelto con root e' un percorso d'uso completo per i componenti GIA qualificati:
+verificare OGNI combinazione SLU del medesimo giunto, con N/V/M concomitanti.
+Oggi IBeamSpliceComponents valuta tutti i componenti generali solo per Plates
+(primary ULS); per altri ULS slip valuta slip e nettoC delle ali. La nuova API
+e' additiva; Verify(IBeamSpliceComponentInput) conserva integralmente il contratto.
+
+Fonti dei metodi riusati, non di nuove leggi resistenti:
+https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
+  SCI P398(2013), cap4 pp55-59 ed esempioD.1 pp129-140.
+https://www.steelconstruction.info/images/a/a9/SCI_P358.pdf
+  SCI P358(2014), Check14 p29; AD396 conferma solo il lato endplate pertinente.
+https://constructalia.arcelormittal.com/files/MSB05%20Joint%20Design--d460a9e9be3edf97e91edc8b292f16e9.pdf
+  CTICM/SCI SBE-MS5, cap4 ed esempio4.4.
+Il nuovo inviluppo e' organizzazione delle verifiche per caso, NON una nuova
+formula normativa. La ricerca mirata non autorizza altre chiusure meccaniche.
+
+2. API MINIMA PROPOSTA (NOMI DA CONFERMARE)
+Nuovi contratti immutabili:
+- IBeamSpliceUltimateCase(string id, IBeamSplicePlateInput plates).
+- IBeamSpliceSlipCase(string id, IBeamSpliceBoltSlipInput input,
+                     string ultimateCaseId=null).
+- IBeamSpliceEnvelopeInput(IEnumerable<IBeamSpliceUltimateCase> ultimateCases,
+                          BoltSlipLimitState? requiredSlipLimitState=null,
+                          IEnumerable<IBeamSpliceSlipCase> slipCases=null).
+Almeno un caso ULS; Id non vuoti e univoci con StringComparer.Ordinal.
+Copie difensive delle liste; conservare per riferimento gli input immutabili.
+Nessuna aggregazione separata dei massimi N/V/M; nessuna sintesi SLE da SLU.
+
+Regole di collegamento:
+- Uno slip ULS indica esplicitamente UltimateCaseId esistente. Le sei azioni
+  e le tre coordinate del polo coincidono esattamente con quel caso ULS.
+  Snapshot indipendenti uguali sono ammessi; stessa risultante a un polo
+  diverso non e' assunta equivalente implicitamente in questa prima API.
+- Uno slip SLS non indica UltimateCaseId; e' un caso concomitante autonomo.
+- CategoriaC attiva se RequiredSlip=Ultimate o esiste uno slip ULS.
+  In questo campo ogni caso ULS deve avere esattamente uno slip ULS associato.
+  Un caso mancante/duplicato non e' un inviluppo completo della categoriaC.
+- RequiredSlip=Serviceability richiede almeno uno SLS. SLS opzionali sono
+  ammessi insieme alla categoriaC. Uno stato limite non sostituisce l'altro.
+- Due Id diversi con azioni numericamente identiche possono rappresentare
+  combinazioni distinte: conservarli. Non deduplicare silenziosamente per
+  soli numeri, source string, geometria o ReferenceEquals. Id duplicati sono
+  errore di contratto; doppio bindingULS e' diagnostica di applicabilita'.
+
+3. CALCOLO SENZA DUPLICAZIONI
+Per ogni UltimateCase, una chiamata a IBeamSpliceComponents.Verify con gli
+stessi Plates e SENZA casi slip annidati: si ottengono una volta i cinque
+figli BoltStrength/Bearing/Flanges/WebSections/WebLongitudinal.
+Se categoriaC, una chiamata VerifyFlangeNetPlastic sugli STESSI Plates per
+ciascun ULS; risultato conservato nel wrapper del caso. Non chiamare il legacy
+con primary+slip identico, che esporrebbe due valutazioni del nettoC stesso.
+Per ogni SlipCase, una chiamata IBeamSpliceBolts.VerifySlip sul proprio input.
+Raccogliere una sola volta i check foglia: mai insieme riepilogo e suoi figli.
+Ogni check aggregato ha un prefisso strutturale ULS{indice}/SLS{indice}/SlipULS,
+mentre CaseId rimane dato separato. Non usare concatenazioni ambigue degli Id
+liberi per l'identita' interna. Nessuna somma delle utilization: solo massimo.
+
+4. INVARIANTI DEL MEDESIMO DETTAGLIO
+Ancora fisica: il primo ULS, senza trasferirne mai azioni agli altri.
+Confronto esatto di: sezione H/b/tw/tf/r/A/fy/fu/I forte; entrambe le griglie
+e tutte distanze/passi/quantita; bulloni d/d0/As/grado/filettatura, hardware;
+coprigiunti larghezza/spessore/fy/fu; estremi liberi, buttGap, Exposed;
+fy/fu reali delle ali del membro; tipoEC/NTC, gammaM0, gammaM2 piastra,
+gammaM2 connessione, GammaM1 ed E della policy dei piatti.
+Per gli slip confrontare anche entrambe gammaM3, attriti ala/anima e controllo
+di serraggio, perche' sono proprieta'/policy del medesimo dettaglio e non azioni.
+Le fonti testuali rimangono tracciate e validate dai figli; documenti distinti
+ma coerenti non diventano una differenza geometrica. Non convertire codice,
+materiale o fattori per rendere compatibili due casi.
+
+5. RISULTATO, IDENTITA' ED ERRORI
+IBeamSpliceEnvelopeResult espone:
+- ComponentAssessment (envelope dei soli componenti disponibili);
+- UltimateCases con input originale, risultato IBeamSpliceComponentResult,
+  FlangeNetPlastic eventuale e BindingDiagnostics del caso;
+- SlipCases con input originale, risultato slip e BindingDiagnostics;
+- HasFailedComponent ricorsivo, GoverningCaseId e GoverningSourceCheck;
+- CanQualifyWholeJoint=false, unione dei MissingWholeJointChecks.
+GoverningSourceCheck e' la STESSA istanza di ConnectionCheck nel figlio
+tipizzato; conservarne anche componente/stato limite. Non ricalcolare il
+governante con una formula alternativa. Parita': ordine stabile dichiarato.
+
+Ogni input indipendente viene valutato nel PROPRIO dettaglio anche se un
+binding tra casi fallisce; quel risultato non qualifica l'ancora. Binding NS
+e diagnostiche sono separati e sopprimono l'inviluppo favorevole complessivo.
+Qualsiasi NS/mismatch => envelopeNS, Checks vuoti, Utilization/Governing null.
+I figli rimangono tutti consultabili e HasFailedComponent resta true se un
+qualsiasi componente noto e' Failed, anche dentro un caso riepilogato NS.
+Nessun early return deve cancellare un fallimento di un altro caso.
+Il consumer puo' mostrare 'incompleto; presenti verifiche non soddisfatte'.
+
+6. ORACLE NUMERICO INDIPENDENTE
+derive_ibeam_splice_envelope_cases.py eseguito, nessuna DLL importata.
+Geometria P398 D.1: H453.4,b189.9,tw8.5,tf12.7,r10.2,A8550,I294e6;
+anima griglia x70/155 per lato, y-120/0/120, coprigiunti e fattori originali.
+Avweb=(H-2tf)tw, Iweb=tw(H-2tf)^3/12; Nw=N Avweb/A, Mw=M Iweb/I.
+Lato sinistro xbar=-112.5; Mg=Mw+112.5V; Jgruppo68437.5mm2.
+Fx_i=Nw/6-Mg*y_i/J; Fy_i=V/6+Mg*(x_i-xbar)/J.
+Resistenza gia qualificata X/Y dell'anima membro139400N; bearing SCI lineare.
+
+Caso         N[N]      V[N]       M[Nmm]       max bearing membro
+U-low        -75000    -75000     -100e6       0.5932917083613926
+U-P398       -150000   -150000    -200e6       1.1865834167227851
+U-axial      -300000   0          0           0.15261731564684067
+U-shearM     0         -150000    -200e6       1.1102747588993649
+
+Inviluppo U-low/U-P398: U-P398 governa1.1865834167227851; il caso principale
+debole da solo non puo' coprire il successivo. Questo governante complessivo
+e' gia riprodotto dal precedente benchmark completo; il derivatore conferma
+indipendentemente il valore del check pertinente.
+Inviluppo del SOLO CHECK bearing per U-axial/U-shearM:1.1102747588993649.
+Il falso vettore (-300000,-150000,-200e6) darebbe1.2628920745462056: NON va
+creato. Non assumere che questo solo oracle provi tutti gli altri meccanismi.
+SLS P398 gia qualificato: azioni(-100000,-100000,0,0,0,-133e6), coefficiente
+attrito.5, gammaM3SLS1.1: utilizzo slip0.730956089233456 da fonte/derivatore
+slip precedente. Va tenuto separato e non usato per resistenza o nettoC.
+
+7. TEST RICHIESTI
+- Numeri sopra, N/V/M concomitanti e poli conservati, caso governante corretto;
+  ordine invertito, due casi numericamente uguali con Id differenti conservati.
+- EC e NTC usando le rispettive policy; nessuna conversione di coefficienti.
+- CategoriaC: esattamente un nettoC perULS e uno slip percaso, nessun raddoppio
+  primary/slip; conteggio/firme dei check foglia e identita' SourceCheck.
+- SLS separato; SLS piu severo non viene valutato come SLU o nettoC; stato
+  richiesto mancante, ULS non associato, duplicato o azioni/polo diversi =>NS.
+- Mismatch di ogni gruppo di proprieta'/fattori, incluso GammaM1, attrito,
+  hardware, materiale, estremi e codice; snapshot uguali distinti ammessi.
+- Failed in un caso +NS in un altro; Failed dentro un casoNS; source assente;
+  mismatch di dettaglio con figlioFailed comunque esposto; nessun rapporto
+  favorevole globale e HasFailedComponent coerente.
+- Input null/empty/Id duplicati, collezioni non modificabili, risultati
+  associati peridentita' ai rispettivi input; null actions non sintetizzate.
+- Esempio consumer completo (libreria, nessuna UI) e test che usa i risultati
+  per caso senza leggere nomi di check per indovinare combinazioni o norma.
+- Regressione compatibilita': il percorso legacy primary restituisce ancora
+  gli stessi check, valori, Id e numeri di figli; nessun cambio implicito scope.
+
+8. LIMITI DA MANTENERE
+NettoC N-V-M anima, block tearingNVM, modi d'instabilita' residui, membro,
+flessione secondaria e compatibilita' globale restano aperti. L'API attesta
+copertura dei CASI FORNITI, non che il chiamante abbia generato ogni combinazione
+necessaria della struttura. Nessun flag esterno puo' promuovere nodo completo.
+
+APPROVAZIONE TECNICA ROOT - 24/10/2026
+Approvata implementazione additiva in staging, senza modifica del percorso
+legacy. Il nuovo inviluppo deve aggiungere esplicitamente le pendenze
+ULTIMATE_SLIP_CATEGORY_NET_PLASTIC_RESISTANCE e
+WEB_ULTIMATE_SLIP_NET_PLASTIC_N_V_M quando e' attiva la categoriaC:
+i figli eseguiti senza slip non le generano. Restano aperte anche su bindingNS.
+La valutazione copre tutti e soli i casi forniti, senza certificare che siano
+tutte le combinazioni richieste della struttura. Revisione indipendente,
+test centrali e commit restano prerequisiti della chiusura effettiva.
