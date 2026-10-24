@@ -37,9 +37,9 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1551 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 1616 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,
-   83componenti doppie squadrette/supporto,208precarico/scorrimento,300continuitaI,
+   83componenti doppie squadrette/supporto,208precarico/scorrimento,365continuitaI,
    40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,26rigidezza rotazionale,77classificazione/criteri rotazione,22dominioN+V.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
@@ -69,7 +69,10 @@ FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
    altri59test. Chiusa2e.3c sezioni/N-V-M dei coprigiunti d'anima,46test.
    Chiusa2e.3d.1 inviluppo dei tagli e instabilita longitudinale,55test;
    integrata nel percorso2e.4a con7nuovi test oltre ai19preesistenti.
-   Restano block tearing N-V-M e altri modi d'instabilita d'anima,
+   Chiusa2e.3e: netto plastico delle ali categoriaC,40test core+25integrazione;
+   piastra/membro e tutte le combinazioniSLU C distinte,365/365famigliaI.
+   La categoriaB/SLE non attiva il criterio; PHASE_2E_FLANGE_NET_PLASTIC.txt.
+   Restano netto plastico N-V-M dell'anima, block tearing N-V-M e altri modi d'instabilita d'anima,
    2e.4b/c qualifica/Model; PHASE_2E_WEB_LONGITUDINAL.txt ePHASE_2E_SPEC.txt.
 2f PARZIALE - Fin plate/end plate distinguono conformita al dettaglio SCI e
    qualificazione esterna del modello globale. Restano rigidezza/rotazione

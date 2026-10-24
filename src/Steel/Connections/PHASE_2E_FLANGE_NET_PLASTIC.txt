@@ -1,0 +1,126 @@
+2e - CATEGORY C: FLANGE NET-PLASTIC TENSION
+=========================================
+24/10/2026. Integrated and centrally verified:65/65new tests passed,
+365/365with the existing IBeamSplice family.
+
+FIRST CONCRETE GAP
+The current flange component checks gross yielding and net rupture, but not
+Anet*fy/gammaM0 required for a category C tension connection. These capacities
+are different: passing 0.9*Anet*fu/gammaM2 does not prove the category C check.
+This addition closes that criterion for the flanges under the existing global
+N-V-M distribution. It does not qualify web block tearing under general NVM.
+
+PRIMARY SOURCE, VISUALLY VERIFIED
+EN1993-1-1:2005, 6.2.3(4), equation(6.8), printed p49 / PDF p51:
+Nnet,Rd = Anet*fy/gammaM0. The same page contains the distinct net rupture
+equation(6.7) and the compression rule in6.2.4(3).
+EN1993-1-8:2005,3.4.1(1)c, printed p21 / PDF p23: category C requires
+no slip at ULS, bearing resistance and, for tension connections, the design
+plastic resistance of the net section at holes. This plate check establishes
+neither bolt preload nor slip performance.3.12(2) requires elastic force
+distribution for category C, already used by IBeamSpliceForces.
+Local source images: review-category-c-net-plastic.png, extracted from the
+verified EN1993-1-1 PDF. This component does not import UK gammaM2=1.1 into NTC.
+
+GEOMETRY, CUT AND ACTIONS
+Use existing immutable IBeamSplicePlateInput and Prepare gates: two equal
+aligned rolled I/H members, one external cover per flange, two transverse
+bolt rows, normal round holes, no stagger/packing. X runs along the member,
+Y up. Mz positive compresses the upper flange. The shared distribution first
+transports actions to the splice: M0=Mz+x*Vy-y*N; then preserves the web's
+share of N and M. Do not assign all moment to the flanges.
+For every flange (top/bottom), separately for member and cover:
+ Anet=(b-2*d0)*t; Nnet,Rd=Anet*fy/gammaM0; NEd=max(0,Nflange).
+The straight net section crosses both aligned holes at any bolt column.
+Longitudinal row count does not multiply holes in one transverse section.
+This is net-section tensile yielding, not a combined shear/tension block path.
+Member uses actual b,tf,BeamFlangeFy; cover uses its actual width,t,fy.
+The single cover carries the FULL flange force, not Nflange/2. Identical
+member ends have opposite external force signs but the same physical flange
+tension/compression state. Compression produces zero demand for THIS check;
+it does not qualify flange/cover compression or instability. No force is
+discarded from the shared input, trace or other checks.
+
+API AND FACTORS
+New file IBeamSpliceFlangeNetPlastic.cs extends the existing partial
+IBeamSplicePlates with VerifyFlangeNetPlastic(IBeamSplicePlateInput).
+No new input wrapper; no alteration of existing production or fixture files.
+Uses existing Prepare, Main, Result and SectionResistanceArithmetic.Normal.
+Four checks: top/bottom x member/cover; all in N. Trace includes net/gross
+area, two holes, actual d0, fy and the signed physical flange force.
+Calling this method explicitly requests the category C plate criterion for
+the supplied ULS combination; the method does not infer/select bolt category.
+EC gammaM0 comes from the supplied policy. NTC gammaM0=1.05, with the criterion
+identified as supplementary EC guidance, not a quotation of a NTC formula.
+No gammaM1, gammaM2, fu or factor0.9 belongs in this resistance.
+
+INDEPENDENT ANALYTICAL BENCHMARK
+Geometry/materials from SCI P398 exampleD.1, not a published category C result:
+457x191x67UKB: h453.4,b189.9,tw8.5,tf12.7,r10.2,A8550,Iy294000000;
+flange cover180x12, fy275; M20/d0=22; three longitudinal bolt rows, two
+transverse rows. ULS N=-150000N,V=-150000N,M=-200000000Nmm.
+Aw=(h-2tf)tw=3638mm2; Iw=tw*(h-2tf)^3/12=55535282.6666667mm4;
+z=h-tf=440.7mm; Ntop=(1-Aw/A)N/2-(1-Iw/Iy)M/z;
+Nbottom=(1-Aw/A)N/2+(1-Iw/Iy)M/z.
+Ntop=325010.524734259N; Nbottom=-411185.96333075N.
+Cover: Anet=(180-44)*12=1632mm2; EC R=448800N.
+Member: Anet=(189.9-44)*12.7=1852.93mm2; EC R=509555.75N.
+NTC capacities are the above divided by1.05. Tension demand is325010.524734259N
+for top member AND cover; bottom tensile demand0. Existing rupture capacity
+for the same cover and UK gammaM2=1.1 is547461.818181818N, so the new capacity
+is a genuinely additional restriction. derive_ibeam_splice_flange_net_plastic.py
+recomputes all values using Python standard-library arithmetic, not Checker.
+No existing benchmark or expected value is changed.
+
+INTEGRATION APPLIED IN IBeamSpliceComponents
+Activate in IBeamSpliceComponents when RequiredSlipLimitState==Ultimate OR
+any SlipCase.LimitState==Ultimate. Assess the existing Plates ULS state plus
+EACH separately supplied ULS slip combination, preserving its own actions and
+ActionCombinationSource. Matching geometry/code/bolts must be verified first,
+as in the existing binder; do not allow an unrelated slip case into the check.
+Reuse plate dimensions/materials/end distances, replacing only Forces and the
+ULS combination source for each additional case. Do not scale SLS actions to
+ULS or assume the Plates case envelopes all ULS slip cases. Optional dedup of
+identical cases must never merge N,V,M from different states.
+Do not add this criterion automatically when only category B/SLS slip is
+requested. Passing one case cannot hide another failed or unsupported case.
+Keep CanQualifyWholeJoint=false. Do NOT remove the overall missing net-plastic
+item entirely: web cover/member net-section behaviour under N-V-M remains
+unqualified. The existing overall-gap identifier remains for compatibility, alongside
+WEB_ULTIMATE_SLIP_NET_PLASTIC_N_V_M identifying the remaining component.
+
+EXECUTED TEST SCOPE
+Independent exact capacities/areas/demands; NTC and explicit EC gammaM0;
+fy distinct member/cover; no fu/gammaM2/gammaM1 influence; pureN+/N-/zero,
+pureM, combined signs, shear retained, pole transport, small-action scaling;
+full single-cover force; full hole deductions and longitudinal-row invariance;
+extra criterion can fail while the existing flange component passes; strict
+scope and missing ULS evidence, out-of-plane actions, unsupported detailing,
+numeric overflow. All65new cases executed centrally and passed.
+
+BLOCK TEARING FOLLOW-UP
+The earlier source review remains valid: P358p179/EN3.10.2(2) support a first
+web-cover block component under concentric longitudinal tension with two
+transverse rows, interior/exterior paths and actual web share Nw/2 per cover.
+It must reject nonzero V or M0; it cannot be named general NVM block tearing.
+No implementation of that narrower component is included in this delivery.
+
+
+2e.3e - NETTO PLASTICO ALI CATEGORIA C, STEEL2.72.0.0
+65/65nuovi casi passati (40core+25integrazione);365/365famigliaIBeamSplice.
+Fonte EN1993-1-1:2005 6.2.3(4),6.8 p49/PDF51 e EN1-8 3.4.1(1)c;
+immagine normativa controllata anche dal root. Anet=(b-2d0)t,
+Nnet,Rd=Anet*fy/gammaM0, domanda positiva della singola ala dal ripartoNVM.
+Il singolo coprigiunto esterno riceve l'intera forza d'ala; nessunN/2.
+Integrazione esplicita quando richiesto scorrimentoSLU: caso primario piu
+ogni ulteriore casoSLU validamente associato, fonti/azioni/indici conservati.
+I casiSLE non sono trasformati inSLU e categoriaB non attiva il criterio.
+Benchmark della geometriaSCI D1: coverR448800N, memberR509555.75N;
+conN1.6MN domanda459602.339181N fallisce il netto plastico pur passando
+rottura netta547461.818182N. Con5fileali e3x3anima anche tutti gli altri
+componenti ordinari e lo scorrimentoSLU passano: il nuovo modo governa,
+in EC eNTC. NTC usa gammaM0proprio con criterioECcomplementare dichiarato.
+Compatibilita mantenuta per la diagnostica generale di nettoC: resta
+aperta la verifica NVM dell'anima, ora indicata anche con voce specifica.
+CanQualifyWholeJoint=false. Nessun atteso o fixture esistente modificato.
+Log/TRX workspace audit-results/connections/night-2e-category-c-integrated.

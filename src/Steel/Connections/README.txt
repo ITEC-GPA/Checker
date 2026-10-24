@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
-Versione sorgenteSteel2.71.0.1. Solo librerie, nessuna interfacciaANTHEA.
+Versione sorgenteSteel2.72.0.0. Solo librerie, nessuna interfacciaANTHEA.
 Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
 
 COMPONENTI
@@ -234,3 +234,6 @@ I risultati restano consumabili dalle librerie; integrazioneANTHEA rinviata.
 - JointStiffnessClassification, JointStrengthClassification ed
   EndPlateRotationCapacity: classi e criteri sufficienti distinti, con
   evidenze esterne esplicite e nessuna capacita rad inventata; PHASE_4F_CLASSIFICATION_ROTATION_IMPLEMENTATION.txt.
+
+- IBeamSplicePlates.VerifyFlangeNetPlastic: netto delle ali categoriaC,
+  integrato in ogni casoSLU dichiarato; PHASE_2E_FLANGE_NET_PLASTIC.txt.

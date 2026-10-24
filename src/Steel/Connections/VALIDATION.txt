@@ -425,3 +425,23 @@ Il controllo di TUTTE le librerie resta quello2.71 appena registrato:
 questa patch interessa solo il gate di applicabilita rotazionale Steel.
 Log/TRX: night-4f-grades-red, night-4f-grades-members-green,
 night-4f-grades-net472. Nessun atteso o parametro legacy modificato.
+
+
+2e.3e - NETTO PLASTICO ALI CATEGORIA C, STEEL2.72.0.0
+65/65nuovi casi passati (40core+25integrazione);365/365famigliaIBeamSplice.
+Fonte EN1993-1-1:2005 6.2.3(4),6.8 p49/PDF51 e EN1-8 3.4.1(1)c;
+immagine normativa controllata anche dal root. Anet=(b-2d0)t,
+Nnet,Rd=Anet*fy/gammaM0, domanda positiva della singola ala dal ripartoNVM.
+Il singolo coprigiunto esterno riceve l'intera forza d'ala; nessunN/2.
+Integrazione esplicita quando richiesto scorrimentoSLU: caso primario piu
+ogni ulteriore casoSLU validamente associato, fonti/azioni/indici conservati.
+I casiSLE non sono trasformati inSLU e categoriaB non attiva il criterio.
+Benchmark della geometriaSCI D1: coverR448800N, memberR509555.75N;
+conN1.6MN domanda459602.339181N fallisce il netto plastico pur passando
+rottura netta547461.818182N. Con5fileali e3x3anima anche tutti gli altri
+componenti ordinari e lo scorrimentoSLU passano: il nuovo modo governa,
+in EC eNTC. NTC usa gammaM0proprio con criterioECcomplementare dichiarato.
+Compatibilita mantenuta per la diagnostica generale di nettoC: resta
+aperta la verifica NVM dell'anima, ora indicata anche con voce specifica.
+CanQualifyWholeJoint=false. Nessun atteso o fixture esistente modificato.
+Log/TRX workspace audit-results/connections/night-2e-category-c-integrated.

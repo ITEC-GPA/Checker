@@ -39,23 +39,35 @@ namespace GPC.Checkers.Steel.Connections
         public ConnectionVerification<IBeamSplicePlateInput> WebSections { get; }
         public ConnectionVerification<IBeamSplicePlateInput> WebLongitudinal { get; }
         public IReadOnlyList<ConnectionVerification<IBeamSpliceBoltSlipInput>> SlipCases { get; }
+        /// <summary>Category-C net-plastic flange checks for the primary ULS state
+        /// followed by each separately supplied, validly bound ULS slip state.
+        /// Empty when no category-C requirement is requested; never includes SLS.</summary>
+        public IReadOnlyList<ConnectionVerification<IBeamSplicePlateInput>> FlangeNetPlasticCases { get; }
         public bool CanQualifyWholeJoint => false;
         public IReadOnlyList<string> MissingWholeJointChecks { get; }
         internal IBeamSpliceComponentResult(ConnectionVerification<IBeamSpliceComponentInput> assessment,
             ConnectionVerification<IBeamSpliceBoltStrengthInput> strength, ConnectionVerification<IBeamSplicePlateInput> bearing,
             ConnectionVerification<IBeamSplicePlateInput> flanges, ConnectionVerification<IBeamSplicePlateInput> web,
             ConnectionVerification<IBeamSplicePlateInput> webLongitudinal,
-            IEnumerable<ConnectionVerification<IBeamSpliceBoltSlipInput>> slip, bool ultimateSlip)
+            IEnumerable<ConnectionVerification<IBeamSpliceBoltSlipInput>> slip, bool ultimateSlip,
+            IEnumerable<ConnectionVerification<IBeamSplicePlateInput>> flangeNetPlasticCases)
         {
             ComponentAssessment = assessment; BoltStrength = strength; Bearing = bearing; Flanges = flanges; WebSections = web;
             WebLongitudinal = webLongitudinal;
             SlipCases = Array.AsReadOnly(slip.ToArray());
+            FlangeNetPlasticCases = Array.AsReadOnly(flangeNetPlasticCases.ToArray());
             var missing = new List<string> {
                 "WEB_COVER_BLOCK_TEARING_UNDER_N_V_M", "WEB_COVER_LOCAL_BUCKLING",
                 "MEMBER_CLASSIFICATION_AND_LOCAL_GLOBAL_RESISTANCE", "SINGLE_COVER_SECONDARY_BENDING_AND_LOAD_INTRODUCTION",
                 "GLOBAL_MODEL_STIFFNESS_ROTATION_AND_CONTINUITY_REQUIREMENTS"
             };
-            if (ultimateSlip) missing.Add("ULTIMATE_SLIP_CATEGORY_NET_PLASTIC_RESISTANCE");
+            if (ultimateSlip)
+            {
+                // Retain the existing overall-gap identifier: only the flange part
+                // is now covered. The web still requires a net-plastic N-V-M model.
+                missing.Add("ULTIMATE_SLIP_CATEGORY_NET_PLASTIC_RESISTANCE");
+                missing.Add("WEB_ULTIMATE_SLIP_NET_PLASTIC_N_V_M");
+            }
             MissingWholeJointChecks = Array.AsReadOnly(missing.ToArray());
         }
     }
@@ -79,6 +91,10 @@ namespace GPC.Checkers.Steel.Connections
             Include("WebLongitudinal", webLongitudinal, checks, trace, issues);
             if (p.RequiredSlipLimitState.HasValue && !p.SlipCases.Any(s => s.LimitState == p.RequiredSlipLimitState.Value))
                 issues.Add("REQUIRED_SLIP_LIMIT_STATE_CASE_MISSING:" + p.RequiredSlipLimitState.Value);
+            bool ultimateSlip = p.RequiredSlipLimitState == BoltSlipLimitState.Ultimate
+                || p.SlipCases.Any(s => s.LimitState == BoltSlipLimitState.Ultimate);
+            var netPlasticCases = new List<ConnectionVerification<IBeamSplicePlateInput>>();
+            if (ultimateSlip) AddFlangeNetPlastic("PrimaryULS", plates);
             var slips = new List<ConnectionVerification<IBeamSpliceBoltSlipInput>>();
             foreach (var s in p.SlipCases)
             {
@@ -90,19 +106,38 @@ namespace GPC.Checkers.Steel.Connections
                     : new ConnectionVerification<IBeamSpliceBoltSlipInput>(s, code, "Steel.Connection.IBeamSplice.InvalidSlipBinding",
                         "Slip case binding to the assessed physical detail and code.", Array.Empty<ConnectionCheck>(), Array.Empty<SectionResistanceValue>(), caseIssues);
                 slips.Add(result); Include("SlipCase" + slips.Count, result, checks, trace, issues);
+                if (s.LimitState == BoltSlipLimitState.Ultimate && caseIssues.Count == 0)
+                {
+                    // Reuse the SAME physical plates/materials with this complete
+                    // concomitant action state and its own ULS source. Do not
+                    // assume the primary case envelopes other explicit ULS cases.
+                    var casePlates = new IBeamSplicePlateInput(plates.Policy, s.Forces, plates.Bolts,
+                        plates.FlangeCover, plates.WebCover, plates.FlangeCoverEnd, plates.WebCoverEnd,
+                        plates.ButtGap, plates.BeamFlangeFy, plates.BeamFlangeFu, plates.Exposed,
+                        s.ActionCombinationSource);
+                    AddFlangeNetPlastic("SlipCase" + slips.Count, casePlates);
+                }
             }
             var assessment = new ConnectionVerification<IBeamSpliceComponentInput>(p, code, "Steel.Connection.IBeamSplice.Components",
                 "COMPONENT ENVELOPE ONLY: ULS bolt strength, plate bearing, flange components, web section N-V-M and longitudinal web-cover buckling, "
-                + "plus explicitly supplied slip cases of this same detail. Does not qualify the whole splice; read MissingWholeJointChecks.",
+                + "plus explicitly supplied slip cases and category-C flange net-plastic checks at every supplied ULS state. "
+                + "Does not qualify the whole splice; read MissingWholeJointChecks.",
                 checks, trace, issues, new[] {
-                    "All strength components share one immutable ULS input. Slip demands belong to separately declared concomitant combinations; none are scaled or synthesized.",
+                    "Primary strength components share one immutable ULS input. Slip demands belong to separately declared concomitant combinations; none are scaled or synthesized. Category-C flange net-plastic checks additionally cover each supplied ULS slip state with its own actions and source.",
                     "Physical geometry, bolt properties/hardware and design factors must agree exactly across cases; independently created equal snapshots are accepted.",
                     "Read each typed component's Scope, Assumptions and source trace. Their Passed envelope is not a whole-joint Passed.",
                     "WebLongitudinal checks only longitudinal compression between fasteners with its actual section-force envelope. WEB_COVER_LOCAL_BUCKLING remains open for transverse/shear and lateral modes; combined N-V-M block tearing is also still unqualified.",
-                    "A required SLS/ULS slip check cannot be satisfied by a case at the other limit state. Ultimate slip alone does not qualify the net-plastic checks of a complete category C connection."
+                    "A required SLS/ULS slip check cannot be satisfied by a case at the other limit state. Category-C flange net-plastic resistance is checked for the primary ULS and every valid ULS slip case; category-B/SLS alone does not activate it. Web net-plastic N-V-M resistance remains unqualified."
                 });
             return new IBeamSpliceComponentResult(assessment, strength, bearing, flanges, web, webLongitudinal, slips,
-                p.RequiredSlipLimitState == BoltSlipLimitState.Ultimate || p.SlipCases.Any(s => s.LimitState == BoltSlipLimitState.Ultimate));
+                ultimateSlip, netPlasticCases);
+
+            void AddFlangeNetPlastic(string name, IBeamSplicePlateInput state)
+            {
+                var result = IBeamSplicePlates.VerifyFlangeNetPlastic(state);
+                netPlasticCases.Add(result);
+                Include("FlangeNetPlastic." + name, result, checks, trace, issues);
+            }
         }
 
         private static void Include<T>(string name, ConnectionVerification<T> result, IList<ConnectionCheck> checks,
