@@ -258,22 +258,11 @@ namespace ConcreteTests
         }
 
         /// <summary>
-        /// The stopping test of the search is made on the point before its last step, and the search returns the point after that step, so
-        /// |NRd - N| of the returned point can exceed the tolerance of the test, 0.25e-4 b h fck (review of 6c22df48, B1). Case of the validation
-        /// sample of S-1 (campione.csv, .NET 8: |ΔN| = 183.4 N = 1.467 times the tolerance of the test, the largest of the 6404 points of the
-        /// iterative strategy with the continuous diagrams), found again by a scan of this suite: section S1, 1000 × 200, 5 + 5Ø12 at
-        /// y = ±60 mm and x = -400, -200, 0, 200, 400 mm, C25/30, parabola-rectangle, ULS, N = 0.5 As fyd of tension
-        /// (0.5 · 10 · π · 12² / 4 · 391.304348 = 221 277.40 N in the sample, here rounded to the newton: 221.277 kN, the same ratio),
-        /// moment direction at 30° from x (Mx = cos 30°, My = sin 30°).
-        /// The same section scaled by 4 (4000 × 800, Ø48 at the scaled places, N = 16 · 221.277 kN) has forces 16 times and moments 64 times
-        /// larger and the same adimensional search, so the same ratio; there b h fck = 8e7 N, beyond 2e7 N, and the point is rejected by the rule
-        /// of 0.0.17.0 (1000 N) and by the rule of 6c22df48 (the tolerance of the test, 2000 N), accepted by the rule with the factor 2 (4000 N).
-        /// By hand: tolerance of the test 0.25e-4 · 1000 · 200 · 25 = 125 N and 0.25e-4 · 4000 · 800 · 25 = 2000 N.
-        /// The ratio beyond 1 is a measurement of the search on this runtime, checked as a guard that the case still exercises the margin: if a
-        /// change of the search brings it below 1, look for another case, never change the factor to make this test pass
+        /// Scale invariance for S1 (1000 x 200, 5+5 diameter 12, N=221.277 kN) and its fourfold copy.
+        /// Acceptance beyond the stopping tolerance is tested with explicit residuals: improved convergence must not break this guard.
         /// </summary>
         [TestMethod]
-        public void LargeSectionPointBeyondTheStoppingTestIsAccepted()
+        public void LargeSectionScalesCorrectlyAndAcceptanceMarginIsExplicit()
         {
             const double axialKn = 221.277, cos30 = 0.86602540378443865, sin30 = 0.5;
             Func<double, DomainPointContractTests.BenchSection> scaled = k => new DomainPointContractTests.BenchSection
@@ -298,16 +287,16 @@ namespace ConcreteTests
                 double deltaN = Math.Abs(point.NRd - axial);
                 Console.WriteLine(at + ": NRd = " + point.NRd.ToString("R", CultureInfo.InvariantCulture) + " N, |ΔN| = " + deltaN.ToString("R", CultureInfo.InvariantCulture) +
                     " N = " + (deltaN / c.Item2).ToString("0.0000", CultureInfo.InvariantCulture) + " times the tolerance of the test");
-                Assert.IsTrue(deltaN > c.Item2, at + ": guard, |ΔN| = " + deltaN + " N within the tolerance of the test " + c.Item2 + " N");
+                Assert.IsTrue(deltaN <= c.Item2, at + ": solver convergence");
+                double inside = (c.Item2 + c.Item3) / 2;
+                Assert.IsTrue(inside > c.Item2);
+                Assert.IsTrue(DomainPointAxialTolerance.HasAxialForce(solver, Point(axial + inside), axial), at + ": acceptance margin");
+                Assert.IsFalse(DomainPointAxialTolerance.HasAxialForce(solver, Point(axial + 1.01 * c.Item3), axial), at + ": beyond acceptance");
                 Assert.IsTrue(DomainPointAxialTolerance.HasAxialForce(solver, point, axial), at + ": |ΔN| = " + deltaN + " N");
                 // the moment is in the direction of 30°
                 Assert.AreEqual(30.0, Math.Atan2(point.MyRd, point.MxRd) * 180 / Math.PI, 0.2, at + " direction");
                 points[k] = point;
             }
-            // the scaled section: the rule of 0.0.17.0 and the tolerance of the test alone reject the point
-            double deltaLarge = Math.Abs(points[4].NRd - 16 * axialKn * 1000);
-            Assert.IsTrue(deltaLarge > DomainPointContractTests.ToleranceOf0017(16 * axialKn * 1000), "S1 x4: rule of 0.0.17.0");
-            Assert.IsTrue(deltaLarge > 2000.0, "S1 x4: tolerance of the test alone");
             // and it is the point of S1 scaled: forces 16 times, moments 64 times
             Assert.AreEqual(16 * points[1].NRd, points[4].NRd, 1e-5 * Math.Abs(points[4].NRd), "N");
             Assert.AreEqual(64 * points[1].MxRd, points[4].MxRd, 1e-5 * Math.Abs(points[4].MxRd), "Mx");

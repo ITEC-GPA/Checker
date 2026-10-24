@@ -39,10 +39,11 @@ namespace ConcreteTests
     /// invariant culture and UI culture (mscorlib messages in English on every machine). On a difference the generated text is written to
     /// %TEMP%\&lt;fixture&gt;.actual and the first differing line is reported.
     /// </summary>
+    // Current numerical baseline approved 2026-10-24. Historical snapshots: docs/analytic-parabola-20261023/historical-fixtures-before-analytic-default.zip.
     [TestClass]
     public class DetailingContractTests
     {
-        private const string DetailingFile = "detailing-contract-0.0.17.csv", CurvatureFile = "curvature-contract-0.0.17.csv";
+        private const string DetailingFile = "detailing-contract-0.0.17.csv", CurvatureFile = "curvature-contract-analytic.csv";
         private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
 
         [TestMethod]
@@ -57,7 +58,7 @@ namespace ConcreteTests
         }
 
         [TestMethod]
-        public void CurvatureContractOf0017IsUnchanged()
+        public void CurvatureContractWithAnalyticDefaultIsUnchanged()
         {
             var counts = new Dictionary<string, int>();
             string actual = WithCulture(Inv, () => GenerateCurvature(counts));
@@ -303,7 +304,7 @@ namespace ConcreteTests
         private static string GenerateCurvature(Dictionary<string, int> counts)
         {
             var sb = new StringBuilder();
-            sb.Append("# GPCChecker.Concrete 0.0.17.0 contract of Response/ (ANTHEA F2.8 L0), captured from Checker 4f54139a. Regression snapshot, not an independent expectation.\n");
+            sb.Append("# GPCChecker.Concrete 0.20.0.0 / Model 5.21.0.0 analytic default. Approved update 2026-10-24. Regression snapshot, not an independent expectation.\n");
             sb.Append("# R: result (id; culture; outcome; LimitMoment, YieldCurvature, UltimateCurvature, LimitAxialForce, AxialResidual, InterruptedAtStep, points; Status) followed by\n");
             sb.Append("# its points P (Moment, Mx, My, Curvature, GradientX, GradientY, ReferenceStrain, ConcreteCompressionStrain, SteelStrain, Yielded, Limit). Doubles round-trip.\n");
             // A. The 5 curves of curvature-legacy.csv on the native checker (as LegacyMomentCurvatureIsReproduced).

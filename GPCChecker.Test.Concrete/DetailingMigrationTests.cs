@@ -705,7 +705,7 @@ namespace ConcreteTests
             Assert.AreEqual(2 * 8, refined); Assert.AreEqual(2 * 8, notAttempted);
 
             var archive = Archive();
-            foreach (var row in Rows("curvature-legacy.csv").Skip(1))
+            foreach (var row in Rows("curvature-analytic.csv").Skip(1))
             {
                 var c = row.Split(';');
                 var standard = ServiceabilityMigrationTests.Standard(c[2]);
@@ -904,9 +904,9 @@ namespace ConcreteTests
         }
 
         [TestMethod]
-        public void LegacyMomentCurvatureIsReproduced()
+        public void AnalyticMomentCurvatureMatchesTheUpdatedBaseline()
         {
-            var archive = Archive(); var rows = Rows("curvature-legacy.csv").Skip(1).ToArray();
+            var archive = Archive(); var rows = Rows("curvature-analytic.csv").Skip(1).ToArray();
             Assert.AreEqual(5, rows.Length);
             int points = 0;
             foreach (var row in rows)

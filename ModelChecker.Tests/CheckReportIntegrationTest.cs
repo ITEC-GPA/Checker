@@ -50,8 +50,8 @@ public class CheckReportIntegrationTest
             SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
         var native = new SectionCheckerModelCode2010(new SectionCheckerAttribute(input.Section), options, job.Options.Standard, false);
         var raw = native.CalculateFailureDomainPoint(nativeForces);
-        // This fixture exposes the old finite-but-outside-angle-tolerance candidate.
-        Assert.IsFalse(DomainPointConvergence.Evaluate(native.SectionSolver, nativeForces, raw, job.Options.Criterion).Accepted);
+        // The improved iterative search now converges directly for this former out-of-angle candidate.
+        Assert.IsTrue(DomainPointConvergence.Evaluate(native.SectionSolver, nativeForces, raw, job.Options.Criterion).Accepted);
         var point = new GPC.Checkers.Concrete.Analysis.LegacySectionCalculation(native).SolveResistance(new(nativeForces));
         Assert.IsTrue(point.Diagnostics.ResistanceConvergence.Accepted);
         Assert.AreEqual(point.N.Value, detail.NRd, 1e-6); Assert.AreEqual(point.M1.Value, detail.M1Rd, 1e-6); Assert.AreEqual(point.M2.Value, detail.M2Rd, 1e-6);
@@ -111,6 +111,20 @@ public class CheckReportIntegrationTest
         report.Results[0].Utilization = .987;
         Assert.AreEqual(EngineeringOutcome.NotEvaluated, report.CurrentOutcome(model, engine));
         Assert.AreEqual(1, report.Summary.Invalid);
+    }
+
+    [TestMethod]
+    public void ChangingTheParabolaMethodInvalidatesPreparedReports()
+    {
+        var model = MixedModelFactory.Create(); var request = new ModelCheckRequest();
+        var job = Job("ULS", new StandardNTC2018Concrete()); request.Jobs.Add(job);
+        var report = new Service().Verify(model, request).Jobs.Single(); var engine = job.Options.CreateVerifier();
+        Assert.AreNotEqual(EngineeringOutcome.NotEvaluated, report.CurrentOutcome(model, engine));
+        var material = (GPC.Model.Materials.ConcreteMaterialEuropeanCommon)model.BeamElements[250].Assignments.Sections[0].Section.ConcreteMaterial;
+#pragma warning disable CS0618 // Explicit historical selection must invalidate the calculation evidence.
+        material.ParabolaRectangleMethod = GPC.Model.Materials.ConcreteParabolaRectangleMethod.TabulatedLegacy;
+#pragma warning restore CS0618
+        Assert.AreEqual(EngineeringOutcome.NotEvaluated, report.CurrentOutcome(model, engine));
     }
 
     private sealed class DecisionVerifier : IConfiguredSectionVerifier

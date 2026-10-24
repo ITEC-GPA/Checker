@@ -55,8 +55,8 @@ namespace ConcreteTests
         [TestMethod]
         public void StressAnalysisFollowsTheIndependentFibreModel()
         {
-            // Expected: independent fibre model (scratchpad agent-concrete-tension/ref_section_ts.py, 40000 strips): EN 1992-1-1 Table 3.1
-            // Ecm = 31475.81, fctm = 2.564964 MPa, εcr = 8.149e-5; NTC design parabola-rectangle (fcd = 14.1667, tabulated in 8 chords as Model);
+            // Independent exact stress primitives: docs/analytic-parabola-20261023/independent-tension-stiffening.py
+            // Ecm = 31475.81, fctm = 2.564964 MPa, εcr = 8.149e-5; analytic design parabola-rectangle (fcd = 14.1667 MPa);
             // B450C fyd = 391.30; the bars subtract the concrete they displace. (N kN, M kNm, χ 1/mm, ε at the tensile and compressed edges, ε and σ of
             // the tensile bars, σc at the edges)
             var section = UltimateSections.Symmetric();
@@ -64,10 +64,10 @@ namespace ConcreteTests
             var cases = new[]
             {
                 // uncracked (εb < εcr): before, with the concrete in tension neglected, σs = 119.44 MPa
-                (N: 0.0, M: 20.0, Chi: 2.963356e-07, EpsB: 5.918234e-05, EpsT: -8.898544e-05, EpsBar: 4.555091e-05, SigmaBar: 9.1102, SigmaB: 1.862812, SigmaT: -1.181838),
+                (N: 0.0, M: 20.0, Chi: 2.888904403379341e-07, EpsB: 5.849948312413992e-05, EpsT: -8.594573704482714e-05, EpsBar: 4.521052286859495e-05, SigmaBar: 9.042104573718989, SigmaB: 1.841318394201725, SigmaT: -1.191403486223585),
                 // cracked, descending branch at the tensile edge: neglected tension σs = 269.21 MPa
-                (N: 0.0, M: 45.0, Chi: 9.555532e-07, EpsB: 2.314125e-04, EpsT: -2.463641e-04, EpsBar: 1.874570e-04, SigmaBar: 37.4914, SigmaB: 1.913929, SigmaT: -3.272024),
-                (N: -300.0, M: 60.0, Chi: 1.198912e-06, EpsB: 1.442936e-04, EpsT: -4.551625e-04, EpsBar: 8.914366e-05, SigmaBar: 17.8287, SigmaB: 2.021883, SigmaT: -5.681818),
+                (N: 0.0, M: 45.0, Chi: 9.462497084570421e-07, EpsB: 0.0002301574071399132, EpsT: -0.0002429674470886078, EpsBar: 0.0001866299205508893, SigmaBar: 37.32598411017786, SigmaB: 1.915249128918305, SigmaT: -3.232962986700935),
+                (N: -300.0, M: 60.0, Chi: 1.190858735651542e-06, EpsB: 0.0001443955531058104, EpsT: -0.0004510338147199603, EpsBar: 8.961605126583952e-05, SigmaBar: 17.92321025316791, SigmaB: 2.02173178731628, SigmaT: -5.669159138875631),
             };
             var law = section.ConcreteMaterial.GetTensionStiffening();
             foreach (var c in cases)
@@ -92,7 +92,28 @@ namespace ConcreteTests
                 // the results use the law of the analysis: σc of the vertices and of the summary
                 Assert.AreEqual(law.GetStress(plane.GetStrain(tensile)), result.GetConcreteTension(tensile), 0.0, id);
                 Assert.AreEqual(law.GetStress(plane.GetStrain(tensile)), result.GetConcreteVerticesTension().Single(v => v.point.X == tensile.X && v.point.Y == tensile.Y).tension, 0.0, id);
-                Assert.AreEqual(law.GetStress(plane.GetStrain(tensile)), result.CalculateStrainPlaneResult(false).SigmaCMax, 0.0, id + ": summary");
+                // On the descending tensile branch the maximum vertex stress need not be at the maximum strain.
+                Assert.AreEqual(vertices.Max(v => result.GetConcreteTension(v)), result.CalculateStrainPlaneResult(false).SigmaCMax, 0.0, id + ": summary");
+            }
+        }
+
+        [TestMethod]
+        public void NonlinearSummarySeparatesStressExtremaFromStrainExtrema()
+        {
+            var section = UltimateSections.Symmetric();
+            var checker = Checker(section, false, Stiffening);
+            var law = section.ConcreteMaterial.GetTensionStiffening();
+            var force = DomainPointContractTests.Force(DomainPointContractTests.LocalAxes(section), 0, 0, 0);
+            var vertices = section.ConcreteShape.GetPoints2d();
+            foreach (double direction in new[] { -1.0, 1.0 })
+            {
+                // All vertices are beyond cracking, on the descending branch. Reflection changes their traversal order.
+                var plane = new StrainPlane(direction * 2e-6, 1e-6, Point2d.Origin, .0007);
+                var summary = plane.CalculateStrainPlaneResult(section, force, checker.SectionSolver, new StandardNTC2018Concrete(), false, 0, 0, null, law);
+                Assert.AreEqual(vertices.Max(v => law.GetStress(plane.GetStrain(v))), summary.SigmaCMax, 0);
+                Assert.AreEqual(vertices.Min(v => law.GetStress(plane.GetStrain(v))), summary.SigmaCMin, 0);
+                Assert.AreEqual(vertices.Max(v => plane.GetStrain(v)), summary.EpsilonCMax, 0);
+                Assert.AreEqual(vertices.Min(v => plane.GetStrain(v)), summary.EpsilonCMin, 0);
             }
         }
 
@@ -138,20 +159,26 @@ namespace ConcreteTests
         }
 
         [TestMethod]
-        public void TensionStiffeningConvergesWhereTheMaterialDiagramFails()
+        public void TensionStiffeningConvergesForHistoricalMaterialFailures()
         {
-            // With the concrete in tension of the material (ConsiderTensileConcrete: linear up to fctk,0.05 design, then 0) the nonlinear stress
-            // analysis does not converge at these forces (the abrupt drop to zero at cracking; probe of 16/10/2026: 5 of 1200 moments at N = +100 kN,
-            // 3 at N = -300 kN, 172 of 3600 in biaxial bending on four sections); the default solver is unchanged. With the tension stiffening all
-            // converge, within the tolerance of the solver
+            // These forces failed with the historical chords and abrupt tensile cutoff. Keep that characterization
+            // explicit; the analytic compression law may also improve convergence with the same tensile diagram.
             var section = UltimateSections.Symmetric();
             var local = DomainPointContractTests.LocalAxes(section);
-            var material = Checker(section, true, Default);
+            var historicalSection = UltimateSections.Symmetric();
+#pragma warning disable CS0618
+            ((ConcreteMaterialEuropeanCommon)historicalSection.ConcreteMaterial).ParabolaRectangleMethod = ConcreteParabolaRectangleMethod.TabulatedLegacy;
+#pragma warning restore CS0618
+            var material = Checker(historicalSection, true, Default);
+            var analytic = Checker(section, true, Default);
             var stiffened = Checker(section, false, Stiffening);
             foreach (var (n, m) in new[] { (100.0, 18.65), (100.0, 18.70), (100.0, 18.75), (100.0, 18.80), (100.0, 18.85), (-300.0, 42.00), (-300.0, 42.05), (-300.0, 42.10) })
             {
                 var force = DomainPointContractTests.Force(local, n, m, 0);
-                Assert.IsNull(material.GetTensionAnalysisResult(force).StrainPlane, $"material diagram, N = {n}, M = {m}: characterization of the default");
+                Assert.IsNull(material.GetTensionAnalysisResult(force).StrainPlane, $"material diagram, N = {n}, M = {m}: historical characterization");
+                var improved = analytic.GetTensionAnalysisResult(force);
+                if (improved.StrainPlane != null)
+                    Assert.IsTrue(Residual(analytic, force, improved.StrainPlane) <= 1e-5, "analytic material equilibrium");
                 var result = stiffened.GetTensionAnalysisResult(force);
                 Assert.IsNotNull(result.StrainPlane, $"tension stiffening, N = {n}, M = {m}");
                 Assert.IsTrue(Residual(stiffened, force, result.StrainPlane) <= 1e-5, $"equilibrium, N = {n}, M = {m}");

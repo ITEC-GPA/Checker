@@ -3,10 +3,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GPC.Checkers.Concrete.Helper;
+using GPC.Checkers.Concrete.Attributes;
+using GPC.Checkers.Concrete.Checkers;
 using GPC.Checkers.Concrete.Results;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model.Materials;
+using GPC.Model.Standards;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace ConcreteTests
@@ -14,6 +17,81 @@ namespace ConcreteTests
     [TestClass]
     public class AnalyticParabolaIntegrationTests
     {
+        [DataTestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task PublicSyncAsyncAndBatchStressEntriesUseTheSelectedMaterialMethod(bool historical)
+        {
+            var shape = DomainPointContractTests.Sections.Single(s => s.Name == "R2");
+            var section = DomainPointContractTests.BuildSection(shape, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle);
+            var material = (ConcreteMaterialEuropeanCommon)section.ConcreteMaterial;
+#pragma warning disable CS0618 // Intentional historical regression coverage.
+            if (historical) material.ParabolaRectangleMethod = ConcreteParabolaRectangleMethod.TabulatedLegacy;
+#pragma warning restore CS0618
+            const double strain = -.000833;
+            double r = strain / -.002;
+            double stress = historical ? material.StressStrainTableCompression.GetStress(strain) : -shape.Fck * r * (2 - r);
+            stress *= .85 / 1.5;
+            double axial = shape.Width * shape.Height * stress;
+            foreach (var bar in section.GetRebars()) axial += bar.Area * (200000 * strain - stress);
+            var axes = DomainPointContractTests.LocalAxes(section);
+            var forces = new[] { DomainPointContractTests.Force(axes, axial / 1000, 0, 0) };
+            var options = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(axes, SectionSolver.FailureAnalysisTypes.ConstantN,
+                SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 32);
+            var checker = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section, forces, null), options,
+                new StandardNTC2018Concrete { AlphaCC = .85, GammaC = 1.5, GammaS = 1.15 }, false);
+            Assert.AreEqual(!historical, checker.SectionSolver.TryGetParabolaLaw(out _));
+            var sync = checker.GetTensionAnalysisResult(forces[0]);
+            var asyncSingle = await checker.GetTensionAnalysisResultAsync(forces[0]);
+            var syncBatch = checker.GetTensionAnalysisResult();
+            var asyncBatch = await checker.GetTensionAnalysisResultAsync();
+            Assert.IsNotNull(syncBatch); Assert.IsNotNull(asyncBatch);
+            Assert.AreEqual(1, syncBatch.Length); Assert.AreEqual(1, asyncBatch.Length);
+            foreach (var result in new[] { sync, asyncSingle, syncBatch[0], asyncBatch[0] })
+            {
+                Assert.IsNotNull(result?.StrainPlane);
+                Assert.AreEqual(strain, result.StrainPlane.GetStrain(Point2d.Origin), 2e-8);
+                Assert.AreEqual(stress, result.GetConcreteTension(Point2d.Origin), .001);
+            }
+        }
+
+        [TestMethod]
+        public async Task AsyncDomainsAndTheirForceQueriesUseTheSameAnalyticIntegration()
+        {
+            var section = DomainPointContractTests.BuildSection(DomainPointContractTests.Sections.Single(s => s.Name == "R3"),
+                ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle);
+            var checker = DomainPointContractTests.BuildChecker(section, SectionSolver.FailureDomainTypes.Plastic);
+            var sync = checker.GetFailureDomainResult();
+            var asyncDomain = await checker.GetFailureDomainResultAsync();
+            Assert.IsNotNull(asyncDomain);
+            var expected = sync.Domain.DomainPoints.SelectMany(p => p).ToArray();
+            var actual = asyncDomain.Domain.DomainPoints.SelectMany(p => p).ToArray();
+            Assert.AreEqual(expected.Length, actual.Length);
+            for (int i = 0; i < actual.Length; i++)
+            {
+                Assert.AreEqual(expected[i].NRd, actual[i].NRd, 0);
+                Assert.AreEqual(expected[i].MxRd, actual[i].MxRd, 0);
+                Assert.AreEqual(expected[i].MyRd, actual[i].MyRd, 0);
+            }
+            var sync2d = checker.GetFailureDomainResult2d();
+            var async2d = await checker.GetFailureDomainResult2dAsync();
+            Assert.IsNotNull(async2d);
+            Assert.AreEqual(sync2d.Domain.DomainPoints.Length, async2d.Domain.DomainPoints.Length);
+            for (int i = 0; i < sync2d.Domain.DomainPoints.Length; i++)
+            {
+                Assert.AreEqual(sync2d.Domain.DomainPoints[i].NRd, async2d.Domain.DomainPoints[i].NRd, 0);
+                Assert.AreEqual(sync2d.Domain.DomainPoints[i].MxRd, async2d.Domain.DomainPoints[i].MxRd, 0);
+            }
+            var force = DomainPointContractTests.Force(checker.SectionSolver.SolverAxes, 0, 1, 0);
+            var point = await asyncDomain.CalculateForceAsync(force);
+            Assert.IsNotNull(point);
+            const double k = .002 / .0035;
+            double tension = 3 * Math.PI * 100 * 450 / 1.15;
+            double x = tension / (300 * .85 * 25 / 1.5 * (1 - k / 3));
+            double centre = x * (.5 - k / 3 + k * k / 12) / (1 - k / 3);
+            Assert.AreEqual(tension * (450 - centre), point.MxRd, 2e-5 * tension * 450);
+        }
+
         private static void Close(ForceTuple expected, ForceTuple actual, double scale, double length, string at)
         {
             Assert.AreEqual(expected.N, actual.N, scale * 2e-11, at + " N");

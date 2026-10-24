@@ -154,6 +154,8 @@
     <None Include="Fixtures\domain-point-contract.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Fixtures\stress-analytic.csv"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Fixtures\curvature-analytic.csv"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Fixtures\stress-legacy.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -187,7 +189,7 @@
     <None Include="Fixtures\detailing-contract-0.0.17.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Fixtures\curvature-contract-0.0.17.csv">
+    <None Include="Fixtures\curvature-contract-analytic.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Fixtures\detailing-plate-legacy.csv">

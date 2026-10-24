@@ -1,0 +1,116 @@
+PARABOLA ANALITICA COME DEFAULT - 24/10/2026
+
+Decisione e ambito
+Il calcolo corrente usa ConcreteParabolaRectangleMethod.Analytic. Il selettore
+appartiene a ConcreteMaterialEuropeanCommon: valutazione delle tensioni in Model,
+integrazione della sezione in Checker, sottrazione del calcestruzzo occupato dalle
+barre e riepiloghi condividono la stessa legge.
+
+Per il diagramma europeo standard con n=2 (|fck| <= 50 MPa), la compressione usa
+sigma = fck r (2-r), r = epsilon/epsilon_c2, fino al plateau. Il fattore di progetto
+resta quello dello standard scelto. Il riconoscimento controlla anche i valori
+della tabella, per rispettare diagrammi modificati in posizione. Diagrammi ad alta
+resistenza e personalizzati conservano la propria legge tabulata.
+
+Con calcestruzzo teso trascurato, Checker taglia gli elementi sull'asse neutro e
+sul plateau e integra esattamente i polinomi sulle sottoregioni. Con
+ConsiderTensileConcrete=true la compressione usa comunque la legge analitica,
+mentre l'integrazione conserva la quadratura prevista per quel percorso.
+Il tension stiffening resta un'opzione distinta per la risposta non lineare.
+
+Chiamate dell'interfaccia
+GetTensionAnalysisResult(force), GetTensionAnalysisResultAsync(force), le due
+varianti senza argomenti per i batch, GetFailureDomainResult[Async] e
+GetFailureDomainResult2d[Async] passano attraverso lo stesso SectionSolver.
+Anche FailureDomainResult.CalculateForceAsync usa questa integrazione.
+Le analisi lineari conservano il modello elastico richiesto dalle loro opzioni.
+
+Coerenza dei percorsi condivisi
+HistoryModelEnvelopeLaw di CompositeBridge acquisisce anche la legge analitica,
+con la tangente esatta. Mantiene una copia della legge scelta alla preparazione,
+la convenzione caratteristica esistente e il controllo sulla deformazione ultima.
+Il riepilogo Concrete valuta le tensioni in tutti i vertici: sul ramo discendente
+del tension stiffening, gli estremi di tensione sono distinti da quelli di
+deformazione e devono essere indipendenti dall'ordine dei vertici.
+
+Non occorre cambiare le chiamate dell'interfaccia. L'applicazione deve ricevere
+il set coerente di librerie compilato con il nuovo Model e il nuovo Checker.
+Questa consegna prepara i branch candidati; il merge e l'installazione del set
+nell'applicazione restano i passaggi di distribuzione.
+
+Metodo storico / obsoleto
+Per nuovi calcoli usare Analytic (default, anche leggendo archivi precedenti).
+Per confronti storici, prima di preparare una nuova analisi:
+
+  concrete.ParabolaRectangleMethod =
+      ConcreteParabolaRectangleMethod.TabulatedLegacy;
+
+TabulatedLegacy e' marcato [Obsolete] e genera il messaggio:
+"Historical method. Use ConcreteParabolaRectangleMethod.Analytic for current calculations."
+La selezione ripristina spezzata e quadratura di Gauss per la parabola; riguarda
+la legge/integrazione, mantenendo gli aggiornamenti del solver iterativo gia'
+introdotti. La tabella originale rimane disponibile in entrambi i modi.
+
+Persistenza e impronte
+ConcreteMaterialEuropeanCommon scrive e legge la versione 4. Analytic e' implicito;
+il valore storico e' serializzato esplicitamente. Le copie conservano la scelta.
+Le vecchie immagini di analisi mantengono le proprie impronte di input e si aprono
+senza alterare le fixture di archivio. Cambiare la scelta del metodo modifica
+l'impronta e rende superati i report preparati. Le API pubbliche precedenti sono
+conservate, compresa la firma non virtuale di Material.GetStress.
+
+Attesi aggiornati con autorizzazione dell'utente
+- I 2016 stati di stress-legacy.csv restano invariati e sono ancora verificati
+  esplicitamente con TabulatedLegacy, sia in net472 sia in net8.
+- stress-analytic.csv contiene gli attesi del default corrente sugli stessi input.
+- curvature-analytic.csv contiene le cinque curve correnti (210 punti).
+- I contratti correnti di dominio, tensioni e curvatura sono aggiornati e dichiarano
+  origine e versioni. Sono snapshot di regressione; le verifiche indipendenti
+  restano separate e le tolleranze ingegneristiche non sono state allargate.
+- historical-fixtures-before-analytic-default.zip conserva i contratti precedenti.
+- independent-tension-stiffening.py riproduce gli attesi indipendenti mediante
+  primitive esatte di tensione e momento e soluzione di N/M. Solo libreria standard
+  Python; comando: py -3.9 independent-tension-stiffening.py.
+- I due guard che presumevano una mancata convergenza sono stati corretti: il caso
+  S1 verifica convergenza/scalatura e margini di accettazione tramite residui imposti;
+  il report reale verifica l'accettazione diretta del punto ora convergente.
+
+Variazioni controllate delle fixture SLE
+639 / 2016 stati cambiano, tutti non lineari con calcestruzzo teso trascurato.
+Nessun cambio di giudizio rispetto al rapporto limite 1.
+Massime differenze assolute: sigma_c 0.031295173 MPa; sigma_s 0.959629224 MPa;
+rapporto 0.002038163. Nessuna variazione delle 936 fixture di fessurazione,
+207 casi limite, 1824 casi della griglia e 12 profili. Nei 44 casi limite delle
+verifiche di tensione cambiano i tre casi non lineari.
+
+Controlli
+Gli ingressi pubblici sync/async/batch sono verificati contro un equilibrio
+assiale indipendente sia con Analytic sia con TabulatedLegacy. I domini 2D/3D
+sync e async coincidono e il punto resistente async di R3 e' confrontato con
+la soluzione chiusa della sezione rettangolare semplicemente armata.
+Restano i test di primitive esatte, scala, mesh, carico obliquo, barre, diagrammi
+personalizzati, prossimita' alla compressione uniforme e due criteri principali.
+
+Checkout e versioni candidate
+Checker: codex/concrete-analytic-parabola, GPCChecker.Concrete 0.20.0.0.
+Model: codex/concrete-analytic-parabola, GPCModel 5.21.0.0, commit 2d59bbc6.
+CompositeBridge: 1.13.0.1, allineamento della legge acquisita da Model.
+Il Model isolato e' basato su 21f79f30; il checkout Model condiviso non e' modificato.
+Directory coerente locale: ../concrete-analytic-set (rispetto al worktree Checker).
+I riferimenti relativi Checker -> Model risolvono qui il Model candidato.
+
+Comandi di verifica (eseguiti dal rispettivo checkout nel set coerente):
+  Model/build/Verify.ps1 -Results <cartella-risultati-Model>
+  Checker/build/Verify.ps1 -ModelRoot <checkout-Model-candidato> -Results <cartella-risultati-Checker>
+Risultati grezzi: ../audit-results/analytic-default-20261024, rispetto al worktree Checker.
+
+Esito finale della verifica
+Model: Core 34/34; UnitTest 1459 superati, 3 test nativi esclusi gia' previsti,
+nessun fallimento. API ed EqualityAudit superati.
+Checker: 5626/5626 superati, nessun fallimento e nessuna eccezione in allowlist.
+Concrete net472 875; Steel net472 122; CompositeBridge 384; Geotechnics 193;
+Calculation net8 175; ShallowFoundation 28; EmbeddedWalls 99; Steel.Members 3202;
+Design.Checks 103; ModelChecker 445. API Concrete, ModelChecker, Design e Masonry
+compatibili. Dati, impronte delle fixture e delle tre DLL modificate in
+verifica-default-20261024.json. I tempi delle suite sono solo tempi di esecuzione
+dei test, non una nuova misura comparativa delle prestazioni del solver.

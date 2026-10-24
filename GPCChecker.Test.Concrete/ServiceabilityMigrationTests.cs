@@ -48,12 +48,17 @@ namespace ConcreteTests
         private static void Close(double expected, double actual, string what) => Assert.AreEqual(expected, actual, 1e-9 * Math.Max(1, Math.Abs(expected)), what);
 
         [TestMethod]
-        public void LegacyStressStatesAreReproduced()
+        public void LegacyStressStatesAreReproduced() => StressStatesAreReproduced(true);
+
+        [TestMethod]
+        public void AnalyticStressStatesMatchTheUpdatedBaseline() => StressStatesAreReproduced(false);
+
+        private void StressStatesAreReproduced(bool historical)
         {
             string folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixtures");
             GPC.Model.Models.Model archive;
             using (var stream = File.OpenRead(Path.Combine(folder, "stress-sections.xml"))) archive = ModelArchive.Load(stream);
-            var rows = File.ReadAllLines(Path.Combine(folder, "stress-legacy.csv"), Encoding.UTF8).Where(l => !l.StartsWith("#")).Skip(1).ToArray();
+            var rows = File.ReadAllLines(Path.Combine(folder, historical ? "stress-legacy.csv" : "stress-analytic.csv"), Encoding.UTF8).Where(l => !l.StartsWith("#")).Skip(1).ToArray();
             Assert.AreEqual(2016, rows.Length);
             var checkers = new Dictionary<string, SectionCheckerModelCode2010>();
             int compared = 0;
@@ -75,6 +80,10 @@ namespace ConcreteTests
                         typeof(StandardModelCode2010).GetProperty(kv[0]).SetValue(standard, D(kv[1]));
                     }
                     var section = (ReinforcedConcreteSection)archive.BeamProperties[c[1]];
+#pragma warning disable CS0618 // Intentional reproduction of the historical fixture.
+                    if (historical) ((GPC.Model.Materials.ConcreteMaterialEuropeanCommon)section.ConcreteMaterial).ParabolaRectangleMethod =
+                        GPC.Model.Materials.ConcreteParabolaRectangleMethod.TabulatedLegacy;
+#pragma warning restore CS0618
                     var options = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(axes, SectionSolver.FailureAnalysisTypes.ConstantN,
                         SectionSolver.FailureDomainTypes.Plastic, linear ? SectionSolver.StressAnalysisTypes.Linear : SectionSolver.StressAnalysisTypes.NonLinear,
                         psi, 0, tension, int.Parse(c[7]));

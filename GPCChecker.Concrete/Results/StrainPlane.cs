@@ -207,64 +207,25 @@ namespace GPC.Checkers.Concrete.Results
                 for (int i = 0; i < _section.Shape.Fill.Count; i++)
                 {
                     double strain = GetStrain(_section.Shape.Fill[i]);
-                    if (strain > epsilonCMax)
+                    epsilonCMax = Math.Max(epsilonCMax, strain);
+                    epsilonCMin = Math.Min(epsilonCMin, strain);
+                    // Stress and strain extrema are distinct on a descending constitutive branch.
+                    // Evaluate every vertex: a running strain extremum would make the summary depend on vertex order.
+                    double stress;
+                    if (linearAnalysis)
+                        stress = _sectionSolver.CalculateElasticSigmaC(strain);
+                    else if (tensionStiffening != null && strain > 0)
+                        stress = tensionStiffening.GetStress(strain);
+                    else
                     {
-                        epsilonCMax = strain;
-
-                        double sigmaCMaxbuffer;
-                        if (linearAnalysis)
-                            sigmaCMaxbuffer = _sectionSolver.CalculateElasticSigmaC(epsilonCMax);
-                        else if (tensionStiffening != null && epsilonCMax > 0)
-                            sigmaCMaxbuffer = tensionStiffening.GetStress(epsilonCMax);
-                        else
-                        {
-                            var buff = !_sectionSolver.ConsiderTensileConcrete &&
-                                ParabolaRectangleLaw.TryCreate(_section.ConcreteMaterial, _standard, out var parabola)
-                                ? parabola.At(epsilonCMax)
-                                : _section.ConcreteMaterial.CalculateDesignStressConcrete(_standard, epsilonCMax);
-                            if (buff <= 0)
-                                sigmaCMaxbuffer = buff;
-                            else
-                            {
-                                if (_sectionSolver.ConsiderTensileConcrete == true)
-                                    sigmaCMaxbuffer = buff;
-                                else
-                                    sigmaCMaxbuffer = 0;
-                            }
-                        }
-
-                        if (sigmaCMaxbuffer > sigmaCMax)
-                            sigmaCMax = sigmaCMaxbuffer;
-
+                        stress = !_sectionSolver.ConsiderTensileConcrete &&
+                            ParabolaRectangleLaw.TryCreate(_section.ConcreteMaterial, _standard, out var parabola)
+                            ? parabola.At(strain)
+                            : _section.ConcreteMaterial.CalculateDesignStressConcrete(_standard, strain);
+                        if (stress > 0 && !_sectionSolver.ConsiderTensileConcrete) stress = 0;
                     }
-                    if (strain < epsilonCMin)
-                    {
-                        epsilonCMin = strain;
-                        double sigmaCMinbuffer;
-                        if (linearAnalysis)
-                            sigmaCMinbuffer = _sectionSolver.CalculateElasticSigmaC(epsilonCMin);
-                        else if (tensionStiffening != null && epsilonCMin > 0)
-                            sigmaCMinbuffer = tensionStiffening.GetStress(epsilonCMin);
-                        else
-                        {
-                            var buff = !_sectionSolver.ConsiderTensileConcrete &&
-                                ParabolaRectangleLaw.TryCreate(_section.ConcreteMaterial, _standard, out var parabola)
-                                ? parabola.At(epsilonCMin)
-                                : _section.ConcreteMaterial.CalculateDesignStressConcrete(_standard, epsilonCMin);
-                            if (buff <= 0)
-                                sigmaCMinbuffer = buff;
-                            else
-                            {
-                                if (_sectionSolver.ConsiderTensileConcrete == true)
-                                    sigmaCMinbuffer = buff;
-                                else
-                                    sigmaCMinbuffer = 0;
-                            }
-                        }
-
-                        if (sigmaCMinbuffer < sigmaCMin)
-                            sigmaCMin = sigmaCMinbuffer;
-                    }
+                    sigmaCMax = Math.Max(sigmaCMax, stress);
+                    sigmaCMin = Math.Min(sigmaCMin, stress);
                 }
 
                 for (int r = 0; r < _section.RebarsCount; r++)
