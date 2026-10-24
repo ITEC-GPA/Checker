@@ -51,16 +51,45 @@ namespace ConcreteTests
     {
         internal const string FileName = "domain-point-contract.json";
 
-        // Migration explicitly approved by the user on 24/10/2026: the 0.0.17 snapshot is an immutable historical artifact.
-        // StressBlock retains exact output equality. Continuous diagrams are checked against physical contracts and independent integration.
+        /// <summary>The 0.0.17 snapshot (372d8a6d, also in docs/analytic-parabola-20261023/historical-fixtures-before-analytic-default.zip), byte for byte</summary>
+        internal const string HistoricalFileName = "domain-point-contract-0017.json";
+
         [TestMethod]
-        public void HistoricalStressBlockAndContinuousPhysicalContractsArePreserved()
+        public void DomainPointContractWithAnalyticDefaultIsUnchanged()
         {
             int count;
             string actual = Generate(out count);
             int expectedCount = Sections.Sum(s => s.AxialKn.Length) * Diagrams.Length * States.Length * Directions.Length;
-            Assert.AreEqual(1024, expectedCount); Assert.AreEqual(expectedCount, count, "original catalogue");
+            Assert.AreEqual(expectedCount, count, "points");
             string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixtures", FileName);
+            string actualPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "domain-point-contract.actual.json");
+            if (!File.Exists(path))
+            {
+                File.WriteAllText(actualPath, actual, new UTF8Encoding(false));
+                Assert.Fail("Missing " + path + "; generated text written to " + actualPath);
+            }
+            // The working tree may hold CRLF (core.autocrlf): the contract is compared with LF line ends.
+            string expected = File.ReadAllText(path, new UTF8Encoding(false)).Replace("\r\n", "\n");
+            if (string.Equals(expected, actual, StringComparison.Ordinal)) return;
+            File.WriteAllText(actualPath, actual, new UTF8Encoding(false));
+            var e = expected.Split('\n'); var a = actual.Split('\n');
+            int line = 0;
+            while (line < e.Length && line < a.Length && string.Equals(e[line], a[line], StringComparison.Ordinal)) line++;
+            Assert.Fail("Current domain point contract changed at line " + (line + 1) + "\nexpected: " + (line < e.Length ? e[line] : "<end>")
+                + "\nactual:   " + (line < a.Length ? a[line] : "<end>") + "\nGenerated text: " + actualPath);
+        }
+
+        // Migration explicitly approved by the user on 24/10/2026: the 0.0.17 snapshot is an immutable historical artifact.
+        // StressBlock retains exact output equality. Continuous diagrams are checked against physical contracts and independent integration.
+        // The historical points are computed with the obsolete tabulated parabola (the law of 0.0.17), as the analytic default is covered above.
+        [TestMethod]
+        public void HistoricalStressBlockAndContinuousPhysicalContractsArePreserved()
+        {
+            int count;
+            string actual = Generate(out count, true);
+            int expectedCount = Sections.Sum(s => s.AxialKn.Length) * Diagrams.Length * States.Length * Directions.Length;
+            Assert.AreEqual(1024, expectedCount); Assert.AreEqual(expectedCount, count, "original catalogue");
+            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixtures", HistoricalFileName);
             Assert.IsTrue(File.Exists(path), "Missing immutable historical fixture " + path);
             string expected = File.ReadAllText(path, new UTF8Encoding(false)).Replace("\r\n", "\n");
             using (var hash = System.Security.Cryptography.SHA256.Create())
@@ -68,14 +97,14 @@ namespace ConcreteTests
                 string fingerprint = BitConverter.ToString(hash.ComputeHash(Encoding.UTF8.GetBytes(expected))).Replace("-", "").ToLowerInvariant();
                 Assert.AreEqual("1f61a7891eddc10b01f5694062a589ec74780a15241e6c947d3a334f5c047491", fingerprint, "The complete historical fixture must not be regenerated.");
             }
-            string actualPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "domain-point-contract.actual.json");
+            string actualPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "domain-point-contract-0017.actual.json");
             File.WriteAllText(actualPath, actual, new UTF8Encoding(false));
             Func<string, string[]> stressBlock = text => text.Split('\n')
                 .Where(line => line.Contains("\"diagram\": \"StressBlock\"")).Select(line => line.TrimEnd(',')).ToArray();
             string[] historicalStressBlock = stressBlock(expected), currentStressBlock = stressBlock(actual);
             Assert.AreEqual(256, historicalStressBlock.Length); Assert.AreEqual(256, currentStressBlock.Length);
             CollectionAssert.AreEqual(historicalStressBlock, currentStressBlock, "StressBlock remains exact; actual capture: " + actualPath);
-            DomainPointContinuousContract.VerifyCatalogue();
+            DomainPointContinuousContract.VerifyCatalogue(true);
         }
 
         [TestMethod]
@@ -166,9 +195,11 @@ namespace ConcreteTests
         internal static readonly (string Label, double Mx, double My)[] Directions = { ("Mx+", 1, 0), ("Mx-", -1, 0), ("My+", 0, 1), ("My-", 0, -1) };
 
         /// <summary>The section as CheckerSection.PrepareModel of ANTHEA builds it (contour vertices and bars in the same order and arithmetic)</summary>
-        internal static ReinforcedConcreteSection BuildSection(BenchSection s, ConcreteMaterial.CompressionStressStrainDiagrams diagram)
+        internal static ReinforcedConcreteSection BuildSection(BenchSection s, ConcreteMaterial.CompressionStressStrainDiagrams diagram, bool historicalMethod = false)
         {
             var concrete = new ConcreteMaterialEN1992(s.Name, s.Fck, diagram);
+            // Intentional reproduction of the historical contract: the obsolete tabulated parabola of 0.0.17.
+            if (historicalMethod) concrete.ParabolaRectangleMethod = ConcreteParabolaRectangleMethod.TabulatedLegacy;
             var steel = new SteelMaterial("B450C", 200000, 450, 450, 0.075, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
             var outline = new List<Point2d>();
             if (s.Sides > 0)
@@ -214,7 +245,7 @@ namespace ConcreteTests
 
         // ---------------------------------------------------------------- generation
 
-        private static string Generate(out int count)
+        private static string Generate(out int count, bool historicalMethod = false)
         {
             var thread = Thread.CurrentThread;
             var culture = thread.CurrentCulture; var uiCulture = thread.CurrentUICulture;
@@ -225,7 +256,7 @@ namespace ConcreteTests
                 foreach (var s in Sections)
                     foreach (var diagram in Diagrams)
                     {
-                        var section = BuildSection(s, diagram);
+                        var section = BuildSection(s, diagram, historicalMethod);
                         foreach (var state in States)
                         {
                             var checker = BuildChecker(section, state);

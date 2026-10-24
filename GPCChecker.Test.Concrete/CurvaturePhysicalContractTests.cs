@@ -44,6 +44,11 @@ namespace ConcreteTests
             GPC.Model.Models.Model archive;
             using (var stream = File.OpenRead(Path.Combine(folder, "detailing-sections.xml"))) archive = ModelArchive.Load(stream);
             var section = (ReinforcedConcreteSection)archive.BeamProperties[c[1]];
+            // The oracle below is the tabulated law of the archived input (eight chords, finite support), integrated
+            // with fixed Gauss quadrature: the historical inputs run with the obsolete tabulated method, which restores both.
+#pragma warning disable CS0618 // Intentional reproduction of the historical law.
+            ((ConcreteMaterialEuropeanCommon)section.ConcreteMaterial).ParabolaRectangleMethod = ConcreteParabolaRectangleMethod.TabulatedLegacy;
+#pragma warning restore CS0618
             var standard = ServiceabilityMigrationTests.Standard(c[2]);
             foreach (var pair in c[3].Split(','))
             { var kv = pair.Split('='); typeof(StandardModelCode2010).GetProperty(kv[0]).SetValue(standard, D(kv[1])); }

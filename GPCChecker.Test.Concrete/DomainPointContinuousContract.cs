@@ -15,14 +15,14 @@ namespace ConcreteTests
     /// <summary>User-approved replacement of algorithm-output equality for the 768 continuous-diagram cases. The old JSON stays intact.</summary>
     internal static class DomainPointContinuousContract
     {
-        internal static void VerifyCatalogue()
+        internal static void VerifyCatalogue(bool historicalMethod = false)
         {
             int completed = 0, outsideAxial = 0, impossibleTension = 0, unqualifiedCompression = 0;
             var identities = new HashSet<string>();
             foreach (var shape in DomainPointContractTests.Sections)
             foreach (var diagram in DomainPointContractTests.Diagrams.Where(d => d != ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock))
             {
-                var section = DomainPointContractTests.BuildSection(shape, diagram);
+                var section = DomainPointContractTests.BuildSection(shape, diagram, historicalMethod);
                 foreach (var state in DomainPointContractTests.States)
                 {
                     var checker = DomainPointContractTests.BuildChecker(section, state);

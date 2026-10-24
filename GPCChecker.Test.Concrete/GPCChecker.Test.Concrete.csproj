@@ -158,6 +158,9 @@
     <None Include="Fixtures\domain-point-contract.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Fixtures\domain-point-contract-0017.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Fixtures\stress-analytic.csv"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Fixtures\curvature-analytic.csv"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Fixtures\stress-legacy.csv">
