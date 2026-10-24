@@ -1,0 +1,234 @@
+FASE 4 - ADAPTER RESISTENZA DELLA SEZIONE TRAVE PER END PLATE
+Proposta tecnica per root, 24/10/2026. Nessuna produzione, build o Git.
+
+1. DECISIONE RACCOMANDATA
+
+Implementare un adapter stretto verso il core Steel gia esistente, per I/H
+LAMINATI doppiamente simmetrici, materiale omogeneo esplicitamente verificato,
+sezione integra e azioni concomitanti N=0, M1>=0, V2 firmato, M2=V1=T=0.
+Classe 1/2: tutto il dominio 0<=|V2|<=Vpl,Rd, esclusa instabilita a taglio.
+Classe 3: primo blocco solo V2=0, con Wel; classe 4 fuori campo dell'adapter.
+Il core contiene altri metodi, ma il nodo attuale non ammette N diverso da0.
+Non ampliare il nodo o ricavare una finta Mc,Rd dalla sola utilization N-M-V.
+
+L'adapter restituisce una nuova valutazione tracciabile e il normale oggetto
+EndPlateBeamMomentResistance, creato internamente con stessa istanza Code/Beam.
+La via manuale esistente resta invariata. Un wrapper opzionale nuovo verifica
+il legame tra valutazione della trave e input del nodo, senza cambiare i vecchi
+costruttori o sostituire l'evidenza con una semplice stringa Source.
+
+2. PERCORSI ESISTENTI E LIMITI CONCRETI
+
+src/Steel/ModelAdapters/SteelSectionInput.cs:
+snapshot immutabile Model, geometria reale, materiale unico, A, Fyk/Fu, E/nu,
+assi principali; Unperforated bool? e NetArea. Non ha fy ala/anima distinti.
+CreateSectionCopy restituisce copia staccata; niente mutazione del chiamante.
+
+src/Steel/Inputs/SteelVerificationInput.cs:
+SteelActions conserva tutte6componenti N,V1,V2,T,M1,M2 e convenzione di segno;
+SteelDesignContext riusa SectionResistanceCode. Nessun dato d'asta fittizio.
+
+src/Steel/Selection/SteelMethodSelector.cs e Pipeline/SteelVerificationPipeline.cs:
+percorso di selezione/esecuzione comune EC3/NTC, classe1/2, M1/V2 e N=0:
+SectionBending1 a basso taglio, HMajorBendingShear oltre0.5Vpl.
+HShear espone direttamente Resistance=MvRd, rho, Aw, Wpl, Vpl e riferimenti.
+La classificazione automatica senza input qualificato usa COMPRESSIONE
+UNIFORME nominale; NON e la classificazione di flessione della trave.
+Nel caso SCI C.1 il rapporto anima47.178 supera42epsilon in compressione,
+mentre e inferiore72epsilon in flessione: la selezione automatica darebbe
+classe4 inutilmente. Occorre preparare la classe di flessione con i kernel.
+
+Ec3PlasticHSection e gia disponibile per N-M1-M2 a basso taglio, ma richiede
+H a spigoli vivi e non include la policy NTC plastica nel routing. NON e il
+percorso adatto al nodo laminato attuale, ne giustifica l'apertura a N!=0.
+Class3 con V!=0 va oggi al limite lineare conservativo, senza scalar Resistance.
+Non invertire una utilization per fabbricare Mc,Rd, specie a momento zero.
+
+3. CONTRATTI E DATI MATERIALI
+
+ConnectionRolledISection dichiara precisamente Fy/Fu dell'ANIMA allo spessore
+reale; il suo valore non prova le resistenze dell'ala. EndPlateMomentComponents
+ha ColumnFlangeFy distinto, ma non un BeamFlangeFy. Model SteelMaterial/
+SteelSectionInput hanno un solo Fyk/Fu e non applicano qui una tabella automatica
+di riduzione per spessore. Nessun lookup per il solo nome S275/S355.
+
+Input nuovo proposto EndPlateBeamSectionInput:
+- ConnectionDesignCode Code e ConnectionRolledISection Beam, stesse istanze
+  da usare nel nodo;
+- SteelSectionInput Section, snapshot Model della trave reale;
+- SteelActions Actions, tutte6componenti obbligatorie;
+- FlangeYieldStrength e FlangeUltimateStrength espliciti, uguali per le due
+  ali nel primo campo; valori anima rimangono Beam.Fy/Beam.Fu;
+- MaterialAtActualThicknessSource, GeometrySource, ActionCombinationSource;
+- HasNotchesOrOpenings obbligatorio: inizialmente false, non dedotto da Area;
+- Ec3ShearEta e relativa fonte per EC; NTC usa il proprio percorso eta=1.
+Nessun parametro SectionClass, McRd o ShearBucklingExcluded fornito dal caller.
+
+Primo gate materiali:
+FlangeFy=Beam.Fy=Section.YieldStrength;
+FlangeFu=Beam.Fu=Section.UltimateStrength; fy<=460, fu>=fy.
+Differenze reali tra ala e anima => NotSupported con valori conservati.
+NON prendere min(fy) senza dirlo: cambierebbe anche epsilon/classificazione.
+Possibile blocco successivo: bound uniforme min(fy) con classificazione per
+ogni parte al suo fy reale e risultati dichiarati conservativi; non necessario
+per SCI C.1 (ala15.6/anima10.1 entrambe fy275/fu410). Un vero modello ibrido
+richiede integrazione materiale zonata, oggi non rappresentata nel core comune.
+
+4. GEOMETRIA, FORI E ASSI
+
+Qualificare tipo ESATTO SectionH, produzione Rolled e HotFinished, due ali
+uguali, asse principale1 orizzontale e coincidente con X del nodo; nessuna
+rotazione dedotta dal nome o scambio automatico 1/2. Raggio effettivo di
+raccordo r, non gola di saldatura. Escludere sottoclassi e geometrie speciali.
+Confrontare h,b,tw,tf,r Model con Beam entro solo tolleranza aritmetica.
+Area geometrica Model puo differire da Beam.Area di catalogo arrotondata:
+usare il medesimo limite documentato0.5% del contratto ConnectionRolledISection,
+tracciare entrambe e usare SEMPRE le proprieta esatte Model nei calcoli.
+Non sovrascrivere A/Wpl/Wel con i numeri tabellati per ottenere un benchmark.
+I raccordi Model sono gia integrati nel contorno: SectionH.CalculateWplX
+rimanda al contorno esatto quando HasWorkedCorners; nessun FEM/Gmsh.
+
+Richiedere Section.Unperforated=true e NetArea assente. Fori ignoti => missing;
+fori dichiarati, intagli/aperture o connessione a sezione alterata => fuori campo.
+Una sola area netta non rappresenta I/W netti, fibre estreme o posizione fori.
+I fori nella piastra end plate NON sono automaticamente fori nella trave.
+
+Frame allineato: asse1=X trasversale, asse2=Y verticale, asse3=Z longitudinale
+uscente dal pilastro; M1>0 produce trazione all'ala superiore, come il nodo.
+Actions sono gia riferite al baricentro del taglio della trave al nodo:
+l'adapter non inventa il trasporto di un punto non fornito.
+Conservare V2 firmato nel risultato; EndPlateMomentComponentInput.Shear e una
+magnitudine, quindi binding esplicito Shear=abs(V2), Moment=M1, Axial=N=0.
+M1<0 richiede il dettaglio invertito e resta fuori campo del nodo corrente.
+Qualsiasi N,M2,V1,T nonzero, anche piccolo, non viene cancellato.
+
+5. CLASSIFICAZIONE DERIVATA, NON EVIDENZA INVENTATA
+
+Geometria piatta da ModelCompressionGeometry.Create(Section):
+anima c=h-2tf-2r; sbalzo ala c=(b-tw)/2-r.
+Per resistenza in flessione retta a N=0: anima alpha=.5, psi=-1;
+ala compressa uniforme, ala opposta tesa. Simmetria rende equivalenti le ali.
+EC: riuso Ec3PlateClassification.Internal e Ec3CompressionPartClassification
+per sbalzo uniforme. NTC: riuso Ntc2018CompressionClassification per epsilon/
+sbalzo e PlateClassificationArithmetic.InternalLimits/Classify per anima;
+la policy/reference NTC deve restare NTC, non un risultato etichettato EC.
+Limiti verificati visivamente NTC Tabelle4.2.III-IV: anima72/83/124epsilon,
+sbalzo9/10/14epsilon; stessa aritmetica del caso EN Table5.2, nessuna nuova
+formula copiata. Restituire rapporto c/t, fy, epsilon, tre limiti e classe.
+Non applicare EN5.5.2(9) per abbassare la classe in base al momento richiesto:
+serve una CAPACITA, che deve restare valida quando M cresce sino a Mc,Rd.
+A M=0 classificare esplicitamente il pattern di resistenza in flessione;
+non dichiararlo uno stato tensionale effettivo non nullo del caso a domanda0.
+
+6. RIUSO RESISTENZA SENZA MOMENTO FITTIZIO
+
+Creare SteelVerificationInput con stesso Code.Plates in SteelDesignContext,
+stesso snapshot e Actions; classificazione generata legata a questa istanza.
+Preparare lo shear assessment con EvaluateEc3HWeb oppure EvaluateNtcHWeb:
+hw=h-2tf INCLUDE raccordi nel criterio di taglio; non c=h-2tf-2r.
+Se l'instabilita a taglio non e esclusa, nessun export Mc,Rd plastico.
+La resistenza del pannello snello esiste altrove, ma non prova qui M-V.
+
+Per le verifiche alle azioni reali, eseguire la pipeline comune e conservarla.
+Per capacita indipendente da M=0, riusare i kernel effettivi:
+- SectionResistanceVerifier.Bending(Code.Plates, M1, Wpl1, Wel1, fy, class);
+- SectionResistanceVerifier.Shear(Code.Plates, V2, ModelShearAreas.GetArea2,
+  fy), con assessment di instabilita gia eseguito;
+- classe1/2: SectionInteractionArithmetic.ShearReductionRho e
+  MajorIMomentWithShear, stesso Aw=HeightWeb*tw e min(Mpl, Mv) di HShear;
+  sono chiamate ad aritmetica esistente, NON riscritture delle equazioni.
+Nessun nuovo stato con M=1 fittizio per forzare la selezione della pipeline.
+Nessuna estrazione da GoverningCheck con domanda zero.
+Se root preferisce evitare anche la duplicazione dell'orchestrazione HShear,
+si puo estrarre un piccolo helper interno dalla funzione HShear con patch
+separata, preservando ordine aritmetico/tracce e regressioni; niente refactorampio.
+Class3,V=0: SectionResistanceVerifier.Bending sceglie Wel.
+Class3,V!=0: adapter NotSupported iniziale, pipeline conservativa disponibile
+separatamente senza inventarne un Mc,Rd scalare.
+|V|>Vpl: Failed del taglio, nessun export Mc,Rd; non limitare rho a1 per
+far apparire valida una capacita in presenza di taglio gia non ammissibile.
+M>Mc,Rd: valutazione sezione Failed; capacita finita resta un dato utilizzabile,
+ma il wrapper deve conservare quel Failed anche se un componente nodo passa.
+
+7. RISULTATO E COLLEGAMENTO AL NODO
+
+EndPlateBeamSectionAssessment proposto:
+Input, ClassificationParts, SectionVerification, ShearBucklingAssessment,
+Status/Diagnostics, Trace, EndPlateBeamMomentResistance DerivedResistance
+nullable, CanQualifyWholeMember=false, CanQualifyWholeJoint=false.
+Source del token descrive metodi/riferimenti/calcolo eseguito e fonte caso,
+non contiene una pretesa di certificazione esterna.
+
+Binding nuovo EndPlateMomentWithBeamSection.Verify(joint, beamAssessment):
+- ReferenceEquals joint.BeamMomentResistance/assessment.DerivedResistance,
+  stessa Beam, stessa Code, stesso stato N/M/|V| e stessa fonte caso;
+- nessun token se resistenza non calcolata o taglio ecceduto;
+- chiama EndPlateMomentComponents.Verify e conserva entrambi i risultati;
+- non confonde sezione Failed con componente NotSupported, ne rende verde
+  il nodo globale; restano stabilita dell'asta, azioni lontane dal taglio,
+  supporto, bolt/weld/netto/block/interazioni e compatibilita globali.
+La vecchia API manuale non viene modificata; i suoi attesi SCI restano intatti.
+
+8. FONTI E BENCHMARK RIUSABILI
+
+Fonti locali lette:
+EN1993-1-1:2005,6.2.5/6.2.6/6.2.8; PDF55 testo eq6.29 e campo;
+NTC2018 PDF98-99 Tabelle4.2.III-IV verificate visivamente; PDF104 testo
+4.2.27 e4.2.30-32, eta1 e formula I/H classe1/2.
+SCI P398 C.1 p103/PDF111: Mc,Rd649kNm da P363, ipotesi taglio non riducente;
+h533.1,tf15.6 e forza di compressione1254kN. Test pubblicato a tolleranza
+di stampa, distinto dalla geometria esatta Model e dalla variante NTC.
+
+Ricalcolo analitico indipendente fatto durante questa ricerca, non test.NET:
+h533.1,b209.3,tw10.1,tf15.6,r12.7,fy275.
+Per ogni raccordo, Ar=(1-pi/4)r^2; primo momento della distanza q dalla
+faccia inferiore ala Qr=(5/6-pi/4)r^3; secondo Jr=(1-5pi/16)r^4.
+Queste sono integrazioni geometriche quadrato meno quarto di cerchio, utili
+SOLO come oracle test; non nuove formule di produzione.
+A=11737.802520902502mm2, Wpl1=2360087.417021688mm3;
+I1=552273065.0878704mm4, Wel1=2071930.4636573638mm3;
+Av2=5761.442520902502mm2, VplEC=914751.8573499944N;
+McEC=649024039.6809642Nmm, McNTC=618118133.0294898Nmm.
+Per V200kN nessuna riduzione in entrambe le norme; webc/t47.1782178218,
+limiteclasse1flessione66.5579719971; alac/t5.57051282051<8.31974649963.
+NON sostituire649e6 nei test legacy C.1 con649024039.68 per farli passare:
+nuovo benchmark adapter distinto, vecchio input pubblicato resta pubblicato.
+
+Suite gia presenti da riusare come riferimenti, non come oracle autoprodotti:
+- CommonShearCoverageTests: 64combinazioni EC/NTC, rolled/welded,fy,segno,
+  V/Vpl=.5,.500001,.75,1; integrazione indipendente tensioni ridotte in strisce.
+- SteelVerificationPipelineTests: Wpl/Wel indipendenti per H rettangolare,
+  matching esatto input/policy/class, shear assessment/limiti e V oltreVpl.
+- PlateClassificationTests: confini alpha=.5/psi=-1 e sbalzi uniformi.
+- CompressionPartClassificationTests/CommonSectionCoverageTests: NTC/EC.
+- EndPlateMomentComponentTests: C.1, NTC, source e mismatch shear/code/beam,
+  momento zero e Failed separato da NotSupported.
+
+9. TEST NUOVI DA PREVEDERE
+
+C.1 proprieta/raccordi esatte e649kNm stampati separati; NTC stessoModel con
+gammaM0=1.05; integrazione manuale H classe1/2 con V sotto/.5/sopra/sino1;
+V>Vpl senza export; M=0 con stessa capacita di M>0; M oltre capacita Failed.
+Classificazione flessione diversa da compressione; confini classi1/2/3/4;
+classe3V0 con Wel, classe3V!=0 esclusa inizialmente; buckling taglio effettivo
+con hw inclusivo raccordi. Geometrie/assi/materiali diversi e Fy ala!=anima;
+fori null/false/netti, sezioni lavorate, custom type e geometria asimmetrica;
+ogni azione vietata anche piccola e segno V2 conservato; momento oppostoNS;
+snapshot immutabile e source obbligatorie; mismatch token/codice/beam/caso;
+capacita input non riutilizzabile per un altro V o altra norma; nessun Passed
+globale o di asta; numeri non finiti respinti senza capacità infinita favorevole.
+
+10. RICHIESTA DI DECISIONE ROOT
+
+Approvare il primo campo sopra e l'export tramite kernel comuni, oppure
+richiedere prima l'helper interno stretto per HShear. Raccomando kernel comuni
+diretti + pipeline alle azioni reali, tutto in nuovi file: nessun refactor e
+nessuna modifica semantica dei contratti esistenti. Il materiale differenziato
+e Class3+V restano estensioni esplicite, non requisiti nascosti della prima API.
+
+DECISIONE ROOT24/10/2026: primo campo approvato, kernel comuni diretti +
+pipeline sulle azioni reali; binding mediante token/istanze/azioni. Nessun
+export favorevole con pipelineNS o taglio oltreVpl. Il caso M oltreMc
+conserva il Failed. Codice/test in staging, non ancora dichiarati eseguiti.
+Per classe3 e puroM,V=0 il mancato criterio di esclusione buckling a taglio
+non invalida da solo la resistenza elasticaWel; non si esporta capacitaM-V.

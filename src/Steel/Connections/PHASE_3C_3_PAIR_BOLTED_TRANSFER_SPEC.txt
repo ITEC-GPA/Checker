@@ -1,0 +1,138 @@
+FASE 3c.3 - DOPPI L IDENTICI, FILA UNICA, FAZZOLETTO CENTRALE
+==========================================================
+Proposta verificata il 24/10/2026. Implementazione in staging autorizzata da root.
+
+PRIMO CAMPO
+Un componente PIANO del trasferimento da due L identiche, dorso-dorso, a un
+fazzoletto rettangolare centrale. Una linea longitudinale di almeno due bulloni
+passanti, categoria A, due piani di taglio identici, contatto diretto senza
+imbottiture. Le due trazioni sono dichiarate, concomitanti, uguali e devono
+ricostruire le azioni del membro attraverso BraceAngleModelAdapter.FromPair.
+La biblioteca NON deduce N/2 e NON cambia le azioni per ottenere trazione pura.
+La scelta del lato fisico, anche corto/lungo di L disuguali, resta quella Model.
+
+Il momento nel piano del fazzoletto viene calcolato dall'eccentricita reale fra
+baricentro delle L e linea bullonata. Le coppie locali fuori piano sono conservate
+per ciascuna L, sia alla mezzeria del lato forato sia alla faccia del fazzoletto.
+La loro somma nulla non equivale a verificarle. Il risultato 3D rimane NotSupported
+con diagnostica esplicita; l'esito del sottoinsieme piano resta separato.
+CanQualifyWholeJoint=false. Nessuna qualificazione di contatto/prying o nodo.
+
+CONTRATTO MINIMO, SENZA MODEL O MATERIALI PARALLELI
+BraceAnglePairBoltedTransferInput prende il risultato immutabile dell'adattatore
+esistente, ConnectionPlate per il fazzoletto, distanze terminali reali delle L e
+del fazzoletto, distanza dal bordo -Y del fazzoletto alla linea bullonata, diametro
+dell'inviluppo fisico ferramenta/accesso, esposizione, dichiarazione esplicita di
+fori/tagli aggiuntivi, fonte geometrica, fonte del modello piano, combinazione e
+fonte SLE dei fori dove richiesta. Code, bulloni, file, passo, spessore/materiale L
+vengono dall'adattatore: non sono richiesti una seconda volta.
+
+La luce fra dorsi deve coincidere con lo spessore del fazzoletto, senza tolleranza
+geometrica favorevole. La fila e a passo costante, non sfalsata. Le distanze a
+fori/tagli e la ferramenta devono essere compatibili con il dettaglio reale.
+Per qualificare il solo rifollamento si usa conservativamente la parte PIANA del
+lato collegato: il raccordo interno e l'arrotondamento di punta non sono accreditati.
+Il loro bordo tangente e trattato come bordo libero del rettangolo resistente.
+Questa scelta geometrica conservativa e aggiuntiva, non una formula normativa:
+puo rifiutare dettagli ordinari che richiedono un modello di rifollamento dell'L.
+L'area del netto efficace dell'L resta invece quella reale fornita da Model.
+
+ASSI E SEGNI
+X=asse +Z dell'asta Model. Per dorsi verticali Y=+YModel, Z=-XModel; per dorsi
+orizzontali Y=+XModel, Z=+YModel. Terne destrorse. Origine al centro della fila,
+nel piano medio del fazzoletto. La direzione fisica della punta dipende dalle
+riflessioni Model; e2 non cambia significato dopo la riflessione.
+Le azioni restituite sono quelle applicate DAGLI angolari al fazzoletto; sui lati
+degli angolari agisce la reazione opposta. Il fazzoletto ha bordo libero verso+X,
+gli angolari verso-X. Tutto in N, Nmm, mm, MPa. Nessuna fusione di combinazioni.
+
+CALCOLI DEL PRIMO BLOCCO
+1. BraceAngleTension.Verify per ciascuna L: lordo e netto efficace 3.10.3.
+2. Trasporto delle azioni reali con il kernel Model e conservazione di tutte le
+   componenti locali. Nessuna coppia locale viene modificata per il piano.
+3. ElasticBoltGroup sul risultante PIANO del gruppo. Per fila x_i, y_i=0:
+   Fxi=N/n; Fyi=Mz*x_i/sum(x_j^2). Le due facce hanno uguale domanda di taglio
+   solo per il riparto uguale gia dichiarato/verificato.
+4. BoltStrength: risultante del bullone e due piani identici, lunghezza giunto
+   reale (n-1)p, zero packing per contatto geometricamente verificato.
+5. BoltBearing nei due versi ortogonali, per ciascun bullone e ciascuna delle tre
+   lamiere. Le due L hanno meta della domanda del fazzoletto soltanto nel campo
+   simmetrico ammesso. Non si usa lo spessore L al posto del fazzoletto.
+6. Interazione aggiuntiva ECCS riportata da SBE_SS5:
+   (Fx/Fb,x,Rd)^2+(Fy/Fb,y,Rd)^2<=1. E dichiarata COMPLEMENTARE alla Table3.4 EN;
+   non si attribuisce l'ellisse direttamente all'Eurocodice o alle NTC.
+
+NTC2018: si riusa integralmente ConnectionDesignCode/BoltStrength/BoltBearing.
+Il netto efficace L e l'interazione ECCS rimangono metodi EN/complementari gia
+identificati come tali. Nessun gammaMu=1.1, fattore tying UK, formula USA o
+resistenza ad attrito e trasferita al campo ordinario categoria A.
+
+CENSIMENTO DEL PERCORSO D'USO E LIMITI RESIDUI
+Gia disponibile: sezione reale/snapshot, lato fisico e riparto esplicito, netto L,
+gruppo elastico, bullone doppio taglio, rifollamento ortogonale, kernel cordoni.
+Nuovo utile: collegamento fra questi componenti con geometria 2L reale, coppie
+conservate, domanda per ogni lamiera e interazione bidirezionale.
+Mancano ancora: block tearing L e fazzoletto con percorsi ad una fila; resistenza
+lorda/netta e diffusione degli sforzi nel fazzoletto; deformabilita e contatto 3D
+dei lati connessi, prying/forze normali effettive dei bulloni; collegamento al
+supporto, resistenza locale del supporto e compatibilita col modello globale;
+stabilita/compressione, fatica/sisma, SLE/assenza di gioco e assemblaggio delle
+imbottiture lungo l'asta. Nessuna di queste voci viene chiusa dal componente piano.
+GussetTwinFlatTension ha DUE COLONNE e piatti: non e adattato ponendo gauge=0.
+GussetTwinFlatWeldedSupport resta legato a quel trasferimento. Un futuro adattatore
+al supporto dovra usare direttamente le sei azioni restituite, non ricopiare Fx.
+
+FONTI PRIMARIE E CAMPO DEI BENCHMARK
+EN1993-1-8:2005 2.5/2.7 p19, 3.10.2 p32, 3.10.3 p33, 3.12 p34; Table3.4.
+Pagine PDF21/34 visualizzate, altre formule gia verificate nella fase3a. L'eccezione
+3.10.3 riguarda il netto efficace; non e una licenza per azzerare i momenti nel
+fazzoletto e nel supporto. SCI P358 8.1-8.4 pp258-260 conferma il percorso locale.
+https://www.steelconstruction.info/images/a/a9/SCI_P358.pdf
+
+JRC/Access Steel SX034a-EN-EU, fogli2/5/6 visualizzati: singola L120x80x12,
+3M20 8.8, gamma1/1.25, N250kN. Benchmark di componenti, NON nodo 2L pubblicato.
+Valori esatti non arrotondati: taglio94.08kN/bullone, netto efficace407.76509kN,
+rifollamento estremita156.363636kN e interno198.581818kN. La fonte arrotonda
+prima alpha/beta (156.9/198.1/407kN): test con precisione motivata o atteso esatto
+distinto. L'omissione del controllo fazzoletto perche piu spesso della singola L
+non e estesa alla coppia, dove il fazzoletto riceve la somma delle due forze.
+https://eurocodes.jrc.ec.europa.eu/sites/default/files/2022-06/SX034a-EN-EU.pdf
+
+SBE_SS5, Single-Storey Steel Buildings, Part5, Detailed Design of Trusses, 2010:
+AppendiceA p5-68/PDF76 (ellisse ECCS), AppendiceB N1 p5-106/PDF114,
+p5-110/PDF118 (TableB.13) e p5-115/PDF123 (TableB.20), p5-119/120/PDF127/128.
+Pagine geometria, ellisse, forze e block tearing visualizzate.
+Benchmark 2L150x150x15, N406.9kN, e44.5mm: M18.10705kNm. Coordinate bulloni
+(-16.25,-30),(48.75,-30),(-48.75,30),(16.25,30); J8881.25mm2.
+Risultanti166.223959/190.817723/107.349105/52.372046kN; per L la meta esplicita.
+La TableB.14 usa48gradi rispetto all'orizzontale (42rispetto alla verticale):
+la formula di cambio base stampata con cos42/sin42 non riproduce quella tabella.
+E un gruppo a DUE FILE SFALSATE, categoriaC: solo benchmark del kernel di forze
+e dell'ellisse, non ingresso accettabile del nuovo dettaglio fila unica CatA.
+https://sections.arcelormittal.com/repository2/Sections/EN/5_15_SSB05%20Detailed%20Design%20of%20Trusses.pdf
+https://www.steelconstruction.info/images/f/f0/SBE_SS5.pdf
+
+REFUSO SBE DA NON IMITARE
+P5-120: Ant933.6, Anv1402.5mm2, fy355/fu510, gamma1/1.25 producono477.909882kN,
+non407.91kN stampati. Il fazzoletto Ant633.6/Anv3533.1 produce853.396264kN e torna.
+Sono dati di ricerca per la fase seguente, non una verifica a percorsi automatici.
+
+BENCHMARK ANALITICO FILA UNICA, DISTINTO DAL PUBBLICATO
+L a spigoli vivi150(verticale)x100(orizzontale)x10, Ag2400mm2, cg(23.75,48.75).
+Dorsi x=+/-10; fazzoletto20; baricentri x=+/-33.75; linea bulloni y75,
+mezzerie lati x=+/-15. Due forze100kN. X bulloni -90,-30,30,90; passo60.
+Ntot200kN, Mz5.25kNm, coppie locali My=+/-1.875kNm alla mezzeria del lato e
++/-2.375kNm alla faccia del fazzoletto. Queste ultime NON sono zero.
+Fx50kN per bullone; Fy=-26.25,-8.75,+8.75,+26.25kN; massimo56.471785kN.
+Fazzoletto b200, bordi +/-Y a100mm; distanze terminali L/fazzoletto40mm.
+M16 8.8 As157 d018; hardware30; materiali fy275/fu430; gamma1/1.25.
+Il derivatore indipendente allegato calcola le cifre esatte senza importare Checker.
+
+PROVE PREVISTE
+Fonti: SX034 componenti e precisione; SBE quattro bulloni/rotazione/ellisse;
+benchmark fila unica con eccentricita e coppie; confronto dei due piani con il
+fazzoletto pienamente caricato. Specchiature, cambio ordine, traslazioni, lato
+lungo/corto ed assi principali. Gate singolaL/riparto disuguale/gap/fori/codice/
+materiale/esposizione/hardware/bordi/passo e scale numeriche. Stato3D sempre
+non promosso, fonti e combinazione conservate, immutabilita dello snapshot.
+Nessuna build, test.NET, installazione o Git eseguiti dall'agente.

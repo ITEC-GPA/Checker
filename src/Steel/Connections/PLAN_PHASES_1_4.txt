@@ -217,3 +217,14 @@ e la compatibilita', distinti dalla maggiorazione algebrica di vonMises.
 Audit2.78 concluso:226nuovi casi rispetto2.74, nessuna nuova regressione.
 Blocchi/commit in VALIDATION.txt. In sviluppo3c.3 trasferimento piano2L
 e4cde adapter trave Steel; nessuna chiusura anticipata di queste sottofasi.
+
+BLOCCHI APPROVATI IN SVILUPPO24/10/2026 ORE02:58
+3c.3: trasferimento piano da2L identiche a gusset centrale, fila unica,
+azioni reali e coppie locali conservate; PHASE_3C_3_PAIR_BOLTED_TRANSFER_SPEC.txt.
+Il sottoinsieme piano non qualifica la risposta locale3D o il nodo.
+4cde: adattatore della resistenza trave dal coreSteelEC/NTC, classificazione
+in flessione e raccordi reali; PHASE_4_BEAM_SECTION_ADAPTER_SPEC.txt.
+Materiali omogenei iniziali, nessun momento fittizio, token del medesimo caso.
+4cde.4a e nuovo risultato coppia ordinaria gia committati:34test aggiuntivi
+passati dopo audit2.78. Ultima versione sorgente2.80.0.0; audit generale
+rimane quello2.78, non viene attribuito retroattivamente alle nuove API.
