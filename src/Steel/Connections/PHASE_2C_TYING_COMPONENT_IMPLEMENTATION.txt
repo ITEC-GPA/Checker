@@ -1,0 +1,161 @@
+2c.4a - DOUBLE-ANGLE CLEAT ACCIDENTAL TYING: CONSEGNA STAGING
+24/10/2026
+
+STATO E MANIFEST
+Implementazione conforme alla spec approvata PHASE_2C_TYING_COMPONENT_SPEC.txt.
+Nessuna installazione, modifica di file esistenti nel repository, build, test C#,
+modifica versioni, fixture ordinarie o Git effettuata da questo agente.
+
+File nuovi da revisionare e, solo dopo coordinamento, installare:
+1. DoubleAngleCleatTyingComponents.cs
+   Destinazione suggerita: src/Steel/Connections/DoubleAngleCleatTyingComponents.cs
+   Contratti immutabili SbeAccidentalTyingPolicy, DoubleAngleCleatTyingGeometry,
+   DoubleAngleCleatTyingInput, DoubleAngleCleatTyingResult e verificatore.
+2. DoubleAngleCleatTyingComponentsTests.cs
+   Destinazione: tests/Steel.Members.Tests/DoubleAngleCleatTyingComponentsTests.cs
+   36 metodi: 24 TestMethod + 12 DataTestMethod con 58 DataRow = 82 casi dichiarati.
+   Conteggio statico; non significa test scoperti o superati da MSTest.
+3. derive_double_angle_tying_component_cases.py
+   Derivatore indipendente per perturbazioni e numero file; nessun import Checker.
+4. double_angle_tying_component_cases.json
+   Output del derivatore Python effettivamente eseguito.
+5. PHASE_2C_TYING_COMPONENT_IMPLEMENTATION.txt (questa nota).
+
+Riferimenti già in staging, da conservare come provenienza:
+- PHASE_2C_TYING_COMPONENT_SPEC.txt (spec approvata).
+- derive_tying_source_benchmarks.py (benchmark completo SBE/P358 già eseguito).
+- review-2l-tying-075.png, review-2l-tying-076.png, review-2l-tying-077.png.
+- review-2l-example-090.png, review-2l-example-091.png, review-2l-example-092.png.
+Questi ultimi tre numeri sono pagine PDF: corrispondono alle pp80-82 stampate.
+Fonte primaria: CTICM/SCI SBE-MS5, §4.3 pp63-67 e esempio4.4 pp68-82;
+benchmark tying alle pp78-82. I percorsi Case2L e Case2web sono distinti.
+
+RIUSO E INTEGRAZIONE
+Il componente richiama l'esistente TStubMechanismArithmetic.Calculate con i
+momenti M1=M2 già determinati dalla policy tying. Nessun kernel duplicato e
+nessuna modifica richiesta a TStubTension, all'ordinario o alle policy esistenti.
+Riusa ConnectionPlate, ConnectionRolledISection, ConnectionBolt,
+PlanarConnectionActions, ConnectionCheck e SectionResistanceValue immutabili.
+Non richiede un adattatore automatico dal caso N+V ordinario. Non accetta un
+certificato ordinaryPassed né un indicatore RigidSupport che chiuda i mancanti.
+
+POLICY SEPARATA
+SbeAccidentalTyingPolicy.SbeMs5(caseSource, gammaM0, gammaM0Source):
+gammaMu=1.1 esplicito della guida complementare; gammaM0 positivo, con propria
+provenienza esplicita per i SOLI termini fy dei block tearing. Nessuna deduzione
+NTC e nessun fu fornito come fy. La scelta gammaM0=1.05 non dichiara il modello
+conforme a NTC: è solo un parametro esplicito della situazione adottata.
+
+CAMPO INIZIALE
+Due L90x90x10 identiche speculari, r11; 2..6 file di M20 classe8.8, d0=22,
+As245, filetti nei due piani di taglio, p70, e1=e2=40, gap10, topoffset50.
+I/H laminata non intagliata, h<=610, tw4..16, fy275 e fu410/430 per entrambi
+i prodotti (le fu possono essere diverse). I limiti di h/materiali sono quelli
+del primo modulo qualificato, non nuovi limiti di legge strutturale.
+Devono risultare rispettati: hc>=0.6hb, squadrette entro i raccordi, minimi
+di bordo/passo e massimo passo pertinente, hardware senza intersezione dei
+raccordi/bordi/altro hardware. Nessun packing, fori asolati/svasati/sovradimensionati,
+blind bolts, seconda colonna longitudinale, sezioni diverse o trave intagliata.
+L'hardware reale lato supporto e lato trave ha due parametri separati:
+SupportContactWidth e BeamHardwareEnvelopeDiameter, con fonte obbligatoria.
+La compatibilità dell'impronta non sostituisce la verifica a punzonamento.
+
+AZIONI, COORDINATE E PERCORSO
+Origine: faccia del supporto, metà altezza delle squadrette, mezzeria anima.
+X lungo trave positivo allontanandosi dal supporto; Y alto; Z normale all'anima.
+Il punto applicazione viene trasportato con Mcentre=Mapplication+r cross F,
+conservando tutte le sei azioni, coordinate e momenti risultanti nelle tracce.
+Solo Fx>=0 centrato con Fy=Fz=Mx=My=Mz=0 è nel campo, compreso il caso nullo.
+Non esiste tolleranza assoluta che elimini azioni piccole, né una norma vettoriale
+che trasformi taglio in tiro. Il risultato conserva l'input immutabile originale.
+Il benchmark ha Ybeam=430/2+50-547/2=-8.5mm; il tiro370kN al baricentro trave
+senza coppia lascia Mz=+3145000Nmm e viene correttamente dichiarato fuori campo.
+Il test del benchmark è il tiro centrato del modello semplice SBE, non prova
+una capacità aggiuntiva del nodo eccentrico reale.
+
+Le due gambe lato trave ricevono F/2, il bullone comune F/n, ciascun piano
+F/(2n). I modi T-stub rappresentano alternative di resistenza delle DUE L,
+incluso il possibile prying; non vengono nuovamente raddoppiati e non si ricava
+la forza effettiva nei bulloni del supporto da F/(2n). Lj lungo il tiro X è0,
+poiché tutti i bulloni trave sono a X50: lo sviluppo verticale350mm non è Lj
+del caso tying. Tutti i dieci check confrontano capacità totali con lo stesso F.
+
+CONTROLLI RESTITUITI
+Tying.Cleats.Mode1 / Mode2 / Mode3
+Tying.BeamBolts.DoubleShear
+Tying.Cleats.Bearing
+Tying.BeamWeb.Bearing
+Tying.Cleats.BlockCase1 / BlockCase2
+Tying.BeamWeb.NetTension
+Tying.BeamWeb.BlockCase1
+
+Case2 delle L si applica anche all'esempio con trave non intagliata: questo
+non autorizza il Case2 DELL'ANIMA, escluso. Il percorso e le aree effettive
+sono nelle tracce. I block usano Ant*fu/gammaMu+Anv*fy/(sqrt3*gammaM0).
+
+BENCHMARK NON ARROTONDATO: N, mm, MPa
+IPE A550 h547,b210,tw9,tf15.7,r24,A11700; L90x90x10,r11;6file,p70,
+fy275,fu430; bulloni M20/22,As245,8.8; hardware37; gammaMu1.1,gammaM0=1.
+Leff430,m31.2,n39,ew9.25; M1=M2=4202272.727272727Nmm.
+Mode1=691252.3723999133; Mode2=1188813.7788137787;
+Mode3=1924363.6363636362; boltDoubleShear=1282909.0909090908;
+cleatBearing=1421487.6033057852; beamBearing=639669.4214876033;
+cleatBlock1=2060538.3722351268; cleatBlock2=2195178.277026654;
+webNet=943576.3636363636; webBlock=927242.2675058071.
+Minimo SOLO componenti=639669.4214876033N, U370000=.5784237726098191.
+I valori pubblicati (es. Mode1=696kN, webBearing642kN) sono confronti separati
+con tolleranza di stampa; il calcolo non è calibrato sugli intermedi arrotondati.
+
+TEST PREPARATI E VERIFICHE EFFETTUATE
+82 casi C# dichiarati, non eseguiti: dieci benchmark non arrotondati, dieci
+confronti pubblicati arrotondati separati; aree geometriche; soglie di carico,
+zero e tiro1e-180; trasporto completo6D, polo eccentrico, coppia compensatrice;
+componenti fuori campo non cancellate; 2..6file in travi compatibili; variazioni
+gammaM0, fuL/fuWeb e contatti reali; hardware sul limite e fuori limite;
+fonti mancanti, intaglio e altri fuori campo; overflow; contratti/immutabilità.
+Il derivatore Python è stato eseguito. La revisione statica ha verificato le
+firme dei tipi riutilizzati, riuso del kernel T-stub, propagazione delle unità,
+eccezioni di validazione, percorsi e conteggio dichiarato dei test.
+Build e MSTest restano da eseguire da root nell'integrazione coordinata.
+
+RISULTATO LIMITATO E PENDING
+CoveredComponentsStatus riguarda esclusivamente i check sopra. Il nome
+ComponentTyingResistance identifica il loro minimo, non la resistenza del nodo.
+CanQualifyWholeJoint=false sempre; nessuna proprietà di qualifica globale.
+Diagnostics non vuota => NotSupported, Checks vuoti, nessuna utilizzazione o
+resistenza parziale favorevole; restano soltanto tracce numeriche finite.
+PendingChecks obbligatori:
+- resistenza locale flangia/anima del supporto e compatibilità del contatto;
+- punzonamento locale sotto teste/dadi/rondelle;
+- forze effettive dei bulloni del supporto e prying;
+- azioni e percorso resistente nel membro di supporto;
+- robustezza globale e compatibilità delle grandi deformazioni.
+Non viene applicato AD396 alle doppie L per analogia con la piastra flessibile.
+
+
+2c.4a - TYING DOPPIE SQUADRETTE - STEEL 2.78.0.0
+82 nuovi casi passati; 165/165 nella famiglia doppie squadrette.
+Revisione indipendente completata; formule, assi, limiti e hardware verificati.
+Fonte primaria CTICM/SCI SBE-MS5, capitolo4.3 pp63-67 ed esempio4.4 pp78-82.
+Due L90x90x10,r11,2..6fileM20, geometria e materiali effettivi nel campo
+iniziale documentato. Politica accidentale gammaMu1.1 esplicita; gammaM0
+esplicito solo per i termini di snervamento del block tearing. Non e' una
+deduzione automatica NTC o l'interazione ordinaria N+V delle squadrette.
+
+SBE IPEA550/6file: Mode1=691252.3723999133N, Mode2=1188813.7788137787N,
+Mode3=1924363.6363636362N; rifollamento anima=639669.4214876033N governante
+fra i dieci componenti implementati. Il Mode1 stampato696kN e il rifollamento
+642kN derivano dagli intermedi arrotondati della fonte: confronti separati,
+nessuna calibrazione della produzione o sostituzione di attesi legacy.
+T-stub numerico condiviso; capacita delle due L non raddoppiata di nuovo.
+Bullone comune: F/n totale e F/(2n) per piano, senza inventare le forze di
+prying lato supporto. Lj nella direzione del tiro X e'0, non lo sviluppo Y.
+Case2 delle L e' distinto dal Case2 dell'anima intagliata, qui escluso.
+
+Il tiro370kN sull'asse fisico della trave, eccentrico8.5mm, conserva
+Mz=3145000Nmm ed e' fuori dal modello centrato. Hardware reale distinto
+per i due lati, bordi/raccordi/passi, fonti, fuori campo e overflow provati.
+Restano supporto locale, punzonamento, forze effettive dei bulloni di supporto,
+trasferimento al membro e robustezza globale; CanQualifyWholeJoint=false.
+Derivatore Python indipendente eseguito; nessun atteso/allowlist modificato.
+Log/TRX workspace audit-results/connections/night-2c-tying.

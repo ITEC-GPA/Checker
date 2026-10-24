@@ -576,3 +576,31 @@ CanQualifyWholeJoint=false e compatibilita delle estremita del supporto false.
 Restano estremita finite, contatto, punzonamento, membro e robustezza globale.
 Log/TRX workspace audit-results/connections/night-2d-tying-assessment.
 Nessun atteso legacy, fixture o allowlist modificato.
+
+
+2c.4a - TYING DOPPIE SQUADRETTE - STEEL 2.78.0.0
+82 nuovi casi passati; 165/165 nella famiglia doppie squadrette.
+Revisione indipendente completata; formule, assi, limiti e hardware verificati.
+Fonte primaria CTICM/SCI SBE-MS5, capitolo4.3 pp63-67 ed esempio4.4 pp78-82.
+Due L90x90x10,r11,2..6fileM20, geometria e materiali effettivi nel campo
+iniziale documentato. Politica accidentale gammaMu1.1 esplicita; gammaM0
+esplicito solo per i termini di snervamento del block tearing. Non e' una
+deduzione automatica NTC o l'interazione ordinaria N+V delle squadrette.
+
+SBE IPEA550/6file: Mode1=691252.3723999133N, Mode2=1188813.7788137787N,
+Mode3=1924363.6363636362N; rifollamento anima=639669.4214876033N governante
+fra i dieci componenti implementati. Il Mode1 stampato696kN e il rifollamento
+642kN derivano dagli intermedi arrotondati della fonte: confronti separati,
+nessuna calibrazione della produzione o sostituzione di attesi legacy.
+T-stub numerico condiviso; capacita delle due L non raddoppiata di nuovo.
+Bullone comune: F/n totale e F/(2n) per piano, senza inventare le forze di
+prying lato supporto. Lj nella direzione del tiro X e'0, non lo sviluppo Y.
+Case2 delle L e' distinto dal Case2 dell'anima intagliata, qui escluso.
+
+Il tiro370kN sull'asse fisico della trave, eccentrico8.5mm, conserva
+Mz=3145000Nmm ed e' fuori dal modello centrato. Hardware reale distinto
+per i due lati, bordi/raccordi/passi, fonti, fuori campo e overflow provati.
+Restano supporto locale, punzonamento, forze effettive dei bulloni di supporto,
+trasferimento al membro e robustezza globale; CanQualifyWholeJoint=false.
+Derivatore Python indipendente eseguito; nessun atteso/allowlist modificato.
+Log/TRX workspace audit-results/connections/night-2c-tying.

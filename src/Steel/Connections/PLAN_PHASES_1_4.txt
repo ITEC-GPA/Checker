@@ -37,9 +37,9 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1845 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 1927 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,123tying piastra/anima/saldature/supporto locale e aggregazione,
-   83componenti doppie squadrette/supporto,208precarico/scorrimento,365continuitaI,
+   83componenti doppie squadrette/supporto,82tying doppie squadrette,208precarico/scorrimento,365continuitaI,
    40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,50cordoni/blocco imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,56CJP superiore a filo,26rigidezza rotazionale,77classificazione/criteri rotazione,22dominioN+V.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
@@ -55,7 +55,10 @@ FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
 2c PARZIALE - Chiuse2c.1/2c.2: componenti delle due L90x90x10, bulloni in
    doppio/singolo taglio e anima trave,69test CTICM/SCI e analitici. Supporto
    non qualificato: CanQualifyWholeJoint=false. Chiusa2c.3a rifollamento
-   flangia reale del pilastro,14test; restano altri modi locali2c.3 e2c.4.
+   flangia reale del pilastro,14test. Chiusa2c.4a: tying accidentale delle
+   due L, bulloni comuni e anima,82test nuovi/165famiglia; politica SBE
+   separata dal caso ordinario. Restano supporto/punzonamento/forze reali
+   dei bulloni lato supporto e nodo intero; PHASE_2C_TYING_COMPONENT_IMPLEMENTATION.txt.
    PHASE_2C_SUPPORT_TENSION_REVIEW.txt distingue trazione ordinaria/tying.
 2d PARZIALE - Chiuse2d.1/2d.2: taglio ordinario, piastra parziale, trave I/H
    non intagliata su anima di pilastro. Anche coppia contrapposta con bulloni

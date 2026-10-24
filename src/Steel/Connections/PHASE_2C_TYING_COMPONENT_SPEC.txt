@@ -1,0 +1,200 @@
+2c.4a - DOPPIE SQUADRETTE: COMPONENTI PER TYING ACCIDENTALE
+=========================================================
+Specifica proposta per revisione,24/10/2026. Nessun codice/build/Git.
+Fonte: CTICM/SCI SBE-MS5,cap4.3 pp63-67/PDF73-77; esempio4.4
+pp68-82/PDF78-92. Scheda esempio datata06-07/2009.
+Integra PHASE_2CD_TYING_SPEC_REVIEW.txt, non ne modifica il contenuto.
+
+CAMPO IMPLEMENTABILE
+Lato trave di due L90x90x10 identiche speculari, r11, S275;
+una colonna verticale di bulloni su ciascuna gamba, da2a6file;p70;
+e1=40,e2=40;altezza hc=80+(n-1)*70;gap della trave10mm;
+M20,d0=22,As245,8.8 con filetti nei piani di taglio.
+I/H laminata non intagliata,tw4..16;materiali propri dei prodotti.
+Primo campo mantiene fy275 e fu410/430 MPa per L/anima, anche distinti.
+Non riutilizza le azioni/il Passed del caso ordinario.
+
+Percorso fisico:
+  anima -> bulloni COMUNI in doppio taglio -> due gambe lato trave(F/2)
+  -> raccordi -> gambe lato supporto in flessione -> bulloni in
+  trazione/prying -> frontiera del supporto NON QUALIFICATA.
+I bulloni lato trave hanno forza risultanteF/n; ciascun piano portaF/(2n).
+Questa uguaglianza deriva dalla simmetria del tiro centrato, non vale per
+i bulloni del supporto con prying. La loro forza effettiva non e' restituita.
+
+Contratti immutabili separati suggeriti:
+ SbeAccidentalTyingPolicy.SbeMs5(
+    accidentalDesignSituationSource, gammaM0, gammaM0Source)
+  GammaMu=1.1 fisso della guida; GammaM0 esplicito per il termine di
+  snervamento nei block. I riferimenti spiegano la provenienza dei due
+  coefficienti. Nessun Code.IsNtc, nessuna deduzione della situazione
+  accidentale da N ordinario. Il caso fonte usa gammaM0=1.
+  Non estendere SciAccidentalTyingPolicy.P3582014 con un MethodId falso;
+  il piccolo tipo nuovo evita modifiche condivise/refactor anticipati.
+ DoubleAngleCleatTyingGeometry(
+    cleatLeg, cleatRootRadius, beam, bolt, rows,
+    supportContactWidth, geometrySource, hardwareSource, beamNotched=false)
+  Snapshot geometrico proprio, con le stesse classi immutabili elementari
+  del componente ordinario. Nessuna scelta del supporto in questo tipo.
+  SupportContactWidth e' diametro rondella/larghezza tra vertici reale
+  latoL, non d o d0; esempio37mm. Ingombro standard del bullone comune
+  lato trave37mm dichiarato; eventuali altri hardware richiedono estensione.
+ DoubleAngleCleatTyingInput(policy, geometry, PlanarConnectionActions)
+ DoubleAngleCleatTyingResult:
+  Input; ActionsAtCleatCentre; Checks; Trace; Diagnostics;
+  CoveredComponentsStatus; Utilization?; ComponentTyingResistance?;
+  PendingChecks; CanQualifyWholeJoint=false.
+  Una resistenza scalare min delle sole verifiche nominate e' lecita per
+  questo tiro unico, ma il nome deve escludere la resistenza del nodo intero.
+
+ASSI E AZIONI
+X lungo trave, positivo allontanandosi dal supporto; Y alto; Z normale
+all'anima, terna destrorsa. Origine sulla faccia di contatto del supporto,
+alla mezzeria dell'anima e a META' ALTEZZA DELLE SQUADRETTE.
+Tutte le coordinate dei bulloni e i centri sono derivati da questa origine:
+ bulloni trave: X=50,Y=(n-1)*70/2-j*70,Z=0;
+ bulloni supporto: X=0,Y uguali,Z=+/-g/2;
+ faccia libera trave: X=10;
+ top trave: Y=hc/2+50;
+ baricentro trave: Ybeam=hc/2+50-hb/2.
+Lo spostamento X lungo la retta del tiro non aggiunge momenti; gli
+spostamenti Y/Z si'. Trasporto completo:
+ Mcentre=Mapplication+rapplication cross F.
+Solo Fx>=0,Fy=Fz=Mx=My=Mz=0 DOPO il trasporto, oppure stato interamente
+nullo. Non usare norma del vettore forza, non cancellare piccole componenti
+con tolleranza assoluta, non azzerare coppie non nulle, non ricavareF daN.
+Esempio hb547,hc430: Ybeam=-8.5mm. F=370000N applicato al baricentro
+trave senza coppia compensatrice lascia Mz=+3145000Nmm: FUORI CAMPO.
+La freccia del benchmark e' il tiro centrato del modello semplice della
+guida; questo non dimostra la risposta ad ogni eccentricita' reale.
+
+GEOMETRIA E LIMITI
+g=tw+2*(90-40); e2,b=50-10=40; e1,b,top=50+40=90;
+e1,b,bottom=hb-90-(n-1)*70. I coefficienti di rifollamento del web
+usano il min dei bordi top/bottom effettivi, non90sempre.
+hc>=0.6hb e il cleat sta entro i raccordi della trave:
+50>=tf+rbeam;50+hc<=hb-tf-rbeam.
+Mantenere l'iniziale hb<=610 per coerenza della famiglia gia' implementata;
+e' un LIMITE DEL PRIMO MODULO, non una nuova formula normativa tying.
+Piani contigui senza packing, non pretesi, fori normali non svasati/asolati,
+nessun blind bolt, nessuna doppia colonna longitudinalmente distribuita.
+Non richiedere BeamLaterallyRestrained come surrogato per la resistenza
+a tying puro in trazione; stabilita' globale e comportamento ordinario
+rimangono fuori da questo risultato.
+Controllare gli ingombri rispetto a raccordo/estremi e campo geometrico
+Tstub, denominatore positivo e tutti i risultati finiti/positivi.
+Le quote e1,p1,e2 devono rispettare le condizioni geometriche pertinenti
+di EN1-8 Tab3.3; non trascinare il limite di shear buckling della trave
+dal caso di taglio verticale come veto automatico del caso tying puro.
+
+POLICY E RIUSO
+TStubMechanismArithmetic.Calculate(M1,M2,m,n,ew,sumFt,true,
+TStubMode1Method.DistributedContact) e' GIA' nel repository e va riusato.
+Il chiamante determina M1/M2 dafu/gammaMu: mai passarefu comefy.
+Anche le capacita' a taglio/rifollamento impiegano gammaMu1.1 come nella
+guida. Non costruire un ConnectionDesignCode ordinario con coefficienti
+accidentali fittizi per far passare kernel ordinari.
+Le formule semplici di resistenza vanno implementate esplicitamente con
+tracce di policy, o mediante un kernel aritmetico gia' separato dalla
+policy se disponibile; nessuna duplicazione dell'intero metodo Tstub.
+Per il block il termine di taglio resta fy/(sqrt3*gammaM0), NON fu/gammaMu.
+Scegliere gammaM0=1.05 esplicitamente non trasforma tutto il modello in una
+verifica NTC: l'adozione complementare SCI/CTICM deve restare dichiarata.
+
+FORMULE E DOMANDE: OGNI CHECK SEGUENTE CONFRONTA IL TIRO TOTALE F
+SBE4.3.1.1:
+ e1A=min(40,0.5*(g-tw-2r)+d0/2)
+ p1A=min(70,g-tw-2r+d0)
+ Leff=2e1A+(nrows-1)p1A
+ m=(g-tw-2tac-1.6r)/2;n=min(40,1.25m);ew=dw/4
+ M1=M2=0.25Leff*tac^2*fu,ac/gammaMu
+ Ft=.9fub*As/gammaMu;sumFt=2*nrows*Ft
+ I tre modi del kernel sono per LA COPPIA delleL: non raddoppiare ancora.
+SBE4.3.1.2:
+ RbeamBolts=2*nrows*(.6*fub*As/gammaMu).
+ Lj e' la distanza tra i bulloni estremi NELLA DIREZIONE DEL TIRO:
+ qui tutti i bulloni trave hanno X=50 =>Lj=0,betaLj=1. Il valore350mm
+ dell'esempio a taglio verticale non si trasferisce al caso di tiroX.
+SBE4.3.1.3/4.3.2.1, una sola colonna per lato:
+ k1,ac=min(2.8e1/d0-1.7,1.4p1/d0-1.7,2.5)
+ k1,web=min(2.8min(e1,b,top,e1,b,bottom)/d0-1.7,1.4p1/d0-1.7,2.5)
+ alpha,ac=min(e2/(3d0),fub/fu,ac,1)
+ alpha,web=min(e2,b/(3d0),fub/fu,web,1)
+ Rac=2*nrows*k1,ac*alpha,ac*fu,ac*d*tac/gammaMu
+ Rweb=nrows*k1,web*alpha,web*fu,web*d*tw/gammaMu.
+Nessun p2 inventato nella direzione del tiro dove la colonna e' unica.
+SBE4.3.1.4, aree GIA' per due L:
+ Case1 Ant=2tac*(nrows-1)*(p1-d0);Anv=4tac*(e2-d0/2)
+ Case2 Ant=2tac*(e1+(nrows-1)*p1-(nrows-.5)*d0);
+       Anv=2tac*(e2-d0/2).
+ Entrambi i percorsi vanno controllati; Case2 delleL non richiede che la
+ TRAVE sia intagliata (figura e esempio non intagliato lo confermano).
+SBE4.3.2.2:
+ An,web=tw*(hc-nrows*d0);RnetWeb=.9An,web*fu,web/gammaMu.
+SBE4.3.2.3, anima non intagliata:
+ Ant=tw*(nrows-1)*(p1-d0);Anv=2tw*(e2,b-d0/2).
+ Solo Case1. Case2 DELL'ANIMA e' riservato alla trave intagliata.
+Tutti i block: R=Ant*fu/gammaMu+Anv*fy/(sqrt3*gammaM0).
+
+PERCORSI VISIVAMENTE CONFERMATI
+Figura SBEp65/PDF75 e p67/PDF77: Case1 e' il blocco con due legamenti
+orizzontali fino al bordo e tratto verticale fra i bulloni estremi.
+Case2L raggiunge il bordo superiore/inferiore e perde uno dei due
+legamenti orizzontali; quello dell'anima non intagliata non va aggiunto.
+Immagini appena ricontrollate: review-2l-tying-075/076/077.png e
+review-2l-example-090/091/092.png. Gia'viste tying-sbe-073/074/088/089.png.
+
+BENCHMARK E TRACCE ATTESE
+Fonte4.4: IPE A550,h547,b210,tw9,tf15.7,r24,A11700;L90x90x10,r11;
+6file,p70,hc430,fuL=fuWeb430,fy275,d20,d022,As245,fub800,dw37;
+g109,e2,b40,e1,b,top90,e1,b,bottom107;Fty370000N,NON V450000+F370000.
+GammaMu1.1,GammaM0=1.
+Leff430,m31.2,n39,ew9.25;Mpl4202272.727272727Nmm;
+Ft160363.63636363635N;
+Mode1=691252.3723999133N;Mode2=1188813.7788137787N;
+Mode3=1924363.6363636362N;
+RbeamBolts=1282909.0909090908N;
+RangleBearing=1421487.6033057852N;
+RbeamBearing=639669.4214876033N => governa,utilizzo370000/R.
+AngleBlock1Ant4800/Anv1160;R2060538.3722351268N;
+AngleBlock2Ant5380/Anv580;R2195178.277026654N;
+BeamNetArea2682;R943576.3636363636N;
+BeamBlockAnt2160/Anv522;R927242.2675058071N.
+Fonte arrotondataMode1696kN e beamBearing642kN restano valori pubblicati
+SEPARATI dal calcolo con m31.2 e alpha40/66. Nessuna calibrazione.
+Derivatore indipendente esistente derive_tying_source_benchmarks.py;
+non modifica fixture ed e' gia' stato eseguito.
+
+CONTROLLI DI REGRESSIONE PROPOSTI
+1-10: ciascuna capacita' e relativo benchmark non arrotondato;
+11-18: geometriaTstub, aree dei3block, gammaM0/gammaMu,forza per piano;
+19-22: tiro nullo,limite±epsilon,sovraccarico,scala di carico piccolissima;
+23-27: trasporto reale del polo;Fy/Fz/tutti i momenti non cancellati;
+28-30: tiro al baricentro trave eccentrico,compressione,caso ordinario
+         non riclassificato perche' passato o perche' ha N positivo;
+31-34:gammaM0cambiaSOLO ilterminefy nei block;fuL/fuWeb distinti;dw
+       cambiaMode1 ma nonMode2/3;LjX0 nonLjY350;
+35-40:2..6file in geometrie reali compatibili;hardwarefuoricampo;
+       intaglio/colonna aggiuntiva/profili diversi non accettati;
+41-45:fonti mancanti,overflow,materiali non ammessi,immutabilita',
+       nessuna qualifica supporto/nodo e nessuna Fbolt di supporto inventata.
+I numeri indicano una proposta di famiglie di test, NON test gia' scritti.
+
+PENDING OBBLIGATORI
+- supporto reale flangia/anima e suo percorso resistente fino al membro;
+- punzonamento locale sotto teste/dadi/rondelle dove non coperto;
+- azioni effettive dei bulloni lato supporto incluso prying;
+- resistenza del membro di supporto con le azioni concomitanti;
+- domanda globale di robustezza e compatibilita' delle grandi deformazioni.
+Non creare una proprieta' RigidSupport=true per eliminare questi punti.
+AD396 riguarda la piastra flessibile: non applicarla alle doppieL per analogia.
+
+DECISIONE DI INTEGRAZIONE 24/10/2026
+Specifica iniziale approvata con due impronte hardware reali distinte:
+SupportContactWidth e BeamHardwareEnvelopeDiameter, entrambe obbligatorie.
+Il secondo parametro varia solo l'ingombro, non una capacita resistente.
+Il primo identifica l'impronta resistente effettiva per ew=dw/4, non il solo
+cerchio circoscritto della testa. Controllati foro, raccordo, bordi, altre
+impronte e denominatore T-stub positivo; punzonamento resta pending.
+Implementazione e test eseguiti in PHASE_2C_TYING_COMPONENT_IMPLEMENTATION.txt.
+

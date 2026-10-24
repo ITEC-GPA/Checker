@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
-Versione sorgenteSteel2.77.0.0. Solo librerie, nessuna interfacciaANTHEA.
+Versione sorgenteSteel2.78.0.0. Solo librerie, nessuna interfacciaANTHEA.
 Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
 
 COMPONENTI
@@ -252,3 +252,6 @@ I risultati restano consumabili dalle librerie; integrazioneANTHEA rinviata.
 
 - FlexibleEndPlateTyingAssessment: aggregazione dei componenti tying sullo
   stesso input immutabile; PHASE_2D_TYING_ASSESSMENT.txt.
+
+- DoubleAngleCleatTyingComponents: tiro accidentale centrato, due squadrette
+  e anima trave; PHASE_2C_TYING_COMPONENT_IMPLEMENTATION.txt.
