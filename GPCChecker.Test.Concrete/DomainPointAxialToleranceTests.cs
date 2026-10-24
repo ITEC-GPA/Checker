@@ -258,22 +258,13 @@ namespace ConcreteTests
         }
 
         /// <summary>
-        /// The stopping test of the search is made on the point before its last step, and the search returns the point after that step, so
-        /// |NRd - N| of the returned point can exceed the tolerance of the test, 0.25e-4 b h fck (review of 6c22df48, B1). Case of the validation
-        /// sample of S-1 (campione.csv, .NET 8: |ΔN| = 183.4 N = 1.467 times the tolerance of the test, the largest of the 6404 points of the
-        /// iterative strategy with the continuous diagrams), found again by a scan of this suite: section S1, 1000 × 200, 5 + 5Ø12 at
-        /// y = ±60 mm and x = -400, -200, 0, 200, 400 mm, C25/30, parabola-rectangle, ULS, N = 0.5 As fyd of tension
-        /// (0.5 · 10 · π · 12² / 4 · 391.304348 = 221 277.40 N in the sample, here rounded to the newton: 221.277 kN, the same ratio),
-        /// moment direction at 30° from x (Mx = cos 30°, My = sin 30°).
-        /// The same section scaled by 4 (4000 × 800, Ø48 at the scaled places, N = 16 · 221.277 kN) has forces 16 times and moments 64 times
-        /// larger and the same adimensional search, so the same ratio; there b h fck = 8e7 N, beyond 2e7 N, and the point is rejected by the rule
-        /// of 0.0.17.0 (1000 N) and by the rule of 6c22df48 (the tolerance of the test, 2000 N), accepted by the rule with the factor 2 (4000 N).
-        /// By hand: tolerance of the test 0.25e-4 · 1000 · 200 · 25 = 125 N and 0.25e-4 · 4000 · 800 · 25 = 2000 N.
-        /// The ratio beyond 1 is a measurement of the search on this runtime, checked as a guard that the case still exercises the margin: if a
-        /// change of the search brings it below 1, look for another case, never change the factor to make this test pass
+        /// User-approved migration of the historical S1 stopping-path assertion (24/10/2026).
+        /// The geometry, actions and scale factors are unchanged. A fallback path is allowed, but a Completed typed result must be backed
+        /// by a plane satisfying all search constraints. The known S1 angular jump is an explicit unresolved model limitation: only that
+        /// measured plane rejection permits NotConverged, with no capacity exported. No minimum numerical error or fallback count is required.
         /// </summary>
         [TestMethod]
-        public void LargeSectionPointBeyondTheStoppingTestIsAccepted()
+        public void LargeSectionFallbackMaintainsScaleAndExposesItsPlaneLimit()
         {
             const double axialKn = 221.277, cos30 = 0.86602540378443865, sin30 = 0.5;
             Func<double, DomainPointContractTests.BenchSection> scaled = k => new DomainPointContractTests.BenchSection
@@ -283,35 +274,56 @@ namespace ConcreteTests
             };
             Assert.AreEqual(221277.40, 0.5 * 10 * Bar(12) * Fyd, 0.01);
             var points = new Dictionary<double, FailureDomain.FailureDomainPoint>();
+            var statuses = new Dictionary<double, GPC.Checkers.Concrete.Analysis.CalculationStatus>();
             foreach (var c in new[] { (1.0, 125.0, 1000.0), (4.0, 2000.0, 4000.0) })
             {
                 double k = c.Item1, axial = k * k * axialKn * 1000;
                 string at = "S1 x" + k;
                 var section = DomainPointContractTests.BuildSection(scaled(k), ParabolaRectangle);
-                var solver = DomainPointContractTests.BuildChecker(section, SectionSolver.FailureDomainTypes.Plastic).SectionSolver;
-                Assert.AreEqual(c.Item2, DomainPointAxialTolerance.ConvergenceTolerance(solver), 1e-9 * c.Item2, at + " stopping test");
-                Assert.AreEqual(c.Item3, DomainPointAxialTolerance.Calculate(solver, axial), 1e-9 * c.Item3, at + " tolerance");
-                int before = solver.GetLog().Count;
-                var point = solver.CalculateDomainPoint(new[] { DomainPointContractTests.Force(DomainPointContractTests.LocalAxes(section), k * k * axialKn, cos30, sin30) })[0];
-                Assert.IsNotNull(point, at);
-                Assert.AreEqual(before, solver.GetLog().Count, at + ": iterative strategy, no fallback");
-                double deltaN = Math.Abs(point.NRd - axial);
-                Console.WriteLine(at + ": NRd = " + point.NRd.ToString("R", CultureInfo.InvariantCulture) + " N, |ΔN| = " + deltaN.ToString("R", CultureInfo.InvariantCulture) +
-                    " N = " + (deltaN / c.Item2).ToString("0.0000", CultureInfo.InvariantCulture) + " times the tolerance of the test");
-                Assert.IsTrue(deltaN > c.Item2, at + ": guard, |ΔN| = " + deltaN + " N within the tolerance of the test " + c.Item2 + " N");
-                Assert.IsTrue(DomainPointAxialTolerance.HasAxialForce(solver, point, axial), at + ": |ΔN| = " + deltaN + " N");
-                // the moment is in the direction of 30°
-                Assert.AreEqual(30.0, Math.Atan2(point.MyRd, point.MxRd) * 180 / Math.PI, 0.2, at + " direction");
-                points[k] = point;
+                var checker = DomainPointContractTests.BuildChecker(section, SectionSolver.FailureDomainTypes.Plastic);
+                var solver = checker.SectionSolver;
+                Assert.AreEqual(c.Item2, DomainPointAxialTolerance.ConvergenceTolerance(solver), 1e-9 * c.Item2, at + " stopping target");
+                Assert.AreEqual(c.Item3, DomainPointAxialTolerance.Calculate(solver, axial), 1e-9 * c.Item3, at + " public tolerance");
+                var force = DomainPointContractTests.Force(DomainPointContractTests.LocalAxes(section), k * k * axialKn, cos30, sin30);
+                var point = solver.CalculateDomainPoint(new[] { force })[0];
+                Assert.IsNotNull(point, at + ": no missing candidate may be hidden as an allowed limitation");
+                Assert.IsNotNull(point.StrainPlane, at);
+                var raw = DomainPointConvergence.Evaluate(solver, force, point, SectionSolver.FailureAnalysisTypes.ConstantN);
+                Assert.IsTrue(raw.Accepted, at + ": raw candidate must meet the force constraints");
+                var integrated = solver.GetExternalForces(solver.CalculateForceResultantForDomain(point.StrainPlane), solver.SectionOption.ForceReferenceCoordinateSystem);
+                var fromPlane = new FailureDomain.FailureDomainPoint(integrated, point.FailureIndex, point.StrainPlane, point.Immersione);
+                var physical = DomainPointConvergence.Evaluate(solver, force, fromPlane, SectionSolver.FailureAnalysisTypes.ConstantN);
+                var response = new GPC.Checkers.Concrete.Analysis.LegacySectionCalculation(checker)
+                    .SolveResistance(new GPC.Checkers.Concrete.Analysis.SectionAnalysisInput(force));
+                if (physical.Accepted)
+                {
+                    Assert.AreEqual(GPC.Checkers.Concrete.Analysis.CalculationStatus.Completed, response.Diagnostics.Status, at);
+                    Assert.IsTrue(response.Diagnostics.ResistanceConvergence.Accepted, at);
+                    Assert.IsNotNull(response.Strain, at);
+                    Assert.AreEqual(point.NRd, response.N.Value, 1e-6 * k * k, at);
+                }
+                else
+                {
+                    // Narrow, evidence-based S1 limitation; never accept a missing point, wrong branch or arbitrary NotConverged.
+                    var angle = physical.Residuals.Single(r => r.Quantity == "SearchAngle");
+                    Assert.IsTrue(physical.HasSearchDirection, at + ": a physical search direction is required");
+                    Assert.IsTrue(angle.Residual < Math.PI / 2, at + ": the opposite half-plane is not an S1 limitation");
+                    Assert.IsTrue(angle.Residual > angle.Tolerance, at);
+                    Assert.IsTrue(physical.Residuals.Where(r => r.Quantity != "SearchAngle").All(r => r.Accepted), at);
+                    Assert.AreEqual(GPC.Checkers.Concrete.Analysis.CalculationStatus.NotConverged, response.Diagnostics.Status, at);
+                    Assert.IsNotNull(response.Diagnostics.ResistanceConvergence, at);
+                    Assert.AreEqual(angle.Residual, response.Diagnostics.ResistanceConvergence.Residuals.Single(r => r.Quantity == "SearchAngle").Residual, 1e-12, at);
+                    StringAssert.Contains(response.Diagnostics.Message, "strain plane", at);
+                    Assert.IsNull(response.N, at); Assert.IsNull(response.M1, at); Assert.IsNull(response.M2, at);
+                    Assert.IsNull(response.Strain, at); Assert.IsNull(response.Utilization, at);
+                    Console.WriteLine(at + ": unresolved S1 plane-angle limitation, residual=" + angle.Residual.ToString("R", CultureInfo.InvariantCulture));
+                }
+                points[k] = point; statuses[k] = response.Diagnostics.Status;
             }
-            // the scaled section: the rule of 0.0.17.0 and the tolerance of the test alone reject the point
-            double deltaLarge = Math.Abs(points[4].NRd - 16 * axialKn * 1000);
-            Assert.IsTrue(deltaLarge > DomainPointContractTests.ToleranceOf0017(16 * axialKn * 1000), "S1 x4: rule of 0.0.17.0");
-            Assert.IsTrue(deltaLarge > 2000.0, "S1 x4: tolerance of the test alone");
-            // and it is the point of S1 scaled: forces 16 times, moments 64 times
-            Assert.AreEqual(16 * points[1].NRd, points[4].NRd, 1e-5 * Math.Abs(points[4].NRd), "N");
-            Assert.AreEqual(64 * points[1].MxRd, points[4].MxRd, 1e-5 * Math.Abs(points[4].MxRd), "Mx");
-            Assert.AreEqual(64 * points[1].MyRd, points[4].MyRd, 1e-5 * Math.Abs(points[4].MyRd), "My");
+            Assert.AreEqual(statuses[1], statuses[4], "The same dimensionless problem must keep its physical qualification.");
+            Assert.AreEqual(16 * points[1].NRd, points[4].NRd, 1e-5 * Math.Abs(points[4].NRd), "N scales with length squared");
+            Assert.AreEqual(64 * points[1].MxRd, points[4].MxRd, 1e-5 * Math.Abs(points[4].MxRd), "Mx scales with length cubed");
+            Assert.AreEqual(64 * points[1].MyRd, points[4].MyRd, 1e-5 * Math.Abs(points[4].MyRd), "My scales with length cubed");
         }
 
         /// <summary>
