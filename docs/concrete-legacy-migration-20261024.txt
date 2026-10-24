@@ -10,6 +10,11 @@ CONTRATTI E VERIFICHE MIRATE ESEGUITE
 1. DomainPointContractOf0017IsUnchanged:
    HistoricalStressBlockAndContinuousPhysicalContractsArePreserved conserva
    l'hash dell'intero JSON e l'uguaglianza esatta dei 256 casi StressBlock.
+   [24/10/2026, decisione "2A" dell'utente: l'uguaglianza esatta dei 256
+   StressBlock con 0.0.17 e' ritirata, perche' aa262e21 ne cambia 254/256.
+   Il confronto esatto resta sulla fixture attuale con StressBlock
+   (DomainPointContractWithAnalyticDefaultIsUnchanged); hash e verifiche
+   fisiche dei continui restano.]
    I 768 continui restano tutti eseguiti: 720 Completed con piano, equilibrio,
    verso, campi e limiti deformativi; 24 oltre il limite assiale dimostrato;
    18 esclusi da un certificato statico; 6 rami esplicitamente non qualificati.

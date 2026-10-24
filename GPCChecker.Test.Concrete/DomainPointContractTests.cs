@@ -80,15 +80,17 @@ namespace ConcreteTests
         }
 
         // Migration explicitly approved by the user on 24/10/2026: the 0.0.17 snapshot is an immutable historical artifact.
-        // StressBlock retains exact output equality. Continuous diagrams are checked against physical contracts and independent integration.
-        // The historical points are computed with the obsolete tabulated parabola (the law of 0.0.17), as the analytic default is covered above.
+        // Continuous diagrams are checked against physical contracts and independent integration, with the obsolete tabulated parabola
+        // (the law of 0.0.17), as the analytic default is covered above.
+        // User decision "2A" of 24/10/2026: the exact equality of the 256 StressBlock points with 0.0.17 is retired. The stress-block mesh
+        // integration and safeguarded search of aa262e21 change 254/256 of them, independently of the parabola method, so it cannot hold
+        // again. The exact comparison stays on the current fixture (DomainPointContractWithAnalyticDefaultIsUnchanged, dcf7dea6, StressBlock
+        // included); the 0.0.17 file stays in Fixtures, guarded by its hash, as the historical record.
         [TestMethod]
         public void HistoricalStressBlockAndContinuousPhysicalContractsArePreserved()
         {
-            int count;
-            string actual = Generate(out count, true);
             int expectedCount = Sections.Sum(s => s.AxialKn.Length) * Diagrams.Length * States.Length * Directions.Length;
-            Assert.AreEqual(1024, expectedCount); Assert.AreEqual(expectedCount, count, "original catalogue");
+            Assert.AreEqual(1024, expectedCount, "original catalogue");
             string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixtures", HistoricalFileName);
             Assert.IsTrue(File.Exists(path), "Missing immutable historical fixture " + path);
             string expected = File.ReadAllText(path, new UTF8Encoding(false)).Replace("\r\n", "\n");
@@ -97,13 +99,6 @@ namespace ConcreteTests
                 string fingerprint = BitConverter.ToString(hash.ComputeHash(Encoding.UTF8.GetBytes(expected))).Replace("-", "").ToLowerInvariant();
                 Assert.AreEqual("1f61a7891eddc10b01f5694062a589ec74780a15241e6c947d3a334f5c047491", fingerprint, "The complete historical fixture must not be regenerated.");
             }
-            string actualPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "domain-point-contract-0017.actual.json");
-            File.WriteAllText(actualPath, actual, new UTF8Encoding(false));
-            Func<string, string[]> stressBlock = text => text.Split('\n')
-                .Where(line => line.Contains("\"diagram\": \"StressBlock\"")).Select(line => line.TrimEnd(',')).ToArray();
-            string[] historicalStressBlock = stressBlock(expected), currentStressBlock = stressBlock(actual);
-            Assert.AreEqual(256, historicalStressBlock.Length); Assert.AreEqual(256, currentStressBlock.Length);
-            CollectionAssert.AreEqual(historicalStressBlock, currentStressBlock, "StressBlock remains exact; actual capture: " + actualPath);
             DomainPointContinuousContract.VerifyCatalogue(true);
         }
 
@@ -245,7 +240,7 @@ namespace ConcreteTests
 
         // ---------------------------------------------------------------- generation
 
-        private static string Generate(out int count, bool historicalMethod = false)
+        private static string Generate(out int count)
         {
             var thread = Thread.CurrentThread;
             var culture = thread.CurrentCulture; var uiCulture = thread.CurrentUICulture;
@@ -256,7 +251,7 @@ namespace ConcreteTests
                 foreach (var s in Sections)
                     foreach (var diagram in Diagrams)
                     {
-                        var section = BuildSection(s, diagram, historicalMethod);
+                        var section = BuildSection(s, diagram);
                         foreach (var state in States)
                         {
                             var checker = BuildChecker(section, state);

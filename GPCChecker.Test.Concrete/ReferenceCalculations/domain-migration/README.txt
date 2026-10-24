@@ -18,6 +18,12 @@ La cattura esistente continua a produrre tutti i 1024 punti effettivi nel file
 *.actual per diagnosi; non sostituisce la fixture.
 I 256 StressBlock rimangono confrontati in modo esatto, campo per campo/testo,
 togliendo soltanto la virgola JSON esterna di separazione.
+AGGIORNAMENTO 24/10/2026, decisione dell'utente "2A": il confronto esatto dei
+256 StressBlock con 0.0.17 e la cattura *.actual sono ritirati. Dopo aa262e21
+(integrazione dello stress block corretta) cambiano 254/256 punti StressBlock,
+con qualunque metodo della parabola. Restano l'hash del JSON storico, il
+confronto esatto con la fixture attuale (DomainPointContractWithAnalyticDefault-
+IsUnchanged, StressBlock compreso) e le verifiche fisiche dei diagrammi continui.
 
 Tutti i 768 input continui sono ancora eseguiti:
 - 720 devono produrre Completed, senza deroga generica null/NotConverged.
