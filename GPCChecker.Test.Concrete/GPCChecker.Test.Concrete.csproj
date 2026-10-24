@@ -96,6 +96,7 @@
     <Compile Include="CurveGeometryTests.cs" />
     <Compile Include="DomainPointContractTests.cs" />
     <Compile Include="DomainPointNewtonTests.cs" />
+    <Compile Include="DomainPointFallbackPlaneTests.cs" />
     <Compile Include="DomainPointAxialToleranceTests.cs" />
     <Compile Include="BridgeElasticStagesTests.cs" />
     <Compile Include="BridgeLinearSolverAuditTests.cs" />

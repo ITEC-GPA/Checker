@@ -1,0 +1,113 @@
+INDAGINE DEI CINQUE FALLIMENTI CONCRETE / MODELCHECKER - 24/10/2026
+
+Stato: diagnosi e proposta di migrazione dei cinque contratti storici.
+La guardia di convergenza del piano e' stata integrata e verificata dal root.
+Expected, fixture storiche, baseline e allowlist restano invariati.
+La tabella seguente e' una proposta ancora da approvare, non cinque test chiusi.
+
+CAUSA COMUNE VERIFICATA
+Commit 6edf46a7873cf956ef081170b0f3c5e0cfe7d991, 23/10/2026:
+DomainPointStrategyIterative delega i diagrammi diversi da StressBlock al nuovo Newton
+salvaguardato. Il commit dichiara gli stessi cinque fallimenti. I messaggi archiviati in
+docs/domain-iteration-20261023/test-da-aggiornare.txt coincidono con verify-night-2-82.
+Non sono conseguenza dei nuovi nodi Steel né del recente fix dei raccordi di Model.
+
+PROPOSTA TEST PER TEST (migrazione da approvare; nessuna proposta di nuovi valori catturati)
+
+Test | Causa | Criterio sostitutivo proposto | Baseline conservata / decisione
+DomainPointContractOf0017IsUnchanged | Snapshot bit per bit del vecchio algoritmo: cambiano piano, iterazioni e risultanti dei diagrammi continui. | Mantenere confronto esatto sui 256 StressBlock; sui 768 continui verificare vincoli assegnati, segno della direzione, reintegrazione del piano, domini fisicamente impossibili; resistenza confrontata con oracoli indipendenti di sezioni rappresentative. | Conservare integralmente domain-point-contract.json e i suoi hash come prova storica. La modifica dell'obiettivo del test richiede approvazione esplicita; non rigenerare il JSON.
+CurvatureContractOf0017IsUnchanged | Il punto limite fornito dal nuovo solver cambia, quindi cambiano i passi campionati a frazioni di Mlim e i testi numerici. | Separare contratto esatto dell'algoritmo MomentCurvature con funzioni analitiche da integrazione col solver fisico; per quest'ultima controllare N costante, verso, legame piano/resultanti, primo snervamento, limite costitutivo e unità. | Conservare curvature-contract-0.0.17.csv. Nessuna sostituzione silenziosa di campioni; approvare la migrazione dei soli casi nativi.
+LegacyMomentCurvatureIsReproduced | Confronto 1e-7 con cattura ANTHEA precedente: la ricerca del limite è ora diversa. | Stessi cinque input e leggi, ma oracoli indipendenti/integrazione a convergenza di mesh e tolleranze numeriche motivate. Il caso rettangolare uniaxiale consente integrazione polinomiale o della spezzata esatta. Non basta confrontare due adapter dello stesso solver. | Conservare curvature-legacy.csv e detailing-sections.xml. L'archivio storico non diventa prova indipendente. Migrazione esplicita necessaria.
+LargeSectionPointBeyondTheStoppingTestIsAccepted | Pretende zero fallback e residuo maggiore della tolleranza di arresto: proprietà dell'algoritmo storico, non requisito fisico. S1 espone anche il difetto reale del piano di fallback qui sotto. | Separare la policy di accettazione (punti sintetici ai bordi, già presenti) dalla ricerca fisica: stessa S1 e scala4, ogni Completed deve avere piano ammissibile e risultanti coerenti. Il percorso non va imposto e non bisogna pretendere un errore minimo. | Conservare input e documentazione storica; non cambiare fattore2 per il verde. Prima guardia proposta, poi soluzione fisica S1. Migrazione dell'assert sul percorso/residuo da approvare.
+RealDetailsMatchNativeResistanceAndKeepThePreparedForceFrame | L'assert IsFalse alla riga52 pretende il vecchio candidato fuori tolleranza. Il nuovo raw è accettato. Gli assert successivi di adapter/assi non vengono raggiunti. | Usare sempre lo stesso modello MixedModelFactory, verificare equivalenza details/typed, sei azioni/assi, evidenza immutabile. Separare il rifiuto di candidato scorretto con un test deterministico della validazione (forze/piano deliberatamente incoerenti). | Nessuna fixture da rigenerare. Cambiare/rimuovere la premessa IsFalse è migrazione semantica da approvare, non una correzione numerica della capacità.
+
+RISULTATO DELL'ANALISI DELLE CAPTURE
+1024 punti presenti in entrambe. StressBlock:256/256 identici. Cambiano244/256
+ParabolaRectangle,242/256Bilinear,242/256NonLinear. Gli8 punti prima accettati dalla
+sola regola su N e ora respinti appartengono a R3: tutti avevano il momento del verso
+opposto a quello richiesto. Non ripristinarli come convergenze fisiche.
+Primo caso R1,N=250000N: residuoN37.3675 ->2.13612N; momento102737799.859 ->
+102729541.589Nmm, variazione−0.0080382%. Questo prova migliore equilibrio del modello
+discretizzato, non migliore accuratezza della legge/integrale rispetto al continuo.
+Curva0,R300x500,N=−200000N: residuo−40.8231 ->+0.00760024N; momento192010838.463 ->
+192003724.725Nmm, variazione−0.00370486%.
+
+DIFETTO S1: GUARDIA NECESSARIA, SOLUZIONE FISICA ANCORA APERTA
+DomainPointStrategyBisection.Refine, righe287-291: quando il bracket collassa,
+interpola le forze ma conserva Plane=nearer.Plane. Il commento iniziale che dichiara
+forze sempre appartenenti al piano non vale per quel ramo. Il percorso typed controlla
+finora soltanto le forze interpolate.
+Nel CSV pubblicato dal commit (runtime.NET8), N=221.277kN, direzione30°:
+M1=20.246111530746614kNm, M2=11.68911521007975kNm;
+reintegrazione del piano: ΔM1=795.249554Nmm, ΔM2=13099.265677Nmm;
+errore angolare delle forze dichiarate6.39669e−7rad, errore del piano4.68737139e−4rad,
+contro tolleranza pubblica2.5e−4rad. Le stesse incongruenze sono documentate prima/dopo.
+La riproduzione Python ricalcola questi angoli dal CSV; non è una nuova esecuzione.NET.
+
+PATCH MINIMA PROPOSTA (congelata per red/green centrale)
+LegacySectionCalculation.plane-guard.patch: solo helper di accettazione e tre chiamanti.
+ValidateReturnedPointAndPlane mantiene la validazione delle forze dichiarate, poi nei
+diagrammi continui reintegra il piano, trasporta l'origine e ruota dagli assiSolver(-X,-Y)
+agli assi del report, quindi verifica GLI STESSI vincoli/tolleranze pubbliche.
+Copre risultato principale, sonda ConstantEccentricity fuori intervalloN e sonda unitaria
+di momento a Ncostante. Gli estremi assiali sono già piani integrati direttamente.
+StressBlock mantiene la policy esistente; APIraw e solver non cambiano.
+Il risultato S1 diventa NotConverged con residui del piano e senza capacità/utilizzo.
+Questo impedisce un esito concluso ingiustificato, ma NON risolve il salto della superficie
+e NON certifica l'uguaglianza completa delle risultanti lungo una retta di domanda.
+Per risolvere fisicamente il salto servirebbe analisi specifica dell'integrazione/superficie;
+non avviare qui una riscrittura del solver o alterare la worktree domain-iteration.
+
+Nuovi test: DomainPointFallbackPlaneTests.cs, cinque casi: due DataRow30°/210° S1,
+più tre controlli positivi del limite elastico tutto teso su4Ø16: assi−X/−Y,
+assi+X/+Y, assi+X/+Y con origine(17,−23)mm. N e M derivati dalla somma analitica
+delle sole barre elastiche e dal trasporto/rotazione scritti come statica indipendente;
+calcestruzzo interamente teso escluso. Le tolleranze sono quelle nominali del solver,
+con propagazione del residuoN attraverso l'eccentricità. Nessuna capacità catturata.
+Un Completed futuro è ammesso solo se il piano esportato reintegrato soddisfa i vincoli;
+altrimenti è richiesto NotConverged senza capacità, con diagnostica esplicita.
+Non congelano un percorso fallback né impongono un errore minimo o NotConverged per sempre.
+Root dovrà aggiungere il nuovo file all'Include del progetto .NETFramework nonSDK,
+eseguire prima le2 regressioni sul baseline, poi i5casi con patch e suite Concrete/ModelChecker.
+Evidenza già ricevuta da root: entrambe le regressioniS1 rosse sul baseline.NET;
+SearchAngle30°=0.000468737139299062,210°=0.000468737070796368, limite0.00025.
+La patch mantiene AxialEquilibriumEvidence coerente con Capacity della stessa
+ResistanceConvergence, anche quando il punto respinto è quello reintegrato dal piano.
+I cinque contratti storici rimangono invariati e possono continuare a fallire per le ragioni sopra.
+
+ARITMETICA INDIPENDENTE E LIMITI
+investigate_legacy.py / legacy_arithmetic_review.json: letturaTRX/capture e integrazione
+polinomiale esatta di una sezione rettangolare, parabola-rettangolo continua n2, barre
+puntuali con sottrazione del calcestruzzo sostituito. Oracolo analitico, non sperimentale.
+R1(250kN):M=102750317.010Nmm; curva0(−200kN):M=192036055.593Nmm.
+Il core corrente usa invece spezzata in10punti e quadratura fissa: scarti rispettivamente
+0.0202193% e0.0168358% dalla parabola continua; non attribuirli tutti alla ricercaNewton.
+Questi valori non sono nuovi expected installati né una tolleranza proposta a posteriori.
+Il JSON conserva hashSHA256 dei quattro file fixture, elenco8casiR3 e messaggi5TRX.
+
+MANIFEST
+Da rivedere/applicare: LegacySectionCalculation.plane-guard.patch
+Copia consultazione soltanto: LegacySectionCalculation.plane-guard.cs
+Nuovo test: DomainPointFallbackPlaneTests.cs (5casi)
+Derivatori eseguiti: investigate_legacy.py; prepare_guard_patch.py
+Output aritmetico: legacy_arithmetic_review.json
+Nota: questo file. Nessuna installazione,build.NET,test.NET oGit eseguiti dal subagente.
+
+
+VERIFICA CENTRALE DELLA GUARDIA -24/10/2026
+Nuovi casi installati:5. Prima della patch:3positivi analitici passati e2S1
+falliti. Errori angolari riprodotti:0.000468737139299062rad a30gradi e
+0.000468737070796368rad a210gradi contro soglia0.00025rad.
+Dopo la patch:5/5nuovi e15/15con la famigliaNewton passati.
+I tre positivi usano un campo elastico tutto teso e risultanti calcolate
+per somma analitica delle barre, assi-X/-Y,+X/+Y e origine(17,-23)mm.
+Nessun atteso di questi casi e' ricavato dall'output di produzione.
+Le evidenze assiali usano la Capacity della diagnostica effettivamente
+valutata, anche quando il rifiuto nasce dal piano e non dal punto interpolato.
+TRX/log nel workspace audit-results/connections:
+closure-concrete-plane-red; closure-concrete-plane-controls-red;
+closure-concrete-plane-green. Le prove complete successive sono distinte.
+
+L'esitoNotConverged diS1 corregge una falsa attestazione di convergenza.
+La disponibilita' di una soluzione fisicaS1 e la migrazione dei cinque
+contratti restano da completare: non sono chiuse da questa guardia.

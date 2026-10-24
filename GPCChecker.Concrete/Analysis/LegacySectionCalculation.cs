@@ -74,19 +74,44 @@ namespace GPC.Checkers.Concrete.Analysis
                 if (point?.StrainPlane == null) return rejected(new SectionResistanceResponse(Diagnostic(CalculationStatus.NotConverged, "Missing domain point/strain plane."), criterion.ToString()));
                 if (new[] { point.NRd, point.MxRd, point.MyRd }.Any(v => !SectionAnalysisInput.Finite(v)))
                     return rejected(new SectionResistanceResponse(Diagnostic(CalculationStatus.NotConverged, "Non-finite domain point."), criterion.ToString()));
-                var convergence = DomainPointConvergence.Evaluate(_checker.SectionSolver, force, point, criterion);
+                var convergence = ValidateReturnedPointAndPlane(force, point, criterion);
                 AxialEquilibriumEvidence equilibrium = null;
                 var axial = convergence.Residuals.FirstOrDefault(r => r.Quantity == "N");
-                if (axial != null) equilibrium = new AxialEquilibriumEvidence(force.N, point.NRd, axial.Tolerance);
+                if (axial != null) equilibrium = new AxialEquilibriumEvidence(force.N, convergence.Capacity.Forces.N, axial.Tolerance);
                 if (!convergence.Accepted)
                     return rejected(new SectionResistanceResponse(new SolverDiagnostics(CalculationStatus.NotConverged, EngineId, Version,
-                        "The returned point does not satisfy the search constraints.", equilibrium, convergence), criterion.ToString()));
+                        "The returned point or its strain plane does not satisfy the search constraints.", equilibrium, convergence), criterion.ToString()));
                 var ratio = point.CalculateWorkingRatio(criterion, force, 1e6, 1000);
                 if (!SectionAnalysisInput.Finite(ratio) || ratio < 0) return new SectionResistanceResponse(Diagnostic(CalculationStatus.NotConverged, "Invalid working ratio."), criterion.ToString());
                 return new SectionResistanceResponse(new SolverDiagnostics(CalculationStatus.Completed, EngineId, Version,
                     "Returned point satisfies the search constraints.", equilibrium, convergence), criterion.ToString(), SectionStrain.From(point.StrainPlane),
                     point.NRd, point.MxRd, point.MyRd, ratio, point.FailureIndex.ToString());
             }
+        }
+
+        /// <summary>
+        /// Additional convergence guard for continuous diagrams: the exported strain plane must satisfy the same search constraints.
+        /// This does not certify equality of all exported and reintegrated forces along the demand ray. Raw APIs and the discontinuous
+        /// stress-block interpolation policy remain unchanged. Every typed export of a searched point uses this guard, including the
+        /// constant-eccentricity and unit-moment probes of AssignedAxialForceOutcome. Axial range ends are directly integrated planes.
+        /// </summary>
+        private ResistanceConvergence ValidateReturnedPointAndPlane(ResultBeamForces demand,
+            FailureDomain.FailureDomainPoint point, SectionSolver.FailureAnalysisTypes criterion)
+        {
+            var solver = _checker.SectionSolver;
+            var result = DomainPointConvergence.Evaluate(solver, demand, point, criterion);
+            if (!result.Accepted || solver.ConcreteMaterial.CompressionStressStrainDiagram ==
+                GPC.Model.Materials.ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock) return result;
+            var integrated = solver.GetExternalForces(solver.CalculateForceResultantForDomain(point.StrainPlane),
+                solver.SectionOption.ForceReferenceCoordinateSystem);
+            // GetExternalForces transports the origin, retaining the solver directions (-X,-Y). Rotate once to the reported frame.
+            var forces = new ResultBeamForces(integrated.N, 0, 0, 0, integrated.Mx, integrated.My, solver.SolverAxes)
+                .ToCoordinateSystem(solver.SectionOption.ForceReferenceCoordinateSystem);
+            var fromPlane = new FailureDomain.FailureDomainPoint(
+                new GPC.Checkers.Concrete.Helper.ForceTuple(forces.N, forces.M1, forces.M2),
+                point.FailureIndex, point.StrainPlane, point.Immersione);
+            var planeResult = DomainPointConvergence.Evaluate(solver, demand, fromPlane, criterion);
+            return planeResult.Accepted ? result : planeResult;
         }
 
         /// <summary>Moment of the point declared for a zero moment demand at constant N: 1 kNm about the first axis of the force reference axes.</summary>
@@ -130,7 +155,7 @@ namespace GPC.Checkers.Concrete.Analysis
                 cancellationToken.ThrowIfCancellationRequested();
                 if (point?.StrainPlane != null && new[] { point.NRd, point.MxRd, point.MyRd }.All(SectionAnalysisInput.Finite))
                 {
-                    var convergence = DomainPointConvergence.Evaluate(solver, force, point, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
+                    var convergence = ValidateReturnedPointAndPlane(force, point, SectionSolver.FailureAnalysisTypes.ConstantEccentricity);
                     double ratio = point.CalculateWorkingRatio(SectionSolver.FailureAnalysisTypes.ConstantEccentricity, force, 1e6, 1000);
                     if (convergence.Accepted && SectionAnalysisInput.Finite(ratio) && ratio > 1)
                         return SectionResistanceResponse.ForAssignedAxialForce(new SolverDiagnostics(CalculationStatus.Completed, EngineId, Version,
@@ -148,10 +173,10 @@ namespace GPC.Checkers.Concrete.Analysis
             var probePoint = solver.CalculateConvergedDomainPoint(probe, SectionSolver.FailureAnalysisTypes.ConstantN, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             if (probePoint?.StrainPlane == null || !new[] { probePoint.NRd, probePoint.MxRd, probePoint.MyRd }.All(SectionAnalysisInput.Finite)) return null;
-            var probeConvergence = DomainPointConvergence.Evaluate(solver, probe, probePoint, SectionSolver.FailureAnalysisTypes.ConstantN);
+            var probeConvergence = ValidateReturnedPointAndPlane(probe, probePoint, SectionSolver.FailureAnalysisTypes.ConstantN);
             var axial = probeConvergence.Residuals.FirstOrDefault(r => r.Quantity == "N");
             if (!probeConvergence.Accepted || axial == null) return null;
-            var equilibrium = new AxialEquilibriumEvidence(force.N, probePoint.NRd, axial.Tolerance);
+            var equilibrium = new AxialEquilibriumEvidence(force.N, probeConvergence.Capacity.Forces.N, axial.Tolerance);
             if (!equilibrium.Accepted) return null;
             return SectionResistanceResponse.ForAssignedAxialForce(new SolverDiagnostics(CalculationStatus.Completed, EngineId, Version,
                 SectionResistanceResponse.ZeroMomentDemandMessage, equilibrium, probeConvergence), criterion.ToString(), SectionResistanceResponse.ZeroMomentDemandMode,
