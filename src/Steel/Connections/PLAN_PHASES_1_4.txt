@@ -37,8 +37,8 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1826 casi connessioni Checker superati:9audit,57coprigiunto,
-   44riparto,61saldature,57componenti bullonati,54finplate,56endplate,104tying piastra/anima/saldature/supporto locale,
+1g PARZIALE - 1845 casi connessioni Checker superati:9audit,57coprigiunto,
+   44riparto,61saldature,57componenti bullonati,54finplate,56endplate,123tying piastra/anima/saldature/supporto locale e aggregazione,
    83componenti doppie squadrette/supporto,208precarico/scorrimento,365continuitaI,
    40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,50cordoni/blocco imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,56CJP superiore a filo,26rigidezza rotazionale,77classificazione/criteri rotazione,22dominioN+V.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
@@ -65,7 +65,9 @@ FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
    distinta dai fattori ordinariEC/NTC. Kernelnumerico T-stub condiviso;
    368/368test tying/T-stub/endplate. Chiusa 2d.3b: saldature, 26 test.
    Chiusa 2d.3c.1: meccanismo locale del pannello continuo del supporto,
-   43 test. Famiglia tying 104/104. Restano compatibilita delle estremita
+   43 test. Chiusa 2d.4a: percorso aggregato su stesso caso immutabile,
+   19 test nuovi e famiglia tying 123/123; PHASE_2D_TYING_ASSESSMENT.txt.
+   Restano compatibilita delle estremita
    finite, interazioni del supporto e nodo completo; non si usano i 4b
    come surrogato del comportamento fuori piano.
    PHASE_2D_TYING_WELD_SUPPORT_IMPLEMENTATION.txt.
@@ -87,7 +89,8 @@ FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
    calcolate e classificazione generale; Passed a taglio non certifica cerniera.
 2g PARZIALE - Casi completi indipendenti per famiglia, meccanismo governante,
    esito fuori campo ed esempio utilizzabile dalla futura interfaccia.
-   Disponibili per2a/2b e per il campo ordinario2d.1/2d.2; tying escluso.
+   Disponibili per2a/2b e per il campo ordinario2d.1/2d.2; il nuovo esempio
+   tying2d.4a aggrega componenti, senza qualificare il nodo completo.
 
 2c/2d DOMINIO -22test SCI AD395/396: N+V ordinaria resta esplicitamente
    fuori campo, anche per piccoliN o tiri opposti che si annullano sul

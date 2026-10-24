@@ -1,0 +1,32 @@
+2d.4a - PERCORSO AGGREGATO TYING - STEEL 2.77.0.0
+19 nuovi casi di integrazione passati; 123/123 nella famiglia tying.
+Revisione indipendente completata senza rilievi. Nessuna nuova equazione:
+riuso di FlexibleEndPlateTyingComponents, TyingWeld e TyingSupportWeb.
+
+Le due richieste devono riferirsi alla STESSA istanza immutabile Tying.
+Uguali numeri o descrizioni della fonte non costituiscono il legame tra casi.
+Le fonti dei due componenti possono invece descrivere documenti differenti.
+Esempio di orchestrazione (gli input sono costruiti con i dati reali):
+  var tying = new FlexibleEndPlateTyingInput(policy, geometry, actions);
+  // Costruire weldInput e supportInput passando entrambi tying.
+  var result = FlexibleEndPlateTyingAssessment.Verify(weldInput, supportInput);
+Il test PublishedComponentChainKeepsEveryMechanismAndBoundaryLimitation
+fornisce il caso eseguibile completo; vedere i test nella stessa cartella suite.
+
+CoveredComponentsStatus non e' lo stato del nodo completo. Mismatch o figlio
+NotSupported => nessun insieme aggregato favorevole e Utilization null;
+ciascun figlio e i suoi fallimenti restano disponibili. HasFailedComponent
+comprende anche il parent del supporto, importante in caso di input diversi.
+Se tutti i metodi sono applicabili: quattro controlli piastra/anima, tre
+saldature e uno supporto locale, senza duplicare i controlli del parent.
+La gola minima resta un requisito anche con tiro nullo. Nessuna resistenza
+scalare complessiva viene fabbricata mescolando N, MPa e mm.
+
+P358: piastra 380519.7565 N, saldature 762519.7524 N, pannello locale
+405388.3239 N; gola richiesta 4.2127826721 mm / reale4.24 mm, U0.9935808.
+Sono verificati separatamente i casi governati da piastra, saldatura e supporto,
+NotSupported con fallimento gia noto, coppie fisiche, fonti e immutabilita.
+CanQualifyWholeJoint=false e compatibilita delle estremita del supporto false.
+Restano estremita finite, contatto, punzonamento, membro e robustezza globale.
+Log/TRX workspace audit-results/connections/night-2d-tying-assessment.
+Nessun atteso legacy, fixture o allowlist modificato.
