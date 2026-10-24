@@ -445,3 +445,21 @@ Compatibilita mantenuta per la diagnostica generale di nettoC: resta
 aperta la verifica NVM dell'anima, ora indicata anche con voce specifica.
 CanQualifyWholeJoint=false. Nessun atteso o fixture esistente modificato.
 Log/TRX workspace audit-results/connections/night-2e-category-c-integrated.
+
+
+2d.3a - COMPONENTI TYING ACCIDENTALE, STEEL2.73.0.0
+35/35nuovi test e368/368famiglia tying/T-stub/endplate passati.
+Fonte SCI P358(2014) esempio2 pp44-49, Check11/12 eSCI AD396;
+formule e immagini verificate dal root e revisore indipendente.
+Ricalcolo Python indipendente: piastraF1=380519.756529428N rispetto381kN
+pubblicati;F2=670585.4047861958N,F3=1282909.0909090908N,anima1026863.636N.
+gammaMu1.1 e fu sono una scelta esplicita del modello SCI accidentale;
+non sono inferiti dal codice nazionale o impiegati per il caso ordinario.
+TStubMechanismArithmetic condivide soltanto le tre formule resistenti;
+il percorso ordinario conserva fattori, validazioni, trace e identificatori.
+Azioni trasportate al centro fisico della piastra, senza ricentramento
+automatico: tiro175kN sull'asse trave con offset11.4mm produceMx−1995000Nmm
+e rimane fuori campo. Tutte le sei azioni conservate; hardware effettivo.
+Saldature, supporto e robustezza globale restano verifiche distinte aperte,
+CanQualifyWholeJoint=false anche conPassed. Nessun atteso legacy modificato.
+Log/TRX workspace audit-results/connections/night-2d-tying-components.

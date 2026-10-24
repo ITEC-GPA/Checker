@@ -137,19 +137,19 @@ namespace GPC.Checkers.Steel.Connections
             Value("PryingLengthLimit", lengthLimit, "mm"); Value("PryingDevelops", prying ? 1 : 0, "1");
             Value("GammaM0", p.Code.Plates.GammaM0, "1"); Value("GammaM2Connection", p.Code.GammaM2Connection, "1");
             if (p.BoltElongation != null) Value("BoltElongationLength", p.BoltElongation.Length, "mm");
+            var modes = TStubMechanismArithmetic.Calculate(moment1, moment2, p.M, n,
+                p.ContactWidth / 4, totalBolt, prying, p.Method);
             if (prying)
             {
-                double ew = p.ContactWidth / 4;
-                double mode1 = p.Method == TStubMode1Method.PointForce ? 4 * moment1 / p.M
-                    : (8 * n - 2 * ew) * moment1 / (2 * p.M * n - ew * (p.M + n));
-                double mode2 = (2 * moment2 + n * totalBolt) / (p.M + n);
-                Value("ContactEw", ew, "mm");
-                Check("TStub.Mode1", mode1); Check("TStub.Mode2", mode2); Check("TStub.Mode3", totalBolt);
+                Value("ContactEw", p.ContactWidth / 4, "mm");
+                Check("TStub.Mode1", modes.PlateMode1);
+                Check("TStub.Mode2", modes.CombinedMode2.Value);
+                Check("TStub.Mode3", modes.BoltsMode3);
             }
             else
             {
-                Check("TStub.NoPryingPlate", 2 * moment1 / p.M);
-                Check("TStub.Mode3", totalBolt);
+                Check("TStub.NoPryingPlate", modes.PlateMode1);
+                Check("TStub.Mode3", modes.BoltsMode3);
             }
             return Result();
 

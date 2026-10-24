@@ -1,0 +1,238 @@
+2c.4 / 2d.3 - TYING ACCIDENTALE: CAMPO INIZIALE E BENCHMARK
+24 ottobre2026 - ricerca/spec in staging, nessun codice di produzione modificato.
+
+CONCLUSIONE OPERATIVA
+
+E' implementabile subito un componente di TYING ACCIDENTALE della parte
+collegata, con geometria effettiva derivata e benchmark primari:
+-2d.3a piastra parziale + bulloni lato supporto + anima trave, SCI P358;
+-2c.4a doppie L + bulloni sui due lati + anima trave, CTICM/SCI SBE_MS5.
+Il T-stub comune e' applicabile all'aritmetica dei tre modi; occorre una policy
+tying distinta. Questi componenti non chiudono da soli supporto/nodo completo.
+
+Non ho trovato un benchmark primario completo per il SUPPORTO A FLANGIA delle
+doppie L in esame. La fonte SBE omette del tutto la sezione del supporto.
+P358 Check14 rimanda a P398 per il supporto a flangia, ma il benchmark381kN
+e' verso ANIMA e non puo' essere ribattezzato prova di un supporto rigido.
+Quindi primo campo proponibile: resistenza del lato collegato sotto tiro
+simmetrico, con frontiera di reazione esplicitamente esclusa dall'esito.
+Non propongo un esito globale favorevole basato su bool RigidSupport o su una
+sola stringa SupportingFlangeVerified; il rifollamento2c.3a non e' prova di tiro.
+
+PRECEDENZE DI IMPLEMENTAZIONE
+
+1. Estrarre l'aritmetica dei modi T-stub in un piccolo kernel interno comune,
+   con input Mpl1/Mpl2, m,n,ew e somma delle resistenze di trazione dei bulloni.
+   Il kernel ordinary continua a derivare Mpl da fy/gammaM0 e Ft da gammaM2.
+   Il nuovo kernel tying deriva Mpl da fu/gammaMu e Ft da gammaMu=1.1 di guida.
+   Niente copia di formule, niente fu introdotto di nascosto in FlangeYieldStrength.
+2. Derivatori GEOMETRICI distinti P358 e SBE, poi componenti tying separati.
+   La lunghezza efficace non e' un numero libero e non e' quella delle file
+   esterne di una piastra estesa di fase4a: qui il meccanismo e' differente.
+3. Saldature della piastra: verificare direttamente sotto Ftying; non usare
+   implicitamente il solo a>=0.4tw della guida UK o un Passed ordinary aV.
+4. Solo dopo, costruire la catena supporto con i meccanismi reali e le domande
+   coerenti. Fino ad allora CanQualifyWholeJoint=false, supporto Pending.
+
+NORME, POLICY E SITUAZIONE DI PROGETTO
+
+P358 AppendixA p277/PDF287 separa esplicitamente il tying dal taglio verticale;
+la stessa distinzione vale per gli esempi SBE4.3/4.4. Le grandi deformazioni e
+l'incrudimento sono parte del modello di guida: fu e gammaMu1.1 non vanno
+trasferiti allo SLU ordinario N+V. EN1993-1-8:2005 NON prescrive gammaMu1.1:
+e' una raccomandazione SCI/CTICM per questo modello di robustezza.
+
+Policy suggerita: SciAccidentalTying2014 o SbeAccidentalTying2009, con fonte
+della situazione di progetto e del valore Ftying. Non farla discendere da
+Code.IsNtc. La richiesta Ftying viene da valutazione di robustezza esterna,
+non e' ricavata dal carico normale, dalla trazione ordinaria o dal modulo azioni.
+Il risultato riporta il modello complementare e il suo coefficiente; non si
+dichiara implementata una formula NTC di tying inesistente in queste fonti.
+
+PERIMETRO GEOMETRICO P358 PER2d.3a
+
+Piastra PARZIALE saldata soltanto ai due lati dell'anima, due colonne uguali
+di bulloni ordinari non svasati. Taglio e momenti accidentali non inclusi;
+Ftying positivo lungo asse trave, simmetrico rispetto alla mezzeria dell'anima
+e al centro verticale della zona di trasferimento. Nessuna trave intagliata,
+piastra saldata alle flange, blind bolt, foro asolato, packing o colonna cava.
+Il percorso e' anima trave -> due cordoni -> piastra fuori piano -> bulloni
+in trazione con possibile prying -> faccia di supporto. Il supporto e' un
+componente successivo; F/(2n) non e' la forza reale di un bullone con prying.
+
+Per evitare estensioni non provate, mantenere i dettagli gia' presenti in2d:
+M20/22, due colonne g90 o140, p70, e1=40/e2=30, n2..6, b150/200,
+tp10/12, h=80+(n-1)70, S275 con fu assegnato. Le condizioni di accesso,
+raccordi, bordi e saldature restano quelle GEOMETRICHE pertinenti; non serve
+che il caso ordinary presenti un risultato Passed per calcolare un caso
+accidentale diverso. Evitare di riusare le sue azioni o di azzerarle in silenzio.
+
+Assi attuali FlexibleEndPlate: X trasversale, Y alto, Z lungo trave; tying=Fz>0.
+La famiglia attuale nomina il supporto ColumnWeb: un nuovo campo verso flangia
+richiede un input/factory esplicito, non cambiare il significato della classe.
+Un input tying deve avere propria azione/caso, condividendo solo snapshot della
+geometria/materiali; nessuna riclassificazione implicita di N ordinario.
+
+GEOMETRIA P358 CHECK11, p26/PDF36, VISUALMENTE VERIFICATA
+
+g=p3, a=gola saldatura, tw=anima trave, d0=diametro foro:
+  e1A=min(e1, 0.5*(g-tw-2*a*sqrt(2))+d0/2)
+  p1A=min(p1, g-tw-2*a*sqrt(2)+d0)
+  Leff=2*e1A+(nrows-1)*p1A
+  m=(g-tw-2*0.8*a*sqrt(2))/2
+  n=min(e2,1.25*m), ew=dw/4.
+dw=diametro effettivo rondella o larghezza fra vertici testa/dado interessato;
+non il diametro nominale d e non il foro d0. P358 usa33mm senza rondella
+nell'esempio M20; non sostituire automaticamente l'ingombro37mm del caso SBE.
+
+M1=M2=0.25*Leff*tp^2*fu,p/gammaMu
+Ft=0.9*fub*As/gammaMu; SumFt=2*nrows*Ft
+F1=(8n-2ew)*M1/[2mn-ew*(m+n)]
+F2=(2M2+n*SumFt)/(m+n)
+F3=SumFt
+Fplate=min(F1,F2,F3).
+Sono modi alternativi, non tre resistenze da sommare. La formula include
+l'effetto leva nel limite resistente ma NON restituisce Q/Fbolt a carico dato.
+Check12: Fbeam=tw*h*fu,beam/gammaMu (qui anima non forata da questi bulloni).
+Check13: cordoni. AppendixC.2 distingue il requisitoUK0.8 e dice di progettare
+secondo norma se il tying eccede il taglio di progetto: non generalizzare a
+qualsiasiF la frase sintetica delCheck13 che richiama il dettaglio ordinary.
+
+AD396: COSA SBLOCCA E COSA NON SBLOCCA
+
+SCI AD396, marzo2016 p31, Figure1/2 ispezionate. La nota supporta l'uso del
+modello P358 di doppia curvatura anche quando la parete/anima sottile si
+deforma e il prying non si manifesta: la plastificazione locale presso il
+serraggio rende il modello della piastra conservativo nei casi studiati.
+Questo NON fornisce la resistenza della parete. Il Check14 della parete resta
+distinto. Non applicare AD396 alle L per analogia e non forzare il ramo
+NoPrying del kernel ordinary per correggere P358 senza motivo.
+
+CHECK14, UN BENCHMARK DEL FUTURO SUPPORTO, NON UN SUPPORTO GIA' QUALIFICATO
+
+Il supporto all'anima lavora FUORI PIANO; ColumnWebComponents di4b tratta invece
+le azioni trasmesse dalla flangia NEL PIANO dell'anima. Non sono sostituibili.
+P358 p29/PDF39, per una sola faccia o due facce non ugualmente caricate:
+  Munit=fu,s*tw,s^2/(4*gammaMu)
+  beta=g/d2; gamma=d0/d2
+  eta=((nrows-1)*p1-nrows*d0/2)/d2
+  Fweb=8*Munit/(1-beta)*[eta+1.5*sqrt(1-beta)*sqrt(1-gamma)].
+d2 e' la luce tra raccordi del pilastro. Il1.5 incorpora un'allowance per
+compressione assiale, non un'interazione generale con N/M/V qualsiasi.
+Munit ha unita'Nmm/mm=N. Il testo dell'esempio p49 stampa17.7kNm/mm, ma
+l'aritmetica corrisponde a17.7kNmm/mm=17.7kNm/m: non importare fattore1000.
+
+Prima di qualificarlo occorrono lo schema reale continuo del supporto e i
+limiti del meccanismo a linee di snervamento (estremi, interruzioni, fori,
+irrigidimenti), piu' azioni del supporto coerenti. La pagina non fornisce una
+distanza universale minima dagli estremi: non inventarla. Le domande di due
+facce non sono automaticamente la somma dei due tiri o due verifiche isolate;
+serve il corpo libero con bulloni comuni e compatibilita'. Primo campo: una
+faccia sola; due facce restano aperte. Root richiede temporaneamente di non
+qualificare il supporto deformabile: il ricalcolo qui resta ricerca separata.
+
+PERIMETRO E GEOMETRIA SBE PER2c.4a
+
+Due L90x90x10 identiche speculari, raccordo11, S275, M20/22 classe8.8,
+singola colonna di bulloni per gamba, n2..6,p70,e1/e2=40,gap10, trave I/H
+non intagliata. Queste quote sono gia' derivate da DoubleAngleCleatComponentInput.
+Assi attuali X lungo trave, Y alto, Z normale anima: tying=Fx>0 alla faccia
+supporto e meta' altezza. Percorso:
+anima trave -> bulloni comuni in DOPPIO TAGLIO -> gambe lungo trave delle due
+L (ciascunaF/2) -> raccordi -> gambe lato supporto in flessione fuori piano
+-> bulloni lato supporto in trazione/prying -> supporto escluso dall'esito.
+
+Nell'esempio: g=tw+2*(90-40)=109mm, tw=9,tac10,r11.
+SBE4.3.1.1 pp63-64/PDF73-74:
+  e1A=min(e1,0.5*(g-tw-2r)+d0/2)
+  p1A=min(p1,g-tw-2r+d0)
+  Leff=2e1A+(nrows-1)p1A
+  m=(g-tw-2tac-2*0.8r)/2
+  n=min(e2,1.25m), ew=dw/4 (dw37 nell'esempio)
+Mpl usa tac e fu,ac/gammaMu; F1/F2/F3 come sopra, 2*nrows bulloni verso supporto.
+Il risultato e' per la COPPIA di L: non raddoppiare ancora F1 o Leff.
+
+Restanti controlli SBE4.3: bulloni lato trave2*nrows*Fv, rifollamento in
+direzione ORIZZONTALE nelle due L e nell'anima, percorsi block longitudinali
+delle L, anima netta con0.9*Anet*fu/gammaMu e block dell'anima. Le aree sono
+nel derivatore indipendente; non riusare il block a taglio verticale.
+Nel block rimane il termine Anv*fy/(sqrt3*gammaM0), non si sostituisce tutto
+con fu/gammaMu. Case2 dell'anima vale solo per trave intagliata, qui esclusa.
+
+Punto sul riuso: EN1993-1-8 3.8(1),p29/PDF31, misura Lj nella DIREZIONE del
+trasferimento. La singola colonna di bulloni lato trave e' distribuita inY,
+il tying e' inX: Lj inX=0. Non trascinare betaLj0.9875 del taglio verticale,
+dove Lj=350mm. Nessuna esenzione arbitraria: cambia la direzione fisica.
+
+MINIMO PREREQUISITO CONCRETO PER SUPPORTO RIGIDO/FLANGIA
+
+La geometria di una flangia esiste in ConnectionRolledISection e4a puo'
+derivarne m,emin,lunghezze efficaci di fila e gruppi. Mancano pero':
+1. snapshot fisico della flangia, estremi/irrigidimenti, contatto, ferramenta;
+2. modello resistente per TUTTE le file/gruppi con policy tying esplicita;
+3. trasferimento dalla flangia all'anima/membro e azioni del pilastro;
+4. punching e modo locale sotto testa/dado del supporto reale;
+5. domanda e compatibilita' dei gruppi che non inventino Fbolt=F/(2n).
+
+TStubBoltRows verifica una distribuzione fornita, non la determina. Un valore
+Ftying globale e il soloPassed di una flangia isolata non dimostrano questi
+punti. P358 rinvia aP398 per la flangia; un suo modello qualificato sarebbe
+il passo giusto. In alternativa un vero vincolo rigido puo' definire la
+frontiera di un COMPONENTE provato, mai qualificare automaticamente il nodo
+reale. In questa ricerca non sono state inventate dimensioni del supporto
+per trasformare un benchmark di componente in un benchmark completo.
+
+BENCHMARK ESEGUIBILI, SENZA PRODUZIONE
+
+derive_tying_source_benchmarks.py e' stato ESEGUITO, nessun import DLL.
+P358 esempio2 pp44-49/PDF54-59, trave406x178x74 UKB, colonna305x305x137UKC,
+piastra150x10,h290,4file M20/22,g90,p70,e1=40/e2=30,a4.24,Fty175kN:
+  Leff290; m35.45298759643046; n30; ew8.25mm.
+  Mpl2702272.727272727Nmm; Ft160363.63636363635N/bullone.
+  F1=380519.756529428N; F2=670585.4047861958N; F3=1282909.0909090908N.
+  Fbeam=1026863.6363636362N.
+  Pubblicati arrotondati381/670/1280/1027kN, conservati separati.
+  Check14: d2246.7,tw13.8,fu410 ->405388.3238919048N; pubblicato405kN.
+  Se si parte dal lato esatto6mm e a=6/sqrt2, F1=380556.8265056462N:
+  e' un secondo ricalcolo dichiarato, non una modifica della fixture a4.24.
+
+SBE esempio4.4 pp78-82/PDF88-92, doppieL90x90x10,twtrave9,fu430,
+n6,p70,h430,r11,g109,Fty370kN (NON V450+N370):
+  Leff430;m31.2;n39;ew9.25;Mpl4202272.727272727Nmm.
+  F1=691252.3723999133N; F2=1188813.7788137787N; F3=1924363.6363636362N.
+  Il696kN pubblicato usa m31/Mpl4.2e6/n39 arrotondati; ricalcolo696243.99887N.
+  Bulloni trave doppio taglio1282909.0909090908N.
+  Rifollamento dueL1421487.6033057852N, anima639669.4214876033N (governa).
+  BlockL2060538.3722351268/2195178.277026654N;
+  anima netta943576.3636363636N, block927242.2675058071N.
+  Pubblicato anima642kN usa alpha.61 arrotondato invece40/66.
+  RefusoF350 a p80 non cambia il datoF370 dichiarato nell'esempio.
+
+TEST MINIMI PER IL PRIMO COMPONENTE
+
+- tutti i tre modi, dati pubblicati vs non arrotondati separati;
+- m,L_eff,n,ew e origine di33/37mm;2L non moltiplicate per2;
+- equilibrio: due gambeF/2, animaF,2piani bullone; prying non pariF/(2n);
+- taglio/momenti diversi da zero, compressione e trazione ordinaria rifiutati;
+- gammaMu esplicito,nessuna equivalenza automatica aNTC,fu diverso dafy;
+- saldature sotto tiro,altri meccanismi non coperti non diventanoPassed;
+- supporto mancante/deformabile: nessuna qualifica globale anche seF1>Fty;
+- variazione sola gola cambia m/effective length; passaggio cap e1A/p1A;
+- LJ direzionale nel caso tying; non ereditare il beta del taglio verticale;
+- riproduzione negativa: piatto sufficiente ma supportoCheck14 insufficiente
+  come futura prova del SUPPORTO, non da introdurre oggi senza qualificarne campo.
+
+FONTI E RISCONTRI VISIVI
+
+SCI P358(2014): tmp/pdfs/SCI_P358.pdf; Check11-14 pp26-29/PDF36-39;
+esempio2 pp44-49/PDF54-59; AppendixA-C pp277-280/PDF287-290.
+Immagini verificate in staging: tying-p358-036/039/057/058/059.png.
+CTICM/SCI SBE_MS5: tmp/pdfs/SBE_MS5.pdf;4.3pp63-67/PDF73-77;
+esempio4.4pp78-82/PDF88-92. Immagini tying-sbe-074/088.png verificate;
+figure di insieme e block incluse nelle altre pagine renderizzate.
+SCI AD396 originale: https://www.steelconstruction.info/images/3/36/AD-396.pdf
+Scaricato in staging AD-396.pdf; render tying-ad396-1.png ispezionato.
+EN1993-1-8:2005 Table6.2/6.2.4 (gia' verificati per4a) e3.8(1),PDF31.
+
+Non sono stati installati file, eseguite build o operazioniGit. Nessuna
+aspettativa/fixture esistente e' stata riscritta.

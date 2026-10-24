@@ -1,0 +1,138 @@
+2d.3a - SCI P358 TYING: PIASTRA/BULLONI E ANIMA TRAVE
+24 ottobre2026. Integrato e verificato centralmente sul branch connessioni.
+
+MANIFEST PER INTEGRAZIONE COORDINATA
+
+Nuovi file produzione -> src/Steel/Connections:
+  FlexibleEndPlateTyingComponents.cs
+  TStubMechanismArithmetic.cs
+Nuovo file test -> tests/Steel.Members.Tests:
+  FlexibleEndPlateTyingComponentsTests.cs
+Patch aritmetica applicata da root dopo revisione:
+  TStubTension.shared-modes.proposed.patch
+Note/derivazione:
+  PHASE_2D_TYING_COMPONENT_IMPLEMENTATION.txt
+  PHASE_2CD_TYING_SPEC_REVIEW.txt
+  derive_tying_source_benchmarks.py
+
+35 casi MSTest eseguiti e passati;368/368con i componenti esistenti.
+Derivatore indipendente eseguito sui benchmark standard e sulle sensibilita'.
+La patch ordinaria sposta soltanto le formule numeriche dei modi nel nuovo
+kernel, conservando input, validazioni, fattori, prying, trace e ID dei check.
+Non tocca le API ordinarie o le rispettive fixture. Root ha revisionato e applicato la patch insieme al kernel ed eseguito
+TStubTensionTests/TStubBoltRowsTests e le altre suite T-stub/endplate
+oltre ai nuovi test. Queste suite esistenti coprono
+metodo puntuale/distribuito, no-prying, gruppi e fattori EC/NTC.
+
+API E SEPARAZIONE DELLE POLICY
+
+SciAccidentalTyingPolicy.P3582014(fonteCasoAccidentale) e' una scelta esplicita
+del modello SCI, con GammaMu=1.1 e riferimento AppendixA/B/AD396. Non riceve
+ConnectionDesignCode e non puo' scegliere gammaMu sulla base di IsNtc.
+Il chiamante identifica la situazione di robustezza e fornisce il relativo
+carico; il componente non determina il tiro dalle combinazioni ordinarie.
+
+FlexibleEndPlateTyingGeometry contiene i contratti immutabili Plate/Bolt/Beam,
+nfile, interasse, gola, impronta fisica testa/dado/rondella e relative fonti.
+E' una geometria parziale distinta: nessun supporto, risultato ordinary o sua
+azione puo' essere passato come prova di resistenza/rigidezza del supporto.
+S275 fy275/fu410, M20/22 classe8.8 As245, n2..6, g90/140, b=g+60, tp10/12,
+p70,e1=40,e2=30,offset superiore50,hp80+(n-1)70; anima trave4..16mm.
+Il campo conserva il dettaglio parziale standard, h<=610,hp>=.6hb, piastra
+fra i raccordi e trave non intagliata. Il limite di instabilita' a taglio del
+caso ordinary non viene trasferito al caso di sola trazione.
+
+La gola e' verificata GEOMETRICAMENTE per le linee di snervamento e per non
+intersecare l'impronta del bullone. Non ne viene dichiarata la resistenza.
+Il diametro/impronta copre il foro e resta entro bordi e distanza al piede
+effettivo del cordone; il kernel mantiene inoltre il suo campo equivalente.
+La fonte dell'hardware evita di confondere i33mm dell'esempio P358 senza
+rondella con i37mm di un hardware diverso.
+
+ASSI E TRASPORTO DELLE AZIONI
+
+Base destra: X trasversale, Y verso l'alto, Z lungo trave dal supporto.
+Origine: intersezione dell'asse baricentrico della trave con la faccia di
+contatto del supporto. Il volume della piastra va da Z0 a Ztp.
+Centro piastra C=(0, hb/2-50-hp/2, tp/2).
+PlanarConnectionActions include il polo applicativo P, nella STESSA base.
+Si calcola SEMPRE:
+  Mc=M_P+(P-C)xF.
+Mx,My,Mz risultanti sono conservati nella traccia e ActionsAtPlateCentre.
+Non si usa il modulo della risultante comeFtying. Il campo ammette soltanto
+Fx=Fy=0,Fz>=0 e tutti i momenti aC uguali a0. Anche valori piccoli fuori
+campo sono rifiutati. Il caso nullo resta ammesso per estrarre le resistenze.
+
+Esempio geometria effettiva406x178x74 UKB: hb412.8,hp290,offset50,tp10:
+C_y=11.4mm,C_z=5mm. F175kN applicata all'asse traveY0 SENZA coppia crea
+Mx=-1995000Nmm: esitoNotSupported, non viene ricentrata. Lo stesso tiro
+applicato aC o un trasporto con coppia equivalente corretta passa il gate.
+Una traslazione lungoZ, parallela al tiro, non crea momenti artificiali.
+Overflow del trasporto produce diagnostica e nessun check favorevole.
+
+ARITMETICA E RIUSO
+
+Geometry deriva e1A,p1A,Leff,m,n,ew direttamente daP358Check11.
+Policy tying deriva Mpl=.25Leff*tp^2*fu/gammaMu e Ft=.9*fub*As/gammaMu.
+TStubMechanismArithmetic riceve soltanto M1,M2,m,n,ew,SumFt e ramo/metodo.
+La policy ordinary continua a produrre Mpl dafy/gammaM0 e Ft da gammaM2;
+NON viene passato fu nel campo FlangeYieldStrength. Il kernel non decide
+il modello di supporto, non deriva lunghezze efficaci e non genera Fbolt/Q.
+
+4 check con domanda Ftying TOTALE:
+  Tying.EndPlate.Mode1 / Mode2 / Mode3 (alternativi, non sommati)
+  Tying.BeamWeb.Tension (Check12,tw*hp*fu/gammaMu).
+ComponentTyingResistance e' il minimo di questi quattro limiti espliciti,
+non la resistenza completa del nodo. Tutti sono conservati anche a carico0.
+Per un input fuori campo l'elenco checks viene svuotato, utilization e
+component resistance sono null, la traccia rimane finita e diagnostica.
+
+MECCANISMI ANCORA PENDING, SEMPRE ESPOSTI
+
+- saldature sotto tying e gerarchia di rottura richiesta;
+- supporto locale e compatibilita'/contatto;
+- trasferimento al membro supportante e sue azioni;
+- bearing/punching locale sotto testa/dado/rondella effettivi;
+- robustezza globale e requisiti di deformazione.
+CanQualifyWholeJoint e' SEMPRE false. AnchePassed indica SOLO i due checkSCI
+implementati. AD396 supporta il modello della piastra su supporto deformabile,
+non qualifica quell'anima, la quale non viene verificata qui conCheck14.
+
+BENCHMARK E TEST
+
+P358 esempio2 pp44-49: stessi numeri della spec e del derivatore:
+F1=380519.756529428N,F2=670585.4047861958N,F3=1282909.0909090908N,
+anima1026863.6363636362N, cona4.24mm. Pubblicati381/670/1280/1027kN
+confrontati separatamente con tolleranze compatibili con gli arrotondamenti.
+Con lato6mm esatto,a=6/sqrt2,F1=380556.8265056462N, dichiarato a parte.
+
+Ulteriori ricalcoli analitici indipendenti, NON esempi pubblicati:
+-tw16,tp10,a7: e1A38.10050506338833,Leff286.2010101267767,
+ m29.080404050710666,F1=474026.52694430255N;
+-tw4.25,tp12,a3: F1=484340.6406437805N ma anima459386.3636363636N;
+ conF470000N fallisce l'anima mentre tutti i modi piastra/bulloni passano.
+
+35 test: benchmark, arrotondamento gola, zero/carichi piccoli/soglia, vero
+centro, coppie equivalenti ed eccentricita' non corrette, tre componenti del
+prodotto vettoriale, azioni microscopiche fuori campo, cinque nfile, quattro
+geometrie standardg/t, policySCIesplicita, caplunghezzaefficace, governante
+anima, impronta33/37, fonti mancanti, notch/materiali/hardware fuori campo,
+limiti piastra, overflow, inputnonfiniti/null. Nessuna fixturelegacy modificata.
+
+
+2d.3a - COMPONENTI TYING ACCIDENTALE, STEEL2.73.0.0
+35/35nuovi test e368/368famiglia tying/T-stub/endplate passati.
+Fonte SCI P358(2014) esempio2 pp44-49, Check11/12 eSCI AD396;
+formule e immagini verificate dal root e revisore indipendente.
+Ricalcolo Python indipendente: piastraF1=380519.756529428N rispetto381kN
+pubblicati;F2=670585.4047861958N,F3=1282909.0909090908N,anima1026863.636N.
+gammaMu1.1 e fu sono una scelta esplicita del modello SCI accidentale;
+non sono inferiti dal codice nazionale o impiegati per il caso ordinario.
+TStubMechanismArithmetic condivide soltanto le tre formule resistenti;
+il percorso ordinario conserva fattori, validazioni, trace e identificatori.
+Azioni trasportate al centro fisico della piastra, senza ricentramento
+automatico: tiro175kN sull'asse trave con offset11.4mm produceMx−1995000Nmm
+e rimane fuori campo. Tutte le sei azioni conservate; hardware effettivo.
+Saldature, supporto e robustezza globale restano verifiche distinte aperte,
+CanQualifyWholeJoint=false anche conPassed. Nessun atteso legacy modificato.
+Log/TRX workspace audit-results/connections/night-2d-tying-components.

@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
-Versione sorgenteSteel2.72.0.0. Solo librerie, nessuna interfacciaANTHEA.
+Versione sorgenteSteel2.73.0.0. Solo librerie, nessuna interfacciaANTHEA.
 Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
 
 COMPONENTI
@@ -237,3 +237,6 @@ I risultati restano consumabili dalle librerie; integrazioneANTHEA rinviata.
 
 - IBeamSplicePlates.VerifyFlangeNetPlastic: netto delle ali categoriaC,
   integrato in ogni casoSLU dichiarato; PHASE_2E_FLANGE_NET_PLASTIC.txt.
+
+- FlexibleEndPlateTyingComponents.Verify: politicaSCIaccidentale esplicita,
+  piastra/bulloni e anima trave; PHASE_2D_TYING_COMPONENT_IMPLEMENTATION.txt.
