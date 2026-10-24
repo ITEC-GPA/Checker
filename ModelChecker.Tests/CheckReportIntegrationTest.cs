@@ -50,8 +50,10 @@ public class CheckReportIntegrationTest
             SectionSolver.FailureDomainTypes.Plastic, SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 64);
         var native = new SectionCheckerModelCode2010(new SectionCheckerAttribute(input.Section), options, job.Options.Standard, false);
         var raw = native.CalculateFailureDomainPoint(nativeForces);
-        // This fixture exposes the old finite-but-outside-angle-tolerance candidate.
-        Assert.IsFalse(DomainPointConvergence.Evaluate(native.SectionSolver, nativeForces, raw, job.Options.Criterion).Accepted);
+        // The raw candidate must satisfy the search-line constraints also required by the typed result below.
+        var rawConvergence = DomainPointConvergence.Evaluate(native.SectionSolver, nativeForces, raw, job.Options.Criterion);
+        Assert.IsTrue(rawConvergence.Accepted, string.Join("; ", rawConvergence.Residuals.Select(r =>
+            $"{r.Quantity}: residual={r.Residual:R} {r.Unit}, tolerance={r.Tolerance:R} {r.Unit}")));
         var point = new GPC.Checkers.Concrete.Analysis.LegacySectionCalculation(native).SolveResistance(new(nativeForces));
         Assert.IsTrue(point.Diagnostics.ResistanceConvergence.Accepted);
         Assert.AreEqual(point.N.Value, detail.NRd, 1e-6); Assert.AreEqual(point.M1.Value, detail.M1Rd, 1e-6); Assert.AreEqual(point.M2.Value, detail.M2Rd, 1e-6);
