@@ -622,3 +622,39 @@ audit-results/connections/verify-night-2-78/summary.json.
 Tutti i blocchi revisionati indipendentemente. Branchcodex/steel-standard-connections;
 nessun merge/push/rilascio. Le quattro fasi restano parziali come nel piano;
 nessuna qualifica del nodo completo dedotta dai soli componenti chiusi.
+
+
+4cde.4a - AGGREGAZIONE COMPONENTI END PLATE - STEEL2.79.0.0
+20nuovi test di integrazione passati;123/123con bulloni e saldature.
+Revisione indipendente conclusa senza rilievi. Nessuna nuova equazione.
+
+EndPlateConnectionAssessment.Verify(boltInput, weldInput) ha due overload:
+-EndPlateWeldComponentInput per la piastra estesa con coppie di cordoni;
+-TopFlushCjpEndPlateWeldInput per CJP superiore a filo e fondo prolungato.
+Entrambi richiedono la STESSA istanza EndPlateMomentComponentResult nei
+due input. Un secondo calcolo sullo stesso input non costituisce quel legame.
+Campi numerici uguali o stringhe sorgente identiche non fanno da caseID.
+Esempi eseguibili completi in EndPlateConnectionAssessmentTests.cs.
+
+Il risultato conserva Bolts, FilletWelds oppure TopFlushCjpWelds e i parent
+MomentComponents/WeldMomentComponents. Mismatch o un soloNotSupported
+rendono NotSupported l'aggregazione, con Checks vuoti e rapporto null;
+HasFailedComponent continua a segnalare i fallimenti noti in ogni figlio,
+compreso il parent discordante delle saldature. I child result restano visibili.
+Se i modelli sono applicabili, il rapporto governa sui controlli momento,
+bulloni e saldature. Non si deriva da esso una resistenza scalare del nodo.
+La gola/resistenza completa delle saldature resta un criterio anche aM=V=0.
+
+Benchmark dei figli preservati: tensione equivalente anima360.318501662MPaEC,
+344.416657631MPaNTC; varianteCJP897897N/855140N. L'equivalenza CJP conD=R
+e' una gerarchia condizionata, non l'utilizzazione al momento effettivo.
+La geometriaCJP non viene interpretata come due fillet o vero flush completo.
+Ulteriori test su bullone sovraccarico con risultante globale ammissibile,
+cordone compresso insufficiente, fonti mancanti, parentFailed, mismatch,
+penetrazione parziale, immutabilita e contratti nulli.
+
+Pending dei figli preservati come qualificazioni da leggere nel loro campo;
+netto/block, introduzione locale, membri/stabilita, rotazione e compatibilita
+globale non sono certificati. CanQualifyWholeJoint=false in ogni caso.
+Log/TRX workspace audit-results/connections/night-4cde-assessment.
+Nessun atteso legacy o allowlist modificato.

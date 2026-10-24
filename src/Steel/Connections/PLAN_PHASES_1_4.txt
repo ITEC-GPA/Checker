@@ -37,10 +37,10 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1927 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 1947 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,123tying piastra/anima/saldature/supporto locale e aggregazione,
    83componenti doppie squadrette/supporto,82tying doppie squadrette,208precarico/scorrimento,365continuitaI,
-   40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,50cordoni/blocco imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,56CJP superiore a filo,26rigidezza rotazionale,77classificazione/criteri rotazione,22dominioN+V.
+   40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,50cordoni/blocco imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,56CJP superiore a filo,20aggregazione endplate,26rigidezza rotazionale,77classificazione/criteri rotazione,22dominioN+V.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
@@ -159,7 +159,10 @@ FASE 4 - NODI A MOMENTO
    PHASE_4C_3_TOP_FLUSH_CJP_IMPLEMENTATION.txt distingue il vero flush
    completo ancora aperto. Restano netto/block e resistenza completa
    a taglio del nodo. Vedere anche PHASE_4CDE_WELD_COMPONENTS.txt.
-   Nessuna qualifica globale; PHASE_4CDE_MOMENT_COMPONENTS.txt e
+   Chiusa4cde.4a: ingresso comune momento/bulloni/saldature su stesso
+   risultato immutabile,20nuovi test;123/123con i componenti figli.
+   PHASE_4CDE_CONNECTION_ASSESSMENT.txt. Netto/block, membro e rotazione
+   restano aperti. Nessuna qualifica globale; PHASE_4CDE_MOMENT_COMPONENTS.txt e
    PHASE_4CDE_BOLT_COMPONENTS.txt.
 4f PARZIALE - Chiusa4f.1: rigidezza iniziale/secante delle end plate sul
    pilastro non irrigidito, file singole/multiple e tutti i componenti in serie.
