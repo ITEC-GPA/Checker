@@ -1,0 +1,87 @@
+FASE3c.3 - CORREZIONE SIMMETRIA/CONSERVAZIONE AZIONI
+24/10/2026. Solo staging; nessuna installazione, build, test.NET o Git dell'autore.
+
+RIPRODUZIONE CENTRALE
+Root ha eseguito i test del revisore: 10rossi e1verde nel log
+night-3c-pair-transfer-red. Quattro rossi sono traslazioni normali50.1/1000.1mm
+nelle due orientazioni: due trasporti separati di trazioni uguali producono
+un piccolo My residuo floating point che prima bloccava il problema piano.
+Gli altri sei riguardano azioni SORGENTE fisiche non nulle: quattro momenti
+di +/-1e-5Nmm e due scarti di N di +/-1e-6N, ammessi dalla tolleranza
+d'equilibrio del precedente adapter ma omessi dal successivo transfer.
+Il verde prova la conservazione del Failed delle sezioni quando manca una
+successiva evidenza fori NTC. I file del revisore rimangono INVARIATI.
+
+CAUSA E CORREZIONE
+Il campo nuovo impone gia due L identiche riflesse sui dorsi allineati,
+trazioni esplicitamente uguali e fazzoletto centrale. Non e necessario
+dedurre l'annullamento delle eccentricita normali da una somma di momenti
+ottenuti sottraendo due volte coordinate globali. Questa sottrazione perde
+invarianza numerica rispetto a traslazioni non rappresentabili esattamente.
+
+Prima di usare la simmetria, il transfer richiede SourceActions V1=V2=T=M1=M2=0
+ESATTAMENTE e SourceActions.N=N1+N2 ESATTAMENTE. N1/N2 restano espliciti e uguali;
+nessun riparto N/2 e nessuna soglia sulle azioni fisiche vengono introdotti.
+In caso contrario il risultato piano resta NotSupported, con azioni sorgente
+conservate nell'input e nella Trace. Rimane consultabile la risultante grezza
+delle forze dei due L, come nel contratto precedente, ma NON qualificata e
+NON sostitutiva delle SourceActions discordanti.
+
+Nel caso ammesso, la risultante al gruppo e Fx=N, Mz=N*e, con altre azioni nulle
+per la simmetria dimostrata. Il braccio e si calcola in coordinate LOCALI dell'L:
+posizione della fila meno coordinata del baricentro lungo il lato collegato,
+con il segno della riflessione del lato. Il calcolo non sottrae coordinate globali.
+Nel benchmark sharp e=+/-26.25mm e Mz=+/-5.25kNm. Le due coppie locali fuori
+piano alla faccia/mezzeria restano integralmente esposte e NON sono verificate
+dal solo annullamento della risultante. Il limite3D continua a essere NS.
+
+TRACE
+SourceActions.N/V1/V2/T/M1/M2: tutte le azioni dell'input originale.
+GussetAtGroup.RawResult.Fx/Fy/Fz/Mx/My/Mz: somma originale dei trasporti Model.
+GussetAtGroup.InPlaneLever: braccio locale firmato, mm.
+GussetAtGroup.Fx/Fy/Fz/Mx/My/Mz: risultante ottenuta dalla simmetria qualificata.
+GussetAtGroup.ArithmeticResidual.Fx/Fy/Fz/Mx/My/Mz: RawResult meno risultante.
+I residui sono dati diagnostici, non soglie di accettazione. Per input sorgente
+fuori campo non si costruisce la risultante simmetrica e non si qualifica un residuo.
+
+MANIFEST PER ROOT
+BraceAnglePairBoltedTransfer.cs: unica produzione modificata, SHA256
+c303b4db2c259ff056f6d4b3310e6f64a261449c7a9723ab7c5d0757b65afee8.
+BraceAnglePairBoltedTransferSymmetry.patch: diff della produzione contro baseline repo.
+BraceAnglePairBoltedTransferSymmetryTraceTests.cs:8nuovi casi, SHA256
+84bd4392d1273dd2cf266e01e0a5ce5eaa2170b1dba3e01e29ac73f9ea846518.
+Questo documento integra, senza sovrascriverle, spec e nota precedenti.
+
+TEST - SHA256
+BraceAnglePairBoltedTransferTests.cs (61casi, sola diagnostica aggiunta al
+test raggi su richiesta root; nessun input/helper/atteso modificato):
+dda54e80202bc0a129077c01d11d659f48d831b6314b93c91ebe14c53999746c
+BraceAnglePairBoltedTransferTranslationRegressionTests.cs (4):
+2f0709234defb4d1080af7da7b0f50e793a77b27a3ae4fd299aede2e0946f0f7
+BraceAnglePairBoltedTransferSourceActionRegressionTests.cs (6):
+afb9d66b6e338e24961a844ef8a29ce63416662b5c411193d556b53aa1807a40
+BraceAnglePairBoltedTransferFailureEvidenceTests.cs (1):
+05910af216ccd8bea3f9faf33dd8c09a04891ed0ac3e3a8d435f0559bfeb2d67
+
+Gli8nuovi casi controllano entrambe le orientazioni, riflessione in piano,
+ordine dei componenti, traslazione simultanea nelle due direzioni, tutte6le
+azioni sorgente, RawResult e residui, e conservazione delle coppie locali.
+Test complessivi previsti famiglia BraceAnglePairBoltedTransfer:84casi.
+Esecuzione e installazione demandate a root dopo review indipendente del diff.
+
+CORREZIONE TANGENTI MODEL DOPO IL FIX DEL COPY
+Root ha riprodotto separatamente il caso raggi con diagnostica: azioni M1/M2
+esattamente0, errore EXACT_MODEL_STRAIGHT_CONNECTED_STRIP_REQUIRED. Non era
+quindi un errore nel helper delle azioni. Gli endpoint delle linee tangenti
+agli archi Model possono avere la coordinata normale t+/-pochiULP, pur essendo
+sulla faccia interna t. Il precedente confronto ==t perdeva il tratto reale.
+StraightInnerStrip ora riconosce solo il PIANO della faccia con errore massimo
+8*epsilon*max(latiL), usando esclusivamente dimensioni locali. Low/high sono
+ancora le coordinate originali del segmento, senza espansione, e tutte le
+successive distanze fori/ferramenta/bordi rimangono invariate.
+BraceAnglePairBoltedTransferRoundedStripTests.cs:4nuovi casi, due orientazioni
+con r15/rtoe7.5 e r15.3/rtoe7.7. Confrontano il tratto reale Model, gli errori
+normali e l'identita dei limiti/distanze passati alla verifica. SHA256:
+b91696ba138b106e1e1614540dcd77bdb2ccac80395c8a7b91c616e9d51bb747
+Il test originario dei raggi mantiene tutti gli attesi e il suo input/helper;
+solo l'assert espone diagnostica e momenti sorgente per rendere il rosso leggibile.

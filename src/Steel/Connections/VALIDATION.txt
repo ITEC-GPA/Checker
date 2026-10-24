@@ -713,3 +713,37 @@ Log/TRX:night-4-beam-adapter (rosso),night-after-model-before-tolerance
 (separa bug/tolleranza),night-4-beam-adapter-green (255passati).
 Tutti nel workspaceaudit-results/connections. Nessun atteso legacy o
 allowlist modificato. Non qualifica l'asta intera o il nodo completo.
+
+
+3c.3 - TRASFERIMENTO PIANO 2L IDENTICI - STEEL2.82.0.0
+84 nuovi casi passati;167/167 con adattatore Model e netto efficace L.
+Revisione indipendente finale sul sorgente c303b4db... conclusa senza
+ulteriori difetti. Componenti piani condizionali: trazioni esplicite uguali,
+fila unica categoriaA, fazzoletto centrale a contatto diretto, taglio bulloni,
+rifollamento su tutte3le lamiere e interazione complementare ECCS/SBE.
+Nessuna equiparazione del benchmark SBE a due file categoriaC al nuovo input.
+Mantenute le6azioni e le coppie locali; nodo/contatto3D sempre non qualificati.
+
+La prima esecuzione61casi:60passati e1fallito per raccordi persi nelle copie
+Model. Il fixModel5.20.0.2 ripristina il contorno reale. Ha poi evidenziato
+una guardia ==t che non riconosceva i punti tangenti a pochiULP dal piano;
+8epsilon*max(lati) riconosce solo il piano, senza espandere bordi/distanze.
+Quattro nuove regressioni verificano i limiti reali t+r e L-rtoe.
+
+Review indipendente:10regressioni rosse prima del fix,1verde per Failed
+gia conservato. Quattro traslazioni generavano un My spurio di roundoff;
+sei input con momento fisico piccolo o N discordante erano prima ignorati.
+Ora le azioni sorgente sono controllate ESATTAMENTE. Solo con simmetria
+geometrica e forze uguali dimostrate si calcola Mz=N*braccio locale;
+raw e residui6D restano tracciati e le coppie di faccia non sono annullate.
+Otto test nuovi coprono orientazioni, riflessioni, ordine e trace complete.
+Tutti gli attesi/input dei61casi originari e degli11di review invariati.
+
+Caso indipendente fila unica: Mz5.25kNm, taglio massimo56.471784990kN;
+coppie locali +/-1.875kNm alla mezzeria e +/-2.375kNm alla faccia.
+Fonti/componenti e limiti nel PHASE_3C_3_PAIR_BOLTED_TRANSFER_SPEC.txt.
+Log/TRX workspaceaudit-results/connections:
+night-3c-pair-transfer-baseline,night-3c-pair-transfer-red,
+night-3c-curved-input-diagnostic,night-3c-pair-transfer-green.
+Nessun atteso legacy o allowlist modificato. Mancano netto/block gusset,
+blockL,contatto/prying,forze normali bulloni,supporto e nodo completo.

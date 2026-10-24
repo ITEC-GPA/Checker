@@ -1,0 +1,126 @@
+{
+  "units": "N, Nmm, mm, MPa",
+  "JRC": {
+    "source": "JRC SX034a-EN-EU sheets5/6; exact, not rounded alpha/beta",
+    "bolt_shear_N": 94080.0,
+    "angle_end_bearing_N": 156363.63636363638,
+    "angle_inner_bearing_N": 198581.81818181818,
+    "angle_gross_N": 624250,
+    "angle_net_N": 407765.09090909094
+  },
+  "SBE": {
+    "J_mm2": 8881.25,
+    "forces_N": [
+      [
+        162888.85643912738,
+        -33130.422237860665
+      ],
+      [
+        162888.85643912738,
+        99391.26671358198
+      ],
+      [
+        40561.143560872624,
+        -99391.26671358198
+      ],
+      [
+        40561.143560872624,
+        33130.422237860665
+      ]
+    ],
+    "resultants_N": [
+      166223.95865128943,
+      190817.72310500155,
+      107349.10463481337,
+      52372.046404782115
+    ],
+    "reconstructed": [
+      406900.0,
+      0.0,
+      18107049.999999996
+    ],
+    "source": "SBE_SS5 AppendixB TableB.13; staggered2lines; kernel-only benchmark",
+    "moment_Nmm": 18107050.0,
+    "rotated48deg_forces_N": [
+      [
+        84373.21742626697,
+        -143218.59031161235
+      ],
+      [
+        182856.02483405633,
+        -54544.27222783353
+      ],
+      [
+        -46721.40297034662,
+        -96648.54251554233
+      ],
+      [
+        51761.40443744275,
+        -7974.224431763512
+      ]
+    ],
+    "bearing_ellipse_bolt1_using_published_kN": 0.5927525494930365,
+    "bearing_ellipse_bolt2_using_published_kN": 0.5232148367002358,
+    "block_gusset_N": 853396.2638062228,
+    "block_angle_corrected_N": 477909.8821511498,
+    "block_angle_printed_inconsistent_N": 407910
+  },
+  "one_line": {
+    "J_mm2": 18000,
+    "forces_N": [
+      [
+        50000.0,
+        -26250.0
+      ],
+      [
+        50000.0,
+        -8750.0
+      ],
+      [
+        50000.0,
+        8750.0
+      ],
+      [
+        50000.0,
+        26250.0
+      ]
+    ],
+    "resultants_N": [
+      56471.784990382585,
+      50759.85126061738,
+      50759.85126061738,
+      56471.784990382585
+    ],
+    "reconstructed": [
+      200000.0,
+      0.0,
+      5250000.0
+    ],
+    "source": "Independent one-line analytical detail; not a published joint",
+    "angle_A_mm2": 2400,
+    "angle_centroid_mm": [
+      23.75,
+      48.75
+    ],
+    "centroid_normal_positions_mm": [
+      -33.75,
+      33.75
+    ],
+    "boltline_normal_positions_mm": [
+      -15,
+      15
+    ],
+    "local_moments_at_leg_midplane_Nmm": [
+      -1875000.0,
+      1875000.0
+    ],
+    "local_moments_at_gusset_faces_Nmm": [
+      -2375000.0,
+      2375000.0
+    ],
+    "total_Mz_Nmm": 5250000.0,
+    "bolt_double_shear_N": 120576.0,
+    "angle_gross_N": 660000,
+    "angle_effective_net_N": 432752.0
+  }
+}

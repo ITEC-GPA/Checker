@@ -1,0 +1,79 @@
+FASE3c.3 - CONSEGNA STAGING, 24/10/2026
+====================================
+Spec approvata: PHASE_3C_3_PAIR_BOLTED_TRANSFER_SPEC.txt, gia committata da root
+con cb8a6f4b. NON sovrascriverla installando questa consegna.
+
+Nuovi sorgenti:
+- BraceAnglePairBoltedTransfer.cs -> src/Steel/Connections
+- BraceAnglePairBoltedTransferTests.cs -> tests/Steel.Members.Tests
+Documenti/derivatore:
+- PHASE_3C_3_PAIR_BOLTED_IMPLEMENTATION.txt (questa nota)
+- PHASE_3C_3_PAIR_BOLTED_BENCHMARK.json
+- derive_angle_pair_bolted_transfer.py
+- PHASE_3C_3_PAIR_BOLTED_MANIFEST.txt (hash)
+
+La verifica pubblica usa BraceAnglePairBoltedTransferInput e restituisce
+BraceAnglePairBoltedTransferResult. Il contratto riusa il risultato immutabile
+BraceAngleModelAdapterResult; codice, bulloni, materiali L, passo, numero bulloni
+e lato fisico non sono duplicati nell'input. Il fazzoletto usa ConnectionPlate.
+I punti e le sei azioni alla mezzeria del lato, alla vera faccia del fazzoletto
+e al centro del gruppo sono distinti. Il trasporto usa ResultBeamForces di Model.
+
+InPlaneComponents e una ConnectionVerification dei soli componenti piani
+condizionali, oltre a lordo/netto efficace L. Status del risultato e
+LocalThreeDimensionalStatus rimangono SEMPRE NotSupported; le coppie locali
+ricevono diagnostica dedicata. Non si espone alcuna resistenza globale di nodo.
+CanQualifyWholeJoint=false e MissingWholeJointChecks elenca le verifiche aperte.
+Il figlio BoltStrength con trazione0 appartiene esclusivamente al sottoproblema
+piano: non afferma che il contatto reale produca forza normale nulla nel bullone.
+
+PRECISAZIONI DELL'IMPLEMENTAZIONE
+Il rettangolo piano resistente dell'L e identificato dal contorno ESATTO Model,
+ricercando il tratto rettilineo della faccia interna del lato collegato. Non si
+approssimano archi con corde e non si deduce il raccordo dal solo numero R.
+Il bordo tangente di tallone/punta e trattato come bordo libero conservativo per
+rifollamento; ferramenta/accesso devono stare interamente in questo rettangolo.
+Questo puo rendere fuori campo dettagli validi che richiedono la resistenza del
+tallone. La parte curva resta inclusa nell'area reale del netto efficace L.
+
+Il passo e longitudinalmente e trasversalmente sollecitato dal campo Fx/Fy:
+si adotta il minimo2.4d0 per tutto il modello bidirezionale, anche al punto Fy=0.
+Per Fy=0 si valuta la resistenza verso il bordo piu vicino, senza privilegiare un
+segno arbitrario. I due bordi longitudinali sono opposti: L verso-X, gusset verso+X.
+Le distanze trasversali degli L seguono le riflessioni fisiche, non gli assi principali.
+
+Qualsiasi foro/taglio aggiuntivo, geometria non valida o evidenza mancante blocca
+anche la produzione di risultati favorevoli AngleSections prima del modello piano.
+Una domanda risultante fuori piano non nulla blocca il piano, senza azzerarla con
+una soglia numerica. Le due trazioni devono essere esattamente uguali per utilizzare
+il kernel a due piani identici; l'adattatore continua ad accettare riparti diversi,
+ma questo particolare aggregatore li segnala fuori campo e conserva le azioni.
+
+FONTI E RISULTATI INDIPENDENTI
+Derivatore Python eseguito: nessun import Checker/Model, output JSON allegato.
+JRC SX034a-EN-EU: netto407.765090909kN, taglio94.08kN, rifollamento estremita
+156.363636364kN e interno198.581818182kN, con coefficienti non arrotondati.
+SBE_SS5: forze TableB.13 riprodotte; rifollamento bullone1 TableB.16/B.17
+154.224/264.384kN; ellissi TablesB.18/B.19 da dati stampati0.59275255/0.52321484.
+Queste prove sorgente sono del kernel condiviso: il dettaglio SBE e categoriaC a
+due file sfalsate e non e accettato falsamente come ingresso fila unica categoriaA.
+La rotazione che riproduce TableB.14 e48gradi dall'orizzontale (42dalla verticale).
+Il refuso block tearing L407.91 contro477.909882kN resta documentato, non testato
+come capacita del nuovo aggregatore che non implementa quel meccanismo.
+
+Nel caso fila unica indipendente Mz5.25kNm e massimo taglio56.471784990kN.
+Le coppie locali±1.875kNm alla mezzeria del lato e±2.375kNm alla faccia sono
+esposte anche se il momento risultante fuori piano e nullo.
+
+PROVE E STATO EFFETTIVO
+61casi preparati (51DataRow e10TestMethod): fonti, EC/NTC, forze/equilibrio,
+tre lamiere, estremita opposte, riflessioni, lati lungo/corto, traslazioni/ordine,
+geometria reale con raggi, input fuori campo, fonti, immutabilita, esiti separati.
+Filtro suggerito: FullyQualifiedName~BraceAnglePairBoltedTransferTests
+NESSUNA build, esecuzione test.NET, installazione o operazione Git dall'agente.
+La validazione eseguibile della produzione e riservata a root.
+
+VALIDAZIONE CENTRALE SUCCESSIVA
+84casi2L e167/167famiglia passati; dettagli e riproduzioni in VALIDATION.txt
+e PHASE_3C_3_PAIR_BOLTED_SYMMETRY_FIX.txt. Il fix di simmetria qualifica solo
+la risultante assiale esatta: non applica soglie alle azioni fisiche.

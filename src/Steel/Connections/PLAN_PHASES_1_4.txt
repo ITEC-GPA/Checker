@@ -37,11 +37,11 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 2050 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 2134 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,70endplate,123tying piastra/anima/saldature/supporto locale e aggregazione,
    83componenti doppie squadrette/supporto,82tying doppie squadrette,208precarico/scorrimento,365continuitaI,
-   40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,50cordoni/blocco imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,56CJP superiore a filo,20aggregazione endplate,89adattatore traveSteel,26rigidezza rotazionale,77classificazione/criteri rotazione,22dominioN+V.
-   Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
+   40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,84trasferimento piano2L,50azioni imbottiture,50cordoni/blocco imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,56CJP superiore a filo,20aggregazione endplate,89adattatore traveSteel,26rigidezza rotazionale,77classificazione/criteri rotazione,22dominioN+V.
+   Inoltre27nuove regressioni Model (10bullongrid+17copie raccordi). Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
 FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
@@ -119,7 +119,11 @@ FASE 3 - CONTROVENTI E PROFILI ACCOPPIATI
    EN3.10.3 e fattori EC/NTC,43test; lato corto esplicito per L disuguali.
    Chiusa3c.2 per L/2L identici dorso-dorso: adattatore Model e40test,
    lati fisici, raccordi, assi e riparto esplicito; PHASE_3C_MODEL_ADAPTER.txt.
-   Restano C, compressione e resistenza del nodo con le eccentricita esposte.
+   Chiusa3c.3 per trasferimento PIANO condizionale fila unica categoriaA:
+   84test nuovi,167/167con adapter/nettoL; coppie locali e raw6D conservati,
+   azioni sorgente esatte. PHASE_3C_3_PAIR_BOLTED_IMPLEMENTATION.txt.
+   Restano C, compressione, netto/block gusset,blockL,contatto/prying,
+   supporto e resistenza del nodo con le eccentricita esposte.
 3d PARZIALE - Chiusa3d.1: geometria Model2L/2C e azioni sulle due facce
    dell'imbottitura,50test di assi/equilibrio. Sei azioni concomitanti esplicite,
    coppie conservate; nessun N/2 automatico. PHASE_3D_PACKING_FACE_ACTIONS.txt.
@@ -235,3 +239,6 @@ rimane quello2.78, non viene attribuito retroattivamente alle nuove API.
 4cde.4b CHIUSA nel campo I/H laminati omogenei, classi1/2M-V e classe3V0.
 FixModel5.20.0.2 necessario per conservare raccordi nelle copie:17nuovitest,
 1488passati complessiviModel,3nativeSkipped,API/audit compatibili.
+
+3c.3 CHIUSA nel solo campo piano:84nuovi test e167/167famiglia passati.
+VersioneSteel2.82.0.0. In avvio audit completo, ultimo audit generale2.78.

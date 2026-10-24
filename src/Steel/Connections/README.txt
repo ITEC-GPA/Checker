@@ -264,3 +264,7 @@ I risultati restano consumabili dalle librerie; integrazioneANTHEA rinviata.
 
 - EndPlateBeamSectionAdapter / EndPlateMomentWithBeamSection: resistenza
   trave dal coreSteel sul caso reale; PHASE_4_BEAM_SECTION_ADAPTER_IMPLEMENTATION.txt.
+
+- BraceAnglePairBoltedTransfer: trasferimento piano condizionale2L/fazzoletto,
+  geometriaModel reale e azioni6D conservate. Nodo3D ancora non qualificato;
+  PHASE_3C_3_PAIR_BOLTED_IMPLEMENTATION.txt.
