@@ -481,3 +481,24 @@ obbligatorio prima dei cordoni; nessunN/2 o falsaresistenza1N/utilizzo.
 Introduzione locale3D e pareti dei correnti restano aperte; qualifica
 stazione/nodo semprefalse. Nessun atteso/fixturelegacy modificato.
 Log/TRX workspace audit-results/connections/night-3d-packing-station.
+
+
+AUDIT GENERALE STEEL2.74.0.0 - 24/10/2026
+build/Verify.ps1 -Suites all completato:7295passati,5falliti,0saltati.
+Steel4903/4903Members e122/122net472:5025/5025totali.
+Quattro contratti API confrontati e compatibili; nessun atteso o allowlist
+modificato. Le altre suite mantengono i conteggi del precedente audit2.71.
+I cinque fallimenti sono gli stessi per nome/suite di2.71/2.66/base6edf46a7:
+Concrete:CurvatureContractOf0017IsUnchanged,
+DomainPointContractOf0017IsUnchanged,LegacyMomentCurvatureIsReproduced,
+LargeSectionPointBeyondTheStoppingTestIsAccepted;
+ModelChecker:RealDetailsMatchNativeResistanceAndKeepThePreparedForceFrame.
+Verify restituisce exit1 per queste pendenze reali: non e' un rilascio verde.
+Risultati: workspace audit-results/connections/verify-night-2-74/summary.json.
+
+Blocchi di questa prosecuzione,150nuovi test:
+-2e.3e categoriaC ali:65nuovi,365/365famiglia;1e137ce8,versionebf6db012.
+-2d.3a tyingSCI piastra/anima:35nuovi,368/368famiglia;bc3f9305,versione49f6a4b8.
+-3d.2a/b imbottiture:50nuovi,100/100conadattatore;c949a144,versionedb27fe33.
+Tutte le modifiche sul branchcodex/steel-standard-connections; nessun
+merge/push/rilascio. Restano le sottofasi esplicitamente PARZIALI nel piano.

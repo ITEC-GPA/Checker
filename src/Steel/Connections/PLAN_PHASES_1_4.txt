@@ -171,11 +171,13 @@ Ogni sottofase chiusa ha implementazione, campo di validita, riferimenti,
 benchmark eseguiti e commit separato. Aggiornamenti in chat con la stessa sigla.
 
 VERIFICA GENERALE DELLA BASE
-Controllo completo Steel2.71.0.0: 4868 test Steel passati; 7138 passati
-complessivi e cinque fallimenti Concrete/ModelChecker gia documentati in6edf46a7. Nessun atteso
+Controllo completo Steel2.74.0.0:5025test Steel passati (4903Members+122net472);
+7295passati complessivi,0saltati e cinque fallimenti Concrete/ModelChecker
+invariati rispetto2.71/2.66 e gia documentati in6edf46a7. Nessun atteso
 modificato o fallimento ammesso automaticamente. Vedere VALIDATION.txt.
 Queste pendenze impediscono un rilascio generale dichiarato interamente verde,
 ma non impediscono l'implementazione e i test dei nuovi componenti di connessione.
 
-Fix successivo Steel2.71.0.1:4753/4753Members e122/122net472,4875Steel.
-Il controllo generale di tutte le altre librerie resta quello2.71 sopra.
+Audit2.74 comprende anche il fix fy/grado2.71.0.1 e150nuovi test dei blocchi
+2e.3e/2d.3a/3d.2a-b. Le quattro API confrontate restano compatibili.
+Risultati e commit in VALIDATION.txt. Non e' un rilascio generale verde.
