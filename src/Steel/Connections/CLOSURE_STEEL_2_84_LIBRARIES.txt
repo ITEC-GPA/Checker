@@ -1,0 +1,93 @@
+CHIUSURA DEL CHECKPOINT MODEL / CHECKER - 24/10/2026
+
+PERIMETRO FINALE RICHIESTO DALL'UTENTE
+Chiudere Model e Checker su master. ANTHEA viene ripresa dall'utente separatamente.
+Non proseguire i test o lo sviluppo ANTHEA da questa attivita'. Nessun push eseguito.
+Le quattro fasi delle connessioni non sono dichiarate integralmente completate:
+restano le aperture elencate nel PLAN_PHASES_1_4.txt e nei contratti delle API.
+
+BLOCCHI CHIUSI IN QUESTO CHECKPOINT
+Blocco | Risultato | Evidenza
+2e.4b.1 | Inviluppo SLU dei giunti I, azioni concomitanti, SLE separati | 92 nuovi casi; 457/457 famiglia; 3d8b6ea0, versione 45c45948
+4g.1/4g.2 | Sjini del medesimo caso e aggregazione locale | 66 nuovi casi; 591/591 famiglia; cb887588, versione 306e96ae
+Cinque contratti legacy | Migrazione approvata a criteri fisici/oracoli indipendenti | Fixture/allowlist intatte; f0ff5073, 74759326, 7a183450, 5b7b5087
+Concrete | Guardia sul piano reintegrato e diagnostica distinta | Red/green documentato; 62ecbc83, c611b709; versione finale 0.18.0.3 in 2f784607
+Set coerente | 14 DLL, pin e API verificati; versioni dipendenti riallineate | Model 21f79f30; Checker 303cead5; manifest completo
+
+VERIFICA COMPLETA EFFETTIVAMENTE ESEGUITA
+build/Release-Set.ps1 -Candidate ha concluso con exit 0, tutte le suite richieste
+da Model/build/Verify.ps1 e Checker/build/Verify.ps1, comprese Concrete/Steel net472.
+Model: 1488 passati, 0 falliti, 3 nativi non eseguiti. API/EqualityAudit superati.
+Checker: 7912 passati, 0 falliti, 0 saltati; nessun fallimento ammesso o nascosto.
+Steel: 5616 passati (5494 Members + 122 net472).
+Concrete: 873 passati. ModelChecker: 444 passati.
+CompositeBridge: 382; Geotechnics: 193; Calculation: 174; ShallowFoundation: 28;
+EmbeddedWalls: 99; Design: 103. Tutti passati. Totale Model + Checker: 9400 passati.
+Quattro controlli API Checker senza rimozioni inattese.
+I tre test Model non eseguiti sono:
+- NativeLinearStaticBenchmark_EquilibriumAndMembraneResultants
+- EightNativePairsKeepGeometryAndGlobalActionSigns
+- NativeAssignments_LoadsAndGravityBalanceTheSolverReactions
+
+Riproduzione indipendente dei derivatori distribuiti: 30 oracoli dominio,
+identita' byte-per-byte del CS generato e 10 soluzioni limite/snervamento delle curve.
+Riferimenti e limiti in docs/concrete-legacy-migration-20261024.txt e nelle cartelle
+GPCChecker.Test.Concrete/ReferenceCalculations. Nessun valore catturato dal core
+e' diventato un nuovo atteso indipendente.
+
+VERSIONI DEL SET VALIDATO
+Libreria | AssemblyVersion
+GPCUtilities.dll | 3.0.0.0
+GPCGeometry.dll | 2.3.0.0
+DelaunayMesh.dll | 2.0.0.14
+GPCModel.dll | 5.20.0.2
+GPCModelData.dll | 0.3.0.1
+GPC.Model.Persistence.dll | 3.3.0.1
+GPC.Converter.dll | 2.6.0.1
+GPCChecker.Concrete.dll | 0.18.0.3
+GPCChecker.Steel.dll | 2.84.0.0
+GPCChecker.CompositeBridge.dll | 1.13.0.0
+GPCChecker.Geotechnics.dll | 0.19.0.1
+GPCModelChecker.dll | 2.23.0.0
+GPCChecker.Masonry.dll | 0.6.0.1
+GPC.Design.dll | 0.35.0.1
+
+IDENTITA' DEL CODICE E GIT
+Il codice validato e' Model 21f79f300c800688f5a537d72907d059bf56167f e
+Checker 5b7b5087b78a1969ede5fc40316bc95573dc9129. Entrambi portati su master
+con fast-forward autorizzato, senza merge di codice estraneo alle rispettive task.
+Questo rapporto e gli aggiornamenti di avanzamento sono un successivo commit
+esclusivamente documentale: non introducono codice o nuovi attesi, non richiedono
+un'altra versione DLL e non sono accompagnati da nuove esecuzioni di test.
+I commit restano locali; il pacchetto e' un CANDIDATO, non un rilascio pubblicato.
+
+LIMITI CHE RESTANO ESPLICITI
+- Le nuove API di connessione non qualificano nodi con meccanismi mancanti:
+  netto/block NVM dell'anima, completamento dei nodi a momento e altre aperture
+  restano nel piano; Sjini non viene usata per inventare MRd o capacita' rotazionale.
+- S1: la falsa convergenza e' impedita; il salto fisico del fallback non e' risolto.
+  Il typed restituisce NotConverged senza capacita' quando il piano e' fuori vincolo.
+- Sei rami R3 del catalogo restano non qualificati, con evidenza numerica ma senza
+  attribuire al campionamento angolare il valore di una dimostrazione globale.
+- I test delle curve verificano equilibrio discreto e misurano lo scarto continuo.
+  Nella T max|I-Q|N = 3749.385 N; non e' certificata un'accuratezza continua di 1000 N.
+
+EVIDENZE E PACCHETTO
+C:\Users\g.pacini\Documents\ChatGPT\Checker\audit-results\connections\candidate-steel-2-84-validated
+release-set.json identifica commit, versioni, SHA256 e suite. Il pacchetto conserva
+le evidenze dei test. Versioni controllate anche rispetto al precedente set AF:
+delle 14 DLL, ogni DLL cambiata ha versione superiore; tre sono invariate.
+
+PASSAGGIO ANTHEA, LASCIATO ALL'UTENTE
+Nessun sorgente, fixture, allowlist o snapshot ufficiale ANTHEA modificato.
+ANTHEA principale resta sul proprio branch refactoring/f5; nessun merge ANTHEA.
+Il candidato era stato provato nella worktree isolata aw-steel-284 sul commit 5b27a527.
+Il full e' stato INTERROTTO su indicazione dell'utente: 87 suite PASS e 15 FAIL concluse,
+non rappresenta un collaudo completo. Il confronto con AF sugli stessi sorgenti e'
+terminato prima dell'arresto: 5/5 suite mirate passate (piu' 3 build), incluso F3.
+I problemi isolati riguardano traduzione del nuovo rifiuto del piano, contratti
+di presentazione mescolati a vecchi numeri, una proiezione di versione omessa nelle
+fondazioni e differenze numeriche del nuovo solver nelle tracce/osservazioni.
+Proposte e diagnosi sono conservate nello staging, NON installate o collaudate.
+La presenza di test delle librerie verdi non qualifica automaticamente ANTHEA.
+I processi ANTHEA di questa attivita' sono terminati; nessuna nuova suite avviata.

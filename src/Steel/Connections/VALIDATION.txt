@@ -785,3 +785,16 @@ legacy iniziale/secante. Log/TRX closure-4g-initial-first nel workspace
 audit-results/connections. Nessun atteso/fixture/allowlist modificato.
 OracoliJRC e analiticiSCI, limiti e hardware dichiarati in
 PHASE_4G_INITIAL_CASE_IMPLEMENTATION.txt. Audit completo successivo richiesto.
+
+
+CHIUSURA LIBRERIE 24/10/2026 - STEEL 2.84 / MODEL 5.20.0.2
+2e.4b.1 e 4g.1/4g.2 chiuse nel rispettivo campo dichiarato; 158 nuovi test.
+Migrazione dei 5 contratti legacy approvata/eseguita senza cambiare fixture/allowlist.
+Release-Set -Candidate concluso: Checker 7912/7912, Model 1488 passati + 3 nativi
+non eseguiti, 0 fallimenti. Steel 5616/5616, Concrete 873/873,
+ModelChecker 444/444; API compatibili.
+Codice validato portato su master: Checker 5b7b5087, Model 21f79f30. Set 14 DLL locale,
+non pubblicato; nessun push. ANTHEA esclusa dalla chiusura per richiesta finale
+dell'utente; collaudo candidato interrotto e nessun sorgente/snapshot modificato.
+Restano le aperture meccaniche e i limiti numerici gia' dichiarati, senza falsa
+qualifica globale. Rapporto: CLOSURE_STEEL_2_84_LIBRARIES.txt. Test terminati.

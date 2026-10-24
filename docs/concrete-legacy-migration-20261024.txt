@@ -66,9 +66,11 @@ CONTRATTI E VERIFICHE MIRATE ESEGUITE
    I test deterministici esistenti continuano a respingere candidati fuori
    vincolo e direzioni opposte. Famiglia 5/5, closure-modelchecker-contract-green.
 
-Le prove complete del set coerente e di ANTHEA sono successive e distinte
-da queste esecuzioni mirate; il loro esito va letto nel rapporto del checkpoint
-Steel 2.84.0.0, senza attribuire loro retroattivamente questi risultati.
+Le prove complete del set coerente sono concluse: Checker 7912 passati / 0 falliti,
+Model 1488 passati / 0 falliti / 3 nativi non eseguiti. Tutti i cinque contratti migrati
+passano anche nella suite completa. ANTHEA e' stata esclusa dall'utente dalla
+chiusura finale: nessuna qualifica dell'applicazione e nessuna fixture modificata.
+Rapporto: src/Steel/Connections/CLOSURE_STEEL_2_84_LIBRARIES.txt.
 Produzione Concrete 0.18.0.3: guardia del piano e conservazione della diagnostica
 precedente quando il rifiuto riguarda gia' le risultanti. Queste migrazioni sono
 modifiche ai contratti di test e documentazione, non un ulteriore cambio di DLL.
