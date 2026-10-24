@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
-Versione sorgenteSteel2.80.0.0. Solo librerie, nessuna interfacciaANTHEA.
+Versione sorgenteSteel2.81.0.0. Solo librerie, nessuna interfacciaANTHEA.
 Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
 
 COMPONENTI
@@ -261,3 +261,6 @@ I risultati restano consumabili dalle librerie; integrazioneANTHEA rinviata.
 
 - FlexibleEndPlate.VerifyPairAssessment: conserva i due lati e i fallimenti
   noti anche con coppia fuori campo; VerifyPair mantiene il riepilogo legacy.
+
+- EndPlateBeamSectionAdapter / EndPlateMomentWithBeamSection: resistenza
+  trave dal coreSteel sul caso reale; PHASE_4_BEAM_SECTION_ADAPTER_IMPLEMENTATION.txt.

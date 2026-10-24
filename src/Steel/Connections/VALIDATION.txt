@@ -683,3 +683,33 @@ Versione feature2.80 per la nuova API additiva, in commit dedicato.
 Ordini dei lati, fallimenti di dettaglio a carico nullo, NS/NS, supporto
 comune, entrambiFailed, riepilogo legacy identico, immutabilita e null.
 Log/TRX:workspace audit-results/connections/night-2d-pair-assessment.
+
+
+4cde.4b - ADAPTER TRAVE CORE STEEL - STEEL2.81.0.0
+89nuovi casi passati,255/255con pipeline, momento e copertura taglio.
+Revisione indipendente conclusa. Materiali ali/anima omogenei dichiarati,
+geometriaModel reale, classificazione in flessione, stesso casoN/M/V e
+token resistente vincolato al nodo; nessun momento fittizio a domanda0.
+Classi1/2 conM-V e buckling taglio escluso; classe3 puroM usaWel, senza
+qualificare il taglio di un'anima snella. Classe4/fori/ibridi restanoNS.
+SovraccaricoV non esportaMc; sovraccaricoM conservaFailed nel wrapper.
+
+La prima esecuzione ha evidenziato15fallimenti nuovi dovuti alla perdita
+dei raccordi nelle copieModel. Causa e fix in Model9d3b1043,versioned554c0bd:
+Model5.20.0.2 ripristina la lavorazione dalSectionType gia persistito.
+17regressioniModel,15rosseprima e17verdi dopo; suiteModel1488passati e
+3nativeSkipped,API/EqualityAuditpassati. Nessun formato/fixture cambiato.
+
+Dopo il fix,14confronti nuovi restavano troppo stretti per il Wpl a64corde
+perquadrante. Solo4assertsuWpl/Mc circolari hanno tolleranza3e-5 coerente
+con il metodo dichiarato; attesi circolari invariati, A/J/Wel/Av/Vpl e
+confronti fra medesimi algoritmi restano stretti. Non e' un fixnormativo.
+Wpl esatto2360087.417021688mm3, Model2360099.852746546mm3 (+5.26918e-6);
+McEC esatto649024039.6809642Nmm, calcolato649027459.5053Nmm;
+McNTC esatto618118133.0294898Nmm, calcolato618121390.0050477Nmm.
+SCI649kNm stampato resta confronto distinto con tolleranza0.5kNm.
+
+Log/TRX:night-4-beam-adapter (rosso),night-after-model-before-tolerance
+(separa bug/tolleranza),night-4-beam-adapter-green (255passati).
+Tutti nel workspaceaudit-results/connections. Nessun atteso legacy o
+allowlist modificato. Non qualifica l'asta intera o il nodo completo.

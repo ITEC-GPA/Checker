@@ -1,0 +1,185 @@
+FASE 4 - ADAPTER SEZIONE REALE DELLA TRAVE END PLATE
+24/10/2026. Staging; nessuna build, installazione o operazione Git eseguita dall'agente.
+Spec approvata da root e gia presente nel repository: NON sovrascriverla.
+
+CAMPO IMPLEMENTATO
+
+EndPlateBeamSectionAdapter.Evaluate riceve lo snapshot SteelSectionInput del
+Model, le stesse istanze ConnectionDesignCode/ConnectionRolledISection destinate
+al nodo, tutte le6azioni concomitanti e fy/fu delle ali espliciti. Verifica
+geometria I/H laminata a caldo, ali identiche, asse principale1 orizzontale,
+materiale omogeneo effettivo allo spessore di ali/anima, sezione integra e
+assenza dichiarata di intagli/aperture. Non assume fy dell'ala dal fy dell'anima.
+Le dimensioni devono coincidere entro8epsilon relativi di sola aritmetica;
+solo l'area di catalogo conserva la tolleranza0.5% del contratto esistente.
+Le proprieta resistenti restano sempre quelle della geometria Model esatta.
+
+Le azioni ammesse sono N=M2=V1=T=0, M1>=0 e V2 firmato. Non vengono cancellate
+azioni piccole fuori campo. Asse1=X,asse2=Y,asse3=Z lungo la trave uscente dal
+pilastro; azioni al baricentro del taglio, nessun trasporto inventato.
+Il segno e stato verificato nel codice EffectiveSectionState.Stress:
+per Ixy0/asse1orizzontale sigma=N/A+M1*(y-Y)/Ixx-M2*(x-X)/Iyy.
+Quindi M1positivo tende l'ala superiore, come il nodo end plate. Un test usa
+quel metodo eseguibile sullo stato lordo e controlla entrambe le fibre estreme.
+
+Classificazione di RESISTENZA in flessione: parte d'anima alpha0.5/psi-1,
+ala inferiore compressa uniforme. L'ala superiore e tesa; la simmetria delle
+due ali viene prima verificata. Anche a M0 viene dichiarato il pattern di
+capacita, senza costruire un momento fittizio o applicare il rilassamento
+EN5.5.2(9). I kernel esistenti classificano le parti; per NTC la sola aritmetica
+comune InternalLimits/Classify viene riusata mantenendo la reference nazionale.
+
+Classi1/2: resistenza M-V con i kernel comuni Bending, Shear, ShearReductionRho,
+MajorIMomentWithShear; esclusione buckling a taglio dimostrata sullo stesso
+input. Il criterio usa hw tra ali inclusi i raccordi, non c di classificazione.
+La richiesta di esclusione resta conservativamente applicata all'export del
+ramo plastico anche a V0; nessun pannello snello qualificato implicitamente.
+Classe3: solo V0, resistenza Wel. Se il criterio del buckling a taglio sarebbe
+superato, l'assessment resta false ma l'assenza reale di taglio consente la
+pura flessione elastica. In questo caso NON viene emesso un ConnectionCheck
+di resistenza plastica a taglio; nella pipeline il taglio resta NotRequired.
+Classe4, materiale differenziato, sezioni perforate e classe3+V restano NS.
+
+Viene sempre conservata la pipeline eseguita sulle azioni REALI nel campo
+ammesso. Un suo check NS/RequiresPreparation/InvalidInput/CalculationError
+impedisce export. Per il caso nullo i check NotRequired rimangono tali: nessun
+M1=1 fittizio per ottenere una capacita. I metodi comuni scalari determinano
+la capacita anche in questo caso. A V>Vpl il risultato e Failed, con verifica
+taglio fallita e nessun Mc esportato; non si usa rho=1 per mascherare l'eccesso.
+A M>Mc la sezione resta Failed, pur conservando Mc finito come dato resistente.
+
+EndPlateMomentWithBeamSection.Verify accetta input nodo e assessment e lega:
+- token DerivedResistance mediante ReferenceEquals, non uguaglianza numerica;
+- identita Code e Beam;
+- N/M1/abs(V2) esatti. Il segno V2 resta nell'assessment.
+Le stringhe Source sono provenienza, non certificazione e non sostituiscono
+il legame degli input. Etichette diverse di provenienza non sono un mismatch.
+Il wrapper conserva entrambi gli esiti, inclusi Failed e NS; nessun risultato
+qualifica l'asta intera o il nodo completo. API manuale esistente invariata.
+
+FONTI E ORACLE
+
+EN1993-1-1:2005 Table5.2,6.2.5,6.2.6,6.2.8 eq6.29-30;
+NTC2018 4.2.3.1 Tabelle4.2.III-IV,4.2.4.1.2.3/4/6 e4.2.30-32;
+SCI P398 C.1 p103 (PDF111), Mc,Rd649kNm pubblicato e mantenuto separato.
+Fonti gia verificate nella fase di specifica; nessuna nuova fonte sperimentale.
+
+derive_end_plate_beam_section.py e indipendente dalle DLL: integra le aree
+rettangolari e i4raccordi quadrato-meno-quarto-di-cerchio. Per un raccordo:
+Ar=(1-pi/4)r^2; Qr=(5/6-pi/4)r^3; Jr=(1-5pi/16)r^4.
+L'integrale del blocco di tensioni riduce solo la tensione dell'anima
+rettangolare a(1-rho)fy; flange e radici rimangono a fy. Non chiama Model o
+Checker. C.1: A11737.802520902502mm2, Wpl2360087.417021688mm3,
+I552273065.0878704mm4, Wel2071930.4636573638mm3, Av5761.442520902502mm2.
+McEC649024039.6809642Nmm, VplEC914751.8573499944N;
+McNTC618118133.0294898Nmm, VplNTC871192.2450952327N.
+A V=.75Vpl: McEC605295147.3825266, McNTC576471568.9357396Nmm.
+Questa e una derivazione analitica, NON prova sperimentale del nodo completo.
+Il file Python e stato eseguito e produce10casi JSON nuovi; nessuna fixture
+preesistente o atteso legacy e stata modificata/rigenerata.
+
+TEST PREPARATI, NON ESEGUITI DALL'AGENTE
+
+89casi:13TestMethod +76DataRow in20DataTestMethod.
+Coprono EC/NTC, SCI stampato separato dalle proprieta esatte, raggi, area di
+catalogo, segno fisico M1, pattern flessione diverso da compressione e M0,
+V/Vpl0,.5,.500001,.75,1, entrambi segni diV, M0 ad alto taglio, V>Vpl,
+M>McFailed nel wrapper, confini classi1/2/3/4, classe2M-V e classe3Wel,
+classe3anima snella/V0 senza falsa resistenza a taglio, hw e c distinti,
+buckling non escluso, piccole azioni fuori campo, fori/netto/intagli,
+materiali ali/anima distinti, dimensioni/assi/asimmetria/fabbricazione,
+altre famiglie Model, fonti mancanti, policyetaNTC/EC, overflow reali,
+binding token/codice/trave/azioni, NS del nodo, snapshot e input invalidi.
+Le tolleranze inizialmente preparate erano relative2e-10 per tutti gli
+integrali; vedere la correzione motivata di precisione in appendice: solo
+Wpl/Mc da raccordi discretizzati richiedono3e-5, senza cambiare gli attesi.
+SCI649kNm conserva la propria tolleranza di stampa0.5kNm. Il confine V=Vpl
+usa Vpl gia controllato indipendentemente, per non introdurre falsi
+superamenti da somma floating point.
+
+MANIFEST (solo questi nuovi file; root installa, compila e committa)
+
+EndPlateBeamSectionAdapter.cs
+ -> src/Steel/Connections/EndPlateBeamSectionAdapter.cs
+EndPlateBeamSectionAdapterTests.cs
+ -> tests/Steel.Members.Tests/EndPlateBeamSectionAdapterTests.cs
+PHASE_4_BEAM_SECTION_ADAPTER_IMPLEMENTATION.txt
+ -> src/Steel/Connections/PHASE_4_BEAM_SECTION_ADAPTER_IMPLEMENTATION.txt
+derive_end_plate_beam_section.py
+ -> tests/Steel.Members.Tests/Fixtures/derive_end_plate_beam_section.py
+end_plate_beam_section_cases.json
+ -> tests/Steel.Members.Tests/Fixtures/end_plate_beam_section_cases.json
+
+Filtro minimo root: FullyQualifiedName~EndPlateBeamSectionAdapterTests
+Regressioni pertinenti: EndPlateMomentComponentTests, CommonShearCoverageTests,
+SteelVerificationPipelineTests. Nessuna build concorrente avviata dall'agente.
+
+LIMITI ANCORA APERTI
+
+L'adapter qualifica il taglio della trave e la sua sezione al nodo; non
+trasferisce il taglio nei bulloni/saldature/supporto, non risolve la stabilita
+del membro o FEM, non apre N!=0 o momento invertito, non inferisce capacita
+rotazionale o classe del collegamento. I componenti del nodo restano necessari
+e i loro limiti restano espliciti nel risultato conservato dal wrapper.
+
+APPENDICE - DIFETTO MODEL E PRECISIONE NUMERICA, 24/10/2026
+
+Esecuzione root del blocco iniziale: 240/255 passati; 15 fallimenti nei nuovi
+adapter. Due dei nuovi test confrontavano gia A corretta prima di fallire
+su Wpl. La ricerca ha individuato la perdita di ThinWallSection._edgeWorking
+durante ModelValues.CopyValue: area e inerzie erano serializzate con raccordi,
+ma Wpl differito e contorni venivano ricostruiti come Sharp=0. Il fix Model
+separato ripristina la lavorazione da SteelSection.SectionType durante la
+deserializzazione. Root ha eseguito 17 regressioni Model dedicate:
+prima 15 fallite / 2 passate, dopo 17/17 passate. Nessun atteso o campo di
+archivio alterato per ottenere il risultato positivo.
+
+Misura root dopo il fix:
+- Wpl Model originale/copia con 64 corde per quadrante: 2360099.852746546 mm3;
+- oracle circolare analitico invariato: 2360087.417021688 mm3;
+- differenza 12.435724857729 mm3, relativa 5.26917976344e-6 = 0.000526918%.
+Prima del ripristino Wpl era 2325735.515250002 mm3: errore -1.45553514348%,
+causato dalla perdita intera dei quattro raccordi, non dalla discretizzazione.
+Mc EC dopo il fix = 649027459.5053 Nmm, oracle = 649024039.6809642 Nmm:
+scarto 3419.8243359 Nmm = 0.0034198243 kNm. Il bug precedente toglieva 9.446773 kNm.
+
+SectionOutline.cs documenta 64 corde/quadrante e limite relativo 3e-5 sulle
+proprieta della sezione. La patch separata
+EndPlateBeamSectionAdapter.TessellationTolerance.patch applica quel limite
+SOLO ai quattro punti di confronto Wpl/Mc contro gli integrali circolari
+indipendenti. Valori attesi, oracle Python/JSON e formule produttive rimangono
+identici. A/J/Wel/Av/Vpl, rho e confronti fra risultati dello stesso algoritmo
+mantengono la tolleranza 2e-10. Un confronto aggiunto verifica strettamente la
+medesima Mc fra adapter e pipeline allo stesso stato ad alto taglio.
+La patch dei nuovi test e pronta in staging, non applicata dall'agente;
+root riesegue prima i test as-is, poi applica e verifica il risultato.
+
+
+4cde.4b - ADAPTER TRAVE CORE STEEL - STEEL2.81.0.0
+89nuovi casi passati,255/255con pipeline, momento e copertura taglio.
+Revisione indipendente conclusa. Materiali ali/anima omogenei dichiarati,
+geometriaModel reale, classificazione in flessione, stesso casoN/M/V e
+token resistente vincolato al nodo; nessun momento fittizio a domanda0.
+Classi1/2 conM-V e buckling taglio escluso; classe3 puroM usaWel, senza
+qualificare il taglio di un'anima snella. Classe4/fori/ibridi restanoNS.
+SovraccaricoV non esportaMc; sovraccaricoM conservaFailed nel wrapper.
+
+La prima esecuzione ha evidenziato15fallimenti nuovi dovuti alla perdita
+dei raccordi nelle copieModel. Causa e fix in Model9d3b1043,versioned554c0bd:
+Model5.20.0.2 ripristina la lavorazione dalSectionType gia persistito.
+17regressioniModel,15rosseprima e17verdi dopo; suiteModel1488passati e
+3nativeSkipped,API/EqualityAuditpassati. Nessun formato/fixture cambiato.
+
+Dopo il fix,14confronti nuovi restavano troppo stretti per il Wpl a64corde
+perquadrante. Solo4assertsuWpl/Mc circolari hanno tolleranza3e-5 coerente
+con il metodo dichiarato; attesi circolari invariati, A/J/Wel/Av/Vpl e
+confronti fra medesimi algoritmi restano stretti. Non e' un fixnormativo.
+Wpl esatto2360087.417021688mm3, Model2360099.852746546mm3 (+5.26918e-6);
+McEC esatto649024039.6809642Nmm, calcolato649027459.5053Nmm;
+McNTC esatto618118133.0294898Nmm, calcolato618121390.0050477Nmm.
+SCI649kNm stampato resta confronto distinto con tolleranza0.5kNm.
+
+Log/TRX:night-4-beam-adapter (rosso),night-after-model-before-tolerance
+(separa bug/tolleranza),night-4-beam-adapter-green (255passati).
+Tutti nel workspaceaudit-results/connections. Nessun atteso legacy o
+allowlist modificato. Non qualifica l'asta intera o il nodo completo.

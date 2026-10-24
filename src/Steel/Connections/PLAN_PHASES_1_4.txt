@@ -37,10 +37,10 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1961 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 2050 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,70endplate,123tying piastra/anima/saldature/supporto locale e aggregazione,
    83componenti doppie squadrette/supporto,82tying doppie squadrette,208precarico/scorrimento,365continuitaI,
-   40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,50cordoni/blocco imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,56CJP superiore a filo,20aggregazione endplate,26rigidezza rotazionale,77classificazione/criteri rotazione,22dominioN+V.
+   40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,50cordoni/blocco imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,56CJP superiore a filo,20aggregazione endplate,89adattatore traveSteel,26rigidezza rotazionale,77classificazione/criteri rotazione,22dominioN+V.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
@@ -164,7 +164,10 @@ FASE 4 - NODI A MOMENTO
    a taglio del nodo. Vedere anche PHASE_4CDE_WELD_COMPONENTS.txt.
    Chiusa4cde.4a: ingresso comune momento/bulloni/saldature su stesso
    risultato immutabile,20nuovi test;123/123con i componenti figli.
-   PHASE_4CDE_CONNECTION_ASSESSMENT.txt. Netto/block, membro e rotazione
+   PHASE_4CDE_CONNECTION_ASSESSMENT.txt. Chiusa4cde.4b: resistenza sezione
+   trave dal coreSteelEC/NTC con token vincolato al nodo,89test nuovi e
+   255/255con i percorsi riusati. PHASE_4_BEAM_SECTION_ADAPTER_IMPLEMENTATION.txt.
+   Netto/block, membro e rotazione
    restano aperti. Nessuna qualifica globale; PHASE_4CDE_MOMENT_COMPONENTS.txt e
    PHASE_4CDE_BOLT_COMPONENTS.txt.
 4f PARZIALE - Chiusa4f.1: rigidezza iniziale/secante delle end plate sul
@@ -228,3 +231,7 @@ Materiali omogenei iniziali, nessun momento fittizio, token del medesimo caso.
 4cde.4a e nuovo risultato coppia ordinaria gia committati:34test aggiuntivi
 passati dopo audit2.78. Ultima versione sorgente2.80.0.0; audit generale
 rimane quello2.78, non viene attribuito retroattivamente alle nuove API.
+
+4cde.4b CHIUSA nel campo I/H laminati omogenei, classi1/2M-V e classe3V0.
+FixModel5.20.0.2 necessario per conservare raccordi nelle copie:17nuovitest,
+1488passati complessiviModel,3nativeSkipped,API/audit compatibili.
