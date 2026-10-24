@@ -171,7 +171,7 @@ namespace GPC.Checker.SectionSolvers
                     return null;
             }
 
-            return new FailureDomain.FailureDomainPoint(forceTuple, _failureIndex, strainPlane, immersione) { WorkingRatio = workingRatio };
+            return new FailureDomain.FailureDomainPoint(forceTuple, _failureIndex, strainPlane, immersione) { WorkingRatio = workingRatio, InterpolatedStrainPlane = true };
 
 
             // Internal utility.

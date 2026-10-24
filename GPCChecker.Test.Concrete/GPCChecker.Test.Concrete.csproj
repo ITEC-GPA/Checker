@@ -100,6 +100,7 @@
     <Compile Include="DomainPointIndependentData.cs" />
     <Compile Include="DomainPointNewtonTests.cs" />
     <Compile Include="DomainPointFallbackPlaneTests.cs" />
+    <Compile Include="DomainPointIntersectionPlaneTests.cs" />
     <Compile Include="StressBlockIntegrationTests.cs" />
     <Compile Include="AnalyticParabolaIntegrationTests.cs" />
     <Compile Include="DomainPointAxialToleranceTests.cs" />

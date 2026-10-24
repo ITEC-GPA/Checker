@@ -453,6 +453,13 @@ namespace GPC.Checkers.Concrete.Results
                 set => _workingRatio = value;
             }
 
+            /// <summary>
+            /// True for a point of the intersection strategy: its forces lie on the discretized domain, on the ray of the demand, while its
+            /// strain plane is interpolated from the planes of the vertices of the mesh face and does not integrate to those forces.
+            /// Not serialized and not part of the equality.
+            /// </summary>
+            internal bool InterpolatedStrainPlane { get; set; }
+
             #endregion
 
             #region Constructor

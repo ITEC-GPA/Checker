@@ -113,3 +113,68 @@ closure-concrete-plane-green. Le prove complete successive sono distinte.
 L'esitoNotConverged diS1 corregge una falsa attestazione di convergenza.
 La disponibilita' di una soluzione fisicaS1 e la migrazione dei cinque
 contratti restano da completare: non sono chiuse da questa guardia.
+
+
+STRATEGIA INTERSEZIONE ESCLUSA DALLA GUARDIA DEL PIANO - 24/10/2026 (Concrete 0.20.0.1)
+
+Sintomo. In ANTHEA, con la strategia "Intersezione" scelta dall'utente, la
+griglia di prova 12d aveva 164 forze su 300 respinte per tutti i criteri con
+"The returned strain plane does not satisfy the search constraints."; sezioni
+prima VERIFICATE (eta 0,253) risultavano DA COMPLETARE. Nessun rifiuto nuovo
+con la strategia iterativa.
+
+Causa (confermata). DomainPointStrategyIntersection restituisce come forze il
+punto in cui il raggio della domanda taglia la mesh del dominio: sta sul
+raggio, quindi supera il controllo del punto. Il piano di deformazione invece
+e' costruito interpolando angolo e immersione dei tre vertici della faccia
+(BuildPlane): e' un piano di rottura vero, ma le sue risultanti stanno sulla
+superficie continua vicino alla faccia, non sul raggio. La guardia di
+62ecbc83/c611b709 reintegra quel piano e lo confronta con le tolleranze della
+ricerca diretta (per esempio SearchAngle 2,5e-4 rad): con l'intersezione lo
+scarto e' sistematico (SearchAngle da 5e-3 a 0,3 rad nella griglia di prova).
+
+Regola adottata. La guardia del piano vale solo per i punti cercati
+direttamente (Newton/iterativa, bisezione, comprese le sonde di
+AssignedAxialForceOutcome quando la ricerca e' diretta). Un punto prodotto
+dall'intersezione, scelta dall'utente o raggiunta come ripiego, porta il
+contrassegno interno FailureDomainPoint.InterpolatedStrainPlane (impostato
+dalla strategia, conservato dalla rotazione agli assi di riferimento delle
+forze, non serializzato, fuori dall'uguaglianza) e resta soggetto al solo
+controllo del punto, come prima di 62ecbc83. Le tolleranze della ricerca
+diretta non cambiano. Non si controlla il piano dell'intersezione con una
+tolleranza propria: la strategia non ne definisce una sull'accuratezza
+(_failureAnalysisIntersectionTolerance = 10 e' solo la soglia del rapporto
+nullo) e lo scarto dipende dalla finezza della mesh; una tolleranza scelta a
+posteriori non sarebbe giustificabile. Il piano esportato con l'intersezione
+resta indicativo, come dichiarato nella documentazione della strategia.
+
+Prove. DomainPointIntersectionPlaneTests (nuova, 6 casi): sezione R1 del
+banco F2.1, parabola-rettangolo, SLU, 32 suddivisioni; 4 N x 12 direzioni x
+2 momenti = 96 forze per criterio, cinque criteri.
+- Prima della correzione (libreria con il solo contrassegno, regola di
+  0.20.0.0): 6/6 rossi. Nella griglia 329 forze su 480 respinte dalla guardia
+  del piano (eccentricita' costante 90/96, N costante 90/96, MxMy costanti
+  35/96, N-Mx 65/96, N-My 49/96); la sonda N = -5000 kN (oltre NRd,c)
+  ripiegava sull'estremo dell'intervallo (My+).
+- Dopo: 6/6 verdi. Ogni punto dell'intersezione che rispetta i vincoli con le
+  proprie forze (351/480) e' Completed con quelle forze; per eccentricita'
+  costante e N costante l'utilizzo sta tra 1 - 1e-3 e 1 + 0,09 di quello della
+  ricerca diretta (faccia = corda del dominio convesso, dal lato della
+  sicurezza; 0,09 e' l'errore massimo gia' ammesso per l'intersezione in
+  FailureDomainIntesectVsDirect). Osservato: 1,000-1,063 (N costante),
+  1,000-1,036 (eccentricita' costante). La prova richiede anche che la griglia
+  contenga piani interpolati fuori dal raggio, per non diventare vacua.
+- Strategia iterativa invariata: 4624 risposte di SolveResistance (catalogo
+  dei 1024 punti di DomainPointContractTests e griglia R1 per quattro
+  diagrammi, cinque criteri, cinque N, dodici direzioni, tre momenti) sono
+  identiche byte per byte prima e dopo la correzione (stato, messaggio, N, M1,
+  M2, utilizzo, modo, piano). Nei 1504 punti esaminati il ripiego
+  sull'intersezione non supera mai il controllo del punto, quindi la regola
+  non vi cambia esiti.
+- DomainPointFallbackPlaneTests (5 casi S1 e controlli analitici), famiglia
+  Newton/piano, AssignedAxialForceOutcomeTests, FailureDomainIntesectVsDirect,
+  contratti di dominio e curvatura: verdi.
+Osservazione fuori perimetro: con l'intersezione la domanda a N costante senza
+momento (R1, N = 0) non raggiunge il modo ZeroMomentDemand: la risposta e'
+Completed dalla ricerca principale. Non indagato; non dipende dalla guardia
+del piano, che sui punti dell'intersezione non si applica piu'.

@@ -95,6 +95,9 @@ namespace GPC.Checkers.Concrete.Analysis
         /// This does not certify equality of all exported and reintegrated forces along the demand ray. Raw APIs and the discontinuous
         /// stress-block interpolation policy remain unchanged. Every typed export of a searched point uses this guard, including the
         /// constant-eccentricity and unit-moment probes of AssignedAxialForceOutcome. Axial range ends are directly integrated planes.
+        /// Points of the intersection strategy (<see cref="FailureDomain.FailureDomainPoint.InterpolatedStrainPlane"/>, chosen by the user or
+        /// reached as a fallback) keep the check of the point alone, as before 24/10/2026: their forces are the intersection of the demand ray
+        /// with the discretized domain, their plane is interpolated between the vertices of the face and never integrates to forces on the ray.
         /// </summary>
         private ResistanceConvergence ValidateReturnedPointAndPlane(ResultBeamForces demand,
             FailureDomain.FailureDomainPoint point, SectionSolver.FailureAnalysisTypes criterion, out bool planeRejected)
@@ -102,7 +105,7 @@ namespace GPC.Checkers.Concrete.Analysis
             planeRejected = false;
             var solver = _checker.SectionSolver;
             var result = DomainPointConvergence.Evaluate(solver, demand, point, criterion);
-            if (!result.Accepted || solver.ConcreteMaterial.CompressionStressStrainDiagram ==
+            if (!result.Accepted || point.InterpolatedStrainPlane || solver.ConcreteMaterial.CompressionStressStrainDiagram ==
                 GPC.Model.Materials.ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock) return result;
             var integrated = solver.GetExternalForces(solver.CalculateForceResultantForDomain(point.StrainPlane),
                 solver.SectionOption.ForceReferenceCoordinateSystem);

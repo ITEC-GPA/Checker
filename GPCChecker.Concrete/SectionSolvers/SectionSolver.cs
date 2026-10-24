@@ -773,7 +773,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             if (point == null || HasTheSolverAxes(forceAxes))
                 return point;
             ResultBeamForces forces = new ResultBeamForces(point.NRd, 0, 0, 0, point.MxRd, point.MyRd, SolverAxes).ToCoordinateSystem(forceAxes);
-            return new FailureDomain.FailureDomainPoint(new ForceTuple(forces.N, forces.M1, forces.M2), point.FailureIndex, point.StrainPlane, point.Immersione);
+            return new FailureDomain.FailureDomainPoint(new ForceTuple(forces.N, forces.M1, forces.M2), point.FailureIndex, point.StrainPlane, point.Immersione)
+            { InterpolatedStrainPlane = point.InterpolatedStrainPlane };
         }
 
         [NonSerialized]
