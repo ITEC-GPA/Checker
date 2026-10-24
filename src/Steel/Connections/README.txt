@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
-Versione sorgenteSteel2.75.0.0. Solo librerie, nessuna interfacciaANTHEA.
+Versione sorgenteSteel2.76.0.0. Solo librerie, nessuna interfacciaANTHEA.
 Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
 
 COMPONENTI
@@ -246,3 +246,6 @@ I risultati restano consumabili dalle librerie; integrazioneANTHEA rinviata.
 
 - FlexibleEndPlateTyingWeld / FlexibleEndPlateTyingSupportWeb: saldature
   e meccanismo locale dell'anima; PHASE_2D_TYING_WELD_SUPPORT_IMPLEMENTATION.txt.
+
+- TopFlushCjpEndPlateWeldComponents: CJP superiore a filo, piede interno
+  reale e fondo prolungato; PHASE_4C_3_TOP_FLUSH_CJP_IMPLEMENTATION.txt.

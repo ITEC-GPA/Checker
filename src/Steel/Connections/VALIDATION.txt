@@ -521,3 +521,24 @@ Le distanze di 40 mm contengono la piastra, senza certificare le yield lines.
 Nessuna aspettativa legacy modificata. Il check figlio Failed resta
 visibile e non viene sostituito da un esito favorevole del nuovo componente.
 Log/TRX: workspace audit-results/connections/night-2d-tying-weld-support.
+
+
+4c.3a - CJP SUPERIORE A FILO - STEEL 2.76.0.0
+56 nuovi casi passati; 79/79 con le saldature end plate esistenti.
+Revisione indipendente completata senza rilievi. Fonti EN1993-1-8:2005
+4.7.1, NTC2018 4.2.8.2.1 e SCI P398 STEP7 verificate visivamente.
+Il dettaglio comprende CJP superiore, cordone interno reale coerente col
+T-stub e prolungamento inferiore. Non rappresenta il vero flush completo.
+La sezione normale dell'ala fornisce Af*fy/gammaM0 solo dopo i controlli
+di fusione, larghezza, apporto matching e materiale/spessore della piastra.
+Nessuna resistenza artificiale min(tf,tp), nessun fillet esterno superiore,
+nessun contributo aggiunto del cordone interno. Equivalenza D=R distinta
+dalla verifica al momento applicato e dalla resistenza completa del nodo.
+Benchmark analitico: 660000 N EC, 628571.428571 N NTC. Variante della
+geometria SCI C1, con piastra S355 e nuovo dettaglio esplicitamente diversi
+dalla fonte: 897897 N EC, 855140 N NTC. Il C1 originale con piastra piu
+debole resta fuori da questa equivalenza semplice, senza correggere attesi.
+Tutto il taglio resta nei cordoni dell'anima: 360.318501662 MPa EC e
+344.416657631 MPa NTC per V=300 kN, con inviluppo normale concomitante.
+CanQualifyWholeJoint e IsFullyFlushGeometry restano false.
+Log/TRX: workspace audit-results/connections/night-4c-top-flush-cjp.

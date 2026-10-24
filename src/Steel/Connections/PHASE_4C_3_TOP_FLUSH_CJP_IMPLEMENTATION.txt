@@ -1,0 +1,134 @@
+FASE 4c.3a - CJP SUPERIORE A FILO, CORDONE INTERNO REALE, FONDO PROLUNGATO
+=====================================================================
+Campo approvato in PHASE_4C_3_TOP_FLUSH_CJP_SPEC.txt; questa nota descrive
+la consegna concreta e NON modifica la specifica gia' committata da root.
+
+API e geometria
+--------------
+Nuovo file TopFlushCjpEndPlateWeldComponents.cs:
+ - EndPlateCjpFlangeDetail: profondita di fusione, larghezza efficace,
+   cateti interno/esterno effettivi, minimi all-weld fy/fu e qualifiche;
+ - TopFlushCjpEndPlateWeldInput: stesso parent di momento, altezza reale
+   della piastra e proiezione superiore esplicite, materiali effettivi,
+   condizioni dei fillet anima/inferiori e fonti locali;
+ - TopFlushCjpEndPlateWeldResult: valutazione del solo componente, parent
+   invariato, PendingChecks, CanQualifyWholeJoint=false e
+   IsFullyFlushGeometry=false;
+ - TopFlushCjpEndPlateWeldComponents.Verify.
+
+Nessuna modifica ai file/contratti esistenti, nessun helper condiviso o
+patch nascosta. Viene riusato direttamente FilletWeldResistance per i
+cordoni dell'anima e inferiori. La sola aritmetica specifica aggiunta e'
+quella delle lunghezze efficaci e dell'inviluppo normale completo; non si
+costruisce un falso parent esteso per chiamare EndPlateWeldComponents.
+
+L'altezza reale deve essere pari a beam.Height+lowerProjection+topProjection;
+topProjection e OuterFilletLeg devono essere nulli. ExtensionGeometry=null
+da sola non basta. Il cateto interno coincide con quello del T-stub
+originario e resta un cordone REALE con gola>=3 mm, tratto rettilineo
+>=max(30 mm,6a), estremita/transizioni a piena misura qualificate.
+Non gli viene attribuita resistenza aggiuntiva oltre la CJP.
+Il fondo conserva la proiezione necessaria alla coppia di cordoni inferiore.
+
+Resistenza e condizioni
+-----------------------
+Fusione e larghezza devono coprire tf e bf. La sezione accreditata e' sempre
+Af=bf*tf; valori di fusione/larghezza maggiori non la moltiplicano.
+Per l'equivalenza semplice la piastra ha tp>=tf, fy_plate>=fy_flange e
+fu_plate>=fu_flange; l'apporto ha minimi fy/fu almeno pari al massimo dei
+corrispondenti minimi delle parti. La mancata condizione rende il campo
+NotSupported e non prova l'insufficienza del nodo reale.
+
+Resistenza equivalente locale CJP=Af*fy_flange/gammaM0.
+Il check Cjp.FullStrengthNormalEquivalence ha domanda uguale alla
+resistenza per esprimere l'equivalenza normativa condizionata. Non e'
+il rapporto domanda/capacita del nodo al suo momento applicato: il suo
+utilizzo1 non indica esaurimento del nodo e resta esplicito nell'ID.
+Non usare min(tf,tp), fy della piastra su un'area fittizia, beta_w oppure
+gammaM2 per questa equivalenza. Nessuna nuova capacita parent e' derivata.
+
+EN1993-1-8:2005 4.7.1 e NTC2018 4.2.8.2.1 sono i riferimenti diretti
+alla piena penetrazione. I due criteri sono stati verificati nelle fonti
+primarie, rispettivamente p45/PDF47 e pp112-113/PDF116-117.
+SCI P398 STEP7 pp38-39/PDF46-47 giustifica il campo full-strength dell'ala
+e la distinzione anima/compressione/transizioni; JRC96658 2.2.3 p101/PDF117
+conferma la regola di piena penetrazione. Nessuna fonte viene presentata
+come calcolo pubblicato del nuovo dettaglio specifico.
+
+Tutto V concomitante rimane nei cordoni dell'anima (EN6.2.2(1)); il loro
+taglio parallelo interagisce con sigma_perp=tau_perp dell'inviluppo a pieno
+snervamento della parete. L'ala superiore non riceve una quota fittizia di V.
+L'ala inferiore usa appoggio diretto qualificato oppure inviluppo normale
+completo nei due fillet, secondo l'opzione esplicita. Il contatto non viene
+inferito dal solo segno compresso. Le condizioni estremita EC/NTC valgono
+per i fillet e non riducono la larghezza o la fusione della CJP di2a.
+
+Limiti conservati
+-----------------
+N=0 e orientamento M/V restano quelli del parent; una richiesta fuori dal
+campo del parent non e' corretta o riclassificata dal nuovo metodo.
+La piena penetrazione numericamente compatibile non certifica procedura,
+preparazione, difetti, ispezione, proprieta nello spessore o strappo lamellare.
+Le fonti obbligatorie registrano il trattamento esterno di questi punti.
+Flessione locale della piastra, T-stub, tensioni tridimensionali di
+introduzione, netto/block, altre parti del nodo e rotazione restano distinti.
+Non viene dichiarato un nodo full-strength, duttile o interamente verificato.
+Il vero filo anche inferiore resta aperto: richiede un nuovo profilo dei
+cordoni e una dispersione di compressione qualificata, come nella spec.
+
+Benchmark e test
+----------------
+derive_top_flush_cjp.py, Decimal40, senza importare Checker:
+ - bf200,tf12,fy275: Af2400 mm2, CJP660000 N EC e628571.4285714286 N NTC;
+ - variante della geometria SCI C1 con piastra S355 e CJP superiore:
+   bf209.3,tf15.6 ->Af3265.08 mm2, CJP897897 N EC e855140 N NTC;
+ - anima tw10.1,clear476.5,cateto8,V300000:
+   sigma=tau_perp173.59375 MPa EC, tau_parallel55.6484875015646 MPa;
+   equivalente360.3185016619121 MPa su385.8823529411765 MPa;
+   NTC equivalente344.4166576313204 MPa;
+ - frontiera di V EC524211.4980928528 N;
+ - ala compressa senza appoggio, cateto8: sigma=tau_perp=-268.125 MPa,
+   equivalente536.25 MPa; cateto12: -178.75 MPa, equivalente357.5 MPa.
+
+Sono benchmark ANALITICI di implementazione, non prove sperimentali o
+validazioni complete indipendenti del nodo. Il materiale S355 e la CJP
+distinguono la variante dal C1 originale. La piastra originale fy265
+inferiore a fy_flange275 e' esplicitamente NotSupported nel primo campo,
+senza cambiare i valori per ottenere un esito favorevole.
+
+TopFlushCjpEndPlateWeldTests include equivalenze EC/NTC e i casi invalidi:
+fusione/copertura incomplete, parziale penetrazione, matching in fy/fu,
+piastra debole/sottile, altezza e posizione reale, piede interno incoerente,
+fillet esterno impossibile, gola/lunghezza interna minima, fonti mancanti,
+appoggio vs saldatura inferiore, interazione V/anima, estremita difettose o
+nominali, domanda nulla, parent/assi/materiali conservati, roundoff e valori
+estremi/invalidi. Il conteggio esatto e' riportato nel manifest di consegna.
+
+Stato alla consegna
+-------------------
+Derivatore Python eseguito. C# non compilato/testato da questo agente:
+la verifica e' centralizzata presso root.
+Filtro: FullyQualifiedName~TopFlushCjpEndPlateWeldTests
+Installer proposto: install_top_flush_cjp.py, NON eseguito; solo file nuovi
+con CRLF. Non include la spec gia' presente nel repository.
+
+
+4c.3a - CJP SUPERIORE A FILO - STEEL 2.76.0.0
+56 nuovi casi passati; 79/79 con le saldature end plate esistenti.
+Revisione indipendente completata senza rilievi. Fonti EN1993-1-8:2005
+4.7.1, NTC2018 4.2.8.2.1 e SCI P398 STEP7 verificate visivamente.
+Il dettaglio comprende CJP superiore, cordone interno reale coerente col
+T-stub e prolungamento inferiore. Non rappresenta il vero flush completo.
+La sezione normale dell'ala fornisce Af*fy/gammaM0 solo dopo i controlli
+di fusione, larghezza, apporto matching e materiale/spessore della piastra.
+Nessuna resistenza artificiale min(tf,tp), nessun fillet esterno superiore,
+nessun contributo aggiunto del cordone interno. Equivalenza D=R distinta
+dalla verifica al momento applicato e dalla resistenza completa del nodo.
+Benchmark analitico: 660000 N EC, 628571.428571 N NTC. Variante della
+geometria SCI C1, con piastra S355 e nuovo dettaglio esplicitamente diversi
+dalla fonte: 897897 N EC, 855140 N NTC. Il C1 originale con piastra piu
+debole resta fuori da questa equivalenza semplice, senza correggere attesi.
+Tutto il taglio resta nei cordoni dell'anima: 360.318501662 MPa EC e
+344.416657631 MPa NTC per V=300 kN, con inviluppo normale concomitante.
+CanQualifyWholeJoint e IsFullyFlushGeometry restano false.
+Log/TRX: workspace audit-results/connections/night-4c-top-flush-cjp.

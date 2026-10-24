@@ -37,10 +37,10 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1770 casi connessioni Checker superati:9audit,57coprigiunto,
+1g PARZIALE - 1826 casi connessioni Checker superati:9audit,57coprigiunto,
    44riparto,61saldature,57componenti bullonati,54finplate,56endplate,104tying piastra/anima/saldature/supporto locale,
    83componenti doppie squadrette/supporto,208precarico/scorrimento,365continuitaI,
-   40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,50cordoni/blocco imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,26rigidezza rotazionale,77classificazione/criteri rotazione,22dominioN+V.
+   40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,50cordoni/blocco imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,56CJP superiore a filo,26rigidezza rotazionale,77classificazione/criteri rotazione,22dominioN+V.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
    da estendere insieme agli ulteriori meccanismi e nodi.
 
@@ -148,8 +148,11 @@ FASE 4 - NODI A MOMENTO
    Nglobale=0; tagli per bullone prescritti/equilibrati nello stesso caso.
    Chiuse4d.3/4e.3 nel campo piastra ESTESA:23test saldature a coppia,
    inviluppo normale e tuttoV nell'anima, contatto compresso esplicito.
-   Restano saldature piastra a filo4c.3, netto/block e resistenza completa
-   a taglio del nodo. Vedere PHASE_4CDE_WELD_COMPONENTS.txt.
+   Chiusa 4c.3a: CJP superiore a filo con piede interno reale e fondo
+   prolungato, 56 nuovi test; 79/79 con saldature endplate esistenti.
+   PHASE_4C_3_TOP_FLUSH_CJP_IMPLEMENTATION.txt distingue il vero flush
+   completo ancora aperto. Restano netto/block e resistenza completa
+   a taglio del nodo. Vedere anche PHASE_4CDE_WELD_COMPONENTS.txt.
    Nessuna qualifica globale; PHASE_4CDE_MOMENT_COMPONENTS.txt e
    PHASE_4CDE_BOLT_COMPONENTS.txt.
 4f PARZIALE - Chiusa4f.1: rigidezza iniziale/secante delle end plate sul
@@ -192,9 +195,9 @@ BLOCCHI SUCCESSIVI AVVIATI - 24/10/2026 CIRCA02:24
 104/104 con piastra/anima. Benchmark supporto 405.388 kN, riscontro SDS2
 405.4 kN. Le estremita finite non sono qualificate; nessuna qualifica
 globale. Vedere PHASE_2D_TYING_WELD_SUPPORT_IMPLEMENTATION.txt.
-4c.3 IN SVILUPPO - CJP superiore a filo, cordone interno reale e fondo
-prolungato; PHASE_4C_3_TOP_FLUSH_CJP_SPEC.txt. FontiEN/NTC/SCI verificate.
-Nessuna modifica semantica ai T-stub; vero flush completo ancora aperto.
+4c.3a CHIUSA nel campo superiore CJP a filo/fondo prolungato: 56 nuovi
+test e 79/79 con saldature esistenti. Fonti EN/NTC/SCI e revisione indipendente
+completate. Nessuna modifica semantica ai T-stub; vero flush completo aperto.
 2e nettoanimaNVM IN ANALISI - una nuova interazione non viene introdotta
 soltanto per chiudere la diagnostica. Da provare anche il campo meccanico
 e la compatibilita', distinti dalla maggiorazione algebrica di vonMises.
