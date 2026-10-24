@@ -271,3 +271,7 @@ I risultati restano consumabili dalle librerie; integrazioneANTHEA rinviata.
 
 - IBeamSpliceEnvelope: casi SLU completi, scorrimento SLE/SLU e provenienza
   del governante; PHASE_2E_ULTIMATE_ENVELOPE_IMPLEMENTATION.txt.
+
+- EndPlateInitialStiffness / EndPlateInitialStiffnessFromMoment: solaSjini,
+  geometria e azioni dello stesso parent; EndPlateLocalCaseAssessment lega
+  trave,momento,bulloni,saldature e rigidezza. PHASE_4G_INITIAL_CASE_IMPLEMENTATION.txt.

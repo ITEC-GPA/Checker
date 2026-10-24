@@ -777,3 +777,11 @@ Revisione indipendente conclusa. Log/TRX closure-2e-envelope-first nel
 workspace audit-results/connections. Nessun atteso/fixture/allowlist modificato.
 Implementazione e limiti in PHASE_2E_ULTIMATE_ENVELOPE_IMPLEMENTATION.txt.
 L'audit completo precedente2.82 resta distinto da questa prova mirata.
+
+4g.1/4g.2 - RIGIDEZZA INIZIALE E CASO LOCALE - 24/10/2026
+66nuovi casi verdi;591/591famigliaEndPlate passati,0saltati.
+Revisione indipendente conclusa; estrazione aritmetica preserva il kernel
+legacy iniziale/secante. Log/TRX closure-4g-initial-first nel workspace
+audit-results/connections. Nessun atteso/fixture/allowlist modificato.
+OracoliJRC e analiticiSCI, limiti e hardware dichiarati in
+PHASE_4G_INITIAL_CASE_IMPLEMENTATION.txt. Audit completo successivo richiesto.

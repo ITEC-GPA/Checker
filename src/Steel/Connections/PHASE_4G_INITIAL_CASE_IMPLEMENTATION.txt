@@ -1,0 +1,136 @@
+FASE4g.1/4g.2 - RIGIDEZZA INIZIALE E CASO LOCALE COERENTE
+24 ottobre2026. Implementazione integrata, compilata e validata dal root.
+
+CAMPO IMPLEMENTATO
+
+Sj,ini del modello elastico a molle EN1993-1-8:2005, senza una Mj,Rd globale
+fittizia e senza trasformare la resistenza dei componenti del parent in una
+resistenza del nodo completo. Il nuovo contratto non richiede Mj,Rd/Npl,Rd
+e non espone SecantStiffness,ModelRotation o una capacita' rotazionale.
+Il vecchio ingresso EndPlateRotationalStiffness conserva API, guardie,
+diagnostica, trace, ordine aritmetico e dominio del calcolo secante.
+
+Il calcolatore iniziale diretto e' geometrico: non verifica uno stato di
+azioni. L'adapter garantisce il caso reale N=0 del parent corrente.
+EndPlateInitialStiffnessFromMoment mantiene l'istanza del parent con token
+Model reale; controlla E effettivo210000MPa e conserva tutte le sei azioni.
+Deriva m,mx,bracci,tp,As,larghezza compressa,code,beta e configurazione.
+Nessuna fila tesa e' eliminata quando il riparto plastico le attribuisce
+resistenza nulla: la molla elastica esiste ancora nella geometria reale.
+
+Leff della singola fila e di tutti i suoi gruppi restano dati esterni
+tracciabili. Non sono certificati dall'adapter; non si divide una lunghezza
+totale di gruppo per ricavare una molla. Il vincolo superiore aggiunto ha
+base puntuale in Table6.11 p.95/PDF97, ispezionata visivamente:
+k3/k4 richiedono la minima lunghezza della fila, individuale o nei gruppi,
+di Table6.4; k5 analogo per Table6.6. Il derivatore esistente rappresenta
+min(cp,nc) della singola fila in IndividualRows.Mode1. Il minimo complessivo
+non puo' superare quel candidato noto. Questo e' solo un upper bound; non
+prova che le contribuzioni esterne dei gruppi siano complete o corrette.
+Non si confrontano totali plastici di gruppo con lunghezze di molla.
+
+Lb deve includere piatti, rondelle e mezzo sviluppo testa/dado. Il modello
+verifica che superi lo spessore dei due piatti e richiede la provenienza;
+la qualifica del dettaglio hardware resta esplicita nel risultato.
+
+L'aggregatore EndPlateLocalCaseAssessment riusa EndPlateConnectionAssessment:
+lega beam+moment, bulloni/saldature e sola rigidezza iniziale allo stesso
+parent. Conserva i risultati figli e HasFailedComponent anche con altri
+componenti NotSupported. Nessun rapporto cumulativo per un caso incoerente
+o incompleto. I pending dei figli non sono rimossi interpretando stringhe.
+WholeJoint e WholeMember restano sempre false.
+
+PATCH MINIMA DEL FILE ESISTENTE
+
+EndPlateRotationalStiffness.SharedArithmetic.patch modifica cinque blocchi:
+costanteE, coefficienti colonna, coefficienti fila, assemblaggio, Sj,ini.
+Le equazioni sono state spostate testualmente in EndPlateStiffnessArithmetic
+con lo stesso ordine delle moltiplicazioni/somme. I loop di somma restano
+ordinati come prima. Nessuna guardia/trace/API o test esistente e' modificato.
+Il file completo .shared-arithmetic.cs e' copia di consultazione del risultato
+della patch; NON installarlo come secondo sorgente.
+
+ORACOLI
+
+1. JRC96658(2015) §3.3.5 Table3.8 pp.174-175: nuovo ingresso iniziale confrontato
+con il ricalcolo indipendente gia' verificato del kernel. Sj,ini esatto con
+Av geometrica ezeq nel pannello=76552582907.97441Nmm/rad. Valore pubblicato
+75.214MNm/rad conserva braccio approssimato e arrotondamenti; resta distinto.
+Il test JRC riguarda il kernel geometrico diretto, non e' stato forzato dentro
+il parent SCI e non dichiara verificata una connessione JRC completa.
+
+2. derive_end_plate_initial_case.py: nuovo ricalcolo analitico indipendente,
+nessuna importazione DLL. ESEGUITO in questa sessione. Usa geometria SCI C.1,
+alpha7.5 grafico, contributi di fila delle Table6.4/6.6/6.11 e hardware
+assunto esplicito Lb=25+20.5+4+4+(15+19)/2=70.5mm. Non e' una rigidezza
+pubblicata da SCI o una validazione sperimentale.
+
+Con tp25 e colonna266.7x258.8,tw12.8,tf20.5,r12.7,Acatalogo13600:
+Av3772.3mm2,beff,c247.6mm,k2=11.075866200698952mm,mcol33.44mm.
+Estesa: h=[565.3,465.3,375.3],lc=[166.505,95,161.505],
+lp=[125,210.15,168.975],mp=[30.4,38.55,38.55].
+zeq484.56698334841315mm,keq8.510382612561655mm;
+Sj,ini beta0=237302576169.69534Nmm/rad;
+Sj,ini beta1=90338344812.44681Nmm/rad.
+Superiore a filo con CJP reale e fondo prolungato: due file interne,
+lc=[161.505,161.505],stesse lp interne;
+Sj,ini beta0=152350333980.8783Nmm/rad;
+Sj,ini beta1=69580519870.4866Nmm/rad.
+Questa variante non e' denominata nodo completamente a filo.
+
+Leff e hardware input sono conservati come qualifiche esterne anche dove
+il test ne fornisce una derivazione indipendente. EC/NTC hanno identica
+rigidezza iniziale per la stessa geometria/E, pur mantenendo le rispettive
+resistenze e fattori. Modello a molle EC supplementare, non formula NTC.
+
+TEST NUOVI -66 CASI ESEGUITI E PASSATI
+
+EndPlateInitialStiffnessTests:18 casi.
+-JRC EC/NTC senza capacita' fittizie;
+-confronto aritmetico col vecchio kernel su beta0,.5,1,2;
+-fonti,hardware,ordine file,spessori,overflow e colonna di altra istanza;
+-API iniziale senza momenti resistenti,secante o rotazione.
+EndPlateInitialStiffnessFromMomentTests:31 casi.
+-oracoli esteso/CJP,beta0/1,EC/NTC;
+-azioni firmate,E reale,tokenparent,tutte le file incluse;
+-fila plastica esaurita conserva la molla;
+-omissioni,duplicati,gruppototal,qualifiche esterne e Lb;
+-parentFailed/NS conservati e nessun export improprio.
+EndPlateLocalCaseAssessmentTests:17 casi.
+-due dettagli di saldatura e politiche EC/NTC;
+-childFailed,NS,ratio non disponibile sui casi incompleti;
+-numeri/source uguali non sostituiscono identita';
+-azioni reali e residui espliciti, nessuna qualifica whole joint/member.
+
+MANIFEST INSTALLAZIONE ESEGUITA
+
+Nuovi sorgenti -> src/Steel/Connections/:
+-EndPlateStiffnessArithmetic.cs
+-EndPlateInitialStiffness.cs
+-EndPlateInitialStiffnessFromMoment.cs
+-EndPlateLocalCaseAssessment.cs
+Patch esistente:
+-EndPlateRotationalStiffness.SharedArithmetic.patch
+  -> src/Steel/Connections/EndPlateRotationalStiffness.cs
+Nuovi test/supporto -> tests/Steel.Members.Tests/:
+-EndPlateInitialStiffnessTests.cs
+-EndPlateInitialCaseTestData.cs
+-EndPlateInitialStiffnessFromMomentTests.cs
+-EndPlateLocalCaseAssessmentTests.cs
+Documenti/derivazioni, collocazione finale a cura root:
+-PHASE_4_NEXT_COMPONENT_RESEARCH_SPEC.txt (approvazione annotata)
+-PHASE_4G_INITIAL_CASE_IMPLEMENTATION.txt
+-derive_end_plate_initial_case.py
+-end_plate_initial_case_oracles.json
+
+Filtro proposto: FullyQualifiedName~EndPlateInitialStiffness|
+FullyQualifiedName~EndPlateLocalCaseAssessment|
+FullyQualifiedName~EndPlateRotationalStiffness.
+Poi famigliaEndPlate completa per il binding ai componenti riusati.
+VALIDAZIONE CENTRALE
+66/66 nuovi casi e591/591 della famiglia EndPlate passati,0saltati.
+TRX/log workspace audit-results/connections/closure-4g-initial-first.
+Revisione indipendente completata senza difetti concreti riscontrati;
+confronto letterale dei cinque blocchi aritmetici estratti e dei nuovi
+contratti di input/risultato. Nessun atteso legacy,fixture o allowlist cambiato.
+L'audit completo precedente2.82 resta distinto da questa prova mirata.

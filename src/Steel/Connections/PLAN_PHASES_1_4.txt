@@ -253,7 +253,7 @@ BLOCCHI SUCCESSIVI APPROVATI24/10/2026 CIRCA03:30
 2e.4b.1 CHIUSA NEL CAMPO DICHIARATO: inviluppo di ogni casoSLU completo del medesimo giuntoI,
 SLE separati e azioni concomitanti. Non chiude netto/blockNVM dell'anima
 o qualifica del nodo; PHASE_2E_ULTIMATE_ENVELOPE_SPEC.txt.
-4g.1/4g.2 IN STAGING, NON VALIDATE: solaSjini derivata dalla geometria del medesimo caso,
+4g.1/4g.2 CHIUSE NEL CAMPO DICHIARATO: solaSjini derivata dalla geometria del medesimo caso,
 kernel condiviso e collegamento a sezione/momento/bulloni/saldature;
 PHASE_4_NEXT_COMPONENT_RESEARCH_SPEC.txt. NessunMRdglobale/secante fittizio.
 Le aperture generali2c/2d/2e e netto/block del nodo a momento rimangono
@@ -269,3 +269,8 @@ di shear lag/eccentricita per il C collegato solo sull'anima; la simmetria
 2e.4b.1 VALIDATA24/10/2026:92nuovi test e457/457famigliaIBeamSplice passati.
 Revisione indipendente completata; PHASE_2E_ULTIMATE_ENVELOPE_IMPLEMENTATION.txt.
 Le verifiche residue di anima/membro e la qualifica del nodo rimangono aperte.
+
+4g.1/4g.2 VALIDATE24/10/2026:66nuovi test e591/591famigliaEndPlate passati.
+SolaSjini e aggregazione locale sul medesimo caso; revisione indipendente
+conclusa. PHASE_4G_INITIAL_CASE_IMPLEMENTATION.txt. Nessuna resistenza
+globale/secante o capacita rotazionale attribuita al nodo incompleto.

@@ -137,7 +137,7 @@ namespace GPC.Checkers.Steel.Connections
         public static EndPlateRotationalStiffnessResult Calculate(EndPlateRotationalStiffnessInput p)
         {
             if (p == null) throw new ArgumentNullException(nameof(p));
-            const double elasticModulus = 210000;
+            const double elasticModulus = EndPlateStiffnessArithmetic.ElasticModulus;
             var issues = new List<string>(); var trace = new List<SectionResistanceValue>();
             double initial = 0, secant = 0, rotation = 0, z = 0, keq = 0, mu = 0;
             Required(p.JointGeometrySource, "JointGeometrySourceRequired");
@@ -154,9 +154,7 @@ namespace GPC.Checkers.Steel.Connections
             if (Math.Abs(p.AxialForce) / p.BeamPlasticAxialResistance > .05)
                 issues.Add("AxialForceExceedsFivePercentOfBeamPlasticResistance");
             if (p.Moment > p.JointMomentResistance) issues.Add("MomentExceedsQualifiedJointResistance");
-            double av = SectionPropertyArithmetic.RolledWebArea(p.Column.Area, p.Column.Width, p.Column.FlangeThickness,
-                p.Column.Width, p.Column.FlangeThickness, p.Column.WebThickness, 2 * p.Column.RootRadius);
-            double k2 = .7 * p.CompressionWidth.Width * p.Column.WebThickness / p.Column.ClearWeb;
+            EndPlateStiffnessArithmetic.Column(p.Column, p.CompressionWidth, out double av, out double k2);
             Positive("ColumnShearArea", av, "mm2"); Positive("K2", k2, "mm");
             Value("Beta", p.Beta, "1"); Value("ElasticModulus", elasticModulus, "MPa");
             Value("AxialForce", p.AxialForce, "N"); Value("Moment", p.Moment, "Nmm");
@@ -174,13 +172,8 @@ namespace GPC.Checkers.Steel.Connections
                     issues.Add(id + "BoltLengthMustIncludePlatesAndAdditionalHardware");
                 if (r.EndPlateThickness != p.Rows[0].EndPlateThickness)
                     issues.Add("OneEndPlateMustHaveOneThickness");
-                double k3 = .7 * r.ColumnLength.Minimum * p.Column.WebThickness / p.Column.ClearWeb;
-                double k4 = .9 * r.ColumnLength.Minimum * Math.Pow(p.Column.FlangeThickness / r.ColumnFlangeM, 3);
-                double k5 = .9 * r.EndPlateLength.Minimum * Math.Pow(r.EndPlateThickness / r.EndPlateM, 3);
-                // Table6.11 coefficient is for one TWO-bolt row, As of ONE bolt.
-                double k10 = 1.6 * r.BoltStressArea / r.BoltElongationLength;
-                double flexibility = 1 / k3 + 1 / k4 + 1 / k5 + 1 / k10;
-                double effective = 1 / flexibility;
+                EndPlateStiffnessArithmetic.Row(p.Column, r, out double k3, out double k4, out double k5,
+                    out double k10, out double flexibility, out double effective);
                 Positive(id + "K3", k3, "mm"); Positive(id + "K4", k4, "mm");
                 Positive(id + "K5", k5, "mm"); Positive(id + "K10", k10, "mm");
                 Positive(id + "Keff", effective, "mm"); Positive(id + "Flexibility", flexibility, "1/mm");
@@ -191,14 +184,11 @@ namespace GPC.Checkers.Steel.Connections
             }
             Positive("SumKh", sumKh, "mm2"); Positive("SumKh2", sumKh2, "mm3");
             if (issues.Count != 0) return Result();
-            z = sumKh2 / sumKh; keq = sumKh / z;
-            // k2 remains in series: Table6.10. It is not part of keq in6.3.3.1(4).
-            // Beta=0 means no panel flexibility; do not leak Infinity into the trace.
-            double panelFlexibility = p.Beta * z / (.38 * av);
-            double totalFlexibility = panelFlexibility + 1 / k2 + 1 / keq;
+            EndPlateStiffnessArithmetic.Assemble(p.Beta, av, k2, sumKh, sumKh2,
+                out z, out keq, out double panelFlexibility, out double totalFlexibility);
             mu = p.Moment / p.JointMomentResistance <= 2d / 3 ? 1
                 : Math.Pow(1.5 * (p.Moment / p.JointMomentResistance), 2.7);
-            initial = elasticModulus * z * z / totalFlexibility; secant = initial / mu;
+            initial = EndPlateStiffnessArithmetic.Initial(z, totalFlexibility); secant = initial / mu;
             rotation = p.Moment / secant;
             Positive("EquivalentLeverArm", z, "mm"); Positive("EquivalentRowCoefficient", keq, "mm");
             Value("PanelFlexibility", panelFlexibility, "1/mm");
