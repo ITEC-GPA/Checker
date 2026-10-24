@@ -1,0 +1,144 @@
+FASE 3C / 3E - C E 2C IN TRAZIONE COLLEGATI SULL'ANIMA
+24 ottobre 2026. Ricerca di campo; nessuna produzione, build o Git.
+
+DECISIONE
+Non qualificare ora automaticamente il netto efficace di C/2C collegati
+soltanto sull'anima/dorso, nel perimetro EN 1993-1-8:2005 / NTC2018.
+E' un limite del metodo dimostrato e delle fonti recuperate, non un divieto
+generale di progettare questi collegamenti con una modellazione adeguata.
+Non trasferire beta2/beta3 degli L, non assumere che due C speculari eliminino
+l'eccentricita' di ciascun collegamento e non equiparare Anet geometrica ad
+area efficace per shear lag. Le azioni locali fuori piano restano reali.
+
+1. FONTI VERIFICATE E CAMPO
+EN 1993-1-8:2005, 3.10.3(1), pagina stampata33 / PDF35:
+richiede di considerare eccentricita', interassi e distanze dai bordi per
+membri non simmetrici o collegati non simmetricamente.
+Il successivo 3.10.3(2), equazioni3.11-3.13 e Tabella3.8, riguarda un
+SINGOLO ANGOLARE collegato su un'ala con una fila di bulloni. Non fornisce
+una regola di area netta efficace del C collegato sull'anima.
+Verifica visiva: tmp/pdfs/review-3c-channel-en-035.png.
+
+EN 1993-1-8:2005, 3.10.4, pagina stampata34 / PDF36:
+prevede lug angles per canali. Il lug trasmette1.1 volte la forza nell'ala;
+i fissaggi lug-canale almeno1.2 volte quella forza; almeno2 bulloni/rivetti
+lug-fazzoletto e precisi requisiti sulla disposizione longitudinale.
+E' un diverso percorso fisico, che collega anche le ali, non una formula
+per il netto efficace del canale collegato solo sull'anima.
+Mancano ancora riparto documentato alle tre parti, geometria completa,
+azioni locali e benchmark integrato: aggiungere i soli coefficienti non
+chiuderebbe una verifica utile.
+Verifica visiva: tmp/pdfs/review-3c-channel-en-036.png.
+
+SCI P358, 8.1 e8.2, pagine stampate258-259 / PDF268-269:
+richiede un percorso delle forze esplicito e le eccentricita' reali.
+Per le sezioni tese richiama EN1993-1-1 6.2.3(2); per gli L collegati su
+un'ala e una fila richiama specificamente EN1993-1-8 3.10.3.
+Per i canali segnala il possibile governo del rifollamento dell'anima
+sottile. Propone, come ipotesi semplice e conservativa, un rinforzo che
+porti da solo l'intera forza, trascurando l'anima del canale, con saldature
+capaci di trasferire quella forza. La piastra deve pero' distribuire il
+carico all'INTERA sezione del canale. Non e' data una lunghezza universale
+di diffusione ne' una formula di Aeff che dimostri automaticamente questo
+requisito. Una stringa di provenienza non ne e' una verifica.
+Verifica visiva: review-3c-channel-p358-268.png e -269.png in tmp/pdfs.
+Fonte primaria: https://www.steelconstruction.info/images/a/a9/SCI_P358.pdf
+
+SCI P363, nota7.1, pagina stampataA-22 / PDF34:
+persino le tabelle degli L usano espressioni BS5950-1 per il caso non
+coperto dall'Eurocodice con piu' bulloni trasversali. Lo dichiara la guida.
+Non sono una base per importare indistintamente una formula come EN2005.
+La nota riguarda gli L e non dimostra una formula per i C.
+Verifica testuale: tmp/pdfs/SCI_P363/034.txt.
+
+JRC96658, EUR27346EN,2015, pagina stampata40 / PDF56:
+la copia completa gia' presente in staging/connections/JRC96658.pdf e' stata
+verificata visivamente. Il testo ribadisce la necessita' di considerare
+l'eccentricita' per T e C collegati non simmetricamente. L'esempio2 che segue
+e' relativo a due L uguali S235 con NEd220kN, non ai C. Il paragrafo sulle
+saldature4.13 riguarda anch'esso gli L e non estende quel modello ai C.
+Verifica visiva: tmp/pdfs/review-3c-channel-jrc-056.png.
+Record primario:
+https://publications.jrc.ec.europa.eu/repository/handle/JRC96658
+https://eurocodes.jrc.ec.europa.eu/publications/eurocodes-background-applications-design-steel-buildings-worked-examples
+
+La regola con area collegata + meta' delle parti sporgenti, incontrata
+durante la ricerca, non e' stata dimostrata applicabile al campo EN2005
+qui implementato: compare in riferimenti storici ENV1993-1-1:1992 / UK NAD
+e in implementazioni software. Non viene adottata.
+Esclusi anche coefficienti AISC/AS4100/IS800 o formule sperimentali su
+canali sottili formati a freddo senza una qualificazione per questo campo.
+Non sono stati individuati, nelle fonti primarie esaminate, un benchmark
+pubblicato C laminato collegato solo sull'anima e una relativa formula
+EN2005 sufficienti a chiudere il modello di netto/eccentricita'.
+
+2. CAMPO RESIDUO CHE RESTA UTILIZZABILE
+Le API permettono gia' geometria Model reale, trasporto delle sei azioni,
+bulloni e rifollamento condizionati a un modello locale dimostrato.
+Questi controlli non qualificano l'intero terminale del C.
+La verifica della sezione lorda remota, anche N+M elastica, non sostituisce
+shear lag, sezione perforata, introduzione locale delle forze o supporto.
+La simmetria globale di2C non autorizza a cancellare le coppie locali.
+
+Per un eventuale futuro primo adattatore:
+- due componenti IDENTICI e speculari, disposizione back-to-back, fazzoletto
+  centrale; trazioni esplicite equilibrate e singolo stato concomitante;
+- esatto SectionC a flange parallele e uguali, distinguendo raggi reali;
+  SectionCTaperFlange/UPN e canali formati a freddo sono altri campi;
+- gap tra dorsi distinto dalla distanza fra baricentri;
+- linea bulloni/contatto fisica, non baricentro artificiosamente allineato;
+- conservazione di momenti locali fuori piano e Mz globale;
+- stato3D e qualifica terminale non supportati finche' manca il modello
+  pertinente. Nessuna duplicazione di wrapper per ripetere questa risposta.
+
+3. API RIUSABILI
+SteelSectionInput: snapshot immutabile Model, materiale, proprieta', assi.
+ModelBuiltUpGeometry: riconoscimento due componenti identici2C/2L e geometria;
+non attesta da solo azione composta o rigidezza del collegamento.
+SectionBuiltUp.DoubleChannel(SectionC,spacing,backToBack,name):
+spacing e' la luce fra dorsi; componenti condivisi identici.
+ResultBeamForces.ToCoordinateSystemWithEccentricity: trasporto6D.
+ElasticBoltGroup, BoltStrength, BoltBearing: componenti locali condizionati.
+FilletWeldGroup: gruppo cordoni, non trasferimento completo nel C/supporto.
+SectionNormalInteraction.Elastic: controllo lordo remoto nel proprio campo.
+BraceAngleModelAdapter e BraceAngleTension restano specifici degli L.
+SteelEffectiveSectionSolver riguarda instabilita' locale/compressione:
+non e' un solutore del netto efficace da shear lag del collegamento.
+
+4. BENCHMARK ANALITICO INDIPENDENTE DI GEOMETRIA / AZIONI
+Caso costruito, non esempio normativo o sperimentale pubblicato.
+C a spigoli vivi: h200,b75,tw8,tf12 mm; flange uguali; acciaiofy275MPa.
+Partizione indipendente in rettangoli:
+Aw=(200-2*12)*8=1408 mm2; Af=2*75*12=1800 mm2.
+A=3208 mm2.
+xG=(1408*4+1800*37.5)/3208=22.796758104738153 mm dal dorso esterno.
+yG=100 mm.
+Per N=100000 N nel singolo C:
+coppia al piano del dorso x=0: 2279675.810473815 Nmm;
+coppia al piano medio dell'anima x=4: 1879675.8104738153 Nmm.
+Questi sono due piani fisici diversi, da non confondere nel contratto.
+Per2C con gap20 mm, distanza baricentri=65.5935162094763 mm.
+Le due coppie possono cancellarsi nella risultante globale, ma ciascuna
+rimane applicata al rispettivo collegamento.
+Con assi connessione x=ModelZ,y=ModelY,z=-ModelX, fila bulloni a y120 mm
+e totale N200000 N: Mz=N*(120-100)=4000000 Nmm.
+Un foro18 mm nell'anima da8 mm porta Anet geometrica=3064 mm2 per C.
+Questa sola sottrazione NON determina Aeff o Nu,Rd del terminale.
+I numeri sono stati ricalcolati con Python indipendente, senza DLL Model,
+Checker o esecuzione delle suite. Servono a futuri test di trasporto e
+geometria, non a convalidare un metodo di resistenza ancora mancante.
+
+5. COSA OCCORRE PER UN CAMPO QUALIFICABILE
+Un modello primario verificabile del netto efficace e delle eccentricita'
+per il preciso C/bullonatura, oppure un diverso dettaglio fisico esplicito
+che introduca le forze nelle tre parti (anima/ali) con riparto e gerarchia
+dimostrati, piu' il relativo benchmark.
+Occorre inoltre verificare il percorso locale3D, block tearing realmente
+pertinente, piatto/fazzoletto e attacco al supporto. Il solo Npl,Rd dell'asta
+non chiude nessuno di questi requisiti.
+
+PROPOSTA OPERATIVA
+Non aprire ora produzione C/2C, block-L o un nuovo campo saldato4.13.
+Registrare questo no-go circoscritto. Il successivo incremento utile e'
+l'integrazione multi-SLU del giuntoI sui componenti gia' disponibili, con
+azioni concomitanti e binding rigoroso, mentre il campo C resta esplicito.

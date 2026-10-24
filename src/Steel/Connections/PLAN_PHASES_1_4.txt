@@ -255,3 +255,10 @@ kernel condiviso e collegamento a sezione/momento/bulloni/saldature;
 PHASE_4_NEXT_COMPONENT_RESEARCH_SPEC.txt. NessunMRdglobale/secante fittizio.
 Le aperture generali2c/2d/2e e netto/block del nodo a momento rimangono
 esplicite: le fonti esaminate non qualificano le estensioni proposte.
+
+3c/3e C E2C - RICOGNIZIONE CONCLUSA, IMPLEMENTAZIONE NON CHIUSA
+PHASE_3C_3E_CHANNEL_TENSION_REVIEW.txt documenta EN3.10.3/3.10.4,
+SCI P358pp258-259 e JRCp40/PDF56. Non si estendono beta degliL o regole
+storicheENV al netto efficaceC. Resta necessario un modello qualificato
+di shear lag/eccentricita per il C collegato solo sull'anima; la simmetria
+2C non elimina le coppie locali. Nessuna nuova resistenza attribuita.
