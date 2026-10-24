@@ -22,9 +22,9 @@ public sealed class WallRebarLayout
     public IReadOnlyDictionary<WallRebarZone, WallZoneBars> Zones { get; }
     public WallRebarLayout(bool twoZones, double lowerHeight, IReadOnlyDictionary<WallRebarZone, WallZoneBars> zones)
     {
-        ArgumentNullException.ThrowIfNull(zones);
+        Guard.NotNull(zones);
         TwoZones = twoZones; LowerHeight = lowerHeight;
-        Zones = new System.Collections.ObjectModel.ReadOnlyDictionary<WallRebarZone, WallZoneBars>(new Dictionary<WallRebarZone, WallZoneBars>(zones));
+        Zones = new System.Collections.ObjectModel.ReadOnlyDictionary<WallRebarZone, WallZoneBars>(zones.ToDictionary(pair => pair.Key, pair => pair.Value));
     }
 }
 /// <summary>Positive design strengths in MPa, obtained from the selected material/standard services.</summary>

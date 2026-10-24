@@ -21,7 +21,7 @@ public static class NtcSpectra
     public static SiteHazard Site(double longitude, double latitude, SiteInterpolation interpolation)
     {
         FiniteRange(longitude,-180,180,nameof(longitude)); FiniteRange(latitude,-90,90,nameof(latitude));
-        if(!Enum.IsDefined(interpolation)) throw new ArgumentOutOfRangeException(nameof(interpolation));
+        if(!PortableEnum.IsDefined(interpolation)) throw new ArgumentOutOfRangeException(nameof(interpolation));
         var grid = new Cslp103Grid(longitude, latitude);
         int status = (int)grid.Number("AG79"), kind = (int)grid.Number("AC51");
         if(status==0) throw new ArgumentException("Sito esterno al reticolo CSLP 1.0.3: non è possibile determinare lo spettro.");
@@ -31,7 +31,7 @@ public static class NtcSpectra
         {
             double weight = grid.Number("AH"+(interpolation==SiteInterpolation.InverseDistance ? i+3 : i+9))/sum;
             if(weight==0) continue;
-            if(!double.IsFinite(weight)) throw new ArgumentException("Pesi di interpolazione CSLP non finiti per il sito.");
+            if(!PortableMath.IsFinite(weight)) throw new ArgumentException("Pesi di interpolazione CSLP non finiti per il sito.");
             int index=(int)grid.Number("AF"+(i+81))-1;
             var node=Cslp103Data.Nodes[index]; raw.Add((node,weight));
             nodes.Add(new(node.Id,node.Longitude,node.Latitude,node.X-grid.Number("AC3"),node.Y-grid.Number("AD3"),weight));
@@ -84,10 +84,10 @@ public static class NtcSpectra
     }
     public static (double Ss,double Cc) SoilFactors(HazardParameters h,string soil) => soil switch
     {
-        "A" => (1,1), "B" => (Math.Clamp(1.4-.4*h.F0*h.AgG,1,1.2),1.1*Math.Pow(h.TcStarSeconds,-.2)),
-        "C" => (Math.Clamp(1.7-.6*h.F0*h.AgG,1,1.5),1.05*Math.Pow(h.TcStarSeconds,-.33)),
-        "D" => (Math.Clamp(2.4-1.5*h.F0*h.AgG,.9,1.8),1.25*Math.Pow(h.TcStarSeconds,-.5)),
-        "E" => (Math.Clamp(2-1.1*h.F0*h.AgG,1,1.6),1.15*Math.Pow(h.TcStarSeconds,-.4)),
+        "A" => (1,1), "B" => (PortableMath.Clamp(1.4-.4*h.F0*h.AgG,1,1.2),1.1*Math.Pow(h.TcStarSeconds,-.2)),
+        "C" => (PortableMath.Clamp(1.7-.6*h.F0*h.AgG,1,1.5),1.05*Math.Pow(h.TcStarSeconds,-.33)),
+        "D" => (PortableMath.Clamp(2.4-1.5*h.F0*h.AgG,.9,1.8),1.25*Math.Pow(h.TcStarSeconds,-.5)),
+        "E" => (PortableMath.Clamp(2-1.1*h.F0*h.AgG,1,1.6),1.15*Math.Pow(h.TcStarSeconds,-.4)),
         _=>throw new ArgumentException("Categoria di sottosuolo ammessa: A, B, C, D oppure E.")
     };
     public static double Damping(double percent) { FiniteRange(percent,0,100,nameof(percent)); return Math.Max(.55,Math.Sqrt(10/(5+percent))); }
@@ -123,5 +123,5 @@ public static class NtcSpectra
         FiniteRange(o.Q0,1,6,nameof(o.Q0)); FiniteRange(o.VerticalQ,1,1.5,nameof(o.VerticalQ));
     }
     internal static void FiniteRange(double value,double min,double max,string name)
-    { if(!double.IsFinite(value)||value<min||value>max) throw new ArgumentOutOfRangeException(name,$"{name}: valore finito richiesto fra {min} e {max}."); }
+    { if(!PortableMath.IsFinite(value)||value<min||value>max) throw new ArgumentOutOfRangeException(name,$"{name}: valore finito richiesto fra {min} e {max}."); }
 }

@@ -22,7 +22,7 @@ public static class WallRebarQuantities
             if(!r.Zones.TryGetValue(zone,out var arm) || arm is null) throw new ArgumentException("Main reinforcement missing for "+zone);
             foreach(var face in new[]{arm.FirstFace,arm.OppositeFace})
             {
-                ArgumentNullException.ThrowIfNull(face);
+                Guard.NotNull(face);
                 WallReinforcementDetailing.Range(face.Count,2,30,nameof(face.Count));
                 WallReinforcementDetailing.Range(face.Diameter,6,40,nameof(face.Diameter));
             }

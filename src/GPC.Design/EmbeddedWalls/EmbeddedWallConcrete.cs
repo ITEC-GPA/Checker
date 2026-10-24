@@ -24,9 +24,9 @@ public sealed record EmbeddedWallRcStrip(string Id, double Width, double Thickne
     public void Validate()
     {
         _ = Strip();
-        if (string.IsNullOrWhiteSpace(Id) || !double.IsFinite(Fck) || Fck is < 12 or > 90 || !double.IsFinite(Fyk) || Fyk <= 0
-            || !double.IsFinite(SteelModulus) || SteelModulus <= Fyk || !double.IsFinite(UltimateSteelStrain) || UltimateSteelStrain <= Fyk / SteelModulus
-            || !double.IsFinite(Creep) || Creep < 0 || string.IsNullOrWhiteSpace(Exposure))
+        if (string.IsNullOrWhiteSpace(Id) || !PortableMath.IsFinite(Fck) || Fck is < 12 or > 90 || !PortableMath.IsFinite(Fyk) || Fyk <= 0
+            || !PortableMath.IsFinite(SteelModulus) || SteelModulus <= Fyk || !PortableMath.IsFinite(UltimateSteelStrain) || UltimateSteelStrain <= Fyk / SteelModulus
+            || !PortableMath.IsFinite(Creep) || Creep < 0 || string.IsNullOrWhiteSpace(Exposure))
             throw new ArgumentException("Complete ordinary-concrete strip, reinforcement and serviceability properties required.");
     }
     /// <summary>Creates an independent section session. No shared mutable material, mesh or verifier between analyses.</summary>
@@ -61,7 +61,7 @@ public static class EmbeddedWallConcrete
     /// to Concrete (compression negative; positive moment tensions its bottom/front face). No unit or width scaling.</summary>
     public static WallSectionActions Actions(WallPointResult point)
     {
-        ArgumentNullException.ThrowIfNull(point);
+        Guard.NotNull(point);
         return new WallSectionActions(-point.NormalForce, point.Shear, -point.Moment);
     }
 
@@ -71,9 +71,9 @@ public static class EmbeddedWallConcrete
     public static IReadOnlyList<EmbeddedWallSectionResult> Check(WallAnalysisResult analysis, double tributaryWidth,
         IReadOnlyList<EmbeddedWallRcStrip> sections, EmbeddedWallSectionCheckKind kind, CancellationToken cancellation = default)
     {
-        ArgumentNullException.ThrowIfNull(analysis); ArgumentNullException.ThrowIfNull(sections);
+        Guard.NotNull(analysis); Guard.NotNull(sections);
         if (!analysis.IsComplete) throw new InvalidOperationException("A partial or nonconvergent history cannot be certified by section checks.");
-        if (!Enum.IsDefined(kind) || !double.IsFinite(tributaryWidth) || tributaryWidth <= 0) throw new ArgumentException("Explicit check type and positive represented width required.");
+        if (!PortableEnum.IsDefined(kind) || !PortableMath.IsFinite(tributaryWidth) || tributaryWidth <= 0) throw new ArgumentException("Explicit check type and positive represented width required.");
         if (Math.Abs(tributaryWidth - analysis.TributaryWidth) > 1e-7) throw new ArgumentException("The checked width must be the analysed tributary width; implicit action scaling is forbidden.");
         var definitions = sections.ToDictionary(s => s.Id, StringComparer.Ordinal);
         var sessions = new Dictionary<string, WallSectionSession>(StringComparer.Ordinal);

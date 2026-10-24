@@ -28,7 +28,7 @@ public static class WallBarScheduling
 {
     public static WallScheduleResult Calculate(WallDetailInput input, WallScheduleOptions options, CancellationToken token = default)
     {
-        token.ThrowIfCancellationRequested(); ArgumentNullException.ThrowIfNull(options);
+        token.ThrowIfCancellationRequested(); Guard.NotNull(options);
         WallReinforcementDetailing.Validate(input);
         WallReinforcementDetailing.Range(options.PanelLength,.2,100,nameof(options.PanelLength));
         WallReinforcementDetailing.Range(options.EndCover,0,200,nameof(options.EndCover));
@@ -51,14 +51,14 @@ public static class WallBarScheduling
                 legs.Add(new("A",Distance(b.Path[0],b.Path[1])));
                 legs.Add(new("B",Distance(b.Path[1],b.Path[2])));
                 legs.Add(new("Arc90",(b.Mandrel+b.Diameter)/2000*Math.PI/2));
-                legs.Add(new("C",Distance(b.Path[^2],b.Path[^1])));
+                legs.Add(new("C",Distance(b.Path[b.Path.Count - 2],b.Path[b.Path.Count - 1])));
             }
             else legs.Add(new("A",b.Length));
             bars.Add(new(b.Mark,b.Zone,b.Face,WallBarKind.Main,b.Diameter,count,legs.Sum(l=>l.Length),span/(count-1),b.Mandrel,b.Lap,
                 legs.AsReadOnly(),b.Path,b.Zone==WallRebarZone.Stem && b.Face==WallRebarFace.Downstream && s!=g.StemTop?WallBarNote.InclinedStemTransition:WallBarNote.None));
         }
         int secondaryMark=0;
-        foreach(var key in Enum.GetValues<WallRebarZone>())
+        foreach(var key in PortableEnum.GetValues<WallRebarZone>())
         {
             if(key==WallRebarZone.StemUpper && !two || key==WallRebarZone.Toe && a==0 || key==WallRebarZone.Heel && heel==0) continue;
             token.ThrowIfCancellationRequested();
@@ -97,5 +97,5 @@ public static class WallBarScheduling
         token.ThrowIfCancellationRequested();
         return new(length,endCover,stock,bars.AsReadOnly(),warnings.AsReadOnly());
     }
-    static double Distance(WallBarPoint a,WallBarPoint b)=>double.Hypot(a.X-b.X,a.Y-b.Y);
+    static double Distance(WallBarPoint a,WallBarPoint b)=>PortableMath.Hypot(a.X-b.X,a.Y-b.Y);
 }

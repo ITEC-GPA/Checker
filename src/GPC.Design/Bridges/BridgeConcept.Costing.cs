@@ -44,7 +44,7 @@ public static partial class BridgeConcept
     }
 
     public static ResolvedPriceSnapshot LegacyPrices(BridgeRates rates, string revision, string currency = "EUR") => new(revision, currency,
-        Rates.Select(p => new ResolvedCostRate(p.Key, CostUnit(p.Unit[2..]), (decimal)rates.Value(p.Key), revision + "/" + p.Key)));
+        Rates.Select(p => new ResolvedCostRate(p.Key, CostUnit(p.Unit.Substring(2)), (decimal)rates.Value(p.Key), revision + "/" + p.Key)));
     private static QuantityUnit CostUnit(string unit) => unit switch
     {
         "t" => QuantityUnit.Tonne, "kg" => QuantityUnit.Kilogram, "m" => QuantityUnit.Metre,
@@ -56,7 +56,7 @@ public static partial class BridgeConcept
     private static void SplitFoundationRebar(List<CostQuantity> costs, string? pileOwner, double pileRebar)
     {
         if (pileOwner is null || pileRebar <= 0) return;
-        var combined = costs[^1]; decimal steel = (decimal)pileRebar;
+        var combined = costs[costs.Count - 1]; decimal steel = (decimal)pileRebar;
         costs.RemoveAt(costs.Count - 1);
         costs.Add(combined with { Id = combined.Id + ":footings", Amount = combined.Amount - steel });
         costs.Add(combined with { Id = combined.Id + ":piles", Amount = steel, InclusionOwner = pileOwner });

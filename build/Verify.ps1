@@ -2,7 +2,7 @@
 Every Checker suite, as build/RILASCIO.txt requires before a release:
 - the sibling Model libraries from their pinned bundle, then the Checker libraries and GPCModelChecker, all in Release;
 - net472 Test.Concrete and Test.Steel: packages.config restore, MSBuild without project references, vstest x64;
-- net8 CompositeBridge, Geotechnics and Calculation and net6 ModelChecker.Tests: dotnet test;
+- net8 CompositeBridge, Geotechnics and Calculation, net6 ModelChecker.Tests, Design net8/net472: dotnet test;
 - public API of GPCModelChecker and GPCChecker.Concrete against build/api (tool: Model/tools/ApiSurface).
 A failure is admitted only by suite and exact test name from build/known-failures.json. Writes <Results>\summary.json.
 
@@ -69,6 +69,13 @@ try {
             'GPCChecker.Test.Calculation\GPCChecker.Test.Calculation.csproj', 'tests\ShallowFoundation.Tests\ShallowFoundation.Tests.csproj', 'tests\EmbeddedWalls.Tests\EmbeddedWalls.Tests.csproj', 'tests\Steel.Members.Tests\Steel.Members.Tests.csproj', 'tests\Design.Checks\Design.Checks.csproj') + $net
     }
     foreach ($p in $net) { Invoke-Checked "Build $p" { dotnet build $p -c Release -nologo -v:q } }
+    $netRuns = @($net | ForEach-Object {
+        $name = [IO.Path]::GetFileNameWithoutExtension($_)
+        if ($name -eq 'Design.Checks') {
+            [pscustomobject]@{ Project = $_; Name = $name; Framework = 'net8.0' }
+            [pscustomobject]@{ Project = $_; Name = "$name.net472"; Framework = 'net472' }
+        } else { [pscustomobject]@{ Project = $_; Name = $name; Framework = '' } }
+    })
 
     # Run the suites in parallel: each one writes <name>.trx and <name>.log into $Results.
     $jobs = @()
@@ -78,17 +85,18 @@ try {
             & $vstest $dll /Platform:x64 "/logger:trx;LogFileName=$name.trx" "/ResultsDirectory:$results" *> (Join-Path $results "$name.log")
         }
     }
-    foreach ($p in $net) {
-        $jobs += Start-Job -ArgumentList (Join-Path $repository $p), $Results, ([IO.Path]::GetFileNameWithoutExtension($p)) -ScriptBlock {
-            param($project, $results, $name)
-            dotnet test $project -c Release -nologo --no-build "--logger:trx;LogFileName=$name.trx" --results-directory $results *> (Join-Path $results "$name.log")
+    foreach ($run in $netRuns) {
+        $jobs += Start-Job -ArgumentList (Join-Path $repository $run.Project), $Results, $run.Name, $run.Framework -ScriptBlock {
+            param($project, $results, $name, $framework)
+            $target = @(); if ($framework) { $target = @('--framework', $framework) }
+            dotnet test $project -c Release -nologo --no-build @target "--logger:trx;LogFileName=$name.trx" --results-directory $results *> (Join-Path $results "$name.log")
         }
     }
     $jobs | Wait-Job | Out-Null
     $jobs | Remove-Job
 
     $summary = @(); $unexpected = @()
-    foreach ($name in @($classic + ($net | ForEach-Object { [IO.Path]::GetFileNameWithoutExtension($_) }))) {
+    foreach ($name in @($classic + ($netRuns | ForEach-Object { $_.Name }))) {
         $trx = Join-Path $Results "$name.trx"
         if (!(Test-Path -LiteralPath $trx)) { $unexpected += "${name}: nessun risultato (vedi $name.log)"; continue }
         $r = Read-Trx $trx

@@ -68,7 +68,7 @@ public sealed class EmbeddedWallRcPileTests
         var results = EmbeddedWallRcPiles.Check(analysis, 1500, [definition], EmbeddedWallSectionCheckKind.Ultimate);
         Assert.AreEqual(analysis.Stages[0].Points.Count, results.Count);
         var direct = definition.CreateSession();
-        foreach (var (r, p) in results.Zip(analysis.Stages[0].Points))
+        foreach (var (r, p) in results.Zip(analysis.Stages[0].Points, (result, point) => (result, point)))
         {
             Assert.AreEqual("ULS independent", r.CaseId); Assert.AreEqual("F1", r.StageId); Assert.AreEqual(p.Side, r.Side);
             Assert.AreEqual(-p.NormalForce * 2 / 3, r.Actions!.N, 1e-7);

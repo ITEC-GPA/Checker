@@ -145,15 +145,15 @@ public static partial class BridgeConcept
         maxSpan / family.Ratio * (HasUpperStructure(family.Id) ? 1 : continuous ? .95 : 1.1));
     private static void Validate(BridgeModel data)
     {
-        ArgumentNullException.ThrowIfNull(data);
-        ArgumentNullException.ThrowIfNull(data.Input);ArgumentNullException.ThrowIfNull(data.Rates);ArgumentNullException.ThrowIfNull(data.Assumptions);
+        Guard.NotNull(data);
+        Guard.NotNull(data.Input);Guard.NotNull(data.Rates);Guard.NotNull(data.Assumptions);
         void Range(Parameter p,double n)
-        { if(!double.IsFinite(n)||n<p.Min||n>p.Max||p.Unit=="n."&&n!=Math.Truncate(n)) throw new ArgumentException($"{p.Label}: valore richiesto tra {p.Min} e {p.Max} {p.Unit}."); }
+        { if(!PortableMath.IsFinite(n)||n<p.Min||n>p.Max||p.Unit=="n."&&n!=Math.Truncate(n)) throw new ArgumentException($"{p.Label}: valore richiesto tra {p.Min} e {p.Max} {p.Unit}."); }
         foreach(var p in Site.Concat(Layout).Concat(Section).Concat(AdvancedSection).Concat(Substructure)) Range(p,data.Input.Value(p.Key));
         foreach(var p in Rates)Range(p,data.Rates.Value(p.Key));
         foreach(var p in Assumptions.Concat(AdvancedAssumptions))Range(p,data.Assumptions.Value(p.Key));
         var i=data.Input;
-        if (!Enum.IsDefined(i.TrafficModel)) throw new ArgumentException("Modello di traffico non riconosciuto.");
+        if (!PortableEnum.IsDefined(i.TrafficModel)) throw new ArgumentException("Modello di traffico non riconosciuto.");
         if(!DeckTypes.Contains(i.DeckType))throw new ArgumentException("Tipo di impalcato non riconosciuto.");
         if(!Families.Any(f=>f.Id==i.Family))throw new ArgumentException("Tipologia impalcato non riconosciuta.");
         foreach(var (key,value,choices) in new[]{("obstacle",i.Obstacle,Obstacles),("soil",i.Soil,Soils),("pier",i.Pier,Piers),("foundation",i.Foundation,Foundations)})

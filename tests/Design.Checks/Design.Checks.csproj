@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><TargetFramework>net8.0</TargetFramework><IsTestProject>true</IsTestProject><IsPackable>false</IsPackable><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
+  <PropertyGroup><TargetFrameworks>net8.0;net472</TargetFrameworks><LangVersion>latest</LangVersion><AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects><GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType><IsTestProject>true</IsTestProject><IsPackable>false</IsPackable><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
   <ItemGroup>
     <Compile Include="../Actions.Checks/SpectraEquivalence.cs" Link="SpectraEquivalence.cs" />
     <ProjectReference Include="../../src/GPC.Design/GPC.Design.csproj" />

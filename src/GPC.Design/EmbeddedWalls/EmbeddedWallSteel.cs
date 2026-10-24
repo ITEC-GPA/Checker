@@ -24,9 +24,9 @@ public static class EmbeddedWallSteel
         IReadOnlyList<EmbeddedWallSteelSupport> definitions, StandardEN1993p11? standard, EmbeddedWallSteelCheckKind kind,
         CancellationToken cancellation = default)
     {
-        ArgumentNullException.ThrowIfNull(analysis); ArgumentNullException.ThrowIfNull(definitions);
+        Guard.NotNull(analysis); Guard.NotNull(definitions);
         if (!analysis.IsComplete) throw new InvalidOperationException("An incomplete nonlinear history cannot be certified by support checks.");
-        if (!Enum.IsDefined(kind)) throw new ArgumentOutOfRangeException(nameof(kind));
+        if (!PortableEnum.IsDefined(kind)) throw new ArgumentOutOfRangeException(nameof(kind));
         var members = new Dictionary<string, AxialSteelMember>(StringComparer.Ordinal);
         foreach (var definition in definitions)
         {

@@ -18,7 +18,7 @@ public sealed class GravityWallTests
     public void SixFrozenGravityWallsRemainEquivalent()
     {
         var bytes = File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Fixtures", "gravity-f4.json"));
-        Assert.AreEqual("2DA105542D1914E469192404D436DCCE10816AEC2A54F241D413076A63E11633", Convert.ToHexString(SHA256.HashData(bytes)));
+        Assert.AreEqual("2DA105542D1914E469192404D436DCCE10816AEC2A54F241D413076A63E11633", RuntimeCompatibility.Sha256Hex(bytes));
         var fixture = JsonNode.Parse(bytes)!;
         var rows = fixture["rows"]!.AsArray(); Assert.AreEqual(6, rows.Count);
         int checks = 0, curves = 0;

@@ -14,7 +14,7 @@ public class WallDetailTests
     internal static JsonArray Fixture()
     {
         var bytes=File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory,"Fixtures/details-f4.json"));
-        Assert.AreEqual("E31A18D8D65CB9BA45566B9EA20AA6C643122C20BB5CE2A591A387917007A899",Convert.ToHexString(SHA256.HashData(bytes)));
+        Assert.AreEqual("E31A18D8D65CB9BA45566B9EA20AA6C643122C20BB5CE2A591A387917007A899",RuntimeCompatibility.Sha256Hex(bytes));
         return JsonNode.Parse(bytes)!.AsArray();
     }
     internal static double D(JsonNode n,string key) => double.Parse(n[key]!.ToString(),CultureInfo.InvariantCulture);
@@ -26,7 +26,7 @@ public class WallDetailTests
     {
         var d=row["input"]!;var g=d["geometry"]!;var m=d["materials"]!;var r=d["reinforcement"]!;var o=d["detailing"]!;var mat=row["material"]!;
         var zones=new Dictionary<WallRebarZone,WallZoneBars>();
-        foreach(var zone in Enum.GetValues<WallRebarZone>())
+        foreach(var zone in ((WallRebarZone[])Enum.GetValues(typeof(WallRebarZone))))
         {
             var a=r[Zone(zone)]!;bool symmetric=B(a,"symmetric");
             zones[zone]=new(new(D(a,"diameter"),(int)D(a,"count")),new(D(a,symmetric?"diameter":"opposite_diameter"),(int)D(a,symmetric?"count":"opposite_count")),

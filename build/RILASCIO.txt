@@ -22,7 +22,7 @@ REGOLE
    dodici DLL e scrive release-set.json (versioni, SHA-256, commit, esiti delle suite).
 4. Nessun rilascio senza tutte le suite verdi: Model (Core, UnitTest, API), Checker
    (Concrete e Steel net472, CompositeBridge, Geotechnics, Calculation, ModelChecker,
-   API), Design.Checks e API Design/Masonry. Sono ammessi solo i fallimenti elencati per nome in build/known-failures.json.
+   API), Design.Checks su net8.0 e net472 e API Design/Masonry. Sono ammessi solo i fallimenti elencati per nome in build/known-failures.json.
 5. Una DLL con SHA-256 diverso dal set precedente deve avere una versione piu' alta:
    Release-Set.ps1 -Previous rifiuta il set altrimenti. Due build diverse non possono
    avere la stessa versione.
@@ -33,6 +33,12 @@ REGOLE
    diversi da un checkout pulito (per esempio scritti con LF da uno strumento).
 7. ANTHEA installa lib/Checker solo da un set di rilascio
    (tools/libs/Update-Snapshot.ps1 -ReleaseSet <cartella>), che ricontrolla gli SHA-256.
+8. GPC.Design e' netstandard2.0. System.Text.Json 10.0.13 e le sue dipendenze NuGet
+   sono richieste anche nei consumatori della DLL: il set contiene le librerie GPC,
+   non i pacchetti di terzi. Con ProjectReference/NuGet il riferimento e' transitivo;
+   per riferimenti diretti alla DLL aggiungere il PackageReference nell'applicazione.
+   Su .NET Framework abilitare AutoGenerateBindingRedirects; Design.Checks verifica
+   questa configurazione su net472 con gli stessi attesi del consumatore net8.0.
 
 PROCEDURA
 a. Lavoro su un branch da master aggiornato; suite del repository toccato.

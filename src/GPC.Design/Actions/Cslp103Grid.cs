@@ -44,7 +44,7 @@ internal sealed partial class Cslp103Grid
     private static (int Column, int Row) Address(string value)
     {
         int c = 0, i = 0; while (i < value.Length && char.IsLetter(value[i])) c = c * 26 + value[i++] - 'A' + 1;
-        return (c, int.Parse(value[i..], System.Globalization.CultureInfo.InvariantCulture));
+        return (c, int.Parse(value.Substring(i), System.Globalization.CultureInfo.InvariantCulture));
     }
     private static string Column(int c) { string s = ""; do { c--; s = (char)('A' + c % 26) + s; c /= 26; } while(c > 0); return s; }
     private readonly record struct V(object Value)
@@ -73,7 +73,7 @@ internal sealed partial class Cslp103Grid
     private static V Cos(V a) => N(Math.Cos(a.Number));
     private static V Tan(V a) => N(Math.Tan(a.Number));
     private static V Atan(V a) => N(Math.Atan(a.Number));
-    private static V Asinh(V a) => N(Math.Asinh(a.Number));
+    private static V Asinh(V a) => N(PortableMath.Asinh(a.Number));
     private static V And(params V[] args) => B(args.All(Truth));
     private static V Or(params V[] args) => B(args.Any(Truth));
     private static IEnumerable<double> Numbers(object[] args) => args.SelectMany(x => x is V[,] grid ? grid.Cast<V>() : new[] { (V)x }).Where(v => v.Value is double).Select(v => v.Number);

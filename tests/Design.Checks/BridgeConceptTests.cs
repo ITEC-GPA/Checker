@@ -12,11 +12,11 @@ public sealed class BridgeConceptTests
     static JsonArray Cases()
     {
         byte[] bytes=File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory,"Fixtures/bridge-f4.json.gz"));
-        Assert.AreEqual("54461E42ABC4DB18D1A9BCB5CCB237D99B174CD24AAB9CF549DF7F71044AF742",Convert.ToHexString(SHA256.HashData(bytes)));
+        Assert.AreEqual("54461E42ABC4DB18D1A9BCB5CCB237D99B174CD24AAB9CF549DF7F71044AF742",RuntimeCompatibility.Sha256Hex(bytes));
         using var zip=new GZipStream(new MemoryStream(bytes),CompressionMode.Decompress);
         return JsonNode.Parse(zip)!["cases"]!.AsArray();
     }
-    static string Property(string key)=>string.Concat(key.Split('_').Select(v=>char.ToUpperInvariant(v[0])+v[1..]));
+    static string Property(string key)=>string.Concat(key.Split('_').Select(v=>char.ToUpperInvariant(v[0])+v.Substring(1)));
     internal static BridgeModel Input(JsonNode source)
     {
         T Read<T>(string group)
@@ -53,7 +53,7 @@ public sealed class BridgeConceptTests
         if(expected is JsonArray ea)
         {Assert.IsInstanceOfType<JsonArray>(actual,path);var aa=actual.AsArray();Assert.AreEqual(ea.Count,aa.Count,path);return ea.Select((v,i)=>Compare(v,aa[i],path+"/"+i)).Sum();}
         if(expected.AsValue().TryGetValue<double>(out double e)&&actual.AsValue().TryGetValue<double>(out double a))
-        {Assert.IsTrue(double.IsFinite(a),path);Assert.AreEqual(e,a,1e-10*Math.Max(1,Math.Abs(e)),path);return 1;}
+        {Assert.IsTrue(RuntimeCompatibility.IsFinite(a),path);Assert.AreEqual(e,a,1e-10*Math.Max(1,Math.Abs(e)),path);return 1;}
         Assert.AreEqual(expected.ToJsonString(),actual.ToJsonString(),path);return 0;
     }
     [TestMethod]

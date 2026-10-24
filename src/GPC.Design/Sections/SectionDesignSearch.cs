@@ -8,8 +8,8 @@ public sealed record SectionDesignCheck(string Key,string Name,string Combinatio
     /// <summary>Search target with the captured 1e-10 numerical tolerance. Missing/nonfinite/negative ratios fail explicitly.</summary>
     public static SectionDesignCheck FromRatio(string key,string name,string combination,double? ratio,double target,string detail)
     {
-        if(!double.IsFinite(target)||target<=0||target>1)throw new ArgumentException("Design target must be in (0,1].");
-        bool finite=ratio is double value&&double.IsFinite(value)&&value>=0;
+        if(!PortableMath.IsFinite(target)||target<=0||target>1)throw new ArgumentException("Design target must be in (0,1].");
+        bool finite=ratio is double value&&PortableMath.IsFinite(value)&&value>=0;
         return new(key,name,combination,finite?ratio:null,target,finite&&ratio<=target+1e-10,detail);
     }
 }
@@ -29,7 +29,7 @@ public static class SectionDesignSearch
         Func<int,SectionDesignLayout,CancellationToken,SectionDesignPreparation<T>> prepare,
         Func<T,CancellationToken,IReadOnlyList<SectionDesignCheck>> longitudinal,CancellationToken token=default,IProgress<SectionDesignProgress<T>>? progress=null)
     {
-        ArgumentNullException.ThrowIfNull(source);ArgumentNullException.ThrowIfNull(objective);ArgumentNullException.ThrowIfNull(prepare);ArgumentNullException.ThrowIfNull(longitudinal);
+        Guard.NotNull(source);Guard.NotNull(objective);Guard.NotNull(prepare);Guard.NotNull(longitudinal);
         token.ThrowIfCancellationRequested();if(workers<1||workers>8||budget<1)throw new ArgumentException("Positive budget and 1–8 workers required.");
         var plans=source.ToArray();if(plans.Length==0||plans.Any(p=>p==null))throw new ArgumentException("Empty or incomplete design catalogue.");
         var accepted=new List<SectionDesignCandidate<T>>();var exclusions=new Dictionary<string,int>();var examples=new Dictionary<string,SectionDesignCheck>();
@@ -120,7 +120,7 @@ public static class SectionDesignSearch
         if(groups.Length<=16)return groups;var chosen=new Dictionary<string,PreparedSectionDesign<T>[]>();
         void Add(PreparedSectionDesign<T>[] g)=>chosen.TryAdd(g[0].LongitudinalKey,g);
         void Extremes(Func<PreparedSectionDesign<T>,double> value)
-        {var ordered=groups.OrderBy(g=>value(g[0])).ThenBy(g=>score(g[0])).ThenBy(g=>g[0].Id).ToArray();Add(ordered[0]);Add(ordered[^1]);}
+        {var ordered=groups.OrderBy(g=>value(g[0])).ThenBy(g=>score(g[0])).ThenBy(g=>g[0].Id).ToArray();Add(ordered[0]);Add(ordered[ordered.Length - 1]);}
         var byArea=groups.OrderBy(g=>g[0].Metrics.SteelArea).ThenBy(g=>score(g[0])).ThenBy(g=>g[0].Id).ToArray();
         foreach(double fraction in new[]{.5,1,0,.75,.25,.875,.625,.375,.125})Add(byArea[(int)(fraction*(byArea.Length-1))]);
         Extremes(c=>c.Metrics.Bars);Extremes(c=>c.Layout.Top);Extremes(c=>c.Layout.Bottom);Extremes(c=>c.Layout.Side);

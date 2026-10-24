@@ -16,10 +16,10 @@ public sealed class BeamTrafficEnvelope
     private readonly RoadTraffic traffic;
     public BeamTrafficEnvelope(IReadOnlyList<double> spans, bool continuous, RoadTraffic traffic)
     {
-        ArgumentNullException.ThrowIfNull(spans); ArgumentNullException.ThrowIfNull(traffic);
+        Guard.NotNull(spans); Guard.NotNull(traffic);
         this.spans = spans.ToArray(); this.traffic = traffic;
-        if (spans.Count is < 1 or > 30 || spans.Any(x => !double.IsFinite(x) || x < 2) ||
-            !double.IsFinite(traffic.UniformKnPerMetre) || traffic.UniformKnPerMetre < 0 || !double.IsFinite(traffic.AxleKn) || traffic.AxleKn < 0)
+        if (spans.Count is < 1 or > 30 || spans.Any(x => !PortableMath.IsFinite(x) || x < 2) ||
+            !PortableMath.IsFinite(traffic.UniformKnPerMetre) || traffic.UniformKnPerMetre < 0 || !PortableMath.IsFinite(traffic.AxleKn) || traffic.AxleKn < 0)
             throw new ArgumentException("Dati di trave o traffico non validi.");
         offsets = new double[spans.Count + 1];
         for (int k = 0; k < spans.Count; k++) offsets[k + 1] = offsets[k] + spans[k];
@@ -59,7 +59,7 @@ public sealed class BeamTrafficEnvelope
     /// <param name="ei">Flexural rigidity in kN m²; deflection is positive downwards, in mm.</param>
     public TrafficSection At(int span, double x, double ei)
     {
-        if (span < 0 || span >= spans.Length || !double.IsFinite(x) || x < 0 || x > spans[span] || !double.IsFinite(ei) || ei <= 0)
+        if (span < 0 || span >= spans.Length || !PortableMath.IsFinite(x) || x < 0 || x > spans[span] || !PortableMath.IsFinite(ei) || ei <= 0)
             throw new ArgumentException("Sezione o rigidezza non valida.");
         var bending = new List<Piece>(); var shear = new List<Piece>(); var deflection = new List<Piece>();
         double l = spans[span];
@@ -111,9 +111,9 @@ public sealed class BeamTrafficEnvelope
                 if (piece.Coefficients.Value((a + b) / 2) < 0) negative += integral; else positive += integral;
             }
         }
-        double lower = 0, upper = 0, end = offsets[^1] - RoadTraffic.AxleSpacing;
+        double lower = 0, upper = 0, end = offsets[offsets.Length - 1] - RoadTraffic.AxleSpacing;
         var boundaries = pieces.SelectMany(p => new[] { p.Start, p.End, p.Start - RoadTraffic.AxleSpacing, p.End - RoadTraffic.AxleSpacing })
-            .Where(x => x > 0 && x < end).Append(0).Append(end).Distinct().Order().ToArray();
+            .Where(x => x > 0 && x < end).Append(0).Append(end).Distinct().OrderBy(orderValue => orderValue).ToArray();
         for (int k = 1; k < boundaries.Length; k++)
         {
             double a = boundaries[k - 1], b = boundaries[k], mid = (a + b) / 2;
@@ -146,14 +146,14 @@ public sealed class BeamTrafficEnvelope
             if (Math.Abs(a) <= scale * 1e-14)
             { if (Math.Abs(b) > scale * 1e-14) { double t = -c / b; if (t > 0 && t < 1) yield return t; } yield break; }
             double disc = b * b - 4 * a * c; if (disc < 0) yield break;
-            double q = -.5 * (b + Math.CopySign(Math.Sqrt(disc), b));
+            double q = -.5 * (b + PortableMath.CopySign(Math.Sqrt(disc), b));
             double first = q / a, second = q == 0 ? 0 : c / q;
             if (first > 0 && first < 1) yield return first;
             if (second > 0 && second < 1 && second != first) yield return second;
         }
         public IEnumerable<double> Roots()
         {
-            var points = Critical().Append(0).Append(1).Order().ToArray();
+            var points = Critical().Append(0).Append(1).OrderBy(orderValue => orderValue).ToArray();
             for (int k = 1; k < points.Length; k++)
             {
                 double a = points[k - 1], b = points[k], fa = Value(a), fb = Value(b);

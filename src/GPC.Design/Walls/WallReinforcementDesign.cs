@@ -17,13 +17,13 @@ public static class WallReinforcementDesign
         double fyd,double stemBase,IEnumerable<WallDesignAction> sourceActions,
         Func<WallDesignLayout,IReadOnlyList<WallDesignCheck>> evaluate,CancellationToken cancellation=default)
     {
-        ArgumentNullException.ThrowIfNull(sourceActions);ArgumentNullException.ThrowIfNull(evaluate);
+        Guard.NotNull(sourceActions);Guard.NotNull(evaluate);
         cancellation.ThrowIfCancellationRequested();
-        if(!Enum.IsDefined(zone)||maximumCount<4||maximumCount>30||!double.IsFinite(maximumDiameter)||maximumDiameter<8||maximumDiameter>40||
-            !double.IsFinite(target)||target<.1||target>1||!double.IsFinite(fyd)||fyd<=0||!double.IsFinite(stemBase)||stemBase<=0)
+        if(!PortableEnum.IsDefined(zone)||maximumCount<4||maximumCount>30||!PortableMath.IsFinite(maximumDiameter)||maximumDiameter<8||maximumDiameter>40||
+            !PortableMath.IsFinite(target)||target<.1||target>1||!PortableMath.IsFinite(fyd)||fyd<=0||!PortableMath.IsFinite(stemBase)||stemBase<=0)
             throw new ArgumentException("Invalid wall design catalogue, strength or target.");
         var actions=sourceActions.ToArray();
-        if(actions.Length==0||actions.Any(a=>a==null||!double.IsFinite(a.Moment)||!double.IsFinite(a.Thickness)||a.Thickness<=0))
+        if(actions.Length==0||actions.Any(a=>a==null||!PortableMath.IsFinite(a.Moment)||!PortableMath.IsFinite(a.Thickness)||a.Thickness<=0))
             throw new ArgumentException("Finite moments and positive section thicknesses required.");
         int evaluated=0;
         var candidates=from dia in Diameters where dia<=maximumDiameter from n in Enumerable.Range(4,maximumCount-3)
@@ -44,10 +44,10 @@ public static class WallReinforcementDesign
     }
     public static bool Accepts(IEnumerable<WallDesignCheck> source,double target)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        if(!double.IsFinite(target)||target<.1||target>1)throw new ArgumentException("Target must be in [0.1,1].");
+        Guard.NotNull(source);
+        if(!PortableMath.IsFinite(target)||target<.1||target>1)throw new ArgumentException("Target must be in [0.1,1].");
         var checks=source.ToArray();
-        return checks.Length>0&&checks.All(c=>c!=null&&c.Ratio is double r&&double.IsFinite(r)&&r>=0&&r<=(c.Detailing?1:target));
+        return checks.Length>0&&checks.All(c=>c!=null&&c.Ratio is double r&&PortableMath.IsFinite(r)&&r>=0&&r<=(c.Detailing?1:target));
     }
     // Initial catalogue policy (not a construction certificate): Ø10, 50–200 mm in steps of 10.
     // The final wall detail checks still verify the actual geometry, spacing, anchors and lap requirements.
