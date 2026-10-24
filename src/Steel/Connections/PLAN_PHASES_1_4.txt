@@ -37,8 +37,8 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1701 casi connessioni Checker superati:9audit,57coprigiunto,
-   44riparto,61saldature,57componenti bullonati,54finplate,56endplate,35tying piastra/anima,
+1g PARZIALE - 1770 casi connessioni Checker superati:9audit,57coprigiunto,
+   44riparto,61saldature,57componenti bullonati,54finplate,56endplate,104tying piastra/anima/saldature/supporto locale,
    83componenti doppie squadrette/supporto,208precarico/scorrimento,365continuitaI,
    40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,50cordoni/blocco imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,26rigidezza rotazionale,77classificazione/criteri rotazione,22dominioN+V.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
@@ -63,8 +63,12 @@ FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
    SCI e piena resistenza saldature esplicite. Chiusa2d.3a: tying accidentale
    piastra/bulloni e anima trave,35test; politicaSCIesplicita gammaMu1.1,
    distinta dai fattori ordinariEC/NTC. Kernelnumerico T-stub condiviso;
-   368/368test tying/T-stub/endplate. Restano saldature2d.3b e supporto2d.3c
-   fuori piano, che richiede un proprio modello, non i componenti4b.
+   368/368test tying/T-stub/endplate. Chiusa 2d.3b: saldature, 26 test.
+   Chiusa 2d.3c.1: meccanismo locale del pannello continuo del supporto,
+   43 test. Famiglia tying 104/104. Restano compatibilita delle estremita
+   finite, interazioni del supporto e nodo completo; non si usano i 4b
+   come surrogato del comportamento fuori piano.
+   PHASE_2D_TYING_WELD_SUPPORT_IMPLEMENTATION.txt.
    PHASE_2D_TYING_COMPONENT_IMPLEMENTATION.txt.
    PHASE_2D_SPEC.txt ePHASE_2C_SUPPORT_TENSION_REVIEW.txt.
 2e PARZIALE - Chiuse2e.1/2e.2: riparto N-V-M e sei gruppi sui due lati,
@@ -184,10 +188,10 @@ Risultati e commit in VALIDATION.txt. Non e' un rilascio generale verde.
 
 
 BLOCCHI SUCCESSIVI AVVIATI - 24/10/2026 CIRCA02:24
-2d.3b/3c IN SVILUPPO - specifica saldatureSCI C.1 e modello locale anima
-supportoCheck14 approvata; benchmark405.388kN, riscontroSDS2 405.4kN.
-Limiti delle estremita' finite conservati esplicitamente, nessuna qualifica
-globale. Vedere PHASE_2D_TYING_WELD_SUPPORT_SPEC.txt. Test.NET da eseguire.
+2d.3b e 2d.3c.1 CHIUSE nel campo dichiarato: 69 nuovi test passati,
+104/104 con piastra/anima. Benchmark supporto 405.388 kN, riscontro SDS2
+405.4 kN. Le estremita finite non sono qualificate; nessuna qualifica
+globale. Vedere PHASE_2D_TYING_WELD_SUPPORT_IMPLEMENTATION.txt.
 4c.3 IN SVILUPPO - CJP superiore a filo, cordone interno reale e fondo
 prolungato; PHASE_4C_3_TOP_FLUSH_CJP_SPEC.txt. FontiEN/NTC/SCI verificate.
 Nessuna modifica semantica ai T-stub; vero flush completo ancora aperto.

@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
-Versione sorgenteSteel2.74.0.0. Solo librerie, nessuna interfacciaANTHEA.
+Versione sorgenteSteel2.75.0.0. Solo librerie, nessuna interfacciaANTHEA.
 Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
 
 COMPONENTI
@@ -243,3 +243,6 @@ I risultati restano consumabili dalle librerie; integrazioneANTHEA rinviata.
 
 - PackingWeldedStationComponents.Verify: due loop fisici e snervamento
   nominale bloccoFx/Fz/My; PHASE_3D_2_PACKING_STATION.txt.
+
+- FlexibleEndPlateTyingWeld / FlexibleEndPlateTyingSupportWeb: saldature
+  e meccanismo locale dell'anima; PHASE_2D_TYING_WELD_SUPPORT_IMPLEMENTATION.txt.

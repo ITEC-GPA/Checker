@@ -502,3 +502,22 @@ Blocchi di questa prosecuzione,150nuovi test:
 -3d.2a/b imbottiture:50nuovi,100/100conadattatore;c949a144,versionedb27fe33.
 Tutte le modifiche sul branchcodex/steel-standard-connections; nessun
 merge/push/rilascio. Restano le sottofasi esplicitamente PARZIALI nel piano.
+
+
+2d.3b / 2d.3c.1 - TYING, SALDATURE E PANNELLO LOCALE - STEEL 2.75.0.0
+69 nuovi casi passati: 26 saldature e 43 supporto locale; 104/104 nella
+famiglia completa tying. Ricalcolo Python indipendente eseguito.
+Revisione indipendente su politica, assi, geometria e limiti conclusa.
+SCI P358 C.1: gola richiesta 4.212782672121 mm; Rweld 762519.752386 N.
+Il requisito sviluppa lo snervamento dell'anima, non la sua resistenza
+ultima. Il criterio equivalente e quello normale verificano il tiro reale;
+nessuna costruzione artificiale di un codice EC/NTC con gammaMu=1.1.
+P358 Check14: 405388.323891905 N; pubblicati 405 kN, SDS2 405.4 kN.
+S275 del supporto esplicito, geometria reale, sei azioni preesistenti e
+presenza di interferenze obbligatorie. Una faccia sola nel primo campo.
+LocalModelStatus non qualifica estremita finite o membro: il flag
+IsSupportBoundaryCompatibilityVerified rimane false in tutti i casi.
+Le distanze di 40 mm contengono la piastra, senza certificare le yield lines.
+Nessuna aspettativa legacy modificata. Il check figlio Failed resta
+visibile e non viene sostituito da un esito favorevole del nuovo componente.
+Log/TRX: workspace audit-results/connections/night-2d-tying-weld-support.

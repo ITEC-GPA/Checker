@@ -1,0 +1,104 @@
+FASE 2d.3b / 2d.3c.1 - IMPLEMENTAZIONE CHECK13/14, 24/10/2026
+
+Stato: integrato da root e verificato con 104 test passati, inclusi 69
+nuovi casi. Ricalcolo indipendente e revisione tecnica completati.
+
+Produzione nuova:
+FlexibleEndPlateTyingWeld.cs
+FlexibleEndPlateTyingSupportWeb.cs
+Destinazione: src/Steel/Connections.
+
+Test nuovi:
+FlexibleEndPlateTyingWeldTests.cs:12 TestMethod +14 DataRow =26 casi;
+FlexibleEndPlateTyingSupportWebTests.cs:15 TestMethod +28 DataRow =43 casi.
+Destinazione: tests/Steel.Members.Tests. Totale 69 casi eseguiti e passati.
+Filtro suggerito:
+FullyQualifiedName~FlexibleEndPlateTyingWeldTests|FullyQualifiedName~FlexibleEndPlateTyingSupportWebTests
+Allargamento pertinente: famiglia FlexibleEndPlateTying, poi suite centrale.
+
+Si riusano FlexibleEndPlateTyingComponents/Geometry/Input/Result congelati,
+SciAccidentalTyingPolicy, ConnectionRolledISection, PlanarConnectionActions,
+ConnectionCheck, SectionResistanceValue, FilletWeldEndCondition e
+FilletWeldNumbers.Norm. Nessun fake ConnectionDesignCode con gammaMu1.1.
+
+WELD
+Input: stesso Tying immutabile; estremita' full-size; fonte consumabili,
+fonte dettaglio fisico e fonte della combinazione accidentale obbligatorie.
+Dettaglio chiuso: due cordoni uguali continui sui due lati dell'anima,
+gola gia' in Geometry, lunghezza hp interamente efficace, fusione90gradi.
+I tre controlli sono gola di gerarchia allo snervamento dell'anima secondo
+App.C.1, criterio tensionale equivalente e criterio normale.
+Trace separa Rweld,Nweb,y,Nweb,u,FMode1 e FMode1/Rweld. Il rapporto non e'
+una nuova verifica normativa o una prova di duttilita' dell'intero nodo.
+Il risultato ha Status riferito SOLO alla saldatura. PlateAndBeamAssessment
+resta pubblico e distinto; CanQualifyWholeJoint e' sempre false.
+
+SUPPORTWEB
+Input: stesso Tying; sezione supporto reale; distanze alle estremita'/prime
+interruzioni; sei azioni preesistenti concomitanti; presenza faccia opposta,
+fori aggiuntivi, aperture, rinforzi/irrigidimenti. Tutti i flag e il vettore
+azioni sono parametri obbligatori senza default favorevole.
+Materiale iniziale esattamente fy275/fu410. Distanze>=40mm soltanto per
+conservare la piastra fisica sul supporto. La larghezza della piastra e la
+testa/dado devono restare nella luce piana fra i raccordi.
+Qualsiasi azione supporto non nulla e le interferenze dichiarate restano
+fuori campo. Nessun coefficiente inventato per N,V,M o distanza di yield-line.
+Output volutamente LocalModelStatus, LocalUtilization, LocalTyingResistance,
+IsLocalModelCalculated. Nessun Status/IsComplete che sembri qualificare
+l'intero supporto; IsSupportBoundaryCompatibilityVerified e
+CanQualifyWholeJoint sono sempre false. La verifica delle estremita' finite
+rimane nei PendingChecks anche con esito locale Passed e grande lunghezza.
+
+EQUILIBRIO E COMBINAZIONI
+Il componente congelato trasporta tutte le azioni al centro reale piastra
+e ammette solo tiro Fz>=0 senza altre componenti residue. I nuovi adattatori
+non scartano momenti, non mescolano stati e non dividono le azioni tra facce.
+La trave trasmette +Fz alla piastra/supporto; la reazione sul corpo trave e'
+-Fz. Il passaggio da Z=tp/2 alla radice Z=tp o all'anima Z=-tw,support/2
+non aggiunge coppia per questo tiro puro. E' documentato nei sorgenti/trace.
+
+BENCHMARK INDIPENDENTI, VERIFICATI ANCHE NEI TEST.NET
+Derivatore indipendente: derive_tying_weld_support_checks.py eseguito,
+senza importazioni della libreria. I valori esatti non sono rigenerazioni
+di fixture o attesi legacy.
+SCI P358 esempio2: Rweb405388.3238919048N (pubblicato405kN).
+Riscontro SDS2 ufficiale pp20-21:405.4kN, tolleranza stampa50N.
+Gola App.C.1:4.212782672121012mm rispetto a4.24mm;
+Rweld762519.7523855858N; Nweb,y757625N; Nweb,u1026863.6363636362N.
+Check13 semplificato pubblica3.8mm: non e' stato sostituito o spacciato
+per il criterio C.1. La differenza e' intenzionale e spiegata nella spec.
+P358p49 stampa kNm/mm accanto17.7: l'unita' coerente del momento per
+unita' di lunghezza e' Nmm/mm=N (qui17745.545454545456N), non un fattore1000.
+
+FONTI VISIVE
+P358 PDF39,58,59,289; EN1993-1-8 PDF45-46, eq4.1 e Tab.4.1.
+Screenshot di lavoro nuovi:
+review-tying-appendix-c.png, review-tying-weld-en-045.png,
+review-tying-weld-en-046.png. Non sono necessari nella DLL o nei test.
+La spec PHASE_2D_TYING_WELD_SUPPORT_SPEC.txt e' gia' stata committata da root
+(2a6e33bf) con propri vincoli/appendice: NON sovrascriverla dallo staging.
+
+Copertura test mirata: benchmark indipendenti, gola che fallisce mentre il
+tiro passa, snervamento distinto dall'ultima, limiti numerici, stato figlio
+Failed distinto da NotSupported, trasporto/equilibrio, 6 componenti supporto,
+presenza seconda faccia e interferenze, righe2..6, materiale, impronta40mm,
+overflow senza resistenza favorevole infinita, fonti e snapshot immutabili.
+
+
+2d.3b / 2d.3c.1 - TYING, SALDATURE E PANNELLO LOCALE - STEEL 2.75.0.0
+69 nuovi casi passati: 26 saldature e 43 supporto locale; 104/104 nella
+famiglia completa tying. Ricalcolo Python indipendente eseguito.
+Revisione indipendente su politica, assi, geometria e limiti conclusa.
+SCI P358 C.1: gola richiesta 4.212782672121 mm; Rweld 762519.752386 N.
+Il requisito sviluppa lo snervamento dell'anima, non la sua resistenza
+ultima. Il criterio equivalente e quello normale verificano il tiro reale;
+nessuna costruzione artificiale di un codice EC/NTC con gammaMu=1.1.
+P358 Check14: 405388.323891905 N; pubblicati 405 kN, SDS2 405.4 kN.
+S275 del supporto esplicito, geometria reale, sei azioni preesistenti e
+presenza di interferenze obbligatorie. Una faccia sola nel primo campo.
+LocalModelStatus non qualifica estremita finite o membro: il flag
+IsSupportBoundaryCompatibilityVerified rimane false in tutti i casi.
+Le distanze di 40 mm contengono la piastra, senza certificare le yield lines.
+Nessuna aspettativa legacy modificata. Il check figlio Failed resta
+visibile e non viene sostituito da un esito favorevole del nuovo componente.
+Log/TRX: workspace audit-results/connections/night-2d-tying-weld-support.
