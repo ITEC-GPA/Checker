@@ -115,6 +115,20 @@ public class CheckReportIntegrationTest
         Assert.AreEqual(1, report.Summary.Invalid);
     }
 
+    [TestMethod]
+    public void ChangingTheParabolaMethodInvalidatesPreparedReports()
+    {
+        var model = MixedModelFactory.Create(); var request = new ModelCheckRequest();
+        var job = Job("ULS", new StandardNTC2018Concrete()); request.Jobs.Add(job);
+        var report = new Service().Verify(model, request).Jobs.Single(); var engine = job.Options.CreateVerifier();
+        Assert.AreNotEqual(EngineeringOutcome.NotEvaluated, report.CurrentOutcome(model, engine));
+        var material = (GPC.Model.Materials.ConcreteMaterialEuropeanCommon)model.BeamElements[250].Assignments.Sections[0].Section.ConcreteMaterial;
+#pragma warning disable CS0618 // Explicit historical selection must invalidate the calculation evidence.
+        material.ParabolaRectangleMethod = GPC.Model.Materials.ConcreteParabolaRectangleMethod.TabulatedLegacy;
+#pragma warning restore CS0618
+        Assert.AreEqual(EngineeringOutcome.NotEvaluated, report.CurrentOutcome(model, engine));
+    }
+
     private sealed class DecisionVerifier : IConfiguredSectionVerifier
     {
         public string Version => "fixture";

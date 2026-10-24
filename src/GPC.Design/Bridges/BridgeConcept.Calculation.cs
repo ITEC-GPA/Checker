@@ -19,11 +19,11 @@ public static partial class BridgeConcept
         double length = i.Length, height = i.Height;
         double width = i.Lanes * i.LaneWidth + 2 * i.Shoulder + i.Median + 2 * i.BarrierWidth;
         int count = (int)i.Spans;
-        if (count == 0) count = Math.Clamp((int)Math.Ceiling(length / ((family.MinSpan + family.MaxSpan) / 2)), 1, 30);
+        if (count == 0) count = PortableMath.Clamp((int)Math.Ceiling(length / ((family.MinSpan + family.MaxSpan) / 2)), 1, 30);
         double[] weights = Enumerable.Range(0, count).Select(k => i.Continuous && count > 2 && (k == 0 || k == count - 1) ? .8 : 1).ToArray();
         double[] positions = new double[count + 1];
         for (int k = 0; k < count; k++) positions[k + 1] = positions[k] + length * weights[k] / weights.Sum();
-        positions[^1] = length;
+        positions[positions.Length - 1] = length;
         bool obstacle = i.Obstacle != "Nessuno" && i.ObstacleWidth > 0;
         if (obstacle)
         {
@@ -158,7 +158,7 @@ public static partial class BridgeConcept
         {
             if (amount <= 0) return null;
             quantities.Add(new(group, item, amount, unit, rates.Value(rateKey), amount * rates.Value(rateKey), carbon));
-            AddCostQuantity(costQuantities, quantities.Count, rateKey, amount, unit); return costQuantities[^1].Id;
+            AddCostQuantity(costQuantities, quantities.Count, rateKey, amount, unit); return costQuantities[costQuantities.Count - 1].Id;
         }
         Add("Impalcato", "Calcestruzzo", volumeDeck, "m³", "concrete_deck", volumeDeck * cf / 1000);
         Add("Impalcato", "Armatura ordinaria", deckRebar, "t", "rebar", deckRebar * a.Co2Rebar);
@@ -224,7 +224,7 @@ public static partial class BridgeConcept
     /// <summary>Exact prismatic Euler–Bernoulli beam under one uniform load on all spans; no moving-load envelope.</summary>
     public static (double[] Reactions, Station[] Stations) Analyze(double[] spans, double q, double ei, bool continuous)
     {
-        if (spans.Length == 0 || spans.Any(l => !double.IsFinite(l) || l <= 0) || !double.IsFinite(q) || !double.IsFinite(ei) || ei <= 0)
+        if (spans.Length == 0 || spans.Any(l => !PortableMath.IsFinite(l) || l <= 0) || !PortableMath.IsFinite(q) || !PortableMath.IsFinite(ei) || ei <= 0)
             throw new ArgumentException("Dati della trave non validi.");
         int n = spans.Length; var moments = new double[n + 1];
         if (continuous && n > 1)
@@ -246,7 +246,7 @@ public static partial class BridgeConcept
             var xs = Enumerable.Range(0, 41).Select(t => l * t / 40).ToList();
             // Keep the analytical maximum unless its abscissa already belongs to the sampling grid.
             if (q != 0 && r / q > 0 && r / q < l && !xs.Any(x => Math.Abs(x - r / q) <= l * 1e-12)) xs.Add(r / q);
-            foreach (double x in xs.Distinct().Order())
+            foreach (double x in xs.Distinct().OrderBy(orderValue => orderValue))
                 stations.Add(new(k + 1, offset + x, ml + r * x - q * x * x / 2, r - q * x,
                     -(ml * x * x / 2 + r * x * x * x / 6 - q * Math.Pow(x, 4) / 24 + c * x) / ei * 1000));
             offset += l;

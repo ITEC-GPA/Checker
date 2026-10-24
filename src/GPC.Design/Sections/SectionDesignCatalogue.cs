@@ -12,14 +12,14 @@ public static class SectionDesignCatalogue
 {
     public static IReadOnlyList<SectionDesignLayout> Create(SectionDesignCatalogueInput source,SectionDesignObjective objective)
     {
-        ArgumentNullException.ThrowIfNull(source);ArgumentNullException.ThrowIfNull(objective);
-        if(!double.IsFinite(source.Width)||source.Width<=0||!double.IsFinite(source.Height)||source.Height<=0)throw new ArgumentException("Positive section dimensions required.");
+        Guard.NotNull(source);Guard.NotNull(objective);
+        if(!PortableMath.IsFinite(source.Width)||source.Width<=0||!PortableMath.IsFinite(source.Height)||source.Height<=0)throw new ArgumentException("Positive section dimensions required.");
         var dias=Diameters(source.Diameters);var top=Counts(source.TopCounts,2);var bottom=Counts(source.BottomCounts,2);
         var side=Counts(source.SideCounts,0);var circular=Counts(source.CircularCounts,4);var links=Diameters(source.StirrupDiameters);
-        var steps=source.StirrupSpacings?.Distinct().Order().ToArray()??throw new ArgumentNullException(nameof(source.StirrupSpacings));
-        if(steps.Length is <1 or >20||steps.Any(v=>!double.IsFinite(v)||v<20||v>1000))throw new ArgumentException("Invalid stirrup spacings.");
+        var steps=source.StirrupSpacings?.Distinct().OrderBy(orderValue => orderValue).ToArray()??throw new ArgumentNullException(nameof(source.StirrupSpacings));
+        if(steps.Length is <1 or >20||steps.Any(v=>!PortableMath.IsFinite(v)||v<20||v>1000))throw new ArgumentException("Invalid stirrup spacings.");
         if(source.Stirrups==SectionStirrupMode.Keep&&source.CurrentStirrups&&
-            (!double.IsFinite(source.CurrentDiameter)||source.CurrentDiameter<=0||!double.IsFinite(source.CurrentSpacing)||source.CurrentSpacing<=0))throw new ArgumentException("Current links are incomplete.");
+            (!PortableMath.IsFinite(source.CurrentDiameter)||source.CurrentDiameter<=0||!PortableMath.IsFinite(source.CurrentSpacing)||source.CurrentSpacing<=0))throw new ArgumentException("Current links are incomplete.");
         var stirrups=source.Stirrups switch
         {
             SectionStirrupMode.Keep=>new[]{(source.CurrentStirrups,source.CurrentDiameter,source.CurrentSpacing)},
@@ -54,12 +54,12 @@ public static class SectionDesignCatalogue
     }
     static double[] Diameters(IEnumerable<double> source)
     {
-        ArgumentNullException.ThrowIfNull(source);var values=source.Distinct().Order().ToArray();
-        if(values.Length is <1 or >12||values.Any(v=>!double.IsFinite(v)||v<4||v>50))throw new ArgumentException("Invalid bar diameters.");return values;
+        Guard.NotNull(source);var values=source.Distinct().OrderBy(orderValue => orderValue).ToArray();
+        if(values.Length is <1 or >12||values.Any(v=>!PortableMath.IsFinite(v)||v<4||v>50))throw new ArgumentException("Invalid bar diameters.");return values;
     }
     static int[] Counts(IEnumerable<int> source,int minimum)
     {
-        ArgumentNullException.ThrowIfNull(source);var values=source.Distinct().Order().ToArray();
+        Guard.NotNull(source);var values=source.Distinct().OrderBy(orderValue => orderValue).ToArray();
         if(values.Length is <1 or >30||values.Any(v=>v<minimum||v>100))throw new ArgumentException("Invalid bar counts.");return values;
     }
 }

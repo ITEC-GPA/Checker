@@ -1,0 +1,4025 @@
+{
+  "baseline": "aa262e21 / Concrete 0.18.0.2",
+  "candidate": "Concrete 0.19.0.0, analytic n=2 European parabola, unchanged public tolerances",
+  "cohorts": {
+    "All": {
+      "before": {
+        "cases": 240,
+        "accepted": 238,
+        "planeAccepted": 236,
+        "sumSeconds": 0.8748193000000001,
+        "meanMs": 3.6450804166666666,
+        "sumPreparationSeconds": 0.731599,
+        "sumFirstSolveSeconds": 1.0947884000000005,
+        "sumOneShotSeconds": 1.826387399999999,
+        "p95OneShotMs": 17.143419999999995,
+        "p50Ms": 2.1554,
+        "p90Ms": 6.757,
+        "p95Ms": 8.203124999999998,
+        "p99Ms": 34.064603999999996,
+        "maxMs": 49.3332,
+        "coldP95Ms": 10.488344999999999,
+        "meanIterations": 5.5625,
+        "p95Iterations": 7.0,
+        "meanEvaluations": 51.97083333333333,
+        "fallback": 5,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 240,
+        "accepted": 238,
+        "planeAccepted": 238,
+        "sumSeconds": 0.09610640000000001,
+        "meanMs": 0.4004433333333333,
+        "sumPreparationSeconds": 0.6712334000000003,
+        "sumFirstSolveSeconds": 0.2125284,
+        "sumOneShotSeconds": 0.8837617999999995,
+        "p95OneShotMs": 7.818635,
+        "p50Ms": 0.07385,
+        "p90Ms": 0.1583,
+        "p95Ms": 0.17356999999999997,
+        "p99Ms": 0.6538629999999894,
+        "maxMs": 40.3799,
+        "coldP95Ms": 0.39530499999999974,
+        "meanIterations": 4.679166666666666,
+        "p95Iterations": 7.0,
+        "meanEvaluations": 33.9875,
+        "fallback": 3,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 240,
+        "accepted": 238,
+        "planeAccepted": 236,
+        "sumSeconds": 0.654916,
+        "meanMs": 2.7288166666666664,
+        "sumPreparationSeconds": 0.48124999999999996,
+        "sumFirstSolveSeconds": 0.7897263000000001,
+        "sumOneShotSeconds": 1.2709763000000003,
+        "p95OneShotMs": 10.901969999999999,
+        "p50Ms": 1.3956,
+        "p90Ms": 4.69088,
+        "p95Ms": 5.98111,
+        "p99Ms": 26.926298999999997,
+        "maxMs": 61.5832,
+        "coldP95Ms": 6.021664999999998,
+        "meanIterations": 5.391666666666667,
+        "p95Iterations": 7.0,
+        "meanEvaluations": 49.94583333333333,
+        "fallback": 5,
+        "unstable": 0
+      },
+      "speedup": 9.102612313019737
+    },
+    "Common": {
+      "before": {
+        "cases": 238,
+        "accepted": 238,
+        "planeAccepted": 236,
+        "sumSeconds": 0.7767834,
+        "meanMs": 3.2637957983193275,
+        "sumPreparationSeconds": 0.731066,
+        "sumFirstSolveSeconds": 0.8911152000000003,
+        "sumOneShotSeconds": 1.622181199999999,
+        "p95OneShotMs": 15.384969999999973,
+        "p50Ms": 2.1471999999999998,
+        "p90Ms": 6.588030000000001,
+        "p95Ms": 8.043874999999998,
+        "p99Ms": 23.06544299999992,
+        "maxMs": 34.1997,
+        "coldP95Ms": 10.096794999999993,
+        "meanIterations": 5.029411764705882,
+        "p95Iterations": 7.0,
+        "meanEvaluations": 41.180672268907564,
+        "fallback": 3,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 238,
+        "accepted": 238,
+        "planeAccepted": 238,
+        "sumSeconds": 0.0213232,
+        "meanMs": 0.08959327731092437,
+        "sumPreparationSeconds": 0.6695188000000003,
+        "sumFirstSolveSeconds": 0.04731820000000003,
+        "sumOneShotSeconds": 0.7168369999999995,
+        "p95OneShotMs": 7.771795,
+        "p50Ms": 0.07350000000000001,
+        "p90Ms": 0.1471400000000002,
+        "p95Ms": 0.16768999999999995,
+        "p99Ms": 0.188582,
+        "maxMs": 0.934,
+        "coldP95Ms": 0.3578549999999996,
+        "meanIterations": 4.138655462184874,
+        "p95Iterations": 6.0,
+        "meanEvaluations": 23.189075630252102,
+        "fallback": 1,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 238,
+        "accepted": 238,
+        "planeAccepted": 236,
+        "sumSeconds": 0.5324421,
+        "meanMs": 2.237151680672269,
+        "sumPreparationSeconds": 0.48050979999999993,
+        "sumFirstSolveSeconds": 0.5517992000000002,
+        "sumOneShotSeconds": 1.0323090000000001,
+        "p95OneShotMs": 10.595679999999993,
+        "p50Ms": 1.3927,
+        "p90Ms": 4.243870000000007,
+        "p95Ms": 5.9078,
+        "p99Ms": 18.029198999999913,
+        "maxMs": 26.9442,
+        "coldP95Ms": 5.855604999999997,
+        "meanIterations": 4.890756302521009,
+        "p95Iterations": 7.0,
+        "meanEvaluations": 39.5672268907563,
+        "fallback": 3,
+        "unstable": 0
+      },
+      "speedup": 36.42902566218954
+    },
+    "CommonPlanes": {
+      "before": {
+        "cases": 236,
+        "accepted": 236,
+        "planeAccepted": 236,
+        "sumSeconds": 0.7087304,
+        "meanMs": 3.003094915254237,
+        "sumPreparationSeconds": 0.7303897,
+        "sumFirstSolveSeconds": 0.8218977000000003,
+        "sumOneShotSeconds": 1.5522873999999993,
+        "p95OneShotMs": 14.547125,
+        "p50Ms": 2.1109999999999998,
+        "p90Ms": 6.259,
+        "p95Ms": 7.0303,
+        "p99Ms": 10.945125,
+        "maxMs": 29.6167,
+        "coldP95Ms": 9.92195,
+        "meanIterations": 4.25,
+        "p95Iterations": 6.25,
+        "meanEvaluations": 23.78813559322034,
+        "fallback": 1,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 236,
+        "accepted": 236,
+        "planeAccepted": 236,
+        "sumSeconds": 0.021207999999999998,
+        "meanMs": 0.08986440677966101,
+        "sumPreparationSeconds": 0.6682817000000002,
+        "sumFirstSolveSeconds": 0.04711060000000003,
+        "sumOneShotSeconds": 0.7153922999999995,
+        "p95OneShotMs": 7.772125,
+        "p50Ms": 0.07385,
+        "p90Ms": 0.1503,
+        "p95Ms": 0.16795,
+        "p99Ms": 0.18861,
+        "maxMs": 0.934,
+        "coldP95Ms": 0.35962500000000003,
+        "meanIterations": 4.148305084745763,
+        "p95Iterations": 6.0,
+        "meanEvaluations": 23.25,
+        "fallback": 1,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 236,
+        "accepted": 236,
+        "planeAccepted": 236,
+        "sumSeconds": 0.47859959999999985,
+        "meanMs": 2.027964406779661,
+        "sumPreparationSeconds": 0.4799162999999999,
+        "sumFirstSolveSeconds": 0.4993480000000002,
+        "sumOneShotSeconds": 0.9792643000000001,
+        "p95OneShotMs": 10.489350000000002,
+        "p50Ms": 1.3871,
+        "p90Ms": 3.7655000000000003,
+        "p95Ms": 5.8617,
+        "p99Ms": 6.058115,
+        "maxMs": 24.8436,
+        "coldP95Ms": 5.829225,
+        "meanIterations": 4.262711864406779,
+        "p95Iterations": 6.0,
+        "meanEvaluations": 23.86864406779661,
+        "fallback": 1,
+        "unstable": 0
+      },
+      "speedup": 33.418068653338366
+    },
+    "CommonExactPlanes": {
+      "before": {
+        "cases": 33,
+        "accepted": 33,
+        "planeAccepted": 33,
+        "sumSeconds": 0.09077559999999998,
+        "meanMs": 2.7507757575757577,
+        "sumPreparationSeconds": 0.1036715,
+        "sumFirstSolveSeconds": 0.10384690000000002,
+        "sumOneShotSeconds": 0.2075184,
+        "p95OneShotMs": 15.265579999999993,
+        "p50Ms": 1.8601,
+        "p90Ms": 4.96,
+        "p95Ms": 6.980119999999997,
+        "p99Ms": 8.193223999999999,
+        "maxMs": 8.2682,
+        "coldP95Ms": 7.868899999999996,
+        "meanIterations": 4.575757575757576,
+        "p95Iterations": 7.0,
+        "meanEvaluations": 24.333333333333332,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 33,
+        "accepted": 33,
+        "planeAccepted": 33,
+        "sumSeconds": 0.0027278000000000003,
+        "meanMs": 0.08266060606060606,
+        "sumPreparationSeconds": 0.073162,
+        "sumFirstSolveSeconds": 0.005069500000000001,
+        "sumOneShotSeconds": 0.07823149999999998,
+        "p95OneShotMs": 5.986679999999995,
+        "p50Ms": 0.0847,
+        "p90Ms": 0.12276000000000001,
+        "p95Ms": 0.12646,
+        "p99Ms": 0.128552,
+        "maxMs": 0.129,
+        "coldP95Ms": 0.29573999999999984,
+        "meanIterations": 4.545454545454546,
+        "p95Iterations": 7.0,
+        "meanEvaluations": 24.181818181818183,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 33,
+        "accepted": 33,
+        "planeAccepted": 33,
+        "sumSeconds": 0.05179839999999998,
+        "meanMs": 1.5696484848484848,
+        "sumPreparationSeconds": 0.052805300000000006,
+        "sumFirstSolveSeconds": 0.052902199999999996,
+        "sumOneShotSeconds": 0.1057075,
+        "p95OneShotMs": 6.675179999999996,
+        "p50Ms": 1.421,
+        "p90Ms": 2.7656799999999997,
+        "p95Ms": 3.272039999999999,
+        "p99Ms": 3.931196,
+        "maxMs": 4.0639,
+        "coldP95Ms": 3.3575399999999997,
+        "meanIterations": 4.545454545454546,
+        "p95Iterations": 7.0,
+        "meanEvaluations": 24.242424242424242,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "speedup": 33.277952929100366
+    },
+    "Focus": {
+      "before": {
+        "cases": 1896,
+        "accepted": 1876,
+        "planeAccepted": 1874,
+        "sumSeconds": 8.552136700000025,
+        "meanMs": 4.510620622362869,
+        "sumPreparationSeconds": 4.2584227999999955,
+        "sumFirstSolveSeconds": 10.108488899999987,
+        "sumOneShotSeconds": 14.366911699999998,
+        "p95OneShotMs": 14.125525,
+        "p50Ms": 1.9641000000000002,
+        "p90Ms": 6.3489,
+        "p95Ms": 8.424875,
+        "p99Ms": 103.81072499999999,
+        "maxMs": 225.3604,
+        "coldP95Ms": 8.5164,
+        "meanIterations": 5.593354430379747,
+        "p95Iterations": 9.0,
+        "meanEvaluations": 48.16561181434599,
+        "fallback": 36,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 1896,
+        "accepted": 1876,
+        "planeAccepted": 1876,
+        "sumSeconds": 1.3194437000000008,
+        "meanMs": 0.6959091244725738,
+        "sumPreparationSeconds": 4.119417300000004,
+        "sumFirstSolveSeconds": 2.505575599999995,
+        "sumOneShotSeconds": 6.624992900000007,
+        "p95OneShotMs": 5.985775,
+        "p50Ms": 0.07805000000000001,
+        "p90Ms": 0.1632,
+        "p95Ms": 0.1848,
+        "p99Ms": 30.342849999999956,
+        "maxMs": 95.1639,
+        "coldP95Ms": 0.32165,
+        "meanIterations": 5.363396624472574,
+        "p95Iterations": 9.0,
+        "meanEvaluations": 45.3539029535865,
+        "fallback": 34,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 1896,
+        "accepted": 1876,
+        "planeAccepted": 1874,
+        "sumSeconds": 9.120477799999993,
+        "meanMs": 4.81037858649789,
+        "sumPreparationSeconds": 4.6559099999999995,
+        "sumFirstSolveSeconds": 11.97181959999999,
+        "sumOneShotSeconds": 16.627729600000034,
+        "p95OneShotMs": 12.76415,
+        "p50Ms": 1.8089,
+        "p90Ms": 5.10295,
+        "p95Ms": 7.154625,
+        "p99Ms": 141.2397449999999,
+        "maxMs": 349.4154,
+        "coldP95Ms": 7.163125,
+        "meanIterations": 5.515295358649789,
+        "p95Iterations": 9.0,
+        "meanEvaluations": 47.50949367088607,
+        "fallback": 36,
+        "unstable": 0
+      },
+      "speedup": 6.4816230506841785
+    },
+    "FocusCommon": {
+      "before": {
+        "cases": 1876,
+        "accepted": 1876,
+        "planeAccepted": 1874,
+        "sumSeconds": 5.448379300000007,
+        "meanMs": 2.904253358208955,
+        "sumPreparationSeconds": 4.233380699999995,
+        "sumFirstSolveSeconds": 5.623306999999993,
+        "sumOneShotSeconds": 9.856687699999993,
+        "p95OneShotMs": 13.56655,
+        "p50Ms": 1.9269500000000002,
+        "p90Ms": 5.89035,
+        "p95Ms": 8.049275,
+        "p99Ms": 11.58595,
+        "maxMs": 113.7923,
+        "coldP95Ms": 8.204049999999999,
+        "meanIterations": 5.091684434968017,
+        "p95Iterations": 8.0,
+        "meanEvaluations": 32.79957356076759,
+        "fallback": 16,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 1876,
+        "accepted": 1876,
+        "planeAccepted": 1876,
+        "sumSeconds": 0.18710009999999977,
+        "meanMs": 0.09973352878464818,
+        "sumPreparationSeconds": 4.095015200000004,
+        "sumFirstSolveSeconds": 0.3107317000000002,
+        "sumOneShotSeconds": 4.405746900000002,
+        "p95OneShotMs": 5.820325,
+        "p50Ms": 0.0777,
+        "p90Ms": 0.1592,
+        "p95Ms": 0.1758,
+        "p99Ms": 0.34215,
+        "maxMs": 2.2121,
+        "coldP95Ms": 0.30165,
+        "meanIterations": 4.8075692963752665,
+        "p95Iterations": 8.0,
+        "meanEvaluations": 29.556503198294244,
+        "fallback": 14,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 1876,
+        "accepted": 1876,
+        "planeAccepted": 1874,
+        "sumSeconds": 4.782507500000004,
+        "meanMs": 2.5493110341151386,
+        "sumPreparationSeconds": 4.6284830999999995,
+        "sumFirstSolveSeconds": 5.008958499999988,
+        "sumOneShotSeconds": 9.637441600000002,
+        "p95OneShotMs": 12.33285,
+        "p50Ms": 1.7908,
+        "p90Ms": 4.9188,
+        "p95Ms": 6.402125,
+        "p99Ms": 12.13175,
+        "maxMs": 64.5644,
+        "coldP95Ms": 6.603,
+        "meanIterations": 5.0101279317697225,
+        "p95Iterations": 8.0,
+        "meanEvaluations": 32.11620469083156,
+        "fallback": 16,
+        "unstable": 0
+      },
+      "speedup": 29.12013034733821
+    },
+    "FocusCommonPlanes": {
+      "before": {
+        "cases": 1874,
+        "accepted": 1874,
+        "planeAccepted": 1874,
+        "sumSeconds": 5.385818500000006,
+        "meanMs": 2.8739693169690503,
+        "sumPreparationSeconds": 4.232894699999995,
+        "sumFirstSolveSeconds": 5.563113799999994,
+        "sumOneShotSeconds": 9.796008499999992,
+        "p95OneShotMs": 13.54183,
+        "p50Ms": 1.9267500000000002,
+        "p90Ms": 5.84119,
+        "p95Ms": 8.020705,
+        "p99Ms": 11.338269999999996,
+        "maxMs": 113.7923,
+        "coldP95Ms": 8.146134999999994,
+        "meanIterations": 4.993596584845251,
+        "p95Iterations": 8.0,
+        "meanEvaluations": 30.600320170757737,
+        "fallback": 14,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 1874,
+        "accepted": 1874,
+        "planeAccepted": 1874,
+        "sumSeconds": 0.18699349999999978,
+        "meanMs": 0.09978308431163287,
+        "sumPreparationSeconds": 4.094437000000004,
+        "sumFirstSolveSeconds": 0.3106108000000002,
+        "sumOneShotSeconds": 4.405047800000002,
+        "p95OneShotMs": 5.821174999999999,
+        "p50Ms": 0.07775,
+        "p90Ms": 0.1592,
+        "p95Ms": 0.17583999999999997,
+        "p99Ms": 0.3425939999999996,
+        "maxMs": 2.2121,
+        "coldP95Ms": 0.3019499999999997,
+        "meanIterations": 4.809498399146212,
+        "p95Iterations": 8.0,
+        "meanEvaluations": 29.570971184631805,
+        "fallback": 14,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 1874,
+        "accepted": 1874,
+        "planeAccepted": 1874,
+        "sumSeconds": 4.723474300000004,
+        "meanMs": 2.520530576307364,
+        "sumPreparationSeconds": 4.6274293,
+        "sumFirstSolveSeconds": 4.950911899999987,
+        "sumOneShotSeconds": 9.578341200000002,
+        "p95OneShotMs": 12.299505,
+        "p50Ms": 1.7826,
+        "p90Ms": 4.91355,
+        "p95Ms": 6.387509999999999,
+        "p99Ms": 10.878023999999977,
+        "maxMs": 64.5644,
+        "coldP95Ms": 6.578964999999998,
+        "meanIterations": 4.931163287086446,
+        "p95Iterations": 8.0,
+        "meanEvaluations": 30.13127001067236,
+        "fallback": 14,
+        "unstable": 0
+      },
+      "speedup": 28.802169594130344
+    },
+    "FocusCommonExactPlanes": {
+      "before": {
+        "cases": 434,
+        "accepted": 434,
+        "planeAccepted": 434,
+        "sumSeconds": 1.5073774999999987,
+        "meanMs": 3.4732200460829494,
+        "sumPreparationSeconds": 1.0034789000000006,
+        "sumFirstSolveSeconds": 1.5375786999999999,
+        "sumOneShotSeconds": 2.5410576000000034,
+        "p95OneShotMs": 14.159259999999996,
+        "p50Ms": 2.1794000000000002,
+        "p90Ms": 5.3814999999999955,
+        "p95Ms": 8.916964999999992,
+        "p99Ms": 26.668483000000123,
+        "maxMs": 113.7923,
+        "coldP95Ms": 8.654674999999996,
+        "meanIterations": 5.483870967741935,
+        "p95Iterations": 9.0,
+        "meanEvaluations": 42.276497695852534,
+        "fallback": 11,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 434,
+        "accepted": 434,
+        "planeAccepted": 434,
+        "sumSeconds": 0.05104089999999999,
+        "meanMs": 0.11760576036866359,
+        "sumPreparationSeconds": 0.9909704999999996,
+        "sumFirstSolveSeconds": 0.08215319999999993,
+        "sumOneShotSeconds": 1.0731237000000002,
+        "p95OneShotMs": 5.812739999999997,
+        "p50Ms": 0.08149999999999999,
+        "p90Ms": 0.15353999999999998,
+        "p95Ms": 0.1891049999999999,
+        "p99Ms": 1.5060730000000002,
+        "maxMs": 2.2121,
+        "coldP95Ms": 0.3239349999999998,
+        "meanIterations": 5.283410138248848,
+        "p95Iterations": 9.0,
+        "meanEvaluations": 40.74884792626728,
+        "fallback": 11,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 434,
+        "accepted": 434,
+        "planeAccepted": 434,
+        "sumSeconds": 1.2989337000000012,
+        "meanMs": 2.9929347926267282,
+        "sumPreparationSeconds": 1.0746270000000013,
+        "sumFirstSolveSeconds": 1.3459864000000004,
+        "sumOneShotSeconds": 2.4206133999999975,
+        "p95OneShotMs": 12.255209999999996,
+        "p50Ms": 2.0093,
+        "p90Ms": 4.75036,
+        "p95Ms": 7.829279999999998,
+        "p99Ms": 20.081633000000007,
+        "maxMs": 64.5644,
+        "coldP95Ms": 7.560879999999996,
+        "meanIterations": 5.453917050691245,
+        "p95Iterations": 9.0,
+        "meanEvaluations": 41.884792626728114,
+        "fallback": 11,
+        "unstable": 0
+      },
+      "speedup": 29.532737471321997
+    },
+    "Reverse": {
+      "before": {
+        "cases": 1896,
+        "accepted": 1876,
+        "planeAccepted": 1874,
+        "sumSeconds": 8.477276700000006,
+        "meanMs": 4.4711375,
+        "sumPreparationSeconds": 3.9583315999999984,
+        "sumFirstSolveSeconds": 10.226197899999997,
+        "sumOneShotSeconds": 14.184529499999975,
+        "p95OneShotMs": 12.932675,
+        "p50Ms": 1.8698000000000001,
+        "p90Ms": 6.0272,
+        "p95Ms": 7.762725,
+        "p99Ms": 96.48785999999983,
+        "maxMs": 251.9202,
+        "coldP95Ms": 7.90475,
+        "meanIterations": 5.593354430379747,
+        "p95Iterations": 9.0,
+        "meanEvaluations": 48.16561181434599,
+        "fallback": 36,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 1896,
+        "accepted": 1876,
+        "planeAccepted": 1876,
+        "sumSeconds": 1.335418299999996,
+        "meanMs": 0.7043345464135021,
+        "sumPreparationSeconds": 4.591840400000003,
+        "sumFirstSolveSeconds": 2.588593799999998,
+        "sumOneShotSeconds": 7.1804342,
+        "p95OneShotMs": 6.558825,
+        "p50Ms": 0.079,
+        "p90Ms": 0.1586,
+        "p95Ms": 0.17795,
+        "p99Ms": 29.576224999999965,
+        "maxMs": 97.9655,
+        "coldP95Ms": 0.28715,
+        "meanIterations": 5.363396624472574,
+        "p95Iterations": 9.0,
+        "meanEvaluations": 45.3539029535865,
+        "fallback": 34,
+        "unstable": 0
+      },
+      "speedup": 6.348030950302262
+    },
+    "Mesh": {
+      "before": {
+        "cases": 144,
+        "accepted": 144,
+        "planeAccepted": 144,
+        "sumSeconds": 1.7807864999999996,
+        "meanMs": 12.366572916666668,
+        "sumPreparationSeconds": 1.3241152,
+        "sumFirstSolveSeconds": 1.7926152999999987,
+        "sumOneShotSeconds": 3.1167304999999996,
+        "p95OneShotMs": 66.04598499999999,
+        "p50Ms": 6.60455,
+        "p90Ms": 36.64565000000001,
+        "p95Ms": 41.646195,
+        "p99Ms": 51.31260899999998,
+        "maxMs": 77.6026,
+        "coldP95Ms": 38.60838,
+        "meanIterations": 3.8958333333333335,
+        "p95Iterations": 5.0,
+        "meanEvaluations": 20.70138888888889,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 144,
+        "accepted": 144,
+        "planeAccepted": 144,
+        "sumSeconds": 0.017261299999999993,
+        "meanMs": 0.1198701388888889,
+        "sumPreparationSeconds": 1.5411833999999998,
+        "sumFirstSolveSeconds": 0.037127600000000004,
+        "sumOneShotSeconds": 1.5783110000000002,
+        "p95OneShotMs": 33.99464999999999,
+        "p50Ms": 0.09045,
+        "p90Ms": 0.25748000000000004,
+        "p95Ms": 0.28800499999999996,
+        "p99Ms": 0.3587049999999997,
+        "maxMs": 0.4176,
+        "coldP95Ms": 0.5988749999999999,
+        "meanIterations": 3.7083333333333335,
+        "p95Iterations": 5.0,
+        "meanEvaluations": 19.6875,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 144,
+        "accepted": 144,
+        "planeAccepted": 144,
+        "sumSeconds": 1.3521745999999994,
+        "meanMs": 9.390101388888889,
+        "sumPreparationSeconds": 1.4668488999999996,
+        "sumFirstSolveSeconds": 1.3685311999999998,
+        "sumOneShotSeconds": 2.835380100000001,
+        "p95OneShotMs": 63.65688499999998,
+        "p50Ms": 5.3241499999999995,
+        "p90Ms": 28.196030000000004,
+        "p95Ms": 31.66036,
+        "p99Ms": 35.50748599999999,
+        "maxMs": 98.6268,
+        "coldP95Ms": 30.792875000000002,
+        "meanIterations": 3.888888888888889,
+        "p95Iterations": 5.0,
+        "meanEvaluations": 20.770833333333332,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "speedup": 103.16641852004196
+    },
+    "MeshCommon": {
+      "before": {
+        "cases": 144,
+        "accepted": 144,
+        "planeAccepted": 144,
+        "sumSeconds": 1.7807864999999996,
+        "meanMs": 12.366572916666668,
+        "sumPreparationSeconds": 1.3241152,
+        "sumFirstSolveSeconds": 1.7926152999999987,
+        "sumOneShotSeconds": 3.1167304999999996,
+        "p95OneShotMs": 66.04598499999999,
+        "p50Ms": 6.60455,
+        "p90Ms": 36.64565000000001,
+        "p95Ms": 41.646195,
+        "p99Ms": 51.31260899999998,
+        "maxMs": 77.6026,
+        "coldP95Ms": 38.60838,
+        "meanIterations": 3.8958333333333335,
+        "p95Iterations": 5.0,
+        "meanEvaluations": 20.70138888888889,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 144,
+        "accepted": 144,
+        "planeAccepted": 144,
+        "sumSeconds": 0.017261299999999993,
+        "meanMs": 0.1198701388888889,
+        "sumPreparationSeconds": 1.5411833999999998,
+        "sumFirstSolveSeconds": 0.037127600000000004,
+        "sumOneShotSeconds": 1.5783110000000002,
+        "p95OneShotMs": 33.99464999999999,
+        "p50Ms": 0.09045,
+        "p90Ms": 0.25748000000000004,
+        "p95Ms": 0.28800499999999996,
+        "p99Ms": 0.3587049999999997,
+        "maxMs": 0.4176,
+        "coldP95Ms": 0.5988749999999999,
+        "meanIterations": 3.7083333333333335,
+        "p95Iterations": 5.0,
+        "meanEvaluations": 19.6875,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 144,
+        "accepted": 144,
+        "planeAccepted": 144,
+        "sumSeconds": 1.3521745999999994,
+        "meanMs": 9.390101388888889,
+        "sumPreparationSeconds": 1.4668488999999996,
+        "sumFirstSolveSeconds": 1.3685311999999998,
+        "sumOneShotSeconds": 2.835380100000001,
+        "p95OneShotMs": 63.65688499999998,
+        "p50Ms": 5.3241499999999995,
+        "p90Ms": 28.196030000000004,
+        "p95Ms": 31.66036,
+        "p99Ms": 35.50748599999999,
+        "maxMs": 98.6268,
+        "coldP95Ms": 30.792875000000002,
+        "meanIterations": 3.888888888888889,
+        "p95Iterations": 5.0,
+        "meanEvaluations": 20.770833333333332,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "speedup": 103.16641852004196
+    },
+    "Plastic": {
+      "before": {
+        "cases": 120,
+        "accepted": 120,
+        "planeAccepted": 118,
+        "sumSeconds": 0.4014424000000001,
+        "meanMs": 3.345353333333333,
+        "sumPreparationSeconds": 0.39031420000000033,
+        "sumFirstSolveSeconds": 0.4620369999999999,
+        "sumOneShotSeconds": 0.8523512000000001,
+        "p95OneShotMs": 18.263785,
+        "p50Ms": 2.3034499999999998,
+        "p90Ms": 5.52975,
+        "p95Ms": 8.338259999999996,
+        "p99Ms": 29.684187000000044,
+        "maxMs": 34.1997,
+        "coldP95Ms": 10.079085,
+        "meanIterations": 5.566666666666666,
+        "p95Iterations": 7.0,
+        "meanEvaluations": 55.983333333333334,
+        "fallback": 2,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 120,
+        "accepted": 120,
+        "planeAccepted": 120,
+        "sumSeconds": 0.010154700000000004,
+        "meanMs": 0.0846225,
+        "sumPreparationSeconds": 0.3268785,
+        "sumFirstSolveSeconds": 0.021210600000000007,
+        "sumOneShotSeconds": 0.34808910000000004,
+        "p95OneShotMs": 7.272015,
+        "p50Ms": 0.07619999999999999,
+        "p90Ms": 0.12955,
+        "p95Ms": 0.1582,
+        "p99Ms": 0.18308300000000005,
+        "maxMs": 0.1891,
+        "coldP95Ms": 0.31447499999999984,
+        "meanIterations": 3.8,
+        "p95Iterations": 6.0,
+        "meanEvaluations": 20.291666666666668,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 120,
+        "accepted": 120,
+        "planeAccepted": 118,
+        "sumSeconds": 0.2667722,
+        "meanMs": 2.2231016666666665,
+        "sumPreparationSeconds": 0.2365541,
+        "sumFirstSolveSeconds": 0.2750296000000001,
+        "sumOneShotSeconds": 0.5115836999999999,
+        "p95OneShotMs": 9.361264999999998,
+        "p50Ms": 1.4062000000000001,
+        "p90Ms": 3.6069100000000005,
+        "p95Ms": 4.69064,
+        "p99Ms": 22.929276000000048,
+        "maxMs": 26.9442,
+        "coldP95Ms": 4.7049199999999995,
+        "meanIterations": 5.258333333333334,
+        "p95Iterations": 6.099999999999994,
+        "meanEvaluations": 52.541666666666664,
+        "fallback": 2,
+        "unstable": 0
+      },
+      "speedup": 39.53266960126837
+    },
+    "FocusPlastic": {
+      "before": {
+        "cases": 948,
+        "accepted": 939,
+        "planeAccepted": 937,
+        "sumSeconds": 4.045901999999999,
+        "meanMs": 4.2678291139240505,
+        "sumPreparationSeconds": 2.0640519999999998,
+        "sumFirstSolveSeconds": 5.004320499999996,
+        "sumOneShotSeconds": 7.068372499999993,
+        "p95OneShotMs": 11.014185,
+        "p50Ms": 1.8761,
+        "p90Ms": 5.04753,
+        "p95Ms": 5.576059999999999,
+        "p99Ms": 31.288475999999992,
+        "maxMs": 225.3604,
+        "coldP95Ms": 5.658075,
+        "meanIterations": 5.082278481012659,
+        "p95Iterations": 9.0,
+        "meanEvaluations": 46.0337552742616,
+        "fallback": 12,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 948,
+        "accepted": 939,
+        "planeAccepted": 939,
+        "sumSeconds": 0.8282454000000004,
+        "meanMs": 0.873676582278481,
+        "sumPreparationSeconds": 2.044746900000001,
+        "sumFirstSolveSeconds": 1.589891600000002,
+        "sumOneShotSeconds": 3.6346385000000003,
+        "p95OneShotMs": 5.81785,
+        "p50Ms": 0.0766,
+        "p90Ms": 0.14038000000000003,
+        "p95Ms": 0.16293499999999997,
+        "p99Ms": 0.7660369999999991,
+        "maxMs": 95.1639,
+        "coldP95Ms": 0.27813,
+        "meanIterations": 4.705696202531645,
+        "p95Iterations": 9.0,
+        "meanEvaluations": 40.91877637130802,
+        "fallback": 10,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 948,
+        "accepted": 939,
+        "planeAccepted": 937,
+        "sumSeconds": 4.636532700000004,
+        "meanMs": 4.890857278481013,
+        "sumPreparationSeconds": 2.2640950000000015,
+        "sumFirstSolveSeconds": 6.408375899999995,
+        "sumOneShotSeconds": 8.6724709,
+        "p95OneShotMs": 10.287815,
+        "p50Ms": 1.7589000000000001,
+        "p90Ms": 4.147070000000005,
+        "p95Ms": 4.838614999999999,
+        "p99Ms": 29.596333999999928,
+        "maxMs": 349.4154,
+        "coldP95Ms": 5.05875,
+        "meanIterations": 5.013713080168777,
+        "p95Iterations": 9.0,
+        "meanEvaluations": 45.44620253164557,
+        "fallback": 12,
+        "unstable": 0
+      },
+      "speedup": 4.8849072992134905
+    },
+    "FocusPlasticConstantN": {
+      "before": {
+        "cases": 279,
+        "accepted": 279,
+        "planeAccepted": 277,
+        "sumSeconds": 0.6624165,
+        "meanMs": 2.374252688172043,
+        "sumPreparationSeconds": 0.6311282999999993,
+        "sumFirstSolveSeconds": 0.6920014,
+        "sumOneShotSeconds": 1.3231296999999993,
+        "p95OneShotMs": 10.803049999999997,
+        "p50Ms": 1.7983,
+        "p90Ms": 4.47028,
+        "p95Ms": 5.085789999999998,
+        "p99Ms": 6.646553999999897,
+        "maxMs": 31.415,
+        "coldP95Ms": 5.410319999999997,
+        "meanIterations": 4.799283154121864,
+        "p95Iterations": 8.0,
+        "meanEvaluations": 37.41935483870968,
+        "fallback": 2,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 279,
+        "accepted": 279,
+        "planeAccepted": 279,
+        "sumSeconds": 0.0245086,
+        "meanMs": 0.08784444444444445,
+        "sumPreparationSeconds": 0.6217081000000009,
+        "sumFirstSolveSeconds": 0.04068510000000001,
+        "sumOneShotSeconds": 0.6623932,
+        "p95OneShotMs": 5.749379999999999,
+        "p50Ms": 0.0732,
+        "p90Ms": 0.13128,
+        "p95Ms": 0.1458299999999998,
+        "p99Ms": 0.21669799999999967,
+        "maxMs": 0.7815,
+        "coldP95Ms": 0.24137999999999996,
+        "meanIterations": 4.043010752688172,
+        "p95Iterations": 7.0,
+        "meanEvaluations": 22.817204301075268,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 279,
+        "accepted": 279,
+        "planeAccepted": 277,
+        "sumSeconds": 0.6097131000000007,
+        "meanMs": 2.1853516129032258,
+        "sumPreparationSeconds": 0.6840202999999998,
+        "sumFirstSolveSeconds": 0.6449875,
+        "sumOneShotSeconds": 1.3290078000000003,
+        "p95OneShotMs": 10.48677,
+        "p50Ms": 1.635,
+        "p90Ms": 3.6706200000000004,
+        "p95Ms": 4.640639999999999,
+        "p99Ms": 9.933267999999783,
+        "maxMs": 30.8455,
+        "coldP95Ms": 4.694719999999997,
+        "meanIterations": 4.698924731182796,
+        "p95Iterations": 7.099999999999966,
+        "meanEvaluations": 36.297491039426525,
+        "fallback": 2,
+        "unstable": 0
+      },
+      "speedup": 27.02792081147026
+    },
+    "FocusPlasticConstantEccentricity": {
+      "before": {
+        "cases": 660,
+        "accepted": 660,
+        "planeAccepted": 660,
+        "sumSeconds": 1.5368047999999994,
+        "meanMs": 2.328492121212121,
+        "sumPreparationSeconds": 1.422717999999998,
+        "sumFirstSolveSeconds": 1.6082273000000016,
+        "sumOneShotSeconds": 3.030945299999999,
+        "p95OneShotMs": 10.698395,
+        "p50Ms": 1.89175,
+        "p90Ms": 5.0587,
+        "p95Ms": 5.49008,
+        "p99Ms": 6.432150999999996,
+        "maxMs": 13.0317,
+        "coldP95Ms": 5.632915,
+        "meanIterations": 4.61060606060606,
+        "p95Iterations": 9.0,
+        "meanEvaluations": 25.28030303030303,
+        "fallback": 1,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 660,
+        "accepted": 660,
+        "planeAccepted": 660,
+        "sumSeconds": 0.05832889999999998,
+        "meanMs": 0.08837712121212121,
+        "sumPreparationSeconds": 1.4122338000000008,
+        "sumFirstSolveSeconds": 0.09929529999999999,
+        "sumOneShotSeconds": 1.511529100000001,
+        "p95OneShotMs": 5.534274999999998,
+        "p50Ms": 0.07665,
+        "p90Ms": 0.14182,
+        "p95Ms": 0.15752,
+        "p99Ms": 0.23865099999999997,
+        "maxMs": 0.3588,
+        "coldP95Ms": 0.27331,
+        "meanIterations": 4.318181818181818,
+        "p95Iterations": 9.0,
+        "meanEvaluations": 23.64090909090909,
+        "fallback": 1,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 660,
+        "accepted": 660,
+        "planeAccepted": 660,
+        "sumSeconds": 1.3796677000000013,
+        "meanMs": 2.090405606060606,
+        "sumPreparationSeconds": 1.567915000000001,
+        "sumFirstSolveSeconds": 1.4626285000000017,
+        "sumOneShotSeconds": 3.0305435000000025,
+        "p95OneShotMs": 9.867384999999999,
+        "p50Ms": 1.79305,
+        "p90Ms": 4.208750000000001,
+        "p95Ms": 4.76774,
+        "p99Ms": 5.303413999999997,
+        "maxMs": 13.1037,
+        "coldP95Ms": 5.032544999999999,
+        "meanIterations": 4.483333333333333,
+        "p95Iterations": 9.0,
+        "meanEvaluations": 24.472727272727273,
+        "fallback": 1,
+        "unstable": 0
+      },
+      "speedup": 26.347227532149585
+    },
+    "SmallPlastic": {
+      "before": {
+        "cases": 72,
+        "accepted": 72,
+        "planeAccepted": 72,
+        "sumSeconds": 0.15960189999999996,
+        "meanMs": 2.2166930555555555,
+        "sumPreparationSeconds": 0.1534039,
+        "sumFirstSolveSeconds": 0.16798050000000006,
+        "sumOneShotSeconds": 0.3213843999999999,
+        "p95OneShotMs": 10.225295000000001,
+        "p50Ms": 1.7042,
+        "p90Ms": 4.92795,
+        "p95Ms": 5.071685,
+        "p99Ms": 5.325635,
+        "maxMs": 5.3267,
+        "coldP95Ms": 5.14149,
+        "meanIterations": 3.5416666666666665,
+        "p95Iterations": 6.0,
+        "meanEvaluations": 18.84722222222222,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 72,
+        "accepted": 72,
+        "planeAccepted": 72,
+        "sumSeconds": 0.005541900000000001,
+        "meanMs": 0.07697083333333334,
+        "sumPreparationSeconds": 0.15044970000000002,
+        "sumFirstSolveSeconds": 0.009558700000000003,
+        "sumOneShotSeconds": 0.1600084,
+        "p95OneShotMs": 5.497595,
+        "p50Ms": 0.06755,
+        "p90Ms": 0.12489,
+        "p95Ms": 0.14065000000000008,
+        "p99Ms": 0.16315000000000004,
+        "maxMs": 0.1667,
+        "coldP95Ms": 0.222925,
+        "meanIterations": 3.5555555555555554,
+        "p95Iterations": 6.0,
+        "meanEvaluations": 18.916666666666668,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 72,
+        "accepted": 72,
+        "planeAccepted": 72,
+        "sumSeconds": 0.12150780000000001,
+        "meanMs": 1.6876083333333334,
+        "sumPreparationSeconds": 0.1657008,
+        "sumFirstSolveSeconds": 0.12992769999999998,
+        "sumOneShotSeconds": 0.29562850000000007,
+        "p95OneShotMs": 9.07019,
+        "p50Ms": 1.20105,
+        "p90Ms": 3.6574400000000002,
+        "p95Ms": 3.7329600000000003,
+        "p99Ms": 3.866079000000002,
+        "maxMs": 4.0827,
+        "coldP95Ms": 4.0849150000000005,
+        "meanIterations": 3.5694444444444446,
+        "p95Iterations": 6.0,
+        "meanEvaluations": 18.98611111111111,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "speedup": 28.79913026218444
+    },
+    "Elastic": {
+      "before": {
+        "cases": 120,
+        "accepted": 118,
+        "planeAccepted": 118,
+        "sumSeconds": 0.4733769000000001,
+        "meanMs": 3.9448075,
+        "sumPreparationSeconds": 0.3412848,
+        "sumFirstSolveSeconds": 0.6327514,
+        "sumOneShotSeconds": 0.9740361999999999,
+        "p95OneShotMs": 15.261389999999997,
+        "p50Ms": 2.00485,
+        "p90Ms": 6.8157000000000005,
+        "p95Ms": 8.105365,
+        "p99Ms": 45.076360000000044,
+        "maxMs": 49.3332,
+        "coldP95Ms": 10.495265,
+        "meanIterations": 5.558333333333334,
+        "p95Iterations": 7.0,
+        "meanEvaluations": 47.958333333333336,
+        "fallback": 3,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 120,
+        "accepted": 118,
+        "planeAccepted": 118,
+        "sumSeconds": 0.08595170000000002,
+        "meanMs": 0.7162641666666667,
+        "sumPreparationSeconds": 0.34435489999999985,
+        "sumFirstSolveSeconds": 0.19131779999999998,
+        "sumOneShotSeconds": 0.5356727,
+        "p95OneShotMs": 8.06701,
+        "p50Ms": 0.07289999999999999,
+        "p90Ms": 0.16756000000000001,
+        "p95Ms": 0.17833,
+        "p99Ms": 28.04413300000008,
+        "maxMs": 40.3799,
+        "coldP95Ms": 0.49845999999999935,
+        "meanIterations": 5.558333333333334,
+        "p95Iterations": 7.0,
+        "meanEvaluations": 47.68333333333333,
+        "fallback": 3,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 120,
+        "accepted": 118,
+        "planeAccepted": 118,
+        "sumSeconds": 0.3881437999999999,
+        "meanMs": 3.234531666666667,
+        "sumPreparationSeconds": 0.24469590000000008,
+        "sumFirstSolveSeconds": 0.5146967000000001,
+        "sumOneShotSeconds": 0.7593925999999999,
+        "p95OneShotMs": 11.054255,
+        "p50Ms": 1.3804500000000002,
+        "p90Ms": 5.856240000000001,
+        "p95Ms": 6.024045,
+        "p99Ms": 54.041751000000076,
+        "maxMs": 61.5832,
+        "coldP95Ms": 6.301505,
+        "meanIterations": 5.525,
+        "p95Iterations": 7.0,
+        "meanEvaluations": 47.35,
+        "fallback": 3,
+        "unstable": 0
+      },
+      "speedup": 5.5074757101953775
+    },
+    "FocusElastic": {
+      "before": {
+        "cases": 948,
+        "accepted": 937,
+        "planeAccepted": 937,
+        "sumSeconds": 4.506234700000005,
+        "meanMs": 4.753412130801688,
+        "sumPreparationSeconds": 2.1943707999999984,
+        "sumFirstSolveSeconds": 5.104168399999994,
+        "sumOneShotSeconds": 7.298539199999997,
+        "p95OneShotMs": 16.069284999999997,
+        "p50Ms": 2.04385,
+        "p90Ms": 8.15863,
+        "p95Ms": 9.52965,
+        "p99Ms": 103.91656499999999,
+        "maxMs": 140.8835,
+        "coldP95Ms": 9.62547,
+        "meanIterations": 6.1044303797468356,
+        "p95Iterations": 9.0,
+        "meanEvaluations": 50.29746835443038,
+        "fallback": 24,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 948,
+        "accepted": 937,
+        "planeAccepted": 937,
+        "sumSeconds": 0.4911982999999999,
+        "meanMs": 0.5181416666666666,
+        "sumPreparationSeconds": 2.0746704,
+        "sumFirstSolveSeconds": 0.9156840000000013,
+        "sumOneShotSeconds": 2.9903544000000024,
+        "p95OneShotMs": 6.089949999999999,
+        "p50Ms": 0.0795,
+        "p90Ms": 0.17299,
+        "p95Ms": 0.20576,
+        "p99Ms": 30.791649999999976,
+        "maxMs": 40.1887,
+        "coldP95Ms": 0.38119499999999973,
+        "meanIterations": 6.0210970464135025,
+        "p95Iterations": 9.0,
+        "meanEvaluations": 49.78902953586498,
+        "fallback": 24,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 948,
+        "accepted": 937,
+        "planeAccepted": 937,
+        "sumSeconds": 4.483945099999998,
+        "meanMs": 4.729899894514768,
+        "sumPreparationSeconds": 2.391815,
+        "sumFirstSolveSeconds": 5.563443699999994,
+        "sumOneShotSeconds": 7.955258699999992,
+        "p95OneShotMs": 15.3432,
+        "p50Ms": 1.9131,
+        "p90Ms": 6.596690000000002,
+        "p95Ms": 8.273114999999999,
+        "p99Ms": 142.07921699999994,
+        "maxMs": 177.5468,
+        "coldP95Ms": 8.2829,
+        "meanIterations": 6.0168776371308015,
+        "p95Iterations": 9.0,
+        "meanEvaluations": 49.572784810126585,
+        "fallback": 24,
+        "unstable": 0
+      },
+      "speedup": 9.173962328452696
+    },
+    "FocusElasticConstantN": {
+      "before": {
+        "cases": 277,
+        "accepted": 277,
+        "planeAccepted": 277,
+        "sumSeconds": 0.8882312000000004,
+        "meanMs": 3.2066108303249097,
+        "sumPreparationSeconds": 0.6422713999999998,
+        "sumFirstSolveSeconds": 0.9171750999999997,
+        "sumOneShotSeconds": 1.559446500000001,
+        "p95OneShotMs": 14.24272,
+        "p50Ms": 1.8861,
+        "p90Ms": 7.18736,
+        "p95Ms": 8.134239999999998,
+        "p99Ms": 11.286572000000021,
+        "maxMs": 67.5058,
+        "coldP95Ms": 8.317499999999999,
+        "meanIterations": 4.92057761732852,
+        "p95Iterations": 7.0,
+        "meanEvaluations": 30.52346570397112,
+        "fallback": 3,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 277,
+        "accepted": 277,
+        "planeAccepted": 277,
+        "sumSeconds": 0.02845229999999999,
+        "meanMs": 0.10271588447653429,
+        "sumPreparationSeconds": 0.6269108000000001,
+        "sumFirstSolveSeconds": 0.048028999999999974,
+        "sumOneShotSeconds": 0.6749398000000001,
+        "p95OneShotMs": 6.17734,
+        "p50Ms": 0.0819,
+        "p90Ms": 0.171,
+        "p95Ms": 0.18764,
+        "p99Ms": 0.2974040000000014,
+        "maxMs": 1.6625,
+        "coldP95Ms": 0.32598,
+        "meanIterations": 4.891696750902527,
+        "p95Iterations": 7.0,
+        "meanEvaluations": 30.350180505415164,
+        "fallback": 3,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 277,
+        "accepted": 277,
+        "planeAccepted": 277,
+        "sumSeconds": 0.7828826000000001,
+        "meanMs": 2.826290974729242,
+        "sumPreparationSeconds": 0.6912464000000006,
+        "sumFirstSolveSeconds": 0.8178860999999998,
+        "sumOneShotSeconds": 1.5091325000000007,
+        "p95OneShotMs": 13.686579999999982,
+        "p50Ms": 1.6949,
+        "p90Ms": 6.12236,
+        "p95Ms": 7.09528,
+        "p99Ms": 10.565724000000017,
+        "maxMs": 61.9128,
+        "coldP95Ms": 7.103539999999998,
+        "meanIterations": 4.971119133574007,
+        "p95Iterations": 7.0,
+        "meanEvaluations": 30.80505415162455,
+        "fallback": 3,
+        "unstable": 0
+      },
+      "speedup": 31.218256520562512
+    },
+    "FocusElasticConstantEccentricity": {
+      "before": {
+        "cases": 660,
+        "accepted": 660,
+        "planeAccepted": 660,
+        "sumSeconds": 2.360926800000002,
+        "meanMs": 3.577161818181818,
+        "sumPreparationSeconds": 1.5372629999999998,
+        "sumFirstSolveSeconds": 2.4059031999999987,
+        "sumOneShotSeconds": 3.943166200000004,
+        "p95OneShotMs": 15.911599999999995,
+        "p50Ms": 2.0716,
+        "p90Ms": 8.218480000000001,
+        "p95Ms": 9.42261,
+        "p99Ms": 19.882641999999993,
+        "maxMs": 113.7923,
+        "coldP95Ms": 9.532874999999997,
+        "meanIterations": 5.7681818181818185,
+        "p95Iterations": 9.0,
+        "meanEvaluations": 39.32121212121212,
+        "fallback": 10,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 660,
+        "accepted": 660,
+        "planeAccepted": 660,
+        "sumSeconds": 0.07581030000000002,
+        "meanMs": 0.1148640909090909,
+        "sumPreparationSeconds": 1.4341625000000002,
+        "sumFirstSolveSeconds": 0.12272229999999996,
+        "sumOneShotSeconds": 1.556884799999999,
+        "p95OneShotMs": 5.859384999999999,
+        "p50Ms": 0.0783,
+        "p90Ms": 0.17021,
+        "p95Ms": 0.20452499999999996,
+        "p99Ms": 0.8100889999999998,
+        "maxMs": 2.2121,
+        "coldP95Ms": 0.34600499999999995,
+        "meanIterations": 5.584848484848485,
+        "p95Iterations": 9.0,
+        "meanEvaluations": 37.987878787878785,
+        "fallback": 10,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 660,
+        "accepted": 660,
+        "planeAccepted": 660,
+        "sumSeconds": 2.0102441000000004,
+        "meanMs": 3.045824393939394,
+        "sumPreparationSeconds": 1.6853014000000006,
+        "sumFirstSolveSeconds": 2.083456400000001,
+        "sumOneShotSeconds": 3.7687578000000004,
+        "p95OneShotMs": 13.706124999999995,
+        "p50Ms": 1.9131,
+        "p90Ms": 6.589430000000001,
+        "p95Ms": 8.184929999999996,
+        "p99Ms": 17.43933999999999,
+        "maxMs": 64.5644,
+        "coldP95Ms": 8.13067,
+        "meanIterations": 5.684848484848485,
+        "p95Iterations": 9.0,
+        "meanEvaluations": 38.54242424242424,
+        "fallback": 10,
+        "unstable": 0
+      },
+      "speedup": 31.14255978409268
+    },
+    "SmallElastic": {
+      "before": {
+        "cases": 72,
+        "accepted": 72,
+        "planeAccepted": 72,
+        "sumSeconds": 0.3675126000000001,
+        "meanMs": 5.1043416666666666,
+        "sumPreparationSeconds": 0.15825309999999998,
+        "sumFirstSolveSeconds": 0.3551346000000001,
+        "sumOneShotSeconds": 0.5133877000000001,
+        "p95OneShotMs": 16.835535000000018,
+        "p50Ms": 2.2392000000000003,
+        "p90Ms": 5.68522,
+        "p95Ms": 15.68404000000002,
+        "p99Ms": 54.07370300000052,
+        "maxMs": 113.7923,
+        "coldP95Ms": 15.807385000000021,
+        "meanIterations": 7.180555555555555,
+        "p95Iterations": 42.25000000000007,
+        "meanEvaluations": 95.58333333333333,
+        "fallback": 6,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 72,
+        "accepted": 72,
+        "planeAccepted": 72,
+        "sumSeconds": 0.014470099999999996,
+        "meanMs": 0.20097361111111112,
+        "sumPreparationSeconds": 0.16556069999999998,
+        "sumFirstSolveSeconds": 0.018753200000000005,
+        "sumOneShotSeconds": 0.1843139,
+        "p95OneShotMs": 6.038215000000001,
+        "p50Ms": 0.069,
+        "p90Ms": 0.13218,
+        "p95Ms": 1.503455,
+        "p99Ms": 2.1740440000000003,
+        "maxMs": 2.2121,
+        "coldP95Ms": 1.50625,
+        "meanIterations": 6.736111111111111,
+        "p95Iterations": 34.7500000000001,
+        "meanEvaluations": 90.47222222222223,
+        "fallback": 6,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 72,
+        "accepted": 72,
+        "planeAccepted": 72,
+        "sumSeconds": 0.27076190000000006,
+        "meanMs": 3.7605819444444446,
+        "sumPreparationSeconds": 0.16535079999999994,
+        "sumFirstSolveSeconds": 0.27651279999999995,
+        "sumOneShotSeconds": 0.44186359999999997,
+        "p95OneShotMs": 15.440545000000013,
+        "p50Ms": 1.4737,
+        "p90Ms": 4.267169999999999,
+        "p95Ms": 15.942700000000007,
+        "p99Ms": 33.09641900000028,
+        "maxMs": 64.5644,
+        "coldP95Ms": 14.301415000000013,
+        "meanIterations": 6.944444444444445,
+        "p95Iterations": 36.2000000000001,
+        "meanEvaluations": 93.04166666666667,
+        "fallback": 6,
+        "unstable": 0
+      },
+      "speedup": 25.39806912184437
+    },
+    "Mesh4": {
+      "before": {
+        "cases": 48,
+        "accepted": 48,
+        "planeAccepted": 48,
+        "sumSeconds": 0.0499527,
+        "meanMs": 1.04068125,
+        "sumPreparationSeconds": 0.033082400000000005,
+        "sumFirstSolveSeconds": 0.054602000000000005,
+        "sumOneShotSeconds": 0.08768440000000002,
+        "p95OneShotMs": 3.25792,
+        "p50Ms": 0.9364,
+        "p90Ms": 1.8861500000000002,
+        "p95Ms": 2.4116,
+        "p99Ms": 2.669956,
+        "maxMs": 2.7382,
+        "coldP95Ms": 2.45201,
+        "meanIterations": 3.9583333333333335,
+        "p95Iterations": 5.649999999999999,
+        "meanEvaluations": 20.9375,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 48,
+        "accepted": 48,
+        "planeAccepted": 48,
+        "sumSeconds": 0.0025933999999999996,
+        "meanMs": 0.05402916666666666,
+        "sumPreparationSeconds": 0.02997800000000002,
+        "sumFirstSolveSeconds": 0.006031999999999999,
+        "sumOneShotSeconds": 0.03601000000000001,
+        "p95OneShotMs": 1.3522049999999999,
+        "p50Ms": 0.05235,
+        "p90Ms": 0.06846000000000001,
+        "p95Ms": 0.071655,
+        "p99Ms": 0.09098400000000004,
+        "maxMs": 0.1064,
+        "coldP95Ms": 0.4282149999999999,
+        "meanIterations": 3.7083333333333335,
+        "p95Iterations": 5.0,
+        "meanEvaluations": 19.6875,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 48,
+        "accepted": 48,
+        "planeAccepted": 48,
+        "sumSeconds": 0.0291924,
+        "meanMs": 0.608175,
+        "sumPreparationSeconds": 0.03123850000000001,
+        "sumFirstSolveSeconds": 0.03388789999999999,
+        "sumOneShotSeconds": 0.06512640000000001,
+        "p95OneShotMs": 2.2536749999999994,
+        "p50Ms": 0.6192,
+        "p90Ms": 0.8725500000000004,
+        "p95Ms": 0.96387,
+        "p99Ms": 1.275538,
+        "maxMs": 1.2965,
+        "coldP95Ms": 1.5064499999999994,
+        "meanIterations": 3.9791666666666665,
+        "p95Iterations": 5.649999999999999,
+        "meanEvaluations": 21.166666666666668,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "speedup": 19.261471427469736
+    },
+    "Mesh12": {
+      "before": {
+        "cases": 48,
+        "accepted": 48,
+        "planeAccepted": 48,
+        "sumSeconds": 0.32083079999999997,
+        "meanMs": 6.683975,
+        "sumPreparationSeconds": 0.25810989999999995,
+        "sumFirstSolveSeconds": 0.34817080000000006,
+        "sumOneShotSeconds": 0.6062807,
+        "p95OneShotMs": 19.417479999999998,
+        "p50Ms": 6.60455,
+        "p90Ms": 10.37691,
+        "p95Ms": 11.182044999999999,
+        "p99Ms": 14.793975000000007,
+        "maxMs": 17.2462,
+        "coldP95Ms": 13.171819999999999,
+        "meanIterations": 3.8541666666666665,
+        "p95Iterations": 5.0,
+        "meanEvaluations": 20.458333333333332,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 48,
+        "accepted": 48,
+        "planeAccepted": 48,
+        "sumSeconds": 0.004450100000000001,
+        "meanMs": 0.09271041666666667,
+        "sumPreparationSeconds": 0.28821609999999986,
+        "sumFirstSolveSeconds": 0.0092654,
+        "sumOneShotSeconds": 0.2974815000000001,
+        "p95OneShotMs": 11.267999999999994,
+        "p50Ms": 0.09140000000000001,
+        "p90Ms": 0.12777,
+        "p95Ms": 0.13376,
+        "p99Ms": 0.17493700000000004,
+        "maxMs": 0.1904,
+        "coldP95Ms": 0.27301,
+        "meanIterations": 3.7083333333333335,
+        "p95Iterations": 5.0,
+        "meanEvaluations": 19.6875,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 48,
+        "accepted": 48,
+        "planeAccepted": 48,
+        "sumSeconds": 0.2340896999999999,
+        "meanMs": 4.87686875,
+        "sumPreparationSeconds": 0.2667651000000001,
+        "sumFirstSolveSeconds": 0.24965259999999997,
+        "sumOneShotSeconds": 0.5164177,
+        "p95OneShotMs": 16.173014999999996,
+        "p50Ms": 5.3241499999999995,
+        "p90Ms": 7.1144300000000005,
+        "p95Ms": 7.27658,
+        "p99Ms": 9.083841000000001,
+        "maxMs": 9.737,
+        "coldP95Ms": 8.945855,
+        "meanIterations": 3.7916666666666665,
+        "p95Iterations": 5.0,
+        "meanEvaluations": 20.083333333333332,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "speedup": 72.09518887216015
+    },
+    "Mesh24": {
+      "before": {
+        "cases": 48,
+        "accepted": 48,
+        "planeAccepted": 48,
+        "sumSeconds": 1.4100029999999995,
+        "meanMs": 29.3750625,
+        "sumPreparationSeconds": 1.0329229,
+        "sumFirstSolveSeconds": 1.3898424999999996,
+        "sumOneShotSeconds": 2.4227654000000003,
+        "p95OneShotMs": 76.61175,
+        "p50Ms": 31.6463,
+        "p90Ms": 43.33004000000001,
+        "p95Ms": 48.23929,
+        "p99Ms": 65.85739400000003,
+        "maxMs": 77.6026,
+        "coldP95Ms": 48.52952499999999,
+        "meanIterations": 3.875,
+        "p95Iterations": 5.0,
+        "meanEvaluations": 20.708333333333332,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 48,
+        "accepted": 48,
+        "planeAccepted": 48,
+        "sumSeconds": 0.010217799999999997,
+        "meanMs": 0.21287083333333334,
+        "sumPreparationSeconds": 1.2229892999999998,
+        "sumFirstSolveSeconds": 0.021830200000000008,
+        "sumOneShotSeconds": 1.2448195,
+        "p95OneShotMs": 39.878595,
+        "p50Ms": 0.21045,
+        "p90Ms": 0.30182000000000003,
+        "p95Ms": 0.33713,
+        "p99Ms": 0.3972960000000001,
+        "maxMs": 0.4176,
+        "coldP95Ms": 0.6648649999999999,
+        "meanIterations": 3.7083333333333335,
+        "p95Iterations": 5.0,
+        "meanEvaluations": 19.6875,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "gauss": {
+        "cases": 48,
+        "accepted": 48,
+        "planeAccepted": 48,
+        "sumSeconds": 1.0888924999999998,
+        "meanMs": 22.685260416666665,
+        "sumPreparationSeconds": 1.1688453,
+        "sumFirstSolveSeconds": 1.0849906999999999,
+        "sumOneShotSeconds": 2.253836,
+        "p95OneShotMs": 71.176285,
+        "p50Ms": 21.84885,
+        "p90Ms": 34.17261,
+        "p95Ms": 35.065929999999994,
+        "p99Ms": 69.11427800000007,
+        "maxMs": 98.6268,
+        "coldP95Ms": 34.453105,
+        "meanIterations": 3.8958333333333335,
+        "p95Iterations": 5.0,
+        "meanEvaluations": 21.0625,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "speedup": 137.9947738260682
+    }
+  },
+  "changed": {
+    "main": {
+      "lost": [],
+      "gained": [],
+      "failedAfter": [
+        "S1/ParabolaRectangle/Elastic/ConstantNMx/-1",
+        "S1/ParabolaRectangle/Elastic/ConstantNMx/1"
+      ]
+    },
+    "focus-": {
+      "lost": [],
+      "gained": [],
+      "failedAfter": [
+        "Focus/R3/ParabolaRectangle/Plastic/ConstantN/180/60",
+        "Focus/R3/ParabolaRectangle/Plastic/ConstantN/180/90",
+        "Focus/R3/ParabolaRectangle/Plastic/ConstantN/180/120",
+        "Focus/R3/ParabolaRectangle/Plastic/ConstantN/180/150",
+        "Focus/R3/ParabolaRectangle/Plastic/ConstantN/180/180",
+        "Focus/R3/ParabolaRectangle/Plastic/ConstantN/180/210",
+        "Focus/R3/ParabolaRectangle/Plastic/ConstantN/180/240",
+        "Focus/R3/ParabolaRectangle/Plastic/ConstantN/180/270",
+        "Focus/R3/ParabolaRectangle/Plastic/ConstantN/180/300",
+        "Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/30",
+        "Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/60",
+        "Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/90",
+        "Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/120",
+        "Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/150",
+        "Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/180",
+        "Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/210",
+        "Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/240",
+        "Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/270",
+        "Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/300",
+        "Focus/R3/ParabolaRectangle/Elastic/ConstantN/180/330"
+      ]
+    },
+    "mesh-": {
+      "lost": [],
+      "gained": [],
+      "failedAfter": []
+    }
+  },
+  "precisionOfReintegratedPlanes": {
+    "ConstantN/N": {
+      "cases": 144,
+      "unit": "N",
+      "before": {
+        "p50": 0.2251947705517523,
+        "p95": 20.971812573214983,
+        "maximum": 61.38623093476053
+      },
+      "after": {
+        "p50": 0.054678914209944196,
+        "p95": 5.178372080226104,
+        "maximum": 17.018405323906336
+      }
+    },
+    "ConstantN/SearchAngle": {
+      "cases": 144,
+      "unit": "rad",
+      "before": {
+        "p50": 8.821258728262846e-08,
+        "p95": 1.526562361860115e-05,
+        "maximum": 0.0004687371392990616
+      },
+      "after": {
+        "p50": 7.05484987813755e-12,
+        "p95": 4.747328393684187e-06,
+        "maximum": 1.4945624831961995e-05
+      }
+    },
+    "ConstantEccentricity/SearchAngle": {
+      "cases": 24,
+      "unit": "rad",
+      "before": {
+        "p50": 7.807163724345255e-07,
+        "p95": 1.6476374325014598e-05,
+        "maximum": 1.7483459292491072e-05
+      },
+      "after": {
+        "p50": 5.052967497985151e-07,
+        "p95": 1.2915279025236331e-05,
+        "maximum": 1.304573608572039e-05
+      }
+    },
+    "focus-ConstantN/N": {
+      "cases": 556,
+      "unit": "N",
+      "before": {
+        "p50": 0.11689444817602634,
+        "p95": 22.380169095660676,
+        "maximum": 485.0820884999994
+      },
+      "after": {
+        "p50": 0.05743032318423502,
+        "p95": 17.018405311129754,
+        "maximum": 488.4875149439904
+      }
+    },
+    "focus-ConstantN/SearchAngle": {
+      "cases": 556,
+      "unit": "rad",
+      "before": {
+        "p50": 1.3093834372697016e-07,
+        "p95": 1.529160967062893e-05,
+        "maximum": 0.0004687371392990616
+      },
+      "after": {
+        "p50": 7.771495723807851e-10,
+        "p95": 1.082987272886237e-05,
+        "maximum": 6.478725902718409e-05
+      }
+    },
+    "focus-ConstantEccentricity/SearchAngle": {
+      "cases": 1320,
+      "unit": "rad",
+      "before": {
+        "p50": 2.8582938220865883e-07,
+        "p95": 1.807749905142463e-05,
+        "maximum": 2.4887172817754543e-05
+      },
+      "after": {
+        "p50": 3.020578046349906e-07,
+        "p95": 1.883381863114424e-05,
+        "maximum": 2.4770006372098333e-05
+      }
+    },
+    "mesh-ConstantN/N": {
+      "cases": 72,
+      "unit": "N",
+      "before": {
+        "p50": 0.03190548393467907,
+        "p95": 6.156064943817915,
+        "maximum": 16.59012262907345
+      },
+      "after": {
+        "p50": 0.037263580539729446,
+        "p95": 4.560386826773174,
+        "maximum": 11.903610521520022
+      }
+    },
+    "mesh-ConstantN/SearchAngle": {
+      "cases": 72,
+      "unit": "rad",
+      "before": {
+        "p50": 1.806451106254566e-08,
+        "p95": 3.6449035285161697e-06,
+        "maximum": 2.220404822816321e-05
+      },
+      "after": {
+        "p50": 8.4366193297298e-11,
+        "p95": 2.4863385851964785e-06,
+        "maximum": 1.2347630920993325e-05
+      }
+    },
+    "mesh-ConstantEccentricity/SearchAngle": {
+      "cases": 72,
+      "unit": "rad",
+      "before": {
+        "p50": 1.933664410512927e-06,
+        "p95": 2.0334703807894105e-05,
+        "maximum": 2.4138738884839623e-05
+      },
+      "after": {
+        "p50": 2.189586045203636e-06,
+        "p95": 1.4433189714678687e-05,
+        "maximum": 2.3005209731163044e-05
+      }
+    }
+  },
+  "momentChangesConstantN": {
+    "main": {
+      "cases": 144,
+      "p50AbsPercent": 0.04548829496308082,
+      "p95AbsPercent": 0.37602092044323066,
+      "largest": [
+        [
+          1.6323307920578012,
+          "R1/ParabolaRectangle/Elastic/ConstantN/-2400/30"
+        ],
+        [
+          1.609367466699041,
+          "R1/ParabolaRectangle/Elastic/ConstantN/-2400/0"
+        ],
+        [
+          1.5425321242380052,
+          "R1/ParabolaRectangle/Elastic/ConstantN/-2400/90"
+        ],
+        [
+          0.7833561037027259,
+          "R1/ParabolaRectangle/Elastic/ConstantN/-2400/210"
+        ],
+        [
+          0.5938019286965801,
+          "R3/ParabolaRectangle/Elastic/ConstantN/-1200/0"
+        ],
+        [
+          0.5564520074967438,
+          "R3/ParabolaRectangle/Elastic/ConstantN/-1200/30"
+        ],
+        [
+          0.46874799543992207,
+          "R3/ParabolaRectangle/Elastic/ConstantN/-1200/90"
+        ],
+        [
+          0.37854422754215467,
+          "R1/ParabolaRectangle/Plastic/ConstantN/-2400/30"
+        ],
+        [
+          0.36172218021599534,
+          "R1/ParabolaRectangle/Plastic/ConstantN/-2400/0"
+        ],
+        [
+          0.3545423646692081,
+          "C1/ParabolaRectangle/Elastic/ConstantN/-2900/210"
+        ]
+      ]
+    },
+    "focus-": {
+      "cases": 556,
+      "p50AbsPercent": 0.04548829496308082,
+      "p95AbsPercent": 0.35412200248491343,
+      "largest": [
+        [
+          -1.8963713157709838,
+          "Focus/R3/ParabolaRectangle/Plastic/ConstantN/180/30"
+        ],
+        [
+          1.6330826842775537,
+          "Focus/R1/ParabolaRectangle/Elastic/ConstantN/-2400/330"
+        ],
+        [
+          1.6323307920578012,
+          "Focus/R1/ParabolaRectangle/Elastic/ConstantN/-2400/30"
+        ],
+        [
+          1.609367466699041,
+          "Focus/R1/ParabolaRectangle/Elastic/ConstantN/-2400/0"
+        ],
+        [
+          1.6005450766009233,
+          "Focus/R1/ParabolaRectangle/Elastic/ConstantN/-2400/300"
+        ],
+        [
+          1.599476769690722,
+          "Focus/R1/ParabolaRectangle/Elastic/ConstantN/-2400/60"
+        ],
+        [
+          1.5425321242380052,
+          "Focus/R1/ParabolaRectangle/Elastic/ConstantN/-2400/90"
+        ],
+        [
+          1.5420245960074297,
+          "Focus/R1/ParabolaRectangle/Elastic/ConstantN/-2400/270"
+        ],
+        [
+          0.8505698322599509,
+          "Focus/R1/ParabolaRectangle/Elastic/ConstantN/-2400/120"
+        ],
+        [
+          0.8494895471167441,
+          "Focus/R1/ParabolaRectangle/Elastic/ConstantN/-2400/240"
+        ]
+      ]
+    },
+    "mesh-": {
+      "cases": 72,
+      "p50AbsPercent": 0.029972507401887505,
+      "p95AbsPercent": 0.05604799777634396,
+      "largest": [
+        [
+          0.287086385800972,
+          "Mesh/S1/ParabolaRectangle/Plastic/ConstantN/4/0"
+        ],
+        [
+          0.10775200749091329,
+          "Mesh/S1/ParabolaRectangle/Plastic/ConstantN/12/0"
+        ],
+        [
+          0.06745669705816582,
+          "Mesh/S1/ParabolaRectangle/Plastic/ConstantN/24/0"
+        ],
+        [
+          0.057548445081212485,
+          "Mesh/S1/ParabolaRectangle/Plastic/ConstantN/4/30"
+        ],
+        [
+          0.0548203590723606,
+          "Mesh/R2/ParabolaRectangle/Elastic/ConstantN/4/30"
+        ],
+        [
+          0.05353442379549822,
+          "Mesh/R2/ParabolaRectangle/Elastic/ConstantN/12/30"
+        ],
+        [
+          0.05328308437591023,
+          "Mesh/R2/ParabolaRectangle/Elastic/ConstantN/24/30"
+        ],
+        [
+          0.05221946397062638,
+          "Mesh/S1/ParabolaRectangle/Plastic/ConstantN/4/90"
+        ],
+        [
+          0.04987322549514506,
+          "Mesh/R1/ParabolaRectangle/Elastic/ConstantN/4/30"
+        ],
+        [
+          0.04959111741651423,
+          "Mesh/S1/ParabolaRectangle/Elastic/ConstantN/4/30"
+        ]
+      ]
+    }
+  },
+  "slowerCases": {
+    "main": [],
+    "focus-": [],
+    "mesh-": []
+  },
+  "samePlaneDecomposition": [
+    {
+      "Id": "R1/ParabolaRectangle/Plastic/ConstantN/0/0",
+      "lawDeltaN_N": -521.7155843276996,
+      "integrationDeltaN_N": -539.1001047552563,
+      "lawDeltaMoment_kNm": 0.10516131250301441,
+      "integrationDeltaMoment_kNm": 0.1265902039152138
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Plastic/ConstantN/0/30",
+      "lawDeltaN_N": -1046.642540425528,
+      "integrationDeltaN_N": 5.503762632841358,
+      "lawDeltaMoment_kNm": 0.13255961161342708,
+      "integrationDeltaMoment_kNm": 0.001981080044249121
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Plastic/ConstantN/0/90",
+      "lawDeltaN_N": -852.8691736572655,
+      "integrationDeltaN_N": -1.0563032399514283,
+      "lawDeltaMoment_kNm": 0.10191476159185317,
+      "integrationDeltaMoment_kNm": 0.014123406784491659
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Plastic/ConstantN/0/210",
+      "lawDeltaN_N": -590.7460528649681,
+      "integrationDeltaN_N": 14.74694349771022,
+      "lawDeltaMoment_kNm": 0.12049418078257144,
+      "integrationDeltaMoment_kNm": 0.005466176504358333
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Plastic/ConstantN/-150/0",
+      "lawDeltaN_N": -671.4759467343185,
+      "integrationDeltaN_N": -481.72607866092676,
+      "lawDeltaMoment_kNm": 0.12357907958934788,
+      "integrationDeltaMoment_kNm": 0.1139604607377862
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Plastic/ConstantN/-150/30",
+      "lawDeltaN_N": -1479.6280700371085,
+      "integrationDeltaN_N": -20.78294010837567,
+      "lawDeltaMoment_kNm": 0.16965247368605244,
+      "integrationDeltaMoment_kNm": 0.013956600890209104
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Plastic/ConstantN/-150/90",
+      "lawDeltaN_N": -1079.161991090814,
+      "integrationDeltaN_N": -71.17544105736329,
+      "lawDeltaMoment_kNm": 0.11948721665609423,
+      "integrationDeltaMoment_kNm": 0.005878805015424222
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Plastic/ConstantN/-150/210",
+      "lawDeltaN_N": -874.7704199061843,
+      "integrationDeltaN_N": -58.62650392879232,
+      "lawDeltaMoment_kNm": 0.1466433103688437,
+      "integrationDeltaMoment_kNm": 0.01172211625118141
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Plastic/ConstantN/-2400/0",
+      "lawDeltaN_N": -3735.5234096098684,
+      "integrationDeltaN_N": -0.19825067192869028,
+      "lawDeltaMoment_kNm": 0.3905954830239141,
+      "integrationDeltaMoment_kNm": 6.595101065785541e-06
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Plastic/ConstantN/-2400/30",
+      "lawDeltaN_N": -4423.656531329925,
+      "integrationDeltaN_N": 12.786380475517944,
+      "lawDeltaMoment_kNm": 0.27106652057106523,
+      "integrationDeltaMoment_kNm": 0.003020466507268902
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Plastic/ConstantN/-2400/90",
+      "lawDeltaN_N": -3983.163834202969,
+      "integrationDeltaN_N": 1.9095925135843572,
+      "lawDeltaMoment_kNm": 0.22074556058491204,
+      "integrationDeltaMoment_kNm": 0.0008828813894151284
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Plastic/ConstantN/-2400/210",
+      "lawDeltaN_N": -4414.200094788612,
+      "integrationDeltaN_N": -11.603289841787046,
+      "lawDeltaMoment_kNm": 0.19404234158768158,
+      "integrationDeltaMoment_kNm": 0.002416155579088303
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Plastic/ConstantEccentricity/-1",
+      "lawDeltaN_N": -2460.240810110804,
+      "integrationDeltaN_N": 73.26186634350051,
+      "lawDeltaMoment_kNm": 0.171234877720761,
+      "integrationDeltaMoment_kNm": 0.007158610898907854
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Plastic/ConstantEccentricity/1",
+      "lawDeltaN_N": -2940.510868592014,
+      "integrationDeltaN_N": -3.730557112135102,
+      "lawDeltaMoment_kNm": 0.1485145007426227,
+      "integrationDeltaMoment_kNm": 0.0044941105817815465
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Plastic/ConstantNMx/-1",
+      "lawDeltaN_N": -1150.4980368349322,
+      "integrationDeltaN_N": 123.71136606267896,
+      "lawDeltaMoment_kNm": 0.12674473086292745,
+      "integrationDeltaMoment_kNm": 0.02125917669740937
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Plastic/ConstantNMx/1",
+      "lawDeltaN_N": -882.499657392458,
+      "integrationDeltaN_N": -68.82087194640008,
+      "lawDeltaMoment_kNm": 0.09625292081899504,
+      "integrationDeltaMoment_kNm": 0.013776490711830201
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Plastic/ConstantNMy/-1",
+      "lawDeltaN_N": -614.8714241170126,
+      "integrationDeltaN_N": 10.26640005312629,
+      "lawDeltaMoment_kNm": 0.13059022557283292,
+      "integrationDeltaMoment_kNm": 0.003057510571334618
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Plastic/ConstantNMy/1",
+      "lawDeltaN_N": -1126.0215555010404,
+      "integrationDeltaN_N": 61.66674027457475,
+      "lawDeltaMoment_kNm": 0.2041913007013804,
+      "integrationDeltaMoment_kNm": 0.01866855911983995
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Plastic/ConstantMxMy/-1",
+      "lawDeltaN_N": -3959.4193378934506,
+      "integrationDeltaN_N": 0.014367284620675491,
+      "lawDeltaMoment_kNm": 0.2498795382496049,
+      "integrationDeltaMoment_kNm": 1.734877341890076e-05
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Plastic/ConstantMxMy/1",
+      "lawDeltaN_N": -4031.392596961723,
+      "integrationDeltaN_N": 0.02533120186853921,
+      "lawDeltaMoment_kNm": 0.3530072794785042,
+      "integrationDeltaMoment_kNm": 1.0042152264266594e-06
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Elastic/ConstantN/0/0",
+      "lawDeltaN_N": -2032.2697069044807,
+      "integrationDeltaN_N": -60.94004686677401,
+      "lawDeltaMoment_kNm": 0.3583117805446534,
+      "integrationDeltaMoment_kNm": 0.006187061152821376
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Elastic/ConstantN/0/30",
+      "lawDeltaN_N": -1640.4684547264478,
+      "integrationDeltaN_N": 9.44062866939932,
+      "lawDeltaMoment_kNm": 0.22145750432769473,
+      "integrationDeltaMoment_kNm": 0.0006283845422038734
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Elastic/ConstantN/0/90",
+      "lawDeltaN_N": -1543.9390783129202,
+      "integrationDeltaN_N": 2.896418261429057,
+      "lawDeltaMoment_kNm": 0.17838733343464694,
+      "integrationDeltaMoment_kNm": 0.006978909792276121
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Elastic/ConstantN/0/210",
+      "lawDeltaN_N": -1118.2257713030413,
+      "integrationDeltaN_N": 52.434307835166784,
+      "lawDeltaMoment_kNm": 0.19958005545866328,
+      "integrationDeltaMoment_kNm": 0.005918962180269146
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Elastic/ConstantN/-150/0",
+      "lawDeltaN_N": -2365.0802400605926,
+      "integrationDeltaN_N": -14.796281480101925,
+      "lawDeltaMoment_kNm": 0.3842399665781075,
+      "integrationDeltaMoment_kNm": 0.0012023022595339529
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Elastic/ConstantN/-150/30",
+      "lawDeltaN_N": -2102.8497141114713,
+      "integrationDeltaN_N": -7.970602227146628,
+      "lawDeltaMoment_kNm": 0.2577637579669654,
+      "integrationDeltaMoment_kNm": 0.00068114367171085
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Elastic/ConstantN/-150/90",
+      "lawDeltaN_N": -1960.0360597435156,
+      "integrationDeltaN_N": -77.30021832219336,
+      "lawDeltaMoment_kNm": 0.20668474296554168,
+      "integrationDeltaMoment_kNm": 0.00776602571442263
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Elastic/ConstantN/-150/210",
+      "lawDeltaN_N": -1616.5812662702876,
+      "integrationDeltaN_N": -45.89089678884761,
+      "lawDeltaMoment_kNm": 0.24386788692658581,
+      "integrationDeltaMoment_kNm": 0.0034440925220861557
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Elastic/ConstantN/-2400/0",
+      "lawDeltaN_N": -6664.896405322452,
+      "integrationDeltaN_N": 0.00018027594705927186,
+      "lawDeltaMoment_kNm": 0.0209162332154747,
+      "integrationDeltaMoment_kNm": 4.517118421099438e-08
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Elastic/ConstantN/-2400/30",
+      "lawDeltaN_N": -6602.234058194881,
+      "integrationDeltaN_N": 5.002220859751105e-09,
+      "lawDeltaMoment_kNm": 0.006757414513771934,
+      "integrationDeltaMoment_kNm": 2.034684749684793e-13
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Elastic/ConstantN/-2400/90",
+      "lawDeltaN_N": -6638.324489938896,
+      "integrationDeltaN_N": 1.3642420526593924e-08,
+      "lawDeltaMoment_kNm": 0.007847464985632022,
+      "integrationDeltaMoment_kNm": 1.0963442882086512e-13
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Elastic/ConstantN/-2400/210",
+      "lawDeltaN_N": -6564.329920313412,
+      "integrationDeltaN_N": 1.000444171950221e-08,
+      "lawDeltaMoment_kNm": 0.004208613939708127,
+      "integrationDeltaMoment_kNm": 8.556067554929069e-14
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Elastic/ConstantEccentricity/-1",
+      "lawDeltaN_N": -3162.4573733407715,
+      "integrationDeltaN_N": 14.978216611552853,
+      "lawDeltaMoment_kNm": 0.2761740917707292,
+      "integrationDeltaMoment_kNm": 0.002610021714517213
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Elastic/ConstantEccentricity/1",
+      "lawDeltaN_N": -3705.1431210737746,
+      "integrationDeltaN_N": -12.088965140037544,
+      "lawDeltaMoment_kNm": 0.2853999311390866,
+      "integrationDeltaMoment_kNm": 0.003095578286252783
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Elastic/ConstantNMx/-1",
+      "lawDeltaN_N": -1918.876962863493,
+      "integrationDeltaN_N": -20.156534578234186,
+      "lawDeltaMoment_kNm": 0.21043841951060957,
+      "integrationDeltaMoment_kNm": 0.0031817920677379248
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Elastic/ConstantNMx/1",
+      "lawDeltaN_N": -1982.4632412629057,
+      "integrationDeltaN_N": -20.06475680764197,
+      "lawDeltaMoment_kNm": 0.20559506220282736,
+      "integrationDeltaMoment_kNm": 0.001095783015587541
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Elastic/ConstantNMy/-1",
+      "lawDeltaN_N": -1679.4861762089113,
+      "integrationDeltaN_N": -2.591061085695401,
+      "lawDeltaMoment_kNm": 0.302217862977641,
+      "integrationDeltaMoment_kNm": 0.001643749784971146
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Elastic/ConstantNMy/1",
+      "lawDeltaN_N": -2324.1269848663533,
+      "integrationDeltaN_N": 17.639275957890277,
+      "lawDeltaMoment_kNm": 0.36998485727928604,
+      "integrationDeltaMoment_kNm": 0.002235207686287176
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Elastic/ConstantMxMy/-1",
+      "lawDeltaN_N": -6558.569159961735,
+      "integrationDeltaN_N": 7.73070496506989e-09,
+      "lawDeltaMoment_kNm": 0.025830024153153518,
+      "integrationDeltaMoment_kNm": 2.2469334198890888e-14
+    },
+    {
+      "Id": "R1/ParabolaRectangle/Elastic/ConstantMxMy/1",
+      "lawDeltaN_N": -6586.977419662617,
+      "integrationDeltaN_N": 1.1823431123048067e-08,
+      "lawDeltaMoment_kNm": 0.009037771415383328,
+      "integrationDeltaMoment_kNm": 9.546162148797352e-14
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Plastic/ConstantN/0/0",
+      "lawDeltaN_N": -689.4004947785288,
+      "integrationDeltaN_N": -1248.9167261093971,
+      "lawDeltaMoment_kNm": 0.1783348378227514,
+      "integrationDeltaMoment_kNm": 0.3614026302197149
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Plastic/ConstantN/0/30",
+      "lawDeltaN_N": -1753.4028811688765,
+      "integrationDeltaN_N": -70.64305511664148,
+      "lawDeltaMoment_kNm": 0.33490249669610284,
+      "integrationDeltaMoment_kNm": 0.011537087174352739
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Plastic/ConstantN/0/90",
+      "lawDeltaN_N": -1155.4738159560366,
+      "integrationDeltaN_N": -1515.4782485050382,
+      "lawDeltaMoment_kNm": 0.17585701170801074,
+      "integrationDeltaMoment_kNm": 0.2833252905623425
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Plastic/ConstantN/0/210",
+      "lawDeltaN_N": -1753.4028811689932,
+      "integrationDeltaN_N": -70.64305511768909,
+      "lawDeltaMoment_kNm": 0.3349024966963368,
+      "integrationDeltaMoment_kNm": 0.011537087174374041
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Plastic/ConstantN/-300/0",
+      "lawDeltaN_N": -947.4525289132316,
+      "integrationDeltaN_N": -1212.3998815454797,
+      "lawDeltaMoment_kNm": 0.23285860102678635,
+      "integrationDeltaMoment_kNm": 0.3456871807155146
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Plastic/ConstantN/-300/30",
+      "lawDeltaN_N": -2293.900061031536,
+      "integrationDeltaN_N": -102.19082766690235,
+      "lawDeltaMoment_kNm": 0.38471779796400246,
+      "integrationDeltaMoment_kNm": 0.01521776244816033
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Plastic/ConstantN/-300/90",
+      "lawDeltaN_N": -1608.6006853318509,
+      "integrationDeltaN_N": -890.6263917481851,
+      "lawDeltaMoment_kNm": 0.21872526224665317,
+      "integrationDeltaMoment_kNm": 0.20700646753385418
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Plastic/ConstantN/-300/210",
+      "lawDeltaN_N": -2293.9000610313656,
+      "integrationDeltaN_N": -102.19082766593601,
+      "lawDeltaMoment_kNm": 0.3847177979641946,
+      "integrationDeltaMoment_kNm": 0.015217762447974896
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Plastic/ConstantN/-2800/0",
+      "lawDeltaN_N": -4914.8064340583915,
+      "integrationDeltaN_N": -921.5331441696435,
+      "lawDeltaMoment_kNm": 0.032367708060807056,
+      "integrationDeltaMoment_kNm": 0.28482946563826106
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Plastic/ConstantN/-2800/30",
+      "lawDeltaN_N": -7243.623723260043,
+      "integrationDeltaN_N": -57.918825370506966,
+      "lawDeltaMoment_kNm": 0.17594963527539842,
+      "integrationDeltaMoment_kNm": 0.0070431596951384436
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Plastic/ConstantN/-2800/90",
+      "lawDeltaN_N": -4559.039424951607,
+      "integrationDeltaN_N": -1060.5242215760882,
+      "lawDeltaMoment_kNm": 0.06319916239552467,
+      "integrationDeltaMoment_kNm": 0.23835458959086156
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Plastic/ConstantN/-2800/210",
+      "lawDeltaN_N": -7243.623723259589,
+      "integrationDeltaN_N": -57.91882537096171,
+      "lawDeltaMoment_kNm": 0.17594963527560256,
+      "integrationDeltaMoment_kNm": 0.007043159695364399
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Plastic/ConstantEccentricity/-1",
+      "lawDeltaN_N": -8086.242318821405,
+      "integrationDeltaN_N": -79.60112337013925,
+      "lawDeltaMoment_kNm": 0.12670279239769613,
+      "integrationDeltaMoment_kNm": 0.014709718533513017
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Plastic/ConstantEccentricity/1",
+      "lawDeltaN_N": -8086.2423188209505,
+      "integrationDeltaN_N": -79.60112337195824,
+      "lawDeltaMoment_kNm": 0.12670279239785887,
+      "integrationDeltaMoment_kNm": 0.014709718533795348
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Plastic/ConstantNMx/-1",
+      "lawDeltaN_N": -1759.881640631022,
+      "integrationDeltaN_N": -181.11524484248775,
+      "lawDeltaMoment_kNm": 0.241054771935696,
+      "integrationDeltaMoment_kNm": 0.03412826686825329
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Plastic/ConstantNMx/1",
+      "lawDeltaN_N": -1759.8816406322157,
+      "integrationDeltaN_N": -181.11524484231722,
+      "lawDeltaMoment_kNm": 0.24105477193575273,
+      "integrationDeltaMoment_kNm": 0.03412826686819841
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Plastic/ConstantNMy/-1",
+      "lawDeltaN_N": -1050.825643259941,
+      "integrationDeltaN_N": 357.65455127801715,
+      "lawDeltaMoment_kNm": 0.2550921990199134,
+      "integrationDeltaMoment_kNm": 0.07823031538575308
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Plastic/ConstantNMy/1",
+      "lawDeltaN_N": -1050.8256432599978,
+      "integrationDeltaN_N": 357.654551278074,
+      "lawDeltaMoment_kNm": 0.2550921990197996,
+      "integrationDeltaMoment_kNm": 0.0782303153856965
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Plastic/ConstantMxMy/-1",
+      "lawDeltaN_N": -7451.157452650477,
+      "integrationDeltaN_N": 0.01981141667783959,
+      "lawDeltaMoment_kNm": 0.6232790807632124,
+      "integrationDeltaMoment_kNm": 5.426089419308306e-06
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Plastic/ConstantMxMy/1",
+      "lawDeltaN_N": -7451.15745262774,
+      "integrationDeltaN_N": 0.01981140667339787,
+      "lawDeltaMoment_kNm": 0.6232790807635415,
+      "integrationDeltaMoment_kNm": 5.426089445178177e-06
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Elastic/ConstantN/0/0",
+      "lawDeltaN_N": -3164.7602574715274,
+      "integrationDeltaN_N": 0.33507269411359175,
+      "lawDeltaMoment_kNm": 0.7192476903350897,
+      "integrationDeltaMoment_kNm": 0.0009823747457812335
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Elastic/ConstantN/0/30",
+      "lawDeltaN_N": -2589.3919740169076,
+      "integrationDeltaN_N": 10.658025228825974,
+      "lawDeltaMoment_kNm": 0.5021425027426902,
+      "integrationDeltaMoment_kNm": 0.006222270113240365
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Elastic/ConstantN/0/90",
+      "lawDeltaN_N": -3031.5659492384875,
+      "integrationDeltaN_N": -15.226115176104837,
+      "lawDeltaMoment_kNm": 0.4563275277471468,
+      "integrationDeltaMoment_kNm": 0.0031543171245115406
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Elastic/ConstantN/0/210",
+      "lawDeltaN_N": -2589.3919740171987,
+      "integrationDeltaN_N": 10.658025229465906,
+      "lawDeltaMoment_kNm": 0.5021425027425787,
+      "integrationDeltaMoment_kNm": 0.006222270113280752
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Elastic/ConstantN/-300/0",
+      "lawDeltaN_N": -3885.197280358682,
+      "integrationDeltaN_N": 21.833437688485446,
+      "lawDeltaMoment_kNm": 0.8030863208135727,
+      "integrationDeltaMoment_kNm": 0.0032020096003503033
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Elastic/ConstantN/-300/30",
+      "lawDeltaN_N": -3604.320668166906,
+      "integrationDeltaN_N": -9.216416458912136,
+      "lawDeltaMoment_kNm": 0.6098683264618795,
+      "integrationDeltaMoment_kNm": 0.0011420544932047327
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Elastic/ConstantN/-300/90",
+      "lawDeltaN_N": -3720.0697533575067,
+      "integrationDeltaN_N": 40.797829799430474,
+      "lawDeltaMoment_kNm": 0.5086913549015122,
+      "integrationDeltaMoment_kNm": 0.0036186084572327197
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Elastic/ConstantN/-300/210",
+      "lawDeltaN_N": -3604.3206681675883,
+      "integrationDeltaN_N": -9.216416458741605,
+      "lawDeltaMoment_kNm": 0.6098683264617423,
+      "integrationDeltaMoment_kNm": 0.0011420544933400322
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Elastic/ConstantN/-2800/0",
+      "lawDeltaN_N": -9624.36644571926,
+      "integrationDeltaN_N": 2.3698637860434246,
+      "lawDeltaMoment_kNm": 0.6268223654265677,
+      "integrationDeltaMoment_kNm": 0.0004427975671582317
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Elastic/ConstantN/-2800/30",
+      "lawDeltaN_N": -10898.799533907095,
+      "integrationDeltaN_N": 2.32993541567339,
+      "lawDeltaMoment_kNm": 0.3417234538981763,
+      "integrationDeltaMoment_kNm": 0.0009597841540499434
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Elastic/ConstantN/-2800/90",
+      "lawDeltaN_N": -9544.805602597535,
+      "integrationDeltaN_N": 17.053898876383755,
+      "lawDeltaMoment_kNm": 0.41991988917815526,
+      "integrationDeltaMoment_kNm": 0.004565225387785833
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Elastic/ConstantN/-2800/210",
+      "lawDeltaN_N": -10898.79953390755,
+      "integrationDeltaN_N": 2.3299354179471266,
+      "lawDeltaMoment_kNm": 0.34172345389814723,
+      "integrationDeltaMoment_kNm": 0.0009597841540377221
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Elastic/ConstantEccentricity/-1",
+      "lawDeltaN_N": -11303.022831083581,
+      "integrationDeltaN_N": -0.47140491824393393,
+      "lawDeltaMoment_kNm": 0.26185068195073424,
+      "integrationDeltaMoment_kNm": 0.0015269929636739347
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Elastic/ConstantEccentricity/1",
+      "lawDeltaN_N": -11303.022831097678,
+      "integrationDeltaN_N": -0.4714049127869657,
+      "lawDeltaMoment_kNm": 0.26185068195114414,
+      "integrationDeltaMoment_kNm": 0.0015269929629036691
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Elastic/ConstantNMx/-1",
+      "lawDeltaN_N": -3834.0277539497833,
+      "integrationDeltaN_N": -15.93330860629294,
+      "lawDeltaMoment_kNm": 0.5285115971916394,
+      "integrationDeltaMoment_kNm": 0.013673875786518354
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Elastic/ConstantNMx/1",
+      "lawDeltaN_N": -3834.027753949101,
+      "integrationDeltaN_N": -15.933308606520313,
+      "lawDeltaMoment_kNm": 0.5285115971916379,
+      "integrationDeltaMoment_kNm": 0.013673875786505238
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Elastic/ConstantNMy/-1",
+      "lawDeltaN_N": -3814.6984059903843,
+      "integrationDeltaN_N": 15.596065569923212,
+      "lawDeltaMoment_kNm": 0.7793009861048238,
+      "integrationDeltaMoment_kNm": 0.0019114274963394034
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Elastic/ConstantNMy/1",
+      "lawDeltaN_N": -3814.6984059880538,
+      "integrationDeltaN_N": 15.596065569468465,
+      "lawDeltaMoment_kNm": 0.7793009861052765,
+      "integrationDeltaMoment_kNm": 0.001911427496503858
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Elastic/ConstantMxMy/-1",
+      "lawDeltaN_N": -12304.785109592558,
+      "integrationDeltaN_N": 1.6370904631912708e-08,
+      "lawDeltaMoment_kNm": 0.16827527493887484,
+      "integrationDeltaMoment_kNm": 6.83608952730234e-14
+    },
+    {
+      "Id": "R2/ParabolaRectangle/Elastic/ConstantMxMy/1",
+      "lawDeltaN_N": -12304.785109585282,
+      "integrationDeltaN_N": 2.091837814077735e-08,
+      "lawDeltaMoment_kNm": 0.16827527493881098,
+      "integrationDeltaMoment_kNm": 1.276630968677562e-13
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Plastic/ConstantN/0/0",
+      "lawDeltaN_N": -639.0639044514973,
+      "integrationDeltaN_N": -431.19073774828587,
+      "lawDeltaMoment_kNm": 0.11124633081976754,
+      "integrationDeltaMoment_kNm": 0.09833383040464128
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Plastic/ConstantN/0/30",
+      "lawDeltaN_N": -863.3064070159453,
+      "integrationDeltaN_N": -138.27573044929898,
+      "lawDeltaMoment_kNm": 0.09949067463963616,
+      "integrationDeltaMoment_kNm": 0.01301410703729896
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Plastic/ConstantN/0/90",
+      "lawDeltaN_N": -366.9984247696557,
+      "integrationDeltaN_N": 34.92468596172693,
+      "lawDeltaMoment_kNm": 0.0766393352327342,
+      "integrationDeltaMoment_kNm": 0.006344516662262861
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Plastic/ConstantN/0/210",
+      "lawDeltaN_N": -295.98643219665973,
+      "integrationDeltaN_N": -91.38712728596876,
+      "lawDeltaMoment_kNm": 0.06584091557830767,
+      "integrationDeltaMoment_kNm": 0.02075307004143234
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Plastic/ConstantN/-120/0",
+      "lawDeltaN_N": -943.1380003073002,
+      "integrationDeltaN_N": -259.20330781094947,
+      "lawDeltaMoment_kNm": 0.1391581173948011,
+      "integrationDeltaMoment_kNm": 0.07700295531068413
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Plastic/ConstantN/-120/30",
+      "lawDeltaN_N": -1203.4254405349002,
+      "integrationDeltaN_N": 20.59681292263349,
+      "lawDeltaMoment_kNm": 0.12388577232036134,
+      "integrationDeltaMoment_kNm": 0.0027464252848832223
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Plastic/ConstantN/-120/90",
+      "lawDeltaN_N": -838.8421110582129,
+      "integrationDeltaN_N": 69.83478719335778,
+      "lawDeltaMoment_kNm": 0.10346448293496822,
+      "integrationDeltaMoment_kNm": 0.006840459285193385
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Plastic/ConstantN/-120/210",
+      "lawDeltaN_N": -427.00723551151043,
+      "integrationDeltaN_N": -47.937842177859125,
+      "lawDeltaMoment_kNm": 0.09413526507343459,
+      "integrationDeltaMoment_kNm": 0.01061363818742492
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Plastic/ConstantN/-1200/0",
+      "lawDeltaN_N": -2429.60609238753,
+      "integrationDeltaN_N": -335.14229649154004,
+      "lawDeltaMoment_kNm": 0.05724912276230158,
+      "integrationDeltaMoment_kNm": 0.08646384501061224
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Plastic/ConstantN/-1200/30",
+      "lawDeltaN_N": -3421.3117527833674,
+      "integrationDeltaN_N": 23.294904609883815,
+      "lawDeltaMoment_kNm": 0.028249688355143018,
+      "integrationDeltaMoment_kNm": 0.00181247536809415
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Plastic/ConstantN/-1200/90",
+      "lawDeltaN_N": -2419.0706254310044,
+      "integrationDeltaN_N": -14.327194768839036,
+      "lawDeltaMoment_kNm": 0.03189734216578179,
+      "integrationDeltaMoment_kNm": 0.016753380617667665
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Plastic/ConstantN/-1200/210",
+      "lawDeltaN_N": -2887.937386906742,
+      "integrationDeltaN_N": 11.207619546667047,
+      "lawDeltaMoment_kNm": 0.10056905590409944,
+      "integrationDeltaMoment_kNm": 0.006935821128101628
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Plastic/ConstantEccentricity/-1",
+      "lawDeltaN_N": -979.3765412813968,
+      "integrationDeltaN_N": 51.57994098431118,
+      "lawDeltaMoment_kNm": 0.1455553872121403,
+      "integrationDeltaMoment_kNm": 0.008078756836300412
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Plastic/ConstantEccentricity/1",
+      "lawDeltaN_N": -2283.1487635210124,
+      "integrationDeltaN_N": -43.557788207294834,
+      "lawDeltaMoment_kNm": 0.13644503572479638,
+      "integrationDeltaMoment_kNm": 0.014215276522672224
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Plastic/ConstantNMx/-1",
+      "lawDeltaN_N": -552.2899584890126,
+      "integrationDeltaN_N": 23.40403832030802,
+      "lawDeltaMoment_kNm": 0.09910285290893177,
+      "integrationDeltaMoment_kNm": 0.009276725322319572
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Plastic/ConstantNMx/1",
+      "lawDeltaN_N": -813.2035926179952,
+      "integrationDeltaN_N": -70.9459570125972,
+      "lawDeltaMoment_kNm": 0.09308630476237612,
+      "integrationDeltaMoment_kNm": 0.009711751519162485
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Plastic/ConstantNMy/-1",
+      "lawDeltaN_N": -397.3065395138491,
+      "integrationDeltaN_N": 48.84359353300738,
+      "lawDeltaMoment_kNm": 0.088136299971854,
+      "integrationDeltaMoment_kNm": 0.01094353297181717
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Plastic/ConstantNMy/1",
+      "lawDeltaN_N": -1373.1294418507646,
+      "integrationDeltaN_N": -27.62591833668182,
+      "lawDeltaMoment_kNm": 0.20705196811125973,
+      "integrationDeltaMoment_kNm": 0.005109179281822309
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Plastic/ConstantMxMy/-1",
+      "lawDeltaN_N": -3424.103924956853,
+      "integrationDeltaN_N": -0.08562813127355184,
+      "lawDeltaMoment_kNm": 0.27651842337665683,
+      "integrationDeltaMoment_kNm": 9.401645242619052e-06
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Plastic/ConstantMxMy/1",
+      "lawDeltaN_N": -3269.4294222881126,
+      "integrationDeltaN_N": -0.2307796189597866,
+      "lawDeltaMoment_kNm": 0.3164085654244995,
+      "integrationDeltaMoment_kNm": 1.4037790237136817e-05
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Elastic/ConstantN/0/0",
+      "lawDeltaN_N": -1966.047757230408,
+      "integrationDeltaN_N": -42.890819535706946,
+      "lawDeltaMoment_kNm": 0.3231798302625751,
+      "integrationDeltaMoment_kNm": 0.0031799901471267797
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Elastic/ConstantN/0/30",
+      "lawDeltaN_N": -1454.2766350104648,
+      "integrationDeltaN_N": 14.16141475798205,
+      "lawDeltaMoment_kNm": 0.17411394779942746,
+      "integrationDeltaMoment_kNm": 0.0013398244957250358
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Elastic/ConstantN/0/90",
+      "lawDeltaN_N": -508.36795999891183,
+      "integrationDeltaN_N": -25.83713988095404,
+      "lawDeltaMoment_kNm": 0.10769285181383116,
+      "integrationDeltaMoment_kNm": 0.004466537770195567
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Elastic/ConstantN/0/210",
+      "lawDeltaN_N": -426.9546848652244,
+      "integrationDeltaN_N": -21.55855394041284,
+      "lawDeltaMoment_kNm": 0.09851578009098691,
+      "integrationDeltaMoment_kNm": 0.006609262751235419
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Elastic/ConstantN/-120/0",
+      "lawDeltaN_N": -2208.4109458432695,
+      "integrationDeltaN_N": -102.85817608044567,
+      "lawDeltaMoment_kNm": 0.33227511303127405,
+      "integrationDeltaMoment_kNm": 0.005125532406345451
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Elastic/ConstantN/-120/30",
+      "lawDeltaN_N": -1887.1061537692526,
+      "integrationDeltaN_N": 12.991366489103484,
+      "lawDeltaMoment_kNm": 0.21196708171493642,
+      "integrationDeltaMoment_kNm": 0.001665813198803962
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Elastic/ConstantN/-120/90",
+      "lawDeltaN_N": -1304.1033346129466,
+      "integrationDeltaN_N": 5.279450572444944,
+      "lawDeltaMoment_kNm": 0.15927493106858473,
+      "integrationDeltaMoment_kNm": 0.0007569453613238279
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Elastic/ConstantN/-120/210",
+      "lawDeltaN_N": -566.719158145716,
+      "integrationDeltaN_N": 10.577508924598078,
+      "lawDeltaMoment_kNm": 0.12554791148760816,
+      "integrationDeltaMoment_kNm": 0.002177511641327492
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Elastic/ConstantN/-1200/0",
+      "lawDeltaN_N": -4768.203102261623,
+      "integrationDeltaN_N": -3.377286197292051,
+      "lawDeltaMoment_kNm": 0.1638054267166379,
+      "integrationDeltaMoment_kNm": 0.000651469710405205
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Elastic/ConstantN/-1200/30",
+      "lawDeltaN_N": -5049.794412345591,
+      "integrationDeltaN_N": -5.292724232276669,
+      "lawDeltaMoment_kNm": 0.10694286183726305,
+      "integrationDeltaMoment_kNm": 0.0009091055033161772
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Elastic/ConstantN/-1200/90",
+      "lawDeltaN_N": -4611.629907489714,
+      "integrationDeltaN_N": -45.73589621168139,
+      "lawDeltaMoment_kNm": 0.12398860560014878,
+      "integrationDeltaMoment_kNm": 0.004837173199745332
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Elastic/ConstantN/-1200/210",
+      "lawDeltaN_N": -4594.212082536842,
+      "integrationDeltaN_N": 19.82843284190494,
+      "lawDeltaMoment_kNm": 0.15223211357072905,
+      "integrationDeltaMoment_kNm": 0.0020050982891181173
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Elastic/ConstantEccentricity/-1",
+      "lawDeltaN_N": -1256.8631814029914,
+      "integrationDeltaN_N": -23.193201897981908,
+      "lawDeltaMoment_kNm": 0.20213501746673052,
+      "integrationDeltaMoment_kNm": 0.003104395486712521
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Elastic/ConstantEccentricity/1",
+      "lawDeltaN_N": -2822.2655277418767,
+      "integrationDeltaN_N": -3.2320942201522485,
+      "lawDeltaMoment_kNm": 0.23948913877272904,
+      "integrationDeltaMoment_kNm": 0.009994118930627597
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Elastic/ConstantNMx/-1",
+      "lawDeltaN_N": -841.6930808897973,
+      "integrationDeltaN_N": -78.86842431491914,
+      "lawDeltaMoment_kNm": 0.15441511752311646,
+      "integrationDeltaMoment_kNm": 0.009326007331483243
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Elastic/ConstantNMx/1",
+      "lawDeltaN_N": -1550.9708117762812,
+      "integrationDeltaN_N": 54.41277809636347,
+      "lawDeltaMoment_kNm": 0.16770028516321775,
+      "integrationDeltaMoment_kNm": 0.006003037380327368
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Elastic/ConstantNMy/-1",
+      "lawDeltaN_N": -570.7014534868762,
+      "integrationDeltaN_N": 3.8598756026431147,
+      "lawDeltaMoment_kNm": 0.12652939749285116,
+      "integrationDeltaMoment_kNm": 0.0011795004068701437
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Elastic/ConstantNMy/1",
+      "lawDeltaN_N": -2192.74563008949,
+      "integrationDeltaN_N": -2.3472380590447983,
+      "lawDeltaMoment_kNm": 0.3256310695530853,
+      "integrationDeltaMoment_kNm": 0.0011127464087076842
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Elastic/ConstantMxMy/-1",
+      "lawDeltaN_N": -5508.162405559233,
+      "integrationDeltaN_N": 4.547473508864641e-10,
+      "lawDeltaMoment_kNm": 0.01259927026151989,
+      "integrationDeltaMoment_kNm": 8.474544047399891e-14
+    },
+    {
+      "Id": "R3/ParabolaRectangle/Elastic/ConstantMxMy/1",
+      "lawDeltaN_N": -5515.632648348856,
+      "integrationDeltaN_N": 6.366462912410498e-09,
+      "lawDeltaMoment_kNm": 0.006053853152408101,
+      "integrationDeltaMoment_kNm": 1.2868476258827026e-13
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Plastic/ConstantN/0/0",
+      "lawDeltaN_N": -1419.48671755963,
+      "integrationDeltaN_N": 138.22800643043576,
+      "lawDeltaMoment_kNm": 0.28955098599570767,
+      "integrationDeltaMoment_kNm": 0.01994833174075768
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Plastic/ConstantN/0/30",
+      "lawDeltaN_N": -1334.8467592735542,
+      "integrationDeltaN_N": 115.43949365487794,
+      "lawDeltaMoment_kNm": 0.2792876297003595,
+      "integrationDeltaMoment_kNm": 0.018497853489858853
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Plastic/ConstantN/0/90",
+      "lawDeltaN_N": -1392.4316886719316,
+      "integrationDeltaN_N": -187.71433632750978,
+      "lawDeltaMoment_kNm": 0.2852332827658387,
+      "integrationDeltaMoment_kNm": 0.03954623471556167
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Plastic/ConstantN/0/210",
+      "lawDeltaN_N": -1332.0547682495087,
+      "integrationDeltaN_N": -128.3199945831439,
+      "lawDeltaMoment_kNm": 0.27866820837449574,
+      "integrationDeltaMoment_kNm": 0.03480928425657746
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Plastic/ConstantN/-300/0",
+      "lawDeltaN_N": -1770.8145720923198,
+      "integrationDeltaN_N": -375.5636067261321,
+      "lawDeltaMoment_kNm": 0.329613291219155,
+      "integrationDeltaMoment_kNm": 0.06928071816751671
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Plastic/ConstantN/-300/30",
+      "lawDeltaN_N": -1776.7318410806752,
+      "integrationDeltaN_N": 37.074055400694306,
+      "lawDeltaMoment_kNm": 0.33268164089772995,
+      "integrationDeltaMoment_kNm": 0.022322120477924277
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Plastic/ConstantN/-300/90",
+      "lawDeltaN_N": -1789.1061246107824,
+      "integrationDeltaN_N": 33.60081555297256,
+      "lawDeltaMoment_kNm": 0.3330122214852263,
+      "integrationDeltaMoment_kNm": 0.00766278750224938
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Plastic/ConstantN/-300/210",
+      "lawDeltaN_N": -1791.218017675817,
+      "integrationDeltaN_N": -92.39456126152845,
+      "lawDeltaMoment_kNm": 0.3351425558224101,
+      "integrationDeltaMoment_kNm": 0.027724686035978434
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Plastic/ConstantN/-2900/0",
+      "lawDeltaN_N": -5789.495619821992,
+      "integrationDeltaN_N": -53.21084167371737,
+      "lawDeltaMoment_kNm": 0.09372155838548765,
+      "integrationDeltaMoment_kNm": 0.014492106394288672
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Plastic/ConstantN/-2900/30",
+      "lawDeltaN_N": -5813.7588164531735,
+      "integrationDeltaN_N": -43.10607567822444,
+      "lawDeltaMoment_kNm": 0.09352407786873099,
+      "integrationDeltaMoment_kNm": 0.02071313982214218
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Plastic/ConstantN/-2900/90",
+      "lawDeltaN_N": -5789.872588166418,
+      "integrationDeltaN_N": -50.053605142693414,
+      "lawDeltaMoment_kNm": 0.09343575369611855,
+      "integrationDeltaMoment_kNm": 0.02000658046706775
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Plastic/ConstantN/-2900/210",
+      "lawDeltaN_N": -5831.807638022838,
+      "integrationDeltaN_N": -95.50421482254023,
+      "lawDeltaMoment_kNm": 0.09318418591303453,
+      "integrationDeltaMoment_kNm": 0.028981558785875328
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Plastic/ConstantEccentricity/-1",
+      "lawDeltaN_N": -6941.706023407278,
+      "integrationDeltaN_N": -118.45316064591316,
+      "lawDeltaMoment_kNm": 0.29568652975029563,
+      "integrationDeltaMoment_kNm": 0.03808259145327781
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Plastic/ConstantEccentricity/1",
+      "lawDeltaN_N": -6944.573179843701,
+      "integrationDeltaN_N": -84.90329204505542,
+      "lawDeltaMoment_kNm": 0.2967946025634875,
+      "integrationDeltaMoment_kNm": 0.044084673670491556
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Plastic/ConstantNMx/-1",
+      "lawDeltaN_N": -1736.0577768625376,
+      "integrationDeltaN_N": -225.2330522064767,
+      "lawDeltaMoment_kNm": 0.32184541313435305,
+      "integrationDeltaMoment_kNm": 0.043839758085103875
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Plastic/ConstantNMx/1",
+      "lawDeltaN_N": -1785.8064599607246,
+      "integrationDeltaN_N": -135.39676835983983,
+      "lawDeltaMoment_kNm": 0.3305127532679913,
+      "integrationDeltaMoment_kNm": 0.037764894431178773
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Plastic/ConstantNMy/-1",
+      "lawDeltaN_N": -1736.0450104745269,
+      "integrationDeltaN_N": 59.120225374101665,
+      "lawDeltaMoment_kNm": 0.3219698468829885,
+      "integrationDeltaMoment_kNm": 0.002684278230499945
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Plastic/ConstantNMy/1",
+      "lawDeltaN_N": -1731.3982484699864,
+      "integrationDeltaN_N": -77.7054294042614,
+      "lawDeltaMoment_kNm": 0.3214214969859419,
+      "integrationDeltaMoment_kNm": 0.03240133947135848
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Plastic/ConstantMxMy/-1",
+      "lawDeltaN_N": -7213.755499262334,
+      "integrationDeltaN_N": 0.004639124199457001,
+      "lawDeltaMoment_kNm": 0.7346427376151847,
+      "integrationDeltaMoment_kNm": 1.0803180419000248e-06
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Plastic/ConstantMxMy/1",
+      "lawDeltaN_N": -7213.937543881912,
+      "integrationDeltaN_N": -0.008765686288825236,
+      "lawDeltaMoment_kNm": 0.7345771511152196,
+      "integrationDeltaMoment_kNm": 4.3534027820974345e-07
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Elastic/ConstantN/0/0",
+      "lawDeltaN_N": -2884.3409764707903,
+      "integrationDeltaN_N": -31.007485038891947,
+      "lawDeltaMoment_kNm": 0.5795046972449927,
+      "integrationDeltaMoment_kNm": 0.0053815081480387324
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Elastic/ConstantN/0/30",
+      "lawDeltaN_N": -2821.3612271724846,
+      "integrationDeltaN_N": 3.557407120708067,
+      "lawDeltaMoment_kNm": 0.5658215801968847,
+      "integrationDeltaMoment_kNm": 0.0022244004644097087
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Elastic/ConstantN/0/90",
+      "lawDeltaN_N": -2890.250307159091,
+      "integrationDeltaN_N": 13.174706909107048,
+      "lawDeltaMoment_kNm": 0.5802559980338531,
+      "integrationDeltaMoment_kNm": 0.0020232472124005895
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Elastic/ConstantN/0/210",
+      "lawDeltaN_N": -2818.5716135079274,
+      "integrationDeltaN_N": 1.3882431949023832,
+      "lawDeltaMoment_kNm": 0.5652877262578027,
+      "integrationDeltaMoment_kNm": 0.002878051558969677
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Elastic/ConstantN/-300/0",
+      "lawDeltaN_N": -3786.8663367776776,
+      "integrationDeltaN_N": -55.69208452197927,
+      "lawDeltaMoment_kNm": 0.6870728185145646,
+      "integrationDeltaMoment_kNm": 0.0059806015629657585
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Elastic/ConstantN/-300/30",
+      "lawDeltaN_N": -3731.975020755158,
+      "integrationDeltaN_N": -5.621877144392329,
+      "lawDeltaMoment_kNm": 0.672412300929571,
+      "integrationDeltaMoment_kNm": 0.005298515545502518
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Elastic/ConstantN/-300/90",
+      "lawDeltaN_N": -3757.4372273949734,
+      "integrationDeltaN_N": -12.419481389144948,
+      "lawDeltaMoment_kNm": 0.6813230005579044,
+      "integrationDeltaMoment_kNm": 0.003221570850712388
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Elastic/ConstantN/-300/210",
+      "lawDeltaN_N": -3739.9943744671305,
+      "integrationDeltaN_N": 4.641132655024194,
+      "lawDeltaMoment_kNm": 0.6734076411486984,
+      "integrationDeltaMoment_kNm": 0.001315189648917706
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Elastic/ConstantN/-2900/0",
+      "lawDeltaN_N": -10499.31131625317,
+      "integrationDeltaN_N": -0.3352588769303111,
+      "lawDeltaMoment_kNm": 0.4345871983958252,
+      "integrationDeltaMoment_kNm": 0.0035860674569312243
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Elastic/ConstantN/-2900/30",
+      "lawDeltaN_N": -10513.972513998397,
+      "integrationDeltaN_N": -6.149518225811335,
+      "lawDeltaMoment_kNm": 0.4377925025218905,
+      "integrationDeltaMoment_kNm": 0.001119895710168394
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Elastic/ConstantN/-2900/90",
+      "lawDeltaN_N": -10491.344937419854,
+      "integrationDeltaN_N": 5.292842494327488,
+      "lawDeltaMoment_kNm": 0.430569294582015,
+      "integrationDeltaMoment_kNm": 0.0020101153930073188
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Elastic/ConstantN/-2900/210",
+      "lawDeltaN_N": -10528.92753371134,
+      "integrationDeltaN_N": 4.996193873921584,
+      "lawDeltaMoment_kNm": 0.4386975396020524,
+      "integrationDeltaMoment_kNm": 0.001946258763645045
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Elastic/ConstantEccentricity/-1",
+      "lawDeltaN_N": -11569.2560651637,
+      "integrationDeltaN_N": -2.8396149323270947,
+      "lawDeltaMoment_kNm": 0.22818048310515893,
+      "integrationDeltaMoment_kNm": 0.0007238680668355711
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Elastic/ConstantEccentricity/1",
+      "lawDeltaN_N": -11563.740963026248,
+      "integrationDeltaN_N": -15.493746968786581,
+      "lawDeltaMoment_kNm": 0.2283493517638735,
+      "integrationDeltaMoment_kNm": 0.003631824022598319
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Elastic/ConstantNMx/-1",
+      "lawDeltaN_N": -3736.0652142495496,
+      "integrationDeltaN_N": -4.596769817055701,
+      "lawDeltaMoment_kNm": 0.6762495710540993,
+      "integrationDeltaMoment_kNm": 0.0008639780819976204
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Elastic/ConstantNMx/1",
+      "lawDeltaN_N": -3737.8840398532134,
+      "integrationDeltaN_N": 7.4058123887539296,
+      "lawDeltaMoment_kNm": 0.6763679286314307,
+      "integrationDeltaMoment_kNm": 0.0032327951416793285
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Elastic/ConstantNMy/-1",
+      "lawDeltaN_N": -3759.785134604556,
+      "integrationDeltaN_N": -10.980849937595849,
+      "lawDeltaMoment_kNm": 0.681232299007358,
+      "integrationDeltaMoment_kNm": 0.003006291913033975
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Elastic/ConstantNMy/1",
+      "lawDeltaN_N": -3743.474364396434,
+      "integrationDeltaN_N": -41.08972120963017,
+      "lawDeltaMoment_kNm": 0.678095493554758,
+      "integrationDeltaMoment_kNm": 0.00551450031490709
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Elastic/ConstantMxMy/-1",
+      "lawDeltaN_N": -12631.20862406231,
+      "integrationDeltaN_N": 1.7289494280703366e-05,
+      "lawDeltaMoment_kNm": 0.0888899347190538,
+      "integrationDeltaMoment_kNm": 5.199075727052873e-09
+    },
+    {
+      "Id": "C1/ParabolaRectangle/Elastic/ConstantMxMy/1",
+      "lawDeltaN_N": -12634.63647349272,
+      "integrationDeltaN_N": 1.7257661966141313e-05,
+      "lawDeltaMoment_kNm": 0.08814429955342254,
+      "integrationDeltaMoment_kNm": 5.188394906501517e-09
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Plastic/ConstantN/0/0",
+      "lawDeltaN_N": -1710.1827654713998,
+      "integrationDeltaN_N": 150.82500006468047,
+      "lawDeltaMoment_kNm": 0.5465205017903558,
+      "integrationDeltaMoment_kNm": 0.2581830080830116
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Plastic/ConstantN/0/30",
+      "lawDeltaN_N": -1737.9648541074712,
+      "integrationDeltaN_N": -45.94789863680493,
+      "lawDeltaMoment_kNm": 0.5556145306087267,
+      "integrationDeltaMoment_kNm": 0.05291913751067449
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Plastic/ConstantN/0/90",
+      "lawDeltaN_N": -1733.9811920166248,
+      "integrationDeltaN_N": -452.8288598856891,
+      "lawDeltaMoment_kNm": 0.5541023701851362,
+      "integrationDeltaMoment_kNm": 0.15550233912827513
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Plastic/ConstantN/0/210",
+      "lawDeltaN_N": -1737.7731310479576,
+      "integrationDeltaN_N": -520.3688487829638,
+      "lawDeltaMoment_kNm": 0.5542376736489416,
+      "integrationDeltaMoment_kNm": 0.1763683033301999
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Plastic/ConstantN/-600/0",
+      "lawDeltaN_N": -2727.2347194838176,
+      "integrationDeltaN_N": 15.106973330034634,
+      "lawDeltaMoment_kNm": 0.7855875220743452,
+      "integrationDeltaMoment_kNm": 0.027899856678702397
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Plastic/ConstantN/-600/30",
+      "lawDeltaN_N": -2719.4024460186483,
+      "integrationDeltaN_N": -1052.5061761205734,
+      "lawDeltaMoment_kNm": 0.7851004825279047,
+      "integrationDeltaMoment_kNm": 0.302263704603881
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Plastic/ConstantN/-600/90",
+      "lawDeltaN_N": -2806.369957441916,
+      "integrationDeltaN_N": -1496.199771068973,
+      "lawDeltaMoment_kNm": 0.8078496903741045,
+      "integrationDeltaMoment_kNm": 0.4012517340493422
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Plastic/ConstantN/-600/210",
+      "lawDeltaN_N": -2843.4719575697045,
+      "integrationDeltaN_N": -460.68967096948654,
+      "lawDeltaMoment_kNm": 0.8175931097785027,
+      "integrationDeltaMoment_kNm": 0.1516192132283086
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Plastic/ConstantN/-6100/0",
+      "lawDeltaN_N": -13290.63470510755,
+      "integrationDeltaN_N": -60.08773167923209,
+      "lawDeltaMoment_kNm": 0.4818224770262422,
+      "integrationDeltaMoment_kNm": 0.06658196638188936
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Plastic/ConstantN/-6100/30",
+      "lawDeltaN_N": -13261.170637607393,
+      "integrationDeltaN_N": -297.82426285601105,
+      "lawDeltaMoment_kNm": 0.4753236494770697,
+      "integrationDeltaMoment_kNm": 0.09833995597626007
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Plastic/ConstantN/-6100/90",
+      "lawDeltaN_N": -13244.476359735927,
+      "integrationDeltaN_N": -183.11177215036878,
+      "lawDeltaMoment_kNm": 0.47328374187809735,
+      "integrationDeltaMoment_kNm": 0.07408609337684434
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Plastic/ConstantN/-6100/210",
+      "lawDeltaN_N": -13264.516067820296,
+      "integrationDeltaN_N": -276.6086849669591,
+      "lawDeltaMoment_kNm": 0.47572203400976715,
+      "integrationDeltaMoment_kNm": 0.08455823282644936
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Plastic/ConstantEccentricity/-1",
+      "lawDeltaN_N": -17416.73105301561,
+      "integrationDeltaN_N": -0.01952360435097944,
+      "lawDeltaMoment_kNm": 2.417060303184723,
+      "integrationDeltaMoment_kNm": 6.442974788120383e-05
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Plastic/ConstantEccentricity/1",
+      "lawDeltaN_N": -17396.408715601865,
+      "integrationDeltaN_N": -0.019493345462251455,
+      "lawDeltaMoment_kNm": 2.411136274209536,
+      "integrationDeltaMoment_kNm": 6.433129418728273e-05
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Plastic/ConstantNMx/-1",
+      "lawDeltaN_N": -2735.247407513384,
+      "integrationDeltaN_N": -946.9082585510478,
+      "lawDeltaMoment_kNm": 0.7898269013325029,
+      "integrationDeltaMoment_kNm": 0.27496856275267006
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Plastic/ConstantNMx/1",
+      "lawDeltaN_N": -2836.0942667269455,
+      "integrationDeltaN_N": -1380.370966848659,
+      "lawDeltaMoment_kNm": 0.8162515533527178,
+      "integrationDeltaMoment_kNm": 0.3717224231531973
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Plastic/ConstantNMy/-1",
+      "lawDeltaN_N": -2716.9365824393026,
+      "integrationDeltaN_N": 1007.0652735154226,
+      "lawDeltaMoment_kNm": 0.7832564086253023,
+      "integrationDeltaMoment_kNm": 0.2260309598518426
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Plastic/ConstantNMy/1",
+      "lawDeltaN_N": -2794.623510039628,
+      "integrationDeltaN_N": -851.722454203582,
+      "lawDeltaMoment_kNm": 0.8026912116423496,
+      "integrationDeltaMoment_kNm": 0.2351925965527489
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Plastic/ConstantMxMy/-1",
+      "lawDeltaN_N": -16837.64332316241,
+      "integrationDeltaN_N": -0.0008487768354825675,
+      "lawDeltaMoment_kNm": 2.2661917012961035,
+      "integrationDeltaMoment_kNm": 2.488488778997852e-06
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Plastic/ConstantMxMy/1",
+      "lawDeltaN_N": -16835.984493814976,
+      "integrationDeltaN_N": -0.0008495389920426533,
+      "lawDeltaMoment_kNm": 2.2657569053005076,
+      "integrationDeltaMoment_kNm": 2.4885515050137244e-06
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Elastic/ConstantN/0/0",
+      "lawDeltaN_N": -4515.656997782702,
+      "integrationDeltaN_N": 13.271761200507548,
+      "lawDeltaMoment_kNm": 1.3480915989228606,
+      "integrationDeltaMoment_kNm": 0.00830355035831043
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Elastic/ConstantN/0/30",
+      "lawDeltaN_N": -4516.537799280137,
+      "integrationDeltaN_N": -31.523844967945358,
+      "lawDeltaMoment_kNm": 1.3485925432906378,
+      "integrationDeltaMoment_kNm": 0.007009766344943114
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Elastic/ConstantN/0/90",
+      "lawDeltaN_N": -4514.062071363209,
+      "integrationDeltaN_N": -55.293915970541896,
+      "lawDeltaMoment_kNm": 1.348119016356208,
+      "integrationDeltaMoment_kNm": 0.012316876965905069
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Elastic/ConstantN/0/210",
+      "lawDeltaN_N": -4513.966754265712,
+      "integrationDeltaN_N": -32.64467331394538,
+      "lawDeltaMoment_kNm": 1.3477771664605198,
+      "integrationDeltaMoment_kNm": 0.007475786875799672
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Elastic/ConstantN/-600/0",
+      "lawDeltaN_N": -7270.744622295297,
+      "integrationDeltaN_N": 163.15558530186536,
+      "lawDeltaMoment_kNm": 1.909110327197941,
+      "integrationDeltaMoment_kNm": 0.05532327821714002
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Elastic/ConstantN/-600/30",
+      "lawDeltaN_N": -7261.430470627261,
+      "integrationDeltaN_N": -56.9328614906226,
+      "lawDeltaMoment_kNm": 1.9083443125722541,
+      "integrationDeltaMoment_kNm": 0.009408557128158149
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Elastic/ConstantN/-600/90",
+      "lawDeltaN_N": -7245.804618850457,
+      "integrationDeltaN_N": -15.539148639732048,
+      "lawDeltaMoment_kNm": 1.903943645108323,
+      "integrationDeltaMoment_kNm": 0.007459168442439541
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Elastic/ConstantN/-600/210",
+      "lawDeltaN_N": -7249.825238319886,
+      "integrationDeltaN_N": 16.903992221955377,
+      "lawDeltaMoment_kNm": 1.9044644400860695,
+      "integrationDeltaMoment_kNm": 0.005576906337013368
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Elastic/ConstantN/-6100/0",
+      "lawDeltaN_N": -24185.42436919961,
+      "integrationDeltaN_N": -11.418661751122272,
+      "lawDeltaMoment_kNm": 1.584298861343798,
+      "integrationDeltaMoment_kNm": 0.012044455672790267
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Elastic/ConstantN/-6100/30",
+      "lawDeltaN_N": -24152.303712119647,
+      "integrationDeltaN_N": -121.88740351666638,
+      "lawDeltaMoment_kNm": 1.5866423291823462,
+      "integrationDeltaMoment_kNm": 0.026688046090120203
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Elastic/ConstantN/-6100/90",
+      "lawDeltaN_N": -24142.815072032136,
+      "integrationDeltaN_N": -121.93365376879228,
+      "lawDeltaMoment_kNm": 1.5834190201224445,
+      "integrationDeltaMoment_kNm": 0.026697468495746297
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Elastic/ConstantN/-6100/210",
+      "lawDeltaN_N": -24169.992262816777,
+      "integrationDeltaN_N": 5.323504382431565,
+      "lawDeltaMoment_kNm": 1.5873729554744402,
+      "integrationDeltaMoment_kNm": 0.013454274117516339
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Elastic/ConstantEccentricity/-1",
+      "lawDeltaN_N": -29483.85083890571,
+      "integrationDeltaN_N": 5.8545992942526937e-05,
+      "lawDeltaMoment_kNm": 0.10838181594534695,
+      "integrationDeltaMoment_kNm": 2.345808033582402e-08
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Elastic/ConstantEccentricity/1",
+      "lawDeltaN_N": -29484.577278371944,
+      "integrationDeltaN_N": 0.00034091681300196797,
+      "lawDeltaMoment_kNm": 0.11093352573081708,
+      "integrationDeltaMoment_kNm": 1.368327642394668e-07
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Elastic/ConstantNMx/-1",
+      "lawDeltaN_N": -7257.869373126709,
+      "integrationDeltaN_N": -47.018100888521985,
+      "lawDeltaMoment_kNm": 1.905515035478579,
+      "integrationDeltaMoment_kNm": 0.00804417729659144
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Elastic/ConstantNMx/1",
+      "lawDeltaN_N": -7243.645145569417,
+      "integrationDeltaN_N": 10.819793355608454,
+      "lawDeltaMoment_kNm": 1.9013844760368446,
+      "integrationDeltaMoment_kNm": 0.0043140075379205205
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Elastic/ConstantNMy/-1",
+      "lawDeltaN_N": -7284.737136156878,
+      "integrationDeltaN_N": 68.5192986019274,
+      "lawDeltaMoment_kNm": 1.9117150423139602,
+      "integrationDeltaMoment_kNm": 0.0136885306856854
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Elastic/ConstantNMy/1",
+      "lawDeltaN_N": -7284.503821096678,
+      "integrationDeltaN_N": 169.53411742861135,
+      "lawDeltaMoment_kNm": 1.9114600340491177,
+      "integrationDeltaMoment_kNm": 0.042136724838818154
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Elastic/ConstantMxMy/-1",
+      "lawDeltaN_N": -29637.371914484902,
+      "integrationDeltaN_N": 4.3655745685100555e-08,
+      "lawDeltaMoment_kNm": 1.304799357724945,
+      "integrationDeltaMoment_kNm": 1.0515852451542177e-12
+    },
+    {
+      "Id": "C2/ParabolaRectangle/Elastic/ConstantMxMy/1",
+      "lawDeltaN_N": -29636.641689310636,
+      "integrationDeltaN_N": 7.639755494892597e-08,
+      "lawDeltaMoment_kNm": 1.3048964340972877,
+      "integrationDeltaMoment_kNm": 1.4491762531750994e-12
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Plastic/ConstantN/0/0",
+      "lawDeltaN_N": -729.9126559022698,
+      "integrationDeltaN_N": -280.3848145315424,
+      "lawDeltaMoment_kNm": 0.05606252507361634,
+      "integrationDeltaMoment_kNm": 0.2053885618596994
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Plastic/ConstantN/0/30",
+      "lawDeltaN_N": -745.0452453878243,
+      "integrationDeltaN_N": -876.08405246638,
+      "lawDeltaMoment_kNm": 0.061727638506305825,
+      "integrationDeltaMoment_kNm": 0.08583361046623093
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Plastic/ConstantN/0/90",
+      "lawDeltaN_N": -519.1315372496609,
+      "integrationDeltaN_N": -606.9638206959354,
+      "lawDeltaMoment_kNm": 0.20683582044523538,
+      "integrationDeltaMoment_kNm": 0.3093717918035762
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Plastic/ConstantN/0/210",
+      "lawDeltaN_N": -745.0452453878243,
+      "integrationDeltaN_N": -876.0840524662052,
+      "lawDeltaMoment_kNm": 0.06172763850632818,
+      "integrationDeltaMoment_kNm": 0.08583361046625126
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Plastic/ConstantN/221.277/0",
+      "lawDeltaN_N": -238.1649997049351,
+      "integrationDeltaN_N": -590.158977285455,
+      "lawDeltaMoment_kNm": 0.020835509853380684,
+      "integrationDeltaMoment_kNm": 0.11888946546137227
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Plastic/ConstantN/221.277/30",
+      "lawDeltaN_N": -545.9298091710989,
+      "integrationDeltaN_N": 1221.2821509534137,
+      "lawDeltaMoment_kNm": 0.04709300140335033,
+      "integrationDeltaMoment_kNm": 0.2521252363601806
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Plastic/ConstantN/221.277/90",
+      "lawDeltaN_N": -301.10112695518865,
+      "integrationDeltaN_N": -1012.9860358664189,
+      "lawDeltaMoment_kNm": 0.13463834811860972,
+      "integrationDeltaMoment_kNm": 0.4767896819056509
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Plastic/ConstantN/221.277/210",
+      "lawDeltaN_N": -545.9298090124505,
+      "integrationDeltaN_N": 1221.2821513228391,
+      "lawDeltaMoment_kNm": 0.04709300139060832,
+      "integrationDeltaMoment_kNm": 0.25212523645757645
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Plastic/ConstantN/-1000/0",
+      "lawDeltaN_N": -1793.2792059662006,
+      "integrationDeltaN_N": -4703.885803039043,
+      "lawDeltaMoment_kNm": 0.06410105788538781,
+      "integrationDeltaMoment_kNm": 0.35863072814485725
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Plastic/ConstantN/-1000/30",
+      "lawDeltaN_N": -2408.897922470601,
+      "integrationDeltaN_N": -223.93706587433826,
+      "lawDeltaMoment_kNm": 0.09185476293052215,
+      "integrationDeltaMoment_kNm": 0.12112290722687188
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Plastic/ConstantN/-1000/90",
+      "lawDeltaN_N": -1943.7680442225655,
+      "integrationDeltaN_N": -657.2641320803996,
+      "lawDeltaMoment_kNm": 0.33541439339517326,
+      "integrationDeltaMoment_kNm": 0.3238635293046622
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Plastic/ConstantN/-1000/210",
+      "lawDeltaN_N": -2408.89792247026,
+      "integrationDeltaN_N": -223.93706587502038,
+      "lawDeltaMoment_kNm": 0.0918547629305971,
+      "integrationDeltaMoment_kNm": 0.12112290722699946
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Plastic/ConstantEccentricity/-1",
+      "lawDeltaN_N": -544.5637285380656,
+      "integrationDeltaN_N": 40.4910251015167,
+      "lawDeltaMoment_kNm": 0.05207781351629846,
+      "integrationDeltaMoment_kNm": 0.08805398977276399
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Plastic/ConstantEccentricity/1",
+      "lawDeltaN_N": -544.5637285381224,
+      "integrationDeltaN_N": 40.49102510202829,
+      "lawDeltaMoment_kNm": 0.052077813516297436,
+      "integrationDeltaMoment_kNm": 0.08805398977255013
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Plastic/ConstantNMx/-1",
+      "lawDeltaN_N": -574.1716452000674,
+      "integrationDeltaN_N": -647.2775926108625,
+      "lawDeltaMoment_kNm": 0.050566642770069024,
+      "integrationDeltaMoment_kNm": 0.22700025881849492
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Plastic/ConstantNMx/1",
+      "lawDeltaN_N": -574.1716452002379,
+      "integrationDeltaN_N": -647.2775926103793,
+      "lawDeltaMoment_kNm": 0.05056664277007198,
+      "integrationDeltaMoment_kNm": 0.22700025881835098
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Plastic/ConstantNMy/-1",
+      "lawDeltaN_N": -549.0400600344856,
+      "integrationDeltaN_N": 113.23417162969918,
+      "lawDeltaMoment_kNm": 0.05356907730771158,
+      "integrationDeltaMoment_kNm": 0.04794095305098919
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Plastic/ConstantNMy/1",
+      "lawDeltaN_N": -549.0400600344287,
+      "integrationDeltaN_N": 113.23417162904548,
+      "lawDeltaMoment_kNm": 0.0535690773076806,
+      "integrationDeltaMoment_kNm": 0.047940953051206395
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Plastic/ConstantMxMy/-1",
+      "lawDeltaN_N": -545.3833105537456,
+      "integrationDeltaN_N": 15.558618639630595,
+      "lawDeltaMoment_kNm": 0.05138379212689061,
+      "integrationDeltaMoment_kNm": 0.12930699046997526
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Plastic/ConstantMxMy/1",
+      "lawDeltaN_N": -545.3833105537171,
+      "integrationDeltaN_N": 15.558618640284294,
+      "lawDeltaMoment_kNm": 0.0513837921269032,
+      "integrationDeltaMoment_kNm": 0.12930699047001756
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Elastic/ConstantN/0/0",
+      "lawDeltaN_N": -1749.3103147588263,
+      "integrationDeltaN_N": 1031.1468227346197,
+      "lawDeltaMoment_kNm": 0.13529034386294816,
+      "integrationDeltaMoment_kNm": 0.059831257541061125
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Elastic/ConstantN/0/30",
+      "lawDeltaN_N": -1634.9585036284989,
+      "integrationDeltaN_N": 77.28685635162402,
+      "lawDeltaMoment_kNm": 0.13367864197061127,
+      "integrationDeltaMoment_kNm": 0.008713933792949562
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Elastic/ConstantN/0/90",
+      "lawDeltaN_N": -1662.2288562237811,
+      "integrationDeltaN_N": 17.784622180304854,
+      "lawDeltaMoment_kNm": 0.6488331138842509,
+      "integrationDeltaMoment_kNm": 0.004970287035231392
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Elastic/ConstantN/0/210",
+      "lawDeltaN_N": -1634.9585036284116,
+      "integrationDeltaN_N": 77.28685635159471,
+      "lawDeltaMoment_kNm": 0.13367864197062915,
+      "integrationDeltaMoment_kNm": 0.008713933792917251
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Elastic/ConstantN/221.277/0",
+      "lawDeltaN_N": -683.7279683004738,
+      "integrationDeltaN_N": 14.140571899247334,
+      "lawDeltaMoment_kNm": 0.06297999441843072,
+      "integrationDeltaMoment_kNm": 0.00251484465553468
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Elastic/ConstantN/221.277/30",
+      "lawDeltaN_N": -543.4486036137969,
+      "integrationDeltaN_N": 26.741893194241584,
+      "lawDeltaMoment_kNm": 0.07374165747279707,
+      "integrationDeltaMoment_kNm": 0.0025076067931134784
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Elastic/ConstantN/221.277/90",
+      "lawDeltaN_N": -424.94325551194834,
+      "integrationDeltaN_N": 1.1061994552505894,
+      "lawDeltaMoment_kNm": 0.20340510214551297,
+      "integrationDeltaMoment_kNm": 0.0028582479847262324
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Elastic/ConstantN/221.277/210",
+      "lawDeltaN_N": -543.4486036137116,
+      "integrationDeltaN_N": 26.74189319418474,
+      "lawDeltaMoment_kNm": 0.07374165747280718,
+      "integrationDeltaMoment_kNm": 0.002507606793120345
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Elastic/ConstantN/-1000/0",
+      "lawDeltaN_N": -3532.430733962201,
+      "integrationDeltaN_N": 731.509284029471,
+      "lawDeltaMoment_kNm": 0.16891903813359369,
+      "integrationDeltaMoment_kNm": 0.12761180693001556
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Elastic/ConstantN/-1000/30",
+      "lawDeltaN_N": -4054.9915946802457,
+      "integrationDeltaN_N": -163.97320316366404,
+      "lawDeltaMoment_kNm": 0.19875660839483122,
+      "integrationDeltaMoment_kNm": 0.1718710282161954
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Elastic/ConstantN/-1000/90",
+      "lawDeltaN_N": -3832.450939105229,
+      "integrationDeltaN_N": 7.044758378469851,
+      "lawDeltaMoment_kNm": 0.9137011882370105,
+      "integrationDeltaMoment_kNm": 0.002580698769102758
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Elastic/ConstantN/-1000/210",
+      "lawDeltaN_N": -4054.9915946807005,
+      "integrationDeltaN_N": -163.9732031630956,
+      "lawDeltaMoment_kNm": 0.19875660839483633,
+      "integrationDeltaMoment_kNm": 0.17187102821603653
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Elastic/ConstantEccentricity/-1",
+      "lawDeltaN_N": -897.2593883244713,
+      "integrationDeltaN_N": 87.32122699063893,
+      "lawDeltaMoment_kNm": 0.1006079339983612,
+      "integrationDeltaMoment_kNm": 0.03714599369896746
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Elastic/ConstantEccentricity/1",
+      "lawDeltaN_N": -897.2593883246418,
+      "integrationDeltaN_N": 87.32122699089473,
+      "lawDeltaMoment_kNm": 0.10060793399835478,
+      "integrationDeltaMoment_kNm": 0.03714599369886531
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Elastic/ConstantNMy/-1",
+      "lawDeltaN_N": -284.8976529283789,
+      "integrationDeltaN_N": -9.385535211691831,
+      "lawDeltaMoment_kNm": 0.09695418935955981,
+      "integrationDeltaMoment_kNm": 0.012636930211536371
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Elastic/ConstantNMy/1",
+      "lawDeltaN_N": -284.89765292823677,
+      "integrationDeltaN_N": -9.385535212118157,
+      "lawDeltaMoment_kNm": 0.09695418935953332,
+      "integrationDeltaMoment_kNm": 0.012636930211572443
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Elastic/ConstantMxMy/-1",
+      "lawDeltaN_N": -1209.785374193018,
+      "integrationDeltaN_N": -10.05019571516641,
+      "lawDeltaMoment_kNm": 0.11773528270191594,
+      "integrationDeltaMoment_kNm": 0.026792999821867197
+    },
+    {
+      "Id": "S1/ParabolaRectangle/Elastic/ConstantMxMy/1",
+      "lawDeltaN_N": -1209.7853741928902,
+      "integrationDeltaN_N": -10.050195715393784,
+      "lawDeltaMoment_kNm": 0.1177352827018853,
+      "integrationDeltaMoment_kNm": 0.02679299982189422
+    }
+  ],
+  "unchangedCases": 720,
+  "unchangedDifferences": [],
+  "meshSensitivity": {
+    "before": {
+      "families": 48,
+      "p95RangePercent": 0.03935318550119214,
+      "maximum": {
+        "Id": "Mesh/S1/ParabolaRectangle/Plastic/ConstantEccentricity/0",
+        "rangePercent": 0.2803622942679744
+      }
+    },
+    "gauss": {
+      "families": 48,
+      "p95RangePercent": 0.04272552256684597,
+      "maximum": {
+        "Id": "Mesh/S1/ParabolaRectangle/Plastic/ConstantEccentricity/0",
+        "rangePercent": 0.26741818958795677
+      }
+    },
+    "after": {
+      "families": 48,
+      "p95RangePercent": 3.182922811042685e-11,
+      "maximum": {
+        "Id": "Mesh/R3/ParabolaRectangle/Plastic/ConstantN/0",
+        "rangePercent": 8.381949550488327e-11
+      }
+    }
+  },
+  "tests": {
+    "suites": "all",
+    "created": "2026-10-23T16:41:40",
+    "results": [
+      {
+        "name": "GPCChecker.Test.Concrete",
+        "passed": 860,
+        "failed": 10,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [
+          "NonLinearAnalysisIsInEquilibrium (-1500,60,-30)",
+          "CurvatureContractOf0017IsUnchanged",
+          "LegacyStressStatesAreReproduced",
+          "StressAnalysisFollowsTheIndependentFibreModel",
+          "NonLinearAnalysisIsInEquilibrium (-800,150,0)",
+          "LargeSectionPointBeyondTheStoppingTestIsAccepted",
+          "NonLinearAxialCompressionFollowsTheParabola",
+          "ModelCheckerContractOf0017IsUnchanged",
+          "LegacyMomentCurvatureIsReproduced",
+          "DomainPointContractOf0017IsUnchanged"
+        ],
+        "knownNowPassing": []
+      },
+      {
+        "name": "GPCChecker.Test.Steel",
+        "passed": 122,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "GPCChecker.Test.CompositeBridge",
+        "passed": 382,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "GPCChecker.Test.Geotechnics",
+        "passed": 193,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "GPCChecker.Test.Calculation",
+        "passed": 173,
+        "failed": 1,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [
+          "LegacyStressStatesAreReproduced"
+        ],
+        "knownNowPassing": []
+      },
+      {
+        "name": "ShallowFoundation.Tests",
+        "passed": 28,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "EmbeddedWalls.Tests",
+        "passed": 99,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "Steel.Members.Tests",
+        "passed": 3202,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "Design.Checks",
+        "passed": 103,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "ModelChecker.Tests",
+        "passed": 443,
+        "failed": 1,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [
+          "RealDetailsMatchNativeResistanceAndKeepThePreparedForceFrame"
+        ],
+        "knownNowPassing": []
+      }
+    ],
+    "apiCompatible": true,
+    "unexpected": [
+      "GPCChecker.Test.Concrete: NonLinearAnalysisIsInEquilibrium (-1500,60,-30)",
+      "GPCChecker.Test.Concrete: CurvatureContractOf0017IsUnchanged",
+      "GPCChecker.Test.Concrete: LegacyStressStatesAreReproduced",
+      "GPCChecker.Test.Concrete: StressAnalysisFollowsTheIndependentFibreModel",
+      "GPCChecker.Test.Concrete: NonLinearAnalysisIsInEquilibrium (-800,150,0)",
+      "GPCChecker.Test.Concrete: LargeSectionPointBeyondTheStoppingTestIsAccepted",
+      "GPCChecker.Test.Concrete: NonLinearAxialCompressionFollowsTheParabola",
+      "GPCChecker.Test.Concrete: ModelCheckerContractOf0017IsUnchanged",
+      "GPCChecker.Test.Concrete: LegacyMomentCurvatureIsReproduced",
+      "GPCChecker.Test.Concrete: DomainPointContractOf0017IsUnchanged",
+      "GPCChecker.Test.Calculation: LegacyStressStatesAreReproduced",
+      "ModelChecker.Tests: RealDetailsMatchNativeResistanceAndKeepThePreparedForceFrame"
+    ]
+  },
+  "analyticTests": [
+    {
+      "name": "MainCriteriaReturnActualPlanesIncludingSmallEccentricities",
+      "outcome": "Passed",
+      "duration": "00:00:00.2293889",
+      "output": ""
+    },
+    {
+      "name": "CustomTablesHighStrengthAndTensionOptionsRetainTheirOriginalLaw",
+      "outcome": "Passed",
+      "duration": "00:00:00.0026835",
+      "output": ""
+    },
+    {
+      "name": "SinglyReinforcedRectangleMatchesAnalyticParabolaResistance",
+      "outcome": "Passed",
+      "duration": "00:00:00.0031697",
+      "output": ""
+    },
+    {
+      "name": "BarSubtractionAndReportedStressesUseTheSameAnalyticLaw",
+      "outcome": "Passed",
+      "duration": "00:00:00.0065435",
+      "output": ""
+    },
+    {
+      "name": "UniformPlaneAndConcurrentEvaluationRespectMaterialEndpoints",
+      "outcome": "Passed",
+      "duration": "00:00:00.0013762",
+      "output": ""
+    },
+    {
+      "name": "NearCompressionPoleStillReturnsAnAcceptedActualPlane",
+      "outcome": "Passed",
+      "duration": "00:00:00.0047767",
+      "output": "0.99: target=-2428282.81282527,5061.82374499166,911.035070084014; result=-2428282.81197641,5061.93825909093,911.166156783145; residuals=N=0.000848859548568726;SearchAngle=2.11400153516573E-05\r\n0.9999: target=-2428312.11701101,0.506182382860261,0.0911035105394837; result=-2428312.11702497,0.503766870663755,0.0906816418144522; residuals=N=-1.39633193612099E-05;SearchAngle=2.47631274379519E-05\r\n0.999999: target=-2428312.11994142,5.06258994028022E-05,9.11439551465461E-06; result=-2428312.11994142,5.06174581766014E-05,9.1128894767178E-06; residuals=N=0;SearchAngle=2.6162147773711E-07"
+    },
+    {
+      "name": "ObliqueParabolaHasIndependentTriangleResultantAndCentroid",
+      "outcome": "Passed",
+      "duration": "00:00:00.0006061",
+      "output": ""
+    },
+    {
+      "name": "NonlinearStressPlanesSatisfyIndependentAnalyticFibreEquilibrium",
+      "outcome": "Passed",
+      "duration": "00:00:00.0327406",
+      "output": "(-800, 150, 0): independent residuals [N,Nmm,Nmm] 1.12303553777747,-229.875326782465,0.108618102967739\r\n(-1500, 60, -30): independent residuals [N,Nmm,Nmm] 8.6625245413743,-1425.42527517676,683.067254520953\r\n(0, 100, 0): independent residuals [N,Nmm,Nmm] -6.8176256073566,446.584731027484,-0.488064238103107"
+    },
+    {
+      "name": "RectangleMatchesIndependentOneDimensionalAntiderivatives",
+      "outcome": "Passed",
+      "duration": "00:00:00.0032515",
+      "output": ""
+    }
+  ],
+  "newFailures": [
+    "GPCChecker.Test.Calculation: LegacyStressStatesAreReproduced",
+    "GPCChecker.Test.Concrete: LegacyStressStatesAreReproduced",
+    "GPCChecker.Test.Concrete: ModelCheckerContractOf0017IsUnchanged",
+    "GPCChecker.Test.Concrete: NonLinearAnalysisIsInEquilibrium (-1500,60,-30)",
+    "GPCChecker.Test.Concrete: NonLinearAnalysisIsInEquilibrium (-800,150,0)",
+    "GPCChecker.Test.Concrete: NonLinearAxialCompressionFollowsTheParabola",
+    "GPCChecker.Test.Concrete: StressAnalysisFollowsTheIndependentFibreModel"
+  ],
+  "resolvedFailures": [],
+  "failureDetails": [
+    {
+      "suite": "GPCChecker.Test.Calculation",
+      "name": "LegacyStressStatesAreReproduced",
+      "message": "Assert.AreEqual non riuscita. Prevista una differenza non maggiore di <6.581745323425157E-09> tra il valore previsto <-6.581745323425157> e il valore effettivo <-6.580233982187994>. state 0 R300x500 NTC 2018 SLE sigmaC"
+    },
+    {
+      "suite": "GPCChecker.Test.Concrete",
+      "name": "NonLinearAnalysisIsInEquilibrium (-1500,60,-30)",
+      "message": "Assert.AreEqual non riuscita. Prevista una differenza non maggiore di <3750> tra il valore previsto <-1500000> e il valore effettivo <-1493524.85844484>. N"
+    },
+    {
+      "suite": "GPCChecker.Test.Concrete",
+      "name": "CurvatureContractOf0017IsUnchanged",
+      "message": "Assert.Fail non riuscita. Contract 0.0.17.0 (curvature-contract-0.0.17.csv) changed at line 4\nexpected: R\tfixture 0 R300x500 NTC 2018\tinvariant\tok\t192010838.46330708\t7.3256903915689821E-06\t3.4238094979959878E-05\t-200040.82314112864\t-40.823141128639691\tnull\t42\tIncreasing-moment branch at constant N; material laws and factors of the section and standard. First yield refined with 12 bisections, My = 1.806894E+08 Nmm. N at the limit point = -200040.823 N; residual = -40.8231 N. No post-peak branch.\nactual:   R\tfixture 0 R300x500 NTC 2018\tinvariant\tok\t192035098.98581374\t7.3157631182251157E-06\t3.4316247376336519E-05\t-199994.50622065068\t5.4937793493154459\tnull\t42\tIncreasing-moment branch at constant N; material laws and factors of the section and standard. First yield refined with 12 bisections, My = 1.806897E+08 Nmm. N at the limit point = -199994.506 N; residual = 5.49378 N. No post-peak branch.\nGenerated text: C:\\Users\\g.pacini\\AppData\\Local\\Temp\\curvature-contract-0.0.17.csv.actual"
+    },
+    {
+      "suite": "GPCChecker.Test.Concrete",
+      "name": "LegacyStressStatesAreReproduced",
+      "message": "Assert.AreEqual non riuscita. Prevista una differenza non maggiore di <6.58174532342516E-09> tra il valore previsto <-6.58174532342516> e il valore effettivo <-6.58023398218799>. state 0 R300x500 NTC 2018 SLE sigmaC"
+    },
+    {
+      "suite": "GPCChecker.Test.Concrete",
+      "name": "StressAnalysisFollowsTheIndependentFibreModel",
+      "message": "Assert.AreEqual non riuscita. Prevista una differenza non maggiore di <8.890068E-10> tra il valore previsto <2.963356E-07> e il valore effettivo <2.8889063267935E-07>. N = 0 kN, M = 20 kNm: χ"
+    },
+    {
+      "suite": "GPCChecker.Test.Concrete",
+      "name": "NonLinearAnalysisIsInEquilibrium (-800,150,0)",
+      "message": "Assert.AreEqual non riuscita. Prevista una differenza non maggiore di <3750> tra il valore previsto <-800000> e il valore effettivo <-795913.650643677>. N"
+    },
+    {
+      "suite": "GPCChecker.Test.Concrete",
+      "name": "LargeSectionPointBeyondTheStoppingTestIsAccepted",
+      "message": "Assert.IsTrue non riuscita. S1 x1: guard, |ΔN| = 0.405376937793335 N within the tolerance of the test 125 N"
+    },
+    {
+      "suite": "GPCChecker.Test.Concrete",
+      "name": "NonLinearAxialCompressionFollowsTheParabola",
+      "message": "Assert.AreEqual non riuscita. Prevista una differenza non maggiore di <4.17035998990704E-06> tra il valore previsto <-0.000833871997981407> e il valore effettivo <-0.000828640832541548>. strain at 0; 0"
+    },
+    {
+      "suite": "GPCChecker.Test.Concrete",
+      "name": "ModelCheckerContractOf0017IsUnchanged",
+      "message": "Assert.Fail non riuscita. Contract 0.0.17.0 changed at line 47626 (\"id\": \"stress-legacy 0 SLE\", \"input\": \"R300x500 | NTC 2018 | linear False | psi 0 | tension False | factor 1 | SLE\",)\nexpected:       \"concreteMinStress\": -6.5817453234251566,\nactual:         \"concreteMinStress\": -6.5802339821879938,\nGenerated text: C:\\Users\\g.pacini\\AppData\\Local\\Temp\\model-checker-contract.actual.json"
+    },
+    {
+      "suite": "GPCChecker.Test.Concrete",
+      "name": "LegacyMomentCurvatureIsReproduced",
+      "message": "Assert.AreEqual non riuscita. Prevista una differenza non maggiore di <19.2010838466613> tra il valore previsto <192010838.466613> e il valore effettivo <192035098.985814>. curve 0 R300x500 NTC 2018 limit moment"
+    },
+    {
+      "suite": "GPCChecker.Test.Concrete",
+      "name": "DomainPointContractOf0017IsUnchanged",
+      "message": "Assert.Fail non riuscita. Domain point contract 0.0.17.0 changed at line 6\nexpected:     {\"section\": \"R1\", \"diagram\": \"ParabolaRectangle\", \"state\": \"Plastic\", \"N\": 250000, \"direction\": \"Mx+\", \"path\": \"iterative\", \"logLines\": 0, \"NRd\": 249962.63250335795, \"MxRd\": 102737799.85946482, \"MyRd\": 19.294438104365327, \"failureIndex\": \"F3A\", \"immersione\": 0.060464556393250532, \"planeId\": 19, \"chiX\": 1.5911325446041874E-11, \"chiY\": -8.9409747518737445E-05, \"strain\": -0.0035, \"deltaN\": 37.367496642051265, \"tolerance\": 1000, \"accepted\": true, \"acceptedKn\": true},\nactual:       {\"section\": \"R1\", \"diagram\": \"ParabolaRectangle\", \"state\": \"Plastic\", \"N\": 250000, \"direction\": \"Mx+\", \"path\": \"iterative\", \"logLines\": 0, \"NRd\": 250000.75182525182, \"MxRd\": 102750159.76660781, \"MyRd\": 8.1445250543765724E-09, \"failureIndex\": \"F3A\", \"immersione\": 0.060250588464276333, \"planeId\": 5, \"chiX\": 8.2866837880442613E-21, \"chiY\": -8.9543071055635313E-05, \"strain\": -0.0035, \"deltaN\": 0.75182525182026438, \"tolerance\": 1000, \"accepted\": true, \"acceptedKn\": true},\nGenerated text: C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\domain-iteration\\GPCChecker.Test.Concrete\\bin\\Release\\domain-point-contract.actual.json"
+    },
+    {
+      "suite": "ModelChecker.Tests",
+      "name": "RealDetailsMatchNativeResistanceAndKeepThePreparedForceFrame",
+      "message": "Assert.IsFalse non riuscita. "
+    }
+  ],
+  "crossSession": {
+    "note": "Earlier campaign: exact-final candidate; final campaign: exact-complete candidate, with explicit Standard honored in stress summaries. Resistance search and integration code unchanged. Final campaign uses identical dependency DLLs for all variants.",
+    "numericalComparisons": {
+      "before": {
+        "cases": 240,
+        "numericalDifferences": []
+      },
+      "after": {
+        "cases": 240,
+        "numericalDifferences": []
+      },
+      "focus-before": {
+        "cases": 1896,
+        "numericalDifferences": []
+      },
+      "focus-after": {
+        "cases": 1896,
+        "numericalDifferences": []
+      },
+      "mesh-before": {
+        "cases": 144,
+        "numericalDifferences": []
+      },
+      "mesh-after": {
+        "cases": 144,
+        "numericalDifferences": []
+      },
+      "unchanged-before": {
+        "cases": 720,
+        "numericalDifferences": []
+      },
+      "unchanged-after": {
+        "cases": 720,
+        "numericalDifferences": []
+      }
+    },
+    "previousSlowCase": {
+      "Id": "Focus/S1/ParabolaRectangle/Plastic/ConstantEccentricity/1/0.05/30",
+      "sessions": {
+        "measurements": {
+          "focus-before": {
+            "ms": 0.3881,
+            "warmSamplesMs": [
+              0.3756,
+              0.3881,
+              0.3821,
+              0.3969,
+              0.392
+            ]
+          },
+          "focus-after": {
+            "ms": 0.4326,
+            "warmSamplesMs": [
+              0.5285,
+              0.4326,
+              0.9266,
+              0.4162,
+              0.4093
+            ]
+          },
+          "reverse-before": {
+            "ms": 0.3514,
+            "warmSamplesMs": [
+              0.3416,
+              0.3514,
+              0.6097
+            ]
+          },
+          "reverse-after": {
+            "ms": 0.4073,
+            "warmSamplesMs": [
+              0.4174,
+              0.4072,
+              0.4073
+            ]
+          }
+        },
+        "measurements-aligned": {
+          "focus-before": {
+            "ms": 0.3119,
+            "warmSamplesMs": [
+              0.3135,
+              0.3119,
+              0.8869,
+              0.3096,
+              0.3085
+            ]
+          },
+          "focus-after": {
+            "ms": 0.324,
+            "warmSamplesMs": [
+              0.3045,
+              0.3207,
+              0.324,
+              0.3249,
+              0.3428
+            ]
+          },
+          "reverse-before": {
+            "ms": 0.815,
+            "warmSamplesMs": [
+              0.9514,
+              0.815,
+              0.7789
+            ]
+          },
+          "reverse-after": {
+            "ms": 0.3255,
+            "warmSamplesMs": [
+              0.3241,
+              0.3255,
+              0.3345
+            ]
+          }
+        }
+      }
+    }
+  }
+}

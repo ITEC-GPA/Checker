@@ -705,7 +705,7 @@ namespace ConcreteTests
             Assert.AreEqual(2 * 8, refined); Assert.AreEqual(2 * 8, notAttempted);
 
             var archive = Archive();
-            foreach (var row in Rows("curvature-legacy.csv").Skip(1))
+            foreach (var row in Rows("curvature-analytic.csv").Skip(1))
             {
                 var c = row.Split(';');
                 var standard = ServiceabilityMigrationTests.Standard(c[2]);
@@ -903,6 +903,51 @@ namespace ConcreteTests
             Assert.AreEqual(17, compared);
         }
 
+        [TestMethod]
+        public void AnalyticMomentCurvatureMatchesTheUpdatedBaseline()
+        {
+            var archive = Archive(); var rows = Rows("curvature-analytic.csv").Skip(1).ToArray();
+            Assert.AreEqual(5, rows.Length);
+            int points = 0;
+            foreach (var row in rows)
+            {
+                var c = row.Split(';'); string id = "curve " + c[0] + " " + c[1] + " " + c[2];
+                Assert.AreEqual("ok", c[15], id);
+                var standard = ServiceabilityMigrationTests.Standard(c[2]);
+                foreach (var pair in c[3].Split(',')) { var kv = pair.Split('='); typeof(StandardModelCode2010).GetProperty(kv[0]).SetValue(standard, D(kv[1])); }
+                double[] P(string s) => s.Split(',').Select(D).ToArray();
+                var o = P(c[4]); var v1 = P(c[5]); var v2 = P(c[6]);
+                var axes = new CoordinateSystem(new Point3d(o[0], o[1], o[2]), new Vector3d(v1[0], v1[1], v1[2]), new Vector3d(v2[0], v2[1], v2[2]));
+                var section = (ReinforcedConcreteSection)archive.BeamProperties[c[1]];
+                var options = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(axes, SectionSolver.FailureAnalysisTypes.ConstantN, SectionSolver.FailureDomainTypes.Plastic,
+                    SectionSolver.StressAnalysisTypes.NonLinear, 0, 0, false, 32);
+                var checker = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section, null, null), options, standard, false);
+                var request = new MomentCurvatureRequest(D(c[8]) * 1000, D(c[9]), int.Parse(c[10]), D(c[11]), bool.Parse(c[12]), D(c[13]) * 1000, int.Parse(c[14]));
+                var r = MomentCurvatureAnalysis.Calculate(request, checker, section, axes, D(c[7]));
+                Close(D(c[16]) * 1e6, r.LimitMoment, id + " limit moment", 1e-7);
+                Close(D(c[17]) / 1000, r.YieldCurvature.Value, id + " yield curvature", 1e-7); Close(D(c[18]) / 1000, r.UltimateCurvature.Value, id + " ultimate curvature", 1e-7);
+                Close(D(c[19]) * 1000, r.LimitAxialForce, id + " limit N", 1e-7);
+                var legacy = c[21].Split('|');
+                Assert.AreEqual(legacy.Length, r.Points.Count, id + " points");
+                for (int i = 0; i < legacy.Length; i++)
+                {
+                    var q = legacy[i].Split(':'); var p = r.Points[i]; string what = id + " point " + i;
+                    Close(D(q[0]) * 1e6, p.Moment, what + " M", 1e-7); Close(D(q[1]) / 1000, p.Curvature, what + " χ", 1e-7);
+                    Close(D(q[2]) / 1000, p.GradientX, what + " χx", 1e-7); Close(D(q[3]) / 1000, p.GradientY, what + " χy", 1e-7);
+                    // At the limit point the strain plane comes from the domain search, converged on N within its tolerance (legacy residual ≈ 0.04 kN):
+                    // with yielded steel and plastic concrete N is almost insensitive to a translation of the plane, so the translation is defined to
+                    // ≈ 3e-4 only (the section read back from the archive gives a different converged plane). Moment, N and curvature agree to 1e-7.
+                    // The ε0 of the limit row is the library's strain at the origin of the local axes (SLU-4, regenerated with the user's approval;
+                    // ANTHEA d2d3225 wrote −3.5‰, the strain at the pivot vertex).
+                    double strains = bool.Parse(q[7]) ? 1e-3 : 1e-7;
+                    Close(D(q[4]) / 1000, p.ReferenceStrain, what + " ε0", strains);
+                    Close(D(q[5]) / 1000, p.ConcreteCompressionStrain, what + " εc", strains); Close(D(q[6]) / 1000, p.SteelStrain, what + " εs", strains);
+                    Assert.AreEqual(bool.Parse(q[7]), p.Yielded, what + " yielded"); Assert.AreEqual(bool.Parse(q[8]), p.Limit, what + " limit");
+                    points++;
+                }
+            }
+            Assert.IsTrue(points >= 5 * 41, points + " points");
+        }
         // User-approved migration 24/10/2026. These are the same five INPUTS.
         // Historical capacities/points remain archived; they are not independent oracles.
         [DataTestMethod]

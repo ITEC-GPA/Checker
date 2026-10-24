@@ -42,13 +42,14 @@ namespace ConcreteTests
     /// It is a regression snapshot, not an independent expectation: never regenerate it to make the test pass. On a difference the generated text is written
     /// to %TEMP%\model-checker-contract.actual.json and the first differing line is reported.
     /// </summary>
+    // Current numerical baseline approved 2026-10-24. Historical snapshots: docs/analytic-parabola-20261023/historical-fixtures-before-analytic-default.zip.
     [TestClass]
     public class ModelCheckerContractTests
     {
         private const string FileName = "model-checker-contract.json";
 
         [TestMethod]
-        public void ModelCheckerContractOf0017IsUnchanged()
+        public void ModelCheckerContractWithAnalyticDefaultIsUnchanged()
         {
             Dictionary<string, int> counts;
             string actual = Generate(out counts);
@@ -97,8 +98,8 @@ namespace ConcreteTests
                 counts = sections.ToDictionary(s => s.Key, s => s.Value.Count);
                 var text = new StringBuilder();
                 text.Append("{\n");
-                text.Append("  \"contract\": ").Append(S("ModelChecker contract of GPCChecker.Concrete 0.0.17.0 (ANTHEA F2.7 K0): SectionCrackCheck.Evaluate and StressLimitCheck.Evaluate with the arguments of ModelChecker, default options")).Append(",\n");
-                text.Append("  \"source\": ").Append(S("Checker develop 4f54139a, before any change of F2.7; regression snapshot, not an independent expectation")).Append(",\n");
+                text.Append("  \"contract\": ").Append(S("ModelChecker contract of GPCChecker.Concrete 0.20.0.0 (ANTHEA F2.7 K0): SectionCrackCheck.Evaluate and StressLimitCheck.Evaluate with the arguments of ModelChecker, default options")).Append(",\n");
+                text.Append("  \"source\": ").Append(S("Checker 0.20.0.0 / Model 5.21.0.0 analytic default; updated with user approval on 2026-10-24; regression snapshot, not an independent expectation")).Append(",\n");
                 for (int i = 0; i < sections.Count; i++)
                 {
                     var items = sections[i].Value;

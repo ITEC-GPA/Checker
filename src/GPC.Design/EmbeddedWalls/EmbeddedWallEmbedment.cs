@@ -41,11 +41,11 @@ public static class EmbeddedWallEmbedment
     /// A demonstrated failure excludes a candidate even if another check is unavailable. No capacities or factors recomputed.</summary>
     public static WallEmbedmentCriterion Aggregate(string caseId, string id, IEnumerable<WallEmbedmentCriterion> observations)
     {
-        ArgumentNullException.ThrowIfNull(observations);
+        Guard.NotNull(observations);
         if (string.IsNullOrWhiteSpace(caseId) || string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Case and criterion identifiers required.");
         var rows = observations.ToArray();
-        if (rows.Any(c => c is null || c.CaseId != caseId || !Enum.IsDefined(c.Outcome)
-            || new[] { c.Demand, c.Limit, c.Utilization, c.Elevation }.Any(v => v.HasValue && !double.IsFinite(v.Value))
+        if (rows.Any(c => c is null || c.CaseId != caseId || !PortableEnum.IsDefined(c.Outcome)
+            || new[] { c.Demand, c.Limit, c.Utilization, c.Elevation }.Any(v => v.HasValue && !PortableMath.IsFinite(v.Value))
             || c.Utilization < 0 || c.Outcome == EngineeringOutcome.Satisfied && c.Utilization > 1))
             throw new ArgumentException("Inconsistent check family or nonfinite result.");
         if (rows.Length == 0) return new(caseId, id, EngineeringOutcome.NotEvaluated, null, null, null, "", id, "Nessuna verifica disponibile nella famiglia richiesta.");
@@ -59,7 +59,7 @@ public static class EmbeddedWallEmbedment
         Func<double, CancellationToken, WallEmbedmentEvaluation<T>> evaluate, CancellationToken cancellation = default,
         IProgress<WallEmbedmentSearchProgress>? progress = null)
     {
-        ArgumentNullException.ThrowIfNull(evaluate);
+        Guard.NotNull(evaluate);
         var plan = Prepare(definition); var rows = new List<WallEmbedmentCandidate<T>>(); bool cancelled = false;
         foreach (double depth in plan.Depths)
         {
@@ -102,8 +102,8 @@ public static class EmbeddedWallEmbedment
     /// This is not a maximum over the entire wall, and is not a normative limit selected by the library.</summary>
     public static WallEmbedmentCriterion HeadDisplacement(WallAnalysisResult analysis, double limit, string limitSource)
     {
-        ArgumentNullException.ThrowIfNull(analysis);
-        if (!double.IsFinite(limit) || limit <= 0 || string.IsNullOrWhiteSpace(limitSource))
+        Guard.NotNull(analysis);
+        if (!PortableMath.IsFinite(limit) || limit <= 0 || string.IsNullOrWhiteSpace(limitSource))
             throw new ArgumentException("Positive head-displacement limit and its engineering source required.");
         const string id = "HeadDisplacement";
         if (!analysis.IsComplete || analysis.Stages.Count == 0 || analysis.Stages.Any(s => s.Points.Count == 0))
@@ -111,7 +111,7 @@ public static class EmbeddedWallEmbedment
         var governing = analysis.Stages.Select(s => (Stage: s, Point: s.Points.OrderByDescending(p => p.Elevation).First()))
             .OrderByDescending(p => Math.Abs(p.Point.Displacement)).First();
         double demand = Math.Abs(governing.Point.Displacement), utilization = demand / limit;
-        if (!double.IsFinite(demand) || !double.IsFinite(utilization))
+        if (!PortableMath.IsFinite(demand) || !PortableMath.IsFinite(utilization))
             return new(analysis.CaseId, id, EngineeringOutcome.NotEvaluated, null, limit, null, "mm", limitSource, "Spostamento non finito.");
         return new(analysis.CaseId, id, demand <= limit ? EngineeringOutcome.Satisfied : EngineeringOutcome.NotSatisfied,
             demand, limit, utilization, "mm", limitSource, "Massimo assoluto in testa fra le fasi della stessa storia.", governing.Stage.Id, governing.Point.Elevation);
@@ -119,16 +119,16 @@ public static class EmbeddedWallEmbedment
 
     private static Plan Prepare(EmbeddedWallEmbedmentSearch definition)
     {
-        ArgumentNullException.ThrowIfNull(definition);
+        Guard.NotNull(definition);
         double reference = definition.ReferenceElevation, top = definition.WallTop, minimum = definition.MinimumEmbedment,
             maximum = definition.MaximumEmbedment, step = definition.Increment;
-        if (!double.IsFinite(reference) || !double.IsFinite(top) || reference > top || !double.IsFinite(minimum) || minimum <= 0
-            || !double.IsFinite(maximum) || maximum < minimum || !double.IsFinite(step) || step <= 0
-            || !double.IsFinite(reference - maximum) || !double.IsFinite(top - (reference - maximum))
+        if (!PortableMath.IsFinite(reference) || !PortableMath.IsFinite(top) || reference > top || !PortableMath.IsFinite(minimum) || minimum <= 0
+            || !PortableMath.IsFinite(maximum) || maximum < minimum || !PortableMath.IsFinite(step) || step <= 0
+            || !PortableMath.IsFinite(reference - maximum) || !PortableMath.IsFinite(top - (reference - maximum))
             || string.IsNullOrWhiteSpace(definition.Source))
             throw new ArgumentException("Finite elevations, positive embedments/increment, ordered interval and provenance required.");
         double divisions = Math.Floor((maximum - minimum) / step);
-        if (!double.IsFinite(divisions) || divisions >= MaximumCandidates)
+        if (!PortableMath.IsFinite(divisions) || divisions >= MaximumCandidates)
             throw new ArgumentException("The exhaustive search supports at most 4096 candidates.");
         var depths = new List<double>();
         for (int i = 0; i <= (int)divisions; i++)
@@ -137,7 +137,7 @@ public static class EmbeddedWallEmbedment
             if (value < maximum) depths.Add(value);
         }
         depths.Add(maximum);
-        if (depths.Count > MaximumCandidates || depths.Zip(depths.Skip(1)).Any(p => p.First >= p.Second)
+        if (depths.Count > MaximumCandidates || depths.Zip(depths.Skip(1), (first, second) => (First: first, Second: second)).Any(p => p.First >= p.Second)
             || depths.Any(d => reference - d >= top) || depths.Select(d => reference - d).Distinct().Count() != depths.Count)
             throw new ArgumentException("The requested grid loses distinct depths at machine precision or exceeds the candidate limit.");
         if (definition.Histories is null || definition.Histories.Count == 0) throw new ArgumentException("At least one complete history required.");
@@ -160,7 +160,7 @@ public static class EmbeddedWallEmbedment
 
     private static (EngineeringOutcome, string) Inspect<T>(Plan plan, double toe, WallEmbedmentEvaluation<T>? evaluation)
     {
-        if (evaluation is null || !double.IsFinite(evaluation.ToeElevation) || evaluation.ToeElevation != toe
+        if (evaluation is null || !PortableMath.IsFinite(evaluation.ToeElevation) || evaluation.ToeElevation != toe
             || evaluation.Histories is null || evaluation.Criteria is null)
             throw new ArgumentException("The evaluator did not return the requested toe, histories and criteria.");
         if (evaluation.Histories.Any(h => h is null)) throw new ArgumentException("Null analysis in the evaluated history set.");
@@ -175,7 +175,7 @@ public static class EmbeddedWallEmbedment
                 throw new ArgumentException("A converged result omits or reorders the requested construction stages.");
             foreach (var stage in actual.Stages)
                 if (stage.CaseId != expected.CaseId || stage.Points.Count == 0
-                    || stage.Points.Any(p => !double.IsFinite(p.Elevation))
+                    || stage.Points.Any(p => !PortableMath.IsFinite(p.Elevation))
                     || Math.Abs(stage.Points.Min(p => p.Elevation) - toe) > 1e-6
                     || Math.Abs(stage.Points.Max(p => p.Elevation) - plan.Top) > 1e-6)
                     throw new ArgumentException("The stage result does not cover the requested wall geometry/case.");
@@ -184,9 +184,9 @@ public static class EmbeddedWallEmbedment
         foreach (var check in evaluation.Criteria)
         {
             if (check is null || !histories.ContainsKey(check.CaseId) || string.IsNullOrWhiteSpace(check.Id)
-                || !keys.Add((check.CaseId, check.Id)) || !Enum.IsDefined(check.Outcome)
+                || !keys.Add((check.CaseId, check.Id)) || !PortableEnum.IsDefined(check.Outcome)
                 || string.IsNullOrWhiteSpace(check.Method) || string.IsNullOrWhiteSpace(check.Diagnostic)
-                || new[] { check.Demand, check.Limit, check.Utilization, check.Elevation }.Any(v => v.HasValue && !double.IsFinite(v.Value))
+                || new[] { check.Demand, check.Limit, check.Utilization, check.Elevation }.Any(v => v.HasValue && !PortableMath.IsFinite(v.Value))
                 || check.Utilization < 0 || check.Outcome == EngineeringOutcome.Satisfied && check.Utilization > 1
                 || check.StageId is not null && !histories[check.CaseId].Stages.Any(s => s.Id == check.StageId))
                 throw new ArgumentException("Invalid, duplicated or inconsistent aggregate criterion from the evaluator.");

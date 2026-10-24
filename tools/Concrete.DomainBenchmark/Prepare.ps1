@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][string]$Output, [string]$RepositoryRoot, [string]$Source)
+param([Parameter(Mandatory=$true)][string]$Output, [string]$RepositoryRoot, [string]$Source, [switch]$LegacyStressBlockSearch, [switch]$ParabolaGauss)
 $ErrorActionPreference='Stop'
 if (!$Source) { $Source=Join-Path $PSScriptRoot '../../GPCChecker.Concrete' }
 if (!$RepositoryRoot) { $RepositoryRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..')) }
@@ -13,6 +13,18 @@ Get-ChildItem -LiteralPath $source -Recurse -File -Filter '*.cs' | Where-Object 
     Copy-Item -LiteralPath $_.FullName -Destination $dest
 }
 # Instrument only the throwaway benchmark copy; production DLLs contain no counters.
+if ($ParabolaGauss) {
+    $path=Join-Path $copy 'SectionSolvers/SectionSolver.cs'
+    $text=[IO.File]::ReadAllText($path)
+    foreach ($pair in @(
+        @('return GetStressBlockIntegration().Integrate(strainPlane, parabola);', 'return new ForceTuple(GaussIntegration.IntegrationLinearShapeFunction((x, y) => { double stress = parabola.At(strainPlane.GetStrain(x, y)); return (stress, -stress * (y - _integrationReferencePoint.Y), stress * (x - _integrationReferencePoint.X)); }, _globalCoordinateGaussPointsMesh));'),
+        @('returnValue[i] = integration.Integrate(strainPlane[i], parabola);', 'returnValue[i] = new ForceTuple(GaussIntegration.IntegrationLinearShapeFunction((x, y) => { double stress = parabola.At(strainPlane[i].GetStrain(x, y)); return (stress, -stress * (y - _integrationReferencePoint.Y), stress * (x - _integrationReferencePoint.X)); }, _globalCoordinateGaussPointsMesh));')
+    )) {
+        if (!$text.Contains($pair[0])) { throw 'Analytic parabola instrumentation marker missing' }
+        $text=$text.Replace($pair[0],$pair[1])
+    }
+    [IO.File]::WriteAllText($path,$text)
+}
 function Insert([string]$file,[string]$needle,[string]$code) {
     $path=Join-Path $copy $file; $text=[IO.File]::ReadAllText($path).Replace("`r`n","`n")
     $needle=$needle.Replace("`r`n","`n")
@@ -24,6 +36,12 @@ Insert 'SectionSolvers/DomainPointStrategyIterative.cs' 'increment = CalculateIn
 $legacy=Join-Path $copy 'SectionSolvers/DomainPointStrategyIterative.cs'
 $text=[IO.File]::ReadAllText($legacy).Replace('increment = CalculateIncrement(', 'System.Threading.Interlocked.Increment(ref global::DomainBenchmarkCounters.Iterations); increment = CalculateIncrement(')
 [IO.File]::WriteAllText($legacy,$text)
+if ($LegacyStressBlockSearch) {
+    $text=[IO.File]::ReadAllText($legacy)
+    $marker='_solver.TryGetStressBlockLaw(out _)'
+    if (!$text.Contains($marker)) { throw 'Geometric stress-block search marker missing' }
+    [IO.File]::WriteAllText($legacy,$text.Replace($marker,'false'))
+}
 $newton=Join-Path $copy 'SectionSolvers/DomainPointStrategyNewton.cs'
 if (Test-Path $newton) {
     $text=[IO.File]::ReadAllText($newton).Replace('// Domain search iteration.', 'System.Threading.Interlocked.Increment(ref global::DomainBenchmarkCounters.Iterations);')

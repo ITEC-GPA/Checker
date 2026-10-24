@@ -45,9 +45,9 @@ public static partial class BridgeConcept
     public static OptimizationResult Optimize(BridgeModel source, OptimizationOptions options, CancellationToken cancellation = default,
         IProgress<OptimizationProgress>? progress = null)
     {
-        if (!Enum.IsDefined(options.Objective) || options.MinSpans < 1 || options.MaxSpans > 30 || options.MaxSpans < options.MinSpans
-            || !double.IsFinite(options.MaxDepth) || options.MaxDepth < 0 || options.MaxDepth > 15
-            || !double.IsFinite(options.MinDepth) || options.MinDepth < 0 || options.MinDepth > 15
+        if (!PortableEnum.IsDefined(options.Objective) || options.MinSpans < 1 || options.MaxSpans > 30 || options.MaxSpans < options.MinSpans
+            || !PortableMath.IsFinite(options.MaxDepth) || options.MaxDepth < 0 || options.MaxDepth > 15
+            || !PortableMath.IsFinite(options.MinDepth) || options.MinDepth < 0 || options.MinDepth > 15
             || (options.MaxDepth > 0 && options.MinDepth > options.MaxDepth) || options.Alternatives is < 1 or > 50)
             throw new ArgumentException("Limiti di ricerca non validi: 1–30 campate, altezza massima 0–15 m, 1–50 alternative.");
         if (options.KeepSection && !options.KeepFamily)
@@ -196,7 +196,7 @@ public static partial class BridgeConcept
     /// <summary>Inclusive percentage grid, with the upper endpoint included even when the step does not divide the interval.</summary>
     public static double[] OptimizationRange(double min, double max, double step)
     {
-        if (!double.IsFinite(min) || !double.IsFinite(max) || !double.IsFinite(step) || min < 100 || max > 200 || min > max || step < 1 || step > 100)
+        if (!PortableMath.IsFinite(min) || !PortableMath.IsFinite(max) || !PortableMath.IsFinite(step) || min < 100 || max > 200 || min > max || step < 1 || step > 100)
             throw new ArgumentException("Intervalli percentuali: 100 ≤ minimo ≤ massimo ≤ 200; passo da 1 a 100 punti percentuali.");
         if (Math.Ceiling((max - min) / step) + 1 > 11)
             throw new ArgumentException("Massimo 11 valori per intervallo percentuale: aumentare il passo.");
@@ -235,7 +235,7 @@ public static partial class BridgeConcept
             double wh = r.Depth - r.Slab - 2 * i.FlangeMm / 1000;
             if (r.Width * .4 / r.Girders + 2 * wh * i.WebSlope / 4 + i.FlangeWidth > r.Width / r.Girders) reasons.Add("Cassoni metallici oltre la larghezza disponibile");
         }
-        if (!double.IsFinite(r.TotalCost) || !double.IsFinite(r.Carbon) || r.TotalCost < 0 || r.Carbon < 0) reasons.Add("Indicatore economico o ambientale non valido");
+        if (!PortableMath.IsFinite(r.TotalCost) || !PortableMath.IsFinite(r.Carbon) || r.TotalCost < 0 || r.Carbon < 0) reasons.Add("Indicatore economico o ambientale non valido");
         return reasons.ToArray();
     }
     private static BridgeInput ResetSection(BridgeInput input)
@@ -332,6 +332,6 @@ public static partial class BridgeConcept
                 && r.Supports.SequenceEqual(b.Supports) && r.Quantities.SequenceEqual(b.Quantities);
         }
         public override bool Equals(object? other)=>other is GeometryIdentity identity&&Equals(identity);
-        public override int GetHashCode()=>HashCode.Combine(r.Family.Id,r.Depth,r.PierDepth,r.Slab,r.Girders,r.Inertia,r.PileLength,c);
+        public override int GetHashCode()=>(r.Family.Id,r.Depth,r.PierDepth,r.Slab,r.Girders,r.Inertia,r.PileLength,c).GetHashCode();
     }
 }

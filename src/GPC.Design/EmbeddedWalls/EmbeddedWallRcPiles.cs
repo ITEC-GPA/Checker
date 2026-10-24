@@ -17,16 +17,16 @@ public sealed record EmbeddedWallRcPile(string SectionId, CircularRcSection Sect
 {
     public void Validate()
     {
-        if (string.IsNullOrWhiteSpace(SectionId) || Section is null || !double.IsFinite(Spacing) || Spacing < Section.Diameter)
+        if (string.IsNullOrWhiteSpace(SectionId) || Section is null || !PortableMath.IsFinite(Spacing) || Spacing < Section.Diameter)
             throw new ArgumentException("Unique section, physical circular RC properties and spacing no smaller than diameter required.");
     }
     public double FlexuralRigidity(double tributaryWidth)
     {
         Validate();
-        if (!double.IsFinite(tributaryWidth) || tributaryWidth <= 0 || !SingleRowEqualSharingConfirmed || string.IsNullOrWhiteSpace(RepresentationSource))
+        if (!PortableMath.IsFinite(tributaryWidth) || tributaryWidth <= 0 || !SingleRowEqualSharingConfirmed || string.IsNullOrWhiteSpace(RepresentationSource))
             throw new ArgumentException("Positive strip width and documented single-row pressure transfer/equal load sharing required.");
         double value = Section.GrossFlexuralRigidity * tributaryWidth / Spacing;
-        if (!double.IsFinite(value) || value <= 0) throw new ArithmeticException("Nonfinite equivalent RC wall stiffness.");
+        if (!PortableMath.IsFinite(value) || value <= 0) throw new ArithmeticException("Nonfinite equivalent RC wall stiffness.");
         return value;
     }
     public CircularRcSectionSession CreateSession()
@@ -48,9 +48,9 @@ public static class EmbeddedWallRcPiles
     public static IReadOnlyList<EmbeddedWallRcPileResult> Check(WallAnalysisResult analysis, double tributaryWidth,
         IReadOnlyList<EmbeddedWallRcPile> definitions, EmbeddedWallSectionCheckKind kind, CancellationToken cancellation = default)
     {
-        ArgumentNullException.ThrowIfNull(analysis); ArgumentNullException.ThrowIfNull(definitions); cancellation.ThrowIfCancellationRequested();
+        Guard.NotNull(analysis); Guard.NotNull(definitions); cancellation.ThrowIfCancellationRequested();
         if (!analysis.IsComplete) throw new InvalidOperationException("Incomplete history cannot be certified by RC section checks.");
-        if (!double.IsFinite(tributaryWidth) || tributaryWidth <= 0 || !Enum.IsDefined(kind)) throw new ArgumentException("Explicit width/check kind required.");
+        if (!PortableMath.IsFinite(tributaryWidth) || tributaryWidth <= 0 || !PortableEnum.IsDefined(kind)) throw new ArgumentException("Explicit width/check kind required.");
         // Pile actions are strip actions × spacing/width: a width other than the analysed one would scale them wrongly.
         if (Math.Abs(tributaryWidth - analysis.TributaryWidth) > 1e-7) throw new ArgumentException("The checked width must be the analysed tributary width.");
         var sections = new Dictionary<string, EmbeddedWallRcPile>(StringComparer.Ordinal);

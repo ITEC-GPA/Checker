@@ -13,8 +13,8 @@ public static partial class ConcreteSectionTemplates
     {
         var layout = p.Stadium!;
         if (layout.CurveCount is < 2 or > 500 || layout.StraightCount is < 0 or > 500
-            || !double.IsFinite(layout.CurveDiameter) || layout.CurveDiameter <= 0
-            || !double.IsFinite(layout.StraightDiameter) || layout.StraightDiameter <= 0)
+            || !PortableMath.IsFinite(layout.CurveDiameter) || layout.CurveDiameter <= 0
+            || !PortableMath.IsFinite(layout.StraightDiameter) || layout.StraightDiameter <= 0)
             throw new ArgumentException("Capsula: da 2 a 500 barre per semicirconferenza, da 0 a 500 interne per rettilineo; diametri positivi e finiti.");
         bool horizontal = p.Width > p.Height;
         double halfStraight = Math.Abs(p.Width - p.Height) / 2;
@@ -40,7 +40,7 @@ public static partial class ConcreteSectionTemplates
                 double t = (ax * ey - ay * ex) / cross, u = (ax * dy - ay * dx) / cross;
                 if (t > 0 && u >= -1e-10 && u <= 1 + 1e-10) nearest = Math.Min(nearest, t);
             }
-            if (!double.IsFinite(nearest)) throw new ArgumentException("Capsula: copriferro o diametro annullano il tratto curvo utile.");
+            if (!PortableMath.IsFinite(nearest)) throw new ArgumentException("Capsula: copriferro o diametro annullano il tratto curvo utile.");
             return new(center + nearest * dx, nearest * dy);
         }
         void Curve(bool right)

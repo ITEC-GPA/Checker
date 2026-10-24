@@ -1,0 +1,165 @@
+{
+  "createdUtc": "2026-10-24T09:34:53.939535+00:00",
+  "modelCommit": "2d59bbc6",
+  "model": [
+    {
+      "suite": "Model.Core.Tests",
+      "counts": {
+        "Passed": 34,
+        "Failed": 0,
+        "NotExecuted": 0
+      },
+      "skipped": [],
+      "trxSha256": "02dbc19129acf84cb78013797cd01db3530ffbb8f1a69e5a31979ac450682239"
+    },
+    {
+      "suite": "UnitTest",
+      "counts": {
+        "Passed": 1459,
+        "Failed": 0,
+        "NotExecuted": 3
+      },
+      "skipped": [
+        "NativeLinearStaticBenchmark_EquilibriumAndMembraneResultants",
+        "NativeAssignments_LoadsAndGravityBalanceTheSolverReactions",
+        "EightNativePairsKeepGeometryAndGlobalActionSigns"
+      ],
+      "trxSha256": "9ee71b5756e9b4464df7707d64c5c57c35f5d60b107a1c6e842fe542b530f170"
+    }
+  ],
+  "checker": {
+    "suites": "all",
+    "created": "2026-10-24T11:33:52",
+    "results": [
+      {
+        "name": "GPCChecker.Test.Concrete",
+        "passed": 875,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "GPCChecker.Test.Steel",
+        "passed": 122,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "GPCChecker.Test.CompositeBridge",
+        "passed": 384,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "GPCChecker.Test.Geotechnics",
+        "passed": 193,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "GPCChecker.Test.Calculation",
+        "passed": 175,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "ShallowFoundation.Tests",
+        "passed": 28,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "EmbeddedWalls.Tests",
+        "passed": 99,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "Steel.Members.Tests",
+        "passed": 3202,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "Design.Checks",
+        "passed": 103,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "ModelChecker.Tests",
+        "passed": 445,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      }
+    ],
+    "apiCompatible": true,
+    "unexpected": []
+  },
+  "fixtureSha256": {
+    "stress-legacy.csv": "c68ef15ae2a5458bc8ea35062a0ce859dcb0c3632e0312b6a4b8aff9fb61260f",
+    "stress-analytic.csv": "c22af81c87e36e5c8664da90eb8786cd239ca393498b0024a085fbeabae7c212",
+    "curvature-legacy.csv": "99a478199129be3f6d0baa0c393cf3e78c0db68098e79a50ab89eede581d9cb0",
+    "curvature-analytic.csv": "0ab7ce9aab6a887826632ae741e883087697f57dd8c1a20a8b1bb3d3e14767f6",
+    "curvature-contract-analytic.csv": "72450a71f94d455f277fe8f22cf638eae642e539287f4b372287ebe72d8e8bce",
+    "domain-point-contract.json": "cf2990b841584dccd82bd7a6200a6c026ba2b557465bb0426922b9b53a68c123",
+    "model-checker-contract.json": "fc61fcf5cf60c50dcf8424e40a1a3198158922530960cf3cef033c3afb537f99"
+  },
+  "binaries": {
+    "Model": {
+      "version": "5.21.0.0",
+      "sha256": "86aabd20ab7eb4f7ca257705d803c6f9c7d4ecbae8b55eb254ebf71c93dcc2db"
+    },
+    "Concrete": {
+      "version": "0.20.0.0",
+      "sha256": "f4073e7853382c90b8fe8c236e1f95637b08aada9eb3d601bee03948efd12b03"
+    },
+    "CompositeBridge": {
+      "version": "1.13.0.1",
+      "sha256": "601a1369c933e8485f8612842371830cc8be69695deb30b0d6f634555db3b6e9"
+    }
+  },
+  "defaultMethod": "ConcreteParabolaRectangleMethod.Analytic",
+  "historicalMethod": "ConcreteParabolaRectangleMethod.TabulatedLegacy (Obsolete)",
+  "expectedUpdateAuthorized": true,
+  "modelApiCompatible": true,
+  "modelEqualityAuditPassed": true,
+  "stressFixtureComparison": {
+    "changed": 639,
+    "total": 2016,
+    "changedLinear": 0,
+    "verdictCrossings": 0,
+    "maximumAbsoluteConcreteStressDifferenceMPa": 0.03129517313928076,
+    "maximumAbsoluteSteelStressDifferenceMPa": 0.9596292239593254,
+    "maximumAbsoluteRatioDifference": 0.002038162783326025
+  }
+}

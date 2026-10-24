@@ -1,0 +1,457 @@
+{
+  "baseline": "6edf46a7 / Concrete 0.18.0.1",
+  "candidate": "Concrete 0.18.0.2, geometric concrete integration; bars unchanged",
+  "primaryScope": "StressBlock + Plastic. Elastic cases are diagnostic only and excluded from primary performance conclusions.",
+  "dataSha256": {
+    "after-reverse.jsonl": "ae40cbcd8f04bb33da4a15ec7e81f986593cac9c615aaebc34d678f8ad737bd8",
+    "after-reverse.jsonl.meta.json": "ce9edf3413c944c1836b582a43abb831f5365473f717e63c2bcee59246cab0e5",
+    "after-reverse.log": "3909d95200bf84876426934c1281dd26bc97963ec8396a3388250b2e0757de3f",
+    "after.jsonl": "2bc2eb26f0db134c8ed920fb5e63bd59a9f4067662a8dfe28de590c7d87c2bd2",
+    "after.jsonl.meta.json": "1eae2372340dee47422befc48da35fca859a8baa19d6af87b938a9a768aeb16a",
+    "after.log": "c8605bde921eccf171e2b63f009a927c80e7779337fb456ef48332ec261b4eea",
+    "before-planes-reintegrated.jsonl": "96eaaec326331fb32b8fe6f6bfe4fc03bbb77c5bd4f2291281b7468f29bb8cbd",
+    "before-reverse.jsonl": "47bf6b695af19d73384eda89083d064bb11c064d7fc8a2cd47ea09a62a3fac59",
+    "before-reverse.jsonl.meta.json": "ca7b84beada3d0077184acef6e5cd3a4159dbaecfd4fb09266ffd9e3c0ce8e35",
+    "before-reverse.log": "3909d95200bf84876426934c1281dd26bc97963ec8396a3388250b2e0757de3f",
+    "before.jsonl": "4a48d76c298c9f2c24316ddff3e43a66fe9b400cdf51a6d941ebe90adbc149ad",
+    "before.jsonl.meta.json": "bc5b6680f1667e7c863cf8fada2961fd38e076d865a86c5cacc15b8ec0d9d38c",
+    "before.log": "c8605bde921eccf171e2b63f009a927c80e7779337fb456ef48332ec261b4eea",
+    "campaign.json": "e9df1313bf4fa0cfca367bd8d4234034b2b46bc146f175d32738a4ce4beed9a7",
+    "continuous-after.jsonl": "cc1c2954303cc293391db6192bfb979dffdb763774258bba8c13f81ae2cff640",
+    "continuous-after.jsonl.meta.json": "8f052f7f579d97bbb0f4303959ab52f6c7df2c4ac63112d623f86ef0586bc772",
+    "continuous-after.log": "1ec7438a40feb0cbf924c0adcc930140bda7cf412d5adf43b8ea1fa18fa9b052",
+    "continuous-before.jsonl": "9d47286de917ceae3d8bd9a3fcddbe0f97dc7dcd24faaaa72be3d2a2593ea2fd",
+    "continuous-before.jsonl.meta.json": "99bb3f154c4a364e7510680e74137d07fa53aa114ae87c56bcbaae1cc80c7d89",
+    "continuous-before.log": "1ec7438a40feb0cbf924c0adcc930140bda7cf412d5adf43b8ea1fa18fa9b052",
+    "integration-only.jsonl": "eec26b11928b918531787ee38f8b1196073b31a47ce4076f35fa947749374271",
+    "integration-only.jsonl.meta.json": "a2af96eacdb20743b7ffdeeeac17eaca1bbc1ade67c7595598762f94b1e8e972",
+    "integration-only.log": "c8605bde921eccf171e2b63f009a927c80e7779337fb456ef48332ec261b4eea",
+    "low-after.jsonl": "9e2034ce181e40e5faf9b89383e5f91b3bdc3382c41bcee33bbd4a051fa91b0d",
+    "low-after.jsonl.meta.json": "0b5391abea6c2446550fb3a18288f9f9d2320a5866f79f94ca3463d8d42ebdcc",
+    "low-after.log": "8ce931df4c6a41b14018160f3d9d9837cd5da6ec404ba80c22691ae187b111cc",
+    "low-before.jsonl": "e8a059f8a1d1243813e42787e5e73f6ddd0ffa1f46d8769697331c7420ee8ff5",
+    "low-before.jsonl.meta.json": "0278de9454fa69d36fbf6e4c08b3c49ac9a9894b5e9eb389fc5e5bb09f3730c9",
+    "low-before.log": "8ce931df4c6a41b14018160f3d9d9837cd5da6ec404ba80c22691ae187b111cc"
+  },
+  "verificationSummarySha256": "e6fe61f935c9943d624689c144904536f9decab51c7ef408360a57632e9c5a1f",
+  "reportScriptSha256": "91d739ec508af3257083d86a2a2a407dc9ab6812e6508b08299be43d63eb41cf",
+  "archiveSha256": "d09b670942459af62ec56aaad6bf6880d0b5ec7ee0823c8a22ff2e31931ff637",
+  "campaign": {
+    "baselineCommit": "6edf46a7873cf956ef081170b0f3c5e0cfe7d991",
+    "candidateVersion": "0.18.0.2",
+    "sourceComparison": "Production source compared with measured source after removing instrumentation and normalizing line endings.",
+    "sources": [
+      {
+        "file": "GPCChecker.Concrete/Analysis/AxialEquilibriumEvidence.cs",
+        "sha256": "e2271c5cc24b1b319271d48a52b2d3d20a43932375976dc2f6f30e04cf2a7a99",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Analysis/LegacySectionCalculation.cs",
+        "sha256": "d67686a3acddcb42b8806239383f209f1daab992ed29d0c6516853923ce10f94",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Analysis/ResistanceConvergence.cs",
+        "sha256": "321e68fe976fa44e915e41106e670240b609762e2980629fa36752d4b76c14e0",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Analysis/SectionCalculation.cs",
+        "sha256": "2ba0ed9bc39db4c0a1654703d59a23d4257642757f2e55f24c1c2fad3d9ec50f",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Attributes/BeamCheckerAttribute.cs",
+        "sha256": "78bf9234036b9f638f9f3daae748f6c779109f935cda75b9230c23ff8d19be6a",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Attributes/PlateCheckerAttribute.cs",
+        "sha256": "f6b196a29c41b4579f2aec12ebd2d145fb2844c3bc74d80d95c8522505f9f202",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Attributes/SectionCheckerAttribute.cs",
+        "sha256": "2bd0e773dc3364c9117005aa301bf448fca6af268c41a2c6a619452be22264cc",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Checkers/BeamChecker.cs",
+        "sha256": "9f783d503e1d8f63b9dc33ab2bc7aa65e872b44003186d272b08d596ba665084",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Checkers/BeamCheckerModelCode2010.cs",
+        "sha256": "9fb185ef84a57af86d6c131ae64ca8221ad11c7332d6167c6754d6643cab014a",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Checkers/Checker.cs",
+        "sha256": "7fee32632f9cdb6eda4f76597b7cfe606c1aacec73a7212c7523eb2599f4ac43",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Checkers/PlateChecker.cs",
+        "sha256": "ea0f27d165f5f46c593d57b05410e6e947f76babd54d1734dd603efa4d022048",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Checkers/PlateCheckerModelCode2010.cs",
+        "sha256": "44cd5e4a773a93aa9cadbcad8ebba6ecc6cf32f53772ec3c99e6bfdde29be03a",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Checkers/SectionChecker.cs",
+        "sha256": "58c913d8d63d448aa1f3d06abdd3f67bba6abf8480b545ad775719521e163c0c",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Checkers/SectionCheckerACI318.cs",
+        "sha256": "e101b480efb202318c602b85809fc7aae946a7a1cef2e5d8b0c668faf889aedb",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Checkers/SectionCheckerModelCode2010.cs",
+        "sha256": "879524ac15ceef35c38decd7ecf32b1802d5550b2de4acf0974a981838da7cb8",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Cracking/CrackProfiles.cs",
+        "sha256": "6e71acec2e87fbb0a7e8b89fd1084c9010c4bcba30178577cce7978ad6cd55d6",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Cracking/CrackRejection.cs",
+        "sha256": "cefe61081421f318d5c4ba62d334a3781038e0068ca3673e226abcfb632d7ffa",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Cracking/CrackRequirements.cs",
+        "sha256": "5b1cb8d6deefcd9deb298a2973af0eb89d4b73fa4d997feb47b0e43b3ebe82c4",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Cracking/CrackSectionGeometry.cs",
+        "sha256": "2ca79ec91a46817be8c7630dfae3d0a9e01a6b67128843341c49c7f2f520e200",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Cracking/CrackTrace.cs",
+        "sha256": "d315ecc46a7e335c3069ceb91c9b084da3c0f532d79f7a1bdf1932e670e23b60",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Cracking/CrackWidthCalculator.cs",
+        "sha256": "61798164479baf11b708b9f3ffabfcaf5ff551f5d6fcfb5ae4b0f842452928e7",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Cracking/SectionCrackCheck.cs",
+        "sha256": "a87b46842017b955babbf19ff643115e37989a2fd17c9f8142d2723864959aa5",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Cracking/SectionCrackOptions.cs",
+        "sha256": "cebc6fe45e458ec9abcd033a90b0e91cf316c210d0b358c79fd33b58fd2eb09f",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Detailing/AnchorageCalculator.cs",
+        "sha256": "27daf3512aede1f80719d180dc046a2f92a7747acb16e08cf6ecb2d36ab1f189",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Detailing/DetailingProfiles.cs",
+        "sha256": "e7ed60b1e3fbd6710ad0db11c47f2754fab62c33f2b7c30d72930e1252729599",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Detailing/LongitudinalReinforcementLimits.cs",
+        "sha256": "2d5c738898fc6ce4d4a53fd732245c54a226b6b060909d64b1902ae0d18b4c4b",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Detailing/MemberDetailingCalculator.cs",
+        "sha256": "326b7360823b81df844fb312c2059a798c2382f7d7ecbfc3c73cb35b2cb50696",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Detailing/MemberDetailingCalculator.Perimeter.cs",
+        "sha256": "8cc162ff02835ebc87c41c00db57af3476e5b4d49ffc715333e3633ac24a7f5c",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Detailing/PlateDetailingRules.cs",
+        "sha256": "37f5861ddd7c5a6abf600314404c9f14dfb87290cde3b3a8b7f44b563f6ba672",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Durability/CoverAssessment.cs",
+        "sha256": "d8a0ac5b125ea043ca0ada41a0a4082e46f0001639c04540ba594021b20d578b",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Durability/CoverRequirements.cs",
+        "sha256": "b4f7d55735e092facc87fdbe7ad8ef6974fdc608ec6c634fbf836e3384b54c69",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Durability/ExposureClasses.cs",
+        "sha256": "d903a8ce7a77f36a12d650e7133fbbf38108c7b98c687eb45f9ff242ae1e6689",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Helper/BoundaryDistances.cs",
+        "sha256": "5ee405102a8911758356363c30ebd015e0853acb6b300d9dba1b6ff096281106",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Helper/DeformationFieldsPoint.cs",
+        "sha256": "87b27a8c2cb4fc628feadc1d7b9161877bad8e9c9cd85acded01478b9eb9b061",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Helper/Extensions.cs",
+        "sha256": "2ee3220ad54090560cb260e469710b41c1775b49fb7f88d65c4b7acea094f447",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Helper/ForceTuple.cs",
+        "sha256": "e37206a020b7c674b0ae80999b6b7e7f0b661c275f2fe98e8fa9ba4d960ecd65",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Piles/CircularRcSectionSession.cs",
+        "sha256": "3863781f2852cbe966d8c782a255cb7d453bfa3d4e80f22ceb35fc43f6f80bfd",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Piles/PileReinforcement.Construction.cs",
+        "sha256": "5fcaadbae9103023e2dc5c4dddd47bca26a5e0ad74716a375f3e80987be2efe0",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Piles/PileReinforcement.cs",
+        "sha256": "06f8f920716b28a924105d47af23b71cb1b806f0651c18bcdec1233387be780c",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Piles/PileReinforcement.Seismic.cs",
+        "sha256": "cecc42f50c7760e228ea533295a06f48baaaac69c3fa264c2b17fb8d5138ad8b",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Piles/PileReinforcement.Transitions.cs",
+        "sha256": "b3e3f7fd2af520b5e9a6be66d8f8988a08b7d9bcf3176731b0b123efc11857a2",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Piles/PileReinforcement.Transverse.cs",
+        "sha256": "2b0bb9673e38eeeda57e87b391509c180e88c754a62f4a7602890958a87418b7",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Properties/AssemblyInfo.cs",
+        "sha256": "530f87d2c5e2a97e80af0fd38440982a3d92c5e736af2595b6a5f414fce33a98",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Response/MomentCurvatureAnalysis.cs",
+        "sha256": "6906d46284b539c16b20294275378500d4724dac78c75dcec69b94438e4a467d",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Results/FailureDomain.cs",
+        "sha256": "b79fb53ea1551b3d96cca9a4ce9a4d09ef7a9fbc4169dd5ac8a29fca7254894c",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Results/FailureDomain2d.cs",
+        "sha256": "38e5eb4844d9d6ef472d11e98ee939b6ff486324edc3682c516158f89200974b",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Results/StrainPlane.cs",
+        "sha256": "bfc0d64d1f070c40d5783b50bf6f99140bc6bb90854d95906f4d9190a71842cb",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Results/ResultType/CheckerResultType.cs",
+        "sha256": "51989ffe9822324c5d4fea0e49b24a099bd8dd6c351ef81d95f2f7aeebf6d9b3",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Results/ResultType/FailureDomainResult.cs",
+        "sha256": "7d6731ffd5fcc8592bd0899d185344f0607b88feef226ca3b29a1b35936e9f16",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Results/ResultType/FailureDomainResult2d.cs",
+        "sha256": "7ca4745c3c28e166a9eefb43bde5064b78dc3ec425fe2d19c7bebdcec2e243b6",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Results/ResultType/StrainPlaneResult.cs",
+        "sha256": "780311ae96d54f9f778046e73ac3239ec7597417184c676ffe2bac847ca5e6ad",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Results/ResultType/StressAnalysisResult.cs",
+        "sha256": "fe8a4d169a6fa619ee379f2259ab0e44a705ce7355c6135525d68774f7681a19",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/SectionSolvers/DomainPointAxialTolerance.cs",
+        "sha256": "a309a7f5097175540e18245c6416a19411eae86d50fed76aacc7546927636fc8",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/SectionSolvers/DomainPointConvergence.cs",
+        "sha256": "db4eadcbff1d4d202f3670e9bf658bd76aa9e97eb377f0dafcfe406c6981cd1a",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/SectionSolvers/DomainPointStrategyBisection.cs",
+        "sha256": "af3c3278d0cc370c57ebbf4c97085fe0a654314b02eae4b1e2fefb36aa983e0f",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/SectionSolvers/DomainPointStrategyIntersection.cs",
+        "sha256": "8ea054fabd560c0b5640f22398e3c0d10a430359c2337ab1cb85f5ffa24991f4",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/SectionSolvers/DomainPointStrategyIterative.cs",
+        "sha256": "94b413fa1380c25c7331b4a760a9d4efbe9c19ea52595a49d19cfe69ea21d45f",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/SectionSolvers/DomainPointStrategyNewton.cs",
+        "sha256": "bdf502a690330b6f9b10a087375131fc91a28eb24f7473f1640bfbd8f4ec0b0c",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/SectionSolvers/IDomainPointStrategy.cs",
+        "sha256": "b18ba42656e39cf384c6ed4d653ede80da7d5d0f059b41f8ddc5386cb132cf12",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/SectionSolvers/SectionSolver.cs",
+        "sha256": "f3df1b104f47a257efff08de57b10b253475d4c02c1057a7a2b9843d1c38088f",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/SectionSolvers/SectionSolverACI318.cs",
+        "sha256": "ddb8cb34dbb8a3fa858d5419b215bbb667c4910e56c9220b979daaee7f70d8c8",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/SectionSolvers/SectionSolverModelCode2010.cs",
+        "sha256": "cdc81dd27686b9e49b08a3889a2bc2e8929a668d1af2aff29847ece929b75301",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/SectionSolvers/StressBlockIntegration.cs",
+        "sha256": "9f31b1ea81fb51b9d1356b9e5ba9d4a1144af90c6ec4ad4638f9c0a12bc97be7",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Serviceability/Homogenization.cs",
+        "sha256": "4ab42e374d6560317dce75e1ad597346c5690e8ea6ceae73543c79571e55f084",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Serviceability/StressLimitCheck.cs",
+        "sha256": "4e865269019824a6830ac8d9ba9d5638a674477554d931241cff2b5fa1db03f7",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Serviceability/StressLimitContext.cs",
+        "sha256": "d8b69630c65f40cea16c6e17454bc6dc7cd7b132aa12747e1e4c2bda76649a96",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Serviceability/ThinCasting.cs",
+        "sha256": "9e4314ef295366b73a885788df47a450260ec2b35e2082ab873f7594c9b24f7b",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Shear/SectionShearCalculator.cs",
+        "sha256": "d7edceec9997418e9483eaa4dbfb1d47270d5cea2631475e807c14ab2de0ef27",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Shear/SectionShearContracts.cs",
+        "sha256": "3697b280c7894cf7ec0e040d47c3cea4c03aff0540ed16e0c5578f96d16f5df3",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Shear/ShearLeverArm.cs",
+        "sha256": "685b718623dadf683b3c507ad085b72f9b5c336f1b286d68f7c4b82ef0a9b093",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Shear/ShearProfiles.cs",
+        "sha256": "0d8f935b610a408232e48e5ffb9da18f9ec451be6cedbef843acb0493adf6a8f",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Torsion/SectionTorsionCalculator.cs",
+        "sha256": "ef590b733eefe30ab7845dbb4ba019dc1375f3f91e2861128bd58ae2c7ff8664",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Torsion/SectionTorsionContracts.cs",
+        "sha256": "080372266821c7f0030d56bae711eace06216e3b3fc33797b7c757671ee9adf6",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Torsion/TorsionProfiles.cs",
+        "sha256": "fdc8692a5f033db3502592030e457f086ab65863a06a21853811a3d72e33f68d",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Walls/PlainConcreteWallMaterial.cs",
+        "sha256": "f45997282b7825417eae9c14c70091253d83087f68b58472b1c6d9cccd18fd30",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Walls/WallSectionSession.cs",
+        "sha256": "c58d3e3444bf4b2cf5053505112f02af6fe4261d74c61ccf019af23979f22098",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Walls/WallSectionSession.Shear.cs",
+        "sha256": "641c445e24e5a358a7a41c35b1e8b95a13c55cad8b353780f92f63697eec759f",
+        "matchesMeasuredSource": true
+      },
+      {
+        "file": "GPCChecker.Concrete/Walls/WallStrip.cs",
+        "sha256": "bf401ac0bb0a70806728ea7694ef3de83b0626a2b2f6e06724c5344f725cec66",
+        "matchesMeasuredSource": true
+      }
+    ],
+    "binaries": {
+      "before": {
+        "path": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\stress-block-20261023\\before-replay\\bin\\GPCChecker.Test.Concrete.dll",
+        "sha256": "33e4652d6b716a1a0a24e760e11c4a972933fdd8c05092ab3b57b328cee3f9c3"
+      },
+      "after": {
+        "path": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\stress-block-20261023\\final-mesh-only\\bin\\GPCChecker.Test.Concrete.dll",
+        "sha256": "a9a7f2ce578eba997f854c05d6a8ab1d9b184e6b72aad8a9e6485af3c5f9473e"
+      },
+      "integrationOnly": {
+        "path": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\audit-results\\stress-block-20261023\\integration-only\\bin\\GPCChecker.Test.Concrete.dll",
+        "sha256": "d4b7b1e40bc9de20a604bda21db71202c6fced14c67b09c1fb0434b7b2bdf12c"
+      }
+    },
+    "dependencies": {
+      "DelaunayMesh.dll": "d18bb08255d23239271c197130515758767291f75ce1a9996f1a92db55f114bb",
+      "GPCGeometry.dll": "7ef76edfb4c3736aae7b6f66b2f3ce30a8bb8de031c492b03bd52289d6e9d29e",
+      "GPCModel.dll": "665d05162afc021642b510736005a9b878b71fb5024834c46ece0e0a317d5026",
+      "GPCUtilities.dll": "92031b381f9aa426a5f88b48762c72db89724f784670ffda8802203fc52a05e5",
+      "MathNet.Numerics.dll": "83b41a608e438409d6520d01124f52f57409e229791c0e074e315ace7d9f4134"
+    }
+  }
+}

@@ -19,16 +19,16 @@ public static class PileSegmentDesign
         PileSeismicSettings sourceSeismic,Func<PileDesignLayout,PileRcParameters> factory,CancellationToken cancellation=default,
         IProgress<PileDesignProgress>? progress=null,int maximumParallelism=0)
     {
-        ArgumentNullException.ThrowIfNull(factory);ArgumentNullException.ThrowIfNull(sourceActions);ArgumentNullException.ThrowIfNull(sourceSeismic);
+        Guard.NotNull(factory);Guard.NotNull(sourceActions);Guard.NotNull(sourceSeismic);
         cancellation.ThrowIfCancellationRequested();
-        if(!double.IsFinite(start)||!double.IsFinite(end)||!double.IsFinite(pileLength)||start<0||end<=start||pileLength<end||maximumParallelism<0)
+        if(!PortableMath.IsFinite(start)||!PortableMath.IsFinite(end)||!PortableMath.IsFinite(pileLength)||start<0||end<=start||pileLength<end||maximumParallelism<0)
             throw new ArgumentException("Valid segment bounds, pile length and parallelism required.");
         var seismic=new PileSeismicSettings {Enabled=sourceSeismic.Enabled,HeadLength=sourceSeismic.HeadLength,Links=sourceSeismic.Links,
             SeismicActionsConfirmed=sourceSeismic.SeismicActionsConfirmed,ElasticMomentConfirmed=sourceSeismic.ElasticMomentConfirmed,StandardNtc2018=sourceSeismic.StandardNtc2018};
         if(seismic.Enabled&&(!seismic.SeismicActionsConfirmed||!seismic.ElasticMomentConfirmed||seismic.Links!=PileSeismicLinks.SingleHoops||!seismic.StandardNtc2018))
             throw new ArgumentException("Confirmed seismic actions, elastic moment, single hoops and NTC profile required.");
         var all=sourceActions.Select(a=>new PileAction {Depth=a.Depth,Side=a.Side,N=a.N,V=a.V,M=a.M}).ToArray();
-        if(all.Any(a=>!double.IsFinite(a.Depth)||!double.IsFinite(a.N)||!double.IsFinite(a.V)||!double.IsFinite(a.M)))throw new ArgumentException("Finite concomitant actions required.");
+        if(all.Any(a=>!PortableMath.IsFinite(a.Depth)||!PortableMath.IsFinite(a.N)||!PortableMath.IsFinite(a.V)||!PortableMath.IsFinite(a.M)))throw new ArgumentException("Finite concomitant actions required.");
         const double boundaryToleranceMetres=1e-9;
         var actions=all.Where(a=>a.Depth>=start-boundaryToleranceMetres&&a.Depth<=end+boundaryToleranceMetres).ToArray();
         if(actions.Length==0)throw new ArgumentException("No design actions in the segment.");

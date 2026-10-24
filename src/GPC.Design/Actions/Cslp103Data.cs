@@ -23,7 +23,9 @@ public static class Cslp103Data
         while (reader.ReadLine() is { } line)
         {
             var v = line.Split(',').Select(s => double.Parse(s, CultureInfo.InvariantCulture)).ToArray();
-            result.Add(new((int)v[0], v[1], v[2], v[3], v[4], v[5..]));
+            var values = new double[v.Length - 5];
+            Array.Copy(v, 5, values, 0, values.Length);
+            result.Add(new((int)v[0], v[1], v[2], v[3], v[4], values));
         }
         if (result.Count != 10751) throw new InvalidOperationException("Reticolo CSLP incompleto.");
         return result.ToArray();

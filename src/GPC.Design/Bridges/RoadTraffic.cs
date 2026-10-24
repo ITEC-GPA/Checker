@@ -7,7 +7,7 @@ public sealed record PlaneTraffic(double UniformKnPerMetre, double AxleKn)
     /// <summary>Interior support between two simply supported deck panels of equal length.</summary>
     public double LocalSupportForce(double panel)
     {
-        if (!double.IsFinite(panel) || panel < RoadTraffic.AxleSpacing) throw new ArgumentException("Passo locale inferiore all'interasse del tandem.");
+        if (!PortableMath.IsFinite(panel) || panel < RoadTraffic.AxleSpacing) throw new ArgumentException("Passo locale inferiore all'interasse del tandem.");
         return UniformKnPerMetre * panel + 2 * AxleKn * (1 - RoadTraffic.AxleSpacing / (2 * panel));
     }
 }
@@ -21,25 +21,25 @@ public sealed record RoadTraffic(IReadOnlyList<TrafficLane> Lanes, double Remain
     /// adverse lane numbering for axle and uniform effects. Used only for local conceptual cable/member sizing.</summary>
     public static PlaneTraffic OuterPlane(double deckWidth, params CarriagewayStrip[] strips)
     {
-        if (!double.IsFinite(deckWidth) || deckWidth <= 0 || strips.Length == 0) throw new ArgumentException("Geometria trasversale non valida.");
+        if (!PortableMath.IsFinite(deckWidth) || deckWidth <= 0 || strips.Length == 0) throw new ArgumentException("Geometria trasversale non valida.");
         double Integral(double start, double width) => width * (1 - (start + width / 2) / deckWidth);
         var lanes = new List<(double Width, double Start)>(); double uniform = 0, end = 0;
         foreach (var strip in strips.OrderBy(s => s.Start))
         {
-            if (!double.IsFinite(strip.Start) || strip.Start < end || strip.Start + strip.Width > deckWidth) throw new ArgumentException("Carreggiate sovrapposte o esterne all'impalcato.");
+            if (!PortableMath.IsFinite(strip.Start) || strip.Start < end || strip.Start + strip.Width > deckWidth) throw new ArgumentException("Carreggiate sovrapposte o esterne all'impalcato.");
             var layout = Ntc2018(strip.Width); double x = strip.Start;
             foreach (var lane in layout.Lanes) { lanes.Add((lane.Width, x)); x += lane.Width; }
             uniform += 2.5 * Integral(strip.Start, strip.Width); end = strip.Start + strip.Width;
         }
         uniform += 6.5 * lanes.Max(l => Integral(l.Start, l.Width));
-        var lever = lanes.Select(l => 1 - (l.Start + l.Width / 2) / deckWidth).OrderDescending().ToArray();
+        var lever = lanes.Select(l => 1 - (l.Start + l.Width / 2) / deckWidth).OrderByDescending(orderValue => orderValue).ToArray();
         double axles = lever.Select((v, k) => v * (k switch { 0 => 300, 1 => 200, 2 => 100, _ => 0 })).Sum();
         return new(uniform, axles);
     }
     /// <summary>Global longitudinal action. Numbering is common to carriageways divided by a fixed barrier.</summary>
     public static RoadTraffic Ntc2018(params double[] carriageways)
     {
-        if (carriageways.Length == 0 || carriageways.Any(w => !double.IsFinite(w) || w < 3 || w > 100))
+        if (carriageways.Length == 0 || carriageways.Any(w => !PortableMath.IsFinite(w) || w < 3 || w > 100))
             throw new ArgumentException("Ogni carreggiata deve avere una larghezza fra 3 e 100 m.");
         var lanes = new List<TrafficLane>(); double remaining = 0;
         for (int c = 0; c < carriageways.Length; c++)

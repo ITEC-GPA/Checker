@@ -43,7 +43,7 @@ public sealed class SpectraTests
         foreach(var result in atLimit){
             Assert.AreEqual(4,result.PeriodSeconds,1e-14);
             Assert.IsTrue(result.Spectrum.All(point=>point.PeriodSeconds>=0&&point.PeriodSeconds<=4));
-            Assert.IsTrue(double.IsFinite(result.ExampleSampleAccelerationG));
+            Assert.IsTrue(RuntimeCompatibility.IsFinite(result.ExampleSampleAccelerationG));
         }
         var below=IsolationSpectra.Calculate(states,boundary with { MassKnS2PerM=400 });
         Assert.IsTrue(below.All(result=>result.PeriodSeconds<4));

@@ -76,16 +76,16 @@ public sealed class EmbeddedWallEmbedmentTests
                 double[] target = [p.GetProperty("u").GetDouble(), p.GetProperty("rotation").GetDouble(), p.GetProperty("moment").GetDouble(), p.GetProperty("shear").GetDouble()];
                 foreach (var pair in new[] { (coarse, coarseError), (medium, mediumError), (fine, fineError) })
                 {
-                    var station = pair.Item1.Stages[1].Points.MinBy(x => Math.Abs(x.Elevation + depth))!;
+                    var station = pair.Item1.Stages[1].Points.OrderBy(x => Math.Abs(x.Elevation + depth)).First();
                     Assert.AreEqual(-depth, station.Elevation, 1e-6);
                     double[] values = [station.Displacement, station.Rotation, station.Moment, station.Shear];
                     for (int i = 0; i < 4; i++) pair.Item2[i] = Math.Max(pair.Item2[i], Math.Abs(values[i] - target[i]));
                 }
-                var loaded = fine.Stages[1].Points.MinBy(x => Math.Abs(x.Elevation + depth))!;
-                var reversed = fine.Stages[2].Points.MinBy(x => Math.Abs(x.Elevation + depth))!;
+                var loaded = fine.Stages[1].Points.OrderBy(x => Math.Abs(x.Elevation + depth)).First();
+                var reversed = fine.Stages[2].Points.OrderBy(x => Math.Abs(x.Elevation + depth)).First();
                 Assert.AreEqual(-.5 * loaded.Displacement, reversed.Displacement, 2e-7);
             }
-            TestContext.WriteLine($"L={length}; max errors [u,rotation,M,V] mesh6={string.Join(',', coarseError)}; mesh24={string.Join(',', mediumError)}; mesh96={string.Join(',', fineError)}");
+            TestContext.WriteLine($"L={length}; max errors [u,rotation,M,V] mesh6={string.Join(",", coarseError)}; mesh24={string.Join(",", mediumError)}; mesh96={string.Join(",", fineError)}");
             double[] tolerances = [2e-6, 2e-9, 5, .01];
             for (int i = 0; i < 4; i++)
             {
@@ -103,7 +103,7 @@ public sealed class EmbeddedWallEmbedmentTests
         Assert.IsTrue(result.Completed && result.MinimumCertified && !result.Cancelled, result.Diagnostic);
         Assert.AreEqual(14, result.Candidates.Count); Assert.AreEqual(6500, result.Best!.Embedment);
         Assert.AreEqual(6, result.Candidates.Count(c => c.Outcome == EngineeringOutcome.NotSatisfied));
-        Assert.AreEqual(14, result.Candidates.Select(c => c.Evaluation!.Histories[0]).Distinct(ReferenceEqualityComparer.Instance).Count());
+        Assert.AreEqual(14, result.Candidates.Select(c => c.Evaluation!.Histories[0]).Distinct(RuntimeCompatibility.ReferenceComparer.Instance).Count());
         Assert.AreSame(result.Best.Evaluation!.Payload, result.Best.Evaluation.Histories[0]);
         Assert.IsTrue(result.Candidates.All(c => c.Evaluation!.Criteria[0].StageId == "Loaded"));
         Assert.AreEqual(before, JsonSerializer.Serialize(template));

@@ -10,7 +10,7 @@ public static class SectionDesignSelection
 {
     public static IReadOnlyList<SectionDesignRank> Rank(IEnumerable<SectionDesignRankEntry> source,SectionDesignObjective objective)
     {
-        ArgumentNullException.ThrowIfNull(source);var entries=source.ToArray();
+        Guard.NotNull(source);var entries=source.ToArray();
         if(entries.Any(c=>c==null)||entries.Select(c=>c.Id).Distinct().Count()!=entries.Length)throw new ArgumentException("Unique candidate identities required.");
         var rows=entries.Select(c=>(Entry:c,Score:SectionDesignQuantities.Score(c.Metrics,objective))).OrderBy(c=>c.Score)
             .ThenBy(c=>c.Entry.Metrics.KgPerM).ThenBy(c=>c.Entry.Metrics.PiecesPerM).ThenBy(c=>c.Entry.Metrics.Diameters).ThenBy(c=>c.Entry.Id).ToArray();
@@ -35,10 +35,10 @@ public static class SectionDesignSelection
         SecondaryReinforcementKind kind,double minimumArea,double? maximumSpacing,bool critical,double outlineMinimumY,double outlineMaximumY,
         double aggregate,IEnumerable<double> sourceDiameters,IEnumerable<double> sourceSpacings,int maximumDiameterKinds,SectionDesignObjective objective)
     {
-        ArgumentNullException.ThrowIfNull(section);ArgumentNullException.ThrowIfNull(links);ArgumentNullException.ThrowIfNull(sourceDiameters);ArgumentNullException.ThrowIfNull(sourceSpacings);
-        if(kind is not (SecondaryReinforcementKind.Slab or SecondaryReinforcementKind.Wall)||!double.IsFinite(minimumArea)||minimumArea<0||
-            maximumSpacing is {} provided&&(!double.IsFinite(provided)||provided<=0)||!double.IsFinite(outlineMinimumY)||!double.IsFinite(outlineMaximumY)||outlineMaximumY<=outlineMinimumY||
-            !double.IsFinite(aggregate)||aggregate<0||maximumDiameterKinds<1)throw new ArgumentException("Invalid secondary-reinforcement constraints.");
+        Guard.NotNull(section);Guard.NotNull(links);Guard.NotNull(sourceDiameters);Guard.NotNull(sourceSpacings);
+        if(kind is not (SecondaryReinforcementKind.Slab or SecondaryReinforcementKind.Wall)||!PortableMath.IsFinite(minimumArea)||minimumArea<0||
+            maximumSpacing is {} provided&&(!PortableMath.IsFinite(provided)||provided<=0)||!PortableMath.IsFinite(outlineMinimumY)||!PortableMath.IsFinite(outlineMaximumY)||outlineMaximumY<=outlineMinimumY||
+            !PortableMath.IsFinite(aggregate)||aggregate<0||maximumDiameterKinds<1)throw new ArgumentException("Invalid secondary-reinforcement constraints.");
         bool slab=kind==SecondaryReinforcementKind.Slab;
         if(slab)
         {
@@ -47,8 +47,8 @@ public static class SectionDesignSelection
             minimumArea=Math.Max(minimumArea,2*PlateDetailingRules.SlabSecondaryArea(Math.Max(upper,lower))*1000/section.Width);
         }
         double maximum=maximumSpacing??(slab?PlateDetailingRules.SlabSecondarySpacing(section.Height,critical):PlateDetailingRules.WallHorizontalMaximumSpacing);
-        var diameters=sourceDiameters.Distinct().Order().ToArray();var spacings=sourceSpacings.Distinct().Order().ToArray();
-        if(diameters.Length==0||spacings.Length==0||diameters.Concat(spacings).Any(v=>!double.IsFinite(v)||v<=0))throw new ArgumentException("Positive finite secondary catalogue required.");
+        var diameters=sourceDiameters.Distinct().OrderBy(orderValue => orderValue).ToArray();var spacings=sourceSpacings.Distinct().OrderBy(orderValue => orderValue).ToArray();
+        if(diameters.Length==0||spacings.Length==0||diameters.Concat(spacings).Any(v=>!PortableMath.IsFinite(v)||v<=0))throw new ArgumentException("Positive finite secondary catalogue required.");
         SectionSecondaryDesign? best=null;double bestScore=0;
         foreach(double phi in diameters)foreach(double spacing in spacings)
         {

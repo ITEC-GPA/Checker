@@ -18,14 +18,14 @@ public static partial class WallReinforcementDetailing
         WallRebarZone? currentZone=null; WallRebarFace? currentFace=null;
         void Add(WallDetailRule rule, double demand, double capacity, string unit)
         {
-            if (!double.IsFinite(demand) || !double.IsFinite(capacity)) throw new ArithmeticException("Wall detail exceeds the numeric range.");
+            if (!PortableMath.IsFinite(demand) || !PortableMath.IsFinite(capacity)) throw new ArithmeticException("Wall detail exceeds the numeric range.");
             checks.Add(new(rule,currentZone,currentFace,Math.Abs(demand),capacity,unit));
         }
         void Max(WallDetailRule rule, double actual, double limit) => Add(rule,actual,limit,"mm");
         void Min(WallDetailRule rule, double actual, double required, string unit="mm") => Add(rule,required,actual,unit);
         AnchorageResult Develop(double diameter, bool lap) => AnchorageCalculator.Calculate(DetailingProfile.Ntc2018,
             new(diameter,material.Fyd,material.Fctk05,material.GammaC,opt.GoodBond,0,lap,percent,clearLap));
-        foreach (var key in Enum.GetValues<WallRebarZone>())
+        foreach (var key in PortableEnum.GetValues<WallRebarZone>())
         {
             if (key == WallRebarZone.StemUpper && !two || key == WallRebarZone.Toe && a == 0 || key == WallRebarZone.Heel && g.Heel == 0) continue;
             var arm = r.Zones[key]; token.ThrowIfCancellationRequested(); bool stem = key is WallRebarZone.Stem or WallRebarZone.StemUpper, upper = key == WallRebarZone.StemUpper;
@@ -99,7 +99,7 @@ public static partial class WallReinforcementDetailing
                     Min(WallDetailRule.RootAnchorage, anchor, dev.RequiredLength);
                     Max(WallDetailRule.AnchorageExtent, anchor, Math.Max(0, key == WallRebarZone.Toe ? b - c - root : root - c) * 1000);
                 }
-                double length = path.Zip(path.Skip(1), (p, q) => double.Hypot(p.X - q.X, p.Y - q.Y)).Sum();
+                double length = path.Zip(path.Skip(1), (p, q) => PortableMath.Hypot(p.X - q.X, p.Y - q.Y)).Sum();
                 // The sampled arc is only for drawing; cut length uses its exact centre-line development.
                 if (mandrel > 0) length += (mandrel + dia) / 2000 * (Math.PI / 2 - 24 * Math.Sin(Math.PI / 48));
                 bars.Add(new("P" + (bars.Count + 1), key, currentFace.Value, dia, count, spacing, area, length, upper ? 0 : dev.RequiredLength, anchor, stem && two ? lap.RequiredLength : 0, lapUsed, mandrel, dev.Fbd, path.AsReadOnly()));
@@ -118,7 +118,7 @@ public static partial class WallReinforcementDetailing
             kg += 2 * (s + .1) * Math.Ceiling(l0 / step) * Math.PI * ties * ties / 4 * 1e-6 * WallRebarQuantities.SteelKgPerCubicMetre;
         }
         token.ThrowIfCancellationRequested();
-        if (!double.IsFinite(kg)) throw new ArithmeticException("Steel quantity exceeds the numeric range.");
+        if (!PortableMath.IsFinite(kg)) throw new ArithmeticException("Steel quantity exceeds the numeric range.");
         return new(bars.AsReadOnly(),checks.AsReadOnly(),kg);
     }
 }

@@ -16,11 +16,11 @@ public static partial class BridgeConcept
         if (id is "tied_arch" or "truss" && i.Continuous) throw new ArgumentException("Arco con catena e reticolare: il modello usa campate indipendenti; disattivare Impalcato continuo.");
         if (towers && !i.Continuous) throw new ArgumentException("Strallato e sospeso: il modello richiede l’impalcato continuo nello schema a tre campate.");
         if (towers && (i.StartPier || i.EndPier)) throw new ArgumentException("Strallato e sospeso: estremi su spalla / ancoraggio, non su pila di prosecuzione.");
-        if (count == 0) count = towers ? 3 : Math.Clamp((int)Math.Ceiling(length / ((family.MinSpan + family.MaxSpan) / 2)), 1, 30);
+        if (count == 0) count = towers ? 3 : PortableMath.Clamp((int)Math.Ceiling(length / ((family.MinSpan + family.MaxSpan) / 2)), 1, 30);
         double[] weights = towers ? [.5, 1, .5] : Enumerable.Range(0, count).Select(k => !upper && i.Continuous && count > 2 && (k == 0 || k == count - 1) ? .8 : 1d).ToArray();
         double[] positions = new double[count + 1];
         for (int k = 0; k < count; k++) positions[k + 1] = positions[k] + length * weights[k] / weights.Sum();
-        positions[^1] = length; var warnings = new List<string>();
+        positions[positions.Length - 1] = length; var warnings = new List<string>();
         if (i.Obstacle != "Nessuno" && i.ObstacleWidth > 0)
         {
             double left = (length - i.ObstacleWidth) / 2 - 1, right = length - left;
@@ -53,7 +53,7 @@ public static partial class BridgeConcept
                 if (Math.Abs(next - extraMass) <= 1e-8 * Math.Max(1, next)) { extraMass = next; break; }
                 extraMass = next;
             }
-            if (iteration == 80 || !double.IsFinite(extraMass)) throw new ArgumentException("Predimensionamento di cavi / aste non convergente: rivedere geometria e tensioni di riferimento.");
+            if (iteration == 80 || !PortableMath.IsFinite(extraMass)) throw new ArgumentException("Predimensionamento di cavi / aste non convergente: rivedere geometria e tensioni di riferimento.");
         }
         double permanent = deckPermanent + extraMass / length * 9.81, q = permanent + live, qd = a.GammaG * permanent + a.GammaQ * live;
         double ec = ConcreteModulus(i.Fc);
@@ -117,7 +117,7 @@ public static partial class BridgeConcept
         {
             if (amount <= 0) return null;
             quantities.Add(new(group, name, amount, unit, rates.Value(key), amount * rates.Value(key), carbon));
-            AddCostQuantity(costQuantities, quantities.Count, key, amount, unit); return costQuantities[^1].Id;
+            AddCostQuantity(costQuantities, quantities.Count, key, amount, unit); return costQuantities[costQuantities.Count - 1].Id;
         }
         Add("Impalcato", "Calcestruzzo", volumeDeck, "m³", "concrete_deck", volumeDeck * cf / 1000);
         Add("Impalcato", "Armatura ordinaria", deckRebar, "t", "rebar", deckRebar * a.Co2Rebar);
@@ -210,7 +210,7 @@ public static partial class BridgeConcept
         if (i.TrafficModel != TrafficModel.LegacyUniform && serviceLoads is not null)
             for (int k = 0; k < supports.Count; k++) supports[k] = supports[k] with { MinimumReaction = serviceLoads.MinimumReactions[k] };
         warnings.Add("Costi convenzionali, montaggio speciale esplicito; CO₂ parziale materiali e cantiere, senza EPD. Durata parametrica, non cronoprogramma.");
-        if (quantities.Any(t => !double.IsFinite(t.Amount) || !double.IsFinite(t.Cost)) || !double.IsFinite(deck.Inertia)) throw new ArgumentException("Risultato non finito nel predimensionamento della tipologia.");
+        if (quantities.Any(t => !PortableMath.IsFinite(t.Amount) || !PortableMath.IsFinite(t.Cost)) || !PortableMath.IsFinite(deck.Inertia)) throw new ArgumentException("Risultato non finito nel predimensionamento della tipologia.");
         return new(family, width, depth, depth, deck.Slab, deck.Spacing, deck.Girders, deck.Web, deck.Bottom, spans, supports.ToArray(), foundation, diameter, pileLength,
             volumeDeck + subVolume + towerVolume + foundVolume + anchorVolume + pileVolume, deck.SteelMass + structure.Steel + structure.Cables,
             deckRebar + subRebar + foundRebar, 0, deck.Inertia, direct, total, total * (1 - a.Uncertainty / 100), total * (1 + a.Uncertainty / 100),

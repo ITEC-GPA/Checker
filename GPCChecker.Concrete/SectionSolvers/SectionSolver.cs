@@ -230,6 +230,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected LineGaussPoints.GaussPointNumber _gaussIntegrationLinePoints;
 
         protected GaussIntegration.GlobalCoordinateGaussPoint[][] _globalCoordinateGaussPointsMesh;
+        private StressBlockIntegration _stressBlockIntegration;
         protected ThinWallSection.ThinWall[][] _steelSectionsThinWallsBreaked;
         protected GaussIntegration.GlobalCoordinateGaussPoint[][][] _globalCoordinateGaussPointsThinWalls;
 
@@ -1059,6 +1060,42 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Concrete Integration
 
+        internal bool TryGetParabolaLaw(out ParabolaRectangleLaw law)
+        {
+            law = default;
+            return !_considerTensileConcrete && ParabolaRectangleLaw.TryCreate(ConcreteMaterial, _standard, out law);
+        }
+
+        // Keep custom tables and tensile-concrete options on the original integration path.
+        // Inspect the current material table: its public setters can change the law after solver creation.
+        internal bool TryGetStressBlockLaw(out StressBlockIntegration.Law law)
+        {
+            law = default;
+            if (_considerTensileConcrete || ConcreteMaterial.CompressionStressStrainDiagram != ConcreteMaterial.CompressionStressStrainDiagrams.StressBlock)
+                return false;
+            var strains = ConcreteMaterial.StressStrainTableCompression.Strains;
+            var stresses = ConcreteMaterial.StressStrainTableCompression.Stresses;
+            if (strains.Length != 4 || stresses.Length != 4 || strains[0] != 0 ||
+                !(strains[3] < strains[1] && strains[1] < 0) || strains[1] != strains[2] ||
+                stresses[0] != 0 || stresses[1] != 0 || !(stresses[2] < 0) || stresses[2] != stresses[3]) return false;
+            double stress = CalculateSigmaC((strains[1] + strains[3]) / 2);
+            if (double.IsNaN(stress) || double.IsInfinity(stress) || double.IsInfinity(strains[3])) return false;
+            law = new StressBlockIntegration.Law(strains[3], strains[1], stress);
+            return true;
+        }
+
+        private StressBlockIntegration GetStressBlockIntegration()
+        {
+            var integration = _stressBlockIntegration;
+            if (integration == null)
+            {
+                integration = new StressBlockIntegration(ConcreteSection.Mesh, _integrationReferencePoint);
+                System.Threading.Interlocked.CompareExchange(ref _stressBlockIntegration, integration, null);
+                integration = _stressBlockIntegration;
+            }
+            return integration;
+        }
+
         /// <summary>
         /// Calculate the stress resultant of the concrete part
         /// </summary>
@@ -1072,6 +1109,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             try
             {
+                if (TryGetStressBlockLaw(out var block))
+                    return GetStressBlockIntegration().Integrate(strainPlane, block);
+                if (TryGetParabolaLaw(out var parabola))
+                    return GetStressBlockIntegration().Integrate(strainPlane, parabola);
                 (double s, double, double) ret = GaussIntegration.IntegrationLinearShapeFunction((x, y) =>
                 {
                     double sigmaC = CalculateSigmaC(strainPlane.GetStrain(x, y));
@@ -1122,6 +1163,18 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             try
             {
                 ForceTuple[] returnValue = new ForceTuple[strainPlane.Length];
+                if (TryGetParabolaLaw(out var parabola))
+                {
+                    var integration = GetStressBlockIntegration();
+                    for (int i = 0; i < strainPlane.Length; i++) returnValue[i] = integration.Integrate(strainPlane[i], parabola);
+                    return returnValue;
+                }
+                if (TryGetStressBlockLaw(out var block))
+                {
+                    var integration = GetStressBlockIntegration();
+                    for (int i = 0; i < strainPlane.Length; i++) returnValue[i] = integration.Integrate(strainPlane[i], block);
+                    return returnValue;
+                }
                 Func<double, double, (double, double, double)>[] functions = new Func<double, double, (double, double, double)>[strainPlane.Length];
 
                 for (int i = 0; i < strainPlane.Length; i++)

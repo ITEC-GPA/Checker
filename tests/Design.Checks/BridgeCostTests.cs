@@ -20,7 +20,7 @@ public sealed class BridgeCostTests
         var before = BridgeConcept.Optimize(input, options); var after = BridgeConcept.Optimize(input with { Prices = prices }, options);
         Assert.AreEqual(before.Evaluated, after.Evaluated); Assert.AreEqual(before.Admissible, after.Admissible);
         Assert.AreEqual(before.Candidates.Length, after.Candidates.Length);
-        foreach (var pair in before.Candidates.Zip(after.Candidates))
+        foreach (var pair in before.Candidates.Zip(after.Candidates, (first, second) => (First: first, Second: second)))
         {
             Assert.AreEqual(pair.First.Data.Input, pair.Second.Data.Input);
             Assert.AreEqual(pair.First.Result.TotalCost * 2, pair.Second.Result.TotalCost, 1e-10 * pair.Second.Result.TotalCost);

@@ -76,13 +76,14 @@ public sealed class HistoryBilinearSteelLaw : IHistoryMaterialLaw
     }
 }
 
-/// <summary>Snapshot of Model's tabulated constitutive envelopes, for the concrete. Nonlinear, path independent;
+/// <summary>Snapshot of Model's selected constitutive envelope: analytic parabola where enabled, tables otherwise. Nonlinear, path independent;
 /// unloading follows the envelope, without invented concrete damage/hysteresis. No automatic design factors.
 /// The tensile branch ends at cracking: beyond its last strain the concrete is cracked, σ = 0 and tangent 0. Compression beyond the last strain
 /// of the compressive branch (εcu) is outside the domain (<see cref="HistoryMaterialRangeException"/>).</summary>
 public sealed class HistoryModelEnvelopeLaw : IHistoryMaterialLaw
 {
     private readonly StressStrainTable compression, tension;
+    private readonly ConcreteParabolaRectangleLaw? parabola;
     private readonly double[] compressionStrains, compressionStresses, tensionStrains, tensionStresses;
     public double InitialModulus { get; }
     public bool IsLinear => false;
@@ -101,6 +102,7 @@ public sealed class HistoryModelEnvelopeLaw : IHistoryMaterialLaw
         compressionStrains = material.StressStrainTableCompression.Strains; compressionStresses = material.StressStrainTableCompression.Stresses;
         tensionStrains = material.StressStrainTableTension.Strains; tensionStresses = material.StressStrainTableTension.Stresses;
         compression = new(compressionStresses, compressionStrains); tension = new(tensionStresses, tensionStrains);
+        if (material is ConcreteMaterial concrete && ConcreteParabolaRectangleLaw.TryCreate(concrete, out var law)) parabola = law;
         NeglectsTension = neglectTension;
     }
     public HistoryMaterialState InitialState() => new(0, 0);
@@ -115,6 +117,12 @@ public sealed class HistoryModelEnvelopeLaw : IHistoryMaterialLaw
         // Compression beyond the ultimate strain is rupture, not zero resistance.
         if (s.Any(v => v != 0) && Math.Abs(strain) > Math.Abs(e.Last()))
             throw new HistoryMaterialRangeException("Deformazione di compressione oltre il diagramma costitutivo Model (εcu).");
+        if (strain <= 0 && parabola is { } analytic)
+        {
+            double sigma = analytic.GetStress(strain);
+            double derivative = strain <= analytic.Peak ? 0 : 2 * analytic.Stress / analytic.Peak * (1 - strain / analytic.Peak);
+            return new(sigma, derivative, new(strain, sigma));
+        }
         double stress = (strain > 0 ? tension : compression).GetStress(strain), tangent = 0;
         for (int i = 1; i < e.Length; i++)
             if (Math.Abs(strain) <= Math.Abs(e[i])) { tangent = (s[i] - s[i - 1]) / (e[i] - e[i - 1]); break; }

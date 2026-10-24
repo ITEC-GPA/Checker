@@ -13,18 +13,18 @@ public sealed record EmbeddedWallSteelTube(string SectionId, CircularHollowSteel
 {
     public void Validate()
     {
-        if (string.IsNullOrWhiteSpace(SectionId) || Section is null || !double.IsFinite(Spacing) || Spacing < Section.Diameter)
+        if (string.IsNullOrWhiteSpace(SectionId) || Section is null || !PortableMath.IsFinite(Spacing) || Spacing < Section.Diameter)
             throw new ArgumentException("Unique section identifier, tube properties and spacing no smaller than the tube diameter required.");
     }
     /// <summary>Elastic EI for the represented strip, Nmm². Pressure acts on the declared strip width.</summary>
     public double FlexuralRigidity(double tributaryWidth)
     {
         Validate();
-        if (!double.IsFinite(tributaryWidth) || tributaryWidth <= 0) throw new ArgumentException("Positive represented strip width required.");
+        if (!PortableMath.IsFinite(tributaryWidth) || tributaryWidth <= 0) throw new ArgumentException("Positive represented strip width required.");
         if (!SingleRowEqualSharingConfirmed || string.IsNullOrWhiteSpace(RepresentationSource))
             throw new ArgumentException("Document the single row and equal sharing assumption before assigning its equivalent rigidity.");
         double rigidity = Section.ElasticModulus * Section.Inertia * tributaryWidth / Spacing;
-        if (!double.IsFinite(rigidity) || rigidity <= 0) throw new ArithmeticException("Nonfinite equivalent wall rigidity.");
+        if (!PortableMath.IsFinite(rigidity) || rigidity <= 0) throw new ArithmeticException("Nonfinite equivalent wall rigidity.");
         return rigidity;
     }
 }
@@ -42,9 +42,9 @@ public static class EmbeddedWallSteelTubes
         IReadOnlyList<EmbeddedWallSteelTube> definitions, StandardEN1993p11? standard, EmbeddedWallSteelCheckKind kind,
         CancellationToken cancellation = default)
     {
-        ArgumentNullException.ThrowIfNull(analysis); ArgumentNullException.ThrowIfNull(definitions); cancellation.ThrowIfCancellationRequested();
+        Guard.NotNull(analysis); Guard.NotNull(definitions); cancellation.ThrowIfCancellationRequested();
         if (!analysis.IsComplete) throw new InvalidOperationException("Incomplete histories cannot be certified by section verification.");
-        if (!double.IsFinite(tributaryWidth) || tributaryWidth <= 0 || !Enum.IsDefined(kind)) throw new ArgumentException("Explicit width and check kind required.");
+        if (!PortableMath.IsFinite(tributaryWidth) || tributaryWidth <= 0 || !PortableEnum.IsDefined(kind)) throw new ArgumentException("Explicit width and check kind required.");
         // Tube actions are strip actions × spacing/width: a width other than the analysed one would scale them wrongly.
         if (Math.Abs(tributaryWidth - analysis.TributaryWidth) > 1e-7) throw new ArgumentException("The checked width must be the analysed tributary width.");
         var sections = new Dictionary<string, EmbeddedWallSteelTube>(StringComparer.Ordinal);
@@ -67,7 +67,7 @@ public static class EmbeddedWallSteelTubes
             {
                 factor = definition.Spacing / tributaryWidth;
                 normal = -point.NormalForce * factor.Value; shear = point.Shear * factor.Value; moment = -point.Moment * factor.Value;
-                if (!double.IsFinite(normal.Value) || !double.IsFinite(shear.Value) || !double.IsFinite(moment.Value))
+                if (!PortableMath.IsFinite(normal.Value) || !PortableMath.IsFinite(shear.Value) || !PortableMath.IsFinite(moment.Value))
                     throw new ArithmeticException("Nonfinite member actions after strip conversion.");
                 if (kind == EmbeddedWallSteelCheckKind.StaticUltimate)
                     verification = Ntc2018CircularHollowSections.Check(definition.Section, normal.Value, shear.Value, moment.Value, standard, cancellation);

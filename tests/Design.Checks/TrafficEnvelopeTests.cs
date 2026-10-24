@@ -13,7 +13,7 @@ public sealed class TrafficEnvelopeTests
         foreach (double length in new[] { 2.4, 28.000000000000004, 35.00000000000001, Math.PI * 10 })
         {
             var r = new BeamTrafficEnvelope([length], false, RoadTraffic.Ntc2018(9.5)).Calculate(1e8);
-            Assert.AreEqual(length, r.Sections[^1].X); Assert.AreEqual(41, r.Sections.Count);
+            Assert.AreEqual(length, r.Sections[r.Sections.Count - 1].X); Assert.AreEqual(41, r.Sections.Count);
         }
     }
     [TestMethod]
@@ -69,7 +69,7 @@ public sealed class TrafficEnvelopeTests
     public void EnvelopesMatchIndependentPythonResearchAndRetainOppositeSigns()
     {
         string fixture = Path.Combine(AppContext.BaseDirectory, "Fixtures/traffic-research.json");
-        Assert.AreEqual("7BB22B105C47E700D477B0FF5B50AC620151C61C19657F2073E34E51289D5335", Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(fixture))));
+        Assert.AreEqual("7BB22B105C47E700D477B0FF5B50AC620151C61C19657F2073E34E51289D5335", RuntimeCompatibility.Sha256Hex(File.ReadAllBytes(fixture)));
         var cases = JsonSerializer.Deserialize<ReferenceCase[]>(File.ReadAllText(fixture))!;
         foreach (var c in cases)
         {
@@ -80,7 +80,7 @@ public sealed class TrafficEnvelopeTests
                 "M+ campata" => r.Sections.Max(s => s.Moment.Maximum),
                 "M+ centrale" => r.Sections.Where(s => s.Span == spans.Length / 2 + 1).Max(s => s.Moment.Maximum),
                 "M- appoggio" => -r.Sections.Min(s => s.Moment.Minimum),
-                "R pila" => r.Reactions.Skip(1).SkipLast(1).Max(s => s.Maximum),
+                "R pila" => r.Reactions.Skip(1).Take(r.Reactions.Count - 2).Max(s => s.Maximum),
                 "R spalla" => r.Reactions[0].Maximum,
                 _ => throw new Exception(c.Effect) };
             // Independent study used load grid 0.05 m and sections 0.10 m. Native positions are exact;

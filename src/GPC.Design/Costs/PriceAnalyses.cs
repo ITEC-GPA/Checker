@@ -38,7 +38,7 @@ public static class PriceAnalyses
     public static IReadOnlyDictionary<string, AnalysisBreakdown> Resolve(IEnumerable<ResolvedCostRate> items, IEnumerable<PriceAnalysis> analyses,
         decimal generalExpensesPercent, decimal profitPercent)
     {
-        ArgumentNullException.ThrowIfNull(items); ArgumentNullException.ThrowIfNull(analyses);
+        Guard.NotNull(items); Guard.NotNull(analyses);
         Percent(generalExpensesPercent, "general expenses"); Percent(profitPercent, "profit");
         var priced = new Dictionary<string, ResolvedCostRate>(StringComparer.Ordinal);
         foreach (var item in items)
@@ -46,7 +46,7 @@ public static class PriceAnalyses
         var byCode = new Dictionary<string, PriceAnalysis>(StringComparer.Ordinal);
         foreach (var analysis in analyses)
         {
-            if (analysis is null || string.IsNullOrWhiteSpace(analysis.Code) || !Enum.IsDefined(analysis.Unit) || analysis.Components is null || analysis.Components.Count == 0)
+            if (analysis is null || string.IsNullOrWhiteSpace(analysis.Code) || !PortableEnum.IsDefined(analysis.Unit) || analysis.Components is null || analysis.Components.Count == 0)
                 throw new ArgumentException("Analysis without code, unit or components: " + analysis?.Code);
             if (priced.ContainsKey(analysis.Code) || !byCode.TryAdd(analysis.Code, analysis)) throw new ArgumentException("Code used twice: " + analysis.Code);
             if (analysis.GeneralExpensesPercent is decimal g) Percent(g, "general expenses of " + analysis.Code);
@@ -72,7 +72,7 @@ public static class PriceAnalyses
                 if (byCode.ContainsKey(component.Code)) { var nested = Visit(component.Code); unit = nested.Unit; price = nested.UnitPrice; }
                 else if (priced.TryGetValue(component.Code, out var item))
                 {
-                    if (!Enum.IsDefined(item.Unit) || item.Price is not decimal value || value < 0) throw new ArgumentException("Component without price: " + component.Code + " in " + code);
+                    if (!PortableEnum.IsDefined(item.Unit) || item.Price is not decimal value || value < 0) throw new ArgumentException("Component without price: " + component.Code + " in " + code);
                     unit = item.Unit; price = value;
                 }
                 else throw new ArgumentException("Missing component: " + component.Code + " in " + code);

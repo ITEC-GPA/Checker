@@ -10,7 +10,7 @@ using GPC.Model.Results;
 namespace GPC.Checker.SectionSolvers
 {
     /// <summary>
-    /// Safeguarded Newton search on the ultimate strain surface for continuous constitutive diagrams.
+    /// Safeguarded Newton search on the ultimate strain surface for continuous diagrams and geometrically integrated stress blocks.
     /// Two residuals are the orthogonal projection onto the complement of the demand line, in section-scaled force coordinates.
     /// Only the actual, updated resultant can satisfy convergence. All state and caches belong to one call, including parallel searches.
     /// </summary>

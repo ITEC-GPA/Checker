@@ -45,6 +45,7 @@ namespace ConcreteTests
     /// 28 days (EN 1992-1-1 Table 3.1), so the 256 NonLinear points were regenerated; the other diagrams, the paths, the failure fields and the
     /// verdicts on N are unchanged.
     /// </summary>
+    // Current numerical baseline approved 2026-10-24. Historical snapshots: docs/analytic-parabola-20261023/historical-fixtures-before-analytic-default.zip.
     [TestClass]
     public class DomainPointContractTests
     {
@@ -238,8 +239,8 @@ namespace ConcreteTests
                 count = items.Count;
                 var text = new StringBuilder();
                 text.Append("{\n");
-                text.Append("  \"contract\": ").Append(S("Domain points at an assigned axial force of GPCChecker.Concrete 0.0.17.0 (ANTHEA F2.1, S-1): SectionSolver.CalculateDomainPoint as SectionMomentResistance of ANTHEA, and the rule on N of 0.0.17.0")).Append(",\n");
-                text.Append("  \"source\": ").Append(S("Checker develop 4f54139a before the tolerance on N of S-1; Model 5ad56681; regression snapshot, not an independent expectation")).Append(",\n");
+                text.Append("  \"contract\": ").Append(S("Domain points at an assigned axial force of GPCChecker.Concrete 0.20.0.0 (ANTHEA F2.1, S-1): SectionSolver.CalculateDomainPoint as SectionMomentResistance of ANTHEA, and the rule on N of 0.0.17.0")).Append(",\n");
+                text.Append("  \"source\": ").Append(S("Checker 0.20.0.0 / Model 5.21.0.0 analytic default; updated with user approval on 2026-10-24; regression snapshot, not an independent expectation")).Append(",\n");
                 text.Append("  \"units\": ").Append(S("N, Nmm; compression negative; tolerance of 0.0.17.0 = max(1000; 1e-6 |N|); acceptedKn = the same rule compared in kN as ANTHEA")).Append(",\n");
                 text.Append("  \"points\": [\n").Append(string.Join(",\n", items)).Append("\n  ]\n");
                 text.Append("}\n");

@@ -47,7 +47,7 @@ public sealed class BridgeTrafficTests
             var r = BridgeConcept.Calculate(ntc);
             Assert.IsNotNull(r.Traffic); Assert.IsTrue(r.Traffic.Scope.Contains("non analisi"));
             Assert.AreEqual(0, r.Stations.Count, "Do not fabricate beam diagrams for the real upper structure.");
-            Assert.IsTrue(r.Advanced!.Members.All(m => double.IsFinite(m.Force) && double.IsFinite(m.Mass)));
+            Assert.IsTrue(r.Advanced!.Members.All(m => RuntimeCompatibility.IsFinite(m.Force) && RuntimeCompatibility.IsFinite(m.Mass)));
             Assert.IsTrue(r.Supports.All(p => p.MinimumReaction <= p.Reaction));
             Assert.AreEqual(old.Inertia, r.Inertia); Assert.AreEqual(old.Depth, r.Depth);
             var hanger = r.Advanced.Members.FirstOrDefault(m => m.Kind == "Pendino");
@@ -79,7 +79,7 @@ public sealed class BridgeTrafficTests
         watch.Restart(); var full = BridgeConcept.Optimize(ntc, broad);
         Console.WriteLine($"Full grid: {fullLegacy.Evaluated}/{full.Evaluated} candidates, {full.Admissible} admitted; legacy {broadLegacy:F2} ms, NTC {watch.Elapsed.TotalMilliseconds:F2} ms");
         Assert.IsTrue(full.Evaluated > 100);
-        foreach (var pair in first.Candidates.Zip(second.Candidates))
+        foreach (var pair in first.Candidates.Zip(second.Candidates, (first, second) => (First: first, Second: second)))
         {
             Assert.AreEqual(pair.First.Data, pair.Second.Data);
             Assert.AreEqual(pair.First.Result.TotalCost, pair.Second.Result.TotalCost);

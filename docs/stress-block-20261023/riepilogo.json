@@ -1,0 +1,1113 @@
+{
+  "baseline": "6edf46a7 / Concrete 0.18.0.1",
+  "candidate": "Concrete 0.18.0.2, geometric concrete integration; bars unchanged",
+  "primaryScope": "StressBlock + Plastic. Elastic cases are diagnostic only and excluded from primary performance conclusions.",
+  "cohorts": {
+    "All": {
+      "before": {
+        "cases": 240,
+        "accepted": 175,
+        "planeAccepted": 122,
+        "sumSeconds": 44.42483649999999,
+        "meanMs": 185.10348541666667,
+        "p50Ms": 86.66495,
+        "p90Ms": 522.70108,
+        "p95Ms": 827.4184149999999,
+        "p99Ms": 1038.5733849999995,
+        "maxMs": 1168.1967,
+        "coldP95Ms": 878.1967199999998,
+        "meanIterations": 120.07083333333334,
+        "p95Iterations": 199.0,
+        "meanScalarEvaluations": 1626.2041666666667,
+        "fallback": 187,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 240,
+        "accepted": 173,
+        "planeAccepted": 173,
+        "sumSeconds": 2.1430867000000005,
+        "meanMs": 8.929527916666666,
+        "p50Ms": 0.0795,
+        "p90Ms": 30.311439999999997,
+        "p95Ms": 32.018885,
+        "p99Ms": 50.159895,
+        "maxMs": 64.6772,
+        "coldP95Ms": 64.26567,
+        "meanIterations": 19.775,
+        "p95Iterations": 124.04999999999998,
+        "meanScalarEvaluations": 585.2833333333333,
+        "fallback": 71,
+        "unstable": 0
+      },
+      "speedup": 20.72936969838877
+    },
+    "AllCommon": {
+      "before": {
+        "cases": 172,
+        "accepted": 172,
+        "planeAccepted": 121,
+        "sumSeconds": 21.33749550000001,
+        "meanMs": 124.05520639534883,
+        "p50Ms": 59.35555,
+        "p90Ms": 303.90945000000005,
+        "p95Ms": 564.3797449999993,
+        "p99Ms": 791.0421449999993,
+        "maxMs": 885.2062,
+        "coldP95Ms": 575.5471499999994,
+        "meanIterations": 101.6453488372093,
+        "p95Iterations": 199.0,
+        "meanScalarEvaluations": 1324.0290697674418,
+        "fallback": 121,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 172,
+        "accepted": 172,
+        "planeAccepted": 172,
+        "sumSeconds": 0.014232599999999996,
+        "meanMs": 0.08274767441860466,
+        "p50Ms": 0.05815,
+        "p90Ms": 0.13817,
+        "p95Ms": 0.15661499999999998,
+        "p99Ms": 0.7211489999999997,
+        "maxMs": 0.7992,
+        "coldP95Ms": 0.31715499999999947,
+        "meanIterations": 4.348837209302325,
+        "p95Iterations": 7.0,
+        "meanScalarEvaluations": 32.31395348837209,
+        "fallback": 4,
+        "unstable": 0
+      },
+      "speedup": 1499.1987057881213
+    },
+    "AllCommonPlanes": {
+      "before": {
+        "cases": 121,
+        "accepted": 121,
+        "planeAccepted": 121,
+        "sumSeconds": 13.565788100000004,
+        "meanMs": 112.11395123966942,
+        "p50Ms": 41.0432,
+        "p90Ms": 290.2508,
+        "p95Ms": 535.1765,
+        "p99Ms": 833.7140999999998,
+        "maxMs": 885.2062,
+        "coldP95Ms": 553.5192,
+        "meanIterations": 78.31404958677686,
+        "p95Iterations": 199.0,
+        "meanScalarEvaluations": 795.396694214876,
+        "fallback": 70,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 121,
+        "accepted": 121,
+        "planeAccepted": 121,
+        "sumSeconds": 0.0098312,
+        "meanMs": 0.0812495867768595,
+        "p50Ms": 0.0601,
+        "p90Ms": 0.1368,
+        "p95Ms": 0.1423,
+        "p99Ms": 0.6068799999999985,
+        "maxMs": 0.7411,
+        "coldP95Ms": 0.2947,
+        "meanIterations": 4.024793388429752,
+        "p95Iterations": 5.0,
+        "meanScalarEvaluations": 28.429752066115704,
+        "fallback": 3,
+        "unstable": 0
+      },
+      "speedup": 1379.8710330376764
+    },
+    "AllCommonGeometric": {
+      "before": {
+        "cases": 62,
+        "accepted": 62,
+        "planeAccepted": 57,
+        "sumSeconds": 4.581489200000001,
+        "meanMs": 73.89498709677419,
+        "p50Ms": 35.0379,
+        "p90Ms": 203.67644999999996,
+        "p95Ms": 282.91582999999997,
+        "p99Ms": 479.42079200000006,
+        "maxMs": 535.1765,
+        "coldP95Ms": 287.15837,
+        "meanIterations": 59.693548387096776,
+        "p95Iterations": 199.0,
+        "meanScalarEvaluations": 580.3064516129032,
+        "fallback": 34,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 62,
+        "accepted": 62,
+        "planeAccepted": 62,
+        "sumSeconds": 0.0057862,
+        "meanMs": 0.0933258064516129,
+        "p50Ms": 0.0666,
+        "p90Ms": 0.13637000000000002,
+        "p95Ms": 0.140385,
+        "p99Ms": 0.723959,
+        "maxMs": 0.7411,
+        "coldP95Ms": 0.3788699999999996,
+        "meanIterations": 4.451612903225806,
+        "p95Iterations": 5.0,
+        "meanScalarEvaluations": 35.403225806451616,
+        "fallback": 3,
+        "unstable": 0
+      },
+      "speedup": 791.7958591130623
+    },
+    "Plastic": {
+      "before": {
+        "cases": 120,
+        "accepted": 119,
+        "planeAccepted": 74,
+        "sumSeconds": 19.895951400000012,
+        "meanMs": 165.799595,
+        "p50Ms": 93.26565,
+        "p90Ms": 440.35730000000007,
+        "p95Ms": 629.77766,
+        "p99Ms": 834.5508050000002,
+        "maxMs": 885.2062,
+        "coldP95Ms": 616.161325,
+        "meanIterations": 138.90833333333333,
+        "p95Iterations": 199.0,
+        "meanScalarEvaluations": 1786.2,
+        "fallback": 96,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 120,
+        "accepted": 120,
+        "planeAccepted": 120,
+        "sumSeconds": 0.008733,
+        "meanMs": 0.072775,
+        "p50Ms": 0.055150000000000005,
+        "p90Ms": 0.13823,
+        "p95Ms": 0.156335,
+        "p99Ms": 0.191841,
+        "maxMs": 0.2485,
+        "coldP95Ms": 0.251415,
+        "meanIterations": 3.966666666666667,
+        "p95Iterations": 6.049999999999997,
+        "meanScalarEvaluations": 23.383333333333333,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "speedup": 2278.2493301271056
+    },
+    "PlasticCommon": {
+      "before": {
+        "cases": 119,
+        "accepted": 119,
+        "planeAccepted": 74,
+        "sumSeconds": 19.78713210000001,
+        "meanMs": 166.27842100840337,
+        "p50Ms": 92.8498,
+        "p90Ms": 440.73690000000005,
+        "p95Ms": 630.02892,
+        "p99Ms": 835.3875099999995,
+        "maxMs": 885.2062,
+        "coldP95Ms": 616.43285,
+        "meanIterations": 139.78991596638656,
+        "p95Iterations": 199.0,
+        "meanScalarEvaluations": 1799.7478991596638,
+        "fallback": 95,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 119,
+        "accepted": 119,
+        "planeAccepted": 119,
+        "sumSeconds": 0.0086536,
+        "meanMs": 0.07271932773109244,
+        "p50Ms": 0.0548,
+        "p90Ms": 0.13826,
+        "p95Ms": 0.15636999999999998,
+        "p99Ms": 0.19190199999999996,
+        "maxMs": 0.2485,
+        "coldP95Ms": 0.25172999999999995,
+        "meanIterations": 3.9243697478991595,
+        "p95Iterations": 6.0,
+        "meanScalarEvaluations": 23.134453781512605,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "speedup": 2286.578083109921
+    },
+    "PlasticCommonPlanes": {
+      "before": {
+        "cases": 74,
+        "accepted": 74,
+        "planeAccepted": 74,
+        "sumSeconds": 12.324825900000004,
+        "meanMs": 166.55170135135134,
+        "p50Ms": 90.63255000000001,
+        "p90Ms": 373.81060000000014,
+        "p95Ms": 669.2886899999995,
+        "p99Ms": 859.8328599999999,
+        "maxMs": 885.2062,
+        "coldP95Ms": 664.5896399999996,
+        "meanIterations": 117.56756756756756,
+        "p95Iterations": 199.0,
+        "meanScalarEvaluations": 1163.7027027027027,
+        "fallback": 50,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 74,
+        "accepted": 74,
+        "planeAccepted": 74,
+        "sumSeconds": 0.005511500000000001,
+        "meanMs": 0.07447972972972973,
+        "p50Ms": 0.0604,
+        "p90Ms": 0.13810999999999998,
+        "p95Ms": 0.14719999999999991,
+        "p99Ms": 0.17327499999999996,
+        "maxMs": 0.1824,
+        "coldP95Ms": 0.2398549999999999,
+        "meanIterations": 3.7567567567567566,
+        "p95Iterations": 5.349999999999994,
+        "meanScalarEvaluations": 22,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "speedup": 2236.2017418125743
+    },
+    "PlasticCommonGeometric": {
+      "before": {
+        "cases": 24,
+        "accepted": 24,
+        "planeAccepted": 19,
+        "sumSeconds": 3.5111445000000003,
+        "meanMs": 146.2976875,
+        "p50Ms": 82.06255,
+        "p90Ms": 288.17918000000003,
+        "p95Ms": 420.7452649999997,
+        "p99Ms": 514.153856,
+        "maxMs": 535.1765,
+        "coldP95Ms": 436.7537299999996,
+        "meanIterations": 126.125,
+        "p95Iterations": 208.34999999999997,
+        "meanScalarEvaluations": 1192.0833333333333,
+        "fallback": 17,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 24,
+        "accepted": 24,
+        "planeAccepted": 24,
+        "sumSeconds": 0.0018900000000000002,
+        "meanMs": 0.07875,
+        "p50Ms": 0.0654,
+        "p90Ms": 0.13784,
+        "p95Ms": 0.140155,
+        "p99Ms": 0.172763,
+        "maxMs": 0.1824,
+        "coldP95Ms": 0.23135499999999998,
+        "meanIterations": 3.5833333333333335,
+        "p95Iterations": 5.0,
+        "meanScalarEvaluations": 21.041666666666668,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "speedup": 1857.7484126984127
+    },
+    "Elastic": {
+      "before": {
+        "cases": 120,
+        "accepted": 56,
+        "planeAccepted": 48,
+        "sumSeconds": 24.5288851,
+        "meanMs": 204.40737583333333,
+        "p50Ms": 72.98615,
+        "p90Ms": 561.1727700000025,
+        "p95Ms": 859.7852799999997,
+        "p99Ms": 1060.1974300000002,
+        "maxMs": 1168.1967,
+        "coldP95Ms": 946.8131749999995,
+        "meanIterations": 101.23333333333333,
+        "p95Iterations": 199.0,
+        "meanScalarEvaluations": 1466.2083333333333,
+        "fallback": 91,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 120,
+        "accepted": 53,
+        "planeAccepted": 53,
+        "sumSeconds": 2.1343537000000006,
+        "meanMs": 17.786280833333333,
+        "p50Ms": 27.07965,
+        "p90Ms": 32.02517,
+        "p95Ms": 43.56055,
+        "p99Ms": 55.85645700000001,
+        "maxMs": 64.6772,
+        "coldP95Ms": 86.77285499999994,
+        "meanIterations": 35.583333333333336,
+        "p95Iterations": 136.54999999999995,
+        "meanScalarEvaluations": 1147.1833333333334,
+        "fallback": 71,
+        "unstable": 0
+      },
+      "speedup": 11.492418102960158
+    },
+    "ElasticCommon": {
+      "before": {
+        "cases": 53,
+        "accepted": 53,
+        "planeAccepted": 47,
+        "sumSeconds": 1.5503634,
+        "meanMs": 29.252139622641508,
+        "p50Ms": 14.8257,
+        "p90Ms": 64.02118000000002,
+        "p95Ms": 89.13607999999994,
+        "p99Ms": 144.73551599999993,
+        "maxMs": 157.5193,
+        "coldP95Ms": 112.4298,
+        "meanIterations": 16,
+        "p95Iterations": 17.0,
+        "meanScalarEvaluations": 255.9056603773585,
+        "fallback": 26,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 53,
+        "accepted": 53,
+        "planeAccepted": 53,
+        "sumSeconds": 0.0055790000000000015,
+        "meanMs": 0.10526415094339622,
+        "p50Ms": 0.066,
+        "p90Ms": 0.1181,
+        "p95Ms": 0.37291999999999914,
+        "p99Ms": 0.7689879999999998,
+        "maxMs": 0.7992,
+        "coldP95Ms": 0.6077399999999997,
+        "meanIterations": 5.30188679245283,
+        "p95Iterations": 20.99999999999995,
+        "meanScalarEvaluations": 52.924528301886795,
+        "fallback": 4,
+        "unstable": 0
+      },
+      "speedup": 277.8927047858038
+    },
+    "ElasticCommonPlanes": {
+      "before": {
+        "cases": 47,
+        "accepted": 47,
+        "planeAccepted": 47,
+        "sumSeconds": 1.2409622000000002,
+        "meanMs": 26.403451063829788,
+        "p50Ms": 15.1059,
+        "p90Ms": 59.21708,
+        "p95Ms": 69.13924999999998,
+        "p99Ms": 105.45529799999994,
+        "maxMs": 132.9351,
+        "coldP95Ms": 71.26033999999997,
+        "meanIterations": 16.51063829787234,
+        "p95Iterations": 17.0,
+        "meanScalarEvaluations": 215.51063829787233,
+        "fallback": 20,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 47,
+        "accepted": 47,
+        "planeAccepted": 47,
+        "sumSeconds": 0.004319699999999999,
+        "meanMs": 0.09190851063829787,
+        "p50Ms": 0.0601,
+        "p90Ms": 0.11644,
+        "p95Ms": 0.11805,
+        "p99Ms": 0.728174,
+        "maxMs": 0.7411,
+        "coldP95Ms": 0.48647999999999936,
+        "meanIterations": 4.446808510638298,
+        "p95Iterations": 5.0,
+        "meanScalarEvaluations": 38.5531914893617,
+        "fallback": 3,
+        "unstable": 0
+      },
+      "speedup": 287.27971849896994
+    },
+    "ElasticCommonGeometric": {
+      "before": {
+        "cases": 38,
+        "accepted": 38,
+        "planeAccepted": 38,
+        "sumSeconds": 1.0703447000000004,
+        "meanMs": 28.166965789473686,
+        "p50Ms": 16.169,
+        "p90Ms": 59.078610000000005,
+        "p95Ms": 65.89837499999999,
+        "p99Ms": 109.98470300000017,
+        "maxMs": 132.9351,
+        "coldP95Ms": 68.40297999999999,
+        "meanIterations": 17.736842105263158,
+        "p95Iterations": 17.0,
+        "meanScalarEvaluations": 193.92105263157896,
+        "fallback": 17,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 38,
+        "accepted": 38,
+        "planeAccepted": 38,
+        "sumSeconds": 0.0038962000000000007,
+        "meanMs": 0.10253157894736842,
+        "p50Ms": 0.0666,
+        "p90Ms": 0.11728,
+        "p95Ms": 0.20741999999999916,
+        "p99Ms": 0.7307030000000001,
+        "maxMs": 0.7411,
+        "coldP95Ms": 0.5611949999999997,
+        "meanIterations": 5,
+        "p95Iterations": 10.549999999999947,
+        "meanScalarEvaluations": 44.473684210526315,
+        "fallback": 3,
+        "unstable": 0
+      },
+      "speedup": 274.7150300292593
+    },
+    "PlasticConstantN": {
+      "before": {
+        "cases": 72,
+        "accepted": 72,
+        "planeAccepted": 44,
+        "sumSeconds": 14.376386100000005,
+        "meanMs": 199.67202916666668,
+        "p50Ms": 134.7468,
+        "p90Ms": 529.82495,
+        "p95Ms": 636.296925,
+        "p99Ms": 801.1219650000007,
+        "maxMs": 885.2062,
+        "coldP95Ms": 629.06714,
+        "meanIterations": 155.65277777777777,
+        "p95Iterations": 199.0,
+        "meanScalarEvaluations": 2045.513888888889,
+        "fallback": 65,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 72,
+        "accepted": 72,
+        "planeAccepted": 72,
+        "sumSeconds": 0.004477999999999998,
+        "meanMs": 0.06219444444444445,
+        "p50Ms": 0.047450000000000006,
+        "p90Ms": 0.13582999999999998,
+        "p95Ms": 0.137405,
+        "p99Ms": 0.14088000000000003,
+        "maxMs": 0.1423,
+        "coldP95Ms": 0.21133500000000005,
+        "meanIterations": 3.4583333333333335,
+        "p95Iterations": 5.450000000000003,
+        "meanScalarEvaluations": 20.583333333333332,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "speedup": 3210.447990174188
+    },
+    "PlasticConstantNCommon": {
+      "before": {
+        "cases": 72,
+        "accepted": 72,
+        "planeAccepted": 44,
+        "sumSeconds": 14.376386100000005,
+        "meanMs": 199.67202916666668,
+        "p50Ms": 134.7468,
+        "p90Ms": 529.82495,
+        "p95Ms": 636.296925,
+        "p99Ms": 801.1219650000007,
+        "maxMs": 885.2062,
+        "coldP95Ms": 629.06714,
+        "meanIterations": 155.65277777777777,
+        "p95Iterations": 199.0,
+        "meanScalarEvaluations": 2045.513888888889,
+        "fallback": 65,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 72,
+        "accepted": 72,
+        "planeAccepted": 72,
+        "sumSeconds": 0.004477999999999998,
+        "meanMs": 0.06219444444444445,
+        "p50Ms": 0.047450000000000006,
+        "p90Ms": 0.13582999999999998,
+        "p95Ms": 0.137405,
+        "p99Ms": 0.14088000000000003,
+        "maxMs": 0.1423,
+        "coldP95Ms": 0.21133500000000005,
+        "meanIterations": 3.4583333333333335,
+        "p95Iterations": 5.450000000000003,
+        "meanScalarEvaluations": 20.583333333333332,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "speedup": 3210.447990174188
+    },
+    "PlasticConstantEccentricity": {
+      "before": {
+        "cases": 12,
+        "accepted": 12,
+        "planeAccepted": 9,
+        "sumSeconds": 1.1448965,
+        "meanMs": 95.40804166666666,
+        "p50Ms": 45.9779,
+        "p90Ms": 271.23435000000006,
+        "p95Ms": 286.45283,
+        "p99Ms": 289.49120600000003,
+        "maxMs": 290.2508,
+        "coldP95Ms": 285.65278,
+        "meanIterations": 96.41666666666667,
+        "p95Iterations": 199.0,
+        "meanScalarEvaluations": 1365.0833333333333,
+        "fallback": 7,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 12,
+        "accepted": 12,
+        "planeAccepted": 12,
+        "sumSeconds": 0.0007841,
+        "meanMs": 0.06534166666666667,
+        "p50Ms": 0.04705,
+        "p90Ms": 0.13241000000000003,
+        "p95Ms": 0.139235,
+        "p99Ms": 0.140247,
+        "maxMs": 0.1405,
+        "coldP95Ms": 0.2031,
+        "meanIterations": 3.8333333333333335,
+        "p95Iterations": 5.0,
+        "meanScalarEvaluations": 22.166666666666668,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "speedup": 1460.1409259023083
+    },
+    "PlasticConstantEccentricityCommon": {
+      "before": {
+        "cases": 12,
+        "accepted": 12,
+        "planeAccepted": 9,
+        "sumSeconds": 1.1448965,
+        "meanMs": 95.40804166666666,
+        "p50Ms": 45.9779,
+        "p90Ms": 271.23435000000006,
+        "p95Ms": 286.45283,
+        "p99Ms": 289.49120600000003,
+        "maxMs": 290.2508,
+        "coldP95Ms": 285.65278,
+        "meanIterations": 96.41666666666667,
+        "p95Iterations": 199.0,
+        "meanScalarEvaluations": 1365.0833333333333,
+        "fallback": 7,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 12,
+        "accepted": 12,
+        "planeAccepted": 12,
+        "sumSeconds": 0.0007841,
+        "meanMs": 0.06534166666666667,
+        "p50Ms": 0.04705,
+        "p90Ms": 0.13241000000000003,
+        "p95Ms": 0.139235,
+        "p99Ms": 0.140247,
+        "maxMs": 0.1405,
+        "coldP95Ms": 0.2031,
+        "meanIterations": 3.8333333333333335,
+        "p95Iterations": 5.0,
+        "meanScalarEvaluations": 22.166666666666668,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "speedup": 1460.1409259023083
+    },
+    "PlasticReverse": {
+      "before": {
+        "cases": 120,
+        "accepted": 119,
+        "planeAccepted": 74,
+        "sumSeconds": 24.3833436,
+        "meanMs": 203.19453000000001,
+        "p50Ms": 111.79315,
+        "p90Ms": 535.1545900000004,
+        "p95Ms": 712.5442449999998,
+        "p99Ms": 929.7346410000002,
+        "maxMs": 1097.7215,
+        "coldP95Ms": 718.15158,
+        "meanIterations": 138.90833333333333,
+        "p95Iterations": 199.0,
+        "meanScalarEvaluations": 1786.2,
+        "fallback": 96,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 120,
+        "accepted": 120,
+        "planeAccepted": 120,
+        "sumSeconds": 0.008655100000000002,
+        "meanMs": 0.07212583333333333,
+        "p50Ms": 0.0532,
+        "p90Ms": 0.14285,
+        "p95Ms": 0.15531999999999999,
+        "p99Ms": 0.18086400000000002,
+        "maxMs": 0.2241,
+        "coldP95Ms": 0.23448,
+        "meanIterations": 3.966666666666667,
+        "p95Iterations": 6.049999999999997,
+        "meanScalarEvaluations": 23.383333333333333,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "speedup": 2817.222631743133
+    },
+    "SmallEccentricity": {
+      "before": {
+        "cases": 72,
+        "accepted": 72,
+        "planeAccepted": 63,
+        "sumSeconds": 10.7369888,
+        "meanMs": 149.12484444444445,
+        "p50Ms": 58.93345,
+        "p90Ms": 415.0911,
+        "p95Ms": 450.185125,
+        "p99Ms": 618.909036000001,
+        "maxMs": 729.0644,
+        "coldP95Ms": 466.40377,
+        "meanIterations": 98.08333333333333,
+        "p95Iterations": 199.0,
+        "meanScalarEvaluations": 1473.361111111111,
+        "fallback": 37,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 72,
+        "accepted": 72,
+        "planeAccepted": 72,
+        "sumSeconds": 0.005757000000000001,
+        "meanMs": 0.07995833333333334,
+        "p50Ms": 0.05185,
+        "p90Ms": 0.1419,
+        "p95Ms": 0.15991500000000008,
+        "p99Ms": 0.20051800000000003,
+        "maxMs": 0.2035,
+        "coldP95Ms": 0.221145,
+        "meanIterations": 4.930555555555555,
+        "p95Iterations": 12.850000000000037,
+        "meanScalarEvaluations": 29.166666666666668,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "speedup": 1865.0319263505296
+    },
+    "SmallEccentricityCommon": {
+      "before": {
+        "cases": 72,
+        "accepted": 72,
+        "planeAccepted": 63,
+        "sumSeconds": 10.7369888,
+        "meanMs": 149.12484444444445,
+        "p50Ms": 58.93345,
+        "p90Ms": 415.0911,
+        "p95Ms": 450.185125,
+        "p99Ms": 618.909036000001,
+        "maxMs": 729.0644,
+        "coldP95Ms": 466.40377,
+        "meanIterations": 98.08333333333333,
+        "p95Iterations": 199.0,
+        "meanScalarEvaluations": 1473.361111111111,
+        "fallback": 37,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 72,
+        "accepted": 72,
+        "planeAccepted": 72,
+        "sumSeconds": 0.005757000000000001,
+        "meanMs": 0.07995833333333334,
+        "p50Ms": 0.05185,
+        "p90Ms": 0.1419,
+        "p95Ms": 0.15991500000000008,
+        "p99Ms": 0.20051800000000003,
+        "maxMs": 0.2035,
+        "coldP95Ms": 0.221145,
+        "meanIterations": 4.930555555555555,
+        "p95Iterations": 12.850000000000037,
+        "meanScalarEvaluations": 29.166666666666668,
+        "fallback": 0,
+        "unstable": 0
+      },
+      "speedup": 1865.0319263505296
+    },
+    "IntegrationOnly": {
+      "before": {
+        "cases": 240,
+        "accepted": 175,
+        "planeAccepted": 122,
+        "sumSeconds": 44.42483649999999,
+        "meanMs": 185.10348541666667,
+        "p50Ms": 86.66495,
+        "p90Ms": 522.70108,
+        "p95Ms": 827.4184149999999,
+        "p99Ms": 1038.5733849999995,
+        "maxMs": 1168.1967,
+        "coldP95Ms": 878.1967199999998,
+        "meanIterations": 120.07083333333334,
+        "p95Iterations": 199.0,
+        "meanScalarEvaluations": 1626.2041666666667,
+        "fallback": 187,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 240,
+        "accepted": 171,
+        "planeAccepted": 167,
+        "sumSeconds": 4.222241,
+        "meanMs": 17.592670833333333,
+        "p50Ms": 0.46905,
+        "p90Ms": 51.01727,
+        "p95Ms": 58.64216999999999,
+        "p99Ms": 98.06835799999958,
+        "maxMs": 137.8982,
+        "coldP95Ms": 101.11688,
+        "meanIterations": 59.9875,
+        "p95Iterations": 199.0,
+        "meanScalarEvaluations": 780.5333333333333,
+        "fallback": 86,
+        "unstable": 0
+      },
+      "speedup": 10.521625009088773
+    },
+    "PlasticIntegrationOnly": {
+      "before": {
+        "cases": 120,
+        "accepted": 119,
+        "planeAccepted": 74,
+        "sumSeconds": 19.895951400000012,
+        "meanMs": 165.799595,
+        "p50Ms": 93.26565,
+        "p90Ms": 440.35730000000007,
+        "p95Ms": 629.77766,
+        "p99Ms": 834.5508050000002,
+        "maxMs": 885.2062,
+        "coldP95Ms": 616.161325,
+        "meanIterations": 138.90833333333333,
+        "p95Iterations": 199.0,
+        "meanScalarEvaluations": 1786.2,
+        "fallback": 96,
+        "unstable": 0
+      },
+      "after": {
+        "cases": 120,
+        "accepted": 119,
+        "planeAccepted": 119,
+        "sumSeconds": 0.4017635999999998,
+        "meanMs": 3.34803,
+        "p50Ms": 0.34555,
+        "p90Ms": 0.6509400000000001,
+        "p95Ms": 0.7437299999999999,
+        "p99Ms": 109.776689,
+        "maxMs": 137.8982,
+        "coldP95Ms": 0.9621099999999995,
+        "meanIterations": 18.683333333333334,
+        "p95Iterations": 22.14999999999999,
+        "meanScalarEvaluations": 125.65833333333333,
+        "fallback": 3,
+        "unstable": 0
+      },
+      "speedup": 49.52153803878704
+    }
+  },
+  "precision": {
+    "ConstantN/N": {
+      "before": {
+        "quantity": "N",
+        "unit": "N",
+        "cases": 72,
+        "p50": 0.0,
+        "p95": 82.01752682941456,
+        "maximum": 2473.285821251571
+      },
+      "after": {
+        "quantity": "N",
+        "unit": "N",
+        "cases": 72,
+        "p50": 0.09872943759546615,
+        "p95": 5.226639357949171,
+        "maximum": 16.95488505787216
+      }
+    },
+    "ConstantN/SearchAngle": {
+      "before": {
+        "quantity": "SearchAngle",
+        "unit": "rad",
+        "cases": 72,
+        "p50": 3.448063473034098e-05,
+        "p95": 0.0001237525474447491,
+        "maximum": 0.0002402874137673582
+      },
+      "after": {
+        "quantity": "SearchAngle",
+        "unit": "rad",
+        "cases": 72,
+        "p50": 6.359989176391285e-11,
+        "p95": 3.7429111174504434e-06,
+        "maximum": 8.737884682669783e-06
+      }
+    },
+    "ConstantEccentricity/SearchAngle": {
+      "before": {
+        "quantity": "SearchAngle",
+        "unit": "rad",
+        "cases": 12,
+        "p50": 2.5639353208531585e-05,
+        "p95": 0.00024122879002705708,
+        "maximum": 0.00024326891604095277
+      },
+      "after": {
+        "quantity": "SearchAngle",
+        "unit": "rad",
+        "cases": 12,
+        "p50": 2.1249231658165277e-06,
+        "p95": 2.016980495673717e-05,
+        "maximum": 2.0169804957475438e-05
+      }
+    }
+  },
+  "geometricPlanePrecision": {
+    "ConstantN/N": {
+      "cases": 10,
+      "unit": "N",
+      "before": {
+        "p95": 4878.609578787311,
+        "maximum": 6417.772698669345
+      },
+      "after": {
+        "p95": 0.6379905328794847,
+        "maximum": 0.6815302746836096
+      }
+    },
+    "ConstantN/SearchAngle": {
+      "cases": 10,
+      "unit": "rad",
+      "before": {
+        "p95": 0.00017643965447454156,
+        "maximum": 0.00019354829854118026
+      },
+      "after": {
+        "p95": 3.7650836925787234e-07,
+        "maximum": 5.226622910320015e-07
+      }
+    },
+    "ConstantEccentricity/SearchAngle": {
+      "cases": 5,
+      "unit": "rad",
+      "before": {
+        "p95": 0.00023446237532809467,
+        "maximum": 0.00023584302830287232
+      },
+      "after": {
+        "p95": 2.0169804957206976e-05,
+        "maximum": 2.0169804957475438e-05
+      }
+    }
+  },
+  "lost": [
+    "R3/StressBlock/Elastic/ConstantN/0/30",
+    "R3/StressBlock/Elastic/ConstantEccentricity/-1",
+    "R3/StressBlock/Elastic/ConstantEccentricity/1"
+  ],
+  "gained": [
+    "R3/StressBlock/Plastic/ConstantMxMy/-1"
+  ],
+  "lostPlaneReplay": [
+    {
+      "Id": "R3/StressBlock/Elastic/ConstantN/0/30",
+      "oldAccepted": true,
+      "oldPlaneAccepted": true,
+      "geometricPlaneAccepted": false,
+      "n": 0.07242979594504892,
+      "mx": 0.014485959189009783,
+      "my": 0.011588311762086781,
+      "concreteN": 0,
+      "minStrain": -0.0006999999999999999,
+      "maxStrain": 7.943428251237989e-05,
+      "threshold": -0.0006999999999999999,
+      "residuals": [
+        {
+          "Quantity": "N",
+          "Residual": 72.42979594504892,
+          "Tolerance": 2480.443890556698,
+          "Accepted": true
+        },
+        {
+          "Quantity": "SearchAngle",
+          "Residual": 0.15112298926165438,
+          "Tolerance": 0.00025,
+          "Accepted": false
+        }
+      ]
+    },
+    {
+      "Id": "R3/StressBlock/Elastic/ConstantEccentricity/-1",
+      "oldAccepted": true,
+      "oldPlaneAccepted": false,
+      "geometricPlaneAccepted": false,
+      "n": -0.6009258347685779,
+      "mx": -0.12018516695371552,
+      "my": -0.2272975749711093,
+      "concreteN": 0,
+      "minStrain": -0.0006999999999999999,
+      "maxStrain": 9.835256555315239e-05,
+      "threshold": -0.0006999999999999999,
+      "residuals": [
+        {
+          "Quantity": "SearchAngle",
+          "Residual": 0.23458204366209567,
+          "Tolerance": 0.00025,
+          "Accepted": false
+        }
+      ]
+    },
+    {
+      "Id": "R3/StressBlock/Elastic/ConstantEccentricity/1",
+      "oldAccepted": true,
+      "oldPlaneAccepted": false,
+      "geometricPlaneAccepted": false,
+      "n": 1.5497722205392679,
+      "mx": 0.30995444410785356,
+      "my": 0.05528693429922475,
+      "concreteN": 0,
+      "minStrain": -0.0006999999999999999,
+      "maxStrain": 9.277923368309151e-05,
+      "threshold": -0.0006999999999999999,
+      "residuals": [
+        {
+          "Quantity": "SearchAngle",
+          "Residual": 2.746926271706107,
+          "Tolerance": 0.00025,
+          "Accepted": false
+        }
+      ]
+    }
+  ],
+  "continuousCases": 720,
+  "continuousChanges": [],
+  "tests": {
+    "suites": "all",
+    "created": "2026-10-23T15:16:51",
+    "results": [
+      {
+        "name": "GPCChecker.Test.Concrete",
+        "passed": 857,
+        "failed": 4,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [
+          "DomainPointContractOf0017IsUnchanged",
+          "LargeSectionPointBeyondTheStoppingTestIsAccepted",
+          "LegacyMomentCurvatureIsReproduced",
+          "CurvatureContractOf0017IsUnchanged"
+        ],
+        "knownNowPassing": []
+      },
+      {
+        "name": "GPCChecker.Test.Steel",
+        "passed": 122,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "GPCChecker.Test.CompositeBridge",
+        "passed": 382,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "GPCChecker.Test.Geotechnics",
+        "passed": 193,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "GPCChecker.Test.Calculation",
+        "passed": 174,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "ShallowFoundation.Tests",
+        "passed": 28,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "EmbeddedWalls.Tests",
+        "passed": 99,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "Steel.Members.Tests",
+        "passed": 3202,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "Design.Checks",
+        "passed": 103,
+        "failed": 0,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [],
+        "knownNowPassing": []
+      },
+      {
+        "name": "ModelChecker.Tests",
+        "passed": 443,
+        "failed": 1,
+        "other": 0,
+        "knownFailures": [],
+        "unexpectedFailures": [
+          "RealDetailsMatchNativeResistanceAndKeepThePreparedForceFrame"
+        ],
+        "knownNowPassing": []
+      }
+    ],
+    "apiCompatible": true,
+    "unexpected": [
+      "GPCChecker.Test.Concrete: DomainPointContractOf0017IsUnchanged",
+      "GPCChecker.Test.Concrete: LargeSectionPointBeyondTheStoppingTestIsAccepted",
+      "GPCChecker.Test.Concrete: LegacyMomentCurvatureIsReproduced",
+      "GPCChecker.Test.Concrete: CurvatureContractOf0017IsUnchanged",
+      "ModelChecker.Tests: RealDetailsMatchNativeResistanceAndKeepThePreparedForceFrame"
+    ]
+  },
+  "method": "Each case: cold solve plus five warm solves. Percentiles across per-case warm medians. Reverse plastic control and integration-only diagnostic: three warm solves. Continuous-diagram control: one warm solve. Sequential, .NET 8 Release, tiered compilation disabled."
+}

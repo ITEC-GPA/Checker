@@ -21,12 +21,12 @@ public static class IsolationSpectra
         return states.Select(s=>{
             double k=nominal*(s.State is "SLO" or "SLD"?o.ServiceStiffnessFactor:o.UltimateStiffnessFactor);
             double t=2*Math.PI*Math.Sqrt(o.MassKnS2PerM/(1000*k)),threshold=.8*t;
-            if(!double.IsFinite(t)||t<=0||t>MaximumConventionalPeriodSeconds)
+            if(!PortableMath.IsFinite(t)||t<=0||t>MaximumConventionalPeriodSeconds)
                 throw new ArgumentException($"{s.State}: periodo equivalente Tis = {t:G10} s fuori dal campo (0, 4] s. Per periodi superiori a 4 s le NTC 2018 §3.2.3.2 richiedono apposite analisi o storie temporali del moto del terreno.");
             double Acc(double period)=>NtcSpectra.ElasticHorizontal(s.Parameters,s.Ss,s.Cc,s.St,period>=threshold?ei:es,period);
             // Include both sides of the damping change; no artificial 0.0001 s gap in the engineering result.
             double end=MaximumConventionalPeriodSeconds;
-            var periods=Enumerable.Range(0,401).Select(i=>end*i/400).Concat(new[]{s.Tb,s.Tc,s.Td,t,Math.BitDecrement(threshold),threshold}).Where(x=>x>=0&&x<=end).Distinct().Order().ToArray();
+            var periods=Enumerable.Range(0,401).Select(i=>end*i/400).Concat(new[]{s.Tb,s.Tc,s.Td,t,PortableMath.BitDecrement(threshold),threshold}).Where(x=>x>=0&&x<=end).Distinct().OrderBy(orderValue => orderValue).ToArray();
             double sa=Acc(t),force=o.MassKnS2PerM*9.81*sa;
             var groups=o.Groups.Select(g=>new BearingForce(g.Name,g.Count,g.Count==0?0:force*g.StiffnessKnPerMm/nominal)).ToArray();
             var example=ExampleSamples(s,threshold,es,ei);
@@ -61,7 +61,7 @@ public static class IsolationSpectra
         NtcSpectra.FiniteRange(o.MassKnS2PerM,double.Epsilon,1e12,nameof(o.MassKnS2PerM));
         NtcSpectra.FiniteRange(o.StructureDampingPercent,5,30,nameof(o.StructureDampingPercent));NtcSpectra.FiniteRange(o.IsolationDampingPercent,5,30,nameof(o.IsolationDampingPercent));
         NtcSpectra.FiniteRange(o.ServiceStiffnessFactor,double.Epsilon,100,nameof(o.ServiceStiffnessFactor));NtcSpectra.FiniteRange(o.UltimateStiffnessFactor,double.Epsilon,100,nameof(o.UltimateStiffnessFactor));
-        ArgumentNullException.ThrowIfNull(o.Groups);
+        Guard.NotNull(o.Groups);
         if(o.Groups.Count==0||o.Groups.Count>100||o.Groups.All(g=>g.Count==0))throw new ArgumentException("Occorre almeno un isolatore attivo.");
         foreach(var g in o.Groups){if(g.Count<0||g.Count>100000)throw new ArgumentException("Numero di isolatori non valido.");NtcSpectra.FiniteRange(g.StiffnessKnPerMm,double.Epsilon,1e9,nameof(g.StiffnessKnPerMm));}
     }

@@ -24,12 +24,12 @@ public static class EmbeddedWallAnchors
         IReadOnlyList<EmbeddedWallAnchor> definitions, StandardGeotechnical standard, GeotechnicalSituation situation,
         bool anchorA1M1HistoryConfirmed, CancellationToken cancellation = default)
     {
-        ArgumentNullException.ThrowIfNull(analysis); ArgumentNullException.ThrowIfNull(definitions); ArgumentNullException.ThrowIfNull(standard);
+        Guard.NotNull(analysis); Guard.NotNull(definitions); Guard.NotNull(standard);
         if (!analysis.IsComplete) throw new InvalidOperationException("An incomplete nonlinear history cannot be certified by anchor checks.");
         var data = new Dictionary<string, EmbeddedWallAnchor>(StringComparer.Ordinal);
         foreach (var item in definitions)
         {
-            if (item is null || string.IsNullOrWhiteSpace(item.SupportId) || !Enum.IsDefined(item.Evidence)
+            if (item is null || string.IsNullOrWhiteSpace(item.SupportId) || !PortableEnum.IsDefined(item.Evidence)
                 || item.CalculatedProfiles is null || item.MeasuredTests is null || !data.TryAdd(item.SupportId, item with
                 { CalculatedProfiles = Array.AsReadOnly(item.CalculatedProfiles.ToArray()), MeasuredTests = Array.AsReadOnly(item.MeasuredTests.ToArray()) }))
                 throw new ArgumentException("Unique anchors with explicit evidence collections required.");

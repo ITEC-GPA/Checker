@@ -25,12 +25,12 @@ public static class SectionDesignDemand
     /// </summary>
     public static GoverningCompression DetailingCompression(IEnumerable<DesignAxialAction> actions)
     {
-        ArgumentNullException.ThrowIfNull(actions);
+        Guard.NotNull(actions);
         DesignAxialAction? source = null; double value = 0;
         foreach (var action in actions)
         {
-            ArgumentNullException.ThrowIfNull(action);
-            if (!Enum.IsDefined(action.Family)) throw new ArgumentException("Unknown action family.");
+            Guard.NotNull(action);
+            if (!PortableEnum.IsDefined(action.Family)) throw new ArgumentException("Unknown action family.");
             double compression = Compression(action.SignedAxialForce);
             if (compression > value || compression == value && compression > 0 && source is not null && action.Family < source.Family)
                 (value, source) = (compression, action);
@@ -40,31 +40,31 @@ public static class SectionDesignDemand
 
     public static double Compression(double signedValue)
     {
-        if (!double.IsFinite(signedValue)) throw new ArgumentException("A finite signed demand is required.");
+        if (!PortableMath.IsFinite(signedValue)) throw new ArgumentException("A finite signed demand is required.");
         return Math.Max(0, -signedValue);
     }
 
     /// <summary>Empty action sets give the geometric detailing minimum only, as in the captured coordinator.</summary>
     public static double MaximumCompression(IEnumerable<double> signedAxialForces)
     {
-        ArgumentNullException.ThrowIfNull(signedAxialForces);
+        Guard.NotNull(signedAxialForces);
         return signedAxialForces.Select(Compression).DefaultIfEmpty(0).Max();
     }
 
     /// <summary>Missing/nonpositive capacity or invalid demand cannot certify a candidate.</summary>
     public static double? Ratio(double demand, double? capacity)
     {
-        if (!double.IsFinite(demand) || demand < 0 || capacity is not > 0 || !double.IsFinite(capacity.Value)) return null;
+        if (!PortableMath.IsFinite(demand) || demand < 0 || capacity is not > 0 || !PortableMath.IsFinite(capacity.Value)) return null;
         double ratio = demand / capacity.Value;
-        return double.IsFinite(ratio) ? ratio : null;
+        return PortableMath.IsFinite(ratio) ? ratio : null;
     }
 
     public static double RequiredCapacity(double demand, double target)
     {
-        if (!double.IsFinite(demand) || demand < 0 || !double.IsFinite(target) || target <= 0 || target > 1)
+        if (!PortableMath.IsFinite(demand) || demand < 0 || !PortableMath.IsFinite(target) || target <= 0 || target > 1)
             throw new ArgumentException("Nonnegative finite demand and target in (0,1] required.");
         double required = demand / target;
-        if (!double.IsFinite(required)) throw new ArgumentException("The target capacity is outside the numeric range.");
+        if (!PortableMath.IsFinite(required)) throw new ArgumentException("The target capacity is outside the numeric range.");
         return required;
     }
 }

@@ -100,6 +100,8 @@
     <Compile Include="DomainPointIndependentData.cs" />
     <Compile Include="DomainPointNewtonTests.cs" />
     <Compile Include="DomainPointFallbackPlaneTests.cs" />
+    <Compile Include="StressBlockIntegrationTests.cs" />
+    <Compile Include="AnalyticParabolaIntegrationTests.cs" />
     <Compile Include="DomainPointAxialToleranceTests.cs" />
     <Compile Include="BridgeElasticStagesTests.cs" />
     <Compile Include="BridgeLinearSolverAuditTests.cs" />
@@ -156,6 +158,8 @@
     <None Include="Fixtures\domain-point-contract.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Fixtures\stress-analytic.csv"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Fixtures\curvature-analytic.csv"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Fixtures\stress-legacy.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -189,7 +193,7 @@
     <None Include="Fixtures\detailing-contract-0.0.17.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Fixtures\curvature-contract-0.0.17.csv">
+    <None Include="Fixtures\curvature-contract-analytic.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Fixtures\detailing-plate-legacy.csv">

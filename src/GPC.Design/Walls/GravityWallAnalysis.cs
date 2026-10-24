@@ -22,13 +22,13 @@ public sealed class GravityWallMaterial
     readonly Func<double, double> shearStress;
     GravityWallMaterial(GravityWallMaterialKind kind, double compression, double tension, double modulus, double foundationShear, Func<double, double> shear)
     {
-        if (!double.IsFinite(compression) || compression <= 0 || !double.IsFinite(tension) || tension < 0 || !double.IsFinite(modulus) || modulus < 0 || modulus == 0 && kind != GravityWallMaterialKind.Assigned
-            || !double.IsFinite(foundationShear) || foundationShear < 0) throw new ArgumentOutOfRangeException(nameof(compression));
+        if (!PortableMath.IsFinite(compression) || compression <= 0 || !PortableMath.IsFinite(tension) || tension < 0 || !PortableMath.IsFinite(modulus) || modulus < 0 || modulus == 0 && kind != GravityWallMaterialKind.Assigned
+            || !PortableMath.IsFinite(foundationShear) || foundationShear < 0) throw new ArgumentOutOfRangeException(nameof(compression));
         Kind = kind; Compression = compression; Tension = tension; EffectiveModulus = modulus; FoundationShear = foundationShear; shearStress = shear;
     }
     public static GravityWallMaterial Assigned(double compression, double tension, double modulus, double shear)
     {
-        if (!double.IsFinite(modulus) || modulus <= 0) throw new ArgumentOutOfRangeException(nameof(modulus));
+        if (!PortableMath.IsFinite(modulus) || modulus <= 0) throw new ArgumentOutOfRangeException(nameof(modulus));
         return new(GravityWallMaterialKind.Assigned, compression, tension, modulus, shear, _ => shear);
     }
     /// <summary>Assigned strengths without an elastic modulus. No stiffness, stability or curvature is inferred.</summary>
@@ -36,12 +36,12 @@ public sealed class GravityWallMaterial
         => new(GravityWallMaterialKind.Assigned, compression, tension, 0, shear, _ => shear);
     public static GravityWallMaterial From(PlainConcreteWallMaterial material)
     {
-        ArgumentNullException.ThrowIfNull(material);
+        Guard.NotNull(material);
         return new(GravityWallMaterialKind.PlainConcrete, material.Compression, material.Tension, material.EffectiveModulus, material.Tension, material.ShearStress);
     }
     public static GravityWallMaterial From(MasonryWallMaterial material)
     {
-        ArgumentNullException.ThrowIfNull(material);
+        Guard.NotNull(material);
         return new(GravityWallMaterialKind.Masonry, material.Compression, 0, material.EffectiveModulus, material.FoundationShear, material.ShearStress);
     }
     internal double ShearStress(double sigma) => shearStress(sigma);
@@ -69,9 +69,9 @@ public static class GravityWallAnalysis
     public static IReadOnlyList<GravityCombinationResult> Calculate(GravityWallMaterial material, double height, double topThickness,
         double effectiveHeight, double initialEccentricity, IEnumerable<GravityCombination> combinations, CancellationToken cancellation = default)
     {
-        ArgumentNullException.ThrowIfNull(material); ArgumentNullException.ThrowIfNull(combinations);
-        if (!double.IsFinite(height) || height <= 0 || !double.IsFinite(topThickness) || topThickness <= 0
-            || !double.IsFinite(effectiveHeight) || effectiveHeight < 2 * height || !double.IsFinite(initialEccentricity) || initialEccentricity < 0)
+        Guard.NotNull(material); Guard.NotNull(combinations);
+        if (!PortableMath.IsFinite(height) || height <= 0 || !PortableMath.IsFinite(topThickness) || topThickness <= 0
+            || !PortableMath.IsFinite(effectiveHeight) || effectiveHeight < 2 * height || !PortableMath.IsFinite(initialEccentricity) || initialEccentricity < 0)
             throw new ArgumentOutOfRangeException(nameof(height), "Positive dimensions, effective height >= 2H and nonnegative eccentricity required.");
         // Snapshot all caller-owned lists before solving.
         var cases = combinations.Select(c => c with { Sections = Array.AsReadOnly(c.Sections.ToArray()) }).ToArray();
@@ -80,14 +80,14 @@ public static class GravityWallAnalysis
         {
             if (string.IsNullOrWhiteSpace(c.Id) || c.Sections.Count == 0) throw new ArgumentException("Combination identity and sections required.");
             foreach (var f in c.Sections)
-                if (!Enum.IsDefined(f.Member) || !double.IsFinite(f.Position) || !double.IsFinite(f.Thickness) || f.Thickness <= 0
-                    || !double.IsFinite(f.N) || !double.IsFinite(f.V) || !double.IsFinite(f.M)) throw new ArgumentException("Invalid section actions or geometry.");
+                if (!PortableEnum.IsDefined(f.Member) || !PortableMath.IsFinite(f.Position) || !PortableMath.IsFinite(f.Thickness) || f.Thickness <= 0
+                    || !PortableMath.IsFinite(f.N) || !PortableMath.IsFinite(f.V) || !PortableMath.IsFinite(f.M)) throw new ArgumentException("Invalid section actions or geometry.");
             if (material.Kind != GravityWallMaterialKind.Assigned && !c.Sections.Any(f => f.Member == WallMember.Stem)) throw new ArgumentException("Stem sections required for stability.");
         }
         double inertia = Math.Pow(topThickness, 3) / 12;
         bool assigned = material.Kind == GravityWallMaterialKind.Assigned;
         double ncr = assigned ? 0 : Math.PI * Math.PI * material.EffectiveModulus * inertia / (effectiveHeight * effectiveHeight);
-        if (!assigned && (!double.IsFinite(ncr) || ncr <= 0)) throw new ArgumentOutOfRangeException(nameof(topThickness), "Stability dimensions exceed the numeric range.");
+        if (!assigned && (!PortableMath.IsFinite(ncr) || ncr <= 0)) throw new ArgumentOutOfRangeException(nameof(topThickness), "Stability dimensions exceed the numeric range.");
         var results = new List<GravityCombinationResult>();
         foreach (var c in cases)
         {
@@ -104,7 +104,7 @@ public static class GravityWallAnalysis
                 bool stem = f.Member == WallMember.Stem;
                 void Add(GravityCheckMethod method, double demand, double? capacity, string unit)
                 {
-                    if (!double.IsFinite(demand) || capacity.HasValue && !double.IsFinite(capacity.Value)) throw new ArithmeticException("Gravity section exceeds the numeric range.");
+                    if (!PortableMath.IsFinite(demand) || capacity.HasValue && !PortableMath.IsFinite(capacity.Value)) throw new ArithmeticException("Gravity section exceeds the numeric range.");
                     checks.Add(new(method, c.Id, f.Member, f.Position, Math.Abs(demand), capacity, unit));
                 }
                 if (!stem && !c.ContactValid && (assigned || f.N != 0 || f.V != 0 || f.M != 0)) { Add(GravityCheckMethod.Contact, 0, null, "MPa"); continue; }

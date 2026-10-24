@@ -30,7 +30,7 @@ public sealed class ResolvedPriceSnapshot
         var owned = new Dictionary<string, ResolvedCostRate>(StringComparer.Ordinal);
         foreach (var rate in rates)
         {
-            if (string.IsNullOrWhiteSpace(rate.WorkCode) || !Enum.IsDefined(rate.Unit) || rate.Price is < 0 || string.IsNullOrWhiteSpace(rate.SourceReference))
+            if (string.IsNullOrWhiteSpace(rate.WorkCode) || !PortableEnum.IsDefined(rate.Unit) || rate.Price is < 0 || string.IsNullOrWhiteSpace(rate.SourceReference))
                 throw new ArgumentException("Invalid resolved price.");
             var includes = (rate.Includes ?? []).ToArray();
             if (includes.Any(string.IsNullOrWhiteSpace) || includes.Contains(rate.WorkCode) || includes.Distinct(StringComparer.Ordinal).Count() != includes.Length)
@@ -46,7 +46,7 @@ public static class CostEstimator
     /// <summary>Conversion restricted to compatible dimensions. Rates are expressed per rate unit.</summary>
     public static decimal ConvertPrice(decimal price, QuantityUnit from, QuantityUnit to)
     {
-        if (price < 0 || !Enum.IsDefined(from) || !Enum.IsDefined(to)) throw new ArgumentException("Invalid price or unit.");
+        if (price < 0 || !PortableEnum.IsDefined(from) || !PortableEnum.IsDefined(to)) throw new ArgumentException("Invalid price or unit.");
         if (from == to) return price;
         return (from, to) switch
         {
@@ -58,11 +58,11 @@ public static class CostEstimator
     public static CostEstimate Evaluate(IEnumerable<CostQuantity> quantities, ResolvedPriceSnapshot snapshot,
         decimal additionalPercent = 0, decimal contingencyPercent = 0)
     {
-        ArgumentNullException.ThrowIfNull(snapshot);
+        Guard.NotNull(snapshot);
         if (additionalPercent < 0 || contingencyPercent < 0) throw new ArgumentOutOfRangeException(nameof(additionalPercent));
         var input = quantities.ToArray(); var byId = new Dictionary<string, CostQuantity>(StringComparer.Ordinal);
         foreach (var item in input)
-            if (string.IsNullOrWhiteSpace(item.Id) || string.IsNullOrWhiteSpace(item.WorkCode) || item.Amount < 0 || !Enum.IsDefined(item.Unit) || !byId.TryAdd(item.Id, item))
+            if (string.IsNullOrWhiteSpace(item.Id) || string.IsNullOrWhiteSpace(item.WorkCode) || item.Amount < 0 || !PortableEnum.IsDefined(item.Unit) || !byId.TryAdd(item.Id, item))
                 throw new ArgumentException("Invalid or duplicate measured work.");
         // Validate graph before pricing, including zero-quantity lines. Cycles must not make every item free.
         foreach (var item in input)

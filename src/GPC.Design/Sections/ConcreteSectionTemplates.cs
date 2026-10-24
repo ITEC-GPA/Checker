@@ -36,11 +36,11 @@ public static partial class ConcreteSectionTemplates
 {
     public static ConcreteTemplateGeometry Create(ConcreteTemplateInput p)
     {
-        ArgumentNullException.ThrowIfNull(p);
-        if (!Enum.IsDefined(p.Kind)) throw new ArgumentException("Tipologia di sezione sconosciuta.");
+        Guard.NotNull(p);
+        if (!PortableEnum.IsDefined(p.Kind)) throw new ArgumentException("Tipologia di sezione sconosciuta.");
         foreach (double value in new[] { p.Width, p.Height, p.BarDiameter, p.PerimeterSpacing, p.LinkSpacing })
-            if (!double.IsFinite(value) || value <= 0) throw new ArgumentException("Dimensioni, diametri e passi devono essere positivi e finiti.");
-        if (!double.IsFinite(p.Cover) || p.Cover < 0 || !double.IsFinite(p.LinkDiameter) || p.LinkDiameter < 0)
+            if (!PortableMath.IsFinite(value) || value <= 0) throw new ArgumentException("Dimensioni, diametri e passi devono essere positivi e finiti.");
+        if (!PortableMath.IsFinite(p.Cover) || p.Cover < 0 || !PortableMath.IsFinite(p.LinkDiameter) || p.LinkDiameter < 0)
             throw new ArgumentException("Copriferro e diametro staffa devono essere non negativi e finiti.");
         if (p.CurveSides is < 32 or > 720 || p.CurveSides % 4 != 0)
             throw new ArgumentException("Discretizzazione delle curve: multiplo di quattro fra 32 e 720.");
@@ -136,8 +136,8 @@ public static partial class ConcreteSectionTemplates
     {
         if (p.Kind is ConcreteTemplateKind.HollowRectangle or ConcreteTemplateKind.HollowCircle)
         {
-            if (!double.IsFinite(p.InnerWidth) || p.InnerWidth <= 0 || p.InnerWidth >= p.Width ||
-                !double.IsFinite(p.InnerHeight) || p.InnerHeight <= 0 || p.InnerHeight >= p.Height)
+            if (!PortableMath.IsFinite(p.InnerWidth) || p.InnerWidth <= 0 || p.InnerWidth >= p.Width ||
+                !PortableMath.IsFinite(p.InnerHeight) || p.InnerHeight <= 0 || p.InnerHeight >= p.Height)
                 throw new ArgumentException("Il foro deve essere strettamente contenuto nella sezione.");
             if (p.Kind == ConcreteTemplateKind.HollowCircle)
             {
@@ -156,14 +156,14 @@ public static partial class ConcreteSectionTemplates
         }
         if (p.Kind == ConcreteTemplateKind.Trapezoid)
         {
-            if (!double.IsFinite(p.BottomWidth) || p.BottomWidth <= 0) throw new ArgumentException("Base inferiore positiva e finita.");
+            if (!PortableMath.IsFinite(p.BottomWidth) || p.BottomWidth <= 0) throw new ArgumentException("Base inferiore positiva e finita.");
             return new SectionTrapezoid(p.BottomWidth, p.Width, p.Height).Shape;
         }
         foreach (double value in new[] { p.Web, p.TopFlange })
-            if (!double.IsFinite(value) || value <= 0) throw new ArgumentException("Spessori di anima e ala positivi.");
+            if (!PortableMath.IsFinite(value) || value <= 0) throw new ArgumentException("Spessori di anima e ala positivi.");
         if (p.Web >= p.Width || p.TopFlange >= p.Height) throw new ArgumentException("Anima e ala devono essere contenute nella sezione.");
         if (p.Kind == ConcreteTemplateKind.L) return new SectionL(p.Width, p.TopFlange, p.Height, p.Web, "").Shape;
-        if (!double.IsFinite(p.BottomWidth) || p.BottomWidth <= p.Web || !double.IsFinite(p.BottomFlange) ||
+        if (!PortableMath.IsFinite(p.BottomWidth) || p.BottomWidth <= p.Web || !PortableMath.IsFinite(p.BottomFlange) ||
             p.BottomFlange <= 0 || p.BottomFlange + p.TopFlange >= p.Height)
             throw new ArgumentException("Ala inferiore o altezza libera dell'anima non valida.");
         return p.Kind == ConcreteTemplateKind.I
@@ -238,7 +238,7 @@ public static partial class ConcreteSectionTemplates
                 double t = (a.X * ey - a.Y * ex) / cross, u = (a.X * dy - a.Y * dx) / cross;
                 if (t > 0 && u >= -1e-10 && u <= 1 + 1e-10) nearest = Math.Min(nearest, t);
             }
-            if (!double.IsFinite(nearest)) throw new ArgumentException("Intersezione radiale con il contorno non determinabile.");
+            if (!PortableMath.IsFinite(nearest)) throw new ArgumentException("Intersezione radiale con il contorno non determinabile.");
             yield return new(nearest * dx, nearest * dy);
         }
     }

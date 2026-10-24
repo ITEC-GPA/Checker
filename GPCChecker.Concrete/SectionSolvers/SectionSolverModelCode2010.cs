@@ -109,6 +109,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <inheritdoc cref="SectionSolver.CalculateSigmaC(double)"/>
         internal override double CalculateSigmaC(double strain)
         {
+            if (TryGetParabolaLaw(out var parabola)) return parabola.At(strain);
             if (strain < 0)
                 // compressione
                 return ConcreteMaterial.CalculateDesignStressConcrete(StandardModelCode2010, strain);

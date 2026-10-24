@@ -7,7 +7,7 @@ internal static class SpectraEquivalence
 int checks=0,failures=0;double worst=0;
 void Equal(double actual,double expected,string name) {
     checks++;double delta=Math.Abs(actual-expected);worst=Math.Max(worst,delta);
-    if(!double.IsFinite(actual)||delta>1e-10*Math.Max(1,Math.Abs(expected))) { failures++;if(failures<30)Console.WriteLine($"FAIL {name}: {actual:R} != {expected:R}"); }
+    if((double.IsNaN(actual)||double.IsInfinity(actual))||delta>1e-10*Math.Max(1,Math.Abs(expected))) { failures++;if(failures<30)Console.WriteLine($"FAIL {name}: {actual:R} != {expected:R}"); }
 }
 using var doc=JsonDocument.Parse(File.ReadAllText(path));
 foreach(var c in doc.RootElement.EnumerateArray()) {

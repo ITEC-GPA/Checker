@@ -12,11 +12,11 @@ public static class ShearGeometryProposal
         double width, double height, double radius, double innerWidth, double innerHeight,
         double flangeThickness, double webWidth, IReadOnlyList<int>? extraNegative = null, IReadOnlyList<int>? extraPositive = null)
     {
-        ArgumentNullException.ThrowIfNull(outline); ArgumentNullException.ThrowIfNull(reinforcement);
-        if (!Enum.IsDefined(shape)) throw new ArgumentException("Unknown section shape.");
+        Guard.NotNull(outline); Guard.NotNull(reinforcement);
+        if (!PortableEnum.IsDefined(shape)) throw new ArgumentException("Unknown section shape.");
         var bars = reinforcement.ToArray();
-        if (outline.Count < 3 || outline.Any(p => !double.IsFinite(p.X) || !double.IsFinite(p.Y)) || bars.Length == 0 ||
-            bars.Any(b => b is null || !double.IsFinite(b.X) || !double.IsFinite(b.Y) || !double.IsFinite(b.Area) || b.Area <= 0 || !double.IsFinite(b.Diameter) || b.Diameter <= 0))
+        if (outline.Count < 3 || outline.Any(p => !PortableMath.IsFinite(p.X) || !PortableMath.IsFinite(p.Y)) || bars.Length == 0 ||
+            bars.Any(b => b is null || !PortableMath.IsFinite(b.X) || !PortableMath.IsFinite(b.Y) || !PortableMath.IsFinite(b.Area) || b.Area <= 0 || !PortableMath.IsFinite(b.Diameter) || b.Diameter <= 0))
             throw new ArgumentException("Finite section outline and positive reinforcement required.");
         double C(DesignBar b) => alongX ? b.X : b.Y;
         DesignBar[] negative, positive;
@@ -46,7 +46,7 @@ public static class ShearGeometryProposal
     }
     static ShearGeometryDirection Valid(ShearGeometryDirection value)
     {
-        if (new[] { value.Bw, value.Depth, value.SteelArea }.Any(v => !double.IsFinite(v) || v <= 0))
+        if (new[] { value.Bw, value.Depth, value.SteelArea }.Any(v => !PortableMath.IsFinite(v) || v <= 0))
             throw new ArgumentException("Positive finite shear width, effective depth and reinforcement required.");
         return value;
     }
