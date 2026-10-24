@@ -604,3 +604,21 @@ Restano supporto locale, punzonamento, forze effettive dei bulloni di supporto,
 trasferimento al membro e robustezza globale; CanQualifyWholeJoint=false.
 Derivatore Python indipendente eseguito; nessun atteso/allowlist modificato.
 Log/TRX workspace audit-results/connections/night-2c-tying.
+
+
+AUDIT GENERALE STEEL2.78.0.0 - 24/10/2026 ORE02:53
+build/Verify.ps1 -Suites all completato:7521passati,5falliti,0saltati.
+Steel5129/5129Members e122/122net472:5251/5251totali.
+Quattro contratti API compatibili. I cinque fallimenti coincidono per
+nome/suite con2.74/2.71/2.66/base6edf46a7: nessun atteso o allowlist variato.
+Verify exit1: non e' un rilascio verde. Risultati nel workspace:
+audit-results/connections/verify-night-2-78/summary.json.
+
+226nuovi casi di questa prosecuzione rispetto2.74:
+-2d.3b/c.1 saldature/supporto tying:69,104/104famiglia;20a46df4,versione8545b665.
+-4c.3a CJPsuperiore:56,79/79famiglia;943b15fc,versioned106be5c.
+-2d.4a aggregazione tying:19,123/123famiglia;8470a124,versione374791e3.
+-2c.4a tying doppieL:82,165/165famiglia;135fda77,versione39186c0e.
+Tutti i blocchi revisionati indipendentemente. Branchcodex/steel-standard-connections;
+nessun merge/push/rilascio. Le quattro fasi restano parziali come nel piano;
+nessuna qualifica del nodo completo dedotta dai soli componenti chiusi.

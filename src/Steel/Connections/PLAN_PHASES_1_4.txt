@@ -184,9 +184,9 @@ Ogni sottofase chiusa ha implementazione, campo di validita, riferimenti,
 benchmark eseguiti e commit separato. Aggiornamenti in chat con la stessa sigla.
 
 VERIFICA GENERALE DELLA BASE
-Controllo completo Steel2.74.0.0:5025test Steel passati (4903Members+122net472);
-7295passati complessivi,0saltati e cinque fallimenti Concrete/ModelChecker
-invariati rispetto2.71/2.66 e gia documentati in6edf46a7. Nessun atteso
+Controllo completo Steel2.78.0.0:5251test Steel passati (5129Members+122net472);
+7521passati complessivi,0saltati e cinque fallimenti Concrete/ModelChecker
+invariati rispetto2.74/2.71/2.66 e gia documentati in6edf46a7. Nessun atteso
 modificato o fallimento ammesso automaticamente. Vedere VALIDATION.txt.
 Queste pendenze impediscono un rilascio generale dichiarato interamente verde,
 ma non impediscono l'implementazione e i test dei nuovi componenti di connessione.
@@ -207,3 +207,7 @@ completate. Nessuna modifica semantica ai T-stub; vero flush completo aperto.
 2e nettoanimaNVM IN ANALISI - una nuova interazione non viene introdotta
 soltanto per chiudere la diagnostica. Da provare anche il campo meccanico
 e la compatibilita', distinti dalla maggiorazione algebrica di vonMises.
+
+Audit2.78 concluso:226nuovi casi rispetto2.74, nessuna nuova regressione.
+Blocchi/commit in VALIDATION.txt. In sviluppo3c.3 trasferimento piano2L
+e4cde adapter trave Steel; nessuna chiusura anticipata di queste sottofasi.
