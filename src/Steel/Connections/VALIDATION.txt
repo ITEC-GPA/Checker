@@ -770,3 +770,10 @@ L'auditChecker corrente ricompila il nuovo numero di versioneModel.
 
 Risultati nel workspaceaudit-results/connections/verify-night-2-82/summary.json
 e relativiTRX/log; confronto automatico converify-night-2-78/summary.json.
+
+2e.4b.1 - INVILUPPO SLU - 24/10/2026
+92nuovi casi verdi;457/457famigliaIBeamSplice passati,0saltati.
+Revisione indipendente conclusa. Log/TRX closure-2e-envelope-first nel
+workspace audit-results/connections. Nessun atteso/fixture/allowlist modificato.
+Implementazione e limiti in PHASE_2E_ULTIMATE_ENVELOPE_IMPLEMENTATION.txt.
+L'audit completo precedente2.82 resta distinto da questa prova mirata.

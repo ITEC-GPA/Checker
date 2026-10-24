@@ -250,7 +250,7 @@ Audit2.82 concluso:207nuovi casi rispetto2.78, nessuna nuova regressione.
 ControlliAPI compatibili;5fallimenti legacy non ammessi rimangono visibili.
 
 BLOCCHI SUCCESSIVI APPROVATI24/10/2026 CIRCA03:30
-2e.4b.1 IN STAGING, NON VALIDATA: inviluppo di ogni casoSLU completo del medesimo giuntoI,
+2e.4b.1 CHIUSA NEL CAMPO DICHIARATO: inviluppo di ogni casoSLU completo del medesimo giuntoI,
 SLE separati e azioni concomitanti. Non chiude netto/blockNVM dell'anima
 o qualifica del nodo; PHASE_2E_ULTIMATE_ENVELOPE_SPEC.txt.
 4g.1/4g.2 IN STAGING, NON VALIDATE: solaSjini derivata dalla geometria del medesimo caso,
@@ -265,3 +265,7 @@ SCI P358pp258-259 e JRCp40/PDF56. Non si estendono beta degliL o regole
 storicheENV al netto efficaceC. Resta necessario un modello qualificato
 di shear lag/eccentricita per il C collegato solo sull'anima; la simmetria
 2C non elimina le coppie locali. Nessuna nuova resistenza attribuita.
+
+2e.4b.1 VALIDATA24/10/2026:92nuovi test e457/457famigliaIBeamSplice passati.
+Revisione indipendente completata; PHASE_2E_ULTIMATE_ENVELOPE_IMPLEMENTATION.txt.
+Le verifiche residue di anima/membro e la qualifica del nodo rimangono aperte.

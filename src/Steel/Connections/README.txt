@@ -268,3 +268,6 @@ I risultati restano consumabili dalle librerie; integrazioneANTHEA rinviata.
 - BraceAnglePairBoltedTransfer: trasferimento piano condizionale2L/fazzoletto,
   geometriaModel reale e azioni6D conservate. Nodo3D ancora non qualificato;
   PHASE_3C_3_PAIR_BOLTED_IMPLEMENTATION.txt.
+
+- IBeamSpliceEnvelope: casi SLU completi, scorrimento SLE/SLU e provenienza
+  del governante; PHASE_2E_ULTIMATE_ENVELOPE_IMPLEMENTATION.txt.

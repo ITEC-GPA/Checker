@@ -1,0 +1,31 @@
+2e.4b.1 - INVILUPPO DEI CASI SLU DEL GIUNTO I
+24/10/2026. Implementazione validata nel campo definito dalla specifica
+PHASE_2E_ULTIMATE_ENVELOPE_SPEC.txt.
+
+IBeamSpliceEnvelope valuta separatamente ogni caso SLU completo del medesimo
+dettaglio. Azioni concomitanti e polo restano quelli del caso; non genera
+combinazioni di massimi indipendenti. SLE e SLU di scorrimento restano distinti.
+In categoria C ogni SLU richiede un solo caso di scorrimento associato alle
+stesse sei azioni e tre coordinate del polo, e riceve un solo controllo del
+netto plastico delle ali. Controlli e caso governante conservano l'identita'
+del risultato originale. L'ordine degli input risolve le parita'.
+
+Il mismatch di dettaglio/policy/azioni sopprime l'inviluppo aggregato ma
+conserva ogni risultato calcolato sul proprio input e ogni Failed noto.
+Netto plastico N-V-M dell'anima, block tearing N-V-M, altri modi di instabilita',
+membro e compatibilita' globale restano espliciti. Non qualifica il nodo
+completo ne' certifica la generazione di tutte le combinazioni strutturali.
+
+VALIDAZIONE ESEGUITA
+92 nuovi test passati; 457/457 della famiglia IBeamSplice, nessuno saltato.
+Copertura EC/NTC, SLU/SLE, categoria C, mismatches, Failed insieme a NS,
+identita', collezioni, poli, consumatore e compatibilita' del percorso legacy.
+Revisione indipendente conclusa senza difetti concreti riscontrati.
+TRX/log: workspace audit-results/connections/closure-2e-envelope-first.
+
+Il derivatore Python indipendente usa la geometria SCI P398 D.1 e le formule
+documentate nella specifica. Utilizzazione bearing U-P398=1.1865834167227851.
+Inviluppo bearing U-axial/U-shearM=1.1102747588993649; il vettore artificiale
+dei massimi separati darebbe1.2628920745462056 e non viene creato.
+Questi confronti non qualificano i meccanismi dichiarati ancora mancanti.
+Nessun atteso legacy, fixture o allowlist modificato.
