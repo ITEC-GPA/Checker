@@ -1,6 +1,9 @@
 CONNESSIONI STANDARD - PIANO E AVANZAMENTO DELLE PRIME QUATTRO FASI
 ===============================================================
 Aggiornamento 24/10/2026. Branch codex/steel-standard-connections.
+Chiusura sessione notturna: vedere NIGHT_2026_10_24_STATUS.txt.
+Le quattro fasi restano parziali; gli incrementi2e.4b.1/4g.1-4g.2
+sono in staging, non integrati o testati. Automazione notturna eliminata.
 Ambito: librerie, statica ordinaria, EC3 2005/NTC2018, modelli analitici o delle
 componenti, senza FEM locale. ANTHEA esclusa. Basi/ancoraggi e nodi tubolari
 appartengono alle fasi5/6, non alle prime quattro.
@@ -247,10 +250,10 @@ Audit2.82 concluso:207nuovi casi rispetto2.78, nessuna nuova regressione.
 ControlliAPI compatibili;5fallimenti legacy non ammessi rimangono visibili.
 
 BLOCCHI SUCCESSIVI APPROVATI24/10/2026 CIRCA03:30
-2e.4b.1 IN SVILUPPO: inviluppo di ogni casoSLU completo del medesimo giuntoI,
+2e.4b.1 IN STAGING, NON VALIDATA: inviluppo di ogni casoSLU completo del medesimo giuntoI,
 SLE separati e azioni concomitanti. Non chiude netto/blockNVM dell'anima
 o qualifica del nodo; PHASE_2E_ULTIMATE_ENVELOPE_SPEC.txt.
-4g.1/4g.2 IN SVILUPPO: solaSjini derivata dalla geometria del medesimo caso,
+4g.1/4g.2 IN STAGING, NON VALIDATE: solaSjini derivata dalla geometria del medesimo caso,
 kernel condiviso e collegamento a sezione/momento/bulloni/saldature;
 PHASE_4_NEXT_COMPONENT_RESEARCH_SPEC.txt. NessunMRdglobale/secante fittizio.
 Le aperture generali2c/2d/2e e netto/block del nodo a momento rimangono

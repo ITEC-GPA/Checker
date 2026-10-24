@@ -1,0 +1,151 @@
+CONNESSIONI STEEL - RESOCONTO DEL LAVORO NOTTURNO 23-24 OTTOBRE 2026
+=================================================================
+Stato verificato il24/10/2026 al termine della finestra notturna.
+Le prime quattro fasi NON sono interamente chiuse.
+Checker: branch codex/steel-standard-connections, Steel2.82.0.0.
+Model: branch codex/steel-connection-boltgrid-fix, Model5.20.0.2.
+Produzione/test integrati sono committati; repository puliti prima di questo
+aggiornamento documentale. Nessun merge su master, push o rilascio.
+
+DEFINIZIONE DEGLI STATI
+CHIUSA: implementata e provata SOLO nel campo geometrico/normativo dichiarato.
+PARZIALE: componenti disponibili, ma restano verifiche della sottofase.
+STAGING: codice/test preparati fuori dal repository, non integrati o eseguiti.
+DA IMPLEMENTARE: ricerca/spec o nessuna implementazione qualificata.
+Una verifica locale Passed non certifica il nodo completo.
+
+FASE1 - COMPONENTI COMUNI
+1a CHIUSA: contratti immutabili, unita/assi, azioni concomitanti, esiti e trace.
+1b CHIUSA nel campo: taglio/trazione/interazione bulloni, rifollamento,
+   punzonamento, giunti lunghi/packing, precarico/scorrimento SLE/SLU EC/NTC.
+   Fori speciali fuori dal campo attuale.57+208test componenti bullonati.
+1c CHIUSA: gruppo elastico bulloni, sei azioni ed eccentricita;44test.
+   Corretto anche il gruppo legacy con un solo bullone in Model:10test.
+1d CHIUSA: cordoni d'angolo rettilinei nel piano, metodi direzionale e
+   semplificato, gruppi elastici6D, lunghezze/materiali;61test.
+1e PARZIALE: lordo/netto/block e piastre nei percorsi qualificati; mancano
+   generalizzazioni, ulteriori instabilita e piastre con effetto leva.
+1f PARZIALE: politiche EC3/NTC dei nuovi componenti distinte; percorso legacy
+   EN con StandardNTC2018Steel non qualificato automaticamente.
+1g PARZIALE:2134casi connessioni Checker passati e27regressioni Model;
+   benchmark SCI/CTICM/JRC e calcoli indipendenti. Copertura da estendere ai
+   meccanismi non ancora implementati, non tutti i nodi sono qualificati.
+
+FASE2 - GIUNTI SEMPLICI E DI CONTINUITA
+2a CHIUSA: doppio coprigiunto rettangolare in trazione centrata;57test.
+   Non include un generico giunto I o azioni globali N-V-M.
+2b CHIUSA nel dettaglio: fin plate corta S275100x10,2..5M20, trave I/H non
+   intagliata su anima pilastro;54test. Altri dettagli/azioni preesistenti
+   del supporto restano fuori campo.
+2c PARZIALE: doppie squadrette, bulloni/anima e rifollamento reale della
+   flangia supporto (83test), tying accidentale (82test). Restano supporto,
+   punzonamento e forze normali effettive dei bulloni sul supporto.
+2d PARZIALE: taglio ordinario end plate e coppia contrapposta (70test),
+   tying piastra/anima/saldature/supporto locale/aggregazione (123test).
+   Restano estremita finite/interazioni del supporto e nodo tying completo.
+2e PARZIALE: ripartoNVM, bulloni/slip, rifollamento, ali, sezioni d'anima,
+   instabilita longitudinale e nettoCali;365test. Restano netto plastico e
+   block tearingNVM dell'anima, altri modi di instabilita, qualifica/Model.
+   2e.4b.1 STAGING: nuovo inviluppo di tutti i casiSLU, sorgente e test
+   preparati; revisione finale interrotta, nessuna build/test/integrazione.
+2f PARZIALE: conformita al dettaglio e modello globale distinti; mancano
+   classificazione/rigidezza/rotazione generale dei giunti semplici.
+2g PARZIALE: esempi completi nei campi2a/2b e ordinario2d; esempi di soli
+   componenti negli altri campi. Nessun esempio completo di tutti i nodi.
+N+V ordinario dei2c/2d non viene equiparato al tiro accidentale:22test di campo.
+
+FASE3 - CONTROVENTI E PROFILI ACCOPPIATI
+3a PARZIALE: fazzoletto centrale/due piatti tesi (40test) e attacco saldato
+   al supporto con trasporto6D (33test). Mancano risposta del supporto e
+   trasferimenti eccentrici generali.
+3b PARZIALE: meccanismo fuori piano di fazzoletto compresso nel dettaglio
+   ammesso (48test). Altri meccanismi/attacchi/supporto ancora aperti.
+3c PARZIALE: netto efficaceL (43test), adapterModel L/2L (40test), nuovo
+   trasferimento PIANO bullonato2L (84test). Conservate le coppie locali.
+   Mancano netto/block gusset,blockL,contatto/prying e nodo3D completo.
+   C/2C: ricerca documentata, netto efficace del C collegato solo sull'anima
+   DA IMPLEMENTARE/QUALIFICARE. Non sono stati applicati beta degliL aiC.
+   L saldati4.13: ricerca JRC/norma in staging, nessuna produzione aggiunta.
+3d PARZIALE: azioni reali su imbottiture2L/2C (50test), cordoni fisici e
+   snervamento nominale blocco (50test). Introduzione locale3D e pareti dei
+   correnti non qualificate. Calastrelli esclusi per richiesta utente.
+3e PARZIALE: riuso SteelSectionInput/SteelActions per L/2L; restano C,
+   integrazione delle componenti residue ed esempio completo asta-collegamento.
+
+FASE4 - NODI A MOMENTO
+4a PARZIALE: T-stub modi1/2/3, leva, file/gruppi e geometrie qualificate;
+   129test. Altri dettagli/irrigidimenti non completati.
+4b PARZIALE: anima pilastro non irrigidita in trazione/compressione/taglio
+   e interazioni;46test. Rinforzi e irrigidimenti ancora aperti.
+4c/4d/4e PARZIALI: assemblaggio momento piastre a filo/estese (21test),
+   bulloni (24), saldature estese (23), dettaglio superioreCJP a filo con
+   fondo prolungato (56), aggregazione sullo stesso caso (20), resistenza
+   trave dal coreSteel/Model (89). Il dettaglioCJP non e' un vero flush completo.
+   Mancano netto/block piastra/supporto, resistenza completa a taglio del
+   nodo, verifiche residue dei membri e qualificazione globale.
+4f PARZIALE: kernel rigidezza iniziale/secante (26test), classificazione
+   e criteri sufficienti di rotazione (77test), input/capacita esterni espliciti.
+   Non deriva automaticamente una capacita rotazionale o MjRd del nodo intero.
+4g PARZIALE: benchmark SCI C.1 e varianti qualificano i componenti.
+   4g.1/4g.2 STAGING: nuovo ingresso solaSjini e collegamento dello stesso
+   caso a trave/momento/bulloni/saldature,4nuovi sorgenti+patch aritmetica,
+   66nuovi casi preparati MA NON ESEGUITI. Revisione finale interrotta.
+
+VALIDAZIONE EFFETTIVAMENTE ESEGUITA
+Audit completo Checker2.82, build/Verify.ps1 -Suites all:
+-5458testSteel passati:5336Members+122net472.
+-7728test complessivi passati,5falliti,0saltati; API compatibili.
+-Model:1488passati,3prove native saltate; API/EqualityAudit passati.
+-2134casi connessioni sono compresi nei5458Steel, NON sono addizionali.
+-66casi4g in staging NON sono compresi nei conteggi passati.
+I5fallimenti preesistenti sono invariati per nome/suite e messaggio rispetto
+all'audit precedente; nessun atteso legacy,fixture o allowlist alterato:
+Concrete:DomainPointContractOf0017IsUnchanged;
+CurvatureContractOf0017IsUnchanged;LegacyMomentCurvatureIsReproduced;
+LargeSectionPointBeyondTheStoppingTestIsAccepted.
+ModelChecker:RealDetailsMatchNativeResistanceAndKeepThePreparedForceFrame.
+L'audit generale termina con exit1: NON e' un rilascio tutto verde.
+Risultati:workspaceaudit-results/connections/verify-night-2-82/summary.json.
+
+BUG CORRETTI, SENZA NASCONDERLI NEI TEST LEGACY
+-Model: gruppo a bullone singolo e trasformazioni degli assi.
+-Model: perdita della lavorazione/raccordi nelle copie/serializzazione;
+  17regressioni,15rosse prima del fix e17verdi dopo.
+-T-stub: minimo passo inclusivo dopo operazioni sulle coordinate.
+-Criteri rotazionali: coerenza tra fy e grado nominale.
+-Risultato coppia endplate: nuovaAPI conserva figliFailed anche con altroNS.
+-Nuovo2L: simmetria numerica e punti tangenti ai raccordi; azioni fisiche
+  piccole non azzerate,raw e residui6D conservati.10regressioni rosse prima,
+  verdi dopo; nessuna modifica degli input/attesi della suite originale.
+
+COMMIT PRINCIPALI PIU' RECENTI
+20a46df4 tying:saldature/supporto locale.
+943b15fc CJP superiore a filo;8470a124 aggregazione tying.
+135fda77 tying doppie squadrette.
+7d259079 aggregazione momento/bulloni/saldature endplate.
+c3918464 risultato dettagliato coppiaendplate.
+632d0579 adaptertraveSteel;versioned45fdd93(2.81).
+4b855b4e trasferimentopiano2L;versione9887cbd4(2.82).
+46240a72 audit completo2.82;833b8106 specifiche dei prossimi incrementi.
+e8b875f2 ricercaC/2C e limiti documentati.
+Model9d3b1043 fixcopie raccordi;versioned554c0bd(5.20.0.2).
+Cronologia completa e prove dei blocchi precedenti:VALIDATION.txt e gitlog.
+
+INTERRUZIONE E LAVORO NON INTEGRATO
+Gli agenti incaricati di sviluppo/revisione hanno restituito l'errore
+"Your workspace is out of credits". Non risultano successivi commit o
+esecuzioni dei due incrementi in staging. La presenza dei file NON ne
+dimostra la validita' e non viene conteggiata come completamento.
+Staging preservato in C:\Users\g.pacini\Documents\ChatGPT\Checker\staging\connections.
+L'automazione connessioni-steel-lavoro-notturno e' stata eliminata il24/10
+alla ripresa mattutina, essendo trascorsa la scadenza concordata delle08:00.
+
+ORDINE CONCRETO DI RIPRESA
+1. Completare revisione,build e test dell'inviluppomultiSLU2e.4b.1; correggere
+   eventuali difetti reali, integrare e committare con versione dedicata.
+2. Completare review del kernel condiviso e test66casi4g, regressioni del
+   vecchio percorso e famigliaendplate; integrare con versione dedicata.
+3. Affrontare i meccanismi aperti per priorita e campo documentato, senza
+   convertire risultati locali in certificazione del nodo completo.
+Restano esclusi da questa sessione:ANTHEA/UI,FEM locale,basi/ancoraggi e
+nodi tubolari delle fasi5/6,merge/push/rilascio.
