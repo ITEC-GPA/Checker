@@ -1,0 +1,120 @@
+FASE2 - AUDIT API E CONSERVAZIONE FALLIMENTI NELLA COPPIA ENDPLATE
+24/10/2026. Sola lettura del repository; proposta in staging, non installata.
+
+RILIEVO CONCRETO
+FlexibleEndPlate.VerifyPair, FlexibleEndPlate.cs:149-187, calcola entrambi i
+figli e copia i loro check. Se uno dei figli è NotSupported, la diagnostica
+passa a ConnectionVerification<T> (ComponentContracts.cs:78), che svuota tutti
+i check. È corretto non restituire un inviluppo favorevole per una coppia fuori
+campo; tuttavia il risultato legacy non conserva i figli né un'indicazione del
+fallimento già accertato nell'altro lato. Non è un falso Passed: è perdita di
+evidenza negativa nel risultato aggregato.
+
+Riproduzione senza API nuove:
+- policy EC gm0=1,gm2p=1.1,gm2c=1.25;
+- geometria della fixture FlexibleEndPlateTests.Input, quattro file, g140,
+  piatto200x10, gola5.6, trave412.8x179.5,tw9.5,tf16,r10.2;
+- supporto466x300,tw13.1,tf20,r13,fy265/fu410;
+- First: V450000N, non intagliata => Failed;
+  Beam.WebShear: Rd=.9*290*9.5*275/sqrt3=393673.4979253112N,
+  U=1.143079232845324;
+- Second: V340000N, stessa geometria/snapshot condivisi, BeamNotched=true
+  => NotSupported;
+- VerifyPair => NotSupported, Checks.Count=0, Utilization=null, il Failed di
+  First non è esposto. Le azioni restano nell'Input, ma occorre rifare il calcolo.
+La resistenza sopra è stata ricalcolata con aritmetica indipendente; il test C#
+rosso NON è stato eseguito da questo agente.
+
+PROPOSTA API ADDITIVA APPROVATA DA ROOT
+Nuovo FlexibleEndPlatePairAssessmentResult con:
+ Assessment, First, Second, Input, Status, IsComplete, HasFailedComponent,
+ Checks, Trace, Diagnostics, GoverningCheck, Utilization, Scope,
+ CanQualifyWholeJoint=false.
+Nuovo FlexibleEndPlate.VerifyPairAssessment(input), che esegue esattamente
+l'algoritmo ordinario già presente e conserva i risultati First/Second.
+HasFailedComponent include anche il Failed dell'inviluppo applicabile, per non
+perdere il supporto condiviso fallito con lati singolarmente Passed.
+Nessuna modifica a formule, check, limiti, fattori o azioni del metodo ordinario.
+
+VerifyPair conserva nome, parametri e tipo restituito esistenti: delega al nuovo
+metodo e restituisce Assessment. Rimane il riepilogo legacy, con gli stessi
+check/utilizzazione/status. NON acquisisce proprietà che il suo tipo non espone.
+I consumer che vogliono la conservazione esplicita dei figli devono adottare
+VerifyPairAssessment. L'API nuova non rende applicabile una coppia NS: i suoi
+check aggregati restano vuoti e l'utilizzazione null.
+
+FILE CONGELATI IN STAGING
+1. FlexibleEndPlatePairFailureEvidenceRedTests.cs
+   UN SOLO TEST TEMPORANEO, compila usando soltanto API già esistenti.
+   Assert iniziali documentano First Failed, Second NS, coppia NS; l'ultimo
+   assert è deliberatamente rosso perché ricerca il check negativo perduto.
+   Usarlo prima della produzione per la riproduzione, poi rimuoverlo dalla
+   suite centrale: VerifyPair legacy rimane intenzionalmente compatibile.
+2. FlexibleEndPlatePairAssessment.cs
+   Nuovo file di produzione da destinare a src/Steel/Connections/.
+3. FlexibleEndPlatePairAssessment.proposed.patch
+   Unified diff proposto del SOLO FlexibleEndPlate.cs, generato dal sorgente
+   attuale con difflib. Non applicato, nessun Git usato.
+4. FlexibleEndPlatePairAssessmentTests.cs
+   Suite DEFINITIVA da compilare solo dopo i punti2/3: 8 TestMethod e
+   6 DataRow su2 DataTestMethod =>14 casi dichiarati,10 metodi.
+   Copre ordine dei figli, Failed+NS, dettaglio fallito a carico nullo,
+   Passed+NS, NS+NS, supporto condiviso Failed con entrambi Passed,
+   entrambi Failed, equivalenza riepilogo legacy, immutabilità e null.
+5. PHASE_2_API_AUDIT_PAIR_REVIEW.txt (questa nota).
+
+SEQUENZA CENTRALE CONSIGLIATA
+1. Inserire soltanto il test temporaneo nella suite ed eseguirlo: atteso rosso
+   sull'ultimo assert, non errore di compilazione.
+2. Rimuovere quel file temporaneo; non cambiare gli attesi ordinari esistenti.
+3. Installare il nuovo tipo, applicare il diff proposto e aggiungere14regressioni.
+4. Eseguire test nuovi + FlexibleEndPlateTests preesistenti; verificare che il
+   riepilogo legacy sia identico anche per Failed/NS e il nuovo esito conservi
+   evidenza negativa senza restituire un rapporto aggregato nei casi NS.
+Nessuno di questi passi centrali è stato eseguito da questo agente.
+
+ESITO DEL RESTO DELL'AUDIT MIRATO
+- DoubleCoverSplice: solo tiro centrato, sei componenti verificate esattamente;
+  i diagnostici sopprimono i check e non è esposta una qualifica globale.
+- FinPlate: azioni/condizioni di supporto e due inviluppi eccentrici coerenti con
+  il contratto; ConformsToSciPinnedDetail è distinto dalla resistenza al carico.
+- FlexibleEndPlate singola: punti di applicazione non nulli e azioni fuori campo
+  esplicitamente esclusi. Nessuna cancellazione numerica piccola individuata.
+- DoubleAngleCleat ordinaria: sei azioni e polo controllati, mezzi carichi dei
+  due lati coerenti; CanQualifyWholeJoint=false. Bearing del supporto è una API
+  esclusivamente di componente, non un aggregatore che prometta gli altri esiti.
+- IBeamSpliceComponents: binding di geometria/hardware/fattori e distinzione
+  ULS/SLS espliciti, componenti tipizzati conservati anche se l'inviluppo è NS;
+  nessuna qualifica globale. L'inviluppo dichiara resistenze del caso ULS primario,
+  scorrimenti separati e netto categoriaC per tutti gli ULS forniti: non deve
+  essere descritto come inviluppo di tutte le verifiche di ogni caso ULS.
+- FlexibleEndPlateTyingAssessment, già revisionato: conserva anche il parent
+  del supporto su mismatch; limiti finiti del supporto sempre non qualificati.
+Nessun altro difetto concreto di falso Passed/qualifica globale identificato
+in questa revisione statica. Non sono state riaperte formule senza evidenza,
+né riesaminate le nuove doppie squadrette tying già affidate all'altro agente.
+
+
+2d - DETTAGLIO COPPIA ENDPLATE - STEEL2.80.0.0
+Difetto di perdita di evidenza riprodotto PRIMA della produzione:1test
+temporaneo compila ed e' rosso all'assert sul check negativo perduto.
+Primo latoV450kN, resistenza anima393673.4979253112N => Failed;
+secondo lato intagliato => NotSupported. Il riepilogo legacy e' NS,
+senza check/utilizzazione: nessun falsoPassed, ma non espone il Failed.
+Log/TRX riproduzione:night-2d-pair-evidence-red. La copia temporanea
+installata e' stata rimossa dopo confronto hash con lo staging; nessun
+test legacy, atteso o allowlist e' stato alterato.
+
+Nuovo risultato additivo VerifyPairAssessment, con First/Second/Assessment
+e HasFailedComponent. Non cambia formule, fattori, azioni o applicabilita.
+HasFailedComponent include anche il supporto comune fallito con entrambi
+i lati singolarmente passati. I casi NS conservano rapporto aggregato null.
+VerifyPair mantiene firma e riepilogo compatibili; i consumer che vogliono
+il dettaglio devono chiamare VerifyPairAssessment. Nessuna pretesa che
+il vecchio tipo esponga dati che non contiene. CanQualifyWholeJoint=false.
+Versione feature2.80 per la nuova API additiva, in commit dedicato.
+
+14regressioni nuove passate;70/70con la famiglia ordinaria esistente.
+Ordini dei lati, fallimenti di dettaglio a carico nullo, NS/NS, supporto
+comune, entrambiFailed, riepilogo legacy identico, immutabilita e null.
+Log/TRX:workspace audit-results/connections/night-2d-pair-assessment.

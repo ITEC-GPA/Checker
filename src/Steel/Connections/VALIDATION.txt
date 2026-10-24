@@ -658,3 +658,28 @@ netto/block, introduzione locale, membri/stabilita, rotazione e compatibilita
 globale non sono certificati. CanQualifyWholeJoint=false in ogni caso.
 Log/TRX workspace audit-results/connections/night-4cde-assessment.
 Nessun atteso legacy o allowlist modificato.
+
+
+2d - DETTAGLIO COPPIA ENDPLATE - STEEL2.80.0.0
+Difetto di perdita di evidenza riprodotto PRIMA della produzione:1test
+temporaneo compila ed e' rosso all'assert sul check negativo perduto.
+Primo latoV450kN, resistenza anima393673.4979253112N => Failed;
+secondo lato intagliato => NotSupported. Il riepilogo legacy e' NS,
+senza check/utilizzazione: nessun falsoPassed, ma non espone il Failed.
+Log/TRX riproduzione:night-2d-pair-evidence-red. La copia temporanea
+installata e' stata rimossa dopo confronto hash con lo staging; nessun
+test legacy, atteso o allowlist e' stato alterato.
+
+Nuovo risultato additivo VerifyPairAssessment, con First/Second/Assessment
+e HasFailedComponent. Non cambia formule, fattori, azioni o applicabilita.
+HasFailedComponent include anche il supporto comune fallito con entrambi
+i lati singolarmente passati. I casi NS conservano rapporto aggregato null.
+VerifyPair mantiene firma e riepilogo compatibili; i consumer che vogliono
+il dettaglio devono chiamare VerifyPairAssessment. Nessuna pretesa che
+il vecchio tipo esponga dati che non contiene. CanQualifyWholeJoint=false.
+Versione feature2.80 per la nuova API additiva, in commit dedicato.
+
+14regressioni nuove passate;70/70con la famiglia ordinaria esistente.
+Ordini dei lati, fallimenti di dettaglio a carico nullo, NS/NS, supporto
+comune, entrambiFailed, riepilogo legacy identico, immutabilita e null.
+Log/TRX:workspace audit-results/connections/night-2d-pair-assessment.

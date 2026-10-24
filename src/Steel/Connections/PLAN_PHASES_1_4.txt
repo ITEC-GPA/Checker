@@ -37,8 +37,8 @@ FASE 1 - COMPONENTI COMUNI
    controllo di applicabilita. Differenze rifollamento/fori gestite nel nuovo
    nodo; l'uso del percorso EN legacy con StandardNTC2018Steel richiede
    una qualificazione distinta: non esiste un BoltCheckerNTC dedicato.
-1g PARZIALE - 1947 casi connessioni Checker superati:9audit,57coprigiunto,
-   44riparto,61saldature,57componenti bullonati,54finplate,56endplate,123tying piastra/anima/saldature/supporto locale e aggregazione,
+1g PARZIALE - 1961 casi connessioni Checker superati:9audit,57coprigiunto,
+   44riparto,61saldature,57componenti bullonati,54finplate,70endplate,123tying piastra/anima/saldature/supporto locale e aggregazione,
    83componenti doppie squadrette/supporto,82tying doppie squadrette,208precarico/scorrimento,365continuitaI,
    40fazzoletto/due piatti,33attacco saldato fazzoletto,48fazzoletto compresso,43netto efficace angolare,40adattatoreL/2L,50azioni imbottiture,50cordoni/blocco imbottiture,129T-stub/file/geometrie,46anima pilastro,21assemblaggio momento,24bulloni endplate,23saldature endplate,56CJP superiore a filo,20aggregazione endplate,26rigidezza rotazionale,77classificazione/criteri rotazione,22dominioN+V.
    Inoltre10nuove regressioni Model. Calcoli analitici, benchmark SCI, equilibrio e input fuori campo;
@@ -62,7 +62,10 @@ FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
    PHASE_2C_SUPPORT_TENSION_REVIEW.txt distingue trazione ordinaria/tying.
 2d PARZIALE - Chiuse2d.1/2d.2: taglio ordinario, piastra parziale, trave I/H
    non intagliata su anima di pilastro. Anche coppia contrapposta con bulloni
-   comuni e domanda sommata sul supporto; 56test passati. Trazione parassita
+   comuni e domanda sommata sul supporto; 56test originari +14regressioni
+   per il nuovo risultato dettagliato della coppia: conserva ciascun figlio
+   e i fallimenti noti anche con coppia fuori campo. PHASE_2_API_AUDIT_PAIR_REVIEW.txt.
+   Trazione parassita
    SCI e piena resistenza saldature esplicite. Chiusa2d.3a: tying accidentale
    piastra/bulloni e anima trave,35test; politicaSCIesplicita gammaMu1.1,
    distinta dai fattori ordinariEC/NTC. Kernelnumerico T-stub condiviso;

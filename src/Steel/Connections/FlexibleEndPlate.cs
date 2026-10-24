@@ -146,7 +146,16 @@ namespace GPC.Checkers.Steel.Connections
             return Result();
         }
 
+        /// <summary>Legacy summary of the pair. Unsupported children suppress its
+        /// checks/utilization. Use VerifyPairAssessment to retain each child result
+        /// and any already-known failure when the aggregate is unsupported.</summary>
         public static ConnectionVerification<FlexibleEndPlatePairInput> VerifyPair(FlexibleEndPlatePairInput p)
+            => VerifyPairAssessment(p).Assessment;
+
+        /// <summary>Detailed ordinary pair assessment. The aggregate has the same
+        /// checks and applicability rules as VerifyPair; First and Second remain
+        /// available even when no common applicable envelope can be returned.</summary>
+        public static FlexibleEndPlatePairAssessmentResult VerifyPairAssessment(FlexibleEndPlatePairInput p)
         {
             if (p == null) throw new ArgumentNullException(nameof(p));
             var first = Verify(p.First); var second = Verify(p.Second);
@@ -176,13 +185,14 @@ namespace GPC.Checkers.Steel.Connections
                     checks.Add(new ConnectionCheck("Shared.Row" + k + ".SupportBearing", perBolt, bearing, "SCI P358 shared-support Check10, concurrent reactions"));
                 }
             }
-            return new ConnectionVerification<FlexibleEndPlatePairInput>(p, p.First.Code,
+            var assessment = new ConnectionVerification<FlexibleEndPlatePairInput>(p, p.First.Code,
                 "Steel.Connection.FlexibleEndPlate.OppositeColumnWebPair",
                 "Two top-aligned partial-depth end plates on opposite faces of one column web; two bolt columns with shared through-bolts. "
                 + "Includes both beam connections and the summed local support demands. Same ordinary-static restrictions as the individual inputs; no other support actions or global column check.",
                 checks, trace, issues, new[] { "Each end plate loads its respective bolt shear plane; these plane checks are not replaced by an equal-share double-shear capacity.",
                     "Both reactions are downward in the common vertical frame. Support bearing and all critical upper row prefixes receive the sum of the two contributions.",
                     "Zero ExistingSupportActions excludes the two beam reactions explicitly assembled here." });
+            return new FlexibleEndPlatePairAssessmentResult(assessment, first, second);
         }
 
         private static void AddSupportShear(FlexibleEndPlateInput p, int rows, double fullShear, string prefix,
