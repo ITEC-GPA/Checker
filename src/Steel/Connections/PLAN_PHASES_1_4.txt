@@ -181,3 +181,16 @@ ma non impediscono l'implementazione e i test dei nuovi componenti di connession
 Audit2.74 comprende anche il fix fy/grado2.71.0.1 e150nuovi test dei blocchi
 2e.3e/2d.3a/3d.2a-b. Le quattro API confrontate restano compatibili.
 Risultati e commit in VALIDATION.txt. Non e' un rilascio generale verde.
+
+
+BLOCCHI SUCCESSIVI AVVIATI - 24/10/2026 CIRCA02:24
+2d.3b/3c IN SVILUPPO - specifica saldatureSCI C.1 e modello locale anima
+supportoCheck14 approvata; benchmark405.388kN, riscontroSDS2 405.4kN.
+Limiti delle estremita' finite conservati esplicitamente, nessuna qualifica
+globale. Vedere PHASE_2D_TYING_WELD_SUPPORT_SPEC.txt. Test.NET da eseguire.
+4c.3 IN SVILUPPO - CJP superiore a filo, cordone interno reale e fondo
+prolungato; PHASE_4C_3_TOP_FLUSH_CJP_SPEC.txt. FontiEN/NTC/SCI verificate.
+Nessuna modifica semantica ai T-stub; vero flush completo ancora aperto.
+2e nettoanimaNVM IN ANALISI - una nuova interazione non viene introdotta
+soltanto per chiudere la diagnostica. Da provare anche il campo meccanico
+e la compatibilita', distinti dalla maggiorazione algebrica di vonMises.

@@ -1,0 +1,247 @@
+FASE 2d.3b - SPECIFICA CHECK13/14 SCI ACCIDENTAL TYING
+Stato: proposta per revisione root; nessun sorgente .NET nuovo implementato,
+nessuna build, test .NET, installazione o operazione Git eseguita dall'agente.
+Il derivatore Python indipendente allegato e' stato eseguito.
+
+1. FONTI PRIMARIE E VERIFICA
+
+SCI P358 (2014), Simple Joints to Eurocode3:
+https://www.steelconstruction.info/images/a/a9/SCI_P358.pdf
+- p.28/PDF38 Check13: regola del cordone e relativo campo standard.
+- p.29/PDF39 Check14: meccanismo locale fuori piano dell'anima UKC/UKB.
+- pp.48-49/PDF58-59: esempio2, Check13 e14, tiro175kN.
+- p.277/PDF287 App.A: tying distinto dalle normali azioni verticali;
+  gammaMu1.1 raccomandazione SCI, non fattore EN/NTC automatico.
+- p.279/PDF289 App.C.1 e C.2: derivazione dei requisiti delle saldature.
+Verificate visivamente pagine PDF39,58,59,289 nel workspace.
+EN1993-1-8:2005,4.5.3.2(6)eq4.1 e Tab.4.1: pagine stampate43-44,
+PDF45-46 verificate visivamente; fonte del criterio normale e betaW=.85.
+
+SCI AD396 (11 marzo2016):
+https://www.newsteelconstruction.com/wp/ad-396-tying-resistance-of-flexible-end-plates-in-one-sided-connections/
+Conferma l'uso conservativo di Check11 anche nel collegamento a una faccia
+di anima flessibile; NON verifica l'anima e non elimina Check14.
+
+SDS2, report ufficiale di verifica Eurocode3UK, v2025.07, 13 marzo2025:
+https://techsupport.sds2.com/main/Resources/Images/EngineeringVerification/Euro/SDS2-Partial_depth_end_plate-tying-cube-report.pdf
+Pagine20-21: applicazione indipendente di Check14 alla stessa geometria,
+resistenza405.4kN e utilizzo pubblicato0.431673. Consultato il testo primario;
+il renderer web non ha restituito una screenshot. La fonte della formula
+resta P358, verificata visivamente. SDS2 usa parametri/material policy
+propri in altri controlli: NON trasferirli al nostro componente.
+
+2. CAMPO COMUNE E INNESTO
+
+Riutilizzare senza modificarli FlexibleEndPlateTyingInput/Geometry/Result,
+SciAccidentalTyingPolicy e FlexibleEndPlateTyingComponents.Verify.
+Ogni nuovo input contiene lo STESSO FlexibleEndPlateTyingInput immutabile;
+ogni verifica ricalcola il componente congelato, non accetta un bool Passed.
+Un risultato congelato NotSupported blocca il nuovo calcolo; un risultato
+Failed NON impedisce di calcolare separatamente i meccanismi nuovi.
+
+Conservare la provenienza Policy.DesignSituationSource e richiedere la
+fonte della combinazione accidentale. Non combinare un tiro di robustezza
+con il taglio ordinario di un'altra combinazione.
+Resta il campo congelato: piastra parziale S275, M20, due colonne, tiro
+Fz>=0 senza Fx/Fy o momenti al centro fisico della piastra. Trasporto delle
+sei azioni completo, non rinuncia ai momenti perche' il carico e' chiamato N.
+Nessuna overload ConnectionDesignCode, nessun default NTC, nessun fattore
+gammaM2 ordinario costruito artificiosamente uguale a gammaMu.
+
+3. CHECK13 - SALDATURE: FORMULE E GERARCHIA EFFETTIVAMENTE PROVATA
+
+App.C.1 p.279: due cordoni simmetrici sui due lati dell'anima; per F_l
+forza trasversale per unita' di lunghezza [N/mm]:
+sigma_perp = tau_perp = F_l*sqrt(2)/(4*a), tau_parallel=0;
+sigma_eq=sqrt(sigma_perp^2+3*tau_perp^2)=F_l/(sqrt(2)*a).
+Resistenza direzionale: sigma_eq <= fu/(betaW*gammaMu), betaW=.85 per S275.
+Secondo criterio normale EN4.5.3.2(6), eq4.1:
+max(0,sigma_perp) <= .9*fu/gammaMu, politica accidentale App.C.1.
+fu=min(fu,beamWeb,fu,endPlate), non resistenza arbitraria del consumabile.
+
+App.C.1 pone F_l=tw*fy,beam per sviluppare lo SNERVAMENTO dell'anima:
+a_required = tw*fy,beam*betaW*gammaMu/(sqrt(2)*fu).
+Questo e' il requisito di gerarchia fonte adottato. Non equivale a
+sviluppare tw*hp*fu/gammaMu, resistenza ULTIMA dell'anima di Check12.
+Non implica che l'intero nodo governi sempre per snervamento della piastra.
+I modi1/2/3 della piastra/bulloni restano esposti dal componente congelato.
+
+Per lunghezza hp interamente efficace, le due saldature danno:
+Rw,directional=sqrt(2)*a*hp*fu/(betaW*gammaMu);
+Rw,normal=2*sqrt(2)*a*hp*.9*fu/gammaMu.
+Resistenza del modello=min(Rw,directional,Rw,normal).
+Controllare Ftying effettivo, a_required e il criterio normale separatamente.
+
+Check13 p.48 pubblica a>=.40tw per l'esempio. App.C.2 p.279 descrive
+la riduzione0.8 proposta per il taglio, non inclusa nella guida ECCS finale
+ma raccomandata UK; il cordone ordinario puo' essere riutilizzato quando
+Ftying<=V. Se Ftying>V, occorre progettare secondo lo Standard.
+Il nuovo calcolo sceglie il criterio App.C.1 piu' conservativo, senza.8;
+non applica .40tw come regola universale e non pretende un V ordinario
+per autorizzare un tiro maggiore. Differenza intenzionale da documentare.
+
+Confronto addizionale utile, distinto dalla prescrizione:
+esporre Rweld e FMode1 della piastra per confronto della catena dei componenti.
+Nel caso pubblicato Rweld>FMode1. Il solo confronto delle capacita' globali
+non certifica distribuzioni locali postplastiche o duttilita' globale.
+Non introdurre un nuovo coefficiente di sovraresistenza non prescritto.
+
+4. CONTRATTO SALDATURE PROPOSTO
+
+FlexibleEndPlateTyingWeldInput:
+- Tying: FlexibleEndPlateTyingInput, obbligatorio;
+- Ends: FilletWeldEndCondition, senza default, ammesso solo FullSize;
+- ConsumableCompatibilitySource: obbligatoria;
+- WeldDetailSource: obbligatoria: due cordoni continui, simmetrici, pari
+  gola, saldatura a90gradi per tutta hp, estremita' a piena sezione;
+- ActionCombinationSource: obbligatoria e riferita al caso Tying.
+Non introdurre una gola/lunghezza parallela che possa divergere da Geometry.
+
+Radici in XY rispetto al centro piastra: X=+/-tw/2, Y=+/-hp/2,
+piano fisico Z=tp; direzione di entrambe le radici +Y. Normali fisiche
+(-X+Z)/sqrt2 e (+X+Z)/sqrt2. Il centro delle azioni e' inizialmente Z=tp/2:
+lo spostamento lungo Fz non crea momento, ma va documentato, non ignorato.
+Direzione positiva della forza sul gruppo concorde al tiro trasmesso;
+equilibrio con la reazione opposta sul corpo collegato esplicito nel trace.
+
+Risultato separato con Input, PlateAndBeamAssessment, Checks, Trace,
+Diagnostics, PendingChecks, Status, IsComponentAssessmentComplete,
+CanQualifyWholeJoint=false. Niente modifica ai PendingChecks congelati.
+Checks proposti: Tying.Weld.FullStrengthWebYieldThroat [mm],
+Tying.Weld.DirectionalEquivalent [MPa], Tying.Weld.NormalTension [MPa].
+Trace: fu,betaW,gammaMu,hp,a_required,area, tensioni, Rweld, Nweb,y,
+Nweb,u, FMode1, e rapporto FMode1/Rweld (dato, non certificato globale).
+Riutilizzare FilletWeldNumbers.Norm e contratti esistenti; le sole formule
+App.C.1 sono aritmetica specifica della policy SCI, senza finto Code EC.
+
+5. CHECK14 - MECCANISMO LOCALE ANIMA COLONNA
+
+Fonte p.29/PDF39, verificata visivamente:
+d2=Support.ClearWeb=H-2*(tf+r), distanza fra i raccordi;
+beta1=gauge/d2; gamma1=d0/d2;
+eta1=((rows-1)*pitch-rows*d0/2)/d2;
+m_pl,u=fu,support*tw,support^2/(4*gammaMu) [Nmm/mm=N];
+Rweb=8*m_pl,u/(1-beta1)*[eta1+1.5*sqrt(1-beta1)*sqrt(1-gamma1)].
+Il fattore1.5 include, secondo la fonte, una allowance per compressione
+assiale della colonna. Non e' una formula di interazione con N,V,M qualunque
+e la fonte non assegna una soglia numerica di N da inventare nel software.
+
+Schema: anima di I/H laminato tra due ali longitudinalmente continue,
+gruppo rettangolare centrato nella luce fra raccordi, meccanismo interno
+a linee di plasticizzazione come figura Check14. Piastra interamente sulla
+parte piana dell'anima; nessun foro aggiuntivo, rinforzo, intaglio o apertura
+che interferisca col meccanismo. Colonna orientata Y longitudinale, altezza
+di sezione H lungo X, anima di spessore tw lungo Z. Superficie di contatto
+Z=0, piano medio anima Z=-tw/2. Trasporto del solo Fz lungoZ invariato.
+
+Primo campo: UNA SOLA FACCIA. P358 cita due facce diversamente caricate,
+ma non fornisce qui un algoritmo generale per il riparto tra bulloni comuni,
+la compatibilita' di piastre sfalsate o azioni eccentriche. Non utilizzare
+automaticamente |F1-F2|, max(F1,F2) o F1+F2. Anche risultante nulla non
+elimina trazione bulloni, verifiche delle due piastre o momenti da disassamento.
+Due facce collegate (cariche o scariche) fuori dal primo adattatore.
+
+6. CONTRATTO SUPPORTO E LIMITE DI QUALIFICAZIONE
+
+FlexibleEndPlateTyingSupportWebInput:
+- Tying: FlexibleEndPlateTyingInput, stesso stato/concomitanza;
+- Support: ConnectionRolledISection, non un semplice spessore o d2 libero;
+- OppositeFaceConnected: bool OBBLIGATORIO senza default; inizialmente false;
+- ExistingSupportActions: PlanarConnectionActions OBBLIGATORIO senza default,
+  nel frame della connessione, escluso questo tiro, stessa combinazione;
+- ActionCombinationSource e SupportGeometrySource obbligatorie;
+- SupportTopBoltEdge, SupportBottomBoltEdge: distanze fisiche positive fra
+  fila estrema ed estremita'/prima interruzione effettiva dell'anima;
+- SupportInteriorPanelModelSource: descrizione tracciabile del modello
+  interno continuo di Check14 e delle condizioni reali al contorno.
+- SupportWebHasAdditionalOpeningsOrStiffeners: bool obbligatorio senza
+  default; qualsiasi interferenza dichiarata richiede altro modello.
+
+Zero azioni preesistenti esplicito richiesto per questa prima implementazione:
+qualsiasi delle6 componenti non nulla => NotSupported, conservata nel trace.
+E' un LIMITE DEL SOFTWARE, non una prescrizione normativa N=0.
+Non importare la soglia 5d dell'ordinario taglio come limite delle yield lines.
+
+Gates verificabili: input congelato supportato; supporto I/H laminato come
+contratto; faccia singola; fu coerente al materiale S275 iniziale (410MPa),
+larghezza piastra e hardware interamente in d2; gauge>d0,0<beta1<1,
+0<gamma1<1,eta1>0; distanze ai bordi almeno non intersecanti i fori;
+nessuna azione preesistente; nessun rinforzo/foro aggiuntivo dichiarato.
+I minimi da bordo foro non sono prova sufficiente della compatibilita' del
+meccanismo fuori piano con la fine della colonna.
+
+LIMITAZIONE DA CONSERVARE NELL'API:
+P358 qui non fornisce una distanza minima generale da estremita', saldature,
+stiffener o altre interruzioni per il meccanismo ideale. Non va inventata.
+Raccomando che questo primo risultato sia esplicitamente un calcolo del
+meccanismo locale del pannello continuo: LocalModelStatus puo' essere
+Passed/Failed, ma CanQualifyWholeJoint=false e
+IsSupportBoundaryCompatibilityVerified=false. PendingChecks deve mantenere
+SUPPORT_FINITE_BOUNDARIES_AND_YIELD_LINE_COMPATIBILITY, oltre ad azioni
+globali, contatto/punzonamento e robustezza/deformazioni. La fonte geometrica
+e' un dato del chiamante, NON un controllo automatico della lunghezza finita.
+Un aggregatore non deve sostituire questo risultato a tutta la voce Support.
+In alternativa root puo' richiedere una prova esterna specifica del pannello
+finito in una futura API; per ora non aggiungere un semplice bool Verified.
+
+La separazione consente di implementare la formula utile e riproducibile,
+senza fingere di aver chiuso un nodo fisico generico presso l'estremita'.
+
+7. ATTESI INDIPENDENTI E TEST PROPOSTI
+
+Derivatore: derive_tying_weld_support_checks.py; non importa Checker.
+Esempio2: a4.24,hp290,tw,beam9.5,fy275,fu410,betaW.85,gammaMu1.1.
+Check13 pubblicato: a_required3.8mm; criterio C.1 adottato4.212782672121mm.
+sigma=tau50.318675466674MPa, sigma_eq100.637350933349MPa;
+Rstress438.502673796791MPa; Rnormal335.454545454545MPa;
+Rw,directional762519.752385586N; Rw,normal1166655.221149946N;
+Nweb,y757625N; Nweb,u1026863.636363636N; FMode1380519.756529428N.
+Utilizzo sotto tiro175kN=.229502251519;
+utilizzo requisito di gola=.993580818896, che governa il modello del cordone.
+L'esempio PASSA anche il criterio C.1 piu' conservativo, senza cambiare attesi.
+
+Supporto UKC305x305x137: d2246.7,tw13.8,fu410,g90,p70,rows4,d022.
+m_pl,u17745.545454545456 Nmm/mm; eta.6728820429671666;
+beta.36481556546412647; gamma.08917713822456426;
+Rweb405388.3238919048N; utilizzo175000/Rweb=.43168485544902635.
+P358405kN; SDS2 405.4kN e.431673. Quest'ultimo e' coerente alla capacita'
+pubblicata arrotondata, non all'ultimo decimale del ricalcolo: usare tolleranze
+di stampa (0.5kN P358,0.05kN SDS2), non forzare l'atteso esatto.
+L'unita' kNm/mm stampata in P358p49 per17.7 e' incoerente: qui sono17.7455kN,
+ossia kNmm/mm, non17.7kNm/mm. Non propagare il fattore1000 nel trace.
+
+Test nuovi (nessuno ancora eseguito):
+- benchmark esatto analitico + due confronti pubblicati con tolleranza di stampa;
+- gola3mm: verifica diretta al tiro175kN passa ma C.1 fallisce (no solo Ftying);
+- valori limite appena sotto/sopra gola C.1 e capacita' direzionale;
+- estremita' nominali/difettose, consumabile/fonte mancanti => NotSupported;
+- conservazione caso e azioni, trasporto del punto di applicazione lungo Z;
+- momenti residui e ogni Fx/Fy non nullo anche minimo => NotSupported;
+- supporto tw12:306531.81390692235N, scaling tw^2, non tw;
+- Support.ClearWeb derivato, fori sottratti da eta, righe/d2 sensibilita';
+- gauge prossimo a d2 o hardware/raccordi incompatibili => NotSupported;
+- qualsiasi azione supporto o faccia opposta presente => NotSupported;
+- distanze finite e fonti conservate, mai convertite in qualifica automatica;
+- figlio Failed distinto da figlio NotSupported, liste immutable, no stato
+  accettabile aggregato quando una verifica manca o e' fuori dal campo.
+
+8. CONSEGNA E DECISIONE ROOT
+
+Proposta concreta: due nuovi componenti locali, Weld e SupportWeb, sullo
+stesso input congelato. Nessuna modifica al componente2d.3a o ai test esistenti.
+Root ha gia' approvato C.1, verifica diretta e normale con policy SCI separata.
+Prima dell'implementazione resta da accettare il confine esplicito del
+risultato SupportWeb: formula locale verificata, compatibilita' delle
+estremita' finite ancora non verificata automaticamente.
+
+
+REVISIONE ROOT 24/10/2026, CIRCA02:24 EUROPE/ROME
+Specifica approvata per implementazione nei soli campi dichiarati.
+I benchmark Python sono stati eseguiti; implementazione.NET e relativi
+test ancora da integrare e verificare. Questa nota non chiude una sottofase.
+Distinguere2d.3b saldature da2d.3c modello locale supporto.
+  Primo campo supportoS275fy275/fu410; distanze longitudinali almeno40mm
+  per contenere l'impronta della piastra, NON come prova di compatibilita'
+  delle yield lines. Aperture/rinforzi/fori aggiuntivi saranno dichiarati
+  con dati espliciti senza default favorevoli. Il risultato locale conserva
+  IsSupportBoundaryCompatibilityVerified=false e non chiude Support/nodo.

@@ -1,0 +1,243 @@
+FASE 4c.3 - SPECIFICA DEL DETTAGLIO SUPERIORE A FILO CON CJP
+=========================================================
+Stato: proposta per revisione, nessuna implementazione o installazione.
+La specifica non chiama il primo dettaglio 'flush completo'.
+
+1. Scelta raccomandata per il primo blocco funzionante
+----------------------------------------------------
+Implementare un componente TopFlushCjpEndPlateWeldComponents:
+ - piastra a filo della superficie ESTERNA dell'ala superiore tesa;
+ - giunto superiore a completa penetrazione (CJP) sull'intero spessore e
+   larghezza dell'ala, con preparazione/esecuzione/controlli qualificati;
+ - cordone interno supplementare REALE sotto l'ala superiore, con cateto
+   uguale a TensionFlangeWeldLeg della geometria T-stub gia' calcolata;
+ - nessun cordone d'angolo esterno sopra l'ala superiore;
+ - piastra ancora prolungata sotto l'ala compressa: dettaglio inferiore a
+   doppio cordone o appoggio diretto qualificato, come nel percorso attuale;
+ - anima con due cordoni reali, intero V affidato all'anima, stessa
+   interazione con inviluppo normale completo del componente esistente.
+
+La resistenza superiore viene dalla sola CJP. Non si somma la resistenza
+del cordone interno e non si trasforma il CJP in due gole a45 gradi.
+Il cordone interno serve a rappresentare un dettaglio fisico compatibile
+con il T-stub corrente, non e' un cateto convenzionale o fittizio.
+La sua geometria di piede, continuita, fusione e transizione nei raccordi
+devono essere esplicitamente qualificate. Il tratto superiore esterno non
+esiste: il modello non puo' aggiungerlo per riprodurre la coppia di cordoni.
+
+Campo ordinario ereditato: trave/pilastro I laminati, nessun irrigidimento
+intermedio, N=0, momento positivo che tende le file nominate superiori;
+V concomitante conservato, verifiche statiche. La capacita di rotazione,
+il nodo completo, il comportamento ciclico e la qualificazione esecutiva
+restano fuori dal risultato. Non inferire sovraresistenza o duttilita da CJP.
+
+2. Fonti primarie verificate
+---------------------------
+EN1993-1-8:2005:
+ - 4.3.4(1): definizione di piena penetrazione/fusione nello spessore.
+ - 4.7.1, p45/PDF47, verificata visivamente: resistenza della parte connessa
+   piu' debole con materiale d'apporto idoneo; i minimi di snervamento e
+   rottura dei provini all-weld non inferiori ai corrispondenti minimi del
+   materiale base. Non e' la formula fu/(beta_w*gammaM2) dei fillet.
+ - 4.7.2 e 4.7.3: parziale penetrazione e T-butt con doppio cordone
+   rinforzato sono casi distinti, esclusi dal primo CJP.
+ - 4.12, p48/PDF50: eccentricita locale nei cordoni singoli/saldature a
+   parziale penetrazione su un solo lato. Esclude la scorciatoia di
+   dimezzare la coppia di fillet e ignorare l'eccentricita alla radice.
+ - 6.2.2(1): il taglio verticale resta tutto nei cordoni dell'anima.
+
+NTC2018, D.M.17/01/2018:
+ - 4.2.8.2.1, pp112-113/PDF116-117, verificata visivamente: giunti testa a
+   testa, a T e a croce a piena penetrazione; resistenza del piu' debole
+   elemento connesso, piena fusione attraverso lo spessore da unire.
+ - 4.2.8.2 e rinvio11.3.4.5: procedimenti, apporti e controlli non sono
+   automaticamente qualificati dalla sola verifica numerica.
+ - 4.2.8.2.2: parziale penetrazione distinta, non promossa implicitamente
+   a CJP dalla presenza di un cordone aggiuntivo.
+ - 4.2.8.2.3-4: cordoni dell'anima/inferiori mantengono le policy NTC gia'
+   implementate. La piena penetrazione ha riferimento NTC letterale,
+   non viene presentata soltanto come un'estensione EN supplementare.
+
+SCI P398, STEP7, pp38-39/PDF46-47 (p39 verificata visivamente):
+ - propone la piena penetrazione come via per un attacco full-strength
+   dell'ala tesa; in alternativa occorrono fillet sufficienti;
+ - individua distintamente ala tesa, anima, transizioni e ala compressa;
+ - consente appoggio dell'ala compressa se il fit e' qualificato.
+Le indicazioni non certificano un dettaglio esecutivo particolare a filo.
+
+JRC96658, F.Wald,2.2.3,p101/PDF117:
+riporta la stessa regola di equivalenza della piena penetrazione e distingue
+il T-butt equivalente. E' un controllo incrociato del metodo, non un
+benchmark numerico pubblicato del nuovo dettaglio superiore a filo.
+
+Non e' stato trovato in queste fonti un esempio numerico completo del
+preciso dettaglio CJP superiore con piastra a filo e cordone interno
+supplementare. I benchmark proposti sotto sono quindi ANALITICI, con
+geometria dichiarata, e non vanno denominati validazione sperimentale
+o riproduzione integrale di un nodo pubblicato.
+
+3. Vincolo reale dei contratti attuali
+-------------------------------------
+TStubInternalEndPlateGeometry impone cateti positivi per entrambe le ali.
+Le distanze sono:
+ m2 = primaFila -0.8*catetoInternoSuperiore;
+ distanze libere = distanza dal bordo ala -cateto.
+EndPlateMomentComponents impone inoltre:
+ proiezione inferiore >=CompressionFlangeWeldLeg.
+ColumnWebEffectiveWidth.FromBoltedEndPlate richiede lo stesso cateto
+positivo e usa la dispersione della coppia simmetrica inferiore.
+
+Percio' ExtensionGeometry=null significa 'nessuna fila esterna superiore',
+non 'piastra a filo superiore e inferiore'. Un vero CJP privo di rinforzo
+non puo' essere rappresentato ponendo un epsilon al posto del cateto.
+Il primo dettaglio proposto mantiene i piedi interni e il prolungamento
+inferiore REALI e non richiede di reinterpretare o ricalcolare il T-stub
+esistente. L'input deve verificare che il profilo dichiarato coincida con
+quello da cui provengono le capacita delle file.
+
+4. Contratti nuovi proposti per il primo blocco
+----------------------------------------------
+TopFlushCjpEndPlateDetail, immutabile:
+ - TopProjectionBeyondFlange=0 mm, misurato dalla superficie esterna;
+ - FusionDepth [mm], non inferita dal sovrametallo;
+ - EffectiveSeamWidth [mm], deve coprire la larghezza dell'ala;
+ - ActualInnerFilletLeg [mm], uguaglianza col parent geometrico;
+ - OuterFilletLeg=0, nessuna resistenza esterna implicita;
+ - AllWeldMinimumYieldStrength e AllWeldMinimumUltimateStrength [MPa];
+ - FullPenetrationQualificationSource, PreparationAndInspectionSource,
+   InnerToeGeometrySource, ThroughThicknessBehaviourSource;
+ - dettaglio ordinario per i due cordoni dell'anima e per quelli inferiori,
+   riusando EndPlateWeldDetail senza usare TensionFlangeEnds per una CJP.
+
+TopFlushCjpEndPlateWeldInput:
+ - EndPlateMomentComponentResult, identita e combinazione conservate;
+ - materiali/grade reali di trave e piastra, fy/fu dell'ala agli spessori
+   effettivi, stessa provenienza gia' usata da EndPlateWeldComponentInput;
+ - dettaglio CJP, fonti locali e consumabili.
+
+Prerequisiti per questa prima equivalenza full-strength semplice:
+ - parent Passed nel suo campo, ExtensionGeometry=null;
+ - larghezza piastra >=larghezza ala e spessore piastra >=spessore ala;
+ - fy e fu reali della piastra >=quelli dell'ala superiore;
+ - all-weld fy/fu >=massimo delle proprieta corrispondenti delle parti;
+ - fusione >=tf e larghezza efficace >=bf, con tracciamento dei valori
+   effettivamente accreditati, limitati a tf e bf;
+ - bordo esterno superiore realmente a filo, nessun fillet esterno;
+ - piede interno reale coincidente con quello del T-stub;
+ - fonti per transizioni, estremita, eccentricita, comportamento nello
+   spessore e controlli. Una stringa registra una qualificazione esterna,
+   non la crea e non risolve le tensioni locali della piastra.
+
+La restrizione fy/fu della piastra evita di inventare una resistenza
+locale della piastra piu' debole usando automaticamente bf*tf*fy_plate.
+Quella sarebbe soltanto una sezione nominale convenzionale e non la
+resistenza dell'elemento piastra nel suo effettivo percorso resistente.
+Se la piastra e' piu' debole, restituire NotSupported nel primo campo;
+una futura estensione potra' accettare una resistenza locale qualificata
+e riferita allo stesso dettaglio. Non trasformare il caso in un falso
+Failed del nodo a una domanda inferiore alla resistenza full-strength.
+
+Calcolo superiore nel campo qualificato:
+ Af=bf*tf;
+ F_flange,Rd=Af*fy_flange/gammaM0;
+ F_CJP,equivalent,Rd=F_flange,Rd.
+Il risultato e' l'equivalenza locale della CJP all'ala piu' debole, non
+una verifica 3D della piastra e non una nuova capacita globale del nodo.
+Il confronto full-strength e' svolto anche a MEd=0, analogamente al
+componente attuale; non e' una distribuzione elastica ricostruita da MEd.
+Non applicare beta_w, gammaM2 o la deduzione2a dei fillet alla CJP.
+L'anima e i cordoni inferiori riusano FilletWeldResistance e le regole
+geometriche esistenti, senza creare una ExtensionGeometry fittizia per
+riuscire a chiamare il vecchio componente esclusivamente paired-fillet.
+
+Output: componente con tracce di CJP equivalente, azioni V/M/N originarie,
+verifiche dei fillet separabili, PendingChecks e CanQualifyWholeJoint=false.
+Non pubblicare 'flush completo', 'nodo full-strength' o rotazione adeguata.
+
+5. Modifica minima futura per descrivere il vero profilo CJP
+-----------------------------------------------------------
+Proposta backward-compatible da approvare separatamente:
+ - nuovo valore EndPlateFlangeWeldProfile con Kind=PairedFillet oppure
+   FullPenetration, InnerFilletLeg, OuterFilletLeg e fonte geometrica;
+ - i costruttori esistenti mantengono rigorosamente l'interpretazione
+   PairedFillet con due cateti positivi uguali;
+ - un nuovo overload/factory di TStubInternalEndPlateGeometry accetta i
+   profili; CJP senza rinforzo ha cateto interno/esterno ZERO reale;
+ - il bordo resistente e l'ingombro dei bulloni dipendono dal piede
+   INTERNO; nessun epsilon e nessun automatico sfavore/favore ai T-stub
+   esistenti. Il nuovo caso richiede nuova lettura alpha per la geometria;
+ - il limite del bordo inferiore dipende dal piede ESTERNO, non da un
+   cateto simmetrico presunto;
+ - per la dispersione di compressione, aggiungere un percorso nominato
+   per CJP: senza contributo accreditato dei fillet, il carico iniziale e'
+   limitato a tf e la dispersione a45 gradi al bordo reale della piastra.
+   Nel caso esattamente a filo inferiore sp=tp, senza prolungamento;
+   non riusare automaticamente tf+2*cateto di un dettaglio simmetrico.
+ - confermare quel percorso di dispersione e i limiti di bordo con nuova
+   derivazione normativa/geometrica prima di dichiararlo implementato.
+
+Con questa estensione si potra' rappresentare CJP su entrambe le ali con
+proiezioni nulle, mantenendo i due cordoni dell'anima. Non e' parte della
+chiusura immediata del componente superiore a filo/fondo prolungato.
+Nessun file esistente e' stato modificato da questa ricerca.
+
+6. Benchmark proposti e casi limite
+-----------------------------------
+Benchmark analitico1: ala bf200,tf12 mm, fy275,fu410 MPa; piastra20 mm
+S355 con fy345,fu470; all-weld minimi355/510 MPa; CJP effettiva12x200.
+Af2400 mm2, F_CJP,equivalent=660000 N in EC gammaM0=1;
+NTC gammaM0=1.05 ->628571.4285714286 N.
+La domanda full-strength ha utilizzo1 per equivalenza normativa, con
+prerequisiti verificati separatamente. Non testare solo l'uguaglianza:
+gole incomplete, copertura ridotta, materiali e geometria devono bloccare.
+
+Benchmark analitico2, VARIANTE della geometria SCI C1:
+bf209.3,tf15.6,tw10.1,r12.7,clearWeb476.5 mm; piastra250x25 mm;
+S275 trave fy275/fu410; piastra S355 fy345/fu470 (diversa da C1);
+CJP superiore con cordone INTERNO12 mm; cordoni anima8 mm;
+fondo prolungato46.9 mm e appoggio di compressione qualificato;
+V300000 N concomitante, M scelto entro le nuove capacita del parent.
+Af3265.08 mm2, F_CJP equivalente897897 N EC,855140 N NTC.
+L'anima resta al benchmark gia' derivato:
+ sigma_perp=tau_perp173.59375 MPa EC;
+ tau_parallel55.6484875015646 MPa;
+ equivalente360.3185016619121 MPa su385.8823529411765 MPa.
+La piastra S355 non alza fu del cordone oltre la parte piu' debole S275.
+Non chiamare questo un risultato pubblicato SCI C1: e' una variante
+analitica con dettagli/materiale della piastra esplicitamente diversi.
+Il C1 originale con plateFy265<flangeFy275 e' un caso NotSupported per
+la sola equivalenza semplice proposta, senza abbassare fy_flange per
+rendere favorevole il test o affermare che la CJP reale sia insufficiente.
+
+Test necessari prima della consegna:
+ - i due benchmark EC/NTC e provenienza dei fattori;
+ - blocco per fusione<tf, larghezza<bf, fonti/controlli mancanti;
+ - blocco per apporto non matching in fy OPPURE in fu;
+ - blocco per piastra meno resistente o meno spessa nel primo campo;
+ - rifiuto di parziale penetrazione presentata come CJP;
+ - cateto interno diverso dal parent e fillet esterno inesistente;
+ - proiezione superiore non nulla o parent esteso;
+ - geometria inferiore/coppia reale ancora richiesta;
+ - intero taglio nell'anima e sua interazione, nessun V trasferito all'ala;
+ - condizioni estremita EC/NTC solo per fillet;
+ - domanda nulla non esenta dalla qualifica full-strength;
+ - overflow, valori invalidi e uguaglianze geometriche inclusive;
+ - nessuna qualifica globale/rotazionale e nessuna modifica silenziosa
+   delle resistenze parent o dei T-stub esistenti.
+
+7. Stato e prossima autorizzazione
+---------------------------------
+Ricerca conclusa; fonti sopra verificate, immagini in staging.
+Da approvare: primo campo TopFlushCjpEndPlate (fondo prolungato), con
+restrizione di equivalenza alla parte ala piu' debole e verifica normativa
+letterale della piena penetrazione. Il vero flush completo resta aperto.
+Nessuna build, test C#, installazione o operazione Git eseguita.
+
+
+REVISIONE ROOT 24/10/2026, CIRCA02:24 EUROPE/ROME
+Specifica approvata per implementazione nei soli campi dichiarati.
+I benchmark Python sono stati eseguiti; implementazione.NET e relativi
+test ancora da integrare e verificare. Questa nota non chiude una sottofase.
+Approvato soltanto CJP superiore a filo con cordone interno reale e
+  fondo prolungato. Nessun cateto fittizio o modifica implicita dei T-stub.
+  Il vero flush completo su entrambe le ali resta uno sviluppo distinto.
