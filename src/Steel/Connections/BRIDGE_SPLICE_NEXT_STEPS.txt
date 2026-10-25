@@ -1,5 +1,5 @@
 COPRIGIUNTI DA PONTE - BLOCCHI 1, 2, 4, 3
-26/10/2026 - sviluppo sequenziale sul branch codex/steel-bridge-splices-static
+25/10/2026 - sviluppo sequenziale sul branch codex/steel-bridge-splices-static
 
 1 CHIUSO - screening riproducibile di 10 scenari, EC3 2005/NTC2018 e B/C:
   40 test superati. Geometrie sintetiche, non progetti di ponti reali.
@@ -15,7 +15,7 @@ COPRIGIUNTI DA PONTE - BLOCCHI 1, 2, 4, 3
   esterno360 fuori modello bilanciato; anima3 fuori classe4 forata.
   Il sovraccarico e' Failed, non NotSupported. I test non equiparano i due.
 
-2 IN CORSO - controllo con domanda effettiva dei blocchi con forze collineari
+2 CHIUSO NEL DOMINIO COLLINEARE - controllo con domanda effettiva dei blocchi con forze collineari
   parallele ai bordi; conservare gerarchia esplicita per gli altri gruppi.
   EN1993-1-8:2005 3.10.2, SCI P398 pp136/139. Nessuna formula universale
   inventata per il block tearing N-V-M. Mantenere il percorso 2.90 riproducibile.
@@ -26,3 +26,9 @@ COPRIGIUNTI DA PONTE - BLOCCHI 1, 2, 4, 3
 
 Classe4, fatica, imbottiture, spessori differenti tra le facce e FEM locale
 restano fuori da questo blocco. Nessuna modifica ad ANTHEA, merge o push.
+
+  11 nuovi test e 107/107 con regressioni standard/matrice. Coprigiunti ali14mm
+  protetti e anima12mm in solo N ora verificabili; anima con N-V-M conserva
+  la gerarchia. Il caso anima24 NTC misto resta correttamente fuori metodo.
+  Il primo campione ali10mm non rispettava passo/bordi: corretto il dato
+  sintetico a14mm protetto, nessun atteso legacy modificato.

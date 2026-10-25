@@ -9,14 +9,16 @@ namespace GPC.Checkers.Steel.Connections
     {
         public ConnectionVerification<WeldedIBeamSpliceDetailInput> NetSections { get; }
         public ConnectionVerification<WeldedIBeamSpliceDetailInput> BlockHierarchy { get; }
+        public ConnectionVerification<WeldedIBeamSpliceDetailInput> DirectBlockTearing { get; }
         public ConnectionVerification<WeldedIBeamSpliceDetailInput> CompactPlateDomain { get; }
         /// <summary>A failed hierarchy is an unsuccessful sufficient applicability test,
         /// not proof that the actual loaded block has failed.</summary>
-        public bool IsQualified => NetSections.IsComplete && BlockHierarchy.Status == ConnectionStatus.Passed
+        public bool IsQualified => NetSections.IsComplete && (BlockHierarchy.Checks.Count == 0 ? BlockHierarchy.Diagnostics.Count == 0 : BlockHierarchy.Status == ConnectionStatus.Passed)
+            && (DirectBlockTearing.Checks.Count == 0 ? DirectBlockTearing.Diagnostics.Count == 0 : DirectBlockTearing.Status == ConnectionStatus.Passed)
             && CompactPlateDomain.Status == ConnectionStatus.Passed;
         internal WeldedIBeamSpliceStandardPlateResult(ConnectionVerification<WeldedIBeamSpliceDetailInput> net,
-            ConnectionVerification<WeldedIBeamSpliceDetailInput> block, ConnectionVerification<WeldedIBeamSpliceDetailInput> compact)
-        { NetSections = net; BlockHierarchy = block; CompactPlateDomain = compact; }
+            ConnectionVerification<WeldedIBeamSpliceDetailInput> block, ConnectionVerification<WeldedIBeamSpliceDetailInput> compact, ConnectionVerification<WeldedIBeamSpliceDetailInput> direct)
+        { NetSections = net; BlockHierarchy = block; CompactPlateDomain = compact; DirectBlockTearing = direct; }
     }
 
     /// <summary>Sufficient conservative checks for the standard splice, added to the
@@ -24,7 +26,11 @@ namespace GPC.Checkers.Steel.Connections
     /// The net stress check deliberately retains holes under compression as well.</summary>
     public static class WeldedIBeamSpliceStandardPlates
     {
-        public static WeldedIBeamSpliceStandardPlateResult Verify(WeldedIBeamSpliceDetailInput p)
+        public static WeldedIBeamSpliceStandardPlateResult Verify(WeldedIBeamSpliceDetailInput p) => Verify(p, false);
+
+        /// <summary>Opt-in direct action checks for collinear longitudinal bolt forces.
+        /// Mixed-direction groups retain the sufficient fastener hierarchy.</summary>
+        public static WeldedIBeamSpliceStandardPlateResult Verify(WeldedIBeamSpliceDetailInput p, bool actualCollinearBlockForces)
         {
             if (p == null) throw new ArgumentNullException(nameof(p));
             var applicability = WeldedIBeamSpliceStandardModel.Verify(p);
@@ -33,6 +39,7 @@ namespace GPC.Checkers.Steel.Connections
             var issues = new List<string>(applicability.Diagnostics.Concat(plates.Diagnostics));
             if (!WeldedIBeamSplicePlates.SameCode(code, p.Plates.Bolts.Code)) issues.Add("PLATE_CODE_MISMATCH");
             var net = new List<ConnectionCheck>(); var blocks = new List<ConnectionCheck>(); var compact = new List<ConnectionCheck>();
+            var direct = new List<ConnectionCheck>();
             var trace = new List<SectionResistanceValue>();
             if (issues.Count == 0)
             {
@@ -66,7 +73,7 @@ namespace GPC.Checkers.Steel.Connections
                         60 * Math.Sqrt(235 / plate.Fy), "EN1993-1-1:2005 6.2.6(6), EN1993-1-5:2006 5.1; eta=1.2 sufficient domain", "1"));
                     double half = grid.FirstBoltDistance + grid.LongitudinalSpan + WeldedIBeamSplicePlates.End(d, g);
                     Hierarchy(c.Cover.ToString(), plate, bolt, groups.SelectMany(x => x.Distribution.Points).Distinct().ToArray(),
-                        -half, half, g.TransverseMinimum, g.TransverseMaximum, 1);
+                        -half, half, g.TransverseMinimum, g.TransverseMaximum, 1, groups.SelectMany(x => x.Distribution.Forces));
                 }
                 ParentNet();
                 // The unnotched beam WEB is not a block-tearing case (SCI P398 p59).
@@ -79,17 +86,22 @@ namespace GPC.Checkers.Steel.Connections
                     // Artificial far free edge is conservative; the real parent continues.
                     Hierarchy((top ? "Top" : "Bottom") + ".Parent." + side, parent, p.Plates.Bolts.FlangeBolt,
                         points, side == SpliceSide.Left ? -far : d.ButtGap / 2,
-                        side == SpliceSide.Left ? -d.ButtGap / 2 : far, -parent.Width / 2, parent.Width / 2, 2);
+                        side == SpliceSide.Left ? -d.ButtGap / 2 : far, -parent.Width / 2, parent.Width / 2, 2,
+                        f.CoverGroups.Where(g => g.Side == side && (top
+                            ? g.Cover == WeldedSpliceCover.TopOuter || g.Cover == WeldedSpliceCover.TopInnerNegative || g.Cover == WeldedSpliceCover.TopInnerPositive
+                            : g.Cover == WeldedSpliceCover.BottomOuter || g.Cover == WeldedSpliceCover.BottomInnerNegative || g.Cover == WeldedSpliceCover.BottomInnerPositive))
+                        .SelectMany(g => g.Distribution.Forces));
                 }
             }
-            return new WeldedIBeamSpliceStandardPlateResult(Result("NetSections", net), Result("BlockHierarchy", blocks), Result("CompactDomain", compact));
+            return new WeldedIBeamSpliceStandardPlateResult(Result("NetSections", net), Result("BlockHierarchy", blocks), Result("CompactDomain", compact), Result("DirectBlockTearing", direct));
 
             ConnectionVerification<WeldedIBeamSpliceDetailInput> Result(string name, IEnumerable<ConnectionCheck> checks)
                 => new ConnectionVerification<WeldedIBeamSpliceDetailInput>(p, code, "Steel.Connection.WeldedIBeamSplice.Standard." + name,
-                    "Conservative standard-detail sufficient checks. Block/compact-domain failure means outside this method, not an actual load-capacity failure.",
+                    "DirectBlockTearing uses collinear actual bolt forces and eccentric resistance, without cancellation. Other block groups retain the hierarchy. Conservative standard-detail sufficient checks. Block/compact-domain failure means outside this method, not an actual load-capacity failure.",
                     checks, trace, issues.Distinct(), new[] {
                         "Net rectangular holes remove both area and second moment. Every cover cut conservatively uses the perforated section, including the unperforated centre. Stress maxima are combined conservatively with 1.5 V/Anet; limit=min(fy/gammaM0,0.9fu/gammaM2). This elastic sufficient criterion is not a new plastic rupture interaction formula.",
                         "Block hierarchy enumerates orthogonal rectangular U and edge L paths, all free-edge prefixes and contiguous transverse subsets, in both directions. Eccentric expression 0.5 Ant fu/gammaM2 + Anv fy/(sqrt(3) gammaM0) is always used. Demand is the SUM of UNREDUCED design shear resistances of the enclosed bolt planes, not the load resultant. No cancellation or plastic bolt redistribution is credited.",
+                        "Opt-in direct checks are limited to longitudinal collinear bolt actions (including sign reversal). All rectangular prefixes and transverse subsets are checked using sum(abs(Fx)); opposite loads on a continuous cover do not cancel. The eccentric coefficient 0.5 is retained for every subset. No mixed-direction N-V-M rupture interaction is inferred. Non-collinear groups use the unchanged hierarchy.",
                         "Hierarchy requires every path to be stronger than all its fasteners. It is a sufficient exclusion of block tearing for this regular detail; a failed hierarchy requires a separate loaded-block method and prevents whole-detail qualification.",
                         "Parent net-section check assumes all flange/web holes aligned longitudinally and the full member actions retained in the parent, with no cover credit. Maximum lap-end moment is included. Unnotched parent-web block tearing is inapplicable per SCI P398 p59.",
                         "The compact-domain screen excludes shear-buckling-sensitive covers. Existing maximum longitudinal compression, 0.6p buckling strips, outstand/internal class3 limits and detailing remain mandatory." });
@@ -122,12 +134,18 @@ namespace GPC.Checkers.Steel.Connections
                 Value("Parent.BoundingMomentAboutNetCentroid", m, "Nmm");
             }
             void Hierarchy(string name, ConnectionPlate plate, ConnectionBolt bolt, ConnectionPoint2D[] points,
-                double xmin, double xmax, double ymin, double ymax, int planes)
+                double xmin, double xmax, double ymin, double ymax, int planes, IEnumerable<ElasticBoltForce> applied)
             {
+                // Sum the two physical shear planes for a parent ply before assessing its block.
+                var forces = applied.GroupBy(x => x.Position).ToDictionary(g => g.Key,
+                    g => Tuple.Create(g.Sum(x => x.Fx), g.Sum(x => x.Fy)));
+                double scale = forces.Values.Sum(x => Math.Abs(x.Item1) + Math.Abs(x.Item2));
+                bool collinear = actualCollinearBlockForces && forces.Values.All(x => Math.Abs(x.Item2) <= 32 * 2.2204460492503131e-16 * scale);
+                trace.Add(new SectionResistanceValue(name + ".ActualCollinearBlockMethod", collinear ? 1 : 0, "1"));
                 var capacity = BoltStrength.Verify(new BoltStrengthInput(code, bolt, 0, 0, planes, 0, 0, p.Plates.Bolts.HoleClearanceServiceabilitySource));
                 if (!capacity.IsComplete) { issues.AddRange(capacity.Diagnostics); return; }
                 double rb = capacity.Checks.Single(c => c.Id == "Bolt.Shear").Resistance;
-                for (int axis = 0; axis < 2; axis++) foreach (int sign in new[] { -1, 1 })
+                for (int axis = 0; axis < (collinear ? 1 : 2); axis++) foreach (int sign in new[] { -1, 1 })
                 {
                     double[] us = points.Select(q => sign * (axis == 0 ? q.X : q.Y)).Distinct().OrderBy(x => x).ToArray();
                     double[] vs = points.Select(q => axis == 0 ? q.Y : q.X).Distinct().OrderBy(x => x).ToArray();
@@ -145,8 +163,12 @@ namespace GPC.Checkers.Steel.Connections
                         {
                             double resistance = (.5 * lt * plate.Fu / code.Plates.GammaM2 + ls * plate.Fy / (Math.Sqrt(3) * code.Plates.GammaM0)) * plate.Thickness;
                             if (lt < 0 || ls <= 0 || !WeldedIBeamSplicePlates.Finite(resistance)) { issues.Add(name + ".INVALID_BLOCK_PATH"); return; }
-                            blocks.Add(new ConnectionCheck(name + ".Axis" + axis + ".Direction" + sign + ".Path" + ++id + "." + mode,
-                                k * count * rb, resistance, "EN1993-1-8:2005 3.10.2(3) eq3.10; sufficient fastener/block hierarchy, NOT actual action demand"));
+                            double demand = collinear ? points.Where(q => sign * q.X <= us[k - 1] && q.Y >= vs[first] && q.Y <= vs[last])
+                                .Sum(q => Math.Abs(forces[q].Item1)) : k * count * rb;
+                            (collinear ? direct : blocks).Add(new ConnectionCheck(name + ".Axis" + axis + ".Direction" + sign + ".Path" + ++id + "." + mode,
+                                demand, resistance, collinear
+                                    ? "EN1993-1-8:2005 3.10.2(3) eq3.10; collinear actual force sum, eccentric factor0.5; SCI P398 pp136,139 path geometry"
+                                    : "EN1993-1-8:2005 3.10.2(3) eq3.10; sufficient fastener/block hierarchy, NOT actual action demand"));
                         }
                     }
                 }
