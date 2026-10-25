@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
-Versione sorgente Steel 2.89.0.0. Solo librerie, nessuna interfacciaANTHEA.
+Versione sorgente Steel 2.90.0.0. Solo librerie, nessuna interfacciaANTHEA.
 Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
 
 COMPONENTI
@@ -68,6 +68,13 @@ NODI E COMPONENTI ASSEMBLATI
   netto plastico assiale C. WeldedIBeamSpliceEnvelope.Verify lega i casi al medesimo
   dettaglio e conserva i risultati figli. PHASE_2E_P4_SLIP_ENVELOPE.txt; resta un
   inviluppo di componenti, CanQualifyWholeJoint=false e aperture esplicite.
+
+- WeldedIBeamSpliceStandard.Verify: percorso unico della tipologia bilanciata
+  a doppio coprigiunto su I saldate, EC3/NTC, categorie A/B/C. Netto combinato
+  elastico, gerarchia block tearing, piastre compatte, trave reale e cordoni
+  longitudinali. IsStaticResistanceComplete nel campo dichiarato; dati di asta
+  separati, senza fatica/rigidezza rotazionale. STANDARD_SPLICE_USAGE.txt e
+  PHASE_2E_STANDARD_COMPLETION.txt. Le API generiche sopra restano componenti.
 
 CONTRATTI
 Ogni metodo dichiara Scope, controlli, tracce e limiti. IsComplete riguarda
