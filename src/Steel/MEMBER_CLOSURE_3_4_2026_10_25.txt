@@ -1,0 +1,82 @@
+CHIUSURA PUNTI3/4 - 25/10/2026 - STEEL2.98
+Branch codex/steel-bridge-splices-static, un solo agente.
+Questo rapporto aggiorna MEMBER_CLOSURE_CHECKPOINT_2026_10_25.txt (storico2.96).
+
+RISULTATO E PERIMETRO
+3a COMPLETATO: disposizione reale delle imbottiture e identita' dello stato.
+3b COMPLETATO NEL CAMPO: domanda da imperfezioni e secondo ordine per due C/L
+   identici, compressione costante centrata, estremi a cerniera. Sono conservati
+   gli orientamenti degli L disuguali. Nessun annullamento delle domande mediante
+   somme algebriche di tagli longitudinali di segno opposto.
+3c COMPLETATO PER IL DETTAGLIO BULLONATO STANDARD: imbottitura rettangolare piena,
+   un bullone passante, rondelle indurite, fori normali riempiti. Controlli del
+   bullone, del riempitivo e delle pareti dei correnti; limite elastico locale
+   cautelativo con eccentricita' e domanda longitudinale. Limiti geometrici,
+   di snellezza locale e di passo espliciti; nessuna qualifica generale3D.
+3d COMPLETATO: EC3/NTC, casi limite, input fuori campo e oracoli indipendenti.
+   27 nuovi casi BoltedPackingTests;72 prove pertinenti superate.
+   API/formule/ipotesi: PACKED_BOLTED_STANDARD.txt.
+
+4a COMPLETATO: nucleo Ec3WebStiffener condiviso e facciata Bridge compatibile,
+   oltre al nucleo Ec3WebPanelShear gia' comune.
+4b COMPLETATO NEL CAMPO: bordi reali del pannello H con piatti bilaterali uguali,
+   rigidezza, stabilita', cordoni, contatto e montante terminale rigido verificato.
+   SteelHWebPanelDetails e FromVerifiedDetails conservano i controlli nella
+   pipeline anche con V=0 e impediscono di nascondere il cedimento di un dettaglio.
+4c COMPLETATO NEL CAMPO: patch(a)/(b)/(c), tipo(c) presso estremita' libera con
+   appoggio non follower e minimo di tre meccanismi documentato nel JRC2007.
+   Conservata l'interazione7.2 e la verifica di sezione della stessa combinazione.
+4d COMPLETATO:21 nuovi casi WebDetailsTests,107 Steel pertinenti e391 Bridge
+   superati, senza modifica degli attesi storici. WEB_DETAILS_AUTOMATION.txt.
+
+LIMITI CHE RESTANO ESPLICITI
+- Il percorso3 richiede la verifica completa separata dei nodi terminali, con
+  introduzione delle forze ed eccentricita' reali. Le resistenze dichiarate dei
+  terminali non sono ricavate dalla resistenza del bullone delle imbottiture.
+- Modi globali torsionali/flessotorsionali da escludere con valutazione separata;
+  il modello di imperfezione implementato e' flessionale. Le imbottiture saldate
+  a sei azioni restano componenti parziali. Fuori apertura/prying indipendenti,
+  dettagli generici di contatto, calastrelli/tralicci e pressoflessione generale.
+- Il percorso4 riguarda H saldati omogenei N/M1/V2, piatti bilaterali uguali e
+  dettagli descritti. Fuori irrigidimenti longitudinali, piatti asimmetrici,
+  patch interferenti, diffusori/apparecchi d'appoggio e verifica globale della
+  trave. Reazioni, risultante compressa e vincoli reali restano input da modello.
+- Il nodo completo con piastra di estremita' resta parziale: questo incremento
+  non chiude net/block con prying, introduzione locale, pilastro e modello globale.
+- Statica ordinaria EC3 2005/NTC2018; nessuna estensione alla fatica o alla UI.
+
+COMMIT
+051f5aea: dettagli d'anima condivisi e patch all'estremita' libera.
+deeb63e5: versioni Steel2.97 / CompositeBridge1.15 (commit dedicato).
+9400d8f5: imperfezioni e dettaglio tipologico delle imbottiture bullonate.
+e304e90c: Steel2.98 / ModelChecker2.25 / Design0.37 (commit dedicato).
+Questo checkpoint e i rimandi aggiornati appartengono a un successivo commit
+di sola documentazione. Nessun atteso legacy o allowlist modificato.
+
+SET COERENTE CANDIDATO
+Generato da build/Release-Set.ps1 -Candidate da checkout puliti.
+Manifest:
+C:/Users/g.pacini/Documents/ChatGPT/Checker/audit-results/member-closure/
+candidate-steel-2.98/release-set.json
+Checker@e304e90ce60d50e170be9c5db9c6fc5eecb1fbec.
+Model@2d59bbc609cd9c913abbfc8c8b7cc6615f7b4d53, versione5.21.0.0 invariata.
+Steel2.98.0.0; CompositeBridge1.15.0.0; ModelChecker2.25.0.0; Design0.37.0.0.
+14 DLL: tutti gli SHA256 ricalcolati sui file confezionati e coincidenti con
+il manifest. Le DLL Model/Geometry/Utilities sono identiche al candidato2.96;
+le DLL Checker sono quelle ricompilate per il nuovo set, con hash nel manifest.
+Nessun merge, push, rilascio o installazione ANTHEA.
+
+COLLAUDO COMPLETO EFFETTIVAMENTE ESEGUITO
+Checker:8586 passati,0fallimenti,0ignorati (+48 rispetto al candidato2.96).
+  Steel.Members5983; Steel net472122; Concrete net472905;
+  CompositeBridge391; ModelChecker473; Geotechnics193; Calculation175;
+  ShallowFoundation28; EmbeddedWalls99; Design net8109 e net472108.
+Model:1493 passati,0fallimenti,3prove native Straus7 non eseguite:
+  NativeAssignments_LoadsAndGravityBalanceTheSolverReactions;
+  EightNativePairsKeepGeometryAndGlobalActionSigns;
+  NativeLinearStaticBenchmark_EquilibriumAndMembraneResultants.
+Le tre prove native richiedono fixture/ambiente e non sono dichiarate superate.
+Controlli API configurati:0rimozioni inattese; nessuna nuova deroga.
+Log locale: staging/splice-next/candidate-2.98.log nel workspace ChatGPT/Checker.
+Test terminati; nessun ulteriore collaudo necessario per i soli aggiornamenti
+documentali di questo checkpoint.

@@ -88,7 +88,7 @@ EN1993-1-8:2005 Table3.4,3.6.1(10-13),3.10.2; Circolare7/2019
 C4.2.4.1.3.1.5/TableC4.2.III. NTC con fattori propri; metodo elastico integrativo.
 https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
 https://www.steelconstruction.info/images/6/6a/SCI_P362.pdf (8.2-8.3: lap/packing)
-28 nuovi test BoltedPackingTests: oracoli a rettangoli per C e i due orientamenti
+27 nuovi test BoltedPackingTests: oracoli a rettangoli per C e i due orientamenti
 L disuguali, soluzione indipendente alle differenze finite con convergenza,
 integrazione numerica di |q|, beta_p/rifollamento indipendenti, input fuori campo,
 fallimenti locali/terminali, fattori EC/NTC, nessuna deroga generale per i fori.

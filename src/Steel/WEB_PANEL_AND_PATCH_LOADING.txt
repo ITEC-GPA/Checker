@@ -1,4 +1,8 @@
 ANIME IRRIGIDITE E FORZE TRASVERSALI CONCENTRATE - 25/10/2026
+Documento del nucleo iniziale2.95. Aggiornamento2.98: il tipo(c) e i dettagli
+standard di irrigidimenti/appoggi/saldature sono ora disponibili nel campo
+definito in WEB_DETAILS_AUTOMATION.txt; vedere anche il checkpoint3/4.
+I limiti sotto relativi ai soli metodi iniziali non escludono le nuove API.
 Campo: verifiche locali statiche, EC3 2005 con EN1993-1-5:2006 e NTC2018
 con il metodo EC3 supplementare esplicitamente dichiarato. mm,N,Nmm,MPa.
 
@@ -35,7 +39,7 @@ ss e' la lunghezza di diffusione rigida gia' stabilita secondo6.3, non la sempli
 larghezza del carico inserita senza qualificazione:0<=ss<=min(hw,a).
 Per una piastra di cassone il chiamante del kernel applica gia' il limitebf
 della6.5(1); il kernel non conosce la geometria del cassone intero.
-Esclusi tipo(c) all'estremita' libera, irrigidimenti longitudinali, aperture,
+Dal metodo iniziale sono esclusi tipo(c), irrigidimenti longitudinali, aperture,
 forze eccentriche/follower, piu' patch interferenti e assenza di ritegno dell'ala.
 
 LEGAME CON MODEL E INTERAZIONI
@@ -69,6 +73,7 @@ Altro benchmarkJRC:pannello hw2720,tw18,a8000,fy345 -> kTau5.8024,taucr48.228MPa
 VERIFICA E STATO
 31 nuovi test Steel e7 CompositeBridge. Gruppo d'anima:86 passati; tutta la
 suite CompositeBridge:391 passati. Nessun atteso storico o allowlist modificato.
-Punto4a chiuso (riuso),4b/4c disponibili nel campo sopra con qualificazione esterna
-dei dettagli. Trasferimento automatico delle verifiche degli irrigidimenti al
-workflow Steel e tipi di patch esclusi rimangono estensioni distinte.
+Questo e' il collaudo storico2.95. Il successivo incremento2.98 aggiunge dettagli
+calcolati con FromVerifiedDetails e patch(c) con EvaluateAtUnstiffenedEnd:
+WEB_DETAILS_AUTOMATION.txt descrive formule, input e limiti delle due nuove API.
+Il percorso precedente con dettagli verificati esternamente resta disponibile.

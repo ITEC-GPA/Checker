@@ -26,32 +26,36 @@ Steel.Members 5872 passati; ModelChecker 473 passati, nessun fallimento/ignorato
 71 nuovi casi (43 Steel e28 ModelChecker), inclusi confronto energetico e fonte SN003b.
 Non e' un solver generale di autovalori, telai, molle o ingobbamento vincolato.
 
-3 PARZIALE - PROFILI DOPPI CON IMBOTTITURE
-3a Audit del percorso compresso: domanda locale, componenti e collegamenti.
-3b Collegare le azioni concomitanti e le valutazioni locali al membro reale,
-   senza N/2 o connessioni nulle presunte; preservare gli assi degli L disuguali.
-3c Chiudere un dettaglio tipologico giustificato dalle fonti; qualifica esplicita
-   se pareti dei correnti/introduzione3D restano fuori campo.
-3d Esempi EC/NTC e prove sui modi governanti. No calastrelli/tralicci.
-Audit3a e collegamento geometrico3b implementati con SteelPackingLayout/FromLayout.
-15 nuove prove;95 test pertinenti passati. Vedere PACKED_PAIR_LAYOUT.txt.
-3c resta aperto: pareti dei correnti/introduzione locale, domanda con imperfezioni.
-La verifica d'asta funziona con resistenze complete esterne; i componenti saldati
-non sono sufficienti a qualificare automaticamente una stazione completa.
+3 CHIUSO NEL DETTAGLIO TIPOLOGICO DICHIARATO - PROFILI DOPPI CON IMBOTTITURE
+3a Audit e disposizione reale delle stazioni: SteelPackingLayout/FromLayout.
+3b Domanda da imperfezioni e secondo ordine per N costante centrato, due C/L
+   identici, assi e lato lungo/corto degli L conservati, estremi a cerniera.
+3c SteelBoltedPacking: imbottitura piena con un bullone passante, pareti dei
+   correnti, taglio/rifollamento, sezione netta, block tearing e limite elastico
+   locale con eccentricita'. Intervallo massimo15imin e applicabilita' esplicita.
+3d Binding al membro, fallimenti locali conservati, prove indipendenti EC/NTC.
+Vedere PACKED_BOLTED_STANDARD.txt:27 nuovi casi,72 test pertinenti superati.
+Il campo automatico e' il lap standard bullonato con trasferimento longitudinale.
+I nodi terminali richiedono ancora la propria verifica completa; i modi globali
+torsionali/flessotorsionali devono essere esclusi con giustificazione separata.
+Le imbottiture saldate a sei azioni restano componenti parziali; non si estende
+questa qualifica a prying/apertura indipendenti o a un contatto3D arbitrario.
+Nessun calastrello/traliccio, nessuna deroga generale per le sezioni forate.
 
-4 IMPLEMENTATO NEL CAMPO DICHIARATO - ANIME DA PONTE
-4a Censire e riusare i nuclei gia' presenti in CompositeBridge; evitare doppioni.
-4b Estendere il percorso Steel ai pannelli con irrigidimenti trasversali,
-   con verifica esplicita dei dettagli/supporti e delle interazioni pertinenti.
-4c Forze trasversali concentrate: tipologia definita, fonti e test indipendenti.
-4d Coerenza Steel/CompositeBridge, casi limite e set finale delle librerie.
-Nucleo unico Ec3WebPanelShear e facciata Bridge senza duplicazioni.
-Pannelli Steel irrigiditi, patch tipi(a)/(b) e interazione7.2 con risultato
-di sezione della stessa combinazione: vedere WEB_PANEL_AND_PATCH_LOADING.txt.
-86 test pertinenti Steel e391 CompositeBridge passati;38 nuove prove.
-Irrigidimenti/appoggi/attacchi restano verificati separatamente; il loro
-trasferimento automatico nella pipeline Steel e il tipo(c) sono ancora aperti.
-Non dichiarare verificato un pannello soltanto perche' il suo Vbw e' disponibile.
+4 CHIUSO NEL DETTAGLIO TIPOLOGICO DICHIARATO - ANIME DA PONTE
+4a Ec3WebPanelShear ed Ec3WebStiffener sono nuclei comuni Steel/CompositeBridge;
+   le facciate Bridge conservano il contratto pubblico e l'ordine aritmetico.
+4b SteelHWebPanelDetails integra geometria, forze concomitanti, rigidezza,
+   stabilita', saldature e contatto dei bordi reali nella pipeline Steel.
+   Montante terminale rigido ammesso solo dopo i controlli delle due coppie.
+4c Patch(a)/(b)/(c), compresa estremita' libera non follower; interazione7.2
+   con l'intero risultato di sezione della medesima combinazione FEM.
+4d Oracoli indipendenti/JRC, limiti, compatibilita' Bridge e collaudo completo.
+Vedere WEB_DETAILS_AUTOMATION.txt:21 nuovi casi,107 Steel pertinenti e391 Bridge
+superati. H saldati omogenei, due piatti uguali per bordo, N/M1/V2.
+Restano fuori irrigidimenti longitudinali, dettagli asimmetrici, patch multiple,
+apparecchi d'appoggio/diffusori e verifica globale della trave. La patch e' una
+verifica locale; un controllo di sezione mancante non diventa automaticamente Passed.
 
 DOPO 4 - RIPRENDERE LA PIASTRA DI ESTREMITA'
 Vedere Connections/END_PLATE_STANDARD_CHECKPOINT.txt. Prima della resistenza
@@ -69,7 +73,9 @@ Lunghezze di fila per rigidezza iniziale derivate dalla geometria, senza medie
 di gruppo: Connections/END_PLATE_DERIVED_STIFFNESS_LENGTHS.txt.
 17 nuove prove,728 T-stub/end plate passati. Nodo completo ancora parziale.
 
-COLLAUDO FINALE2.96 E PUNTI APERTI
-MEMBER_CLOSURE_CHECKPOINT_2026_10_25.txt:8538 Checker+1493 Model passati,
+COLLAUDO FINALE2.98 E PUNTI APERTI
+MEMBER_CLOSURE_3_4_2026_10_25.txt:8586 Checker+1493 Model passati,
 0fallimenti;3prove nativeStraus7 non eseguite;14DLL/hash verificati.
-Il punto3c e le qualifiche complete sopra indicate restano aperti.
+48 nuovi casi rispetto al candidato2.96. I punti3/4 sono chiusi nei dettagli
+tipologici sopra definiti; restano esplicite le esclusioni e la piastra completa.
+MEMBER_CLOSURE_CHECKPOINT_2026_10_25.txt conserva il precedente stato storico2.96.
