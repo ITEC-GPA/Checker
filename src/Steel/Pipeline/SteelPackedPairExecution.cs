@@ -17,6 +17,13 @@ namespace GPC.Checkers.Steel.Pipeline
             var shape=analysis.Input.Section.CreateSectionCopy().SectionShape as SectionBuiltUp;
             if(shape==null)throw new NotSupportedException("A packed pair requires a SectionBuiltUp.");
             var g=ModelBuiltUpGeometry.Create(shape);
+            if(p.ComputedPacking!=null)
+            {
+                if(!p.ComputedPacking.IsComplete||!ReferenceEquals(p.ComputedPacking.Demand.Layout.Input,analysis.Input))
+                    throw new ArgumentException("Incomplete or different-state computed packing.");
+                if(analysis.Prismatic.TorsionalExclusionSource==null||analysis.Prismatic.FlexuralTorsionalExclusionSource==null)
+                    throw new NotSupportedException("The flexural packing-demand model requires independently excluded global T/FT modes; coupled torsional demands are not represented.");
+            }
             var a=shape.Parts[0];var b=shape.Parts[1];var chord=a.Section;
             bool horizontal=a.MirrorX!=b.MirrorX;
             if(chord is SectionC c && (!horizontal || c.LengthTop!=c.LengthBottom || c.ThicknessTop!=c.ThicknessBottom))
@@ -46,6 +53,13 @@ namespace GPC.Checkers.Steel.Pipeline
             double tension=p.ChordTension/p.ChordTensionResistance;
             double connection=p.ConnectionDemand/p.ConnectionResistance;
             double u=Math.Max(global.Utilization.Value,Math.Max(compression,Math.Max(tension,connection)));
+            if(p.ComputedPacking!=null)
+            {
+                u=Math.Max(u,p.ComputedPacking.Utilization.Value);
+                foreach(var value in p.ComputedPacking.Trace)trace.Add(new SectionResistanceValue("PackedPair.Computed."+value.Name,value.Value,value.Unit));
+                foreach(var check in p.ComputedPacking.Checks)trace.Add(new SectionResistanceValue("PackedPair.Computed."+check.Id,check.Utilization,"1"));
+            }
+
             void Add(string name,double value,string unit) {
                 SteelInputValidation.Finite(value,name);trace.Add(new SectionResistanceValue("PackedPair."+name,value,unit));
             }
@@ -66,7 +80,7 @@ namespace GPC.Checkers.Steel.Pipeline
             bool ntc=analysis.Input.Code.SectionCode.Standard==SectionResistanceStandard.Ntc2018;
             return new SteelCheckExecution(decision,u<=1?SteelExecutionStatus.Passed:SteelExecutionStatus.Failed,
                 reference:global.Reference+(ntc?"; Circular7/2019 C4.2.4.1.3.1.5, Table C4.2.III":"; EN1993-1-1:2005 6.4.4, Figure6.12, Table6.9"),
-                scope:(p.ChordCalculation==null?"External chord resistances. ":"Computed axial fork chord panel resistances; full connection resistance external. ")+"Identical hot-finished packed 2C/2L, constant concentric compression, class1-3; integral global stability plus explicitly qualified local component and complete connection envelopes/resistances. Packing excluded from longitudinal area. No batten/lacing or beam-column method.",
+                scope:(p.ComputedPacking!=null?"Computed standard bolted intermediate packings and wall/lap checks; terminal joints separately qualified. ":p.ChordCalculation==null?"External chord resistances. ":"Computed axial fork chord panel resistances; full connection resistance external. ")+"Identical hot-finished packed 2C/2L, constant concentric compression, class1-3; integral global stability plus explicitly qualified local component and complete connection envelopes/resistances. Packing excluded from longitudinal area. No batten/lacing or beam-column method.",
                 utilization:u,trace:trace);
         }
     }

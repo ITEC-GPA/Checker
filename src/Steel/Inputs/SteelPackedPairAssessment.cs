@@ -1,5 +1,6 @@
 using System;
 using GPC.Checkers.Steel.ModelAdapters;
+using GPC.Checkers.Steel.Connections;
 
 namespace GPC.Checkers.Steel.Inputs
 {
@@ -15,6 +16,37 @@ namespace GPC.Checkers.Steel.Inputs
         public SteelVerificationInput Input { get; }
         public SteelPackedChordResistance ChordCalculation { get; private set; }
         public SteelPackingLayout Layout { get; private set; }
+        public SteelBoltedPackingResult ComputedPacking { get; private set; }
+
+        /// <summary>Computed intermediate standard packing detail plus actual terminal
+        /// node checks. End demand/resistance include N introduction and the terminal
+        /// longitudinal transfer from Demand.Stations[0/last]; they are separate structural
+        /// joints and are not replaced by an intermediate packing bolt. Same state/code.
+        /// Only the declared normal holes filled by bolts are ignored in gross compression
+        /// under EN1993-1-1 6.2.4(3); the wall checks retain their actual net section.</summary>
+        public static SteelPackedPairAssessment FromBoltedPacking(SteelBoltedPackingResult result,
+            double endConnectionDemand,double endConnectionResistance,string endConnectionSource,string endRestraintSource)
+        {
+            if(result==null)throw new ArgumentNullException(nameof(result));
+            if(!result.IsComplete)throw new NotSupportedException(string.Join("; ",result.Diagnostics));
+            if(string.IsNullOrWhiteSpace(endConnectionSource)||string.IsNullOrWhiteSpace(endRestraintSource))
+                throw new ArgumentException("Complete terminal joint checks and actual fork restraints required.");
+            SteelInputValidation.Positive(endConnectionDemand,nameof(endConnectionDemand));
+            SteelInputValidation.Positive(endConnectionResistance,nameof(endConnectionResistance));
+            var model=result.Demand;var layout=model.Layout;var input=layout.Input;
+            if(endConnectionDemand < -input.Actions.N/2)
+                throw new ArgumentException("Terminal connection envelope must include at least each chord's N/2 plus local transfer effects.");
+            var gross=new SteelVerificationInput(new SteelSectionInput(input.Section.CreateSectionCopy(),true),input.Actions,input.Code,input.Member);
+            var chord=SteelPackedChordResistance.UniformFork(gross,layout.MaximumPitch,model.ChordCompression,
+                "Supplementary chord compression check between packing centres; integral member method under6.4.4; "+endRestraintSource);
+            double tensile=Math.Min(chord.TensionResistance,.9*input.Section.NetArea.Value/2*input.Section.UltimateStrength/input.Code.SectionCode.GammaM2);
+            var p=new SteelPackedPairAssessment(input,layout.MaximumPitch,result.Detail.Thickness,result.Detail.Thickness,
+                model.ChordCompression,chord.Compression.Resistance.Value,model.ChordTension,tensile,
+                endConnectionDemand,endConnectionResistance,layout.Source,
+                "Computed sinusoidal imperfections and second-order longitudinal transfer; "+endRestraintSource,endConnectionSource);
+            p.Layout=layout;p.ChordCalculation=chord;p.ComputedPacking=result;return p;
+        }
+
 
         /// <summary>Same qualified axial chord model, but panel length comes from all
         /// actual packing/end-connection centres. Complete connection resistance is

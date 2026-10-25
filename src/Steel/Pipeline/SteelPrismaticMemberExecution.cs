@@ -19,7 +19,7 @@ namespace GPC.Checkers.Steel.Pipeline
             if (!i.Code.GammaM1.HasValue) missing.Add("Code.GammaM1");
             if (!i.Section.Unperforated.HasValue) missing.Add("Section.Unperforated");
             if (missing.Count > 0) return Missing(missing);
-            if (i.Section.Unperforated != true) return Unsupported("Member.PerforatedNotQualified", "Gross-section stability requires an unperforated declaration.");
+            if (i.Section.Unperforated != true && analysis.PackedPair?.ComputedPacking == null) return Unsupported("Member.PerforatedNotQualified", "Gross-section stability requires an unperforated declaration.");
             if (a.T != 0 || a.M2 != 0 || compression && (a.M1 != 0 || a.V1 != 0 || a.V2 != 0)
                 || !compression && (a.N != 0 || a.V1 != 0))
                 return Unsupported("Member.PrismaticActionPattern", "Compression route requires concentric constant N only; LTB route requires major-axis bending without N, minor bending or torsion.");

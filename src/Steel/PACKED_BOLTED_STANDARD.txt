@@ -1,0 +1,95 @@
+PROFILI DOPPI: PERCORSO TIPOLOGICO BULLONATO - 25/10/2026
+
+CHIUSURA DEL PUNTO3 NEL CAMPO DICHIARATO
+2C a dorsi contrapposti e ali uguali, oppure2L uguali, anche disuguali con
+accoppiamento sul lato lungo/corto. Correnti hot-finished, classe1-3. Asta
+prismatica, N centrato costante di compressione, cerniere flessionali alle estremita'.
+Imbottiture rettangolari piene, un bullone passante8.8/10.9 in foro normale per
+ogni stazione intermedia, rondelle temprate da entrambi i lati; nessun foro o
+intaglio aggiuntivo. Nessun carico trasversale locale indipendente, momento di
+apertura, carico intermedio o torsione. Non e' un nodo generico a sei componenti.
+
+PERCORSO E ASSI
+1 SteelPackingLayout conserva tutte le stazioni reali, inclusi i nodi0/L.
+2 PackedPairImperfectionModel.Evaluate(layout) calcola domanda e traccia.
+3 SteelBoltedPacking.Verify(model,detail) verifica bullone, imbottitura e pareti.
+4 SteelPackedPairAssessment.FromBoltedPacking(result,endDemand,endResistance,
+  endSource,endRestraintSource) lega il risultato alla verifica d'asta.
+5 SteelMemberAnalysis.PackedCompression e la pipeline aggregano tutti gli esiti.
+Un fallimento locale o del nodo terminale rimane un fallimento anche se la
+resistenza globale e il passo sono sufficienti. Un dettaglio fuori campo non
+puo' essere convertito in qualifica. I modi globaliT/FT devono essere esclusi
+con valutazione indipendente: il modello di domanda implementato e' flessionale.
+
+La coordinata del bullone e' misurata sul profilo singolo Model: Y lungo il
+dorso verticale, X lungo quello orizzontale. I dorsi devono guardare il gap.
+Non si scambiano gli assi principali dell'L con gli assi geometrici. Il suo
+prodotto d'inerzia si annulla nella coppia specchiata, non nel singolo corrente.
+Il blocco e la ferramenta devono stare sul tratto interno diritto, lontano dai
+raccordi e dal bordo libero; vale anche per geometrie con raggi reali.
+
+MODELLO DI DOMANDA (mm,N,Nmm,MPa)
+e0=max(L/150,|bow1 dichiarato|,|bow2 dichiarato|).
+La curva d elastica della Table5.1 e' una scelta cautelativa dell'implementazione,
+non una modifica delle curve normative usate per la resistenza dell'asta.
+Si respingono gli stati gia' comprensivi di imperfezioni, lo sway e i vincoli
+incompatibili. Per ciascun piano: Ncr=pi^2 E I/L^2, Mmax=N e0/(1-N/Ncr).
+Non esiste risultato stabile se N>=Ncr. Nel piano dell'accoppiamento:
+I=2 Ic+A c^2/2; DeltaNmax=Mmax A c/(2 I); Nch,max=N/2+DeltaNmax;
+Nch,t,max=max(0,DeltaNmax-N/2); Mch=Mmax Ic/I.
+Nell'altro piano I=2 Iother e ciascun corrente porta meta' momento.
+q(x)=Mmax pi/L * A c/(2 I) * cos(pi x/L).
+La domanda di ogni stazione integra |q| fra le mezzerie dei pannelli adiacenti.
+Non si cancella la variazione di segno intorno alla mezzeria. Le stazioni terminali
+hanno la propria domanda esplicita, da includere nel nodo di introduzione.
+Queste sono equazioni di equilibrio/elasticita', non una nuova formula normativa
+per calastrelli. Non si importa il coefficiente2.5% dell'ENV1992 nell'EN2005.
+
+RESISTENZA DEL DETTAGLIO
+Fori dichiarati con Unperforated=false e NetArea=2(A-d0*t), coerente con l'unica
+fila di fori previsti. Gross properties per compressione: EN1993-1-1 6.2.4(3),
+solo fori normali riempiti da bulloni. L'eccezione non vale per altre aste forate.
+Gap=spessore imbottitura e fazzoletto; gap<=3*tmin; passo<=15*imin del singolo.
+Il nucleo BoltStrength applica beta_p=9d/(8d+3tp) quando tp>d/3 e una sola
+sezione resistente: le due facce di un riempimento non sono due tagli in parallelo.
+BoltBearing applica distanze, alpha_b/k1 e limite1.5 fu d t/gammaM2 del singolo
+lap con una fila, con rondelle. Tutti i materiali sono quelli effettivi.
+Per ciascuna parete e per il blocco si usa una striscia centrale isolata larga
+quanto il blocco, senza attribuirle diffusione verso materiale esterno. Controlli
+di snervamento, sezione netta, entrambi i percorsi di block tearing e rifollamento.
+Eccentricita' e=(gap+t)+2*dist(bullone,baricentro corrente), limite cautelativo:
+ad ogni parete e al blocco si attribuisce l'intero Q*e. Wnet=(B-d0)t^2/6.
+Il limite elastico usa la somma assoluta sigma_long,net + Q/Anet + Qe/Wnet
++sqrt(3) Q/Anet, conservando anche le tensioni da entrambi i piani di imperfezione.
+La tensione longitudinale della striscia e' amplificata per Ag/Anet al foro.
+Il limite e' un modello elastico cautelativo di resistenza nominale del lap, non
+una soluzione delle tensioni3D di contatto. Gli effetti secondari intrinseci del
+lap sono coperti anche dalle regole3.6.1; non e' ammesso un momento di apertura
+esterno aggiuntivo. Le verifiche locali elastiche richiedono Ncr,min del corrente
+tra le stazioni >=10*Nch,max e una sezione classificabile entro3. Non si estende
+questa qualifica alle piastre snelle o ai gruppi con piu' file.
+
+NODI TERMINALI E LIMITI
+La chiusura riguarda asta e imbottiture intermedie della tipologia descritta.
+Il nodo terminale resta una connessione: endDemand/endResistance e la fonte
+devono comprendere introduzione di N nei due correnti, forze delle stazioni0/L,
+eccentricita', fazzoletto e relativi attacchi. Non viene sostituito dal bullone
+di imbottitura. I vincoli effettivi devono realizzare il modello assunto.
+Il percorso con resistenze esterne resta disponibile. Le precedenti imbottiture
+SALDATE a sei azioni restano componenti parziali: nessuna promozione automatica
+dei soli cordoni/blocco nominale a resistenza completa. Restano fuori: calastrelli,
+tralicci, aste pressoinflesse, classe4 globale, carichi locali trasversali, apertura
+e prying indipendenti, interazioni torsionali, fatica, dettagli diversi dal lap
+standard. Scorrimento/deformazioni SLE richiedono i relativi input e controlli.
+
+FONTI E PROVE
+EN1993-1-1:2005 5.2.1,5.3.2/Table5.1,6.2.1,6.2.4(3),6.4.4/Fig6.12/Table6.9;
+EN1993-1-8:2005 Table3.4,3.6.1(10-13),3.10.2; Circolare7/2019
+C4.2.4.1.3.1.5/TableC4.2.III. NTC con fattori propri; metodo elastico integrativo.
+https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+https://www.steelconstruction.info/images/6/6a/SCI_P362.pdf (8.2-8.3: lap/packing)
+28 nuovi test BoltedPackingTests: oracoli a rettangoli per C e i due orientamenti
+L disuguali, soluzione indipendente alle differenze finite con convergenza,
+integrazione numerica di |q|, beta_p/rifollamento indipendenti, input fuori campo,
+fallimenti locali/terminali, fattori EC/NTC, nessuna deroga generale per i fori.
+72 test pertinenti passati,0fallimenti. Nessuna fixture legacy modificata.
