@@ -52,6 +52,11 @@ namespace GPC.Checkers.Steel.Pipeline
             if(p.ChordCalculation!=null)
                 foreach(var value in p.ChordCalculation.Compression.Trace)Add("Chord."+value.Name,value.Value,value.Unit);
             Add("GlobalUtilization",global.Utilization.Value,"1");Add("Pitch",p.MaximumPitch,"mm");
+            if(p.Layout!=null) {
+                Add("GoverningPanelIndex",p.Layout.GoverningPanelIndex,"1");
+                for(int i=0;i<p.Layout.Stations.Count;i++)Add("ConnectionStation"+i,p.Layout.Stations[i],"mm");
+                for(int i=0;i<p.Layout.PanelLengths.Count;i++)Add("PanelLength"+i,p.Layout.PanelLengths[i],"mm");
+            }
             Add("PitchLimit",15*g.MinimumRadius,"mm");Add("ClearGap",p.PackingThickness,"mm");
             Add("ChordCompression",p.ChordCompression,"N");Add("ChordCompressionResistance",p.ChordCompressionResistance,"N");
             Add("ChordCompressionUtilization",compression,"1");Add("ChordTension",p.ChordTension,"N");

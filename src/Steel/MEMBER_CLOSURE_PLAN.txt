@@ -26,13 +26,18 @@ Steel.Members 5872 passati; ModelChecker 473 passati, nessun fallimento/ignorato
 71 nuovi casi (43 Steel e28 ModelChecker), inclusi confronto energetico e fonte SN003b.
 Non e' un solver generale di autovalori, telai, molle o ingobbamento vincolato.
 
-3 DA FARE - PROFILI DOPPI CON IMBOTTITURE
+3 PARZIALE - PROFILI DOPPI CON IMBOTTITURE
 3a Audit del percorso compresso: domanda locale, componenti e collegamenti.
 3b Collegare le azioni concomitanti e le valutazioni locali al membro reale,
    senza N/2 o connessioni nulle presunte; preservare gli assi degli L disuguali.
 3c Chiudere un dettaglio tipologico giustificato dalle fonti; qualifica esplicita
    se pareti dei correnti/introduzione3D restano fuori campo.
 3d Esempi EC/NTC e prove sui modi governanti. No calastrelli/tralicci.
+Audit3a e collegamento geometrico3b implementati con SteelPackingLayout/FromLayout.
+15 nuove prove;95 test pertinenti passati. Vedere PACKED_PAIR_LAYOUT.txt.
+3c resta aperto: pareti dei correnti/introduzione locale, domanda con imperfezioni.
+La verifica d'asta funziona con resistenze complete esterne; i componenti saldati
+non sono sufficienti a qualificare automaticamente una stazione completa.
 
 4 DA FARE - ANIME DA PONTE
 4a Censire e riusare i nuclei gia' presenti in CompositeBridge; evitare doppioni.

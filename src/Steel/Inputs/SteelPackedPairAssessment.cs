@@ -14,6 +14,22 @@ namespace GPC.Checkers.Steel.Inputs
     {
         public SteelVerificationInput Input { get; }
         public SteelPackedChordResistance ChordCalculation { get; private set; }
+        public SteelPackingLayout Layout { get; private set; }
+
+        /// <summary>Same qualified axial chord model, but panel length comes from all
+        /// actual packing/end-connection centres. Complete connection resistance is
+        /// still external; component-only weld/block results cannot supply it.</summary>
+        public static SteelPackedPairAssessment FromLayout(SteelPackingLayout layout,
+            double packingThickness, double gussetThickness, double chordCompression, double chordTension,
+            double connectionDemand, double connectionResistance, string localAnalysisSource,
+            string connectionResistanceSource, string chordModelSource)
+        {
+            if (layout == null) throw new ArgumentNullException(nameof(layout));
+            var result = FromUniformForkChords(layout.Input, layout.MaximumPitch, packingThickness, gussetThickness,
+                chordCompression, chordTension, connectionDemand, connectionResistance, layout.Source,
+                localAnalysisSource, connectionResistanceSource, chordModelSource);
+            result.Layout = layout; return result;
+        }
 
         /// <summary>Optional computed class1-3 chord resistances for a qualified axial
         /// fork panel model. Full local force envelopes and complete connection/packing

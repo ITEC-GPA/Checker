@@ -1,0 +1,39 @@
+PROFILI DOPPI - COLLEGAMENTO AL DETTAGLIO REALE - 25/10/2026
+SteelPackingLayout conserva i centri di TUTTI i collegamenti lungo l'asta,
+inclusi quelli di estremita' a0/L. Non ordina o completa dati mancanti:
+duplicati, ordine incoerente, dati non finiti e terminali omessi sono rifiutati.
+MaximumPitch e' il massimo delle differenze consecutive, inclusi i tratti
+terminali. PanelLengths e GoverningPanelIndex rendono riproducibile la scelta.
+
+SteelPackedPairAssessment.FromLayout usa questa lunghezza nel modello locale
+UniformFork gia' qualificato e conserva la stessa istanza immutabile dell'input.
+Il risultato globale espone stazioni, lunghezze e pannello governante nelle
+tracce PackedPair. La verifica del passo15imin, gap/spessori e geometria 2C/2L
+continua ad essere eseguita dal verificatore; una lista formalmente valida
+con un passo troppo grande non diventa una verifica positiva.
+
+FONTI
+EN1993-1-1:2005 6.4.4(1), Fig6.12, Table6.9 (p74/PDF76).
+Circolare7/2019 C4.2.4.1.3.1.5, TableC4.2.III (p104-105/PDF108-109).
+https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf
+https://www.gazzettaufficiale.it/eli/gu/2019/02/11/35/so/5/sg/pdf
+Il15imin e' basato sul singolo corrente. Il70imin e la correzione1.15 degli
+angolari stellati con calastrelli non appartengono a questo metodo.
+
+STATO E LIMITI
+Verifica globale compressa e verifica assiale dei singoli correnti disponibili
+per C e L identici, anche L disuguali collegati sul lato lungo o corto.
+Le domande locali non sono dedotte come N/2. Le resistenze complete dei
+collegamenti restano esterne e motivate: includono pareti, introduzione locale,
+imbottitura, attacchi e trasferimento ai nodi. Il solo risultato dei cordoni
+e del blocco nominale PackingWeldedStationComponents non puo' essere impiegato
+come resistenza completa. La fonte testuale registra il modello dichiarato,
+non ne certifica la validita'. Classi1-3, compressione centrata costante;
+nessuna estensione implicita a pressoflessione, classe4 globale o calastrelli.
+
+15 nuove prove su disposizione reale, tratti terminali, immutabilita', entrambe
+le norme, 2C,2L lungo/corto e fallimento locale governante. 95 test del gruppo
+PackedPair/PackedChord/PackingWeldedStation eseguiti e passati. Restano aperte
+la derivazione automatica delle domande locali con imperfezioni e la qualifica
+completa di un dettaglio d'imbottitura; nessun componente parziale e' promosso
+a nodo completo per chiudere nominalmente il punto3c del piano.
