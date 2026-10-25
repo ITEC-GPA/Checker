@@ -10,7 +10,7 @@ namespace GPC.Model.Checker
     public sealed partial class SteelMemberPipelineChecker
     {
         private static readonly string[] BeamColumnKeys={"TorsionSusceptible","Cm1","Cm2","CmLT","MomentFactorSource",
-            "StabilityModelSource","LateralTorsionalExclusionSource","ShearBucklingExclusionSource"};
+            "StabilityModelSource","LateralTorsionalExclusionSource","ShearBucklingExclusionSource","MomentFactorPreparation"};
 
         private SteelMemberAnalysis BeamColumn(PhysicalMemberCheckInput input,SteelVerificationInput common,SteelPhysicalMemberPreparation physical)
         {
@@ -20,8 +20,9 @@ namespace GPC.Model.Checker
             if(!bool.TryParse(Required("TorsionSusceptible"),out bool susceptible))throw new ArgumentException("InvalidTorsionalSusceptibility");
             var actions=physical.BeamColumnEnvelope();
             common=new SteelVerificationInput(common.Section,actions,common.Code,common.Member);
+            var cm=PrepareMomentFactors(input,common,physical,out var momentSource);
             var data=new SteelBeamColumnParameters(CompressionCurve(common,"CompressionCurve1"),CompressionCurve(common,"CompressionCurve2"),
-                susceptible,Number("Cm1"),Number("Cm2"),Number("CmLT"),Required("MomentFactorSource"),Required("StabilityModelSource"),
+                susceptible,cm[0],cm[1],cm[2],momentSource,Required("StabilityModelSource"),
                 Required("TorsionalExclusionSource"),Required("FlexuralTorsionalExclusionSource"),EnumValue<SteelCriticalMomentBasis>("McrBasis"),
                 _parameters.TryGetValue("LateralTorsionalExclusionSource",out var excludeLT)?excludeLT:null,
                 _parameters.TryGetValue("ShearBucklingExclusionSource",out var excludeV)?excludeV:null);

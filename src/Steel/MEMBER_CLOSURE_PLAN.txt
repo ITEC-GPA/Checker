@@ -12,7 +12,7 @@ Straus7 non eseguite per fixture/env assenti. API senza rimozioni inattese.
 Manifest: workspace ChatGPT/Checker/audit-results/connections/splice-next/
 candidate-steel-2.92/release-set.json. Nessuna installazione ANTHEA.
 
-2 IN CORSO - PREPARAZIONE STABILITA'
+2 CHIUSO NEL CAMPO DICHIARATO - PREPARAZIONE STABILITA'
 2a Schemi ideali espliciti per Ncr flessionali, con ipotesi e fonti conservate.
 2b Mcr a forcella per H doppiamente simmetrici, diagrammi ordinari e quota
    del carico ove qualificata; distinguere valore reale e momento uniforme.
@@ -20,6 +20,10 @@ candidate-steel-2.92/release-set.json. Nessuna installazione ANTHEA.
    dedurre ritegni dalla mesh o abilitare silenziosamente modi non valutati.
 2d Test indipendenti, esempio e report; classi4 usano rigidezze elastiche lorde
    per i valori critici, non Aeff/Weff come rigidezza globale.
+Aggiunta gestione GenericEnvelope per diagrammi FEM generici: estremi e picchi
+conservati, Mcr uniforme conservativo e Cm=1; vedere MEMBER_SCHEME_PREPARATION.txt.
+Steel.Members 5872 passati; ModelChecker 473 passati, nessun fallimento/ignorato.
+71 nuovi casi (43 Steel e28 ModelChecker), inclusi confronto energetico e fonte SN003b.
 Non e' un solver generale di autovalori, telai, molle o ingobbamento vincolato.
 
 3 DA FARE - PROFILI DOPPI CON IMBOTTITURE

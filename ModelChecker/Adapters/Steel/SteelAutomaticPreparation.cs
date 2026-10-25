@@ -25,9 +25,11 @@ namespace GPC.Model.Checker
             if(_parameters.TryGetValue("CurveSelection",out var curves)&&(curves!="Automatic"||(mode!="Compression"&&mode!="BeamColumn")))
                 throw new ArgumentException("UnsupportedAutomaticCurveSelection");
             if(_parameters.TryGetValue("CriticalValues",out var critical)) {
-                if(critical!="UniformFork"||(mode!="Compression"&&mode!="Bending"))throw new ArgumentException("UnsupportedCriticalValuePreparation");
+                if((critical!="UniformFork"&&critical!="ForkDiagram")||(mode!="Compression"&&mode!="Bending")||(critical=="ForkDiagram"&&mode!="Bending"))throw new ArgumentException("UnsupportedCriticalValuePreparation");
                 Required("CriticalValuesSource");
             } else if(_parameters.ContainsKey("CriticalValuesSource"))throw new ArgumentException("CriticalSourceWithoutPreparation");
+            if(new[]{"ForkDiagram","ForkLoadHeight"}.Any(_parameters.ContainsKey) && (!_parameters.TryGetValue("CriticalValues",out var v)||v!="ForkDiagram"))
+                throw new ArgumentException("ForkDiagramParametersWithoutPreparation");
         }
         private IReadOnlyList<SteelStabilityValue> PrepareCriticalValues(PhysicalMemberCheckInput member,SteelVerificationInput input,
             SteelPhysicalMemberPreparation physical,bool compression,IReadOnlyList<SteelStabilityValue> external)
@@ -35,6 +37,7 @@ namespace GPC.Model.Checker
             if(!_parameters.ContainsKey("CriticalValues"))return external;
             if(external.Count!=0||_parameters.ContainsKey("TorsionalExclusionSource")||_parameters.ContainsKey("FlexuralTorsionalExclusionSource"))
                 throw new ArgumentException("AutomaticCriticalValuesConflictWithExternalAssessment");
+            if(_parameters["CriticalValues"]=="ForkDiagram")return PrepareForkDiagram(member,input,physical);
             var snapshot=member.Snapshot;var context=snapshot.Context;
             if(snapshot.SpanStart!=0||snapshot.SpanEnd!=snapshot.Length||snapshot.Length!=snapshot.DeformableLength
                 ||context.Restraints.Count!=0||context.LateralTorsionalLength.HasValue&&context.LateralTorsionalLength.Value!=input.Member.Length

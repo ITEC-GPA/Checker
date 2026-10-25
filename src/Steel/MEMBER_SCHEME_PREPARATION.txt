@@ -1,0 +1,83 @@
+PREPARAZIONE STABILITA' E DIAGRAMMI FEM - 25/10/2026
+EC3 2005 / NTC2018, statica ordinaria. Unita': mm, N, Nmm, MPa.
+
+PERCORSO LIBRERIA
+SteelMemberSchemePreparation.FlexuralModes prepara Ncr1 e Ncr2 su due piani
+principali indipendenti: asta ideale prismatica isolata, E/J lordi Model,
+Leff/L=1, pi/4.493409457909064, 0.5, 2 rispettivamente per cerniera-cerniera,
+incastro-cerniera, incastro-incastro, mensola. Non risolve stabilita' di telaio,
+modi torsionali/flesso-torsionali, molle o efficacia dei vincoli reali.
+
+ForkBending prepara Mcr per H doppiamente simmetrici non forati: forcelle,
+ingobbamento libero, campata prismatica completa, nessun ritegno intermedio.
+E, G=E/[2(1+nu)], Iminor, It, Iw sono quelli lordi della sezione Model, anche
+per classe4. Le resistenze/effective properties restano nel verificatore.
+SN003b-EN-EU eq.2/3, Table3.1/3.2: C1 dipende dal diagramma, C2 dalla quota.
+Momenti terminali: righe pubblicate della Table3.1; fuori tabella C1=1,
+dichiaratamente conservativo. Non si interpola una curva non qualificata.
+Carico uniforme: C1=1.127,C2=.454; forza centrale: C1=1.348,C2=.630.
+Solo schema appoggiato nel piano, estremi a momento nullo nei due ultimi casi.
+Quota positiva se la forza va dal punto di applicazione verso il centro di
+taglio (destabilizzante). Quota entro l'altezza della sezione. Il percorso
+NTC usa Mcr uniforme e non elimina una quota non nulla per costruire tale base.
+Cm e C1 sono grandezze distinte. Per diagramma lineare nonsway:
+Cm=max(.4,.6+.4*psi), psi=MminAbs/MmaxAbs con segni fisici conservati.
+
+DIAGRAMMA GENERICO FEM
+SteelForkMomentDiagram.GenericEnvelope conserva tutte le stazioni originali
+della stessa combinazione; inclusi massimi/minimi interni e le due facce di
+eventuali salti. Non interpola per dedurre picchi non esportati. La dichiarazione
+di copertura e' una responsabilita' dell'esportatore, non una certificazione
+fornita dalla stringa Source. Lo stesso intervallo fisico e' controllato.
+Il primo percorso usa C1=Cm=1, Mcr uniforme come limite conservativo. Non e'
+un autovalore calcolato sul diagramma generico. Carichi trasversali nel centro
+di taglio, forcelle/ingobbamento libero, niente follower loads o coppie torsionali.
+Queste ipotesi sono determinanti, non si deducono dalla sola lista dei momenti.
+
+Giustificazione del limite (modello elastico lineare di Vlasov): posto
+|M(x)|<=Mmax, k=pi/L, la seconda variazione contiene
+EIminor*||v''||^2 + GIt*||theta'||^2 + EIw*||theta''||^2
++ 2*integral(M*theta*v'' dx).
+Cauchy-Schwarz limita il termine accoppiato; per theta(0)=theta(L)=0,
+||theta'||^2>=k^2||theta||^2 e ||theta''||^2>=k^4||theta||^2.
+La forma quadratica e' positiva per
+Mmax^2 < EIminor*(k^2*GIt+k^4*EIw), cioe' Mmax<Mcr_uniforme.
+E' un limite energetico, non un nuovo coefficiente normativo per ogni schema.
+Il test Ritz con12 termini seno e1600 pannelli e' un riscontro indipendente;
+l'approssimazione Ritz da sola non dimostra la conservativita' del limite.
+
+MODEL CHECKER
+Il verificatore riceve le sollecitazioni del modello FEM e continua a distinguere
+tagli di sezione e inviluppo d'asta della stessa combinazione. La preparazione
+non genera combinazioni di massimi appartenenti a stati diversi. La trasformazione
+dagli assi elemento alla convenzione fisica dell'asta e' gia' centralizzata.
+Per flessione:
+  CriticalValues=ForkDiagram; ForkDiagram=GenericEnvelope;
+  ForkLoadHeight=0; McrBasis=UniformMoment;
+  CriticalValuesSource=<forcelle, ingobbamento libero e carichi nel centro di taglio>;
+  LoadPatternReference=<combinazione FEM>;
+  MomentDiagramCoverageSource=<estremi, picchi e facce effettivamente esportati>.
+Restano i consueti parametri geometrici/materiali/classificazione della pipeline.
+Per pressoflessione, dove gia' supportata:
+  MomentFactorPreparation=ConservativeEnvelope;
+  MomentFactorSource=<stesso tratto controventato, modello nonsway>;
+  MomentDiagramCoverageSource=<copertura delle sollecitazioni FEM>.
+Non inserire Cm1/Cm2/CmLT in conflitto con la preparazione automatica.
+LinearDiagrams calcola Cm solo se tutti i tagli seguono il diagramma lineare.
+I valori critici e i modi rilevanti restano quelli richiesti dalla verifica:
+ConservativeEnvelope non autorizza un Ncr/Mcr mancante. N deve essere costante
+nel percorso attuale di pressoflessione. Nessun nodo mesh diventa un ritegno.
+Per i diagrammi ordinari vengono controllati sia M sia V2=-dM1/dz. Il diagramma
+generico conserva il V FEM e non ne inventa la derivata dai soli campioni M.
+
+FONTI E PROVE
+https://www.steelconstruction.info/images/0/0f/SN003b.pdf (pagine2-6).
+EN1993-1-1:2005 TableB.3; Circolare7/2019 TableC4.2.VI (pagina stampata108).
+https://www.gazzettaufficiale.it/eli/gu/2019/02/11/35/so/5/sg/pdf
+Test MemberSchemePreparationTests: integrali geometrici, radice indipendente
+incastro-cerniera, tabella completa C1, radice quadratica indipendente Mcr,
+segni/assi/quote/vincoli/casi invalidi e rigidezze lorde anche classe4.
+GenericMomentPreparationTests: cinque soluzioni spettrali indipendenti,
+massimi interni, salti, dati incompleti, campate diverse, nessuna interpolazione.
+SteelDiagramPreparationTest: flussi EC/NTC FEM, M/V incoerenti, massimi interni,
+Cm lineari/generici, revisione dei risultati quando cambia una sollecitazione.

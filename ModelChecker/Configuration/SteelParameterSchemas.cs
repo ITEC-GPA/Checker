@@ -61,11 +61,22 @@ namespace GPC.Model.Checker.Configuration
             foreach(var key in new[]{"CompressionCurve1","CompressionCurve2","TorsionalCurve"})
                 Add(key,EngineParameterKind.Choice,choices:curves,modes:key=="TorsionalCurve"?new[]{"Compression"}:new[]{"Compression","BeamColumn"});
             Add("CurveSelection",EngineParameterKind.Choice,choices:new[]{"Automatic"},modes:new[]{"Compression","BeamColumn"});
-            Add("CriticalValues",EngineParameterKind.Choice,choices:new[]{"UniformFork"},modes:new[]{"Compression","Bending"});
+            Add("CriticalValues",EngineParameterKind.Choice,choices:new[]{"UniformFork","ForkDiagram"},modes:new[]{"Compression","Bending"});
+            Add("ForkDiagram",EngineParameterKind.Choice,choices:new[]{"EndMoments","UniformTransverseLoad","CentralPointLoad","GenericEnvelope"},modes:new[]{"Bending"});
+            Add("MomentDiagramCoverageSource",description:"Qualification that every boundary, internal extrema and discontinuity face is exported in the same FEM design state; no peak is inferred between samples.",modes:new[]{"Bending","BeamColumn"});
+            Require("GenericMomentCoverage","Generic moment envelopes require explicit export coverage.",new[]{"MomentDiagramCoverageSource"},Is("ForkDiagram","GenericEnvelope"));
+            Require("GenericFactorCoverage","Generic Cm envelopes require explicit export coverage.",new[]{"MomentDiagramCoverageSource"},Is("MomentFactorPreparation","ConservativeEnvelope"));
+            Add("ForkLoadHeight",EngineParameterKind.Number,"mm",description:"Signed load height: positive toward shear centre (destabilizing); explicit zero at shear centre.",modes:new[]{"Bending"});
+            Require("ForkDiagramRequired","Declare the full-span diagram and Mcr basis.",new[]{"ForkDiagram","McrBasis"},Is("CriticalValues","ForkDiagram"));
+            foreach(var shape in new[]{"UniformTransverseLoad","CentralPointLoad","GenericEnvelope"})
+                Require("ForkLoadHeightRequired","Transverse load height must be explicit.",new[]{"ForkLoadHeight"},Is("ForkDiagram",shape));
+            rules.Add(new EngineParameterRule("ForkParametersWithoutPreparation","Fork diagram fields require their preparation method.",new[]{IsNot("CriticalValues","ForkDiagram")},null,new[]{"ForkDiagram","ForkLoadHeight"}));
+            rules.Add(new EngineParameterRule("EndMomentHeightConflict","End-moment loading has no transverse force height.",new[]{Is("ForkDiagram","EndMoments")},null,new[]{"ForkLoadHeight"}));
+            rules.Add(new EngineParameterRule("CompressionDiagramConflict","ForkDiagram is a bending-only preparation.",new[]{Is("AnalysisMode","Compression"),Is("CriticalValues","ForkDiagram")},null,new[]{"CriticalValues"}));
             Add("CriticalValuesSource",description:"Explicit full-span fork/free-warping declaration, no offsets or intermediate restraints.",modes:new[]{"Compression","Bending"});
             Together("CriticalPreparationPair","CriticalValues","CriticalValuesSource");
             rules.Add(new EngineParameterRule("AutomaticCurvesConflict","Choose automatic or explicit curves.",new[]{Is("CurveSelection","Automatic")},null,new[]{"CompressionCurve1","CompressionCurve2","TorsionalCurve"}));
-            rules.Add(new EngineParameterRule("AutomaticCriticalConflict","Automatic critical values cannot accompany external values or mode exclusions.",new[]{Is("CriticalValues","UniformFork")},null,
+            rules.Add(new EngineParameterRule("AutomaticCriticalConflict","Automatic critical values cannot accompany external values or mode exclusions.",new[]{Has("CriticalValues")},null,
                 new[]{"Ncr1","Ncr2","NcrT","NcrFT","Mcr","AlphaUltK","AlphaCrOp"}.SelectMany(q=>new[]{q+".Value",q+".Unit",q+".Source"}).Concat(new[]{"TorsionalExclusionSource","FlexuralTorsionalExclusionSource"})));
             Add("MemberClass",EngineParameterKind.Integer,min:1,max:4,modes:new[]{"ExternalInPlane","Compression","Bending","BeamColumn"});
             Together("MemberClassificationPair","MemberClass","ClassificationSource");
@@ -77,6 +88,9 @@ namespace GPC.Model.Checker.Configuration
                 Add(key,description:"Reasoned exclusion of this critical mode; missing critical data is not an exclusion.",modes:new[]{"Compression","BeamColumn"});
             Add("McrBasis",EngineParameterKind.Choice,choices:new[]{"ActualMomentDiagram","UniformMoment"},modes:new[]{"Bending","BeamColumn"});
             Add("TorsionSusceptible",EngineParameterKind.Boolean,modes:new[]{"BeamColumn"});
+            Add("MomentFactorPreparation",EngineParameterKind.Choice,choices:new[]{"LinearDiagrams","ConservativeEnvelope"},description:"Explicit nonsway case; same full braced span for both bending planes and LTB; validates all exported moments.",modes:new[]{"BeamColumn"});
+            rules.Add(new EngineParameterRule("AutomaticMomentFactorsConflict","Choose computed or explicit Cm.",new[]{Has("MomentFactorPreparation")},null,new[]{"Cm1","Cm2","CmLT"}));
+            Require("ExplicitMomentFactors","Provide Cm or select declared linear-diagram preparation.",new[]{"Cm1","Cm2","CmLT"},Is("AnalysisMode","BeamColumn"),IsNot("MomentFactorPreparation","LinearDiagrams"),IsNot("MomentFactorPreparation","ConservativeEnvelope"));
             foreach(var key in new[]{"Cm1","Cm2","CmLT"}) Add(key,EngineParameterKind.Number,"1",min:.4,max:1,modes:new[]{"BeamColumn"});
             foreach(var key in new[]{"MomentFactorSource","StabilityModelSource","LateralTorsionalExclusionSource","ShearBucklingExclusionSource"})
                 Add(key,modes:new[]{"BeamColumn"});
@@ -85,10 +99,10 @@ namespace GPC.Model.Checker.Configuration
                 new[]{"LateralCurve","LateralTorsionalCurve","AlphaUltK.Value","AlphaUltK.Unit","AlphaUltK.Source","AlphaCrOp.Value","AlphaCrOp.Unit","AlphaCrOp.Source"},Is("AnalysisMode","ExternalInPlane"));
             Require("CompressionCurves","Compression needs explicit curves for both flexural axes and the torsional mode.",
                 new[]{"CompressionCurve1","CompressionCurve2","TorsionalCurve"},Is("AnalysisMode","Compression"),IsNot("CurveSelection","Automatic"));
-            Require("BendingCriticalMoment","Bending requires a sourced critical moment and its basis.",new[]{"Mcr.Value","Mcr.Unit","Mcr.Source","McrBasis"},Is("AnalysisMode","Bending"),IsNot("CriticalValues","UniformFork"));
+            Require("BendingCriticalMoment","Bending requires a sourced critical moment and its basis.",new[]{"Mcr.Value","Mcr.Unit","Mcr.Source","McrBasis"},Is("AnalysisMode","Bending"),IsNot("CriticalValues","UniformFork"),IsNot("CriticalValues","ForkDiagram"));
             Require("AutomaticMomentBasis","Automatic Mcr requires its uniform-moment basis.",new[]{"McrBasis"},Is("AnalysisMode","Bending"),Is("CriticalValues","UniformFork"));
             Require("BeamColumnModel","Beam-column checks require curves, moment factors and the explicit stability model.",
-                new[]{"TorsionSusceptible","Cm1","Cm2","CmLT","MomentFactorSource","StabilityModelSource", "TorsionalExclusionSource","FlexuralTorsionalExclusionSource","McrBasis"},Is("AnalysisMode","BeamColumn"));
+                new[]{"TorsionSusceptible","MomentFactorSource","StabilityModelSource", "TorsionalExclusionSource","FlexuralTorsionalExclusionSource","McrBasis"},Is("AnalysisMode","BeamColumn"));
             Require("BeamColumnCurves","Provide the two flexural curves or select automatic preparation.",new[]{"CompressionCurve1","CompressionCurve2"},Is("AnalysisMode","BeamColumn"),IsNot("CurveSelection","Automatic"));
             Require("LateralModeAssessment","A reasoned exclusion is required when lateral-torsional susceptibility is false.",new[]{"LateralTorsionalExclusionSource"},Is("AnalysisMode","BeamColumn"),Is("TorsionSusceptible","false"));
             rules.Add(new EngineParameterRule("ConflictingLateralMode","Susceptibility and exclusion cannot both be declared.",new[]{Is("TorsionSusceptible","true")},null,new[]{"LateralTorsionalExclusionSource"}));
