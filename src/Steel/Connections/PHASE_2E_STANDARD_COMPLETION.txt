@@ -10,7 +10,10 @@ CHIUSURA DEL COPRIGIUNTO STANDARD - SEI PASSI AUTORIZZATI
    sezione netta della trave, gerarchia block tearing e dominio compatto.
    20/20 test mirati passati (passi 1+2). La gerarchia e' sufficiente: un
    suo mancato soddisfacimento richiede altro metodo, non prova il collasso.
-3. Trave/saldature: da collegare risultati Steel e cordoni longitudinali.
+3. Trave/saldature: collegati risultati Steel reali dei due lati, controllati
+   geometria/materiale/norma/azioni; conversione esplicita M1=-Mz. Verifica
+   dei doppi cordoni longitudinali continui via il motore saldature esistente.
+   Le analisi di asta sono collegabili ma non inferite. 37/37 test dei passi1-3.
 4. Percorso unico: da completare esito, provenienza e requisiti mancanti.
 5. Esempi indipendenti: da completare SCI P357 e casi completi EC/NTC.
 6. Versione candidata: da eseguire collaudo e Release-Set del treno completo.
