@@ -1,9 +1,10 @@
 CONNESSIONI STANDARD - PIANO E AVANZAMENTO DELLE PRIME QUATTRO FASI
 ===============================================================
-Aggiornamento 24/10/2026. Branch codex/steel-standard-connections.
-Chiusura sessione notturna: vedere NIGHT_2026_10_24_STATUS.txt.
-Le quattro fasi restano parziali; gli incrementi2e.4b.1/4g.1-4g.2
-sono in staging, non integrati o testati. Automazione notturna eliminata.
+Aggiornamento 25/10/2026. Branch codex/steel-bridge-splices-static.
+Le quattro fasi restano parziali. La chiusura del 24/10 ha integrato e validato
+2e.4b.1/4g.1-4g.2; il resoconto notturno precedente resta storico.
+Nuovi blocchi 2e-P.1/2e-S.1 e aperture: vedere il checkpoint finale del 25/10.
+Automazione notturna eliminata; prosecuzione corrente con un solo agente.
 Ambito: librerie, statica ordinaria, EC3 2005/NTC2018, modelli analitici o delle
 componenti, senza FEM locale. ANTHEA esclusa. Basi/ancoraggi e nodi tubolari
 appartengono alle fasi5/6, non alle prime quattro.
@@ -91,8 +92,12 @@ FASE 2 - GIUNTI SEMPLICI E DI CONTINUITA
    Chiusa2e.3e: netto plastico delle ali categoriaC,40test core+25integrazione;
    piastra/membro e tutte le combinazioniSLU C distinte,365/365famigliaI.
    La categoriaB/SLE non attiva il criterio; PHASE_2E_FLANGE_NET_PLASTIC.txt.
-   Restano netto plastico N-V-M dell'anima, block tearing N-V-M e altri modi d'instabilita d'anima,
-   2e.4b/c qualifica/Model; PHASE_2E_WEB_LONGITUDINAL.txt ePHASE_2E_SPEC.txt.
+   Chiusa 2e.4b.1: inviluppo SLU dei componenti; 92 nuovi test, famiglia 457/457.
+   Restano netto plastico N-V-M dell'anima, block tearing N-V-M, altri modi
+   d'instabilita' d'anima e qualifica del nodo; PHASE_2E_WEB_LONGITUDINAL.txt.
+   Nuovo dettaglio I saldata a doppio coprigiunto: 2e-P.1 chiusa come componente,
+   P.2-P.4 aperte. Giunto saldato CJP: 2e-S.1 chiusa nel campo dichiarato.
+   I due dettagli sono distinti: vedere checkpoint del 25/10 e documenti dedicati.
 2f PARZIALE - Fin plate/end plate distinguono conformita al dettaglio SCI e
    qualificazione esterna del modello globale. Restano rigidezza/rotazione
    calcolate e classificazione generale; Passed a taglio non certifica cerniera.
@@ -199,13 +204,13 @@ Seguono3a-3e e4a-4g. Non si rinviano i test alla fine della fase.
 Ogni sottofase chiusa ha implementazione, campo di validita, riferimenti,
 benchmark eseguiti e commit separato. Aggiornamenti in chat con la stessa sigla.
 
-VERIFICA GENERALE DELLA BASE
+VERIFICA GENERALE STORICA DELLA BASE 2.82
 Controllo completo Steel2.82.0.0/Model5.20.0.2:5458test Steel passati
 (5336Members+122net472);7728passati complessivi,0saltati e cinque fallimenti
 Concrete/ModelChecker invariati rispetto2.78/2.74/2.71/2.66 e6edf46a7. Nessun atteso
 modificato o fallimento ammesso automaticamente. Vedere VALIDATION.txt.
-Queste pendenze impediscono un rilascio generale dichiarato interamente verde,
-ma non impediscono l'implementazione e i test dei nuovi componenti di connessione.
+Queste pendenze impedivano il rilascio della base 2.82. La successiva migrazione
+autorizzata e la chiusura 2.84 sono documentate in fondo al presente piano.
 
 Audit2.74 comprende anche il fix fy/grado2.71.0.1 e150nuovi test dei blocchi
 2e.3e/2d.3a/3d.2a-b. Le quattro API confrontate restano compatibili.
@@ -287,3 +292,50 @@ non pubblicato; nessun push. ANTHEA esclusa dalla chiusura per richiesta finale
 dell'utente; collaudo candidato interrotto e nessun sorgente/snapshot modificato.
 Restano le aperture meccaniche e i limiti numerici gia' dichiarati, senza falsa
 qualifica globale. Rapporto: CLOSURE_STEEL_2_84_LIBRARIES.txt. Test terminati.
+
+GIUNTI DI CONTINUITA PER PONTI - 25/10/2026 - STEEL 2.86.0.0
+Branch codex/steel-bridge-splices-static, base master Checker 22dabe69.
+Model 5.21.0.0 gia' presente: nessuna modifica a Model o ANTHEA in questo blocco.
+Lavoro proseguito da un solo agente, come richiesto dall'utente.
+
+2e-P.1 CHIUSA COME COMPONENTE: nuova geometria I composta saldata, coprigiunti
+su entrambe le facce di ali/anima, riparto N-V-M con 16 gruppi, taglio distinto
+per piano del bullone e rifollamento di ciascuna lamiera. Adapter geometrico
+Model con assi fisici dichiarati. 42 nuovi test con oracolo analitico esterno
+alla DLL, equilibri 6D e casi limite; PHASE_2E_BRIDGE_DOUBLE_COVER.txt.
+Il riparto e' di equilibrio: compatibilita'/introduzione locale ancora aperte.
+Questo componente non qualifica il coprigiunto completo.
+
+2e-S.1 CHIUSA NEL CAMPO STATICO DICHIARATO: saldature testa a testa a completa
+penetrazione di sezioni I saldate identiche e allineate, senza fori/intagli,
+sotto N-V2-M1. Due veri risultati della pipeline di sezione; resistenza della
+parte piu' debole e prerequisiti esecutivi espliciti. 28 nuovi test EC/NTC.
+PHASE_2E_WELDED_BUTT_SPLICE.txt. Nessuna certificazione di esecuzione, verifica
+di instabilita' d'asta o fatica; le preparazioni mancanti restano visibili.
+
+PROSSIMI BLOCCHI DEL COPRIGIUNTO BULLONATO, ANCORA APERTI
+- 2e-P.2: sezioni lorde/nette, block tearing, compressione/instabilita' delle
+  singole piastre con le effettive azioni locali; distinguere gli elementi.
+- 2e-P.3: compatibilita' fra facce, flessione secondaria e introduzione delle
+  forze; dettagli massimi di passi/bordi e cordoni longitudinali del membro.
+- 2e-P.4: scorrimento sulle superfici reali, casi SLE/SLU e categoria C;
+  integrazione finale con piastre/membratura e qualificazione del nodo.
+Il precedente percorso IBeamSplice laminato resta distinto. Fatica rinviata
+per richiesta dell'utente. Il solo equilibrio non chiude nessuno di tali modi.
+
+COLLAUDO E COMMIT
+70 nuovi test in totale. Collaudo finale Steel 5686/5686, 0 falliti, 0 saltati:
+Steel.Members net8 5564/5564 e Steel legacy net472 122/122, eseguiti in sequenza.
+La DLL copiata nei test net472 coincide per SHA256 con Steel 2.86.0.0 appena
+compilata. Nessun atteso/fixture legacy o allowlist modificato.
+Audit nel workspace audit-results/connections/bridge-splices-static:
+steel-final/steel-final.trx, steel-net472-final/steel-net472-final.trx e summary.json.
+Prima baseline famiglia IBeamSplice 457/457; due difetti del NUOVO codice
+riprodotti in review-red e corretti prima del collaudo finale (diagonale dei
+gruppi d'anima per giunti lunghi; collisione hardware adiacente).
+
+c53641b7: implementazione 2e-P.1; 8e7f0bec: versione dedicata Steel 2.85.0.0.
+44ade71c: implementazione 2e-S.1; a259b8c4: versione dedicata Steel 2.86.0.0.
+Solo queste suite Steel sono state eseguite su questa versione: il set generale
+del 24/10 non certifica automaticamente il nuovo insieme di librerie.
+Nessun Release-Set, merge, push o rilascio di questo branch; test conclusi.

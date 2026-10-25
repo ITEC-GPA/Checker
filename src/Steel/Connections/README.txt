@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
-Versione sorgenteSteel2.81.0.0. Solo librerie, nessuna interfacciaANTHEA.
+Versione sorgente Steel 2.86.0.0. Solo librerie, nessuna interfacciaANTHEA.
 Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
 
 COMPONENTI
@@ -48,6 +48,16 @@ NODI E COMPONENTI ASSEMBLATI
   geometria/norma e stati limite richiesti. CanQualifyWholeJoint=false;
   le verifiche ancora mancanti sono esposte in MissingWholeJointChecks.
   Restano meccanismi locali d'anima, membro/modello globale e qualifica del nodo.
+
+- WeldedIBeamSpliceForces.Calculate / WeldedIBeamSpliceBolts.Verify: I composte
+  saldate con coprigiunti su entrambe le facce di ali e anima. 16 gruppi reali,
+  taglio per piano e rifollamento; adapter WeldedIBeamSpliceSection.FromModel.
+  Solo componenti: CanQualifyWholeJoint=false; piastre, compatibilita' locale e
+  scorrimento ancora aperti. PHASE_2E_BRIDGE_DOUBLE_COVER.txt.
+- WeldedIBeamButtSplice.Verify: continuita' testa a testa CJP su I saldate
+  identiche/allineate e integre, N-V2-M1; riusa i due risultati reali di sezione.
+  Resistenza statica condizionata ai prerequisiti di esecuzione, non certificata
+  dall'API. PHASE_2E_WELDED_BUTT_SPLICE.txt. Fatica/instabilita' d'asta escluse.
 
 CONTRATTI
 Ogni metodo dichiara Scope, controlli, tracce e limiti. IsComplete riguarda

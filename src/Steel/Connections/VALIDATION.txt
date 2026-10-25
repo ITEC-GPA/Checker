@@ -798,3 +798,50 @@ non pubblicato; nessun push. ANTHEA esclusa dalla chiusura per richiesta finale
 dell'utente; collaudo candidato interrotto e nessun sorgente/snapshot modificato.
 Restano le aperture meccaniche e i limiti numerici gia' dichiarati, senza falsa
 qualifica globale. Rapporto: CLOSURE_STEEL_2_84_LIBRARIES.txt. Test terminati.
+
+GIUNTI DI CONTINUITA PER PONTI - 25/10/2026 - STEEL 2.86.0.0
+Branch codex/steel-bridge-splices-static, base master Checker 22dabe69.
+Model 5.21.0.0 gia' presente: nessuna modifica a Model o ANTHEA in questo blocco.
+Lavoro proseguito da un solo agente, come richiesto dall'utente.
+
+2e-P.1 CHIUSA COME COMPONENTE: nuova geometria I composta saldata, coprigiunti
+su entrambe le facce di ali/anima, riparto N-V-M con 16 gruppi, taglio distinto
+per piano del bullone e rifollamento di ciascuna lamiera. Adapter geometrico
+Model con assi fisici dichiarati. 42 nuovi test con oracolo analitico esterno
+alla DLL, equilibri 6D e casi limite; PHASE_2E_BRIDGE_DOUBLE_COVER.txt.
+Il riparto e' di equilibrio: compatibilita'/introduzione locale ancora aperte.
+Questo componente non qualifica il coprigiunto completo.
+
+2e-S.1 CHIUSA NEL CAMPO STATICO DICHIARATO: saldature testa a testa a completa
+penetrazione di sezioni I saldate identiche e allineate, senza fori/intagli,
+sotto N-V2-M1. Due veri risultati della pipeline di sezione; resistenza della
+parte piu' debole e prerequisiti esecutivi espliciti. 28 nuovi test EC/NTC.
+PHASE_2E_WELDED_BUTT_SPLICE.txt. Nessuna certificazione di esecuzione, verifica
+di instabilita' d'asta o fatica; le preparazioni mancanti restano visibili.
+
+PROSSIMI BLOCCHI DEL COPRIGIUNTO BULLONATO, ANCORA APERTI
+- 2e-P.2: sezioni lorde/nette, block tearing, compressione/instabilita' delle
+  singole piastre con le effettive azioni locali; distinguere gli elementi.
+- 2e-P.3: compatibilita' fra facce, flessione secondaria e introduzione delle
+  forze; dettagli massimi di passi/bordi e cordoni longitudinali del membro.
+- 2e-P.4: scorrimento sulle superfici reali, casi SLE/SLU e categoria C;
+  integrazione finale con piastre/membratura e qualificazione del nodo.
+Il precedente percorso IBeamSplice laminato resta distinto. Fatica rinviata
+per richiesta dell'utente. Il solo equilibrio non chiude nessuno di tali modi.
+
+COLLAUDO E COMMIT
+70 nuovi test in totale. Collaudo finale Steel 5686/5686, 0 falliti, 0 saltati:
+Steel.Members net8 5564/5564 e Steel legacy net472 122/122, eseguiti in sequenza.
+La DLL copiata nei test net472 coincide per SHA256 con Steel 2.86.0.0 appena
+compilata. Nessun atteso/fixture legacy o allowlist modificato.
+Audit nel workspace audit-results/connections/bridge-splices-static:
+steel-final/steel-final.trx, steel-net472-final/steel-net472-final.trx e summary.json.
+Prima baseline famiglia IBeamSplice 457/457; due difetti del NUOVO codice
+riprodotti in review-red e corretti prima del collaudo finale (diagonale dei
+gruppi d'anima per giunti lunghi; collisione hardware adiacente).
+
+c53641b7: implementazione 2e-P.1; 8e7f0bec: versione dedicata Steel 2.85.0.0.
+44ade71c: implementazione 2e-S.1; a259b8c4: versione dedicata Steel 2.86.0.0.
+Solo queste suite Steel sono state eseguite su questa versione: il set generale
+del 24/10 non certifica automaticamente il nuovo insieme di librerie.
+Nessun Release-Set, merge, push o rilascio di questo branch; test conclusi.
