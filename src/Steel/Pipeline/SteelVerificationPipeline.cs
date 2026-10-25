@@ -42,6 +42,18 @@ namespace GPC.Checkers.Steel.Pipeline
                 checks.Add(ExecuteOne(plan.Input, decision, assessments, plan.MemberAnalysis, cancellationToken));
                 cancellationToken.ThrowIfCancellationRequested();
             }
+            foreach(var assessment in assessments.Values.Where(v=>v.PanelDetails!=null))
+            {
+                var d=assessment.PanelDetails;
+                var decision=new SteelMethodDecision(SteelCheckTarget.WebPanelDetails,SteelSelectionStatus.Ready,
+                    SteelMethod.WebPanelDetails,"WebPanel.ComputedDetails","Computed same-case boundary and attachment checks.");
+                var trace=d.Trace.Concat(d.Checks.Select(c=>new SectionResistanceValue("Detail."+c.Name,c.Utilization,"1")));
+                checks.Add(new SteelCheckExecution(decision,d.Passed?SteelExecutionStatus.Passed:SteelExecutionStatus.Failed,
+                    d.Passed?null:"WebPanel.DetailFailure",d.Stable?null:"Stiffener second-order equilibrium is unstable.",
+                    "EN1993-1-5:2006 section9; EN1993-1-8:2005 4.5.3.3",
+                    "Actual bilateral flat stiffeners, web/flange welds, direct bearing and optional paired rigid end post; local panel scope.",
+                    utilization:d.Utilization,trace:trace,shearAssessments:new[]{assessment}));
+            }
             return new SteelVerificationResult(plan, checks);
         }
 
@@ -66,6 +78,10 @@ namespace GPC.Checkers.Steel.Pipeline
                     : new[] { 1, 2 }.Where(axis => (axis == 1 ? input.Actions.V1 : input.Actions.V2) != 0).ToArray();
                 foreach (int axis in axes)
                     if (assessments.TryGetValue(axis, out var assessment)) used.Add(assessment);
+                if(used.Any(v=>v.PanelDetails!=null&&!v.PanelDetails.Passed))
+                    return new SteelCheckExecution(decision,SteelExecutionStatus.Failed,"WebPanel.DetailFailure",
+                        "The actual boundary/stiffener/weld/bearing checks failed; panel resistance cannot qualify this state.",
+                        shearAssessments:used);
                 bool acceptsWebResistance = decision.Method == SteelMethod.EffectiveNormalResistance || decision.Method == SteelMethod.SectionShear2;
                 if (used.Any(a => !a.IsBucklingExcluded && (!acceptsWebResistance || !a.BucklingResistance.HasValue)))
                     return new SteelCheckExecution(decision, SteelExecutionStatus.NotSupported,
@@ -109,7 +125,7 @@ namespace GPC.Checkers.Steel.Pipeline
                             double utilization = Math.Abs(a.V2) / web.BucklingResistance.Value;
                             SteelInputValidation.Finite(utilization, "web utilization");
                             return new SteelCheckExecution(decision, utilization <= 1 ? SteelExecutionStatus.Passed : SteelExecutionStatus.Failed,
-                                reference: web.Reference, scope: "H web-only shear resistance; non-rigid end post, support detailing assessed separately; no flange contribution or normal interaction.",
+                                reference: web.Reference, scope: web.PanelDetails==null?"H web-only shear resistance; boundary detailing assessed externally; no flange contribution or normal interaction.":"H web-only shear resistance with computed actual boundary detailing; no flange contribution or normal interaction.",
                                 resistance: web.BucklingResistance, resistanceUnit: "N", utilization: utilization, trace: web.Trace, shearAssessments: used);
                         }
                         result = Shear(input, section, 2); break;

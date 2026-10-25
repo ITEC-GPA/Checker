@@ -62,6 +62,14 @@ namespace GPC.Checkers.Steel.Pipeline
         /// No free end, skew bearing or interacting multiple patches are inferred.</summary>
         public static SteelHWebPatchAssessment Evaluate(SteelVerificationResult sectionResult,WebPatchLoadType type,
             bool topFlange,double force,double panelLength,double stiffBearingLength,double gammaM1,string source)
+            =>EvaluateCore(sectionResult,type,topFlange,force,panelLength,stiffBearingLength,gammaM1,source,null);
+
+        public static SteelHWebPatchAssessment EvaluateAtUnstiffenedEnd(SteelVerificationResult sectionResult,
+            bool topFlange,double force,double panelLength,double stiffBearingLength,double endDistance,double gammaM1,string source)
+            =>EvaluateCore(sectionResult,WebPatchLoadType.UnstiffenedEnd,topFlange,force,panelLength,stiffBearingLength,gammaM1,source,endDistance);
+
+        private static SteelHWebPatchAssessment EvaluateCore(SteelVerificationResult sectionResult,WebPatchLoadType type,
+            bool topFlange,double force,double panelLength,double stiffBearingLength,double gammaM1,string source,double? endDistance)
         {
             if(sectionResult==null)throw new ArgumentNullException(nameof(sectionResult));
             SteelInputValidation.Positive(force,nameof(force));
@@ -79,7 +87,10 @@ namespace GPC.Checkers.Steel.Pipeline
             if(input.Member!=null&&panelLength>input.Member.Length)throw new ArgumentException("Panel exceeds physical member length.");
             if(input.Code.SectionCode.Standard==SectionResistanceStandard.Ntc2018&&gammaM1!=Ntc2018DesignPolicy.GammaM1)
                 throw new ArgumentException("NTC patch route requires gammaM1=1.05.");
-            var p=Ec3WebPatchLoading.Calculate(type,h.HeightWeb,h.ThicknessWeb,
+            double bf=topFlange?h.LenghtTopFlange:h.LenghtBottomFlange,tf=topFlange?h.ThicknessTopFlange:h.ThicknessBottomFlange;
+            var p=endDistance.HasValue?Ec3WebPatchLoading.CalculateAtUnstiffenedEnd(h.HeightWeb,h.ThicknessWeb,bf,tf,
+                input.Section.YieldStrength,input.Section.YieldStrength,input.Section.ElasticModulus,panelLength,stiffBearingLength,endDistance.Value,gammaM1)
+                :Ec3WebPatchLoading.Calculate(type,h.HeightWeb,h.ThicknessWeb,
                 topFlange?h.LenghtTopFlange:h.LenghtBottomFlange,topFlange?h.ThicknessTopFlange:h.ThicknessBottomFlange,
                 input.Section.YieldStrength,input.Section.YieldStrength,input.Section.ElasticModulus,panelLength,stiffBearingLength,gammaM1);
             return new SteelHWebPatchAssessment(sectionResult,p,force,source);

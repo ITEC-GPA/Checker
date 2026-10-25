@@ -6,12 +6,12 @@ using GPC.Checkers.Steel.Inputs;
 namespace GPC.Checkers.Steel.Selection
 {
     public enum SteelCheckScope { Section, Member, SectionAndMember }
-    public enum SteelCheckTarget { NormalResistance, Shear1, Shear2, Torsion, MemberStability }
+    public enum SteelCheckTarget { NormalResistance, Shear1, Shear2, Torsion, MemberStability, WebPanelDetails }
     public enum SteelSelectionStatus { Ready, RequiresPreparation, MissingInput, NotSupported, NotRequired, InvalidInput }
     public enum SteelMethod
     {
         SectionTension, SectionCompression, SectionBending1, SectionBending2,
-        SectionShear1, SectionShear2, Ec3PlasticHInteraction, NtcElasticNormalInteraction, Ec3UniformForkMember, Ec3ExternalGeneralMember, ElasticNormalInteraction, PrismaticCompression, PrismaticLateralTorsionalBuckling, HMajorBendingShear, HBeamColumn, LinearResistanceInteraction, LinearShearInteraction, EffectiveNormalResistance
+        SectionShear1, SectionShear2, Ec3PlasticHInteraction, NtcElasticNormalInteraction, Ec3UniformForkMember, Ec3ExternalGeneralMember, ElasticNormalInteraction, PrismaticCompression, PrismaticLateralTorsionalBuckling, HMajorBendingShear, HBeamColumn, LinearResistanceInteraction, LinearShearInteraction, EffectiveNormalResistance, WebPanelDetails
     }
     public enum SteelPreparationRequirement { ShearBucklingAssessment }
 

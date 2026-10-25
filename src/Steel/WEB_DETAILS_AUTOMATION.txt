@@ -1,0 +1,70 @@
+ANIME: DETTAGLI AUTOMATICI DEL PANNELLO - 25/10/2026
+
+Campo chiuso: anima piana di H saldato omogeneo, N/M1/V2, statica ordinaria,
+EC3 2005 con EN1993-1-5:2006 oppure NTC2018 con metodo integrativo dichiarato.
+Due bordi reali, ognuno con due piatti uguali a tutta altezza, cordoni continui
+su entrambi i lati e alle flange, senza intagli. Le reazioni e la risultante
+compressa longitudinale dell'anima sono input numerici della stessa combinazione
+FEM; non si ricavano dal valore del taglio nella singola sezione.
+
+API
+SteelWebBoundaryDetail: geometria, forze concomitanti, eccentricita', cordoni,
+impronta reale e distanza dal bordo; l'input Steel e' conservato per identita'.
+SteelHWebPanelDetails.Evaluate(input,a,gammaM1,eta,gammaM2Weld,left,right):
+calcola i controlli. GammaM2 delle saldature e' distinto da quello delle sezioni
+nette; NTC impone1.25. GammaM1 deve coincidere col contesto d'asta.
+SteelShearBucklingAssessment.FromVerifiedDetails(details): prepara il pannello.
+SteelVerificationPipeline.Execute(plan,new[]{assessment}): conserva i controlli
+dei dettagli come WebPanelDetails anche con V=0; un dettaglio fallito non puo'
+lasciare una verifica di pannello favorevole. Un controllo di sezione non
+supportato rimane nel risultato: i dettagli non cancellano i controlli mancanti.
+
+Nucleo Ec3WebStiffener condiviso: il vecchio BridgeLocalDetails.Stiffener e'
+una facciata, con gli stessi valori pubblici e lo stesso ordine aritmetico.
+Verifiche: striscia efficace15 epsilon tw per lato limitata al materiale reale;
+inerzie e baricentro; rigidezza per entrambi i pannelli; torsione dei piatti;
+classe<=3; secondo ordine con eccentricita' e imperfezioni; freccia; saldature
+verticali e alle flange con lunghezze efficaci reali; impronta e contatto diretto.
+Lunghezza d'inflessione adottata=intera distanza tra le flange, senza beneficio
+automatico0.75. Il carico da campo teso usa tau_cr del pannello con l'irrigidimento
+rimosso: aL+aR, e il massimo dei tagli dei due pannelli. Non si sottraggono tagli
+provenienti da sezioni diverse. Il montante terminale rigido richiede due coppie
+calcolate, area/spaziatura e interazione con la reazione; un booleano geometrico
+non lo abilita. Per pannelli interni senza montanti terminali espliciti si conserva
+la curva non rigida, cautelativamente.
+
+PATCH PRESSO ESTREMITA' LIBERA
+Ec3WebPatchLoading.CalculateAtUnstiffenedEnd / SteelHWebPatchAssessment.
+EvaluateAtUnstiffenedEnd: tipo(c), carico perpendicolare attraverso flangia
+vincolata lateralmente; appoggio che non segue la rotazione della trave.
+c e' la distanza bordo libero-bordo vicino dell'impronta efficace, non il centro.
+kF=min(6,2+6(ss+c)/hw); le=min(ss+c,kF E tw^2/(2 fyw hw)).
+ly=min(a,2tf(1+sqrt(m1+m2)),le+tf sqrt(m1/2+(le/tf)^2+m2),
+       le+tf sqrt(m1+m2)). Nel meccanismo interno ss=0: non si accredita un
+appoggio follower. Il minimo a tre meccanismi e' la scelta cautelativa documentata
+nel JRC2007; non si importa implicitamente una diversa edizione della norma.
+Restano applicabili la riduzione per instabilita' e l'interazione7.2 gia' comuni
+ai tipi(a)/(b). Il risultato conserva l'intero esito della sezione concomitante.
+
+FONTI VERIFICATE
+EN1993-1-5:2006 sezioni5,6,7,9; EN1993-1-1:2005 5.2.2/5.3.4/Table5.1;
+EN1993-1-8:2005 4.5.3.3. NTC2018 fattori nazionali, senza sovrapporre le NA.
+JRC/ECCS EUR22898EN(2007): pp79-81 meccanismi di patch all'estremita';
+17.5.12 p220 rigidezza minima I=1.536e6 mm4 per hw=a=2000,tw=8;
+capitolo9 per gli irrigidimenti, 17.8 per l'appoggio.
+https://eurocodes.jrc.ec.europa.eu/sites/default/files/2021-12/EUR22898EN.pdf
+Fonti, figura6.6 e formule di patch ispezionate anche graficamente.
+
+PROVE DEL BLOCCO
+21 nuovi test WebDetailsTests: formule indipendenti, ODE/secante, entrambi i codici,
+rigidezza, instabilita', cedimento dei cordoni/contatto, identita' dello stato,
+montante rigido, V=0, tre meccanismi del patch, dati invalidi.
+107 test Steel pertinenti e391 CompositeBridge passati, nessun fallimento.
+Nessun atteso legacy modificato. Il set coerente finale e' registrato separatamente.
+
+FUORI DA QUESTO DETTAGLIO
+Piatti monolaterali/asimmetrici, irrigidimenti longitudinali, aperture, diaframmi
+di cassoncino, impronte oblique/multiple interferenti, piastra di ripartizione
+e apparecchio d'appoggio, fatica e verifica globale della trave. Il nucleo Bridge
+conserva le proprie altre tipologie; non vengono automaticamente qualificate
+attraverso questa nuova API Steel.
