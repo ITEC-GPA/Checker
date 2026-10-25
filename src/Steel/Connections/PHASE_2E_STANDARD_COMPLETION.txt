@@ -14,7 +14,9 @@ CHIUSURA DEL COPRIGIUNTO STANDARD - SEI PASSI AUTORIZZATI
    geometria/materiale/norma/azioni; conversione esplicita M1=-Mz. Verifica
    dei doppi cordoni longitudinali continui via il motore saldature esistente.
    Le analisi di asta sono collegabili ma non inferite. 37/37 test dei passi1-3.
-4. Percorso unico: da completare esito, provenienza e requisiti mancanti.
+4. Percorso unico: WeldedIBeamSpliceStandard.Verify, casi SLU/SLE legati
+   allo stesso dettaglio, B/C, tracce del controllo originale governante,
+   requisiti mancanti separati dai superamenti reali. 54/54 test passi1-4.
 5. Esempi indipendenti: da completare SCI P357 e casi completi EC/NTC.
 6. Versione candidata: da eseguire collaudo e Release-Set del treno completo.
 
