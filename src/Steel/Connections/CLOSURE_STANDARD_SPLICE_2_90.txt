@@ -1,0 +1,56 @@
+CHIUSURA SEI PASSI - COPRIGIUNTO STANDARD - STEEL 2.90.0.0
+25/10/2026 - branch codex/steel-bridge-splices-static - un solo agente
+
+1 COMPLETATO: dominio del modello bilanciato a doppio coprigiunto, conservati
+  momento proprio delle ali, geometria reale ed equilibrio. Commit 421789bd.
+2 COMPLETATO NEL DOMINIO: netto elastico combinato, fori e inerzie, gerarchia dei
+  percorsi di block tearing, coprigiunti compatti e sezione madre forata.
+  Commit cef2c2b0. Gerarchia non soddisfatta => fuori metodo, non collasso provato.
+3 COMPLETATO: legame con i due risultati Steel reali, controllo geometria/norma/
+  materiale/azioni, M1=-Mz, cordoni longitudinali continui e risultati di asta
+  opzionali distinti. Commit 0a7d5726; limiti classe 4 forata e ulteriori test a3c2a6b1.
+4 COMPLETATO: API unica WeldedIBeamSpliceStandard.Verify, inviluppo coerente B/C,
+  distinguendo Passed, Failed e NotSupported e mantenendo i fallimenti noti.
+  Commit 21c37420.
+5 COMPLETATO: 68 nuovi test, inclusi SCI P357, oracolo indipendente Python Fraction,
+  esempi completi EC/NTC, ali disuguali, inversioni, sovraccarichi, input e requisiti
+  mancanti. Committati fixture e derivazione; nessuna fixture legacy modificata.
+  Commit a3c2a6b1. Test sorgente e guida: STANDARD_SPLICE_USAGE.txt.
+6 COMPLETATO: versione 2.90.0.0 in commit dedicato dd52bc28 e set candidato coerente
+  di 14 DLL, costruito da Checker@4efeb16e, Model@2d59bbc6.
+  Correzione nel packager 4efeb16e: conteggio degli esiti Model dalle righe TRX,
+  evitando il contatore notExecuted=0 errato dell'adapter. Il candidato finale
+  e' stato rigenerato dal commit pulito con tutte le suite, non ritoccato a mano.
+
+COLLAUDO FINALE (NON SOMMA DI RUN RIPETUTI)
+Checker: 8290 passati, zero fallimenti/ignorati.
+Model: 1493 passati, zero fallimenti, 3 prove native Straus7 non eseguite:
+- NativeAssignments_LoadsAndGravityBalanceTheSolverReactions
+- EightNativePairsKeepGeometryAndGlobalActionSigns
+- NativeLinearStaticBenchmark_EquilibriumAndMembraneResultants
+
+Le 3 prove richiedono fixture native generate ed environment opt-in. Sono riportate
+come non eseguite nel manifest; nessun loro esito favorevole e' stato presunto.
+Steel.Members: 5722/5722; Steel net472: 122/122 (totale 5844).
+Concrete net472: 905/905; ModelChecker: 445/445. API senza rimozioni inattese.
+SHA256 delle 14 DLL del set verificati; copie Steel/Model effettivamente caricate
+dalle due suite Steel confrontate con il manifest. Model e' 5.21.0.0 in entrambe.
+
+CANDIDATO LOCALE
+C:\Users\g.pacini\Documents\ChatGPT\Checker\audit-results\connections\bridge-splices-static\standard-six-steps\candidate-steel-2.90-final
+Manifest: release-set.json; audit aggiuntivo: C:\Users\g.pacini\Documents\ChatGPT\Checker\audit-results\connections\bridge-splices-static\standard-six-steps\summary-final.json
+Il primo candidato candidate-steel-2.90 aveva tutti i test verdi ma il vecchio
+contatore Model dei non eseguiti: usare esclusivamente candidate-steel-2.90-final.
+Questo documento e' aggiunto dopo il collaudo; il manifest conserva il commit
+effettivamente compilato sopra. Nessun sorgente di calcolo cambia nel commit finale
+di rendicontazione. Nessun merge, push o installazione in ANTHEA. Test terminati.
+
+LIMITI E PUNTI CHE NON VENGONO CHIUSI DA QUESTO BLOCCO
+E' chiuso il percorso statico della tipologia BILANCIATA con coprigiunti COMPATTI,
+non tutti i giunti delle fasi 1-4 del piano generale. Fuori campo: piatti/forature
+di classe 4, piastre snelle, dettagli che non soddisfano la gerarchia sufficiente,
+coprigiunti sbilanciati, imbotiture, intagli/cambi di sezione, azioni fuori piano,
+contatto/prying generale. Fatica rinviata. Rigidezza rotazionale ed esecuzione
+non certificate; analisi globale dichiarata dal progettista, verifiche d'asta
+riportate solo se fornite. Le vecchie API di componenti restano esplicitamente
+incomplete. ANTHEA non e' stata toccata. Model non e' stato modificato.

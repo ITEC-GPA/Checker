@@ -20,7 +20,8 @@ CHIUSURA DEL COPRIGIUNTO STANDARD - SEI PASSI AUTORIZZATI
 5. Esempi indipendenti: completati valori SCI P357 e oracolo Python Fraction
    per i casi completi EC/NTC, ali uguali/disuguali, B/C, inversioni e KO.
    68/68 test nuovi passati. Dettagli e limiti: STANDARD_SPLICE_USAGE.txt.
-6. Versione candidata: da eseguire collaudo e Release-Set del treno completo.
+6. Versione candidata: completato Release-Set, 14 DLL, Checker 8290 e Model 1493
+   passati, 0 fallimenti, 3 nativi Model non eseguiti. CLOSURE_STANDARD_SPLICE_2_90.txt.
 
 FONTI CONTROLLATE
 - EN1993-1-8:2005, 2.5 e 3.12: equilibrio, realismo della distribuzione,

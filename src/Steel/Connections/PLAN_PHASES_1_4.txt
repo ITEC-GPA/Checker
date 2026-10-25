@@ -390,3 +390,13 @@ COMMIT
 1e26d7b5 P.4; 0100b5bb versione2.89.
 Nessun merge, push o Release-Set di questo branch. ANTHEA esclusa. Questa e'
 una validazione delle suite Steel, non un rilascio dell'intero treno librerie.
+
+CHIUSURA SEI PASSI COPRIGIUNTO STANDARD - STEEL 2.90.0.0 - 25/10/2026
+Percorso WeldedIBeamSpliceStandard.Verify chiuso nel dominio bilanciato/compatto
+documentato in STANDARD_SPLICE_USAGE.txt. 68 nuovi test, fonti SCI P357 e oracolo
+Python indipendente; dettagli residui generali non qualificati automaticamente.
+Questo checkpoint non chiude le altre tipologie delle fasi 1-4.
+Set candidato 14 DLL da Checker@4efeb16e, Model 5.21@2d59bbc6:
+Checker 8290 passati; Model 1493 passati+ 3 nativi non eseguiti; 0 fallimenti.
+Steel 5722 net8 + 122 net472. Manifest finale conta correttamente anche i 3 nativi.
+Rapporto: CLOSURE_STANDARD_SPLICE_2_90.txt. Nessun merge/push/ANTHEA. Test terminati.
