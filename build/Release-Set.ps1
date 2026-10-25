@@ -65,8 +65,13 @@ New-Item -ItemType Directory -Force -Path $tests | Out-Null
 $suites = @()
 foreach ($trx in Get-ChildItem -LiteralPath (Join-Path $tests 'Model') -Filter *.trx) {
     [xml]$x = Get-Content -LiteralPath $trx.FullName -Raw
-    $counters = $x.TestRun.ResultSummary.Counters
-    $suites += [ordered]@{ name = $trx.BaseName; repository = 'Model'; passed = [int]$counters.passed; failed = [int]$counters.failed; other = [int]$counters.notExecuted }
+    # Some adapters emit notExecuted=0 in Counters although individual results
+    # are NotExecuted. Count the actual outcomes, as Checker/Verify.ps1 does.
+    $rows = @($x.TestRun.Results.UnitTestResult)
+    $suites += [ordered]@{ name = $trx.BaseName; repository = 'Model';
+        passed = @($rows | Where-Object { $_.outcome -eq 'Passed' }).Count;
+        failed = @($rows | Where-Object { $_.outcome -eq 'Failed' }).Count;
+        other = @($rows | Where-Object { $_.outcome -ne 'Passed' -and $_.outcome -ne 'Failed' }).Count }
 }
 foreach ($s in (Get-Content -LiteralPath (Join-Path $tests 'Checker\summary.json') -Raw | ConvertFrom-Json).results) {
     $suites += [ordered]@{ name = $s.name; repository = 'Checker'; passed = $s.passed; failed = $s.failed; other = $s.other; knownFailures = @($s.knownFailures) }
