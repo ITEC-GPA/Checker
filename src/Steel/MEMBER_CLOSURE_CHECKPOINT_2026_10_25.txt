@@ -1,0 +1,70 @@
+CHECKPOINT LIBRERIE - 25/10/2026
+Branch codex/steel-bridge-splices-static. Un solo agente, nessuna UI ANTHEA.
+
+RICHIESTA PIU' RECENTE: DIAGRAMMI DI MOMENTO GENERICI
+Implementata e collaudata: GenericEnvelope conserva stazioni, segni, massimi
+interni e le due facce dei salti nella stessa combinazione FEM. La verifica
+utilizza le sollecitazioni del modello, senza combinare massimi di stati diversi.
+Nel campo H doppiamente simmetrici, campata prismatica a forcelle, ingobbamento
+libero e carichi nel centro di taglio, usa Mcr uniforme come limite conservativo.
+Non dichiara un autovalore ricavato sul diagramma reale. Cm=1 per il percorso
+generico di pressoflessione gia' qualificato; i modi/valori critici richiesti
+restano espliciti e N deve essere costante. Copertura di tutti i picchi FEM da
+qualificare: non si inventano estremi per interpolazione tra pochi campioni.
+Vedere MEMBER_SCHEME_PREPARATION.txt per API, ipotesi e dimostrazione del limite.
+
+AVANZAMENTO DELLA SEQUENZA AUTORIZZATA
+1 COMPLETATO - catalogo connessioni e set coerente. Il set2.92 del punto1 e'
+  superato dal candidato2.96 descritto sotto; i suoi risultati restano storici.
+2 COMPLETATO NEL CAMPO DICHIARATO - schemi ideali Ncr, Mcr per diagrammi
+  ordinari/generici, Cm e binding alle combinazioni FEM. Nessun solver generale
+  di stabilita' con molle, ingobbamento vincolato o telai deformabili.
+3 PARZIALE - SteelPackingLayout deriva il passo massimo dai centri reali di
+  collegamento, inclusi i tratti terminali. FromLayout lo usa nel calcolo dei
+  correnti2C/2L (lato lungo/corto), con traccia delle stazioni e risultati EC/NTC.
+  APERTO3c: domanda locale automatica con imperfezioni e qualifica completa
+  dell'imbottitura/pareti dei correnti. Le verifiche complete esterne restano
+  necessarie; i soli risultati di cordoni/blocco nominale non le sostituiscono.
+4 IMPLEMENTATO CON DETTAGLI ESTERNI - nucleo comune Steel/CompositeBridge per
+  pannelli d'anima, percorso Steel irrigidito, patch tipi(a)/(b) e interazione7.2
+  nello stesso caso di sezione. APERTI: trasferimento automatico dei controlli
+  di irrigidimenti/appoggi/saldature nella pipeline Steel; patch tipo(c),
+  irrigidimenti longitudinali e patch multiple interferenti. Dettagli in
+  WEB_PANEL_AND_PATCH_LOADING.txt; non e' una verifica globale completa del pannello.
+PIASTRA RIPRESA - lunghezze efficaci di ogni fila per Sj,ini derivate dalla
+  geometria e dai contributi nei gruppi. Hardware/alpha restano qualificati
+  esplicitamente. APERTI: resistenza dell'intero nodo, net/block con prying,
+  introduzione locale, pilastro/membri e compatibilita' col modello globale.
+  Vedere Connections/END_PLATE_DERIVED_STIFFNESS_LENGTHS.txt.
+
+COMMIT FUNZIONALI E VERSIONI DEDICATE
+a107e3db - schemi e diagrammi FEM generici; d2445ae3 - Steel2.93/ModelChecker2.24.
+3ddac31c - disposizione effettiva imbottiture;74f2dfe5 - Steel2.94.
+670b3163 - anime comuni/patch loading;9866e0cd - Steel2.95/CompositeBridge1.14.
+a064f528 - lunghezze di fila piastra;86228728 - Steel2.96.
+141 nuove prove rispetto al set2.92:106 Steel,28 ModelChecker,7 CompositeBridge.
+Nessun atteso storico o allowlist modificato. Nessun merge/push/installazione.
+
+SET COERENTE FINALE VERIFICATO
+Generato con build/Release-Set.ps1 -Candidate da checkout puliti:
+C:/Users/g.pacini/Documents/ChatGPT/Checker/audit-results/member-closure/
+candidate-steel-2.96/release-set.json
+Checker@86228728567ae2d801beb6bb8eb3f7ccb45b5d04;
+Model@2d59bbc609cd9c913abbfc8c8b7cc6615f7b4d53 (5.21.0.0, nessuna modifica).
+Steel2.96.0.0, ModelChecker2.24.0.0, CompositeBridge1.14.0.0.
+14 DLL: tutti gli SHA256 ricontrollati sui file confezionati.
+Set candidato, non rilascio/installazione ANTHEA. Questo checkpoint e' un
+successivo commit di sola documentazione; il manifest conserva il commit
+effettivo dei sorgenti usati per compilare e collaudare.
+
+RISULTATI EFFETTIVI DEL COLLAUDO FINALE
+Checker:8538 passati,0fallimenti,0ignorati.
+  Steel.Members5935; Steel net472122; Concrete net472905;
+  CompositeBridge391; ModelChecker473; Geotechnics193; Calculation175;
+  ShallowFoundation28; EmbeddedWalls99; Design net8109 e net472108.
+Model:1493 passati,0fallimenti,3prove nativeStraus7 non eseguite:
+  NativeAssignments_LoadsAndGravityBalanceTheSolverReactions;
+  EightNativePairsKeepGeometryAndGlobalActionSigns;
+  NativeLinearStaticBenchmark_EquilibriumAndMembraneResultants.
+Controlli API:0rimozioni inattese. Le3prove native richiedono fixture/ambiente
+disponibili e non sono dichiarate superate. Tutti i test avviati sono terminati.

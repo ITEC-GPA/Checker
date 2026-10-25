@@ -68,3 +68,8 @@ RIPRESA PIASTRA ESEGUITA
 Lunghezze di fila per rigidezza iniziale derivate dalla geometria, senza medie
 di gruppo: Connections/END_PLATE_DERIVED_STIFFNESS_LENGTHS.txt.
 17 nuove prove,728 T-stub/end plate passati. Nodo completo ancora parziale.
+
+COLLAUDO FINALE2.96 E PUNTI APERTI
+MEMBER_CLOSURE_CHECKPOINT_2026_10_25.txt:8538 Checker+1493 Model passati,
+0fallimenti;3prove nativeStraus7 non eseguite;14DLL/hash verificati.
+Il punto3c e le qualifiche complete sopra indicate restano aperti.
