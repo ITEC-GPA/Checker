@@ -39,12 +39,18 @@ Audit3a e collegamento geometrico3b implementati con SteelPackingLayout/FromLayo
 La verifica d'asta funziona con resistenze complete esterne; i componenti saldati
 non sono sufficienti a qualificare automaticamente una stazione completa.
 
-4 DA FARE - ANIME DA PONTE
+4 IMPLEMENTATO NEL CAMPO DICHIARATO - ANIME DA PONTE
 4a Censire e riusare i nuclei gia' presenti in CompositeBridge; evitare doppioni.
 4b Estendere il percorso Steel ai pannelli con irrigidimenti trasversali,
    con verifica esplicita dei dettagli/supporti e delle interazioni pertinenti.
 4c Forze trasversali concentrate: tipologia definita, fonti e test indipendenti.
 4d Coerenza Steel/CompositeBridge, casi limite e set finale delle librerie.
+Nucleo unico Ec3WebPanelShear e facciata Bridge senza duplicazioni.
+Pannelli Steel irrigiditi, patch tipi(a)/(b) e interazione7.2 con risultato
+di sezione della stessa combinazione: vedere WEB_PANEL_AND_PATCH_LOADING.txt.
+86 test pertinenti Steel e391 CompositeBridge passati;38 nuove prove.
+Irrigidimenti/appoggi/attacchi restano verificati separatamente; il loro
+trasferimento automatico nella pipeline Steel e il tipo(c) sono ancora aperti.
 Non dichiarare verificato un pannello soltanto perche' il suo Vbw e' disponibile.
 
 DOPO 4 - RIPRENDERE LA PIASTRA DI ESTREMITA'

@@ -24,21 +24,11 @@ namespace GPC.Checkers.CompositeBridge
         public static WebShearResistance Web(double height, double thickness, double fy, double young,
             double gammaM0, double gammaM1, double eta, double panelLength = 0, bool rigidEndPost = false, bool etaInShearArea = false)
         {
-            Positive(height, "hw"); Positive(thickness, "tw"); Positive(fy, "fy"); Positive(young, "E");
-            Positive(gammaM0, "gammaM0"); Positive(gammaM1, "gammaM1"); Positive(eta, "eta");
-            if (panelLength < 0 || double.IsNaN(panelLength) || double.IsInfinity(panelLength)) throw new ArgumentException("Invalid panel length.");
-            if (eta < 1 || eta > 1.2) throw new ArgumentException("eta must be between 1 and 1.2.");
-            double ratio = panelLength / height;
-            double kt = panelLength == 0 ? 5.34 : ratio >= 1 ? 5.34 + 4 / (ratio * ratio) : 4 + 5.34 / (ratio * ratio);
-            double sigmaE = Math.PI * Math.PI * young / (12 * (1 - .3 * .3)) * Math.Pow(thickness / height, 2);
-            double tauCr = kt * sigmaE;
-            double lambda = Math.Sqrt(fy / (Math.Sqrt(3) * tauCr));
-            double chi = lambda < .83 / eta ? eta : rigidEndPost && lambda >= 1.08 ? 1.37 / (.7 + lambda) : .83 / lambda;
-            double area = height * thickness;
-            double plastic = (etaInShearArea ? eta : 1) * area * fy / (Math.Sqrt(3) * gammaM0);
-            double buckling = chi * area * fy / (Math.Sqrt(3) * gammaM1);
-            return new WebShearResistance { KTau = kt, TauCritical = tauCr, Slenderness = lambda, Chi = chi,
-                Area = area, ShearArea = (etaInShearArea ? eta : 1) * area, PlasticResistance = plastic, BucklingResistance = buckling, Resistance = Math.Min(plastic, buckling) };
+            var w = Steel.Sections.Ec3WebPanelShear.Calculate(height, thickness, fy, young, gammaM0, gammaM1,
+                eta, panelLength, rigidEndPost, etaInShearArea);
+            return new WebShearResistance { KTau = w.KTau, TauCritical = w.TauCritical, Slenderness = w.Slenderness, Chi = w.Chi,
+                Area = w.Area, ShearArea = w.ShearArea, PlasticResistance = w.PlasticResistance,
+                BucklingResistance = w.BucklingResistance, Resistance = w.Resistance };
         }
 
         /// <summary>Symmetric double-sided flat intermediate stiffener. Effective web strip

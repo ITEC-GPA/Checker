@@ -1,0 +1,74 @@
+ANIME IRRIGIDITE E FORZE TRASVERSALI CONCENTRATE - 25/10/2026
+Campo: verifiche locali statiche, EC3 2005 con EN1993-1-5:2006 e NTC2018
+con il metodo EC3 supplementare esplicitamente dichiarato. mm,N,Nmm,MPa.
+
+UN SOLO NUCLEO PER STEEL E PONTI
+Ec3WebPanelShear contiene ora il calcolo gia' usato da BridgeShearConnection.Web.
+La facciata Bridge conserva firma, tipo restituito e ordine aritmetico; le nuove
+API Steel riusano lo stesso nucleo. Nessuna dipendenza Steel->CompositeBridge.
+Pannello senza irrigidimenti longitudinali, nu=.3, contributo delle ali omesso.
+kTau=5.34+4/(a/hw)^2 per a/hw>=1;4+5.34/(a/hw)^2 per a/hw<1.
+Senza irrigidimenti intermedi:a=0 e kTau=5.34. Taucr=kTau*pi^2*E/(12*.91)*(tw/hw)^2.
+Lambda=sqrt(fy/(sqrt3*taucr)); chi dalla Table5.1, eta tra1 e1.2.
+Il beneficio del montante terminale rigido e' una scelta ESPLICITA da qualificare.
+
+SteelShearBucklingAssessment.EvaluateTransverselyStiffenedHWeb lega il risultato
+allo stesso input Model, usa le aree di taglio reali, esponeVbw e limita aVpl.
+Un risultato positivo di resistenza non viene trasformato in esclusione
+dell'instabilita'. Il percorso comune conserva le interazioni gia' qualificate
+(compresa M-V di classe4 nel suo campo); le altre restano non valutate.
+NTC:gammaM1=1.05,eta=1. Fonte del dettaglio obbligatoria: irrigidimenti, saldature,
+appoggi, rigidezza e trasferimento di forze devono essere verificati separatamente.
+I relativi metodi CompositeBridge gia' presenti non sono duplicati in Steel.
+
+PATCH LOADING
+Ec3WebPatchLoading: EN1993-1-5 sezione6, tipi(a)/(b) della Fig6.1:
+- forza su un'ala equilibrata dai tagli: kF=6+2(hw/a)^2;
+- due forze opposte e allineate sulle ali: kF=3.5+2(hw/a)^2.
+Fcr=.9*kF*E*tw^3/hw; m1=fyf*bf/(fyw*tw);
+ly=min(a,ss+2tf*(1+sqrt(m1+m2))); lambdaF=sqrt(ly*tw*fyw/Fcr);
+chiF=min(1,.5/lambdaF); FRd=chiF*ly*tw*fyw/gammaM1.
+Si parte da m2=0. Se lambdaF>.5 si ricalcola con m2=.02(hw/tf)^2.
+Quando il ramo m2=0 soddisfa lambdaF<=.5 e' autoconsistente e conservativo,
+anche se il secondo ramo algebrico risultasse a sua volta ammissibile.
+ss e' la lunghezza di diffusione rigida gia' stabilita secondo6.3, non la semplice
+larghezza del carico inserita senza qualificazione:0<=ss<=min(hw,a).
+Per una piastra di cassone il chiamante del kernel applica gia' il limitebf
+della6.5(1); il kernel non conosce la geometria del cassone intero.
+Esclusi tipo(c) all'estremita' libera, irrigidimenti longitudinali, aperture,
+forze eccentriche/follower, piu' patch interferenti e assenza di ritegno dell'ala.
+
+LEGAME CON MODEL E INTERAZIONI
+SteelHWebPatchAssessment.Evaluate riceve il risultato di SEZIONE della stessa
+combinazione FEM, piu' la forza trasversale concentrata positiva, l'ala caricata,
+il pannello e la lunghezza ss. Non ricava la forza concentrata dal solo V del taglio.
+Geometria/materiale dalla copia immutabile Model: H saldato omogeneo, piatti piani,
+nessun raggio equivalente o foratura, azioniN/M1/V2. Per tipo(b) ali uguali.
+Il controllo7.2 usa max(etaF,etaNM,(etaF+.8etaNM)/1.4). EtaNM e' l'utilizzo
+applicabile della verifica di sezione gia' effettuata; per classe4 non si usa
+una falsa resistenza plastica. Se quel controllo contiene gia' una penalizzazione
+di taglio la si conserva cautelativamente. Tutti gli altri controlli della
+sezione restano nel risultato e nel massimo. Dati di sezione incompleti non
+diventano Passed perche' la sola patch passa; un fallimento noto rimane Failed.
+La pura patch conN=M=V=0 non richiede azioni di flessione inventate.
+IsComplete riguarda soltanto patch+sezione nel campo dato; CanQualifyWholeMember
+e' semprefalse. Restano stabilita' d'asta, irrigidimenti, appoggi, saldature,
+compatibilita' del modello e introduzione del carico effettiva.
+
+FONTI E BENCHMARK
+JRC/ECCS EUR22898EN(2007), Commentary and worked examples to EN1993-1-5:
+https://eurocodes.jrc.ec.europa.eu/sites/default/files/2021-12/EUR22898EN.pdf
+Fig6.6 p81/PDF95: schemi e coefficienti;7.2 pp98-99/PDF112-113: interazione;
+15.1 pp173-174/PDF187-188: varo del ponte di Vallsundet, benchmark di UNA anima.
+hw2846,tw22,bf392 gia' limitata,tf26,fy420,E210000,a7400,ss500,gammaM1=1.1.
+Pubblicati arrotondati:kF6.30,Fcr4.45MN,ly1.38m,lambda1.69,chi.296,FRd3.43MN.
+Non e' una verifica completa del cassone; non sono aggiunti gli altri meccanismi
+del ponte per analogia. Tolleranze dei test legate agli arrotondamenti pubblicati.
+Altro benchmarkJRC:pannello hw2720,tw18,a8000,fy345 -> kTau5.8024,taucr48.228MPa.
+
+VERIFICA E STATO
+31 nuovi test Steel e7 CompositeBridge. Gruppo d'anima:86 passati; tutta la
+suite CompositeBridge:391 passati. Nessun atteso storico o allowlist modificato.
+Punto4a chiuso (riuso),4b/4c disponibili nel campo sopra con qualificazione esterna
+dei dettagli. Trasferimento automatico delle verifiche degli irrigidimenti al
+workflow Steel e tipi di patch esclusi rimangono estensioni distinte.
