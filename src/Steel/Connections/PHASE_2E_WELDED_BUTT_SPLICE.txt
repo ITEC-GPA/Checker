@@ -1,0 +1,63 @@
+2e-S.1 - GIUNTO SALDATO TESTA A TESTA A COMPLETA PENETRAZIONE
+25 ottobre 2026 - ramo codex/steel-bridge-splices-static
+
+STATO E CAMPO
+Percorso statico implementato, 28 nuovi test passati. Due sezioni I composte
+saldate con geometria identica, allineate, integre e non forate, sotto uno stesso
+stato concomitante N,V2,M1 nel riferimento baricentrico principale dichiarato.
+Non richiede ali uguali fra loro, ma i due tronchi devono avere la stessa sagoma.
+Raccordi/sovrametallo non sono accreditati; niente disassamenti, cambi di spessore,
+penetrazione parziale, torsione, flessione debole, instabilita' d'asta o fatica.
+
+API E RIUSO
+WeldedIBeamButtSplice.Verify(WeldedIBeamButtSpliceInput).
+Input: due SteelVerificationResult reali della pipeline di SEZIONE, tre dettagli
+di saldatura SpliceButtWeldDetail (ali e anima), norma e fonti del medesimo caso.
+I risultati portano i rispettivi input immutabili e non possono essere sostituiti
+da numeri di resistenza liberi. Il wrapper non replica il calcolatore Steel.
+Le azioni sui due risultati hanno la STESSA convenzione della faccia positiva
+della sezione: non sono forze nodali opposte da applicare senza trasformazione.
+Controllati identita' geometrica, norma/fattori, azioni, assi e assenza di fori.
+
+MODELLO RESISTENTE E CONDIZIONI
+EN1993-1-8:2005 4.7.1, p45/PDF47: resistenza della saldatura a piena penetrazione
+uguale alla parte collegata piu' debole, con materiale d'apporto idoneo.
+NTC2018 4.2.8.2.1, pp112-113/PDF116-117: stessa equivalenza e completa fusione
+attraverso lo spessore; requisiti di esecuzione richiamati in 11.3.4.5.
+Fonti locali originali gia' consultate; NTC PDF117 nuovamente verificata a video.
+Nessuna formula dei cordoni d'angolo, fattore beta_w o incremento da sovrametallo.
+
+Ogni dettaglio richiede: piena penetrazione, profondita' coerente con lo spessore,
+lunghezza efficace almeno pari al piatto, fy/fu minimi del materiale d'apporto,
+procedimento qualificato e fonte di preparazione/controlli. La continuita' nelle
+intersezioni dei tre cordoni e l'allineamento sono condizioni esecutive esplicite.
+Per materiali diversi sui due tronchi si richiede cautelativamente apporto
+compatibile con ENTRAMBI, non una media delle loro resistenze.
+
+Il risultato di resistenza statica e' completo solo con tutti i prerequisiti
+pertinenti e le due verifiche di sezione complete. Una preparazione mancante
+(ad esempio instabilita' a taglio) resta mancante; un fallimento gia' calcolato
+resta visibile anche se l'altro risultato e' incompleto. Nessuna qualifica viene
+dedotta da una stringa di provenienza. CertifiesWeldExecution e' sempre false:
+le condizioni dichiarate non sono un'ispezione della saldatura realizzata.
+
+VERIFICHE INDIPENDENTI
+Sezione di riferimento: h380, b400, tf30, tw16 mm; anima libera320 mm.
+A=29120 mm2; Wpl,1=2*400*30*175+16*320^2/4=4609600 mm3.
+Queste due soluzioni analitiche verificano le resistenze di sezione trasferite
+al giunto in EC/NTC. Il wrapper non genera una seconda resistenza della saldatura.
+Copertura: N/V/M combinati, segni, materiale piu' debole, mancata preparazione,
+fallimenti parziali conservati, dati provenienti da casi/norme/geometrie diverse,
+fori, materiale d'apporto insufficiente, fusione incompleta, penetrazione parziale
+e fonti esecutive mancanti. Nessuna fixture storica modificata.
+
+USO ESSENZIALE
+1. Preparare/selezionare/eseguire le verifiche delle due sezioni con le API Steel
+   esistenti, sul medesimo caso e riferimento. Non inventare una classe di sezione.
+2. Costruire i tre SpliceButtWeldDetail con geometrie e qualifiche esecutive reali.
+3. Passare quei due risultati e dettagli a WeldedIBeamButtSplice.Verify.
+4. Leggere Status e IsStaticResistanceComplete, oltre ai due risultati di sezione
+   e SeamPrerequisites. Un solo figlio Passed non basta per un esito del giunto.
+
+Le verifiche di fatica e l'esecuzione del giunto da ponte restano separatamente
+necessarie quando pertinenti; non fanno parte di questo blocco statico.
