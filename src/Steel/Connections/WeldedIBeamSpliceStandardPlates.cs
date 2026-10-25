@@ -138,9 +138,10 @@ namespace GPC.Checkers.Steel.Connections
             void Hierarchy(string name, ConnectionPlate plate, ConnectionBolt bolt, ConnectionPoint2D[] points,
                 double xmin, double xmax, double ymin, double ymax, int planes, IEnumerable<ElasticBoltForce> applied)
             {
-                // Sum the two physical shear planes for a parent ply before assessing its block.
+                // For a parent block, opposite face forces must not cancel: retain the sum
+                // of absolute actions on all physical planes (also bounds a local flange couple).
                 var forces = applied.GroupBy(x => x.Position).ToDictionary(g => g.Key,
-                    g => Tuple.Create(g.Sum(x => x.Fx), g.Sum(x => x.Fy)));
+                    g => Tuple.Create(g.Sum(x => Math.Abs(x.Fx)), g.Sum(x => Math.Abs(x.Fy))));
                 double scale = forces.Values.Sum(x => Math.Abs(x.Item1) + Math.Abs(x.Item2));
                 bool collinear = actualCollinearBlockForces && forces.Values.All(x => Math.Abs(x.Item2) <= 32 * 2.2204460492503131e-16 * scale);
                 trace.Add(new SectionResistanceValue(name + ".ActualCollinearBlockMethod", collinear ? 1 : 0, "1"));

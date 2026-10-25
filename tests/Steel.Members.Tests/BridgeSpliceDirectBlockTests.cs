@@ -82,5 +82,21 @@ public class BridgeSpliceDirectBlockTests
         Assert.IsTrue(r.CheckSources.Any(x=>x.Component=="DirectBlockTearing"&&x.Failed));
         Assert.ThrowsException<ArgumentOutOfRangeException>(()=>new WeldedIBeamSpliceStandardInput(p.Cases,p.Envelope.Category,null,(SpliceBlockVerificationMethod)99));
     }
+
+    [TestMethod]
+    public void OppositeFlangeFaceForcesCannotCancelTheParentBlockDemand()
+    {
+        // Independently integrate the three rectangles. Choose N so the top flange
+        // resultant vanishes while its self-bending moment and the face couple remain.
+        double inertia=2*(400*Math.Pow(30,3)/12+12000*175*175)+16*Math.Pow(320,3)/12;
+        double moment=50e6, axial=moment*175*29120/inertia;
+        var d=WeldedIBeamSpliceStandardTests.Detail(new(axial,0,0,0,0,moment));
+        var r=WeldedIBeamSpliceStandardPlates.Verify(WeldedIBeamSpliceStandardTests.Input(detail:d),true);
+        double localMoment=moment*(400*Math.Pow(30,3)/12)/inertia;
+        double expectedPerBolt=localMoment/25/6; // |Fo|+|Fi|, six physical bolts.
+        var check=r.DirectBlockTearing.Checks.Single(x=>x.Id=="Top.Parent.Left.Axis0.Direction1.Path1.U");
+        Assert.IsTrue(expectedPerBolt>1);
+        WeldedIBeamSpliceTests.Close(expectedPerBolt,check.Demand,1e-10);
+    }
 }
 
