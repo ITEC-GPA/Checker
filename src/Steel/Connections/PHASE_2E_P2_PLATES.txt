@@ -1,0 +1,51 @@
+2e-P.2 - PIASTRE DEL COPRIGIUNTO A I SALDATA - 25/10/2026
+
+IMPLEMENTATO E COLLAUDATO: 27 nuovi test; 69/69 con il riparto/bulloni.
+API WeldedIBeamSplicePlates.Verify(WeldedIBeamSplicePlateInput).
+Ogni coprigiunto continuo ha un risultato distinto: otto piastre, entrambe le
+meta', tagli prima/dopo tutte le colonne e al centro del giunto. Coordinate nel
+riferimento fisico del dettaglio; N positivo a trazione, unita' N/mm/MPa.
+I tagli sono l'equilibrio esatto delle forze concentrate del modello precedente.
+N e V costanti e M affine fra colonne: l'inviluppo agli estremi conserva anche
+gli effetti del disassamento dei bulloni rispetto al baricentro dei piatti interni.
+
+CONTROLLI
+1. Lordo a trazione/compressione; netto a trazione assiale e a taglio; interazione
+   elastica N-M ridotta per V secondo SCI P398 pp56-59. Nessuna deformazione
+   plastica favorevole aggiunta. A_net sottrae tutte le file TRASVERSALI una volta.
+2. Compressione longitudinale: massimo sforzo di compressione elastico sui tagli,
+   applicato uniformemente allo strip di lunghezza 0.6*max(passo,interasse centrale),
+   curva c, esenzione p/t<=9*epsilon. Geometrie fuori campo class3 restano diagnostiche.
+3. Block tearing ASSIALE: percorsi rettangolari interni e verso ciascun bordo
+   libero, per ogni prefisso longitudinale e intervallo di file trasversali.
+   Usato sempre il coefficiente 0.5 sulla parte tesa di EN1993-1-8 eq3.10.
+   La domanda e' quella dei bulloni compresi nel percorso; non l'intero gruppo
+   applicato indistintamente a ogni blocco. Analisi limitata a 20x16 file per gruppo.
+   Solo carico assiale, centrato sia sulla piastra sia sulla griglia. Nessuna
+   tolleranza di forza per accettare piccoli V/M. In compressione il modo teso
+   e' inattivo; i controlli di compressione restano indipendenti.
+
+FONTI RICONTROLLATE
+SCI P398 (2013), pp56-59: sezione netta/lorda, strip compresso, interazione N-V-M.
+https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
+EN1993-1-8:2005 Table3.3 note2 e 3.10.2(3), eq3.10; formule e figure originali.
+NTC2018: si mantengono i propri fattori; i modelli SCI/EC integrativi sono espliciti.
+Le prescrizioni specifiche dei giunti assiali NON sono dichiarate una soluzione
+generale del block tearing con campo non uniforme di N-V-M.
+
+TEST INDIPENDENTI E LIMITI
+Soluzioni rettangolari di aree/capacita', andamento a gradini in pura trazione,
+ligamenti dei blocchi corti e lunghi, curva c da formula analitica, soglia Vrd/2,
+inversione, scala 1e-12..1e6, esiti parziali/falliti e geometrie invalide.
+Tutti i tagli sotto N-V-M sono confrontati per statica diretta con le forze del
+precedente oracolo razionale Python, indipendente dalla DLL. Nessuna fixture
+storica rigenerata. Il primo run ha individuato un input del NUOVO test che non
+superava Vrd/2: corretto il carico di quel caso, nessuna formula alterata.
+Audit: workspace audit-results/connections/bridge-splices-static/plates-first,
+plates-green. I 27 test nuovi sono aggiuntivi; 42 preesistenti invariati.
+
+P.2 RESTA PARZIALE COME QUALIFICA COMPLETA DELLE PIASTRE: netto a rottura NVM,
+netto plastico C in NVM, block NVM, instabilita' a taglio/laterale, piastre madri
+e introduzione locale richiedono controlli ulteriori. Le tre famiglie restano
+separate: un block fuori campo non cancella una sezione gia' fallita. Le API
+non attribuiscono CanQualifyWholeJoint=true.
