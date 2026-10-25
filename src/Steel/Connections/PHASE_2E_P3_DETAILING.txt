@@ -1,0 +1,40 @@
+2e-P.3 - DETTAGLI E TRASFERIMENTO FRA FACCE - 25/10/2026
+
+API WeldedIBeamSpliceDetailing.Verify(WeldedIBeamSpliceDetailInput).
+16 nuovi test passati: workspace audit-results/connections/bridge-splices-static/detail-first.
+
+CHIUSO NEL CAMPO DICHIARATO: controlli dei passi massimi (compreso l'interasse
+a cavallo del giunto) e dei bordi esposti, su ciascuna lamiera reale. Spessore
+di riferimento: il piu' sottile dei DUE ELEMENTI ESTERNI, non la lamiera madre
+interna. Regola prudenziale min(14*t,200) anche nel campo teso protetto; bordo
+esposto <=4*t+40. Acciaio patinabile non protetto fuori campo. I bordi d'anima
+saldati alle ali non sono scambiati per bordi liberi del coprigiunto.
+Fonti: EN1993-1-8:2005 Table3.3 note1-3, verificata nel testo originale; SCI P185
+GN2.06 p2.06/3. Regole integrative esplicite con fattori/politiche NTC distinti.
+
+NUOVA DIAGNOSTICA MECCANICA, NON QUALIFICA DEL TRASFERIMENTO
+Per ogni taglio di ogni coprigiunto si conservano le coppie necessarie a
+trasportare le forze dal piano di contatto al piano medio: e=+/-t/2,
+Tu=-e*V, Mv=e*N. Riferimento destrorso locale u=X; anima v=Y,w=Z;
+ali v=Z,w=-Y. Il segno di e segue la faccia rivolta alla lamiera madre.
+Nessuna coppia e' annullata solo perche' il totale del giunto e' equilibrato.
+Questi risultati non sono una soluzione delle reazioni normali di contatto,
+della flessione effettiva con vincoli ne' del prying/trazione dei bulloni.
+
+La diagnostica elastica delle ali ricava epsilon_o=Fo/(E*Ao),
+epsilon_i=Fi/(E*Ai), gradiente (epsilon_o-epsilon_i)/(yo-yi) e intercetta
+alla mezzeria dell'ala madre. Confronta questi valori con N/(EA) e -M/(EI)
+della lamiera madre. Riporta inoltre l'eccentricita' del baricentro delle aree.
+Non impone soglie percentuali inventate e non assume che un salto nullo
+certifichi compatibilita', rigidezza o resistenza locale del collegamento.
+EN1993-1-8:2005 6.2.7.1(12) richiede di considerare gli effetti delle eccentricita';
+il semplice equilibrio del blocco P.1 non soddisfaceva da solo tale esigenza.
+
+P.3 RESTA PARZIALE: dettagli massimi verificati, domanda secondaria tracciata;
+modello resistente completo di introduzione/contatto, cordoni longitudinali e
+compatibilita' del giunto ancora aperti. CanQualifyLocalTransfer e
+CanQualifyWholeJoint rimangono false, anche a carico nullo.
+
+Test: limiti inclusivi, interasse centrale, esposizione, spessore esterno,
+sei orientazioni fisiche delle facce, soluzione elastica indipendente delle
+due aree, carico nullo e input invalidi. Nessuna fixture/allowlist storica cambiata.
