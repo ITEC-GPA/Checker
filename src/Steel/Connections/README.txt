@@ -1,6 +1,6 @@
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
-Versione sorgente Steel 2.86.0.0. Solo librerie, nessuna interfacciaANTHEA.
+Versione sorgente Steel 2.89.0.0. Solo librerie, nessuna interfacciaANTHEA.
 Stati aggiornati per sottofase: PLAN_PHASES_1_4.txt; esecuzioni: VALIDATION.txt.
 
 COMPONENTI
@@ -52,12 +52,22 @@ NODI E COMPONENTI ASSEMBLATI
 - WeldedIBeamSpliceForces.Calculate / WeldedIBeamSpliceBolts.Verify: I composte
   saldate con coprigiunti su entrambe le facce di ali e anima. 16 gruppi reali,
   taglio per piano e rifollamento; adapter WeldedIBeamSpliceSection.FromModel.
-  Solo componenti: CanQualifyWholeJoint=false; piastre, compatibilita' locale e
-  scorrimento ancora aperti. PHASE_2E_BRIDGE_DOUBLE_COVER.txt.
+  Solo componenti: CanQualifyWholeJoint=false. Le successive API P.2/P.3/P.4
+  aggiungono i controlli descritti sotto. PHASE_2E_BRIDGE_DOUBLE_COVER.txt.
 - WeldedIBeamButtSplice.Verify: continuita' testa a testa CJP su I saldate
   identiche/allineate e integre, N-V2-M1; riusa i due risultati reali di sezione.
   Resistenza statica condizionata ai prerequisiti di esecuzione, non certificata
   dall'API. PHASE_2E_WELDED_BUTT_SPLICE.txt. Fatica/instabilita' d'asta escluse.
+
+- WeldedIBeamSplicePlates.Verify: otto coprigiunti, inviluppi dei tagli, resistenze
+  di sezione, strip compresso e block assiale. PHASE_2E_P2_PLATES.txt; NVM netto/
+  block generale e instabilita' completa rimangono aperti.
+- WeldedIBeamSpliceDetailing.Verify: passi/bordi, coppie secondarie e diagnostica
+  delle facce. PHASE_2E_P3_DETAILING.txt; non certifica contatto/prying/compatibilita'.
+- WeldedIBeamSpliceSlip.Verify / VerifyNetAxialPlastic: interfacce reali e SLE/SLU,
+  netto plastico assiale C. WeldedIBeamSpliceEnvelope.Verify lega i casi al medesimo
+  dettaglio e conserva i risultati figli. PHASE_2E_P4_SLIP_ENVELOPE.txt; resta un
+  inviluppo di componenti, CanQualifyWholeJoint=false e aperture esplicite.
 
 CONTRATTI
 Ogni metodo dichiara Scope, controlli, tracce e limiti. IsComplete riguarda
