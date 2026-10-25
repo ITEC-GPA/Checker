@@ -1,0 +1,49 @@
+APPLICAZIONE E RAPPORTO DEI GIUNTI - PUNTO 4
+25/10/2026 - unita': N, mm, Nmm, MPa.
+
+API applicative, senza UI e senza persistenza proprietaria:
+- SpliceActionCase(id, PlanarConnectionActions, source): un caso concomitante.
+- BridgeSpliceApplication.CreateBolted: template fisico del giunto, snapshot
+  SteelSectionInput sinistro/destro, SLU, cordoni longitudinali e fonte di
+  analisi globale; opzionali template attrito/precarico e casi SLE espliciti.
+- BridgeSpliceApplication.VerifyWelded: stesso contratto Model/azioni, tre
+  dettagli CJP e analisi delle sezioni per ogni caso.
+- BridgeSpliceReport.FromBolted / FromWelded; ToText() produce testo tabulato
+  con cultura numerica invariant ed escaping di tab/newline nei nomi.
+
+Il template bullonato conserva coprigiunti, bulloni, bordi, materiali e norma.
+La geometria della sezione madre e' letta da Model tramite FromModel.
+La sezione destra resta distinta ed e' vincolata dalle verifiche esistenti:
+geometria, materiale, norma, azioni e assi non vengono mediati.
+Il callback shearPreparation fornisce valutazioni reali di taglio/instabilita
+del core Steel. Se assente, il risultato conserva RequiresPreparation.
+Nessuna lunghezza d'asta, Mcr o vincolo e' generato dall'adattatore.
+
+Per B, fornire i veri casi SLE. Per C, l'adattatore associa a ogni SLU il
+relativo scorrimento con le stesse azioni. Non genera SLE moltiplicando gli SLU.
+Gli identificatori sono unici; la lista di casi viene acquisita una volta.
+Il template di scorrimento fornisce soltanto politica, superfici e serraggio;
+le azioni e i bulloni sono ricostruiti dal medesimo giunto fisico.
+
+Assi: X longitudinale, Y verso l'alto, Z trasversale, azioni sulla stessa
+faccia positiva di sezione per entrambi i membri. N=Fx, V2=Fy,
+M1=-(Mz+x*Fy-y*Fx). Azioni fuori piano rifiutate, non azzerate.
+Non passare due vettori nodali opposti senza convertirli in azioni interne.
+
+Rapporto:
+- Cases conserva fonti, azioni al polo, norma e coefficienti;
+- Rows conserva i check ORIGINALI (ConnectionCheck/SteelCheckExecution);
+- Role distingue Resistance, Applicability e LinkedMember;
+- GoverningResistance esclude geometria, gerarchia e verifiche d'asta;
+- le interazioni del core prive di domanda scalare restano senza domanda:
+  non si inventa Demand=Resistance*Utilization;
+- incompleto => nessun governante globale, fallimenti noti conservati;
+- famiglie B/C riportano gammaM3, superfici, mu e serraggio;
+- i casi CJP non possono mischiare dettagli fisici o politiche normative.
+
+Esempi eseguibili: BridgeSpliceApplicationTests.Create e Welded.
+18 test superati: parita' con API manuale EC/NTC e A/B/C, preparazioni assenti,
+fonti, assi/polo, collaudo CJP, casi incompleti con fallimenti accertati,
+immutabilita' dei risultati, cultura, input invalidi e politiche incompatibili.
+Il rapporto non certifica esecuzione, fatica o rigidezza rotazionale.
+

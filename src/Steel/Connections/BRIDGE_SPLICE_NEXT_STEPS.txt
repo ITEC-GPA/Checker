@@ -19,7 +19,7 @@ COPRIGIUNTI DA PONTE - BLOCCHI 1, 2, 4, 3
   parallele ai bordi; conservare gerarchia esplicita per gli altri gruppi.
   EN1993-1-8:2005 3.10.2, SCI P398 pp136/139. Nessuna formula universale
   inventata per il block tearing N-V-M. Mantenere il percorso 2.90 riproducibile.
-4 DA FARE - costruzione input da Model/azioni e rapporto unico bullonato/CJP.
+4 CHIUSO - costruzione input da Model/azioni e rapporto unico bullonato/CJP; 18 test superati. Vedere BRIDGE_SPLICE_APPLICATION_USAGE.txt.
 3 DA FARE - larghezze diverse a pari spessore; materiale e simmetria mantenuti.
   SCI P357 p60 usa due piani resistenti e verifica separatamente i piatti.
   Conservare momento proprio dell'ala ed equilibrio, nessun riparto per area.
