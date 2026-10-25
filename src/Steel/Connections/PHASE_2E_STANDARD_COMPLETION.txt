@@ -6,8 +6,10 @@ CHIUSURA DEL COPRIGIUNTO STANDARD - SEI PASSI AUTORIZZATI
    strisce interne centrati. Ali superiore/inferiore della trave anche diverse.
    Conservati tutti i momenti locali e l'equilibrio tridimensionale. Il modello
    generale precedente resta disponibile come calcolo di componenti.
-2. Piastre: da completare sezione netta combinata, gerarchia block tearing,
-   filtri di instabilita' e piatti della trave forati.
+2. Piastre: implementati controllo elastico netto N-V-M, geometria dei fori,
+   sezione netta della trave, gerarchia block tearing e dominio compatto.
+   20/20 test mirati passati (passi 1+2). La gerarchia e' sufficiente: un
+   suo mancato soddisfacimento richiede altro metodo, non prova il collasso.
 3. Trave/saldature: da collegare risultati Steel e cordoni longitudinali.
 4. Percorso unico: da completare esito, provenienza e requisiti mancanti.
 5. Esempi indipendenti: da completare SCI P357 e casi completi EC/NTC.

@@ -11,7 +11,7 @@ public partial class WeldedIBeamSpliceStandardTests
         var d=WeldedIBeamSplicePlateTests.Detail(actions??new(2e5,-1e5,0,0,0,50e6));
         SpliceFlangeCoverDetail Balanced(SpliceFlangeCoverDetail f)=>new(new(2*f.EachInner.Width,f.EachInner.Thickness,f.EachInner.Fy,f.EachInner.Fu),f.EachInner,f.InnerGap,f.EndDistance,f.Bolts);
         var s=unequalFlanges?new WeldedIBeamSpliceSection(d.Section.TopFlange,d.Section.Web,new(420,35,355,510),8,8):d.Section;
-        return new(s,Balanced(d.Top),Balanced(d.Bottom),d.EachWebCover,d.WebBolts,d.WebCoverEnd,d.ButtGap,d.Actions);
+        return new(s,Balanced(d.Top),Balanced(d.Bottom),new(d.EachWebCover.Width,25,355,510),d.WebBolts,d.WebCoverEnd,d.ButtGap,d.Actions);
     }
     internal static WeldedIBeamSpliceDetailInput Input(bool ntc=false,WeldedIBeamSpliceForceInput? detail=null)
         =>WeldedIBeamSpliceDetailTests.Input(ntc,SpliceExposure.ExposedCarbonSteel,detail??Detail());
