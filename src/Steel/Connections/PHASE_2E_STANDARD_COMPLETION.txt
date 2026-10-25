@@ -1,0 +1,32 @@
+CHIUSURA DEL COPRIGIUNTO STANDARD - SEI PASSI AUTORIZZATI
+25/10/2026 - branch codex/steel-bridge-splices-static - lavoro sequenziale
+
+1. Modello di trasferimento: implementato il dominio tipologico bilanciato.
+   Due facce di ala con uguali spessori, area totale e materiale; gruppi delle
+   strisce interne centrati. Ali superiore/inferiore della trave anche diverse.
+   Conservati tutti i momenti locali e l'equilibrio tridimensionale. Il modello
+   generale precedente resta disponibile come calcolo di componenti.
+2. Piastre: da completare sezione netta combinata, gerarchia block tearing,
+   filtri di instabilita' e piatti della trave forati.
+3. Trave/saldature: da collegare risultati Steel e cordoni longitudinali.
+4. Percorso unico: da completare esito, provenienza e requisiti mancanti.
+5. Esempi indipendenti: da completare SCI P357 e casi completi EC/NTC.
+6. Versione candidata: da eseguire collaudo e Release-Set del treno completo.
+
+FONTI CONTROLLATE
+- EN1993-1-8:2005, 2.5 e 3.12: equilibrio, realismo della distribuzione,
+  compatibilita' con rigidezze/deformabilita', distribuzione elastica nei bulloni.
+- SCI P357, Composite highway bridge design: Worked examples, esempio 1,
+  cap.12, pagine stampate 54-61 (PDF62-69): coprigiunti doppi da ponte.
+  https://www.steelconstruction.info/images/2/20/SCI_P357.pdf
+- SCI P398, cap.4, pagine stampate 53-60: distribuzioni e verifiche dei giunti.
+
+Il dominio bilanciato e' una restrizione della libreria, non una prescrizione
+normativa. La qualificazione sara' limitata alla resistenza statica dei casi
+forniti: non certifica esecuzione, rigidezza rotazionale o fatica. Lo SCI usa
+fattori UK: non sono trasferiti al profilo NTC2018.
+
+Il termine e*N di trasporto dalla superficie alla mezzeria non e', da solo,
+una trazione applicata al bullone. Nel dettaglio ordinario a doppio coprigiunto
+si adotta il modello convenzionale nel piano. Piatti non bilanciati, imbot-
+titure, sollevamento, azioni fuori piano richiedono un modello diverso.
