@@ -17,7 +17,9 @@ CHIUSURA DEL COPRIGIUNTO STANDARD - SEI PASSI AUTORIZZATI
 4. Percorso unico: WeldedIBeamSpliceStandard.Verify, casi SLU/SLE legati
    allo stesso dettaglio, B/C, tracce del controllo originale governante,
    requisiti mancanti separati dai superamenti reali. 54/54 test passi1-4.
-5. Esempi indipendenti: da completare SCI P357 e casi completi EC/NTC.
+5. Esempi indipendenti: completati valori SCI P357 e oracolo Python Fraction
+   per i casi completi EC/NTC, ali uguali/disuguali, B/C, inversioni e KO.
+   68/68 test nuovi passati. Dettagli e limiti: STANDARD_SPLICE_USAGE.txt.
 6. Versione candidata: da eseguire collaudo e Release-Set del treno completo.
 
 FONTI CONTROLLATE

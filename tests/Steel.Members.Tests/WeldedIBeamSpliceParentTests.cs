@@ -81,4 +81,28 @@ public partial class WeldedIBeamSpliceStandardTests
         var r=WeldedIBeamSpliceParents.Verify(Parents(welds:w,source:flaw=="analysis"?null:"Analysis"));
         Assert.IsFalse(r.IsSectionAndWeldComplete);
     }
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public void ActualMemberResultsRemainSeparateFromTheLocalJointResistance(bool ntc)
+    {
+        var d=Input(ntc,Detail(new(-2e5,0,0,0,0,0)));var section=Section(d);var original=section.Plan.Input;
+        var i=new SteelVerificationInput(original.Section,original.Actions,new(original.Code.SectionCode,d.Plates.Policy.GammaM1),new(4000,4000,4000));
+        var a=SteelMemberAnalysis.Compression(i,"Same constant compression case on the whole member","Explicit curves for test",
+            SteelBucklingCurve.C,SteelBucklingCurve.C,SteelBucklingCurve.C,
+            torsionalExclusionSource:"Continuous torsional restraint in test",flexuralTorsionalExclusionSource:"Same restraint",memberClass:1,classificationSource:"Compact test geometry");
+        var member=SteelVerificationPipeline.Execute(SteelMethodSelector.SelectMember(a));
+        Assert.IsTrue(member.IsComplete);
+        var p=new WeldedIBeamSpliceParentInput(d,section,section,Welds(),"Member analysis with explicit restraint",member,member);
+        var r=WeldedIBeamSpliceParents.Verify(p);
+        Assert.IsTrue(r.HasBothMemberAssessments,string.Join(";",r.BindingDiagnostics));
+        Assert.AreSame(member,r.Input.LeftMember);Assert.IsFalse(r.HasFailedMember);
+    }
+    [TestMethod]
+    public void Class4GrossParentDoesNotQualifyThePerforatedSpliceByItself()
+    {
+        var detail=Detail(new(-1e5,0,0,0,0,0));var s=detail.Section;
+        var slender=new WeldedIBeamSpliceSection(s.TopFlange,new(320,3,355,510),s.BottomFlange,8,8);
+        detail=new(slender,detail.Top,detail.Bottom,detail.EachWebCover,detail.WebBolts,detail.WebCoverEnd,detail.ButtGap,detail.Actions);
+        var r=WeldedIBeamSpliceParents.Verify(Parents(Input(detail:detail)));
+        Assert.IsTrue(r.BindingDiagnostics.Any(x=>x.Contains("CLASS4_PERFORATED_PARENT")));
+    }
 }

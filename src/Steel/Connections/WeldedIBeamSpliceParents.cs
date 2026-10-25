@@ -119,6 +119,8 @@ namespace GPC.Checkers.Steel.Connections
                     else
                     {
                         if (result.Plan.Scope == SteelCheckScope.Member) issues.Add(name + ".SECTION_SCOPE_REQUIRED");
+                        if (result.Plan.Decisions.Any(decision => decision.SectionClass == 4))
+                            issues.Add(name + ".CLASS4_PERFORATED_PARENT_OUTSIDE_STANDARD_SPLICE_SCOPE");
                         if (i.Section.Unperforated != true || i.Section.NetArea.HasValue) issues.Add(name + ".GROSS_PARENT_BASELINE_REQUIRED_NET_HOLES_CHECKED_BY_SPLICE");
                         if (i.Actions.N != a.N || i.Actions.V1 != 0 || i.Actions.V2 != a.V2 || i.Actions.T != 0
                             || i.Actions.M1 != a.M1 || i.Actions.M2 != 0) issues.Add(name + ".ACTION_OR_AXIS_SIGN_MISMATCH");

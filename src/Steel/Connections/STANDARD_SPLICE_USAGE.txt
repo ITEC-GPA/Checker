@@ -1,0 +1,110 @@
+COPRIGIUNTO STANDARD PER TRAVI A I SALDATE - GUIDA ALLA LIBRERIA
+
+API: WeldedIBeamSpliceStandard.Verify(WeldedIBeamSpliceStandardInput).
+Unita': N, mm, MPa. Azioni gia' combinate e fattorizzate.
+
+CAMPO DEL METODO
+- Due travi a I saldate identiche e allineate; tre piatti senza raccordi accreditati.
+  Le ali superiore/inferiore possono avere dimensioni diverse. Per la verifica
+  Steel della sezione lorda si usa il materiale piu' debole dei tre piatti.
+- N, taglio verticale e momento forte. X longitudinale, Y verticale, Z trasversale.
+  N positivo a trazione; Mz positivo comprime la parte superiore. Il polo e'
+  trasportato prima della conversione a Steel: N=N, V2=Fy, M1=-Mz, altri termini0.
+- Coprigiunti continui sulle due facce dell'anima; un piatto esterno e due strisce
+  interne su ogni ala. Le due facce di ogni ala devono avere uguali spessore,
+  area totale e materiale; i gruppi delle strisce interne devono essere centrati.
+  Questa e' una restrizione del modello di libreria, non una regola generale EC3.
+- Griglie regolari speculari; massimo20 file longitudinali e16 trasversali per
+  semigiunto. Carbon steel fy<=460MPa. Nessuna imbotitura, intaglio, cambio di
+  sezione, distacco delle piastre o azione fuori piano. Nessun credito al contatto
+  fra le teste delle travi. Fori normali e montaggio dichiarato.
+- Piastre compatte: schermo sufficiente b/t<=60sqrt(235/fy) contro instabilita'
+  a taglio, piu' verifica di compressione fra bulloni, sbalzi/interni e dettagli.
+  La sezione madre forata di classe4 resta fuori da questo percorso tipologico.
+- Cordoni longitudinali doppi, uguali, continui, su entrambi i lati del giunto;
+  flusso elastico VQ/I e riuso di FilletWeldResistance. Niente carichi concentrati
+  trasversali sul nodo o cordoni intermittenti. Dettaglio esecutivo qualificato
+  e analisi globale di continuita'/vincoli/secondo ordine dichiarati dal chiamante.
+
+CONTROLLI DEL PERCORSO UNICO
+1. Riparto equilibrato con momenti propri delle ali; singoli piani di taglio dei
+   bulloni, rifollamento di ogni coprigiunto e della lamiera centrale.
+2. Sezioni lorde, taglio, NVM, compressione tra bulloni; fori con posizione reale
+   nella sezione netta. Criterio elastico sufficiente sul netto, senza sfruttare
+   ridistribuzioni plastiche: sigma_max combinata conservativamente con1.5V/Anet,
+   limite min(fy/gammaM0,0.9fu/gammaM2). Verifica anche sufficiente per il netto C.
+3. Gerarchia dei percorsi rettangolari di block tearing in entrambe le direzioni
+   e su entrambi gli assi; U e L, tutti i prefissi dai bordi e gruppi contigui.
+   R_block >= somma delle resistenze non ridotte dei piani dei bulloni contenuti.
+   Formula eccentrica EC con contributo0.5Ant. Niente cancellazione di forze.
+   Se la gerarchia non vale, il metodo e' FUORI CAMPO: non si dichiara collasso
+   del blocco con le azioni reali. Occorre un altro modello del blocco caricato.
+4. Intera sezione madre netta: tutti i fori conservativamente allineati, azioni
+   intere senza contributo dei coprigiunti, momento massimo agli estremi del
+   tratto sovrapposto. Risultati lordi Steel dei due lati collegati e conservati.
+5. CategoriaB: casi SLE espliciti; categoriaC: slip SLU legato a ogni SLU, stesse
+   azioni e polo. Coefficienti e pretensione delle otto superfici reali. Nessuna
+   combinazione viene ricavata dividendo automaticamente le azioni SLU.
+6. Cordoni longitudinali, identita' del dettaglio fra combinazioni, tracciabilita'
+   del caso e controllo originale governante. Risultati di asta opzionali separati.
+
+LETTURA DELL'ESITO
+IsStaticResistanceComplete: tutte le verifiche del campo statico sopra sono presenti.
+Status: Passed / Failed / NotSupported. HasFailedComponent conserva i superamenti
+noti anche quando un altro requisito manca. MissingRequirements identifica i buchi.
+GoverningSource esiste solo per il risultato completo e rinvia al controllo originale.
+I rapporti di gerarchia/compattezza non vengono confusi con utilizzi da azioni reali.
+HasBothMemberAssessmentsForEveryCase e HasFailedLinkedMember riguardano esclusivamente
+le vere analisi di asta fornite. La verifica locale non certifica stabilita' globale,
+rigidezza rotazionale, esecuzione o fatica. Fatica resta rinviata dall'utente.
+
+INPUT IN SEQUENZA
+- Per ogni SLU creare WeldedIBeamSpliceDetailInput (geometria, bulloni, norma,
+  fattori piastre, esposizione, azioni concomitanti).
+- Convertire le azioni con WeldedIBeamSpliceParents.ToSteelActions; valutare le
+  sezioni reali attraverso SteelMethodSelector + SteelVerificationPipeline,
+  con tutte le preparazioni richieste. Non cambiare gli attesi o la classe per
+  far diventare completo un risultato. Le classi4 forate non sono qualificate qui.
+- Creare SpliceLongitudinalFillets e WeldedIBeamSpliceParentInput, quindi una
+  WeldedSpliceStandardCase per combinazione. Member results possono essere aggiunti
+  al ParentInput; non vengono inventati lunghezze libere, vincoli, Ncr o Mcr.
+- Inserire le combinazioni SLE/slip in WeldedSpliceSlipCase, legando gli SLU C al
+  rispettivo identificativo; costruire WeldedIBeamSpliceStandardInput e Verify.
+
+ESEMPI ESEGUIBILI, SENZA SOFTWARE ESTERNO
+tests/Steel.Members.Tests/WeldedIBeamSpliceStandardTests.cs: geometria del campione.
+WeldedIBeamSpliceParentTests.cs: costruzione e verifica delle sezioni reali.
+WeldedIBeamSpliceStandardWorkflowTests.cs: inviluppo completo B/C, inversioni,
+ali diverse, sovraccarico, mancanza SLE, errore degli assi, gerarchia non soddisfatta.
+BridgeSpliceIndependentBenchmarksTests.cs: valori SCI e confronto numerico completo.
+
+Dal repository:
+dotnet test tests/Steel.Members.Tests/Steel.Members.Tests.csproj -c Release --filter "FullyQualifiedName~WeldedIBeamSpliceStandardTests|FullyQualifiedName~BridgeSpliceIndependentBenchmarksTests"
+
+FONTE INDIPENDENTE E LIMITI DEL CONFRONTO
+SCI P357 esempio1 cap12, pp54-61 stampate (PDF62-69), sorgente primaria:
+https://www.steelconstruction.info/images/2/20/SCI_P357.pdf
+Confrontati i quattro risultanti del gruppo d'anima, scorrimento M24, doppio taglio,
+netto plastico della striscia195x10 e compressione della striscia195x20.
+I valori arrotondati sono trattati come arrotondati (0.6kN sui risultanti pubblicati).
+I valori esatti sono ricalcolati dagli input, con tolleranza numerica relativa1e-10.
+
+Incongruenze non trasferite nei test: FL/M dell'anima sono diversi fra p54 e p59;
+a p59 il testo indica164kN mentre la tabella riporta169kN; a p60 p1=115mm e'
+seguito da Lcr=66mm, che corrisponde a110mm. Il caso ha inoltre imbotiture,
+sezioni diverse ai due lati e griglia non uniforme sull'ala. Pertanto il giunto
+P357 COMPLETO non e' presentato come esempio qualificato dalla nuova API.
+Per la sola area netta195x10 con due fori26 e' impiegata una griglia regolare
+adattata: si confronta la capacita' della sezione, non l'intero dettaglio SCI.
+La curva c degli strip di libreria segue P398p57; non si importa la curva a di P357.
+
+L'esempio completo qualificato e' invece ricostruito indipendentemente in Python
+con frazioni esatte: ReferenceCalculations/derive_standard_bridge_splice.py.
+Non richiama GPC o .NET; produce soltanto un NUOVO file, rifiutando sovrascritture.
+Fixture: Fixtures/standard-bridge-splice-independent.json. Integra rettangoli,
+calcola le azioni dei bulloni e taglia i corpi liberi dei coprigiunti. Controlla
+gli otto piatti, la sezione netta madre e i flussi delle saldature, con ali uguali
+e diverse, nelle due norme. I fattori UK dell'esempio pubblicato restano separati.
+
+Le API generiche precedenti conservano il proprio stato di componenti incompleti:
+non si imposta CanQualifyWholeJoint=true su geometrie generiche non qualificate.

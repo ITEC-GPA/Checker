@@ -1,0 +1,130 @@
+{
+  "units": "N, mm, MPa",
+  "oracle": "Python Fraction rectangle integrals and independent free-body equilibrium",
+  "examples": [
+    {
+      "unequal": false,
+      "area": 29120.0,
+      "inertia": 780490666.6666666,
+      "centroid": 190.0,
+      "covers": {
+        "TopOuter": {
+          "Anet": 4560.0,
+          "Inet": 28104080.0,
+          "NetEquivalent": 5.9670412112672455,
+          "MaxBoltShear": 4534.9513205631065
+        },
+        "TopInnerNegative": {
+          "Anet": 2280.0,
+          "Inet": 4544040.0,
+          "NetEquivalent": 5.461286486753867,
+          "MaxBoltShear": 4150.577729932939
+        },
+        "TopInnerPositive": {
+          "Anet": 2280.0,
+          "Inet": 4544040.0,
+          "NetEquivalent": 5.461286486753867,
+          "MaxBoltShear": 4150.577729932939
+        },
+        "BottomOuter": {
+          "Anet": 4560.0,
+          "Inet": 28104080.0,
+          "NetEquivalent": 24.041072443193215,
+          "MaxBoltShear": 18271.215056826844
+        },
+        "BottomInnerNegative": {
+          "Anet": 2280.0,
+          "Inet": 4544040.0,
+          "NetEquivalent": 23.535317718679835,
+          "MaxBoltShear": 17886.841466196674
+        },
+        "BottomInnerPositive": {
+          "Anet": 2280.0,
+          "Inet": 4544040.0,
+          "NetEquivalent": 23.535317718679835,
+          "MaxBoltShear": 17886.841466196674
+        },
+        "WebNegative": {
+          "Anet": 5050.0,
+          "Inet": 35093483.333333336,
+          "NetEquivalent": 34.52472627962427,
+          "MaxBoltShear": 17522.938377563194
+        },
+        "WebPositive": {
+          "Anet": 5050.0,
+          "Inet": 35093483.333333336,
+          "NetEquivalent": 34.52472627962427,
+          "MaxBoltShear": 17522.938377563194
+        }
+      },
+      "parentNetArea": 24752.0,
+      "parentNetInertia": 677897162.6666666,
+      "parentNetCentroid": 0.0,
+      "parentNetEquivalent": 73.36277294671817,
+      "topShearFlow": 269.06151344111737,
+      "bottomShearFlow": 269.06151344111737
+    },
+    {
+      "unequal": true,
+      "area": 31820.0,
+      "inertia": 868583086.1355542,
+      "centroid": 178.99591451917033,
+      "covers": {
+        "TopOuter": {
+          "Anet": 4560.0,
+          "Inet": 28104080.0,
+          "NetEquivalent": 6.424333328370055,
+          "MaxBoltShear": 4882.493329561242
+        },
+        "TopInnerNegative": {
+          "Anet": 2280.0,
+          "Inet": 4544040.0,
+          "NetEquivalent": 5.969872668928134,
+          "MaxBoltShear": 4537.103228385382
+        },
+        "TopInnerPositive": {
+          "Anet": 2280.0,
+          "Inet": 4544040.0,
+          "NetEquivalent": 5.969872668928134,
+          "MaxBoltShear": 4537.103228385382
+        },
+        "BottomOuter": {
+          "Anet": 4560.0,
+          "Inet": 28104080.0,
+          "NetEquivalent": 25.459946242721717,
+          "MaxBoltShear": 19349.559144468505
+        },
+        "BottomInnerNegative": {
+          "Anet": 2280.0,
+          "Inet": 4544040.0,
+          "NetEquivalent": 24.771082579009562,
+          "MaxBoltShear": 18826.022760047268
+        },
+        "BottomInnerPositive": {
+          "Anet": 2280.0,
+          "Inet": 4544040.0,
+          "NetEquivalent": 24.771082579009562,
+          "MaxBoltShear": 18826.022760047268
+        },
+        "WebNegative": {
+          "Anet": 5050.0,
+          "Inet": 35093483.333333336,
+          "NetEquivalent": 33.65308960101329,
+          "MaxBoltShear": 17038.352852739583
+        },
+        "WebPositive": {
+          "Anet": 5050.0,
+          "Inet": 35093483.333333336,
+          "NetEquivalent": 33.65308960101329,
+          "MaxBoltShear": 17038.352852739583
+        }
+      },
+      "parentNetArea": 27192.0,
+      "parentNetInertia": 756749838.747867,
+      "parentNetCentroid": -0.8832343191114923,
+      "parentNetEquivalent": 72.84538501766059,
+      "topShearFlow": 263.8836816369057,
+      "bottomShearFlow": 273.31754225079516
+    }
+  ]
+}
