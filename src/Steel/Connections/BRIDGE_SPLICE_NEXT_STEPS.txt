@@ -1,0 +1,28 @@
+COPRIGIUNTI DA PONTE - BLOCCHI 1, 2, 4, 3
+26/10/2026 - sviluppo sequenziale sul branch codex/steel-bridge-splices-static
+
+1 CHIUSO - screening riproducibile di 10 scenari, EC3 2005/NTC2018 e B/C:
+  40 test superati. Geometrie sintetiche, non progetti di ponti reali.
+  Base I saldata 400x30 / 320x16 / 400x30, M24, coprigiunti ali
+  280x20 + 2x140x20, anima 280x25; N=200kN,V=-100kN,Mz=50kNm.
+  Varianti: ala inferiore420x35, inversione, solo N, V=-400kN/Mz=20kNm,
+  coprigiunti anima24/12mm, esterno superiore360mm, anima madre3mm,
+  sovraccarico40x. SLE=0.5SLU solo come dato sintetico esplicito.
+  Test: BridgeSpliceScenarioTests; GPC_SPLICE_SCENARIO_AUDIT opzionale
+  esporta TSV (append; usare un percorso nuovo per ciascun audit).
+  Baseline 2.90: compatto, ali diverse, inversione, N ammessi;
+  anima24 fuori metodo NTC per gerarchia, anima12 fuori gerarchia;
+  esterno360 fuori modello bilanciato; anima3 fuori classe4 forata.
+  Il sovraccarico e' Failed, non NotSupported. I test non equiparano i due.
+
+2 IN CORSO - controllo con domanda effettiva dei blocchi con forze collineari
+  parallele ai bordi; conservare gerarchia esplicita per gli altri gruppi.
+  EN1993-1-8:2005 3.10.2, SCI P398 pp136/139. Nessuna formula universale
+  inventata per il block tearing N-V-M. Mantenere il percorso 2.90 riproducibile.
+4 DA FARE - costruzione input da Model/azioni e rapporto unico bullonato/CJP.
+3 DA FARE - larghezze diverse a pari spessore; materiale e simmetria mantenuti.
+  SCI P357 p60 usa due piani resistenti e verifica separatamente i piatti.
+  Conservare momento proprio dell'ala ed equilibrio, nessun riparto per area.
+
+Classe4, fatica, imbottiture, spessori differenti tra le facce e FEM locale
+restano fuori da questo blocco. Nessuna modifica ad ANTHEA, merge o push.
