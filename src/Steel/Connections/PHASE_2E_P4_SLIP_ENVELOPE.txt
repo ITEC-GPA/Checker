@@ -1,0 +1,77 @@
+2e-P.4 - SCORRIMENTO E INVILUPPO DEI CASI - 25/10/2026
+
+IMPLEMENTATI: 47 nuovi test; famiglia coprigiunto 132/132 passati dopo P.2/P.3.
+API WeldedIBeamSpliceSlip.Verify e WeldedIBeamSpliceEnvelope.Verify.
+
+SCORRIMENTO SULLE FACCE REALI
+WeldedSpliceFrictionSurface identifica una delle otto superfici e conserva mu
+e provenienza. Le superfici sono comuni ai due lati del giunto, ma possono
+avere coefficienti diversi fra esterno/interni e fra le due facce d'anima.
+Ogni piano ha la sua forza vettoriale e la resistenza del kernel BoltSlip con
+UN solo piano. Lo stesso precarico serra ciascuna interfaccia: non si divide
+Fp per due e non si sommano le capacita' delle facce per nascondere lo scorrimento
+di quella piu' debole. Coefficienti, precarico, gammaM3/gammaM3ser/gammaM7 e
+riduzione prudenziale dei giunti lunghi restano tracciati per ogni bullone/faccia.
+SLE e SLU sono input separati; nessuna conversione o combinazione sintetica.
+La componente assume assenza di trazione applicata lungo l'asse del bullone;
+non risolve il prying/contatto locale ancora aperto nel blocco P.3.
+
+CATEGORIA C
+VerifyNetAxialPlastic controlla Anet*fy/gammaM0 per le otto piastre e le tre
+lamiere madri, in ogni caso SLU effettivo. Distinto dal netto a rottura.
+Questo controllo e' ASSIALE: non chiude il netto plastico N-V-M delle piastre.
+La presenza di qualsiasi caso di scorrimento SLU attiva prudenzialmente i
+requisiti C, anche se la categoria richiesta inizialmente era A/B.
+
+INVILUPPO UTILIZZABILE DALLA LIBRERIA
+WeldedSpliceUltimateCase: identificativo + WeldedIBeamSpliceDetailInput.
+WeldedSpliceSlipCase: identificativo + input slip + eventuale UltimateCaseId.
+WeldedIBeamSpliceEnvelopeInput: casi SLU, categoria A/B/C e casi slip.
+Gli identificativi sono unici ordinali; le liste vengono copiate e rese immutabili.
+
+Per ciascun caso sono conservati i risultati tipizzati di bulloni/rifollamento,
+piastre, dettagli e netto plastico C. L'inviluppo controlla l'identita' di tutte
+le dimensioni/materiali, bulloni, fori, hardware, cordoni/geometria, norme e
+fattori. Non basta condividere un nome. Esposizione e gammaM1 devono coincidere.
+Le condizioni di attrito/serraggio e gammaM3 devono essere comuni ai casi slip.
+Un caso C deve riferire lo stesso caso SLU, con le stesse sei azioni E il polo.
+Ogni caso SLU richiede il proprio slip C. Un caso SLE non puo' legarsi a uno SLU;
+categoria B richiede almeno uno SLE esplicito. La completezza delle combinazioni
+strutturali fornite rimane responsabilita' del chiamante, non e' inferita.
+
+I fallimenti rimangono nei risultati originali anche con altri meccanismi non
+supportati o associazioni errate. HasFailedComponent resta visibile. Quando
+l'inviluppo dei componenti e' incompleto, CheckSources e GoverningSource non
+forniscono rapporti favorevoli; tutti i risultati figli restano consultabili.
+Con inviluppo completo, ogni fonte rinvia alla CHECK ORIGINALE immutabile,
+con caso, componente, stato limite e legame SLU. Non si prende Nmax,Vmax,Mmax
+da combinazioni diverse per inventare un nuovo caso.
+
+FONTI E PROVE
+Si riusa il kernel gia' qualificato BoltSlip: EN1993-1-8:2005 3.9.1/3.9.2,
+NTC2018 4.2.8.1.1 e Tab4.2.XIV con fattori distinti. Netto plastico assiale:
+EN1993-1-1:2005 6.2.3(4), eq6.8, integrativo per NTC con gammaM0 proprio.
+Test indipendenti: .7*fub*As*mu/gamma per interfaccia, aree nette geometriche,
+EC/NTC SLE/SLU, serraggio NTC, superficie debole, diagonale del giunto lungo,
+perdita di evidenze, identita' fisica/fattori, errore di polo, obbligo C su tutti
+i casi, inversione e ordine, fallimenti conservati, input/collezioni invalidi.
+Audit workspace audit-results/connections/bridge-splices-static:
+slip-envelope-first (42/42), p234-family (132/132 dopo 5 prove di review).
+
+P.4 CHIUSA PER SCORRIMENTO/INVILUPPO DEI COMPONENTI, NON PER QUALIFICA DEL NODO.
+CanQualifyWholeJoint resta false. PendingWholeJointChecks elenca i meccanismi
+ancora mancanti: netto/block misti, instabilita' a taglio/laterale, introduzione
+locale/contatto/prying, cordoni longitudinali, membratura e continuita' globale;
+in C anche netto plastico NVM. La fatica rimane fuori dal perimetro concordato.
+
+ESEMPIO MINIMO (geometrie, materiali ed evidenze devono essere reali)
+// detailULS: WeldedIBeamSpliceDetailInput gia' costruito per un caso SLU.
+// slipULS: WeldedIBeamSpliceSlipInput con medesimo dettaglio, azioni e polo,
+//          LimitState=Ultimate e tutte le otto superfici qualificate.
+var uls = new WeldedSpliceUltimateCase("ULS-01", detailULS);
+var slip = new WeldedSpliceSlipCase("SLIP-ULS-01", slipULS, "ULS-01");
+var result = WeldedIBeamSpliceEnvelope.Verify(new WeldedIBeamSpliceEnvelopeInput(
+    new[] { uls }, SpliceBoltCategory.C, new[] { slip }));
+// Leggere ComponentStatus, IsComponentEnvelopeComplete e HasFailedComponent;
+// consultare i figli, Diagnostics e PendingWholeJointChecks. Un Passed di un
+// componente non e' un Passed del giunto. I test omonimi costruiscono input completi.
