@@ -1,0 +1,38 @@
+CATALOGO DELLE CONNESSIONI - 25/10/2026
+
+Fonte interrogabile: ConnectionCapabilityCatalog.All / Get(id).
+E' una descrizione della copertura software, NON un esito sul caso concreto.
+Ogni input deve ancora soddisfare i controlli di applicabilita' del proprio metodo.
+EC3 2005 / NTC2018, statica ordinaria; nessuna nuova qualificazione di calcolo.
+
+PERCORSI STATICI COMPLETI NEL CAMPO DICHIARATO
+RectangularDoubleCover: giunto tra piatti in trazione centrata.
+ShortFinPlate: dettaglio corto SCI gia' qualificato su anima di pilastro.
+FlexibleEndPlateShear: dettaglio ordinario a taglio, anche coppia contrapposta;
+  non riguarda il tying e non ammette automaticamente N+V ordinario.
+WeldedIBeamDoubleCover: WeldedIBeamSpliceStandard, piastre compatte, ali/anima
+  su due facce; limiti e alternative in BRIDGE_SPLICE_APPLICATION_USAGE.txt.
+WeldedIBeamButt: continuita' CJP su I saldate identiche/allineate, N-V2-M1;
+  subordinata ai requisiti esecutivi e ai due risultati reali di sezione.
+
+SOLI COMPONENTI / CASI PARZIALI
+DoubleAngleCleat: manca chiusura del supporto e del nodo completo.
+BraceConnections: sottotipi di fazzoletti/piatti/angolari; introduzione al supporto
+  e nodo compresso completo ancora parziali.
+PackedPairConnections: azioni sulle facce, cordoni e blocco imbottitura; pareti
+  dei correnti e introduzione3D ancora da qualificare.
+MomentEndPlate: sezione trave, momento, bulloni, saldature e rigidezza iniziale;
+  END_PLATE_STANDARD_CHECKPOINT.txt elenca le aperture senza occultarle.
+GenericSpliceComponents: IBeamSpliceComponents/WeldedIBeamSpliceEnvelope restano
+  componenti; il nuovo Standard non modifica il significato delle vecchie API.
+
+NON IMPLEMENTATI NEL NUOVO MODULO STANDARD
+ColumnBases; TubularJoints. Le eventuali primitive legacy non costituiscono
+un percorso standard completo e non sono promosse implicitamente dal catalogo.
+
+LIMITI TRASVERSALI
+Stabilita' delle aste, fatica, incendio, sisma, certificazione dell'esecuzione
+e geometrie arbitrarie non sono impliciti in nessuna etichetta del catalogo.
+StandardStaticVerification non significa Passed: anche un metodo completo puo'
+fallire o rifiutare il caso fuori campo. ComponentsOnly non significa inutile:
+fornisce evidenze utilizzabili senza dichiarare verificato il nodo completo.

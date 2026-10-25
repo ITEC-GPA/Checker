@@ -1,3 +1,8 @@
+CHECKPOINT CATALOGO 25/10/2026
+CAPABILITIES.txt e ConnectionCapabilityCatalog distinguono la copertura corrente.
+Endplate resta parziale: END_PLATE_STANDARD_CHECKPOINT.txt. Dopo il consolidamento
+si passa a stabilita aste, coppie con imbottiture e anime da ponte; poi endplate.
+
 AGGIORNAMENTO CORRENTE 25/10/2026 - COPRIGIUNTI
 Chiusi i punti1-2-4-3 nel campo documentato: casistica40, block diretto
 collineare con fallback per gruppi misti, adattatore Model/rapporti, larghezze

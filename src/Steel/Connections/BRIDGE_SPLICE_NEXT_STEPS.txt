@@ -39,3 +39,16 @@ COLLAUDO MIRATO PRIMA DELLA VERSIONE
 (40casistica+11block+20applicazione/rapporto+26larghezze).
 Report completi e sintetici esportati sotto audit-results/connections/splice-next/reports
 nel workspace ChatGPT. Il set di rilascio2.90 non e' stato sostituito.
+
+COLLAUDO COMPLETO 2.91.0.1
+Checker:8387 passati,0 fallimenti/ignorati; Steel.Members5819 e Steel net472122.
+Zero rimozioni API inattese. 97 nuovi test rispetto al set2.90, incluso il caso
+Nf nullo con forze opposte sulle facce: la domanda del blocco madre conserva
+la somma dei moduli dei singoli piani di taglio. Commit c9392b4c/6d4916df.
+
+ESTENSIONE 5/6 E NUOVA PRIORITA
+5 PARZIALE: rapporto endplate e caso analitico monolaterale EC/NTC; la resistenza
+  completa resta aperta, come dichiarato in END_PLATE_STANDARD_CHECKPOINT.txt.
+6 Catalogo delle capacita implementato; set candidato in preparazione.
+Nuova sequenza autorizzata: consolidare connessioni, preparare stabilita aste,
+profili doppi con imbottiture, anime da ponte; poi riprendere endplate.

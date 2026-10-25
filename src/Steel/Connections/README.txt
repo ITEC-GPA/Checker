@@ -309,3 +309,10 @@ Aggiornamento coprigiunti: BRIDGE_SPLICE_NEXT_STEPS.txt.
 - BridgeSpliceApplication: casi Model/azioni EC/NTC; BridgeSpliceReport:
   rapporto bullonato/CJP, completo o sintetico. Guide BRIDGE_SPLICE_APPLICATION_USAGE.txt
   e BRIDGE_SPLICE_UNEQUAL_WIDTHS.txt. I default2.90 restano riproducibili.
+
+CATALOGO INTERROGABILE E RAPPORTI
+ConnectionCapabilityCatalog.All/Get distingue percorsi statici standard, soli
+componenti e tipologie non implementate; non sostituisce gli esiti di calcolo.
+CAPABILITIES.txt espone il campo aggiornato. EndPlateLocalCaseReport conserva
+sezione trave, momento, bulloni, saldature, rigidezza iniziale e aperture dello
+stesso caso; END_PLATE_STANDARD_CHECKPOINT.txt. Nodo a momento ancora parziale.

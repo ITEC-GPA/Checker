@@ -1,0 +1,45 @@
+PIASTRA DI ESTREMITA' A MOMENTO - CHECKPOINT 25/10/2026
+
+STATO: COMPONENTI PARZIALI. Non e' stata chiusa la resistenza del nodo intero.
+Il nuovo EndPlateLocalCaseReport rende consultabile lo stesso caso immutabile:
+sezione reale della trave, componenti di momento, bulloni, saldature, Sj iniziale.
+Mantiene i controlli originali, unita', riferimenti, tracce opzionali, segno delle
+azioni e qualificazioni. Un figlio fuori campo non nasconde i fallimenti noti
+di un altro. Risultati da casi diversi restano separati, senza Sj comune.
+Non espone una resistenza MjRd dell'intero nodo, rigidezza secante o rotazione.
+
+ESEMPIO ESEGUIBILE
+EndPlateLocalCaseReportTests.SingleSidedExtendedCaseHasReviewableEvidenceButNoCompleteJointVerdict
+usa i costruttori di EndPlateInitialCaseTestData per EC3/NTC, entrambi i segni V.
+Trave533.1x209.3,tw10.1,tf15.6,r12.7; pilastro266.7x258.8,tw12.8,tf20.5,r12.7;
+piastra250x25, M24 foro26,As353; gauge100, file tese y=-40,60,150mm, fila solo
+taglio y470mm. M=100kNm,V=+/-300kN,N=0,beta=1, nodo monolaterale.
+Riparto PRESCRITTO: 6 bulloni tesi con V30kN ciascuno, 2 inferiori con V60kN.
+Le altre ipotesi (hardware, materiali, lunghezze efficaci, contatto) rimangono
+esplicite nella fixture; nessuna dimensione hardware e' inferita dal diametro.
+Le geometrie derivano da SCI C.1 ma beta, azioni e dettagli sono un caso ANALITICO
+derivato: non e' un nuovo esempio integrale pubblicato o una validazione globale.
+GPC_ENDPLATE_REPORT_AUDIT esporta i due rapporti con i dati effettivamente calcolati.
+
+RICERCA RICONTROLLATA
+SCI P398 (2013), cap2 STEP5 pp26-27, esempioC.1 p105: bulloni/taglio/rifollamento;
+non viene pubblicata una verifica net/block combinata con la flessione fuori piano
+della piastra. Le formule di coprigiunti pp56/58-59 riguardano un'altra topologia.
+EN1993-1-8:2005 6.2.2 e3.10.2 non giustificano automaticamente quel trasferimento.
+https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
+La specifica PHASE_4_NEXT_COMPONENT_RESEARCH_SPEC.txt resta applicabile.
+
+APERTO PRIMA DI QUALIFICARE UN NODO COMPLETO
+- net/block e interazione con flessione fuori piano/prying della piastra/supporto;
+- introduzione locale delle forze e qualifica del pilastro/membri reali;
+- legame con il modello globale, eventuale rigidezza secante/rotazione;
+- mantenere i dati esecutivi e il contatto compresso richiesti dal dettaglio.
+Nessun PendingChecks e' stato cancellato per promuovere lo stato a nodo completo.
+Per NTC i fattori rimangono nazionali e il modello a componenti EC e' supplementare.
+
+SEQUENZA AUTORIZZATA SUCCESSIVA
+1 Consolidare il set e il catalogo delle connessioni gia' implementate.
+2 Preparazione della stabilita' delle aste.
+3 Profili doppi con imbottiture, prima il percorso compresso.
+4 Verifiche locali delle anime da ponte per tipologie definite.
+Poi riprendere la piastra di estremita'. Un solo agente, nessuna UI ANTHEA.
