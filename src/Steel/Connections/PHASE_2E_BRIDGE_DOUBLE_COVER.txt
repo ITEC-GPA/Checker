@@ -1,0 +1,104 @@
+2e-P.1 - COPRIGIUNTO DI TRAVE COMPOSTA SALDATA A I: RIPARTO E BULLONI
+25 ottobre 2026 - ramo codex/steel-bridge-splices-static
+
+STATO
+Implementati riparto delle forze, taglio su ogni piano dei bulloni e rifollamento
+di ogni lamiera. Questo blocco NON chiude la resistenza del giunto completo.
+42 test nuovi passati; la regressione Steel.Members comprendente questi test
+ha concluso con 5536 passati / 0 falliti. Vedi audit finale per gli incrementi
+successivi del giunto saldato. Nessuna fixture legacy o allowlist modificata.
+
+PERIMETRO SCELTO DALL'UTENTE
+Due tronchi identici, rettilinei e allineati, composti da tre piatti saldati a I.
+Un coprigiunto esterno e due piatti interni per ciascuna ala; due coprigiunti
+identici sull'anima. Statica ordinaria EC3 2005 / NTC2018; fatica rinviata.
+Le ali superiore e inferiore possono avere larghezze/spessori diversi.
+I piatti interni di una stessa ala sono identici e speculari; le file trasversali
+dei bulloni sono in numero pari. Gli spessori dei piatti esterni/interni possono
+differire: non si sostituisce il loro riparto con un N/2 automatico.
+Fori normali, niente imbottiture, contatto resistente di testa o piatti rastremati.
+Il modello ha acciaio di uguale modulo elastico; fy/fu appartengono ai prodotti
+e spessori effettivi. Non si attribuisce area resistente al sovrametallo saldato.
+
+API
+- WeldedIBeamSpliceSection.FromModel: legge SteelSectionInput/SectionH saldata;
+  conserva ali diverse, materiale e geometria. Nessuna modifica di Model.
+- SpliceFlangeCoverDetail: piatto esterno, ciascun piatto interno, vuoto reale
+  fra i piatti interni, bordo longitudinale e griglia reale.
+- WeldedIBeamSpliceForces.Calculate: 16 gruppi di coprigiunto, sui due tronchi.
+- WeldedIBeamSpliceBolts.Verify: forze e verifiche dei bulloni/lamiere collegate.
+L'adapter geometrico NON converte automaticamente azioni negli assi principali:
+il contratto delle azioni e' il riferimento fisico del giunto descritto sotto.
+
+MODELLO FISICO E MATEMATICO
+X longitudinale, Y verso l'alto, Z trasversale. Unita': N, mm, MPa, Nmm.
+Azioni applicate al membro sinistro; positive N in trazione e Mz con ala alta
+compressa. A destra si trasferiscono le azioni opposte. Il polo e' esplicito:
+Mz al giunto = Mz al polo + x*Fy - y*Fx. Le altre tre componenti non sono eliminate:
+se non nulle, anche piccole, il caso e' fuori campo.
+
+Si integrano le tensioni elastiche sigma(y)=N/A-Mz*y/I su ciascuno dei tre piatti.
+N_j=A_j*(N/A-Mz*y_j/I); M_j=Mz*I_j,locale/I.
+Somma N_j=N; somma(M_j-y_j*N_j)=Mz. Questo mantiene anche il piccolo momento
+proprio delle ali, oltre a quello dell'anima: non si scarica l'anima sulle ali.
+Per ogni ala, con quote relative yo del piatto esterno e yi dei piatti interni:
+Fo+Fi=N_j e -yo*Fo-yi*Fi=M_j.
+Le due equazioni determinano le forze assiali dei due lati fisici. Fi viene
+divisa solo tra i due piatti interni identici. Il modello e' di EQUILIBRIO;
+non certifica la compatibilita' flessionale/introduzione locale nel coprigiunto.
+
+Si riusa ElasticBoltGroup. I piatti interni sono caricati nel proprio baricentro
+reale; il disassamento rispetto alla linea dei bulloni genera forze trasversali
+che restano nei controlli. Su ogni coprigiunto d'anima agiscono Nw/2,V/2,Mw/2;
+il trasporto al baricentro del gruppo aggiunge il momento firmato di V.
+La somma tridimensionale di TUTTE le forze ai bulloni ricostruisce, separatamente
+su ogni tronco, Fx,Fy,Fz,Mx,My,Mz. Il controllo usa la tolleranza relativa del
+kernel esistente (1e-10) rispetto ai termini sommati; nessuna soglia di carico.
+
+CONTROLLI RESISTENTI DI QUESTO BLOCCO
+- Ogni piano fisico di taglio e' verificato con la propria forza, anche quando
+  i piani hanno domande diverse. Non si divide per due la risultante del bullone.
+- La lamiera madre riceve la SOMMA VETTORIALE delle due forze allo stesso bullone.
+- Rifollamento di ogni piatto e della lamiera madre in entrambe le direzioni.
+  Modello conservativo esplicito |Fx|/Fb,x+|Fy|/Fb,y<=1, come negli altri splice;
+  non presentato come formula normativa per un rifollamento obliquo generico.
+- Riduzione dei giunti lunghi: la diagonale del rettangolo dei bulloni limita
+  superiormente la lunghezza proiettata nelle diverse direzioni delle forze.
+  Non si invoca l'esenzione per trasferimento uniforme.
+- Fori/passi e distanze minime, bordo effettivo di ogni piatto, ingombro hardware,
+  intersezione con anima/piedi dei cordoni longitudinali. Nessuna sagoma di piatto
+  viene implicitamente ritagliata per far posto al bullone.
+
+FONTI E ORACOLI
+SCI P185 (2015), GN2.06, p.2.06/2 (PDF98), fonte primaria:
+https://www.steelconstruction.info/images/1/10/SCI_P185.pdf
+Supporta riparto elastico dei bulloni, doppio taglio, verifiche delle lamiere e
+conservazione di N/M dell'anima con eccentricita'. Non e' un benchmark numerico
+pubblicato dell'intero dettaglio nuovo o una qualifica del riparto fra coprigiunti.
+Taglio/rifollamento riusano BoltStrength/BoltBearing: EN1993-1-8:2005 Table3.4,
+3.8; NTC2018 4.2.8.1.1 con fattori propri e modelli integrativi dichiarati.
+
+ReferenceCalculations/derive_welded_ibeam_splice.py usa sole frazioni razionali
+Python, integrali rettangolari e statica dei gruppi; non importa DLL GPC.
+Caso indipendente: anima800x16, ala alta400x24, bassa500x30 mm; N240kN,
+V-360kN, M480kNm. Ricostruisce proprieta', forze di ogni piatto e di ogni bullone
+di tutti i 16 gruppi. Il JSON e' un oracolo analitico nuovo, non una cattura core.
+Ulteriori casi indipendenti controllano resistenze taglio/rifollamento, assi,
+inversione/scalatura dei carichi, ali differenti, 4 file trasversali, Model,
+geometrie impossibili, mancati dati, errori numerici e collezioni immutabili.
+Due difetti del codice nuovo riprodotti prima del fix: assenza della riduzione
+lunghezza diagonale d'anima e mancato controllo collisione hardware adiacente.
+Log distinti review-red (2 falliti) e force-bolt-green (492 passati).
+
+PUNTI ANCORA APERTI PER IL COPRIGIUNTO COMPLETO
+1. Lordo/netto, block tearing, compressione e instabilita' dei singoli piatti
+   nella configurazione nuova e con le forze locali effettive.
+2. Compatibilita' del riparto fra facce, flessione secondaria e introduzione
+   locale delle forze; il solo equilibrio non li dimostra.
+3. Collegamento dei casi SLE/SLU e scorrimento alle superfici reali; categoria C
+   con netto plastico pertinente. Il vecchio 2e laminato rimane distinto.
+4. Dettagli massimi dei passi/bordi, esposizione e qualificazione dei cordoni
+   longitudinali del membro. Non compresi dal solo risultato bulloni.
+5. Raccordo alla verifica di membratura/modello globale; anime snelle/classe4
+   non diventano verificate solo perche' il riparto elastico e' equilibrato.
+CanQualifyWholeJoint rimane false. Nessun certificato di fatica o esecuzione.
