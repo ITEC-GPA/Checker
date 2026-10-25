@@ -1,0 +1,51 @@
+PIASTRA DI ESTREMITA' - LUNGHEZZE DI FILA PER Sj,ini - 25/10/2026
+
+Il campo geometrico resta quello gia' qualificato: flangia del pilastro non
+irrigidita e lontana dalle estremita' libere, piastra rettangolare a due colonne
+di bulloni, file interne ed eventuale unica fila esterna separata. Alpha della
+prima fila interna rimane il valore qualificato del diagrammaEN Fig6.11.
+
+TStubDerivedGeometry ora conserva RowGroupContributions: per ogni gruppo,
+FirstRow/RowCount e il contributo circolare/non circolare di ogni RowIndex.
+Sono gli stessi termini del calcolo di resistenza esistente. L'ordine delle
+somme non cambia e nessun atteso di resistenza viene aggiornato.
+StiffnessLength(rowIndex) prende il minimo tra il meccanismo individuale
+della fila e i suoi contributi in tutti i gruppi adiacenti pertinenti.
+Non divide la lunghezza totale di un gruppo per il numero dei bulloni/file.
+Una geometria fuori campo non esporta lunghezze per rigidezza.
+
+EN1993-1-8:2005 Table6.11, p95/PDF97, k3/k4/k5: lunghezza minima per la
+singola fila, individualmente e nei gruppi, dalle Tables6.4/6.6.
+La resistenza dei gruppi continua invece a usare min(sum(cp),sum(nc)).
+Questi due ordinamenti delle operazioni appartengono a controlli diversi.
+
+API
+EndPlateInitialStiffnessFromMoment.CreateInputFromGeometry(parent,hardware)
+deriva le lunghezze di tutte le file dallo stesso caso immutabile trave/nodo.
+hardware contiene EndPlateBoltElongationDetail per ogni fila, ordinato per
+MomentRowIndex. La lunghezza di allungamento e' quella reale di grip, rondelle
+e meta' testa/dado; non e' inferita dal solo diametro nominale.
+Il risultato si passa al Calculate esistente, che mantiene le verifiche di
+identita', azioni, materiale, campo geometrico e lunghezza bullone.
+Resta disponibile l'input con lunghezze esterne qualificate.
+
+ESEMPIO INDIPENDENTE RIPRODOTTO
+Geometria SCI C.1 adattata gia' usata nei test; il dettaglio hardware e beta1
+sono scelte analitiche dichiarate, non un nuovo caso integrale pubblicato.
+Flangia pilastro:m33.44,e79.4,passi100/90mm. Nel gruppo di3file i contributi
+non circolari sono166.505,95,161.505mm. La fila centrale usa95mm, non141.0033mm
+(media del gruppo). Piastra interna: contributi210.15 e168.975mm; esterna125mm.
+La Sj,ini torna agli oracoli indipendenti gia' registrati:
+- estesa,beta0:237302576169.69534Nmm/rad;
+- estesa,beta1:90338344812.44681Nmm/rad;
+- top-flush,beta0:152350333980.8783Nmm/rad;
+- top-flush,beta1:69580519870.4866Nmm/rad.
+Le policyEC/NTC conservano la stessa rigidezza elastica nel medesimo caso.
+17 nuovi test;728 test T-stub/end plate passati. Hardware incompleto/corto,
+geometria fuori campo e fallimenti del parent restano bloccanti per l'export.
+
+NON CHIUSO DA QUESTO INCREMENTO
+Resistenza del nodo completo, net/block con prying/flessione fuori piano,
+introduzione locale, membri/pilastro e compatibilita' globale. Non viene
+calcolata una rigidezza secante a partire da un MjRd solo parziale.
+CanQualifyWholeJoint resta false. Vedere END_PLATE_STANDARD_CHECKPOINT.txt.

@@ -78,6 +78,20 @@ namespace GPC.Checkers.Steel.Connections
         { FirstRow = first; RowCount = count; EffectiveLengths = lengths; }
     }
 
+    /// <summary>Contribution of ONE physical row to one adjacent-row mechanism,
+    /// before summation and before taking the circular/non-circular minimum.</summary>
+    public sealed class TStubRowGroupLength
+    {
+        public int FirstRow { get; }
+        public int RowCount { get; }
+        public int RowIndex { get; }
+        public double CircularLength { get; }
+        public double NonCircularLength { get; }
+        public double Minimum => Math.Min(CircularLength, NonCircularLength);
+        internal TStubRowGroupLength(int first,int count,int row,double circular,double nonCircular)
+        { FirstRow=first;RowCount=count;RowIndex=row;CircularLength=circular;NonCircularLength=nonCircular; }
+    }
+
     /// <summary>Geometric derivation only. IsSupported is not a resistance or joint qualification.
     /// Unsupported geometry exposes no lengths and cannot construct a verification input.</summary>
     public sealed class TStubDerivedGeometry
@@ -93,19 +107,36 @@ namespace GPC.Checkers.Steel.Connections
         public double ClearDistanceToRootOrWeld { get; }
         public IReadOnlyList<TStubEffectiveLengths> IndividualRows { get; }
         public IReadOnlyList<TStubDerivedGroupLengths> AdjacentGroups { get; }
+        public IReadOnlyList<TStubRowGroupLength> RowGroupContributions { get; }
         public IReadOnlyList<string> Diagnostics { get; }
         public IReadOnlyList<SectionResistanceValue> Trace { get; }
         internal TStubDerivedGeometry(string methodId, string detail, double m, double e, double emin,
             double gauge, double? minimumPitch, double clearToObstruction,
             IEnumerable<TStubEffectiveLengths> rows, IEnumerable<TStubDerivedGroupLengths> groups,
-            IEnumerable<string> diagnostics, IEnumerable<SectionResistanceValue> trace)
+            IEnumerable<string> diagnostics, IEnumerable<SectionResistanceValue> trace,
+            IEnumerable<TStubRowGroupLength> rowGroupContributions = null)
         {
             MethodId = methodId; DetailSource = detail; M = m; E = e; Emin = emin;
             BoltGauge = gauge; MinimumRowPitch = minimumPitch; ClearDistanceToRootOrWeld = clearToObstruction;
             Diagnostics = Array.AsReadOnly(diagnostics.ToArray());
             IndividualRows = Array.AsReadOnly(IsSupported ? rows.ToArray() : Array.Empty<TStubEffectiveLengths>());
             AdjacentGroups = Array.AsReadOnly(IsSupported ? groups.ToArray() : Array.Empty<TStubDerivedGroupLengths>());
+            RowGroupContributions = Array.AsReadOnly(IsSupported
+                ? (rowGroupContributions ?? Enumerable.Empty<TStubRowGroupLength>()).ToArray() : Array.Empty<TStubRowGroupLength>());
             Trace = Array.AsReadOnly(trace.ToArray());
+        }
+
+        /// <summary>EN Table6.11 minimum for THIS row: individual and each relevant
+        /// group contribution. Never a group total divided by the number of rows.</summary>
+        public JointStiffnessEffectiveLength StiffnessLength(int rowIndex)
+        {
+            if(!IsSupported)throw new InvalidOperationException("Unsupported geometry cannot supply stiffness lengths.");
+            if(rowIndex<0||rowIndex>=IndividualRows.Count)throw new ArgumentOutOfRangeException(nameof(rowIndex));
+            var contributions=RowGroupContributions.Where(r=>r.RowIndex==rowIndex).ToArray();
+            int groups=AdjacentGroups.Count(g=>g.FirstRow<=rowIndex&&rowIndex<g.FirstRow+g.RowCount);
+            if(contributions.Length!=groups)throw new InvalidOperationException("Every relevant group must retain its actual row contribution.");
+            return new JointStiffnessEffectiveLength(new[]{IndividualRows[rowIndex].Mode1}.Concat(contributions.Select(c=>c.Minimum)),
+                MethodId+"; EN1993-1-8:2005 Table6.11, physical row"+(rowIndex+1)+"; individual and all adjacent-group row contributions; "+DetailSource);
         }
 
         public TStubBoltRowsInput CreateInput(ConnectionDesignCode code, ConnectionBolt bolt,
@@ -145,6 +176,7 @@ namespace GPC.Checkers.Steel.Connections
             if (p == null) throw new ArgumentNullException(nameof(p));
             var issues = new List<string>(); var trace = new List<SectionResistanceValue>();
             var rows = new List<TStubEffectiveLengths>(); var groups = new List<TStubDerivedGroupLengths>();
+            var rowLengths = new List<TStubRowGroupLength>();
             double m = (p.BoltGauge - p.ColumnWebThickness) / 2 - .8 * p.ColumnRootRadius;
             double e = (p.ColumnFlangeWidth - p.BoltGauge) / 2;
             double emin = Math.Min(e, (p.OpposingPlateWidth - p.BoltGauge) / 2);
@@ -188,8 +220,10 @@ namespace GPC.Checkers.Steel.Connections
                             : index == first + count - 1 ? p.OrderedRowCoordinates[index] - p.OrderedRowCoordinates[index - 1]
                             : (p.OrderedRowCoordinates[index] - p.OrderedRowCoordinates[index - 1]) / 2
                               + (p.OrderedRowCoordinates[index + 1] - p.OrderedRowCoordinates[index]) / 2;
-                        circular += end ? Math.PI * m + pitch : 2 * pitch;
-                        nonCircular += end ? 2 * m + .625 * e + .5 * pitch : pitch;
+                        double cp = end ? Math.PI * m + pitch : 2 * pitch;
+                        double nc = end ? 2 * m + .625 * e + .5 * pitch : pitch;
+                        circular += cp; nonCircular += nc;
+                        rowLengths.Add(new TStubRowGroupLength(first,count,index,cp,nc));
                     }
                     string id = "Rows" + (first + 1) + "To" + (first + count);
                     if (!Finite(circular) || !Finite(nonCircular)) { issues.Add(id + "OutsideNumericRange"); continue; }
@@ -207,7 +241,7 @@ namespace GPC.Checkers.Steel.Connections
             { if (!Finite(value)) issues.Add(name + "OutsideNumericRange"); else trace.Add(new SectionResistanceValue(name, value, unit)); }
             TStubDerivedGeometry Result() => new TStubDerivedGeometry("Steel.Connection.TStub.UnstiffenedColumnFlangeGeometry",
                 p.DetailSource, Safe(m), Safe(e), Safe(emin), p.BoltGauge, minimumPitch,
-                Safe((p.BoltGauge - p.ColumnWebThickness) / 2 - p.ColumnRootRadius), rows, groups, issues, trace);
+                Safe((p.BoltGauge - p.ColumnWebThickness) / 2 - p.ColumnRootRadius), rows, groups, issues, trace, rowLengths);
         }
 
         public static TStubDerivedGeometry ExtendedEndPlateOuterRow(TStubExtendedEndPlateGeometry p)

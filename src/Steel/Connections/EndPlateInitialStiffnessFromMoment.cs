@@ -5,6 +5,20 @@ using GPC.Checkers.Steel.Sections;
 
 namespace GPC.Checkers.Steel.Connections
 {
+    public sealed class EndPlateBoltElongationDetail
+    {
+        public int MomentRowIndex { get; }
+        public double Length { get; }
+        public string Source { get; }
+        public EndPlateBoltElongationDetail(int momentRowIndex,double length,string source)
+        {
+            if(momentRowIndex<0||momentRowIndex>19)throw new ArgumentOutOfRangeException(nameof(momentRowIndex));
+            ConnectionValidation.Positive(length,nameof(length));
+            if(string.IsNullOrWhiteSpace(source))throw new ArgumentException("Actual grip/washer/head/nut dimensions required.");
+            MomentRowIndex=momentRowIndex;Length=length;Source=source;
+        }
+    }
+
     /// <summary>External detail for ONE physical tension row. Effective lengths must include
     /// that row acting individually and in every relevant group, never a group total/average.
     /// Bolt elongation length includes grip, actual washers and half head/nut heights.</summary>
@@ -30,6 +44,7 @@ namespace GPC.Checkers.Steel.Connections
     {
         public EndPlateMomentWithBeamSectionResult Parent { get; }
         public IReadOnlyList<EndPlateStiffnessRowDetail> Rows { get; }
+        public bool LengthsDerivedFromGeometry { get; internal set; }
         public EndPlateInitialStiffnessFromMomentInput(EndPlateMomentWithBeamSectionResult parent,
             IEnumerable<EndPlateStiffnessRowDetail> rows)
         {
@@ -61,7 +76,9 @@ namespace GPC.Checkers.Steel.Connections
             Input = input; InitialModel = initial; Diagnostics = Array.AsReadOnly(diagnostics.Distinct().ToArray());
             Trace = Array.AsReadOnly(trace.ToArray());
             PendingChecks = Array.AsReadOnly(new[] {
-                "The supplied effective lengths require qualification for EACH row in every relevant group; source text is provenance, not derivation or certification",
+                input.LengthsDerivedFromGeometry
+                    ? "Effective lengths derived for EACH row individually and in all adjacent groups within the qualified Tables6.4/6.6 geometry; chart alpha and physical detail assumptions remain supplied qualifications"
+                    : "The supplied effective lengths require qualification for EACH row in every relevant group; source text is provenance, not derivation or certification",
                 "Actual bolt grip/washer/head/nut elongation lengths require the supplied hardware qualification",
                 "Column and plate springs use the declared carbon-steel E210000MPa policy; only the available Model beam material modulus is independently bound",
                 "Secant stiffness and rotation are not evaluated: the parent moment resistance covers components, not the complete joint Mj,Rd",
@@ -73,6 +90,43 @@ namespace GPC.Checkers.Steel.Connections
     /// moment geometry. All parent tension rows are retained; no artificial MjRd or zero load.</summary>
     public static class EndPlateInitialStiffnessFromMoment
     {
+        /// <summary>Derive every row's stiffness lengths from the SAME parent geometry.
+        /// Hardware elongation lengths and the geometry's chart-alpha qualification
+        /// remain explicit. No group-total averaging and no complete-joint MjRd.</summary>
+        public static EndPlateInitialStiffnessFromMomentInput CreateInputFromGeometry(EndPlateMomentWithBeamSectionResult parent,
+            IEnumerable<EndPlateBoltElongationDetail> hardware)
+        {
+            if(parent==null)throw new ArgumentNullException(nameof(parent));
+            if(hardware==null)throw new ArgumentNullException(nameof(hardware));
+            var details=hardware.ToArray(); var m=parent.Input;
+            DeriveGeometry(m,out var column,out var plate,out var outer,out var coordinates);
+            foreach(var geometry in new[]{column,plate,outer}.Where(x=>x!=null))
+                if(!geometry.IsSupported)throw new NotSupportedException(string.Join("; ",geometry.Diagnostics));
+            if(details.Length!=coordinates.Count||details.Any(x=>x==null))throw new ArgumentException("Actual hardware for every physical parent row required.");
+            int offset=outer==null?0:1;
+            var rows=new List<EndPlateStiffnessRowDetail>();
+            for(int i=0;i<details.Length;i++) {
+                if(details[i].MomentRowIndex!=i)throw new ArgumentException("Hardware must follow all physical parent rows exactly once.");
+                var plateLength=offset==1&&i==0?outer.StiffnessLength(0):plate.StiffnessLength(i-offset);
+                rows.Add(new EndPlateStiffnessRowDetail(i,column.StiffnessLength(i),plateLength,details[i].Length,details[i].Source));
+            }
+            return new EndPlateInitialStiffnessFromMomentInput(parent,rows){LengthsDerivedFromGeometry=true};
+        }
+
+        private static void DeriveGeometry(EndPlateMomentComponentInput m,out TStubDerivedGeometry columnGeometry,
+            out TStubDerivedGeometry internalGeometry,out TStubDerivedGeometry outerGeometry,out List<double> coordinates)
+        {
+            var g=m.InternalGeometry;var column=m.Column;
+            coordinates=new List<double>();
+            if(m.ExtensionGeometry!=null)coordinates.Add(-m.ExtensionGeometry.FlangeToRow);
+            coordinates.AddRange(g.OrderedInternalRows.Select(y=>y+m.Beam.FlangeThickness));
+            columnGeometry=TStubEffectiveGeometry.UnstiffenedColumnFlange(new TStubUnstiffenedColumnGeometry(
+                column.Width,column.WebThickness,column.RootRadius,m.EndPlate.Width,g.BoltGauge,coordinates,
+                m.ColumnFirstEndContinuation,m.ColumnLastEndContinuation,g.DetailSource));
+            internalGeometry=TStubInternalEndPlateLengths.Calculate(g);
+            outerGeometry=m.ExtensionGeometry==null?null:TStubEffectiveGeometry.ExtendedEndPlateOuterRow(m.ExtensionGeometry);
+        }
+
         public static EndPlateInitialStiffnessFromMomentResult Calculate(EndPlateInitialStiffnessFromMomentInput p)
         {
             if (p == null) throw new ArgumentNullException(nameof(p));
@@ -105,14 +159,8 @@ namespace GPC.Checkers.Steel.Connections
             if (issues.Count != 0) return Result();
             var g = m.InternalGeometry; var column = m.Column;
             int offset = m.ExtensionGeometry == null ? 0 : 1;
-            var coordinates = new List<double>();
-            if (offset != 0) coordinates.Add(-m.ExtensionGeometry.FlangeToRow);
-            coordinates.AddRange(g.OrderedInternalRows.Select(y => y + m.Beam.FlangeThickness));
-            var columnGeometry = TStubEffectiveGeometry.UnstiffenedColumnFlange(new TStubUnstiffenedColumnGeometry(
-                column.Width, column.WebThickness, column.RootRadius, m.EndPlate.Width, g.BoltGauge, coordinates,
-                m.ColumnFirstEndContinuation, m.ColumnLastEndContinuation, g.DetailSource));
-            var internalGeometry = TStubInternalEndPlateLengths.Calculate(g);
-            var outerGeometry = offset == 0 ? null : TStubEffectiveGeometry.ExtendedEndPlateOuterRow(m.ExtensionGeometry);
+            DeriveGeometry(m,out var columnGeometry,out var internalGeometry,out var outerGeometry,out var coordinates);
+            if(p.LengthsDerivedFromGeometry)Value("RowLengthsDerivedFromGeometry",1,"1");
             Geometry("Column", columnGeometry); Geometry("InternalPlate", internalGeometry);
             if (outerGeometry != null) Geometry("OuterPlate", outerGeometry);
             if (issues.Count != 0) return Result();

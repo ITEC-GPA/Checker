@@ -63,3 +63,8 @@ Per ogni incremento: modello fisico/normativo esplicito, verifica delle fonti,
 test pertinenti indipendenti e di applicabilita', commit coerente e versione
 dedicata. Nessun atteso legacy modificato per nascondere divergenze. I limiti
 non risolti restano visibili e non vengono promossi a esiti favorevoli.
+
+RIPRESA PIASTRA ESEGUITA
+Lunghezze di fila per rigidezza iniziale derivate dalla geometria, senza medie
+di gruppo: Connections/END_PLATE_DERIVED_STIFFNESS_LENGTHS.txt.
+17 nuove prove,728 T-stub/end plate passati. Nodo completo ancora parziale.

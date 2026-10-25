@@ -63,6 +63,7 @@ namespace GPC.Checkers.Steel.Connections
             if (p == null) throw new ArgumentNullException(nameof(p));
             var issues = new List<string>(); var trace = new List<SectionResistanceValue>();
             var rows = new List<TStubEffectiveLengths>(); var groups = new List<TStubDerivedGroupLengths>();
+            var rowLengths = new List<TStubRowGroupLength>();
             double m = (p.BoltGauge - p.BeamWebThickness) / 2 - .8 * p.WebWeldLeg;
             double e = (p.PlateWidth - p.BoltGauge) / 2;
             double emin = Math.Min(e, (p.OpposingFlangeWidth - p.BoltGauge) / 2);
@@ -118,9 +119,11 @@ namespace GPC.Checkers.Steel.Connections
                             : index == first + count - 1 ? p.OrderedInternalRows[index] - p.OrderedInternalRows[index - 1]
                             : (p.OrderedInternalRows[index] - p.OrderedInternalRows[index - 1]) / 2
                               + (p.OrderedInternalRows[index + 1] - p.OrderedInternalRows[index]) / 2;
-                        circular += groupEnd ? Math.PI * m + pitch : 2 * pitch;
-                        nonCircular += index == 0 ? .5 * pitch + p.FirstRowAlpha.Value * m - endMechanism
+                        double cp = groupEnd ? Math.PI * m + pitch : 2 * pitch;
+                        double nc = index == 0 ? .5 * pitch + p.FirstRowAlpha.Value * m - endMechanism
                             : groupEnd ? endMechanism + .5 * pitch : pitch;
+                        circular += cp; nonCircular += nc;
+                        rowLengths.Add(new TStubRowGroupLength(first,count,index,cp,nc));
                     }
                     string id = "InternalRows" + (first + 1) + "To" + (first + count);
                     if (!Finite(circular) || !Finite(nonCircular) || !(nonCircular > 0))
@@ -138,7 +141,7 @@ namespace GPC.Checkers.Steel.Connections
             void Value(string name, double value, string unit = "mm")
             { if (!Finite(value)) issues.Add(name + "OutsideNumericRange"); else trace.Add(new SectionResistanceValue(name, value, unit)); }
             TStubDerivedGeometry Result() => new TStubDerivedGeometry("Steel.Connection.TStub.InternalEndPlateGeometry",
-                p.DetailSource, Safe(m), Safe(e), Safe(emin), p.BoltGauge, minimumPitch, Safe(clearToObstruction), rows, groups, issues, trace);
+                p.DetailSource, Safe(m), Safe(e), Safe(emin), p.BoltGauge, minimumPitch, Safe(clearToObstruction), rows, groups, issues, trace, rowLengths);
         }
         private static bool Finite(double value) => !double.IsInfinity(value) && !double.IsNaN(value);
         private static double Safe(double value) => Finite(value) ? value : 0;

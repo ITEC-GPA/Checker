@@ -43,3 +43,9 @@ SEQUENZA AUTORIZZATA SUCCESSIVA
 3 Profili doppi con imbottiture, prima il percorso compresso.
 4 Verifiche locali delle anime da ponte per tipologie definite.
 Poi riprendere la piastra di estremita'. Un solo agente, nessuna UI ANTHEA.
+
+RIPRESA DOPO I BLOCCHI ASTA
+Implementato CreateInputFromGeometry: lunghezze efficaci automatiche per ogni
+fila e gruppo della stessa geometria, hardware reale ancora esplicito.
+Vedere END_PLATE_DERIVED_STIFFNESS_LENGTHS.txt.17 nuove prove,728 test pertinenti
+passati. La resistenza del nodo completo e i punti aperti sopra non cambiano.
