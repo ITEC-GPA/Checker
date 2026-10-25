@@ -302,3 +302,10 @@ I risultati restano consumabili dalle librerie; integrazioneANTHEA rinviata.
 - EndPlateInitialStiffness / EndPlateInitialStiffnessFromMoment: solaSjini,
   geometria e azioni dello stesso parent; EndPlateLocalCaseAssessment lega
   trave,momento,bulloni,saldature e rigidezza. PHASE_4G_INITIAL_CASE_IMPLEMENTATION.txt.
+
+Aggiornamento coprigiunti: BRIDGE_SPLICE_NEXT_STEPS.txt.
+- SpliceBlockVerificationMethod.ActualCollinearForcesWithHierarchyFallback.
+- SpliceFlangeFaceModel.EqualThicknessIndependentWidths (pari spessore).
+- BridgeSpliceApplication: casi Model/azioni EC/NTC; BridgeSpliceReport:
+  rapporto bullonato/CJP, completo o sintetico. Guide BRIDGE_SPLICE_APPLICATION_USAGE.txt
+  e BRIDGE_SPLICE_UNEQUAL_WIDTHS.txt. I default2.90 restano riproducibili.

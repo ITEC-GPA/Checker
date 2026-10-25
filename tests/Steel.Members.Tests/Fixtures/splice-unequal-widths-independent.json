@@ -1,0 +1,229 @@
+{
+  "basis": "Exact rational free bodies and independently interpolated face strains; synthetic, not a published full joint",
+  "rows": [
+    {
+      "width": 260,
+      "sign": 1,
+      "moment": 0,
+      "top": true,
+      "values": {
+        "AreaCentroidOffset": -0.9259259259259259,
+        "Determinant": 72800000000.0,
+        "OuterForce": 41208.79120879121,
+        "BothInnerForce": 41208.79120879121,
+        "MembraneStrainAtParentCentroid": 3.638923870478031e-05,
+        "FaceStrainGradient": 5.3909983266341194e-08
+      }
+    },
+    {
+      "width": 260,
+      "sign": 1,
+      "moment": 0,
+      "top": false,
+      "values": {
+        "AreaCentroidOffset": 0.9259259259259259,
+        "Determinant": 72800000000.0,
+        "OuterForce": 41208.79120879121,
+        "BothInnerForce": 41208.79120879121,
+        "MembraneStrainAtParentCentroid": 3.638923870478031e-05,
+        "FaceStrainGradient": -5.3909983266341194e-08
+      }
+    },
+    {
+      "width": 260,
+      "sign": 1,
+      "moment": 50000000,
+      "top": true,
+      "values": {
+        "AreaCentroidOffset": -0.9259259259259259,
+        "Determinant": 72800000000.0,
+        "OuterForce": -27209.70792337864,
+        "BothInnerForce": -24903.466379597634,
+        "MembraneStrainAtParentCentroid": -2.3046865968801356e-05,
+        "FaceStrainGradient": -7.481795917390335e-08
+      }
+    },
+    {
+      "width": 260,
+      "sign": 1,
+      "moment": 50000000,
+      "top": false,
+      "values": {
+        "AreaCentroidOffset": 0.9259259259259259,
+        "Determinant": 72800000000.0,
+        "OuterForce": 109627.29034096106,
+        "BothInnerForce": 107321.04879718005,
+        "MembraneStrainAtParentCentroid": 9.582534337836197e-05,
+        "FaceStrainGradient": -1.8263792570658574e-07
+      }
+    },
+    {
+      "width": 260,
+      "sign": -1,
+      "moment": 0,
+      "top": true,
+      "values": {
+        "AreaCentroidOffset": -0.9259259259259259,
+        "Determinant": 72800000000.0,
+        "OuterForce": -41208.79120879121,
+        "BothInnerForce": -41208.79120879121,
+        "MembraneStrainAtParentCentroid": -3.638923870478031e-05,
+        "FaceStrainGradient": -5.3909983266341194e-08
+      }
+    },
+    {
+      "width": 260,
+      "sign": -1,
+      "moment": 0,
+      "top": false,
+      "values": {
+        "AreaCentroidOffset": 0.9259259259259259,
+        "Determinant": 72800000000.0,
+        "OuterForce": -41208.79120879121,
+        "BothInnerForce": -41208.79120879121,
+        "MembraneStrainAtParentCentroid": -3.638923870478031e-05,
+        "FaceStrainGradient": 5.3909983266341194e-08
+      }
+    },
+    {
+      "width": 260,
+      "sign": -1,
+      "moment": 50000000,
+      "top": true,
+      "values": {
+        "AreaCentroidOffset": -0.9259259259259259,
+        "Determinant": 72800000000.0,
+        "OuterForce": 27209.70792337864,
+        "BothInnerForce": 24903.466379597634,
+        "MembraneStrainAtParentCentroid": 2.3046865968801356e-05,
+        "FaceStrainGradient": 7.481795917390335e-08
+      }
+    },
+    {
+      "width": 260,
+      "sign": -1,
+      "moment": 50000000,
+      "top": false,
+      "values": {
+        "AreaCentroidOffset": 0.9259259259259259,
+        "Determinant": 72800000000.0,
+        "OuterForce": -109627.29034096106,
+        "BothInnerForce": -107321.04879718005,
+        "MembraneStrainAtParentCentroid": -9.582534337836197e-05,
+        "FaceStrainGradient": 1.8263792570658574e-07
+      }
+    },
+    {
+      "width": 360,
+      "sign": 1,
+      "moment": 0,
+      "top": true,
+      "values": {
+        "AreaCentroidOffset": 3.125,
+        "Determinant": 100800000000.0,
+        "OuterForce": 41208.79120879121,
+        "BothInnerForce": 41208.79120879121,
+        "MembraneStrainAtParentCentroid": 3.11479903316638e-05,
+        "FaceStrainGradient": -1.55739951658319e-07
+      }
+    },
+    {
+      "width": 360,
+      "sign": 1,
+      "moment": 0,
+      "top": false,
+      "values": {
+        "AreaCentroidOffset": -3.125,
+        "Determinant": 100800000000.0,
+        "OuterForce": 41208.79120879121,
+        "BothInnerForce": 41208.79120879121,
+        "MembraneStrainAtParentCentroid": 3.11479903316638e-05,
+        "FaceStrainGradient": 1.55739951658319e-07
+      }
+    },
+    {
+      "width": 360,
+      "sign": 1,
+      "moment": 50000000,
+      "top": true,
+      "values": {
+        "AreaCentroidOffset": 3.125,
+        "Determinant": 100800000000.0,
+        "OuterForce": -27209.70792337864,
+        "BothInnerForce": -24903.466379597634,
+        "MembraneStrainAtParentCentroid": -1.9586127781558445e-05,
+        "FaceStrainGradient": 6.361156831581297e-08
+      }
+    },
+    {
+      "width": 360,
+      "sign": 1,
+      "moment": 50000000,
+      "top": false,
+      "values": {
+        "AreaCentroidOffset": -3.125,
+        "Determinant": 100800000000.0,
+        "OuterForce": 109627.29034096106,
+        "BothInnerForce": 107321.04879718005,
+        "MembraneStrainAtParentCentroid": 8.188210844488605e-05,
+        "FaceStrainGradient": 3.7509147163245096e-07
+      }
+    },
+    {
+      "width": 360,
+      "sign": -1,
+      "moment": 0,
+      "top": true,
+      "values": {
+        "AreaCentroidOffset": 3.125,
+        "Determinant": 100800000000.0,
+        "OuterForce": -41208.79120879121,
+        "BothInnerForce": -41208.79120879121,
+        "MembraneStrainAtParentCentroid": -3.11479903316638e-05,
+        "FaceStrainGradient": 1.55739951658319e-07
+      }
+    },
+    {
+      "width": 360,
+      "sign": -1,
+      "moment": 0,
+      "top": false,
+      "values": {
+        "AreaCentroidOffset": -3.125,
+        "Determinant": 100800000000.0,
+        "OuterForce": -41208.79120879121,
+        "BothInnerForce": -41208.79120879121,
+        "MembraneStrainAtParentCentroid": -3.11479903316638e-05,
+        "FaceStrainGradient": -1.55739951658319e-07
+      }
+    },
+    {
+      "width": 360,
+      "sign": -1,
+      "moment": 50000000,
+      "top": true,
+      "values": {
+        "AreaCentroidOffset": 3.125,
+        "Determinant": 100800000000.0,
+        "OuterForce": 27209.70792337864,
+        "BothInnerForce": 24903.466379597634,
+        "MembraneStrainAtParentCentroid": 1.9586127781558445e-05,
+        "FaceStrainGradient": -6.361156831581297e-08
+      }
+    },
+    {
+      "width": 360,
+      "sign": -1,
+      "moment": 50000000,
+      "top": false,
+      "values": {
+        "AreaCentroidOffset": -3.125,
+        "Determinant": 100800000000.0,
+        "OuterForce": -109627.29034096106,
+        "BothInnerForce": -107321.04879718005,
+        "MembraneStrainAtParentCentroid": -8.188210844488605e-05,
+        "FaceStrainGradient": -3.7509147163245096e-07
+      }
+    }
+  ]
+}

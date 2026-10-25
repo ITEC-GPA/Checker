@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using GPC.Checkers.Steel.Inputs;
 using GPC.Checkers.Steel.Pipeline;
+using GPC.Checkers.Steel.Sections;
 
 namespace GPC.Checkers.Steel.Connections
 {
@@ -39,8 +40,12 @@ namespace GPC.Checkers.Steel.Connections
         public ConnectionDesignCode Code { get; }
         public PlanarConnectionActions Actions { get; }
         public bool IsServiceability { get; }
-        internal SpliceReportCase(string id, string source, ConnectionDesignCode code, PlanarConnectionActions actions, bool sls = false)
-        { Id = id; Source = source; Code = code; Actions = actions; IsServiceability = sls; }
+        public IReadOnlyList<SectionResistanceValue> InputValues { get; }
+        internal SpliceReportCase(string id, string source, ConnectionDesignCode code, PlanarConnectionActions actions, bool sls = false, IEnumerable<SectionResistanceValue> values = null)
+        {
+            Id = id; Source = source; Code = code; Actions = actions; IsServiceability = sls;
+            InputValues = Array.AsReadOnly((values ?? Array.Empty<SectionResistanceValue>()).ToArray());
+        }
     }
 
     public sealed class BridgeSpliceReport
@@ -73,13 +78,15 @@ namespace GPC.Checkers.Steel.Connections
                 // Geometry/pitch constraints are not action utilization.
                 x.Component == "Detailing" ? SpliceReportRole.Applicability : SpliceReportRole.Resistance, x.ComponentCheck, x.SectionCheck)).ToList();
             var cases = new List<SpliceReportCase>();
-            var notes = new List<string> { "Block method: " + result.Input.BlockMethod,
+            var notes = new List<string> { "Block method: " + result.Input.BlockMethod, "Face model: " + result.Input.FaceModel,
                 "N,mm,MPa; physical X longitudinal,Y up; Steel M1=-Mz after pole transport, V2=Fy.",
                 "Fatigue, rotational stiffness and execution certification are excluded. Whole-member assessments remain separate." };
             foreach (var c in result.Cases)
             {
                 var b = c.Input.Parents.Detail.Plates.Bolts;
-                cases.Add(new SpliceReportCase(c.Input.Id, b.UltimateCombinationSource, b.Code, b.Detail.Actions));
+                cases.Add(new SpliceReportCase(c.Input.Id, b.UltimateCombinationSource, b.Code, b.Detail.Actions, values: BoltedValues(c.Input.Parents)));
+                foreach (var t in c.Model.Trace.Where(t => t.Name.Contains(".FaceModel.")))
+                    notes.Add(c.Input.Id + ":" + t.Name + "=" + Number(t.Value) + " " + t.Unit);
                 notes.Add("gammaM1 plates=" + Number(c.Input.Parents.Detail.Plates.Policy.GammaM1));
                 Add(c.Input.Id, "BlockHierarchy", c.AdditionalPlates.BlockHierarchy.Checks);
                 Add(c.Input.Id, "CompactPlateDomain", c.AdditionalPlates.CompactPlateDomain.Checks);
@@ -133,7 +140,7 @@ namespace GPC.Checkers.Steel.Connections
                     || !SameWeld(first.TopFlange, r.Input.TopFlange) || !SameWeld(first.Web, r.Input.Web)
                     || !SameWeld(first.BottomFlange, r.Input.BottomFlange))
                     missing.Add(c.Case.Id + ":PHYSICAL_SPLICE_OR_POLICY_MISMATCH");
-                cases.Add(new SpliceReportCase(c.Case.Id, c.Case.Source, r.Input.Code, c.Case.Actions));
+                cases.Add(new SpliceReportCase(c.Case.Id, c.Case.Source, r.Input.Code, c.Case.Actions, values: WeldedValues(r.Input)));
                 missing.AddRange(r.SeamPrerequisites.Diagnostics.Select(x => c.Case.Id + ":" + x));
                 foreach (var check in r.SeamPrerequisites.Checks)
                     rows.Add(new SpliceReportRow(c.Case.Id, "CJP.ConsumablePrerequisites", false, SpliceReportRole.Applicability, check));
@@ -158,6 +165,59 @@ namespace GPC.Checkers.Steel.Connections
                 complete, failed, missing, notes, cases, rows);
         }
 
+        private static IEnumerable<SectionResistanceValue> BoltedValues(WeldedIBeamSpliceParentInput p)
+        {
+            var b = p.Detail.Plates.Bolts; var d = b.Detail; var s = d.Section;
+            var v = new List<SectionResistanceValue>();
+            Plate("Parent.Top", s.TopFlange); Plate("Parent.Web", s.Web); Plate("Parent.Bottom", s.BottomFlange);
+            Flange("Top", d.Top); Flange("Bottom", d.Bottom); Plate("EachWebCover", d.EachWebCover);
+            Grid("Web", d.WebBolts, d.WebCoverEnd); Bolt("FlangeBolt", b.FlangeBolt); Bolt("WebBolt", b.WebBolt);
+            Value("ButtGap", d.ButtGap); Value("TopWeldToe", s.TopWeldToe); Value("BottomWeldToe", s.BottomWeldToe);
+            Value("LongitudinalWeld.TopThroat", p.Welds.TopThroat); Value("LongitudinalWeld.BottomThroat", p.Welds.BottomThroat);
+            Value("LongitudinalWeld.EffectiveLengthEachSide", p.Welds.EffectiveLengthEachSide);
+            return v;
+            void Value(string name, double number, string unit = "mm") => v.Add(new SectionResistanceValue(name, number, unit));
+            void Plate(string name, ConnectionPlate plate)
+            {
+                Value(name + ".Width", plate.Width); Value(name + ".Thickness", plate.Thickness);
+                Value(name + ".Fy", plate.Fy, "MPa"); Value(name + ".Fu", plate.Fu, "MPa");
+            }
+            void Flange(string name, SpliceFlangeCoverDetail f)
+            { Plate(name + ".Outer", f.Outer); Plate(name + ".EachInner", f.EachInner); Value(name + ".InnerGap", f.InnerGap); Grid(name, f.Bolts, f.EndDistance); }
+            void Grid(string name, SpliceBoltLayout g, double end)
+            {
+                Value(name + ".LongitudinalRows", g.LongitudinalRows, "1"); Value(name + ".TransverseRows", g.TransverseRows, "1");
+                Value(name + ".LongitudinalPitch", g.LongitudinalPitch); Value(name + ".TransversePitch", g.TransversePitch);
+                Value(name + ".FirstBoltDistance", g.FirstBoltDistance); Value(name + ".CoverEnd", end);
+            }
+            void Bolt(string name, ConnectionBolt bolt)
+            {
+                Value(name + ".Diameter", bolt.Diameter); Value(name + ".HoleDiameter", bolt.HoleDiameter);
+                Value(name + ".TensileArea", bolt.TensileArea, "mm2"); Value(name + ".Fu", bolt.Fu, "MPa");
+                Value(name + ".ThreadedShearPlanes", bolt.ThreadedShearPlanes ? 1 : 0, "1");
+            }
+        }
+        private static IEnumerable<SectionResistanceValue> WeldedValues(WeldedIBeamButtSpliceInput p)
+        {
+            var v = new List<SectionResistanceValue>();
+            var s = p.LeftSection.Plan.Input.Section; var h = s.CreateSectionCopy().SectionShape as GPC.Model.Sections.SectionH;
+            if (h != null)
+            {
+                Value("Parent.Height", h.Height); Value("Parent.WebThickness", h.ThicknessWeb);
+                Value("Parent.TopWidth", h.LenghtTopFlange); Value("Parent.TopThickness", h.ThicknessTopFlange);
+                Value("Parent.BottomWidth", h.LenghtBottomFlange); Value("Parent.BottomThickness", h.ThicknessBottomFlange);
+            }
+            Value("Parent.LeftFy", s.YieldStrength, "MPa"); Value("Parent.LeftFu", s.UltimateStrength, "MPa");
+            Value("Parent.RightFy", p.RightSection.Plan.Input.Section.YieldStrength, "MPa");
+            Value("Parent.RightFu", p.RightSection.Plan.Input.Section.UltimateStrength, "MPa");
+            Weld("Top", p.TopFlange); Weld("Web", p.Web); Weld("Bottom", p.BottomFlange); return v;
+            void Value(string name, double number, string unit = "mm") => v.Add(new SectionResistanceValue(name, number, unit));
+            void Weld(string name, SpliceButtWeldDetail weld)
+            {
+                Value(name + ".FusionDepth", weld.FusionDepth); Value(name + ".EffectiveLength", weld.EffectiveLength);
+                Value(name + ".AllWeldMinimumFy", weld.AllWeldMinimumFy, "MPa"); Value(name + ".AllWeldMinimumFu", weld.AllWeldMinimumFu, "MPa");
+            }
+        }
         private static bool SameSection(SteelSectionInput a, SteelSectionInput b)
         {
             var x = a.CreateSectionCopy().SectionShape as GPC.Model.Sections.SectionH;
@@ -174,24 +234,39 @@ namespace GPC.Checkers.Steel.Connections
 
         /// <summary>Deterministic tab-separated engineering report; blank scalar cells mean unavailable.
         /// Escapes embedded tabs/newlines in caller labels. No filesystem or UI dependency.</summary>
-        public string ToText()
+        public string ToText() => ToText(true);
+        public string ToText(bool includeAllChecks)
         {
             var b = new StringBuilder();
             b.AppendLine(Typology + "\t" + Status + "\tComplete=" + IsComplete);
             b.AppendLine(Escape(Scope));
+            b.AppendLine("KNOWN_FAILURE=" + HasKnownFailure + "\tLINKED_MEMBER_FAILURE=" + HasFailedLinkedMember);
+            var governing = GoverningResistance;
+            if (governing != null) b.AppendLine("GOVERNING_RESISTANCE\t" + Escape(governing.CaseId) + "\t" + Escape(governing.Component)
+                + "\t" + Escape(governing.Id) + "\t" + Number(governing.Utilization));
             foreach (var c in Cases)
             {
                 var a = c.Actions; var code = c.Code;
                 b.AppendLine("CASE\t" + Escape(c.Id) + "\t" + (c.IsServiceability ? "SLS" : "ULS") + "\t" + Escape(c.Source));
                 b.AppendLine("CODE\t" + Escape(code.Plates.Name + " " + code.Plates.Edition + " " + code.Plates.ParameterSet)
                     + "\tgammaM0=" + Number(code.Plates.GammaM0) + "\tgammaM2Plate=" + Number(code.Plates.GammaM2) + "\tgammaM2Connection=" + Number(code.GammaM2Connection));
+                foreach (var value in c.InputValues) b.AppendLine("INPUT\t" + Escape(c.Id) + "\t" + Escape(value.Name) + "\t" + Number(value.Value) + "\t" + Escape(value.Unit));
                 b.AppendLine("ACTIONS\tFx=" + Number(a.Fx) + "\tFy=" + Number(a.Fy) + "\tMz=" + Number(a.Mz)
                     + "\tx=" + Number(a.ApplicationX) + "\ty=" + Number(a.ApplicationY) + "\t[N,mm,Nmm]");
             }
             foreach (var x in Notes) b.AppendLine("NOTE\t" + Escape(x));
             foreach (var x in MissingRequirements) b.AppendLine("MISSING\t" + Escape(x));
             b.AppendLine("Case\tLimitState\tRole\tComponent\tCheck\tStatus\tDemand\tResistance\tUtilization\tUnit\tReference");
-            foreach (var x in Rows)
+            IEnumerable<SpliceReportRow> selected = Rows;
+            if (!includeAllChecks)
+            {
+                b.AppendLine("CHECKS\tSummary: maximum per case/component/role; unavailable section checks retained. Full report available with ToText(true).");
+                selected = Rows.GroupBy(x => new { x.CaseId, x.Component, x.Role, x.IsServiceability })
+                    .SelectMany(g => g.Where(x => x.SteelCheck != null && !x.SteelCheck.IsEvaluated)
+                        .Concat(g.Where(x => x.ConnectionCheck != null || x.SteelCheck.IsEvaluated)
+                        .OrderByDescending(x => x.Failed && !x.Utilization.HasValue).ThenByDescending(x => x.Utilization ?? 0).Take(1)));
+            }
+            foreach (var x in selected)
                 b.AppendLine(string.Join("\t", new[] { Escape(x.CaseId), x.IsServiceability ? "SLS" : "ULS", x.Role.ToString(),
                     Escape(x.Component), Escape(x.Id), x.Status, Number(x.Demand), Number(x.Resistance), Number(x.Utilization), Escape(x.Unit), Escape(x.Reference) }));
             return b.ToString();

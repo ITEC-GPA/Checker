@@ -31,9 +31,11 @@ namespace GPC.Checkers.Steel.Connections
         /// <summary>Opt-in direct action checks for collinear longitudinal bolt forces.
         /// Mixed-direction groups retain the sufficient fastener hierarchy.</summary>
         public static WeldedIBeamSpliceStandardPlateResult Verify(WeldedIBeamSpliceDetailInput p, bool actualCollinearBlockForces)
+            => Verify(p, actualCollinearBlockForces, SpliceFlangeFaceModel.BalancedEqualFaces);
+        public static WeldedIBeamSpliceStandardPlateResult Verify(WeldedIBeamSpliceDetailInput p, bool actualCollinearBlockForces, SpliceFlangeFaceModel faceModel)
         {
             if (p == null) throw new ArgumentNullException(nameof(p));
-            var applicability = WeldedIBeamSpliceStandardModel.Verify(p);
+            var applicability = WeldedIBeamSpliceStandardModel.Verify(p, faceModel);
             var d = p.Plates.Bolts.Detail; var code = p.Plates.Policy.Code;
             var f = WeldedIBeamSpliceForces.Calculate(d); var plates = WeldedIBeamSplicePlates.Verify(p.Plates);
             var issues = new List<string>(applicability.Diagnostics.Concat(plates.Diagnostics));

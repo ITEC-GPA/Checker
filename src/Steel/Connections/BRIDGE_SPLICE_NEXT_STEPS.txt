@@ -20,7 +20,8 @@ COPRIGIUNTI DA PONTE - BLOCCHI 1, 2, 4, 3
   EN1993-1-8:2005 3.10.2, SCI P398 pp136/139. Nessuna formula universale
   inventata per il block tearing N-V-M. Mantenere il percorso 2.90 riproducibile.
 4 CHIUSO - costruzione input da Model/azioni e rapporto unico bullonato/CJP; 18 test superati. Vedere BRIDGE_SPLICE_APPLICATION_USAGE.txt.
-3 DA FARE - larghezze diverse a pari spessore; materiale e simmetria mantenuti.
+3 CHIUSO - larghezze diverse a pari spessore; materiale e simmetria mantenuti.
+  26 test del modello e2 applicativi aggiuntivi. BRIDGE_SPLICE_UNEQUAL_WIDTHS.txt.
   SCI P357 p60 usa due piani resistenti e verifica separatamente i piatti.
   Conservare momento proprio dell'ala ed equilibrio, nessun riparto per area.
 
@@ -32,3 +33,9 @@ restano fuori da questo blocco. Nessuna modifica ad ANTHEA, merge o push.
   la gerarchia. Il caso anima24 NTC misto resta correttamente fuori metodo.
   Il primo campione ali10mm non rispettava passo/bordi: corretto il dato
   sintetico a14mm protetto, nessun atteso legacy modificato.
+
+COLLAUDO MIRATO PRIMA DELLA VERSIONE
+164 test superati, zero fallimenti. Nuovi casi complessivi:97
+(40casistica+11block+20applicazione/rapporto+26larghezze).
+Report completi e sintetici esportati sotto audit-results/connections/splice-next/reports
+nel workspace ChatGPT. Il set di rilascio2.90 non e' stato sostituito.

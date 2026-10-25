@@ -1,3 +1,9 @@
+AGGIORNAMENTO CORRENTE 25/10/2026 - COPRIGIUNTI
+Chiusi i punti1-2-4-3 nel campo documentato: casistica40, block diretto
+collineare con fallback per gruppi misti, adattatore Model/rapporti, larghezze
+indipendenti a pari spessore. Riferimento BRIDGE_SPLICE_NEXT_STEPS.txt.
+I riepiloghi sottostanti restano storici; le fasi generali1-4 sono PARZIALI.
+
 CONNESSIONI STANDARD - PIANO E AVANZAMENTO DELLE PRIME QUATTRO FASI
 ===============================================================
 Aggiornamento 25/10/2026. Branch codex/steel-bridge-splices-static.

@@ -138,5 +138,31 @@ public class BridgeSpliceApplicationTests
         Assert.ThrowsException<ArgumentNullException>(()=>BridgeSpliceReport.FromBolted(null!));
         Assert.ThrowsException<ArgumentException>(()=>BridgeSpliceReport.FromWelded(Array.Empty<WeldedSpliceButtCaseResult>()));
     }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public void ApplicationSupportsIndependentWidthsAndExportsSelfContainedReports(bool ntc)
+    {
+        var template=WeldedIBeamSpliceStandardTests.Input(ntc,BridgeSpliceUnequalWidthTests.Detail(360));
+        var section=WeldedIBeamSpliceStandardTests.Section(template).Plan.Input.Section;
+        var input=BridgeSpliceApplication.CreateBolted(template,section,section,Actions(),WeldedIBeamSpliceStandardTests.Welds(),
+            "Global analysis with explicit continuity/restraints",SpliceBoltCategory.B,Prepare,WeldedIBeamSpliceSlipTests.Input(ntc),
+            new[]{new SpliceActionCase("SLS.actual",new(71000,-32000,0,0,0,17e6),"Actual SLS, not scaled ULS")},
+            SpliceBlockVerificationMethod.ActualCollinearForcesWithHierarchyFallback,SpliceFlangeFaceModel.EqualThicknessIndependentWidths);
+        Assert.AreEqual(71000,input.Envelope.SlipCases.Single().Input.Bolts.Detail.Actions.Fx);
+        var report=BridgeSpliceReport.FromBolted(WeldedIBeamSpliceStandard.Verify(input));
+        Assert.AreEqual(ConnectionStatus.Passed,report.Status,string.Join(";",report.MissingRequirements));
+        Assert.AreEqual(360,report.Cases[0].InputValues.Single(x=>x.Name=="Top.Outer.Width").Value);
+        StringAssert.Contains(report.ToText(),"INPUT\tULS+\tTop.Outer.Width\t360\tmm");
+        string? folder=Environment.GetEnvironmentVariable("GPC_SPLICE_REPORT_AUDIT");
+        if(!string.IsNullOrWhiteSpace(folder))
+        {
+            Directory.CreateDirectory(folder);
+            File.WriteAllText(Path.Combine(folder,ntc?"bolted-ntc.txt":"bolted-ec3.txt"),report.ToText());
+            File.WriteAllText(Path.Combine(folder,ntc?"bolted-ntc-summary.txt":"bolted-ec3-summary.txt"),report.ToText(false));
+            StringAssert.Contains(report.ToText(false),"GOVERNING_RESISTANCE");
+            Assert.IsTrue(report.ToText(false).Length<report.ToText().Length);
+            File.WriteAllText(Path.Combine(folder,ntc?"welded-ntc.txt":"welded-ec3.txt"),BridgeSpliceReport.FromWelded(Welded(ntc)).ToText());
+        }
+    }
 }
 

@@ -10,6 +10,7 @@ API applicative, senza UI e senza persistenza proprietaria:
   dettagli CJP e analisi delle sezioni per ogni caso.
 - BridgeSpliceReport.FromBolted / FromWelded; ToText() produce testo tabulato
   con cultura numerica invariant ed escaping di tab/newline nei nomi.
+  ToText(false) produce il riepilogo per caso/componente, incluse le lacune.
 
 Il template bullonato conserva coprigiunti, bulloni, bordi, materiali e norma.
 La geometria della sezione madre e' letta da Model tramite FromModel.
@@ -42,7 +43,7 @@ Rapporto:
 - i casi CJP non possono mischiare dettagli fisici o politiche normative.
 
 Esempi eseguibili: BridgeSpliceApplicationTests.Create e Welded.
-18 test superati: parita' con API manuale EC/NTC e A/B/C, preparazioni assenti,
+20 test superati: parita' con API manuale EC/NTC e A/B/C, preparazioni assenti,
 fonti, assi/polo, collaudo CJP, casi incompleti con fallimenti accertati,
 immutabilita' dei risultati, cultura, input invalidi e politiche incompatibili.
 Il rapporto non certifica esecuzione, fatica o rigidezza rotazionale.

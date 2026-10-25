@@ -1,0 +1,62 @@
+LARGHEZZE INDIPENDENTI DEI COPRIGIUNTI - PUNTO 3
+25/10/2026 - EC3 2005 / NTC2018, statica ordinaria.
+
+SELEZIONE ESPLICITA
+WeldedIBeamSpliceStandardInput(..., blockMethod,
+    SpliceFlangeFaceModel.EqualThicknessIndependentWidths)
+oppure parametro faceModel di BridgeSpliceApplication.CreateBolted.
+BalancedEqualFaces resta il default storico 2.90: nessun test/atteso legacy
+e' cambiato e l'estensione non e' attivata silenziosamente.
+
+CAMPO
+I saldata a tre piatti; per ogni ala un piatto esterno e due interni identici,
+simmetrici rispetto all'anima. Le larghezze possono differire; spessore e
+materiale delle facce devono essere uguali. I bulloni restano centrati sui
+piatti interni. Anche le ali superiore e inferiore della trave possono differire.
+Ogni verifica usa la geometria REALE: area, fori, inerzia, bordi, sbalzi,
+compressione, rifollamento e singoli piani di scorrimento/taglio.
+Niente imbotiture, cambi di sezione, carichi fuori piano o spessori diversi.
+
+MODELLO
+Forze membranali Fo,Fi ai baricentri yo,yi rispetto al centro dell'ala:
+Fo+Fi=Nf; -yo*Fo-yi*Fi=Mf.
+Nf e Mf vengono integrati sulla sezione madre elastica, incluso il momento
+proprio dell'ala. Non si pone Fo=Ao/(Ao+Ai)*Nf, ne' Mf=0.
+Una seconda formulazione verifica numericamente il modello:
+A=Ao+Ai; S=Ao*yo+Ai*yi; I=Ao*yo^2+Ai*yi^2;
+E*[A S; S I]*[epsilon0;kappa]=[Nf;-Mf].
+Determinante Ao*Ai*(yo-yi)^2, sempre positivo per le geometrie ammesse.
+Sono membrane nei loro piani medi: I NON comprende l'inerzia propria dei
+piatti rispetto al loro spessore. Il confronto non e' un modello locale
+di contatto/prying, ne' dimostra una rigidezza rotazionale del giunto.
+Le deformazioni sulle due facce sono diverse quando le aree sono diverse;
+non si forza l'uguaglianza di deformazione continua con la sezione madre.
+
+FONTI E NATURA DELLE EVIDENZE
+EN1993-1-8:2005 2.5/3.12: modellazione delle forze; SCI P398 sezione4:
+riparto elastico della sezione madre e verifiche distinte dei componenti.
+SCI P357 esempio1 sezione12.7 p60: verifica separata dei piatti interni
+assumendo meta' della forza di ala su ciascuna faccia.
+https://www.steelconstruction.info/images/2/20/SCI_P357.pdf
+https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
+L'audit matriciale e' una derivazione meccanica della libreria, non una
+formula normativa o un benchmark sperimentale. Non si dichiara riprodotto
+l'intero ponte SCI, che ha geometrie/imbottiture differenti.
+
+TEST
+26 nuovi casi: 16 combinazioni EC/NTC,B/C e larghezze260/300/360/400mm;
+oracolo Python Fraction con16 righe per segno, ala e momento; puro N,
+incremento effettivo dell'area netta, inversione, sovraccarico, fuori campo,
+parita' esatta del percorso a facce uguali. Il generatore indipendente
+risolve prima i corpi liberi e interpola le deformazioni, senza usare
+l'inversione matriciale del codice C#. Fixture nuova, mai sovrascritta.
+Ulteriori2 test applicativi creano i casi direttamente da Model ed esportano
+rapporti EC/NTC con geometria, materiali, azioni, norme e fonti delle superfici.
+
+LIMITI RESIDUI
+Il metodo diretto del block tearing e' collineare. I gruppi misti d'anima
+mantengono il filtro di gerarchia; se non passa, l'esito resta NotSupported.
+Classe4 forata, piastre snelle fuori dominio, fatica e certificazione della
+rigidezza/esecuzione restano esclusi. Questa chiusura non chiude le fasi1-4
+generali di tutte le connessioni, ne' la piastra di estremita' a momento.
+

@@ -60,7 +60,8 @@ namespace GPC.Checkers.Steel.Connections
             SpliceLongitudinalFillets welds, string continuityAndSecondOrderSource, SpliceBoltCategory category,
             Func<SteelVerificationInput, IEnumerable<SteelShearBucklingAssessment>> shearPreparation = null,
             WeldedIBeamSpliceSlipInput slipTemplate = null, IEnumerable<SpliceActionCase> serviceabilityCases = null,
-            SpliceBlockVerificationMethod blockMethod = SpliceBlockVerificationMethod.FastenerHierarchy)
+            SpliceBlockVerificationMethod blockMethod = SpliceBlockVerificationMethod.FastenerHierarchy,
+            SpliceFlangeFaceModel faceModel = SpliceFlangeFaceModel.BalancedEqualFaces)
         {
             if (template == null) throw new ArgumentNullException(nameof(template));
             if (right == null) throw new ArgumentNullException(nameof(right));
@@ -88,7 +89,7 @@ namespace GPC.Checkers.Steel.Connections
                 foreach (var c in s) slips.Add(Slip(c, BoltSlipLimitState.Serviceability, c.Id, null));
             }
             // No SLS values are synthesized. Missing B/C evidence is reported by Verify.
-            return new WeldedIBeamSpliceStandardInput(cases, category, slips, blockMethod);
+            return new WeldedIBeamSpliceStandardInput(cases, category, slips, blockMethod, faceModel);
 
             WeldedIBeamSpliceDetailInput Detail(SpliceActionCase c)
             {

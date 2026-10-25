@@ -5,20 +5,26 @@ using GPC.Checkers.Steel.Sections;
 
 namespace GPC.Checkers.Steel.Connections
 {
-    /// <summary>Applicability of the conventional balanced double-cover model. This is
-    /// deliberately narrower than the equilibrium calculator: identical cover thickness
-    /// and area on the two flange faces, identical materials, centred inner-strip bolt
+    public enum SpliceFlangeFaceModel { BalancedEqualFaces, EqualThicknessIndependentWidths }
+
+    /// <summary>Applicability of the conventional equal-thickness double-cover model.
+    /// Equal areas remain the default; independent widths are explicitly selected.
+    /// Both models require identical materials and centred inner-strip bolt
     /// groups, no packing, contact bearing or externally applied bolt-axis load.
-    /// Unequal TOP/BOTTOM parent flanges are permitted. Not a stiffness calculation.</summary>
+    /// Unequal TOP/BOTTOM parent flanges are permitted. No rotational stiffness calculation.</summary>
     public static class WeldedIBeamSpliceStandardModel
     {
         public static ConnectionVerification<WeldedIBeamSpliceDetailInput> Verify(WeldedIBeamSpliceDetailInput p)
+            => Verify(p, SpliceFlangeFaceModel.BalancedEqualFaces);
+        public static ConnectionVerification<WeldedIBeamSpliceDetailInput> Verify(WeldedIBeamSpliceDetailInput p, SpliceFlangeFaceModel faceModel)
         {
+            if (!Enum.IsDefined(typeof(SpliceFlangeFaceModel), faceModel)) throw new ArgumentOutOfRangeException(nameof(faceModel));
             if (p == null) throw new ArgumentNullException(nameof(p));
             var b = p.Plates.Bolts; var d = b.Detail;
             var f = WeldedIBeamSpliceForces.Calculate(d);
             var issues = new List<string>(f.Diagnostics);
             var checks = new List<ConnectionCheck>();
+            var trace = new List<SectionResistanceValue>(f.Trace);
             Flange(d.Top, "Top"); Flange(d.Bottom, "Bottom");
             if (d.WebBolts.LongitudinalRows > 20 || d.WebBolts.TransverseRows > 16)
                 issues.Add("STANDARD_WEB_GRID_LIMIT_20_BY_16");
@@ -26,21 +32,54 @@ namespace GPC.Checkers.Steel.Connections
                 d.Top.Outer, d.Top.EachInner, d.Bottom.Outer, d.Bottom.EachInner, d.EachWebCover })
                 if (plate.Fy > 460) issues.Add("STANDARD_CARBON_STEEL_FY_UP_TO_460_REQUIRED");
             if (f.IsBalanced)
+            {
+                FaceStiffness(d.Top, d.Section.TopFlange, true); FaceStiffness(d.Bottom, d.Section.BottomFlange, false);
                 checks.Add(new ConnectionCheck("ForceModel.Equilibrium", 0, 1,
-                    "EN1993-1-8:2005 2.5,3.12; SCI P357 section12; balanced double-cover idealisation", "1"));
+                    "EN1993-1-8:2005 2.5,3.12; SCI P357 section12; equal-thickness double-cover idealisation", "1"));
+            }
             return new ConnectionVerification<WeldedIBeamSpliceDetailInput>(p, b.Code,
                 "Steel.Connection.WeldedIBeamSplice.StandardModel",
-                "Applicability of the balanced, aligned double-cover static force model; not resistance or rotational stiffness.",
-                checks, f.Trace, issues.Distinct(), new[] {
-                    "SCI P357 example1 section12 and SCI P398 section4: ordinary double-cover splice with in-plane bolt shear. Same thickness and total axial area on opposite flange faces are a conservative library restriction, not a numerical tolerance or an EC requirement.",
-                    "Exact parent-plate integrals and the flange self-bending couple are retained. Equal cover areas and offsets make the force split compatible with an axial-plus-linear through-depth strain field; parent and cover strains need not be equal across a bolt load-introduction region.",
+                "Applicability of the declared aligned double-cover static force model: " + faceModel + "; not resistance or rotational stiffness.",
+                checks, trace, issues.Distinct(), new[] {
+                    "SCI P357 example1 section12.7 p60 uses half flange load on each face and verifies the actual inner strip areas separately. EqualThicknessIndependentWidths extends the conventional equal-thickness double-lap model to independent widths with symmetric inner strips; no force-proportional-to-area redistribution is made.",
+                    "BalancedEqualFaces retains the 2.90 equal-area restriction. Both modes require identical thickness and material on the two flange faces, centred inner-strip bolt groups and every actual gross/net/block/stability/detail check.",
+                    "The independent two-line membrane stiffness system E[[A,S],[S,I]]*(epsilon0,kappa)=(N,-M) reproduces both face forces and retains parent flange self-bending. I excludes each cover own bending inertia: the physical idealisation is axial membranes at their centroids. The nonzero face strain gradient is reported, not forced to zero or used as proof of contact compatibility.",
+                    "No continuous equal-strain bond between parent and covers is assumed. Bolt shear and bearing, slip, actual plate areas, outstands, net sections and parent welds are verified separately. This remains a conventional static double-lap model; it does not solve local contact/plate lifting or supply rotational stiffness.",
                     "Contact-face transport couples alone are not an externally applied bolt tension. This conventional symmetric double-lap model does not solve contact, prying, packing or plate lifting. Those details must use another method.",
                     "All covers are continuous, flat and in contact with the parent. No packings, stiffener cut-outs, notches, weld reinforcement, credits for butt contact, section changes or out-of-plane actions are modelled.",
                     "The structural analysis must justify continuity, restraints and second-order actions separately. This assessment supplies no rotational stiffness or fatigue qualification." });
 
+            void FaceStiffness(SpliceFlangeCoverDetail x, ConnectionPlate parent, bool top)
+            {
+                string name = top ? "Top" : "Bottom"; double direction = top ? 1 : -1;
+                double yo = direction * (parent.Thickness + x.Outer.Thickness) / 2;
+                double yi = -direction * (parent.Thickness + x.EachInner.Thickness) / 2;
+                double ao = x.Outer.Width * x.Outer.Thickness, ai = 2 * x.EachInner.Width * x.EachInner.Thickness;
+                double area = ao + ai, first = ao * yo + ai * yi, second = ao * yo * yo + ai * yi * yi;
+                // Positive factored determinant avoids subtraction of large nearly equal terms.
+                double determinant = ao * ai * (yo - yi) * (yo - yi);
+                double n = T("ParentAxial"), m = T("ParentLocalMoment"), e = p.Plates.Policy.ElasticModulus;
+                double strain = (second * n + first * m) / (e * determinant);
+                double curvature = (-area * m - first * n) / (e * determinant);
+                double outer = e * ao * (strain + curvature * yo), inner = e * ai * (strain + curvature * yi);
+                Value("AreaCentroidOffset", first / area, "mm"); Value("Determinant", determinant, "mm6");
+                Value("MembraneStrainAtParentCentroid", strain, "1"); Value("FaceStrainGradient", curvature, "1/mm");
+                Value("OuterForce", outer, "N"); Value("BothInnerForce", inner, "N");
+                double scale = Math.Abs(n) + Math.Abs(m / (yo - yi));
+                if (!WeldedIBeamSplicePlates.Finite(outer) || !WeldedIBeamSplicePlates.Finite(inner)
+                    || Math.Abs(outer - T("OuterForce")) > 128 * 2.2204460492503131e-16 * scale
+                    || Math.Abs(inner - T("BothInnerForce")) > 128 * 2.2204460492503131e-16 * scale)
+                    issues.Add(name + ".TWO_FACE_MEMBRANE_EQUILIBRIUM");
+                double T(string key) => f.Trace.Single(v => v.Name == "Left." + name + "." + key).Value;
+                void Value(string key, double value, string unit)
+                {
+                    if (WeldedIBeamSplicePlates.Finite(value)) trace.Add(new SectionResistanceValue(name + ".FaceModel." + key, value, unit));
+                    else issues.Add(name + ".FACE_MODEL_NUMERIC_RANGE");
+                }
+            }
             void Flange(SpliceFlangeCoverDetail x, string name)
             {
-                if (x.Outer.Thickness != x.EachInner.Thickness || x.Outer.Width != 2 * x.EachInner.Width)
+                if (x.Outer.Thickness != x.EachInner.Thickness || faceModel == SpliceFlangeFaceModel.BalancedEqualFaces && x.Outer.Width != 2 * x.EachInner.Width)
                     issues.Add(name + ".BALANCED_FACE_THICKNESS_AND_AREA_REQUIRED");
                 if (x.Outer.Fy != x.EachInner.Fy || x.Outer.Fu != x.EachInner.Fu)
                     issues.Add(name + ".IDENTICAL_FACE_MATERIAL_REQUIRED");
