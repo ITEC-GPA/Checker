@@ -1,0 +1,50 @@
+CONSOLIDAMENTO CONNESSIONI E COMPLETAMENTO ASTE - 25/10/2026
+Ordine autorizzato dall'utente:1,2,3,4, poi ripresa piastra di estremita'.
+Un solo agente. EC3 2005/NTC2018, statica ordinaria, senza UI/FEM locale.
+Branch codex/steel-bridge-splices-static; nessun merge/push implicito.
+
+1 CHIUSO - SET CONNESSIONI
+Catalogo ConnectionCapabilityCatalog/CAPABILITIES.txt, rapporto EndPlateLocalCaseReport
+con nodi a momento ancora parziali. Commit funzionale0fadb439, versione98165fb2.
+Steel2.92.0.0, Model5.21.0.0@2d59bbc6. 14DLL/hash verificati.
+Checker8397 passati,0fallimenti/ignorati; Model1493 passati,0fallimenti,3native
+Straus7 non eseguite per fixture/env assenti. API senza rimozioni inattese.
+Manifest: workspace ChatGPT/Checker/audit-results/connections/splice-next/
+candidate-steel-2.92/release-set.json. Nessuna installazione ANTHEA.
+
+2 IN CORSO - PREPARAZIONE STABILITA'
+2a Schemi ideali espliciti per Ncr flessionali, con ipotesi e fonti conservate.
+2b Mcr a forcella per H doppiamente simmetrici, diagrammi ordinari e quota
+   del carico ove qualificata; distinguere valore reale e momento uniforme.
+2c Fattori di momento e collegamento ai dati di asta/combinazione, senza
+   dedurre ritegni dalla mesh o abilitare silenziosamente modi non valutati.
+2d Test indipendenti, esempio e report; classi4 usano rigidezze elastiche lorde
+   per i valori critici, non Aeff/Weff come rigidezza globale.
+Non e' un solver generale di autovalori, telai, molle o ingobbamento vincolato.
+
+3 DA FARE - PROFILI DOPPI CON IMBOTTITURE
+3a Audit del percorso compresso: domanda locale, componenti e collegamenti.
+3b Collegare le azioni concomitanti e le valutazioni locali al membro reale,
+   senza N/2 o connessioni nulle presunte; preservare gli assi degli L disuguali.
+3c Chiudere un dettaglio tipologico giustificato dalle fonti; qualifica esplicita
+   se pareti dei correnti/introduzione3D restano fuori campo.
+3d Esempi EC/NTC e prove sui modi governanti. No calastrelli/tralicci.
+
+4 DA FARE - ANIME DA PONTE
+4a Censire e riusare i nuclei gia' presenti in CompositeBridge; evitare doppioni.
+4b Estendere il percorso Steel ai pannelli con irrigidimenti trasversali,
+   con verifica esplicita dei dettagli/supporti e delle interazioni pertinenti.
+4c Forze trasversali concentrate: tipologia definita, fonti e test indipendenti.
+4d Coerenza Steel/CompositeBridge, casi limite e set finale delle librerie.
+Non dichiarare verificato un pannello soltanto perche' il suo Vbw e' disponibile.
+
+DOPO 4 - RIPRENDERE LA PIASTRA DI ESTREMITA'
+Vedere Connections/END_PLATE_STANDARD_CHECKPOINT.txt. Prima della resistenza
+del nodo completo occorrono chiusura net/block/prying, introduzione locale e
+pilastro/modello globale. I componenti attuali restano utilizzabili come tali.
+
+REGOLA DI CHIUSURA
+Per ogni incremento: modello fisico/normativo esplicito, verifica delle fonti,
+test pertinenti indipendenti e di applicabilita', commit coerente e versione
+dedicata. Nessun atteso legacy modificato per nascondere divergenze. I limiti
+non risolti restano visibili e non vengono promossi a esiti favorevoli.
