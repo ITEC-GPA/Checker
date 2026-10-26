@@ -1,0 +1,88 @@
+DOPPIO ANGOLARE - COMPONENTI DEL PILASTRO COLLEGATO D'ANIMA
+26/10/2026 - DoubleAngleCleatColumnWeb.Verify
+
+STATO
+Nuovo percorso complementare a DoubleAngleCleatComponents. Chiude il blocco
+di calcolo del rifollamento, delle sezioni nette e dell'interazione nominale
+nel piano dell'anima con le azioni concomitanti del pilastro. NON chiude il
+nodo completo: CanQualifyWholeJoint rimane false. Un esito Passed di Support
+si riferisce esclusivamente ai componenti nominati nel relativo Scope.
+
+CAMPO
+Due L90x90x10 S275 speculari, M20 8.8, geometria e azioni verticali del
+percorso SBE-MS5 esistente. Pilastro I/H laminato, anima non irrigidita,
+sezione almeno classe3 in compressione uniforme; resistenze di anima e ali
+esplicite alle rispettive quote di spessore. Tutta la trave e tutte le
+squadrette entrano fra i raccordi del pilastro. Nessun intaglio o foro
+ulteriore. Le distanze dalle estremita' sono quelle del pilastro reale.
+
+ASSI E EQUILIBRIO, N / mm / Nmm / MPa
+X normale all'anima, verso la trave; Y verticale lungo il pilastro;
+Z completa la terna destra. Altezza della sezione del pilastro lungo Z,
+larghezza delle ali lungo X. Origine: baricentro della sezione alla quota
+media del gruppo bulloni. La faccia collegata e' X=tw/2.
+UpperCut e LowerCut sono due tagli REALI a coordinate (0,Y,0). Entrambi
+usano la medesima convenzione di faccia positiva +Y. Non sono due vettori
+con le normali uscenti opposte dal volume di controllo.
+
+Trasporto di ciascun taglio: M(O)=M(A)+r(A)xF.
+Lower(O)-Upper(O) deve coincidere con (0,-V,0; 0,0,-V*tw/2).
+Non si copia il momento riferito all'origine in un taglio lontano. I due
+tagli devono racchiudere l'intera zona e stare dentro le estremita' reali.
+Nessun carico distribuito o altro nodo fra i tagli. Le azioni sono della
+stessa combinazione, senza inviluppi indipendenti degli estremi.
+
+Sono ammessi Fx, Fy, Mx e Mz concomitanti. Fz (taglio attraverso l'anima
+forata) e My (torsione) sono esclusi, anche se infinitesimi: non si usa la
+sola area di taglio lorda per colmare quel modello mancante.
+
+CONTROLLI
+1. Rifollamento di ciascuno degli otto/dodici/... bulloni sulla sola anima
+   fisica: V/(2n), non ulteriormente dimezzato. Minimo fra bullone estremo
+   e interno, distanze effettive e forza del percorso SBE condiviso.
+2. Strisce locali SCI P358 Check10 su ogni prefisso di righe, dai due lati:
+   A=tw*[min(e,5d)+(j-1)*p+min(g/2,5d)], An=A-j*d0*tw;
+   domanda V*j/(2n), resistenze A*fy/(sqrt(3)*gammaM0) e
+   An*fu/(sqrt(3)*gammaM2). Applicazione complementare al doppio angolare,
+   non una nuova formula pubblicata specificamente per questo nodo.
+3. Sezione netta del pilastro: due rettangoli d0*tw sottratti dall'anima
+   a Z=+/-g/2; raccordi omessi. Si ricalcolano An, Ix e Iz. I fori non
+   vengono sottratti dalle ali e non si conserva un modulo lordo.
+4. Invilluppo delle tensioni normali dei rettangoli netti:
+   sigma=|N|max/An+|Mx|max*h/(2Ix)+Mz_bound*b/(2Iz).
+   Mz_bound=max(|Mz_upper|,|Mz_lower|)+V*tw/2 include anche gli estremi
+   interni dovuti alle reazioni delle singole righe. E' un inviluppo
+   cautelativo; non si dichiara il massimo esatto della distribuzione.
+5. Taglio debole nelle ali integre tau=1.5*|Fx|max/(2*b*tf), verifica
+   sigma+sqrt(3)*tau <= min(fy_web,fy_flange)/gammaM0, e limite normale
+   0.9*min(fu_web,fu_flange)/gammaM2. Ulteriore interazione nominale con
+   il taglio V*j/(2n*An) delle strisce locali, senza cancellazione dei segni.
+   Si tratta di controlli complementari, non di un campo di tensione 3D.
+
+FONTI E NATURA DEL MODELLO
+- EN1993-1-8:2005 Table3.4 e NTC2018 4.2.8.1.1 per rifollamento.
+- CTICM/SCI SBE-MS5 cap4 per squadrette e riparto nominale esistenti:
+  https://steelconstruction.info/images/5/53/SBE_MS5.pdf
+- SCI P358, Check10 support-web shear delle piastre di estremita':
+  https://www.steelconstruction.info/images/a/a9/SCI_P358.pdf
+- EN1993-1-1:2005 6.2.1 per il controllo elastico della sezione.
+Le formule di sezione netta, il trasporto delle azioni e gli inviluppi
+aggiuntivi sono elaborazioni analitiche dichiarate, non esempi sperimentali
+pubblicati del nodo completo. I test distinguono aritmetica manuale,
+formule della fonte, condizioni limite e invarianti fisici.
+
+ANCORA MANCANTI PER IL NODO COMPLETO
+Risposta fuori piano dell'anima; trazioni effettive nei bulloni con prying;
+punzonamento al carico effettivo; compatibilita' rotazionale con il telaio.
+I fattori0.8/1.27 di SBE non vengono invertiti per inventare quelle forze.
+La capacita' ultima del nodo NON viene ricavata dal minimo dei soli
+componenti qui calcolati. Nessun nuovo supporto su ala viene qualificato.
+
+VERIFICA
+26 nuovi casi: EC/NTC, aree e inerzie manuali, strisce SCI, forze per bullone,
+concomitanza, trasporto destro dei momenti, eccentricita' tw/2, convenzioni
+di segno, azioni 1e-15, tagli fisici, classi e materiali, sovraccarico,
+campi numerici estremi e conservazione dei fallimenti dei componenti.
+Regressione DoubleAngleCleat:205/205 superati, nessun ignorato.
+La suite completa e gli hash del candidato sono registrati all'esterno
+del repository in audit-results/connections/column-web.

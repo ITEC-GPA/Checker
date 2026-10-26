@@ -32,7 +32,12 @@ restano attivi. Sei nuovi test:EC/NTC, area forata manuale, +/-1e-15 di taglio,
 sovraccarico. Commit8ac45f5c, versione2.115.0.1 da5d8a90.
 Non chiusa la classe4 compressa o la lastra forata con taglio non nullo.
 
-4. DOPPIO ANGOLARE: ANCORA PARZIALE
+4. DOPPIO ANGOLARE: COMPLETATI ULTERIORI COMPONENTI, NODO ANCORA PARZIALE
+DoubleAngleCleatColumnWeb aggiunge rifollamento dell'anima del pilastro,
+strisce locali SCI, sezioni nette, azioni concomitanti ed equilibrio dei
+due tagli fisici con eccentricita' tw/2. 26 nuovi test; regressione205/205.
+Sono ancora mancanti la risposta fuori piano, trazione/prying/punzonamento
+effettivi e qualificazione rotazionale. Vedi DOUBLE_ANGLE_COLUMN_WEB.txt.
 Riletto SBE-MS5 cap4: il coefficiente1.27 include la riduzione dovuta alla
 flessione nominale che produce trazione nei bulloni (p56/PDF66). La procedura
 per il gruppo lato supporto include0.8 nel caso governato dai bulloni
