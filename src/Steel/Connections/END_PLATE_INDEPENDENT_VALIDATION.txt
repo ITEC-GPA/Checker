@@ -1,0 +1,49 @@
+RISCONTRI INDIPENDENTI DEL NODO N-M-V - 26/10/2026
+
+PROVA RIPRODUCIBILE DEL MODELLO ANALITICO
+tests/Steel.Members.Tests/ReferenceCalculations/end_plate_reference.py
+genera esclusivamente la nuova fixture end-plate-reference.json, senza DLL
+GPC, output del verificatore o riferimenti a fixture pregresse. Python3,
+sola libreria standard; nessuna dipendenza numerica esterna.
+Geometria: piastra flush250x25, quattro file a y60/150/383.1/473.1mm;
+trave533.1x209.3,tw20,tf15.6,r12.7; pilastro266.7x258.8,tw12.8,tf20.5,r12.7.
+File M24,As353,gauge100; lunghezza di deformazione70.5mm; contatti209.3x15.6.
+I minimi geometrici per le rigidezze sono identificati a mano sui passi90,
+233.1,90, da SCI P398 Tabelle2.2/2.3 e EN1993-1-8 Tabella6.11.
+Il calcolo esterno prescrive apertura/rotazione e integra con quadratura
+Gauss a due punti su ciascun intervallo: ricava N/M, forze di fila, contatti,
+energia, matrice, pannello e sezione netta del pilastro. Il codice C# risolve
+invece il problema inverso con bisezioni annidate e integrazione analitica.
+Confronti: relative2e-8, assolute dichiarate per grandezza nei test, coerenti
+con la tolleranza del solutore. Nessun confronto sul solo equilibrio globale.
+
+11 stati x2 normative =22 casi: trazione/compressione pura, momento di entrambi
+i segni, presso/tensoflessione, contatto parziale superiore/inferiore, elevata
+utilizzazione e insufficienza. Ogni caso attraversa bulloni, saldature, gruppi,
+percorsi netti/block, contatti e pilastro del nodo fisico completo.
+Il caso near_limit e' sotto i limiti dei singoli componenti ma supera
+l'interazione conservativa N-M: deve risultare Failed. Il caso beyond_limit
+fallisce anche sul pilastro e non esporta una rigidezza qualificata.
+22/22 superati, zero falliti/ignorati. La nuova fixture non e' un risultato
+sperimentale o la riproduzione di un provino di laboratorio.
+
+AUDIT DEI CASI PUBBLICATI
+Lima, tesi PUC-Rio2003, capitolo3, pp68-71/72/85, Figure3.1/3.3,
+Tabelle3.1-3.4; PDF originale letto e disegno verificato visivamente:
+https://www.maxwell.vrac.puc-rio.br/4165/4165_4.PDF
+Il provino EE e' IPE240/HEB240, piastra160x314x15, interasse96.
+La larghezza della trave120 e' inferiore al requisito SCI1.33*96=127.68.
+Le misure dei materiali distinguono ali/anima e moduli elastici: il nostro
+adattatore omogeneo con E210000 non riproduce letteralmente quella prova.
+Nessun allargamento artificioso della trave o adeguamento degli attesi.
+La Tabella3.3 originale assegna EE4 a circa-363kN; il dato-259.2kN attribuito
+a EE4 nell'articolo ICASS2007 non e' adottato come atteso senza riconciliazione.
+https://web.tecgraf.puc-rio.br/~lfm/papers/DelSavioICASS2007.pdf
+
+Demonceau/Cerfontaine/Jaspart2019: modello resistente plastico con gruppi;
+il nostro modello compatibile elastico non deve coincidere con tale inviluppo.
+https://orbi.uliege.be/bitstream/2268/236765/1/PaperMN_JCSR-final_V3.pdf
+Restano aperti un confronto sperimentale completo nello stesso dominio,
+la legge plastica/rotazionale e l'estensione ai materiali non omogenei.
+La copertura numerica di questa fase non viene chiamata validazione
+sperimentale dell'intero nodo.

@@ -22,7 +22,9 @@ File/classi storiche e relativi attesi invariati.
 Restano fuori da questa estensione: pilastri irrigiditi o nodi bilaterali,
 piu' file simultaneamente nella zona d'influenza della stessa ala.
 
-2 RISCONTRI INDIPENDENTI DEL NODO COMPLETO - in corso
+2 RISCONTRI INDIPENDENTI DEL NODO COMPLETO - completata la verifica analitica
+22/22 casi EC/NTC superati, con oracolo esterno autonomo e nodo fisico completo.
+Riscontri e limite sperimentale in END_PLATE_INDEPENDENT_VALIDATION.txt.
 Separare confronto analitico riproducibile, componenti normativi e prove
 sperimentali. Non usare una resistenza plastica pubblicata come atteso di
 un diverso modello elastico, ne' inventare hardware/dettagli mancanti.
