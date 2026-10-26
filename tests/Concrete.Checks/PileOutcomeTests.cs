@@ -23,12 +23,18 @@ namespace ConcreteTests
         public TestContext TestContext { get; set; }
 
         /// <param name="steelScale">Factor on the bar strength (the partial development of BUG-PO-5b).</param>
-        private PileRcParameters Parameters(double steelScale = 1)
+        /// <param name="innerRing">Adds an inner ring 8Ø20 on a circle of 600 mm (bars of two diameters).</param>
+        private PileRcParameters Parameters(double steelScale = 1, bool innerRing = false)
         {
             var concrete = new ConcreteMaterialEN1992("C35", 35, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle);
             var steel = new SteelMaterial("B450", 200000, 450 * steelScale, 450 * steelScale, .1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
             // Reuse the existing section fixture; its cover argument locates the bar centres.
             var section = GetCircularSection(1000, 24, 92, 16, 64, concrete, steel);
+            if (innerRing)
+            {
+                var circle = new Polygon2d(600, 8);
+                section.AddRebars(Enumerable.Range(0, circle.Count).Select(j => new GPC.Model.Sections.Concrete.ReinforcedConcreteRebar(new GPC.Model.Sections.Rebar.RebarSectionCircular(20, steel), circle[j])).ToArray());
+            }
             var axes = new CoordinateSystem(section.Centroid, new Vector3d(-1, 0, 0), new Vector3d(0, -1, 0));
             var standard = new StandardNTC2018Concrete();
             var options = new SectionCheckerModelCode2010.SectionOptionsModelCode2010(axes, SectionSolver.FailureAnalysisTypes.ConstantN,
@@ -158,6 +164,28 @@ namespace ConcreteTests
             Assert.AreEqual(DataStatus.Ready, middle.Data);
             Assert.AreEqual(EngineeringOutcome.NotSatisfied, failed.Outcome);
             Assert.AreEqual(DataStatus.Insufficient, failed.Data);
+        }
+
+        /// <summary>
+        /// Inner ring of another diameter (palo orizzontale, follow-up of F2-16; user's decision of 26/10/2026): the D 1000 pile with the outer ring 16Ø24 and
+        /// an inner ring 8Ø20 on a circle of 600 mm. The bar schedule gets one run per diameter in each segment (G01A Ø24 × 16, G01B Ø20 × 8, ...), each with
+        /// its own anchorage (proportional to Ø: 20/24 of the outer one), and the joint at the boundary of two segments pairs the runs of the same diameter
+        /// (16 and 8 radial pairs). A section with one diameter keeps the single run "Gnn".
+        /// </summary>
+        [TestMethod]
+        public void MixedDiameterRingsGetOneRunPerDiameter()
+        {
+            var service = new PileReinforcement(Parameters(innerRing: true));
+            var check = service.Check(LowDemand(5));
+            PileDetailSegment Segment(string id, double start, double end, PileReinforcement s) => new PileDetailSegment { Id = id, Start = start, End = end, Service = s, Checks = new[] { check } };
+            var runs = PileReinforcement.SegmentRuns(new[] { Segment("1", 0, 6, service), Segment("2", 6, 12, service) }, 12);
+            CollectionAssert.AreEqual(new[] { "G01A", "G01B", "G02A", "G02B" }, runs.Select(r => r.Id).ToArray());
+            Assert.AreEqual(24, runs[0].Diameter, 1e-12); Assert.AreEqual(16, runs[0].Count); Assert.AreEqual(20, runs[1].Diameter, 1e-12); Assert.AreEqual(8, runs[1].Count);
+            Assert.AreEqual(runs[0].Anchorage * 20 / 24, runs[1].Anchorage, 1e-9 * runs[0].Anchorage, "lb proportional to Ø");
+            var outer = runs[2].Joints.Single(j => j.Kind == "Confine dei tratti"); var ring = runs[3].Joints.Single(j => j.Kind == "Confine dei tratti");
+            Assert.AreEqual("G01A", outer.UpperRun); Assert.AreEqual(16, outer.MatchedCount); Assert.AreEqual("G01B", ring.UpperRun); Assert.AreEqual(8, ring.MatchedCount);
+            var single = new PileReinforcement(Parameters());
+            CollectionAssert.AreEqual(new[] { "G01", "G02" }, PileReinforcement.SegmentRuns(new[] { Segment("1", 0, 6, single), Segment("2", 6, 12, single) }, 12).Select(r => r.Id).ToArray());
         }
 
         /// <summary>

@@ -257,9 +257,12 @@ namespace GPC.Checkers.Concrete.Piles
             return point.MxRd/NewtonMillimetresPerKilonewtonMetre;
         }
         public PileBarRun Detail(string id,double start,double end,double totalLength,IReadOnlyList<PileSectionCheck> checks)
+            =>Detail(id,start,end,totalLength,checks,geometry.Bars.Max(b=>b.Diameter),geometry.Bars.Count);
+        /// <summary>Bar run of the <paramref name="count"/> bars of diameter <paramref name="phi"/> (a ring of a section with bars of several diameters).</summary>
+        PileBarRun Detail(string id,double start,double end,double totalLength,IReadOnlyList<PileSectionCheck> checks,double phi,int count)
         {
             if(start<0||end<=start||end>totalLength)throw new ArgumentException("Quote del tratto non valide.");
-            double phi=geometry.Bars.Max(b=>b.Diameter);var profile=DetailingProfiles.Resolve(p.Standard);
+            var profile=DetailingProfiles.Resolve(p.Standard);
             var anchorage=AnchorageCalculator.Calculate(profile,new AnchorageInput(phi,p.Fyd,p.Fctk05,p.Standard.GammaC,p.GoodBond,0));
             // The generated pieces splice together in one plane. Never use a lower requested
             // percentage to shorten a grouped (100%) joint that has not been staggered.
@@ -271,7 +274,7 @@ namespace GPC.Checkers.Concrete.Piles
             // Anchorage outside the model (into the cap at the head, beyond the toe) counts as embedded length at the pile ends (PO-5).
             double headExtra=start==0?p.HeadAnchorage:0,toeExtra=end>=totalLength-1e-9?p.ToeAnchorage:0;
             bool available=start-actualStart+headExtra+1e-9>=lb+shift&&actualEnd-end+toeExtra+1e-9>=lb+shift;
-            var run=new PileBarRun{Segment=id,Count=geometry.Bars.Count,Diameter=phi,TheoreticalStart=start,TheoreticalEnd=end,Start=actualStart,End=actualEnd,Anchorage=lb,Lap=l0,RequiredLap=requiredLap,InitialLap=initialLap,Shift=shift,EndDevelopmentAvailable=available,
+            var run=new PileBarRun{Segment=id,Count=count,Diameter=phi,TheoreticalStart=start,TheoreticalEnd=end,Start=actualStart,End=actualEnd,Anchorage=lb,Lap=l0,RequiredLap=requiredLap,InitialLap=initialLap,Shift=shift,EndDevelopmentAvailable=available,
                 LapClearDistancePassed=lap.LapClearDistancePassed,
                 Status=available&&lap.LapClearDistancePassed?"Proposta: sviluppo disponibile; giunti, confinamento e disposizione da verificare":"Proposta incompleta: sviluppo o distanza di sovrapposizione insufficiente",
                 Reference=anchorage.Reference+"; "+lap.Reference+"; traslazione a_l=z cotθ/2 (EN1992-1-1 §9.2.1.3, JRC Arrieta 2011). α1…α5=1, σsd=fyd. Capacità nominale senza contributo aggiuntivo delle barre sovrapposte."};
