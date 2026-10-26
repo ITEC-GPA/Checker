@@ -1,0 +1,49 @@
+PIASTRA N-M-V - SEQUENZA AUTORIZZATA 26/10/2026
+Branch codex/steel-bridge-splices-static; un agente. Nessun merge/push/UI/FEM locale.
+
+1 FONTI E MODELLO - audit iniziale completato
+EN1993-1-8:2005 6.2.7.1(3), eq6.24, pagina85 (PDF87) verificata visivamente:
+interazione conservativa delle resistenze pure N/M. Non deriva ne' la distribuzione
+delle forze ne' la rigidezza a N significativo. La useremo come ulteriore limite.
+Jaspart/Weynand, JRC96658 (2015),3.1.4.2: identificazione, caratteristiche e
+assemblaggio dei componenti; equilibrio e compatibilita' devono essere espliciti.
+https://publications.jrc.ec.europa.eu/repository/bitstream/JRC96658/jrc_steel_report_2015_07_22.pdf
+Cerfontaine/Demonceau, ricerca ULiege sui nodi M-N: effetti di gruppo e interazioni
+nel pilastro non possono essere trascurati trasferendo le sole formule di M puro.
+https://orbi.uliege.be/bitstream/2268/132751/1/RECENT%20STUDIES%20CONDUCTED%20AT%20LIEGE%20UNIVERSITY%20IN%20THE%20FIELD%20OF%20COMPOSITE%20CONSTRUCTIONS.pdf
+
+2 EQUILIBRIO - IMPLEMENTATO,20 test indipendenti superati
+Modello analitico elastico a due gradi di liberta': apertura assiale u e rotazione
+theta, delta(z)=u+theta*z. File solo tese; due bande di contatto solo compresse,
+integrate analiticamente nella parte effettivamente chiusa. Soluzione scalare
+annidata con monotonia, residui N/M e matrice tangente simmetrica verificati.
+N positivo a trazione, M positivo tende la parte alta, z positivo verso l'alto.
+Non e' FEM locale e non comprende plasticizzazione o capacita' rotazionale.
+
+3 RESISTENZA N-M-V - da implementare
+Nuovo adattatore con tutte le file fisiche qualificate a trazione; le vecchie
+file dichiarate solo a taglio non sono promosse senza il proprio T-stub/gruppi.
+Riuso di T-stub, bulloni con inviluppo pieno Ft/prying, saldature a piena resistenza,
+percorsi nel piano. Compressione a entrambe le flange, contatto, pilastro netto,
+equilibrio dei tagli e interazione cautelativa con il pannello. Sezioni compatte
+nel campo elastico dichiarato. Le API N=0 conservano i propri contratti.
+
+4 SEGNI E LIMITI - da implementare
+N puro +/-; M puro +/-; presso/tensoflessione; due/una/nessuna banda chiusa;
+contatto parziale; N->0; passaggio delle file da inattive a tese. Equilibrio
+alle estremita' del pannello e trasporto fra faccia e centro del pilastro.
+
+5 RIGIDEZZA - da implementare separatamente dall'esito resistente
+Matrice2x2 N-M rispetto a u/theta, accoppiamento e condensazione a N costante.
+Riguarda la connessione e i componenti trasversali del pilastro; il pannello
+deve essere rappresentato separatamente nel modello globale. Qualifica per
+uso globale solo nel campo iniziale elastico, con quella evidenza e riferimento
+coerenti. Nessuna molla M/Sj, nessuna estensione tacita della legge secante N=0.
+All'origine e sulle transizioni di contatto il tangente e' direzionale.
+
+6 VALIDAZIONE E CONSEGNA - da implementare
+Oracoli indipendenti di equilibrio/sezioni/contatto, differenze finite della
+matrice, energie e casi limite EC/NTC. Esempi eseguibili e report con geometria,
+azioni, riferimenti, forze, contatti, stato resistente e stato della rigidezza
+separati. Catalogo, versioni dedicate, collaudo completo del set coerente.
+Un oracolo analitico non viene presentato come prova sperimentale dell'intero nodo.
