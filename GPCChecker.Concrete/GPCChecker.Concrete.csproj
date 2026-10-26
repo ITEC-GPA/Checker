@@ -1,14 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>0.23.0.0</Version>
+    <Version>0.24.0.0</Version>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <RootNamespace>GPC.Checker</RootNamespace>
     <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
   </ItemGroup>
+
   <ItemGroup>
     <Reference Include="DelaunayMesh">
       <HintPath>..\..\Geometry\DelaunayMesh\bin\Release\netstandard2.0\DelaunayMesh.dll</HintPath>
@@ -23,4 +26,5 @@
       <HintPath>..\..\Utilities\GPCUtilities\bin\Release\netstandard2.0\GPCUtilities.dll</HintPath>
     </Reference>
   </ItemGroup>
+
 </Project>

@@ -1,11 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>2.112.0.0</Version>
+    <Version>2.113.0.0</Version>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <RootNamespace>GPC.Checker</RootNamespace>
     <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="../src/Steel/**/*.cs" />
     <Reference Include="DelaunayMesh">
@@ -21,4 +23,5 @@
       <HintPath>..\..\Model\Model\bin\Release\netstandard2.0\GPCModel.dll</HintPath>
     </Reference>
   </ItemGroup>
+
 </Project>
