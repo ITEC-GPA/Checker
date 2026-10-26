@@ -31,7 +31,13 @@ public static class CompositeLinearStressSolver
     /// <param name="standard">Concrete standard for the native Checker context.</param>
     public static LinearAxialStressField Solve(ReinforcedConcreteSection section, double forceN, double momentNmm,
         double applicationX, double applicationY, double effectivePhi, BridgeStandard standard)
+        => Solve(section, forceN, momentNmm, applicationX, applicationY, effectivePhi, standard, null);
+
+    /// <summary>Explicit precision for a retry after an independent equilibrium audit; null preserves the native default.</summary>
+    public static LinearAxialStressField Solve(ReinforcedConcreteSection section, double forceN, double momentNmm,
+        double applicationX, double applicationY, double effectivePhi, BridgeStandard standard, double? solverTolerance)
     {
+        if (solverTolerance.HasValue) BridgeNumbers.Require(solverTolerance.Value, nameof(solverTolerance), strict: true);
         if (section is null) throw new ArgumentNullException(nameof(section));
         BridgeNumbers.Require(forceN, nameof(forceN), double.NegativeInfinity);
         BridgeNumbers.Require(momentNmm, nameof(momentNmm), double.NegativeInfinity);
@@ -47,7 +53,10 @@ public static class CompositeLinearStressSolver
         // same section are thread-safe (architecture review R7, ConcurrencyTests).
         var checker = new SectionCheckerModelCode2010(new SectionCheckerAttribute(section), options,
             standard == BridgeStandard.Ntc2018 ? new StandardNTC2018Concrete() : new StandardEN1992p11(), true, -1, new StandardEN1993p11());
-        var response = checker.SectionSolver.GetLinearStressAnalysisResult(new ResultBeamForces(forceN, 0, 0, 0, momentNmm, 0, axes), effectivePhi, 0);
+        var force = new ResultBeamForces(forceN, 0, 0, 0, momentNmm, 0, axes);
+        var response = solverTolerance.HasValue
+            ? checker.SectionSolver.GetLinearStressAnalysisResult(force, effectivePhi, 0, solverTolerance.Value)
+            : checker.SectionSolver.GetLinearStressAnalysisResult(force, effectivePhi, 0);
         var vertices = response.GetStructuralSteelVerticesTension(effectivePhi).OrderBy(v => v.point.Y).ToArray();
         if (vertices.Length < 2 || vertices.Last().point.Y <= vertices.First().point.Y)
             throw new InvalidOperationException("Almeno due quote di acciaio strutturale richieste per il campo N–Mx.");

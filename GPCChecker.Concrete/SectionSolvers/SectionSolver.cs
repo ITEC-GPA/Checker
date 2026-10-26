@@ -619,10 +619,18 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         public virtual StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces force, double psi, double? psiTendon)
         {
+            return GetLinearStressAnalysisResult(force, psi, psiTendon, _stressAnalysisTolerance);
+        }
+
+        /// <summary>Linear analysis with an explicit dimensionless solver tolerance; does not change the default of this solver.</summary>
+        public virtual StressAnalysisResult GetLinearStressAnalysisResult(ResultBeamForces force, double psi, double? psiTendon, double tolerance)
+        {
+            if (double.IsNaN(tolerance) || double.IsInfinity(tolerance) || tolerance <= 0)
+                throw new ArgumentOutOfRangeException(nameof(tolerance), "A finite positive solver tolerance is required.");
             return new StressAnalysisResult(ConcreteSection, force,
                 CalculateStrainPlaneLinearStressAnalysis(force.ConvertToForceTuple(SolverAxes),
                 _sectionOption.ForceReferenceCoordinateSystem, psi, psiTendon,
-                _stressAnalysisTolerance), this, _standard, true, psi, psiTendon, Id,
+                tolerance), this, _standard, true, psi, psiTendon, Id,
                 _standardStructuralSteel);
         }
 

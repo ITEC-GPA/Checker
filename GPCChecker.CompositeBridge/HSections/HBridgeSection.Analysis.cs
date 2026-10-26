@@ -159,10 +159,25 @@ public static partial class HBridgeSection
                 uniform = field.Stress(cy);
             }
         }
-        double calculatedN = uniform * area, calculatedM = -slope * solverInertia - calculatedN * (cy - yref);
-        double span = g.Height + g.SlabHeight;
-        double equilibrium = Math.Max(Math.Abs(calculatedN - force) / Math.Max(1, Math.Max(Math.Abs(force), Math.Abs(moment) / span)),
-            Math.Abs(calculatedM - moment) / Math.Max(1, Math.Max(Math.Abs(moment), Math.Abs(force) * span)));
+        double EquilibriumResidual()
+        {
+            double calculatedN = uniform * area, calculatedM = -slope * solverInertia - calculatedN * (cy - yref);
+            double span = g.Height + g.SlabHeight;
+            return Math.Max(Math.Abs(calculatedN - force) / Math.Max(1, Math.Max(Math.Abs(force), Math.Abs(moment) / span)),
+                Math.Abs(calculatedM - moment) / Math.Max(1, Math.Max(Math.Abs(moment), Math.Abs(force) * span)));
+        }
+        double equilibrium = EquilibriumResidual();
+        if (composite is not null && nativeSolver && (force != 0 || moment != 0)
+            && (!BridgeNumbers.IsFinite(equilibrium) || equilibrium > 1e-5))
+        {
+            // Native convergence is scaled to section capacity, while this audit is scaled to the applied loads.
+            // Very small FEM resultants may therefore be accepted as zero by the native solver. Retry only a failed
+            // audit: preserve already accepted results and the independent 1e-5 equilibrium acceptance criterion.
+            var field = CompositeLinearStressSolver.Solve(composite, force, moment, g.Width / 2, yref, homo.Item3, d.Options.Standard, 1e-12);
+            slope = field.Slope;
+            uniform = field.Stress(cy);
+            equilibrium = EquilibriumResidual();
+        }
         if (!BridgeNumbers.IsFinite(equilibrium) || equilibrium > 1e-5) throw new InvalidOperationException($"Equilibrio della fase {p.Name} non soddisfatto (residuo {equilibrium:E2}).");
         return new(p.Name, kind, force / 1000, moment / 1e6, homo.Item1, n, homo.Item4, homo.Item3,
             area, cy, inertia, uniform, slope, mat.Rebar.ElasticModulusTension / mat.Steel.ElasticModulusTension,
