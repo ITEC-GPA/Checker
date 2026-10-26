@@ -1,0 +1,89 @@
+CHIUSURA PIASTRA N-M-V - 26/10/2026
+Branch codex/steel-bridge-splices-static; un agente; nessun merge/push/UI.
+
+STATO DEI SEI PUNTI
+1 Fonti/modello: completato. EN6.24 verificata; modello supplementare elastico
+  compatibile esplicito, distinto dalla legge normativa di momento puro.
+2 Equilibrio: completato. File tese, bande compresse, contatto parziale,
+  integrazione analitica, residui, energia e tangente2x2.
+3 Resistenza: completata nel dominio documentato. N-M-V e tagli reali del
+  pilastro, inviluppi bulloni/saldature, T-stub/gruppi, contatti/pannello/sezioni.
+4 Segni/limiti: completati. N e M puri o combinati, inversioni, taglio negativo,
+  braccio faccia-asse, N->0 e rifiuti di geometrie non coperte.
+5 Rigidezza: completata nel ramo elastico locale. Matrice N-M, accoppiamento,
+  confronto con matrice globale; uso globale subordinato al pannello separato.
+6 Validazione/report/versioni: completato il candidato coerente.77 nuovi casi,
+  905 test mirati superati;11 JSON e set complessivo verificati.
+
+I punti sono chiusi nel perimetro END_PLATE_NMV_USAGE.txt: NON si dichiara
+coperta ogni piastra con N!=0. Rimangono fuori: una sola fila; file vicine alla
+flangia opposta fuori dal modello delle linee plastiche; classe4; giochi iniziali;
+pilastro irrigidito/bilaterale; azioni3D; legge nonlineare/rotazione ultima,
+fatica e stabilita' delle aste. Nessun benchmark sperimentale dell'intero nodo
+e' stato introdotto: gli oracoli sono analitici/numerici indipendenti.
+
+COMMIT IMPLEMENTAZIONE E VERSIONI
+cf57db5b equilibrio unilaterale; 9b6f963d versione Steel2.105.
+cff42446 verifiche N-M-V e tagli effettivi; 04941a5a versione Steel2.106.
+35903343 rigidezza, report, limiti e test; 978472e5 versioni del set2.107.
+Il candidato e' costruito sul commit:
+978472e592184bac2a3f36cba54d228b8a32656d
+L'eventuale commit di questo checkpoint aggiorna solo la documentazione e non
+cambia l'identita' del codice gia' collaudato. Nessun atteso legacy o allowlist
+e' stato modificato. Model resta sul commit:
+2acc60efad0924b9b05aafdd75588f13842904a1
+
+COLLAUDO COMPLETO
+Model: 1493 superati, 0 falliti, 3 altri/non eseguiti
+Checker: 8758 superati, 0 falliti, 0 altri/non eseguiti
+
+Repo     Suite                            Passed Failed Other
+Model    Model.Core.Tests                     34      0      0
+Model    UnitTest                           1459      0      3
+Checker  GPCChecker.Test.Concrete            905      0      0
+Checker  GPCChecker.Test.Steel               122      0      0
+Checker  GPCChecker.Test.CompositeBridge     391      0      0
+Checker  GPCChecker.Test.Geotechnics         193      0      0
+Checker  GPCChecker.Test.Calculation         175      0      0
+Checker  ShallowFoundation.Tests              28      0      0
+Checker  EmbeddedWalls.Tests                  99      0      0
+Checker  Steel.Members.Tests                6155      0      0
+Checker  Design.Checks                       109      0      0
+Checker  Design.Checks.net472                108      0      0
+Checker  ModelChecker.Tests                  473      0      0
+
+I tre casi non eseguiti sono quelli nativi Straus7 gia' presenti:
+NativeLinearStaticBenchmark_EquilibriumAndMembraneResultants
+EightNativePairsKeepGeometryAndGlobalActionSigns
+NativeAssignments_LoadsAndGravityBalanceTheSolverReactions
+Le suite net472 previste dal repository sono incluse. Le verifiche API sono
+incluse nel successo di build/Release-Set.ps1 e dei due Verify.ps1.
+
+DLL E VERSIONI
+GPCUtilities.dll                 3.0.0.0      SHA verificato; cambiato=False
+GPCGeometry.dll                  2.3.0.0      SHA verificato; cambiato=False
+DelaunayMesh.dll                 2.0.0.14     SHA verificato; cambiato=False
+GPCModel.dll                     5.21.0.1     SHA verificato; cambiato=False
+GPCModelData.dll                 0.3.0.2      SHA verificato; cambiato=False
+GPC.Model.Persistence.dll        3.3.0.2      SHA verificato; cambiato=False
+GPC.Converter.dll                2.6.0.2      SHA verificato; cambiato=False
+GPCChecker.Concrete.dll          0.22.0.0     SHA verificato; cambiato=True
+GPCChecker.Steel.dll             2.107.0.0    SHA verificato; cambiato=True
+GPCChecker.CompositeBridge.dll   1.17.0.0     SHA verificato; cambiato=True
+GPCChecker.Geotechnics.dll       0.21.0.0     SHA verificato; cambiato=True
+GPCModelChecker.dll              2.27.0.0     SHA verificato; cambiato=True
+GPCChecker.Masonry.dll           0.8.0.0      SHA verificato; cambiato=True
+GPC.Design.dll                   0.39.0.0     SHA verificato; cambiato=True
+14 DLL: hash ricalcolato sui file confezionati e confrontato con il manifest;
+ogni DLL diversa dal candidato2.104 ha versione maggiore. Le versioni delle
+altre DLL Checker identificano il rebuild coerente e i metadati di sorgente,
+senza nuove modifiche ai loro algoritmi di calcolo.
+
+ARTEFATTI LOCALI
+Manifest: C:\Users\g.pacini\Documents\ChatGPT\Checker\audit-results\connections\endplate-nmv\candidate-steel-2.107\release-set.json
+Audit: C:\Users\g.pacini\Documents\ChatGPT\Checker\audit-results\connections\endplate-nmv\candidate-audit.json
+Log completo: C:\Users\g.pacini\Documents\ChatGPT\Checker\audit-results\connections\endplate-nmv\candidate-2.107.log
+Test mirati: C:\Users\g.pacini\Documents\ChatGPT\Checker\audit-results\connections\endplate-nmv\nmv-final-regression.trx
+Esempi: C:\Users\g.pacini\Documents\ChatGPT\Checker\audit-results\connections\endplate-nmv\examples
+Il set e' marcato CANDIDATE, non pubblicato/installato in ANTHEA. Non sono
+stati eseguiti merge o push. Al termine non sono lasciati test in esecuzione.

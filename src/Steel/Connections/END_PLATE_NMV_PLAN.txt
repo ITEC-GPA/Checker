@@ -41,7 +41,7 @@ uso globale solo nel campo iniziale elastico, con quella evidenza e riferimento
 coerenti. Nessuna molla M/Sj, nessuna estensione tacita della legge secante N=0.
 All'origine e sulle transizioni di contatto il tangente e' direzionale.
 
-6 VALIDAZIONE E CONSEGNA - test mirati e report completati; set completo in preparazione
+6 VALIDAZIONE E CONSEGNA - COMPLETATA nel dominio documentato
 Oracoli indipendenti di equilibrio/sezioni/contatto, differenze finite della
 matrice, energie e casi limite EC/NTC. Esempi eseguibili e report con geometria,
 azioni, riferimenti, forze, contatti, stato resistente e stato della rigidezza
@@ -64,4 +64,4 @@ piastre/T-stub/pilastro/report.11 JSON esportati (8 casi normativi/geometrici,
 Nessuna fixture o allowlist legacy modificata. AtLeastTwoPhysicalTensionRows
 impedisce l'ingresso di una configurazione a una fila nel solutore a due file.
 Dettagli del metodo e limiti in END_PLATE_NMV_USAGE.txt; esito del set complessivo
-e versioni verranno registrati nel checkpoint finale dopo il collaudo.
+e versioni sono registrati in END_PLATE_NMV_CHECKPOINT_2026_10_26.txt.
