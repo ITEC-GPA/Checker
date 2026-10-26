@@ -1,0 +1,64 @@
+TERMINALE STANDARD2L TESO - MODELLO CONVENZIONALE, 26/10/2026
+
+API: BraceAnglePairStandardTension.Verify, BraceAnglePairBlockHierarchy.Verify.
+Due L identiche riflesse, una fila longitudinale di almeno3 bulloni passanti
+attraverso i lati collegati e il fazzoletto centrale, contatto diretto senza
+compensatori; categoriaA, sola trazione, fori normali, statica ordinaria.
+Geometria/materiali/assi locali provengono dallo snapshot Model; il riparto
+esplicito N/2+N/2 deve coincidere con il caso concomitante originale.
+
+MODELLO E LIMITI
+EN1993-1-8:2005 2.7(2), p19/PDF21, rimanda per gli angolari tesi collegati
+su un lato al metodo semplificato3.10.3, p33/PDF35. Si adotta il modello
+convenzionale del collegamento simmetrico a doppio taglio con tale riduzione
+applicata SEPARATAMENTE a ciascuna L, incluse beta3 e sezione equivalente
+quando il lato collegato e' quello corto. Non si usa l'area netta complessiva
+senza riduzione. NTC: modello EC complementare, coefficienti dei materiali NTC.
+
+Il modello non e' una soluzione esplicita di contatto/prying o di rigidezza:
+SolvesLocalContactOrPrying=false. I sei termini di ogni azione trasportata
+rimangono identici nei risultati dei componenti. I loro momenti locali non
+vengono cancellati o dichiarati nulli. La nuova API qualifica il solo modello
+convenzionale dichiarato; non modifica il significato delle API3D precedenti.
+La scelta di questo modello per2L riflesse e' una composizione ingegneristica
+del metodo per la singola L e del doppio taglio, non una nuova formula EC o
+una prova sperimentale della risposta locale. Esclusi carichi esterni assiali
+dei bulloni, riparti disuguali, compressione, giunti aT e appoggi generici.
+
+Eccentricita' NEL PIANO: mantenuti N*e, singole forze trasversali dei bulloni,
+rifollamento di ogni lamiera, area/baricentro/inerzia netta reali del fazzoletto.
+La mezzeria del fazzoletto/collettore deve allinearsi con l'asse delle L:
+lever + width/2 - negativeEdge =0, anche a carico nullo.
+Con forze collineari: strappo da carico reale gia' presente.
+Negli altri casi: gerarchia sufficiente blocchi/bulloni, tutti i percorsi
+rettangolari U/L, entrambi gli assi e versi, prefissi e sottoinsiemi contigui.
+Rblock=0.5 Ant fu/gammaM2+Anv fy/(sqrt(3) gammaM0).
+Domanda gerarchica= SOMMA resistenze NON ridotte dei piani di taglio racchiusi;
+un piano per ciascuna L, due per il fazzoletto, nessuna cancellazione.
+I percorsi delle L si fermano alle tangenti reali raccordo/bordo. Si include
+un bordo libero longitudinale artificiale, che elimina materiale resistente.
+Gerarchia non soddisfatta => metodo non applicabile, NON collasso a carico.
+Non e' una formula generale d'interazione allo strappo per forze oblique.
+
+CHIUSURA DEL PERCORSO
+Fazzoletto e collettore rettangolari di identiche larghezza/spessore/mezzeria,
+senza diffusione inventata. CJP fuori dalla sovrapposizione e oltre il termine
+libero delle L: distanza>(n-1)p/2+AngleEnd. Intera larghezza e spessore fusi,
+metallo compatibile, WPS/preparazione/ispezione documentati. CJP verificata
+come parte piu' debole (EN4.7.1/NTC4.2.8.2.1), snervamento e rottura
+conservativa0.9fu della prosecuzione. Taglio effettivo del collettore con
+lo stesso N e cinque altre azioni esattamente nulle. Nessuna tolleranza
+elimina sollecitazioni fisiche piccole. Il confine termina al taglio del
+collettore; non include successivo attacco a una trave/pilastro o asta completa.
+
+FONTI E TEST
+Norma locale verificata: EN1993-1-8:2005 paragrafi2.7,3.10.2,3.10.3,4.7.1.
+Confronto qualitativo di tipologia: F.Wald, JRC workshop2014, esempio2L80x6
+con fazzoletto centrale, PDF pp39-43:
+https://eurocodes.jrc.ec.europa.eu/sites/default/files/2022-06/06_Eurocodes_Steel_Workshop_WALD.pdf
+NON si presenta quell'esempio come benchmark quantitativo del nuovo terminale:
+usa bulloni5.6 e resistenza delle sezioni con ipotesi diverse dal nostro beta3.
+Test nuovi: beta3/Anet manuali per ciascunaL; equilibrio indipendente N*e;
+gerarchia con geometria manuale; EC/NTC, carico nullo, momenti infinitesimi,
+debolezza del collettore, sovraccarico, saldatura incompleta, fuori-campo e
+fallimento gerarchico distinto da rottura effettiva. Fixture legacy immutate.
