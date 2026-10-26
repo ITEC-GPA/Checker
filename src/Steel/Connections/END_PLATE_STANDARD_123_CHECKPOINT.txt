@@ -1,0 +1,61 @@
+CHECKPOINT PIASTRE STANDARD1/2/3 - 26/10/2026
+
+Branch codex/steel-bridge-splices-static; un agente. Fase4 non avviata.
+Sorgenti e versioni committate; nessun merge/push/rilascio o modifica ANTHEA.
+
+AVANZAMENTO
+1. Implementati meccanismi SCI con entrambe le ali e gruppi, derivazione alfa
+   esplicita e fila unica fra i contatti.28 nuovi casi. Pilastri irrigiditi,
+   nodi bilaterali e piu' file nella medesima zona d'influenza restano fuori campo.
+2. Completati22 confronti numerici indipendenti EC/NTC del nodo completo,
+   inclusi contatti parziali, alta utilizzazione e superamento dei limiti.
+   Il riscontro sperimentale completo rimane aperto: i provini documentati
+   esaminati non coincidono con il dominio. Nessun atteso sperimentale inventato.
+3. StandardEndPlate.Verify riceve dettaglio fisico e vere azioni FEM, prepara
+   internamente i componenti e restituisce resistenza/rigidezza/report distinti.
+   25 nuovi test applicativi.8 rapporti JSON esportati e riletti nei test.
+Totale75 nuovi casi;980/980 nella regressione pertinente.
+
+COMMIT
+3ab54d77: entrambe le ali, alfa SCI e fila unica.
+23653352: versione Steel2.108.0.0 dedicata.
+0ff83634: oracolo esterno,22 test e audit delle pubblicazioni.
+867060e3: API unica, report, catalogo e contratto applicativo.
+7b82882f: Steel2.109.0.0 e versioni del set Checker ricompilato.
+
+SET CANDIDATO VERIFICATO
+C:\Users\g.pacini\Documents\ChatGPT\Checker\audit-results\connections\endplate-standard-123\candidate-steel-2.109\release-set.json
+Prodotto da build/Release-Set.ps1 -Candidate da checkout puliti e CRLF.
+Confronto con candidate-steel-2.107:14 hash SHA256 verificati sulle DLL;
+ogni DLL cambiata ha una versione maggiore. Model/Geometry/Utilities invariati.
+
+Model: 1493Passed, 0Failed, 3Other.
+Checker: 8833Passed, 0Failed, 0Other.
+
+I tre Other Model sono prove native Straus7 non eseguite, come nel set precedente:
+  EightNativePairsKeepGeometryAndGlobalActionSigns
+  NativeAssignments_LoadsAndGravityBalanceTheSolverReactions
+  NativeLinearStaticBenchmark_EquilibriumAndMembraneResultants
+
+VERSIONI EFFETTIVE
+GPCUtilities.dll: 3.0.0.0; cambiata=False
+GPCGeometry.dll: 2.3.0.0; cambiata=False
+DelaunayMesh.dll: 2.0.0.14; cambiata=False
+GPCModel.dll: 5.21.0.1; cambiata=False
+GPCModelData.dll: 0.3.0.2; cambiata=False
+GPC.Model.Persistence.dll: 3.3.0.2; cambiata=False
+GPC.Converter.dll: 2.6.0.2; cambiata=False
+GPCChecker.Concrete.dll: 0.23.0.0; cambiata=True
+GPCChecker.Steel.dll: 2.109.0.0; cambiata=True
+GPCChecker.CompositeBridge.dll: 1.18.0.0; cambiata=True
+GPCChecker.Geotechnics.dll: 0.22.0.0; cambiata=True
+GPCModelChecker.dll: 2.28.0.0; cambiata=True
+GPCChecker.Masonry.dll: 0.9.0.0; cambiata=True
+GPC.Design.dll: 0.40.0.0; cambiata=True
+
+RIFERIMENTI
+END_PLATE_STANDARD_123.txt: sottopassi e perimetro.
+END_PLATE_INDEPENDENT_VALIDATION.txt: oracolo, fonti e limiti sperimentali.
+END_PLATE_APPLICATION_USAGE.txt: input/output, esempi, assi e unità.
+END_PLATE_NMV_USAGE.txt: modello elastico, interazioni e campo della matrice.
+Nessuna modifica a fixture/attesi legacy o known-failures.json.
