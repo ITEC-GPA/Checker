@@ -1,0 +1,26 @@
+COPRIGIUNTI - DIMENSIONI INDIPENDENTI DELLE FACCE
+
+Opt-in SpliceFlangeFaceModel.IndependentFaceDimensions.
+Le policy precedenti conservano il vincolo di uguale spessore.
+Si usa lo stesso modello statico convenzionale a due membrane, con le quote
+REALI delle facce, non la ripartizione N/2 o proporzionale alle aree.
+Fo+Fi=N; -yo*Fo-yi*Fi=M. Per l'ala superiore yo=(tf+to)/2,
+yi=-(tf+ti)/2; per l'inferiore i segni si invertono.
+Si conserva il momento proprio dell'ala della sezione madre. La soluzione
+indipendente E[[A,S],[S,I]]*(epsilon,kappa)=(N,-M) controlla l'equilibrio.
+Ogni piano di taglio, interfaccia di attrito e lamiera usa la propria forza
+e la propria geometria. Nessuna resistenza viene aumentata da una somma
+indiscriminata dei due piani. Tutte le verifiche di sezione, fori, blocchi,
+stabilita', dettaglio e saldature longitudinali rimangono obbligatorie.
+
+Riferimenti: EN1993-1-8:2005 2.5/3.12 (ipotesi di distribuzione ed equilibrio);
+SCI P357, esempio1, sezione12 (coprigiunti di travi composte da ponte);
+SCI P398 sezione4.2 (componenti del giunto). L'estensione a spessori diversi
+e' una scelta esplicita del modello statico a membrane della libreria,
+non una formula o un benchmark sperimentale attribuito a quelle guide.
+Campo: coprigiunti compatti continui a contatto diretto con le ali, materiale
+uguale sulle due facce, due piatti interni identici e gruppi centrati, fori
+normali e nessuna azione imposta lungo l'asse del bullone. Parti madri uguali.
+Non risolve contatto/prying o rigidezza del nodo; niente spessori compensatori,
+transizioni delle sezioni madri, lamiere snelle/forate di classe4 o fatica.
+Queste estensioni restano aperte e non sono sbloccate dal nuovo selettore.

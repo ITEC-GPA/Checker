@@ -91,7 +91,7 @@ namespace GPC.Checkers.Steel.Connections
         public bool CoversFatigue => false;
         public bool CalculatesRotationalStiffness => false;
         public bool CertifiesExecution => false;
-        public string Scope => "Static resistance of the declared equal-thickness welded-I double-cover typology (face model: " + Input.FaceModel + ") under the supplied concomitant ULS/SLS cases. "
+        public string Scope => "Static resistance of the declared welded-I double-cover typology (face model: " + Input.FaceModel + ") under the supplied concomitant ULS/SLS cases. "
             + "Includes bolts/bearing, selected slip category, gross/net plates, selected collinear block checks/hierarchy, compact-cover stability, gross/net parent section and continuous longitudinal fillets. "
             + "Conditional on declared execution and structural continuity/second-order analysis. Linked whole-member outcomes are separate; no fatigue or rotational stiffness calculation.";
         internal WeldedIBeamSpliceStandardResult(WeldedIBeamSpliceStandardInput input, IEnumerable<WeldedSpliceStandardCaseResult> cases,

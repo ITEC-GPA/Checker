@@ -5,11 +5,11 @@ using GPC.Checkers.Steel.Sections;
 
 namespace GPC.Checkers.Steel.Connections
 {
-    public enum SpliceFlangeFaceModel { BalancedEqualFaces, EqualThicknessIndependentWidths }
+    public enum SpliceFlangeFaceModel { BalancedEqualFaces, EqualThicknessIndependentWidths, IndependentFaceDimensions }
 
-    /// <summary>Applicability of the conventional equal-thickness double-cover model.
-    /// Equal areas remain the default; independent widths are explicitly selected.
-    /// Both models require identical materials and centred inner-strip bolt
+    /// <summary>Applicability of the conventional two-membrane double-cover model.
+    /// Equal thickness/areas remain the default; independent widths or dimensions are explicitly selected.
+    /// All models require identical materials and centred inner-strip bolt
     /// groups, no packing, contact bearing or externally applied bolt-axis load.
     /// Unequal TOP/BOTTOM parent flanges are permitted. No rotational stiffness calculation.</summary>
     public static class WeldedIBeamSpliceStandardModel
@@ -35,17 +35,17 @@ namespace GPC.Checkers.Steel.Connections
             {
                 FaceStiffness(d.Top, d.Section.TopFlange, true); FaceStiffness(d.Bottom, d.Section.BottomFlange, false);
                 checks.Add(new ConnectionCheck("ForceModel.Equilibrium", 0, 1,
-                    "EN1993-1-8:2005 2.5,3.12; SCI P357 section12; equal-thickness double-cover idealisation", "1"));
+                    "EN1993-1-8:2005 2.5,3.12; SCI P357 section12; declared two-face membrane double-cover idealisation", "1"));
             }
             return new ConnectionVerification<WeldedIBeamSpliceDetailInput>(p, b.Code,
                 "Steel.Connection.WeldedIBeamSplice.StandardModel",
                 "Applicability of the declared aligned double-cover static force model: " + faceModel + "; not resistance or rotational stiffness.",
                 checks, trace, issues.Distinct(), new[] {
                     "SCI P357 example1 section12.7 p60 uses half flange load on each face and verifies the actual inner strip areas separately. EqualThicknessIndependentWidths extends the conventional equal-thickness double-lap model to independent widths with symmetric inner strips; no force-proportional-to-area redistribution is made.",
-                    "BalancedEqualFaces retains the 2.90 equal-area restriction. Both modes require identical thickness and material on the two flange faces, centred inner-strip bolt groups and every actual gross/net/block/stability/detail check.",
+                    "BalancedEqualFaces retains the2.90 equal-area/equal-thickness restriction; EqualThicknessIndependentWidths retains equal thickness. IndependentFaceDimensions explicitly permits unequal face thickness using actual centre-plane offsets. All modes require identical material, centred inner-strip bolt groups and every actual gross/net/block/stability/detail check.",
                     "The independent two-line membrane stiffness system E[[A,S],[S,I]]*(epsilon0,kappa)=(N,-M) reproduces both face forces and retains parent flange self-bending. I excludes each cover own bending inertia: the physical idealisation is axial membranes at their centroids. The nonzero face strain gradient is reported, not forced to zero or used as proof of contact compatibility.",
                     "No continuous equal-strain bond between parent and covers is assumed. Bolt shear and bearing, slip, actual plate areas, outstands, net sections and parent welds are verified separately. This remains a conventional static double-lap model; it does not solve local contact/plate lifting or supply rotational stiffness.",
-                    "Contact-face transport couples alone are not an externally applied bolt tension. This conventional symmetric double-lap model does not solve contact, prying, packing or plate lifting. Those details must use another method.",
+                    "Contact-face transport couples alone are not an externally applied bolt tension. This conventional double-lap membrane model does not solve contact, prying, packing or plate lifting. Those details must use another method.",
                     "All covers are continuous, flat and in contact with the parent. No packings, stiffener cut-outs, notches, weld reinforcement, credits for butt contact, section changes or out-of-plane actions are modelled.",
                     "The structural analysis must justify continuity, restraints and second-order actions separately. This assessment supplies no rotational stiffness or fatigue qualification." });
 
@@ -79,7 +79,8 @@ namespace GPC.Checkers.Steel.Connections
             }
             void Flange(SpliceFlangeCoverDetail x, string name)
             {
-                if (x.Outer.Thickness != x.EachInner.Thickness || faceModel == SpliceFlangeFaceModel.BalancedEqualFaces && x.Outer.Width != 2 * x.EachInner.Width)
+                if (faceModel != SpliceFlangeFaceModel.IndependentFaceDimensions && x.Outer.Thickness != x.EachInner.Thickness
+                    || faceModel == SpliceFlangeFaceModel.BalancedEqualFaces && x.Outer.Width != 2 * x.EachInner.Width)
                     issues.Add(name + ".BALANCED_FACE_THICKNESS_AND_AREA_REQUIRED");
                 if (x.Outer.Fy != x.EachInner.Fy || x.Outer.Fu != x.EachInner.Fu)
                     issues.Add(name + ".IDENTICAL_FACE_MATERIAL_REQUIRED");
