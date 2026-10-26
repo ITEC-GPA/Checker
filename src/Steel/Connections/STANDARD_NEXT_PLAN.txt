@@ -26,7 +26,7 @@ An*min(fy/gammaM0,fu/gammaM2)/sqrt(3), non una formula normativa di trazione
 fuori piano. Fattori delle piastre distinti da quelli di bulloni/rifollamento.
 https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
 
-1b IN CORSO - SUPPORTO, CONTATTO ED EQUILIBRIO
+1b IMPLEMENTATO - SUPPORTO, CONTATTO ED EQUILIBRIO
 Vincolare il nodo monolaterale allo stato concomitante del pilastro e verificare
 le tensioni longitudinali realmente usate nei componenti. Contatto compresso e
 introduzione attraverso un dettaglio di saldatura esplicito.
@@ -41,3 +41,12 @@ Dettaglio circoscritto, domanda con imperfezioni comune al percorso bullonato,
 cordoni piu' pareti dei correnti e blocco. Nessuna qualifica delle sei azioni generiche.
 4 IN CORSO - CONSEGNA
 Aggiornamento a ogni blocco; versione dedicata e collaudo finale del set.
+
+COLLAUDO1b:73 test pertinenti superati,14 nuovi casi. EndPlateColumnCase lega
+le azioni superiore/inferiore proiettate allo stesso riferimento del nodo:
+DeltaN=-Vtrave,DeltaM=Mtrave,DeltaV=0. Geometria netta a rettangoli senza raccordi
+benefici; baricentro/inerzia ricalcolati dopo i due fori nell'ala caricata.
+Il limite elastico conservativo e il contatto sono calcolati; la tensione
+longitudinale e beta del componente devono inviluppare lo stato effettivo.
+Contatto centrato/chiuso misurato; resistenza a momento limitata anche dall'area
+di contatto. Non e' la verifica di stabilita' del pilastro o del telaio.
