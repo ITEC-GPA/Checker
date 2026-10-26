@@ -85,6 +85,13 @@ namespace GPC.Checkers.Steel.Connections
             {
                 var b = c.Input.Parents.Detail.Plates.Bolts;
                 cases.Add(new SpliceReportCase(c.Input.Id, b.UltimateCombinationSource, b.Code, b.Detail.Actions, values: BoltedValues(c.Input.Parents)));
+                if (c.EffectiveCompression != null)
+                {
+                    notes.Add(c.Input.Id + ":Plate stability:" + result.Input.PlateStability);
+                    foreach (var t in c.EffectiveCompression.Trace.Where(t => t.Name.EndsWith(".EffectiveArea")
+                        || t.Name.EndsWith(".EffectiveNetArea") || t.Name.EndsWith(".Chi") || t.Name.EndsWith(".IsLocallyReduced")))
+                        notes.Add(c.Input.Id + ":" + t.Name + "=" + t.Value.ToString("R", System.Globalization.CultureInfo.InvariantCulture) + " " + t.Unit);
+                }
                 foreach (var t in c.Model.Trace.Where(t => t.Name.Contains(".FaceModel.")))
                     notes.Add(c.Input.Id + ":" + t.Name + "=" + Number(t.Value) + " " + t.Unit);
                 notes.Add("gammaM1 plates=" + Number(c.Input.Parents.Detail.Plates.Policy.GammaM1));

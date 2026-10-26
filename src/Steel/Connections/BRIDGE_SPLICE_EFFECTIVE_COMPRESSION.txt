@@ -1,0 +1,51 @@
+COPRIGIUNTI: COMPRESSIONE EFFICACE - 26/10/2026
+
+Entrata: SplicePlateStabilityMethod.EffectiveCompression, parametro esplicito
+di WeldedIBeamSpliceStandardInput e BridgeSpliceApplication.CreateBolted.
+Gli overload precedenti mantengono CompactCovers e i relativi limiti.
+
+Campo: coprigiunti regolari gia' ammessi dal modello standard, fori normali
+occupati dai bulloni, medesime geometrie e verifiche complete del giunto.
+Sbalzi e strisce interne compressi possono essere localmente di classe4
+SOLTANTO se V=0 esatto in ogni taglio di quel coprigiunto. Non si azzerano
+piccole forze e non si esentano i controlli di piastre, bulloni o dettagli.
+La piastra d'anima puo' avere taglio se i suoi elementi non sono ridotti e
+se rispetta il dominio separato di assenza di instabilita' a taglio.
+
+Fonti primarie lette e formule controllate sul PDF:
+- EN1993-1-8:2005 Tabella3.3 nota2: instabilita' locale tra bulloni con
+  Lcr=0.6p1; controllo degli sbalzi secondo EN1993-1-1.
+- EN1993-1-1:2005 6.3.1.1(3), Eq6.48 e 6.3.1.2, p57 stampata/PDF59:
+  Nb,Rd=chi*Aeff*fy/gammaM1; lambda=sqrt(Aeff*fy/Ncr), Ncr su sezione lorda.
+- EN1993-1-5:2006 4.4, Tabelle4.1/4.2: larghezze efficaci; unico kernel
+  EffectivePlateReduction gia' condiviso da Steel e CompositeBridge.
+- SCI P398 p57 stampata/PDF65: coprigiunto compresso, curva c,
+  Lcr=0.6*max(p1lap,p1attraversogiunto); fori normali occupati.
+  L'estensione alla classe4 usa le precedenti prescrizioni EC, non e'
+  attribuita a un esempio SCI che tratta solo le classi1-3.
+
+Modello conservativo dichiarato: ogni elemento di una piastra con almeno
+una fibra compressa viene ridotto per compressione uniforme a fy. Nessun
+credito per zone tese o tensione inferiore. Integra gli intervalli efficaci
+per area, baricentro e inerzia. Deduce dalle bande mantenute solo la loro
+intersezione con i fori reali. Trasporta M al baricentro efficace/netto.
+Conserva le fibre estreme fisiche come limite cautelativo e confronta la
+massima compressione efficace con fy/gammaM0 e chi*fy/gammaM1.
+Ncr usa l'inerzia debole lorda; la snellezza classe4 usa Aeff.
+Il criterio elastico netto supplementare mantiene min(fy/gammaM0,
+0.9fu/gammaM2), e non viene presentato come legge plastica di rottura.
+NTC2018: stesso modello EC complementare con coefficienti della policy NTC.
+
+Non e' il modello di una lastra libera forata: assenti tagli vuoti, vincoli
+continui inventati tra bulloni, interazione generale classe4+taglio e
+trasferimenti fuori piano. Tali casi restano NotSupported.
+
+Oracolo indipendente: piatto400x7 S355, due linee a +/-45mm, fori18mm,
+p=70mm, E=210000MPa. Sbalzo155mm, lambda_p=1.461373863291556,
+rho=0.596256683412170; Aeff=1923.877003004408mm2,
+Anet,eff=1671.877003004408mm2, Ieff=12110291.138332317mm4,
+Inet,eff=11593187.138332317mm4, lambda=0.225479034172598,
+chi=0.987026207056866. Integrali rettangolari e formule EC indipendenti
+dagli attesi delle fixture esistenti. Nuova suite23 casi; regressione
+Splice919/919 superata. EC/NTC, A/B/C, tensione, compressione infinitesima,
+sovraccarico, geometria, taglio +/-infinitesimo e propagazione nel report.

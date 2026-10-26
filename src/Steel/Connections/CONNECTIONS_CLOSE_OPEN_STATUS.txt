@@ -30,7 +30,11 @@ nullo in OGNI sezione del coprigiunto. Nessuna tolleranza azzera una forza.
 Resistenza netta/grossa, blocchi, dettagli e instabilita' da compressione
 restano attivi. Sei nuovi test:EC/NTC, area forata manuale, +/-1e-15 di taglio,
 sovraccarico. Commit8ac45f5c, versione2.115.0.1 da5d8a90.
-Non chiusa la classe4 compressa o la lastra forata con taglio non nullo.
+AGGIORNAMENTO: EffectiveCompression chiude il percorso di compressione
+efficace degli sbalzi/strisce, con Aeff, inerzia netta efficace e chi su Ncr
+lordo.23 nuovi test, regressione Splice919/919. Vedi
+BRIDGE_SPLICE_EFFECTIVE_COMPRESSION.txt. Restano fuori campo la classe4
+compressa con taglio concomitante e le lastre sensibili a instabilita' a taglio.
 
 4. DOPPIO ANGOLARE: COMPLETATI ULTERIORI COMPONENTI, NODO ANCORA PARZIALE
 DoubleAngleCleatColumnWeb aggiunge rifollamento dell'anima del pilastro,

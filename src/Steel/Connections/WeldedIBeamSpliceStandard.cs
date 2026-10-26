@@ -15,6 +15,8 @@ namespace GPC.Checkers.Steel.Connections
             Id = id; Parents = parents ?? throw new ArgumentNullException(nameof(parents));
         }
     }
+    public enum SplicePlateStabilityMethod { CompactCovers, EffectiveCompression }
+
     public enum SpliceBlockVerificationMethod { FastenerHierarchy, ActualCollinearForcesWithHierarchyFallback }
 
     public sealed class WeldedIBeamSpliceStandardInput
@@ -23,6 +25,7 @@ namespace GPC.Checkers.Steel.Connections
         public WeldedIBeamSpliceEnvelopeInput Envelope { get; }
         public SpliceBlockVerificationMethod BlockMethod { get; }
         public SpliceFlangeFaceModel FaceModel { get; }
+        public SplicePlateStabilityMethod PlateStability { get; }
         public WeldedIBeamSpliceStandardInput(IEnumerable<WeldedSpliceStandardCase> ultimateCases, SpliceBoltCategory category,
             IEnumerable<WeldedSpliceSlipCase> slipCases = null)
             : this(ultimateCases, category, slipCases, SpliceBlockVerificationMethod.FastenerHierarchy) { }
@@ -31,7 +34,13 @@ namespace GPC.Checkers.Steel.Connections
             : this(ultimateCases, category, slipCases, blockMethod, SpliceFlangeFaceModel.BalancedEqualFaces) { }
         public WeldedIBeamSpliceStandardInput(IEnumerable<WeldedSpliceStandardCase> ultimateCases, SpliceBoltCategory category,
             IEnumerable<WeldedSpliceSlipCase> slipCases, SpliceBlockVerificationMethod blockMethod, SpliceFlangeFaceModel faceModel)
+            : this(ultimateCases, category, slipCases, blockMethod, faceModel, SplicePlateStabilityMethod.CompactCovers) { }
+        public WeldedIBeamSpliceStandardInput(IEnumerable<WeldedSpliceStandardCase> ultimateCases, SpliceBoltCategory category,
+            IEnumerable<WeldedSpliceSlipCase> slipCases, SpliceBlockVerificationMethod blockMethod, SpliceFlangeFaceModel faceModel,
+            SplicePlateStabilityMethod plateStability)
         {
+            if (!Enum.IsDefined(typeof(SplicePlateStabilityMethod), plateStability)) throw new ArgumentOutOfRangeException(nameof(plateStability));
+            PlateStability = plateStability;
             if (!Enum.IsDefined(typeof(SpliceFlangeFaceModel), faceModel)) throw new ArgumentOutOfRangeException(nameof(faceModel));
             FaceModel = faceModel;
             if (!Enum.IsDefined(typeof(SpliceBlockVerificationMethod), blockMethod)) throw new ArgumentOutOfRangeException(nameof(blockMethod));
@@ -50,8 +59,11 @@ namespace GPC.Checkers.Steel.Connections
         public ConnectionVerification<WeldedIBeamSpliceDetailInput> Model { get; }
         public WeldedIBeamSpliceStandardPlateResult AdditionalPlates { get; }
         public WeldedIBeamSpliceParentResult Parents { get; }
-        internal WeldedSpliceStandardCaseResult(WeldedSpliceStandardCase input, WeldedSpliceUltimateCaseResult components, SpliceBlockVerificationMethod blockMethod, SpliceFlangeFaceModel faceModel)
+        public ConnectionVerification<WeldedIBeamSpliceDetailInput> EffectiveCompression { get; }
+        internal WeldedSpliceStandardCaseResult(WeldedSpliceStandardCase input, WeldedSpliceUltimateCaseResult components, SpliceBlockVerificationMethod blockMethod, SpliceFlangeFaceModel faceModel, SplicePlateStabilityMethod plateStability)
         {
+            EffectiveCompression = plateStability == SplicePlateStabilityMethod.EffectiveCompression
+                ? WeldedIBeamSpliceEffectiveCompression.Verify(input.Parents.Detail) : null;
             Input = input; Components = components; Model = WeldedIBeamSpliceStandardModel.Verify(input.Parents.Detail, faceModel);
             AdditionalPlates = WeldedIBeamSpliceStandardPlates.Verify(input.Parents.Detail, blockMethod == SpliceBlockVerificationMethod.ActualCollinearForcesWithHierarchyFallback, faceModel); Parents = WeldedIBeamSpliceParents.Verify(input.Parents);
         }
@@ -92,7 +104,7 @@ namespace GPC.Checkers.Steel.Connections
         public bool CalculatesRotationalStiffness => false;
         public bool CertifiesExecution => false;
         public string Scope => "Static resistance of the declared welded-I double-cover typology (face model: " + Input.FaceModel + ") under the supplied concomitant ULS/SLS cases. "
-            + "Includes bolts/bearing, selected slip category, gross/net plates, selected collinear block checks/hierarchy, compact-cover stability, gross/net parent section and continuous longitudinal fillets. "
+            + "Includes bolts/bearing, selected slip category, gross/net plates, selected collinear block checks/hierarchy, cover stability (" + Input.PlateStability + "), gross/net parent section and continuous longitudinal fillets. "
             + "Conditional on declared execution and structural continuity/second-order analysis. Linked whole-member outcomes are separate; no fatigue or rotational stiffness calculation.";
         internal WeldedIBeamSpliceStandardResult(WeldedIBeamSpliceStandardInput input, IEnumerable<WeldedSpliceStandardCaseResult> cases,
             IEnumerable<WeldedSpliceSlipCaseResult> slips, IEnumerable<string> missing, IEnumerable<WeldedSpliceStandardCheckSource> sources, bool failed)
@@ -116,7 +128,7 @@ namespace GPC.Checkers.Steel.Connections
             var cases = new List<WeldedSpliceStandardCaseResult>(); bool failed = false;
             foreach (var input in p.Cases)
             {
-                var c = new WeldedSpliceStandardCaseResult(input, envelope.UltimateCases.Single(x => x.Input.Id == input.Id), p.BlockMethod, p.FaceModel);
+                var c = new WeldedSpliceStandardCaseResult(input, envelope.UltimateCases.Single(x => x.Input.Id == input.Id), p.BlockMethod, p.FaceModel, p.PlateStability);
                 cases.Add(c); string id = input.Id;
                 foreach (var issue in c.Components.BindingDiagnostics.Concat(c.Parents.BindingDiagnostics)) missing.Add(id + ":" + issue);
                 if (!SameWelds(p.Cases[0].Parents.Welds, input.Parents.Welds)) missing.Add(id + ":LONGITUDINAL_WELD_DETAIL_MISMATCH");
@@ -126,8 +138,9 @@ namespace GPC.Checkers.Steel.Connections
                 foreach (var plate in c.Components.Plates.Covers)
                 {
                     Include(id, plate.Cover + ".GrossSections", plate.Sections);
-                    Include(id, plate.Cover + ".Compression", plate.LongitudinalCompression);
+                    if (c.EffectiveCompression == null) Include(id, plate.Cover + ".Compression", plate.LongitudinalCompression);
                 }
+                if (c.EffectiveCompression != null) Include(id, "EffectiveCoverCompression", c.EffectiveCompression);
                 if (c.Components.Plates.Covers.Count != 8) missing.Add(id + ":EIGHT_COVER_ASSESSMENTS_REQUIRED");
                 foreach (var issue in c.Components.Plates.Diagnostics) missing.Add(id + ":Plates:" + issue);
                 Include(id, "CombinedNetSections", c.AdditionalPlates.NetSections);

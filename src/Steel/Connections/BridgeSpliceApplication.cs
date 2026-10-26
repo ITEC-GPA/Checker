@@ -62,6 +62,17 @@ namespace GPC.Checkers.Steel.Connections
             WeldedIBeamSpliceSlipInput slipTemplate = null, IEnumerable<SpliceActionCase> serviceabilityCases = null,
             SpliceBlockVerificationMethod blockMethod = SpliceBlockVerificationMethod.FastenerHierarchy,
             SpliceFlangeFaceModel faceModel = SpliceFlangeFaceModel.BalancedEqualFaces)
+            => CreateBolted(template, left, right, ultimateCases, welds, continuityAndSecondOrderSource, category,
+                SplicePlateStabilityMethod.CompactCovers, shearPreparation, slipTemplate, serviceabilityCases, blockMethod, faceModel);
+
+        public static WeldedIBeamSpliceStandardInput CreateBolted(WeldedIBeamSpliceDetailInput template,
+            SteelSectionInput left, SteelSectionInput right, IEnumerable<SpliceActionCase> ultimateCases,
+            SpliceLongitudinalFillets welds, string continuityAndSecondOrderSource, SpliceBoltCategory category,
+            SplicePlateStabilityMethod plateStability,
+            Func<SteelVerificationInput, IEnumerable<SteelShearBucklingAssessment>> shearPreparation = null,
+            WeldedIBeamSpliceSlipInput slipTemplate = null, IEnumerable<SpliceActionCase> serviceabilityCases = null,
+            SpliceBlockVerificationMethod blockMethod = SpliceBlockVerificationMethod.FastenerHierarchy,
+            SpliceFlangeFaceModel faceModel = SpliceFlangeFaceModel.BalancedEqualFaces)
         {
             if (template == null) throw new ArgumentNullException(nameof(template));
             if (right == null) throw new ArgumentNullException(nameof(right));
@@ -89,7 +100,7 @@ namespace GPC.Checkers.Steel.Connections
                 foreach (var c in s) slips.Add(Slip(c, BoltSlipLimitState.Serviceability, c.Id, null));
             }
             // No SLS values are synthesized. Missing B/C evidence is reported by Verify.
-            return new WeldedIBeamSpliceStandardInput(cases, category, slips, blockMethod, faceModel);
+            return new WeldedIBeamSpliceStandardInput(cases, category, slips, blockMethod, faceModel, plateStability);
 
             WeldedIBeamSpliceDetailInput Detail(SpliceActionCase c)
             {
