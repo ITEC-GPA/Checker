@@ -20,7 +20,7 @@ annidata con monotonia, residui N/M e matrice tangente simmetrica verificati.
 N positivo a trazione, M positivo tende la parte alta, z positivo verso l'alto.
 Non e' FEM locale e non comprende plasticizzazione o capacita' rotazionale.
 
-3 RESISTENZA N-M-V - da implementare
+3 RESISTENZA N-M-V - IMPLEMENTATA
 Nuovo adattatore con tutte le file fisiche qualificate a trazione; le vecchie
 file dichiarate solo a taglio non sono promosse senza il proprio T-stub/gruppi.
 Riuso di T-stub, bulloni con inviluppo pieno Ft/prying, saldature a piena resistenza,
@@ -28,7 +28,7 @@ percorsi nel piano. Compressione a entrambe le flange, contatto, pilastro netto,
 equilibrio dei tagli e interazione cautelativa con il pannello. Sezioni compatte
 nel campo elastico dichiarato. Le API N=0 conservano i propri contratti.
 
-4 SEGNI E LIMITI - da implementare
+4 SEGNI E LIMITI - IMPLEMENTATI
 N puro +/-; M puro +/-; presso/tensoflessione; due/una/nessuna banda chiusa;
 contatto parziale; N->0; passaggio delle file da inattive a tese. Equilibrio
 alle estremita' del pannello e trasporto fra faccia e centro del pilastro.
@@ -47,3 +47,11 @@ matrice, energie e casi limite EC/NTC. Esempi eseguibili e report con geometria,
 azioni, riferimenti, forze, contatti, stato resistente e stato della rigidezza
 separati. Catalogo, versioni dedicate, collaudo completo del set coerente.
 Un oracolo analitico non viene presentato come prova sperimentale dell'intero nodo.
+
+PUNTI3/4: inviluppo longitudinale/trasversale/pannello cautelativo e tutte le
+file effettive a trazione. I nuovi casi positivi hanno file entro il campo
+delle geometrie T-stub gia' qualificate. La fila vicina alla flangia opposta
+rimane un caso rifiutato: richiede il modello di entrambe le flange e non
+si cancella il controllo CompressionFlangeTooCloseForUnrestrictedEndRowMechanism.
+Il riferimento delle azioni comprende esplicitamente il braccio V*hc/2 fra
+faccia e centro del pilastro. Le verifiche legacy e i loro attesi sono invariati.
