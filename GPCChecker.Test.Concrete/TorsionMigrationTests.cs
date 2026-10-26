@@ -26,6 +26,17 @@ namespace ConcreteTests
         private static string[] Rows(string name)
             => File.ReadAllLines(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixtures", name), Encoding.UTF8).Where(l => !l.StartsWith("#")).Skip(1).ToArray();
 
+        /// <summary>
+        /// R19 (26/10/2026): the reference of NTC 2018 cites the torsion equations [4.1.34]-[4.1.40] (before [4.1.27]-[4.1.32], those of
+        /// the shear), the one of DS the limit applied, cot θ ≤ 2 of (6.7b NA) (before «θ 6.7a NA»). Text only: no value changes.
+        /// </summary>
+        [TestMethod]
+        public void ReferencesCiteTheTorsionClauses()
+        {
+            Assert.AreEqual("NTC 2018 §4.1.2.3.6 [4.1.34]-[4.1.40]", TorsionProfiles.Reference(TorsionProfile.Ntc2018));
+            Assert.AreEqual("DS/EN 1992-1-1 §6.3.2 with DK NA (ν 5.6.1(3)P, cot θ ≤ 2 of 6.7b NA)", TorsionProfiles.Reference(TorsionProfile.DsEN1992p11));
+        }
+
         [TestMethod]
         public void LegacyFixturesAreReproduced()
         {
