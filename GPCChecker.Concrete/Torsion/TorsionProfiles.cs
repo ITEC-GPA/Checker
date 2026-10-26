@@ -90,12 +90,14 @@ namespace GPC.Checkers.Concrete.Torsion
         {
             switch (profile)
             {
-                case TorsionProfile.Ntc2018: return "NTC 2018 §4.1.2.3.6 (4.1.27-4.1.32)";
+                // R19 (26/10/2026): [4.1.27]-[4.1.32] are the shear equations of §4.1.2.3.5; the torsion is [4.1.34]-[4.1.40].
+                case TorsionProfile.Ntc2018: return "NTC 2018 §4.1.2.3.6 [4.1.34]-[4.1.40]";
                 case TorsionProfile.ModelCode2010: return "fib MC2010 §7.3.4";
                 case TorsionProfile.EN1992p11: return "EN 1992-1-1 §6.3.2 (6.26-6.30)";
                 case TorsionProfile.UniEN1992p11: return "UNI EN 1992-1-1 §6.3.2; ν from DM 31/07/2012 6.2.2(6)";
                 case TorsionProfile.DinEN1992p11: return "DIN EN 1992-1-1 §6.3.2 with DIN EN 1992-1-1/NA";
-                case TorsionProfile.DsEN1992p11: return "DS/EN 1992-1-1 §6.3.2 with DK NA (ν 5.6.1(3)P, θ 6.7a NA)";
+                // R19: the limit applied is cot θ ≤ 2 of (6.7b NA), not (6.7a NA).
+                case TorsionProfile.DsEN1992p11: return "DS/EN 1992-1-1 §6.3.2 with DK NA (ν 5.6.1(3)P, cot θ ≤ 2 of 6.7b NA)";
                 case TorsionProfile.NsEN1992p11: return "NS-EN 1992-1-1 §6.3.2";
                 case TorsionProfile.CnrDT200: return "CNR-DT 200 R1/2013 §4.4 with NTC 2018 §4.1.2.3.6 for the RC member";
                 default: throw new ArgumentOutOfRangeException(nameof(profile));

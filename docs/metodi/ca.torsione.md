@@ -344,9 +344,9 @@ Il metodo non ha iterazioni: cot θ è un dato.
 - DS: regola di DK NA 6.3.2(6) (riquadro R-2) e fattore νt della torsione (riquadro R-4).
 - CNR-DT 204 (fibre più staffe) e contributo FRP di CNR-DT 200.
 - Norme americane.
-- Testo dei riferimenti (`TorsionProfiles.Reference`): per NTC 2018 il risultato cita le equazioni «4.1.27-4.1.32», che
-  in NTC 2018 sono del taglio (la torsione è in [4.1.34]-[4.1.40]); per DS cita «θ 6.7a NA» mentre il limite
-  applicato è cot θ ≤ 2 di (6.7b NA). Il valore calcolato non cambia (voce R19 del registro delle differenze).
+- Testo dei riferimenti (`TorsionProfiles.Reference`), corretto il 26/10/2026 (voce R19 del registro delle differenze): per
+  NTC 2018 il risultato citava le equazioni «4.1.27-4.1.32», che sono del taglio, e ora cita [4.1.34]-[4.1.40]; per DS citava
+  «θ 6.7a NA» e ora il limite applicato, cot θ ≤ 2 di (6.7b NA). Il valore calcolato non cambia.
 
 ## 10. Esempio numerico verificato
 

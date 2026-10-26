@@ -232,8 +232,13 @@ CNR-DT 200.) Profilo DIN:
 h_{c,eff} = \min\left[\beta\,(h - d);\; \frac{h}{2}\right],\quad \beta = \min\left\{5;\; \max\left[2{,}5;\; 2 + 0{,}1\,\frac{h}{h - d}\right]\right\};\quad \text{e}\ \min\left(h_{c,eff};\; \frac{h - x}{3}\right)\ \text{se}\ \frac{h - x}{3} \ge c + 20\ \text{mm} \qquad \text{(F.5)}
 ```
 
-dove c è il copriferro nominale del dato `NominalCover`, anche quando il copriferro della formula di wk è assegnato
-con `CoverOverride` (voce R21 del registro delle differenze).
+dove c è il copriferro nominale del dato `NominalCover` (o `SectionCrackOptions.EffectiveDepthCover`), anche
+quando il copriferro della formula di wk è assegnato con `CoverOverride` (voce R21 del registro delle differenze).
+Con l'opzione `SectionCrackOptions.DinConditionWithCoverOverride` (F5.15, R21, 26/10/2026) la condizione legge il
+copriferro assegnato, lo stesso della formula di wk, prima di `EffectiveDepthCover` e del copriferro nominale. Senza
+copriferro assegnato non cambia nulla. Il predefinito resta la regola di 0.0.17.0, per le fixture congelate e il
+contratto K0. Prova: `DinConditionReadsTheAssignedCoverWithTheOption` (nominale 90 e assegnato 40 mm: hc,eff 150 senza
+l'opzione, 100 con l'opzione).
 
 Profilo DS: hc,eff è l'altezza della fascia tesa, a partire dal lembo, il cui baricentro coincide con quello delle
 barre tese (DK NA 7.3.2(1)P, Fig. 7.100 NA), cercata in [0; min(h; h − x)].

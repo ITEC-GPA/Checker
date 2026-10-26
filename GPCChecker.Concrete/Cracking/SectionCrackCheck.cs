@@ -140,11 +140,13 @@ namespace GPC.Checkers.Concrete.Cracking
         }
 
         /// <summary>
-        /// c of the DIN condition (h − x)/3 ≥ c + 20 in a partially compressed section: <see cref="SectionCrackOptions.EffectiveDepthCover"/> or the nominal
-        /// cover, validated here with ValidateAtUse when it is the nominal cover (only the DIN profile reads it).
+        /// c of the DIN condition (h − x)/3 ≥ c + 20 in a partially compressed section: the assigned cover with
+        /// <see cref="SectionCrackOptions.DinConditionWithCoverOverride"/>, else <see cref="SectionCrackOptions.EffectiveDepthCover"/> or the nominal
+        /// cover, validated here with ValidateAtUse when it is the nominal cover or the assigned one (only the DIN profile reads it).
         /// </summary>
         internal double DinConditionCover(CrackProfile profile)
         {
+            if (Options.DinConditionWithCoverOverride && CoverOverride.HasValue && CrackProfiles.ReadsDinCover(profile)) return UsedCoverOverride().Value; // R21 (F5.15)
             if (Options.EffectiveDepthCover.HasValue) return Options.EffectiveDepthCover.Value;
             if (Options.ValidateAtUse && CrackProfiles.ReadsDinCover(profile)) RequireNominalCover(NominalCover);
             return NominalCover;

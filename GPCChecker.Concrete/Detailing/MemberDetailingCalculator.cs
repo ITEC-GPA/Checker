@@ -46,11 +46,29 @@ namespace GPC.Checkers.Concrete.Detailing
         /// with the default); false (default): along the layers only.
         /// </summary>
         public bool LegacyPlateSpacingAcrossLayers { get; }
+        /// <summary>
+        /// NTC columns: the bar spacing (LongitudinalSpacing) is measured along the perimeter of the bars, the convex hull of the bar centres, when every bar
+        /// lies on it; with bars inside it (T and hollow sections, inner bars) as without the option. False (default): rows and columns of bars, the rule of
+        /// 0.0.17.0 kept for the contract detailing-contract-0.0.17.csv and the frozen captures: two bars of opposite faces aligned through the core count
+        /// as adjacent (600×600 with 8Ø20: 498 mm instead of 249 mm along the faces), and a face without bars is not measured when the bars at its ends are
+        /// not aligned. ANTHEA F5.15, R12 (26/10/2026).
+        /// </summary>
+        public bool ColumnSpacingAlongPerimeter { get; }
+        /// <summary>
+        /// Eurocode columns: at laps the link spacing is reduced by 0.6 only when the largest longitudinal bar is larger than 14 mm (EN 1992-1-1
+        /// 9.5.3(4)(ii)). False (default): for every diameter, the rule of 0.0.17.0 kept for the contract. ANTHEA F5.15, R13 (26/10/2026).
+        /// </summary>
+        public bool LapLinkReductionAboveFourteen { get; }
         public MemberDetailingOptions(PlateDetailingData plate, bool legacyNegativeLinkLegs) : this(plate, legacyNegativeLinkLegs, false) { }
         /// <summary>Options with <see cref="LegacyPlateSpacingAcrossLayers"/>.</summary>
         public MemberDetailingOptions(PlateDetailingData plate, bool legacyNegativeLinkLegs, bool legacyPlateSpacingAcrossLayers)
+            : this(plate, legacyNegativeLinkLegs, legacyPlateSpacingAcrossLayers, false, false) { }
+        /// <summary>Options with <see cref="ColumnSpacingAlongPerimeter"/> and <see cref="LapLinkReductionAboveFourteen"/>.</summary>
+        public MemberDetailingOptions(PlateDetailingData plate, bool legacyNegativeLinkLegs, bool legacyPlateSpacingAcrossLayers, bool columnSpacingAlongPerimeter,
+            bool lapLinkReductionAboveFourteen)
         {
             Plate = plate; LegacyNegativeLinkLegs = legacyNegativeLinkLegs; LegacyPlateSpacingAcrossLayers = legacyPlateSpacingAcrossLayers;
+            ColumnSpacingAlongPerimeter = columnSpacingAlongPerimeter; LapLinkReductionAboveFourteen = lapLinkReductionAboveFourteen;
         }
     }
 
@@ -304,7 +322,9 @@ namespace GPC.Checkers.Concrete.Detailing
             if (ntc)
             {
                 Min("LongitudinalDiameter", minPhi, 12, "mm", ".2", "Ømin ≥ 12 mm");
-                var spacing = g.MaximumSpacing(Enumerable.Range(0, g.Bars.Count).ToArray());
+                // R12 (F5.15), with the option: along the perimeter of the bars; with bars inside it (T, hollow, inner bars), rows and columns of bars.
+                var all = Enumerable.Range(0, g.Bars.Count).ToArray();
+                var spacing = p.Options.ColumnSpacingAlongPerimeter && !g.Circular ? PerimeterSpacing(g.Bars) ?? g.MaximumSpacing(all) : g.MaximumSpacing(all);
                 if (spacing.HasValue) Max("LongitudinalSpacing", spacing.Value, NtcColumnMaximumSpacing, "mm", ".2", "spacing on the faces / perimeter ≤ 300 mm");
                 else Pending("LongitudinalSpacing", ".2", "Bar arrangement not recognised automatically.");
                 Min("MinimumLongitudinal", steel, Math.Max(.1 * p.Compression / p.Fyd, .003 * p.ConcreteArea), "mm2", ".2", "max(0.10 NEd/fyd; 0.003 Ac), largest NEd");
@@ -321,8 +341,11 @@ namespace GPC.Checkers.Concrete.Detailing
             if (g.Circular) Min("BarCount", g.Bars.Count, 4, "-", "§9.5.2(4)", "at least 4 bars in a circular column");
             Min("LinkDiameter", linkDiameter, Math.Max(6, maxPhi / 4), "mm", "§9.5.3(1)", "max(6 mm; Ømax/4)");
             double limit = uni ? Math.Min(12 * minPhi, Math.Min(bMin, 250)) : Math.Min(20 * minPhi, Math.Min(bMin, 400));
-            if (p.LapZone) limit *= .6; // 9.5.3(4): at laps (and near beams and slabs) the spacing is reduced by 0.6
-            Max("LinkSpacing", linkSpacing, limit, "mm", "§9.5.3(3)-(4)", (uni ? "min(12 Ømin; b; 250 mm)" : "min(20 Ømin; b; 400 mm)") + (p.LapZone ? " × 0.6 at laps" : ""));
+            // 9.5.3(4): at laps (and near beams and slabs) the spacing is reduced by 0.6; with the option of R13 (F5.15) at laps only if Ømax > 14 mm (ii).
+            bool lapReduction = p.LapZone && (maxPhi > 14 || !p.Options.LapLinkReductionAboveFourteen);
+            if (lapReduction) limit *= .6;
+            Max("LinkSpacing", linkSpacing, limit, "mm", "§9.5.3(3)-(4)", (uni ? "min(12 Ømin; b; 250 mm)" : "min(20 Ømin; b; 400 mm)")
+                + (lapReduction ? " × 0.6 at laps" : p.LapZone ? ", not reduced at laps (Ømax ≤ 14 mm)" : ""));
             if (!p.CompressionBarsRestrained)
                 Pending("BarsHeldByLinks", "§9.5.3(6)", "Confirm that every corner bar is held by links and no compression bar is farther than 150 mm from a restrained bar.");
             if (!p.EndZonesConfirmed) Pending("LinkSpacingNearBeams", "§9.5.3(4)", "Within max(b; h) of beams and slabs the link spacing is reduced by 0.6: confirm the end zones of the member.");
