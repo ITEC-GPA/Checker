@@ -1,0 +1,36 @@
+PIASTRE DI ESTREMITA' - ESTENSIONI 1/2/3, 26/10/2026
+Branch codex/steel-bridge-splices-static. Un agente, nessun merge/push o UI.
+
+1 GEOMETRIE STANDARD - prima estensione implementata e verificata
+File vicine a entrambe le ali: opzione esplicita WithOppositeFlange con alfa
+distinti, meccanismi individuali e gruppi contigui. Il calcolo delle rigidezze
+riutilizza le stesse lunghezze geometriche. Il vecchio percorso conserva i
+controlli che rifiutano la flangia opposta non modellata.
+Fonte: SCI P398 (2013), pp11,13-16,163, STEP1, Tabelle2.2(c,d)/2.3(a,c),
+AppendiceG. https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
+Questi meccanismi supplementari non sono attribuiti letteralmente alla Tab6.6
+di EN1993-1-8. TStubSciAlpha applica solo su richiesta l'approssimazione SCI,
+senza sovrascrivere letture del diagramma e senza estrapolare il dominio.
+Richiesti: ala >=1.33*interasse colonne bulloni; una sola fila nella zona
+d'influenza di ciascuna ala; nessun irrigidimento interposto. La fila unica
+fra entrambe le ali ha il proprio meccanismo, non un gruppo fittizio.
+PrepareSingleRow ammette una sola fila fisica fra le bande di contatto.
+Un ramo con sola molla tesa puo' soddisfare la resistenza ma avere matrice
+singolare: non viene esportato come rigidezza globale.
+28 nuovi casi. Regressione pertinente:933 superati,0 falliti,0 ignorati.
+File/classi storiche e relativi attesi invariati.
+Restano fuori da questa estensione: pilastri irrigiditi o nodi bilaterali,
+piu' file simultaneamente nella zona d'influenza della stessa ala.
+
+2 RISCONTRI INDIPENDENTI DEL NODO COMPLETO - in corso
+Separare confronto analitico riproducibile, componenti normativi e prove
+sperimentali. Non usare una resistenza plastica pubblicata come atteso di
+un diverso modello elastico, ne' inventare hardware/dettagli mancanti.
+
+3 API APPLICATIVA - da completare
+Ingresso da dettagli fisici e azioni concomitanti reali. Preparazione delle
+capacita' a N=M=0 interna all'API, con stessa geometria/materiali/norma e
+|V| del caso reale; nessun carico fittizio richiesto al chiamante.
+Resistenza, qualificazione della matrice e diagnostica restano separati.
+
+4 E ALTRE FAMIGLIE - non avviate, da decidere con l'utente.

@@ -145,13 +145,15 @@ namespace GPC.Checkers.Steel.Connections
             if (contacts == null) throw new ArgumentNullException(nameof(contacts));
             ConnectionNumbers.Finite(axialForce, nameof(axialForce)); ConnectionNumbers.Finite(moment, nameof(moment));
             var rr = rows.ToArray(); var cc = contacts.ToArray();
-            if (rr.Length < 2 || rr.Length > 20 || rr.Any(r => r == null) || rr.Select(r => r.Id).Distinct().Count() != rr.Length)
-                throw new ArgumentException("Two to twenty uniquely identified tension rows required.", nameof(rows));
+            if (rr.Length < 1 || rr.Length > 20 || rr.Any(r => r == null) || rr.Select(r => r.Id).Distinct().Count() != rr.Length)
+                throw new ArgumentException("One to twenty uniquely identified tension rows required.", nameof(rows));
             if (cc.Length != 2 || cc.Any(c => c == null) || cc[0].Id == cc[1].Id)
                 throw new ArgumentException("Two distinct compression bands required.", nameof(contacts));
             if (Math.Max(cc[0].LowerZ, cc[1].LowerZ) < Math.Min(cc[0].UpperZ, cc[1].UpperZ))
                 throw new ArgumentException("Compression bands must not overlap.", nameof(contacts));
-            if (rr.Max(r => r.Z) == rr.Min(r => r.Z)) throw new ArgumentException("Rows must span distinct heights.", nameof(rows));
+            if (rr.Length > 1 && rr.Max(r => r.Z) == rr.Min(r => r.Z)) throw new ArgumentException("Rows must span distinct heights.", nameof(rows));
+            if (rr.Length == 1 && !(rr[0].Z > cc.Min(c => c.UpperZ) && rr[0].Z < cc.Max(c => c.LowerZ)))
+                throw new ArgumentException("A single tension row must lie strictly between both contact bands.", nameof(rows));
             double length = Math.Max(1, rr.Select(r => Math.Abs(r.Z)).Concat(cc.SelectMany(c => new[] { Math.Abs(c.LowerZ), Math.Abs(c.UpperZ) })).Max());
             double kt = rr.Sum(r => r.Stiffness), kc = cc.Sum(c => c.Stiffness);
             double scale = Math.Max(1, Math.Max(Math.Abs(axialForce), Math.Abs(moment) / length));

@@ -36,6 +36,9 @@ namespace GPC.Checkers.Steel.Connections
         public double BeamClearDepth { get; }
         public IReadOnlyList<double> OrderedInternalRows { get; }
         public TStubChartAlpha FirstRowAlpha { get; }
+        /// <summary>Explicit SCI P398 opposite-flange model. Null preserves the
+        /// original single-boundary EN field and its trailing-mechanism rejection.</summary>
+        public TStubChartAlpha LastRowAlpha { get; private set; }
         public string DetailSource { get; }
         public TStubInternalEndPlateGeometry(double plateWidth, double opposingFlangeWidth, double boltGauge,
             double beamWebThickness, double webWeldLeg, double tensionFlangeWeldLeg,
@@ -53,6 +56,13 @@ namespace GPC.Checkers.Steel.Connections
             BeamWebThickness = beamWebThickness; WebWeldLeg = webWeldLeg;
             TensionFlangeWeldLeg = tensionFlangeWeldLeg; CompressionFlangeWeldLeg = compressionFlangeWeldLeg;
             BeamClearDepth = beamClearDepth; OrderedInternalRows = Array.AsReadOnly(rows); DetailSource = detailSource;
+        }
+        public TStubInternalEndPlateGeometry WithOppositeFlange(TStubChartAlpha lastRowAlpha)
+        {
+            if (lastRowAlpha == null) throw new ArgumentNullException(nameof(lastRowAlpha));
+            return new TStubInternalEndPlateGeometry(PlateWidth, OpposingFlangeWidth, BoltGauge,
+                BeamWebThickness, WebWeldLeg, TensionFlangeWeldLeg, CompressionFlangeWeldLeg,
+                BeamClearDepth, OrderedInternalRows, FirstRowAlpha, DetailSource) { LastRowAlpha = lastRowAlpha };
         }
     }
 
@@ -95,8 +105,28 @@ namespace GPC.Checkers.Steel.Connections
             double endMechanism = 2 * m + .625 * e;
             // No second flange/stiffener or physical end may cut the trailing end-row pattern.
             // Cases needing both flange boundaries require a different yield-line model.
-            if (clearBottomWeld < endMechanism)
+            if (p.LastRowAlpha == null && clearBottomWeld < endMechanism)
                 issues.Add("CompressionFlangeTooCloseForUnrestrictedEndRowMechanism");
+            if (p.LastRowAlpha != null)
+            {
+                double lastM2 = p.BeamClearDepth - p.OrderedInternalRows.Last() - .8 * p.CompressionFlangeWeldLeg;
+                double lastLambda2 = lastM2 / (m + e);
+                if (string.IsNullOrWhiteSpace(p.LastRowAlpha.Source)) issues.Add("OppositeFlangeAlphaDerivationRequired");
+                if (!(lastLambda2 > 0) || lastLambda2 > 1.4) issues.Add("OppositeAlphaPointOutsideFigure611QualifiedDomain");
+                if (p.LastRowAlpha.Value + 1e-12 < minimumAlpha) issues.Add("OppositeAlphaBelowUnstiffenedAsymptoteForThisGeometry");
+                // The nearest row at either physical boundary gets the alpha pattern.
+                // Other rows must lie outside that boundary's unrestricted end pattern.
+                // A single row affected by both boundaries uses SCI Table2.2(d).
+                for (int i = 1; i < p.OrderedInternalRows.Count; i++)
+                    if (p.OrderedInternalRows[i] - p.TensionFlangeWeldLeg < endMechanism)
+                        issues.Add("AdditionalRowInsideUpperFlangeInfluenceRequiresDifferentPattern");
+                for (int i = 0; i < p.OrderedInternalRows.Count - 1; i++)
+                    if (p.BeamClearDepth - p.OrderedInternalRows[i] - p.CompressionFlangeWeldLeg < endMechanism)
+                        issues.Add("AdditionalRowInsideLowerFlangeInfluenceRequiresDifferentPattern");
+                Value("OppositeM2", lastM2); Value("OppositeLambda2", lastLambda2, "1");
+                Value("OppositeAlpha", p.LastRowAlpha.Value, "1");
+                Value("SciBothFlangePatterns", 1, "1");
+            }
             double circularSingle = 2 * Math.PI * m, plainNonCircular = 4 * m + 1.25 * e;
             if (!Finite(circularSingle) || !Finite(plainNonCircular) || !Finite(p.FirstRowAlpha.Value * m))
                 issues.Add("InternalLengthsOutsideNumericRange");
@@ -106,8 +136,13 @@ namespace GPC.Checkers.Steel.Connections
             Value("ClearDistanceToCompressionWeld", clearBottomWeld);
             if (issues.Count != 0) return Result();
             for (int i = 0; i < p.OrderedInternalRows.Count; i++)
-                rows.Add(Lengths("InternalRow" + (i + 1), circularSingle,
-                    i == 0 ? p.FirstRowAlpha.Value * m : plainNonCircular));
+            {
+                double nc = i == 0 ? p.FirstRowAlpha.Value * m : plainNonCircular;
+                if (p.LastRowAlpha != null && i == p.OrderedInternalRows.Count - 1)
+                    nc = rows.Count == 0 ? (p.FirstRowAlpha.Value + p.LastRowAlpha.Value) * m - plainNonCircular
+                        : p.LastRowAlpha.Value * m;
+                rows.Add(Lengths("InternalRow" + (i + 1), circularSingle, nc));
+            }
             for (int count = 2; count <= rows.Count; count++)
                 for (int first = 0; first + count <= rows.Count; first++)
                 {
@@ -122,6 +157,8 @@ namespace GPC.Checkers.Steel.Connections
                         double cp = groupEnd ? Math.PI * m + pitch : 2 * pitch;
                         double nc = index == 0 ? .5 * pitch + p.FirstRowAlpha.Value * m - endMechanism
                             : groupEnd ? endMechanism + .5 * pitch : pitch;
+                        if (p.LastRowAlpha != null && index == rows.Count - 1)
+                            nc = .5 * pitch + p.LastRowAlpha.Value * m - endMechanism;
                         circular += cp; nonCircular += nc;
                         rowLengths.Add(new TStubRowGroupLength(first,count,index,cp,nc));
                     }
@@ -135,8 +172,11 @@ namespace GPC.Checkers.Steel.Connections
             TStubEffectiveLengths Lengths(string name, double cp, double nc)
             {
                 Value(name + ".CircularLength", cp); Value(name + ".NonCircularLength", nc);
-                return new TStubEffectiveLengths(Math.Min(cp, nc), nc, "EN1993-1-8:2005 Table6.6, " + name
-                    + "; first-row alpha: " + p.FirstRowAlpha.Source + "; " + p.DetailSource);
+                string source = p.LastRowAlpha == null ? "EN1993-1-8:2005 Table6.6"
+                    : "SCI P398 Tables2.2(c,d)/2.3(a,c), supplementary opposite-flange patterns";
+                return new TStubEffectiveLengths(Math.Min(cp, nc), nc, source + ", " + name
+                    + "; first-row alpha: " + p.FirstRowAlpha.Source
+                    + (p.LastRowAlpha == null ? "" : "; opposite alpha: " + p.LastRowAlpha.Source) + "; " + p.DetailSource);
             }
             void Value(string name, double value, string unit = "mm")
             { if (!Finite(value)) issues.Add(name + "OutsideNumericRange"); else trace.Add(new SectionResistanceValue(name, value, unit)); }

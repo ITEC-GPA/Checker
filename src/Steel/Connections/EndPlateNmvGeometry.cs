@@ -26,7 +26,7 @@ namespace GPC.Checkers.Steel.Connections
 
         private EndPlateNmvGeometry(EndPlateMomentWithBeamSectionResult baseline, EndPlateConnectionAssessmentResult connection,
             IEnumerable<EndPlateBoltElongationDetail> hardware, double upperWidth, double upperHeight,
-            double lowerWidth, double lowerHeight, double gap, string contactSource)
+            double lowerWidth, double lowerHeight, double gap, string contactSource, bool singleRow = false)
         {
             Baseline = baseline; Connection = connection; ContactSource = contactSource; InitialContactGap = gap;
             var m = baseline.Input; var b = m.Beam; var c = m.Column;
@@ -44,7 +44,9 @@ namespace GPC.Checkers.Steel.Connections
             Require(gap == 0 && !string.IsNullOrWhiteSpace(contactSource), "InitiallyClosedActualContactOnBothFlangesRequired");
             Require(upperWidth <= Math.Min(b.Width, Math.Min(m.EndPlate.Width, c.Width)) && lowerWidth <= Math.Min(b.Width, Math.Min(m.EndPlate.Width, c.Width))
                 && upperHeight <= b.FlangeThickness && lowerHeight <= b.FlangeThickness, "ContactBandsMustFitBothPhysicalFlanges");
-            Require(connection.Bolts.BoltAssessment.Input.Rows.Count >= 2, "AtLeastTwoPhysicalTensionRowsRequiredForNmv");
+            int physicalCount = connection.Bolts.BoltAssessment.Input.Rows.Count;
+            Require(singleRow ? physicalCount == 1 : physicalCount >= 2,
+                singleRow ? "SingleRowPreparationRequiresExactlyOnePhysicalRow" : "AtLeastTwoPhysicalTensionRowsRequiredForNmv");
             Require(connection.Bolts.BoltAssessment.Input.Rows.All(r => r.MomentRowIndex.HasValue),
                 "EveryPhysicalRowMustBeQualifiedInTensionNoImplicitShearOnlyRows");
             if (connection.FilletWelds != null)
@@ -94,6 +96,9 @@ namespace GPC.Checkers.Steel.Connections
                         double bottom = physical.Last().Y + m.ColumnLastEndContinuation;
                         Require(y - top >= width.Width / 2 && bottom - y >= width.Width / 2, "ColumnEndTruncatesCompressionSpread");
                     }
+                    if (singleRow && rows.Count == 1)
+                        Require(rows[0].Z > contacts.Min(x => x.UpperZ) && rows[0].Z < contacts.Max(x => x.LowerZ),
+                            "SingleTensionRowMustLieStrictlyBetweenContacts");
                     Require(centres[0] - centres[1] >= (widths[0].Width + widths[1].Width) / 2,
                         "OverlappingCompressionSpreadsRequireAnotherModel");
                 }
@@ -109,6 +114,21 @@ namespace GPC.Checkers.Steel.Connections
             }
         }
 
+        /// <summary>Explicit single-row route. Rank-deficient tensile branches may
+        /// satisfy strength but do not export a two-DOF global stiffness.</summary>
+        public static EndPlateNmvGeometry PrepareSingleRow(EndPlateMomentWithBeamSectionResult baseline,
+            EndPlateConnectionAssessmentResult connection, IEnumerable<EndPlateBoltElongationDetail> hardware,
+            double upperContactWidth, double upperContactHeight, double lowerContactWidth, double lowerContactHeight,
+            string contactExecutionSource, double initialContactGap = 0)
+        {
+            if (baseline == null) throw new ArgumentNullException(nameof(baseline));
+            if (connection == null) throw new ArgumentNullException(nameof(connection));
+            if (hardware == null) throw new ArgumentNullException(nameof(hardware));
+            foreach (double v in new[] { upperContactWidth, upperContactHeight, lowerContactWidth, lowerContactHeight }) ConnectionValidation.Positive(v, "contact dimensions");
+            ConnectionValidation.Nonnegative(initialContactGap, nameof(initialContactGap));
+            return new EndPlateNmvGeometry(baseline, connection, hardware, upperContactWidth, upperContactHeight,
+                lowerContactWidth, lowerContactHeight, initialContactGap, contactExecutionSource, true);
+        }
         public static EndPlateNmvGeometry Prepare(EndPlateMomentWithBeamSectionResult baseline,
             EndPlateConnectionAssessmentResult connection, IEnumerable<EndPlateBoltElongationDetail> hardware,
             double upperContactWidth, double upperContactHeight, double lowerContactWidth, double lowerContactHeight,

@@ -155,6 +155,10 @@ namespace GPC.Checkers.Steel.Connections
             if (!Equal(g.PlateWidth, p.EndPlate.Width) || !Equal(g.OpposingFlangeWidth, col.Width)
                 || !Equal(g.BeamWebThickness, beam.WebThickness) || !Equal(g.BeamClearDepth, beam.Height - 2 * beam.FlangeThickness))
                 issues.Add("InternalGeometryDoesNotMatchBeamColumnAndPlateSnapshots");
+            // SCI P398 STEP1, printed p11: the flange must be wide enough to
+            // constrain the supplementary opposite-boundary yield-line patterns.
+            if (g.LastRowAlpha != null && beam.Width < 1.33 * g.BoltGauge)
+                issues.Add("BeamFlangeTooNarrowForSciBothFlangePatterns");
             if (beam.Fy > 460 || p.ColumnFlangeFy > 460 || p.EndPlate.Fy > 460) issues.Add("CarbonSteelUpToS460Only");
             if (offset != 0 && (!Equal(p.ExtensionGeometry.PlateWidth, p.EndPlate.Width)
                 || !Equal(p.ExtensionGeometry.BoltGauge, g.BoltGauge)
