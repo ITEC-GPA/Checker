@@ -69,6 +69,9 @@ namespace GPC.Checkers.Geotechnics.Piles
             if (!NonNegative(pile.UnitWeight)) throw new ArgumentException("Pile: a non-negative unit weight is required.");
             if (!Finite(pile.CompressionAction) || !Finite(pile.TensionAction)) throw new ArgumentException("Pile: finite actions are required.");
             if (surveys.Count == 0) throw new ArgumentException("Add at least one investigated vertical.");
+            // Head below the ground surface (request of 19/10/2026): ground depths of the profiles, results from the head; d0 = 0 is the former calculation.
+            double d0 = pile.HeadDepth;
+            if (!NonNegative(d0)) throw new ArgumentException("Pile: the depth of the head below the ground surface must be zero or positive.");
             var water = Water(surveys.Select(s => s?.Profile ?? throw new ArgumentNullException(nameof(surveys))));
             bool falda = water.HasValue; double zf = water?.Depth ?? 0, gw = water?.UnitWeight ?? SoilUnits.WaterUnitWeight;
             var pileInstallation = pile.Installation;
@@ -80,17 +83,19 @@ namespace GPC.Checkers.Geotechnics.Piles
                 {
                     var layer = survey.Profile.Layers[i]; var p = survey.Layers[i];
                     double top = survey.Profile.GroundSurface - layer.Top, bottom = survey.Profile.GroundSurface - layer.Bottom;
-                    // cu only where it is used: a cohesive layer crossed by the pile (top < L) below the water table (PV-2).
-                    if (p.Behaviour == SoilBehaviour.Cohesive && falda && top < l && Math.Min(bottom, l) > zf && !layer.Soil.UndrainedShearStrength.HasValue)
+                    // cu only where it is used: a cohesive layer crossed by the pile (top < d0 + L, bottom > d0) below the water table (PV-2).
+                    if (p.Behaviour == SoilBehaviour.Cohesive && falda && top < d0 + l && bottom > d0 && Math.Min(bottom, d0 + l) > Math.Max(zf, d0) && !layer.Soil.UndrainedShearStrength.HasValue)
                         throw new ArgumentException("Layer " + (i + 1) + " (" + layer.Soil.Name + "): cu is required for the undrained capacity.");
                     list.Add((layer.Soil, p, top, bottom));
                 }
                 strata.Add(list);
             }
-            double max = Math.Min(l, strata.Min(s => s[s.Count - 1].Bottom));
+            // Depths from the head (z = ground depth − d0).
+            double max = Math.Min(l, strata.Min(s => s[s.Count - 1].Bottom) - d0);
+            if (!(max > 0)) throw new ArgumentException("The stratigraphy does not reach below the pile head.");
             var depths = new SortedSet<double>(Enumerable.Range(0, 101).Select(i => max * i / 100));
-            foreach (var list in strata) foreach (var s in list) if (s.Bottom <= max) depths.Add(s.Bottom);
-            if (falda && zf <= max) depths.Add(zf);
+            foreach (var list in strata) foreach (var s in list) if (s.Bottom - d0 > 0 && s.Bottom - d0 <= max) depths.Add(s.Bottom - d0);
+            if (falda && zf - d0 > 0 && zf - d0 <= max) depths.Add(zf - d0);
             for (int i = 0; i <= (int)(max / 500); i++) depths.Add(i * 500.0);
             double area = Math.PI * d * d / 4, perimeter = Math.PI * d;
             double Increment(Soil soil, double top, double bottom)
@@ -100,21 +105,28 @@ namespace GPC.Checkers.Geotechnics.Piles
             }
             AxialSurveyResistance Resistances(List<(Soil Soil, AxialPileLayer Layer, double Top, double Bottom)> list, double z)
             {
+                // z from the head; zg = d0 + z below the ground surface. The layers above the head add their weight and no shaft.
+                double zg = d0 + z;
                 double effective = 0, total = 0, ld = 0, lu = 0; var tip = list[0]; var segments = new List<AxialShaftSegment>();
                 foreach (var st in list)
                 {
-                    if (st.Top >= z) break;
-                    double bottom = Math.Min(st.Bottom, z), length = bottom - st.Top; if (length <= 0) continue;
+                    if (st.Top >= zg) break;
+                    double bottom = Math.Min(st.Bottom, zg), length = bottom - st.Top; if (length <= 0) continue;
                     var soil = st.Soil; bool cohesive = st.Layer.Behaviour == SoilBehaviour.Cohesive;
-                    double sigmaTop = effective, increment = Increment(soil, st.Top, bottom), mean = effective + increment / 2;
-                    if (falda && st.Top < zf && zf < bottom)
-                    {
-                        double ds1 = Increment(soil, st.Top, zf), ds2 = Increment(soil, zf, bottom);
-                        mean = effective + (ds1 / 2 * (zf - st.Top) + (ds1 + ds2 / 2) * (bottom - zf)) / length;
-                    }
-                    effective += increment;
                     double wet = falda ? Math.Max(0, bottom - Math.Max(st.Top, zf)) : 0;
-                    total += soil.UnitWeight * (length - wet) + soil.SaturatedUnitWeight * wet; tip = st;
+                    double layerTotal = soil.UnitWeight * (length - wet) + soil.SaturatedUnitWeight * wet;
+                    if (bottom <= d0) { effective += Increment(soil, st.Top, bottom); total += layerTotal; continue; }
+                    // The shaft of the layer starts at the head when the head is inside the layer.
+                    double start = Math.Max(st.Top, d0), shaft = bottom - start;
+                    if (start > st.Top) effective += Increment(soil, st.Top, start);
+                    double sigmaTop = effective, increment = Increment(soil, start, bottom), mean = effective + increment / 2;
+                    if (falda && start < zf && zf < bottom)
+                    {
+                        double ds1 = Increment(soil, start, zf), ds2 = Increment(soil, zf, bottom);
+                        mean = effective + (ds1 / 2 * (zf - start) + (ds1 + ds2 / 2) * (bottom - zf)) / shaft;
+                    }
+                    effective += increment; length = shaft;
+                    total += layerTotal; tip = st;
                     // In drained granular soil the effective-cohesion contribution is zero.
                     var (k, mu) = LateralCoefficients(pileInstallation, st.Layer.Density, soil.FrictionAngle);
                     double cohesion = cohesive ? soil.EffectiveCohesion : 0, friction = k * mu * mean;
@@ -122,40 +134,41 @@ namespace GPC.Checkers.Geotechnics.Piles
                     if (cohesive)
                     {
                         double cu = soil.UndrainedShearStrength ?? 0; alpha = Alpha(pileInstallation, cu); tu = alpha.Value * cu;
-                        double dryBottom = Math.Min(bottom, Math.Max(st.Top, falda ? zf : bottom)), dryLength = dryBottom - st.Top;
+                        double dryBottom = Math.Min(bottom, Math.Max(start, falda ? zf : bottom)), dryLength = dryBottom - start;
                         if (dryLength == length) tu = td;
                         else if (dryLength > 0)
                         {
-                            double dryMean = sigmaTop + Increment(soil, st.Top, dryBottom) / 2, dryTau = cohesion + k * mu * dryMean;
+                            double dryMean = sigmaTop + Increment(soil, start, dryBottom) / 2, dryTau = cohesion + k * mu * dryMean;
                             tu = (dryTau * dryLength + tu * (length - dryLength)) / length;
                         }
                     }
                     else tu = td;
                     if (!active) tu = 0; lu += perimeter * length * tu;
-                    segments.Add(new AxialShaftSegment(st.Top, bottom, mean, effective, k, mu, td, tu, alpha, perimeter * length * td, perimeter * length * tu, active));
-                    if (bottom >= z) break;
+                    segments.Add(new AxialShaftSegment(start - d0, bottom - d0, mean, effective, k, mu, td, tu, alpha, perimeter * length * td, perimeter * length * tu, active));
+                    if (bottom >= zg) break;
                 }
                 double phi = tip.Soil.FrictionAngle;
-                var nq = z > 0 ? BearingCapacityFactors.Nq(phi, z / d, d > BearingCapacityFactors.LargeDiameter, pile.BaseFrictionAngle) : null;
+                // Nq with the depth of the base below the ground surface (z/D of the curves; safe side, Nq decreases with z/D).
+                var nq = z > 0 ? BearingCapacityFactors.Nq(phi, zg / d, d > BearingCapacityFactors.LargeDiameter, pile.BaseFrictionAngle) : null;
                 double bd = area * effective * (nq?.Nq ?? 0), bu = bd; double? nc = null;
                 if (tip.Layer.Behaviour == SoilBehaviour.Cohesive)
                 {
                     nc = tip.Layer.Nc;
                     // Gross formulation: total σv, distinct from the buoyancy of the actions.
                     bu = area * (nc.Value * (tip.Soil.UndrainedShearStrength ?? 0) + total);
-                    if (!falda || z <= zf) bu = bd;
+                    if (!falda || zg <= zf) bu = bd;
                 }
                 return new AxialSurveyResistance(segments.ToArray(), effective, phi, total, nq, nc, bd, ld, bu, lu);
             }
             // Weight of the pile: full W = γ A z, buoyant W' = W − γw A max(0, z − zf) (never negative); W' only with a water table.
             double FullWeight(double z) => pile.UnitWeight * area * z;
-            double BuoyantWeight(double z) => Math.Max(0, FullWeight(z) - (falda ? gw * area * Math.Max(0, z - zf) : 0));
+            double BuoyantWeight(double z) => Math.Max(0, FullWeight(z) - (falda ? gw * area * Math.Max(0, d0 + z - Math.Max(zf, d0)) : 0));
             // Drained compression: the choice of the user (full W is on the safe side, W' is exact).
             double Weight(double z) => pile.Buoyancy ? BuoyantWeight(z) : FullWeight(z);
             // Weight in the actions by condition and direction (PV-1): tension always W' (the water pushes the base up); undrained compression with
             // the gross base A (Nc cu + σv) of a cohesive tip below the water table always W, because σv already holds the water pressure at the base.
             double ActionWeight(double z, AxialSurveyResistance[] tips, AxialCondition condition, bool compression)
-                => !compression ? BuoyantWeight(z) : condition == AxialCondition.Undrained && falda && z > zf && tips.Any(s => s.Nc.HasValue) ? FullWeight(z) : Weight(z);
+                => !compression ? BuoyantWeight(z) : condition == AxialCondition.Undrained && falda && d0 + z > zf && tips.Any(s => s.Nc.HasValue) ? FullWeight(z) : Weight(z);
             var warnings = new List<string>();
             if (efficiency.Method == PileGroupMethod.Feld || efficiency.Method == PileGroupMethod.ConverseLabarre) warnings.Add("Scelta progettuale 2026-09-15: efficienza geometrica applicata sia a compressione sia a trazione.");
             if (pile.UnitWeight == 0) warnings.Add("Peso specifico del palo nullo: peso proprio non considerato nelle azioni.");
@@ -219,11 +232,21 @@ namespace GPC.Checkers.Geotechnics.Piles
             if (sb >= l) throw new ArgumentException("The grouted length must start before the tip.");
             if (double.IsNaN(pct) || pct < 0 || pct > 15) throw new ArgumentException("The base contribution must lie between 0% and 15% of the shaft resistance.");
             if (surveys.Count == 0) throw new ArgumentException("Add at least one investigated vertical.");
+            // Head below the ground surface (request of 19/10/2026): the axis from the head starts d0 / cos θ below the ground along the axis; the soil
+            // above has no shaft (Bustamante-Doix does not use σ'v). d0 = 0 leaves the layers as they are.
+            double d0 = pile.HeadDepth;
+            if (!(d0 >= 0) || double.IsInfinity(d0)) throw new ArgumentException("Micropile: the depth of the head below the ground surface must be zero or positive.");
+            double s0 = d0 / cos;
             var strata = new List<MicropileLayer[]>();
             foreach (var survey in surveys)
             {
                 if (survey == null) throw new ArgumentNullException(nameof(surveys));
                 var list = axisLayers(survey);
+                if (s0 > 0)
+                {
+                    list = list.Where(x => x.Bottom > s0).Select(x => new MicropileLayer(Math.Max(0, x.Top - s0), x.Bottom - s0, x.Soil, x.Alpha, x.ShaftActive)).ToArray();
+                    if (list.Length == 0) throw new ArgumentException($"Vertical {strata.Count + 1}: the stratigraphy does not reach below the micropile head.");
+                }
                 try { BustamanteDoix.Segments(list, l, sb, d, pile.Injection, pile.Pressure); }
                 catch (ArgumentException ex) { throw new ArgumentException($"Vertical {strata.Count + 1}: {ex.Message}"); }
                 strata.Add(list);

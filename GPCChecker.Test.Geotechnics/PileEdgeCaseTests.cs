@@ -290,6 +290,44 @@ public class PileEdgeCaseTests
     private static AxialCapacityResult<AxialSurveyResistance> Axial(AxialPile pile, params AxialPileSurvey[] surveys)
         => AxialPileCapacity.Calculate(pile, surveys, PileResistanceFactors.FromStandard(Ntc, surveys.Length), PileGroupEfficiency.None());
 
+    /// <summary>
+    /// Head below the ground surface (request of the ANTHEA user of 19/10/2026, docs/paratie/seguito-pali-interrati.md of ANTHEA): bored pile D = 0.6 m,
+    /// L = 10 m with the head at d = 2 m in one dense sand γ = 18 kN/m³, φ' = 32°, no water. By hand: σ'v at the head γ d = 36 kPa (the example of the
+    /// request), at the tip γ (d + L) = 216 kPa, mean along the shaft 126 kPa; the shaft runs from the head (segment 0–10 m from the head) and the base
+    /// uses σ'v and Nq at (d + L)/D below the ground. So the shaft equals the one of the pile from the ground with L = 12 m less its first 2 m, the base
+    /// equals its base, the weight is the one of the 10 m of pile. d = 0 gives the former results bit for bit; d &lt; 0 and a stratigraphy that does
+    /// not reach below the head are rejected. Micropile: d = 2 m on a 20 m sand equals d = 0 on the 18 m below.
+    /// </summary>
+    [TestMethod]
+    public void HeadBelowTheGroundSurface()
+    {
+        var sand = new AxialPileSurvey(Profile(null, (Sand(32), 30)), new[] { new AxialPileLayer(SoilBehaviour.Granular, SoilDensity.Dense) });
+        AxialPile Pile(double length, double head) => new(PileInstallation.Bored, 600, length * M, head * M, 25 * KN3, false, null, null, NqFrictionAngle.Layer);
+        var buried = Axial(Pile(10, 2), sand); var ground = Axial(Pile(12, 0), sand);
+        AxialSurveyResistance At(AxialCapacityResult<AxialSurveyResistance> r, double z) => r.Depths.Single(x => x.Depth == z * M).Surveys[0];
+        var tip = At(buried, 10); var segment = tip.Segments.Single();
+        Close(0, segment.Top, "shaft from the head", 1e-12); Close(10 * M, segment.Bottom, "to the tip", 1e-12);
+        Close(126 * KPa, segment.MeanStress, "mean σ'v (36 + 216)/2", 1e-12); Close(216 * KPa, segment.BottomStress, "σ'v at the tip", 1e-12);
+        Close(216 * KPa, tip.TipEffectiveStress, "base σ'v", 1e-12);
+        Close(36 * KPa, At(buried, 0).TipEffectiveStress, "σ'v at the head: γ d = 36 kPa", 1e-12);
+        Close(At(ground, 12).DrainedShaft - At(ground, 2).DrainedShaft, tip.DrainedShaft, "shaft below the head", 1e-12);
+        Close(At(ground, 12).DrainedBase, tip.DrainedBase, "base with Nq((d + L)/D)", 1e-12);
+        Close(25 * KN3 * Math.PI * 600 * 600 / 4 * 10 * M, buried.Depths.Single(x => x.Depth == 10 * M).Weight, "weight of the 10 m of pile", 1e-12);
+        // d = 0 through the new constructor: the former results.
+        var former = Axial(new AxialPile(PileInstallation.Bored, 600, 12 * M), sand);
+        CollectionAssert.AreEqual(former.Curves[(AxialCondition.Drained, true)].Design.ToArray(), ground.Curves[(AxialCondition.Drained, true)].Design.ToArray());
+        Assert.ThrowsException<ArgumentException>(() => Axial(Pile(10, -.1), sand));
+        Assert.ThrowsException<ArgumentException>(() => Axial(Pile(10, 2), new AxialPileSurvey(Profile(null, (Sand(32), 1.5)), new[] { new AxialPileLayer(SoilBehaviour.Granular, SoilDensity.Dense) })));
+        // Micropile along a vertical axis: the head at 2 m on 20 m of sand is the micropile from the ground on the 18 m below.
+        var tube = (SectionCHS)SectionMappings.CreateSection("CHS 139.7 x 8");
+        var factors = PileResistanceFactors.FromStandard(Ntc, 1);
+        var micro = AxialPileCapacity.Calculate(new Micropile(250, 10 * M, 0, MicropileInjection.IGU, 2, 0, null, tube, TubeSteel, 2 * M, 25 * KN3, null, null),
+            new[] { new MicropileSurvey(Profile(null, (Sand(32), 20)), new[] { (BustamanteDoixSoil.MediumSand, 1.4, true) }) }, factors, PileGroupEfficiency.None());
+        var reference = AxialPileCapacity.Calculate(new Micropile(250, 10 * M, 0, MicropileInjection.IGU, 2, 0, null, tube, TubeSteel),
+            new[] { new MicropileSurvey(Profile(null, (Sand(32), 18)), new[] { (BustamanteDoixSoil.MediumSand, 1.4, true) }) }, factors, PileGroupEfficiency.None());
+        CollectionAssert.AreEqual(reference.Curves[(AxialCondition.Drained, true)].Design.ToArray(), micro.Curves[(AxialCondition.Drained, true)].Design.ToArray());
+    }
+
     [TestMethod]
     public void AxialPileMatchesTheHandCalculation()
     {

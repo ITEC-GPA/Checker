@@ -69,11 +69,21 @@ namespace GPC.Checkers.Geotechnics.Piles
         public double? CompressionAction { get; }
         public double? TensionAction { get; }
         public NqFrictionAngle BaseFrictionAngle { get; }
+        /// <summary>
+        /// Depth of the pile head below the ground surface (mm, ≥ 0; 0 = head at the ground surface, as before). The soil above the head loads the
+        /// stresses but has no shaft; the depths of the results are measured from the head (request of the ANTHEA user of 19/10/2026).
+        /// </summary>
+        public double HeadDepth { get; }
         public AxialPile(PileInstallation installation, double diameter, double length, double unitWeight = 25 * SoilUnits.KiloNewtonPerCubicMetre, bool buoyancy = false,
             double? compressionAction = null, double? tensionAction = null, NqFrictionAngle baseFrictionAngle = NqFrictionAngle.Layer)
+            : this(installation, diameter, length, 0, unitWeight, buoyancy, compressionAction, tensionAction, baseFrictionAngle) { }
+        /// <summary>Pile with its head <paramref name="headDepth"/> mm below the ground surface (see <see cref="HeadDepth"/>).</summary>
+        public AxialPile(PileInstallation installation, double diameter, double length, double headDepth, double unitWeight, bool buoyancy,
+            double? compressionAction, double? tensionAction, NqFrictionAngle baseFrictionAngle)
         {
             Installation = installation; Diameter = diameter; Length = length; UnitWeight = unitWeight; Buoyancy = buoyancy; CompressionAction = compressionAction; TensionAction = tensionAction;
             BaseFrictionAngle = Enum.IsDefined(typeof(NqFrictionAngle), baseFrictionAngle) ? baseFrictionAngle : throw new ArgumentOutOfRangeException(nameof(baseFrictionAngle));
+            HeadDepth = headDepth;
         }
     }
 
@@ -97,12 +107,21 @@ namespace GPC.Checkers.Geotechnics.Piles
         public double GroutUnitWeight { get; }
         public double? CompressionAction { get; }
         public double? TensionAction { get; }
+        /// <summary>
+        /// Vertical depth of the head below the ground surface (mm, ≥ 0; 0 = head at the ground surface, as before): the layers are shifted along the
+        /// axis by d / cos θ and the soil above the head has no shaft; the coordinates of the results stay along the axis from the head.
+        /// </summary>
+        public double HeadDepth { get; }
         public Micropile(double diameter, double length, double inclination, MicropileInjection injection, double pressure, double groutStart, double? baseShare, SectionCHS tube,
             Material tubeMaterial, double groutUnitWeight = 25 * SoilUnits.KiloNewtonPerCubicMetre, double? compressionAction = null, double? tensionAction = null)
+            : this(diameter, length, inclination, injection, pressure, groutStart, baseShare, tube, tubeMaterial, 0, groutUnitWeight, compressionAction, tensionAction) { }
+        /// <summary>Micropile with its head <paramref name="headDepth"/> mm below the ground surface (see <see cref="HeadDepth"/>).</summary>
+        public Micropile(double diameter, double length, double inclination, MicropileInjection injection, double pressure, double groutStart, double? baseShare, SectionCHS tube,
+            Material tubeMaterial, double headDepth, double groutUnitWeight, double? compressionAction, double? tensionAction)
         {
             Diameter = diameter; Length = length; Inclination = inclination; Injection = injection; Pressure = pressure; GroutStart = groutStart; BaseShare = baseShare;
             Tube = tube ?? throw new ArgumentNullException(nameof(tube)); TubeMaterial = tubeMaterial ?? throw new ArgumentNullException(nameof(tubeMaterial));
-            GroutUnitWeight = groutUnitWeight; CompressionAction = compressionAction; TensionAction = tensionAction;
+            GroutUnitWeight = groutUnitWeight; CompressionAction = compressionAction; TensionAction = tensionAction; HeadDepth = headDepth;
         }
     }
 
