@@ -71,8 +71,12 @@ namespace GPC.Checkers.Steel.Connections
                     }
                     // Sufficient no-shear-buckling domain, eta=1.2 conservatively for all admitted grades.
                     // Longitudinal compression and transverse outstands are checked independently by Plates.
-                    compact.Add(new ConnectionCheck(c.Cover + ".NoShearBucklingDomain", plate.Width / plate.Thickness,
-                        60 * Math.Sqrt(235 / plate.Fy), "EN1993-1-1:2005 6.2.6(6), EN1993-1-5:2006 5.1; eta=1.2 sufficient domain", "1"));
+                    bool zeroShear = c.Cuts.All(cut => cut.V == 0);
+                    // Exact absence of shear is an independent sufficient condition;
+                    // no force tolerance and no waiver of compression/net-section checks.
+                    Value(c.Cover + ".ZeroShearAction", zeroShear ? 1 : 0, "1");
+                    compact.Add(new ConnectionCheck(c.Cover + ".NoShearBucklingDomain", zeroShear ? 0 : plate.Width / plate.Thickness,
+                        60 * Math.Sqrt(235 / plate.Fy), "EN1993-1-1:2005 6.2.6(6), EN1993-1-5:2006 5.1; eta=1.2 sufficient domain, or exactly zero shear at every cut", "1"));
                     double half = grid.FirstBoltDistance + grid.LongitudinalSpan + WeldedIBeamSplicePlates.End(d, g);
                     Hierarchy(c.Cover.ToString(), plate, bolt, groups.SelectMany(x => x.Distribution.Points).Distinct().ToArray(),
                         -half, half, g.TransverseMinimum, g.TransverseMaximum, 1, groups.SelectMany(x => x.Distribution.Forces));
