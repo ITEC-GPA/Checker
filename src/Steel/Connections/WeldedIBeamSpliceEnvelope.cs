@@ -168,7 +168,7 @@ namespace GPC.Checkers.Steel.Connections
         private static bool SameSlipExecution(WeldedIBeamSpliceSlipInput a, WeldedIBeamSpliceSlipInput b)
             => a.TighteningControl == b.TighteningControl && a.Policy.GammaM3Ultimate == b.Policy.GammaM3Ultimate
             && a.Policy.GammaM3Serviceability == b.Policy.GammaM3Serviceability && a.Surfaces.Count == b.Surfaces.Count
-            && a.Surfaces.All(x => b.Surfaces.Any(y => x.Cover == y.Cover && x.Coefficient == y.Coefficient && x.PackingToParentCoefficient == y.PackingToParentCoefficient));
+            && a.Surfaces.All(x => b.Surfaces.Any(y => x.Cover == y.Cover && x.Interfaces.Select(i => i.Coefficient).SequenceEqual(y.Interfaces.Select(i => i.Coefficient))));
         private static bool SamePhysical(WeldedIBeamSpliceBoltInput a, WeldedIBeamSpliceBoltInput b)
         {
             var x = a.Detail; var y = b.Detail;

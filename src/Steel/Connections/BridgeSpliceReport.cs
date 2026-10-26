@@ -115,12 +115,12 @@ namespace GPC.Checkers.Steel.Connections
                 foreach (var surface in c.Input.Input.Surfaces)
                 {
                     notes.Add(c.Input.Id + ":" + surface.Cover + ":mu=" + Number(surface.Coefficient) + ";source=" + surface.QualificationSource);
-                    if (surface.PackingToParentCoefficient.HasValue)
-                        notes.Add(c.Input.Id + ":" + surface.Cover + ":PackingToParent:mu=" + Number(surface.PackingToParentCoefficient.Value)
-                            + ";source=" + surface.PackingToParentQualificationSource);
+                    for (int j = 1; j < surface.Interfaces.Count; ++j)
+                        notes.Add(c.Input.Id + ":" + surface.Cover + ":" + surface.InterfaceName(j) + ":mu="
+                            + Number(surface.Interfaces[j].Coefficient) + ";source=" + surface.Interfaces[j].QualificationSource);
                 }
                 cases.Add(new SpliceReportCase(c.Input.Id, c.Input.Input.ActionCombinationSource, b.Code, b.Detail.Actions,
-                    c.Input.Input.LimitState == BoltSlipLimitState.Serviceability));
+                    c.Input.Input.LimitState == BoltSlipLimitState.Serviceability, BoltedValues(b)));
             }
             return new BridgeSpliceReport("WeldedI.DoubleCover", result.Scope, result.Status, result.IsStaticResistanceComplete,
                 result.HasFailedComponent, result.MissingRequirements, notes, cases, rows);
@@ -179,8 +179,10 @@ namespace GPC.Checkers.Steel.Connections
         }
 
         private static IEnumerable<SectionResistanceValue> BoltedValues(WeldedIBeamSpliceParentInput p)
+            => BoltedValues(p.Detail.Plates.Bolts, p.Welds);
+        private static IEnumerable<SectionResistanceValue> BoltedValues(WeldedIBeamSpliceBoltInput b, SpliceLongitudinalFillets welds = null)
         {
-            var b = p.Detail.Plates.Bolts; var d = b.Detail; var s = d.Section;
+            var d = b.Detail; var s = d.Section;
             var v = new List<SectionResistanceValue>();
             Plate("Parent.Top", s.TopFlange); Plate("Parent.Web", s.Web); Plate("Parent.Bottom", s.BottomFlange);
             Flange("Top", d.Top); Flange("Bottom", d.Bottom); Plate("EachWebCover", d.EachWebCover);
@@ -191,9 +193,15 @@ namespace GPC.Checkers.Steel.Connections
                 Value("Packing.TopOuter", d.Packing.TopOuter); Value("Packing.TopInner", d.Packing.TopInner);
                 Value("Packing.BottomOuter", d.Packing.BottomOuter); Value("Packing.BottomInner", d.Packing.BottomInner);
                 Value("Packing.EachWeb", d.Packing.EachWeb);
+                foreach (WeldedSpliceCover face in Enum.GetValues(typeof(WeldedSpliceCover)))
+                    for (int j = 0; j < d.Packing.Layers(face).Count; ++j)
+                        Value("Packing." + face + ".Layer" + (j + 1), d.Packing.Layers(face)[j]);
             }
-            Value("LongitudinalWeld.TopThroat", p.Welds.TopThroat); Value("LongitudinalWeld.BottomThroat", p.Welds.BottomThroat);
-            Value("LongitudinalWeld.EffectiveLengthEachSide", p.Welds.EffectiveLengthEachSide);
+            if (welds != null)
+            {
+                Value("LongitudinalWeld.TopThroat", welds.TopThroat); Value("LongitudinalWeld.BottomThroat", welds.BottomThroat);
+                Value("LongitudinalWeld.EffectiveLengthEachSide", welds.EffectiveLengthEachSide);
+            }
             return v;
             void Value(string name, double number, string unit = "mm") => v.Add(new SectionResistanceValue(name, number, unit));
             void Plate(string name, ConnectionPlate plate)

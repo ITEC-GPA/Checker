@@ -122,7 +122,7 @@ namespace GPC.Checkers.Steel.Connections
                 new[] { "Same immutable geometry and one concomitant ULS case. Both sides and every physical bolt plane are assessed; no redistribution to hide a failed plane.",
                     "Cover centroid force split is an equilibrium model, not a certification of secondary plate bending or local load introduction.",
                     "Bearing uses the conservative linear interaction |Fx|/Fb,x+|Fy|/Fb,y<=1, with the smaller end/interior resistance for each direction. This is a declared design model, not an EC oblique-bearing equation.",
-                    "Round holes, no countersinks, identical thread condition in the two planes. Single continuous non-structural packings use EN1993-1-8 3.6.1(12)-(13), the thicker face for BOTH shear planes; no packing resistance is credited. The group rectangle diagonal conservatively bounds the changing force-direction transfer length for the long-joint reduction; no uniform-transfer exemption.",
+                    "Round holes, no countersinks, identical thread condition in the two planes. Full-footprint parallel non-structural packing stacks use EN1993-1-8 3.6.1(12)-(13), the greater TOTAL packing thickness on a face for BOTH shear planes; no packing resistance is credited. The group rectangle diagonal conservatively bounds the changing force-direction transfer length for the long-joint reduction; no uniform-transfer exemption.",
                     "Minimum physical edge, hole/pitch and hardware clearances are checked. Maximum pitch/exposure detailing and member seam resistance belong to the remaining plate/detail checks." });
             return new WeldedIBeamSpliceBoltResult(f, assessment);
 

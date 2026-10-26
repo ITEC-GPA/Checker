@@ -2,19 +2,21 @@ COPRIGIUNTI CON COMPENSATORI PARALLELI - 26/10/2026
 
 Modello: WeldedSplicePacking + PackedIndependentFaceDimensions.
 Travi madri saldate a I identiche e allineate; statica ordinaria EC3:2005/
-NTC2018. Un solo piatto parallelo su ogni faccia di ciascuna trave, con
+NTC2018. Uno o piu' piatti paralleli su ogni faccia di ciascuna trave, con
 impronta completa del coprigiunto, stessi fori/materiale, contatto completo.
 Spessore identico sui due lati longitudinali del giunto; i due coprigiunti
 interni di un'ala sono identici; i due compensatori d'anima sono identici.
 Il compensatore non contribuisce ad area resistente o rigidezza del giunto.
-Piu' fogli, cunei, compensatori discontinui e transizioni fra sezioni diverse
-restano fuori campo. Specifica esecutiva obbligatoria nel risultato globale;
+Cunei, compensatori discontinui e transizioni fra sezioni diverse restano
+fuori campo. I fogli multipli sono dichiarati con FromLayers, ordinati dal
+coprigiunto verso la madre e copiati in collezioni immutabili. Specifica esecutiva obbligatoria nel risultato globale;
 deve documentare contatto, rondelle, grip disponibile e posizione filettatura.
 La libreria restituisce lo spessore totale serrato; non certifica il montaggio.
 
 Fonti verificate sul PDF EN1993-1-8:2005 pp25-26 (PDF27-28):
 3.6.1(12), Eq3.3: beta_p=min(1,9d/(8d+3tp));
-3.6.1(13): doppio taglio, tp=spessore del compensatore PIU' SPESSO.
+3.6.1(13): doppio taglio, tp=spessore TOTALE della pila PIU' SPESSA.
+Non usare il massimo dei singoli fogli, ne' la somma delle due facce.
 La riduzione si applica a entrambi i piani del medesimo bullone, anche se una
 sola faccia e' compensata; resta la riduzione per giunto lungo gia' presente.
 Policy NTC: stesso modello analitico complementare EC con coefficienti NTC;
@@ -29,7 +31,8 @@ trasversale fra coprigiunti interni e d'anima. Vietata sovrapposizione fra le
 due pile interne. Non e' un modello di contatto o sollevamento della lamiera.
 
 Scorrimento B/C: superficie coprigiunto/compensatore e superficie
-compensatore/madre sono IN SERIE. Ognuna riceve la forza intera del piano
+compensatore/madre e quelle fra i fogli sono IN SERIE. Per k fogli servono
+k+1 WeldedSpliceFrictionInterface. Ognuna riceve la forza intera del piano
 e il precarico comune una volta; mu e fonte distinti e obbligatori.
 Non si moltiplica la resistenza per2. Una superficie debole fallisce anche
 con l'altra forte. Geometria dei compensatori e coefficienti delle superfici
@@ -44,3 +47,24 @@ mano, soglia d/3, stesso beta sui due piani, interfacce in serie, EC/NTC,
 A/B/C, inversione/sovraccarico, geometria, binding e input non validi.
 Prima regressione eseguita:24 nuovi casi e889 test della famiglia Splice
 superati; rapporto finale aggiornato al termine del blocco.
+
+Aggiornamento multistrato: la resistenza EC usa lo spessore totale del
+compensatore (3.6.1(12)); l'estensione software esplicita i singoli fogli.
+La serie d'attrito e' un equilibrio meccanico: il medesimo flusso attraversa
+ogni contatto. Non si sommano le resistenze e non si divide il precarico.
+SCI Guidance Note2.06 (GN-2-06.pdf, Pack thickness/material) tratta i
+compensatori e le implicazioni esecutive; materiali e preparazione devono
+restare documentati. Il modello corrente conserva la stessa qualita' del
+coprigiunto, fori coincidenti e impronta completa per ogni foglio. Spessori
+minimi/tolleranze di montaggio appartengono alla specifica esecutiva; non
+sono certificati dal calcolo. Non si importano riduzioni AISC per filler.
+https://www.steelconstruction.info/images/3/3e/GN-2-06.pdf
+
+SamePhysical confronta anche numero, ordine e spessori dei fogli: identico
+spessore totale non basta. L'inviluppo confronta tutti i coefficienti delle
+interfacce. Gli overload a0/1 foglio mantengono i precedenti ID dei check.
+Report: geometria dei casi di scorrimento ora presente oltre a quella SLU;
+spessori per foglio e qualificazioni di tutte le superfici sono leggibili.
+BridgeSplicePackingLayerTests:27 nuovi casi, oracoli Eq3.3 e mu*Fp/gamma,
+EC/NTC A/B/C, superficie intermedia debole o non qualificata, topologie
+diverse a pari spessore, inversione, sovraccarico, input immutabili/invalidi.

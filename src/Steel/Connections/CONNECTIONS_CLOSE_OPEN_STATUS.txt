@@ -9,8 +9,12 @@ WeldedSplicePacking, quote reali, beta_p con la faccia piu' spessa applicato
 a entrambi i piani, B/C con superfici in serie, binding dei casi e report.
 25 test nuovi; prima regressione Splice889/889. Vedi BRIDGE_SPLICE_PACKING.txt.
 Commit de589100, versione2.114 fe24fbd8.
-Restano transizioni fra sezioni diverse, compensatori rastremati/multipli e
-contatto/prying generale; non basta cambiare il grip o un coefficiente.
+AGGIORNAMENTO: WeldedSplicePacking.FromLayers chiude i compensatori
+paralleli multistrato: spessore totale della pila piu' spessa per beta_p,
+quote/grip reali, k+1 interfacce d'attrito in serie, topologia vincolata fra
+i casi e dati per strato nel report. Nessun credito resistente ai fogli.
+Restano transizioni fra sezioni diverse, compensatori rastremati/discontinui
+e contatto/prying generale; non basta cambiare il grip o un coefficiente.
 
 2. TERMINALE2L TESO: CHIUSO NEL MODELLO CONVENZIONALE DICHIARATO
 BraceAnglePairStandardTension collega lo snapshot Model, ciascuna L con

@@ -5,30 +5,44 @@ using GPC.Checkers.Steel.Sections;
 
 namespace GPC.Checkers.Steel.Connections
 {
-    /// <summary>Actual cover/parent contact surface, common to both sides of the butt.
-    /// Inner strips and the two web faces can have distinct qualified coefficients.</summary>
+    /// <summary>One real friction interface, with its own coefficient and preparation evidence.</summary>
+    public sealed class WeldedSpliceFrictionInterface
+    {
+        public double Coefficient { get; }
+        public string QualificationSource { get; }
+        public WeldedSpliceFrictionInterface(double coefficient, string qualificationSource)
+        {
+            ConnectionValidation.Positive(coefficient, nameof(coefficient));
+            if (coefficient > 1) throw new ArgumentOutOfRangeException(nameof(coefficient));
+            Coefficient = coefficient; QualificationSource = qualificationSource;
+        }
+    }
+    /// <summary>Actual serial contact interfaces, ordered from cover towards parent,
+    /// common to both sides of the butt. Inner strips/web faces may have distinct coefficients.</summary>
     public sealed class WeldedSpliceFrictionSurface
     {
         public WeldedSpliceCover Cover { get; }
-        public double Coefficient { get; }
-        public string QualificationSource { get; }
-        public double? PackingToParentCoefficient { get; }
-        public string PackingToParentQualificationSource { get; }
+        public IReadOnlyList<WeldedSpliceFrictionInterface> Interfaces { get; }
+        public double Coefficient => Interfaces[0].Coefficient;
+        public string QualificationSource => Interfaces[0].QualificationSource;
+        public double? PackingToParentCoefficient => Interfaces.Count > 1 ? (double?)Interfaces[Interfaces.Count - 1].Coefficient : null;
+        public string PackingToParentQualificationSource => Interfaces.Count > 1 ? Interfaces[Interfaces.Count - 1].QualificationSource : null;
         public WeldedSpliceFrictionSurface(WeldedSpliceCover cover, double coefficient, string qualificationSource)
-        {
-            if (!Enum.IsDefined(typeof(WeldedSpliceCover), cover)) throw new ArgumentOutOfRangeException(nameof(cover));
-            ConnectionValidation.Positive(coefficient, nameof(coefficient));
-            if (coefficient > 1) throw new ArgumentOutOfRangeException(nameof(coefficient));
-            Cover = cover; Coefficient = coefficient; QualificationSource = qualificationSource;
-        }
+            : this(cover, new[] { new WeldedSpliceFrictionInterface(coefficient, qualificationSource) }) { }
         public WeldedSpliceFrictionSurface(WeldedSpliceCover cover, double coverToPackingCoefficient, string coverToPackingSource,
             double packingToParentCoefficient, string packingToParentSource)
-            : this(cover, coverToPackingCoefficient, coverToPackingSource)
+            : this(cover, new[] { new WeldedSpliceFrictionInterface(coverToPackingCoefficient, coverToPackingSource),
+                new WeldedSpliceFrictionInterface(packingToParentCoefficient, packingToParentSource) }) { }
+        public WeldedSpliceFrictionSurface(WeldedSpliceCover cover, IEnumerable<WeldedSpliceFrictionInterface> interfaces)
         {
-            ConnectionValidation.Positive(packingToParentCoefficient, nameof(packingToParentCoefficient));
-            if (packingToParentCoefficient > 1) throw new ArgumentOutOfRangeException(nameof(packingToParentCoefficient));
-            PackingToParentCoefficient = packingToParentCoefficient; PackingToParentQualificationSource = packingToParentSource;
+            if (!Enum.IsDefined(typeof(WeldedSpliceCover), cover)) throw new ArgumentOutOfRangeException(nameof(cover));
+            if (interfaces == null) throw new ArgumentNullException(nameof(interfaces));
+            var values = interfaces.ToArray();
+            if (values.Length == 0 || values.Any(v => v == null)) throw new ArgumentException("Every physical interface is required.", nameof(interfaces));
+            Cover = cover; Interfaces = Array.AsReadOnly(values);
         }
+        internal string InterfaceName(int index) => Interfaces.Count == 1 ? "" : index == 0 ? "CoverToPacking"
+            : index == Interfaces.Count - 1 ? "PackingToParent" : "Packing" + index + "ToPacking" + (index + 1);
     }
 
     public sealed class WeldedIBeamSpliceSlipInput
@@ -72,8 +86,9 @@ namespace GPC.Checkers.Steel.Connections
             if (issues.Count == 0) foreach (var g in prepared.Forces.CoverGroups)
             {
                 var surface = p.Surfaces.Single(s => s.Cover == g.Cover);
-                bool packed = p.Bolts.Detail.Packing.Thickness(g.Cover) > 0;
-                if (packed != surface.PackingToParentCoefficient.HasValue)
+                int layerCount = p.Bolts.Detail.Packing.Layers(g.Cover).Count;
+                bool packed = layerCount > 0;
+                if (surface.Interfaces.Count != layerCount + 1)
                 { issues.Add(g.Cover + ".PACKING_FRICTION_INTERFACES_MISMATCH"); continue; }
                 var grid = WeldedIBeamSplicePlates.Grid(p.Bolts.Detail, g);
                 double span = g.Distribution.Points.Max(b => b.Y) - g.Distribution.Points.Min(b => b.Y);
@@ -83,15 +98,15 @@ namespace GPC.Checkers.Steel.Connections
                 {
                     // ONE real interface with its own force; the common bolt preload
                     // clamps each interface. Neither Fp/2 nor a pooled 2*mu*Fp capacity.
-                    foreach (int layer in packed ? new[] { 0, 1 } : new[] { 0 })
+                    for (int layer = 0; layer < surface.Interfaces.Count; ++layer)
                     {
                         var r = BoltSlip.Verify(new BoltSlipInput(p.Policy, bolt, p.LimitState, force.Shear, 0, 1,
-                            layer == 0 ? surface.Coefficient : surface.PackingToParentCoefficient.Value,
+                            surface.Interfaces[layer].Coefficient,
                             p.TighteningControl, p.AssemblyQualificationSource,
-                            layer == 0 ? surface.QualificationSource : surface.PackingToParentQualificationSource,
+                            surface.Interfaces[layer].QualificationSource,
                             p.ActionCombinationSource, p.Bolts.HoleClearanceServiceabilitySource, length));
                         string id = g.Side + "." + g.Cover + ".Bolt" + force.Index
-                            + (packed ? layer == 0 ? ".CoverToPacking" : ".PackingToParent" : "");
+                            + (packed ? "." + surface.InterfaceName(layer) : "");
                         foreach (var issue in r.Diagnostics) issues.Add(id + ":" + issue);
                         foreach (var c in r.Checks) checks.Add(new ConnectionCheck(id + "." + c.Id, c.Demand, c.Resistance, c.Reference, c.Unit));
                         foreach (var t in r.Trace) trace.Add(new SectionResistanceValue(id + "." + t.Name, t.Value, t.Unit));
@@ -104,7 +119,7 @@ namespace GPC.Checkers.Steel.Connections
                     "Each interface receives its actual vector demand, friction coefficient and the common bolt preload once. Unused resistance on the other face cannot rescue a slipping face.",
                     "No SLS/ULS conversion. Normal round holes; diagonal long-joint bound, no uniform-transfer exemption. The established EC/NTC BoltSlip kernel supplies the distinct factors.",
                     "Zero applied bolt-axis tension is the in-plane component assumption. Local opening/prying and the normal-contact reactions are not solved or certified by this result; see face-transfer diagnostics.",
-                    "Assembly and surface provenance document the input; they are not an execution certification. All eight faces are required even when a current load is zero. A packed face has two SERIAL interfaces, each with the full transmitted force and common preload; their resistances are never added." });
+                    "Assembly and surface provenance document the input; they are not an execution certification. All eight faces are required even when a current load is zero. A face with k packing layers has k+1 SERIAL interfaces, each with the full transmitted force and common preload; their resistances are never added." });
         }
 
         /// <summary>Category-C AXIAL net-plastic components at one actual ULS state.
