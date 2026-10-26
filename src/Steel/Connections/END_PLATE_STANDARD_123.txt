@@ -29,7 +29,11 @@ Separare confronto analitico riproducibile, componenti normativi e prove
 sperimentali. Non usare una resistenza plastica pubblicata come atteso di
 un diverso modello elastico, ne' inventare hardware/dettagli mancanti.
 
-3 API APPLICATIVA - da completare
+3 API APPLICATIVA - implementata
+StandardEndPlate.Verify; esempi eseguibili e contratto in
+END_PLATE_APPLICATION_USAGE.txt.25 test applicativi superati.
+Regressione complessiva pertinente:980/980;75 nuovi casi totali.
+Collaudo del set coerente e checkpoint finale separati.
 Ingresso da dettagli fisici e azioni concomitanti reali. Preparazione delle
 capacita' a N=M=0 interna all'API, con stessa geometria/materiali/norma e
 |V| del caso reale; nessun carico fittizio richiesto al chiamante.

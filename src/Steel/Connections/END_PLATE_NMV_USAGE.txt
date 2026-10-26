@@ -27,6 +27,11 @@ flange. La configurazione simmetrica con file addossate ad entrambe le ali non
 e' pertanto promossa da questa implementazione.
 
 SEQUENZA API
+API unica consigliata: StandardEndPlate.Verify, descritta in
+END_PLATE_APPLICATION_USAGE.txt. La sequenza seguente resta disponibile per
+consumatori dei componenti. Nuove geometrie e riscontri indipendenti in
+END_PLATE_STANDARD_123.txt e END_PLATE_INDEPENDENT_VALIDATION.txt.
+
 1. Preparare EndPlateMomentWithBeamSectionResult con geometria reale, N=M=0 e
    il modulo del taglio trattenuto. Questo e' il calcolo preparatorio delle
    capacita' e delle rigidezze, NON una combinazione FEM sostitutiva.
@@ -159,7 +164,8 @@ nette, segni e condizioni limite. Nessun dato sperimentale viene inventato e
 nessun atteso storico e' stato aggiornato per far passare queste verifiche.
 
 ESCLUSIONI CHE RESTANO ESPLICITE
-Una fila sola; fila presso la flangia opposta fuori dal modello di linee plastiche;
+Fila unica fuori dall'intervallo fra i contatti; piu' file nella zona d'influenza
+di un'ala o fuori dal modello SCI qualificato; alfa non documentati;
 class4; giochi iniziali, contatto/precarico arbitrari; pilastri irrigiditi o giunti
 bilaterali; azioni3D; rottura mista fuori dalla gerarchia sufficiente esistente;
 fatica, sisma/incendio, instabilita' delle aste, rotazione ultima e legge ciclica.

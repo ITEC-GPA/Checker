@@ -60,3 +60,7 @@ fornisce evidenze utilizzabili senza dichiarare verificato il nodo completo.
 StandardMomentEndPlateNMV: percorso supplementare N-M-V con contatto unilaterale,
   tutte le file a trazione, azioni reali del pilastro e matrice locale accoppiata.
   Dominio e limiti distinti dalle API N=0 in END_PLATE_NMV_USAGE.txt.
+  StandardEndPlate.Verify unisce preparazione interna, azioni reali e rapporto.
+  Sono ammesse le file presso entrambe le ali nel modello SCI esplicito e una
+  fila unica fra i contatti; nessuna molla globale per un ramo singolare.
+  END_PLATE_APPLICATION_USAGE.txt descrive il contratto applicativo.

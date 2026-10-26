@@ -1,0 +1,59 @@
+API APPLICATIVA DELLA PIASTRA N-M-V - STEEL2.109
+
+Una chiamata: StandardEndPlate.Verify(StandardEndPlateInput).
+Esempio completo compilato/eseguito in:
+tests/Steel.Members.Tests/StandardEndPlateCaseData.cs
+tests/Steel.Members.Tests/StandardEndPlateApplicationTests.cs
+La chiamata non richiede resistenze scalari esterne, T-stub calcolati, lunghezze
+efficaci, combinazioni nulle o creazione manuale delle catene di risultati.
+
+INPUT TIPIZZATO
+Policy: parametri EC3 o NTC2018 coerenti con la stessa istanza Code della trave.
+Beam: EndPlateBeamSectionInput con copia immutabile della sezione Model,
+geometria/materiali reali e AZIONI EFFETTIVE N,M1,V2 alla faccia del pilastro.
+Column: sezione reale, fy/fu delle ali, continuazioni fisiche oltre le file
+estreme, fonti dei materiali e del vincolo del pilastro.
+Layout: piastra e bullone, due colonne simmetriche, interasse e coordinate Y
+delle file, proiezioni reali superiore/inferiore, lati dei cordoni. Y cresce
+verso il basso dalla faccia esterna dell'ala superiore della trave; valori
+negativi identificano la fila esterna. L'ordine non viene riarrangiato.
+Scegliere esplicitamente SuppliedChartValues o SciP398Approximation e
+UpperOnly o BothFlanges. Il metodo SCI non sovrascrive valori forniti.
+Fasteners: dimensioni reali testa/dado/rondelle, lunghezza di deformazione,
+fonte dei fori e dichiarazione del trasferimento uniforme di taglio.
+La forza V e' ripartita su tutti i bulloni; la nuova API non deduce una
+distribuzione arbitraria o redistribuisce il taglio in base ai soli esiti.
+Welds: PairedFillets per una fila esterna superiore oppure TopFlushCjp,
+con piastra a filo superiore e proiezione inferiore. Conserva tutti i dati
+esecutivi e di piena resistenza dei contratti di saldatura esistenti.
+Contact: larghezza/altezza dei due contatti reali e stato iniziale. Il campo
+attuale richiede gioco iniziale nullo; non si presume un precarico dei bulloni.
+ColumnUpper/Lower: azioni concomitanti reali sui riferimenti continui descritti
+in END_PLATE_NMV_USAGE.txt. L'API non fabbrica i tagli del pilastro per farli
+equilibrare e controlla anche il braccio V*hc/2.
+
+OUTPUT
+Status: Passed, Failed oppure NotSupported. IsComplete non significa Passed.
+Strength: verifica N-M-V completa nel dominio oppure null se la preparazione
+non puo' terminare. Le verifiche gia' eseguite e fallite rimangono in Checks.
+Stiffness: qualifica locale/globale distinta; nessuna molla se il ramo e'
+singolare o supera il campo elastico. Una matrice applicata diversa puo'
+richiedere rianalisi senza cambiare la resistenza locale.
+Report: sempre presente, anche fuori campo; contiene azioni effettive, unita',
+diagnostica, verifiche disponibili e, quando presenti, alfa/fonti del dettaglio.
+BeamPreparation: evidenza interna a N=M=0 con V reale; NON e' una verifica
+della trave alla combinazione FEM. Le sue tracce nel rapporto incompleto
+sono marcate CapacityPreparation per evitare di confonderle con le azioni.
+Nessuna qualifica globale dell'asta deriva da CanQualifyWholeJoint.
+
+Le API precedenti restano disponibili. Questo ingresso riusa i loro controlli
+e non amplia automaticamente il dominio: I/H laminati omogenei, monolaterali,
+classi1-3 anche in compressione uniforme, due colonne di bulloni identici,
+nessun irrigidimento interposto, una sola fila per zona d'influenza d'ala.
+Una fila fisica unica e' ammessa solo fra le due bande di contatto.
+Pannello deformabile separato richiesto per la molla globale; carichi3D,
+materiali disomogenei, basi, tubolari, fatica e capacita' rotazionale esclusi.
+
+Per esportare otto esempi JSON EC/NTC, impostare GPC_ENDPLATE_APP_REPORT_DIR
+e lanciare StandardEndPlateApplicationTests. I JSON sono rapporti numerici
+di dettagli analitici, non certificati sperimentali o elaborati esecutivi.

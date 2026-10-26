@@ -44,6 +44,14 @@ namespace GPC.Checkers.Steel.Connections
                 V("Plate.Fy", m.EndPlate.Fy, "MPa"), V("Plate.Fu", m.EndPlate.Fu, "MPa"),
                 V("Bolt.Diameter", m.Bolt.Diameter, "mm"), V("Bolt.HoleDiameter", m.Bolt.HoleDiameter, "mm"),
                 V("Contact.InitialGap", g.InitialContactGap, "mm") });
+            var detail = m.InternalGeometry;
+            input.AddRange(new[] { V("Bolt.Gauge", detail.BoltGauge, "mm"),
+                V("Weld.WebLeg", detail.WebWeldLeg, "mm"), V("Weld.UpperLeg", detail.TensionFlangeWeldLeg, "mm"),
+                V("Weld.LowerLeg", detail.CompressionFlangeWeldLeg, "mm"), V("Plate.LowerProjection", m.CompressionEndPlateProjection, "mm"),
+                V("YieldLines.UpperAlpha", detail.FirstRowAlpha.Value, "1") });
+            if (detail.LastRowAlpha != null) input.Add(V("YieldLines.LowerAlpha", detail.LastRowAlpha.Value, "1"));
+            if (m.ExtensionGeometry != null)
+                input.Add(V("Plate.TopProjection", m.ExtensionGeometry.FlangeToRow + m.ExtensionGeometry.EndDistance, "mm"));
             for (int i = 0; i < g.Rows.Count; i++)
             {
                 var row = g.Rows[i];
@@ -88,6 +96,8 @@ namespace GPC.Checkers.Steel.Connections
             var sources = new List<string> { p.CombinationSource, p.ColumnReferenceSource, g.ContactSource,
                 "EN1993-1-8:2005 6.2.7.1(3), Eq6.24; component resistances and conservative supplementary elastic N-M equilibrium",
                 "END_PLATE_NMV_USAGE.txt; analytic/numerical independent oracles, no whole-joint experimental validation" };
+            sources.Add(detail.DetailSource); sources.Add(detail.FirstRowAlpha.Source);
+            if (detail.LastRowAlpha != null) sources.Add(detail.LastRowAlpha.Source);
             if (!string.IsNullOrWhiteSpace(p.ColumnPanelModelSource)) sources.Add(p.ColumnPanelModelSource);
             if (g.InitialComponents != null)
                 sources.AddRange(g.InitialComponents.Input.Rows.Select(x => x.HardwareSource));
