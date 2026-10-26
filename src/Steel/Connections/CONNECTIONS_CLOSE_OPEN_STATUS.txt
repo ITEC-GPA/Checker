@@ -1,0 +1,64 @@
+CHECKER - CHIUSURE E LIMITI DEL26/10/2026
+
+Richiesta: chiudere i punti ancora aperti. Solo Checker, un agente;
+nessun intervento su ANTHEA, nessun push o merge nel blocco corrente.
+Questo documento NON dichiara completata l'intera richiesta.
+
+1. COPRIGIUNTI / COMPENSATORI: CHIUSO IL DETTAGLIO PARALLELO STANDARD
+WeldedSplicePacking, quote reali, beta_p con la faccia piu' spessa applicato
+a entrambi i piani, B/C con superfici in serie, binding dei casi e report.
+25 test nuovi; prima regressione Splice889/889. Vedi BRIDGE_SPLICE_PACKING.txt.
+Commit de589100, versione2.114 fe24fbd8.
+Restano transizioni fra sezioni diverse, compensatori rastremati/multipli e
+contatto/prying generale; non basta cambiare il grip o un coefficiente.
+
+2. TERMINALE2L TESO: CHIUSO NEL MODELLO CONVENZIONALE DICHIARATO
+BraceAnglePairStandardTension collega lo snapshot Model, ciascuna L con
+beta3, bulloni/rifollamento, sezioni nette e blocchi, fino al collettore
+complanare CJP. Eccentricita' nel piano mantenute, geometria del collettore
+allineata con l'asse dell'asta. Gerarchia blocchi/bulloni per carichi non
+collineari, distinta dai fallimenti reali sotto il carico applicato.
+18 nuovi test; regressione2L109/109 prima dell'ultimo test aggiunto.
+Commit d21f1e0e, versione2.115 43acd12e.
+Non e' un'analisi locale di contatto/prying. Rimangono fuori campo giunti aT
+su travi/pilastri, riparti disuguali, compressione e azioni esterne normali.
+Modello, fonti e inferenze esplicitati in BRACE_2L_STANDARD_TENSION.txt.
+
+3. COPRIGIUNTI SOTTILI FORATI IN TRAZIONE: CORRETTO IL BLOCCO A TAGLIO NULLO
+Una resistenza all'instabilita' a taglio non e' necessaria se V e' esattamente
+nullo in OGNI sezione del coprigiunto. Nessuna tolleranza azzera una forza.
+Resistenza netta/grossa, blocchi, dettagli e instabilita' da compressione
+restano attivi. Sei nuovi test:EC/NTC, area forata manuale, +/-1e-15 di taglio,
+sovraccarico. Commit8ac45f5c, versione2.115.0.1 da5d8a90.
+Non chiusa la classe4 compressa o la lastra forata con taglio non nullo.
+
+4. DOPPIO ANGOLARE: ANCORA PARZIALE
+Riletto SBE-MS5 cap4: il coefficiente1.27 include la riduzione dovuta alla
+flessione nominale che produce trazione nei bulloni (p56/PDF66). La procedura
+per il gruppo lato supporto include0.8 nel caso governato dai bulloni
+(p55/PDF65). Questo evita di presentare la trazione nominale come del tutto
+ignorata nei componenti gia' implementati; non fornisce pero' il valore di
+trazione per verificare qualunque pilastro. Supporto locale/concomitanti e
+qualificazione globale restano da completare. Non promossi a Passed.
+
+5. C/2C COLLEGATE SOLO D'ANIMA: ANCORA APERTO
+Non estesa beta2/beta3 degli angolari alleC. Il requisito di eccentricita'/
+shear lag3.10.3(1) e la soluzione con rinforzo SCI P3588.2 non autorizzano
+una formula universale di area efficace del canale. La sola area netta
+o il trasporto elastico N+M non dimostrano il trasferimento completo dalle
+ali all'anima. Rimane valido PHASE_3C_3E_CHANNEL_TENSION_REVIEW.txt.
+
+6. CONTROVENTI COMPRESSI: CAMPO SALDATO ESISTENTE, ESTENSIONE GENERALE APERTA
+Il percorso gia' presente SteelPackedPairTerminal ->
+SteelPackedPairAssessment.FromWeldedPacking/FromBoltedPacking -> pipeline
+dell'asta usa lo stesso modello d'imperfezione, aste2C/2L identiche, imbotiture,
+terminale SALDATO e collettore complanare. Non richiede una resistenza numerica
+del nodo inventata dal chiamante. Rimangono limiti effettivi: terminale
+bullonato, attacco aT, azioni generiche e modi torsionali non rappresentati
+dal modello flessionale. Non dichiarati chiusi con la sola simmetria.
+
+CONSEGNA
+Le suite complete e gli hash vengono registrati nel set candidato e nel
+rapporto esterno audit-results/connections/close-open. Nessun atteso legacy,
+fixture storica o allowlist modificato. Nessun risultato completo per
+meccanismi non rappresentati. Le versioni del set saranno in commit dedicato.
