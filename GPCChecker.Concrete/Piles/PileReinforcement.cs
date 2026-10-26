@@ -371,14 +371,14 @@ namespace GPC.Checkers.Concrete.Piles
                 if(!services.TryGetValue(r,out var service)){service=reduced(r);services.Add(r,service);}
                 var partial=service.Check(c.Action);
                 c.DevelopedFraction=r;c.MRdPositive=partial.MRdPositive;c.MRdNegative=partial.MRdNegative;c.BendingRatio=partial.BendingRatio;
-                if(!c.MRdPositive.HasValue||!c.MRdNegative.HasValue){c.Message+=" Sviluppo parziale r = "+r.ToString("0.00",CultureInfo.InvariantCulture)+": "+partial.Message;continue;}
+                if(!c.MRdPositive.HasValue||!c.MRdNegative.HasValue){c.Message+=" Sviluppo parziale r = "+r.ToString("0.00",CultureInfo.CurrentCulture)+": "+partial.Message;continue;}
                 c.DevelopmentAvailable=true;
                 bool complete=c.GoverningRatio.HasValue;
                 c.Data=complete&&partial.Data==DataStatus.Ready?DataStatus.Ready:DataStatus.Insufficient;
                 c.Outcome=c.BendingRatio>1||c.ShearRatio>1||c.MinimumReinforcementPassed==false?EngineeringOutcome.NotSatisfied:complete&&c.Data==DataStatus.Ready?EngineeringOutcome.Satisfied:EngineeringOutcome.NotEvaluated;
                 c.Status=c.Outcome==EngineeringOutcome.NotSatisfied?"Non soddisfatto":c.Outcome==EngineeringOutcome.Satisfied?"Soddisfatto N–M–V; dettagli da completare":"Parziale";
                 c.Message=c.Message.Replace(" Sviluppo delle barre o giunti non disponibili: MRd nominale non utilizzabile. Dettaglio locale da definire.","")
-                    +" Sviluppo parziale delle barre: MRd con fyd·r, r = "+r.ToString("0.00",CultureInfo.InvariantCulture)+" (lunghezza ancorata oltre a_l / lbd, arrotondata per difetto).";
+                    +" Sviluppo parziale delle barre: MRd con fyd·r, r = "+r.ToString("0.00",CultureInfo.CurrentCulture)+" (lunghezza ancorata oltre a_l / lbd, arrotondata per difetto).";
             }
         }
         /// <summary>Candidate boundaries from changes of demand class and a user-assigned maximum cage length. Preliminary heuristic, never a normative rule.</summary>
