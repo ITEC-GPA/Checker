@@ -30,6 +30,32 @@ public class ElasticPileUnitsTests
                 new ElasticPileLayer { Name = "B", OriginalLayer = 9, Thickness = 6.62, Law = law, Value = 25000, Source = "assigned" } }
         };
 
+    /// <summary>
+    /// Head below the ground surface (request of the ANTHEA user of 19/10/2026): the layers are given from the ground and cut at the head. Constant laws
+    /// do not depend on the depth, so the head 2 m down below a soft 2 m layer is the pile in the stiff layer alone, bit for bit, with the original
+    /// layer number. The linear law uses the depth below the ground: at 3 m from a head 2 m down, k = kh,ref · 5. A free length with a buried head, a
+    /// negative depth and layers that end above the head are rejected.
+    /// </summary>
+    [TestMethod]
+    public void HeadBelowTheGroundSurface()
+    {
+        ElasticPileInput Buried(ElasticSoilLaw law, double head, params (double Thickness, double Value)[] layers) => new()
+        {
+            Length = 12, FreeLength = 0, HeadDepth = head, Diameter = 1, EI = 50000, EISource = "test", Step = .5, Force = 100, Tip = ElasticPileTip.Free,
+            Layers = layers.Select((s, i) => new ElasticPileLayer { Name = "L" + (i + 1), Thickness = s.Thickness, Law = law, Value = s.Value, Source = "assigned" }).ToArray()
+        };
+        var buried = ElasticPile.Calculate(Buried(ElasticSoilLaw.ConstantKh, 2, (2, 1000), (20, 25000)));
+        var alone = ElasticPile.Calculate(Buried(ElasticSoilLaw.ConstantKh, 0, (20, 25000)));
+        Assert.AreEqual(alone.HeadDisplacement, buried.HeadDisplacement); Assert.AreEqual(alone.Extrema["M"].AbsoluteMaximum, buried.Extrema["M"].AbsoluteMaximum);
+        Assert.IsTrue(buried.Points.All(p => p.Layer == 2), "original layer number kept");
+        var point = ElasticPile.Calculate(Buried(ElasticSoilLaw.LinearKhReference, 2, (30, 5000))).Points.First(p => p.Depth == 3);
+        Assert.AreEqual(5, point.GroundDepth, 1e-12, "depth below the ground"); Assert.AreEqual(5000 * 5, point.DistributedStiffness, 1e-9, "k = kh,ref (d + x)");
+        var free = Buried(ElasticSoilLaw.ConstantKh, 2, (30, 5000)); free.FreeLength = 1;
+        Assert.ThrowsException<ArgumentException>(() => ElasticPile.Calculate(free), "free length with a buried head");
+        Assert.ThrowsException<ArgumentException>(() => ElasticPile.Calculate(Buried(ElasticSoilLaw.ConstantKh, -1, (30, 5000))), "negative depth");
+        Assert.ThrowsException<ArgumentException>(() => ElasticPile.Calculate(Buried(ElasticSoilLaw.ConstantKh, 31, (30, 5000))), "layers above the head only");
+    }
+
     // Dimensional reference in the tests, independent of any production conversion service:
     // x'=L*x; F'=F*F; M'=F*L*M; EI'=F*L²*EI; kh'=F/L³*kh; k'=F/L²*k.
     static ElasticPileInput Scale(ElasticPileInput p, double force = 1000, double length = 1000) => new()
