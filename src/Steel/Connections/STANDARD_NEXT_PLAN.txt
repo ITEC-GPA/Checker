@@ -27,7 +27,7 @@ fuori piano. Fattori delle piastre distinti da quelli di bulloni/rifollamento.
 https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
 
 1b IMPLEMENTATO - SUPPORTO, CONTATTO ED EQUILIBRIO
-Il nodo monolaterale e' vincolato allo stato concomitante del pilastro e verificare
+Il nodo monolaterale e' vincolato allo stato concomitante del pilastro; sono verificate
 le tensioni longitudinali realmente usate nei componenti. Contatto compresso e
 introduzione attraverso un dettaglio di saldatura esplicito.
 1c IMPLEMENTATO - AGGREGAZIONE E RIGIDEZZA
@@ -39,7 +39,7 @@ le azioni reali e la domanda locale dell'asta. Niente resistenza fittizia N/2.
 3 IMPLEMENTATO NEL DETTAGLIO STANDARD - IMBOTTITURE SALDATE
 Dettaglio circoscritto, domanda con imperfezioni comune al percorso bullonato,
 cordoni piu' pareti dei correnti e blocco. Nessuna qualifica delle sei azioni generiche.
-4 IMPLEMENTATO - CATALOGO E REPORT; COLLAUDO COMPLETO DA REGISTRARE
+4 CHIUSO - CATALOGO, REPORT E COLLAUDO COMPLETO
 Aggiornamento a ogni blocco; versione dedicata e collaudo finale del set.
 
 COLLAUDO1b:73 test pertinenti superati,14 nuovi casi. EndPlateColumnCase lega
@@ -101,4 +101,8 @@ baricentro netto; il momento controllato comprende |N*e_net|.
 Otto JSON EC/NTC (flush/extended; intermedi bullonati/saldati) esportati con
 StandardConnectionReportTests. Tutti i report mantengono i limiti di validita'.
 Manuali:STANDARD_END_PLATE_USAGE.txt,PACKED_PAIR_STANDARD_WELDED_USAGE.txt.
-Il checkpoint di consegna registrera' il collaudo completo e il manifest del set.
+Il collaudo completo e il set sono registrati in STANDARD_NEXT_CHECKPOINT_2026_10_26.txt.
+
+CHIUSURA: set candidato Steel2.104 e Model5.21.0.1,95 nuovi casi;
+Checker8681 superati,Model1493 superati,0fallimenti. Tre test nativi Straus7
+non eseguiti restano espliciti.14DLL/hash/versioni verificati. Nessun merge/push.

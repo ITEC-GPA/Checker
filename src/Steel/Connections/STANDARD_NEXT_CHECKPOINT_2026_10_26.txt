@@ -1,0 +1,121 @@
+CHIUSURA SEQUENZA STANDARD 1a-1b-1c-2-3-4 - 26/10/2026
+
+CONSEGNA
+Tutte le sottofasi sono completate nel campo tipologico descritto nei manuali.
+Un solo agente; ramo codex/steel-bridge-splices-static. Nessun merge, push,
+installazione ANTHEA o modifica funzionale di Model. Test terminati.
+Set CANDIDATO, non rilascio su master; 14 DLL con SHA-256 ricontrollati.
+
+SOTTOFASE | ESITO | CONTENUTO | COMMIT FUNZIONALE / VERSIONE
+1a | Completa nel campo | Percorsi nel piano, fori/blocchi, gruppo bulloni,
+   estremita' effettive del pilastro | 36bff37c / ee7e8487 (Steel2.99)
+1b | Completa nel campo | Equilibrio dei tagli, pilastro netto e contatto
+   reale compresso | ae76203c / 5f468b6e (Steel2.100)
+1c | Completa nel campo | Nodo locale standard, Mj condizionato, Sj iniziale
+   e secante, confronto con molla globale | 7d988a54 / 0fc1a67c (Steel2.101)
+2 | Completa nel dettaglio saldato | Terminali2C/2L, fazzoletto e collettore
+   complanari, CJP, radice vincolata, binding al membro | c327e3fd / a4e12f12 (2.102)
+3 | Completa nel dettaglio standard | Imbottiture saldate, pareti e cordoni,
+   domanda con imperfezioni e controlli nella pipeline | 6949fedd / b768edc2 (2.103)
+4 | Completa | Catalogo, report immutabili, otto esempi EC/NTC e manuali,
+   collaudo completo/set coerente | e8eb006c / 784098f5 (Steel2.104)
+
+REVISIONE FINALE
+Il nuovo controllo del pilastro include lo spostamento del baricentro netto
+per i fori nella sola flangia collegata: il momento trasferito comprende |N*e_net|.
+Due regressioni analitiche di sola trazione/compressione verificano la correzione.
+Un terzo caso assicura che un bullone fallito resti nel report anche se la
+rigidezza proviene da un caso diverso. Tutti gli attesi storici e le allowlist
+sono rimasti invariati.
+
+COLLAUDI
+I collaudi mirati documentati in STANDARD_NEXT_PLAN.txt precedono il collaudo
+integrale. I conteggi mirati si sovrappongono: non vanno sommati ai totali.
+Model: 1493 superati, 0 falliti, 3 non eseguiti/altri.
+Checker: 8681 superati, 0 falliti, 0 non eseguiti/altri.
+
+Suite del set (superati / falliti / altri):
+Model/Model.Core.Tests: 34 / 0 / 0
+Model/UnitTest: 1459 / 0 / 3
+Checker/GPCChecker.Test.Concrete: 905 / 0 / 0
+Checker/GPCChecker.Test.Steel: 122 / 0 / 0
+Checker/GPCChecker.Test.CompositeBridge: 391 / 0 / 0
+Checker/GPCChecker.Test.Geotechnics: 193 / 0 / 0
+Checker/GPCChecker.Test.Calculation: 175 / 0 / 0
+Checker/ShallowFoundation.Tests: 28 / 0 / 0
+Checker/EmbeddedWalls.Tests: 99 / 0 / 0
+Checker/Steel.Members.Tests: 6078 / 0 / 0
+Checker/Design.Checks: 109 / 0 / 0
+Checker/Design.Checks.net472: 108 / 0 / 0
+Checker/ModelChecker.Tests: 473 / 0 / 0
+
+95 nuovi casi, contati nelle definizioni e negli esiti TRX:
+EndPlateInPlaneTests: 11
+EndPlateColumnCaseTests: 16
+EndPlateStandardJointTests: 16
+PackedPairTerminalTests: 21
+WeldedPackingStandardTests: 17
+StandardConnectionReportTests: 14
+
+Non eseguiti Model: tre collaudi nativi Straus7, gia' presenti nel set precedente:
+NativeLinearStaticBenchmark_EquilibriumAndMembraneResultants
+NativeAssignments_LoadsAndGravityBalanceTheSolverReactions
+EightNativePairsKeepGeometryAndGlobalActionSigns
+Non sono dichiarati validati. Le verifiche API non segnalano rimozioni inattese.
+Il log conserva gli avvisi di compilazione dei progetti legacy/test (anche
+GMsh nel progetto di test e nullable); nessun nuovo atteso e' stato rigenerato.
+
+TRACCIABILITA' DEL SET
+Utilities: e57b440b16a0a311a7bf0af2f9cf4d2681b83491 (master)
+Geometry: 6734eee1004142576b96759e34c15dec48776e23 (master)
+Model: 2acc60efad0924b9b05aafdd75588f13842904a1 (master)
+Checker: 784098f57715da2fbf80a71114de3f9f8aab5454 (codex/steel-bridge-splices-static)
+Model e' stato trovato gia' aggiornato da altro lavoro nel commit2acc60ef:
+sole versioni per ricompilazione SDK, nessuna modifica algoritmica rispetto
+al precedente2d59bbc6. Questo checkout e' stato preservato e ricollaudato.
+I progetti Checker senza novita' funzionali ricevono la nuova versione per
+identificare univocamente il set ricompilato e le dipendenze/metadati aggiornati.
+GPCUtilities.dll: 3.0.0.0, SHA256 verificato; modificata rispetto al precedente: False
+GPCGeometry.dll: 2.3.0.0, SHA256 verificato; modificata rispetto al precedente: False
+DelaunayMesh.dll: 2.0.0.14, SHA256 verificato; modificata rispetto al precedente: False
+GPCModel.dll: 5.21.0.1, SHA256 verificato; modificata rispetto al precedente: True
+GPCModelData.dll: 0.3.0.2, SHA256 verificato; modificata rispetto al precedente: True
+GPC.Model.Persistence.dll: 3.3.0.2, SHA256 verificato; modificata rispetto al precedente: True
+GPC.Converter.dll: 2.6.0.2, SHA256 verificato; modificata rispetto al precedente: True
+GPCChecker.Concrete.dll: 0.21.0.0, SHA256 verificato; modificata rispetto al precedente: True
+GPCChecker.Steel.dll: 2.104.0.0, SHA256 verificato; modificata rispetto al precedente: True
+GPCChecker.CompositeBridge.dll: 1.16.0.0, SHA256 verificato; modificata rispetto al precedente: True
+GPCChecker.Geotechnics.dll: 0.20.0.0, SHA256 verificato; modificata rispetto al precedente: True
+GPCModelChecker.dll: 2.26.0.0, SHA256 verificato; modificata rispetto al precedente: True
+GPCChecker.Masonry.dll: 0.7.0.0, SHA256 verificato; modificata rispetto al precedente: True
+GPC.Design.dll: 0.38.0.0, SHA256 verificato; modificata rispetto al precedente: True
+
+Manifest: C:\Users\g.pacini\Documents\ChatGPT\Checker\audit-results\connections\next-standard\candidate-steel-2.104\release-set.json
+SHA256 manifest: 965652CA577C39C337C50902AF38AC2BE7F02082860CEC777325EFDC005C2AD6
+Audit hash/versioni/esiti: C:\Users\g.pacini\Documents\ChatGPT\Checker\audit-results\connections\next-standard\verification-audit.json
+Log completo: C:\Users\g.pacini\Documents\ChatGPT\Checker\audit-results\connections\next-standard\candidate-2.104.log
+Esempi: C:\Users\g.pacini\Documents\ChatGPT\Checker\audit-results\connections\next-standard\examples
+Il set e' costruito dal commit784098f5; questo checkpoint e l'aggiornamento
+del piano sono successivi documenti di consegna, non una nuova build.
+
+PERIMETRO ANCORA ESCLUSO
+- Piastra: geometrie arbitrarie, N diverso da zero, inversione del lato teso,
+  supporti diversi dal dettaglio monolaterale I/H non irrigidito a due colonne.
+  La resistenza e' locale, al taglio e allo stato del pilastro mantenuti;
+  M/Sj non e' capacita' rotazionale. Stabilita' delle aste e rianalisi globale
+  con molla diversa rimangono responsabilita' del percorso di modello.
+- Terminali: attacchi a T su flangia, altri supporti, terminali bullonati,
+  radice non qualificata e sei azioni generiche. I limiti nominali elastici
+  delle strisce sono espliciti e possono risultare molto cautelativi; non
+  costituiscono validazione sperimentale dell'intero nodo.
+- Profili doppi: modi globali torsionali/flessotorsionali da escludere
+  separatamente; nessuna qualifica generale dei calastrelli.
+- Fatica, sisma, incendio, FEM locale e UI ANTHEA non fanno parte della sequenza.
+
+MANUALI
+STANDARD_END_PLATE_USAGE.txt
+PACKED_PAIR_STANDARD_WELDED_USAGE.txt
+CAPABILITIES.txt
+Gli esempi JSON sono rapporti di risultati; gli input completi riproducibili
+sono nelle classi di test indicate. Le API storiche di componenti rimangono
+parziali: il catalogo non promuove implicitamente un vecchio nodo incompleto.
