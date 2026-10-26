@@ -28,16 +28,28 @@ namespace GPC.Checkers.Geotechnics.Piles
         public double DesignAction { get; }
         public double Step { get; }
         public double Tolerance { get; }
+        /// <summary>
+        /// Depth of the head below the ground surface (mm, ≥ 0; 0 = head at the ground surface, as before; request of the ANTHEA user of 19/10/2026).
+        /// The limit diagram starts at the head with the overburden of the soil above it (σ'v from the ground surface, water table of the profile), the
+        /// cohesive zone neglected near the ground is the part of the pile within 1.5D of the ground surface, and the depths of the results and the
+        /// eccentricity are measured from the head.
+        /// </summary>
+        public double HeadDepth { get; }
         public LateralPile(double diameter, double length, double eccentricity, bool fixedHead, double resistingMoment, string momentSource, LateralPileMethod method,
             double designAction, double step = 100, double tolerance = 1e-8)
+            : this(diameter, length, eccentricity, fixedHead, resistingMoment, momentSource, method, designAction, step, tolerance, 0) { }
+        /// <summary>Pile with its head <paramref name="headDepth"/> mm below the ground surface (see <see cref="HeadDepth"/>).</summary>
+        public LateralPile(double diameter, double length, double eccentricity, bool fixedHead, double resistingMoment, string momentSource, LateralPileMethod method,
+            double designAction, double step, double tolerance, double headDepth)
         {
             Diameter = diameter; Length = length; Eccentricity = eccentricity; FixedHead = fixedHead; ResistingMoment = resistingMoment; MomentSource = momentSource;
-            Method = method; DesignAction = designAction; Step = step; Tolerance = tolerance;
+            Method = method; DesignAction = designAction; Step = step; Tolerance = tolerance; HeadDepth = headDepth;
         }
     }
 
     /// <summary>
-    /// An investigated vertical: a Model <see cref="SoilProfile"/> (pile head at the ground surface, hydrostatic water table of the profile) and the
+    /// An investigated vertical: a Model <see cref="SoilProfile"/> (pile head at the ground surface or <see cref="LateralPile.HeadDepth"/> below it,
+    /// hydrostatic water table of the profile) and the
     /// behaviour of each of its layers. Cohesive layers use cu; granular ones φ', γ and γsat with c' = 0.
     /// </summary>
     public sealed class LateralPileSurvey

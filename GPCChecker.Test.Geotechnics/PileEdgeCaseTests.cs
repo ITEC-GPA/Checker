@@ -160,6 +160,40 @@ public class PileEdgeCaseTests
         => LateralPileCapacity.Calculate(new LateralPile(d, l, e, fixedHead, my, "test", method, h, 100), new[] { new LateralPileSurvey(profile, kinds) },
             LateralPileFactors.FromStandard(Ntc, profiles), efficiency ?? LateralGroupEfficiency.Manual(1));
 
+    /// <summary>
+    /// Head below the ground surface (request of the ANTHEA user of 19/10/2026): D = 0.6 m, L = 5 m, head at d = 2 m. Sand φ' = 30° (Kp = 3), γ = 18:
+    /// p = 3 Kp D σ'v = a + b z from the head, a = 3 Kp D γ d (σ'v = 36 kPa at the head), b = 3 Kp D γ. By hand with the concentrated closure of
+    /// Broms, short piles: free head H = ∫ p (L − z) dz / L = a L/2 + b L²/6 = 486 + 405 = 891 kN (405 kN with the head at the ground surface);
+    /// restrained head H = ∫ p dz = a L + b L²/2. Clay cu = 50 kPa: the neglected zone ends 1.5 D = 0.9 m below the ground surface, so 0.4 m of the
+    /// pile with the head at 0.5 m and none at 1 m: H = 9 cu D (L − max(0, 1.5 D − d)). Water at 1 m above the head at 2 m (γsat = 20): σv = 38 kPa,
+    /// u = γw · 1 m at the head. d = 0 gives the former capacity; d &lt; 0 is rejected.
+    /// </summary>
+    [TestMethod]
+    public void BromsWithTheHeadBelowTheGroundSurface()
+    {
+        double d = 600, l = 5 * M, head = 2 * M, kp = 3, gamma = 18 * KN3, cu = 50 * KPa;
+        var sand = Profile(null, (Sand(30), 30)); var clay = Profile(null, (Clay(50), 30)); var C = new[] { SoilBehaviour.Cohesive }; var G = new[] { SoilBehaviour.Granular };
+        LateralPileResult Buried(SoilProfile p, SoilBehaviour[] kinds, double depth, bool fixedHead) => LateralPileCapacity.Calculate(
+            new LateralPile(d, l, 0, fixedHead, 1e12, "test", LateralPileMethod.Broms, 100e3, 100, 1e-8, depth), new[] { new LateralPileSurvey(p, kinds) },
+            LateralPileFactors.FromStandard(Ntc, 1), LateralGroupEfficiency.Manual(1));
+        double a = 3 * kp * d * gamma * head, b = 3 * kp * d * gamma;
+        var free = Buried(sand, G, head, false);
+        Assert.AreEqual(LateralMechanism.Short, free.Mechanism);
+        Close(a * l / 2 + b * l * l / 6, free.Capacity, "sand, free head", 1e-9); Close(891e3, free.Capacity, "891 kN", 1e-9);
+        Close(405e3, Buried(sand, G, 0, false).Capacity, "405 kN with the head at the ground surface", 1e-9);
+        Close(a * l + b * l * l / 2, Buried(sand, G, head, true).Capacity, "sand, restrained head", 1e-9);
+        var top = free.Surveys[0].Ground.First(x => x.Depth == 0);
+        Close(36 * KPa, top.EffectiveStress!.Value, "σ'v at the head", 1e-12); Close(36 * KPa, top.TotalStress!.Value, "σv at the head", 1e-12); Close(a, top.LimitReaction, "p at the head", 1e-12);
+        Close(9 * cu * d * (l - (1.5 * d - .5 * M)), Buried(clay, C, .5 * M, true).Capacity, "clay, 0.4 m neglected", 1e-12);
+        Close(9 * cu * d * l, Buried(clay, C, 1 * M, true).Capacity, "clay, below 1.5 D", 1e-12);
+        Assert.AreEqual(Lateral(sand, G, d, l, 0, false, 1e12).Capacity, Buried(sand, G, 0, false).Capacity, "d = 0: the former capacity");
+        var wetProfile = Profile(1, (Sand(30), 30)); double gw = wetProfile.WaterUnitWeight;
+        var wet = Buried(wetProfile, G, head, false).Surveys[0].Ground.First(x => x.Depth == 0);
+        Close(18 * KN3 * 1 * M + 20 * KN3 * 1 * M, wet.TotalStress!.Value, "σv with the water above the head", 1e-12); Close(gw * 1 * M, wet.PorePressure, "u at the head", 1e-12);
+        Close(18 * KN3 * 1 * M + (20 * KN3 - gw) * 1 * M, wet.EffectiveStress!.Value, "σ'v with the water above the head", 1e-12);
+        Assert.ThrowsException<ArgumentException>(() => Buried(sand, G, -1, false));
+    }
+
     [TestMethod]
     public void BromsClosedFormsInClayAndSand()
     {
