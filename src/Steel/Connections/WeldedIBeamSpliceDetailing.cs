@@ -104,8 +104,8 @@ namespace GPC.Checkers.Steel.Connections
                     var cover = top ? d.Top : d.Bottom; var parent = top ? d.Section.TopFlange : d.Section.BottomFlange;
                     string name = top ? "Top" : "Bottom";
                     double outward = top ? 1 : -1;
-                    double yo = outward * (parent.Thickness + cover.Outer.Thickness) / 2;
-                    double yi = -outward * (parent.Thickness + cover.EachInner.Thickness) / 2;
+                    double yo = outward * ((parent.Thickness + cover.Outer.Thickness) / 2 + (top ? d.Packing.TopOuter : d.Packing.BottomOuter));
+                    double yi = -outward * ((parent.Thickness + cover.EachInner.Thickness) / 2 + (top ? d.Packing.TopInner : d.Packing.BottomInner));
                     double ao = cover.Outer.Width * cover.Outer.Thickness, ai = 2 * cover.EachInner.Width * cover.EachInner.Thickness;
                     double n = T("ParentAxial"), m = T("ParentLocalMoment"), no = T("OuterForce"), ni = T("BothInnerForce");
                     double e = p.Plates.Policy.ElasticModulus;

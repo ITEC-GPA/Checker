@@ -75,3 +75,38 @@ Le suite complete e gli hash vengono registrati nel set candidato e nel
 rapporto esterno audit-results/connections/close-open. Nessun atteso legacy,
 fixture storica o allowlist modificato. Nessun risultato completo per
 meccanismi non rappresentati. Le versioni del set saranno in commit dedicato.
+
+COPRIGIUNTI - ULTERIORE BLOCCO VERIFICATO
+0d7ef135 / d4090635: EffectiveCompression, Steel2.117,23 nuovi test.
+79f17920 / e6dd55f2: compensatori multistrato, Steel2.118,27 nuovi test.
+Corretto inoltre FaceDiagnostic: interpolazione delle deformazioni alle
+quote reali comprensive dei compensatori (3 test, inclusa inversione).
+Il trasporto fra faccia di contatto e baricentro del singolo coprigiunto
+resta invece t/2: non si aggiunge lo spessore dei compensatori a quel braccio.
+Suite completa Steel.Members.Tests:6423 superati,0 falliti,0 ignorati.
+
+PUNTI CHE NON VENGONO DICHIARATI CHIUSI
+- Transizioni geometriche: il modello delle forze e' ancora quello di due
+  sezioni madri identiche. Con sezioni diverse cambiano partizioni e quote;
+  concatenare due calcoli indipendenti non equilibra i coprigiunti continui.
+  Mancano trasferimenti aggiuntivi fra ali/anima e relativo campo locale.
+- Taglio nelle piastre snelle: SCI P357 esempio1 sez12.7 pp60-61 tratta
+  un coprigiunto d'anima925x10 con V=417kN, M=101kNm, Ncomp=305kN. Il
+  dettaglio ha una colonna di bulloni per lato e12 bulloni a passo75mm.
+  Il controllo a b/t dell'intera lastra e' restrittivo rispetto all'esempio,
+  ma rimuoverlo o usare il passo come bordo continuamente vincolato non e'
+  una dimostrazione di stabilita' per tutti i campi ammessi dal software.
+  Nel testo SCI ci sono arrotondamenti/incongruenze geometriche: un
+  confronto di singoli valori non qualifica automaticamente il nodo.
+  L'interazione classe4 compressa+taglio resta NotSupported.
+- Blocchi caricati in direzioni miste: resta il criterio sufficiente di
+  gerarchia blocco/bulloni. Fallirlo non equivale a rottura sotto carico,
+  ma non autorizza a passare il nodo. Nessuna falsa verifica introdotta.
+- Cunei/discontinuita' dei compensatori e risposta fuori piano generale
+  restano esterni al dettaglio parallelo standard.
+
+Questi sono meccanismi non implementati, non test disattivati o mancanze
+di dati sanabili con una dichiarazione. ANTHEA non modificata.
+Il set candidato con tutti i collaudi e gli hash e' registrato fuori dal
+repository: ChatGPT/Checker/audit-results/connections/splice-completion.
+La richiesta complessiva di chiudere ogni punto aperto NON e' completata.
