@@ -22,10 +22,11 @@ namespace ConcreteTests
     {
         public TestContext TestContext { get; set; }
 
-        private PileRcParameters Parameters()
+        /// <param name="steelScale">Factor on the bar strength (the partial development of BUG-PO-5b).</param>
+        private PileRcParameters Parameters(double steelScale = 1)
         {
             var concrete = new ConcreteMaterialEN1992("C35", 35, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle);
-            var steel = new SteelMaterial("B450", 200000, 450, 450, .1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
+            var steel = new SteelMaterial("B450", 200000, 450 * steelScale, 450 * steelScale, .1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
             // Reuse the existing section fixture; its cover argument locates the bar centres.
             var section = GetCircularSection(1000, 24, 92, 16, 64, concrete, steel);
             var axes = new CoordinateSystem(section.Centroid, new Vector3d(-1, 0, 0), new Vector3d(0, -1, 0));
@@ -157,6 +158,37 @@ namespace ConcreteTests
             Assert.AreEqual(DataStatus.Ready, middle.Data);
             Assert.AreEqual(EngineeringOutcome.NotSatisfied, failed.Outcome);
             Assert.AreEqual(DataStatus.Insufficient, failed.Data);
+        }
+
+        /// <summary>
+        /// BUG-PO-5b (user's decision of 26/10/2026): where the demand needs the bars within lbd + a_l of their end, the bars work at fyd·r with
+        /// r = (l − a_l)/lbd rounded down to 0.05, l the length from the bar end. At l = a_l + lbd/2, r = 0.5 and MRd is the one of the same section
+        /// with half the bar strength; within a_l, r = 0 is below one step and the depth stays "Parziale". Fully developed depths have r = 1.
+        /// </summary>
+        [TestMethod]
+        public void PartialDevelopmentReducesTheBarStrength()
+        {
+            var service = new PileReinforcement(Parameters());
+            var run = service.Detail("A", 0, 10, 10, new[] { service.Check(LowDemand(5)) });
+            double depth = run.Shift + .5 * run.Anchorage;
+            Assert.AreEqual(.5, PileReinforcement.DevelopedFraction(new[] { run }, depth).Value, 1e-9);
+            Assert.AreEqual(0, PileReinforcement.DevelopedFraction(new[] { run }, run.Shift / 2).Value, "within a_l");
+            Assert.AreEqual(1, PileReinforcement.DevelopedFraction(new[] { run }, 5).Value, "developed");
+            Assert.AreEqual(.5, PileReinforcement.DevelopedFraction(new[] { run }, 10 - depth).Value, 1e-9, "same rule at the toe");
+            var check = service.Check(new PileAction { Depth = depth, N = 1000, M = 90, V = 300 });
+            var end = service.Check(new PileAction { Depth = run.Shift / 2, N = 1000, M = 90, V = 300 });
+            double nominal = check.MRdPositive.Value;
+            PileReinforcement.ApplyDevelopment(run, new[] { check, end });
+            Assert.AreEqual(false, check.DevelopmentAvailable); Assert.AreEqual(false, end.DevelopmentAvailable);
+            var scales = new List<double>();
+            PileReinforcement.ApplyPartialDevelopment(new[] { run }, new[] { check, end }, r => { scales.Add(r); return new PileReinforcement(Parameters(r)); });
+            CollectionAssert.AreEqual(new[] { .5 }, scales, "one reduced service per fraction");
+            Assert.AreEqual(.5, check.DevelopedFraction.Value, 1e-12); Assert.AreEqual(true, check.DevelopmentAvailable);
+            var reference = new PileReinforcement(Parameters(.5)).Check(check.Action);
+            Assert.AreEqual(reference.MRdPositive.Value, check.MRdPositive.Value, 1e-9 * nominal); Assert.IsTrue(check.MRdPositive.Value < nominal);
+            Assert.AreEqual(EngineeringOutcome.Satisfied, check.Outcome, check.Message); Assert.AreEqual(check.MRdPositive, check.UsableMRdPositive);
+            StringAssert.Contains(check.Message, "Sviluppo parziale delle barre");
+            Assert.IsNull(end.DevelopedFraction); Assert.AreEqual(false, end.DevelopmentAvailable); Assert.AreEqual("Parziale", end.Status);
         }
 
         /// <summary>

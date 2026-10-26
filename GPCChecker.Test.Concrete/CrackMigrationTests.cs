@@ -489,7 +489,8 @@ namespace ConcreteTests
 
         /// <summary>
         /// FES-1 of the ANTHEA bug analysis (15/10/2026; user rule of 15/10: wk = 0 only with the neutral axis in the cover): with UnreinforcedTensileZoneFails
-        /// the branch "no tensile bar" gives wk = 0 only when a bar lies within its cover along the strain gradient, Qmax − Q ≤ a(c + Ø/2), a = depth of the
+        /// the branch "no tensile bar" gives wk = 0 only when a bar lies within its cover along the strain gradient, Qmax − Q ≤ a(c + Ø/2), with c the real
+        /// cover of the bar since BUG-FES-1b/1c (26/10/2026; the nominal or assigned cover before), a = depth of the
         /// concrete inset by c + Ø/2 (plus the sagitta of a regular ring on circles), or when the tensile zone is not deeper than a and a bar lies within
         /// c + Ø/2 of the tensile surface; otherwise NoTensileReinforcement, not satisfied. Without the option the rule of 0.0.17.0 (nearest bar closer
         /// than h/2) is unchanged. Strain planes of the cases from the verifier's independent Python (scratchpad bug/verA-fess-copriferro-h2/attesi.py: R300x500,
@@ -510,10 +511,11 @@ namespace ConcreteTests
             StrainPlane BottomTension(double depth, double strain, double edge) => new StrainPlane(0, -strain / depth, new Point2d(0, edge + depth), 0);
             var scenario = BottomTension(171.43, 1.8324e-4, -250);
             CrackBar[] Scenario(double fromBottom) => new[] { Bar(-106, 204, 16), Bar(0, 204, 16), Bar(106, 204, 16), Bar(-108, -250 + fromBottom, 12), Bar(108, -250 + fromBottom, 12) };
-            // (A) Side bars 2Ø12 at 200 mm from the tensile edge, nominal cover 30 + 8: a = 38 + 12/2 = 44 mm (gradient normal to the face), bars at 200 mm.
+            // (A) Side bars 2Ø12 at 200 mm from the tensile edge: their real cover is the side one, 150 − 108 − 6 = 36 mm (BUG-FES-1b/1c, 26/10/2026; the
+            // nominal 30 + 8 before), a = 36 + 12/2 = 42 mm (gradient normal to the face), bars at 200 mm.
             var a = C(Rectangle300x500, Scenario(200), CrackBarLayout.Rows, scenario, 38, fails);
             Assert.AreEqual(CrackOutcome.NoTensileReinforcement, a.Outcome, a.Status); Assert.AreEqual(false, a.Passed); Assert.IsNull(a.Width);
-            Assert.AreEqual(44, Projected(a).Value, 1e-5);
+            Assert.AreEqual(42, Projected(a).Value, 1e-5);
             var legacy = C(Rectangle300x500, Scenario(200), CrackBarLayout.Rows, scenario, 38, SectionCrackOptions.Default);
             Assert.AreEqual(0, legacy.Width.Value, "default: nearest bar 200 < h/2 = 250, wk = 0 as in 0.0.17.0"); Assert.IsNull(Projected(legacy));
             // (B) The verdict no longer flips at h/2: with the option every position beyond the cover fails; the default keeps the h/2 threshold.
@@ -524,7 +526,9 @@ namespace ConcreteTests
                 var d = C(Rectangle300x500, Scenario(fromBottom), CrackBarLayout.Rows, scenario, 38, SectionCrackOptions.Default);
                 Assert.AreEqual(fromBottom < 250 ? true : (bool?)null, d.Passed, fromBottom + " mm, default");
             }
-            // (C) Wall strip 1000×200 with one central mesh 5Ø12 (y = 0 and ±1): a = 44, mesh at 100 mm from either face; both signs fail, without noise.
+            // (C) Wall strip 1000×200 with one central mesh 5Ø12 (y = 0 and ±1): the real cover of the mesh to the tensile face is 100 ± 1 − 6 mm, within
+            // one diameter of its clearance, so the mesh belongs to both faces (BUG-FES-1b, user's decision of 26/10/2026: «usa copriferro reale»); the
+            // tensile zone of 41.87 mm lies within it and wk = 0 for both signs, without noise. Before, with the nominal cover 38 (a = 44), both signs failed.
             var strip = new[] { new Point2d(-500, -100), new Point2d(500, -100), new Point2d(500, 100), new Point2d(-500, 100) };
             foreach (double y in new[] { -1d, 0, 1 })
                 foreach (int sign in new[] { 1, -1 })
@@ -532,7 +536,8 @@ namespace ConcreteTests
                     var mesh = Enumerable.Range(0, 5).Select(k => Bar(-400 + 200 * k, y, 12)).ToArray();
                     var plane = sign > 0 ? BottomTension(41.87, 6.0393e-5, -100) : new StrainPlane(0, 6.0393e-5 / 41.87, new Point2d(0, 100 - 41.87), 0);
                     var r = C(strip, mesh, CrackBarLayout.Rows, plane, 38, fails);
-                    Assert.AreEqual(CrackOutcome.NoTensileReinforcement, r.Outcome, "mesh y = " + y + ", sign " + sign); Assert.AreEqual(false, r.Passed);
+                    Assert.AreEqual(CrackOutcome.Evaluated, r.Outcome, "mesh y = " + y + ", sign " + sign + ": " + r.Status); Assert.AreEqual(0, r.Width.Value);
+                    Assert.AreEqual(true, r.Passed);
                 }
             // (D) Biaxial bending, gradient (0.6, −0.8): tensile corner (150, −250), Qmax = 290. Corner bars Ø20 at (±100, ±200), nominal cover 40:
             // a = (40 + 10)(0.6 + 0.8) = 70 = depth of the corner bar, so wk = 0 with h − x = 60 > c + Ø/2 = 50 (the cover is projected along the gradient).

@@ -73,7 +73,10 @@ namespace GPC.Checkers.Concrete.Torsion
             }
         }
 
-        /// <summary>Upper limit of cot θ for torsion; the shear of each direction may restrict it further (DIN, NS).</summary>
+        /// <summary>
+        /// Upper limit of cot θ for torsion; the shear of each direction may restrict it further (DIN, NS). MC2010: cot 20°, the limit at εx = 0;
+        /// the evaluation applies θmin = 20° + 10 000 εx.
+        /// </summary>
         internal static double MaximumCotTheta(TorsionProfile profile)
         {
             switch (profile)

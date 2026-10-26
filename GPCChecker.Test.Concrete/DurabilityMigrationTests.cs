@@ -40,8 +40,12 @@ namespace ConcreteTests
                 }
                 bool isNtc = c[0] == "NTC";
                 string[] q = isNtc ? c[14].Split(':') : new[] { "False" };
+                // The legacy NtcCover took the table value 25 + 5 × environment group when no Cmin was given; the library default is the UNI 11104 class
+                // since R11 of ANTHEA (26/10/2026), so the capture is reproduced with that value given explicitly.
+                double? legacyCmin = isNtc && codes.All(x => ExposureClasses.All.Any(e => e.Code == x)) && !(codes.Length > 1 && codes.Contains("X0"))
+                    ? 25 + 5 * ExposureClasses.Resolve(codes).Max(e => e.NtcEnvironment) : (double?)null;
                 var input = new CoverInput(codes, D(c[2]), int.Parse(c[3]), bool.Parse(c[4]), bool.Parse(c[5]), bool.Parse(c[6]), D(c[7]), D(c[8]), D(c[9]), bool.Parse(c[10]),
-                    int.Parse(c[11]), int.Parse(c[12]), isNtc && bool.Parse(c[13]), isNtc && bool.Parse(q[0]), isNtc && q.Length > 1 ? D(q[1]) : (double?)null);
+                    int.Parse(c[11]), int.Parse(c[12]), isNtc && bool.Parse(c[13]), isNtc && bool.Parse(q[0]), isNtc && q.Length > 1 ? D(q[1]) : legacyCmin);
                 var profile = isNtc ? DurabilityProfile.Ntc2018 : DurabilityProfile.EN1992p11; string id = row.Substring(0, Math.Min(80, row.Length));
                 if (c[15] != "ok") { Assert.AreEqual("error:ArgumentException", c[15], id); Assert.ThrowsException<ArgumentException>(() => CoverRequirements.Calculate(profile, input), id); errors++; continue; }
                 var r = CoverRequirements.Calculate(profile, input);
