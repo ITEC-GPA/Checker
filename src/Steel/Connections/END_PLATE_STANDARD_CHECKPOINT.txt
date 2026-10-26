@@ -1,3 +1,12 @@
+AGGIORNAMENTO 26/10/2026
+Il documento sotto conserva lo stato delle API storiche al 25/10/2026.
+E' ora disponibile EndPlateStandardJoint per il nodo locale standard con
+supporto/contatto reali: vedere STANDARD_END_PLATE_USAGE.txt e STANDARD_NEXT_PLAN.txt.
+L'audit normativo ha distinto i percorsi nel piano dal modello T-stub/prying:
+non si trasferiscono automaticamente formule di frattura del coprigiunto.
+La nuova API aggiunge un campo qualificato; EndPlateLocalCaseReport e gli altri
+componenti qui descritti conservano il proprio significato parziale.
+
 PIASTRA DI ESTREMITA' A MOMENTO - CHECKPOINT 25/10/2026
 
 STATO: COMPONENTI PARZIALI. Non e' stata chiusa la resistenza del nodo intero.

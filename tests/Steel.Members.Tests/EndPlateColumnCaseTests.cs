@@ -47,8 +47,28 @@ public class EndPlateColumnCaseTests
         Assert.AreEqual(area,r.Trace.Single(x=>x.Name=="Column.NetArea").Value,1e-7);
         Assert.AreEqual(cy,r.Trace.Single(x=>x.Name=="Column.NetCentroidShift").Value,1e-10);
         Assert.AreEqual(inertia,r.Trace.Single(x=>x.Name=="Column.NetInertia").Value,1e-6);
-        double stress=400000/area+50e6*(266.7/2+Math.Abs(cy))/inertia;
+        double stress=400000/area+(50e6+400000*Math.Abs(cy))*(266.7/2+Math.Abs(cy))/inertia;
         Assert.AreEqual(stress,r.Trace.Single(x=>x.Name=="Lower.NormalStressBound").Value,1e-8);
+    }
+
+    [DataTestMethod][DataRow(-400000.0)][DataRow(400000.0)]
+    public void AxialForceAtGrossCentroidIncludesNetSectionEccentricity(double axial)
+    {
+        var p=EndPlateStandardCaseData.Parent(moment:0,shear:0);
+        var r=EndPlateColumnCase.Verify(EndPlateStandardCaseData.Column(p,axial:axial));
+        // Independent three-rectangle section, coordinates measured from gross centroid.
+        var parts=new[]{(258.8,20.5,-123.1),(12.8,225.7,0.0),(206.8,20.5,123.1)};
+        double area=parts.Sum(x=>x.Item1*x.Item2);
+        double centroid=parts.Sum(x=>x.Item1*x.Item2*x.Item3)/area;
+        double inertia=parts.Sum(x=>x.Item1*Math.Pow(x.Item2,3)/12+x.Item1*x.Item2*Math.Pow(x.Item3-centroid,2));
+        double momentAtNetCentroid=-axial*centroid;
+        double[] edgeStresses=new[]{-133.35,133.35}.Select(z=>axial/area+momentAtNetCentroid*(z-centroid)/inertia).ToArray();
+        double expected=edgeStresses.Max(x=>Math.Abs(x));
+        Assert.AreEqual(ConnectionStatus.Passed,r.Status,string.Join(";",r.Diagnostics));
+        Assert.AreEqual(expected,r.Trace.Single(x=>x.Name=="Upper.NormalStressBound").Value,1e-8);
+        Assert.AreEqual(expected,r.Trace.Single(x=>x.Name=="Lower.NormalStressBound").Value,1e-8);
+        Assert.IsTrue(expected>Math.Abs(axial)/area);
+        Assert.AreEqual(Math.Max(0,-edgeStresses.Min()),r.Trace.Single(x=>x.Name=="Column.RequiredLongitudinalCompressionStress").Value,1e-8);
     }
 
     [TestMethod]

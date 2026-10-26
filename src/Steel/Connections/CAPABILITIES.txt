@@ -1,4 +1,4 @@
-CATALOGO DELLE CONNESSIONI - 25/10/2026
+CATALOGO DELLE CONNESSIONI - aggiornato 26/10/2026
 
 Fonte interrogabile: ConnectionCapabilityCatalog.All / Get(id).
 E' una descrizione della copertura software, NON un esito sul caso concreto.
@@ -15,7 +15,27 @@ WeldedIBeamDoubleCover: WeldedIBeamSpliceStandard, piastre compatte, ali/anima
 WeldedIBeamButt: continuita' CJP su I saldate identiche/allineate, N-V2-M1;
   subordinata ai requisiti esecutivi e ai due risultati reali di sezione.
 
-SOLI COMPONENTI / CASI PARZIALI
+
+NUOVI PERCORSI STANDARD - 26/10/2026
+StandardMomentEndPlate: EndPlateStandardJoint unisce i controlli sullo stesso
+  caso e il supporto reale; Mj locale e Sj iniziale/secante nel campo dichiarato.
+  I/H laminati, monolaterale beta=1, due colonne, N=0, lato teso fisso.
+  STANDARD_END_PLATE_USAGE.txt descrive ipotesi, azioni e limiti della qualifica.
+StandardBoltedPacking: intermedi bullonati del lap standard gia' implementato;
+  ora collegabili al terminale calcolato mediante l'overload tipizzato.
+StandardWeldedPacking: trasferimento longitudinale da imperfezioni fra correnti,
+  pareti e imbottitura piena, due anelli di cordoni, sezione non forata.
+StandardWeldedPackedTerminal: fazzoletto saldato a due C/L uguali, continuita'
+  CJP a un collettore COMPLANARE, radice realmente impedita alla rotazione.
+  Per entrambe le nuove tipologie saldate, campo nominale elastico e limitazioni
+  in PACKED_PAIR_STANDARD_WELDED_USAGE.txt. Non coprono terminali arbitrari.
+StandardConnectionCaseReport conserva stato, controlli, unita', input essenziali,
+  fonti e condizioni esterne. I rapporti delle connessioni non sono verifiche di
+  stabilita' delle aste o del telaio. M/Sj non e' capacita' rotazionale disponibile.
+Le voci storiche MomentEndPlate e PackedPairConnections descrivono le vecchie
+  API di soli componenti: la loro qualifica non viene cambiata retroattivamente.
+
+SOLI COMPONENTI / CASI PARZIALI (API STORICHE)
 DoubleAngleCleat: manca chiusura del supporto e del nodo completo.
 BraceConnections: sottotipi di fazzoletti/piatti/angolari; introduzione al supporto
   e nodo compresso completo ancora parziali.

@@ -1,0 +1,106 @@
+PROFILI DOPPI - TERMINALI E IMBOTTITURE SALDATE STANDARD - 26/10/2026
+
+TIPOLOGIA
+Due C o due L IDENTICI, dorsi contrapposti, piccolo distacco riempito da piastra
+piena. I C hanno ali uguali; per L disuguali sono coperti il lato lungo e corto.
+Compressione centrata costante, schema a forcella del modello d'asta, nessun
+contributo delle imbottiture all'area resistente longitudinale. EC3:2005/NTC2018.
+La domanda deriva da PackedPairImperfectionModel con imperfezioni e secondo
+ordine, dalle stazioni reali; non da un N/2 usato come unica domanda locale.
+
+Le nuove API sono percorsi circoscritti. PackingWeldedStationComponents conserva
+il significato precedente di componenti a sei azioni: non diventa un nodo completo.
+
+TERMINALE SteelPackedPairTerminal
+Un fazzoletto centrale, saldato su entrambe le facce ai dorsi dei due correnti,
+continua mediante saldatura di testa CJP a una piastra di raccolta COMPLANARE,
+con mezzerie allineate. I due terminali hanno lo stesso dettaglio. La radice
+deve essere fisicamente impedita alla rotazione fuori piano, con evidenza
+progettuale/esecutiva dichiarata. Non e' un attacco a T alla flangia del pilastro,
+un terminale bullonato o un generico nodo di controvento.
+
+PackedPairWeldedLapDetail: larghezza trasversale B, lunghezza longitudinale L,
+spessore g uguale al distacco, gola a, centro sul lato originario del corrente,
+materiali effettivi e geometria non forata nei percorsi saldati. Per il terminale
+il centro deve coincidere con il baricentro trasversale del singolo corrente.
+SteelPackedPairTerminalDetail aggiunge tratto libero, sporgenza effettiva dei
+correnti oltre la stazione terminale, piastra di raccolta, dimensioni/consumabili
+del CJP e vincolo reale. Le impronte dei cordoni devono stare nelle parti dritte
+del contorno Model, fuori da raccordi, estremita' e stazioni adiacenti.
+
+Per ciascun corrente:
+  F = |N|/2 + Q_end
+Q_end e' il massimo trasferimento terminale ottenuto integrando il flusso.
+Ogni faccia trasferisce la forza INTERA. Le eccentricita' fra corrente e lap
+sono considerate senza cancellare automaticamente le coppie sulle due facce.
+
+Il nucleo comune usa strisce elastiche nominali isolate: A=B*t, Wel=B*t^2/6,
+con tensione di fondo del corrente sigma0 e braccio conservativo ell del dettaglio.
+  sigma0 + F*((1+sqrt(3))/A + ell/Wel) <= fy/gammaM0
+Si aggiungono un limite supplementare di rottura, le verifiche direzionali dei
+cordoni e dei flussi lineari trasmessi al metallo base, anche normali al piano.
+Le combinazioni dei segni sono inviluppate. Nessuna diffusione favorevole, contatto
+o redistribuzione plastica e' usata per aumentare la capacita'. Sono limiti
+INGEGNERISTICI NOMINALI supplementari, non formule letterali EC per un nodo3D.
+
+Fazzoletto e continuita' al collettore: striscia isolata di larghezza B e spessore g,
+nessuna diffusione Whitmore. Con Lf tratto libero prima del lap:
+  Lk = 2*(Lf+L/2); A=B*g
+  Imin=min(B*g^3,g*B^3)/12; Wmin=min(B*g^2,g*B^2)/6
+  Ncr=pi^2*E*Imin/Lk^2; Nt=2*F; e0=Lk/150
+Il momento terminale inviluppa il trasferimento differenziale dei correnti.
+  sigma = Nt/A + (Mterm+Nt*e0)/(Wmin*(1-Nt/Ncr))
+La formula e' valutata solo sotto Euler; Nt>=Ncr produce fallimento esplicito.
+Il limite nominale usa il piu' debole dei materiali di fazzoletto/collettore.
+La resistenza locale riportata e' condizionata al rapporto delle forze e alla
+tensione di fondo dell'asta: NON e' il carico critico o la resistenza globale.
+
+IMBOTTITURE SteelWeldedPacking
+Stesso nucleo locale per due anelli rettangolari completi di cordoni sui dorsi.
+La forza di ogni faccia e' Q della stazione, non Q/2. Sono controllati gola,
+lunghezze efficaci, sovrapposizioni, piccolo distacco, passo <=15*i_min,
+pareti dei correnti e blocco. Il percorso completamente saldato richiede
+sezione non forata, almeno una stazione intermedia e correnti localmente corti
+rispetto al carico critico. Non copre sei azioni arbitrarie o calastrelli.
+
+BINDING AL MEMBRO
+1. Creare un solo SteelPackingLayout e PackedPairImperfectionModel.
+2. Calcolare SteelPackedPairTerminal.Verify(demand,terminalDetail).
+3. Calcolare SteelWeldedPacking.Verify(demand,lapDetail), oppure il percorso
+   SteelBoltedPacking gia' presente per intermedi bullonati (vedere
+   ../PACKED_BOLTED_STANDARD.txt). Il terminale qui rimane saldato.
+4. SteelPackedPairAssessment.FromWeldedPacking(packing,terminal,restraintSource)
+   oppure FromBoltedPacking(packing,terminal,restraintSource). Occorre lo STESSO
+   oggetto domanda; le factory verificano anche gli ingombri fra terminali e
+   stazioni. Nessuna resistenza terminale scelta arbitrariamente dal chiamante.
+5. Usare l'assessment in SteelMemberAnalysis.PackedCompression e nella pipeline
+   SteelVerificationPipeline con curve e giustificazioni dei vincoli applicabili.
+   I modi GLOBALI torsionali/flessotorsionali richiedono esclusione indipendente:
+   una prova di equilibrio dei collegamenti non ne dimostra l'assenza.
+6. StandardConnectionCaseReport.Create(assessment) e' il rapporto delle connessioni
+   locali. L'esito del membro va letto separatamente dalla pipeline d'asta.
+
+IsComplete significa campo coperto, non superamento. Tutti i controlli di
+terminali/intermedi sono conservati nella verifica del membro, anche se falliscono.
+Il vecchio overload con domanda/resistenza terminale scalari rimane disponibile
+ma non viene promosso dal nuovo report a terminale calcolato.
+
+VALIDAZIONE E LIMITI
+Esempi completi: PackedPairTerminalTests, WeldedPackingStandardTests e
+StandardConnectionReportTests. I casi C/L, lato lungo/corto, EC/NTC, includono
+oracoli analitici di domanda, Euler, secondo ordine e strisce, geometrie fuori
+campo, fallimenti, identita' della combinazione e passaggio alla pipeline.
+I casi di raccordo che passano usano carichi bassi: dimostrano il percorso del
+software, non la capacita' usuale di un nodo reale. I modelli nominali possono
+risultare molto cautelativi. Non c'e' una validazione sperimentale dell'intero
+terminale, ne' una riproduzione completa di un nodo pubblicato indipendente.
+
+Per gli otto esempi JSON e il comando eseguibile vedere STANDARD_END_PLATE_USAGE.txt.
+I JSON non sostituiscono input completi, dettagli esecutivi e relazione di calcolo.
+Restano esterni fatica, sisma, incendio, scorrimento SLE, supporti diversi,
+rotazioni della radice non qualificate, terminali bullonati e FEM locale.
+
+Nuclei normativi: EN1993-1-1:2005 5.2.1,5.3.2/Table5.1,6.2.1,6.4.4;
+EN1993-1-8:2005 4.5.3.2 e4.7.1. I controlli nominali supplementari e le loro
+ipotesi sono dichiarati sopra e nelle stringhe Reference, senza attribuirli
+alla norma come formule specifiche per questa configurazione.

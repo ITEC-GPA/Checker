@@ -27,11 +27,11 @@ fuori piano. Fattori delle piastre distinti da quelli di bulloni/rifollamento.
 https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
 
 1b IMPLEMENTATO - SUPPORTO, CONTATTO ED EQUILIBRIO
-Vincolare il nodo monolaterale allo stato concomitante del pilastro e verificare
+Il nodo monolaterale e' vincolato allo stato concomitante del pilastro e verificare
 le tensioni longitudinali realmente usate nei componenti. Contatto compresso e
 introduzione attraverso un dettaglio di saldatura esplicito.
 1c IMPLEMENTATO - AGGREGAZIONE E RIGIDEZZA
-Conservare tutti i fallimenti, verificare identita' dello stesso caso, restituire
+Conserva tutti i fallimenti, verifica identita' dello stesso caso, restituisce
 resistenza del nodo nel campo dichiarato e rigidezza compatibile col modello.
 2 IMPLEMENTATO NEL DETTAGLIO SALDATO - TERMINALI PROFILI DOPPI
 Fazzoletto standard e collegamento alle pareti dei due profili uguali; usare
@@ -39,7 +39,7 @@ le azioni reali e la domanda locale dell'asta. Niente resistenza fittizia N/2.
 3 IMPLEMENTATO NEL DETTAGLIO STANDARD - IMBOTTITURE SALDATE
 Dettaglio circoscritto, domanda con imperfezioni comune al percorso bullonato,
 cordoni piu' pareti dei correnti e blocco. Nessuna qualifica delle sei azioni generiche.
-4 IN CORSO - CONSEGNA
+4 IMPLEMENTATO - CATALOGO E REPORT; COLLAUDO COMPLETO DA REGISTRARE
 Aggiornamento a ogni blocco; versione dedicata e collaudo finale del set.
 
 COLLAUDO1b:73 test pertinenti superati,14 nuovi casi. EndPlateColumnCase lega
@@ -90,3 +90,15 @@ terminali e correnti nello stesso caso; nessun contributo dei blocchi all'area
 longitudinale. I modi globali T/FT restano da escludere separatamente.
 I vecchi PackingWeldedStationComponents a sei azioni restano parziali; il nuovo
 metodo copre il trasferimento longitudinale calcolato della tipologia dichiarata.
+
+COLLAUDO4:56 test mirati finali superati,0fallimenti; comprende catalogo,report,
+aggregazione,contatto/supporto e16 casi del pilastro. 14 nuovi test di report;
+3 ulteriori regressioni: eccentricita' di N per fori asimmetrici (trazione e
+compressione) e conservazione del bullone fallito con modello Sj incompatibile.
+Correzione in revisione: i tagli al baricentro lordo devono essere traslati al
+baricentro netto; il momento controllato comprende |N*e_net|.
+95 nuovi casi complessivi nelle sei sottofasi; gli attesi storici non cambiano.
+Otto JSON EC/NTC (flush/extended; intermedi bullonati/saldati) esportati con
+StandardConnectionReportTests. Tutti i report mantengono i limiti di validita'.
+Manuali:STANDARD_END_PLATE_USAGE.txt,PACKED_PAIR_STANDARD_WELDED_USAGE.txt.
+Il checkpoint di consegna registrera' il collaudo completo e il manifest del set.

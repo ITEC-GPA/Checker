@@ -1,0 +1,101 @@
+PIASTRA DI ESTREMITA' STANDARD - 26/10/2026
+
+Campo del nuovo EndPlateStandardJoint
+I/H laminati, nodo trave-pilastro monolaterale non irrigidito, beta=1,
+due colonne di bulloni, N trave nullo, un solo piano N-V2-M1 e lato teso
+prefissato. Geometrie flush o extended riconosciute dai componenti esistenti.
+Metodo ordinario EN1993-1-8:2005; parametri EC3 o NTC2018 tramite lo stesso
+ConnectionDesignCode. In NTC i modelli a componenti EC sono complementari:
+il rapporto identifica questa scelta, senza confondere i coefficienti.
+
+Non e' un modello generale di piastre/frattura3D. Il passaggio da componenti
+a nodo locale standard deriva dall'audit EN6.2.2/6.2.7.2 e SCI P3982.5,
+non dall'ipotesi che una formula di coprigiunto valga fuori piano.
+L'API storica EndPlateLocalCaseAssessment resta parziale.
+
+SEQUENZA API
+1. EndPlateMomentWithBeamSection.Verify lega il dettaglio al risultato della
+   sezione reale della trave e alle azioni concomitanti, con i loro segni.
+2. EndPlateConnectionAssessment raccoglie lo stesso risultato a componenti,
+   bulloni e saldature effettive: fillet accoppiati per extended, CJP per flush.
+   Le saldature devono verificare l'inviluppo di piena resistenza previsto
+   dall'adattatore; un rapporto isolato al solo M attuale non basta.
+3. EndPlateInitialStiffnessFromMoment usa l'hardware effettivo, inclusa la
+   lunghezza deformabile del bullone; non la deduce dal solo diametro.
+4. EndPlateLocalCaseAssessment.Assess(parent,connection,initial) mantiene
+   l'identita' del caso. EndPlateInPlaneChecks.Verify(connection.Bolts)
+   aggiunge percorsi netti, blocchi e resistenza del gruppo a taglio.
+5. EndPlateColumnCase.Verify riceve lo stesso parent, i tagli reali del
+   pilastro, fu reale della flangia, contatto misurato e fonte esecutiva.
+6. EndPlateStandardJoint.Verify(local,inPlane,column,appliedGlobalSpring)
+   restituisce controlli, stato, Mj locale e rigidezza quando applicabili.
+   appliedGlobalSpring e' opzionale: assente significa confronto non fatto.
+7. StandardConnectionCaseReport.Create(result) produce il rapporto immutabile.
+
+Le factory verificano identita' degli oggetti oltre ai valori. Due combinazioni
+numericamente identiche non sono intercambiabili senza ricostruire il caso.
+
+SUPPORTO E CONTATTO
+Unita': N, mm, Nmm, MPa, rad. N negativo in compressione. Le azioni dei tagli
+Upper/Lower sono riportate allo STESSO riferimento del nodo, nel sistema
+continuo del pilastro. Le convenzioni implementate richiedono:
+  Lower.N - Upper.N = -beam.V2
+  Lower.M1 - Upper.M1 = beam.M1
+  Lower.V2 = Upper.V2
+V2 positivo del pilastro contrasta il taglio di pannello. Sono controllati
+l'equilibrio e l'inviluppo beta=1: non si combinano massimi indipendenti.
+
+Sezione netta del pilastro: rettangoli senza contributo favorevole dei raccordi,
+due fori nella flangia collegata, nuovo baricentro e nuova inerzia. Le azioni
+sono al baricentro lordo: l'inviluppo del momento netto comprende |N*e_net|.
+  Mnet,b = |M1| + |N*e_net|
+  sigma_b = |N|/An + Mnet,b*cmax/In
+  tau_b = 1.5*|V2|/(tw*hw)
+Si usa il limite elastico sigma_b + sqrt(3)*tau_b <= fy/gammaM0, e un limite
+supplementare di tensione normale netta. La tensione di compressione dichiarata
+per i componenti deve inviluppare il valore dei due tagli. La classificazione
+del pilastro e' limitata cautelativamente alle parti di classe <=3 in
+compressione uniforme. Questi controlli non sono la stabilita' del pilastro.
+
+Il contatto e' rettangolare, centrato e CHIUSO su entrambe le interfacce, entro
+la flangia compressa effettiva. Non basta dichiarare una saldatura per assumerlo.
+Il limite di pressione nominale e' fy,min/gammaM0, sull'area misurata.
+Un contatto insufficiente riduce Mj,Rd; un contatto aperto e' fuori campo.
+
+RISULTATI E LIMITI
+IsComplete indica copertura del modello; Status distingue Passed, Failed,
+NotSupported. CanQualifyWholeJoint riguarda soltanto il nodo LOCALE tipologico,
+non il telaio. Un fallimento noto rimane visibile anche con altri dati fuori campo.
+Mj,Rd e' condizionato al taglio mantenuto e al contesto di tensione del pilastro:
+non e' la capacita' per qualunque altra combinazione o per scalare tutte le azioni.
+I controlli nel piano non sostituiscono T-stub, prying, punzonamento e interazione
+del bullone; le estremita' reali della flangia non sono quelle della piastra.
+
+Sj iniziale e secante riusano il kernel verificato. ModelRotation=M/Sj e' una
+rotazione del modello, NON capacita' rotazionale disponibile. Una molla globale
+diversa da Sj determina RequiresGlobalReanalysis; non cambia retroattivamente
+le sollecitazioni FEM e non assegna automaticamente la classe rigido/cerniera.
+Stabilita' delle aste, duttilita', sisma, fatica e redistribuzione plastica
+restano esterni. Esecuzione, superfici di contatto e hardware devono corrispondere
+al dettaglio; le stringhe di fonte sono tracciabilita', non certificazione.
+
+ESEMPI E VALIDAZIONE
+Costruzione completa riproducibile in EndPlateColumnCaseTests,
+EndPlateStandardJointTests e StandardConnectionReportTests (tests/Steel.Members.Tests).
+I casi derivati dalla geometria SCI C.1 cambiano beta, azioni, hardware e stato
+del pilastro: sono casi ANALITICI, non una riproduzione integrale pubblicata C.1.
+Gli oracoli verificano sezioni rettangolari, eccentricita' dei fori, contatto,
+rigidezze, equilibrio, fallimenti ed esclusione dei casi incompatibili.
+Il checkpoint finale riporta i risultati effettivi delle suite.
+
+Per rigenerare i quattro esempi di piastra e i quattro di imbottiture:
+  $env:GPC_STANDARD_CONNECTION_REPORT_DIR='<cartella assoluta di output>'
+  dotnet test tests/Steel.Members.Tests/Steel.Members.Tests.csproj -c Release --filter FullyQualifiedName~StandardConnectionReportTests
+I JSON descrivono risultati numerici e limiti, non sono file di progetto completi
+da ricaricare; gli input completi restano negli esempi eseguibili dei test.
+
+Fonti: EN1993-1-8:2005 3.7,3.10.2,6.2.2,6.2.7.2; EN1993-1-1:2005 6.2.1,6.2.6.
+SCI P398 (2013), cap2.5 STEP5, pp26-27:
+https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
+Per la distinzione fra prescrizione normativa e limiti supplementari nominali,
+vedere STANDARD_NEXT_PLAN.txt e i Reference delle singole verifiche.

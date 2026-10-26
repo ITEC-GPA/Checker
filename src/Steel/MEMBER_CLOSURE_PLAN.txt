@@ -1,3 +1,12 @@
+AGGIORNAMENTO 26/10/2026
+La sequenza successiva e' in Connections/STANDARD_NEXT_PLAN.txt.
+Sono aggiunti nodo locale EndPlateStandardJoint, terminale saldato dei profili
+accoppiati a collettore complanare e intermedi saldati; le factory tipizzate
+trasmettono i controlli effettivi nella pipeline d'asta. I modi globali T/FT dei
+profili doppi richiedono ancora esclusione indipendente. Vedere i due nuovi
+manuali STANDARD_END_PLATE_USAGE.txt e PACKED_PAIR_STANDARD_WELDED_USAGE.txt
+in Connections. Il testo sotto conserva i risultati e il perimetro precedente.
+
 CONSOLIDAMENTO CONNESSIONI E COMPLETAMENTO ASTE - 25/10/2026
 Ordine autorizzato dall'utente:1,2,3,4, poi ripresa piastra di estremita'.
 Un solo agente. EC3 2005/NTC2018, statica ordinaria, senza UI/FEM locale.

@@ -108,8 +108,13 @@ namespace GPC.Checkers.Steel.Connections
                     if(issues.Count==0)mr=limit;
                     void Cut(string name,SteelActions a)
                     {
-                        double stress=Math.Abs(a.N)/an+Math.Abs(a.M1)*c/inertia;
-                        double compression=Math.Max(0,-a.N/an+Math.Abs(a.M1)*c/inertia);
+                        // Cut actions refer to the gross column centroid. The asymmetric
+                        // holes move the net centroid: transfer N with its eccentricity,
+                        // retaining the adverse sign as a conservative moment envelope.
+                        double netMomentBound=Math.Abs(a.M1)+Math.Abs(a.N*cy);
+                        double stress=Math.Abs(a.N)/an+netMomentBound*c/inertia;
+                        double compression=Math.Max(0,-a.N/an+netMomentBound*c/inertia);
+                        Value(name+".NetMomentBound",netMomentBound,"Nmm");
                         double shear=1.5*Math.Abs(a.V2)/(tw*col.ClearWeb);
                         sigmaCompression=Math.Max(sigmaCompression,compression);
                         Value(name+".NormalStressBound",stress,"MPa");Value(name+".ShearStressBound",shear,"MPa");

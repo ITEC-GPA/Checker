@@ -93,3 +93,11 @@ L disuguali, soluzione indipendente alle differenze finite con convergenza,
 integrazione numerica di |q|, beta_p/rifollamento indipendenti, input fuori campo,
 fallimenti locali/terminali, fattori EC/NTC, nessuna deroga generale per i fori.
 72 test pertinenti passati,0fallimenti. Nessuna fixture legacy modificata.
+
+AGGIUNTA 26/10/2026 - TERMINALE CALCOLATO
+FromBoltedPacking(packing,terminal,restraintSource) accetta ora il risultato
+SteelPackedPairTerminal dello stesso PackedPairImperfectionModel. Il terminale
+qui implementato e' SALDATO, con collettore complanare, CJP e radice vincolata;
+non e' un terminale bullonato. Il vecchio overload scalare resta distinto.
+Limiti, esempio e controlli trasferiti al membro sono documentati in
+Connections/PACKED_PAIR_STANDARD_WELDED_USAGE.txt.

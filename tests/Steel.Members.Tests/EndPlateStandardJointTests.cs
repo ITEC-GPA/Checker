@@ -56,6 +56,19 @@ public class EndPlateStandardJointTests
     }
 
     [TestMethod]
+    public void ReportRetainsFailedBoltEvidenceWhenTheStiffnessCaseIsMismatched()
+    {
+        var a=Case(overloadedBolt:true);var b=Case();
+        var incomplete=EndPlateLocalCaseAssessment.Assess(a.local.BeamAndMoment,a.local.Connection,b.local.InitialStiffnessAssessment);
+        Assert.AreEqual(0,incomplete.Checks.Count);
+        var r=EndPlateStandardJoint.Verify(incomplete,a.plane,a.column);
+        var report=StandardConnectionCaseReport.Create(r);
+        Assert.AreEqual(ConnectionStatus.Failed,report.Status);Assert.IsFalse(report.IsComplete);
+        Assert.IsTrue(report.Checks.Any(x=>!x.Passed));
+        Assert.IsFalse(report.Results.Any(x=>x.Name=="Joint.MomentResistanceAtRetainedShear"));
+    }
+
+    [TestMethod]
     public void ContactCanGovernTheCompleteMomentResistance()
     {
         var c=Case(moment:20e6,contactWidth:40);var r=EndPlateStandardJoint.Verify(c.local,c.plane,c.column);

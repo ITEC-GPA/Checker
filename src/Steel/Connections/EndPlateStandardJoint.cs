@@ -50,7 +50,18 @@ namespace GPC.Checkers.Steel.Connections
             var m=local.BeamAndMoment.Input;
             if(m.ExtensionGeometry==null&&local.Connection.TopFlushCjpWelds==null)issues.Add("TopFlushRequiresItsActualCjpDetail");
             if(m.ExtensionGeometry!=null&&local.Connection.FilletWelds==null)issues.Add("ExtendedPlateRequiresItsActualPairedFilletDetail");
-            checks.AddRange(local.Checks);checks.AddRange(plane.Checks);checks.AddRange(column.Checks);
+            checks.AddRange(local.Checks);
+            if(local.Checks.Count==0)
+            {
+                // Preserve adverse child evidence even when another component prevented
+                // the legacy local aggregator from producing its combined check list.
+                checks.AddRange(local.BeamAndMoment.BeamSection.Checks.Select(c=>new ConnectionCheck("BeamSection."+c.Id,c.Demand,c.Resistance,c.Reference,c.Unit)));
+                if(local.BeamAndMoment.MomentComponents!=null)checks.AddRange(local.BeamAndMoment.MomentComponents.ComponentAssessment.Checks);
+                checks.AddRange(local.Connection.Bolts.BoltAssessment.Checks);
+                if(local.Connection.FilletWelds!=null)checks.AddRange(local.Connection.FilletWelds.WeldAssessment.Checks);
+                if(local.Connection.TopFlushCjpWelds!=null)checks.AddRange(local.Connection.TopFlushCjpWelds.WeldAssessment.Checks);
+            }
+            checks.AddRange(plane.Checks);checks.AddRange(column.Checks);
             HasFailedComponent=local.HasFailedComponent||plane.Status==ConnectionStatus.Failed||column.Status==ConnectionStatus.Failed;
             IsComplete=issues.Count==0&&column.ContactLimitedMomentResistance.HasValue;
             if(IsComplete)
