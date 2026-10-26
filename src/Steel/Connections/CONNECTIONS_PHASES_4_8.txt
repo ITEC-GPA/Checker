@@ -1,32 +1,82 @@
 CONNESSIONI STANDARD - FASI4-8, AUTORIZZAZIONE26/10/2026
 
-Numerazione della proposta approvata (non le vecchie fasi1-4 notturne):
-4 doppio angolare;5 controventi;6 terminali profili doppi;
-7 estensioni coprigiunti;8 consegna e integrazione librerie.
+Numerazione approvata:4 doppio angolare;5 controventi;6 terminali profili
+doppi;7 estensioni coprigiunti;8 consegna e integrazione librerie.
 Lavoro sequenziale, un agente. EC3:2005/NTC2018, statica ordinaria.
+Il completamento dei sottoambiti seguenti NON chiude tutte le famiglie4-7.
 
-4a Fonte: Weynand, Oerder, Demonceau, Resistance tables for standardized joints
+4 - DOPPIO ANGOLARE: PARZIALE
+4a IMPLEMENTATO DoubleAngleCleatSupportContact: contatto superiore delle L
+con l'anima della trave e forze trasversali nel piano della flangia supporto.
+Fonte Weynand, Oerder, Demonceau, Resistance tables for standardized joints
 in accordance with EN1993-1-8, section3.1, Figures7-9, PDF pp6-7:
 https://orbi.uliege.be/bitstream/2268/126293/1/Paper_Weynand_et_al.pdf
-Il momento di ciascuna L e' V/2*eb. Le forze orizzontali in Fig9 sono NEL PIANO
-DELLA FLANGIA del pilastro, non normali al bullone. Distribuzione elastica
-Fi=M*zi/sum(zi^2), zi dal centro della zona compressa superiore. Si conservano
-le reazioni di contatto opposte delle due L. Dimensioni reali della zona di
-contatto fornite esplicitamente: non sono calcolate da un risolutore implicito.
-Controlli aggiuntivi: contatto elastico, taglio risultante, rifollamento
-bidirezionale conservativo lineare. Il modello SBE precedente resta separato.
-4b Gerarchia sufficiente Bp,Rd>=Ft,Rd su L e flangia, diametro reale testa/dado.
-Il mancato soddisfacimento NON dimostra un collasso sotto una trazione ignota.
+M=V/2*eb; Fi=M*zi/sum(zi^2). zi dal centro della zona compressa superiore.
+Le dimensioni di contatto sono input fisici espliciti, non derivate da una
+soluzione di contatto implicita. Le forze orizzontali della fonte sono NEL
+PIANO DELLA FLANGIA, NON normali al bullone. Le reazioni delle due L restano
+distinte. Controlli: contatto elastico, taglio risultante, rifollamento
+bidirezionale lineare conservativo. I controlli SBE precedenti restano attivi.
+4b IMPLEMENTATA gerarchia sufficiente Bp,Rd>=Ft,Rd su L e flangia con diametro
+reale testa/dado. Una gerarchia non soddisfatta NON dimostra collasso sotto
+la trazione ignota; viene restituita separatamente dalla verifica a carico.
 4c APERTO: trazione normale/prying, resistenza locale e azioni concomitanti
-del pilastro, rotazione del nodo completo. Nessuna falsa qualificazione.
+del pilastro, rotazione del nodo completo. Nessuna qualificazione globale.
+Prove:178test DoubleAngleCleat, poi14/14 nuovi test dopo aggiunta del caso
+limite numerico. Oracolo di equilibrio libero Fig9, non prova sperimentale.
+Commit funzionale ce064777; versione2.110 a92f9d0a.
 
-5 Da sviluppare: prosecuzione del fazzoletto e introduzione al collettore,
-con confini fisici e forze concomitanti espliciti. C/2C collegati solo tramite
-anima richiedono un modello specifico di shear lag: le formule per L non
-sono trasferibili. Compressione generale non si deduce dal solo Euler.
-6 Da sviluppare: terminali bullonati; conservare i momenti locali dei singoli
-profili anche quando si annullano nella risultante della coppia.
-7 Da sviluppare: estensioni motivate del coprigiunto standard. Nessuna rimozione
-di un limite senza verificare i meccanismi che quel limite esclude.
-8 Ultima: test pertinenti, set coerente completo, versioni dedicate, integrazione
-master e aggiornamento delle librerie ANTHEA preservando lavoro altrui.
+5 - CONTROVENTI: UNA NUOVA TIPOLOGIA CHIUSA, FAMIGLIA PARZIALE
+5a IMPLEMENTATO GussetTwinFlatCollector: due piatti tesi, bullonatura sul
+fazzoletto e prosecuzione mediante CJP verso collettore COMPLANARE con stessa
+sezione rettangolare. Fonte saldatura EN1993-1-8:2005 4.7.1 e NTC2018
+4.2.8.2.1. Metallo d'apporto compatibile, piena fusione, cordone fuori dalla
+sovrapposizione bullonata, sezioni integre e stessi assi medi. Non si assume
+diffusione verso un collettore piu' largo. Le forze del taglio del collettore
+devono coincidere con il caso concomitante del terminale. Restituisce la
+verifica completa SOLO tra i tagli fisici di questa tipologia.
+5b APERTO: attacco a T a travi/pilastri e supporti generici, compressione
+generale; C/2C collegati solo tramite anima richiedono specifico shear lag.
+Le formule delle L e un'area netta geometrica non qualificano una C.
+Prove:90/90 GussetTwinFlat, di cui17 nuove; barra costante/CJP indipendente,
+EC/NTC, materiale debole, mismatch del caso, momento infinitesimo, limiti.
+Commit funzionale28787563; versione2.111 ad53472b.
+
+6 - TERMINALI PROFILI DOPPI: PARZIALE
+6a IMPLEMENTATO BraceAnglePairTerminalPlates: riusa lo snapshot reale2L,
+il lato collegato, i gruppi e tutte le eccentricita' del precedente adapter.
+Sezione netta del fazzoletto: foro nella posizione reale, baricentro e inerzia
+depurati, trasporto di N/M al baricentro netto, controllo elastico conservativo.
+Strappo: ogni prefisso di bulloni da ciascuna estremita' libera, entrambi i
+bordi di ciascun piatto, ant/anv reali ed espressione eccentrica EN1993-1-8
+3.10.2; SOLO forze longitudinali collineari. Nessuna cancellazione delle forze.
+Le L usano lo strip rettilineo conservativo fra tangenti raccordo/bordo.
+6b APERTO: strappo con forze non collineari, contatto/prying3D, attacco a T,
+supporto e stabilita' locale/globale. I momenti opposti delle singole L non
+si cancellano per qualificare il terminale. Terminali bullonati2C ancora
+non qualificati. Non toccato il terminale saldato standard gia' presente.
+Prove:92/92 BraceAnglePair, di cui8 nuove; integrazione numerica indipendente
+della sezione forata, blocchi, segni e propagazione dei fallimenti.
+Commit funzionale b0f8dae1; versione2.112 930592bd.
+
+7 - COPRIGIUNTI: ESTENSIONE SPESSORI CHIUSA NEL MODELLO DICHIARATO
+7a IMPLEMENTATO IndependentFaceDimensions: spessori e larghezze diversi
+delle facce delle ali, con quote reali e ripartizione per equilibrio di N/M.
+Le policy vecchie non cambiano. Dettagli in BRIDGE_SPLICE_UNEQUAL_THICKNESS.txt.
+E' l'estensione esplicita del modello convenzionale a membrane, non un
+risolutore di contatto o una nuova formula attribuita alla norma.
+7b APERTO: lamiere snelle/forate di classe4, compensatori e transizioni delle
+sezioni madri, strappo generico fuori gerarchia, contatto/prying generale.
+Prove:52/52 suite BridgeSpliceUnequal, di cui26 nuove: EC/NTC, A/B/C, inversione,
+sovraccarico, equilibrio indipendente, compatibilita' bitwise e limiti vecchi.
+Commit funzionale a33ae4e8.
+
+8 - CONSEGNA
+Integrati i5commit master Concrete del set ANTHEA AI: R12/R13/R19/R21,
+preservando implementazione, test e documentazione. Conflitti risolti sulle
+sole versioni; eliminati i tag di versione duplicati prodotti dal merge Git.
+Commit integrazione868da162. Nuova versione e set completo seguono in commit
+dedicato. Manifest release-set.json e rapporti TRX sono l'evidenza delle suite
+effettivamente eseguite. Nessun atteso legacy o allowlist modificato.
+Un set candidato non diventa rilascio ANTHEA: AGENTS richiede commit pushati,
+installazione dal set ufficiale, profilo full. Push solo su richiesta esplicita.
