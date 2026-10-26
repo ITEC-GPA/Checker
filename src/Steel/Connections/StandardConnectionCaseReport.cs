@@ -9,7 +9,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Immutable numeric local-connection report. Values carry units; source
     /// references, runtime status and external conditions are distinct. It does not
     /// upgrade a connection result to a member/frame verification or export a CAD model.</summary>
-    public sealed class StandardConnectionCaseReport
+    public sealed partial class StandardConnectionCaseReport
     {
         public string MethodId { get; }
         public string Code { get; }

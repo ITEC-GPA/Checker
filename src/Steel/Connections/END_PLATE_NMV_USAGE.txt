@@ -1,0 +1,166 @@
+PIASTRA DI ESTREMITA' STANDARD N-M-V - 26/10/2026
+
+CAMPO E NATURA DEL MODELLO
+EndPlateNmv estende la libreria alle azioni assiali non nulle e al momento di
+entrambi i segni, conservando le vecchie API N=0. EC3 edizione2005 / NTC2018,
+statica ordinaria; per NTC i modelli di componenti EC sono complementari e i
+coefficienti sono quelli della ConnectionDesignCode scelta, mai mescolati.
+Percorso standard per I/H laminati, pilastro non irrigidito, giunto monolaterale,
+due colonne di bulloni e almeno due file. Trave e pilastro devono essere in
+classe1-3 anche nella classificazione di compressione uniforme. Piastra superiore
+estesa oppure dettaglio top-flush CJP gia' qualificato; contatti inizialmente
+chiusi, saldature a piena resistenza su entrambe le ali, nessun gioco iniziale.
+
+Il modello aggiunto e' un assemblaggio ELASTICO unilaterale di componenti.
+Equilibrio e contatto sono analitici; non sono FEM locale. Non calcola snervamento
+progressivo, ridistribuzione plastica o capacita' rotazionale ultima. Le prove
+indipendenti verificano matematica e limiti; non costituiscono una validazione
+sperimentale dell'intero nodo. Una combinazione Passed riguarda esclusivamente
+il dettaglio ammesso e le azioni locali fornite.
+
+Tutte le file fisiche devono possedere T-stub, gruppi, resistenze e rigidezze
+coerenti. Una vecchia fila 'solo taglio' non diventa automaticamente una fila
+resistente a trazione. Resta il limite geometrico della fila vicina alla flangia
+opposta: CompressionFlangeTooCloseForUnrestrictedEndRowMechanism non viene
+aggirato. Quel dettaglio richiede un modello di linee plastiche con entrambe le
+flange. La configurazione simmetrica con file addossate ad entrambe le ali non
+e' pertanto promossa da questa implementazione.
+
+SEQUENZA API
+1. Preparare EndPlateMomentWithBeamSectionResult con geometria reale, N=M=0 e
+   il modulo del taglio trattenuto. Questo e' il calcolo preparatorio delle
+   capacita' e delle rigidezze, NON una combinazione FEM sostitutiva.
+2. Preparare EndPlateConnectionAssessmentResult sullo stesso oggetto immutabile:
+   tutte le file a trazione, inviluppo pieno Ft/prying per ogni bullone, saldature
+   a piena resistenza anche sull'ala che in precedenza era solo compressa.
+3. EndPlateNmvGeometry.Prepare riceve i due risultati, le lunghezze reali di
+   allungamento dei bulloni, larghezza/altezza di ciascun contatto e la fonte
+   esecutiva. Calcola i componenti elastici dalle geometrie gia' qualificate.
+4. EndPlateNmvInput riceve le azioni CONCOMITANTI reali alla faccia, i due tagli
+   del pilastro proiettati al riferimento dichiarato e le loro provenienze.
+5. EndPlateNmv.Verify calcola equilibrio, resistenza e traccia; conservare Status,
+   IsComplete, Diagnostics e ExternalConditions. Failed prevale anche quando
+   altri meccanismi risultano non supportati; IsComplete non equivale a Passed.
+6. EndPlateNmvStiffness.Evaluate qualifica separatamente la matrice elastica.
+7. StandardConnectionCaseReport.Create(result) produce il rapporto numerico
+   con unita', file, contatti, residui, resistenze condizionate e stato rigidezza.
+
+Esempi completi eseguibili: tests/Steel.Members.Tests/EndPlateNmvCaseData.cs e
+EndPlateNmvReportTests.cs. Sono dettagli analitici costruiti per la verifica del
+software, non esempi sperimentali pubblicati. Per esportare i JSON valorizzare
+GPC_ENDPLATE_NMV_REPORT_DIR ed eseguire i test EndPlateNmvReport.
+
+ASSI, SEGNI, AZIONI E UNITA'
+N in N, M1 in Nmm, V2 in N; coordinate e spostamenti in mm, angoli in rad.
+z positivo verso l'alto dal baricentro della trave. N>0 trazione, V2>0 verso
+l'alto, M1>0 tende il lato superiore. Il riferimento della trave e' la faccia
+ESTERNA dell'ala del pilastro, non il suo asse. Le azioni dei tagli superiore
+e inferiore sono proiettate al livello del baricentro della trave sull'asse del
+pilastro, con la stessa convenzione di segno continua. Non sono i vettori nodali
+FEM gia' equilibranti, che cambiano segno tra i capi: il converter deve mapparli.
+Con e=altezzaPilastro/2 sono obbligatorie:
+  N_lower - N_upper = -V2_trave
+  V2_lower - V2_upper = -N_trave
+  M1_lower - M1_upper = M1_trave - e*V2_trave
+I controlli rifiutano massimi indipendenti, torsione, flessione/taglio fuori piano
+e un taglio il cui modulo differisce da quello preparato. L'inviluppo di bulloni
+e percorsi nel piano comprende entrambi i versi del taglio.
+
+EQUILIBRIO E CONTATTO
+Gradi di liberta': apertura assiale u e rotazione theta.
+  delta(z) = u + theta*z
+  T_i = k_i*max(delta(z_i),0)
+  q_j(z) = k'_j*min(delta(z),0), k'_j = K_j/altezzaBanda_j
+T_i e' la trazione della fila completa; q_j e' la forza compressiva per unita'
+di altezza (negativa). Le due bande coincidono con le zone delle ali della trave.
+Sulla sola parte chiusa [a,b], L=b-a e zc=(a+b)/2:
+  C_signed = k'*L*(u+theta*zc)
+  M_contact = C_signed*zc + k'*theta*L^3/12
+  N = somma(T_i)+somma(C_signed)
+  M = somma(T_i*z_i)+somma(M_contact)
+Le resistenze usano compressioni positive e pressione di picco, non la media.
+L'integrazione e' esatta per delta lineare. Soluzione mediante bisezioni monotone
+annidate, con residui N e M; nessuna tolleranza di convergenza sostituisce quella
+di verifica resistente. L'energia e' la somma delle energie elastiche positive.
+
+Le molle tese riusano E=210000MPa e le lunghezze efficaci di ciascuna fila,
+individualmente e nei gruppi. La molla compressa usa 0.7*E*beff*tw/dwc, distribuita
+sull'altezza di contatto: e' un'idealizzazione supplementare dichiarata. beff
+usa un limite inferiore della dispersione Eq6.11 senza incrementi favorevoli di
+cordoni/proiezioni; le due zone devono essere contenute nel pilastro e separate.
+Non si inferisce una geometria di contatto dal solo esito positivo dei bulloni.
+
+RESISTENZA E INTERAZIONI
+T-stub, gruppi, punzonamento/bulloni a Ft pieno, saldature, percorsi netti e blocchi
+nel piano riusano le verifiche esistenti, senza incrementarne le capacita'.
+Le forze delle file provengono dall'equilibrio effettivo N-M, non da M/z a N=0.
+Il taglio nel pannello e' l'inviluppo della forza cumulata lungo l'altezza, iniziando
+dal V2 superiore reale; si esaminano entrambi i lati di ogni forza concentrata.
+La sezione netta del pilastro elimina due fori dall'ala collegata e ricalcola
+baricentro/I/Wel. Comprende N*eccentricita' e un inviluppo cautelativo di momento
+nell'intero pannello, derivato dai tagli realmente forniti.
+I limiti elastici combinano cautelativamente |sigma|+sqrt(3)*|tau|; i componenti
+trasversali del pilastro hanno inoltre un budget lineare comune con le tensioni
+longitudinali e il pannello. La compressione usa il kwc derivato dalla tensione
+longitudinale reale e l'instabilita' locale prevista dal componente esistente.
+
+La norma EN1993-1-8:2005 6.2.7.1(3), Eq6.24, e' applicata come limite aggiuntivo:
+  |N|/N_Rd(signN) + |M|/M_Rd(signM) <= 1
+Le quattro capacita' pure si ottengono per omogeneita' del medesimo assemblaggio
+elastico inizialmente chiuso. Restano trattenuti il taglio e il contesto delle
+tensioni longitudinali del caso. Sono LIMITI CONDIZIONATI DI COMPONENTI, non
+capacita' del telaio e non autorizzano a moltiplicare i tagli FEM del pilastro.
+Il caso reale deve passare anche tutte le verifiche dirette dei componenti e
+del pilastro. Si applica il limite aggiuntivo anche sotto il 5% di Npl.
+
+RIGIDEZZA DISTINTA DALLA RESISTENZA
+La matrice simmetrica e' K = d(N,M)/d(u,theta):
+  KNN in N/mm; KNM=KMN in N; KMM in Nmm/rad.
+Ogni fila attiva contribuisce k*[1,z;z,z^2]; ogni tratto chiuso contribuisce
+k'*L*[1,zc;zc,zc^2+L^2/12]. A N costante la rigidezza rotazionale condensata e'
+KMM-KNM^2/KNN; non coincide generalmente con KMM o M/theta. N puro puo' ruotare
+una connessione asimmetrica. Il termine KNM non si puo' cancellare arbitrariamente.
+
+HasQualifiedLocalTangent richiede resistenza completa Passed, convergenza,
+matrice definita positiva, assenza di cambio di stato di file/bordi di contatto
+e utilizzo dei componenti <=2/3. Quest'ultimo e' un limite d'uso elastico scelto
+per questa implementazione, NON una nuova legge normativa N-M secante.
+All'origine la direzione di apertura e' indeterminata: non si esporta una molla
+globale unica. La matrice e' tangente del ramo corrente, da aggiornare se cambia
+il contatto o la direzione di carico; non e' una legge costante per tutte le
+combinazioni, ne' una misura della rotazione ultima disponibile.
+
+La matrice locale ESCLUDE la deformabilita' a taglio del pannello del pilastro.
+CanUseAsGlobalConnectionSpring richiede un modello separato di tale pannello,
+documentato con porte compatibili al riferimento della faccia. La stringa di
+fonte registra l'evidenza fornita: la libreria non ispeziona un modello FEM esterno.
+Se e' fornita AppliedGlobalTangent si confrontano tutti e tre i termini, incluso
+KNM; la differenza richiede rianalisi, senza cambiare l'esito resistente locale.
+Il rapporto separa LocalDiagnostics e GlobalDiagnostics dai Diagnostics resistenti.
+Non sono implementate legge secante N-M, duttilita', rotazione disponibile,
+plasticizzazione o qualificazione globale dell'asta/telaio.
+
+FONTI E VALIDAZIONE
+EN1993-1-8:2005 6.2.7.1(3), Eq6.24, pagina85/PDF87 verificata nel testo normativo:
+Copia di riferimento locale: EN1993-1-8-2005.pdf.
+La formula non fornisce distribuzione N-M o rigidezza. Le resistenze e le
+geometrie dei componenti conservano i riferimenti delle API di origine.
+Jaspart/Weynand, JRC96658(2015),3.1.4.2: metodo per componenti, equilibrio e
+compatibilita'; non costituisce l'atteso numerico dell'intero dettaglio:
+https://publications.jrc.ec.europa.eu/repository/bitstream/JRC96658/jrc_steel_report_2015_07_22.pdf
+Ricerche ULiege/Cerfontaine/Demonceau: necessita' di considerare N-M, gruppi e
+interazioni del pilastro; motivazione del campo dichiarato e delle limitazioni:
+https://orbi.uliege.be/bitstream/2268/132751/1/RECENT%20STUDIES%20CONDUCTED%20AT%20LIEGE%20UNIVERSITY%20IN%20THE%20FIELD%20OF%20COMPOSITE%20CONSTRUCTIONS.pdf
+SCI P398, riferimento per i componenti e i dettagli standard:
+https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
+Test indipendenti: soluzioni analitiche N puro, integrazione numerica esterna del
+contatto, differenze finite, energia, trasporto delle azioni, sezioni rettangolari
+nette, segni e condizioni limite. Nessun dato sperimentale viene inventato e
+nessun atteso storico e' stato aggiornato per far passare queste verifiche.
+
+ESCLUSIONI CHE RESTANO ESPLICITE
+Una fila sola; fila presso la flangia opposta fuori dal modello di linee plastiche;
+class4; giochi iniziali, contatto/precarico arbitrari; pilastri irrigiditi o giunti
+bilaterali; azioni3D; rottura mista fuori dalla gerarchia sufficiente esistente;
+fatica, sisma/incendio, instabilita' delle aste, rotazione ultima e legge ciclica.
+Nessuna modifica ANTHEA, connessione di base o nodo tubolare.

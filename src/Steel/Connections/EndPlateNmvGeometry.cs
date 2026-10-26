@@ -44,6 +44,7 @@ namespace GPC.Checkers.Steel.Connections
             Require(gap == 0 && !string.IsNullOrWhiteSpace(contactSource), "InitiallyClosedActualContactOnBothFlangesRequired");
             Require(upperWidth <= Math.Min(b.Width, Math.Min(m.EndPlate.Width, c.Width)) && lowerWidth <= Math.Min(b.Width, Math.Min(m.EndPlate.Width, c.Width))
                 && upperHeight <= b.FlangeThickness && lowerHeight <= b.FlangeThickness, "ContactBandsMustFitBothPhysicalFlanges");
+            Require(connection.Bolts.BoltAssessment.Input.Rows.Count >= 2, "AtLeastTwoPhysicalTensionRowsRequiredForNmv");
             Require(connection.Bolts.BoltAssessment.Input.Rows.All(r => r.MomentRowIndex.HasValue),
                 "EveryPhysicalRowMustBeQualifiedInTensionNoImplicitShearOnlyRows");
             if (connection.FilletWelds != null)
@@ -71,7 +72,7 @@ namespace GPC.Checkers.Steel.Connections
                     var physical = connection.Bolts.BoltAssessment.Input.Rows;
                     var stiffness = InitialComponents.InitialModel.Input.Rows;
                     Require(physical.Count == stiffness.Count, "AllPhysicalRowsMustHaveTheirOwnStiffness");
-                    for (int i = 0; i < stiffness.Count; i++)
+                    for (int i = 0; i < stiffness.Count && physical.Count == stiffness.Count; i++)
                     {
                         EndPlateStiffnessArithmetic.Row(c, stiffness[i], out _, out _, out _, out _, out _, out double k);
                         rows.Add(new EndPlateNmvSpringRow("Row" + (i + 1), b.Height / 2 - physical[i].Y, 210000 * k));

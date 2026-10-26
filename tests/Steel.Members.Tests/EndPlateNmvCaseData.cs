@@ -10,7 +10,7 @@ internal static class EndPlateNmvCaseData
 {
     internal static EndPlateNmvGeometry Geometry(bool ntc = false, bool flush = false, double shear = 20000,
         double contactWidth = 209.3, bool fullWelds = true, bool shearOnlyLastRow = false, double gap = 0,
-        double webThickness = 20, bool nearLowerFlangeRow = false, string contactSource = "Actual centred, initially closed contacts at both flange faces")
+        double webThickness = 20, bool nearLowerFlangeRow = false, bool singleInternalRow = false, string contactSource = "Actual centred, initially closed contacts at both flange faces")
     {
         var code = ntc ? ConnectionDesignCode.Ntc2018() : ConnectionDesignCode.Eurocode3(1, 1.1, 1.25, "Declared EC parameters");
         var h = new SectionH(533.1, webThickness, 209.3, 15.6, 209.3, 15.6, "Compact analytic test section", 12.7);
@@ -24,11 +24,12 @@ internal static class EndPlateNmvCaseData
         var policy = ntc ? ColumnWebPolicy.Ntc2018(code) : ColumnWebPolicy.Eurocode3(code, 1);
         double[] physicalY = flush ? new[] { 60d, 150, 383.1 } : new[] { -40d, 60, 150, 383.1 };
         double[] internalRows = shearOnlyLastRow ? new[] { 44.4, 134.4 } : new[] { 44.4, 134.4, 367.5 };
+        if (singleInternalRow) { physicalY = new[] { 60d }; internalRows = new[] { 44.4 }; }
         if (nearLowerFlangeRow) { physicalY = physicalY.Concat(new[] { 473.1 }).ToArray(); internalRows = internalRows.Concat(new[] { 457.5 }).ToArray(); }
         var input = new EndPlateMomentComponentInput(policy, new(266.7, 258.8, 12.8, 20.5, 12.7, 13600, 265, 410),
             beam, 265, new(250, 25, 345, 470), new(24, 26, 353, ConnectionBoltGrade.Class8_8, true),
             new(250, 258.8, 100, webThickness, 16, 12, 12, 501.9, internalRows,
-                new(7.5, "Test declared chart alpha within EN figure domain; not experimental calibration"), "Actual compact four-row analytic detail"),
+                new(7.5, "Test declared chart alpha within EN figure domain; not experimental calibration"), "Actual compact analytic detail; physical rows supplied explicitly"),
             flush ? null! : new(250, 100, 40, 12, 50, "Actual one-row top extension"), 1000, 1000, 46.9,
             beamResult.DerivedResistance, 0, Math.Abs(shear), 0, 1, 0, ColumnWebPanelConfiguration.SingleSidedJoint,
             "Single-sided baseline geometry", "Zero stress for geometry preparation; actual stress recomputed in NMV",

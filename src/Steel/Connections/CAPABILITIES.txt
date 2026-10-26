@@ -56,3 +56,7 @@ e geometrie arbitrarie non sono impliciti in nessuna etichetta del catalogo.
 StandardStaticVerification non significa Passed: anche un metodo completo puo'
 fallire o rifiutare il caso fuori campo. ComponentsOnly non significa inutile:
 fornisce evidenze utilizzabili senza dichiarare verificato il nodo completo.
+
+StandardMomentEndPlateNMV: percorso supplementare N-M-V con contatto unilaterale,
+  tutte le file a trazione, azioni reali del pilastro e matrice locale accoppiata.
+  Dominio e limiti distinti dalle API N=0 in END_PLATE_NMV_USAGE.txt.

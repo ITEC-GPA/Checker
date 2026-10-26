@@ -99,3 +99,8 @@ SCI P398 (2013), cap2.5 STEP5, pp26-27:
 https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
 Per la distinzione fra prescrizione normativa e limiti supplementari nominali,
 vedere STANDARD_NEXT_PLAN.txt e i Reference delle singole verifiche.
+
+ESTENSIONE N-M-V
+Per N diverso da zero o inversione del momento, usare il percorso separato
+EndPlateNmv descritto in END_PLATE_NMV_USAGE.txt. Non rimuovere i controlli N=0
+di questa API e non riutilizzare automaticamente la sua legge secante.
