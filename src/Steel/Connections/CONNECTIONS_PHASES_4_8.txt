@@ -1,0 +1,32 @@
+CONNESSIONI STANDARD - FASI4-8, AUTORIZZAZIONE26/10/2026
+
+Numerazione della proposta approvata (non le vecchie fasi1-4 notturne):
+4 doppio angolare;5 controventi;6 terminali profili doppi;
+7 estensioni coprigiunti;8 consegna e integrazione librerie.
+Lavoro sequenziale, un agente. EC3:2005/NTC2018, statica ordinaria.
+
+4a Fonte: Weynand, Oerder, Demonceau, Resistance tables for standardized joints
+in accordance with EN1993-1-8, section3.1, Figures7-9, PDF pp6-7:
+https://orbi.uliege.be/bitstream/2268/126293/1/Paper_Weynand_et_al.pdf
+Il momento di ciascuna L e' V/2*eb. Le forze orizzontali in Fig9 sono NEL PIANO
+DELLA FLANGIA del pilastro, non normali al bullone. Distribuzione elastica
+Fi=M*zi/sum(zi^2), zi dal centro della zona compressa superiore. Si conservano
+le reazioni di contatto opposte delle due L. Dimensioni reali della zona di
+contatto fornite esplicitamente: non sono calcolate da un risolutore implicito.
+Controlli aggiuntivi: contatto elastico, taglio risultante, rifollamento
+bidirezionale conservativo lineare. Il modello SBE precedente resta separato.
+4b Gerarchia sufficiente Bp,Rd>=Ft,Rd su L e flangia, diametro reale testa/dado.
+Il mancato soddisfacimento NON dimostra un collasso sotto una trazione ignota.
+4c APERTO: trazione normale/prying, resistenza locale e azioni concomitanti
+del pilastro, rotazione del nodo completo. Nessuna falsa qualificazione.
+
+5 Da sviluppare: prosecuzione del fazzoletto e introduzione al collettore,
+con confini fisici e forze concomitanti espliciti. C/2C collegati solo tramite
+anima richiedono un modello specifico di shear lag: le formule per L non
+sono trasferibili. Compressione generale non si deduce dal solo Euler.
+6 Da sviluppare: terminali bullonati; conservare i momenti locali dei singoli
+profili anche quando si annullano nella risultante della coppia.
+7 Da sviluppare: estensioni motivate del coprigiunto standard. Nessuna rimozione
+di un limite senza verificare i meccanismi che quel limite esclude.
+8 Ultima: test pertinenti, set coerente completo, versioni dedicate, integrazione
+master e aggiornamento delle librerie ANTHEA preservando lavoro altrui.
