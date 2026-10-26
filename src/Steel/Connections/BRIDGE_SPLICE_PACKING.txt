@@ -1,0 +1,46 @@
+COPRIGIUNTI CON COMPENSATORI PARALLELI - 26/10/2026
+
+Modello: WeldedSplicePacking + PackedIndependentFaceDimensions.
+Travi madri saldate a I identiche e allineate; statica ordinaria EC3:2005/
+NTC2018. Un solo piatto parallelo su ogni faccia di ciascuna trave, con
+impronta completa del coprigiunto, stessi fori/materiale, contatto completo.
+Spessore identico sui due lati longitudinali del giunto; i due coprigiunti
+interni di un'ala sono identici; i due compensatori d'anima sono identici.
+Il compensatore non contribuisce ad area resistente o rigidezza del giunto.
+Piu' fogli, cunei, compensatori discontinui e transizioni fra sezioni diverse
+restano fuori campo. Specifica esecutiva obbligatoria nel risultato globale;
+deve documentare contatto, rondelle, grip disponibile e posizione filettatura.
+La libreria restituisce lo spessore totale serrato; non certifica il montaggio.
+
+Fonti verificate sul PDF EN1993-1-8:2005 pp25-26 (PDF27-28):
+3.6.1(12), Eq3.3: beta_p=min(1,9d/(8d+3tp));
+3.6.1(13): doppio taglio, tp=spessore del compensatore PIU' SPESSO.
+La riduzione si applica a entrambi i piani del medesimo bullone, anche se una
+sola faccia e' compensata; resta la riduzione per giunto lungo gia' presente.
+Policy NTC: stesso modello analitico complementare EC con coefficienti NTC;
+non si attribuisce l'Eq3.3 a un paragrafo NTC.
+
+Ripartizione: le quote dei baricentri dei coprigiunti includono i compensatori.
+Si risolvono Fo+Fi=N, -yo Fo-yi Fi=M proprio dell'ala. Verifica indipendente
+dei sei residui globali, sistema a due membrane e inerzie delle sezioni madri.
+Non si impone Fo=Fi ne' una ripartizione proporzionale alle aree.
+Interferenze: controllo delle sovrapposizioni in altezza E in direzione
+trasversale fra coprigiunti interni e d'anima. Vietata sovrapposizione fra le
+due pile interne. Non e' un modello di contatto o sollevamento della lamiera.
+
+Scorrimento B/C: superficie coprigiunto/compensatore e superficie
+compensatore/madre sono IN SERIE. Ognuna riceve la forza intera del piano
+e il precarico comune una volta; mu e fonte distinti e obbligatori.
+Non si moltiplica la resistenza per2. Una superficie debole fallisce anche
+con l'altra forte. Geometria dei compensatori e coefficienti delle superfici
+sono vincolati fra tutti i casi SLU/SLE; il builder da Model li conserva.
+
+Compatibilita': overload precedenti e valori enum precedenti conservati.
+Policy vecchie rifiutano la presenza di compensatori. Con spessori nulli
+i risultati numerici precedenti restano invariati.
+
+Prove: BridgeSplicePackingTests, free body indipendente, Eq3.3 calcolata a
+mano, soglia d/3, stesso beta sui due piani, interfacce in serie, EC/NTC,
+A/B/C, inversione/sovraccarico, geometria, binding e input non validi.
+Prima regressione eseguita:24 nuovi casi e889 test della famiglia Splice
+superati; rapporto finale aggiornato al termine del blocco.

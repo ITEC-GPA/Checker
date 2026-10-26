@@ -74,12 +74,14 @@ namespace GPC.Checkers.Steel.Connections
                     // Retain this conservative length for every group, without a uniform-transfer exemption.
                     double jointLength = ElasticBoltGroup.Hypot(grid.LongitudinalSpan, transverseSpan);
                     trace.Add(new SectionResistanceValue(g.Side + "." + g.Cover + ".ConservativeJointLength", jointLength, "mm"));
+                    trace.Add(new SectionResistanceValue(g.Side + "." + g.Cover + ".PackingThicknessForShear", d.Packing.ThickerFace(g.Cover), "mm"));
+                    trace.Add(new SectionResistanceValue(g.Side + "." + g.Cover + ".GripThickness", d.Packing.Grip(d, g.Cover), "mm"));
                     foreach (var force in g.Distribution.Forces)
                     {
                         string id = g.Side + "." + g.Cover + ".Bolt" + force.Index;
                         // One check per physical shear plane: unequal/opposite forces are not replaced by half of the resultant.
                         var strength = BoltStrength.Verify(new BoltStrengthInput(p.Code, bolt, force.Shear, 0, 1,
-                            jointLength, 0, p.HoleClearanceServiceabilitySource));
+                            jointLength, d.Packing.ThickerFace(g.Cover), p.HoleClearanceServiceabilitySource));
                         foreach (string issue in strength.Diagnostics) issues.Add(id + ":" + issue);
                         if (strength.IsComplete)
                         {
@@ -120,7 +122,7 @@ namespace GPC.Checkers.Steel.Connections
                 new[] { "Same immutable geometry and one concomitant ULS case. Both sides and every physical bolt plane are assessed; no redistribution to hide a failed plane.",
                     "Cover centroid force split is an equilibrium model, not a certification of secondary plate bending or local load introduction.",
                     "Bearing uses the conservative linear interaction |Fx|/Fb,x+|Fy|/Fb,y<=1, with the smaller end/interior resistance for each direction. This is a declared design model, not an EC oblique-bearing equation.",
-                    "Round holes, no packing, no countersinks, identical thread condition in the two planes. The group rectangle diagonal conservatively bounds the changing force-direction transfer length for the long-joint reduction; no uniform-transfer exemption.",
+                    "Round holes, no countersinks, identical thread condition in the two planes. Single continuous non-structural packings use EN1993-1-8 3.6.1(12)-(13), the thicker face for BOTH shear planes; no packing resistance is credited. The group rectangle diagonal conservatively bounds the changing force-direction transfer length for the long-joint reduction; no uniform-transfer exemption.",
                     "Minimum physical edge, hole/pitch and hardware clearances are checked. Maximum pitch/exposure detailing and member seam resistance belong to the remaining plate/detail checks." });
             return new WeldedIBeamSpliceBoltResult(f, assessment);
 

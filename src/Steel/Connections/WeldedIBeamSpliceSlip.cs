@@ -12,12 +12,22 @@ namespace GPC.Checkers.Steel.Connections
         public WeldedSpliceCover Cover { get; }
         public double Coefficient { get; }
         public string QualificationSource { get; }
+        public double? PackingToParentCoefficient { get; }
+        public string PackingToParentQualificationSource { get; }
         public WeldedSpliceFrictionSurface(WeldedSpliceCover cover, double coefficient, string qualificationSource)
         {
             if (!Enum.IsDefined(typeof(WeldedSpliceCover), cover)) throw new ArgumentOutOfRangeException(nameof(cover));
             ConnectionValidation.Positive(coefficient, nameof(coefficient));
             if (coefficient > 1) throw new ArgumentOutOfRangeException(nameof(coefficient));
             Cover = cover; Coefficient = coefficient; QualificationSource = qualificationSource;
+        }
+        public WeldedSpliceFrictionSurface(WeldedSpliceCover cover, double coverToPackingCoefficient, string coverToPackingSource,
+            double packingToParentCoefficient, string packingToParentSource)
+            : this(cover, coverToPackingCoefficient, coverToPackingSource)
+        {
+            ConnectionValidation.Positive(packingToParentCoefficient, nameof(packingToParentCoefficient));
+            if (packingToParentCoefficient > 1) throw new ArgumentOutOfRangeException(nameof(packingToParentCoefficient));
+            PackingToParentCoefficient = packingToParentCoefficient; PackingToParentQualificationSource = packingToParentSource;
         }
     }
 
@@ -62,6 +72,9 @@ namespace GPC.Checkers.Steel.Connections
             if (issues.Count == 0) foreach (var g in prepared.Forces.CoverGroups)
             {
                 var surface = p.Surfaces.Single(s => s.Cover == g.Cover);
+                bool packed = p.Bolts.Detail.Packing.Thickness(g.Cover) > 0;
+                if (packed != surface.PackingToParentCoefficient.HasValue)
+                { issues.Add(g.Cover + ".PACKING_FRICTION_INTERFACES_MISMATCH"); continue; }
                 var grid = WeldedIBeamSplicePlates.Grid(p.Bolts.Detail, g);
                 double span = g.Distribution.Points.Max(b => b.Y) - g.Distribution.Points.Min(b => b.Y);
                 double length = ElasticBoltGroup.Hypot(grid.LongitudinalSpan, span);
@@ -70,13 +83,19 @@ namespace GPC.Checkers.Steel.Connections
                 {
                     // ONE real interface with its own force; the common bolt preload
                     // clamps each interface. Neither Fp/2 nor a pooled 2*mu*Fp capacity.
-                    var r = BoltSlip.Verify(new BoltSlipInput(p.Policy, bolt, p.LimitState, force.Shear, 0, 1,
-                        surface.Coefficient, p.TighteningControl, p.AssemblyQualificationSource, surface.QualificationSource,
-                        p.ActionCombinationSource, p.Bolts.HoleClearanceServiceabilitySource, length));
-                    string id = g.Side + "." + g.Cover + ".Bolt" + force.Index;
-                    foreach (var issue in r.Diagnostics) issues.Add(id + ":" + issue);
-                    foreach (var c in r.Checks) checks.Add(new ConnectionCheck(id + "." + c.Id, c.Demand, c.Resistance, c.Reference, c.Unit));
-                    foreach (var t in r.Trace) trace.Add(new SectionResistanceValue(id + "." + t.Name, t.Value, t.Unit));
+                    foreach (int layer in packed ? new[] { 0, 1 } : new[] { 0 })
+                    {
+                        var r = BoltSlip.Verify(new BoltSlipInput(p.Policy, bolt, p.LimitState, force.Shear, 0, 1,
+                            layer == 0 ? surface.Coefficient : surface.PackingToParentCoefficient.Value,
+                            p.TighteningControl, p.AssemblyQualificationSource,
+                            layer == 0 ? surface.QualificationSource : surface.PackingToParentQualificationSource,
+                            p.ActionCombinationSource, p.Bolts.HoleClearanceServiceabilitySource, length));
+                        string id = g.Side + "." + g.Cover + ".Bolt" + force.Index
+                            + (packed ? layer == 0 ? ".CoverToPacking" : ".PackingToParent" : "");
+                        foreach (var issue in r.Diagnostics) issues.Add(id + ":" + issue);
+                        foreach (var c in r.Checks) checks.Add(new ConnectionCheck(id + "." + c.Id, c.Demand, c.Resistance, c.Reference, c.Unit));
+                        foreach (var t in r.Trace) trace.Add(new SectionResistanceValue(id + "." + t.Name, t.Value, t.Unit));
+                    }
                 }
             }
             return new ConnectionVerification<WeldedIBeamSpliceSlipInput>(p, p.Policy.Code,
@@ -85,7 +104,7 @@ namespace GPC.Checkers.Steel.Connections
                     "Each interface receives its actual vector demand, friction coefficient and the common bolt preload once. Unused resistance on the other face cannot rescue a slipping face.",
                     "No SLS/ULS conversion. Normal round holes; diagonal long-joint bound, no uniform-transfer exemption. The established EC/NTC BoltSlip kernel supplies the distinct factors.",
                     "Zero applied bolt-axis tension is the in-plane component assumption. Local opening/prying and the normal-contact reactions are not solved or certified by this result; see face-transfer diagnostics.",
-                    "Assembly and surface provenance document the input; they are not an execution certification. All eight surfaces are required even when a current load is zero." });
+                    "Assembly and surface provenance document the input; they are not an execution certification. All eight faces are required even when a current load is zero. A packed face has two SERIAL interfaces, each with the full transmitted force and common preload; their resistances are never added." });
         }
 
         /// <summary>Category-C AXIAL net-plastic components at one actual ULS state.

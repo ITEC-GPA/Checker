@@ -168,7 +168,7 @@ namespace GPC.Checkers.Steel.Connections
         private static bool SameSlipExecution(WeldedIBeamSpliceSlipInput a, WeldedIBeamSpliceSlipInput b)
             => a.TighteningControl == b.TighteningControl && a.Policy.GammaM3Ultimate == b.Policy.GammaM3Ultimate
             && a.Policy.GammaM3Serviceability == b.Policy.GammaM3Serviceability && a.Surfaces.Count == b.Surfaces.Count
-            && a.Surfaces.All(x => b.Surfaces.Any(y => x.Cover == y.Cover && x.Coefficient == y.Coefficient));
+            && a.Surfaces.All(x => b.Surfaces.Any(y => x.Cover == y.Cover && x.Coefficient == y.Coefficient && x.PackingToParentCoefficient == y.PackingToParentCoefficient));
         private static bool SamePhysical(WeldedIBeamSpliceBoltInput a, WeldedIBeamSpliceBoltInput b)
         {
             var x = a.Detail; var y = b.Detail;
@@ -177,7 +177,7 @@ namespace GPC.Checkers.Steel.Connections
                 && Plate(x.Section.TopFlange, y.Section.TopFlange) && Plate(x.Section.Web, y.Section.Web) && Plate(x.Section.BottomFlange, y.Section.BottomFlange)
                 && x.Section.TopWeldToe == y.Section.TopWeldToe && x.Section.BottomWeldToe == y.Section.BottomWeldToe
                 && Flange(x.Top, y.Top) && Flange(x.Bottom, y.Bottom) && Plate(x.EachWebCover, y.EachWebCover) && Grid(x.WebBolts, y.WebBolts)
-                && x.WebCoverEnd == y.WebCoverEnd && x.ButtGap == y.ButtGap;
+                && x.WebCoverEnd == y.WebCoverEnd && x.ButtGap == y.ButtGap && x.Packing.SamePhysical(y.Packing);
         }
         private static bool Plate(ConnectionPlate a, ConnectionPlate b) => a.Width == b.Width && a.Thickness == b.Thickness && a.Fy == b.Fy && a.Fu == b.Fu;
         private static bool Bolt(ConnectionBolt a, ConnectionBolt b) => a.Diameter == b.Diameter && a.HoleDiameter == b.HoleDiameter && a.TensileArea == b.TensileArea && a.Grade == b.Grade && a.ThreadedShearPlanes == b.ThreadedShearPlanes;

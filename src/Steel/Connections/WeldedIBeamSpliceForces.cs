@@ -99,12 +99,17 @@ namespace GPC.Checkers.Steel.Connections
         public double WebCoverEnd { get; }
         public double ButtGap { get; }
         public PlanarConnectionActions Actions { get; }
+        public WeldedSplicePacking Packing { get; }
         /// <summary>Two identical, aligned I sections. Actions act TO the left member,
         /// in X longitudinal, Y up, Z transverse, at the supplied pole relative to the section centroid.
         /// Positive N is tension; positive Mz compresses the top flange. Equal steel E is assumed.</summary>
         public WeldedIBeamSpliceForceInput(WeldedIBeamSpliceSection section, SpliceFlangeCoverDetail top,
             SpliceFlangeCoverDetail bottom, ConnectionPlate eachWebCover, SpliceBoltLayout webBolts,
             double webCoverEnd, double buttGap, PlanarConnectionActions actions)
+            : this(section, top, bottom, eachWebCover, webBolts, webCoverEnd, buttGap, actions, null) { }
+        public WeldedIBeamSpliceForceInput(WeldedIBeamSpliceSection section, SpliceFlangeCoverDetail top,
+            SpliceFlangeCoverDetail bottom, ConnectionPlate eachWebCover, SpliceBoltLayout webBolts,
+            double webCoverEnd, double buttGap, PlanarConnectionActions actions, WeldedSplicePacking packing)
         {
             Section = section ?? throw new ArgumentNullException(nameof(section));
             Top = top ?? throw new ArgumentNullException(nameof(top));
@@ -114,7 +119,7 @@ namespace GPC.Checkers.Steel.Connections
             Actions = actions ?? throw new ArgumentNullException(nameof(actions));
             ConnectionValidation.Positive(webCoverEnd, nameof(webCoverEnd));
             ConnectionValidation.Nonnegative(buttGap, nameof(buttGap));
-            WebCoverEnd = webCoverEnd; ButtGap = buttGap;
+            WebCoverEnd = webCoverEnd; ButtGap = buttGap; Packing = packing ?? WeldedSplicePacking.None;
         }
     }
 
@@ -181,6 +186,16 @@ namespace GPC.Checkers.Steel.Connections
             if (p.WebBolts.LongitudinalRows < 2 || p.WebBolts.TransverseRows < 2) issues.Add("WEB_RECTANGULAR_MULTIROW_GRID_REQUIRED");
             if (p.EachWebCover.Width > s.Web.Width - 2 * Math.Max(s.TopWeldToe, s.BottomWeldToe))
                 issues.Add("WEB_COVER_INTERSECTS_LONGITUDINAL_SEAMS");
+            if (p.Packing.HasPacking)
+            {
+                double webOuterZ = s.Web.Thickness / 2 + p.Packing.EachWeb + p.EachWebCover.Thickness;
+                double topStack = p.Top.EachInner.Thickness + p.Packing.TopInner;
+                double bottomStack = p.Bottom.EachInner.Thickness + p.Packing.BottomInner;
+                if (topStack + bottomStack > s.Web.Width
+                    || webOuterZ > p.Top.InnerGap / 2 && p.EachWebCover.Width / 2 + topStack > s.Web.Width / 2
+                    || webOuterZ > p.Bottom.InnerGap / 2 && p.EachWebCover.Width / 2 + bottomStack > s.Web.Width / 2)
+                    issues.Add("PACKED_INNER_FLANGES_INTERSECT_WEB_COVERS");
+            }
             if (p.WebBolts.TransverseSpan >= p.EachWebCover.Width) issues.Add("WEB_BOLTS_OUTSIDE_COVER");
             if (p.WebBolts.FirstBoltDistance <= p.ButtGap / 2) issues.Add("WEB_BOLTS_INSIDE_BUTT_GAP");
             double moment = a.Mz + a.ApplicationX * a.Fy - a.ApplicationY * a.Fx;
@@ -204,7 +219,7 @@ namespace GPC.Checkers.Steel.Connections
                     var d = ElasticBoltGroup.Calculate(p.WebBolts.Points(side),
                         new PlanarConnectionActions(sign * webN / 2, sign * a.Fy / 2, 0, 0, 0, sign * webM / 2));
                     Add(side, face < 0 ? WeldedSpliceCover.WebNegative : WeldedSpliceCover.WebPositive,
-                        p.EachWebCover, s.WebY, face * (s.Web.Thickness + p.EachWebCover.Thickness) / 2,
+                        p.EachWebCover, s.WebY, face * ((s.Web.Thickness + p.EachWebCover.Thickness) / 2 + p.Packing.EachWeb),
                         -p.EachWebCover.Width / 2, p.EachWebCover.Width / 2, d);
                 }
             }
@@ -252,8 +267,8 @@ namespace GPC.Checkers.Steel.Connections
             {
                 double n = Normal(parent, y), m = moment * (parent.Width * Math.Pow(parent.Thickness, 3) / (12 * s.StrongAxisSecondMoment));
                 double outward = top ? 1 : -1;
-                double yo = outward * (parent.Thickness + d.Outer.Thickness) / 2,
-                    yi = -outward * (parent.Thickness + d.EachInner.Thickness) / 2;
+                double yo = outward * ((parent.Thickness + d.Outer.Thickness) / 2 + (top ? p.Packing.TopOuter : p.Packing.BottomOuter)),
+                    yi = -outward * ((parent.Thickness + d.EachInner.Thickness) / 2 + (top ? p.Packing.TopInner : p.Packing.BottomInner));
                 // Fo+Fi=N; -yo*Fo-yi*Fi=M. No assumed N/2 or area-based split.
                 double outer = (-m - yi * n) / (yo - yi), inner = n - outer;
                 string name = side + (top ? ".Top" : ".Bottom");

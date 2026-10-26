@@ -88,6 +88,7 @@ namespace GPC.Checkers.Steel.Connections
                 foreach (var t in c.Model.Trace.Where(t => t.Name.Contains(".FaceModel.")))
                     notes.Add(c.Input.Id + ":" + t.Name + "=" + Number(t.Value) + " " + t.Unit);
                 notes.Add("gammaM1 plates=" + Number(c.Input.Parents.Detail.Plates.Policy.GammaM1));
+                if (b.Detail.Packing.HasPacking) notes.Add(c.Input.Id + ":packing=" + b.Detail.Packing.ExecutionSource);
                 Add(c.Input.Id, "BlockHierarchy", c.AdditionalPlates.BlockHierarchy.Checks);
                 Add(c.Input.Id, "CompactPlateDomain", c.AdditionalPlates.CompactPlateDomain.Checks);
                 foreach (var t in c.AdditionalPlates.BlockHierarchy.Trace.Where(t => t.Name.EndsWith(".ActualCollinearBlockMethod")))
@@ -105,7 +106,12 @@ namespace GPC.Checkers.Steel.Connections
                     + ";gammaM3,SLS=" + Number(c.Input.Input.Policy.GammaM3Serviceability) + ";tightening=" + c.Input.Input.TighteningControl);
                 notes.Add(c.Input.Id + ":assembly=" + c.Input.Input.AssemblyQualificationSource);
                 foreach (var surface in c.Input.Input.Surfaces)
+                {
                     notes.Add(c.Input.Id + ":" + surface.Cover + ":mu=" + Number(surface.Coefficient) + ";source=" + surface.QualificationSource);
+                    if (surface.PackingToParentCoefficient.HasValue)
+                        notes.Add(c.Input.Id + ":" + surface.Cover + ":PackingToParent:mu=" + Number(surface.PackingToParentCoefficient.Value)
+                            + ";source=" + surface.PackingToParentQualificationSource);
+                }
                 cases.Add(new SpliceReportCase(c.Input.Id, c.Input.Input.ActionCombinationSource, b.Code, b.Detail.Actions,
                     c.Input.Input.LimitState == BoltSlipLimitState.Serviceability));
             }
@@ -173,6 +179,12 @@ namespace GPC.Checkers.Steel.Connections
             Flange("Top", d.Top); Flange("Bottom", d.Bottom); Plate("EachWebCover", d.EachWebCover);
             Grid("Web", d.WebBolts, d.WebCoverEnd); Bolt("FlangeBolt", b.FlangeBolt); Bolt("WebBolt", b.WebBolt);
             Value("ButtGap", d.ButtGap); Value("TopWeldToe", s.TopWeldToe); Value("BottomWeldToe", s.BottomWeldToe);
+            if (d.Packing.HasPacking)
+            {
+                Value("Packing.TopOuter", d.Packing.TopOuter); Value("Packing.TopInner", d.Packing.TopInner);
+                Value("Packing.BottomOuter", d.Packing.BottomOuter); Value("Packing.BottomInner", d.Packing.BottomInner);
+                Value("Packing.EachWeb", d.Packing.EachWeb);
+            }
             Value("LongitudinalWeld.TopThroat", p.Welds.TopThroat); Value("LongitudinalWeld.BottomThroat", p.Welds.BottomThroat);
             Value("LongitudinalWeld.EffectiveLengthEachSide", p.Welds.EffectiveLengthEachSide);
             return v;

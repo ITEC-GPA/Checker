@@ -94,7 +94,7 @@ namespace GPC.Checkers.Steel.Connections
             WeldedIBeamSpliceDetailInput Detail(SpliceActionCase c)
             {
                 var d = original.Detail;
-                var geometry = new WeldedIBeamSpliceForceInput(shape, d.Top, d.Bottom, d.EachWebCover, d.WebBolts, d.WebCoverEnd, d.ButtGap, c.Actions);
+                var geometry = new WeldedIBeamSpliceForceInput(shape, d.Top, d.Bottom, d.EachWebCover, d.WebBolts, d.WebCoverEnd, d.ButtGap, c.Actions, d.Packing);
                 var bolts = new WeldedIBeamSpliceBoltInput(original.Code, geometry, original.FlangeBolt, original.WebBolt,
                     original.FlangeHardwareDiameter, original.WebHardwareDiameter, c.Source, original.HoleClearanceServiceabilitySource);
                 return new WeldedIBeamSpliceDetailInput(new WeldedIBeamSplicePlateInput(template.Plates.Policy, bolts), template.Exposure);
