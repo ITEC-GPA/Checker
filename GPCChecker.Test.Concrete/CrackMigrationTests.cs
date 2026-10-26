@@ -1448,6 +1448,35 @@ namespace ConcreteTests
         }
 
         /// <summary>
+        /// F5.15, R21 (26/10/2026): with <see cref="SectionCrackOptions.DinConditionWithCoverOverride"/> the DIN condition (h − x)/3 = 100 ≥ c + 20 reads the
+        /// assigned cover of the width formula. Nominal 90 and assigned 40 mm: hc,eff 150 without the option (100 &lt; 110), 100 with it (100 ≥ 60), also
+        /// over a DIN cover of 90 mm; nominal 40 and assigned 90 mm: 100 and 150. Without an assigned cover and with the other profiles nothing changes.
+        /// </summary>
+        [TestMethod]
+        public void DinConditionReadsTheAssignedCoverWithTheOption()
+        {
+            var din = new OptionCase { Standard = "DIN EN 1992-1-1", Exposure = "XC3" };
+            foreach (var options in new[] { SectionCrackOptions.Default, AtUse })
+            {
+                var with = options.WithDinConditionWithCoverOverride(true);
+                string mode = options.ValidateAtUse ? "at use" : "default";
+                double Hc(OptionCase c, SectionCrackOptions o) => c.Evaluate(o).Details.Single(d => d.Symbol == "hc,eff").Value;
+                var assigned40 = din.With(x => { x.NominalCover = 90; x.CoverOverride = 40; });
+                Assert.AreEqual(150, Hc(assigned40, options), 1e-9, mode + ": 0.0.17.0 reads the nominal cover");
+                Assert.AreEqual(100, Hc(assigned40, with), 1e-9, mode + ": the assigned cover");
+                Assert.AreEqual(100, Hc(assigned40, with.WithEffectiveDepthCover(90)), 1e-9, mode + ": the assigned cover before the DIN cover");
+                Assert.AreEqual(40, assigned40.Evaluate(with).Details.Single(d => d.Symbol == "c").Value, mode + ": c of the formula");
+                var assigned90 = din.With(x => { x.NominalCover = 40; x.CoverOverride = 90; });
+                Assert.AreEqual(100, Hc(assigned90, options), 1e-9, mode); Assert.AreEqual(150, Hc(assigned90, with), 1e-9, mode);
+                AssertSameResult(din.Evaluate(options), din.Evaluate(with), mode + ": no assigned cover");
+                foreach (var c in new[] { assigned40.With(x => x.Standard = "EN 1992-1-1"), assigned40.With(x => x.Standard = "DS EN 1992-1-1") })
+                    AssertSameResult(c.Evaluate(options), c.Evaluate(with), mode + " " + c.Standard);
+            }
+            Assert.IsFalse(SectionCrackOptions.Default.DinConditionWithCoverOverride);
+            Assert.IsTrue(SectionCrackOptions.Default.WithDinConditionWithCoverOverride(true).DinConditionWithCoverOverride);
+        }
+
+        /// <summary>
         /// Codes of the refusals (CrackRejection): same exact type and message as 0.0.17.0, the code in Exception.Data. WidthParameters and UpperBoundParameters
         /// share the message and are told apart only by the code; the parameter refusals (ArgumentOutOfRangeException) keep their ParamName and have no code.
         /// </summary>

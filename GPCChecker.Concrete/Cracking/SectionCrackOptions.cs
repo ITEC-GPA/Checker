@@ -44,6 +44,14 @@ namespace GPC.Checkers.Concrete.Cracking
         public double? EffectiveDepthCover { get; private set; }
 
         /// <summary>
+        /// With an assigned <see cref="SectionCrackInput.CoverOverride"/> the DIN condition (h − x)/3 ≥ c + 20 mm of the effective depth reads that cover, the one of
+        /// the width formula, before <see cref="EffectiveDepthCover"/> and the nominal cover (validated there with <see cref="ValidateAtUse"/>). False by default:
+        /// <see cref="EffectiveDepthCover"/> or the nominal cover also with an assigned cover, the rule of 0.0.17.0 kept for the frozen fixtures and the contract K0,
+        /// so that two covers enter the same calculation. Without an assigned cover nothing changes. ANTHEA F5.15, R21 (26/10/2026).
+        /// </summary>
+        public bool DinConditionWithCoverOverride { get; private set; }
+
+        /// <summary>
         /// Fills <see cref="SectionCrackResult.Trace"/> (the calculated entries of ANTHEA in their order, with the stable codes of <see cref="CrackTraceCodes"/>)
         /// and <see cref="SectionCrackResult.RegionOutcomes"/> (false by default: both empty). Nothing else changes: Details, Status, Outcome, the numbers
         /// and the exceptions are those without the trace.
@@ -143,6 +151,12 @@ namespace GPC.Checkers.Concrete.Cracking
             if (effectiveDepthCover.HasValue && (double.IsNaN(effectiveDepthCover.Value) || double.IsInfinity(effectiveDepthCover.Value)))
                 throw new ArgumentOutOfRangeException(nameof(effectiveDepthCover));
             var copy = Copy(); copy.EffectiveDepthCover = effectiveDepthCover; return copy;
+        }
+
+        /// <summary>Copy with <see cref="DinConditionWithCoverOverride"/>.</summary>
+        public SectionCrackOptions WithDinConditionWithCoverOverride(bool withCoverOverride)
+        {
+            var copy = Copy(); copy.DinConditionWithCoverOverride = withCoverOverride; return copy;
         }
 
         /// <summary>Copy with <see cref="ModelCode2010BondStages"/>.</summary>
