@@ -30,7 +30,7 @@ https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
 Vincolare il nodo monolaterale allo stato concomitante del pilastro e verificare
 le tensioni longitudinali realmente usate nei componenti. Contatto compresso e
 introduzione attraverso un dettaglio di saldatura esplicito.
-1c DA COMPLETARE - AGGREGAZIONE E RIGIDEZZA
+1c IMPLEMENTATO - AGGREGAZIONE E RIGIDEZZA
 Conservare tutti i fallimenti, verificare identita' dello stesso caso, restituire
 resistenza del nodo nel campo dichiarato e rigidezza compatibile col modello.
 2 DA COMPLETARE - TERMINALI PROFILI DOPPI
@@ -50,3 +50,14 @@ Il limite elastico conservativo e il contatto sono calcolati; la tensione
 longitudinale e beta del componente devono inviluppare lo stato effettivo.
 Contatto centrato/chiuso misurato; resistenza a momento limitata anche dall'area
 di contatto. Non e' la verifica di stabilita' del pilastro o del telaio.
+
+COLLAUDO1a-1c:811 test pertinenti superati,0fallimenti,40 nuovi casi complessivi.
+EndPlateStandardJoint aggrega lo stesso caso, conservando fallimenti anche
+con input incompleti; le vecchie API restano componenti. Campo EN/SCI ordinario:
+monolaterale, I/H laminati non irrigiditi, due colonne, N=0, lato teso prefissato.
+Mj,Rd locale al taglio/stato del pilastro concomitanti; cordoni a inviluppo piena
+resistenza, bulloni con pieno Ft incl.prying e contatto effettivo. Riusa il kernel
+Sj iniziale/secante; M/Sj non e' capacita' rotazionale. La molla globale dichiarata
+si confronta con Sj: se diversa serve rianalisi, non si cambia l'esito resistente.
+La verifica locale non qualifica stabilita' delle aste, comportamento globale,
+frattura3D di geometrie arbitrarie o esecuzione diversa dal dettaglio dichiarato.
