@@ -160,6 +160,40 @@ public class PileEdgeCaseTests
         => LateralPileCapacity.Calculate(new LateralPile(d, l, e, fixedHead, my, "test", method, h, 100), new[] { new LateralPileSurvey(profile, kinds) },
             LateralPileFactors.FromStandard(Ntc, profiles), efficiency ?? LateralGroupEfficiency.Manual(1));
 
+    /// <summary>
+    /// Head below the ground surface (request of the ANTHEA user of 19/10/2026): D = 0.6 m, L = 5 m, head at d = 2 m. Sand φ' = 30° (Kp = 3), γ = 18:
+    /// p = 3 Kp D σ'v = a + b z from the head, a = 3 Kp D γ d (σ'v = 36 kPa at the head), b = 3 Kp D γ. By hand with the concentrated closure of
+    /// Broms, short piles: free head H = ∫ p (L − z) dz / L = a L/2 + b L²/6 = 486 + 405 = 891 kN (405 kN with the head at the ground surface);
+    /// restrained head H = ∫ p dz = a L + b L²/2. Clay cu = 50 kPa: the neglected zone ends 1.5 D = 0.9 m below the ground surface, so 0.4 m of the
+    /// pile with the head at 0.5 m and none at 1 m: H = 9 cu D (L − max(0, 1.5 D − d)). Water at 1 m above the head at 2 m (γsat = 20): σv = 38 kPa,
+    /// u = γw · 1 m at the head. d = 0 gives the former capacity; d &lt; 0 is rejected.
+    /// </summary>
+    [TestMethod]
+    public void BromsWithTheHeadBelowTheGroundSurface()
+    {
+        double d = 600, l = 5 * M, head = 2 * M, kp = 3, gamma = 18 * KN3, cu = 50 * KPa;
+        var sand = Profile(null, (Sand(30), 30)); var clay = Profile(null, (Clay(50), 30)); var C = new[] { SoilBehaviour.Cohesive }; var G = new[] { SoilBehaviour.Granular };
+        LateralPileResult Buried(SoilProfile p, SoilBehaviour[] kinds, double depth, bool fixedHead) => LateralPileCapacity.Calculate(
+            new LateralPile(d, l, 0, fixedHead, 1e12, "test", LateralPileMethod.Broms, 100e3, 100, 1e-8, depth), new[] { new LateralPileSurvey(p, kinds) },
+            LateralPileFactors.FromStandard(Ntc, 1), LateralGroupEfficiency.Manual(1));
+        double a = 3 * kp * d * gamma * head, b = 3 * kp * d * gamma;
+        var free = Buried(sand, G, head, false);
+        Assert.AreEqual(LateralMechanism.Short, free.Mechanism);
+        Close(a * l / 2 + b * l * l / 6, free.Capacity, "sand, free head", 1e-9); Close(891e3, free.Capacity, "891 kN", 1e-9);
+        Close(405e3, Buried(sand, G, 0, false).Capacity, "405 kN with the head at the ground surface", 1e-9);
+        Close(a * l + b * l * l / 2, Buried(sand, G, head, true).Capacity, "sand, restrained head", 1e-9);
+        var top = free.Surveys[0].Ground.First(x => x.Depth == 0);
+        Close(36 * KPa, top.EffectiveStress!.Value, "σ'v at the head", 1e-12); Close(36 * KPa, top.TotalStress!.Value, "σv at the head", 1e-12); Close(a, top.LimitReaction, "p at the head", 1e-12);
+        Close(9 * cu * d * (l - (1.5 * d - .5 * M)), Buried(clay, C, .5 * M, true).Capacity, "clay, 0.4 m neglected", 1e-12);
+        Close(9 * cu * d * l, Buried(clay, C, 1 * M, true).Capacity, "clay, below 1.5 D", 1e-12);
+        Assert.AreEqual(Lateral(sand, G, d, l, 0, false, 1e12).Capacity, Buried(sand, G, 0, false).Capacity, "d = 0: the former capacity");
+        var wetProfile = Profile(1, (Sand(30), 30)); double gw = wetProfile.WaterUnitWeight;
+        var wet = Buried(wetProfile, G, head, false).Surveys[0].Ground.First(x => x.Depth == 0);
+        Close(18 * KN3 * 1 * M + 20 * KN3 * 1 * M, wet.TotalStress!.Value, "σv with the water above the head", 1e-12); Close(gw * 1 * M, wet.PorePressure, "u at the head", 1e-12);
+        Close(18 * KN3 * 1 * M + (20 * KN3 - gw) * 1 * M, wet.EffectiveStress!.Value, "σ'v with the water above the head", 1e-12);
+        Assert.ThrowsException<ArgumentException>(() => Buried(sand, G, -1, false));
+    }
+
     [TestMethod]
     public void BromsClosedFormsInClayAndSand()
     {
@@ -289,6 +323,44 @@ public class PileEdgeCaseTests
 
     private static AxialCapacityResult<AxialSurveyResistance> Axial(AxialPile pile, params AxialPileSurvey[] surveys)
         => AxialPileCapacity.Calculate(pile, surveys, PileResistanceFactors.FromStandard(Ntc, surveys.Length), PileGroupEfficiency.None());
+
+    /// <summary>
+    /// Head below the ground surface (request of the ANTHEA user of 19/10/2026, docs/paratie/seguito-pali-interrati.md of ANTHEA): bored pile D = 0.6 m,
+    /// L = 10 m with the head at d = 2 m in one dense sand γ = 18 kN/m³, φ' = 32°, no water. By hand: σ'v at the head γ d = 36 kPa (the example of the
+    /// request), at the tip γ (d + L) = 216 kPa, mean along the shaft 126 kPa; the shaft runs from the head (segment 0–10 m from the head) and the base
+    /// uses σ'v and Nq at (d + L)/D below the ground. So the shaft equals the one of the pile from the ground with L = 12 m less its first 2 m, the base
+    /// equals its base, the weight is the one of the 10 m of pile. d = 0 gives the former results bit for bit; d &lt; 0 and a stratigraphy that does
+    /// not reach below the head are rejected. Micropile: d = 2 m on a 20 m sand equals d = 0 on the 18 m below.
+    /// </summary>
+    [TestMethod]
+    public void HeadBelowTheGroundSurface()
+    {
+        var sand = new AxialPileSurvey(Profile(null, (Sand(32), 30)), new[] { new AxialPileLayer(SoilBehaviour.Granular, SoilDensity.Dense) });
+        AxialPile Pile(double length, double head) => new(PileInstallation.Bored, 600, length * M, head * M, 25 * KN3, false, null, null, NqFrictionAngle.Layer);
+        var buried = Axial(Pile(10, 2), sand); var ground = Axial(Pile(12, 0), sand);
+        AxialSurveyResistance At(AxialCapacityResult<AxialSurveyResistance> r, double z) => r.Depths.Single(x => x.Depth == z * M).Surveys[0];
+        var tip = At(buried, 10); var segment = tip.Segments.Single();
+        Close(0, segment.Top, "shaft from the head", 1e-12); Close(10 * M, segment.Bottom, "to the tip", 1e-12);
+        Close(126 * KPa, segment.MeanStress, "mean σ'v (36 + 216)/2", 1e-12); Close(216 * KPa, segment.BottomStress, "σ'v at the tip", 1e-12);
+        Close(216 * KPa, tip.TipEffectiveStress, "base σ'v", 1e-12);
+        Close(36 * KPa, At(buried, 0).TipEffectiveStress, "σ'v at the head: γ d = 36 kPa", 1e-12);
+        Close(At(ground, 12).DrainedShaft - At(ground, 2).DrainedShaft, tip.DrainedShaft, "shaft below the head", 1e-12);
+        Close(At(ground, 12).DrainedBase, tip.DrainedBase, "base with Nq((d + L)/D)", 1e-12);
+        Close(25 * KN3 * Math.PI * 600 * 600 / 4 * 10 * M, buried.Depths.Single(x => x.Depth == 10 * M).Weight, "weight of the 10 m of pile", 1e-12);
+        // d = 0 through the new constructor: the former results.
+        var former = Axial(new AxialPile(PileInstallation.Bored, 600, 12 * M), sand);
+        CollectionAssert.AreEqual(former.Curves[(AxialCondition.Drained, true)].Design.ToArray(), ground.Curves[(AxialCondition.Drained, true)].Design.ToArray());
+        Assert.ThrowsException<ArgumentException>(() => Axial(Pile(10, -.1), sand));
+        Assert.ThrowsException<ArgumentException>(() => Axial(Pile(10, 2), new AxialPileSurvey(Profile(null, (Sand(32), 1.5)), new[] { new AxialPileLayer(SoilBehaviour.Granular, SoilDensity.Dense) })));
+        // Micropile along a vertical axis: the head at 2 m on 20 m of sand is the micropile from the ground on the 18 m below.
+        var tube = (SectionCHS)SectionMappings.CreateSection("CHS 139.7 x 8");
+        var factors = PileResistanceFactors.FromStandard(Ntc, 1);
+        var micro = AxialPileCapacity.Calculate(new Micropile(250, 10 * M, 0, MicropileInjection.IGU, 2, 0, null, tube, TubeSteel, 2 * M, 25 * KN3, null, null),
+            new[] { new MicropileSurvey(Profile(null, (Sand(32), 20)), new[] { (BustamanteDoixSoil.MediumSand, 1.4, true) }) }, factors, PileGroupEfficiency.None());
+        var reference = AxialPileCapacity.Calculate(new Micropile(250, 10 * M, 0, MicropileInjection.IGU, 2, 0, null, tube, TubeSteel),
+            new[] { new MicropileSurvey(Profile(null, (Sand(32), 18)), new[] { (BustamanteDoixSoil.MediumSand, 1.4, true) }) }, factors, PileGroupEfficiency.None());
+        CollectionAssert.AreEqual(reference.Curves[(AxialCondition.Drained, true)].Design.ToArray(), micro.Curves[(AxialCondition.Drained, true)].Design.ToArray());
+    }
 
     [TestMethod]
     public void AxialPileMatchesTheHandCalculation()

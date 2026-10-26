@@ -48,24 +48,33 @@ namespace GPC.Checkers.Concrete.Piles
         static IReadOnlyList<PileBarRun> BuildBarRuns(IReadOnlyList<PileDetailSegment> segments,double length)
         {
             if(!Finite(length)||length<=0)throw new ArgumentException("Lunghezza del palo non valida.");
-            var runs=new List<PileBarRun>();int jointNumber=0;
+            var runs=new List<PileBarRun>();int jointNumber=0;var segmentRuns=new List<List<PileBarRun>>();
             for(int i=0;i<segments.Count;i++)
             {
                 var segment=segments[i];var service=segment.Service;
                 if(service==null||segment.Start<0||segment.End<=segment.Start||segment.End>length||
                     (i>0&&segment.Start<segments[i-1].End-1e-9))
                     throw new ArgumentException("Tratti ordinati e non sovrapposti richiesti per la distinta.");
-                var r=service.Detail(segment.Id,segment.Start,segment.End,length,segment.Checks);
-                if(service.geometry.Bars.Any(b=>Math.Abs(b.Diameter-r.Diameter)>1e-8))
-                    throw new ArgumentException("Distinta del palo: diametri misti nella stessa sezione non supportati.");
-                r.Id="G"+(i+1).ToString("00");
-                r.Positions=service.geometry.Bars.Select(b=>new PileBarPosition{X=b.X,Y=b.Y}).ToList();
+                // One run per bar diameter of the section (palo orizzontale, inner ring of another diameter: decision of the user of 26/10/2026):
+                // each with its own anchorage and lap; a section with one diameter keeps the former single run "Gnn".
+                var groups=service.geometry.Bars.GroupBy(b=>Math.Round(b.Diameter,6)).OrderByDescending(g=>g.Key).ToList();
+                var groupRuns=new List<PileBarRun>();segmentRuns.Add(groupRuns);
+                for(int gi=0;gi<groups.Count;gi++)
+                {
+                var bars=groups[gi].ToList();
+                var r=service.Detail(segment.Id,segment.Start,segment.End,length,segment.Checks,bars.Max(b=>b.Diameter),bars.Count);
+                r.Id="G"+(i+1).ToString("00")+(groups.Count>1?((char)('A'+gi)).ToString():"");
+                r.Positions=bars.Select(b=>new PileBarPosition{X=b.X,Y=b.Y}).ToList();
                 r.Start=segment.Start;r.End=segment.End;
                 r.StartKind=segment.Start==0?"Testa":"Inizio tratto senza giunto disponibile";
                 r.EndKind=segment.End==length?"Punta":"Fine tratto assegnata";
-                if(i>0&&Math.Abs(segments[i-1].End-segment.Start)<1e-9)
+                // The joint pairs the run of the previous segment: the only one between two sections of one diameter (as before), otherwise the one
+                // with the same diameter, if any.
+                var above=i>0&&Math.Abs(segments[i-1].End-segment.Start)<1e-9?segmentRuns[i-1]:null;
+                var matching=above==null?null:above.Count==1&&groups.Count==1?above[0]:above.FirstOrDefault(u=>Math.Abs(u.Diameter-r.Diameter)<=1e-6);
+                if(matching!=null)
                 {
-                    var upper=runs[i-1];
+                    var upper=matching;
                     double initial=Math.Max(upper.InitialLap,r.InitialLap),required=Math.Max(upper.RequiredLap,r.RequiredLap);
                     double adopted=Math.Max(initial,required);
                     r.Start=Math.Max(0,segment.Start-adopted);r.StartKind="Arretramento per sovrapposizione";
@@ -101,23 +110,25 @@ namespace GPC.Checkers.Concrete.Piles
                         Note="Suddivisione interna perché la barra eccede la lunghezza commerciale disponibile. Giunti raggruppati al 100%; lunghezza conteggiata una sola volta."});
                 }
                 r.Reference+=" Schema quote di taglio: primo gruppo 0–fine; successivi inizio−l0 fino a fine. Nessuna fusione fra tratti e nessuno sviluppo aggiunto alle quote assegnate. Verifiche di sviluppo indipendenti dalla geometria scelta.";
-                runs.Add(r);
+                if(groups.Count>1)r.Reference+=" Sezione con barre di diametri diversi: un gruppo per diametro, ciascuno con ancoraggio e sovrapposizione propri.";
+                runs.Add(r);groupRuns.Add(r);
+                }
             }
             foreach(var r in runs)
                 for(int i=0;i<r.Joints.Count;i++)for(int j=i+1;j<r.Joints.Count;j++)
                     if(Math.Min(r.Joints[i].End,r.Joints[j].End)-Math.Max(r.Joints[i].Start,r.Joints[j].Start)>1e-9)
                         r.Joints[i].ArrangementPassed=r.Joints[j].ArrangementPassed=false;
-            for(int i=0;i<runs.Count;i++)
-            {
-                var r=runs[i];
-                r.Status=r.Joints.Any(j=>!j.LengthPassed||!j.ArrangementPassed)?
-                    "Quote rispettate; giunti insufficienti, interferenti o abbinamenti da definire":
-                    "Quote di taglio rispettate; sviluppo alle estremità e dettagli da verificare";
-                if(r.Joints.Count>0&&segments[i].Service.p.LapPercent<100)
-                    r.Status+=". Giunti calcolati al 100%; sfalsamento richiesto dall'utente non ancora disposto";
-                if(segments[i].Service.p.HeadAnchorage>0||segments[i].Service.p.ToeAnchorage>0)
-                    r.Status+=". Ancoraggi esterni in testa o in punta considerati nello sviluppo delle barre, non aggiunti ai tagli";
-            }
+            for(int i=0;i<segmentRuns.Count;i++)
+                foreach(var r in segmentRuns[i])
+                {
+                    r.Status=r.Joints.Any(j=>!j.LengthPassed||!j.ArrangementPassed)?
+                        "Quote rispettate; giunti insufficienti, interferenti o abbinamenti da definire":
+                        "Quote di taglio rispettate; sviluppo alle estremità e dettagli da verificare";
+                    if(r.Joints.Count>0&&segments[i].Service.p.LapPercent<100)
+                        r.Status+=". Giunti calcolati al 100%; sfalsamento richiesto dall'utente non ancora disposto";
+                    if(segments[i].Service.p.HeadAnchorage>0||segments[i].Service.p.ToeAnchorage>0)
+                        r.Status+=". Ancoraggi esterni in testa o in punta considerati nello sviluppo delle barre, non aggiunti ai tagli";
+                }
             return runs;
         }
     }

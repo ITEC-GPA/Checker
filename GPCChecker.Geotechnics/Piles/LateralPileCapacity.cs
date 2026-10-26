@@ -41,13 +41,15 @@ namespace GPC.Checkers.Geotechnics.Piles
             if (!Positive(pile.ResistingMoment)) throw new ArgumentException("Resisting moment: a positive finite value is required.");
             if (string.IsNullOrWhiteSpace(pile.MomentSource)) throw new ArgumentException("State the nature and provenance of the resisting moment.");
             if (surveys.Count == 0) throw new ArgumentException("At least one investigated vertical is required.");
+            if (double.IsNaN(pile.HeadDepth) || double.IsInfinity(pile.HeadDepth) || pile.HeadDepth < 0)
+                throw new ArgumentException("Lateral pile: the depth of the head below the ground surface must be zero or positive.");
             bool distributed = pile.Method == LateralPileMethod.Stratified;
             if (!distributed && pile.Method != LateralPileMethod.Broms) throw new ArgumentOutOfRangeException(nameof(pile));
             var results = new List<LateralSurveyResult>(); bool uniform = true;
             foreach (var survey in surveys)
             {
                 if (survey == null) throw new ArgumentNullException(nameof(surveys));
-                var ground = new Ground(survey, l, d, pile.Tolerance, distributed);
+                var ground = new Ground(survey, l, d, pile.Tolerance, distributed, pile.HeadDepth);
                 uniform &= ground.Uniform;
                 var r = Solve(ground, e, pile.ResistingMoment, pile.FixedHead, pile.Step);
                 AddGroundDiagnostics(r, ground, d);
@@ -175,7 +177,8 @@ namespace GPC.Checkers.Geotechnics.Piles
         private static void AddGroundDiagnostics(LateralSurveyResult result, Ground ground, double d)
         {
             bool water = ground.Water; double zw = ground.WaterDepth, gw = ground.WaterUnitWeight;
-            bool weightsAvailable = true;
+            // With the head below the ground surface the stresses start from the overburden of the cover and zw may be negative (water above the head).
+            bool weightsAvailable = ground.CoverWeightsAvailable;
             var intervals = new List<(double Top, double Bottom, double Gamma, double Sat)>();
             foreach (var (soil, top, end) in ground.Layers)
             {
@@ -185,7 +188,7 @@ namespace GPC.Checkers.Geotechnics.Piles
             }
             (double Total, double U, double Effective) Stress(double z)
             {
-                double total = 0;
+                double total = ground.HeadTotalStress;
                 foreach (var a in intervals)
                 {
                     double t = BearingCapacityFactors.Clamp(z - a.Top, 0, a.Bottom - a.Top);
@@ -238,30 +241,54 @@ namespace GPC.Checkers.Geotechnics.Piles
                 return s == null ? 0 : s.InitialReaction + s.Slope * (z - s.Top);
             }
 
-            public Ground(LateralPileSurvey survey, double l, double d, double tolerance, bool distributed)
+            /// <summary>Total vertical stress at the head (MPa): the overburden of the soil above the head; 0 with the head at the ground surface.</summary>
+            public double HeadTotalStress { get; }
+            /// <summary>Whether the unit weights of the soil above the head are available (always with the head at the ground surface).</summary>
+            public bool CoverWeightsAvailable { get; } = true;
+
+            public Ground(LateralPileSurvey survey, double l, double d, double tolerance, bool distributed, double d0 = 0)
             {
                 var profile = survey.Profile;
                 L = l; D = d; Tolerance = tolerance; WaterUnitWeight = profile.WaterUnitWeight;
-                Water = profile.GroundwaterElevation.HasValue; double zw = Water ? profile.GroundSurface - profile.GroundwaterElevation!.Value : l;
-                if (Water && zw < 0) throw new ArgumentException("Water table above the ground surface: not supported by the lateral model.");
+                Water = profile.GroundwaterElevation.HasValue; double zwGround = Water ? profile.GroundSurface - profile.GroundwaterElevation!.Value : d0 + l;
+                if (Water && zwGround < 0) throw new ArgumentException("Water table above the ground surface: not supported by the lateral model.");
+                // Depths from the head (head below the ground surface, d0 > 0): the water table may lie above the head (zw < 0, the whole pile wet).
+                double zw = Water ? zwGround - d0 : l;
                 WaterDepth = zw;
-                // Clip the actual layers, without moving the interfaces by 1.5D.
+                // Clip the actual layers, without moving the interfaces by 1.5D; the layers above the head are its cover.
                 var layers = new List<(Soil Soil, SoilBehaviour Kind, double Top, double End, int Index)>();
-                double top = 0;
+                var cover = new List<(Soil Soil, double Top, double Bottom)>();
+                double top = 0, toe = d0 + l;
                 for (int i = 0; i < profile.Layers.Count; i++)
                 {
-                    if (top >= l) break;
+                    if (top >= toe) break;
                     double bottom = profile.GroundSurface - profile.Layers[i].Bottom;
                     // Only absorb accumulated floating-point error, not a real gap.
-                    if (Math.Abs(bottom - l) <= 16 * 2.2204460492503131e-16 * profile.Layers.Count * Math.Max(1, l)) bottom = l;
-                    layers.Add((profile.Layers[i].Soil, survey.Behaviours[i], top, Math.Min(bottom, l), layers.Count + 1)); top = bottom;
+                    if (Math.Abs(bottom - toe) <= 16 * 2.2204460492503131e-16 * profile.Layers.Count * Math.Max(1, toe)) bottom = toe;
+                    if (top < d0) cover.Add((profile.Layers[i].Soil, top, Math.Min(bottom, d0)));
+                    if (bottom > d0) layers.Add((profile.Layers[i].Soil, survey.Behaviours[i], Math.Max(top, d0) - d0, Math.Min(bottom, toe) - d0, layers.Count + 1));
+                    top = bottom;
                 }
-                if (top < l) throw new ArgumentException("The layers must cover the whole embedded length.");
+                if (top < toe) throw new ArgumentException("The layers must cover the whole embedded length.");
                 Clay = layers.All(s => s.Kind == SoilBehaviour.Cohesive);
                 Mixed = !Clay && layers.Any(s => s.Kind == SoilBehaviour.Cohesive);
                 if (Mixed && !distributed) throw new ArgumentException("Mixed sequences: select the stratified model with distributed reactions.");
                 Distributed = distributed || Clay;
-                double sigma = 0; (SoilBehaviour, double, double, double)? signature = null;
+                // Overburden of the cover: total and effective stress at the head (dry above the water table, γsat − γw below).
+                double coverTotal = 0, coverEffective = 0;
+                foreach (var (soil, a, b) in cover)
+                {
+                    double dry = Water ? BearingCapacityFactors.Clamp(zwGround - a, 0, b - a) : b - a, wet = b - a - dry;
+                    CoverWeightsAvailable &= soil.UnitWeight > 0 && (wet == 0 || soil.SaturatedUnitWeight > WaterUnitWeight);
+                    coverTotal += soil.UnitWeight * dry + soil.SaturatedUnitWeight * wet;
+                    coverEffective += soil.UnitWeight * dry + (soil.SaturatedUnitWeight - WaterUnitWeight) * wet;
+                }
+                // The granular limit p = 3 Kp D σ'v needs the weights of the cover; an entirely cohesive pile does not use them.
+                if (!Clay && !CoverWeightsAvailable) throw new ArgumentException("Head below the ground surface: γ (and γsat > γw below the water table) of the soil above the head are required.");
+                HeadTotalStress = coverTotal;
+                // Cohesive layers: the zone neglected near the ground surface ends 1.5D below it, i.e. 1.5D − d0 below the head.
+                double neglected = 1.5 * d - d0;
+                double sigma = Clay ? 0 : coverEffective; (SoilBehaviour, double, double, double)? signature = null;
                 foreach (var (soil, kind, a0, end, index) in layers)
                 {
                     bool clay = kind == SoilBehaviour.Cohesive;
@@ -278,13 +305,13 @@ namespace GPC.Checkers.Geotechnics.Piles
                     if (!signature.HasValue) signature = sig;
                     Layers.Add((soil, a0, end));
                     var breaks = new SortedSet<double> { a0, end };
-                    if (clay && 1.5 * d > a0 && 1.5 * d < end) breaks.Add(1.5 * d);
+                    if (clay && neglected > a0 && neglected < end) breaks.Add(neglected);
                     if (!Clay && Water && zw > a0 && zw < end) breaks.Add(zw);
                     var nodes = breaks.ToArray(); double kp = PassivePressureCoefficient(phi);
                     for (int i = 0; i < nodes.Length - 1; i++)
                     {
                         double a = nodes[i], b = nodes[i + 1], effective = Water && a >= zw ? saturated - (Clay ? 0 : WaterUnitWeight) : gamma;
-                        double p = clay ? a < 1.5 * d ? 0 : 9 * cu * d : 3 * kp * d * sigma;
+                        double p = clay ? a < neglected ? 0 : 9 * cu * d : 3 * kp * d * sigma;
                         double slope = clay ? 0 : 3 * kp * d * effective;
                         Segments.Add(new LateralLimitSegment(index, kind, a, b, p, slope, sigma));
                         sigma += effective * (b - a);

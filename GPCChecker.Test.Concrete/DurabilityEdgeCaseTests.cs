@@ -68,12 +68,15 @@ namespace ConcreteTests
         [TestMethod]
         public void NtcTableBoundariesOfCminAndC0()
         {
-            // Ordinary environment: Cmin = 25, C0 = 35 MPa (defaults); below C0 +5 mm, below Cmin another +5 mm.
+            // Ordinary environment: C0 = 35 MPa; without a pertinent Cmin, Cmin is the UNI 11104 class of XC3, 30 MPa (R11 of ANTHEA, 26/10/2026; the
+            // table value 25 before); below C0 +5 mm, below Cmin another +5 mm.
             Assert.AreEqual(20, Ntc(Input(Xc3, fck: 35)).NtcTable, "fck = C0: base value");
             Assert.AreEqual(25, Ntc(Input(Xc3, fck: 34.9)).NtcTable, "just below C0");
-            Assert.AreEqual(0, Ntc(Input(Xc3, fck: 25)).NtcLowStrengthExtra, "fck = Cmin: no low-strength addition");
-            Assert.AreEqual(5, Ntc(Input(Xc3, fck: 24.9)).NtcLowStrengthExtra, "below Cmin");
-            Assert.AreEqual(30, Ntc(Input(Xc3, fck: 24.9)).Durability, "20 + 5 + 5");
+            Assert.AreEqual(30, Ntc(Input(Xc3, fck: 30)).NtcCmin, "default Cmin of XC3 (UNI 11104)");
+            Assert.AreEqual(0, Ntc(Input(Xc3, fck: 30)).NtcLowStrengthExtra, "fck = Cmin: no low-strength addition");
+            Assert.AreEqual(5, Ntc(Input(Xc3, fck: 29.9)).NtcLowStrengthExtra, "below Cmin");
+            Assert.AreEqual(30, Ntc(Input(Xc3, fck: 29.9)).Durability, "20 + 5 + 5");
+            Assert.AreEqual(5, Ntc(Input(Xc3, fck: 28)).NtcLowStrengthExtra, "C28/35 in XC3: below the UNI 11104 class (the example of R11)");
             // Aggressive and very aggressive environments; plates −5 mm; quality control −5 mm; 100 years +10 mm.
             Assert.AreEqual(30 + 5, Ntc(Input(new[] { "XD1" }, fck: 30)).Durability); Assert.AreEqual(40, Ntc(Input(new[] { "XD3" }, fck: 45)).Durability);
             Assert.AreEqual(35, Ntc(Input(new[] { "XD3" }, fck: 45, plate: true)).Durability);
@@ -110,7 +113,7 @@ namespace ConcreteTests
                 Assert.ThrowsException<ArgumentException>(() => Ntc(p), string.Join("+", p.Exposures) + " NTC");
             }
             Assert.ThrowsException<ArgumentException>(() => En(Input(new[] { "XA2" })), "XA alone does not define cmin,dur in EC2");
-            Assert.AreEqual(35, Ntc(Input(new[] { "XA2" })).Durability, "NTC: XA2 is aggressive");
+            Assert.AreEqual(40, Ntc(Input(new[] { "XA2" })).Durability, "NTC: XA2 is aggressive (30), C30/37 below C0 (+5) and below its UNI 11104 class C32/40 (+5, R11)");
             Assert.ThrowsException<ArgumentNullException>(() => CoverRequirements.Calculate(DurabilityProfile.EN1992p11, null));
             Assert.ThrowsException<ArgumentNullException>(() => new CoverInput(null, 30, 50, false, false, false, 16, 20, 10));
         }

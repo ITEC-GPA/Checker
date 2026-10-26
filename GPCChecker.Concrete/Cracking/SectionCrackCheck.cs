@@ -506,8 +506,12 @@ namespace GPC.Checkers.Concrete.Cracking
         /// <summary>
         /// Neutral axis within the cover of a bar of the tensile edge, with <see cref="SectionCrackOptions.UnreinforcedTensileZoneFails"/> (ANTHEA bug
         /// analysis 15/10/2026, FES-1), used when no bar is tensile. With a(d) the depth along the strain gradient of the concrete inset by d
-        /// (<see cref="CrackSectionGeometry.InsetDepth"/>: d for a gradient normal to a face, d (|qx| + |qy|) at the corner of a rectangle), c the cover of
-        /// the width formula (<see cref="SectionCrackInput.CoverOverride"/> or the nominal cover) and a tolerance of 1e-6 h, a bar b qualifies when
+        /// (<see cref="CrackSectionGeometry.InsetDepth"/>: d for a gradient normal to a face, d (|qx| + |qy|) at the corner of a rectangle), c the real
+        /// cover of the bar and a tolerance of 1e-6 h, a bar b qualifies when the conditions below hold. The real cover (BUG-FES-1b/1c of ANTHEA, user's
+        /// decision of 26/10/2026; before, the cover of the width formula, which left out bars deeper than the nominal cover and bars with an assigned
+        /// cover smaller than the real one) is the free cover to the tensile face (<see cref="CrackSectionGeometry.TensileFaceCover"/>, radial on circles)
+        /// for a bar of that face, i.e. not farther from it than one diameter beyond its clearance to the outline (<see cref="CrackSectionGeometry.BarCover"/>),
+        /// so that a central mesh counts for both faces; otherwise that clearance (a side bar keeps its side cover):
         /// <list type="number">
         /// <item>it lies within its cover along the gradient: Qmax − Q(b) ≤ a(c + Ø/2). Every bar is compressed, so the tensile zone is shallower than b. On
         /// circular sections a gradient between two adjacent bars of a ring leaves the nearest bar deeper than the inset circle by up to r (1 − cos(π/n)),
@@ -522,20 +526,21 @@ namespace GPC.Checkers.Concrete.Cracking
         {
             var g = p.Geometry;
             if (g.Bars.Count == 0) return false;
-            double c = p.FormulaCover(), tolerance = 1e-6 * height;
+            p.FormulaCover(); // validation with ValidateAtUse, in the same order as before
+            double tolerance = 1e-6 * height;
             var insets = new Dictionary<double, double?>();
             double margin = double.PositiveInfinity, governing = double.NaN;
             bool shallow = false;
             foreach (var b in g.Bars)
             {
-                double inset = c + b.Diameter / 2;
+                double toFace = g.TensileFaceCover(b, qx, qy), clearance = g.Circular ? toFace : g.BarCover(b);
+                double real = !double.IsNaN(toFace) && toFace <= clearance + b.Diameter ? toFace : clearance, inset = Math.Max(0, real) + b.Diameter / 2;
                 if (!insets.TryGetValue(inset, out var depth)) insets[inset] = depth = g.InsetDepth(qx, qy, inset);
                 double limit = (depth ?? height) + g.RingAllowance(b), excess = top - (qx * b.X + qy * b.Y) - limit;
                 if (excess < margin) { margin = excess; governing = limit; }
                 if (!shallow && tensileDepth <= (depth ?? height) + tolerance) shallow = g.DistanceToSurfaceBeyond(b, qx, qy, top - tensileDepth) <= inset + tolerance;
             }
-            details.Add(new ShearCalculationDetail("a,c", governing, "mm", "depth along the gradient of a bar at the cover c + Ø/2 (c = " + c.ToString("0.###", CultureInfo.InvariantCulture)
-                + " mm): bar of the tensile edge when Qmax − Q ≤ a,c"));
+            details.Add(new ShearCalculationDetail("a,c", governing, "mm", "depth along the gradient of a bar at its real cover c + Ø/2: bar of the tensile edge when Qmax − Q ≤ a,c"));
             return margin <= tolerance || shallow;
         }
 

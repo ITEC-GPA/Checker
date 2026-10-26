@@ -158,10 +158,13 @@ namespace GPC.Checkers.Concrete.Shear
                 double floor = (vmin + k1 * sc) * p.Bw * p.D;
                 Add("k", k, "−", "min[2;1+√(200/d)]"); Add("ρl", rho, "−", "min[0.02;Asl/(bw d)]");
                 Add("CRd,c", cr, "−", "Coefficient of the standard"); Add("k1", k1, "−", "Coefficient of σcp"); Add("vmin", vmin, "MPa", "Minimum of the standard");
-                return Result(empirical, floor, Math.Max(0, Math.Max(empirical, floor)), 0);
+                // EN 6.2.2(6): VEd ≤ 0.5 bw d ν fcd also without shear reinforcement (R9 of ANTHEA, 26/10/2026); DIN NA: ν = 0.675.
+                double strutNu = din ? .675 : StrutEfficiency(profile, fck), strutLimit = .5 * p.Bw * p.D * strutNu * fcd;
+                Add("VEd,max", strutLimit, "N", din ? "0.5 bw d ν fcd, ν = 0.675 (DIN NA 6.2.2(6))" : "0.5 bw d ν fcd (6.2.2(6))");
+                return Result(empirical, floor, Math.Min(strutLimit, Math.Max(0, Math.Max(empirical, floor))), 0);
             }
             double alpha = p.AlphaDegrees * Math.PI / 180, ca = 1 / Math.Tan(alpha);
-            double minCot = 1, maxCot = mc ? 1 / Math.Tan(20 * Math.PI / 180) : 2.5;
+            double minCot = 1, maxCot = mc ? ModelCode2010MaximumCotTheta(epsilon) : 2.5;
             if (ns && -sigma >= .7 * (fck <= 50 ? .3 * Math.Pow(fck, 2d / 3) : 2.12 * Math.Log(1 + (fck + 8) / 10))) maxCot = 1.25;
             double acw = 1; // EC2 6.2.3: recommended value for non-prestressed structures.
             double nu = StrutEfficiency(profile, fck);
@@ -174,7 +177,8 @@ namespace GPC.Checkers.Concrete.Shear
                 Add("VRd,cc", vcc, "N", "0.24 fck^(1/3) (1−1.2 σcp/fcd) bw z");
             }
             if (ds) { minCot = Math.Tan(alpha / 2); maxCot = 2; }
-            Add("cot θ massimo", maxCot, "−", ds ? "Cautious limit 2, also with curtailed reinforcement; steel B/C" : "Limit of the standard");
+            Add("cot θ massimo", maxCot, "−", ds ? "Cautious limit 2, also with curtailed reinforcement; steel B/C"
+                : mc ? "cot θmin, θmin = 20° + 10 000 εx ≤ 45° (MC2010 7.3.3.3)" : "Limit of the standard");
             (double Steel, double Concrete) Resistance(double c)
             {
                 double rs = z * p.Asw / p.Spacing * p.Fyd * (c + ca) * Math.Sin(alpha);
@@ -217,6 +221,11 @@ namespace GPC.Checkers.Concrete.Shear
             if (profile == ShearProfile.UniEN1992p11 && fck <= 70) return .5;
             return .6 * (1 - fck / 250);
         }
+
+        /// <summary>
+        /// Model Code 2010 7.3.3.3 (levels II and III): θmin = 20° + 10 000 εx, at most 45°. Before R4 of ANTHEA (26/10/2026) θmin was 20° for every εx.
+        /// </summary>
+        internal static double ModelCode2010MaximumCotTheta(double epsilonX) => 1 / Math.Tan(Math.Min(45, 20 + 10000 * epsilonX) * Math.PI / 180);
 
         // netstandard2.0 has no Math.Cbrt; the difference is at the level of the last bits.
         internal static double Cbrt(double x) => x == 0 ? 0 : Math.Pow(x, 1.0 / 3.0);

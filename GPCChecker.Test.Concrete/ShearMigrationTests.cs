@@ -14,7 +14,8 @@ namespace ConcreteTests
     /// Shear core moved from ANTHEA (ConcreteCodeChecks.Shear / Ntc2018Checks.Shear, commit fe4652c) to GPCChecker.Concrete.
     /// Fixtures/shear-legacy.csv freezes 2016 legacy cases (7 standards, grid + seeded random), captured on 7/10/2026 from ANTHEA
     /// refactoring/integrazione-d7b-d2 d2d3225 (supporto/test/CheckerMigration.Capture, mode tutte); hand calculations check the formulas.
-    /// Legacy units kN/kNm are converted to N/Nmm; resistances are compared in kN.
+    /// Legacy units kN/kNm are converted to N/Nmm; resistances are compared in kN. The capture is not regenerated for the corrections of 26/10/2026:
+    /// R4 (MC2010 θmin = 20° + 10 000 εx) and R9 (EN 6.2.2(6) without shear reinforcement) are checked as bounds on the legacy values.
     /// </summary>
     [TestClass]
     public class ShearMigrationTests
@@ -44,7 +45,7 @@ namespace ConcreteTests
             string file = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixtures", "shear-legacy.csv");
             var rows = File.ReadAllLines(file, Encoding.UTF8).Where(l => !l.StartsWith("#")).Skip(1).ToArray();
             Assert.AreEqual(2016, rows.Length);
-            int ok = 0, errors = 0, detailsCompared = 0;
+            int ok = 0, errors = 0, detailsCompared = 0, thetaLimited = 0, thetaRejected = 0, strutLimited = 0;
             foreach (var row in rows)
             {
                 var c = row.Split(';');
@@ -57,14 +58,38 @@ namespace ConcreteTests
                     Assert.ThrowsException<ArgumentException>(() => SectionShearCalculator.Calculate(input), id);
                     errors++; continue;
                 }
-                var r = SectionShearCalculator.Calculate(input);
-                Close(D(c[22]), r.VRsd / 1000, id + " VRsd"); Close(D(c[23]), r.VRcd / 1000, id + " VRcd"); Close(D(c[24]), r.VRd / 1000, id + " VRd");
+                bool modelCode = c[1] == "Model Code 2010";
+                SectionShearResult r;
+                try { r = SectionShearCalculator.Calculate(input); }
+                catch (ArgumentException e) when (modelCode && N(c[17]).HasValue && e.Message.StartsWith("Shear: cot θ outside", StringComparison.Ordinal))
+                {
+                    // R4 of ANTHEA (26/10/2026): an assigned cot θ beyond cot(20° + 10 000 εx) is now rejected.
+                    thetaRejected++; continue;
+                }
+                double legacyCot = D(c[26]), maxCot = 1 / Math.Tan(Math.Min(45, 20 + 10000 * r.LongitudinalStrain) * Math.PI / 180);
+                if (modelCode && legacyCot > 0 && legacyCot > maxCot + 1e-9)
+                {
+                    // R4: the legacy strut was flatter than θmin = 20° + 10 000 εx (MC2010 7.3.3.3); the bounded maximum cannot exceed the legacy one.
+                    Assert.IsTrue(r.CotTheta <= maxCot + 1e-9, id + " cot within the new limit");
+                    Assert.IsTrue(r.VRd / 1000 <= D(c[24]) * (1 + 1e-9), id + " VRd not above the legacy one");
+                    Assert.AreEqual(r.Ratio.HasValue && r.Ratio <= 1 ? ShearVerdict.Satisfied : r.Ratio.HasValue ? ShearVerdict.NotSatisfied : r.Verdict, r.Verdict, id);
+                    thetaLimited++; ok++; continue;
+                }
+                double legacyRd = D(c[24]);
+                var strut = r.Details.FirstOrDefault(x => x.Symbol == "VEd,max");
+                if (strut != null && legacyRd > strut.Value / 1000 * (1 + 1e-12))
+                {
+                    // R9 of ANTHEA (26/10/2026): EN 6.2.2(6), VEd ≤ 0.5 bw d ν fcd, now bounds VRd also without shear reinforcement.
+                    legacyRd = strut.Value / 1000; strutLimited++;
+                }
+                Close(D(c[22]), r.VRsd / 1000, id + " VRsd"); Close(D(c[23]), r.VRcd / 1000, id + " VRcd"); Close(legacyRd, r.VRd / 1000, id + " VRd");
                 Close(D(c[26]), r.CotTheta, id + " cot");
-                var ratio = N(c[25]);
+                var ratio = legacyRd == D(c[24]) ? N(c[25]) : r.Demand / r.VRd;
                 Assert.AreEqual(ratio.HasValue, r.Ratio.HasValue, id + " ratio defined");
                 if (ratio.HasValue) Close(ratio.Value, r.Ratio.Value, id + " ratio");
                 string status = c[27];
-                var expected = status.StartsWith("Trazione") ? ShearVerdict.NotEvaluated : status.Contains("insufficiente") ? ShearVerdict.NotSatisfied
+                var expected = legacyRd != D(c[24]) ? (ratio <= 1 ? ShearVerdict.Satisfied : ShearVerdict.NotSatisfied)
+                    : status.StartsWith("Trazione") ? ShearVerdict.NotEvaluated : status.Contains("insufficiente") ? ShearVerdict.NotSatisfied
                     : status.Contains("sufficiente") ? ShearVerdict.Satisfied : ratio.HasValue ? (ratio <= 1 ? ShearVerdict.Satisfied : ShearVerdict.NotSatisfied)
                     : r.Demand > 0 ? ShearVerdict.NotSatisfied : ShearVerdict.NotEvaluated;
                 Assert.AreEqual(expected, r.Verdict, id + " verdict (" + status + ")");
@@ -75,12 +100,14 @@ namespace ConcreteTests
                     var detail = r.Details.FirstOrDefault(x => x.Symbol == parts[0]);
                     Assert.IsNotNull(detail, id + " detail " + parts[0]);
                     double legacy = D(parts[1]) * (parts[2] == "kN" ? 1000 : 1);
+                    if (modelCode && parts[0] == "cot θ massimo") legacy = maxCot; // R4: cot(20° + 10 000 εx) instead of cot 20°
                     Close(legacy, detail.Value, id + " " + parts[0]); detailsCompared++;
                 }
                 ok++;
             }
-            Assert.AreEqual(1840, ok); Assert.AreEqual(176, errors);
+            Assert.AreEqual(1840, ok + thetaRejected); Assert.AreEqual(176, errors);
             Assert.IsTrue(detailsCompared > 5000, detailsCompared.ToString());
+            Console.WriteLine("R4: " + thetaLimited + " MC2010 cases bounded by θmin, " + thetaRejected + " assigned cot θ rejected; R9: " + strutLimited + " cases bounded by 0.5 bw d ν fcd");
         }
 
         // Hand calculation: bw = 300 mm, d = 460 mm, Asl = 1256 mm², fck = 30 MPa, γc = 1.5, N = 0.
@@ -92,6 +119,18 @@ namespace ConcreteTests
             var r = SectionShearCalculator.Calculate(new SectionShearInput(new StandardEN1992p11(), 0, 50000, 0, 150000, 300, 460, 1256, 30, 17, 391.3, 1.5, 200000, 0, 1));
             Assert.AreEqual(82.76, r.VRsd / 1000, .02); Assert.AreEqual(56.55, r.VRcd / 1000, .02); Assert.AreEqual(r.VRsd, r.VRd);
             Assert.AreEqual(ShearVerdict.Satisfied, r.Verdict); Assert.AreEqual(50000 / r.VRd, r.Ratio.Value, 1e-12);
+        }
+
+        // R9 of ANTHEA (26/10/2026), EN 6.2.2(6) without shear reinforcement: VEd,max = 0.5 bw d ν fcd = 0.5·300·460·0.528·17 = 619.344 kN with
+        // ν = 0.6 (1 − 30/250) = 0.528; DIN NA ν = 0.675: 791.775 kN. VRd,c (82.76 kN, above) stays far below: the limit does not govern here.
+        [TestMethod]
+        public void StrutLimitWithoutShearReinforcementMatchesHandCalculation()
+        {
+            SectionShearResult R(StandardModelCode2010 standard) => SectionShearCalculator.Calculate(new SectionShearInput(standard, 0, 50000, 0, 150000, 300, 460, 1256, 30, 17, 391.3, 1.5, 200000, 0, 1));
+            var en = R(new StandardEN1992p11());
+            Assert.AreEqual(619.344, en.Details.Single(d => d.Symbol == "VEd,max").Value / 1000, 1e-9);
+            Assert.AreEqual(en.VRsd, en.VRd, "VRd,c below the limit");
+            Assert.AreEqual(791.775, R(new StandardDINEN1992p11()).Details.Single(d => d.Symbol == "VEd,max").Value / 1000, 1e-9);
         }
 
         // Hand calculation with Ø8 two legs (Asw = 100.53 mm²) at s = 150 mm, fyd = 391.3 MPa, z = 0.9 d = 414 mm, fcd = 17 MPa.

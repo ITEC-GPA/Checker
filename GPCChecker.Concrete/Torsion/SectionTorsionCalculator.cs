@@ -82,6 +82,9 @@ namespace GPC.Checkers.Concrete.Torsion
                 case TorsionProfile.ModelCode2010:
                     {
                         double ex = Math.Max(axis1?.LongitudinalStrain ?? 0, axis2?.LongitudinalStrain ?? 0), e1 = ex + (ex + .002) * cot * cot;
+                        // θmin = 20° + 10 000 εx (MC2010 7.3.3.3, R4 of ANTHEA): the static limit of Validate is the one of εx = 0.
+                        double maxCot = SectionShearCalculator.ModelCode2010MaximumCotTheta(ex);
+                        if (cot > maxCot + 1e-10) throw new ArgumentException($"Torsion: cot θ must be within [1; {maxCot:0.###}] (θmin = 20° + 10 000 εx).");
                         double kc = Math.Min(.65, 1 / (1.2 + 55 * e1)) * Math.Min(1, SectionShearCalculator.Cbrt(30 / fck));
                         strut = kc * fck / p.GammaC;
                         Add("εx", ex, "−", "largest εx of the two shear directions"); Add("ε1", e1, "−", "εx + (εx + 0.002) cot²θ");

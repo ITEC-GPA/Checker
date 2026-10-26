@@ -162,9 +162,10 @@ namespace GPC.Checkers.Geotechnics.Walls
                 // Uplift moment is included in overturning, and U is subtracted from the normal force.
                 double x = normal > 0 ? (stabilizing - overturning) / normal : 0;
                 double e = width / 2 - x, be = Math.Max(0, width - 2 * Math.Abs(e)); var contact = WallContact.Law(width, normal, x);
-                // Checks (MUR-2): the passive in front is a resistance, η Pp/γR,e and its moment, never subtracted from the demand (driving thrust,
-                // horizontal actions, inertia; driving overturning moment). It resists only a thrust towards the valley.
-                double passiveResistance = activeDrive > 0 ? availablePassive : 0, passiveResistingMoment = activeDrive > 0 ? passiveMoment : 0;
+                // Checks (MUR-2): the passive in front is a sliding resistance, η Pp/γR,e, never subtracted from the demand (driving thrust,
+                // horizontal actions, inertia). It resists only a thrust towards the valley. It is neglected in the overturning resistance
+                // (BUG-MUR-2b of ANTHEA, user's decision of 26/10/2026: «si, trascura»); from 15/10 its moment about the toe was added there.
+                double passiveResistance = activeDrive > 0 ? availablePassive : 0;
                 double slidingDemand = drive.Force + horizontalActions.Sum(x => x.Design) + inertial, overturningDemand = overturning + passiveScale * passiveMoment;
                 double sliding = Math.Max(0, normal) * Math.Tan(deltaBase) / c.SlidingFactor + passiveResistance;
                 double inclination = normal > 0 ? Math.Max(0, 1 - Math.Abs(horizontal) / normal) : 0;
@@ -217,7 +218,7 @@ namespace GPC.Checkers.Geotechnics.Walls
                 {
                     Combination = c, Horizontal = horizontal, Vertical = normal, Uplift = uplift, Stabilizing = stabilizing, Overturning = overturning, X = x, Eccentricity = e,
                     EffectiveWidth = be, Contact = contact, SlidingDemand = slidingDemand, SlidingResistance = sliding, OverturningDemand = overturningDemand,
-                    OverturningResistance = stabilizing / c.OverturningFactor + passiveResistingMoment, BearingResistance = bearing,
+                    OverturningResistance = stabilizing / c.OverturningFactor, BearingResistance = bearing,
                     Pressures = pressures, StemPressures = stemPressures, ValleyPressures = valleyPressures, PressureDetails = details, StemPressureDetails = stemDetails, Actions = actions,
                     Sections = sections, SeismicBearing = seismicBearing, SeismicBearingError = seismicBearingError,
                     Soil = new WallSoilAudit

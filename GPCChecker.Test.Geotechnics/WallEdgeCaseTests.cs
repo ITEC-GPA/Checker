@@ -216,7 +216,8 @@ public class WallEdgeCaseTests
     }
 
     /// <summary>
-    /// MUR-2: the passive in front is a resistance with γR,e = 1.4 in the A1+M1+R3 rows (NTC 2018 Tab. 6.5.I) and at most 50% of it can be
+    /// MUR-2: the passive in front is a sliding resistance with γR,e = 1.4 in the A1+M1+R3 rows (NTC 2018 Tab. 6.5.I), neglected in the overturning
+    /// (BUG-MUR-2b, 26/10/2026), and at most 50% of it can be
     /// mobilised (§6.5.3.1.1). Scenario of the finding: ANTHEA default wall (H 3, s 0.40/0.25, t 0.45, toe 0.80) with heel 0.6 m, q = 20 kPa,
     /// soil in front Dv = 1.2 m (φ 30°, γ 18: Pp = Kp γ Dv²/2 = 38.88 kN/m), η = 0.5. Expected values from the independent model
     /// scratchpad\agent-geo\wallref.py (mur2_passive.py); the parent row agrees with the verifier (bug\muri-passiva-verifica\ntc_check.py:
@@ -240,13 +241,14 @@ public class WallEdgeCaseTests
         // Sliding: demand 80.9198 (driving thrust, never reduced), resistance 51.3441 + 13.8857 = 65.2298 (wallref.py).
         Close(80.9198, p.SlidingDemand, "driving thrust", 1e-6); Close(65.2298, p.SlidingResistance, "N tan δb/1.1 + η Pp/1.4", 1e-6);
         Close(1.240533, Ratio(p, WallCheckKind.Sliding), "sliding (wallref.py)", 1e-6);
-        // Overturning: driving moment 112.8952 against Ms/1.15 + (η Pp/1.4) Dv/3 = 125.6842 (wallref.py).
-        Close(112.8952 * KNm, p.OverturningDemand, "driving moment", 1e-6); Close(125.6842 * KNm, p.OverturningResistance, "resisting", 1e-6);
-        Close(.898245, Ratio(p, WallCheckKind.Overturning), "overturning (wallref.py)", 1e-6);
+        // Overturning: driving moment 112.8952 against Ms/1.15 = 120.1299; the passive is neglected there since BUG-MUR-2b (user's decision of
+        // 26/10/2026, «si, trascura»; before + (η Pp/1.4) Dv/3, 125.6842, ratio 0.898245). wallref.py with the law 'mur2b' (scratchpad mur2b_attesi.py).
+        Close(112.8952 * KNm, p.OverturningDemand, "driving moment", 1e-6); Close(120.129925 * KNm, p.OverturningResistance, "resisting", 1e-6);
+        Close(.939776, Ratio(p, WallCheckKind.Overturning), "overturning (wallref.py)", 1e-6);
         // Equilibrium: H on the base net of the design passive used, 80.9198 − 13.8857 = 67.0340.
         Close(67.034, p.Horizontal, "net H", 1e-5); Assert.AreEqual(1, p.Soil.PassiveScale);
-        // The twin without q on the heel governs (MUR-1): 1.413476 and 1.104586 (wallref.py), both not satisfied.
-        Close(1.413476, Ratio(t, WallCheckKind.Sliding), "twin sliding (wallref.py)", 1e-6); Close(1.104586, Ratio(t, WallCheckKind.Overturning), "twin overturning (wallref.py)", 1e-6);
+        // The twin without q on the heel governs (MUR-1): 1.413476 and 1.168063 (wallref.py, 'mur2b'; 1.104586 with the passive), both not satisfied.
+        Close(1.413476, Ratio(t, WallCheckKind.Sliding), "twin sliding (wallref.py)", 1e-6); Close(1.168063, Ratio(t, WallCheckKind.Overturning), "twin overturning (wallref.py)", 1e-6);
         Close(1.413476, r.Checks.Where(k => k.Kind == WallCheckKind.Sliding).Max(k => k.Ratio!.Value), "worst sliding", 1e-6);
         // SLS rows: γR,e = 1, the mobilised η Pp in the equilibrium.
         var sle = r.Cases[0]; Assert.AreEqual(1, sle.Soil.PassiveFactor); Close(19.44, sle.Soil.PassiveDesign, "SLS η Pp", 1e-12);

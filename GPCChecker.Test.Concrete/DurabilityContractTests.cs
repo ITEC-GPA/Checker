@@ -39,6 +39,9 @@ namespace ConcreteTests
     /// x64 test platform as the rest of the suite. Nothing about the runtime type of ExposureClasses.All is recorded.
     /// It is a regression snapshot, not an independent expectation: never regenerate it to make the test pass. On a difference the generated text is
     /// written next to the test assembly (durability-contract.actual.json) and the first differing line is reported.
+    /// Regenerated once, on 26/10/2026, with the user's approval («R11 ok, correggi»): without a pertinent Cmin the NTC and CNR-DT 200 profiles take the
+    /// UNI 11104 class of the exposures instead of the table value 25 + 5 × group. Only the 1604 NTC/CNR states without Cmin changed, and in them only
+    /// ntcCmin, the low-strength addition and the covers that follow (cnom higher in 210 states, lower in 70: X0, XF2, XF3 below the table value).
     /// </summary>
     [TestClass]
     public class DurabilityContractTests

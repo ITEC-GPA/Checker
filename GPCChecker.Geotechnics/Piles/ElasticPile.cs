@@ -21,6 +21,11 @@ public sealed class ElasticPileInput
     public ElasticPileSection? Section { get; set; }
     public double Length { get; set; }
     public double FreeLength { get; set; }
+    /// <summary>
+    /// Depth of the head below the ground surface (≥ 0, 0 = as before; request of the ANTHEA user of 19/10/2026), with no free length. The layers are
+    /// given from the ground surface: the part above the head is cut, and the linear laws use the depth below the ground (d + x).
+    /// </summary>
+    public double HeadDepth { get; set; }
     public double Diameter { get; set; }
     public double EI { get; set; }
     public string EISource { get; set; } = "";
@@ -104,6 +109,20 @@ public static class ElasticPile
     }
     static bool Finite(double x) => !double.IsNaN(x) && !double.IsInfinity(x);
     static void Require(bool ok, string text) { if (!ok) throw new ArgumentException(text); }
+    /// <summary>The layers below a head at <paramref name="head"/> below the ground surface (the layers start at the ground); the original numbers are kept.</summary>
+    static IReadOnlyList<ElasticPileLayer> BelowHead(IReadOnlyList<ElasticPileLayer> layers, double head)
+    {
+        if (head == 0) return layers;
+        var list = new List<ElasticPileLayer>(); double top = 0;
+        for (int i = 0; i < layers.Count; i++)
+        {
+            var s = layers[i]; double bottom = top + s.Thickness;
+            if (bottom > head) list.Add(new ElasticPileLayer { Name = s.Name, OriginalLayer = s.OriginalLayer > 0 ? s.OriginalLayer : i + 1, Thickness = bottom - Math.Max(top, head), Law = s.Law, Value = s.Value, Source = s.Source });
+            top = bottom;
+        }
+        Require(list.Count > 0, "The layers must reach below the pile head.");
+        return list;
+    }
     public static double Distributed(ElasticPileLayer layer, double groundDepth, double diameter)
     {
         switch (layer.Law)
@@ -125,12 +144,17 @@ public static class ElasticPile
         Require(Enum.IsDefined(typeof(ElasticPileTip), input.Tip), "Unknown tip boundary.");
         Require(Finite(input.Step) && input.Step > 0 && refinement >= 1 && refinement <= 8, "Positive mesh step and refinement 1…8 required.");
         Require(input.Layers != null && input.Layers.Count > 0, "Soil layers required.");
-        var boundaries = new List<double> { 0 }; if(input.FreeLength > 0) boundaries.Add(input.FreeLength);
-        double bottom = input.FreeLength;
         foreach(var layer in input.Layers!)
         {
             if(layer == null) throw new ArgumentException("Null soil layer.");
             Require(Finite(layer.Thickness) && layer.Thickness > 0 && Finite(layer.Value) && layer.Value >= 0 && Enum.IsDefined(typeof(ElasticSoilLaw),layer.Law) && !string.IsNullOrWhiteSpace(layer.Source), "Each layer needs positive thickness, nonnegative finite stiffness, known law and source.");
+        }
+        Require(Finite(input.HeadDepth) && input.HeadDepth >= 0 && (input.HeadDepth == 0 || input.FreeLength == 0), "Head depth below the ground ≥ 0 required, without free length.");
+        var layers = BelowHead(input.Layers, input.HeadDepth);
+        var boundaries = new List<double> { 0 }; if(input.FreeLength > 0) boundaries.Add(input.FreeLength);
+        double bottom = input.FreeLength;
+        foreach(var layer in layers)
+        {
             bottom += layer.Thickness;
             if(bottom < input.Length) boundaries.Add(bottom);
         }
@@ -141,7 +165,7 @@ public static class ElasticPile
         else boundaries.Add(input.Length);
         foreach(double station in input.AdditionalNodes){Require(Finite(station)&&station>=0&&station<=input.Length,"Invalid verification station.");boundaries.Add(station);}
         boundaries=boundaries.Distinct().OrderBy(v=>v).ToList();
-        bool springs = input.Layers.TakeWhile((s,i)=>input.FreeLength+input.Layers.Take(i).Sum(t=>t.Thickness)<input.Length).Any(s=>s.Value>0);
+        bool springs = layers.TakeWhile((s,i)=>input.FreeLength+layers.Take(i).Sum(t=>t.Thickness)<input.Length).Any(s=>s.Value>0);
         Require(springs || input.Tip == ElasticPileTip.Fixed || input.Tip == ElasticPileTip.Pinned && input.FixedHeadRotation, "Unstable model: unconstrained rigid-body motion; no artificial tip fixity is applied.");
         var x = new List<double> { 0 };
         for(int j=1;j<boundaries.Count;j++)
@@ -154,8 +178,9 @@ public static class ElasticPile
         for(int e=0;e<x.Count-1;e++)
         {
             double a=x[e], h=x[e+1]-a, mid=(a+x[e+1])/2; int layerIndex=-1; double top=input.FreeLength;
-            if(mid>=top) for(int j=0;j<input.Layers.Count;j++){ if(mid<top+input.Layers[j].Thickness){layerIndex=j;break;}top+=input.Layers[j].Thickness; }
-            double k0=layerIndex<0?0:Distributed(input.Layers[layerIndex],a-input.FreeLength,input.Diameter), k1=layerIndex<0?0:Distributed(input.Layers[layerIndex],a+h-input.FreeLength,input.Diameter);
+            if(mid>=top) for(int j=0;j<layers.Count;j++){ if(mid<top+layers[j].Thickness){layerIndex=j;break;}top+=layers[j].Thickness; }
+            // Depth below the ground surface: from the end of the free length, plus the depth of a buried head.
+            double k0=layerIndex<0?0:Distributed(layers[layerIndex],a-input.FreeLength+input.HeadDepth,input.Diameter), k1=layerIndex<0?0:Distributed(layers[layerIndex],a+h-input.FreeLength+input.HeadDepth,input.Diameter);
             var k=new double[4,4];
             // Four Gauss points exactly integrate Hermite N_i N_j times linear stiffness (degree seven).
             double[] gp={-.8611363115940526,-.3399810435848563,.3399810435848563,.8611363115940526}, gw={.3478548451374539,.6521451548625461,.6521451548625461,.3478548451374539};
@@ -183,7 +208,7 @@ public static class ElasticPile
             double[] v=Integral(q,h,end[0]), m=Integral(v,h,-end[1]), theta=Derivative(y,1/h);
             var samples=new SortedSet<double>{0,1};for(int i=1;i<8;i++)samples.Add(i/8d);
             foreach(var polynomial in new[]{y,theta,v,m,q})foreach(double t in Roots(Derivative(polynomial,1)))samples.Add(t);
-            foreach(double t in samples) {double k=el.K0+(el.K1-el.K0)*t; r.Points.Add(new ElasticPilePoint {Depth=a+h*t,GroundDepth=a+h*t-input.FreeLength,Layer=el.Layer<0?0:input.Layers[el.Layer].OriginalLayer>0?input.Layers[el.Layer].OriginalLayer:el.Layer+1,Nh=el.Layer>=0&&input.Layers[el.Layer].Law==ElasticSoilLaw.LinearKhReference?input.Layers[el.Layer].Value:(double?)null,Side=t==0?"Below":t==1?"Above":"Interior",Kh=k/input.Diameter,DistributedStiffness=k,Displacement=Value(y,t),Rotation=Value(theta,t),Shear=Value(v,t),Moment=Value(m,t),SoilReaction=Value(q,t)});}
+            foreach(double t in samples) {double k=el.K0+(el.K1-el.K0)*t; r.Points.Add(new ElasticPilePoint {Depth=a+h*t,GroundDepth=a+h*t-input.FreeLength+input.HeadDepth,Layer=el.Layer<0?0:layers[el.Layer].OriginalLayer>0?layers[el.Layer].OriginalLayer:el.Layer+1,Nh=el.Layer>=0&&layers[el.Layer].Law==ElasticSoilLaw.LinearKhReference?layers[el.Layer].Value:(double?)null,Side=t==0?"Below":t==1?"Above":"Interior",Kh=k/input.Diameter,DistributedStiffness=k,Displacement=Value(y,t),Rotation=Value(theta,t),Shear=Value(v,t),Moment=Value(m,t),SoilReaction=Value(q,t)});}
             double force=Value(Integral(q,h,0),1), couple=0;for(int i=0;i<q.Length;i++)couple+=q[i]*h*(a/(i+1)+h/(i+2));
             r.SoilForce+=force;r.SoilMomentAboutHead+=couple;
         }

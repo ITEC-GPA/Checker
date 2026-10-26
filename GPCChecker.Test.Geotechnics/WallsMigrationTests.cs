@@ -152,7 +152,7 @@ public class WallsMigrationTests
     [TestMethod]
     public void LegacyWallsAreReproduced()
     {
-        int calculated = 0, rejected = 0, outside = 0, cases = 0, sections = 0, checks = 0, legacyNaN = 0, roundingCuts = 0;
+        int calculated = 0, rejected = 0, outside = 0, cases = 0, sections = 0, checks = 0, legacyNaN = 0, roundingCuts = 0, passiveOverturning = 0, passiveChecks = 0;
         static bool Near(double expected, double actual, double relative, double absolute) => Math.Abs(expected - actual) <= relative * Math.Abs(expected) + absolute;
         foreach (var line in GzipLines("walls-documents.jsonl.gz"))
         {
@@ -188,7 +188,15 @@ public class WallsMigrationTests
                 Close(Req(contact["Start"], "s") * M, pc.Contact.Start, id + " start", 1e-9, 1e-6); Close(Req(contact["End"], "e") * M, pc.Contact.End, id + " end", 1e-9, 1e-6);
                 Close(Req(contact["Toe"], "t") * KPa, pc.Contact.Toe, id + " toe", 1e-9, 1e-12); Close(Req(contact["Heel"], "h") * KPa, pc.Contact.Heel, id + " heel", 1e-9, 1e-12);
                 Close(Req(lc["SlidingResistance"], "S") , pc.SlidingResistance, id + " sliding", 1e-9, 1e-9);
-                Close(Req(lc["OverturningResistance"], "O") * KNm, pc.OverturningResistance, id + " overturning", 1e-9, 1e-6);
+                // BUG-MUR-2b (user's decision of 26/10/2026, «si, trascura»): the passive in front is neglected in the overturning resistance, Ms/γ only.
+                // The capture (MUR-2, 15/10) holds Ms/γ plus the moment of η Pp/γR,e: equal without the passive, larger by that moment with it.
+                double capturedOverturning = Req(lc["OverturningResistance"], "O") * KNm;
+                Close(pc.Stabilizing / pc.Combination.OverturningFactor, pc.OverturningResistance, id + " overturning = Ms/γ", 1e-12, 1e-9);
+                if (Req(lc["SoilAudit"]!["passiva_disponibile_kN_m"], "Pp") > 0)
+                {
+                    Assert.IsTrue(pc.OverturningResistance <= capturedOverturning + 1e-6, id + " overturning without the moment of the passive"); passiveOverturning++;
+                }
+                else Close(capturedOverturning, pc.OverturningResistance, id + " overturning", 1e-9, 1e-6);
                 double? bearing = Num(lc["BearingResistance"]);
                 Assert.AreEqual(bearing.HasValue, pc.BearingResistance.HasValue, id + " bearing");
                 if (bearing.HasValue) Close(bearing.Value, pc.BearingResistance!.Value, id + " bearing", 1e-9, 1e-9);
@@ -250,6 +258,16 @@ public class WallsMigrationTests
                 double scale = pk.Kind == WallCheckKind.Overturning ? KNm : pk.Kind == WallCheckKind.Contact ? M : 1;
                 Close(Req(lk["Demand"], "D") * scale, pk.Demand, id + " demand", 1e-9, 1e-6);
                 double? resistance = Num(lk["Resistance"]); Assert.AreEqual(resistance.HasValue, pk.Resistance.HasValue, id + " resistance");
+                var governing = result.Cases.Single(x => x.Combination.Name == pk.Combination);
+                if (pk.Kind == WallCheckKind.Overturning && resistance.HasValue && Math.Abs(resistance.Value * scale - governing.OverturningResistance) > 1e-9 * Math.Abs(resistance.Value * scale) + 1e-6)
+                {
+                    // BUG-MUR-2b: the resistance of the case without the moment of the passive; ratio and status follow it.
+                    Close(governing.OverturningResistance, pk.Resistance!.Value, id + " resistance", 1e-12, 1e-9);
+                    Assert.IsTrue(pk.Resistance!.Value <= resistance.Value * scale + 1e-6, id + " resistance not above the capture");
+                    Close(pk.Demand / pk.Resistance!.Value, pk.Ratio!.Value, id + " ratio", 1e-12, 1e-12);
+                    Assert.AreEqual(pk.Ratio <= 1 ? WallCheckStatus.Satisfied : WallCheckStatus.NotSatisfied, pk.Status, id + " status");
+                    passiveChecks++; checks++; continue;
+                }
                 if (resistance.HasValue) Close(resistance.Value * scale, pk.Resistance!.Value, id + " resistance", 1e-9, 1e-6);
                 double? ratio = Num(lk["Ratio"]); Assert.AreEqual(ratio.HasValue, pk.Ratio.HasValue, id + " ratio");
                 if (ratio.HasValue) Close(ratio.Value, pk.Ratio!.Value, id + " ratio", 1e-9, 1e-12);
@@ -265,6 +283,8 @@ public class WallsMigrationTests
         // rejected since MUR-2: no calculated document has them now.
         Assert.AreEqual(0, legacyNaN, "legacy defect: NaN moments of the stem with the valley water");
         TestContext.WriteLine($"{calculated} walls, {cases} combinations, {sections} cuts, {checks} checks; {roundingCuts} cuts at the loads decided by the rounding of ANTHEA, {legacyNaN} NaN of ANTHEA");
+        TestContext.WriteLine($"BUG-MUR-2b: {passiveOverturning} combinations with the passive in front, {passiveChecks} overturning checks recomputed without its moment");
+        Assert.IsTrue(passiveOverturning > 0 && passiveChecks > 0, "the capture holds walls with the passive in front");
         Assert.IsTrue(cases > 2000 && sections > 100000 && checks > 5000, $"{cases} cases, {sections} cuts, {checks} checks");
     }
 

@@ -60,7 +60,8 @@ namespace GPC.Checkers.Concrete.Durability
     /// <summary>
     /// Data of the cover requirement. Units mm, MPa. Structural-class modifiers of EN Table 4.3N: design life 100 years (+2), strength class at least
     /// the threshold of the exposure (−1), slab geometry (−1), special quality control (−1). Abrasion k1/k2/k3 = 5/10/15 mm, concrete cast against
-    /// prepared ground (40) or directly against soil (75). NTC: plate element, quality-control reduction and the pertinent Cmin (UNI 11104).
+    /// prepared ground (40) or directly against soil (75). NTC: plate element, quality-control reduction and the pertinent Cmin (UNI 11104); without
+    /// it Cmin is the UNI 11104 minimum class of the exposures.
     /// </summary>
     public sealed class CoverInput
     {
@@ -155,7 +156,8 @@ namespace GPC.Checkers.Concrete.Durability
             if (profile == DurabilityProfile.Ntc2018 || profile == DurabilityProfile.CnrDT200)
             {
                 int severity = exposures.Max(e => e.NtcEnvironment);
-                double c0 = 35 + 5 * severity, cmin = p.PertinentCmin ?? 25 + 5 * severity;
+                // Without a pertinent Cmin, the minimum class of the exposures (UNI 11104, NTC §11.2.11), not the table value (R11 of ANTHEA, 26/10/2026).
+                double c0 = 35 + 5 * severity, cmin = p.PertinentCmin ?? exposures.Max(e => e.Uni11104MinStrength);
                 if (double.IsNaN(cmin) || cmin < 12 || cmin > c0) throw new ArgumentException("Pertinent Cmin: give fck between 12 MPa and C0 = " + c0 + " MPa.");
                 double table = (p.PlateElement ? 15 : 20) + 10 * severity + (p.Fck < c0 ? 5 : 0);
                 double life = p.DesignLife == 100 ? 10 : 0, low = p.Fck < cmin ? 5 : 0, quality = p.NtcQualityReduction ? 5 : 0;

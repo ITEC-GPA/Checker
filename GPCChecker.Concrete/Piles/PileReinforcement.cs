@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
@@ -97,6 +98,8 @@ namespace GPC.Checkers.Concrete.Piles
         /// (no bending and no axial tension, see <see cref="PileReinforcement.DevelopmentDemandRatio"/>) or before ApplyDevelopment.
         /// </summary>
         public bool? DevelopmentAvailable { get; set; }
+        /// <summary>Developed fraction r of the bars used for MRd by <see cref="PileReinforcement.ApplyPartialDevelopment"/> (fyd·r); null with fully developed bars.</summary>
+        public double? DevelopedFraction { get; set; }
         public double? UsableMRdPositive => DevelopmentAvailable == true ? MRdPositive : null;
         public double? UsableMRdNegative => DevelopmentAvailable == true ? MRdNegative : null;
         public double? GoverningRatio => BendingRatio.HasValue && ShearRatio.HasValue ? Math.Max(BendingRatio.Value,ShearRatio.Value) : (double?)null;
@@ -254,9 +257,12 @@ namespace GPC.Checkers.Concrete.Piles
             return point.MxRd/NewtonMillimetresPerKilonewtonMetre;
         }
         public PileBarRun Detail(string id,double start,double end,double totalLength,IReadOnlyList<PileSectionCheck> checks)
+            =>Detail(id,start,end,totalLength,checks,geometry.Bars.Max(b=>b.Diameter),geometry.Bars.Count);
+        /// <summary>Bar run of the <paramref name="count"/> bars of diameter <paramref name="phi"/> (a ring of a section with bars of several diameters).</summary>
+        PileBarRun Detail(string id,double start,double end,double totalLength,IReadOnlyList<PileSectionCheck> checks,double phi,int count)
         {
             if(start<0||end<=start||end>totalLength)throw new ArgumentException("Quote del tratto non valide.");
-            double phi=geometry.Bars.Max(b=>b.Diameter);var profile=DetailingProfiles.Resolve(p.Standard);
+            var profile=DetailingProfiles.Resolve(p.Standard);
             var anchorage=AnchorageCalculator.Calculate(profile,new AnchorageInput(phi,p.Fyd,p.Fctk05,p.Standard.GammaC,p.GoodBond,0));
             // The generated pieces splice together in one plane. Never use a lower requested
             // percentage to shorten a grouped (100%) joint that has not been staggered.
@@ -268,7 +274,7 @@ namespace GPC.Checkers.Concrete.Piles
             // Anchorage outside the model (into the cap at the head, beyond the toe) counts as embedded length at the pile ends (PO-5).
             double headExtra=start==0?p.HeadAnchorage:0,toeExtra=end>=totalLength-1e-9?p.ToeAnchorage:0;
             bool available=start-actualStart+headExtra+1e-9>=lb+shift&&actualEnd-end+toeExtra+1e-9>=lb+shift;
-            var run=new PileBarRun{Segment=id,Count=geometry.Bars.Count,Diameter=phi,TheoreticalStart=start,TheoreticalEnd=end,Start=actualStart,End=actualEnd,Anchorage=lb,Lap=l0,RequiredLap=requiredLap,InitialLap=initialLap,Shift=shift,EndDevelopmentAvailable=available,
+            var run=new PileBarRun{Segment=id,Count=count,Diameter=phi,TheoreticalStart=start,TheoreticalEnd=end,Start=actualStart,End=actualEnd,Anchorage=lb,Lap=l0,RequiredLap=requiredLap,InitialLap=initialLap,Shift=shift,EndDevelopmentAvailable=available,
                 LapClearDistancePassed=lap.LapClearDistancePassed,
                 Status=available&&lap.LapClearDistancePassed?"Proposta: sviluppo disponibile; giunti, confinamento e disposizione da verificare":"Proposta incompleta: sviluppo o distanza di sovrapposizione insufficiente",
                 Reference=anchorage.Reference+"; "+lap.Reference+"; traslazione a_l=z cotθ/2 (EN1992-1-1 §9.2.1.3, JRC Arrieta 2011). α1…α5=1, σsd=fyd. Capacità nominale senza contributo aggiuntivo delle barre sovrapposte."};
@@ -323,6 +329,56 @@ namespace GPC.Checkers.Concrete.Piles
                     if(c.Outcome==EngineeringOutcome.Satisfied){c.Outcome=EngineeringOutcome.NotEvaluated;c.Status="Parziale";}
                     c.Message+=" Sviluppo delle barre o giunti non disponibili: MRd nominale non utilizzabile. Dettaglio locale da definire.";
                 }
+            }
+        }
+        /// <summary>Step of the developed fraction in <see cref="ApplyPartialDevelopment"/>: the fraction is rounded down to it (safe side), so few reduced services are built.</summary>
+        public const double DevelopmentFractionStep = .05;
+        /// <summary>
+        /// Developed fraction of the bars at a depth (BUG-PO-5b of ANTHEA, user's decision of 26/10/2026): with the anchorage measured beyond the shift a_l,
+        /// r = (l − a_l)/lbd within [0; 1], l the length from the nearest bar end (with the anchorage outside the model at the pile ends), the smallest of the
+        /// runs. Null when a joint of the runs is not usable (the fraction does not apply).
+        /// </summary>
+        public static double? DevelopedFraction(IEnumerable<PileBarRun> runs,double depth)
+        {
+            double fraction=1;
+            foreach(var run in runs)
+            {
+                if(!run.Joints.All(j=>j.LengthPassed&&j.ArrangementPassed))return null;
+                double required=run.Anchorage+run.Shift;if(!(run.Anchorage>0))continue;
+                // CapacityStart/End already hold the anchorage outside the model: the deficit is the distance still missing to them.
+                double missing=Math.Max(Math.Max(0,run.CapacityStart-depth),Math.Max(0,depth-run.CapacityEnd));
+                fraction=Math.Min(fraction,Math.Max(0,Math.Min(1,(required-missing-run.Shift)/run.Anchorage)));
+            }
+            return fraction;
+        }
+        /// <summary>
+        /// Partial development (BUG-PO-5b of ANTHEA, user's decision of 26/10/2026: «ok»): after <see cref="ApplyDevelopment(IEnumerable{PileBarRun}, IEnumerable{PileSectionCheck})"/>,
+        /// a depth where the demand needs the bars and they are not fully developed is checked with the bar strength reduced in proportion to the
+        /// developed length, fyd·r with r of <see cref="DevelopedFraction"/> rounded down to <see cref="DevelopmentFractionStep"/>, instead of staying
+        /// "Parziale". <paramref name="reduced"/> gives the service of the same section with the bar design strength multiplied by r (built by the caller,
+        /// which owns the section solver). Below one step, or with an unusable joint, the depth stays as ApplyDevelopment left it. The nominal MRd and the
+        /// shear are not changed: MRd± becomes the one of the reduced bars, with its bending ratio and outcome; DevelopedFraction records r.
+        /// </summary>
+        public static void ApplyPartialDevelopment(IEnumerable<PileBarRun> runs,IEnumerable<PileSectionCheck> checks,Func<double,PileReinforcement> reduced)
+        {
+            if(reduced==null)throw new ArgumentNullException(nameof(reduced));
+            var bars=runs.ToArray();var services=new Dictionary<double,PileReinforcement>();
+            foreach(var c in checks)
+            {
+                if(c.DevelopmentAvailable!=false)continue;
+                double? exact=DevelopedFraction(bars,c.Action.Depth);if(!exact.HasValue)continue;
+                double r=Math.Floor(exact.Value/DevelopmentFractionStep+1e-9)*DevelopmentFractionStep;if(r<DevelopmentFractionStep)continue;
+                if(!services.TryGetValue(r,out var service)){service=reduced(r);services.Add(r,service);}
+                var partial=service.Check(c.Action);
+                c.DevelopedFraction=r;c.MRdPositive=partial.MRdPositive;c.MRdNegative=partial.MRdNegative;c.BendingRatio=partial.BendingRatio;
+                if(!c.MRdPositive.HasValue||!c.MRdNegative.HasValue){c.Message+=" Sviluppo parziale r = "+r.ToString("0.00",CultureInfo.CurrentCulture)+": "+partial.Message;continue;}
+                c.DevelopmentAvailable=true;
+                bool complete=c.GoverningRatio.HasValue;
+                c.Data=complete&&partial.Data==DataStatus.Ready?DataStatus.Ready:DataStatus.Insufficient;
+                c.Outcome=c.BendingRatio>1||c.ShearRatio>1||c.MinimumReinforcementPassed==false?EngineeringOutcome.NotSatisfied:complete&&c.Data==DataStatus.Ready?EngineeringOutcome.Satisfied:EngineeringOutcome.NotEvaluated;
+                c.Status=c.Outcome==EngineeringOutcome.NotSatisfied?"Non soddisfatto":c.Outcome==EngineeringOutcome.Satisfied?"Soddisfatto N–M–V; dettagli da completare":"Parziale";
+                c.Message=c.Message.Replace(" Sviluppo delle barre o giunti non disponibili: MRd nominale non utilizzabile. Dettaglio locale da definire.","")
+                    +" Sviluppo parziale delle barre: MRd con fyd·r, r = "+r.ToString("0.00",CultureInfo.CurrentCulture)+" (lunghezza ancorata oltre a_l / lbd, arrotondata per difetto).";
             }
         }
         /// <summary>Candidate boundaries from changes of demand class and a user-assigned maximum cage length. Preliminary heuristic, never a normative rule.</summary>
