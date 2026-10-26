@@ -135,6 +135,42 @@ namespace ConcreteTests
         }
 
         /// <summary>
+        /// F5.15, R12 and R13 (26/10/2026), options of the member detailing (default: the rule of 0.0.17.0). Column 600×600 with 8 bars 249 mm from the axes
+        /// (corners and middle of the faces). NTC with <see cref="MemberDetailingOptions.ColumnSpacingAlongPerimeter"/>: 249 mm along the perimeter of the
+        /// bars instead of 498 mm through the core (the middle bars of opposite faces). Column 300×500 with 3 bars below (x = −100, 0, 100) and 2 above
+        /// (x = ±90), not aligned: 180 mm on the rows without the option, the side face √(10² + 400²) = 400.12 mm with it, over 300 mm. EN 1992-1-1
+        /// 9.5.3(4)(ii) with <see cref="MemberDetailingOptions.LapLinkReductionAboveFourteen"/>: at laps 8Ø14 keeps min(20 Ømin; b; 400 mm) = 280 mm
+        /// (168 mm without the option), 8Ø16 has 0.6 × 320 = 192 mm with and without.
+        /// </summary>
+        [TestMethod]
+        public void ColumnSpacingAlongThePerimeterAndLapLinksAboveFourteenMillimetres()
+        {
+            CrackBar Bar(double x, double y, double phi) => new CrackBar(x, y, phi, Math.PI * phi * phi / 4);
+            Point2d[] Rectangle(double b, double h) => new[] { new Point2d(-b / 2, -h / 2), new Point2d(b / 2, -h / 2), new Point2d(b / 2, h / 2), new Point2d(-b / 2, h / 2) };
+            CrackSectionGeometry Column8(double phi) => new CrackSectionGeometry(Rectangle(600, 600), new IEnumerable<Point2d>[0],
+                new[] { -249.0, 0, 249 }.SelectMany(x => new[] { -249.0, 0, 249 }.Select(y => new { x, y })).Where(b => b.x != 0 || b.y != 0)
+                    .Select(b => Bar(b.x, b.y, phi)), CrackBarLayout.Rows);
+            var twoFaces = new CrackSectionGeometry(Rectangle(300, 500), new IEnumerable<Point2d>[0],
+                new[] { Bar(-100, -200, 20), Bar(0, -200, 20), Bar(100, -200, 20), Bar(-90, 200, 20), Bar(90, 200, 20) }, CrackBarLayout.Rows);
+            var corrected = new MemberDetailingOptions(null, false, false, true, true);
+            DetailingCheck Check(DetailingProfile profile, CrackSectionGeometry g, bool lap, MemberDetailingOptions options, string key) => MemberDetailingCalculator.Calculate(profile,
+                new MemberDetailingInput(MemberDetailingKind.Column, g, g.Width * g.Height, 25, Fctm(25), 450, 391.3, g.Width, g.Width, g.Width, 2e6, true, 8, 200, 2, 20, 35, 25,
+                    10, lap, true, true, 0, 0, options)).Checks.Single(x => x.Key == key);
+            var core = Check(DetailingProfile.Ntc2018, Column8(20), false, MemberDetailingOptions.Default, "LongitudinalSpacing");
+            Assert.AreEqual(498, core.Actual.Value, 1e-9); Assert.AreEqual(false, core.Passed, "0.0.17.0: through the core");
+            var perimeter = Check(DetailingProfile.Ntc2018, Column8(20), false, corrected, "LongitudinalSpacing");
+            Assert.AreEqual(249, perimeter.Actual.Value, 1e-9); Assert.AreEqual(true, perimeter.Passed);
+            var rows = Check(DetailingProfile.Ntc2018, twoFaces, false, MemberDetailingOptions.Default, "LongitudinalSpacing");
+            Assert.AreEqual(180, rows.Actual.Value, 1e-9); Assert.AreEqual(true, rows.Passed, "0.0.17.0: the side faces are not measured");
+            var side = Check(DetailingProfile.Ntc2018, twoFaces, false, corrected, "LongitudinalSpacing");
+            Assert.AreEqual(Math.Sqrt(10 * 10 + 400 * 400), side.Actual.Value, 1e-9); Assert.AreEqual(false, side.Passed, "side face without bars");
+            Assert.AreEqual(168, Check(DetailingProfile.EN1992p11, Column8(14), true, MemberDetailingOptions.Default, "LinkSpacing").Limit.Value, 1e-12, "0.0.17.0: × 0.6");
+            Assert.AreEqual(280, Check(DetailingProfile.EN1992p11, Column8(14), true, corrected, "LinkSpacing").Limit.Value, 1e-12, "Ø14 at laps: no reduction");
+            Assert.AreEqual(192, Check(DetailingProfile.EN1992p11, Column8(16), true, MemberDetailingOptions.Default, "LinkSpacing").Limit.Value, 1e-12);
+            Assert.AreEqual(192, Check(DetailingProfile.EN1992p11, Column8(16), true, corrected, "LinkSpacing").Limit.Value, 1e-12, "Ø16 at laps: × 0.6");
+        }
+
+        /// <summary>
         /// EN 1992-1-1 and UNI (DM 31/07/2012) on the column R400x400 (8Ø16, links Ø8/250) and the beam R300x500: values of the standard by hand.
         /// DS beams keep As,min and ρw,min pending (national values not available).
         /// </summary>

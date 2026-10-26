@@ -224,6 +224,10 @@ Profilo NTC (§4.1.6.1.2), chiavi `LongitudinalDiameter`, `LongitudinalSpacing`,
 
 L'interasse imax è la massima distanza fra barre adiacenti allineate sulla stessa retta orizzontale o verticale,
 purché il punto medio cada nel calcestruzzo. Nelle sezioni circolari con un solo anello è l'arco fra barre adiacenti.
+Con l'opzione `MemberDetailingOptions.ColumnSpacingAlongPerimeter` (F5.15, R12, 26/10/2026) imax si misura lungo il
+perimetro delle barre: è il massimo tratto fra barre consecutive sul contorno convesso dei centri delle barre, se ogni
+barra vi giace. Se qualche barra è interna (sezioni a T, cave, barre interne) resta la misura per allineamenti; le
+sezioni circolari restano invariate.
 
 > **Scostamento dichiarato — D-2 (R12) Interasse delle barre dei pilastri misurato attraverso il nucleo**
 >
@@ -234,7 +238,12 @@ purché il punto medio cada nel calcestruzzo. Nelle sezioni circolari con un sol
 > - Effetto: a favore di sicurezza, ma con esiti non soddisfatti indebiti. Pilastro 600 × 600 con 8Ø20: interasse
 >   sulle facce 249 mm, valore calcolato 498 mm, controllo non soddisfatto. Pilastro 400 × 400 dell'esempio: 149 mm
 >   sulle facce, 298 mm calcolati, ancora entro 300 mm.
-> - Stato: da discutere (voce R12 del registro delle differenze).
+> - Programma, caso opposto: se le barre alle estremità di una faccia non sono allineate, la faccia non si misura.
+>   Pilastro 300 × 500 con 3 barre sotto (x = −100, 0, 100) e 2 sopra (x = ±90): risultano 180 mm, mentre la faccia
+>   laterale senza barre misura 400,12 mm, oltre 300 mm. In questo caso l'effetto è a sfavore di sicurezza.
+> - Stato: correzione con l'opzione `ColumnSpacingAlongPerimeter`, misura lungo il perimetro, decisa dall'utente il 25/10/2026 (F5.15);
+>   predefinito invariato, la regola di 0.0.17.0, per il contratto `detailing-contract-0.0.17.csv` e le catture
+>   congelate (voce R12 del registro delle differenze).
 
 Famiglia Eurocodice (EN 9.5.2, 9.5.3; DM 31/07/2012), chiavi `LongitudinalDiameter`, `MinimumLongitudinal`,
 `MaximumLongitudinal`, `BarCount`, `LinkDiameter` e `LinkSpacing`:
@@ -257,7 +266,9 @@ Famiglia Eurocodice (EN 9.5.2, 9.5.3; DM 31/07/2012), chiavi `LongitudinalDiamet
 > - Programma: applica la riduzione in ogni zona di sovrapposizione.
 > - Effetto: a favore di sicurezza, solo con Ømax ≤ 14 mm. Con 8Ø14, staffe a passo 200 mm e pilastro 400 × 400 il
 >   limite scende da 280 a 168 mm e il controllo risulta non soddisfatto.
-> - Stato: da discutere (voce R13 del registro delle differenze).
+> - Stato: corretto con l'opzione `MemberDetailingOptions.LapLinkReductionAboveFourteen` (riduzione solo con Ømax > 14 mm), decisa
+>   dall'utente il 25/10/2026 (F5.15); predefinito invariato, la regola di 0.0.17.0, per il contratto (voce R13 del registro
+>   delle differenze).
 
 Per tutti i profili, nelle zone di sovrapposizione dei pilastri (EN 9.5.2(3)), chiave `MaximumAtLap`:
 
@@ -378,7 +389,9 @@ Percorsi relativi alla radice del repository Checker (namespace `GPC.Checkers.Co
   risultato.
 - L'interferro usa Ømax di tutta la sezione per ogni coppia di barre (a favore di sicurezza). Non tiene conto che le
   barre sovrapposte possono toccarsi (EN 8.2(4)).
-- L'interasse dei pilastri è misurato anche attraverso il nucleo (riquadro D-2).
+- Senza l'opzione `ColumnSpacingAlongPerimeter` l'interasse dei pilastri NTC si misura anche attraverso il nucleo, e le
+  facce con le barre d'estremità non allineate non si misurano (riquadro D-2). Con l'opzione le sezioni con barre
+  interne al contorno delle barre conservano la misura per allineamenti.
 - Il passo delle staffe nelle sovrapposizioni dei pilastri Eurocodice è ridotto anche con Ømax ≤ 14 mm
   (riquadro D-3).
 - Il trattenimento delle barre compresse nelle travi Eurocodice è una conferma, non un calcolo (riquadro D-1).
@@ -463,6 +476,11 @@ Valori della libreria (GPCChecker.Concrete 0.0.17.0, eseguita):
   - `LegacyDetailingIsReproduced`: i casi congelati;
   - `EurocodeAndAnnexValuesOfBeamsAndColumns`: valori a mano EN, UNI e DS su pilastro R400x400 e trave R300x500, con
     la riduzione 0,6, il passo UNI di 192 mm e le regole DS in sospeso;
+  - `ColumnSpacingAlongThePerimeterAndLapLinksAboveFourteenMillimetres` (F5.15, R12 e R13), senza e con le due opzioni:
+    - pilastro 600 × 600 con 8 barre: 498 e 249 mm;
+    - pilastro 300 × 500 con le barre solo sopra e sotto: 180 e 400,12 mm, non soddisfatto con l'opzione;
+    - staffe nelle sovrapposizioni con 8Ø14: 168 e 280 mm;
+    - staffe nelle sovrapposizioni con 8Ø16: 192 mm in entrambi i casi;
   - `CoverAdditionsAndGroundCoverAreApplied`: maggiorazioni di cmin e copriferro contro terreno 40 e 75 mm;
   - `ProfilesAreResolvedByExactTypeWithoutFallback`;
   - `SlabAndWallSpacingIsMeasuredAlongTheLayers` (DET-1): striscia 1000 × h, c = 30, 6Ø16 per faccia, interasse a mano
