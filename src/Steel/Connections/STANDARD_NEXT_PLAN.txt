@@ -36,7 +36,7 @@ resistenza del nodo nel campo dichiarato e rigidezza compatibile col modello.
 2 IMPLEMENTATO NEL DETTAGLIO SALDATO - TERMINALI PROFILI DOPPI
 Fazzoletto standard e collegamento alle pareti dei due profili uguali; usare
 le azioni reali e la domanda locale dell'asta. Niente resistenza fittizia N/2.
-3 DA COMPLETARE - IMBOTTITURE SALDATE
+3 IMPLEMENTATO NEL DETTAGLIO STANDARD - IMBOTTITURE SALDATE
 Dettaglio circoscritto, domanda con imperfezioni comune al percorso bullonato,
 cordoni piu' pareti dei correnti e blocco. Nessuna qualifica delle sei azioni generiche.
 4 IN CORSO - CONSEGNA
@@ -80,3 +80,13 @@ critico globale. Estensione dei precedenti componenti saldati, con limiti elasti
 nominali cautelativi: non un modello generale di contatto3D o terminale bullonato.
 Fonti dei nuclei:EN1993-1-1 5.2.1,5.3.2/Table5.1,6.2.1,6.4.4;
 EN1993-1-8 4.5.3.2,4.7.1; test indipendenti delle strisce e del modello analitico.
+
+COLLAUDO3:203 test pertinenti superati,17 nuovi. SteelWeldedPacking riusa il
+modello di domanda con imperfezioni e lo stesso nucleo di pareti/cordoni del
+terminale: nessuna riduzione a Q/2 o compensazione delle azioni sulle due facce.
+Ingombri di ogni stazione, cordoni completi, sezioni non forate e compatibilita'
+con le stazioni terminali sono controllati. FromWeldedPacking integra intermedi,
+terminali e correnti nello stesso caso; nessun contributo dei blocchi all'area
+longitudinale. I modi globali T/FT restano da escludere separatamente.
+I vecchi PackingWeldedStationComponents a sei azioni restano parziali; il nuovo
+metodo copre il trasferimento longitudinale calcolato della tipologia dichiarata.

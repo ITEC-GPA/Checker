@@ -18,6 +18,33 @@ namespace GPC.Checkers.Steel.Inputs
         public SteelPackingLayout Layout { get; private set; }
         public SteelBoltedPackingResult ComputedPacking { get; private set; }
         public SteelPackedPairTerminalResult ComputedTerminal { get; private set; }
+        public SteelWeldedPackingResult ComputedWeldedPacking { get; private set; }
+
+        /// <summary>All-welded standard intermediate packings and terminals, computed
+        /// from one immutable demand model. No scalar terminal resistance is supplied.</summary>
+        public static SteelPackedPairAssessment FromWeldedPacking(SteelWeldedPackingResult packing,
+            SteelPackedPairTerminalResult terminal,string endRestraintSource)
+        {
+            if(packing==null)throw new ArgumentNullException(nameof(packing));
+            if(terminal==null)throw new ArgumentNullException(nameof(terminal));
+            if(!packing.IsComplete||!terminal.IsComplete||!terminal.ForceResistance.HasValue)
+                throw new NotSupportedException(string.Join("; ",packing.Diagnostics)+"; "+string.Join("; ",terminal.Diagnostics));
+            if(!ReferenceEquals(packing.Demand,terminal.Demand))throw new ArgumentException("Same immutable packing/terminal demand required.");
+            if(string.IsNullOrWhiteSpace(endRestraintSource))throw new ArgumentException("Actual end restraints required.");
+            var model=packing.Demand;var layout=model.Layout;var input=layout.Input;
+            double clearance=(terminal.Detail.Lap.Length+packing.Detail.Length)/2+Math.Sqrt(2)*(terminal.Detail.Lap.Throat+packing.Detail.Throat);
+            if(layout.PanelLengths[0]<clearance||layout.PanelLengths[layout.PanelLengths.Count-1]<clearance)
+                throw new NotSupportedException("Terminal and neighbouring packing weld footprints overlap.");
+            var chord=SteelPackedChordResistance.UniformFork(input,layout.MaximumPitch,model.ChordCompression,
+                "Computed welded packed-pair short chord panel; "+endRestraintSource);
+            var result=new SteelPackedPairAssessment(input,layout.MaximumPitch,packing.Detail.Thickness,terminal.Detail.Lap.Thickness,
+                model.ChordCompression,chord.Compression.Resistance.Value,model.ChordTension,chord.TensionResistance,
+                terminal.ForcePerChord,terminal.ForceResistance.Value,layout.Source,
+                "Analytical imperfection model with actual welded layout; "+endRestraintSource,
+                "Computed same-case welded packings, chord walls and terminal to coplanar collector");
+            result.Layout=layout;result.ChordCalculation=chord;result.ComputedWeldedPacking=packing;result.ComputedTerminal=terminal;
+            return result;
+        }
 
         /// <summary>Computed intermediate bolts and the computed welded terminal on the
         /// SAME demand model; no caller-supplied terminal scalar capacity.</summary>
