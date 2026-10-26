@@ -17,6 +17,25 @@ namespace GPC.Checkers.Steel.Inputs
         public SteelPackedChordResistance ChordCalculation { get; private set; }
         public SteelPackingLayout Layout { get; private set; }
         public SteelBoltedPackingResult ComputedPacking { get; private set; }
+        public SteelPackedPairTerminalResult ComputedTerminal { get; private set; }
+
+        /// <summary>Computed intermediate bolts and the computed welded terminal on the
+        /// SAME demand model; no caller-supplied terminal scalar capacity.</summary>
+        public static SteelPackedPairAssessment FromBoltedPacking(SteelBoltedPackingResult packing,
+            SteelPackedPairTerminalResult terminal,string endRestraintSource)
+        {
+            if(packing==null)throw new ArgumentNullException(nameof(packing));
+            if(terminal==null)throw new ArgumentNullException(nameof(terminal));
+            if(!terminal.IsComplete||!terminal.ForceResistance.HasValue)
+                throw new NotSupportedException(string.Join("; ",terminal.Diagnostics));
+            if(!ReferenceEquals(packing.Demand,terminal.Demand))throw new ArgumentException("Same immutable packing/terminal demand required.");
+            double clearance=(terminal.Detail.Lap.Length+packing.Detail.Length)/2+2*Math.Sqrt(2)*terminal.Detail.Lap.Throat;
+            if(packing.Demand.Layout.PanelLengths[0]<clearance||packing.Demand.Layout.PanelLengths[packing.Demand.Layout.PanelLengths.Count-1]<clearance)
+                throw new NotSupportedException("Terminal and neighbouring packing weld/plate footprints overlap.");
+            var result=FromBoltedPacking(packing,terminal.ForcePerChord,terminal.ForceResistance.Value,
+                "Computed welded standard terminal to coplanar collector; complete typed same-case checks",endRestraintSource);
+            result.ComputedTerminal=terminal;return result;
+        }
 
         /// <summary>Computed intermediate standard packing detail plus actual terminal
         /// node checks. End demand/resistance include N introduction and the terminal

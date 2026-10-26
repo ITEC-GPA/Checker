@@ -33,7 +33,7 @@ introduzione attraverso un dettaglio di saldatura esplicito.
 1c IMPLEMENTATO - AGGREGAZIONE E RIGIDEZZA
 Conservare tutti i fallimenti, verificare identita' dello stesso caso, restituire
 resistenza del nodo nel campo dichiarato e rigidezza compatibile col modello.
-2 DA COMPLETARE - TERMINALI PROFILI DOPPI
+2 IMPLEMENTATO NEL DETTAGLIO SALDATO - TERMINALI PROFILI DOPPI
 Fazzoletto standard e collegamento alle pareti dei due profili uguali; usare
 le azioni reali e la domanda locale dell'asta. Niente resistenza fittizia N/2.
 3 DA COMPLETARE - IMBOTTITURE SALDATE
@@ -61,3 +61,22 @@ Sj iniziale/secante; M/Sj non e' capacita' rotazionale. La molla globale dichiar
 si confronta con Sj: se diversa serve rianalisi, non si cambia l'esito resistente.
 La verifica locale non qualifica stabilita' delle aste, comportamento globale,
 frattura3D di geometrie arbitrarie o esecuzione diversa dal dettaglio dichiarato.
+
+COLLAUDO2:186 test pertinenti passati,21 nuovi. SteelPackedPairTerminal:
+due C/L uguali, fazzoletto centrale saldato su due facce, centrato rispetto
+al baricentro trasversale dei correnti; continuita' CJP verso piastra di raccolta
+COMPLANARE con mezzerie allineate. Non e' un attacco a T sulla flangia di pilastro.
+Il dettaglio reale qualifica la rotazione impedita alla radice; striscia isolata
+con Lk=2*(tratto libero+semilunghezza lap), imperfezione Lk/150 e secondo ordine.
+Il modello include N/2 piu' trasferimento terminale, eccentricita' di ciascun
+corrente, pareti elastiche, flussi locali ai cordoni anche normali, instabilita'
+del fazzoletto e controllo della continuita' CJP. Nessuna diffusione Whitmore
+o compensazione automatica delle coppie locali. Il vincolo reale e l'esecuzione
+restano dati di progetto verificabili, non certificazioni prodotte dal software.
+FromBoltedPacking(packing,terminal,restraint) usa lo stesso oggetto domanda;
+la pipeline conserva tutti i controlli terminali. La capacita' locale e' condizionata
+al rapporto delle forze e alla tensione concomitante dell'asta, non un carico
+critico globale. Estensione dei precedenti componenti saldati, con limiti elastici
+nominali cautelativi: non un modello generale di contatto3D o terminale bullonato.
+Fonti dei nuclei:EN1993-1-1 5.2.1,5.3.2/Table5.1,6.2.1,6.4.4;
+EN1993-1-8 4.5.3.2,4.7.1; test indipendenti delle strisce e del modello analitico.

@@ -226,7 +226,7 @@ namespace GPC.Checkers.Steel.Connections
                     "No contact credit, plastic redistribution, local 3D end stresses, torsion, stability or complete station resistance." });
         }
 
-        private static IEnumerable<FilletWeldSegment> Loop(double length, double width, PackingFaceWeldDetail detail)
+        internal static IEnumerable<FilletWeldSegment> Loop(double length, double width, PackingFaceWeldDetail detail)
         {
             var points = new[] { new ConnectionPoint2D(-length / 2, -width / 2), new ConnectionPoint2D(length / 2, -width / 2),
                 new ConnectionPoint2D(length / 2, width / 2), new ConnectionPoint2D(-length / 2, width / 2) };
@@ -237,7 +237,7 @@ namespace GPC.Checkers.Steel.Connections
                     detail.EndCondition, 3 * Math.PI / 4, 90);
         }
 
-        private static bool OnOneStraightBack(Section chord, bool vertical, double centre, double halfExtent)
+        internal static bool OnOneStraightBack(Section chord, bool vertical, double centre, double halfExtent)
         {
             var outlines = chord.GetCurveOutlines();
             if (outlines.Count != 1 || outlines[0].IsApproximation || outlines[0].Holes.Count != 0 || outlines[0].Children.Count != 0) return false;
