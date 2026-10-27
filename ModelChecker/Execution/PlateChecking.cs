@@ -158,13 +158,15 @@ namespace GPC.Model.Checker
             foreach (var plan in plans)
             {
                 var results = new List<CheckResult>();
+                // Whole-plan revalidation once per plan (see OwnedCheckInputs), not around every task.
+                bool planCurrent = plan.IsCurrent;
                 foreach (var task in plan.WorkItems)
                 {
                     var result = new CheckResult { Data = task.Data };
                     try
                     {
                         if (token.IsCancellationRequested) result.Execution = ExecutionStatus.Cancelled;
-                        else if (!plan.IsCurrent) result.Data = DataStatus.Stale;
+                        else if (!planCurrent) result.Data = DataStatus.Stale;
                         else if (task.Input != null)
                         {
                             var diagnostic = PlateFaceDiagnostic(task);
@@ -177,9 +179,10 @@ namespace GPC.Model.Checker
                                     try { sessions.Add(task.EngineKey, task.Engine.CreateSession() ?? throw new InvalidOperationException("NullPlateSession")); }
                                     catch (Exception ex) { errors.Add(task.EngineKey, ex); }
                                 if (errors.TryGetValue(task.EngineKey, out var error)) throw new InvalidOperationException("PlateCheckerCreationFailed", error);
+                                string owned = OwnedCheckInputs.Of(task.Input);
                                 result = sessions[task.EngineKey].Verify(task.Input, task.Specification.Copy(), token) ?? throw new InvalidOperationException("NullPlateOutcome");
                                 token.ThrowIfCancellationRequested();
-                                if (!plan.IsCurrent) result = new CheckResult { Data = DataStatus.Stale };
+                                if (task.EngineKey != PlateEngineKey(task.Engine) || OwnedCheckInputs.Of(task.Input) != owned) result = new CheckResult { Data = DataStatus.Stale };
                             }
                         }
                     }
