@@ -84,13 +84,22 @@ namespace GPC.Checkers.Geotechnics.Piles
         /// (mixed sequences need the stratified method).
         /// </summary>
         public static string ModelName(IReadOnlyList<LateralPileSurvey> surveys, double length, double diameter, LateralPileMethod method)
+            => ModelName(surveys, length, diameter, method, 0);
+
+        /// <summary>
+        /// Model of the verticals of a pile whose head is <paramref name="headDepth"/> below the ground surface (as <see cref="LateralPile.HeadDepth"/>):
+        /// the layers above the head (cover) give stresses only, the model is that of the layers along the pile, as in <see cref="Calculate"/>.
+        /// </summary>
+        public static string ModelName(IReadOnlyList<LateralPileSurvey> surveys, double length, double diameter, LateralPileMethod method, double headDepth)
         {
             if (surveys == null) throw new ArgumentNullException(nameof(surveys));
             if (!Positive(length) || !Positive(diameter)) throw new ArgumentException("Lateral pile: positive diameter, length and step, non negative eccentricity and action.");
             if (method != LateralPileMethod.Broms && method != LateralPileMethod.Stratified) throw new ArgumentOutOfRangeException(nameof(method));
             if (surveys.Count == 0) throw new ArgumentException("At least one investigated vertical is required.");
+            if (double.IsNaN(headDepth) || double.IsInfinity(headDepth) || headDepth < 0)
+                throw new ArgumentException("Lateral pile: the depth of the head below the ground surface must be zero or positive.");
             bool distributed = method == LateralPileMethod.Stratified, uniform = true;
-            foreach (var survey in surveys) uniform &= new Ground(survey ?? throw new ArgumentNullException(nameof(surveys)), length, diameter, 1e-8, distributed).Uniform;
+            foreach (var survey in surveys) uniform &= new Ground(survey ?? throw new ArgumentNullException(nameof(surveys)), length, diameter, 1e-8, distributed, headDepth).Uniform;
             return ModelName(uniform, distributed);
         }
 

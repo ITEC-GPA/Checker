@@ -173,7 +173,7 @@ namespace GPC.Checker.Results.ResultType
 			return !(left == right);
 		}
 
-		internal StrainPlaneResult CalculateStrainPlaneResult(bool linearAnalysis = false, double psiR = 0, double psiT = 0, GPC.Model.Materials.ConcreteTensionStiffening tensionStiffening = null)
+		internal StrainPlaneResult CalculateStrainPlaneResult(bool linearAnalysis = false, double psiR = 0, double psiT = 0, GPC.Checkers.Concrete.SectionSolvers.StressAnalysisTension tensionStiffening = null)
 		{
 			return _strainPlane.CalculateStrainPlaneResult(_section, _force, _sectionSolver, _standard, linearAnalysis, psiR, psiT, null, tensionStiffening);
 		}

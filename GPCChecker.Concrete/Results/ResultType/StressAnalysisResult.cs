@@ -1,4 +1,4 @@
-﻿using GPC.Checker.Results.ResultType;
+using GPC.Checker.Results.ResultType;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model.Materials;
@@ -103,7 +103,7 @@ namespace GPC.Checkers.Concrete.Results
         {
             StrainPlaneResult strainPlaneResult = new StrainPlaneResult(_section, _force, _strainPlane, _sectionSolver, _standard, _id, _standardStructuralSteel);
             return strainPlaneResult.CalculateStrainPlaneResult(linearAnalysis, psiR, psiT,
-                !_linearElasticAnalysis && !linearAnalysis ? _sectionSolver.GetStressAnalysisTensionStiffening() : null);
+                !_linearElasticAnalysis && !linearAnalysis ? _sectionSolver.GetStressAnalysisTension(_strainPlane) : null);
         }
 
         #endregion
@@ -112,7 +112,27 @@ namespace GPC.Checkers.Concrete.Results
 
         public virtual double GetRebarTension(ReinforcedConcreteRebar rebar)
         {
-            return _sectionSolver.CalculateStressRebar(rebar, StrainPlane.GetStrain(rebar.Position));
+            return RebarStress(rebar, ChordTension());
+        }
+
+        /// <summary>The tension chord of a nonlinear stress analysis with its effective areas (BUG-TS-2), null otherwise</summary>
+        private GPC.Checkers.Concrete.SectionSolvers.StressAnalysisTension ChordTension()
+        {
+            var tension = _linearElasticAnalysis ? null : _sectionSolver.GetStressAnalysisTension(StrainPlane);
+            return tension?.Chord == null ? null : tension;
+        }
+
+        /// <summary>The stress of a bar: with the tension chord, the stress at the crack (the steel law at the equivalent strain of the bar)</summary>
+        private double RebarStress(ReinforcedConcreteRebar rebar, GPC.Checkers.Concrete.SectionSolvers.StressAnalysisTension chord)
+        {
+            double strain = StrainPlane.GetStrain(rebar.Position);
+            if (chord != null)
+            {
+                int index = Array.IndexOf(_sectionSolver.ConcreteSection.GetRebars(), rebar);
+                if (index >= 0)
+                    strain = chord.BarStrain(index, strain);
+            }
+            return _sectionSolver.CalculateStressRebar(rebar, strain);
         }
 
         public virtual double GetRebarTension(double phi, ReinforcedConcreteRebar rebar)
@@ -132,7 +152,8 @@ namespace GPC.Checkers.Concrete.Results
 
         public virtual (ReinforcedConcreteRebar rebar, double tension)[] GetRebarsTension()
         {
-            return _section.Rebars.Select(i => (i, _sectionSolver.CalculateStressRebar(i, StrainPlane.GetStrain(i.Position)))).ToArray();
+            var chord = ChordTension();
+            return _section.Rebars.Select(i => (i, RebarStress(i, chord))).ToArray();
         }
 
         public virtual (ReinforcedConcreteRebar rebar, double tension)[] GetRebarsTension(double phi)
@@ -384,7 +405,11 @@ namespace GPC.Checkers.Concrete.Results
         /// <summary>The nonlinear concrete stress: the law of the nonlinear stress analyses for their results, the one of the solver otherwise</summary>
         private double ConcreteStress(double strain)
         {
-            return _linearElasticAnalysis ? _sectionSolver.CalculateSigmaC(strain) : _sectionSolver.CalculateStressAnalysisSigmaC(strain);
+            if (_linearElasticAnalysis)
+                return _sectionSolver.CalculateSigmaC(strain);
+            // the tension chord has the state of the plane of the result (uncracked or cracked)
+            var tension = strain > 0 ? _sectionSolver.GetStressAnalysisTension(StrainPlane) : null;
+            return tension == null ? _sectionSolver.CalculateStressAnalysisSigmaC(strain) : tension.GetConcreteStress(strain);
         }
 
         public virtual (Point2d point, double tension)[] GetConcreteVerticesTension(double psi)

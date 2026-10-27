@@ -192,6 +192,14 @@ public class PileEdgeCaseTests
         Close(18 * KN3 * 1 * M + 20 * KN3 * 1 * M, wet.TotalStress!.Value, "σv with the water above the head", 1e-12); Close(gw * 1 * M, wet.PorePressure, "u at the head", 1e-12);
         Close(18 * KN3 * 1 * M + (20 * KN3 - gw) * 1 * M, wet.EffectiveStress!.Value, "σ'v with the water above the head", 1e-12);
         Assert.ThrowsException<ArgumentException>(() => Buried(sand, G, -1, false));
+        // Model of the verticals with the head below the ground surface (ANTHEA 1.14.4): 2 m of clay above the head give stresses only, the pile is
+        // in the sand alone, as in the calculation; with the head at the ground surface the same vertical is a multilayer.
+        var cover = new[] { new LateralPileSurvey(Profile(null, (Clay(50), 2), (Sand(30), 30)), new[] { SoilBehaviour.Cohesive, SoilBehaviour.Granular }) };
+        Assert.AreEqual("Omogeneo", LateralPileCapacity.ModelName(cover, l, d, LateralPileMethod.Broms, head));
+        Assert.AreEqual(Buried(cover[0].Profile, cover[0].Behaviours.ToArray(), head, false).ModelName, LateralPileCapacity.ModelName(cover, l, d, LateralPileMethod.Broms, head));
+        Assert.AreEqual("Diagramma stratificato · terreno omogeneo", LateralPileCapacity.ModelName(cover, l, d, LateralPileMethod.Stratified, head));
+        Assert.AreEqual("Diagramma stratificato · terreno multistrato", LateralPileCapacity.ModelName(cover, l, d, LateralPileMethod.Stratified));
+        Assert.ThrowsException<ArgumentException>(() => LateralPileCapacity.ModelName(cover, l, d, LateralPileMethod.Broms, -1));
     }
 
     [TestMethod]
