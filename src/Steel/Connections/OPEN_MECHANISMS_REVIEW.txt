@@ -1,0 +1,59 @@
+MECCANISMI ANCORA APERTI - RIESAME 27/10/2026
+Stato corrente generale: ../CURRENT.txt. Questo riesame non abilita nuove verifiche.
+
+BLOCCHI CON FORZE MISTE
+Fonte primaria: J.Jonsson, Generalized Block Failure, Nordic Steel Construction
+Conference2015, DTU,10 pagine.
+https://www.steel.byg.dtu.dk/-/media/subsites/steel/bolted-connections/jonsson-paper.pdf
+Lettura: pp1-2 campo e limiti; pp4-6 modello/trasporto del momento/interazione;
+pp8-9 confronto numerico-sperimentale e conclusioni.
+Il modello proposto non e un limite inferiore rigoroso. Richiede controlli
+separati della piastra circostante; la parte sperimentale riguarda il bloccoC.
+L'autore richiede ulteriore verifica del bloccoL. E una ricerca distinta da
+EN1993-1-8:2005, non una sua formula applicativa gia qualificata per ogni U/L.
+Quindi non e stato inserito un coefficiente universale per sostituire il
+momento reale, ne la somma dei moduli delle forze al posto della gerarchia.
+
+Da implementare per chiudere il punto: metodo scelto e qualificato per tutti
+i percorsi effettivi, inclusi L marginali, segni, eccentricita e simultaneita;
+trasporto N,V,M al polo di ogni blocco; dati indipendenti sufficienti a
+verificare le interazioni e il materiale circostante. La sola corrispondenza
+a un singolo carico sperimentale non copre l'intero dominio.
+
+TRANSIZIONI
+Riferimenti consultati: SCI Steel Bridge Group GN2.02 (plate dimensions),
+e guida SCI moment-resisting connections, sezione sui giunti di travi.
+https://steelconstruction.info/images/4/47/GN_2-02.pdf
+https://steelconstruction.info/topics/design/moment-resisting-connections/
+Indicazioni di dettaglio quali compensatori, rastremazioni o irrigidimenti
+non costituiscono da sole un modello completo di ripartizione delle forze.
+Con due sezioni diverse due distribuzioni elastiche indipendenti possono
+equilibrare il totale, ma non ciascun coprigiunto continuo. Servono quote
+globali, eccentricita reali e trasferimenti aggiuntivi fra ali e anima.
+Nessuna nuova transizione e stata implementata o dichiarata qualificata.
+Prossimo modello da sviluppare: stessa altezza complessiva, variazioni di
+spessore e compensatori paralleli per lato; risolvere prima l'equilibrio
+del dettaglio, poi verificare piastre, bulloni, saldature e trasferimenti.
+Il campo a geometria identica resta distinto, anche per le saldature CJP.
+
+TERMINALI E SUPPORTI
+Percorsi esistenti: 2L tese al collettore complanare CJP; piatti gemelli tesi;
+2C/2L compresse con terminale saldato e radice trattenuta. Le imbotiture
+intermedie possono essere saldate o bullonate, senza cambiare il terminale.
+Doppio angolare: componenti nominali SBE, rifollamento flangia, contatto
+supplementare e componenti d'anima con azioni concomitanti. La documentazione
+tecnica e in DOUBLE_ANGLE_COLUMN_WEB.txt e nei riferimenti SBE-MS5 citati li.
+Ancora da sviluppare: forze assiali effettive nei bulloni/prying, risposta
+locale fuori piano del supporto, eventuali modi instabili e qualificazione
+della rotazione. Non si ricava una forza di prying invertendo i fattori
+nominali0.8/1.27. Un attacco aT e un collettore complanare sono schemi diversi.
+Nessuna estensione generale di terminali/supporti e stata implementata qui.
+
+CLASSE4
+Ora implementato il solo ampliamento a taglio basso:
+BRIDGE_SPLICE_CLASS4_LOW_SHEAR.txt. Resta da qualificare alto taglio e il
+modello della lastra instabile; non si assumono appoggi continui ai bulloni.
+
+Questi punti non sono bloccati da autorizzazioni, test legacy o indisponibilita
+di ANTHEA. Sono parti del modello ingegneristico ancora da sviluppare e
+validare. La richiesta di chiudere tutti gli otto punti non e completata.

@@ -1,3 +1,9 @@
+STATO CORRENTE: CURRENT.txt (aggiornamento27/10/2026).
+Le indicazioni di avanzamento e le versioni nel testo seguente sono CHECKPOINT
+STORICI. Per copertura attuale, limiti aperti e API consigliate usare l'indice
+corrente e ConnectionCapabilityCatalog; le specifiche dei singoli metodi
+restano documentazione tecnica del contratto relativo.
+
 STEEL: SVILUPPI, STATO E REVISIONE DEL FLUSSO - 27 OTTOBRE 2026
 
 Valutazione: l'architettura attuale e' utilizzabile e la separazione dei

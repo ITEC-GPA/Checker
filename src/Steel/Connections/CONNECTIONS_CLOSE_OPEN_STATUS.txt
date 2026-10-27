@@ -1,3 +1,9 @@
+STATO CORRENTE: ../CURRENT.txt (aggiornamento27/10/2026).
+Le indicazioni di avanzamento e le versioni nel testo seguente sono CHECKPOINT
+STORICI. Per copertura attuale, limiti aperti e API consigliate usare l'indice
+corrente e ConnectionCapabilityCatalog; le specifiche dei singoli metodi
+restano documentazione tecnica del contratto relativo.
+
 AGGIORNAMENTO27/10/2026 - questo blocco aggiorna le note storiche sottostanti.
 StandardBoltedCovers chiude il percorso convenzionale SCI per piastre
 regolari localmente classe1-3, anche sottili rispetto alla larghezza totale.
