@@ -13,16 +13,22 @@ namespace GPC.Checkers.Steel.Connections
         public string Id { get; }
         public ConnectionCapabilityLevel Level { get; }
         public IReadOnlyList<string> EntryPoints { get; }
+        /// <summary>Preferred start of the documented workflow, not necessarily its calculation step.
+        /// Null when no API is provided. Coverage is not a verdict on a specific input.</summary>
+        public string RecommendedEntryPoint { get; }
         public string Domain { get; }
         public IReadOnlyList<string> ExternalRequirements { get; }
         public IReadOnlyList<string> MissingMechanisms { get; }
         public string Documentation { get; }
         internal ConnectionCapability(string id, ConnectionCapabilityLevel level, string[] entryPoints,
-            string domain, string[] external, string[] missing, string documentation)
+            string domain, string[] external, string[] missing, string documentation, string recommendedEntryPoint = null)
         {
             Id = id; Level = level; EntryPoints = Array.AsReadOnly(entryPoints.ToArray()); Domain = domain;
             ExternalRequirements = Array.AsReadOnly(external.ToArray()); MissingMechanisms = Array.AsReadOnly(missing.ToArray());
             Documentation = documentation;
+            RecommendedEntryPoint = recommendedEntryPoint ?? entryPoints.FirstOrDefault();
+            if (RecommendedEntryPoint != null && !EntryPoints.Contains(RecommendedEntryPoint))
+                throw new ArgumentException("Recommended entry point must be listed among the supported APIs.");
         }
     }
 
@@ -46,14 +52,14 @@ namespace GPC.Checkers.Steel.Connections
                 new[] { "Ordinary N+V; general support interaction; this entry does not qualify the separate tying model" }, "PHASE_2D_SPEC.txt"),
             Item("WeldedIBeamDoubleCover", ConnectionCapabilityLevel.StandardStaticVerification,
                 new[] { "WeldedIBeamSpliceStandard.Verify", "BridgeSpliceApplication.CreateBolted" },
-                "Aligned welded I beams; double covers on flanges/web; compact covers, explicit SCI StandardBoltedCovers with regular locally class1-3 strips/outstands (including one web column per side), or EffectiveCompression for locally class4 compression at exactly zero cover shear; planar N,V,M; balanced faces, equal-thickness independent widths, or explicit IndependentFaceDimensions with actual face offsets, or PackedIndependentFaceDimensions with explicit parallel full-footprint packing layers and serial friction interfaces; A/B/C.",
+                "Aligned welded I beams; double covers on flanges/web; compact covers, explicit SCI StandardBoltedCovers with regular locally class1-3 strips/outstands (including one web column per side), or EffectiveCompression for locally class4 compression at exactly zero cover shear, or opt-in EffectiveCompressionWithLowShear bounded by half resistance and whole-width shear-buckling exclusion; planar N,V,M; balanced faces, equal-thickness independent widths, or explicit IndependentFaceDimensions with actual face offsets, or PackedIndependentFaceDimensions with explicit parallel full-footprint packing layers and serial friction interfaces; A/B/C.",
                 new[] { "Actual left/right section checks, longitudinal welds and global model evidence", "Actual required SLS/ULS cases and slip surface/preload evidence" },
-                new[] { "Locally class4 compression with shear, plates outside the compact or conventional SCI bolted-cover domain, section transitions, tapered or discontinuous packings, general contact/prying", "Mixed-direction block tearing outside the sufficient hierarchy remains unsupported" }, "BRIDGE_SPLICE_APPLICATION_USAGE.txt"),
+                new[] { "Locally class4 compression beyond the bounded low-shear domain, plates outside the selected plate-stability domain, section transitions, tapered or discontinuous packings, general contact/prying", "Mixed-direction block tearing outside the sufficient hierarchy remains unsupported" }, "BRIDGE_SPLICE_APPLICATION_USAGE.txt", "BridgeSpliceApplication.CreateBolted"),
             Item("WeldedIBeamButt", ConnectionCapabilityLevel.StandardStaticVerification,
                 new[] { "WeldedIBeamButtSplice.Verify", "BridgeSpliceApplication.VerifyWelded" },
                 "Identical aligned intact welded I sections; three full-penetration butt welds; planar N,V2,M1.",
                 new[] { "Both actual section results; execution, penetration, inspection and material evidence" },
-                new[] { "Misalignment, partial penetration and discontinuous sections" }, "PHASE_2E_WELDED_BUTT_SPLICE.txt"),
+                new[] { "Misalignment, partial penetration and discontinuous sections" }, "PHASE_2E_WELDED_BUTT_SPLICE.txt", "BridgeSpliceApplication.VerifyWelded"),
             Item("DoubleAngleCleat", ConnectionCapabilityLevel.ComponentsOnly,
                 new[] { "DoubleAngleCleatComponents.Verify", "DoubleAngleCleatSupportContact.Verify", "DoubleAngleCleatColumnWeb.Verify" },
                 "Twin L90x90x10 cleat components; separate ordinary and tying paths. Supplementary column-web bearing, strip shear and concurrent net-section checks with actual column-cut equilibrium.",
@@ -123,7 +129,7 @@ namespace GPC.Checkers.Steel.Connections
                 ?? throw new ArgumentException("Unknown connection capability: " + id, nameof(id));
         }
         private static ConnectionCapability Item(string id, ConnectionCapabilityLevel level, string[] entryPoints,
-            string domain, string[] external, string[] missing, string documentation)
-            => new ConnectionCapability(id, level, entryPoints, domain, external, missing, documentation);
+            string domain, string[] external, string[] missing, string documentation, string recommendedEntryPoint = null)
+            => new ConnectionCapability(id, level, entryPoints, domain, external, missing, documentation, recommendedEntryPoint);
     }
 }
