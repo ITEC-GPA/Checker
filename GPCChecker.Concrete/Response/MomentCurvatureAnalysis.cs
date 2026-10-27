@@ -390,6 +390,8 @@ namespace GPC.Checkers.Concrete.Response
             var result = Calculate(p, Limit, Response, steelYieldStrain, token);
             if (checker.SectionCheckerOptions.StressAnalysisConcreteTension == GPC.Model.Materials.ConcreteMaterial.TensionResponseDiagrams.TensionStiffening)
                 result.Status += " Concrete in tension of the responses: tension stiffening (Collins and Mitchell 1991, mean Ecm and fctm); the limit point is the one of the failure domain, which does not use it.";
+            else if (checker.SectionCheckerOptions.StressAnalysisConcreteTension == GPC.Model.Materials.ConcreteMaterial.TensionResponseDiagrams.TensionChord)
+                result.Status += " Concrete in tension of the responses: tension chord on the bars (fib Model Code 2010 7.6.4.4, beta = 0.4, mean Ecm and fctm, rho_eff of the effective tension areas); the limit point is the one of the failure domain, which does not use it.";
             return result;
         }
     }

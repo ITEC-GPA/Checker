@@ -616,7 +616,9 @@ namespace GPC.Checkers.Concrete.Checkers
             /// <see cref="ConcreteMaterial.TensionResponseDiagrams.TensionStiffening"/>: in tension the law of Model <see cref="ConcreteTensionStiffening"/>
             /// of the concrete (<see cref="ConcreteMaterial.GetTensionStiffening"/>: Ecm up to fctm, then the descending branch of Collins and Mitchell
             /// 1991; mean values, no partial factors), whatever <see cref="ConsiderTensileConcrete"/>; the compression keeps the design diagram of the
-            /// solver. The failure domain, the resistances, the design of the bars and the linear stress analyses never read it: they follow
+            /// solver. <see cref="ConcreteMaterial.TensionResponseDiagrams.TensionChord"/> (BUG-TS-2 option 1): the tension chord of Model
+            /// <see cref="ConcreteTensionChord"/> (<see cref="ConcreteMaterial.GetTensionChord"/>, β = 0.4): concrete in tension up to fctm and zero after
+            /// cracking, the ordinary bars of the effective tension areas (hc,eff of EN 1992-1-1 7.3.2(3)) at the stress at the crack. The failure domain, the resistances, the design of the bars and the linear stress analyses never read it: they follow
             /// <see cref="ConsiderTensileConcrete"/> as before (so the limit point of a moment-curvature curve is unchanged)
             /// </summary>
             /// <exception cref="ArgumentOutOfRangeException">For a value that is not a member of the enumeration</exception>

@@ -1,6 +1,7 @@
 using GPC.Checker.Helper;
 using GPC.Checker.SectionSolvers;
 using GPC.Checkers.Concrete.Checkers;
+using GPC.Checkers.Concrete.Cracking;
 using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Geometry;
@@ -949,12 +950,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 double limitCompression = CalculateCompressionAxialForceLimit();
                 // the tension stiffening of the option of the stress analyses (16/10/2026): its own integration, so that the methods of the
                 // default (shared with the failure domain) are not touched and give the same results bit for bit
-                ConcreteTensionStiffening tensionStiffening = GetStressAnalysisTensionStiffening();
-                ForceTuple force = tensionStiffening == null
+                StressAnalysisTension tension = GetStressAnalysisTension(strainPlane);
+                ForceTuple force = tension == null
                     ? IntegrateSectionStress(strainPlane) +
                         IntegrateRebarStress(strainPlane, rebarIsInsideAssociation) +
                         IntegrateStructuralSteelStress(strainPlane)
-                    : IntegrateStressAnalysisStress(strainPlane, rebarIsInsideAssociation, tensionStiffening);
+                    : IntegrateStressAnalysisStress(strainPlane, rebarIsInsideAssociation, tension);
 
                 return CalculateCompressionReduction(force, limitCompression);
             }
@@ -1247,29 +1248,129 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         #region Concrete in tension of the nonlinear stress analyses
 
         /// <summary>
-        /// The tension stiffening of the nonlinear stress analyses (<see cref="Checkers.SectionChecker.SectionOptions.StressAnalysisConcreteTension"/>
-        /// = <see cref="ConcreteMaterial.TensionResponseDiagrams.TensionStiffening"/>): the law of Model of the concrete of the section
-        /// (<see cref="ConcreteMaterial.GetTensionStiffening"/>); null with the default. Read only by the nonlinear stress analyses
-        /// (<see cref="CalculateForceResultantForTension(StrainPlane, Dictionary{int, bool})"/>) and by their results: the failure domain, the
-        /// resistances and the linear analyses never call it
+        /// The concrete in tension of the nonlinear stress analyses (<see cref="Checkers.SectionChecker.SectionOptions.StressAnalysisConcreteTension"/>):
+        /// with <see cref="ConcreteMaterial.TensionResponseDiagrams.TensionStiffening"/> the law of Model of the concrete of the section
+        /// (<see cref="ConcreteMaterial.GetTensionStiffening"/>); with <see cref="ConcreteMaterial.TensionResponseDiagrams.TensionChord"/> the tension
+        /// chord (<see cref="ConcreteMaterial.GetTensionChord"/>, β = 0.4) with the ρeff of the bars of the effective tension areas of
+        /// <paramref name="plane"/> (<see cref="TensionChordRatios"/>; no bar without a plane), or the fixed areas of the equilibrium iterations; null with
+        /// the default. Read only by the nonlinear stress analyses (<see cref="CalculateForceResultantForTension(StrainPlane, Dictionary{int, bool})"/>) and
+        /// by their results: the failure domain, the resistances and the linear analyses never call it
         /// </summary>
+        /// <param name="plane">The plane of the effective tension areas of the tension chord</param>
         /// <returns>The law, or null</returns>
-        internal ConcreteTensionStiffening GetStressAnalysisTensionStiffening()
+        internal StressAnalysisTension GetStressAnalysisTension(StrainPlane plane = null)
         {
-            return _sectionOption != null && _sectionOption.StressAnalysisConcreteTension == ConcreteMaterial.TensionResponseDiagrams.TensionStiffening
-                ? _concreteSection.ConcreteMaterial.GetTensionStiffening() : null;
+            if (_sectionOption == null)
+                return null;
+            switch (_sectionOption.StressAnalysisConcreteTension)
+            {
+                case ConcreteMaterial.TensionResponseDiagrams.TensionStiffening:
+                    return new StressAnalysisTension(_concreteSection.ConcreteMaterial.GetTensionStiffening());
+                case ConcreteMaterial.TensionResponseDiagrams.TensionChord:
+                    if (_fixedTension != null)
+                        return _fixedTension;
+                    var uncracked = TensionChord(false, null);
+                    bool cracked = plane != null && _concreteSection.ConcreteShape.GetPoints2d().Max(v => plane.GetStrain(v)) > uncracked.CrackingStrain;
+                    return cracked ? TensionChord(true, TensionChordRatios(plane)) : uncracked;
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>The tension of the equilibrium iterations of the tension chord, with the effective areas of the previous pass (null otherwise)</summary>
+        [NonSerialized]
+        private StressAnalysisTension _fixedTension;
+
+        /// <summary>The geometry of the effective tension areas (built once)</summary>
+        [NonSerialized]
+        private CrackSectionGeometry _tensionChordGeometry;
+
+        /// <summary>The tension chord in a state, with the ρeff of some bars (index in the rebar order), each with the modulus of its steel</summary>
+        private StressAnalysisTension TensionChord(bool cracked, IReadOnlyDictionary<int, double> ratios)
+        {
+            var concrete = _concreteSection.ConcreteMaterial;
+            var rebars = ConcreteSection.GetRebars();
+            var laws = new Dictionary<double, ConcreteTensionChord>();
+            ConcreteTensionChord Law(double steelModulus)
+            {
+                if (!laws.TryGetValue(steelModulus, out var law))
+                    laws[steelModulus] = law = concrete.GetTensionChord(steelModulus);
+                return law;
+            }
+            var bars = new Dictionary<int, (ConcreteTensionChord, double)>();
+            foreach (var pair in ratios ?? new Dictionary<int, double>())
+                bars[pair.Key] = (Law(rebars[pair.Key].RebarMaterial.ElasticModulusTension), pair.Value);
+            double reference = rebars.Length > 0 ? rebars[0].RebarMaterial.ElasticModulusTension : 200000;
+            return new StressAnalysisTension(Law(reference), cracked, bars);
+        }
+
+        /// <summary>
+        /// ρeff = As / Ac,eff of the ordinary tensile bars (tendons and prestressed bars excluded) inside the effective tension areas of a plane, as the
+        /// crack check of EN 1992-1-1 7.3.2(3) (<see cref="CrackSectionGeometry.EffectiveDepth"/>): hc,eff = min[2.5 (h − d); (h − x)/3; h/2] from the most
+        /// tensile fibre along the strain gradient, and from the opposite face too when the section is entirely in tension (with h/2); a bar takes the
+        /// ratio of the first area it falls in. A uniform tension gives the whole section to every bar; no tension or no bar, no ratio
+        /// </summary>
+        private IReadOnlyDictionary<int, double> TensionChordRatios(StrainPlane plane)
+        {
+            var ratios = new Dictionary<int, double>();
+            if (!(_concreteSection is ReinforcedConcreteSection section))
+                return ratios;
+            CrackSectionGeometry g;
+            try { g = _tensionChordGeometry ?? (_tensionChordGeometry = CrackSectionGeometry.From(section)); }
+            catch (NotSupportedException) { return ratios; }
+            var rebars = section.GetRebars();
+            // the bars of the geometry are the ordinary ones in the rebar order
+            int[] ordinary = Enumerable.Range(0, rebars.Length)
+                .Where(i => rebars[i].RebarMaterial.SteelType != SteelMaterial.SteelTypes.Tendon && rebars[i].EpsilonP == 0).ToArray();
+            if (ordinary.Length != g.Bars.Count || ordinary.Length == 0)
+                return ratios;
+            var strains = g.Outline.Select(v => plane.GetStrain(v.X, v.Y)).ToArray();
+            double gradient = CrackSectionGeometry.Hypot(plane.ChiX, plane.ChiY);
+            var tensile = Enumerable.Range(0, g.Bars.Count).Where(k => plane.GetStrain(g.Bars[k].X, g.Bars[k].Y) > 0).ToArray();
+            if (tensile.Length == 0 || strains.Max() <= 0)
+                return ratios;
+            if (gradient <= 1e-15)
+            {
+                double area = g.Region("TS", 0, 1, g.Outline.Min(v => v.Y) - 1, tensile).Area;
+                double steel = tensile.Sum(k => g.Bars[k].Area);
+                if (area > 0)
+                    foreach (int k in tensile)
+                        ratios[ordinary[k]] = steel / area;
+                return ratios;
+            }
+            bool entirelyTensile = strains.Min() > 0;
+            foreach (double sign in entirelyTensile ? new[] { 1.0, -1.0 } : new[] { 1.0 })
+            {
+                double qx = sign * plane.ChiX / gradient, qy = sign * plane.ChiY / gradient;
+                double Q(double x, double y) => qx * x + qy * y;
+                double top = g.Outline.Max(v => Q(v.X, v.Y)), bottom = g.Outline.Min(v => Q(v.X, v.Y)), height = top - bottom;
+                double tensileDepth = sign > 0 ? strains.Max() / gradient : height;
+                double centroid = tensile.Sum(k => Q(g.Bars[k].X, g.Bars[k].Y) * g.Bars[k].Area) / tensile.Sum(k => g.Bars[k].Area);
+                double hc = g.EffectiveDepth(CrackProfile.EN1992p11, qx, qy, top, height, top - centroid, tensileDepth, entirelyTensile, 0);
+                if (!(hc > 0))
+                    continue;
+                double level = top - hc;
+                var effective = tensile.Where(k => Q(g.Bars[k].X, g.Bars[k].Y) >= level - 1e-8 && !ratios.ContainsKey(ordinary[k])).ToArray();
+                if (effective.Length == 0)
+                    continue;
+                var region = g.Region("TS", qx, qy, level, effective);
+                if (region.Area > 0 && region.SteelArea > 0)
+                    foreach (int k in effective)
+                        ratios[ordinary[k]] = region.SteelArea / region.Area;
+            }
+            return ratios;
         }
 
         /// <summary>
         /// The concrete stress of the nonlinear stress analyses: the tension stiffening for a strain in tension when the option is assigned
-        /// (<see cref="GetStressAnalysisTensionStiffening"/>), <see cref="CalculateSigmaC(double)"/> otherwise (the same value as before with the default)
+        /// (<see cref="GetStressAnalysisTension"/>), <see cref="CalculateSigmaC(double)"/> otherwise (the same value as before with the default)
         /// </summary>
         /// <param name="strain">The strain (positive in tension)</param>
         /// <returns>The stress</returns>
         internal double CalculateStressAnalysisSigmaC(double strain)
         {
-            ConcreteTensionStiffening tensionStiffening = strain > 0 ? GetStressAnalysisTensionStiffening() : null;
-            return tensionStiffening == null ? CalculateSigmaC(strain) : tensionStiffening.GetStress(strain);
+            StressAnalysisTension tension = strain > 0 ? GetStressAnalysisTension() : null;
+            return tension == null ? CalculateSigmaC(strain) : tension.GetConcreteStress(strain);
         }
 
         /// <summary>
@@ -1280,11 +1381,11 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// </summary>
         /// <param name="strainPlane">The strain plane</param>
         /// <param name="rebarIsInsideAssociation">For each bar, true if inside the concrete</param>
-        /// <param name="tensionStiffening">The law in tension</param>
+        /// <param name="tension">The law in tension (the bars of the tension chord at their equivalent strain)</param>
         /// <returns>The forces in the local reference system</returns>
-        private ForceTuple IntegrateStressAnalysisStress(StrainPlane strainPlane, Dictionary<int, bool> rebarIsInsideAssociation, ConcreteTensionStiffening tensionStiffening)
+        private ForceTuple IntegrateStressAnalysisStress(StrainPlane strainPlane, Dictionary<int, bool> rebarIsInsideAssociation, StressAnalysisTension tension)
         {
-            double SigmaC(double strain) => strain > 0 ? tensionStiffening.GetStress(strain) : CalculateSigmaC(strain);
+            double SigmaC(double strain) => strain > 0 ? tension.GetConcreteStress(strain) : CalculateSigmaC(strain);
 
             // concrete
             (double, double, double) concrete = GaussIntegration.IntegrationLinearShapeFunction((x, y) =>
@@ -1301,7 +1402,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             for (int i = 0; i < rebars.Length; i++)
             {
                 double strain = strainPlane.GetStrain(rebars[i].Position);
-                double sigma = CalculateStressRebar(rebars[i], strain) - (rebarIsInsideAssociation[i] ? SigmaC(strain) : 0);
+                double sigma = CalculateStressRebar(rebars[i], tension.BarStrain(i, strain)) - (rebarIsInsideAssociation[i] ? SigmaC(strain) : 0);
                 n += sigma * rebars[i].Area;
                 mx += sigma * rebars[i].Area * (rebars[i].Position.Y - _integrationReferencePoint.Y);
                 my += sigma * rebars[i].Area * (rebars[i].Position.X - _integrationReferencePoint.X);
@@ -2762,7 +2863,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         {
             var rebarIsInsideAssociation = ConcreteSection.GetRebarIsInsideAssociation();
             // nonlinear analysis with the tension stiffening (opt-in): Newton with backtracking, below; the default path is the one of before
-            if (!psiRebars.HasValue && !psiTendon.HasValue && GetStressAnalysisTensionStiffening() != null)
+            if (!psiRebars.HasValue && !psiTendon.HasValue && GetStressAnalysisTension() != null)
                 return CalculateStrainPlaneStressAnalysisWithLineSearch(localForces, coordinateSystem, rebarIsInsideAssociation, tolerance);
             ForceTuple targetLocalForcesAdim = ConvertToAdimensionalForces(localForces);
 
@@ -2836,7 +2937,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         }
 
         /// <summary>
-        /// The nonlinear stress analysis with the tension stiffening (<see cref="GetStressAnalysisTensionStiffening"/>): the Newton iterations of
+        /// The nonlinear stress analysis with the concrete in tension of the option (<see cref="GetStressAnalysisTension"/>): the Newton iterations of
         /// <see cref="CalculateStrainPlaneStressAnalysis(ForceTuple, CoordinateSystem, double)"/> (same first plane, increments and tolerance, at most
         /// 50 planes) with a backtracking line search: a step that does not reduce the largest adimensional residual is halved, up to 8 times, and the
         /// best trial is taken (the softening branch has a negative tangent, and the full Newton step can cycle around the cracking of the extreme
@@ -2849,9 +2950,47 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         private StrainPlane CalculateStrainPlaneStressAnalysisWithLineSearch(ForceTuple localForces, CoordinateSystem coordinateSystem,
             Dictionary<int, bool> rebarIsInsideAssociation, double tolerance)
         {
+            if (_sectionOption.StressAnalysisConcreteTension != ConcreteMaterial.TensionResponseDiagrams.TensionChord)
+                return CalculateStrainPlaneStressAnalysisWithLineSearch(localForces, coordinateSystem, rebarIsInsideAssociation, tolerance, GetStressAnalysisTension());
+            // Tension chord (BUG-TS-2): the uncracked state first (state I, concrete linear in tension, bare bars); when a concrete fibre of its plane
+            // exceeds εcr, the cracked state (state II) with the effective tension areas of the previous pass, until the areas of the solution are those
+            // of the pass (the moving boundary of hc,eff is not inside the Newton iterations, and each state is continuous)
+            StressAnalysisTension tension = TensionChord(false, null);
+            StrainPlane plane;
+            _fixedTension = tension;
+            try { plane = CalculateStrainPlaneStressAnalysisWithLineSearch(localForces, coordinateSystem, rebarIsInsideAssociation, tolerance, tension); }
+            finally { _fixedTension = null; }
+            if (plane != null && _concreteSection.ConcreteShape.GetPoints2d().Max(v => plane.GetStrain(v)) <= tension.CrackingStrain)
+                return plane;
+            tension = TensionChord(true, plane == null ? null : TensionChordRatios(plane));
+            for (int pass = 0; pass < 8; pass++)
+            {
+                _fixedTension = tension;
+                try { plane = CalculateStrainPlaneStressAnalysisWithLineSearch(localForces, coordinateSystem, rebarIsInsideAssociation, tolerance, tension); }
+                finally { _fixedTension = null; }
+                if (plane == null)
+                    return null;
+                StressAnalysisTension next = TensionChord(true, TensionChordRatios(plane));
+                if (SameChordBars(tension, next))
+                    return plane;
+                tension = next;
+            }
+            AddLog("Tension chord: effective tension areas not stable after 8 passes; the plane of the last one is accepted");
+            return plane;
+        }
+
+        /// <summary>The same bars with the same ρeff (relative 1e-9)</summary>
+        private static bool SameChordBars(StressAnalysisTension a, StressAnalysisTension b)
+        {
+            var x = a.ChordBars; var y = b.ChordBars;
+            return x.Count == y.Count && x.All(p => y.TryGetValue(p.Key, out var q) && Math.Abs(p.Value.Ratio - q.Ratio) <= 1e-9 * Math.Abs(p.Value.Ratio));
+        }
+
+        private StrainPlane CalculateStrainPlaneStressAnalysisWithLineSearch(ForceTuple localForces, CoordinateSystem coordinateSystem,
+            Dictionary<int, bool> rebarIsInsideAssociation, double tolerance, StressAnalysisTension tension)
+        {
             ForceTuple target = ConvertToAdimensionalForces(localForces);
             Point3d referencePoint = _integrationReferencePoint;
-            ConcreteTensionStiffening tensionStiffening = GetStressAnalysisTensionStiffening();
             double Residual(ForceTuple resultant)
             {
                 ForceTuple adim = ConvertToAdimensionalForces(resultant);
@@ -2873,7 +3012,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 do
                 {
                     if (id >= 50 || withoutImprovement >= 6)
-                        return AcceptWithinTheCrackingJump(least, leastResidual, tolerance, tensionStiffening);
+                        return AcceptWithinTheCrackingJump(least, leastResidual, tolerance, tension);
                     id++;
                     StrainPlane best = null;
                     ForceTuple bestForces = forces;
@@ -2883,7 +3022,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     for (int kind = 0; kind < 2 && !(bestResidual < residual); kind++)
                     {
                         (double deltaChiX, double deltaChiY, double deltaStrain) = kind == 0
-                            ? CalculateTangentIncrementStressAnalysis(strainPlane, localForces - forces, rebarIsInsideAssociation, tensionStiffening, coordinateSystem)
+                            ? CalculateTangentIncrementStressAnalysis(strainPlane, localForces - forces, rebarIsInsideAssociation, tension, coordinateSystem)
                             : CalculateIncrementStressAnalysis(strainPlane, localForces - forces, rebarIsInsideAssociation, null, null);
                         if (double.IsNaN(deltaChiX + deltaChiY + deltaStrain) || double.IsInfinity(deltaChiX + deltaChiY + deltaStrain))
                             continue;
@@ -2929,20 +3068,26 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         /// <summary>
         /// The Newton increment (χx, χy, ε0) of the stress analysis with the tension stiffening from the tangent stiffness of the section,
-        /// K = ∂(N, Mx, My)/∂(χx, χy, ε0) of the external forces: the tangent of the law in tension (<see cref="ConcreteTensionStiffening.GetTangent"/>),
+        /// K = ∂(N, Mx, My)/∂(χx, χy, ε0) of the external forces: the tangent of the law in tension (<see cref="StressAnalysisTension.EvaluateConcrete"/>, the bars of the tension chord through their equivalent strain),
         /// the slopes of the design diagrams of the concrete in compression, of the bars (minus the concrete they displace) and of the steel sections,
         /// at the Gauss points and at the bars
         /// </summary>
         /// <returns>K⁻¹ times the residual; NaN when K is singular</returns>
         private (double deltaChiX, double deltaChiY, double deltaStrainRefPoint) CalculateTangentIncrementStressAnalysis(StrainPlane plane, ForceTuple residual,
-            Dictionary<int, bool> rebarIsInsideAssociation, ConcreteTensionStiffening tensionStiffening, CoordinateSystem coordinateSystem)
+            Dictionary<int, bool> rebarIsInsideAssociation, StressAnalysisTension tension, CoordinateSystem coordinateSystem)
         {
             double Slope(Func<double, double> stress, double strain)
             {
                 double step = Math.Max(1e-9, 1e-6 * Math.Abs(strain));
                 return (stress(strain + step) - stress(strain - step)) / (2 * step);
             }
-            double ConcreteTangent(double strain) => strain > 0 ? tensionStiffening.GetTangent(strain) : Slope(CalculateSigmaC, strain);
+            double ConcreteTangent(double strain)
+            {
+                if (!(strain > 0))
+                    return Slope(CalculateSigmaC, strain);
+                tension.EvaluateConcrete(strain, out _, out double tangent);
+                return tangent;
+            }
             Matrix<double> k = Matrix<double>.Build.Dense(3, 3);
             double xr = plane.ReferencePoint.X, yr = plane.ReferencePoint.Y;
             void Add(double x, double y, double weight)
@@ -2962,7 +3107,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 var rebar = rebars[i];
                 double strain = plane.GetStrain(rebar.Position);
-                double tangent = Slope(e => CalculateStressRebar(rebar, e), strain) - (rebarIsInsideAssociation[i] ? ConcreteTangent(strain) : 0);
+                int index = i;
+                double tangent = Slope(e => CalculateStressRebar(rebar, tension.BarStrain(index, e)), strain) - (rebarIsInsideAssociation[i] ? ConcreteTangent(strain) : 0);
                 Add(rebar.Position.X, rebar.Position.Y, tangent * rebar.Area);
             }
             for (int i = 0; i < ConcreteSection.SteelSections.Count; i++)
@@ -2999,9 +3145,9 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// The end of <see cref="CalculateStrainPlaneStressAnalysisWithLineSearch"/> without equilibrium within the tolerance: the plane with the least
         /// residual if within the tolerance plus twice the jump of the resultant at cracking (<see cref="CalculateCrackingJump"/>), null otherwise
         /// </summary>
-        private StrainPlane AcceptWithinTheCrackingJump(StrainPlane least, double leastResidual, double tolerance, ConcreteTensionStiffening tensionStiffening)
+        private StrainPlane AcceptWithinTheCrackingJump(StrainPlane least, double leastResidual, double tolerance, StressAnalysisTension tension)
         {
-            double jump = CalculateCrackingJump(least, tensionStiffening);
+            double jump = CalculateCrackingJump(least, tension);
             // twice the jump: the target may fall between the two sides of the jumps of the points near εcr, met from either side
             if (leastResidual <= tolerance + 2 * jump)
             {
@@ -3019,10 +3165,10 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// is within εcr (1 ± 1e-3), the points that a change of the plane below the resolution of the iterations moves across the cracking (a row of
         /// Gauss points with almost the same strain, for instance); a bar inside the concrete counts with its area (the concrete it displaces)
         /// </summary>
-        private double CalculateCrackingJump(StrainPlane plane, ConcreteTensionStiffening tensionStiffening)
+        private double CalculateCrackingJump(StrainPlane plane, StressAnalysisTension tension)
         {
-            double crackingStrain = tensionStiffening.CrackingStrain;
-            double drop = tensionStiffening.TensileStrength - tensionStiffening.GetStress(crackingStrain * (1 + 1e-12));
+            double crackingStrain = tension.CrackingStrain;
+            double drop = tension.CrackingDrop;
             double band = 1e-3 * crackingStrain;
             double n = 0, mx = 0, my = 0;
             foreach (var element in _globalCoordinateGaussPointsMesh)

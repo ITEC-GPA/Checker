@@ -1,4 +1,4 @@
-﻿using GPC.Checker.Results.ResultType;
+using GPC.Checker.Results.ResultType;
 using GPC.Checkers.Concrete.SectionSolvers;
 using GPC.Geometry;
 using GPC.Model;
@@ -178,7 +178,7 @@ namespace GPC.Checkers.Concrete.Results
         /// the nonlinear summary, the concrete in tension of the tension stiffening of a nonlinear stress analysis (null: as before)
         /// </summary>
         internal StrainPlaneResult CalculateStrainPlaneResult(IConcreteSection _section, ResultBeamForces resultBeamForces, SectionSolver _sectionSolver, Standard _standard,
-            bool linearAnalysis, double psiR, double psiT, Standard standardStructuralSteel, ConcreteTensionStiffening tensionStiffening)
+            bool linearAnalysis, double psiR, double psiT, Standard standardStructuralSteel, GPC.Checkers.Concrete.SectionSolvers.StressAnalysisTension tensionStiffening)
         {
             double sigmaCMax = double.MinValue;
             double sigmaSMax = double.MinValue;
@@ -215,7 +215,7 @@ namespace GPC.Checkers.Concrete.Results
                     if (linearAnalysis)
                         stress = _sectionSolver.CalculateElasticSigmaC(strain);
                     else if (tensionStiffening != null && strain > 0)
-                        stress = tensionStiffening.GetStress(strain);
+                        stress = tensionStiffening.GetConcreteStress(strain);
                     else
                     {
                         stress = !_sectionSolver.ConsiderTensileConcrete &&
@@ -232,6 +232,8 @@ namespace GPC.Checkers.Concrete.Results
                 {
                     ReinforcedConcreteRebar rebar = _section.Rebars.ElementAt(r);
                     double strain = GetStrain(rebar.Position);
+                    // the tension chord (BUG-TS-2): the stress of an ordinary bar at the crack, the steel law at its equivalent strain
+                    double barStrain = !linearAnalysis && tensionStiffening?.Chord != null ? tensionStiffening.BarStrain(r, strain) : strain;
 
                     if (rebar.EpsilonP > 0)
                     {
@@ -263,7 +265,7 @@ namespace GPC.Checkers.Concrete.Results
                             if (linearAnalysis)
                                 sigmaSMax = _sectionSolver.CalculateElasticSigmaS(psiR, rebar, strain);
                             else
-                                sigmaSMax = rebar.RebarMaterial.CalculateDesignStress(_standard, strain, rebar.EpsilonP);
+                                sigmaSMax = rebar.RebarMaterial.CalculateDesignStress(_standard, barStrain, rebar.EpsilonP);
                         }
                         if (strain < epsilonSMin)
                         {
@@ -272,7 +274,7 @@ namespace GPC.Checkers.Concrete.Results
                             if (linearAnalysis)
                                 sigmaSMin = _sectionSolver.CalculateElasticSigmaS(psiR, rebar, strain);
                             else
-                                sigmaSMin = rebar.RebarMaterial.CalculateDesignStress(_standard, strain, rebar.EpsilonP);
+                                sigmaSMin = rebar.RebarMaterial.CalculateDesignStress(_standard, barStrain, rebar.EpsilonP);
                         }
                     }
                 }

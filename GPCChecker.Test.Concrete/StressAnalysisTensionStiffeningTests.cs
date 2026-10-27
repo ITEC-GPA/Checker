@@ -109,7 +109,7 @@ namespace ConcreteTests
             {
                 // All vertices are beyond cracking, on the descending branch. Reflection changes their traversal order.
                 var plane = new StrainPlane(direction * 2e-6, 1e-6, Point2d.Origin, .0007);
-                var summary = plane.CalculateStrainPlaneResult(section, force, checker.SectionSolver, new StandardNTC2018Concrete(), false, 0, 0, null, law);
+                var summary = plane.CalculateStrainPlaneResult(section, force, checker.SectionSolver, new StandardNTC2018Concrete(), false, 0, 0, null, new GPC.Checkers.Concrete.SectionSolvers.StressAnalysisTension(law));
                 Assert.AreEqual(vertices.Max(v => law.GetStress(plane.GetStrain(v))), summary.SigmaCMax, 0);
                 Assert.AreEqual(vertices.Min(v => law.GetStress(plane.GetStrain(v))), summary.SigmaCMin, 0);
                 Assert.AreEqual(vertices.Max(v => plane.GetStrain(v)), summary.EpsilonCMax, 0);
