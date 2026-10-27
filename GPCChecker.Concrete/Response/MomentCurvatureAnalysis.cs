@@ -38,7 +38,8 @@ namespace GPC.Checkers.Concrete.Response
 
     /// <summary>
     /// Strain state of one response: gradient χx, χy (1/mm, or 1/length of the caller), strain at the reference point, largest |bar strain|, smallest
-    /// concrete vertex strain.
+    /// concrete vertex strain. The bar strain is the one of the steel law of the bar, which gives its yield: with the tension chord (BUG-TS-2) the
+    /// strain at the crack (<see cref="StressAnalysisResult.GetRebarSteelStrain"/>), the strain of the plane otherwise.
     /// </summary>
     public sealed class MomentCurvatureStrains
     {
@@ -385,7 +386,13 @@ namespace GPC.Checkers.Concrete.Response
                 var stress = checker.GetTensionAnalysisResult(new ResultBeamForces(n, 0, 0, 0, mx, my, axes));
                 if (stress?.StrainPlane == null || section.ConcreteShape.GetPoints2d().Any(v => double.IsNaN(stress.StrainPlane.GetStrain(v)) || double.IsInfinity(stress.StrainPlane.GetStrain(v))))
                     throw new ArgumentException("Stress analysis not converged.");
-                return MomentCurvatureStrains.From(stress.StrainPlane, section, origin);
+                var strains = MomentCurvatureStrains.From(stress.StrainPlane, section, origin);
+                if (checker.SectionCheckerOptions.StressAnalysisConcreteTension != GPC.Model.Materials.ConcreteMaterial.TensionResponseDiagrams.TensionChord)
+                    return strains;
+                // The tension chord: a bar yields when its strain at the crack reaches the yield strain (fib Model Code 2010 7.6.4.4), before its mean
+                // strain, the strain of the plane, does.
+                double bar = section.Rebars.Select(b => Math.Abs(stress.GetRebarSteelStrain(b))).DefaultIfEmpty(0).Max();
+                return new MomentCurvatureStrains(strains.ChiX, strains.ChiY, strains.ReferenceStrain, bar, strains.MinimumConcreteStrain);
             }
             var result = Calculate(p, Limit, Response, steelYieldStrain, token);
             if (checker.SectionCheckerOptions.StressAnalysisConcreteTension == GPC.Model.Materials.ConcreteMaterial.TensionResponseDiagrams.TensionStiffening)

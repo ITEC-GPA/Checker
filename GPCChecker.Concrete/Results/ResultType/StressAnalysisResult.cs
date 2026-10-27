@@ -324,6 +324,21 @@ namespace GPC.Checkers.Concrete.Results
             return StrainPlane.GetStrain(rebar.Position);
         }
 
+        /// <summary>
+        /// The strain at which the steel law of a bar is read, the strain of its stress (<see cref="GetRebarTension(ReinforcedConcreteRebar)"/>): with
+        /// the tension chord of a nonlinear stress analysis (BUG-TS-2) the equivalent strain of a bar of an effective tension area, its strain at the
+        /// crack; the strain of the plane (<see cref="GetRebarStrain(ReinforcedConcreteRebar)"/>) otherwise, the same value bit for bit.
+        /// </summary>
+        public double GetRebarSteelStrain(ReinforcedConcreteRebar rebar)
+        {
+            double strain = StrainPlane.GetStrain(rebar.Position);
+            var chord = ChordTension();
+            if (chord == null)
+                return strain;
+            int index = Array.IndexOf(_sectionSolver.ConcreteSection.GetRebars(), rebar);
+            return index >= 0 ? chord.BarStrain(index, strain) : strain;
+        }
+
         public virtual (ReinforcedConcreteRebar rebar, double tension, double workingRatio)[] SteelServiceabilityCharacteristicCheck()
         {
             (ReinforcedConcreteRebar i, double)[] array = _section.Rebars.Select(i => (i, _sectionSolver.CalculateStressRebar(i, StrainPlane.GetStrain(i.Position)))).ToArray();

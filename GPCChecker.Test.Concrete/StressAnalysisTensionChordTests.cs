@@ -180,6 +180,35 @@ namespace ConcreteTests
         }
 
         [TestMethod]
+        public void MomentCurvatureYieldsAtTheCrack()
+        {
+            // With the tension chord a bar yields when its strain at the crack reaches fyd / Es (fib Model Code 2010 7.6.4.4), before its mean strain,
+            // the strain of the plane, does: first yield at N = 0 by the independent model (docs/ts2-tension-chord/independent-tension-chord.py, rows
+            // FirstYield) My = 64.7117 kNm, χy = 4.485293e-03 1/m, mean strain of the bar 1.4838 ‰; with the tension neglected
+            // My = 65.2912 kNm, χy = 5.682050e-03 1/m. The bar strain of the curve is the strain of the steel law (GetRebarSteelStrain).
+            var section = UltimateSections.Symmetric();
+            var local = DomainPointContractTests.LocalAxes(section);
+            double yieldStrain = 450 / 1.15 / 200000;
+            var request = new MomentCurvatureRequest(0, 0, 30, 1, true, 30000, 20); // N, mm: moments in Nmm
+            var neglected = MomentCurvatureAnalysis.Calculate(request, Checker(section, false, Default), section, local, yieldStrain);
+            var chord = MomentCurvatureAnalysis.Calculate(request, Checker(section, false, Chord), section, local, yieldStrain);
+            Assert.IsTrue(chord.YieldRefinement?.Applied == true && neglected.YieldRefinement?.Applied == true, chord.Status);
+            Assert.AreEqual(64.71173098667381, chord.YieldRefinement.Moment.Value / 1e6, 2e-3 * 64.71173098667381, "My with the tension chord");
+            Assert.AreEqual(0.004485293241486602, chord.YieldCurvature.Value * 1e3, 5e-3 * 0.004485293241486602, "χy with the tension chord");
+            Assert.AreEqual(65.29117824876639, neglected.YieldRefinement.Moment.Value / 1e6, 2e-3 * 65.29117824876639, "My with the tension neglected");
+            Assert.AreEqual(0.0056820501215832575, neglected.YieldCurvature.Value * 1e3, 5e-3 * 0.0056820501215832575, "χy with the tension neglected");
+            // the result: the strain of the steel law of a tensile bar is its strain at the crack, that of a compressed bar the strain of the plane
+            var checker = Checker(section, false, Chord);
+            var result = checker.GetTensionAnalysisResult(DomainPointContractTests.Force(local, 0, 55, 0));
+            var bars = section.Rebars.OrderBy(b => result.StrainPlane.GetStrain(b.Position)).ToArray();
+            var tensile = bars.Last(); var compressed = bars.First();
+            Assert.IsTrue(result.GetRebarSteelStrain(tensile) > result.GetRebarStrain(tensile), "strain at the crack above the mean strain");
+            Assert.AreEqual(result.GetRebarStrain(compressed), result.GetRebarSteelStrain(compressed), 0.0, "compressed bar");
+            var plain = Checker(section, false, Default).GetTensionAnalysisResult(DomainPointContractTests.Force(local, 0, 55, 0));
+            Assert.IsTrue(section.Rebars.All(b => plain.GetRebarSteelStrain(b) == plain.GetRebarStrain(b)), "without the option the strain of the plane");
+        }
+
+        [TestMethod]
         public void OptionIsSerializedAndValidated()
         {
             var section = UltimateSections.Symmetric();

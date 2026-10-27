@@ -127,6 +127,27 @@ for n, m, e, k in [(0, 20, -1.5e-5, -3e-7), (0, 45, -.7e-5, -9.5e-7), (-300, 60,
     rows.append(dict(N=n, M=m, Cracked=cracked, Chi=abs(k), EpsB=eb, EpsT=et, EpsBar=bar, RhoBar=rho[-204.],
                      SigmaBar=max(-fyd, min(fyd, es * (equivalent(bar, rho[-204.]) if cracked else bar))), SigmaB=sigma(eb, cracked),
                      SigmaT=sigma(et, cracked), ResidualN=vn - n * 1000, ResidualM=vm - m * 1e6))
+# First yield at N = 0 (fib Model Code 2010 7.6.4.4): with the tension chord the bar at the crack reaches fyd / Es (eps* = eps_yd) while its mean
+# strain, the strain of the plane, is lower; with the bars bare the strain of the plane reaches it. Bisection on M between 45 and 68 kNm.
+def first_yield(chord):
+    bare = {y: None for y in levels}
+    def bar_strain(m):
+        if chord:
+            e, k, rho, cracked = solve(0, m, -1e-4, -3e-6)
+        else:
+            (e, k), rho, cracked = newton(0, m, -1e-4, -3e-6, bare, True), bare, True
+        mean = e - 204 * k
+        return (equivalent(mean, rho[-204.]) if cracked else mean), mean, abs(k)
+    lo, hi = 45., 68.
+    for _ in range(60):
+        mid = (lo + hi) / 2
+        if bar_strain(mid)[0] >= fyd / es: hi = mid
+        else: lo = mid
+    at_crack, mean, chi = bar_strain((lo + hi) / 2)
+    return dict(FirstYield='tension chord' if chord else 'bare bars', N=0, My=(lo + hi) / 2, Chi=chi, EpsBarAtCrack=at_crack, EpsBarMean=mean)
+
+
+rows += [first_yield(True), first_yield(False)]
 # Uniform tension N = +200 kN, below the cracking load fct (Ac + (alpha_e - 1) As) of the tie: uncracked, eps = N / (Ec (Ac - As) + Es As).
 steel = 4 * bar_area
 rows.append(dict(N=200, M=0, CrackingLoad=fct * (150000 + (es / ec - 1) * steel), YieldLoad=fyd * steel,
