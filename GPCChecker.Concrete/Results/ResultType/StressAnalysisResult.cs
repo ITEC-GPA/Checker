@@ -24,6 +24,7 @@ namespace GPC.Checkers.Concrete.Results
         protected bool _linearElasticAnalysis;
         protected double? _psiRebar;
         protected double? _psiTendon;
+        private bool _ofStressAnalysis;
 
         #endregion
 
@@ -88,6 +89,20 @@ namespace GPC.Checkers.Concrete.Results
             _linearElasticAnalysis = info.GetBoolean("LinearElasticAnalysis");
             _psiRebar = info.GetDouble("psiRebar");
             _psiTendon = info.GetDouble("psiTendon");
+            foreach (SerializationEntry entry in info)
+                if (entry.Name == "OfStressAnalysis")
+                    _ofStressAnalysis = (bool)entry.Value;
+        }
+
+        /// <summary>
+        /// Marks the result of a stress analysis of the solver (<see cref="SectionSolver.GetStressAnalysisResult(ResultBeamForces)"/>): only these have
+        /// the tension chord of <see cref="Checkers.SectionChecker.SectionOptions.StressAnalysisConcreteTension"/> on their bars (BUG-TS-2). A result built
+        /// on another plane, a point of the failure domain for example, keeps its bars at the strain of the plane.
+        /// </summary>
+        internal StressAnalysisResult OfStressAnalysis()
+        {
+            _ofStressAnalysis = true;
+            return this;
         }
 
         #endregion
@@ -102,8 +117,10 @@ namespace GPC.Checkers.Concrete.Results
         public StrainPlaneResult CalculateStrainPlaneResult(bool linearAnalysis = false, double psiR = 0, double psiT = 0)
         {
             StrainPlaneResult strainPlaneResult = new StrainPlaneResult(_section, _force, _strainPlane, _sectionSolver, _standard, _id, _standardStructuralSteel);
-            return strainPlaneResult.CalculateStrainPlaneResult(linearAnalysis, psiR, psiT,
-                !_linearElasticAnalysis && !linearAnalysis ? _sectionSolver.GetStressAnalysisTension(_strainPlane) : null);
+            var tension = !_linearElasticAnalysis && !linearAnalysis ? _sectionSolver.GetStressAnalysisTension(_strainPlane) : null;
+            if (tension?.Chord != null && !_ofStressAnalysis)
+                tension = tension.WithBareBars();
+            return strainPlaneResult.CalculateStrainPlaneResult(linearAnalysis, psiR, psiT, tension);
         }
 
         #endregion
@@ -115,10 +132,10 @@ namespace GPC.Checkers.Concrete.Results
             return RebarStress(rebar, ChordTension());
         }
 
-        /// <summary>The tension chord of a nonlinear stress analysis with its effective areas (BUG-TS-2), null otherwise</summary>
+        /// <summary>The tension chord of a nonlinear stress analysis of the solver with its effective areas (BUG-TS-2), null otherwise</summary>
         private GPC.Checkers.Concrete.SectionSolvers.StressAnalysisTension ChordTension()
         {
-            var tension = _linearElasticAnalysis ? null : _sectionSolver.GetStressAnalysisTension(StrainPlane);
+            var tension = _linearElasticAnalysis || !_ofStressAnalysis ? null : _sectionSolver.GetStressAnalysisTension(StrainPlane);
             return tension?.Chord == null ? null : tension;
         }
 
@@ -326,8 +343,9 @@ namespace GPC.Checkers.Concrete.Results
 
         /// <summary>
         /// The strain at which the steel law of a bar is read, the strain of its stress (<see cref="GetRebarTension(ReinforcedConcreteRebar)"/>): with
-        /// the tension chord of a nonlinear stress analysis (BUG-TS-2) the equivalent strain of a bar of an effective tension area, its strain at the
-        /// crack; the strain of the plane (<see cref="GetRebarStrain(ReinforcedConcreteRebar)"/>) otherwise, the same value bit for bit.
+        /// the tension chord of a nonlinear stress analysis of the solver (BUG-TS-2) the equivalent strain of a bar of an effective tension area, its
+        /// strain at the crack; the strain of the plane (<see cref="GetRebarStrain(ReinforcedConcreteRebar)"/>) otherwise, the same value bit for bit,
+        /// also in a result built on another plane (a point of the failure domain).
         /// </summary>
         public double GetRebarSteelStrain(ReinforcedConcreteRebar rebar)
         {
@@ -679,6 +697,7 @@ namespace GPC.Checkers.Concrete.Results
             info.AddValue("LinearElasticAnalysis", _linearElasticAnalysis);
             info.AddValue("psiRebar", _psiRebar);
             info.AddValue("psiTendon", _psiTendon);
+            info.AddValue("OfStressAnalysis", _ofStressAnalysis);
         }
 
         #endregion

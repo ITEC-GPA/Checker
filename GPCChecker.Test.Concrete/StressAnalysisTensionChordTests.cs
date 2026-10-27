@@ -206,6 +206,13 @@ namespace ConcreteTests
             Assert.AreEqual(result.GetRebarStrain(compressed), result.GetRebarSteelStrain(compressed), 0.0, "compressed bar");
             var plain = Checker(section, false, Default).GetTensionAnalysisResult(DomainPointContractTests.Force(local, 0, 55, 0));
             Assert.IsTrue(section.Rebars.All(b => plain.GetRebarSteelStrain(b) == plain.GetRebarStrain(b)), "without the option the strain of the plane");
+            // a result built on another plane (as a point of the failure domain, the limit point of the curve) keeps its bars at the strain of the
+            // plane, also in the summary: the tension chord belongs to the stress analyses
+            var other = new StressAnalysisResult(section, result.Force, result.StrainPlane, checker.SectionSolver, result.Standard);
+            Assert.IsTrue(section.Rebars.All(b => other.GetRebarSteelStrain(b) == other.GetRebarStrain(b)), "result on a plane of its own: strain of the plane");
+            Assert.AreEqual(plain.SectionSolver.CalculateStressRebar(tensile, other.GetRebarStrain(tensile)), other.GetRebarTension(tensile), 1e-9, "stress at the strain of the plane");
+            Assert.AreEqual(other.GetRebarsTension().Max(b => b.tension), other.CalculateStrainPlaneResult(false).SigmaSMax, 1e-9, "summary at the strain of the plane");
+            Assert.IsTrue(result.GetRebarTension(tensile) > other.GetRebarTension(tensile), "the stress analysis at the crack");
         }
 
         [TestMethod]

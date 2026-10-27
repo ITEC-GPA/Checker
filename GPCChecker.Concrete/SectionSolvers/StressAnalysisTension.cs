@@ -41,6 +41,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         /// <summary>The bars of the effective tension areas with their law and ρeff (empty with Collins and Mitchell)</summary>
         internal IReadOnlyDictionary<int, (ConcreteTensionChord Law, double Ratio)> ChordBars => _chord ?? new Dictionary<int, (ConcreteTensionChord, double)>();
 
+        /// <summary>The same state with every bar bare: the concrete of the tension chord, the bars at the strain of the plane</summary>
+        internal StressAnalysisTension WithBareBars()
+        {
+            return Chord == null ? this : new StressAnalysisTension(Chord, Cracked, new Dictionary<int, (ConcreteTensionChord, double)>());
+        }
+
         /// <summary>εcr</summary>
         internal double CrackingStrain { get; }
 

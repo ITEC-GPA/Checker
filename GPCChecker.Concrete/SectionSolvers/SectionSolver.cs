@@ -588,7 +588,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 stressAnalysisResults[i] = new StressAnalysisResult(ConcreteSection, force[i],
                     CalculateStrainPlaneStressAnalysis(force[i].ConvertToForceTuple(SolverAxes),
                     _sectionOption.ForceReferenceCoordinateSystem, _stressAnalysisTolerance), this, _standard, false, null, null, Id,
-                    _standardStructuralSteel);
+                    _standardStructuralSteel).OfStressAnalysis();
             });
 
             return stressAnalysisResults;
@@ -599,7 +599,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             return new StressAnalysisResult(ConcreteSection, force,
                     CalculateStrainPlaneStressAnalysis(force.ConvertToForceTuple(SolverAxes),
                     _sectionOption.ForceReferenceCoordinateSystem, _stressAnalysisTolerance), this, _standard, false, null, null, Id,
-                    _standardStructuralSteel);
+                    _standardStructuralSteel).OfStressAnalysis();
         }
 
         public virtual StressAnalysisResult[] GetLinearStressAnalysisResults(ResultBeamForces[] force, double psi, double? psiTendon, Checkers.SectionChecker.SectionOptions sectionOption)
