@@ -91,7 +91,8 @@ namespace GPC.Checkers.Steel.Connections
                         }
                         Bearing(g.Plate, bolt, grid, across, halfLength - Math.Abs(force.Position.X),
                             Math.Min(force.Position.Y - g.TransverseMinimum, g.TransverseMaximum - force.Position.Y),
-                            force.Fx, force.Fy, g.IsWeb ? p.WebHardwareDiameter : p.FlangeHardwareDiameter, id + ".Cover");
+                            force.Fx, force.Fy, g.IsWeb ? p.WebHardwareDiameter : p.FlangeHardwareDiameter, id + ".Cover",
+                            BoltLongJoint.Reduction(jointLength, bolt.Diameter));
                     }
                 }
                 foreach (SpliceSide side in new[] { SpliceSide.Left, SpliceSide.Right })
@@ -112,7 +113,8 @@ namespace GPC.Checkers.Steel.Connections
                         string id = side + "." + part + ".Parent.Bolt" + index;
                         if (location.Count() != 2) { issues.Add(id + ".EXACTLY_TWO_SHEAR_PLANES_REQUIRED"); continue; }
                         Bearing(parent, bolt, grid, grid.TransverseRows, Math.Abs(pos.X) - d.ButtGap / 2,
-                            parent.Width / 2 - Math.Abs(pos.Y), fx, fy, web ? p.WebHardwareDiameter : p.FlangeHardwareDiameter, id);
+                            parent.Width / 2 - Math.Abs(pos.Y), fx, fy, web ? p.WebHardwareDiameter : p.FlangeHardwareDiameter, id,
+                            BoltLongJoint.Reduction(ElasticBoltGroup.Hypot(grid.LongitudinalSpan, grid.TransverseSpan), bolt.Diameter));
                         trace.Add(new SectionResistanceValue(id + ".Fx", fx, "N")); trace.Add(new SectionResistanceValue(id + ".Fy", fy, "N"));
                     }
                 }
@@ -128,18 +130,20 @@ namespace GPC.Checkers.Steel.Connections
             return new WeldedIBeamSpliceBoltResult(f, assessment);
 
             void Bearing(ConnectionPlate plate, ConnectionBolt bolt, SpliceBoltLayout grid, int across,
-                double ex, double ey, double fx, double fy, double hardware, string id)
+                double ex, double ey, double fx, double fy, double hardware, string id, double betaLong)
             {
                 double minimum = Math.Max(1.2 * bolt.HoleDiameter, hardware / 2);
                 if (ex < minimum || ey < minimum) { issues.Add(id + ".PHYSICAL_EDGE_OR_HARDWARE_CLEARANCE"); return; }
-                double rx = Capacity(ex, ey, grid.LongitudinalRows > 1 ? (double?)grid.LongitudinalPitch : null, across > 1 ? (double?)grid.TransversePitch : null, grid.LongitudinalRows, across);
-                double ry = Capacity(ey, ex, across > 1 ? (double?)grid.TransversePitch : null, grid.LongitudinalRows > 1 ? (double?)grid.LongitudinalPitch : null, across, grid.LongitudinalRows);
+                // Same policy as IBeamSplicePlates: SCI P398 p55 extends the long-joint reduction to bearing.
+                double rx = betaLong * Capacity(ex, ey, grid.LongitudinalRows > 1 ? (double?)grid.LongitudinalPitch : null, across > 1 ? (double?)grid.TransversePitch : null, grid.LongitudinalRows, across);
+                double ry = betaLong * Capacity(ey, ex, across > 1 ? (double?)grid.TransversePitch : null, grid.LongitudinalRows > 1 ? (double?)grid.LongitudinalPitch : null, across, grid.LongitudinalRows);
                 if (!(rx > 0) || !(ry > 0)) return;
                 double ratio = Math.Abs(fx) / rx + Math.Abs(fy) / ry;
                 if (double.IsNaN(ratio) || double.IsInfinity(ratio)) { issues.Add(id + ".BEARING_NUMERIC_RANGE"); return; }
                 checks.Add(new ConnectionCheck(id + ".BearingInteraction", ratio, 1,
-                    (p.Code.IsNtc ? "NTC2018 4.2.8.1.1 eq4.2.67" : "EN1993-1-8:2005 Table3.4") + "; conservative directional linear interaction", "1"));
+                    (p.Code.IsNtc ? "NTC2018 4.2.8.1.1 eq4.2.67" : "EN1993-1-8:2005 Table3.4") + "; conservative directional linear interaction; SCI P398 p55 long-joint reduction", "1"));
                 trace.Add(new SectionResistanceValue(id + ".BearingX", rx, "N")); trace.Add(new SectionResistanceValue(id + ".BearingY", ry, "N"));
+                trace.Add(new SectionResistanceValue(id + ".BearingBetaLongJoint", betaLong, "1"));
                 double Capacity(double e1, double e2, double? p1, double? p2, int alongCount, int acrossCount)
                 {
                     double resistance = double.PositiveInfinity;

@@ -86,7 +86,7 @@ namespace GPC.Checkers.Steel.Connections
                 bool web = g.Part == IBeamSplicePart.Web;
                 var grid = web ? p.Forces.WebBolts : p.Forces.FlangeBolts;
                 var bolt = web ? p.Bolts.WebBolt : p.Bolts.FlangeBolt;
-                double beta = Math.Max(.75, Math.Min(1, 1 - (IBeamSpliceBolts.JointLength(grid, web) - 15 * bolt.Diameter) / (200 * bolt.Diameter)));
+                double beta = BoltLongJoint.Reduction(IBeamSpliceBolts.JointLength(grid, web), bolt.Diameter);
                 foreach (bool cover in new[] { false, true })
                 {
                     var plate = cover ? (web ? p.WebCover : p.FlangeCover) : Main(p, web);
