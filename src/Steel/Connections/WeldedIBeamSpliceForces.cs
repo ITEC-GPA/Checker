@@ -183,7 +183,7 @@ namespace GPC.Checkers.Steel.Connections
             if (a.Fz != 0 || a.Mx != 0 || a.My != 0 || a.ApplicationZ != 0) issues.Add("IN_PLANE_N_V_M_ONLY");
             ValidateFlange(p.Top, s.TopFlange, s.TopWeldToe, "Top");
             ValidateFlange(p.Bottom, s.BottomFlange, s.BottomWeldToe, "Bottom");
-            if (p.WebBolts.LongitudinalRows < 2 || p.WebBolts.TransverseRows < 2) issues.Add("WEB_RECTANGULAR_MULTIROW_GRID_REQUIRED");
+            if (p.WebBolts.TransverseRows < 2) issues.Add("WEB_AT_LEAST_TWO_TRANSVERSE_BOLTS_REQUIRED");
             if (p.EachWebCover.Width > s.Web.Width - 2 * Math.Max(s.TopWeldToe, s.BottomWeldToe))
                 issues.Add("WEB_COVER_INTERSECTS_LONGITUDINAL_SEAMS");
             if (p.Packing.HasPacking)

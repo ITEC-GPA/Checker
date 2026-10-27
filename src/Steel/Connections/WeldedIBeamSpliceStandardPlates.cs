@@ -33,7 +33,11 @@ namespace GPC.Checkers.Steel.Connections
         public static WeldedIBeamSpliceStandardPlateResult Verify(WeldedIBeamSpliceDetailInput p, bool actualCollinearBlockForces)
             => Verify(p, actualCollinearBlockForces, SpliceFlangeFaceModel.BalancedEqualFaces);
         public static WeldedIBeamSpliceStandardPlateResult Verify(WeldedIBeamSpliceDetailInput p, bool actualCollinearBlockForces, SpliceFlangeFaceModel faceModel)
+            => Verify(p, actualCollinearBlockForces, faceModel, SplicePlateStabilityMethod.CompactCovers);
+        public static WeldedIBeamSpliceStandardPlateResult Verify(WeldedIBeamSpliceDetailInput p, bool actualCollinearBlockForces,
+            SpliceFlangeFaceModel faceModel, SplicePlateStabilityMethod plateStability)
         {
+            if (!Enum.IsDefined(typeof(SplicePlateStabilityMethod), plateStability)) throw new ArgumentOutOfRangeException(nameof(plateStability));
             if (p == null) throw new ArgumentNullException(nameof(p));
             var applicability = WeldedIBeamSpliceStandardModel.Verify(p, faceModel);
             var d = p.Plates.Bolts.Detail; var code = p.Plates.Policy.Code;
@@ -75,7 +79,28 @@ namespace GPC.Checkers.Steel.Connections
                     // Exact absence of shear is an independent sufficient condition;
                     // no force tolerance and no waiver of compression/net-section checks.
                     Value(c.Cover + ".ZeroShearAction", zeroShear ? 1 : 0, "1");
-                    compact.Add(new ConnectionCheck(c.Cover + ".NoShearBucklingDomain", zeroShear ? 0 : plate.Width / plate.Thickness,
+                    if (plateStability == SplicePlateStabilityMethod.StandardBoltedCovers)
+                    {
+                        // Published conventional bolted-cover procedure, not a free web
+                        // panel with fictitious continuous supports through the bolt rows.
+                        // Extra conservative class3 outstand bounds also apply at zero N.
+                        string prefix = c.Cover + ".StandardBoltedCover.";
+                        double eps = Math.Sqrt(235 / plate.Fy), t = plate.Thickness;
+                        Domain("MaximumLongitudinalGap", grid.MaximumLongitudinalGap, Math.Min(14 * t, 200), "mm");
+                        if (holes.Length > 1)
+                        {
+                            Domain("TransversePitch", grid.TransversePitch, Math.Min(14 * t, 200), "mm");
+                            Domain("InternalStripClass3", grid.TransversePitch / t, 42 * eps);
+                        }
+                        Domain("LowerOutstandClass3", (g.Distribution.Points.Min(q => q.Y) - g.TransverseMinimum) / t, 14 * eps);
+                        Domain("UpperOutstandClass3", (g.TransverseMaximum - g.Distribution.Points.Max(q => q.Y)) / t, 14 * eps);
+                        Domain("EndOutstandClass3", WeldedIBeamSplicePlates.End(d, g) / t, 14 * eps);
+                        Value(c.Cover + ".UsesStandardBoltedCoverMethod", 1, "1");
+                        Value(c.Cover + ".WholeWidthThicknessRatio", plate.Width / t, "1");
+                        void Domain(string id, double demand, double resistance, string unit = "1") => compact.Add(new ConnectionCheck(prefix + id,
+                            demand, resistance, "SCI P398 4.3 pp57-59 conventional bolted cover procedure; EC Table3.3 fastener spacing; supplementary conservative class3 bounds on every outstand", unit));
+                    }
+                    else compact.Add(new ConnectionCheck(c.Cover + ".NoShearBucklingDomain", zeroShear ? 0 : plate.Width / plate.Thickness,
                         60 * Math.Sqrt(235 / plate.Fy), "EN1993-1-1:2005 6.2.6(6), EN1993-1-5:2006 5.1; eta=1.2 sufficient domain, or exactly zero shear at every cut", "1"));
                     double half = grid.FirstBoltDistance + grid.LongitudinalSpan + WeldedIBeamSplicePlates.End(d, g);
                     Hierarchy(c.Cover.ToString(), plate, bolt, groups.SelectMany(x => x.Distribution.Points).Distinct().ToArray(),
@@ -110,7 +135,7 @@ namespace GPC.Checkers.Steel.Connections
                         "Opt-in direct checks are limited to longitudinal collinear bolt actions (including sign reversal). All rectangular prefixes and transverse subsets are checked using sum(abs(Fx)); opposite loads on a continuous cover do not cancel. The eccentric coefficient 0.5 is retained for every subset. No mixed-direction N-V-M rupture interaction is inferred. Non-collinear groups use the unchanged hierarchy.",
                         "Hierarchy requires every path to be stronger than all its fasteners. It is a sufficient exclusion of block tearing for this regular detail; a failed hierarchy requires a separate loaded-block method and prevents whole-detail qualification.",
                         "Parent net-section check assumes all flange/web holes aligned longitudinally and the full member actions retained in the parent, with no cover credit. Maximum lap-end moment is included. Unnotched parent-web block tearing is inapplicable per SCI P398 p59.",
-                        "The compact-domain screen excludes shear-buckling-sensitive covers. Existing maximum longitudinal compression, 0.6p buckling strips, outstand/internal class3 limits and detailing remain mandatory." });
+                        "CompactCovers retains the whole-width no-shear-buckling screen. StandardBoltedCovers explicitly uses SCI P398 pp57-59 for continuous flat rectangular covers with regular closely spaced filled normal fasteners, class1-3 strips/outstands in both directions and every existing compression/shear/bending/net/block check. It is not an EN1993-1-5 free-panel buckling or tension-field method; locally class4 strips under shear remain excluded. No continuous line supports are inferred from discrete bolts." });
             void Value(string name, double value, string unit)
             { if (WeldedIBeamSplicePlates.Finite(value)) trace.Add(new SectionResistanceValue(name, value, unit)); else issues.Add(name + ".NUMERIC_RANGE"); }
             void ParentNet()

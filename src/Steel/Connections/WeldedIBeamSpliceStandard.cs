@@ -15,7 +15,14 @@ namespace GPC.Checkers.Steel.Connections
             Id = id; Parents = parents ?? throw new ArgumentNullException(nameof(parents));
         }
     }
-    public enum SplicePlateStabilityMethod { CompactCovers, EffectiveCompression }
+    public enum SplicePlateStabilityMethod
+    {
+        CompactCovers,
+        EffectiveCompression,
+        /// <summary>SCI P398 conventional flat bolted covers with regular close fasteners,
+        /// class1-3 inter-fastener strips/outstands and all N-M-V checks. Not free-panel postbuckling.</summary>
+        StandardBoltedCovers
+    }
 
     public enum SpliceBlockVerificationMethod { FastenerHierarchy, ActualCollinearForcesWithHierarchyFallback }
 
@@ -65,7 +72,7 @@ namespace GPC.Checkers.Steel.Connections
             EffectiveCompression = plateStability == SplicePlateStabilityMethod.EffectiveCompression
                 ? WeldedIBeamSpliceEffectiveCompression.Verify(input.Parents.Detail) : null;
             Input = input; Components = components; Model = WeldedIBeamSpliceStandardModel.Verify(input.Parents.Detail, faceModel);
-            AdditionalPlates = WeldedIBeamSpliceStandardPlates.Verify(input.Parents.Detail, blockMethod == SpliceBlockVerificationMethod.ActualCollinearForcesWithHierarchyFallback, faceModel); Parents = WeldedIBeamSpliceParents.Verify(input.Parents);
+            AdditionalPlates = WeldedIBeamSpliceStandardPlates.Verify(input.Parents.Detail, blockMethod == SpliceBlockVerificationMethod.ActualCollinearForcesWithHierarchyFallback, faceModel, plateStability); Parents = WeldedIBeamSpliceParents.Verify(input.Parents);
         }
     }
     /// <summary>Reference to the original leaf check, never a recomputed resistance.

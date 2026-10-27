@@ -48,3 +48,8 @@ fonti, assi/polo, collaudo CJP, casi incompleti con fallimenti accertati,
 immutabilita' dei risultati, cultura, input invalidi e politiche incompatibili.
 Il rapporto non certifica esecuzione, fatica o rigidezza rotazionale.
 
+
+27/10/2026 - StandardBoltedCovers aggiunge il dettaglio SCI regolare con
+strisce/sbalzi localmente classe1-3, anche con una colonna d'anima per lato.
+Tutti i controlli di resistenza e gerarchia restano; il default non cambia.
+Vedi BRIDGE_SPLICE_STANDARD_BOLTED_COVERS.txt per modello e qualificazione.

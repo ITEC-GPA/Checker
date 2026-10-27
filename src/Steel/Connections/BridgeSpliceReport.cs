@@ -214,7 +214,7 @@ namespace GPC.Checkers.Steel.Connections
             void Grid(string name, SpliceBoltLayout g, double end)
             {
                 Value(name + ".LongitudinalRows", g.LongitudinalRows, "1"); Value(name + ".TransverseRows", g.TransverseRows, "1");
-                Value(name + ".LongitudinalPitch", g.LongitudinalPitch); Value(name + ".TransversePitch", g.TransversePitch);
+                Value(name + ".LongitudinalPitch", g.LongitudinalRows > 1 ? g.LongitudinalPitch : 0); Value(name + ".TransversePitch", g.TransverseRows > 1 ? g.TransversePitch : 0);
                 Value(name + ".FirstBoltDistance", g.FirstBoltDistance); Value(name + ".CoverEnd", end);
             }
             void Bolt(string name, ConnectionBolt bolt)

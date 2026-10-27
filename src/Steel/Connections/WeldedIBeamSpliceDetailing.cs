@@ -70,7 +70,7 @@ namespace GPC.Checkers.Steel.Connections
                     double outerThickness = g.IsWeb ? d.EachWebCover.Thickness : Math.Min(flange.Outer.Thickness, flange.EachInner.Thickness);
                     double limit = Math.Min(14 * outerThickness, 200);
                     string name = c.Cover.ToString();
-                    Check(name + ".LongitudinalPitch", grid.LongitudinalPitch, limit);
+                    if (grid.LongitudinalRows > 1) Check(name + ".LongitudinalPitch", grid.LongitudinalPitch, limit);
                     Check(name + ".CentralPitch", 2 * grid.FirstBoltDistance, limit);
                     if (g.Distribution.Points.Select(b => b.Y).Distinct().Count() > 1)
                         Check(name + ".TransversePitch", grid.TransversePitch, limit);

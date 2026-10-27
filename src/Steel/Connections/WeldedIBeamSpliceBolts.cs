@@ -56,7 +56,8 @@ namespace GPC.Checkers.Steel.Connections
                 issues.Add("HARDWARE_ENVELOPE_MUST_COVER_HOLE");
             foreach (var item in new[] { Tuple.Create(d.Top.Bolts, p.FlangeHardwareDiameter),
                 Tuple.Create(d.Bottom.Bolts, p.FlangeHardwareDiameter), Tuple.Create(d.WebBolts, p.WebHardwareDiameter) })
-                if (item.Item1.LongitudinalPitch < item.Item2 || item.Item1.TransversePitch < item.Item2
+                if (item.Item1.LongitudinalRows > 1 && item.Item1.LongitudinalPitch < item.Item2
+                    || item.Item1.TransverseRows > 1 && item.Item1.TransversePitch < item.Item2
                     || 2 * item.Item1.FirstBoltDistance < item.Item2) issues.Add("ADJACENT_BOLT_HARDWARE_OVERLAP");
             if (issues.Count == 0)
             {
@@ -131,8 +132,8 @@ namespace GPC.Checkers.Steel.Connections
             {
                 double minimum = Math.Max(1.2 * bolt.HoleDiameter, hardware / 2);
                 if (ex < minimum || ey < minimum) { issues.Add(id + ".PHYSICAL_EDGE_OR_HARDWARE_CLEARANCE"); return; }
-                double rx = Capacity(ex, ey, grid.LongitudinalPitch, across > 1 ? (double?)grid.TransversePitch : null, grid.LongitudinalRows, across);
-                double ry = Capacity(ey, ex, across > 1 ? (double?)grid.TransversePitch : null, grid.LongitudinalPitch, across, grid.LongitudinalRows);
+                double rx = Capacity(ex, ey, grid.LongitudinalRows > 1 ? (double?)grid.LongitudinalPitch : null, across > 1 ? (double?)grid.TransversePitch : null, grid.LongitudinalRows, across);
+                double ry = Capacity(ey, ex, across > 1 ? (double?)grid.TransversePitch : null, grid.LongitudinalRows > 1 ? (double?)grid.LongitudinalPitch : null, across, grid.LongitudinalRows);
                 if (!(rx > 0) || !(ry > 0)) return;
                 double ratio = Math.Abs(fx) / rx + Math.Abs(fy) / ry;
                 if (double.IsNaN(ratio) || double.IsInfinity(ratio)) { issues.Add(id + ".BEARING_NUMERIC_RANGE"); return; }

@@ -57,6 +57,9 @@ namespace GPC.Checkers.Steel.Connections
                     Value(name + ".Internal" + j + ".Rho", inner.Rho, "1");
                     reduced |= inner.Rho < 1;
                 }
+                if (!reduced)
+                    foreach (var check in cover.LongitudinalCompression.Checks.Where(x => x.Id.EndsWith(".CompressionShearBending", StringComparison.Ordinal)))
+                        checks.Add(new ConnectionCheck(name + "." + check.Id, check.Demand, check.Resistance, check.Reference, check.Unit));
                 if (reduced && cover.Cuts.Any(c => c.V != 0))
                     issues.Add(name + ".CLASS4_COMPRESSION_WITH_SHEAR_REQUIRES_INTERACTION");
                 var effective = Properties(bands, plate.Thickness);
@@ -68,7 +71,7 @@ namespace GPC.Checkers.Steel.Connections
                 if (!(effective.Area > 0 && effective.Inertia > 0 && net.Area > 0 && net.Inertia > 0)
                     || !Finite(effective.Area + effective.Inertia + net.Area + net.Inertia))
                 { issues.Add(name + ".INVALID_EFFECTIVE_NET_SECTION"); continue; }
-                double pitch = Math.Max(grid.LongitudinalPitch, 2 * grid.FirstBoltDistance), length = .6 * pitch;
+                double pitch = grid.MaximumLongitudinalGap, length = .6 * pitch;
                 double q = effective.Area / a;
                 double lambdaGross = length * Math.Sqrt(12 * plate.Fy / p.Plates.Policy.ElasticModulus) / (Math.PI * plate.Thickness);
                 double lambda = Math.Sqrt(q) * lambdaGross;

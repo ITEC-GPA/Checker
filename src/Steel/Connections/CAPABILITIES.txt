@@ -64,3 +64,8 @@ StandardMomentEndPlateNMV: percorso supplementare N-M-V con contatto unilaterale
   Sono ammesse le file presso entrambe le ali nel modello SCI esplicito e una
   fila unica fra i contatti; nessuna molla globale per un ramo singolare.
   END_PLATE_APPLICATION_USAGE.txt descrive il contratto applicativo.
+
+27/10/2026 - StandardBoltedCovers aggiunge il dettaglio SCI regolare con
+strisce/sbalzi localmente classe1-3, anche con una colonna d'anima per lato.
+Tutti i controlli di resistenza e gerarchia restano; il default non cambia.
+Vedi BRIDGE_SPLICE_STANDARD_BOLTED_COVERS.txt per modello e qualificazione.
