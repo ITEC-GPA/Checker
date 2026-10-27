@@ -103,7 +103,7 @@ namespace GPC.Checkers.Steel.Connections
         public DoubleAngleCleatTyingInput Input { get; }
         public PlanarConnectionActions ActionsAtCleatCentre { get; }
         public ConnectionStatus CoveredComponentsStatus { get; }
-        public bool IsComponentAssessmentComplete => CoveredComponentsStatus != ConnectionStatus.NotSupported;
+        public bool IsComponentAssessmentComplete { get; }
         public bool CanQualifyWholeJoint => false;
         public IReadOnlyList<ConnectionCheck> Checks { get; }
         public IReadOnlyList<SectionResistanceValue> Trace { get; }
@@ -135,10 +135,10 @@ namespace GPC.Checkers.Steel.Connections
         {
             Input = input; ActionsAtCleatCentre = centred;
             Diagnostics = Array.AsReadOnly(diagnostics.Distinct().ToArray());
-            var evaluated = Diagnostics.Count == 0 ? checks.ToArray() : Array.Empty<ConnectionCheck>();
+            var evaluated = ConnectionOutcome.Retained(checks, Diagnostics.Count);
             Checks = Array.AsReadOnly(evaluated); Trace = Array.AsReadOnly(trace.ToArray());
-            CoveredComponentsStatus = Diagnostics.Count != 0 || evaluated.Length == 0 ? ConnectionStatus.NotSupported
-                : evaluated.All(c => c.Passed) ? ConnectionStatus.Passed : ConnectionStatus.Failed;
+            IsComponentAssessmentComplete = ConnectionOutcome.IsComplete(evaluated, Diagnostics.Count);
+            CoveredComponentsStatus = ConnectionOutcome.Status(evaluated, Diagnostics.Count);
         }
     }
 

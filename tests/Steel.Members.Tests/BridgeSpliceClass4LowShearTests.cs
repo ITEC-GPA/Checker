@@ -52,11 +52,14 @@ public class BridgeSpliceClass4LowShearTests
         Near(net,Trace(r,"EffectiveNetArea"));
         Near(net*355/(1.5*Math.Sqrt(3)),Trace(r,"LowShear.ConservativeShearResistance"));
     }
-    [TestMethod] public void AboveHalfShearRemainsUnsupportedAndDoesNotBecomeAFalseResistanceFailure()
+    [TestMethod] public void AboveHalfShearRemainsIncompleteAndKeepsOnlyKnownFailures()
     {
         var r=WeldedIBeamSpliceEffectiveCompression.Verify(Input(v:1e7),true);
         Assert.IsTrue(r.Diagnostics.Any(x=>x.EndsWith("CLASS4_SHEAR_EXCEEDS_HALF_RESISTANCE")));
-        Assert.AreEqual(ConnectionStatus.NotSupported,r.Status);
+        // Outside the low-shear field no favourable check qualifies the cover; a check that
+        // already fails under this very large shear is retained as a known failure.
+        Assert.IsFalse(r.IsComplete);Assert.IsTrue(r.Checks.All(x=>!x.Passed));
+        Assert.AreEqual(r.Checks.Count>0?ConnectionStatus.Failed:ConnectionStatus.NotSupported,r.Status);
         Assert.IsTrue(WeldedIBeamSpliceBolts.Verify(Input(v:1e7).Plates.Bolts).ComponentAssessment.Checks.Any(x=>!x.Passed));
     }
     [DataTestMethod][DataRow(-1e-15)][DataRow(1e-15)]

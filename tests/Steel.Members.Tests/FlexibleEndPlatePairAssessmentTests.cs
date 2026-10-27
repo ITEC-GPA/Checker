@@ -27,8 +27,10 @@ public class FlexibleEndPlatePairAssessmentTests
     }
     private static void NoAggregateRatio(FlexibleEndPlatePairAssessmentResult r)
     {
-        Assert.AreEqual(ConnectionStatus.NotSupported, r.Status); Assert.IsFalse(r.IsComplete);
-        Assert.AreEqual(0, r.Checks.Count); Assert.IsNull(r.GoverningCheck); Assert.IsNull(r.Utilization);
+        // Incomplete pair: no aggregate ratio. A known child failure makes the pair Failed
+        // and only failed checks are retained beside the diagnostics.
+        Assert.AreEqual(r.HasFailedComponent ? ConnectionStatus.Failed : ConnectionStatus.NotSupported, r.Status); Assert.IsFalse(r.IsComplete);
+        Assert.IsTrue(r.Checks.All(c => !c.Passed)); Assert.IsNull(r.GoverningCheck); Assert.IsNull(r.Utilization);
         Assert.IsFalse(r.CanQualifyWholeJoint);
     }
 
@@ -41,7 +43,9 @@ public class FlexibleEndPlatePairAssessmentTests
         NoAggregateRatio(r); Assert.IsTrue(r.HasFailedComponent);
         Assert.AreSame(p, r.Input); Assert.AreSame(p.First, r.First.Input); Assert.AreSame(p.Second, r.Second.Input);
         var failed = reverse ? r.Second : r.First; var unsupported = reverse ? r.First : r.Second;
-        Assert.AreEqual(ConnectionStatus.Failed, failed.Status); Assert.AreEqual(ConnectionStatus.NotSupported, unsupported.Status);
+        // The notched child stays incomplete; any failure it already shows is not discarded.
+        Assert.AreEqual(ConnectionStatus.Failed, failed.Status); Assert.IsFalse(unsupported.IsComplete);
+        Assert.IsTrue(unsupported.Checks.All(c => !c.Passed));
         var check = failed.Checks.Single(c => c.Id == "Beam.WebShear");
         Assert.AreEqual(450000, check.Demand); Assert.AreEqual(393673.4979253112, check.Resistance, 1e-6);
         Assert.AreEqual(1.143079232845324, check.Utilization, 1e-12); Assert.IsFalse(check.Passed);

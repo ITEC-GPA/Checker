@@ -43,8 +43,12 @@ public class IBeamSpliceEnvelopeTests
         => Assert.AreEqual(expected, actual, Math.Max(1, Math.Abs(expected)) * 1e-10);
     private static void Blocked(IBeamSpliceEnvelopeResult r, string reason)
     {
-        Assert.AreEqual(ConnectionStatus.NotSupported, r.ComponentAssessment.Status);
-        Assert.AreEqual(0, r.ComponentAssessment.Checks.Count);
+        // Blocked envelope: no ratio or governing source. Only failed checks are retained
+        // beside the diagnostics, and a known failure makes the assessment Failed.
+        Assert.IsFalse(r.ComponentAssessment.IsComplete);
+        Assert.IsTrue(r.ComponentAssessment.Checks.All(c => !c.Passed));
+        Assert.AreEqual(r.ComponentAssessment.Checks.Count > 0 ? ConnectionStatus.Failed : ConnectionStatus.NotSupported, r.ComponentAssessment.Status);
+        if (r.ComponentAssessment.Status == ConnectionStatus.Failed) Assert.IsTrue(r.HasFailedComponent);
         Assert.AreEqual(0, r.CheckSources.Count);
         Assert.IsNull(r.ComponentAssessment.Utilization); Assert.IsNull(r.ComponentAssessment.GoverningCheck);
         Assert.IsNull(r.GoverningSource); Assert.IsNull(r.GoverningSourceCheck); Assert.IsNull(r.GoverningCaseId);
@@ -387,7 +391,8 @@ public class IBeamSpliceEnvelopeTests
         var r = IBeamSpliceEnvelope.Verify(new(new[] { U("incomplete-failure", p) }));
         Blocked(r, "OUTSTAND_OUTSIDE_CLASS3");
         var c = r.UltimateCases.Single();
-        Assert.AreEqual(ConnectionStatus.NotSupported, c.Components.ComponentAssessment.Status);
+        Assert.AreEqual(ConnectionStatus.Failed, c.Components.ComponentAssessment.Status);
+        Assert.IsFalse(c.Components.ComponentAssessment.IsComplete); Assert.IsFalse(c.IsComplete);
         Assert.AreEqual(ConnectionStatus.NotSupported, c.Components.WebLongitudinal.Status);
         Assert.AreEqual(ConnectionStatus.Failed, c.Components.Flanges.Status);
         Assert.IsTrue(c.Components.Flanges.Checks.Any(k => !k.Passed));
@@ -401,7 +406,8 @@ public class IBeamSpliceEnvelopeTests
         var r = IBeamSpliceEnvelope.Verify(new(new[] { U("low", low), U("high-other-policy", high) }));
         Blocked(r, "ULTIMATE_CASE_PLATE_POLICY_MISMATCH");
         Assert.AreEqual(ConnectionStatus.Failed, r.UltimateCases[1].Components.Bearing.Status);
-        Assert.AreEqual(ConnectionStatus.NotSupported, r.UltimateCases[1].Status);
+        // The binding mismatch leaves the case incomplete; its real failure wins.
+        Assert.AreEqual(ConnectionStatus.Failed, r.UltimateCases[1].Status); Assert.IsFalse(r.UltimateCases[1].IsComplete);
         Assert.IsTrue(r.UltimateCases[1].HasFailedComponent); Assert.IsTrue(r.HasFailedComponent);
     }
 
@@ -413,7 +419,7 @@ public class IBeamSpliceEnvelopeTests
             S("normal", p), new IBeamSpliceSlipCase("failed-other-surface", failed) }));
         Blocked(r, "SLIP_POLICY_SURFACE_OR_TIGHTENING_MISMATCH");
         Assert.AreEqual(ConnectionStatus.Failed, r.ServiceabilityCases[1].Assessment.Status);
-        Assert.AreEqual(ConnectionStatus.NotSupported, r.ServiceabilityCases[1].Status);
+        Assert.AreEqual(ConnectionStatus.Failed, r.ServiceabilityCases[1].Status); Assert.IsFalse(r.ServiceabilityCases[1].IsComplete);
         Assert.IsTrue(r.HasFailedComponent);
     }
 
@@ -443,7 +449,7 @@ public class IBeamSpliceEnvelopeTests
     {
         var p = Plate(-150000, -150000, -200e6);
         var r = IBeamSpliceEnvelope.Verify(new(new[] { U("revision/A:ULS.1", p), U("other", Plate(source: " ")) }));
-        Assert.AreEqual(ConnectionStatus.NotSupported, r.ComponentAssessment.Status);
+        Assert.AreEqual(ConnectionStatus.Failed, r.ComponentAssessment.Status); Assert.IsFalse(r.ComponentAssessment.IsComplete);
         var failedCases = r.UltimateCases.Where(c => c.HasFailedComponent).Select(c => c.Input.Id).ToArray();
         CollectionAssert.AreEqual(new[] { "revision/A:ULS.1" }, failedCases);
         Assert.IsTrue(r.HasFailedComponent); Assert.IsNull(r.ComponentAssessment.Utilization);

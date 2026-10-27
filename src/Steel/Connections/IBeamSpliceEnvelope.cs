@@ -73,6 +73,7 @@ namespace GPC.Checkers.Steel.Connections
         public IReadOnlyList<string> BindingDiagnostics { get; }
         public bool IsBound => BindingDiagnostics.Count == 0;
         public bool HasFailedComponent { get; }
+        public bool IsComplete { get; }
         public ConnectionStatus Status { get; }
         internal IBeamSpliceUltimateCaseResult(IBeamSpliceUltimateCase input, IBeamSpliceComponentResult components,
             ConnectionVerification<IBeamSplicePlateInput> net, IEnumerable<string> bindingDiagnostics)
@@ -83,9 +84,9 @@ namespace GPC.Checkers.Steel.Connections
                 || components.BoltStrength.Status == ConnectionStatus.Failed || components.Bearing.Status == ConnectionStatus.Failed
                 || components.Flanges.Status == ConnectionStatus.Failed || components.WebSections.Status == ConnectionStatus.Failed
                 || components.WebLongitudinal.Status == ConnectionStatus.Failed || net?.Status == ConnectionStatus.Failed;
-            Status = !IsBound || components.ComponentAssessment.Status == ConnectionStatus.NotSupported
-                || net?.Status == ConnectionStatus.NotSupported ? ConnectionStatus.NotSupported
-                : HasFailedComponent ? ConnectionStatus.Failed : ConnectionStatus.Passed;
+            // A known failure wins over a failed binding or an incomplete component.
+            IsComplete = IsBound && components.ComponentAssessment.IsComplete && (net == null || net.IsComplete);
+            Status = HasFailedComponent ? ConnectionStatus.Failed : IsComplete ? ConnectionStatus.Passed : ConnectionStatus.NotSupported;
         }
     }
 
@@ -98,7 +99,8 @@ namespace GPC.Checkers.Steel.Connections
         public IReadOnlyList<string> BindingDiagnostics { get; }
         public bool IsBound => BindingDiagnostics.Count == 0;
         public bool HasFailedComponent => Assessment.Status == ConnectionStatus.Failed;
-        public ConnectionStatus Status => IsBound ? Assessment.Status : ConnectionStatus.NotSupported;
+        public bool IsComplete => IsBound && Assessment.IsComplete;
+        public ConnectionStatus Status => HasFailedComponent ? ConnectionStatus.Failed : IsComplete ? ConnectionStatus.Passed : ConnectionStatus.NotSupported;
         internal IBeamSpliceSlipCaseResult(IBeamSpliceSlipCase input,
             ConnectionVerification<IBeamSpliceBoltSlipInput> assessment, IEnumerable<string> diagnostics)
         { Input = input; Assessment = assessment; BindingDiagnostics = Array.AsReadOnly(diagnostics.ToArray()); }

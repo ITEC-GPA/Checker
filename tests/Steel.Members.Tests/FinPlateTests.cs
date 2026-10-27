@@ -188,14 +188,16 @@ public class FinPlateTests
         var r=FinPlate.Verify(Input(rows:2,beam:Section(220,110,4,10,8),v:1,
             pinned:hasModelEvidence ? "Fixture-only global model evidence" : null));
         Assert.IsFalse(r.ConformsToSciPinnedDetail);
-        if(hasModelEvidence)
+        // The failed pitch is a known failure with or without the model evidence.
+        Assert.AreEqual(ConnectionStatus.Failed,r.Status);
+        Equal(70,Check(r,"Detail.Pitch").Demand); Equal(56,Check(r,"Detail.Pitch").Resistance);
+        Assert.IsFalse(Check(r,"Detail.Pitch").Passed);
+        if(hasModelEvidence) Assert.IsTrue(r.LoadUtilization!.Value<1);
+        else
         {
-            Assert.AreEqual(ConnectionStatus.Failed,r.Status);
-            Equal(70,Check(r,"Detail.Pitch").Demand); Equal(56,Check(r,"Detail.Pitch").Resistance);
-            Assert.IsFalse(Check(r,"Detail.Pitch").Passed);
-            Assert.IsTrue(r.LoadUtilization!.Value<1);
+            Assert.IsFalse(r.IsComplete); Assert.IsTrue(r.Checks.All(c=>!c.Passed));
+            CollectionAssert.Contains(r.Diagnostics.ToArray(),"PINNED_FRAME_MODEL_QUALIFICATION_REQUIRED");
         }
-        else Unsupported(r,"PINNED_FRAME_MODEL_QUALIFICATION_REQUIRED");
     }
 
     [DataTestMethod] [DataRow("Fx")] [DataRow("Fy")] [DataRow("Mx")] [DataRow("My")] [DataRow("Mz")] [DataRow("Upward")]

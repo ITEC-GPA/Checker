@@ -98,15 +98,16 @@ namespace GPC.Checkers.Steel.Connections
         public IReadOnlyList<ConnectionCheck> Checks { get; }
         public IReadOnlyList<string> Diagnostics { get; }
         public ConnectionStatus Status { get; }
-        public bool IsComplete => Status != ConnectionStatus.NotSupported;
+        public bool IsComplete { get; }
         public double? Utilization => IsComplete ? (double?)Checks.Max(c => c.Utilization) : null;
         internal FilletWeldStressResult(double sigma, double perpendicular, double parallel, double fu, double beta,
             double longJointFactor, IList<ConnectionCheck> checks, IList<string> diagnostics)
         {
+            var retained = ConnectionOutcome.Retained(checks, diagnostics.Count);
             SigmaPerpendicular = sigma; TauPerpendicular = perpendicular; TauParallel = parallel; Fu = fu; Beta = beta;
-            LongJointFactor = longJointFactor; Checks = Array.AsReadOnly(checks.ToArray()); Diagnostics = Array.AsReadOnly(diagnostics.ToArray());
-            Status = diagnostics.Count != 0 || checks.Count == 0 ? ConnectionStatus.NotSupported
-                : checks.All(c => c.Passed) ? ConnectionStatus.Passed : ConnectionStatus.Failed;
+            LongJointFactor = longJointFactor; Checks = Array.AsReadOnly(retained); Diagnostics = Array.AsReadOnly(diagnostics.ToArray());
+            IsComplete = ConnectionOutcome.IsComplete(retained, diagnostics.Count);
+            Status = ConnectionOutcome.Status(retained, diagnostics.Count);
         }
     }
 
@@ -135,7 +136,7 @@ namespace GPC.Checkers.Steel.Connections
         public const string MethodId = "Steel.Connection.FilletWeldGroup.Elastic";
         public FilletWeldGroupInput Input { get; }
         public ConnectionStatus Status { get; }
-        public bool IsComplete => Status != ConnectionStatus.NotSupported;
+        public bool IsComplete { get; }
         public IReadOnlyList<FilletWeldPointResult> Points { get; }
         public IReadOnlyList<SectionResistanceValue> Trace { get; }
         public IReadOnlyList<string> Diagnostics { get; }
@@ -148,8 +149,10 @@ namespace GPC.Checkers.Steel.Connections
         {
             Input = input; Points = Array.AsReadOnly(points.ToArray()); Trace = Array.AsReadOnly(trace.ToArray());
             Diagnostics = Array.AsReadOnly(diagnostics.ToArray());
-            Status = diagnostics.Count != 0 || points.Count == 0 ? ConnectionStatus.NotSupported
-                : points.All(p => p.Verification.Status == ConnectionStatus.Passed) ? ConnectionStatus.Passed : ConnectionStatus.Failed;
+            // A failed point is a known failure even beside diagnostics or unsupported points.
+            IsComplete = diagnostics.Count == 0 && points.Count != 0 && points.All(p => p.Verification.IsComplete);
+            Status = points.Any(p => p.Verification.Status == ConnectionStatus.Failed) ? ConnectionStatus.Failed
+                : IsComplete ? ConnectionStatus.Passed : ConnectionStatus.NotSupported;
         }
     }
     internal static class FilletWeldNumbers

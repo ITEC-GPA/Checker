@@ -46,7 +46,7 @@ namespace GPC.Checkers.Steel.Reporting
         public static SteelAssessmentSummary From<T>(ConnectionVerification<T> result) where T : class
         {
             if (result == null) throw new ArgumentNullException(nameof(result));
-            // The original contract intentionally suppresses unqualified partial checks.
+            // Favourable partial checks stay suppressed; failed evaluated checks are retained.
             // Only published, evaluated resistance checks are evidence of a known failure.
             return new SteelAssessmentSummary(result.Scope, result.IsComplete,
                 result.Checks.Any(c => !c.Passed), result.Diagnostics, result.Assumptions);

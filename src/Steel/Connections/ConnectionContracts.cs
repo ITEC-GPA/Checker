@@ -116,7 +116,7 @@ namespace GPC.Checkers.Steel.Connections
         public DoubleCoverSpliceInput Input { get; }
         public ConnectionStatus Status { get; }
         /// <summary>All ULS checks in Scope were evaluated; not certification of the whole structural joint.</summary>
-        public bool IsComplete => Status != ConnectionStatus.NotSupported;
+        public bool IsComplete { get; }
         public IReadOnlyList<ConnectionCheck> Checks { get; }
         public IReadOnlyList<SectionResistanceValue> Trace { get; }
         public IReadOnlyList<string> Diagnostics { get; }
@@ -127,10 +127,11 @@ namespace GPC.Checkers.Steel.Connections
         internal DoubleCoverSpliceResult(DoubleCoverSpliceInput input, IList<ConnectionCheck> checks,
             IList<SectionResistanceValue> trace, IList<string> diagnostics)
         {
-            Input = input; Checks = Array.AsReadOnly(diagnostics.Count == 0 ? checks.ToArray() : Array.Empty<ConnectionCheck>()); Trace = Array.AsReadOnly(trace.ToArray());
+            var retained = ConnectionOutcome.Retained(checks, diagnostics.Count);
+            Input = input; Checks = Array.AsReadOnly(retained); Trace = Array.AsReadOnly(trace.ToArray());
             Diagnostics = Array.AsReadOnly(diagnostics.ToArray());
-            Status = diagnostics.Count != 0 || checks.Count == 0 ? ConnectionStatus.NotSupported
-                : checks.All(c => c.Passed) ? ConnectionStatus.Passed : ConnectionStatus.Failed;
+            IsComplete = ConnectionOutcome.IsComplete(retained, diagnostics.Count);
+            Status = ConnectionOutcome.Status(retained, diagnostics.Count);
         }
     }
     internal static class ConnectionValidation

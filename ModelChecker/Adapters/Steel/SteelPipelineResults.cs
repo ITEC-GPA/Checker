@@ -121,6 +121,11 @@ namespace GPC.Model.Checker
                         check.Utilization, check.Status == SteelExecutionStatus.Passed, check.Reference));
                 }
             }
+            // Model keeps an incomplete row NotEvaluated (CheckResultRules.ValidDecision);
+            // a failure already evaluated inside it must still reach the report and filters.
+            if (!native.IsComplete && native.Outcome == EngineeringOutcome.NotSatisfied)
+                diagnostics.Add(ModelDiagnostic.Error("SteelPipeline.KnownFailureInIncompleteAssessment", message: "Failed before completion: "
+                    + string.Join(", ", native.Checks.Where(c => c.Status == SteelExecutionStatus.Failed).Select(c => c.Decision.Target.ToString()))));
             // Different interactions use different utilization definitions. Preserve only
             // a single evaluated method's ratio as the row ratio; never take a global max.
             var result = new CheckResult {

@@ -107,6 +107,23 @@ public class SteelPipelineAdapterTest
     }
 
     [TestMethod]
+    public void KnownFailureInsideAnIncompleteAssessmentIsReportedAsAnError()
+    {
+        // With the web-resistance option N+V2 stays unsupported, so the row is incomplete
+        // (NotEvaluated, as Model requires); the evaluated and failed Shear2 must stay
+        // visible as an error diagnostic, not only inside the metrics.
+        var input = Input(); input.Forces.N = -1e4; input.Forces.V2 = 1e8;
+        var options = Options(); options["HWebResistance"] = "NonRigidEndPost";
+        options["HWebSupportSource"] = "Support stiffeners and attachments independently verified"; Bind(options, input);
+        var result = Run(input, options);
+        Assert.AreEqual(EngineeringOutcome.NotEvaluated, result.Outcome);
+        Assert.IsTrue(result.Details.Metrics.Any(m => m.Passed == false), string.Join("; ", result.Details.Trace.Where(t => t.Key.EndsWith(".Status")).Select(t => t.Key + "=" + t.Expression)));
+        var known = result.Diagnostics.Single(d => d.Code == "SteelPipeline.KnownFailureInIncompleteAssessment");
+        StringAssert.Contains(known.Message, "Shear2");
+        Assert.IsFalse(Run(Input()).Diagnostics.Any(d => d.Code == "SteelPipeline.KnownFailureInIncompleteAssessment"));
+    }
+
+    [TestMethod]
     public void AxialShearFailureIsNowCompletelyEvaluated()
     {
         var input = Input(); input.Forces.N = -1e4; input.Forces.V2 = 1e8;

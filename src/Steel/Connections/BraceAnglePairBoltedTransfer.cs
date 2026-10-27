@@ -281,7 +281,7 @@ namespace GPC.Checkers.Steel.Connections
                 var y = BoltBearing.Verify(new BoltBearingInput(p.Code, first.Bolt, plate, Math.Abs(fy),
                     yEnd, longitudinalEnd, null, pitch, true, edgeBoltY, p.HoleClearanceServiceabilitySource));
                 Append(prefix + "X.", x, checks, trace, issues); Append(prefix + "Y.", y, checks, trace, issues);
-                if (x.Status != ConnectionStatus.NotSupported && y.Status != ConnectionStatus.NotSupported)
+                if (x.IsComplete && y.IsComplete)
                 {
                     double ux = Math.Abs(fx) / x.Checks[0].Resistance, uy = Math.Abs(fy) / y.Checks[0].Resistance;
                     double interaction = ux * ux + uy * uy;
