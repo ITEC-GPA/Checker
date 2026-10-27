@@ -18,7 +18,7 @@ namespace GPC.Checkers.Steel.Connections
         public static WeldedIBeamSpliceSection FromModel(SteelSectionInput section, double topWeldToe, double bottomWeldToe)
         {
             if (section == null) throw new ArgumentNullException(nameof(section));
-            var copy = section.CreateSectionCopy();
+            var copy = section.ReadOnlySection;
             if (copy.SectionShape.GetType() != typeof(SectionH) || copy.SectionType != Section.SectionTypes.Welded)
                 throw new NotSupportedException("An exact welded Model SectionH is required.");
             var h = (SectionH)copy.SectionShape;

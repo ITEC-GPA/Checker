@@ -130,7 +130,7 @@ namespace GPC.Checkers.Steel.Connections
             Require(p.BlockFy <= (double)p.BlockGrade, "BLOCK_FY_EXCEEDS_DECLARED_GRADE");
             Require(d.SourceInput.Section.YieldStrength <= (double)p.ChordGrade
                 && d.SourceInput.Section.UltimateStrength >= d.SourceInput.Section.YieldStrength, "CHORD_MATERIAL_GRADE_INCONSISTENT");
-            var property = d.SourceInput.Section.CreateSectionCopy();
+            var property = d.SourceInput.Section.ReadOnlySection;
             Require(property.FormedType == Section.FormedTypes.HotFinished
                 && (property.SectionType == Section.SectionTypes.Rolled || property.SectionType == Section.SectionTypes.Welded),
                 "COLD_FORMED_OR_UNQUALIFIED_MANUFACTURING_OUTSIDE_SCOPE");

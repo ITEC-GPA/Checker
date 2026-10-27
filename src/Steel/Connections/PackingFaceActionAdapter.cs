@@ -137,7 +137,7 @@ namespace GPC.Checkers.Steel.Connections
             var input = first.SourceInput;
             if (station < faceLength / 2 || (input.Member != null && station + faceLength / 2 > input.Member.Length))
                 throw new ArgumentException("The full packing block must fit within the member station range.");
-            var property = input.Section.CreateSectionCopy();
+            var property = input.Section.ReadOnlySection;
             if (property.SectionShape.GetType() != typeof(SectionBuiltUp)) throw new NotSupportedException("An exact Model SectionBuiltUp is required.");
             var pair = (SectionBuiltUp)property.SectionShape;
             ModelBuiltUpGeometry.Create(pair); // Existing identical shared C/L, reflection/alignment/non-overlap contract.

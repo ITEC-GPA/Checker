@@ -99,7 +99,7 @@ namespace GPC.Checkers.Steel.Pipeline
                 if (!decision.Method.HasValue) throw new InvalidOperationException("A ready decision must name a method.");
                 if (decision.Target == SteelCheckTarget.MemberStability)
                     return SteelMemberAnalysisExecution.Execute(memberAnalysis, decision);
-                var section = input.Section.CreateSectionCopy();
+                var section = input.Section.ReadOnlySection;
                 var a = input.Actions; var s = input.Section; var code = input.Code.SectionCode;
                 SectionResistanceResult result;
                 switch (decision.Method.Value)

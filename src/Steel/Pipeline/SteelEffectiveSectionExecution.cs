@@ -20,7 +20,7 @@ namespace GPC.Checkers.Steel.Pipeline
             var r=SteelEffectiveSectionSolver.Solve(normal,cancellation:cancellation);var s=r.State;
             double utilization=r.Utilization,shearRatio=0,interaction=0;
             if(a.V2!=0) {
-                var section=input.Section.CreateSectionCopy();
+                var section=input.Section.ReadOnlySection;
                 double resistance=assessments.Single().BucklingResistance ?? ModelShearAreas.GetArea2(section,input.Code.SectionCode.Standard)*input.Section.YieldStrength/(Math.Sqrt(3)*input.Code.SectionCode.GammaM0);
                 shearRatio=Math.Abs(a.V2)/resistance;
                 if(shearRatio>.5 && (a.N!=0||a.M2!=0||!section.SectionShape.IsDoubleSymmetric))

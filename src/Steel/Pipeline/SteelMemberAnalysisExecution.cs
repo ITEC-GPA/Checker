@@ -34,7 +34,7 @@ namespace GPC.Checkers.Steel.Pipeline
                     || !Length(member.BucklingLength2, member.Length) || !Length(member.TorsionalBucklingLength, member.Length)
                     || !Fork(member.StartRestraints) || !Fork(member.EndRestraints))
                     return Decision(SteelSelectionStatus.NotSupported, "Member.UniformForkConflict", "Member metadata conflicts with the explicit fork/first-order route and its internal imperfection model.");
-                var section = i.Section.CreateSectionCopy();
+                var section = i.Section.ReadOnlySection;
                 var shape = section.SectionShape;
                 if (section.FormedType == Section.FormedTypes.ColdFormed || Math.Abs(shape.AngleX1) > 1e-10
                     || !(shape.GetType() == typeof(SectionH) && ((SectionH)shape).R == 0 || shape.GetType() == typeof(SectionT) && ((SectionT)shape).R == 0))
@@ -70,7 +70,7 @@ namespace GPC.Checkers.Steel.Pipeline
             Ec3GeneralMethodResult result; double utilization;
             if (analysis.Kind == SteelMemberAnalysisKind.UniformForkHOrT)
             {
-                var r = Ec3MonosymmetricMember.EvaluateUniformFork(i.Section.CreateSectionCopy(), i.Member.Length, i.Actions.N, i.Actions.M1,
+                var r = Ec3MonosymmetricMember.EvaluateUniformFork(i.Section.ReadOnlySection, i.Member.Length, i.Actions.N, i.Actions.M1,
                     analysis.InPlaneCurve, analysis.LateralCurve, analysis.LateralTorsionalCurve,
                     i.Code.SectionCode.GammaM0, i.Code.GammaM1.Value, analysis.ParameterSet);
                 result = r.GeneralMethod; utilization = r.Utilization;

@@ -82,7 +82,7 @@ namespace GPC.Checkers.Steel.Inputs
             var model=result.Demand;var layout=model.Layout;var input=layout.Input;
             if(endConnectionDemand < -input.Actions.N/2)
                 throw new ArgumentException("Terminal connection envelope must include at least each chord's N/2 plus local transfer effects.");
-            var gross=new SteelVerificationInput(new SteelSectionInput(input.Section.CreateSectionCopy(),true),input.Actions,input.Code,input.Member);
+            var gross=new SteelVerificationInput(new SteelSectionInput(input.Section.ReadOnlySection,true),input.Actions,input.Code,input.Member);
             var chord=SteelPackedChordResistance.UniformFork(gross,layout.MaximumPitch,model.ChordCompression,
                 "Supplementary chord compression check between packing centres; integral member method under6.4.4; "+endRestraintSource);
             double tensile=Math.Min(chord.TensionResistance,.9*input.Section.NetArea.Value/2*input.Section.UltimateStrength/input.Code.SectionCode.GammaM2);

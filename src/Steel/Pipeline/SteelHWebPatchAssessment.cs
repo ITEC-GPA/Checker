@@ -74,7 +74,7 @@ namespace GPC.Checkers.Steel.Pipeline
             if(sectionResult==null)throw new ArgumentNullException(nameof(sectionResult));
             SteelInputValidation.Positive(force,nameof(force));
             if(string.IsNullOrWhiteSpace(source))throw new ArgumentException("Same-case patch, restraint and force-transfer qualification required.");
-            var input=sectionResult.Plan.Input; var section=input.Section.CreateSectionCopy();
+            var input=sectionResult.Plan.Input; var section=input.Section.ReadOnlySection;
             if(input.Section.Unperforated!=true||section.SectionShape.GetType()!=typeof(SectionH)
                 ||section.SectionType!=Section.SectionTypes.Welded||SteelMethodSelector.ColdFormedOpen(section)
                 ||Math.Abs(section.AngleX1)>1e-10||input.Actions.M2!=0||input.Actions.V1!=0||input.Actions.T!=0)

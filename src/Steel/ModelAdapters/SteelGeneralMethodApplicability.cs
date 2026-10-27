@@ -14,7 +14,7 @@ namespace GPC.Checkers.Steel.ModelAdapters
         {
             if(input==null)throw new ArgumentNullException(nameof(input));
             if(memberClass<1||memberClass>4)throw new ArgumentOutOfRangeException(nameof(memberClass));
-            var section=input.CreateSectionCopy();var shape=section.SectionShape;var type=shape.GetType();
+            var section=input.ReadOnlySection;var shape=section.SectionShape;var type=shape.GetType();
             bool known=type==typeof(SectionH)||type==typeof(SectionT)||type==typeof(SectionC)
                 ||type==typeof(SectionL)||type==typeof(SectionRHS)||type==typeof(SectionRHSRoundedCorners)||type==typeof(SectionCHS);
             // L's symmetry is diagonal, so it cannot be read from Model's local X/Y flags.

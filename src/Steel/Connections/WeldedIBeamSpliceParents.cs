@@ -105,7 +105,7 @@ namespace GPC.Checkers.Steel.Connections
                 if (p.RightMember != null) Bind(p.RightMember, "Right.Member", true);
                 void Bind(SteelVerificationResult result, string name, bool member)
                 {
-                    var i = result.Plan.Input; var c = i.Section.CreateSectionCopy(); var h = c.SectionShape as SectionH; var s = d.Section;
+                    var i = result.Plan.Input; var c = i.Section.ReadOnlySection; var h = c.SectionShape as SectionH; var s = d.Section;
                     if (c.SectionShape.GetType() != typeof(SectionH) || c.SectionType != Section.SectionTypes.Welded || h == null || h.R != 0)
                         issues.Add(name + ".EXACT_WELDED_I_REQUIRED");
                     else if (h.HeightWeb != s.Web.Width || h.ThicknessWeb != s.Web.Thickness || h.LenghtTopFlange != s.TopFlange.Width

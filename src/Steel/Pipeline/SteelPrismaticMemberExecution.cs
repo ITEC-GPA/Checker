@@ -26,7 +26,7 @@ namespace GPC.Checkers.Steel.Pipeline
             if (compression ? a.N >= 0 : a.M1 == 0)
                 return new SteelMethodDecision(SteelCheckTarget.MemberStability, SteelSelectionStatus.NotRequired, null,
                     "Member.NoActiveDemand", "No compressive force or major-axis moment for this selected mechanism.");
-            var section = i.Section.CreateSectionCopy(); var shape = section.SectionShape;
+            var section = i.Section.ReadOnlySection; var shape = section.SectionShape;
             if (!SteelMethodSelector.KnownGeometry(shape) || SteelMethodSelector.ColdFormedOpen(section))
                 return Unsupported("Member.PrismaticGeometry", "This exact family/manufacturing route is not qualified.");
             if(shape is SectionBuiltUp)
@@ -84,7 +84,7 @@ namespace GPC.Checkers.Steel.Pipeline
 
         internal static SteelCheckExecution Execute(SteelMemberAnalysis analysis, SteelMethodDecision decision)
         {
-            var i = analysis.Input; var section = i.Section.CreateSectionCopy(); var trace = new List<SectionResistanceValue>();
+            var i = analysis.Input; var section = i.Section.ReadOnlySection; var trace = new List<SectionResistanceValue>();
             bool compression = analysis.Kind == SteelMemberAnalysisKind.PrismaticCompression;
             bool ntc = i.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018;
             double fy = i.Section.YieldStrength, gamma = i.Code.GammaM1.Value;

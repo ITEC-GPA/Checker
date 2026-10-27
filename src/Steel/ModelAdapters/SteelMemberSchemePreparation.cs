@@ -173,7 +173,7 @@ namespace GPC.Checkers.Steel.ModelAdapters
             if (section == null) throw new ArgumentNullException(nameof(section));
             if (aboutAxis1 == null || aboutAxis2 == null) throw new ArgumentNullException("span");
             if (section.Unperforated != true) throw new NotSupportedException("Unperforated gross section required.");
-            var s = section.CreateSectionCopy(); SteelMethodSelector.ValidateGeometry(s);
+            var s = section.ReadOnlySection; SteelMethodSelector.ValidateGeometry(s);
             var result = new List<SteelStabilityValue>();
             Add(1, s.J11, aboutAxis1); Add(2, s.J22, aboutAxis2); return Array.AsReadOnly(result.ToArray());
             void Add(int axis, double inertia, SteelIdealFlexuralSpan span)
@@ -195,7 +195,7 @@ namespace GPC.Checkers.Steel.ModelAdapters
             if (section == null || member == null || diagram == null) throw new ArgumentNullException("preparation input");
             if (string.IsNullOrWhiteSpace(restraintSource)) throw new ArgumentException("Complete fork/free-warping model declaration required.");
             if (section.Unperforated != true) throw new NotSupportedException("Unperforated gross section required.");
-            var s = section.CreateSectionCopy(); SteelMethodSelector.ValidateGeometry(s);
+            var s = section.ReadOnlySection; SteelMethodSelector.ValidateGeometry(s);
             if (s.SectionShape.GetType() != typeof(SectionH) || !((SectionH)s.SectionShape).IsDoubleSymmetric
                 || Math.Abs(s.SectionShape.AngleX1) > 1e-10 || SteelMethodSelector.ColdFormedOpen(s))
                 throw new NotSupportedException("Doubly symmetric H with horizontal major principal axis required.");

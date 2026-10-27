@@ -107,7 +107,7 @@ namespace GPC.Checkers.Steel.Connections
                 if (a.V1 != 0 || a.M2 != 0 || a.T != 0) issues.Add("N_MAJOR_MOMENT_AND_WEB_SHEAR_ONLY");
             }
             if (!SameActions(left.Actions, right.Actions)) issues.Add("CONCOMITANT_ACTIONS_MISMATCH");
-            var lm = left.Section.CreateSectionCopy(); var rm = right.Section.CreateSectionCopy();
+            var lm = left.Section.ReadOnlySection; var rm = right.Section.ReadOnlySection;
             var lh = lm.SectionShape as SectionH; var rh = rm.SectionShape as SectionH;
             if (lm.SectionShape.GetType() != typeof(SectionH) || rm.SectionShape.GetType() != typeof(SectionH)
                 || lm.SectionType != Section.SectionTypes.Welded || rm.SectionType != Section.SectionTypes.Welded)

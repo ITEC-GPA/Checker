@@ -144,7 +144,7 @@ namespace GPC.Checkers.Steel.Connections
             Require(first.BoltCount <= 1000, "BOLT_COUNT_OUTSIDE_SCOPE");
             Require(p.GussetNegativeYEdge < p.Gusset.Width, "BOLT_LINE_OUTSIDE_GUSSET");
             Require(p.HardwareEnvelopeDiameter > first.Bolt.HoleDiameter, "HARDWARE_ENVELOPE_MUST_COVER_HOLE");
-            var property = p.Angles.SourceSection.CreateSectionCopy();
+            var property = p.Angles.SourceSection.ReadOnlySection;
             var pair = (SectionBuiltUp)property.SectionShape;
             var angle = (SectionL)pair.Parts[0].Section;
             bool vertical = first.ConnectedLeg == BraceAngleConnectedLeg.Second;

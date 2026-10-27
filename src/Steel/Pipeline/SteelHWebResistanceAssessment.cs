@@ -24,7 +24,7 @@ namespace GPC.Checkers.Steel.Pipeline
             if(input.Section.Unperforated!=true)throw new NotSupportedException("Unperforated web declaration required.");
             if(Math.Abs(input.Section.ElasticModulus-210000)>1e-6||Math.Abs(input.Section.PoissonRatio-.3)>1e-10)
                 throw new NotSupportedException("The 86.4 web slenderness coefficient requires E=210000 MPa and nu=0.3.");
-            var section=input.Section.CreateSectionCopy();SteelMethodSelector.ValidateGeometry(section);
+            var section=input.Section.ReadOnlySection;SteelMethodSelector.ValidateGeometry(section);
             if(section.SectionShape.GetType()!=typeof(SectionH)||Math.Abs(section.AngleX1)>1e-10||SteelMethodSelector.ColdFormedOpen(section))
                 throw new NotSupportedException("Exact H with horizontal principal major axis required for web resistance.");
             bool ntc=input.Code.SectionCode.Standard==SectionResistanceStandard.Ntc2018;

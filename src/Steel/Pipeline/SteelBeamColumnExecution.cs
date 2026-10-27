@@ -26,7 +26,7 @@ namespace GPC.Checkers.Steel.Pipeline
             var i=analysis.Input;var a=i.Actions;var p=analysis.BeamColumnParameters;
             if(a.N>=0)return Unsupported("Member.BeamColumnCompressionRequired","Use the tension/section or pure bending route when no compressive force is present.");
             if(a.T!=0)return Unsupported("Member.BeamColumnTorsion","Applied torque/warping is outside this beam-column method.");
-            var section=i.Section.CreateSectionCopy();
+            var section=i.Section.ReadOnlySection;
             var shape=section.SectionShape;bool hollow=Hollow(shape);
             if(hollow) {
                 if(!shape.IsDoubleSymmetric||p.TorsionSusceptible)
@@ -58,7 +58,7 @@ namespace GPC.Checkers.Steel.Pipeline
         }
         internal static SteelCheckExecution Execute(SteelMemberAnalysis analysis,SteelMethodDecision decision)
         {
-            var i=analysis.Input;var p=analysis.BeamColumnParameters;var section=i.Section.CreateSectionCopy();
+            var i=analysis.Input;var p=analysis.BeamColumnParameters;var section=i.Section.ReadOnlySection;
             var comp=Compression(analysis);var compression=SteelPrismaticMemberExecution.Execute(comp,SteelPrismaticMemberExecution.Select(comp));
             var trace=new List<SectionResistanceValue>(compression.Trace.Where(v=>v.Name!="Resistance"&&v.Name!="Utilization"));
             double Value(string name)=>compression.Trace.Single(v=>v.Name==name).Value;

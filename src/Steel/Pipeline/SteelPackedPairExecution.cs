@@ -14,7 +14,7 @@ namespace GPC.Checkers.Steel.Pipeline
         {
             var p=analysis.PackedPair;
             if(!ReferenceEquals(p.Input,analysis.Input))throw new ArgumentException("Packed-pair assessment belongs to another state.");
-            var shape=analysis.Input.Section.CreateSectionCopy().SectionShape as SectionBuiltUp;
+            var shape=analysis.Input.Section.ReadOnlySection.SectionShape as SectionBuiltUp;
             if(shape==null)throw new NotSupportedException("A packed pair requires a SectionBuiltUp.");
             var g=ModelBuiltUpGeometry.Create(shape);
             if(p.ComputedPacking!=null)
@@ -58,7 +58,7 @@ namespace GPC.Checkers.Steel.Pipeline
         internal static SteelCheckExecution Complete(SteelMemberAnalysis analysis,SteelMethodDecision decision,SteelCheckExecution global)
         {
             var p=analysis.PackedPair;var trace=global.Trace.ToList();
-            var g=ModelBuiltUpGeometry.Create((SectionBuiltUp)analysis.Input.Section.CreateSectionCopy().SectionShape);
+            var g=ModelBuiltUpGeometry.Create((SectionBuiltUp)analysis.Input.Section.ReadOnlySection.SectionShape);
             double compression=p.ChordCompression/p.ChordCompressionResistance;
             double tension=p.ChordTension/p.ChordTensionResistance;
             double connection=p.ConnectionDemand/p.ConnectionResistance;

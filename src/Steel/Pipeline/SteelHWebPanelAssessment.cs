@@ -19,7 +19,7 @@ namespace GPC.Checkers.Steel.Pipeline
             SteelInputValidation.Positive(panelLength,nameof(panelLength));
             if(input.Section.Unperforated!=true||Math.Abs(input.Section.PoissonRatio-.3)>1e-10)
                 throw new NotSupportedException("Unperforated web and nu=.3 required.");
-            var section=input.Section.CreateSectionCopy();SteelMethodSelector.ValidateGeometry(section);
+            var section=input.Section.ReadOnlySection;SteelMethodSelector.ValidateGeometry(section);
             if(section.SectionShape.GetType()!=typeof(SectionH)||Math.Abs(section.AngleX1)>1e-10||SteelMethodSelector.ColdFormedOpen(section))
                 throw new NotSupportedException("Exact H with horizontal principal major axis required.");
             if(input.Member!=null&&panelLength>input.Member.Length)throw new ArgumentException("Panel exceeds physical member length.");

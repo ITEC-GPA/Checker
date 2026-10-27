@@ -11,7 +11,7 @@ namespace GPC.Checkers.Steel.EffectiveSections
         internal static void Qualify(SteelSectionInput input)
         {
             SteelEffectiveSectionSolver.Qualify(input);
-            var shape=input.CreateSectionCopy().SectionShape;var type=shape.GetType();
+            var shape=input.ReadOnlySection.SectionShape;var type=shape.GetType();
             if(!shape.IsDoubleSymmetric || !(type==typeof(SectionH)||type==typeof(SectionRHS)||type==typeof(SectionRHSRoundedCorners)))
                 throw new NotSupportedException("Class4 member route requires doubly symmetric H/RHS. Asymmetric effective-centroid eccentricity needs a separately qualified member interaction.");
         }

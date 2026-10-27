@@ -39,7 +39,7 @@ namespace GPC.Checkers.Steel.EffectiveSections
             if(section.UltimateStrength<section.YieldStrength)throw new ArgumentException("Ultimate strength must not be below yield strength.");
             // Nonconcentric corner geometry can be integrated, but its curved transition
             // does not establish the local plate boundary conditions used by this solver.
-            var shape=section.CreateSectionCopy().SectionShape;
+            var shape=section.ReadOnlySection.SectionShape;
             if(shape is SectionRHSRoundedCorners r&&Math.Abs(r.OutsideRadius-r.InsideRadius-r.Thickness)>1e-8*r.Thickness)
                 throw new NotSupportedException("Class4 rounded RHS currently requires concentric constant-thickness corners.");
             return SteelEffectiveGeometry.Create(section);

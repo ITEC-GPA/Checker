@@ -33,7 +33,7 @@ namespace GPC.Checkers.Steel.ModelAdapters
             if(string.IsNullOrWhiteSpace(modelSource))throw new ArgumentException("Explicit local axial fork model source required.",nameof(modelSource));
             if(pair.Section.Unperforated!=true||pair.Actions.N>=0||compressionEnvelope < -pair.Actions.N/2)
                 throw new ArgumentException("Unperforated compressive pair and a complete envelope at least N/2 required.");
-            var property=pair.Section.CreateSectionCopy();
+            var property=pair.Section.ReadOnlySection;
             if(!(property.SectionShape is SectionBuiltUp shape))throw new NotSupportedException("Identical packed C/L pair required.");
             ModelBuiltUpGeometry.Create(shape);
             var chord=new SteelSection(shape.Parts[0].Section,property.SteelMaterial,property.SectionType,property.FormedType);
