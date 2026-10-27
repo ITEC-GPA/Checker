@@ -89,6 +89,39 @@ namespace GeotechnicsTests
             return result;
         }
 
+        /// <summary>WallGlobalStability.Combinations of GPCChecker.Geotechnics 0.24.0.0 (Checker 4a1b0090), unchanged except the call of the frozen generator.</summary>
+        public static IReadOnlyList<GPC.Checkers.Geotechnics.Slopes.SlopeFactors> Global(WallInput input, WallGlobalSeismic? seismic, bool undrained)
+        {
+            if (input == null) throw new ArgumentNullException(nameof(input));
+            var plain = new WallInput(input.Family, input.Geometry, input.UnitWeight, input.Backfill, input.Foundation, input.Valley, input.Back, input.Base, input.Water, input.Actions, null, input.ReinforcementSplit);
+            var ordinary = Generate(plain);
+            var result = new List<GPC.Checkers.Geotechnics.Slopes.SlopeFactors>(); var seen = new HashSet<string>();
+            void Add(string label, IReadOnlyDictionary<string, double> coefficients, double mphi, double mc, double mcu, double r, double kh = 0, double kv = 0, string state = "")
+            {
+                var factors = input.Actions.ToDictionary(a => a.Id, a => coefficients.TryGetValue(a.Id, out double f) ? f : 0);
+                string signature = state + "/" + R(kh) + "/" + R(kv) + "/" + string.Join(",", input.Actions.Select(a => R(factors[a.Id])));
+                if (!seen.Add(signature)) return;
+                if (result.Count >= 256) throw new ArgumentException("Oltre 256 combinazioni globali: raggruppare le azioni correlate.");
+                result.Add(new GPC.Checkers.Geotechnics.Slopes.SlopeFactors(label + " " + (result.Count + 1), 1, 1, mphi, mc, mcu, r, kh, kv, undrained, factors));
+            }
+            foreach (var row in ordinary.Where(c => c.State == WallLimitState.Ultimate || c.State == WallLimitState.Exceptional))
+            {
+                bool statics = row.State == WallLimitState.Ultimate;
+                var coefficients = row.Coefficients.ToDictionary(p => p.Key, p => p.Value);
+                if (statics)
+                    foreach (var a in input.Actions)
+                        coefficients[a.Id] = !a.Enabled ? 0 : a.Category == WallActionCategory.G1 ? 1 : coefficients[a.Id] * 1.3 / 1.5;
+                Add(statics ? "Globale A2–M2–R2" : "Globale eccezionale", coefficients, statics ? 1.25 : 1, statics ? 1.25 : 1, statics ? 1.4 : 1, statics ? 1.1 : 1, state: statics ? "SLU" : "ECCEZIONALE");
+            }
+            if (seismic != null)
+            {
+                var quasi = ordinary.First(c => c.State == WallLimitState.QuasiPermanent).Coefficients;
+                foreach (double sign in new[] { -seismic.Kv, seismic.Kv }.Distinct())
+                    Add("Globale SLV kv" + (sign < 0 ? "−" : "+"), quasi, 1, 1, 1, 1.2, seismic.Kh, sign, "SISMA");
+            }
+            return result;
+        }
+
         private static string R(double v) => v.ToString("R", CultureInfo.InvariantCulture);
     }
 }

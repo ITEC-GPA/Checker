@@ -1,6 +1,7 @@
 using GPC.Checkers.Geotechnics.Seismic;
 using GPC.Checkers.Geotechnics.Slopes;
 using GPC.Model.Geotechnics;
+using GPC.Model.Standards;
 
 namespace GPC.Checkers.Geotechnics.Walls
 {
@@ -68,11 +69,18 @@ namespace GPC.Checkers.Geotechnics.Walls
         /// <summary>
         /// Combinations of the global stability from the ordinary ones of the wall (without the seismic action): every ULS with the factors of the actions
         /// of A2 (G1 1, the others × 1.3/1.5) and M2, γR 1.1; every accidental combination with unit factors; with the seismic action, the quasi
-        /// permanent actions with ±kv and γR 1.2. Identical rows are merged; at most 256.
+        /// permanent actions with ±kv and γR 1.2. Identical rows are merged; at most 256. A2, M2 and γR (R2) are those of NTC 2018 in Model
+        /// (<see cref="StandardNTC2018Geotechnics"/>, §6.8.2 and §7.11.4; ANTHEA 1.14.4, combinations in Model, step 2); the factors of the actions
+        /// keep the rule A1 × γQ,A2/γQ,A1 of the rows of the wall (census risk R2: the same digits as before).
         /// </summary>
         public static IReadOnlyList<SlopeFactors> Combinations(WallInput input, WallGlobalSeismic? seismic, bool undrained)
         {
             if (input == null) throw new ArgumentNullException(nameof(input));
+            var standard = new StandardNTC2018Geotechnics();
+            var a1 = standard.Combinations(GeotechnicalCheck.RetainingWallSliding, GeotechnicalSituation.PersistentTransient).Single().Actions;
+            var global = standard.Combinations(GeotechnicalCheck.GlobalStability, GeotechnicalSituation.PersistentTransient).Single();
+            var a2 = global.Actions; var m2 = global.Materials;
+            double seismicResistance = standard.Combinations(GeotechnicalCheck.GlobalStability, GeotechnicalSituation.Seismic).Single().ResistanceFactor;
             var plain = new WallInput(input.Family, input.Geometry, input.UnitWeight, input.Backfill, input.Foundation, input.Valley, input.Back, input.Base, input.Water, input.Actions, null, input.ReinforcementSplit);
             var ordinary = WallCombinations.Generate(plain);
             var result = new List<SlopeFactors>(); var seen = new HashSet<string>();
@@ -90,14 +98,15 @@ namespace GPC.Checkers.Geotechnics.Walls
                 var coefficients = row.Coefficients.ToDictionary(p => p.Key, p => p.Value);
                 if (statics)
                     foreach (var a in input.Actions)
-                        coefficients[a.Id] = !a.Enabled ? 0 : a.Category == WallActionCategory.G1 ? 1 : coefficients[a.Id] * 1.3 / 1.5;
-                Add(statics ? "Globale A2–M2–R2" : "Globale eccezionale", coefficients, statics ? 1.25 : 1, statics ? 1.25 : 1, statics ? 1.4 : 1, statics ? 1.1 : 1, state: statics ? "SLU" : "ECCEZIONALE");
+                        coefficients[a.Id] = !a.Enabled ? 0 : a.Category == WallActionCategory.G1 ? a2.PermanentUnfavourable : coefficients[a.Id] * a2.VariableUnfavourable / a1.VariableUnfavourable;
+                Add(statics ? "Globale A2–M2–R2" : "Globale eccezionale", coefficients, statics ? m2.TanFrictionAngle : 1, statics ? m2.EffectiveCohesion : 1,
+                    statics ? m2.UndrainedShearStrength : 1, statics ? global.ResistanceFactor : 1, state: statics ? "SLU" : "ECCEZIONALE");
             }
             if (seismic != null)
             {
                 var quasi = ordinary.First(c => c.State == WallLimitState.QuasiPermanent).Coefficients;
                 foreach (double sign in new[] { -seismic.Kv, seismic.Kv }.Distinct())
-                    Add("Globale SLV kv" + (sign < 0 ? "−" : "+"), quasi, 1, 1, 1, 1.2, seismic.Kh, sign, "SISMA");
+                    Add("Globale SLV kv" + (sign < 0 ? "−" : "+"), quasi, 1, 1, 1, seismicResistance, seismic.Kh, sign, "SISMA");
             }
             return result;
         }

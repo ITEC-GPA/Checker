@@ -91,20 +91,20 @@ public class WallCombinationsEquivalenceTests
         Assert.IsTrue(tally.Inputs > 200 && tally.Rows > 3000, $"{tally.Inputs} documents, {tally.Rows} rows");
     }
 
-    [TestMethod]
-    public void RandomWallsGiveTheSameRows()
+    /// <summary>Walls drawn with a fixed seed: up to 9 actions of every nature and type, groups, ψ, disabled actions, heel, valley, water, seismic.</summary>
+    static IEnumerable<WallInput> RandomWalls(int count)
     {
-        var random = new Random(20261027); var tally = new Tally();
+        var random = new Random(20261027);
         var categories = new[] { WallActionCategory.G1, WallActionCategory.G2, WallActionCategory.Q, WallActionCategory.Q, WallActionCategory.Q, WallActionCategory.A };
         var types = new[] { WallActionType.UniformSurcharge, WallActionType.UniformSurcharge, WallActionType.HorizontalForce, WallActionType.VerticalForce, WallActionType.Moment, WallActionType.LateralPressure };
         var psi = new[] { 0, .2, .3, .5, .6, .7, .8, 1 };
         var site = NtcSiteAmplification.Create(.15, (NtcSoilCategory.C, 2.5), null, (NtcTopography.Flat, 0, 0, 0), null);
         var strong = NtcSiteAmplification.Create(.5, (NtcSoilCategory.B, 2.5), null, (NtcTopography.Flat, 0, 0, 0), null);
-        for (int n = 0; n < 3000; n++)
+        for (int n = 0; n < count; n++)
         {
-            int count = random.Next(0, 10); var actions = new List<WallAction>();
+            int actionCount = random.Next(0, 10); var actions = new List<WallAction>();
             var groupPsi = new Dictionary<string, (double, double, double)>();
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < actionCount; i++)
             {
                 var category = categories[random.Next(categories.Length)];
                 var type = category == WallActionCategory.A ? (random.Next(2) == 0 ? WallActionType.Impact : WallActionType.HorizontalForce) : types[random.Next(types.Length)];
@@ -127,9 +127,15 @@ public class WallCombinationsEquivalenceTests
                 3 => random.Next(4) == 0 ? WallSeismic.FromSite(WallSeismicMethod.Wood, strong) : null,
                 _ => null
             };
-            var input = heel ? Wall(valley: valley, water: water, actions: actions, seismic: seismic) : Wall(toe: 2.7, heel: 0, valley: valley, water: water, actions: actions, seismic: seismic);
-            Compare(input, "random " + n, tally);
+            yield return heel ? Wall(valley: valley, water: water, actions: actions, seismic: seismic) : Wall(toe: 2.7, heel: 0, valley: valley, water: water, actions: actions, seismic: seismic);
         }
+    }
+
+    [TestMethod]
+    public void RandomWallsGiveTheSameRows()
+    {
+        var tally = new Tally(); int n = 0;
+        foreach (var input in RandomWalls(3000)) Compare(input, "random " + n++, tally);
         // The two limits of the rows: more than 12 factors before the generation, more than 4096 rows during it.
         var limits = new List<WallAction> { Surcharge(10) };
         for (int i = 0; i < 7; i++) limits.Add(new WallAction("g" + i, "G " + i, WallActionType.HorizontalForce, WallActionCategory.G1, 10, 2000));
@@ -141,5 +147,46 @@ public class WallCombinationsEquivalenceTests
         Assert.IsTrue(tally.Declared > 0, "declared refusals exercised");
         foreach (string refusal in new[] { "Oltre 4096", "Generazione troppo estesa", "Sisma Generale" })
             Assert.IsTrue(tally.Refusals.Keys.Any(k => k.Contains(refusal)), "refusal exercised: " + refusal);
+    }
+
+    /// <summary>The combinations of the global stability as text with the bits of every double, or the refusal.</summary>
+    static string GlobalOutcome(Func<IReadOnlyList<GPC.Checkers.Geotechnics.Slopes.SlopeFactors>> generate, WallInput input)
+    {
+        IReadOnlyList<GPC.Checkers.Geotechnics.Slopes.SlopeFactors> rows;
+        try { rows = generate(); }
+        catch (Exception e) { return "ERR " + e.GetType().FullName + " " + e.Message; }
+        static string B(double v) => BitConverter.DoubleToInt64Bits(v).ToString("X16");
+        var text = new StringBuilder();
+        foreach (var r in rows)
+        {
+            text.Append(r.Name).Append('|').Append(r.Undrained);
+            foreach (double v in new[] { r.SoilWeight, r.BodyWeight, r.TanFrictionAngle, r.EffectiveCohesion, r.UndrainedShearStrength, r.ResistanceFactor, r.Kh, r.Kv }) text.Append('|').Append(B(v));
+            text.Append('|').Append(r.Loads.Count);
+            foreach (var a in input.Actions) text.Append('|').Append(a.Id).Append('=').Append(B(r.Loads[a.Id]));
+            text.Append('\n');
+        }
+        return text.ToString();
+    }
+
+    /// <summary>
+    /// Step 2 of the census: A2, M2 and γR of the global stability of the wall come from Model; the combinations are those of the frozen code bit
+    /// for bit, static, accidental and seismic (assigned ±kv), drained and undrained, on the same walls.
+    /// </summary>
+    [TestMethod]
+    public void GlobalCombinationsAreTheSame()
+    {
+        int compared = 0, rows = 0, refused = 0, declared = 0, n = 0;
+        foreach (var input in RandomWalls(1500))
+        {
+            var seismic = (n % 3) switch { 0 => null, 1 => WallGlobalSeismic.Assigned(.1, .05), _ => WallGlobalSeismic.Assigned(.08, 0) };
+            bool undrained = n % 2 == 0; string id = "random " + n++;
+            string adapter = GlobalOutcome(() => WallGlobalStability.Combinations(input, seismic, undrained), input);
+            if (Declared(input)) { Assert.IsTrue(adapter.StartsWith("ERR System.Argument"), id + ": declared refusal expected"); declared++; continue; }
+            string frozen = GlobalOutcome(() => FrozenWallCombinations.Global(input, seismic, undrained), input);
+            Assert.AreEqual(frozen, adapter, id);
+            compared++; if (frozen.StartsWith("ERR ")) refused++; else rows += frozen.Count(c => c == '\n');
+        }
+        TestContext.WriteLine($"{compared} walls, {rows} global rows identical, {refused} identical refusals, {declared} declared refusals");
+        Assert.IsTrue(rows > 10000 && refused > 0, $"{rows} rows, {refused} refusals");
     }
 }
