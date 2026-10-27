@@ -51,6 +51,7 @@ namespace GPC.Checkers.Steel.Connections
             var f = WeldedIBeamSpliceForces.Calculate(p.Detail); var d = p.Detail;
             var issues = new List<string>(f.Diagnostics); var trace = new List<SectionResistanceValue>(f.Trace);
             var checks = new List<ConnectionCheck>();
+            var bearings = new Dictionary<(ConnectionPlate, ConnectionBolt, double, double, double?, double?, bool, bool), ConnectionVerification<BoltBearingInput>>();
             if (string.IsNullOrWhiteSpace(p.UltimateCombinationSource)) issues.Add("ULTIMATE_COMBINATION_SOURCE_REQUIRED");
             if (p.FlangeHardwareDiameter < p.FlangeBolt.HoleDiameter || p.WebHardwareDiameter < p.WebBolt.HoleDiameter)
                 issues.Add("HARDWARE_ENVELOPE_MUST_COVER_HOLE");
@@ -77,17 +78,27 @@ namespace GPC.Checkers.Steel.Connections
                     trace.Add(new SectionResistanceValue(g.Side + "." + g.Cover + ".ConservativeJointLength", jointLength, "mm"));
                     trace.Add(new SectionResistanceValue(g.Side + "." + g.Cover + ".PackingThicknessForShear", d.Packing.ThickerFace(g.Cover), "mm"));
                     trace.Add(new SectionResistanceValue(g.Side + "." + g.Cover + ".GripThickness", d.Packing.Grip(d, g.Cover), "mm"));
+                    // Fv,Rd depends on the bolt, joint length and packing of the group, not on the demand:
+                    // evaluate it once per group. With diagnostics keep the per-bolt path and its messages.
+                    var groupStrength = BoltStrength.Verify(new BoltStrengthInput(p.Code, bolt, 0, 0, 1,
+                        jointLength, d.Packing.ThickerFace(g.Cover), p.HoleClearanceServiceabilitySource));
+                    var groupShear = groupStrength.IsComplete ? groupStrength.Checks.Single(c => c.Id == "Bolt.Shear") : null;
                     foreach (var force in g.Distribution.Forces)
                     {
                         string id = g.Side + "." + g.Cover + ".Bolt" + force.Index;
                         // One check per physical shear plane: unequal/opposite forces are not replaced by half of the resultant.
-                        var strength = BoltStrength.Verify(new BoltStrengthInput(p.Code, bolt, force.Shear, 0, 1,
-                            jointLength, d.Packing.ThickerFace(g.Cover), p.HoleClearanceServiceabilitySource));
-                        foreach (string issue in strength.Diagnostics) issues.Add(id + ":" + issue);
-                        if (strength.IsComplete)
+                        if (groupShear != null)
+                            checks.Add(new ConnectionCheck(id + ".ShearPlane", force.Shear, groupShear.Resistance, groupShear.Reference));
+                        else
                         {
-                            var shear = strength.Checks.Single(c => c.Id == "Bolt.Shear");
-                            checks.Add(new ConnectionCheck(id + ".ShearPlane", shear.Demand, shear.Resistance, shear.Reference));
+                            var strength = BoltStrength.Verify(new BoltStrengthInput(p.Code, bolt, force.Shear, 0, 1,
+                                jointLength, d.Packing.ThickerFace(g.Cover), p.HoleClearanceServiceabilitySource));
+                            foreach (string issue in strength.Diagnostics) issues.Add(id + ":" + issue);
+                            if (strength.IsComplete)
+                            {
+                                var shear = strength.Checks.Single(c => c.Id == "Bolt.Shear");
+                                checks.Add(new ConnectionCheck(id + ".ShearPlane", shear.Demand, shear.Resistance, shear.Reference));
+                            }
                         }
                         Bearing(g.Plate, bolt, grid, across, halfLength - Math.Abs(force.Position.X),
                             Math.Min(force.Position.Y - g.TransverseMinimum, g.TransverseMaximum - force.Position.Y),
@@ -150,8 +161,11 @@ namespace GPC.Checkers.Steel.Connections
                     foreach (bool endBolt in alongCount > 1 ? new[] { true, false } : new[] { true })
                     foreach (bool edgeBolt in acrossCount > 2 ? new[] { true, false } : new[] { true })
                     {
-                        var r = BoltBearing.Verify(new BoltBearingInput(p.Code, bolt, plate, 0, e1, e2, p1, p2,
-                            endBolt, edgeBolt, p.HoleClearanceServiceabilitySource));
+                        // Same ply, bolt, distances and pitches give the same resistance: evaluate once per call.
+                        var memo = (plate, bolt, e1, e2, p1, p2, endBolt, edgeBolt);
+                        if (!bearings.TryGetValue(memo, out var r))
+                            bearings.Add(memo, r = BoltBearing.Verify(new BoltBearingInput(p.Code, bolt, plate, 0, e1, e2, p1, p2,
+                                endBolt, edgeBolt, p.HoleClearanceServiceabilitySource)));
                         foreach (string issue in r.Diagnostics) issues.Add(id + ":" + issue);
                         if (!r.IsComplete) return 0;
                         resistance = Math.Min(resistance, r.Checks.Single().Resistance);

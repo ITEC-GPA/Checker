@@ -214,10 +214,11 @@ namespace GPC.Checkers.Steel.Connections
                 double sign = side == SpliceSide.Left ? 1 : -1;
                 AddFlange(side, sign, true, p.Top, s.TopFlange, s.TopY);
                 AddFlange(side, sign, false, p.Bottom, s.BottomFlange, s.BottomY);
+                // The two identical web covers share half of the web actions: one distribution for both faces.
+                var d = ElasticBoltGroup.Calculate(p.WebBolts.Points(side),
+                    new PlanarConnectionActions(sign * webN / 2, sign * a.Fy / 2, 0, 0, 0, sign * webM / 2));
                 foreach (int face in new[] { -1, 1 })
                 {
-                    var d = ElasticBoltGroup.Calculate(p.WebBolts.Points(side),
-                        new PlanarConnectionActions(sign * webN / 2, sign * a.Fy / 2, 0, 0, 0, sign * webM / 2));
                     Add(side, face < 0 ? WeldedSpliceCover.WebNegative : WeldedSpliceCover.WebPositive,
                         p.EachWebCover, s.WebY, face * ((s.Web.Thickness + p.EachWebCover.Thickness) / 2 + p.Packing.EachWeb),
                         -p.EachWebCover.Width / 2, p.EachWebCover.Width / 2, d);
