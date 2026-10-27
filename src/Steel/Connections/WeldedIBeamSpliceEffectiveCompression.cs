@@ -10,10 +10,15 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Explicit alternative to the class1-3 compression screen. Normal filled
     /// holes, same physical fastener layout, EC Table3.3 inter-fastener strip and
     /// outstand requirements. Effective widths use the shared Steel/bridge kernel.
-    /// Locally class4 compression with concomitant shear remains outside this method.</summary>
+    /// The explicit low-shear overload extends the default zero-shear contract within a bounded domain.</summary>
     public static class WeldedIBeamSpliceEffectiveCompression
     {
         public static ConnectionVerification<WeldedIBeamSpliceDetailInput> Verify(WeldedIBeamSpliceDetailInput p)
+            => Verify(p, false);
+
+        /// <summary>Opt-in low-shear class4 extension. Keeps the default zero-shear
+        /// contract. No free-panel buckling or high-shear interaction is inferred.</summary>
+        public static ConnectionVerification<WeldedIBeamSpliceDetailInput> Verify(WeldedIBeamSpliceDetailInput p, bool allowLowShear)
         {
             if (p == null) throw new ArgumentNullException(nameof(p));
             var code = p.Plates.Policy.Code; var d = p.Plates.Bolts.Detail;
@@ -60,7 +65,8 @@ namespace GPC.Checkers.Steel.Connections
                 if (!reduced)
                     foreach (var check in cover.LongitudinalCompression.Checks.Where(x => x.Id.EndsWith(".CompressionShearBending", StringComparison.Ordinal)))
                         checks.Add(new ConnectionCheck(name + "." + check.Id, check.Demand, check.Resistance, check.Reference, check.Unit));
-                if (reduced && cover.Cuts.Any(c => c.V != 0))
+                bool reducedWithShear = reduced && cover.Cuts.Any(c => c.V != 0);
+                if (reducedWithShear && !allowLowShear)
                     issues.Add(name + ".CLASS4_COMPRESSION_WITH_SHEAR_REQUIRES_INTERACTION");
                 var effective = Properties(bands, plate.Thickness);
                 // Deduct only the intersection of each real hole with retained steel.
@@ -71,6 +77,24 @@ namespace GPC.Checkers.Steel.Connections
                 if (!(effective.Area > 0 && effective.Inertia > 0 && net.Area > 0 && net.Inertia > 0)
                     || !Finite(effective.Area + effective.Inertia + net.Area + net.Inertia))
                 { issues.Add(name + ".INVALID_EFFECTIVE_NET_SECTION"); continue; }
+                if (reducedWithShear && allowLowShear)
+                {
+                    // EN1993-1-5 7.1(1): low shear does not reduce normal resistance.
+                    // Do not infer restraint from bolt pitch for shear buckling. The
+                    // existing whole-width exclusion is mandatory here, even standalone.
+                    double slenderness = plate.Width / plate.Thickness;
+                    double slendernessLimit = 60 * Math.Sqrt(235 / plate.Fy);
+                    double shearResistance = Math.Min(a * plate.Fy / (1.27 * Math.Sqrt(3) * code.Plates.GammaM0),
+                        net.Area * Math.Min(plate.Fy / code.Plates.GammaM0, plate.Fu / code.Plates.GammaM2) / (1.5 * Math.Sqrt(3)));
+                    double maximumShear = cover.Cuts.Max(c => Math.Abs(c.V));
+                    Value(name + ".LowShear.WholeWidthThicknessRatio", slenderness, "1");
+                    Value(name + ".LowShear.WholeWidthLimit", slendernessLimit, "1");
+                    Value(name + ".LowShear.ConservativeShearResistance", shearResistance, "N");
+                    Value(name + ".LowShear.MaximumDemand", maximumShear, "N");
+                    Value(name + ".LowShear.AdmittedLimit", .5 * shearResistance, "N");
+                    if (slenderness > slendernessLimit) issues.Add(name + ".CLASS4_SHEAR_BUCKLING_NOT_EXCLUDED");
+                    if (maximumShear > .5 * shearResistance) issues.Add(name + ".CLASS4_SHEAR_EXCEEDS_HALF_RESISTANCE");
+                }
                 double pitch = grid.MaximumLongitudinalGap, length = .6 * pitch;
                 double q = effective.Area / a;
                 double lambdaGross = length * Math.Sqrt(12 * plate.Fy / p.Plates.Policy.ElasticModulus) / (Math.PI * plate.Thickness);
@@ -116,13 +140,15 @@ namespace GPC.Checkers.Steel.Connections
             return new ConnectionVerification<WeldedIBeamSpliceDetailInput>(p, code,
                 "Steel.Connection.WeldedIBeamSplice.EffectiveCompression",
                 "Effective outstand/internal widths and inter-fastener compression of normal-hole bolted covers. "
-                + "Locally class4 compression is admitted only at exactly zero shear in every cut. The separate shear-buckling screen, detailing, bolts, blocks and parent checks remain mandatory.",
+                + (allowLowShear ? "Locally class4 compression admits shear <= half a conservative resistance on the effective net area, only with whole-width shear-buckling exclusion (EN1993-1-5 7.1(1)). " : "Locally class4 compression is admitted only at exactly zero shear in every cut. ")
+                + "The separate shear-buckling screen, detailing, bolts, blocks and parent checks remain mandatory.",
                 checks, trace, issues.Distinct(), new[] {
                     "Reuses the common Steel/CompositeBridge EN1993-1-5 kernel; no second effective-width formula. Every compressed cover uses uniform compression at fy, even for a stress gradient: favourable tension zones are not credited.",
                     "Table3.3 note2 refers outstand buckling to EN1993-1-1. Longitudinal fastener lines delimit the same outstands/internal elements as the previous class3 screen; full standard pitch and geometry checks remain mandatory.",
                     "Normal holes are filled by the physical fasteners. Gross area/inertia determine Ncr; Aeff determines class4 slenderness and compressive stress. Net fracture additionally deducts holes from the retained intervals, with no double subtraction.",
                     "All cuts are transported to the effective centroid. Gross bounding edges and maximum compressive stress give a conservative strip demand; no plastic redistribution is used.",
-                    "This is not a general buckling model for plates with empty cut-outs, shear-buckling-sensitive free plates or simultaneous class4 compression and shear."
+                    "The low-shear extension uses a stricter nominal shear resistance: effective net area, peak elastic factor1.5, min(fy/gammaM0,fu/gammaM2), bounded by the existing gross resistance. Combined effective-net elastic stress is still checked, with no plastic redistribution or use of gross area to hide removed material.",
+                    "This is not a general buckling model for plates with empty cut-outs, shear-buckling-sensitive free plates or class4 at high shear. The opt-in method uses EN1993-1-5 7.1(1) as an explicit supplementary design rule under NTC2018 as well, retaining its factors."
                 });
             void Value(string id, double x, string unit)
             { if (Finite(x)) trace.Add(new SectionResistanceValue(id, x, unit)); else issues.Add(id + ".NUMERIC_RANGE"); }

@@ -21,7 +21,10 @@ namespace GPC.Checkers.Steel.Connections
         EffectiveCompression,
         /// <summary>SCI P398 conventional flat bolted covers with regular close fasteners,
         /// class1-3 inter-fastener strips/outstands and all N-M-V checks. Not free-panel postbuckling.</summary>
-        StandardBoltedCovers
+        StandardBoltedCovers,
+        /// <summary>Effective compression plus concomitant shear up to half the
+        /// conservatively bounded shear resistance; whole-width shear buckling excluded.</summary>
+        EffectiveCompressionWithLowShear
     }
 
     public enum SpliceBlockVerificationMethod { FastenerHierarchy, ActualCollinearForcesWithHierarchyFallback }
@@ -69,8 +72,8 @@ namespace GPC.Checkers.Steel.Connections
         public ConnectionVerification<WeldedIBeamSpliceDetailInput> EffectiveCompression { get; }
         internal WeldedSpliceStandardCaseResult(WeldedSpliceStandardCase input, WeldedSpliceUltimateCaseResult components, SpliceBlockVerificationMethod blockMethod, SpliceFlangeFaceModel faceModel, SplicePlateStabilityMethod plateStability)
         {
-            EffectiveCompression = plateStability == SplicePlateStabilityMethod.EffectiveCompression
-                ? WeldedIBeamSpliceEffectiveCompression.Verify(input.Parents.Detail) : null;
+            EffectiveCompression = (plateStability == SplicePlateStabilityMethod.EffectiveCompression || plateStability == SplicePlateStabilityMethod.EffectiveCompressionWithLowShear)
+                ? WeldedIBeamSpliceEffectiveCompression.Verify(input.Parents.Detail, plateStability == SplicePlateStabilityMethod.EffectiveCompressionWithLowShear) : null;
             Input = input; Components = components; Model = WeldedIBeamSpliceStandardModel.Verify(input.Parents.Detail, faceModel);
             AdditionalPlates = WeldedIBeamSpliceStandardPlates.Verify(input.Parents.Detail, blockMethod == SpliceBlockVerificationMethod.ActualCollinearForcesWithHierarchyFallback, faceModel, plateStability); Parents = WeldedIBeamSpliceParents.Verify(input.Parents);
         }
