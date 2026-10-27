@@ -14,7 +14,8 @@ https://sections.arcelormittal.com/repo/Sections/Steel%20Research%20Reports/5_CO
 Dominio volutamente piu ristretto: b/t <= 60 sqrt(235/fy) sull'intera larghezza;
 non si inventano vincoli continui tra bulloni. Per ciascuna piastra ridotta:
 R=min[Ag fy/(1.27 sqrt(3) gammaM0),
-      Aeff,net min(fy/gammaM0,fu/gammaM2)/(1.5 sqrt(3))].
+      Aeff,net min(fy/gammaM0,fu/gammaM2)/(1.5 sqrt(3)),
+      Ag fy/(sqrt(3) gammaM1)].
 Ogni taglio fisico deve avere |V| <= R/2. Aeff e i fori provengono dal medesimo
 kernel di larghezze efficaci Steel/CompositeBridge, senza sottrazioni doppie.
 Questa definizione di R e un limite conservativo supplementare del software,

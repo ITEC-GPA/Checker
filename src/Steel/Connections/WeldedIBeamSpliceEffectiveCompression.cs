@@ -90,6 +90,11 @@ namespace GPC.Checkers.Steel.Connections
                     double slendernessLimit = 60 * Math.Sqrt(235 / plate.Fy);
                     double shearResistance = Math.Min(a * plate.Fy / (1.27 * Math.Sqrt(3) * code.Plates.GammaM0),
                         net.Area * Math.Min(plate.Fy / code.Plates.GammaM0, plate.Fu / code.Plates.GammaM2) / (1.5 * Math.Sqrt(3)));
+                    // Also bound eta=1 web shear resistance with the separately selected
+                    // gammaM1. User EC parameter sets need not have gammaM1=gammaM0.
+                    double shearBucklingReference = a * plate.Fy / (Math.Sqrt(3) * p.Plates.Policy.GammaM1);
+                    shearResistance = Math.Min(shearResistance, shearBucklingReference);
+                    Value(name + ".LowShear.ShearBucklingReferenceResistance", shearBucklingReference, "N");
                     double maximumShear = cover.Cuts.Max(c => Math.Abs(c.V));
                     Value(name + ".LowShear.WholeWidthThicknessRatio", slenderness, "1");
                     Value(name + ".LowShear.WholeWidthLimit", slendernessLimit, "1");

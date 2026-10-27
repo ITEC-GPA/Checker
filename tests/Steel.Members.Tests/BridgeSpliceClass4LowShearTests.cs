@@ -74,6 +74,18 @@ public class BridgeSpliceClass4LowShearTests
         var r=WeldedIBeamSpliceEffectiveCompression.Verify(Input(v:v),true);
         Assert.AreEqual(!supported,r.Diagnostics.Any(x=>x.EndsWith("CLASS4_SHEAR_EXCEEDS_HALF_RESISTANCE")));
     }
+    [TestMethod]
+    public void IndependentGammaM1CannotBeBypassedByTheGrossShearGammaM0()
+    {
+        var p=Input(v:100000);
+        p=new(new(IBeamSplicePlatePolicy.Eurocode3(p.Plates.Policy.Code,4),p.Plates.Bolts),p.Exposure);
+        var r=WeldedIBeamSpliceEffectiveCompression.Verify(p,true);
+        double bound=280d*6*355/(Math.Sqrt(3)*4);
+        Near(bound,Trace(r,"LowShear.ConservativeShearResistance"));
+        Near(bound,Trace(r,"LowShear.ShearBucklingReferenceResistance"));
+        Assert.AreEqual(ConnectionStatus.NotSupported,r.Status);
+        Assert.IsTrue(r.Diagnostics.Any(x=>x.EndsWith("CLASS4_SHEAR_EXCEEDS_HALF_RESISTANCE")));
+    }
     static void Near(double a,double b)=>Assert.AreEqual(a,b,Math.Max(1e-8,Math.Abs(a)*1e-10));
 }
 
