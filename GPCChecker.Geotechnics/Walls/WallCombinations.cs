@@ -1,4 +1,6 @@
 using System.Globalization;
+using GPC.Model.Design.Combinations;
+using GPC.Model.Standards;
 
 namespace GPC.Checkers.Geotechnics.Walls
 {
@@ -18,6 +20,13 @@ namespace GPC.Checkers.Geotechnics.Walls
     /// accidental combinations, NTC 2018 §2.5.3). Both rows enter every check (sliding, overturning, bearing, contact) and the internal forces of
     /// the heel. The numbers of the other rows do not change.
     /// </para>
+    /// <para>
+    /// The rows come from the generator of Model (<see cref="GeotechnicalCombinations"/>, ANTHEA 1.14.4: «vorrei però che le combo venissero fatte
+    /// tutte in model»), with A1 and the γR of <see cref="StandardNTC2018Geotechnics"/>; the wall, the fill and the water are bodies of the pattern,
+    /// the valley soil a body that doubles every ULS row. This adapter keeps the names, the twins, the seismic coefficients and the limit of the
+    /// rows, and declares the choices of the walls that differ from the standard: G2 favourable 0 instead of 0.8 (set «A1 muri»), the static γR in
+    /// the rows with assigned kh and kv, the passive in front only in the ULS. The previous generator is the frozen reference of the tests.
+    /// </para>
     /// </summary>
     public static class WallCombinations
     {
@@ -26,80 +35,96 @@ namespace GPC.Checkers.Geotechnics.Walls
             if (input == null) throw new ArgumentNullException(nameof(input));
             var actions = input.Actions.Where(x => x.Enabled).ToArray();
             var groups = actions.GroupBy(x => x.Key).ToArray();
-            var vars = groups.Where(gr => gr.First().Category == WallActionCategory.Q).ToArray();
-            var permanent = groups.Where(gr => gr.First().Category == WallActionCategory.G1 || gr.First().Category == WallActionCategory.G2).ToArray();
-            var result = new List<WallCombination>(); var seen = new HashSet<string>(); int number = 0;
+            if (groups.Any(gr => gr.Select(x => x.Category).Distinct().Count() > 1))
+                throw new ArgumentException("Azioni correlate dello stesso gruppo: natura e coefficienti ψ devono coincidere.");
+            int vars = groups.Count(gr => gr.First().Category == WallActionCategory.Q);
+            int permanent = groups.Count(gr => gr.First().Category == WallActionCategory.G1 || gr.First().Category == WallActionCategory.G2);
             bool valley = input.Valley.Height > 0, water = input.Water != null, heel = input.Geometry.Heel > 0;
-            void Add(WallLimitState state, string label, double wall, double soil, double waterFactor, Dictionary<string, double> factors, double kh = 0, double kv = 0, WallSeismicPurpose purpose = WallSeismicPurpose.None)
+            int bits = vars + permanent + 2 + (water ? 1 : 0);
+            if (bits > 12 || (1L << bits) * Math.Max(1, vars) > 4090) throw new ArgumentException("Generazione troppo estesa: massimo 4096 combinazioni. Raggruppare i carichi correlati.");
+            var seismic = Variants(input.Seismic);
+            var standard = new StandardNTC2018Geotechnics();
+            var a1 = standard.Combinations(GeotechnicalCheck.RetainingWallSliding, GeotechnicalSituation.PersistentTransient).Single().Actions;
+            // Declared choice of the walls (census D4, open): the favourable G2 is absent, not 0.8 of NTC 2018 Tab. 6.2.I.
+            var set = new GeotechnicalActionFactors("A1 muri (G2 favorevole 0)", a1.PermanentUnfavourable, a1.PermanentFavourable, a1.NonStructuralUnfavourable, 0,
+                a1.VariableUnfavourable, a1.VariableFavourable);
+            var bodies = water ? new[] { "muro", "terreno", "acqua" } : new[] { "muro", "terreno" };
+            var request = new GeotechnicalCombinationRequest(set, actions.Select(Action), bodies, valley ? new[] { "terreno a valle" } : null, seismic.Count);
+            double Resistance(GeotechnicalCheck check, GeotechnicalSituation situation) => standard.ResistanceFactor(check, situation, "R3")
+                ?? throw new InvalidOperationException("γR " + check + " " + situation);
+            var result = new List<WallCombination>(); var checkedPurposes = new HashSet<WallSeismicPurpose>();
+            foreach (var row in GeotechnicalCombinations.Generate(request))
             {
-                foreach (double valleyFactor in state == WallLimitState.Ultimate && valley ? new[] { 1d, 1.3 } : new[] { 1d })
+                var state = State(row.State);
+                var variant = row.SeismicVariant >= 0 ? seismic[row.SeismicVariant] : default;
+                var purpose = variant.Purpose;
+                if (purpose != WallSeismicPurpose.None && checkedPurposes.Add(purpose) && (variant.Kh > .4 || variant.Magnitude > .2))
+                    throw new ArgumentException($"Sisma {Label(purpose)}: kh={variant.Kh.ToString("0.###", CultureInfo.GetCultureInfo("it-IT"))}, |kv|={variant.Magnitude.ToString("0.###", CultureInfo.GetCultureInfo("it-IT"))} fuori dal campo del motore (kh≤0,4; |kv|≤0,2). I coefficienti non vengono troncati.");
+                string label = row.State switch
                 {
-                    var coefficients = input.Actions.ToDictionary(x => x.Id, x => x.Enabled && factors.TryGetValue(x.Id, out double f) ? f : 0);
-                    string fingerprint = string.Join("/", state, purpose, R(wall), R(soil), R(waterFactor), R(kh), R(kv), R(valleyFactor)) + "/" + string.Join(",", input.Actions.Select(x => R(coefficients[x.Id])));
-                    if (!seen.Add(fingerprint)) continue;
-                    bool design = state == WallLimitState.Ultimate || state == WallLimitState.Seismic;
-                    string approach = purpose != WallSeismicPurpose.None ? "SLV · NTC 7.11.III" : state == WallLimitState.Seismic ? "Sismica · M1/R3" : design ? "A1+M1+R3"
-                        : state == WallLimitState.Exceptional ? "Eccezionale · M1/R=1" : "SLE";
-                    double slide = purpose != WallSeismicPurpose.None ? 1 : design ? 1.1 : 1, over = purpose != WallSeismicPurpose.None ? 1 : design ? 1.15 : 1, bearing = purpose != WallSeismicPurpose.None ? 1.2 : design ? 1.4 : 1;
-                    // γR,e of the passive in front (NTC 2018 Tab. 6.5.I, R3): 1.4 in the ULS; the seismic rows never count the passive, the
-                    // accidental ones have R = 1 like the other resistances, the SLS have no resistance checks (mobilised η Pp in the equilibrium).
-                    double passive = state == WallLimitState.Ultimate ? 1.4 : 1;
-                    string name = label + " " + (++number);
-                    // ULS, seismic and accidental rows with a variable surcharge on a heel: also the twin «b» without the surcharge on the heel
-                    // (favourable variable action excluded: γQ = 0, or ψ2 Qk not applied where favourable), same thrust.
-                    bool twin = (state == WallLimitState.Ultimate || state == WallLimitState.Seismic || state == WallLimitState.Exceptional) && heel && input.Actions.Any(x => x.Enabled && x.Type == WallActionType.UniformSurcharge && x.Category == WallActionCategory.Q && coefficients[x.Id] > 0);
-                    foreach (bool onHeel in twin ? new[] { true, false } : new[] { true })
-                    {
-                        if (result.Count >= 4096) throw new ArgumentException("Oltre 4096 combinazioni: raggruppare le azioni correlate o predisporre una matrice personalizzata.");
-                        result.Add(new WallCombination(onHeel ? name : name + "b", state, wall, soil, valleyFactor, waterFactor, 1, slide, over, bearing, kh, kv, coefficients, purpose, approach, onHeel, passive));
-                    }
-                }
-            }
-            Dictionary<string, double> Service(WallLimitState state, string? lead = null) => actions.ToDictionary(x => x.Id, x =>
-                x.Category == WallActionCategory.G1 || x.Category == WallActionCategory.G2 ? 1d : x.Category == WallActionCategory.A ? 0d
-                : state == WallLimitState.QuasiPermanent ? x.Psi2 : x.Key == lead ? (state == WallLimitState.Characteristic ? 1 : x.Psi1) : (state == WallLimitState.Characteristic ? x.Psi0 : x.Psi2));
-            foreach (var state in new[] { WallLimitState.Characteristic, WallLimitState.Frequent })
-                foreach (string? lead in vars.Length == 0 ? new string?[] { null } : vars.Select(v => (string?)v.Key))
-                    Add(state, state == WallLimitState.Characteristic ? "SLE" : "SLE_FREQ", 1, 1, 1, Service(state, lead));
-            Add(WallLimitState.QuasiPermanent, "Quasi permanente", 1, 1, 1, Service(WallLimitState.QuasiPermanent));
-            int bits = vars.Length + permanent.Length + 2 + (water ? 1 : 0);
-            if (bits > 12 || (1L << bits) * Math.Max(1, vars.Length) > 4090) throw new ArgumentException("Generazione troppo estesa: massimo 4096 combinazioni. Raggruppare i carichi correlati.");
-            for (int mask = 0; mask < (1 << bits); mask++)
-            {
-                double wall = (mask & 1) == 0 ? 1 : 1.3, soil = (mask & 2) == 0 ? 1 : 1.3;
-                int baseBit = 2; double waterFactor = 1;
-                if (water) waterFactor = (mask & (1 << baseBit++)) == 0 ? 1 : 1.3;
-                var f = actions.ToDictionary(x => x.Id, _ => 0d);
-                foreach (var p in permanent) { bool high = (mask & (1 << baseBit++)) != 0; foreach (var x in p) f[x.Id] = x.Category == WallActionCategory.G1 ? (high ? 1.3 : 1) : (high ? 1.5 : 0); }
-                var active = vars.Where((_, i) => (mask & (1 << (baseBit + i))) != 0).ToArray();
-                if (active.Length == 0) Add(WallLimitState.Ultimate, "SLU", wall, soil, waterFactor, f);
-                foreach (var lead in active)
+                    GeotechnicalLimitState.Characteristic => "SLE",
+                    GeotechnicalLimitState.Frequent => "SLE_FREQ",
+                    GeotechnicalLimitState.QuasiPermanent => "Quasi permanente",
+                    GeotechnicalLimitState.Ultimate => "SLU",
+                    GeotechnicalLimitState.Seismic => variant.Label,
+                    _ => "Eccezionale " + actions.First(x => x.Key == row.AccidentalGroup).Name
+                };
+                double wall = row.BodyFactors[0], soil = row.BodyFactors[1], waterFactor = water ? row.BodyFactors[2] : 1, valleyFactor = valley ? row.BodyFactors[bodies.Length] : 1;
+                var coefficients = input.Actions.ToDictionary(x => x.Id, x => x.Enabled && row.Factors.TryGetValue(x.Id, out double f) ? f : 0);
+                bool design = state == WallLimitState.Ultimate || state == WallLimitState.Seismic;
+                string approach = purpose != WallSeismicPurpose.None ? "SLV · NTC 7.11.III" : state == WallLimitState.Seismic ? "Sismica · M1/R3" : design ? "A1+M1+R3"
+                    : state == WallLimitState.Exceptional ? "Eccezionale · M1/R=1" : "SLE";
+                // γR of NTC 2018 Tab. 6.5.I (R3) and, with the coefficients of the site, Tab. 7.11.III; the rows with assigned kh and kv keep the static
+                // values (declared choice, census D5); accidental rows R = 1, SLS without resistance checks.
+                var situation = purpose != WallSeismicPurpose.None ? GeotechnicalSituation.Seismic : GeotechnicalSituation.PersistentTransient;
+                bool resisted = purpose != WallSeismicPurpose.None || design;
+                double slide = resisted ? Resistance(GeotechnicalCheck.RetainingWallSliding, situation) : 1, over = resisted ? Resistance(GeotechnicalCheck.RetainingWallOverturning, situation) : 1,
+                    bearing = resisted ? Resistance(GeotechnicalCheck.RetainingWallBearing, situation) : 1;
+                // γR,e of the passive in front (NTC 2018 Tab. 6.5.I, R3): 1.4 in the ULS; the seismic rows never count the passive, the
+                // accidental ones have R = 1 like the other resistances, the SLS have no resistance checks (mobilised η Pp in the equilibrium).
+                double passive = state == WallLimitState.Ultimate ? Resistance(GeotechnicalCheck.RetainingWallPassiveResistance, GeotechnicalSituation.PersistentTransient) : 1;
+                string name = label + " " + row.Number;
+                // ULS, seismic and accidental rows with a variable surcharge on a heel: also the twin «b» without the surcharge on the heel
+                // (favourable variable action excluded: γQ = 0, or ψ2 Qk not applied where favourable), same thrust.
+                bool twin = (state == WallLimitState.Ultimate || state == WallLimitState.Seismic || state == WallLimitState.Exceptional) && heel && input.Actions.Any(x => x.Enabled && x.Type == WallActionType.UniformSurcharge && x.Category == WallActionCategory.Q && coefficients[x.Id] > 0);
+                foreach (bool onHeel in twin ? new[] { true, false } : new[] { true })
                 {
-                    foreach (var v in active) foreach (var x in v) f[x.Id] = 1.5 * (v.Key == lead.Key ? 1 : x.Psi0);
-                    Add(WallLimitState.Ultimate, "SLU", wall, soil, waterFactor, f);
+                    if (result.Count >= 4096) throw new ArgumentException("Oltre 4096 combinazioni: raggruppare le azioni correlate o predisporre una matrice personalizzata.");
+                    result.Add(new WallCombination(onHeel ? name : name + "b", state, wall, soil, valleyFactor, waterFactor, 1, slide, over, bearing, variant.Kh, variant.Kv, coefficients, purpose, approach, onHeel, passive));
                 }
-            }
-            if (input.Seismic != null)
-            {
-                var s = input.Seismic;
-                if (s.Site == null)
-                    foreach (double kv in new[] { -s.Kv, s.Kv }.Distinct()) Add(WallLimitState.Seismic, kv < 0 ? "Sisma kv−" : "Sisma kv+", 1, 1, 1, Service(WallLimitState.QuasiPermanent), s.Kh, kv);
-                else
-                    foreach (var (purpose, kh, magnitude) in new[] { (WallSeismicPurpose.General, s.Kh, s.Kv), (WallSeismicPurpose.Overturning, s.KhOverturning, s.KvOverturning) })
-                    {
-                        string label = purpose == WallSeismicPurpose.General ? "Generale" : "Ribaltamento";
-                        if (kh > .4 || magnitude > .2) throw new ArgumentException($"Sisma {label}: kh={kh.ToString("0.###", CultureInfo.GetCultureInfo("it-IT"))}, |kv|={magnitude.ToString("0.###", CultureInfo.GetCultureInfo("it-IT"))} fuori dal campo del motore (kh≤0,4; |kv|≤0,2). I coefficienti non vengono troncati.");
-                        foreach (double kv in new[] { -magnitude, magnitude }.Distinct()) Add(WallLimitState.Seismic, $"SLV {label} kv{(kv < 0 ? "−" : "+")}", 1, 1, 1, Service(WallLimitState.QuasiPermanent), kh, kv, purpose);
-                    }
-            }
-            foreach (var accident in groups.Where(gr => gr.First().Category == WallActionCategory.A))
-            {
-                var f = Service(WallLimitState.QuasiPermanent); foreach (var x in accident) f[x.Id] = 1;
-                Add(WallLimitState.Exceptional, "Eccezionale " + accident.First().Name, 1, 1, 1, f);
             }
             return result;
         }
 
-        private static string R(double v) => v.ToString("R", CultureInfo.InvariantCulture);
+        // The ψ of a variable action enter the rows; the generator of Model refuses ψ outside 0 ≤ ψ2 ≤ ψ1 ≤ ψ0 ≤ 1, as ANTHEA does.
+        private static GeotechnicalDesignAction Action(WallAction x) => x.Category == WallActionCategory.Q
+            ? new GeotechnicalDesignAction(x.Id, x.Key, GeotechnicalActionNature.Q, x.Psi0, x.Psi1, x.Psi2)
+            : new GeotechnicalDesignAction(x.Id, x.Key, x.Category == WallActionCategory.G1 ? GeotechnicalActionNature.G1 : x.Category == WallActionCategory.G2 ? GeotechnicalActionNature.G2 : GeotechnicalActionNature.A);
+
+        private static WallLimitState State(GeotechnicalLimitState state) => state switch
+        {
+            GeotechnicalLimitState.Ultimate => WallLimitState.Ultimate,
+            GeotechnicalLimitState.Characteristic => WallLimitState.Characteristic,
+            GeotechnicalLimitState.Frequent => WallLimitState.Frequent,
+            GeotechnicalLimitState.QuasiPermanent => WallLimitState.QuasiPermanent,
+            GeotechnicalLimitState.Seismic => WallLimitState.Seismic,
+            _ => WallLimitState.Exceptional
+        };
+
+        private static string Label(WallSeismicPurpose purpose) => purpose == WallSeismicPurpose.General ? "Generale" : "Ribaltamento";
+
+        // Seismic rows: assigned kh with −kv and +kv, or from the site the general and the overturning coefficients, each with −kv and +kv
+        // (one row when kv = 0); |kv| of the site is checked with its use.
+        private static IReadOnlyList<(string Label, double Kh, double Kv, double Magnitude, WallSeismicPurpose Purpose)> Variants(WallSeismic? s)
+        {
+            var list = new List<(string, double, double, double, WallSeismicPurpose)>();
+            if (s == null) return list;
+            if (s.Site == null)
+                foreach (double kv in new[] { -s.Kv, s.Kv }.Distinct()) list.Add((kv < 0 ? "Sisma kv−" : "Sisma kv+", s.Kh, kv, Math.Abs(kv), WallSeismicPurpose.None));
+            else
+                foreach (var (purpose, kh, magnitude) in new[] { (WallSeismicPurpose.General, s.Kh, s.Kv), (WallSeismicPurpose.Overturning, s.KhOverturning, s.KvOverturning) })
+                    foreach (double kv in new[] { -magnitude, magnitude }.Distinct()) list.Add(($"SLV {Label(purpose)} kv{(kv < 0 ? "−" : "+")}", kh, kv, magnitude, purpose));
+            return list;
+        }
     }
 }
