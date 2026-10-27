@@ -20,8 +20,13 @@ namespace GPC.Checkers.Steel.Connections
         {
             if (!Enum.IsDefined(typeof(SpliceFlangeFaceModel), faceModel)) throw new ArgumentOutOfRangeException(nameof(faceModel));
             if (p == null) throw new ArgumentNullException(nameof(p));
+            return Verify(p, faceModel, WeldedIBeamSpliceForces.Calculate(p.Plates.Bolts.Detail));
+        }
+        internal static ConnectionVerification<WeldedIBeamSpliceDetailInput> Verify(WeldedIBeamSpliceDetailInput p, SpliceFlangeFaceModel faceModel, WeldedIBeamSpliceForceResult f)
+        {
+            if (!Enum.IsDefined(typeof(SpliceFlangeFaceModel), faceModel)) throw new ArgumentOutOfRangeException(nameof(faceModel));
+            if (!ReferenceEquals(p.Plates.Bolts.Detail, f.Input)) throw new ArgumentException("Prepared forces belong to another input.");
             var b = p.Plates.Bolts; var d = b.Detail;
-            var f = WeldedIBeamSpliceForces.Calculate(d);
             var issues = new List<string>(f.Diagnostics);
             var checks = new List<ConnectionCheck>();
             var trace = new List<SectionResistanceValue>(f.Trace);

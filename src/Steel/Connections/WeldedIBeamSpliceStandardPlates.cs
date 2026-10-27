@@ -39,9 +39,17 @@ namespace GPC.Checkers.Steel.Connections
         {
             if (!Enum.IsDefined(typeof(SplicePlateStabilityMethod), plateStability)) throw new ArgumentOutOfRangeException(nameof(plateStability));
             if (p == null) throw new ArgumentNullException(nameof(p));
-            var applicability = WeldedIBeamSpliceStandardModel.Verify(p, faceModel);
+            var plates = WeldedIBeamSplicePlates.Verify(p.Plates);
+            return Verify(p, actualCollinearBlockForces, plateStability, plates,
+                WeldedIBeamSpliceStandardModel.Verify(p, faceModel, plates.PreparedBolts.Forces));
+        }
+        internal static WeldedIBeamSpliceStandardPlateResult Verify(WeldedIBeamSpliceDetailInput p, bool actualCollinearBlockForces,
+            SplicePlateStabilityMethod plateStability, WeldedIBeamSplicePlateResult plates, ConnectionVerification<WeldedIBeamSpliceDetailInput> applicability)
+        {
+            if (!Enum.IsDefined(typeof(SplicePlateStabilityMethod), plateStability)) throw new ArgumentOutOfRangeException(nameof(plateStability));
+            if (!ReferenceEquals(p.Plates, plates.Input) || !ReferenceEquals(p, applicability.Input)) throw new ArgumentException("Prepared results belong to another input.");
             var d = p.Plates.Bolts.Detail; var code = p.Plates.Policy.Code;
-            var f = WeldedIBeamSpliceForces.Calculate(d); var plates = WeldedIBeamSplicePlates.Verify(p.Plates);
+            var f = plates.PreparedBolts.Forces;
             var issues = new List<string>(applicability.Diagnostics.Concat(plates.Diagnostics));
             if (!WeldedIBeamSplicePlates.SameCode(code, p.Plates.Bolts.Code)) issues.Add("PLATE_CODE_MISMATCH");
             var net = new List<ConnectionCheck>(); var blocks = new List<ConnectionCheck>(); var compact = new List<ConnectionCheck>();

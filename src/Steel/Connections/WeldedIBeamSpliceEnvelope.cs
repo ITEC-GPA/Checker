@@ -55,9 +55,9 @@ namespace GPC.Checkers.Steel.Connections
         internal WeldedSpliceUltimateCaseResult(WeldedSpliceUltimateCase input, bool categoryC, IEnumerable<string> issues)
         {
             Input = input; BindingDiagnostics = Array.AsReadOnly(issues.ToArray());
-            Bolts = WeldedIBeamSpliceBolts.Verify(input.Detail.Plates.Bolts); Plates = WeldedIBeamSplicePlates.Verify(input.Detail.Plates);
-            Detailing = WeldedIBeamSpliceDetailing.Verify(input.Detail);
-            NetAxialPlastic = categoryC ? WeldedIBeamSpliceSlip.VerifyNetAxialPlastic(input.Detail.Plates) : null;
+            Bolts = WeldedIBeamSpliceBolts.Verify(input.Detail.Plates.Bolts); Plates = WeldedIBeamSplicePlates.Verify(input.Detail.Plates, Bolts);
+            Detailing = WeldedIBeamSpliceDetailing.Verify(input.Detail, Plates);
+            NetAxialPlastic = categoryC ? WeldedIBeamSpliceSlip.VerifyNetAxialPlastic(input.Detail.Plates, Plates) : null;
         }
     }
     public sealed class WeldedSpliceSlipCaseResult

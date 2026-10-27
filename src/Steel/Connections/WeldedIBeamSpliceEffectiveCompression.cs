@@ -21,9 +21,13 @@ namespace GPC.Checkers.Steel.Connections
         public static ConnectionVerification<WeldedIBeamSpliceDetailInput> Verify(WeldedIBeamSpliceDetailInput p, bool allowLowShear)
         {
             if (p == null) throw new ArgumentNullException(nameof(p));
+            return Verify(p, allowLowShear, WeldedIBeamSplicePlates.Verify(p.Plates));
+        }
+        internal static ConnectionVerification<WeldedIBeamSpliceDetailInput> Verify(WeldedIBeamSpliceDetailInput p, bool allowLowShear, WeldedIBeamSplicePlateResult plates)
+        {
+            if (!ReferenceEquals(p.Plates, plates.Input)) throw new ArgumentException("Prepared plates belong to another input.");
             var code = p.Plates.Policy.Code; var d = p.Plates.Bolts.Detail;
-            var plates = WeldedIBeamSplicePlates.Verify(p.Plates);
-            var forces = WeldedIBeamSpliceForces.Calculate(d);
+            var forces = plates.PreparedBolts.Forces;
             var issues = new List<string>(plates.Diagnostics.Concat(forces.Diagnostics));
             var checks = new List<ConnectionCheck>(); var trace = new List<SectionResistanceValue>();
             foreach (var cover in plates.Covers)

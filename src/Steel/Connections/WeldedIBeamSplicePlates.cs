@@ -45,6 +45,7 @@ namespace GPC.Checkers.Steel.Connections
     public sealed class WeldedIBeamSplicePlateResult
     {
         public WeldedIBeamSplicePlateInput Input { get; }
+        internal WeldedIBeamSpliceBoltResult PreparedBolts { get; }
         public IReadOnlyList<SpliceCoverPlateAssessment> Covers { get; }
         public IReadOnlyList<string> Diagnostics { get; }
         public bool CanQualifyWholeJoint => false;
@@ -53,8 +54,8 @@ namespace GPC.Checkers.Steel.Connections
             "COMBINED_NET_SECTION_FRACTURE_AND_CATEGORY_C_NET_PLASTIC_NVM", "GENERAL_NVM_BLOCK_TEARING",
             "PLATE_SHEAR_AND_LATERAL_STABILITY", "PARENT_MEMBER_SECTION_AND_STABILITY",
             "LOCAL_SECONDARY_BENDING_AND_FORCE_INTRODUCTION" });
-        internal WeldedIBeamSplicePlateResult(WeldedIBeamSplicePlateInput input, IEnumerable<SpliceCoverPlateAssessment> covers, IEnumerable<string> issues)
-        { Input = input; Covers = Array.AsReadOnly(covers.ToArray()); Diagnostics = Array.AsReadOnly(issues.Distinct().ToArray()); }
+        internal WeldedIBeamSplicePlateResult(WeldedIBeamSplicePlateInput input, WeldedIBeamSpliceBoltResult bolts, IEnumerable<SpliceCoverPlateAssessment> covers, IEnumerable<string> issues)
+        { Input = input; PreparedBolts = bolts; Covers = Array.AsReadOnly(covers.ToArray()); Diagnostics = Array.AsReadOnly(issues.Distinct().ToArray()); }
     }
 
     /// <summary>Section and longitudinal strip COMPONENTS of all eight covers.
@@ -65,11 +66,15 @@ namespace GPC.Checkers.Steel.Connections
         public static WeldedIBeamSplicePlateResult Verify(WeldedIBeamSplicePlateInput p)
         {
             if (p == null) throw new ArgumentNullException(nameof(p));
-            var bolts = WeldedIBeamSpliceBolts.Verify(p.Bolts);
+            return Verify(p, WeldedIBeamSpliceBolts.Verify(p.Bolts));
+        }
+        internal static WeldedIBeamSplicePlateResult Verify(WeldedIBeamSplicePlateInput p, WeldedIBeamSpliceBoltResult bolts)
+        {
+            if (!ReferenceEquals(p.Bolts, bolts.ComponentAssessment.Input)) throw new ArgumentException("Prepared bolts belong to another input.");
             var issues = new List<string>(bolts.ComponentAssessment.Diagnostics);
             var covers = new List<SpliceCoverPlateAssessment>();
             if (!SameCode(p.Policy.Code, p.Bolts.Code)) issues.Add("PLATE_BOLT_POLICY_MISMATCH");
-            if (issues.Count != 0) return new WeldedIBeamSplicePlateResult(p, covers, issues);
+            if (issues.Count != 0) return new WeldedIBeamSplicePlateResult(p, bolts, covers, issues);
             foreach (var group in bolts.Forces.CoverGroups.GroupBy(g => g.Cover))
             {
                 var left = group.Single(g => g.Side == SpliceSide.Left);
@@ -165,7 +170,7 @@ namespace GPC.Checkers.Steel.Connections
                 void Add(IList<ConnectionCheck> list, string id, double demand, double resistance, string unit = "N")
                     => list.Add(new ConnectionCheck(id, demand, resistance, NormalReference(p), unit));
             }
-            return new WeldedIBeamSplicePlateResult(p, covers, issues);
+            return new WeldedIBeamSplicePlateResult(p, bolts, covers, issues);
         }
 
         private static ConnectionVerification<WeldedIBeamSplicePlateInput> AxialBlocks(WeldedIBeamSplicePlateInput p,

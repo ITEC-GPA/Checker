@@ -77,21 +77,29 @@ namespace GPC.Checkers.Steel.Connections
         /// Both connected sections use the SAME positive section-face convention.</summary>
         public static SteelActions ToSteelActions(WeldedIBeamSpliceForceInput input)
         {
-            var f = WeldedIBeamSpliceForces.Calculate(input);
-            if (!f.IsBalanced) throw new ArgumentException("Supported balanced splice force model required.", nameof(input));
+            return ToSteelActions(WeldedIBeamSpliceForces.Calculate(input));
+        }
+        private static SteelActions ToSteelActions(WeldedIBeamSpliceForceResult f)
+        {
+            if (!f.IsBalanced) throw new ArgumentException("Supported balanced splice force model required.", nameof(f));
             var a = f.ActionsAtJoint;
             return new SteelActions(a.Fx, 0, a.Fy, 0, -a.Mz, 0);
         }
         public static WeldedIBeamSpliceParentResult Verify(WeldedIBeamSpliceParentInput p)
         {
             if (p == null) throw new ArgumentNullException(nameof(p));
+            return Verify(p, WeldedIBeamSpliceForces.Calculate(p.Detail.Plates.Bolts.Detail));
+        }
+        internal static WeldedIBeamSpliceParentResult Verify(WeldedIBeamSpliceParentInput p, WeldedIBeamSpliceForceResult f)
+        {
             var d = p.Detail.Plates.Bolts.Detail; var code = p.Detail.Plates.Bolts.Code;
-            var issues = new List<string>(); var f = WeldedIBeamSpliceForces.Calculate(d);
+            if (!ReferenceEquals(d, f.Input)) throw new ArgumentException("Prepared forces belong to another input.");
+            var issues = new List<string>();
             issues.AddRange(f.Diagnostics);
             if (string.IsNullOrWhiteSpace(p.ContinuityAndSecondOrderAnalysisSource)) issues.Add("CONTINUITY_RESTRAINTS_AND_SECOND_ORDER_ANALYSIS_SOURCE_REQUIRED");
             if (f.IsBalanced)
             {
-                var a = ToSteelActions(d);
+                var a = ToSteelActions(f);
                 Bind(p.LeftSection, "Left.Section", false); Bind(p.RightSection, "Right.Section", false);
                 if (p.LeftMember != null) Bind(p.LeftMember, "Left.Member", true);
                 if (p.RightMember != null) Bind(p.RightMember, "Right.Member", true);

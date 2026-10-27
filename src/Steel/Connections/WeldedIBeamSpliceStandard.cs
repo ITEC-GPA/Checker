@@ -73,9 +73,10 @@ namespace GPC.Checkers.Steel.Connections
         internal WeldedSpliceStandardCaseResult(WeldedSpliceStandardCase input, WeldedSpliceUltimateCaseResult components, SpliceBlockVerificationMethod blockMethod, SpliceFlangeFaceModel faceModel, SplicePlateStabilityMethod plateStability)
         {
             EffectiveCompression = (plateStability == SplicePlateStabilityMethod.EffectiveCompression || plateStability == SplicePlateStabilityMethod.EffectiveCompressionWithLowShear)
-                ? WeldedIBeamSpliceEffectiveCompression.Verify(input.Parents.Detail, plateStability == SplicePlateStabilityMethod.EffectiveCompressionWithLowShear) : null;
-            Input = input; Components = components; Model = WeldedIBeamSpliceStandardModel.Verify(input.Parents.Detail, faceModel);
-            AdditionalPlates = WeldedIBeamSpliceStandardPlates.Verify(input.Parents.Detail, blockMethod == SpliceBlockVerificationMethod.ActualCollinearForcesWithHierarchyFallback, faceModel, plateStability); Parents = WeldedIBeamSpliceParents.Verify(input.Parents);
+                ? WeldedIBeamSpliceEffectiveCompression.Verify(input.Parents.Detail, plateStability == SplicePlateStabilityMethod.EffectiveCompressionWithLowShear, components.Plates) : null;
+            Input = input; Components = components; Model = WeldedIBeamSpliceStandardModel.Verify(input.Parents.Detail, faceModel, components.Bolts.Forces);
+            AdditionalPlates = WeldedIBeamSpliceStandardPlates.Verify(input.Parents.Detail, blockMethod == SpliceBlockVerificationMethod.ActualCollinearForcesWithHierarchyFallback, plateStability, components.Plates, Model);
+            Parents = WeldedIBeamSpliceParents.Verify(input.Parents, components.Bolts.Forces);
         }
     }
     /// <summary>Reference to the original leaf check, never a recomputed resistance.
