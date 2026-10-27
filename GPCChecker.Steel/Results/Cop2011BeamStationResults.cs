@@ -1,3 +1,5 @@
+// The frozen legacy results reference the options of their own [Obsolete] checker.
+#pragma warning disable CS0618
 using GPC.Checkers.Steel.Checkers;
 using GPC.Model.Elements;
 using GPC.Model.LoadCases;

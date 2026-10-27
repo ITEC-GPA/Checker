@@ -19,6 +19,7 @@ using System.Threading.Tasks;
 
 namespace GPC.Checkers.Steel.Checkers
 {
+    [Obsolete("Frozen legacy facade with no application consumer: station-by-station member interaction, no flexural-torsional compression. Use GPC.Checkers.Steel.Selection/Pipeline (SteelMethodSelector, SteelVerificationPipeline) and the member executions.")]
     public class EN1993p11Checker : EuroCodeChecker
     {
         #region Public enum

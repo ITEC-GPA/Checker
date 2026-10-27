@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><TargetFramework>net8.0</TargetFramework><IsTestProject>true</IsTestProject><IsPackable>false</IsPackable><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
+  <PropertyGroup><TargetFramework>net8.0</TargetFramework><IsTestProject>true</IsTestProject><IsPackable>false</IsPackable><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><!-- Legacy facades are tested on purpose. --><NoWarn>$(NoWarn);CS0618</NoWarn></PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../GPCChecker.Steel/GPCChecker.Steel.csproj" />
     <Reference Include="GPCModelData"><HintPath>../../../Model/ModelData/bin/Release/netstandard2.0/GPCModelData.dll</HintPath></Reference>
