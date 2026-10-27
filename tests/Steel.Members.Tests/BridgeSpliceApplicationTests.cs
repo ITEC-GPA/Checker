@@ -16,10 +16,13 @@ public class BridgeSpliceApplicationTests
     internal static SpliceActionCase[] Actions(double scale=1) => new[] {
         new SpliceActionCase("ULS+",new(2e5*scale,-1e5*scale,0,0,0,50e6*scale),"User combination +"),
         new SpliceActionCase("ULS-",new(-2e5*scale,1e5*scale,0,0,0,-50e6*scale),"User combination -") };
+    // NTC 2018 Table 4.2.VII: bridge splices use gammaM1=1.10; the application rejects 1.05.
+    internal static WeldedIBeamSpliceDetailInput Bridge(WeldedIBeamSpliceDetailInput t)
+        => t.Plates.Policy.Code.IsNtc?new(new(IBeamSplicePlatePolicy.Ntc2018Bridges(),t.Plates.Bolts),t.Exposure):t;
     internal static WeldedIBeamSpliceStandardInput Create(bool ntc=false,SpliceBoltCategory category=SpliceBoltCategory.B,
         bool prepare=true,bool slip=true)
     {
-        var template=WeldedIBeamSpliceStandardTests.Input(ntc);
+        var template=Bridge(WeldedIBeamSpliceStandardTests.Input(ntc));
         var section=WeldedIBeamSpliceStandardTests.Section(template).Plan.Input.Section;
         return BridgeSpliceApplication.CreateBolted(template,section,section,Actions(),WeldedIBeamSpliceStandardTests.Welds(),
             "Declared global restraint/continuity analysis",category,prepare?Prepare:null,
@@ -142,7 +145,7 @@ public class BridgeSpliceApplicationTests
     [DataTestMethod][DataRow(false)][DataRow(true)]
     public void ApplicationSupportsIndependentWidthsAndExportsSelfContainedReports(bool ntc)
     {
-        var template=WeldedIBeamSpliceStandardTests.Input(ntc,BridgeSpliceUnequalWidthTests.Detail(360));
+        var template=Bridge(WeldedIBeamSpliceStandardTests.Input(ntc,BridgeSpliceUnequalWidthTests.Detail(360)));
         var section=WeldedIBeamSpliceStandardTests.Section(template).Plan.Input.Section;
         var input=BridgeSpliceApplication.CreateBolted(template,section,section,Actions(),WeldedIBeamSpliceStandardTests.Welds(),
             "Global analysis with explicit continuity/restraints",SpliceBoltCategory.B,Prepare,WeldedIBeamSpliceSlipTests.Input(ntc),

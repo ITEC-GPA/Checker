@@ -82,6 +82,8 @@ namespace GPC.Checkers.Steel.Connections
             if (s.Length != 0 && slipTemplate == null)
                 throw new ArgumentException("Explicit SLS cases require the slip surface/assembly template.");
             var original = template.Plates.Bolts;
+            if (original.Code.IsNtc && template.Plates.Policy.GammaM1 != Ntc2018DesignPolicy.GammaM1Bridges)
+                throw new ArgumentException("NTC 2018 Table 4.2.VII: bridge members use gammaM1=1.10. Use IBeamSplicePlatePolicy.Ntc2018Bridges().", nameof(template));
             var shape = WeldedIBeamSpliceSection.FromModel(left, original.Detail.Section.TopWeldToe, original.Detail.Section.BottomWeldToe);
             var cases = u.Select(c =>
             {

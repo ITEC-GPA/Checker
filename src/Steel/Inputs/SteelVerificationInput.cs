@@ -42,13 +42,17 @@ namespace GPC.Checkers.Steel.Inputs
             SectionCode = sectionCode ?? throw new ArgumentNullException(nameof(sectionCode));
             SteelInputValidation.PositiveOptional(gammaM1, nameof(gammaM1));
             if (sectionCode.Standard == SectionResistanceStandard.Ntc2018 && gammaM1.HasValue
-                && gammaM1.Value != Ntc2018DesignPolicy.GammaM1)
-                throw new ArgumentException("The NTC 2018 profile requires its own gammaM1.", nameof(gammaM1));
+                && !Ntc2018DesignPolicy.IsGammaM1(gammaM1.Value))
+                throw new ArgumentException("The NTC 2018 profile requires gammaM1=1.05, or 1.10 for road and railway bridges (Table 4.2.VII).", nameof(gammaM1));
             GammaM1 = gammaM1;
         }
 
         public static SteelDesignContext Ntc2018()
             => new SteelDesignContext(SectionResistanceCode.Ntc2018(), Ntc2018DesignPolicy.GammaM1);
+
+        /// <summary>NTC 2018 Table 4.2.VII for members of road and railway bridges: gammaM1=1.10.</summary>
+        public static SteelDesignContext Ntc2018Bridges()
+            => new SteelDesignContext(SectionResistanceCode.Ntc2018(), Ntc2018DesignPolicy.GammaM1Bridges);
     }
 
     /// <summary>Immutable application input for one cut and one concomitant state.

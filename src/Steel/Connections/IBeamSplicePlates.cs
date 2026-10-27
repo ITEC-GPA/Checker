@@ -23,6 +23,9 @@ namespace GPC.Checkers.Steel.Connections
         }
         public static IBeamSplicePlatePolicy Ntc2018()
             => new IBeamSplicePlatePolicy(ConnectionDesignCode.Ntc2018(), Ntc2018DesignPolicy.GammaM1);
+        /// <summary>NTC 2018 Table 4.2.VII for road and railway bridges: gammaM1=1.10.</summary>
+        public static IBeamSplicePlatePolicy Ntc2018Bridges()
+            => new IBeamSplicePlatePolicy(ConnectionDesignCode.Ntc2018(), Ntc2018DesignPolicy.GammaM1Bridges);
     }
 
     /// <summary>One external cover per flange and two identical web covers,

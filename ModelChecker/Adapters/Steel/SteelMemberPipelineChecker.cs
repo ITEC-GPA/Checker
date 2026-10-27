@@ -101,7 +101,9 @@ namespace GPC.Model.Checker
                     : input.ActionSections.FirstOrDefault(c => c.Forces.N != 0 || c.Forces.M1 != 0 || c.Forces.M2 != 0) ?? input.ActionSections[0];
                 var snapshot = input.Snapshot;
                 if (!(first.Property is ISteelSection section)) return NativeResults.Unavailable("SteelMember.SteelSectionRequired");
-                var context = Code.GetType() == typeof(StandardNTC2018Steel) ? SteelDesignContext.Ntc2018()
+                // NTC 2018 Table 4.2.VII: a model declaring gammaM1=1.10 selects the bridge profile.
+                var context = Code.GetType() == typeof(StandardNTC2018Steel)
+                    ? (Code.GammaM1 == SteelDesignContext.Ntc2018Bridges().GammaM1 ? SteelDesignContext.Ntc2018Bridges() : SteelDesignContext.Ntc2018())
                     : new SteelDesignContext(SectionResistanceCode.Eurocode3(Code.GammaM0, Code.GammaM2, Required("ParameterSet")), Code.GammaM1);
                 if (Code.GetType() == typeof(StandardNTC2018Steel) && (Code.GammaM0 != context.SectionCode.GammaM0
                     || Code.GammaM1 != context.GammaM1 || Code.GammaM2 != context.SectionCode.GammaM2))

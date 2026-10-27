@@ -85,8 +85,8 @@ namespace GPC.Checkers.Steel.Pipeline
             if(type==WebPatchLoadType.OppositeFlanges&&!h.IsDoubleSymmetric)
                 throw new NotSupportedException("Opposite patch route requires identical opposed flanges.");
             if(input.Member!=null&&panelLength>input.Member.Length)throw new ArgumentException("Panel exceeds physical member length.");
-            if(input.Code.SectionCode.Standard==SectionResistanceStandard.Ntc2018&&gammaM1!=Ntc2018DesignPolicy.GammaM1)
-                throw new ArgumentException("NTC patch route requires gammaM1=1.05.");
+            if(input.Code.SectionCode.Standard==SectionResistanceStandard.Ntc2018&&!Ntc2018DesignPolicy.IsGammaM1(gammaM1))
+                throw new ArgumentException("NTC patch route requires gammaM1=1.05 (1.10 for bridges).");
             double bf=topFlange?h.LenghtTopFlange:h.LenghtBottomFlange,tf=topFlange?h.ThicknessTopFlange:h.ThicknessBottomFlange;
             var p=endDistance.HasValue?Ec3WebPatchLoading.CalculateAtUnstiffenedEnd(h.HeightWeb,h.ThicknessWeb,bf,tf,
                 input.Section.YieldStrength,input.Section.YieldStrength,input.Section.ElasticModulus,panelLength,stiffBearingLength,endDistance.Value,gammaM1)
