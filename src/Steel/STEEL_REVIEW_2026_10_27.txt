@@ -1,0 +1,378 @@
+STEEL: SVILUPPI, STATO E REVISIONE DEL FLUSSO - 27 OTTOBRE 2026
+
+Valutazione: l'architettura attuale e' utilizzabile e la separazione dei
+calcoli e' migliorata sostanzialmente. Conviene consolidarla, non riscriverla.
+La semplificazione piu' utile riguarda ingressi applicativi, riuso della
+preparazione e lettura uniforme degli esiti. Non emerge una ragione per
+fondere le formule o introdurre un motore universale delle connessioni.
+
+Perimetro della revisione: cronologia Git 9-27 ottobre, codice e documenti
+attuali di Checker.Steel, adapter ModelChecker, nuclei condivisi con Ponti,
+evidenze pregresse di Model/converter. Analisi manuale dei percorsi principali,
+non una nuova certificazione indipendente di ogni formula dell'intera libreria.
+EC3: EN 1993-1-1:2005, EN 1993-1-8:2005, EN 1993-1-5:2006 nei rispettivi campi;
+NTC 2018/Circolare 2019. Nessuna migrazione all'Eurocodice di seconda generazione.
+Statica ordinaria. ANTHEA non modificata o collaudata in questa fase.
+
+1. COSA E' STATO IMPLEMENTATO
+
+1a. Correzioni del calcolo e qualificazione dei vecchi risultati
+- Classificazione delle parti compresse: soglie inclusive, larghezze nette
+  dei canali, asse sollecitato degli RHS, rami delle parti sporgenti e T.
+- EC3 5.5.2(9): trattamento con sigma_com,Ed distinto dalla classificazione
+  nominale e dalla classe impiegata per instabilita'. Non esteso tacitamente
+  alla politica NTC o alla verifica d'asta.
+- Curve di compressione/LTB delle H laminate e saldate, assi principali,
+  soglie degli spessori; cassoni saldati con rapporti geometrici e gola.
+- Segni dei termini di Wagner, modi accoppiati e orientamento dei momenti
+  per T/monosimmetriche; selezione dei coefficienti del diagramma; moduli
+  resistenti coerenti con la classe e con il metodo LTB effettivamente usato.
+- Interazioni Annex A: segni di N, normalizzazione con gammaM0, coefficienti
+  e suscettibilita' torsionale; rifiuto esplicito degli ambiti non qualificati.
+- Instabilita' a taglio: snellezza della singola parete, riduzione e limite
+  plastico; resistenza e report allineati al medesimo metodo.
+- Chiusura degli 11 legacy: originali conservati, nuovi riferimenti analitici/
+  normativi e diagnosi delle incongruenze nei confronti SAP. Cinque casi
+  verificano esplicitamente un metodo non supportato: non sono cinque
+  verifiche resistenti risolte. Nessun test viene ignorato per simulare esito OK.
+  Fonte interna: tools/Steel.LegacyDiagnostics/LEGACY_CLOSURE_SUMMARY_20261021.txt.
+
+1b. Nucleo comune di sezioni e norme
+- Separati classificazione, geometria/proprieta', resistenza, stabilita'
+  elastica e riduzioni, interazioni di sezione e d'asta.
+- EC3 e NTC condividono l'aritmetica compatibile e mantengono coefficienti,
+  curve, prescrizioni e campi applicativi distinti. Cambiare norma non
+  garantisce che ogni metodo abbia identico dominio o identica resistenza.
+- Contratti espliciti per materiale, foratura/area netta, produzione, assi,
+  azioni e provenienze; unita' operative N, mm, MPa, Nmm.
+- Percorsi per H, C, T, L, RHS/SHS, RHS raccordati, CHS e pieni rettangolari/
+  circolari: primitive N/M/V e interazioni nei rispettivi domini. Non una
+  matrice universale di ogni interazione su ogni variante geometrica.
+- H anche monosimmetrica: interazione plastica di sezione nel campo qualificato;
+  C/T/L e tubolari: percorsi elastici o specifici, distinti dalle formule H.
+
+1c. Aste, instabilita' e risultati FEM
+- Ncr flessionale/torsionale/flesso-torsionale, Mcr, lambda, chi, chiLT separati
+  dalle politiche di selezione; origine e ipotesi dei valori critici tracciate.
+- Preparazione automatica su schemi ideali qualificati e forcelle; percorsi
+  esterni vincolati alla stessa sezione, asta, norma e combinazione.
+- Asta fisica composta da piu' elementi FEM, normalizzazione I/J e assi,
+  intervalli reali e entrambe le facce dei nodi. I nodi mesh non sono ritegni.
+- Pressoflessione H/tubolari simmetrici nei campi qualificati; metodo generale
+  esterno per altre forme ammesse. Verifica di sezione e d'asta restano distinte.
+- Diagrammi generici: conserva stazioni, estremi e salti del medesimo stato;
+  adotta il limite conservativo C1=Cm=1 nelle ipotesi documentate. Non risolve
+  un autovalore per qualunque diagramma o vincolo e non inventa picchi FEM.
+- Nessuna combinazione costruita con massimi provenienti da stati diversi.
+  Nei percorsi correnti di pressoflessione resta il requisito di N costante.
+  Riferimenti: MEMBER_SCHEME_PREPARATION.txt,PHYSICAL_MEMBER_WORKFLOW.txt.
+
+1d. Classe 4 e collegamento ai ponti
+- Riduzioni delle piastre e soluzione iterativa della sezione efficace N-M1-M2;
+  area, inerzie, Ixy, baricentro efficace e trasporto coerente delle azioni.
+- Nuclei condivisi Steel/CompositeBridge; nessuna seconda formula equivalente
+  mantenuta soltanto per il modulo Ponti. Le facade storiche restano compatibili.
+- H,RHS/C/T/L e coppie identiche nei domini geometrici documentati; raccordi
+  ammessi solo dove qualificati. I CHS classe 4 richiedono un modello di guscio.
+- Resistenze efficaci integrate nelle verifiche d'asta simmetriche e nei
+  metodi esterni ammessi. La rigidezza globale non diventa implicitamente Aeff.
+- Interazione con taglio per H nei campi espliciti; non NMVT universale.
+  Riferimenti: COVERAGE_CLASS4.txt,CLASS4_SECTION_WORKFLOW.txt,
+  CLASS4_MEMBER_WORKFLOW.txt,CLASS4_SHEAR_WORKFLOW.txt.
+
+1e. Profili accoppiati e importazione
+- Due C o due L IDENTICI, anche da profilario; per L disuguali scelta del
+  lato lungo/corto accostato. Geometria e proprieta' composte restano in Model.
+- Collaborazione verificata separatamente: passo, gap, geometria, componenti,
+  imperfezioni/secondo ordine, domande sulle imbottiture e verifica dell'asta.
+- Percorsi standard per imbottiture bullonate/saldate e terminale saldato
+  a collettore complanare; non calastrelli, tralicci o collegamenti generici 3D.
+- Converter MIDAS/Straus7: gestione geometrica e convenzioni degli assi nei
+  campi implementati. Collaudo nativo documentato per Civil NX 9.5.5:
+  48 mensole, 8 sezioni, 6 orientamenti; 218 test, inclusi 105 su dati nativi.
+- MIDAS DATATYPE=1 da catalogo conserva identificatori/proprieta' ma puo'
+  restare geometria irrisolta; non si deducono gap e componenti da A/I/J.
+  Gli altri eseguibili MIDAS non sono dichiarati collaudati nativamente.
+  Tre prove native Straus7 risultavano non eseguite nell'ultimo set precedente;
+  non sono state rieseguite o promosse a pass in questa fase.
+  Fonte interna: MIDAS_NATIVE_VALIDATION.txt e fixture nel repository Model.
+
+1f. Anime, irrigidimenti e introduzione delle forze
+- Nucleo comune per instabilita' a taglio dei pannelli d'anima.
+- Dettagli standard di irrigidimenti trasversali e montanti terminali:
+  rigidezza, stabilita', cordoni e contatto, legati al pannello reale.
+- Patch loading(a)/(b)/(c), incluso appoggio presso estremita' libera nel
+  campo qualificato, e interazione con la verifica di sezione concomitante.
+- Restano fuori irrigidimenti longitudinali generali, patch interferenti,
+  diffusori/apparecchi d'appoggio e geometrie locali arbitrarie.
+  Riferimenti: WEB_DETAILS_AUTOMATION.txt,WEB_PANEL_AND_PATCH_LOADING.txt.
+
+1g. Connessioni: componenti riutilizzabili
+- Bulloni: resistenza, interazione, rifollamento, geometria e riduzioni;
+  scorrimento B/C, superfici reali, precarico e distinzione SLU/SLE.
+- Gruppi elastici con eccentricita', equilibrio e azioni firmate; saldature
+  d'angolo/gruppi e continuita' a piena penetrazione nei dettagli dichiarati.
+- Sezioni nette, strappi a blocco, piatti/fazzoletti, angolari su un lato;
+  T-stub e meccanismi di fila/gruppo, componenti locali del pilastro.
+- Verifiche di tying distinte dalla trazione ordinaria: un componente tying
+  disponibile non rende automaticamente completo il nodo N+V ordinario.
+
+1h. Connessioni: percorsi completi entro una tipologia definita
+Tipologia                         Stato effettivo
+Piatti a doppio coprigiunto        Trazione centrata nel dettaglio qualificato.
+Fin plate corta                   Taglio, dettaglio SCI specifico.
+Piastra flessibile a taglio        Dettaglio su anima pilastro, anche coppia.
+Coprigiunti I saldate              N-V-M, ali/anima su due facce, categorie A/B/C.
+Continuita' I saldate CJP           Sezioni identiche/allineate, requisiti esecutivi.
+Terminale due piatti tesi          Collettore complanare corrispondente.
+Terminale 2L teso                   Modello convenzionale e collettore complanare.
+Imbottiture bullonate/saldate       Trasferimento longitudinale da modello ammesso.
+Terminale compresso saldato        Coppia identica, collettore complanare.
+Piastra di estremita' a momento    N=0 e percorso supplementare N-M-V firmato.
+
+Per la piastra a momento sono disponibili geometria delle file, T-stub,
+contatti unilaterali, bulloni/saldature, controlli locali e tagli reali del
+pilastro, equilibrio N-M-V e rigidezza locale accoppiata. StandardEndPlate.Verify
+fornisce l'ingresso applicativo. I/H laminati, monolaterale, geometria SCI
+qualificata: non pilastri irrigiditi/bilaterali o nodi arbitrari.
+La molla globale richiede pannello distinto e riferimenti compatibili; la
+rigidezza calcolata non e' capacita' rotazionale disponibile o qualifica sismica.
+
+Nei coprigiunti sono stati aggiunti: facce con larghezze/spessori indipendenti
+secondo modello esplicito, trasporto alle quote reali, compensatori paralleli
+anche multistrato, beta_p, superfici d'attrito in serie, binding dei casi,
+sezioni madri e cordoni longitudinali. Compressione efficace dei coprigiunti
+localmente classe 4 solo a taglio esattamente nullo. La fase odierna aggiunge
+interazione compressione-taglio-flessione e StandardBoltedCovers, inclusa
+una colonna d'anima per lato. Il default conservativo precedente resta.
+Riferimento interrogabile: Connections/ConnectionCapabilityCatalog.cs.
+
+1i. Flusso applicativo, report e verificabilita'
+- Input immutabili, piano dei metodi/prerequisiti, esecuzione, risultati
+  distinti dalla completezza, archiviazione e invalidazione per revisione.
+- Adapter ModelChecker e schemi dei parametri; cache delle proprieta',
+  senza riutilizzare azioni/risultati di un'altra combinazione.
+- Report con formule, coefficienti, unita', input, fonti, casi governanti
+  e lacune. Nei giunti, gerarchia/applicabilita' distinta dalla resistenza.
+- Esempi eseguibili e prove con fonti pubblicate, sostituzioni normative,
+  integrali/soluzioni indipendenti e casi di rifiuto. Il numero di test non
+  dimostra da solo ogni calcolo per ogni famiglia: la richiesta originaria
+  di copertura universale indipendente non puo' essere dichiarata soddisfatta.
+
+2. COSA RESTA PARZIALE O ASSENTE
+
+Priorita' per l'uso tipologico richiesto, senza ampliare a un software generale:
+A. Coprigiunti: blocchi sotto forze miste fuori dalla gerarchia sufficiente.
+   E' un limite pratico: piastre sottili con bulloni grandi possono restare
+   NotSupported anche a carico basso. Non equivale a rottura sotto quel carico.
+B. Coprigiunti: transizioni fra sezioni madri diverse; classe 4 compressa con
+   taglio; compensatori rastremati/discontinui e risposta fuori piano generale.
+C. Doppio angolare: componenti su anima del pilastro implementati, ma non
+   chiusi risposta fuori piano, trazione/prying/punzonamento effettivi e
+   qualificazione rotazionale del nodo completo.
+D. C/2C collegate solo d'anima: shear lag/trasferimento delle ali non chiuso.
+   Le formule beta degli angolari non sono trasferibili per semplice analogia.
+E. Controventi: terminali bullonati compressi e attacchi a T generali restano
+   aperti; esiste invece il percorso saldato complanare dichiarato.
+F. Aste: torsione/ingobbamento e interazioni generali, schemi elastici non
+   qualificati, pressoflessione generale delle coppie, asta accoppiata classe 4,
+   gusci CHS classe 4 e interazioni fuori dal dominio del selettore.
+G. Catalogo geometrico MIDAS DATATYPE=1 delle coppie e collaudi nativi mancanti.
+
+Da mantenere separati/rinviare nel perimetro concordato: fatica (da affrontare
+successivamente per i ponti), incendio/sisma, basi, nodi tubolari, contatto
+generale e FEM locale. La statica del coprigiunto non chiude da sola il ponte.
+Non tutti i punti A-G sono difetti: molti sono estensioni di metodo necessarie
+solo quando il dettaglio concreto oltrepassa il campo attualmente ammesso.
+
+3. COME FUNZIONA OGGI L'ARCHITETTURA
+
+Model: geometria/materiali/azioni, senza dipendenza da Checker.
+  -> ModelAdapters/Inputs: copia coerente, assi, unita', politica normativa.
+  -> Selection: sceglie metodo e prerequisiti, senza esito resistente.
+  -> Pipeline: esegue nuclei Sections/Stability/Interactions/EffectiveSections.
+  -> risultati: verifiche, completezza, diagnostica e tracce.
+  -> ModelChecker: uso sul modello, configurazioni, report e archivio.
+
+Connessioni: ingresso tipizzato della famiglia -> componenti -> aggregazione
+dello stesso caso -> rapporto. Le sezioni madri riusano la pipeline Steel.
+I percorsi delle connessioni non sono tutti instradati dal medesimo selettore
+delle aste: sono due livelli applicativi affiancati nella stessa libreria.
+
+I nuclei scalari sono separati dai tipi Model, ma la DLL Steel complessiva
+referenzia ancora Model per adapter e compatibilita'. Non esiste gia' una
+DLL di calcolo completamente indipendente. CompositeBridge usa Steel per
+i nuclei condivisi; non e' introdotta una dipendenza Steel->CompositeBridge.
+
+Scelte da conservare:
+- geometriche in Model, normative e resistenti in Checker;
+- politica EC/NTC esplicita, nucleo comune soltanto quando corretto;
+- copia immutabile e legame al medesimo caso;
+- verifica incompleta distinta da verifica non soddisfatta;
+- chiusura del nodo distinta dal singolo componente e dalla verifica d'asta;
+- compatibilita' delle API storiche e test indipendenti.
+
+4. DOVE E' MIGLIORABILE: EVIDENZE, NON SOLO PREFERENZE
+
+4a. Preparazioni ripetute nel percorso completo dei coprigiunti
+Lettura del grafo di chiamate, categoria A senza EffectiveCompression:
+- Envelope: Bolts 1 + Plates 1 + Detailing 2 calcoli delle forze =4;
+- StandardModel 1;
+- AdditionalPlates: StandardModel 1 + Forces 1 + Plates 1 =3;
+- Parents: Forces 1 + ToSteelActions 1 =2.
+Totale 10 ricostruzioni dello stesso stato per caso, 3 verifiche delle piastre
+e 4 verifiche dei bulloni. B/C o EffectiveCompression possono aggiungerne altre.
+Questa e' duplicazione di esecuzione, non dieci verifiche indipendenti.
+Riferimenti: WeldedIBeamSpliceStandard.cs,Envelope.cs,Detailing.cs,
+StandardPlates.cs,Parents.cs,Plates.cs,Bolts.cs nella cartella Connections.
+
+Misura locale .NET 8.0.33/x64, Release, singolo processo, 24 processori logici.
+JIT a livelli disabilitato; 5 riscaldamenti, poi 5 serie da 20 chiamate per caso.
+Input e verifiche delle sezioni madri gia' preparati; solo Verify nel tempo
+misurato. Report e serializzazione esclusi. Test non in esecuzione durante
+questa seconda misura. Mediana delle cinque serie; MB decimali allocati,
+NON memoria residente o picco del processo.
+Dettaglio / combinazioni         Tempo ms     MB allocati     Righe report
+Compact / 1                         4.85           8.69             2248
+Compact / 10                       86.37          86.77            22480
+RegularThin / 1                     6.43           8.80             2630
+RegularThin / 10                   89.34          87.98            26300
+Le dieci combinazioni del microbenchmark ripetono lo stesso caso fisico
+con ID distinti: misurano il costo attuale della ripetizione, non variabilita'
+di un modello reale. La prima misura con JIT predefinito ha dato tempi diversi
+ma allocazioni analoghe: non uso questi valori come SLA o previsione ANTHEA.
+Il numero di righe include controlli elementari e applicabilita', non altrettante
+verifiche normative indipendenti. Non e' stato eseguito un profilo per fase:
+la duplicazione e' provata dal codice, il guadagno del refactoring va misurato.
+Evidenze: performance.json,performance-stable.json e architecture-inventory.json
+nella cartella audit-results/connections/remaining-mechanisms del workspace.
+
+4b. Troppe porte d'ingresso sullo stesso percorso
+Esistono API di componenti, aggregati storici e ingressi recenti completi.
+E' utile conservarle per compatibilita', ma il chiamante nuovo deve sapere
+quale usare. StandardEndPlate.Verify e BridgeSpliceApplication sono gia'
+buoni ingressi; non serve aggiungere un ulteriore involucro generico a tutto.
+
+4c. Semantica degli esiti non uniforme fra aggregati
+SteelVerificationResult conserva NotSatisfied se un check fallisce anche
+quando altri sono incompleti, affiancando IsComplete. WeldedIBeamSpliceStandard
+restituisce invece Status=NotSupported quando manca un prerequisito e tiene
+il fallimento noto in HasFailedComponent. Entrambi conservano l'evidenza,
+ma leggere soltanto Status perde informazione. Il consumatore dovrebbe
+ricevere una proiezione uniforme di esito, completezza e motivi, senza
+cambiare retroattivamente le enum pubbliche o i contratti persistiti.
+
+4d. Documentazione e cataloghi si sono stratificati
+Rilevati 169 file C# e 22.734 righe in src/Steel, di cui98 file/16.133 righe nelle
+connessioni; 485 dichiarazioni di tipi pubblici. Conteggi di testo, non misura
+automatica della qualita'; escludono le facade storiche fuori src/Steel.
+Prima della nuova nota odierna vi erano127 documenti TXT in src/Steel.
+WORKFLOW_PLAN/ARCHITECTURE/PACKED_PAIR_WORKFLOW e alcune matrici conservano
+limiti storici superati da documenti successivi. Sono evidenze utili ma
+costringono a ricostruire la cronologia per conoscere il dominio corrente.
+ConnectionCapabilityCatalog e le guardie runtime sono mantenuti separatamente:
+il rischio e' divergenza descrittiva, non una prova che oggi il runtime sbagli.
+
+4e. Leggibilita' locale e tracciabilita'
+Alcuni file accumulano numerosi tipi e funzioni locali con istruzioni dense.
+Per una formula numerica delicata e' piu' utile un nome fisico, unita' e
+ipotesi vicine al controllo che ridurre il numero delle righe. Conviene
+separare contratti, preparazione e aggregazione quando cambiano per ragioni
+diverse, senza frammentare ogni moltiplicazione in una nuova classe.
+
+5. INTERVENTI RACCOMANDATI, IN ORDINE
+
+P1 - Un riferimento corrente di copertura e di uso
+Mantenere un indice per famiglia/norma/azioni/metodo, con ingresso consigliato,
+limiti reali, requisiti esterni e test/fonte. Contrassegnare le note storiche
+e collegarle, senza cancellare gli audit. Aggiungere verifiche di coerenza fra
+voci del catalogo e scenari di accettazione/rifiuto; il catalogo non sostituisce
+le guardie geometriche. Questa relazione e' il primo riepilogo, non ancora
+la generazione automatica dell'indice dal codice.
+Criterio di chiusura: un utilizzatore trova un solo percorso attuale e sa
+quali verifiche restano esterne, senza consultare la cronologia dei commit.
+
+P2 - Preparazione per caso riusabile dentro i coprigiunti
+Introdurre un contesto interno immutabile, confinato alla singola chiamata:
+geometria, punti/gruppi, forze, sezioni/tagli e componenti gia' valutati.
+Le API pubbliche continuano a prepararlo quando chiamate singolarmente;
+l'ingresso completo lo costruisce una volta e lo passa ai componenti.
+Separare i percorsi geometrici dei blocchi, riusabili a parita' di dettaglio,
+dalle domande legate alle azioni. Niente cache globale di risultati o chiavi
+fondate solo sull'ID del nodo. Le fonti/azioni/politiche restano vincolate.
+Criterio: stessi check/valori/diagnostica/associazioni ai casi e minor numero
+di ricostruzioni/allocazioni nel benchmark; nessun obiettivo di velocita'
+promesso prima della misura. Prima i coprigiunti, poi eventuali altri percorsi.
+
+P3 - Rendere omogeneo il flusso applicativo, lasciando tipizzati i metodi
+Per nuove chiamate: dati fisici -> preparazione -> verifica -> report.
+Usare gli ingressi completi esistenti per sezioni, aste, coprigiunti e piastre;
+documentare come avanzate le API di soli componenti. Gli adapter trasformano
+Model e risultati FEM una volta, con assi/poli espliciti. Una proiezione comune
+degli esiti serve a ModelChecker/report; non deve forzare tutte le tipologie
+nel medesimo oggetto con decine di campi opzionali.
+Criterio: esempi completi EC/NTC senza catene manuali di risultati intermedi,
+con test di caso incompleto, fallito e completo non soddisfatto.
+
+P4 - Ridurre duplicazioni di orchestrazione e rendere navigabili i report
+Riutilizzare riferimenti alle verifiche originarie, preparazione distinta dal
+controllo resistente, riepilogo governante e dettaglio espandibile/esportabile.
+Non eliminare i percorsi dei blocchi per rendere corto il rapporto: separare
+sintesi ed evidenza completa. Consolidare helper di binding, unita' e confronto
+solo dove rappresentano realmente lo stesso contratto.
+Criterio: nessun controllo perso, resistenza separata dai limiti di applicabilita'.
+
+P5 - Copertura indipendente e collaudi organizzati per metodo
+Mappare ciascun metodo/famiglia al tipo di oracolo: pubblicazione, sostituzione
+normativa indipendente, integrazione/soluzione analitica, regressione interna.
+Mantenere test di assi/segni, soglie, input invalidi e mancata qualifica.
+Eseguire prove mirate durante ogni blocco, poi suite integrate prima della
+consegna. Non riscrivere gli oracoli per riusare il calcolo di produzione.
+Criterio: una lacuna e' identificabile per meccanismo, non dedotta dal totale
+dei test o trasformata automaticamente in 'non applicabile'.
+
+P6 - Nuovo checkpoint coerente delle librerie, quando si decide di consegnare
+Solo dopo il consolidamento scelto: versioni, suite del treno, hash e manifest
+con Release-Set.ps1. Questa fase non richiede un'interfaccia nuova in ANTHEA.
+Non consegnare DLL isolate con numeri di versione identici a build diverse.
+
+Non propongo ora: cambiare framework, spezzare Steel in molti pacchetti,
+introdurre un framework generico di regole, cancellare le facade compatibili,
+unificare forzatamente EC3/NTC, parallelizzare prima di eliminare ricalcoli,
+o rifare la geometria gia' posseduta da Model. La separazione in una DLL
+numerica autonoma puo' essere valutata se un secondo consumatore la richiede;
+oggi non e' il prerequisito per un flusso piu' semplice.
+
+6. CONSEGNA DELLA FASE ODIERNA E VERIFICHE
+
+Implementazione: e1d6c591. Versione: e3f3c8e3, Steel 2.119.0.0.
+Branch: codex/connections-remaining-mechanisms, derivato da master 4a1b0090.
+37 nuovi test; nessuna modifica di attesi/fixture storici o allowlist.
+Dettaglio tecnico: Connections/BRIDGE_SPLICE_STANDARD_BOLTED_COVERS.txt.
+Nuove prove: BridgeSpliceCompressionInteractionTests e
+BridgeSpliceStandardBoltedCoverTests in tests/Steel.Members.Tests.
+
+Collaudo sulla revisione di codice/versione committata, terminato:
+Suite                                      Superati   Falliti   Ignorati
+Steel.Members.Tests (completa, net8)             6460         0          0
+Steel legacy (completa, net472)                   122         0          0
+ModelChecker: filtro FullyQualifiedName~Steel    249         0          0
+Totale di queste tre esecuzioni                 6831         0          0
+I 37 nuovi casi sono inclusi nei 6460, non sommati una seconda volta.
+La precedente regressione mirata contava 980 test Splice prima degli ultimi
+6 casi limite; la suite finale li include tutti. Nessuna allowlist ampliata.
+Non sono state ripetute le intere suite Model,Concrete,Geotechnics,Ponti o
+il collaudo nativo dei converter: i relativi numeri del punto 1 sono storici.
+Le misure di prestazione sono misure separate, non altri test di qualifica.
+Log/TRX e riepilogo: C:/Users/g.pacini/Documents/ChatGPT/Checker/
+audit-results/connections/remaining-mechanisms/final-verification/summary.json.
+Il successivo commit di questa relazione modifica solo documentazione.
+
+
+Questa consegna chiude l'incremento descritto, NON tutti i meccanismi aperti
+del punto 2. Non e' stato eseguito un nuovo treno di rilascio completo e non
+sono state installate DLL in ANTHEA. Nessun merge su master o push.
+Per il lavoro successivo raccomando P1-P2-P3, poi scegliere l'estensione fisica
+piu' frequente nei giunti reali, a partire dai blocchi misti dei coprigiunti.
+Rendere uniforme il flusso e' gia' utile; allargare indiscriminatamente il
+campo di calcolo ritarderebbe il punto fermo cercato senza semplificarne l'uso.

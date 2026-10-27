@@ -1,3 +1,7 @@
+REVISIONE COMPLESSIVA27/10/2026: STEEL_REVIEW_2026_10_27.txt ricostruisce
+funzioni attuali, limiti aperti, misure di prestazione e semplificazioni
+raccomandate. Le sezioni datate21/10 sotto sono il checkpoint storico.
+
 AGGIORNAMENTO: il campo attuale EC3/NTC e' in COVERAGE_CLASS4.txt.
 Questo documento conserva la descrizione e le evidenze del passo originario;
 i limiti superati dall'estensione non sono piu' quelli del selettore corrente.
