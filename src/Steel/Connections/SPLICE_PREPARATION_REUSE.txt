@@ -25,3 +25,16 @@ Numeri di righe report e controlli invariati.999 regressioni Splice superate;
 con il percorso composto, due casi di segno opposto, ripetizione e immutabilita.
 Non e una misura delle prestazioni ANTHEA e non garantisce questi tempi su altri PC.
 Il numero e l'ordine dei blocchi enumerati non sono stati ridotti.
+
+DETTAGLIO PREPARATO - 28/10/2026
+
+Il riuso passa dal caso al dettaglio: PreparedWeldedIBeamSplice contiene una
+sola volta gruppi elastici, resistenze dei bulloni e a rifollamento, sezioni,
+strisce, stazioni di taglio e tutti i percorsi di blocco (ID, sottoinsiemi,
+resistenze). I casi lo condividono per identita di riferimento; ciascuno
+valuta solo le proprie azioni, con le stesse operazioni nello stesso ordine.
+Stessa macchina, stesse sonde (mediana di 3 esecuzioni, JIT a livelli spento):
+Standard.Verify A, 2 casi | 2,79 -> 0,54 ms | 4,84 -> 1,23 MB
+Standard.Verify C, 2 casi | 3,28 -> 0,95 ms | 6,75 -> 2,12 MB
+Standard.Verify A, 20 casi | 85,5 -> 21,2 ms | 48,1 -> 12,0 MB
+La crescita sovralineare con i casi era dovuta alle raccolte gen1/gen2.

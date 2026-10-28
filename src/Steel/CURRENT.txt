@@ -33,6 +33,9 @@ Coprigiunti bullonati di travi composte saldate a I:
   B richiede SLE; C richiede scorrimento SLU associato a ogni caso resistente.
   Le sei azioni si trasportano prima al polo: X longitudinale, Y verso alto,
   M1 Steel=-Mz fisico e V2=Fy. Non combinare massimi indipendenti N,V,M.
+  CreateBolted prepara il dettaglio fisico una sola volta per tutti i casi
+  SLU/SLE. Per molti casi sullo stesso dettaglio fuori dal costruttore:
+  PreparedWeldedIBeamSplice.Prepare(template) -> CreateCase(azioni, fonte).
   Vedi Connections/BRIDGE_SPLICE_APPLICATION_USAGE.txt e relativi test.
 
 Giunti saldati di testa:
@@ -44,8 +47,12 @@ Piastra di estremita a momento, anche N diverso da zero:
   StandardEndPlate.Verify(StandardEndPlateInput) -> result.Report
   -> SteelAssessmentSummary.From(result.Report).
   Questo e l'ingresso consigliato; prepara internamente i componenti.
-  Le API EndPlateNmv*, TStub* e EndPlateMoment* restano disponibili per
-  controlli specialistici. Le vecchie sequenze N=0 restano compatibili.
+  Piu casi sullo stesso nodo: StandardEndPlate.Prepare(input) e poi
+  StandardEndPlate.Evaluate(preparato, azioni faccia, tagli, fonte).
+  Dal 28/10/2026 EndPlateNmv, TStub* e i componenti EndPlateMoment* sono
+  interni alla libreria (restano EndPlateMomentWithBeamSection.Verify,
+  EndPlateStandardJoint.Verify ed EndPlateNmvGeometry.Prepare). Le vecchie
+  sequenze N=0 restano compatibili.
   I/H laminati, nodo monolatero e geometria standard; tagli reali nel
   pilastro, contatti inizialmente chiusi, rigidezze/materiali/hardware reali.
   Vedi Connections/END_PLATE_APPLICATION_USAGE.txt e
@@ -67,8 +74,20 @@ Controventi e profili accoppiati:
 
 Taglio ordinario:
   FinPlate.Verify e FlexibleEndPlate.Verify/VerifyPair nelle proprie
-  geometrie SCI; DoubleAngleCleat* e ancora una famiglia di COMPONENTI.
+  geometrie SCI; DoubleAngleCleatComponents.Verify e ancora una famiglia di
+  COMPONENTI (contatto, anima del pilastro e tying sono interni).
   Le API di componente hanno un campo limitato anche quando Status=Passed.
+
+Superficie pubblica delle connessioni (28/10/2026):
+  pubblici solo gli ingressi sopra, DoubleCoverSplice.Verify,
+  GussetTwinFlatTension.Verify, ConnectionCapabilityCatalog, i preparati e
+  i tipi che questi accettano o restituiscono. Bulloni, saldature, gruppi
+  elastici, T-stub, pilastro, classificazioni e componenti dei coprigiunti
+  sono interni; il catalogo elenca solo API pubbliche. IBeamSpliceComponents
+  (distribuzione SCI approssimata per I laminati) e Obsolete: usare
+  CreateBolted -> WeldedIBeamSpliceStandard.Verify. Ogni ConnectionCheck ha
+  un Role (Resistance, Serviceability, Applicability, Detailing) usato dalle
+  regole di esito al posto dei confronti fra stringhe.
 
 La scelta per famiglia e interrogabile da ConnectionCapabilityCatalog.
 RecommendedEntryPoint identifica da dove iniziare; EntryPoints contiene
@@ -152,12 +171,24 @@ La duplicazione osservata nel workflow dei coprigiunti e stata eliminata:
 Misure e limiti: Connections/SPLICE_PREPARATION_REUSE.txt. Allocazioni ridotte
 di circa55-57% nei casi misurati; nessuna pretesa sulle prestazioni ANTHEA.
 Gli inviluppi B/C mantengono i propri casi di scorrimento. Non esiste cache
-fra casi diversi, e gli overload interni rifiutano risultati di altri input.
+globale; gli overload interni rifiutano risultati di altri input.
+
+Dettaglio preparato (28/10/2026): i casi creati dallo stesso preparato
+(PreparedWeldedIBeamSplice, PreparedStandardEndPlate) condividono per
+identita di riferimento solo cio che non dipende dalle azioni: gruppi di
+bulloni, resistenze a taglio e rifollamento, sezioni e strisce delle
+coprigiunti, stazioni di taglio, percorsi di blocco con ID e resistenze,
+geometria T-stub e stati di equilibrio a carico puro. Ogni caso ripete le
+stesse operazioni in virgola mobile nello stesso ordine: risultati identici
+bit a bit. Un dettaglio diverso viene ancora rifiutato con il confronto
+strutturale unico (SpliceIdentity). Coprigiunto categoria A, 20 casi:
+85,5 -> 21,2 ms e 48,1 -> 12,0 MB allocati. Piastra di estremita: i passi
+che dipendono da V2 e dalla fonte della combinazione restano per caso.
 
 Ulteriori semplificazioni sensate, non eseguite in questo blocco:
 - estrarre altri orchestratori solo dopo aver misurato duplicazioni reali;
-- preparare la topologia dei percorsi di blocco indipendentemente dalle azioni,
-  mantenendo tutti i percorsi e le verifiche di identita del dettaglio;
+- preparare per dettaglio anche T-stub e bulloni della piastra di estremita,
+  oggi legati agli input del caso (taglio, fonte);
 - evitare nuove facciate equivalenti: estendere gli ingressi consigliati;
 - aggiornare questo indice e il catalogo a ogni estensione del dominio.
 Una riscrittura unica di aste e connessioni o un input universale con campi
