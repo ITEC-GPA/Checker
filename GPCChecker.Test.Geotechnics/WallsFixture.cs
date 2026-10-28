@@ -165,6 +165,26 @@ internal static class WallsFixture
     }
 
     /// <summary>A combination row of a version 2 document.</summary>
+    /// <summary>
+    /// A row of the frozen or of the legacy generator with the decisions of the ANTHEA user of 28/10/2026 on the census D4 and D5 («Sì, D4 b e
+    /// D5 b»): in the ULS rows an enabled G2 action at 0 (favourable) is at 0.8 (NTC 2018 Tab. 2.6.I and 6.2.I); the seismic rows with assigned kh
+    /// and kv have γR 1, 1, 1.2 (Tab. 7.11.III) and the approach «Sismica · NTC 7.11.III». Nothing else changes.
+    /// </summary>
+    public static WallCombination Decided(WallCombination r, WallInput input)
+    {
+        bool assigned = r.State == WallLimitState.Seismic && r.Purpose == WallSeismicPurpose.None;
+        var coefficients = r.Coefficients.ToDictionary(p => p.Key, p => r.State == WallLimitState.Ultimate && p.Value == 0 && IsG2(input, p.Key) ? .8 : p.Value);
+        return new WallCombination(r.Name, r.State, r.Wall, r.Soil, r.ValleySoil, r.Water, r.FrictionFactor, assigned ? 1 : r.SlidingFactor,
+            assigned ? 1 : r.OverturningFactor, assigned ? 1.2 : r.BearingFactor, r.Kh, r.Kv, coefficients, r.Purpose,
+            assigned ? "Sismica · NTC 7.11.III" : r.Approach, r.VariableSurchargeOnHeel, r.PassiveFactor);
+    }
+
+    /// <summary>The load of an action in a global row with the decision D4 b: an enabled G2 at 0 in the static rows (A2) is at 0.8.</summary>
+    public static double DecidedGlobal(string row, WallInput input, string id, double value) =>
+        row.StartsWith("Globale A2", StringComparison.Ordinal) && value == 0 && IsG2(input, id) ? .8 : value;
+
+    static bool IsG2(WallInput input, string id) => input.Actions.Any(a => a.Id == id && a.Enabled && a.Category == WallActionCategory.G2);
+
     public static WallCombination Combination(JsonObject c)
     {
         var purpose = Str(c["purpose"]) switch { "" => WallSeismicPurpose.None, "Generale" => WallSeismicPurpose.General, "Ribaltamento" => WallSeismicPurpose.Overturning, _ => throw new ArgumentException("Destinazione della combinazione sismica non valida.") };

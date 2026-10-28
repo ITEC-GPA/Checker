@@ -103,7 +103,8 @@ public class WallsServiceGlobalMigrationTests
                 // By position: ANTHEA upgrades a version 1 document again inside the generator, with new identifiers of the actions.
                 var coefficients = l["coefficients"]!.AsObject().Select(c => Req(c.Value, c.Key)).ToArray(); var values = input.Actions.Select(a => p.Loads[a.Id]).ToArray();
                 Assert.AreEqual(coefficients.Length, values.Length, id);
-                for (int k = 0; k < values.Length; k++) Close(coefficients[k], values[k], id + " action " + k, 1e-14, 1e-16);
+                // with the decision D4 b of 28/10/2026 (WallsFixture.DecidedGlobal)
+                for (int k = 0; k < values.Length; k++) Close(DecidedGlobal(p.Name, input, input.Actions[k].Id, coefficients[k]), values[k], id + " action " + k, 1e-14, 1e-16);
                 rows++;
             }
             lines++;

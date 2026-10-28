@@ -55,14 +55,14 @@ namespace GPC.Checkers.Geotechnics.Walls
     /// <summary>
     /// Global stability of the complex retaining wall-soil with the simplified Bishop method (<see cref="SlopeStability"/>): the wall is a rigid body,
     /// the actions are loads of the slope. Transferred from ANTHEA (RetainingWall.GlobalStability.cs, commit fe4652c). NTC 2018 §6.5.3.1.1:
-    /// Approach 1, Combination 2 (A2+M2+R2): γG1 = 1, γG2 = 0/1.3, γQ = 0/1.3, γM tan φ' = γM c' = 1.25, γM cu = 1.4, γR = 1.1 (Tab. 6.8.I); SLV
+    /// Approach 1, Combination 2 (A2+M2+R2): γG1 = 1, γG2 = 0.8/1.3, γQ = 0/1.3, γM tan φ' = γM c' = 1.25, γM cu = 1.4, γR = 1.1 (Tab. 6.8.I); SLV
     /// (§7.11.4): γA = γM = 1, γR = 1.2. Units mm, N/mm, MPa, N/mm³, rad.
     /// </summary>
     public static class WallGlobalStability
     {
         /// <summary>Help of the method, in Italian for the reports.</summary>
         public const string Help = "Stabilità globale: Bishop semplificato, superfici circolari sotto l’intero muro, verso valle. "
-            + "Statica: Approccio 1, combinazione 2 A2+M2+R2; γG1=1, γG2=0/1,3, γQ=0/1,3, γM,tanφ=γM,c′=1,25, γM,cu=1,4, γR=1,10. "
+            + "Statica: Approccio 1, combinazione 2 A2+M2+R2; γG1=1, γG2=0,8/1,3, γQ=0/1,3, γM,tanφ=γM,c′=1,25, γM,cu=1,4, γR=1,10. "
             + "SLV del complesso muro–terreno (§§7.11.6.2.2 e 7.11.4): γA=γM=1, γR=1,20; kh=βs·amax/g con βs=0,38 e kv=±0,5kh. "
             + "βs è distinto dal βm delle spinte. La stabilità del versante naturale e i meccanismi non circolari richiedono una valutazione dedicata.";
 
@@ -71,7 +71,8 @@ namespace GPC.Checkers.Geotechnics.Walls
         /// of A2 (G1 1, the others × 1.3/1.5) and M2, γR 1.1; every accidental combination with unit factors; with the seismic action, the quasi
         /// permanent actions with ±kv and γR 1.2. Identical rows are merged; at most 256. A2, M2 and γR (R2) are those of NTC 2018 in Model
         /// (<see cref="StandardNTC2018Geotechnics"/>, §6.8.2 and §7.11.4; ANTHEA 1.14.4, combinations in Model, step 2); the factors of the actions
-        /// keep the rule A1 × γQ,A2/γQ,A1 of the rows of the wall (census risk R2: the same digits as before).
+        /// keep the rule A1 × γQ,A2/γQ,A1 of the rows of the wall (census risk R2: the same digits as before), but the favourable G2, 0.8 in A1 and
+        /// A2 (census D4 b, decision of the ANTHEA user of 28/10/2026; 0 until ANTHEA 1.14.3).
         /// </summary>
         public static IReadOnlyList<SlopeFactors> Combinations(WallInput input, WallGlobalSeismic? seismic, bool undrained)
         {
@@ -98,7 +99,9 @@ namespace GPC.Checkers.Geotechnics.Walls
                 var coefficients = row.Coefficients.ToDictionary(p => p.Key, p => p.Value);
                 if (statics)
                     foreach (var a in input.Actions)
-                        coefficients[a.Id] = !a.Enabled ? 0 : a.Category == WallActionCategory.G1 ? a2.PermanentUnfavourable : coefficients[a.Id] * a2.VariableUnfavourable / a1.VariableUnfavourable;
+                        coefficients[a.Id] = !a.Enabled ? 0 : a.Category == WallActionCategory.G1 ? a2.PermanentUnfavourable
+                            : a.Category == WallActionCategory.G2 && coefficients[a.Id] == a1.NonStructuralFavourable ? a2.NonStructuralFavourable
+                            : coefficients[a.Id] * a2.VariableUnfavourable / a1.VariableUnfavourable;
                 Add(statics ? "Globale A2–M2–R2" : "Globale eccezionale", coefficients, statics ? m2.TanFrictionAngle : 1, statics ? m2.EffectiveCohesion : 1,
                     statics ? m2.UndrainedShearStrength : 1, statics ? global.ResistanceFactor : 1, state: statics ? "SLU" : "ECCEZIONALE");
             }

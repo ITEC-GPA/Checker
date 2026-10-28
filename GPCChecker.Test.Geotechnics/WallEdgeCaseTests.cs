@@ -178,7 +178,9 @@ public class WallEdgeCaseTests
     /// MUR-1 extended (user decision 16/10/2026): also the seismic and accidental rows with ψ2 q have the twin without the surcharge on the heel.
     /// Benchmark wall (H 3, s 0.30, t 0.40, toe 0.80, heel 1.90; fill φ 30°, γ 18; δb 26°; q = 10 kPa, ψ2 0.3), assigned Mononobe-Okabe kh 0.1,
     /// kv ±0.05. Expected values from the independent pseudo-static model scratchpad\agent-geo\mur1b_seismic.py (KAE, inertia of wall, fill and
-    /// q on the heel, vertical forces × (1 − kv), γR 1.1 / 1.15 of the assigned seismic rows).
+    /// q on the heel, vertical forces × (1 − kv), γR 1.1 / 1.15 of the assigned seismic rows until ANTHEA 1.14.3): since the census D5 b (decision
+    /// of the ANTHEA user of 28/10/2026) the assigned seismic rows have γR 1 of NTC 2018 Tab. 7.11.III, so the ratios of the script divided by 1.1
+    /// and 1.15.
     /// </summary>
     [TestMethod]
     public void SeismicAndAccidentalRowsHaveTheTwinWithoutTheSurchargeOnTheHeel()
@@ -195,7 +197,7 @@ public class WallEdgeCaseTests
         {
             var c = Pick(kv, onHeel); string id = $"kv {kv} q on the heel {onHeel} (mur1b_seismic.py)";
             Close(h, c.Horizontal, "H " + id, 1e-7); Close(n, c.Vertical, "N " + id, 1e-9); Close(ms * KNm, c.Stabilizing, "Ms " + id, 1e-7); Close(mr * KNm, c.Overturning, "Mr " + id, 1e-7);
-            Close(sliding, Ratio(c, WallCheckKind.Sliding), "sliding " + id, 1e-6); Close(overturning, Ratio(c, WallCheckKind.Overturning), "overturning " + id, 1e-6);
+            Close(sliding / 1.1, Ratio(c, WallCheckKind.Sliding), "sliding " + id, 1e-6); Close(overturning / 1.15, Ratio(c, WallCheckKind.Overturning), "overturning " + id, 1e-6);
         }
         Assert.AreEqual(Pick(-.05, true).Combination.Name + "b", Pick(-.05, false).Combination.Name);
         // SLV from the site: general and overturning rows, each with its twin.
@@ -346,9 +348,10 @@ public class WallEdgeCaseTests
         Assert.AreEqual(16, Ultimate(WallCombinations.Generate(Wall(water: new WallWater(1000)))));
         // Without a heel the twin would be the same row: none.
         Assert.AreEqual(0, Twins(WallCombinations.Generate(Wall(toe: 2.7, heel: 0))));
-        // Permanent G2: 0/1.5, one factor on thrust and heel (single source): twins only for the variable q.
+        // Permanent G2: 0.8/1.5 (census D4 b, decision of 28/10/2026; 0/1.5 before), one factor on thrust and heel (single source): twins only for
+        // the variable q.
         var g2 = WallCombinations.Generate(Wall(actions: new[] { Surcharge(10), Surcharge(5, "g", WallActionCategory.G2) }));
-        Assert.IsTrue(g2.Where(r => r.State == WallLimitState.Ultimate).Select(r => r.Coefficients["g"]).Distinct().OrderBy(v => v).SequenceEqual(new[] { 0, 1.5 }));
+        Assert.IsTrue(g2.Where(r => r.State == WallLimitState.Ultimate).Select(r => r.Coefficients["g"]).Distinct().OrderBy(v => v).SequenceEqual(new[] { .8, 1.5 }));
         Assert.IsTrue(g2.Where(r => !r.VariableSurchargeOnHeel).All(r => r.Coefficients["q"] > 0));
         Assert.AreEqual(0, Twins(WallCombinations.Generate(Wall(actions: new[] { Surcharge(5, "g", WallActionCategory.G2) }))));
         var grouped = WallCombinations.Generate(Wall(actions: new[] { Surcharge(10, "a", group: "G"), Surcharge(5, "b", group: "G") }));

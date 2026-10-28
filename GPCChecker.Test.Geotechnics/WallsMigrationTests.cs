@@ -126,7 +126,8 @@ public class WallsMigrationTests
             Assert.AreEqual(list.Count, port.Count, name);
             for (int i = 0; i < port.Count; i++)
             {
-                var c = Combination(list[i]!.AsObject()); var p = port[i]; string id = name + " " + c.Name;
+                // The legacy rows with the decisions D4 b and D5 b of 28/10/2026 (WallsFixture.Decided)
+                var c = Decided(Combination(list[i]!.AsObject()), input); var p = port[i]; string id = name + " " + c.Name;
                 Assert.AreEqual(c.Name, p.Name, id); Assert.AreEqual(c.State, p.State, id); Assert.AreEqual(c.Approach, p.Approach, id); Assert.AreEqual(c.Purpose, p.Purpose, id);
                 foreach (var (a, b, what) in new[] { (c.Wall, p.Wall, "wall"), (c.Soil, p.Soil, "soil"), (c.ValleySoil, p.ValleySoil, "valley"), (c.Water, p.Water, "water"), (c.FrictionFactor, p.FrictionFactor, "mphi"),
                     (c.SlidingFactor, p.SlidingFactor, "rslide"), (c.OverturningFactor, p.OverturningFactor, "rover"), (c.BearingFactor, p.BearingFactor, "rbearing"), (c.Kh, p.Kh, "kh"), (c.Kv, p.Kv, "kv") })

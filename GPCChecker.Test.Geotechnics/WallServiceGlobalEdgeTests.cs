@@ -107,7 +107,8 @@ public class WallServiceGlobalEdgeTests
         var statics = rows.Where(r => r.Name.StartsWith("Globale A2–M2–R2")).ToArray();
         Assert.IsTrue(statics.All(r => r.TanFrictionAngle == 1.25 && r.EffectiveCohesion == 1.25 && r.UndrainedShearStrength == 1.4 && r.ResistanceFactor == 1.1 && r.SoilWeight == 1 && r.BodyWeight == 1));
         Assert.IsTrue(statics.All(r => r.Loads["g1"] == 1 && r.Loads["u"] == 0));
-        CollectionAssert.AreEquivalent(new[] { 0.0, 1.5 * 1.3 / 1.5 }, statics.Select(r => r.Loads["g2"]).Distinct().ToArray(), "G2 0/1.3");
+        // G2 0.8/1.3 of A2 (census D4 b, decision of 28/10/2026; 0/1.3 before)
+        CollectionAssert.AreEquivalent(new[] { .8, 1.5 * 1.3 / 1.5 }, statics.Select(r => r.Loads["g2"]).Distinct().ToArray(), "G2 0.8/1.3");
         CollectionAssert.AreEquivalent(new[] { 0.0, 1.5 * 1.3 / 1.5 }, statics.Select(r => r.Loads["q"]).Distinct().ToArray(), "Q 0/1.3");
         Assert.AreEqual(4, statics.Length, "q and g2 present or not; identical rows merged");
         var accidental = rows.Single(r => r.Name.StartsWith("Globale eccezionale"));
