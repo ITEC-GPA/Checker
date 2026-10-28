@@ -398,6 +398,107 @@ F|GPC.Checkers.Concrete.Shear.ShearVerdict|NotEvaluated|GPC.Checkers.Concrete.Sh
 F|GPC.Checkers.Concrete.Shear.ShearVerdict|NotSatisfied|GPC.Checkers.Concrete.Shear.ShearVerdict|Public, Static, Literal, HasDefault|1
 F|GPC.Checkers.Concrete.Shear.ShearVerdict|Satisfied|GPC.Checkers.Concrete.Shear.ShearVerdict|Public, Static, Literal, HasDefault|0
 F|GPC.Checkers.Concrete.Shear.ShearVerdict|value__|System.Int32|Public, SpecialName, RTSpecialName|
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnAnalysis|RejectionKey|System.String|Public, Static, Literal, HasDefault|"GPC.ModelColumnRejection"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnCreepKind|Effective|GPC.Checkers.Concrete.Slenderness.ModelColumnCreepKind|Public, Static, Literal, HasDefault|1
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnCreepKind|FinalCoefficient|GPC.Checkers.Concrete.Slenderness.ModelColumnCreepKind|Public, Static, Literal, HasDefault|2
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnCreepKind|Neglected|GPC.Checkers.Concrete.Slenderness.ModelColumnCreepKind|Public, Static, Literal, HasDefault|0
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnCreepKind|value__|System.Int32|Public, SpecialName, RTSpecialName|
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionKind|Assigned|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionKind|Public, Static, Literal, HasDefault|1
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionKind|En1992Inclination|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionKind|Public, Static, Literal, HasDefault|2
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionKind|En1992Simplified|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionKind|Public, Static, Literal, HasDefault|3
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionKind|None|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionKind|Public, Static, Literal, HasDefault|0
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionKind|Ntc2018Straightness|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionKind|Public, Static, Literal, HasDefault|4
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionKind|value__|System.Int32|Public, SpecialName, RTSpecialName|
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnMinimumEccentricity|En1992|GPC.Checkers.Concrete.Slenderness.ModelColumnMinimumEccentricity|Public, Static, Literal, HasDefault|3
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnMinimumEccentricity|None|GPC.Checkers.Concrete.Slenderness.ModelColumnMinimumEccentricity|Public, Static, Literal, HasDefault|1
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnMinimumEccentricity|Ntc2018|GPC.Checkers.Concrete.Slenderness.ModelColumnMinimumEccentricity|Public, Static, Literal, HasDefault|2
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnMinimumEccentricity|Standard|GPC.Checkers.Concrete.Slenderness.ModelColumnMinimumEccentricity|Public, Static, Literal, HasDefault|0
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnMinimumEccentricity|value__|System.Int32|Public, SpecialName, RTSpecialName|
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnMode|Instability|GPC.Checkers.Concrete.Slenderness.ModelColumnMode|Public, Static, Literal, HasDefault|0
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnMode|SectionFailure|GPC.Checkers.Concrete.Slenderness.ModelColumnMode|Public, Static, Literal, HasDefault|1
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnMode|value__|System.Int32|Public, SpecialName, RTSpecialName|
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnProfile|CnrDT200|GPC.Checkers.Concrete.Slenderness.ModelColumnProfile|Public, Static, Literal, HasDefault|1
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnProfile|EN1992p11|GPC.Checkers.Concrete.Slenderness.ModelColumnProfile|Public, Static, Literal, HasDefault|2
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnProfile|Ntc2018|GPC.Checkers.Concrete.Slenderness.ModelColumnProfile|Public, Static, Literal, HasDefault|0
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnProfile|UniEN1992p11|GPC.Checkers.Concrete.Slenderness.ModelColumnProfile|Public, Static, Literal, HasDefault|3
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnProfile|value__|System.Int32|Public, SpecialName, RTSpecialName|
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnRejection|AxialForceBeyondResistance|GPC.Checkers.Concrete.Slenderness.ModelColumnRejection|Public, Static, Literal, HasDefault|5
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnRejection|InvalidRequest|GPC.Checkers.Concrete.Slenderness.ModelColumnRejection|Public, Static, Literal, HasDefault|0
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnRejection|TensionAxialForce|GPC.Checkers.Concrete.Slenderness.ModelColumnRejection|Public, Static, Literal, HasDefault|4
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnRejection|TransverseMomentBeyondLimit|GPC.Checkers.Concrete.Slenderness.ModelColumnRejection|Public, Static, Literal, HasDefault|6
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnRejection|UnsupportedChecker|GPC.Checkers.Concrete.Slenderness.ModelColumnRejection|Public, Static, Literal, HasDefault|3
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnRejection|UnsupportedSection|GPC.Checkers.Concrete.Slenderness.ModelColumnRejection|Public, Static, Literal, HasDefault|2
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnRejection|UnsupportedStandard|GPC.Checkers.Concrete.Slenderness.ModelColumnRejection|Public, Static, Literal, HasDefault|1
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnRejection|value__|System.Int32|Public, SpecialName, RTSpecialName|
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|AppliedMoment|System.String|Public, Static, Literal, HasDefault|"AppliedMoment"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|AxialForce|System.String|Public, Static, Literal, HasDefault|"AxialForce"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|BaseInclination|System.String|Public, Static, Literal, HasDefault|"BaseInclination"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|BiaxialEccentricityRatio|System.String|Public, Static, Literal, HasDefault|"BiaxialEccentricityRatio"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|BiaxialExponent|System.String|Public, Static, Literal, HasDefault|"BiaxialExponent"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|BiaxialOutcome|System.String|Public, Static, Literal, HasDefault|"BiaxialOutcome"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|BiaxialRelativeAxialForce|System.String|Public, Static, Literal, HasDefault|"BiaxialRelativeAxialForce"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|BiaxialSlendernessRatio|System.String|Public, Static, Literal, HasDefault|"BiaxialSlendernessRatio"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|BiaxialUtilization|System.String|Public, Static, Literal, HasDefault|"BiaxialUtilization"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|ConcreteArea|System.String|Public, Static, Literal, HasDefault|"ConcreteArea"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|ConcreteLaw|System.String|Public, Static, Literal, HasDefault|"ConcreteLaw"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|CreepConditions|System.String|Public, Static, Literal, HasDefault|"CreepConditions"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|CreepMomentRatio|System.String|Public, Static, Literal, HasDefault|"CreepMomentRatio"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|CurvatureAtMaximum|System.String|Public, Static, Literal, HasDefault|"CurvatureAtMaximum"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|CurvatureFactor|System.String|Public, Static, Literal, HasDefault|"CurvatureFactor"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|DeflectionAtMaximum|System.String|Public, Static, Literal, HasDefault|"DeflectionAtMaximum"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|DesignMoment|System.String|Public, Static, Literal, HasDefault|"DesignMoment"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|EffectiveCreepRatio|System.String|Public, Static, Literal, HasDefault|"EffectiveCreepRatio"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|EffectiveLength|System.String|Public, Static, Literal, HasDefault|"EffectiveLength"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|EquilibriumCurvature|System.String|Public, Static, Literal, HasDefault|"EquilibriumCurvature"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|EquilibriumDeflection|System.String|Public, Static, Literal, HasDefault|"EquilibriumDeflection"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|EquilibriumSecondOrderMoment|System.String|Public, Static, Literal, HasDefault|"EquilibriumSecondOrderMoment"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|FactorA|System.String|Public, Static, Literal, HasDefault|"FactorA"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|FactorB|System.String|Public, Static, Literal, HasDefault|"FactorB"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|FactorC|System.String|Public, Static, Literal, HasDefault|"FactorC"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|FinalCreepCoefficient|System.String|Public, Static, Literal, HasDefault|"FinalCreepCoefficient"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|HeightFactor|System.String|Public, Static, Literal, HasDefault|"HeightFactor"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|ImperfectionEccentricity|System.String|Public, Static, Literal, HasDefault|"ImperfectionEccentricity"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|ImperfectionMoment|System.String|Public, Static, Literal, HasDefault|"ImperfectionMoment"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|Inclination|System.String|Public, Static, Literal, HasDefault|"Inclination"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|Inertia|System.String|Public, Static, Literal, HasDefault|"Inertia"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|LimitSlenderness|System.String|Public, Static, Literal, HasDefault|"LimitSlenderness"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|MaximumFirstOrderMoment|System.String|Public, Static, Literal, HasDefault|"MaximumFirstOrderMoment"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|MechanicalRatio|System.String|Public, Static, Literal, HasDefault|"MechanicalRatio"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|MemberFactor|System.String|Public, Static, Literal, HasDefault|"MemberFactor"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|MemberLength|System.String|Public, Static, Literal, HasDefault|"MemberLength"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|Method|System.String|Public, Static, Literal, HasDefault|"Method"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|MinimumEccentricity|System.String|Public, Static, Literal, HasDefault|"MinimumEccentricity"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|MinimumMoment|System.String|Public, Static, Literal, HasDefault|"MinimumMoment"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|Mode|System.String|Public, Static, Literal, HasDefault|"Mode"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|NominalBasicCurvature|System.String|Public, Static, Literal, HasDefault|"NominalBasicCurvature"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|NominalBeta|System.String|Public, Static, Literal, HasDefault|"NominalBeta"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|NominalCurvature|System.String|Public, Static, Literal, HasDefault|"NominalCurvature"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|NominalDeflection|System.String|Public, Static, Literal, HasDefault|"NominalDeflection"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|NominalDepth|System.String|Public, Static, Literal, HasDefault|"NominalDepth"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|NominalDesignMoment|System.String|Public, Static, Literal, HasDefault|"NominalDesignMoment"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|NominalKphi|System.String|Public, Static, Literal, HasDefault|"NominalKphi"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|NominalKr|System.String|Public, Static, Literal, HasDefault|"NominalKr"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|NominalMaximumFirstOrderMoment|System.String|Public, Static, Literal, HasDefault|"NominalMaximumFirstOrderMoment"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|NominalRatio|System.String|Public, Static, Literal, HasDefault|"NominalRatio"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|NominalResistance|System.String|Public, Static, Literal, HasDefault|"NominalResistance"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|NominalSecondOrderMoment|System.String|Public, Static, Literal, HasDefault|"NominalSecondOrderMoment"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|Outcome|System.String|Public, Static, Literal, HasDefault|"Outcome"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|RadiusOfGyration|System.String|Public, Static, Literal, HasDefault|"RadiusOfGyration"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|Ratio|System.String|Public, Static, Literal, HasDefault|"Ratio"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|RelativeAxialForce|System.String|Public, Static, Literal, HasDefault|"RelativeAxialForce"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|SecondOrderMomentAtMaximum|System.String|Public, Static, Literal, HasDefault|"SecondOrderMomentAtMaximum"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|SecondOrderStiffness|System.String|Public, Static, Literal, HasDefault|"SecondOrderStiffness"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|Slenderness|System.String|Public, Static, Literal, HasDefault|"Slenderness"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|TotalFirstOrderMoment|System.String|Public, Static, Literal, HasDefault|"TotalFirstOrderMoment"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|UltimateCurvature|System.String|Public, Static, Literal, HasDefault|"UltimateCurvature"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|UltimateMoment|System.String|Public, Static, Literal, HasDefault|"UltimateMoment"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|YieldCurvature|System.String|Public, Static, Literal, HasDefault|"YieldCurvature"
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnWarning|CreepNeglectedWithoutConditions|GPC.Checkers.Concrete.Slenderness.ModelColumnWarning|Public, Static, Literal, HasDefault|1
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnWarning|EquilibriumAtZeroCurvature|GPC.Checkers.Concrete.Slenderness.ModelColumnWarning|Public, Static, Literal, HasDefault|4
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnWarning|NoAxialForce|GPC.Checkers.Concrete.Slenderness.ModelColumnWarning|Public, Static, Literal, HasDefault|0
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnWarning|ResistanceNotAvailable|GPC.Checkers.Concrete.Slenderness.ModelColumnWarning|Public, Static, Literal, HasDefault|3
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnWarning|TransverseMoment|GPC.Checkers.Concrete.Slenderness.ModelColumnWarning|Public, Static, Literal, HasDefault|2
+F|GPC.Checkers.Concrete.Slenderness.ModelColumnWarning|value__|System.Int32|Public, SpecialName, RTSpecialName|
 F|GPC.Checkers.Concrete.Torsion.SectionTorsionCalculator|MethodId|System.String|Public, Static, Literal, HasDefault|"Concrete.SectionTorsion"
 F|GPC.Checkers.Concrete.Torsion.TorsionProfile|CnrDT200|GPC.Checkers.Concrete.Torsion.TorsionProfile|Public, Static, Literal, HasDefault|7
 F|GPC.Checkers.Concrete.Torsion.TorsionProfile|DinEN1992p11|GPC.Checkers.Concrete.Torsion.TorsionProfile|Public, Static, Literal, HasDefault|4
@@ -1835,6 +1936,194 @@ M|GPC.Checkers.Concrete.Shear.ShearProfiles|NotApplicableReason(GPC.Model.Standa
 M|GPC.Checkers.Concrete.Shear.ShearProfiles|Reference(GPC.Checkers.Concrete.Shear.ShearProfile profile:None)|System.String|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.Shear.ShearProfiles|Resolve(GPC.Model.Standards.Standard standard:None)|GPC.Checkers.Concrete.Shear.ShearProfile|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.Shear.ShearProfiles|TryResolve(GPC.Model.Standards.Standard standard:None,GPC.Checkers.Concrete.Shear.ShearProfile& profile:Out)|System.Boolean|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnAnalysis|Calculate(GPC.Checkers.Concrete.Slenderness.ModelColumnRequest request:None,GPC.Checkers.Concrete.Checkers.SectionCheckerModelCode2010 checker:None,GPC.Model.Sections.Concrete.ReinforcedConcreteSection section:None,GPC.Geometry.CoordinateSystem axes:None,System.Threading.CancellationToken token:Optional, HasDefault=null)|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnBiaxialCheck|Calculate(GPC.Checkers.Concrete.Slenderness.ModelColumnResult first:None,GPC.Checkers.Concrete.Slenderness.ModelColumnResult second:None,System.Boolean circularOrElliptic:Optional, HasDefault=False)|GPC.Checkers.Concrete.Slenderness.ModelColumnBiaxialResult|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnBiaxialCheck|Exponent(System.Double relativeAxialForce:None)|System.Double|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnBiaxialResult|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnBiaxialResult|get_EccentricityCondition()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnBiaxialResult|get_EccentricityRatio()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnBiaxialResult|get_Exponent()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnBiaxialResult|get_RelativeAxialForce()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnBiaxialResult|get_SeparateChecksSufficient()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnBiaxialResult|get_SlendernessCondition()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnBiaxialResult|get_SlendernessRatio()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnBiaxialResult|get_Trace()|System.Collections.Generic.IReadOnlyList`1<GPC.Checkers.Concrete.Slenderness.ModelColumnTraceStep>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnBiaxialResult|get_Utilization()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnBiaxialResult|get_Verified()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCapacity|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCapacity|get_CurvatureAtMaximum()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCapacity|get_DeflectionAtMaximum()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCapacity|get_MaximumAppliedMoment()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCapacity|get_MaximumFirstOrderMoment()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCapacity|get_Mode()|GPC.Checkers.Concrete.Slenderness.ModelColumnMode|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCapacity|get_MomentAtMaximum()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCapacity|get_SecondOrderMomentAtMaximum()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCapacity|get_UltimateCurvature()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCapacity|get_UltimateMoment()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCapacity|get_YieldCurvature()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCapacity|get_YieldMoment()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCreepResult|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCreepResult|get_EccentricityCondition()|System.Nullable`1<System.Boolean>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCreepResult|get_EffectiveRatio()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCreepResult|get_FinalCoefficient()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCreepResult|get_FinalCoefficientCondition()|System.Nullable`1<System.Boolean>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCreepResult|get_Kind()|GPC.Checkers.Concrete.Slenderness.ModelColumnCreepKind|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCreepResult|get_MomentRatio()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCreepResult|get_NeglectAdmissible()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCreepResult|get_SlendernessCondition()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCreep|Effective(System.Double effectiveRatio:None,System.Nullable`1<System.Double> finalCoefficient:Optional, HasDefault=null)|GPC.Checkers.Concrete.Slenderness.ModelColumnCreep|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCreep|FromFinalCoefficient(System.Double finalCoefficient:None,System.Double quasiPermanentMoment:None,System.Double quasiPermanentAxialForce:None)|GPC.Checkers.Concrete.Slenderness.ModelColumnCreep|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCreep|Neglected(System.Nullable`1<System.Double> finalCoefficient:Optional, HasDefault=null)|GPC.Checkers.Concrete.Slenderness.ModelColumnCreep|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCreep|get_EffectiveRatio()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCreep|get_FinalCoefficient()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCreep|get_Kind()|GPC.Checkers.Concrete.Slenderness.ModelColumnCreepKind|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCreep|get_QuasiPermanentAxialForce()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnCreep|get_QuasiPermanentMoment()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnEquilibrium|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnEquilibrium|get_Curvature()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnEquilibrium|get_Deflection()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnEquilibrium|get_DesignMoment()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnEquilibrium|get_FirstOrderMoment()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnEquilibrium|get_Found()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnEquilibrium|get_Ratio()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnEquilibrium|get_SecondOrderMoment()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnEquilibrium|get_SectionMoment()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnEquilibrium|get_Verified()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnException|GetObjectData(System.Runtime.Serialization.SerializationInfo info:None,System.Runtime.Serialization.StreamingContext context:None)|System.Void|Public, Virtual, HideBySig|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnException|get_AxialForce()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnException|get_Reason()|GPC.Checkers.Concrete.Slenderness.ModelColumnRejection|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnException|get_Value()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnFirstOrder|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnFirstOrder|get_AppliedMoment()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnFirstOrder|get_ImperfectionMoment()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnFirstOrder|get_MinimumEccentricity()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnFirstOrder|get_MinimumEccentricityRule()|GPC.Checkers.Concrete.Slenderness.ModelColumnMinimumEccentricity|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnFirstOrder|get_MinimumGoverns()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnFirstOrder|get_MinimumMoment()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnFirstOrder|get_MinimumReference()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnFirstOrder|get_TotalMoment()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionResult|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionResult|get_BaseInclination()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionResult|get_Eccentricity()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionResult|get_HeightFactor()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionResult|get_Inclination()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionResult|get_Kind()|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionKind|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionResult|get_MemberFactor()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionResult|get_Moment()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionResult|get_Reference()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfection|Assigned(System.Double eccentricity:None)|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfection|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfection|En1992Inclination(System.Nullable`1<System.Double> baseInclination:Optional, HasDefault=null,System.Int32 members:Optional, HasDefault=1)|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfection|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfection|get_BaseInclination()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfection|get_Eccentricity()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfection|get_En1992Simplified()|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfection|Public, Static, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfection|get_Kind()|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionKind|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfection|get_Members()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfection|get_None()|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfection|Public, Static, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfection|get_Ntc2018Straightness()|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfection|Public, Static, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnNominalCurvature|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnNominalCurvature|get_BasicCurvature()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnNominalCurvature|get_Beta()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnNominalCurvature|get_Curvature()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnNominalCurvature|get_Deflection()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnNominalCurvature|get_DesignMoment()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnNominalCurvature|get_EffectiveDepth()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnNominalCurvature|get_Kphi()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnNominalCurvature|get_Kr()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnNominalCurvature|get_MaximumFirstOrderMoment()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnNominalCurvature|get_MechanicalRatio()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnNominalCurvature|get_Nbal()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnNominalCurvature|get_Nu()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnNominalCurvature|get_Ratio()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnNominalCurvature|get_RelativeAxialForce()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnNominalCurvature|get_ResistingMoment()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnNominalCurvature|get_SecondOrderMoment()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnNominalCurvature|get_YieldStrain()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnPoint|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnPoint|get_ConcreteCompressionStrain()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnPoint|get_Curvature()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnPoint|get_FirstOrderCapacity()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnPoint|get_Maximum()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnPoint|get_Moment()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnPoint|get_ReferenceStrain()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnPoint|get_SecondOrderMoment()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnPoint|get_SteelStrain()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnPoint|get_TransverseMoment()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnPoint|get_Ultimate()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnPoint|get_Yielded()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnProfiles|BaseInclination(GPC.Checkers.Concrete.Slenderness.ModelColumnProfile profile:None)|System.Double|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnProfiles|IsNtc(GPC.Checkers.Concrete.Slenderness.ModelColumnProfile profile:None)|System.Boolean|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnProfiles|NotSupportedReason(GPC.Model.Standards.Standard standard:None)|System.String|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnProfiles|Reference(GPC.Checkers.Concrete.Slenderness.ModelColumnProfile profile:None)|System.String|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnProfiles|TryResolve(GPC.Model.Standards.Standard standard:None,GPC.Checkers.Concrete.Slenderness.ModelColumnProfile& profile:Out)|System.Boolean|Public, Static, HideBySig|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnRequest|.ctor(System.Double axialForce:None,System.Double directionDegrees:None,System.Double effectiveLength:None,System.Double memberLength:None,System.Nullable`1<System.Double> firstOrderMoment:Optional, HasDefault=null,System.Double curvatureFactor:Optional, HasDefault=10,GPC.Checkers.Concrete.Slenderness.ModelColumnImperfection imperfection:Optional, HasDefault=null,GPC.Checkers.Concrete.Slenderness.ModelColumnMinimumEccentricity minimumEccentricity:Optional, HasDefault=Standard,GPC.Checkers.Concrete.Slenderness.ModelColumnCreep creep:Optional, HasDefault=null,System.Nullable`1<System.Double> endMomentRatio:Optional, HasDefault=null,System.Int32 steps:Optional, HasDefault=200,System.Double axialTolerance:Optional, HasDefault=1000,System.Double transverseMomentLimit:Optional, HasDefault=0.01,System.Boolean rejectTransverseMoment:Optional, HasDefault=True)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnRequest|get_AxialForce()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnRequest|get_AxialTolerance()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnRequest|get_Creep()|GPC.Checkers.Concrete.Slenderness.ModelColumnCreep|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnRequest|get_CurvatureFactor()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnRequest|get_DirectionDegrees()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnRequest|get_EffectiveLength()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnRequest|get_EndMomentRatio()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnRequest|get_FirstOrderMoment()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnRequest|get_Imperfection()|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfection|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnRequest|get_MemberLength()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnRequest|get_MinimumEccentricity()|GPC.Checkers.Concrete.Slenderness.ModelColumnMinimumEccentricity|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnRequest|get_RejectTransverseMoment()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnRequest|get_Steps()|System.Int32|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnRequest|get_TransverseMomentLimit()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|get_AxialForce()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|get_Capacity()|GPC.Checkers.Concrete.Slenderness.ModelColumnCapacity|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|get_Creep()|GPC.Checkers.Concrete.Slenderness.ModelColumnCreepResult|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|get_CurvatureFactor()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|get_DirectionDegrees()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|get_EffectiveLength()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|get_Equilibrium()|GPC.Checkers.Concrete.Slenderness.ModelColumnEquilibrium|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|get_FirstOrder()|GPC.Checkers.Concrete.Slenderness.ModelColumnFirstOrder|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|get_Imperfection()|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionResult|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|get_MemberLength()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|get_NominalCurvature()|GPC.Checkers.Concrete.Slenderness.ModelColumnNominalCurvature|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|get_Points()|System.Collections.Generic.IReadOnlyList`1<GPC.Checkers.Concrete.Slenderness.ModelColumnPoint>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|get_Profile()|GPC.Checkers.Concrete.Slenderness.ModelColumnProfile|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|get_SecondOrderStiffness()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|get_Section()|GPC.Checkers.Concrete.Slenderness.ModelColumnSection|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|get_Slenderness()|GPC.Checkers.Concrete.Slenderness.ModelColumnSlenderness|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|get_Status()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|get_Trace()|System.Collections.Generic.IReadOnlyList`1<GPC.Checkers.Concrete.Slenderness.ModelColumnTraceStep>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|get_TransverseMomentRatio()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|get_Verified()|System.Nullable`1<System.Boolean>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|get_Warnings()|System.Collections.Generic.IReadOnlyList`1<GPC.Checkers.Concrete.Slenderness.ModelColumnWarning>|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSection|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSection|get_AxialResistance()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSection|get_CharacteristicStrength()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSection|get_CompressionResistance()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSection|get_ConcreteArea()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSection|get_Depth()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSection|get_DesignStrength()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSection|get_Inertia()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSection|get_RadiusOfGyration()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSection|get_ReinforcementArea()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSection|get_ReinforcementRadiusOfGyration()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSection|get_ReinforcementResistance()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSection|get_YieldStrain()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSlenderness|.ctor()|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSlenderness|get_FactorA()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSlenderness|get_FactorB()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSlenderness|get_FactorC()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSlenderness|get_Limit()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSlenderness|get_LimitEn1992()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSlenderness|get_LimitNtc2018()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSlenderness|get_MechanicalRatio()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSlenderness|get_Reference()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSlenderness|get_RelativeAxialForce()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSlenderness|get_SecondOrderEffectsNegligible()|System.Boolean|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnSlenderness|get_Slenderness()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceStep|ToString()|System.String|Public, Virtual, HideBySig|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceStep|get_Code()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceStep|get_Description()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceStep|get_Formula()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceStep|get_Reference()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceStep|get_Unit()|System.String|Public, HideBySig, SpecialName|
+M|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceStep|get_Value()|System.Nullable`1<System.Double>|Public, HideBySig, SpecialName|
 M|GPC.Checkers.Concrete.Torsion.SectionTorsionCalculator|Calculate(GPC.Checkers.Concrete.Torsion.SectionTorsionInput p:None,GPC.Checkers.Concrete.Shear.SectionShearInput axis1:None,GPC.Checkers.Concrete.Shear.SectionShearInput axis2:None)|GPC.Checkers.Concrete.Torsion.SectionTorsionResult|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.Torsion.SectionTorsionCalculator|Evaluate(GPC.Checkers.Concrete.Torsion.SectionTorsionInput p:None,GPC.Checkers.Concrete.Torsion.TorsionShearComponent axis1:None,GPC.Checkers.Concrete.Torsion.TorsionShearComponent axis2:None)|GPC.Checkers.Concrete.Torsion.SectionTorsionResult|Public, Static, HideBySig|
 M|GPC.Checkers.Concrete.Torsion.SectionTorsionInput|.ctor(GPC.Model.Standards.Standard standard:None,System.Double t:None,GPC.Checkers.Concrete.Torsion.TorsionGeometry geometry:None,System.Double fck:None,System.Double fcd:None,System.Double gammaC:None,System.Double linkFyd:None,System.Double longitudinalFyd:None,System.Double linkLegArea:None,System.Double spacing:None,System.Double longitudinalArea:None,System.Double cotTheta:None,System.Double linkAngleDegrees:Optional, HasDefault=90,System.Boolean hollowWithReinforcementOnBothFaces:Optional, HasDefault=False)|-|Public, HideBySig, SpecialName, RTSpecialName|
@@ -2095,6 +2384,33 @@ T|GPC.Checkers.Concrete.Shear.ShearLeverArm|Public, Abstract, Sealed, BeforeFiel
 T|GPC.Checkers.Concrete.Shear.ShearProfiles|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Shear.ShearProfile|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
 T|GPC.Checkers.Concrete.Shear.ShearVerdict|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnAnalysis|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnBiaxialCheck|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnBiaxialResult|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnCapacity|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnCreepKind|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnCreepResult|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnCreep|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnEquilibrium|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnException|Public, Sealed, Serializable, BeforeFieldInit|base=System.ArgumentException|interfaces=System.Runtime.Serialization.ISerializable|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnFirstOrder|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionKind|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfectionResult|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnImperfection|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnMinimumEccentricity|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnMode|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnNominalCurvature|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnPoint|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnProfiles|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnProfile|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnRejection|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnRequest|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnResult|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnSection|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnSlenderness|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceCodes|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnTraceStep|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Checkers.Concrete.Slenderness.ModelColumnWarning|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
 T|GPC.Checkers.Concrete.Torsion.SectionTorsionCalculator|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Torsion.SectionTorsionInput|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Checkers.Concrete.Torsion.SectionTorsionResult|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
