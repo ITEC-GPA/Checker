@@ -111,6 +111,7 @@
     <Compile Include="FailureDomain2dNMTests.cs" />
     <Compile Include="AssignedAxialForceOutcomeTests.cs" />
     <Compile Include="MomentCurvatureReferenceStrainTests.cs" />
+    <Compile Include="ModelColumnTests.cs" />
     <Compile Include="ShearAxialEccentricityTests.cs" />
     <Compile Include="ConstantAxialForcePlaneTests.cs" />
     <Compile Include="ElasticTensionPoleTests.cs" />

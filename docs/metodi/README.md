@@ -16,6 +16,7 @@ La pagina è la revisione tecnica del metodo: descrive ciò che il codice fa, no
 | [ca.dettagli](ca.dettagli.md) | Dettagli costruttivi di travi e pilastri | `MemberDetailingCalculator` | bozza |
 | [ca.durabilita-copriferri](ca.durabilita-copriferri.md) | Durabilità, classi di esposizione e copriferri | `ExposureClasses`, `CoverRequirements` | bozza |
 | [ca.momento-curvatura](ca.momento-curvatura.md) | Risposta momento-curvatura a sforzo normale costante | `MomentCurvatureAnalysis` | bozza |
+| [ca.colonna-modello](ca.colonna-modello.md) | Colonna modello del pilastro in c.a. (secondo ordine nella sezione critica) | `ModelColumnAnalysis` | bozza |
 | [ca.muri-taglio](ca.muri-taglio.md) | Taglio senza armatura trasversale delle strisce di muro, con lo sforzo normale | `WallSectionSession`, `SectionShearCalculator` | bozza |
 | [ca.muri-curvatura](ca.muri-curvatura.md) | Curvatura e piano delle deformazioni totali nell'analisi lineare con viscosità | `StressAnalysisResult`, `WallSectionSession` | bozza |
 
