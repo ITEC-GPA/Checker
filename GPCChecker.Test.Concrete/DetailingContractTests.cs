@@ -35,6 +35,10 @@ namespace ConcreteTests
     ///   (numbers in the texts are formatted with the current culture).
     ///   Accepted change (approved by the user, bug analysis of 15/10/2026, SLU-4): ReferenceStrain of the limit point of the 5 fixture curves is the
     ///   strain at the origin of the local axes, no longer −0.0035 at the pivot vertex; only those 5 values were regenerated.
+    ///   Accepted change (ANTHEA 1.16.0, R20, user decisions of 28/10/2026 «Fonti secondarie» and «Approvati se spiegati»): DS beams check
+    ///   MinimumLinks:&lt;face&gt; with ρw,min = 0.063 √fck / fyk of DK NA 9.2.2(5) (9.5N NA) instead of a pending national value; 168 lines
+    ///   changed, each verified against the formula from the case inputs: 164 MinimumLinks checks (Actual, Limit, Unit, Passed, Explanation,
+    ///   NotImplemented) and 4 DS beam cases whose overall Passed goes from null to false because their links are below ρw,min.
     /// Doubles are written with the round-trip format (G17 where "R" does not round-trip, −0 kept), so the comparison is bit for bit. Generation runs with the
     /// invariant culture and UI culture (mscorlib messages in English on every machine). On a difference the generated text is written to
     /// %TEMP%\&lt;fixture&gt;.actual and the first differing line is reported.

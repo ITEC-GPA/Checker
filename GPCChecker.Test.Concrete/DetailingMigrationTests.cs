@@ -208,8 +208,12 @@ namespace ConcreteTests
             Assert.AreEqual(.08 * Math.Sqrt(30) / 450 * 300 * 1000, Check(b, "MinimumLinks:Bottom").Limit.Value, 1e-9, "ρw,min bw in mm²/m");
             Assert.AreEqual(.75 * d, Check(b, "LinkSpacing:Bottom").Limit.Value, 1e-9);
             var dsBeam = MemberDetailingCalculator.Calculate(DetailingProfile.DsEN1992p11, Beam());
-            Assert.IsNull(Check(dsBeam, "MinimumTension:Bottom").Passed); Assert.IsNull(Check(dsBeam, "MinimumLinks:Bottom").Passed); Assert.IsNull(dsBeam.Passed);
-            Assert.IsTrue(Check(dsBeam, "MinimumTension:Bottom").NotImplemented && Check(dsBeam, "MinimumLinks:Top").NotImplemented);
+            Assert.IsNull(Check(dsBeam, "MinimumTension:Bottom").Passed); Assert.IsNull(dsBeam.Passed);
+            Assert.IsTrue(Check(dsBeam, "MinimumTension:Bottom").NotImplemented);
+            // R20 (1.16.0): DK NA 9.2.2(5), ρw,min = 0.063 √fck / fyk (9.5N NA); Ø8/200 with 2 legs = 502.65 mm²/m ≥ 0.063 √30/450 · 300 · 1000 = 230.04.
+            var dsLinks = Check(dsBeam, "MinimumLinks:Bottom");
+            Assert.AreEqual(.063 * Math.Sqrt(30) / 450 * 300 * 1000, dsLinks.Limit.Value, 1e-9, "DK NA ρw,min bw in mm²/m");
+            Assert.IsFalse(dsLinks.NotImplemented); Assert.AreEqual(true, dsLinks.Passed); Assert.AreEqual(true, Check(dsBeam, "MinimumLinks:Top").Passed);
             Assert.IsNotNull(Check(dsBeam, "LinkSpacing:Bottom").Passed, "9.2.2(6) unchanged");
         }
 

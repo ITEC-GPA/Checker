@@ -661,12 +661,12 @@ C	1	NominalCover	30	55	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-17	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	942.47779607693792	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	0	230.04347415216978	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	null	339	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	402.12385965949352	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	0	230.04347415216978	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	null	340.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	13	BarsHeldByLinks	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.2 / 9.5.3(6)	Confirm the restraint of the compression bars considered in the resistance.	false
@@ -676,12 +676,12 @@ C	1	NominalCover	30	50	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-12	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	942.47779607693792	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	502.65482457436684	230.04347415216978	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	100	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	402.12385965949352	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	502.65482457436684	230.04347415216978	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	100	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	13	EndSupportAnchorage	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.4	Confirm the shift rule and the bottom bars anchored at the end supports.	false
@@ -690,12 +690,12 @@ C	0	ClearSpacing	82	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax;
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	942.47779607693792	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	1570.7963267948967	230.04347415216978	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	100	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	230	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	402.12385965949352	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	1570.7963267948967	230.04347415216978	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	100	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	230	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	57	R300x500	DsEN1992p11	0	150000	30	2.896468153816889	450	391.304347826087	300	300	300	200000	true	6	200	4	20	30	25	5	true	true	true	22	ok	DsEN1992p11	0	null	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	11
@@ -703,11 +703,11 @@ C	0	ClearSpacing	82	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax;
 C	1	NominalCover	30	30	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur; cmin,b) + Δcdev	false
 C	2	BarCoverMargin	8	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	565.48667764616278	230.04347415216978	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	200	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	78	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	8	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	8	MinimumLinks:Top	565.48667764616278	230.04347415216978	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	9	LinkSpacing:Top	200	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	10	LinkLegSpacing:Top	78	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	58	R300x500	DsEN1992p11	0	150000	30	2.896468153816889	450	391.304347826087	300	300	300	0	true	8	200	0	40	30	45	10	false	false	false	5/40	ok	DsEN1992p11	0	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	15
@@ -716,12 +716,12 @@ C	1	NominalCover	30	60	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-22	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	942.47779607693792	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	0	230.04347415216978	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	200	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	402.12385965949352	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	0	230.04347415216978	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	200	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	13	BarsHeldByLinks	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.2 / 9.5.3(6)	Confirm the restraint of the compression bars considered in the resistance.	false
@@ -731,12 +731,12 @@ C	0	ClearSpacing	82	45	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax;
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	942.47779607693792	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	0	230.04347415216978	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	null	339	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	402.12385965949352	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	0	230.04347415216978	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	null	340.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 M	60	R300x500	DsEN1992p11	1	150000	30	2.896468153816889	450	391.304347826087	300	300	300	0	false	6	100	0	16	30	25	10	false	false	true	20/0	ok	DsEN1992p11	1	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	9
@@ -801,12 +801,12 @@ C	1	NominalCover	30	55	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-17	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	942.47779607693792	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	0	230.04347415216978	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	null	339	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	402.12385965949352	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	0	230.04347415216978	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	null	340.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	13	BarsHeldByLinks	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.2 / 9.5.3(6)	Confirm the restraint of the compression bars considered in the resistance.	false
@@ -816,12 +816,12 @@ C	1	NominalCover	30	50	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-12	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	942.47779607693792	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	502.65482457436684	230.04347415216978	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	100	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	402.12385965949352	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	502.65482457436684	230.04347415216978	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	100	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	13	EndSupportAnchorage	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.4	Confirm the shift rule and the bottom bars anchored at the end supports.	false
@@ -830,12 +830,12 @@ C	0	ClearSpacing	82	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax;
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	942.47779607693792	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	1570.7963267948967	230.04347415216978	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	100	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	230	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	402.12385965949352	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	1570.7963267948967	230.04347415216978	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	100	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	230	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	69	R300x500	DsEN1992p11	7	150000	30	2.896468153816889	450	391.304347826087	300	300	300	200000	true	6	200	4	20	30	25	5	true	true	true	22	ok	DsEN1992p11	7	null	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	11
@@ -843,11 +843,11 @@ C	0	ClearSpacing	82	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax;
 C	1	NominalCover	30	30	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur; cmin,b) + Δcdev	false
 C	2	BarCoverMargin	8	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	565.48667764616278	230.04347415216978	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	200	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	78	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	8	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	8	MinimumLinks:Top	565.48667764616278	230.04347415216978	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	9	LinkSpacing:Top	200	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	10	LinkLegSpacing:Top	78	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	70	R300x500	DsEN1992p11	7	150000	30	2.896468153816889	450	391.304347826087	300	300	300	0	true	8	200	0	40	30	45	10	false	false	false	5/40	ok	DsEN1992p11	7	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	15
@@ -856,12 +856,12 @@ C	1	NominalCover	30	60	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-22	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	942.47779607693792	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	0	230.04347415216978	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	200	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	402.12385965949352	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	0	230.04347415216978	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	200	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	13	BarsHeldByLinks	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.2 / 9.5.3(6)	Confirm the restraint of the compression bars considered in the resistance.	false
@@ -871,12 +871,12 @@ C	0	ClearSpacing	82	45	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax;
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	942.47779607693792	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	0	230.04347415216978	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	null	339	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	402.12385965949352	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	0	230.04347415216978	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	null	340.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 M	72	R300x500	CnrDT200	0	150000	30	2.896468153816889	450	391.304347826087	300	300	300	0	true	6	300	2	16	30	25	10	false	true	true	0/75	ok	CnrDT200	0	false	CNR-DT 200 R1/2013 with NTC 2018 §4.1.6.1 for the RC member	12
@@ -1755,12 +1755,12 @@ C	1	NominalCover	70	50	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur; 
 C	2	BarCoverMargin	30	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	2714.3360527015811	20800	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	502.65482457436684	331.30046785357848	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	100	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	2060.8847807549046	20800	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	502.65482457436684	331.30046785357848	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	100	487.42682926829264	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	13	EndSupportAnchorage	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.4	Confirm the shift rule and the bottom bars anchored at the end supports.	false
@@ -1769,12 +1769,12 @@ C	0	ClearSpacing	19.199999999999989	25	mm	false	DS/EN 1992-1-1 + DK NA §8.2(2)	
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	2714.3360527015811	20800	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	1570.7963267948967	331.30046785357848	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	100	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	250	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	2060.8847807549046	20800	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	1570.7963267948967	331.30046785357848	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	100	487.42682926829264	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	250	487.42682926829264	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	146	T1200x800	DsEN1992p11	0	520000	35	3.2099624416952381	450	391.304347826087	1200	400	400	200000	true	6	200	4	20	70	25	5	true	true	true	22	ok	DsEN1992p11	0	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	11
@@ -1782,11 +1782,11 @@ C	0	ClearSpacing	19.199999999999989	25	mm	false	DS/EN 1992-1-1 + DK NA §8.2(2)	
 C	1	NominalCover	70	30	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur; cmin,b) + Δcdev	false
 C	2	BarCoverMargin	50	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	565.48667764616278	331.30046785357848	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	200	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	84.666666666666671	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	8	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	8	MinimumLinks:Top	565.48667764616278	331.30046785357848	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	9	LinkSpacing:Top	200	487.42682926829264	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	10	LinkLegSpacing:Top	84.666666666666671	487.42682926829264	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	147	T1200x800	DsEN1992p11	0	520000	35	3.2099624416952381	450	391.304347826087	1200	400	400	0	true	8	200	0	40	70	45	10	false	false	false	5/40	ok	DsEN1992p11	0	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	15
@@ -1795,12 +1795,12 @@ C	1	NominalCover	70	60	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur; 
 C	2	BarCoverMargin	20	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	2714.3360527015811	20800	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	0	331.30046785357848	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	200	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	2060.8847807549046	20800	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	0	331.30046785357848	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	200	487.42682926829264	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	13	BarsHeldByLinks	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.2 / 9.5.3(6)	Confirm the restraint of the compression bars considered in the resistance.	false
@@ -1810,12 +1810,12 @@ C	0	ClearSpacing	19.199999999999989	45	mm	false	DS/EN 1992-1-1 + DK NA §8.2(2)	
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	2714.3360527015811	20800	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	0	331.30046785357848	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	null	531	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	2060.8847807549046	20800	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	0	331.30046785357848	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	null	487.42682926829264	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 M	149	T1200x800	DsEN1992p11	0	520000	35	3.2099624416952381	450	391.304347826087	1200	400	400	0	true	6	300	2	16	70	25	10	false	true	true	0/75	ok	DsEN1992p11	0	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	13
@@ -1824,12 +1824,12 @@ C	1	NominalCover	70	75	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	5	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	2714.3360527015811	20800	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	188.4955592153876	331.30046785357848	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	300	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	254	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	2060.8847807549046	20800	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	188.4955592153876	331.30046785357848	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	300	487.42682926829264	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	254	487.42682926829264	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	150	T1200x800	DsEN1992p11	1	520000	35	3.2099624416952381	450	391.304347826087	1200	400	400	1500000	true	8	100	1	16	70	45	5	false	true	false	22	ok	DsEN1992p11	1	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	9
@@ -1893,12 +1893,12 @@ C	1	NominalCover	70	50	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur; 
 C	2	BarCoverMargin	30	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	2714.3360527015811	20800	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	502.65482457436684	331.30046785357848	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	100	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	2060.8847807549046	20800	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	502.65482457436684	331.30046785357848	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	100	487.42682926829264	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	13	EndSupportAnchorage	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.4	Confirm the shift rule and the bottom bars anchored at the end supports.	false
@@ -1907,12 +1907,12 @@ C	0	ClearSpacing	19.199999999999989	25	mm	false	DS/EN 1992-1-1 + DK NA §8.2(2)	
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	2714.3360527015811	20800	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	1570.7963267948967	331.30046785357848	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	100	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	250	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	2060.8847807549046	20800	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	1570.7963267948967	331.30046785357848	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	100	487.42682926829264	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	250	487.42682926829264	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	158	T1200x800	DsEN1992p11	7	520000	35	3.2099624416952381	450	391.304347826087	1200	400	400	200000	true	6	200	4	20	70	25	5	true	true	true	22	ok	DsEN1992p11	7	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	11
@@ -1920,11 +1920,11 @@ C	0	ClearSpacing	19.199999999999989	25	mm	false	DS/EN 1992-1-1 + DK NA §8.2(2)	
 C	1	NominalCover	70	30	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur; cmin,b) + Δcdev	false
 C	2	BarCoverMargin	50	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	565.48667764616278	331.30046785357848	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	200	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	84.666666666666671	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	8	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	8	MinimumLinks:Top	565.48667764616278	331.30046785357848	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	9	LinkSpacing:Top	200	487.42682926829264	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	10	LinkLegSpacing:Top	84.666666666666671	487.42682926829264	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	159	T1200x800	DsEN1992p11	7	520000	35	3.2099624416952381	450	391.304347826087	1200	400	400	0	true	8	200	0	40	70	45	10	false	false	false	5/40	ok	DsEN1992p11	7	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	15
@@ -1933,12 +1933,12 @@ C	1	NominalCover	70	60	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur; 
 C	2	BarCoverMargin	20	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	2714.3360527015811	20800	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	0	331.30046785357848	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	200	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	2060.8847807549046	20800	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	0	331.30046785357848	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	200	487.42682926829264	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	13	BarsHeldByLinks	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.2 / 9.5.3(6)	Confirm the restraint of the compression bars considered in the resistance.	false
@@ -1948,12 +1948,12 @@ C	0	ClearSpacing	19.199999999999989	45	mm	false	DS/EN 1992-1-1 + DK NA §8.2(2)	
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	2714.3360527015811	20800	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	0	331.30046785357848	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	null	531	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	2060.8847807549046	20800	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	0	331.30046785357848	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	null	487.42682926829264	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 M	161	T1200x800	DsEN1992p11	7	520000	35	3.2099624416952381	450	391.304347826087	1200	400	400	0	true	6	300	2	16	70	25	10	false	true	true	0/75	ok	DsEN1992p11	7	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	13
@@ -1962,12 +1962,12 @@ C	1	NominalCover	70	75	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	5	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	2714.3360527015811	20800	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	188.4955592153876	331.30046785357848	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	300	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	254	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	2060.8847807549046	20800	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	188.4955592153876	331.30046785357848	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	300	487.42682926829264	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	254	487.42682926829264	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	162	T1200x800	CnrDT200	0	520000	35	3.2099624416952381	450	391.304347826087	1200	400	400	200000	true	8	300	4	16	70	45	5	false	true	false	20/0	ok	CnrDT200	0	false	CNR-DT 200 R1/2013 with NTC 2018 §4.1.6.1 for the RC member	13
@@ -2852,12 +2852,12 @@ C	0	ClearSpacing	131	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	603.18578948924028	6400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	1570.7963267948967	279.99999999999994	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	100	260.25	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	320	260.25	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	1005.3096491487338	6400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	1570.7963267948967	279.99999999999994	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	100	216.15000000000003	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	320	216.15000000000003	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	235	R400x400	DsEN1992p11	0	160000	25	2.5649639200150451	450	391.304347826087	400	400	400	200000	true	6	200	4	20	35	25	5	true	true	true	22	ok	DsEN1992p11	0	null	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	11
@@ -2865,11 +2865,11 @@ C	0	ClearSpacing	131	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax
 C	1	NominalCover	35	30	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur; cmin,b) + Δcdev	false
 C	2	BarCoverMargin	15	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	565.48667764616278	279.99999999999994	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	200	260.25	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	108	260.25	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	8	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	8	MinimumLinks:Top	565.48667764616278	279.99999999999994	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	9	LinkSpacing:Top	200	216.15000000000003	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	10	LinkLegSpacing:Top	108	216.15000000000003	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	236	R400x400	DsEN1992p11	0	160000	25	2.5649639200150451	450	391.304347826087	400	400	400	0	true	8	200	0	40	35	45	10	false	false	false	5/40	ok	DsEN1992p11	0	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	15
@@ -2878,12 +2878,12 @@ C	1	NominalCover	35	60	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-15	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	603.18578948924028	6400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	0	279.99999999999994	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	200	260.25	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1005.3096491487338	6400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	0	279.99999999999994	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	200	216.15000000000003	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	13	BarsHeldByLinks	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.2 / 9.5.3(6)	Confirm the restraint of the compression bars considered in the resistance.	false
@@ -2893,12 +2893,12 @@ C	0	ClearSpacing	131	45	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	603.18578948924028	6400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	0	279.99999999999994	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	null	260.25	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	1005.3096491487338	6400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	0	279.99999999999994	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	null	216.15000000000003	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 M	238	R400x400	DsEN1992p11	0	160000	25	2.5649639200150451	450	391.304347826087	400	400	400	0	true	6	300	2	16	35	25	10	false	true	true	0/75	ok	DsEN1992p11	0	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	13
@@ -2907,12 +2907,12 @@ C	1	NominalCover	35	75	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-30	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	603.18578948924028	6400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	188.4955592153876	279.99999999999994	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	300	260.25	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	324	260.25	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1005.3096491487338	6400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	188.4955592153876	279.99999999999994	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	300	216.15000000000003	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	324	216.15000000000003	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	239	R400x400	DsEN1992p11	0	160000	25	2.5649639200150451	450	391.304347826087	400	400	400	200000	true	8	300	4	16	35	45	5	false	true	false	20/0	ok	DsEN1992p11	0	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	14
@@ -2921,12 +2921,12 @@ C	1	NominalCover	35	70	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-25	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	603.18578948924028	6400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	670.20643276582246	279.99999999999994	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	300	260.25	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	107.33333333333333	260.25	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1005.3096491487338	6400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	670.20643276582246	279.99999999999994	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	300	216.15000000000003	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	107.33333333333333	216.15000000000003	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	13	EndSupportAnchorage	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.4	Confirm the shift rule and the bottom bars anchored at the end supports.	false
@@ -2990,12 +2990,12 @@ C	0	ClearSpacing	131	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	603.18578948924028	6400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	1570.7963267948967	279.99999999999994	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	100	260.25	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	320	260.25	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	1005.3096491487338	6400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	1570.7963267948967	279.99999999999994	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	100	216.15000000000003	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	320	216.15000000000003	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	247	R400x400	DsEN1992p11	7	160000	25	2.5649639200150451	450	391.304347826087	400	400	400	200000	true	6	200	4	20	35	25	5	true	true	true	22	ok	DsEN1992p11	7	null	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	11
@@ -3003,11 +3003,11 @@ C	0	ClearSpacing	131	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax
 C	1	NominalCover	35	30	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur; cmin,b) + Δcdev	false
 C	2	BarCoverMargin	15	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	565.48667764616278	279.99999999999994	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	200	260.25	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	108	260.25	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	8	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	8	MinimumLinks:Top	565.48667764616278	279.99999999999994	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	9	LinkSpacing:Top	200	216.15000000000003	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	10	LinkLegSpacing:Top	108	216.15000000000003	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	248	R400x400	DsEN1992p11	7	160000	25	2.5649639200150451	450	391.304347826087	400	400	400	0	true	8	200	0	40	35	45	10	false	false	false	5/40	ok	DsEN1992p11	7	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	15
@@ -3016,12 +3016,12 @@ C	1	NominalCover	35	60	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-15	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	603.18578948924028	6400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	0	279.99999999999994	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	200	260.25	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1005.3096491487338	6400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	0	279.99999999999994	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	200	216.15000000000003	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	13	BarsHeldByLinks	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.2 / 9.5.3(6)	Confirm the restraint of the compression bars considered in the resistance.	false
@@ -3031,12 +3031,12 @@ C	0	ClearSpacing	131	45	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	603.18578948924028	6400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	0	279.99999999999994	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	null	260.25	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	1005.3096491487338	6400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	0	279.99999999999994	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	null	216.15000000000003	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 M	250	R400x400	DsEN1992p11	7	160000	25	2.5649639200150451	450	391.304347826087	400	400	400	0	true	6	300	2	16	35	25	10	false	true	true	0/75	ok	DsEN1992p11	7	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	13
@@ -3045,12 +3045,12 @@ C	1	NominalCover	35	75	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-30	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	603.18578948924028	6400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	188.4955592153876	279.99999999999994	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	300	260.25	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	324	260.25	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1005.3096491487338	6400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	188.4955592153876	279.99999999999994	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	300	216.15000000000003	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	324	216.15000000000003	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	251	R400x400	DsEN1992p11	7	160000	25	2.5649639200150451	450	391.304347826087	400	400	400	200000	true	8	300	4	16	35	45	5	false	true	false	20/0	ok	DsEN1992p11	7	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	14
@@ -3059,12 +3059,12 @@ C	1	NominalCover	35	70	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-25	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	603.18578948924028	6400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	670.20643276582246	279.99999999999994	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	300	260.25	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	107.33333333333333	260.25	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1005.3096491487338	6400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	670.20643276582246	279.99999999999994	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	300	216.15000000000003	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	107.33333333333333	216.15000000000003	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	13	EndSupportAnchorage	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.4	Confirm the shift rule and the bottom bars anchored at the end supports.	false
@@ -3955,11 +3955,11 @@ C	0	ClearSpacing	94.212828521145838	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	m
 C	1	NominalCover	40	30	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur; cmin,b) + Δcdev	false
 C	2	BarCoverMargin	17.730344693642998	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	565.48667764616278	316.78383797157329	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	200	236.91168824543144	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	104.66666666666667	236.91168824543144	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	8	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	8	MinimumLinks:Top	565.48667764616278	316.78383797157329	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	9	LinkSpacing:Top	200	202.14701294725884	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	10	LinkLegSpacing:Top	104.66666666666667	202.14701294725884	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	325	C400	DsEN1992p11	0	125663.70614359173	32	3.0238105197476952	450	391.304347826087	400	400	400	0	true	8	200	0	40	40	45	10	false	false	false	5/40	ok	DsEN1992p11	0	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	15
@@ -3968,12 +3968,12 @@ C	1	NominalCover	40	60	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-12.269655306357002	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	603.18578948924028	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	0	316.78383797157329	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	200	236.91168824543144	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1005.3096491487338	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	0	316.78383797157329	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	200	202.14701294725884	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	13	BarsHeldByLinks	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.2 / 9.5.3(6)	Confirm the restraint of the compression bars considered in the resistance.	false
@@ -3983,12 +3983,12 @@ C	0	ClearSpacing	94.212828521145838	45	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	m
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	603.18578948924028	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	0	316.78383797157329	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	null	236.91168824543144	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	1005.3096491487338	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	0	316.78383797157329	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	null	202.14701294725884	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 M	327	C400	DsEN1992p11	0	125663.70614359173	32	3.0238105197476952	450	391.304347826087	400	400	400	0	true	6	300	2	16	40	25	10	false	true	true	0/75	ok	DsEN1992p11	0	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	13
@@ -3997,12 +3997,12 @@ C	1	NominalCover	40	75	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-27.269655306357002	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	603.18578948924028	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	188.4955592153876	316.78383797157329	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	300	236.91168824543144	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	314	236.91168824543144	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1005.3096491487338	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	188.4955592153876	316.78383797157329	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	300	202.14701294725884	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	314	202.14701294725884	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	328	C400	DsEN1992p11	0	125663.70614359173	32	3.0238105197476952	450	391.304347826087	400	400	400	200000	true	8	300	4	16	40	45	5	false	true	false	20/0	ok	DsEN1992p11	0	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	14
@@ -4011,12 +4011,12 @@ C	1	NominalCover	40	70	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-22.269655306357002	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	603.18578948924028	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	670.20643276582246	316.78383797157329	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	300	236.91168824543144	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	104	236.91168824543144	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1005.3096491487338	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	670.20643276582246	316.78383797157329	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	300	202.14701294725884	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	104	202.14701294725884	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	13	EndSupportAnchorage	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.4	Confirm the shift rule and the bottom bars anchored at the end supports.	false
@@ -4024,11 +4024,11 @@ M	329	C400	DsEN1992p11	0	125663.70614359173	32	3.0238105197476952	450	391.304347
 C	0	ClearSpacing	94.212828521145838	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax; dg + 5 mm) on every pair of bars	false
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	3	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	3	MinimumLinks:Bottom	0	316.78383797157329	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	4	LinkSpacing:Bottom	300	236.91168824543144	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	5	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	6	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	7	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	7	MinimumLinks:Top	0	316.78383797157329	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	8	LinkSpacing:Top	300	202.14701294725884	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	9	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	10	BarsHeldByLinks	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.2 / 9.5.3(6)	Confirm the restraint of the compression bars considered in the resistance.	false
@@ -4099,11 +4099,11 @@ C	0	ClearSpacing	94.212828521145838	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	m
 C	1	NominalCover	40	30	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur; cmin,b) + Δcdev	false
 C	2	BarCoverMargin	17.730344693642998	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	565.48667764616278	316.78383797157329	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	200	236.91168824543144	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	104.66666666666667	236.91168824543144	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	8	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	8	MinimumLinks:Top	565.48667764616278	316.78383797157329	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	9	LinkSpacing:Top	200	202.14701294725884	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	10	LinkLegSpacing:Top	104.66666666666667	202.14701294725884	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	337	C400	DsEN1992p11	7	125663.70614359173	32	3.0238105197476952	450	391.304347826087	400	400	400	0	true	8	200	0	40	40	45	10	false	false	false	5/40	ok	DsEN1992p11	7	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	15
@@ -4112,12 +4112,12 @@ C	1	NominalCover	40	60	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-12.269655306357002	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	603.18578948924028	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	0	316.78383797157329	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	200	236.91168824543144	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1005.3096491487338	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	0	316.78383797157329	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	200	202.14701294725884	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	13	BarsHeldByLinks	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.2 / 9.5.3(6)	Confirm the restraint of the compression bars considered in the resistance.	false
@@ -4127,12 +4127,12 @@ C	0	ClearSpacing	94.212828521145838	45	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	m
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	603.18578948924028	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	0	316.78383797157329	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	null	236.91168824543144	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	1005.3096491487338	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	0	316.78383797157329	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	null	202.14701294725884	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 M	339	C400	DsEN1992p11	7	125663.70614359173	32	3.0238105197476952	450	391.304347826087	400	400	400	0	true	6	300	2	16	40	25	10	false	true	true	0/75	ok	DsEN1992p11	7	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	13
@@ -4141,12 +4141,12 @@ C	1	NominalCover	40	75	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-27.269655306357002	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	603.18578948924028	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	188.4955592153876	316.78383797157329	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	300	236.91168824543144	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	314	236.91168824543144	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1005.3096491487338	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	188.4955592153876	316.78383797157329	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	300	202.14701294725884	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	314	202.14701294725884	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	340	C400	DsEN1992p11	7	125663.70614359173	32	3.0238105197476952	450	391.304347826087	400	400	400	200000	true	8	300	4	16	40	45	5	false	true	false	20/0	ok	DsEN1992p11	7	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	14
@@ -4155,12 +4155,12 @@ C	1	NominalCover	40	70	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-22.269655306357002	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	603.18578948924028	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	670.20643276582246	316.78383797157329	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	300	236.91168824543144	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	104	236.91168824543144	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1005.3096491487338	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	670.20643276582246	316.78383797157329	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	300	202.14701294725884	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	104	202.14701294725884	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	13	EndSupportAnchorage	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.4	Confirm the shift rule and the bottom bars anchored at the end supports.	false
@@ -4168,11 +4168,11 @@ M	341	C400	DsEN1992p11	7	125663.70614359173	32	3.0238105197476952	450	391.304347
 C	0	ClearSpacing	94.212828521145838	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax; dg + 5 mm) on every pair of bars	false
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	3	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	3	MinimumLinks:Bottom	0	316.78383797157329	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	4	LinkSpacing:Bottom	300	236.91168824543144	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	5	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	6	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	7	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	7	MinimumLinks:Top	0	316.78383797157329	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	8	LinkSpacing:Top	300	202.14701294725884	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	9	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	10	BarsHeldByLinks	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.2 / 9.5.3(6)	Confirm the restraint of the compression bars considered in the resistance.	false
@@ -5049,12 +5049,12 @@ C	1	NominalCover	25	60	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-29	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	157.07963267948966	2500	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	0	156.52475842498532	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	200	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	157.07963267948966	2500	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	0	156.52475842498532	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	200	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	13	BarsHeldByLinks	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.2 / 9.5.3(6)	Confirm the restraint of the compression bars considered in the resistance.	false
@@ -5064,12 +5064,12 @@ C	0	ClearSpacing	168	45	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	157.07963267948966	2500	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	0	156.52475842498532	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	null	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	157.07963267948966	2500	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	0	156.52475842498532	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	null	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 M	416	R250x250	DsEN1992p11	0	62500	20	2.2104188991842317	450	391.304347826087	250	250	250	0	true	6	300	2	16	25	25	10	false	true	true	0/75	ok	DsEN1992p11	0	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	13
@@ -5078,12 +5078,12 @@ C	1	NominalCover	25	75	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-44	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	157.07963267948966	2500	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	188.4955592153876	156.52475842498532	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	300	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	194	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	157.07963267948966	2500	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	188.4955592153876	156.52475842498532	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	300	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	194	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	417	R250x250	DsEN1992p11	0	62500	20	2.2104188991842317	450	391.304347826087	250	250	250	200000	true	8	300	4	16	25	45	5	false	true	false	20/0	ok	DsEN1992p11	0	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	14
@@ -5092,12 +5092,12 @@ C	1	NominalCover	25	70	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-39	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	157.07963267948966	2500	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	670.20643276582246	156.52475842498532	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	300	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	64	160.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	157.07963267948966	2500	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	670.20643276582246	156.52475842498532	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	300	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	64	160.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	13	EndSupportAnchorage	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.4	Confirm the shift rule and the bottom bars anchored at the end supports.	false
@@ -5105,11 +5105,11 @@ M	418	R250x250	DsEN1992p11	0	62500	20	2.2104188991842317	450	391.304347826087	25
 C	0	ClearSpacing	168	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax; dg + 5 mm) on every pair of bars	false
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	3	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	3	MinimumLinks:Bottom	0	156.52475842498532	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	4	LinkSpacing:Bottom	300	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	5	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	6	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	7	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	7	MinimumLinks:Top	0	156.52475842498532	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	8	LinkSpacing:Top	300	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	9	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	10	BarsHeldByLinks	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.2 / 9.5.3(6)	Confirm the restraint of the compression bars considered in the resistance.	false
@@ -5119,12 +5119,12 @@ C	1	NominalCover	25	40	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-9	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	157.07963267948966	2500	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	282.74333882308139	156.52475842498532	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	100	160.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	157.07963267948966	2500	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	282.74333882308139	156.52475842498532	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	100	160.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 M	420	R250x250	DsEN1992p11	1	62500	20	2.2104188991842317	450	391.304347826087	250	250	250	1500000	true	8	200	0	40	25	45	10	false	false	false	5/40	ok	DsEN1992p11	1	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	10
@@ -5189,12 +5189,12 @@ C	1	NominalCover	25	60	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-29	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	157.07963267948966	2500	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	0	156.52475842498532	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	200	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	157.07963267948966	2500	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	0	156.52475842498532	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	200	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	13	BarsHeldByLinks	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.2 / 9.5.3(6)	Confirm the restraint of the compression bars considered in the resistance.	false
@@ -5204,12 +5204,12 @@ C	0	ClearSpacing	168	45	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	157.07963267948966	2500	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	0	156.52475842498532	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	null	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	157.07963267948966	2500	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	0	156.52475842498532	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	null	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 M	428	R250x250	DsEN1992p11	7	62500	20	2.2104188991842317	450	391.304347826087	250	250	250	0	true	6	300	2	16	25	25	10	false	true	true	0/75	ok	DsEN1992p11	7	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	13
@@ -5218,12 +5218,12 @@ C	1	NominalCover	25	75	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-44	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	157.07963267948966	2500	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	188.4955592153876	156.52475842498532	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	300	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	194	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	157.07963267948966	2500	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	188.4955592153876	156.52475842498532	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	300	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	194	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	429	R250x250	DsEN1992p11	7	62500	20	2.2104188991842317	450	391.304347826087	250	250	250	200000	true	8	300	4	16	25	45	5	false	true	false	20/0	ok	DsEN1992p11	7	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	14
@@ -5232,12 +5232,12 @@ C	1	NominalCover	25	70	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-39	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	157.07963267948966	2500	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	670.20643276582246	156.52475842498532	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	300	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	64	160.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	157.07963267948966	2500	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	670.20643276582246	156.52475842498532	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	300	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	64	160.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	13	EndSupportAnchorage	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.4	Confirm the shift rule and the bottom bars anchored at the end supports.	false
@@ -5245,11 +5245,11 @@ M	430	R250x250	DsEN1992p11	7	62500	20	2.2104188991842317	450	391.304347826087	25
 C	0	ClearSpacing	168	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax; dg + 5 mm) on every pair of bars	false
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	3	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	3	MinimumLinks:Bottom	0	156.52475842498532	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	4	LinkSpacing:Bottom	300	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	5	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	6	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	7	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	7	MinimumLinks:Top	0	156.52475842498532	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	8	LinkSpacing:Top	300	160.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	9	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	10	BarsHeldByLinks	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.2 / 9.5.3(6)	Confirm the restraint of the compression bars considered in the resistance.	false
@@ -5259,12 +5259,12 @@ C	1	NominalCover	25	40	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	-9	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	157.07963267948966	2500	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	282.74333882308139	156.52475842498532	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	100	160.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	157.07963267948966	2500	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	282.74333882308139	156.52475842498532	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	100	160.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 M	432	R250x250	CnrDT200	0	62500	20	2.2104188991842317	450	391.304347826087	250	250	250	0	false	8	100	2	40	25	45	10	false	true	false	22	ok	CnrDT200	0	false	CNR-DT 200 R1/2013 with NTC 2018 §4.1.6.1 for the RC member	13
@@ -6142,12 +6142,12 @@ C	0	ClearSpacing	59.199999999999989	45	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	m
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	2714.3360527015811	14400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	0	444.48622025885123	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	null	531	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	1256.6370614359173	14400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	0	444.48622025885123	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	null	532.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 M	505	R600x800H	DsEN1992p11	0	360000	28	2.7662617752350673	450	391.304347826087	600	600	600	0	true	6	300	2	16	70	25	10	false	true	true	0/75	ok	DsEN1992p11	0	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	13
@@ -6156,12 +6156,12 @@ C	1	NominalCover	70	75	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	5	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	2714.3360527015811	14400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	188.4955592153876	444.48622025885123	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	300	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	454	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1256.6370614359173	14400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	188.4955592153876	444.48622025885123	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	300	532.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	454	532.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	506	R600x800H	DsEN1992p11	0	360000	28	2.7662617752350673	450	391.304347826087	600	600	600	200000	true	8	300	4	16	70	45	5	false	true	false	20/0	ok	DsEN1992p11	0	null	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	14
@@ -6170,39 +6170,39 @@ C	1	NominalCover	70	70	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur; 
 C	2	BarCoverMargin	10	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	2714.3360527015811	14400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	670.20643276582246	444.48622025885123	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	300	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	150.66666666666666	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1256.6370614359173	14400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	670.20643276582246	444.48622025885123	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	300	532.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	150.66666666666666	532.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	13	EndSupportAnchorage	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.4	Confirm the shift rule and the bottom bars anchored at the end supports.	false
-M	507	R600x800H	DsEN1992p11	0	360000	28	2.7662617752350673	450	391.304347826087	600	600	600	0	true	10	300	0	20	70	null	10	true	false	true	22	ok	DsEN1992p11	0	null	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	11
+M	507	R600x800H	DsEN1992p11	0	360000	28	2.7662617752350673	450	391.304347826087	600	600	600	0	true	10	300	0	20	70	null	10	true	false	true	22	ok	DsEN1992p11	0	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	11
 C	0	ClearSpacing	59.199999999999989	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax; dg + 5 mm) on every pair of bars	false
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	3	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	3	MinimumLinks:Bottom	0	444.48622025885123	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	4	LinkSpacing:Bottom	300	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	5	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	6	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	7	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	7	MinimumLinks:Top	0	444.48622025885123	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	8	LinkSpacing:Top	300	532.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	9	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	10	BarsHeldByLinks	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.2 / 9.5.3(6)	Confirm the restraint of the compression bars considered in the resistance.	false
-M	508	R600x800H	DsEN1992p11	0	360000	28	2.7662617752350673	450	391.304347826087	600	600	600	200000	true	6	100	1	20	70	25	5	false	true	true	0/40	ok	DsEN1992p11	0	null	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	13
+M	508	R600x800H	DsEN1992p11	0	360000	28	2.7662617752350673	450	391.304347826087	600	600	600	200000	true	6	100	1	20	70	25	5	false	true	true	0/40	ok	DsEN1992p11	0	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	13
 C	0	ClearSpacing	59.199999999999989	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax; dg + 5 mm) on every pair of bars	false
 C	1	NominalCover	70	40	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur; cmin,b), not less than the cover against ground + Δcdev	false
 C	2	BarCoverMargin	40	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	2714.3360527015811	14400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	282.74333882308139	444.48622025885123	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	100	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1256.6370614359173	14400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	282.74333882308139	444.48622025885123	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	100	532.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 M	509	R600x800H	DsEN1992p11	0	360000	28	2.7662617752350673	450	391.304347826087	600	600	600	0	false	8	100	2	40	70	45	10	false	true	false	22	ok	DsEN1992p11	0	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	14
@@ -6211,12 +6211,12 @@ C	1	NominalCover	70	55	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur; 
 C	2	BarCoverMargin	25	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	2714.3360527015811	14400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	0	444.48622025885123	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	null	531	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1256.6370614359173	14400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	0	444.48622025885123	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	null	532.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	13	EndSupportAnchorage	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.4	Confirm the shift rule and the bottom bars anchored at the end supports.	false
@@ -6280,12 +6280,12 @@ C	0	ClearSpacing	59.199999999999989	45	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	m
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	2714.3360527015811	14400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	0	444.48622025885123	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	null	531	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	1256.6370614359173	14400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	0	444.48622025885123	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	null	532.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 M	517	R600x800H	DsEN1992p11	7	360000	28	2.7662617752350673	450	391.304347826087	600	600	600	0	true	6	300	2	16	70	25	10	false	true	true	0/75	ok	DsEN1992p11	7	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	13
@@ -6294,12 +6294,12 @@ C	1	NominalCover	70	75	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	5	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	2714.3360527015811	14400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	188.4955592153876	444.48622025885123	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	300	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	454	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1256.6370614359173	14400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	188.4955592153876	444.48622025885123	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	300	532.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	454	532.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	518	R600x800H	DsEN1992p11	7	360000	28	2.7662617752350673	450	391.304347826087	600	600	600	200000	true	8	300	4	16	70	45	5	false	true	false	20/0	ok	DsEN1992p11	7	null	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	14
@@ -6308,39 +6308,39 @@ C	1	NominalCover	70	70	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur; 
 C	2	BarCoverMargin	10	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	2714.3360527015811	14400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	670.20643276582246	444.48622025885123	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	300	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	150.66666666666666	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1256.6370614359173	14400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	670.20643276582246	444.48622025885123	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	300	532.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	150.66666666666666	532.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	13	EndSupportAnchorage	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.4	Confirm the shift rule and the bottom bars anchored at the end supports.	false
-M	519	R600x800H	DsEN1992p11	7	360000	28	2.7662617752350673	450	391.304347826087	600	600	600	0	true	10	300	0	20	70	null	10	true	false	true	22	ok	DsEN1992p11	7	null	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	11
+M	519	R600x800H	DsEN1992p11	7	360000	28	2.7662617752350673	450	391.304347826087	600	600	600	0	true	10	300	0	20	70	null	10	true	false	true	22	ok	DsEN1992p11	7	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	11
 C	0	ClearSpacing	59.199999999999989	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax; dg + 5 mm) on every pair of bars	false
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	3	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	3	MinimumLinks:Bottom	0	444.48622025885123	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	4	LinkSpacing:Bottom	300	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	5	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	6	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
-C	7	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	7	MinimumLinks:Top	0	444.48622025885123	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	8	LinkSpacing:Top	300	532.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	9	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	10	BarsHeldByLinks	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.2 / 9.5.3(6)	Confirm the restraint of the compression bars considered in the resistance.	false
-M	520	R600x800H	DsEN1992p11	7	360000	28	2.7662617752350673	450	391.304347826087	600	600	600	200000	true	6	100	1	20	70	25	5	false	true	true	0/40	ok	DsEN1992p11	7	null	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	13
+M	520	R600x800H	DsEN1992p11	7	360000	28	2.7662617752350673	450	391.304347826087	600	600	600	200000	true	6	100	1	20	70	25	5	false	true	true	0/40	ok	DsEN1992p11	7	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	13
 C	0	ClearSpacing	59.199999999999989	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax; dg + 5 mm) on every pair of bars	false
 C	1	NominalCover	70	40	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur; cmin,b), not less than the cover against ground + Δcdev	false
 C	2	BarCoverMargin	40	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	2714.3360527015811	14400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	282.74333882308139	444.48622025885123	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	100	531	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1256.6370614359173	14400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	282.74333882308139	444.48622025885123	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	100	532.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 M	521	R600x800H	DsEN1992p11	7	360000	28	2.7662617752350673	450	391.304347826087	600	600	600	0	false	8	100	2	40	70	45	10	false	true	false	22	ok	DsEN1992p11	7	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	14
@@ -6349,12 +6349,12 @@ C	1	NominalCover	70	55	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur; 
 C	2	BarCoverMargin	25	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	2714.3360527015811	14400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	0	444.48622025885123	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	null	531	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1256.6370614359173	14400	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	0	444.48622025885123	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	null	532.5	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(8)	Transverse spacing of the legs: fewer than two legs.	false
 C	13	EndSupportAnchorage	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.4	Confirm the shift rule and the bottom bars anchored at the end supports.	false
@@ -6989,12 +6989,12 @@ C	1	NominalCover	null	35	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur
 C	2	BarCoverMargin	3	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	942.47779607693792	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	502.65482457436684	230.04347415216978	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	200	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	402.12385965949352	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	502.65482457436684	230.04347415216978	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	200	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	647	R300x500	DsEN1992p11	0	boundary	Fctm 0	error	System.ArgumentException	Detailing: numerical data must be finite and non negative.	param=null
@@ -7006,12 +7006,12 @@ C	1	NominalCover	30	Infinity	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmi
 C	2	BarCoverMargin	null	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	942.47779607693792	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	502.65482457436684	230.04347415216978	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	200	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	232	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	402.12385965949352	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	502.65482457436684	230.04347415216978	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	200	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	232	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	651	R300x500	DsEN1992p11	0	boundary	cmin,dur NaN	ok	DsEN1992p11	0	null	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	12
@@ -7019,12 +7019,12 @@ C	0	ClearSpacing	82	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax;
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	942.47779607693792	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	502.65482457436684	230.04347415216978	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	200	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	232	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	402.12385965949352	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	502.65482457436684	230.04347415216978	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	200	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	232	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	652	R300x500	DsEN1992p11	0	boundary	cmin,dur -5	ok	DsEN1992p11	0	null	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	12
@@ -7032,12 +7032,12 @@ C	0	ClearSpacing	82	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	max(20 mm; Ømax;
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	942.47779607693792	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	502.65482457436684	230.04347415216978	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	200	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	232	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	402.12385965949352	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	502.65482457436684	230.04347415216978	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	200	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	232	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	653	R300x500	DsEN1992p11	0	boundary	LinkSpacing 0	ok	DsEN1992p11	0	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	13
@@ -7046,12 +7046,12 @@ C	1	NominalCover	30	35	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur;
 C	2	BarCoverMargin	3	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	942.47779607693792	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	0	230.04347415216978	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	0	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	232	339	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	402.12385965949352	6000	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	0	230.04347415216978	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	0	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	232	340.5	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	654	R300x500	DsEN1992p11	0	boundary	CoverAddition +inf	error	System.ArgumentException	Detailing: numerical data must be finite and non negative.	param=null
@@ -7674,12 +7674,12 @@ C	1	NominalCover	null	35	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur
 C	2	BarCoverMargin	12.730344693642998	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	603.18578948924028	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	502.65482457436684	316.78383797157329	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	200	236.91168824543144	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	null	236.91168824543144	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1005.3096491487338	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	502.65482457436684	316.78383797157329	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	200	202.14701294725884	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	null	202.14701294725884	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	817	C400	DsEN1992p11	0	boundary	Fctm 0	error	System.ArgumentException	Detailing: numerical data must be finite and non negative.	param=null
@@ -7691,12 +7691,12 @@ C	1	NominalCover	40	Infinity	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmi
 C	2	BarCoverMargin	null	0	mm	false	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	603.18578948924028	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	502.65482457436684	316.78383797157329	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	200	236.91168824543144	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	312	236.91168824543144	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1005.3096491487338	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	502.65482457436684	316.78383797157329	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	200	202.14701294725884	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	312	202.14701294725884	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	821	C400	DsEN1992p11	0	boundary	cmin,dur NaN	ok	DsEN1992p11	0	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	12
@@ -7704,12 +7704,12 @@ C	0	ClearSpacing	94.212828521145838	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	m
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	603.18578948924028	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	502.65482457436684	316.78383797157329	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	200	236.91168824543144	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	312	236.91168824543144	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	1005.3096491487338	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	502.65482457436684	316.78383797157329	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	200	202.14701294725884	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	312	202.14701294725884	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	822	C400	DsEN1992p11	0	boundary	cmin,dur -5	ok	DsEN1992p11	0	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	12
@@ -7717,12 +7717,12 @@ C	0	ClearSpacing	94.212828521145838	25	mm	true	DS/EN 1992-1-1 + DK NA §8.2(2)	m
 C	1	NominalCover	null	null		null	DS/EN 1992-1-1 + DK NA §4.4.1	cmin,dur of the durability design is required.	false
 C	2	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	3	MaximumTension:Bottom	603.18578948924028	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	4	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	4	MinimumLinks:Bottom	502.65482457436684	316.78383797157329	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	5	LinkSpacing:Bottom	200	236.91168824543144	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	6	LinkLegSpacing:Bottom	312	236.91168824543144	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	7	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	8	MaximumTension:Top	1005.3096491487338	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	9	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	9	MinimumLinks:Top	502.65482457436684	316.78383797157329	mm2/m	true	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	10	LinkSpacing:Top	200	202.14701294725884	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	11	LinkLegSpacing:Top	312	202.14701294725884	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	823	C400	DsEN1992p11	0	boundary	LinkSpacing 0	ok	DsEN1992p11	0	false	DS/EN 1992-1-1 §§8, 9.2, 9.5 with DK NA	13
@@ -7731,12 +7731,12 @@ C	1	NominalCover	40	35	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	max(10; cmin,dur; 
 C	2	BarCoverMargin	12.730344693642998	0	mm	true	DS/EN 1992-1-1 + DK NA §4.4.1	minimum (geometric cover of the bar − required cover), outline and holes	false
 C	3	MinimumTension:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	4	MaximumTension:Bottom	603.18578948924028	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	5	MinimumLinks:Bottom	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	5	MinimumLinks:Bottom	0	316.78383797157329	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	6	LinkSpacing:Bottom	0	236.91168824543144	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	7	LinkLegSpacing:Bottom	312	236.91168824543144	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 C	8	MinimumTension:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.1.1(1)	DK NA national value of As,min not available in this implementation.	true
 C	9	MaximumTension:Top	1005.3096491487338	5026.5482457436692	mm2	true	DS/EN 1992-1-1 + DK NA §9.2.1.1(3)	As of the zone ≤ 0.04 Ac	false
-C	10	MinimumLinks:Top	null	null		null	DS/EN 1992-1-1 + DK NA §9.2.2(5)	DK NA national value of ρw,min not available in this implementation.	true
+C	10	MinimumLinks:Top	0	316.78383797157329	mm2/m	false	DS/EN 1992-1-1 + DK NA §9.2.2(5)	ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°	false
 C	11	LinkSpacing:Top	0	202.14701294725884	mm	true	DS/EN 1992-1-1 + DK NA §9.2.2(6)	sl,max = 0.75 d (1 + cot α), α = 90°	false
 C	12	LinkLegSpacing:Top	312	202.14701294725884	mm	false	DS/EN 1992-1-1 + DK NA §9.2.2(8)	st = (bw − 2 cnom − Øw)/(n − 1), legs equally spaced across the web; st,max = min(0.75 d; 600 mm)	false
 M	824	C400	DsEN1992p11	0	boundary	CoverAddition +inf	error	System.ArgumentException	Detailing: numerical data must be finite and non negative.	param=null

@@ -179,7 +179,7 @@ namespace GPC.Checkers.Concrete.Detailing
     /// Minimum and maximum reinforcement, links, spacing and cover of beam and column sections. NTC 2018 §4.1.6.1 transferred from ANTHEA
     /// (ConcreteDetailingCalculator, commit fe4652c; fixtures detailing-legacy.csv). EN 1992-1-1 §§8.2, 4.4.1, 9.2, 9.5 with the recommended values,
     /// UNI with DM 31/07/2012 (st,max ≤ 300 mm; columns Ømin 12, As,min 0.003 Ac, scl,tmax = min(12 Ømin; b; 250)), DS with DK NA (chapter 9
-    /// unchanged except the beam As,min 9.2.1.1(1) and ρw,min 9.2.2(5), pending).
+    /// unchanged except the beam As,min 9.2.1.1(1), pending, and ρw,min = 0.063 √fck / fyk of 9.2.2(5)).
     /// Solid slab strips and walls (0.0.18.0): NTC 2018 profile with EC2 §§9.3 and 9.6 as in ANTHEA (ConcreteDetailing.cs at ANTHEA 98a21d4; fixtures
     /// detailing-plate-legacy.csv): the slab needs a rectangular strip without holes (b = width, h = thickness), the other profiles are not implemented.
     /// </summary>
@@ -386,7 +386,8 @@ namespace GPC.Checkers.Concrete.Detailing
                 }
                 else
                 {
-                    if (ds) r.Add(National("MinimumLinks:" + face, "§9.2.2(5)", "DK NA national value of ρw,min not available in this implementation."));
+                    // R20 of ANTHEA (1.16.0): DK NA 9.2.2(5), ρw,min = 0.063 √fck / fyk (9.5N NA); before it was pending as a national value not implemented.
+                    if (ds) Min("MinimumLinks:" + face, linksPerMetre, .063 * Math.Sqrt(p.Fck) / p.Fyk * p.WebWidth * 1000, "mm2/m", "§9.2.2(5)", "ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°");
                     else Min("MinimumLinks:" + face, linksPerMetre, .08 * Math.Sqrt(p.Fck) / p.Fyk * p.WebWidth * 1000, "mm2/m", "§9.2.2(5)", "ρw,min = 0.08 √fck / fyk (9.5N), links at 90°");
                     Max("LinkSpacing:" + face, p.HasLinks ? p.LinkSpacing : double.PositiveInfinity, .75 * d, "mm", "§9.2.2(6)", "sl,max = 0.75 d (1 + cot α), α = 90°");
                     double legLimit = Math.Min(.75 * d, uni ? 300 : 600);
