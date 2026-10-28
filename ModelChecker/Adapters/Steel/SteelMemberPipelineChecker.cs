@@ -105,6 +105,7 @@ namespace GPC.Model.Checker
                 var context = Code.GetType() == typeof(StandardNTC2018Steel)
                     ? (Code.GammaM1 == SteelDesignContext.Ntc2018Bridges().GammaM1 ? SteelDesignContext.Ntc2018Bridges() : SteelDesignContext.Ntc2018())
                     : new SteelDesignContext(SectionResistanceCode.Eurocode3(Code.GammaM0, Code.GammaM2, Required("ParameterSet")), Code.GammaM1);
+                context = context.WithNegligibleActions(SteelPipelineParameters.Negligible(_parameters));
                 if (Code.GetType() == typeof(StandardNTC2018Steel) && (Code.GammaM0 != context.SectionCode.GammaM0
                     || Code.GammaM1 != context.GammaM1 || Code.GammaM2 != context.SectionCode.GammaM2))
                     return NativeResults.Unavailable("SteelMember.NtcFactorsNotQualified");

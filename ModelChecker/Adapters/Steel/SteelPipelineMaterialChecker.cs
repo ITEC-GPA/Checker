@@ -62,10 +62,11 @@ namespace GPC.Model.Checker
                 var context = SteelDesignContext.Ntc2018();
                 if (Code.GammaM0 != context.SectionCode.GammaM0 || Code.GammaM2 != context.SectionCode.GammaM2)
                     throw new NotSupportedException("NtcSectionFactorsDoNotMatchQualifiedPolicy");
-                return context;
+                return context.WithNegligibleActions(_parameters.NegligibleActions);
             }
             return new SteelDesignContext(SectionResistanceCode.Eurocode3(Code.GammaM0, Code.GammaM2,
-                string.IsNullOrWhiteSpace(NationalAnnex) ? "Explicit StandardEN1993p11 parameters" : NationalAnnex));
+                string.IsNullOrWhiteSpace(NationalAnnex) ? "Explicit StandardEN1993p11 parameters" : NationalAnnex),
+                null, _parameters.NegligibleActions);
         }
 
         private sealed class Session : IMaterialCheckSession

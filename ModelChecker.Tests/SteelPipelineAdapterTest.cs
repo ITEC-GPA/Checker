@@ -107,6 +107,26 @@ public class SteelPipelineAdapterTest
     }
 
     [TestMethod]
+    public void NegligibleActionLimitsAreEngineParameters()
+    {
+        // Default 1e-6 of the torsion reference fy/sqrt3 A tmin/3 = 7.0 Nmm: 1 Nmm is noise, 1e5 Nmm is not.
+        var input = Input(); input.Forces.N = 1e4; input.Forces.T = 1e5;
+        Assert.AreEqual(EngineeringOutcome.NotEvaluated, Run(input).Outcome);
+        var options = Options(); options["Negligible.Moment"] = "1e5";
+        var result = Run(input, options);
+        Assert.AreEqual(EngineeringOutcome.Satisfied, result.Outcome);
+        Assert.IsTrue(result.Details.Trace.Any(t => t.Key.EndsWith("Neglected.T") && t.Value == 1e5));
+        Assert.IsTrue(result.Details.Trace.Any(t => t.Key.EndsWith("Neglected.T.Limit") && t.Value == 1e5));
+        input.Forces.T = 1;
+        Assert.AreEqual(EngineeringOutcome.Satisfied, Run(input).Outcome);
+        options = Options(); options["Negligible.Relative"] = "0";
+        Assert.AreEqual(EngineeringOutcome.NotEvaluated, Run(input, options).Outcome);
+        options["Negligible.Relative"] = "0.5";
+        Assert.ThrowsException<ArgumentException>(() => Engine(options));
+        Assert.AreNotEqual(Engine().Configuration, Engine(new() { ["Unperforated"] = "true", ["Negligible.Force"] = "1" }).Configuration);
+    }
+
+    [TestMethod]
     public void KnownFailureInsideAnIncompleteAssessmentIsReportedAsAnError()
     {
         // With the web-resistance option N+V2 stays unsupported, so the row is incomplete
