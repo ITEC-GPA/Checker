@@ -80,7 +80,7 @@ namespace GPC.Checkers.Steel.Connections
             // is not silently applied to an SLS case and its result is not used as slip.
             var issues = new List<string>(prepared.ComponentAssessment.Diagnostics);
             var trace = new List<SectionResistanceValue>(); var checks = new List<ConnectionCheck>();
-            if (!WeldedIBeamSplicePlates.SameCode(p.Policy.Code, p.Bolts.Code)) issues.Add("SLIP_BOLT_POLICY_MISMATCH");
+            if (!SpliceIdentity.Code(p.Policy.Code, p.Bolts.Code)) issues.Add("SLIP_BOLT_POLICY_MISMATCH");
             foreach (WeldedSpliceCover cover in Enum.GetValues(typeof(WeldedSpliceCover)))
                 if (!p.Surfaces.Any(s => s.Cover == cover)) issues.Add(cover + ".FRICTION_SURFACE_REQUIRED");
             if (issues.Count == 0) foreach (var g in prepared.Forces.CoverGroups)

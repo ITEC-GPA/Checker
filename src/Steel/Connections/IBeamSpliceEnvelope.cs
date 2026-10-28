@@ -224,8 +224,8 @@ namespace GPC.Checkers.Steel.Connections
                 var s = item.Input; var binding = new List<string>();
                 bool serviceability = s.LimitState == BoltSlipLimitState.Serviceability;
                 string prefix = serviceability ? "SLS" + (++serviceabilityIndex) : "SlipULS" + (++ultimateSlipIndex);
-                if (!SameCode(anchor.Policy.Code, s.Policy.Code)) binding.Add("SLIP_CASE_DESIGN_CODE_MISMATCH");
-                if (!SameGeometry(anchor.Forces, s.Forces) || !SameBolts(anchor.Bolts, s.Bolts))
+                if (!SpliceIdentity.Code(anchor.Policy.Code, s.Policy.Code)) binding.Add("SLIP_CASE_DESIGN_CODE_MISMATCH");
+                if (!SpliceIdentity.IBeamGeometry(anchor.Forces, s.Forces) || !SpliceIdentity.IBeamBolts(anchor.Bolts, s.Bolts))
                     binding.Add("SLIP_CASE_PHYSICAL_DETAIL_MISMATCH");
                 if (!SameSlipPolicyAndSurface(slipAnchor, s)) binding.Add("SLIP_POLICY_SURFACE_OR_TIGHTENING_MISMATCH");
                 if (serviceability)
@@ -237,7 +237,7 @@ namespace GPC.Checkers.Steel.Connections
                     IBeamSpliceUltimateCase linked;
                     if (item.UltimateCaseId == null || !byId.TryGetValue(item.UltimateCaseId, out linked))
                         binding.Add("ULTIMATE_SLIP_CASE_BINDING_MISSING_OR_UNKNOWN");
-                    else if (!SameActions(linked.Plates.Forces.Actions, s.Forces.Actions))
+                    else if (!SpliceIdentity.Actions(linked.Plates.Forces.Actions, s.Forces.Actions))
                         binding.Add("ULTIMATE_SLIP_CONCOMITANT_ACTIONS_OR_APPLICATION_POINT_MISMATCH");
                 }
                 var result = IBeamSpliceBolts.VerifySlip(s);
@@ -277,42 +277,16 @@ namespace GPC.Checkers.Steel.Connections
         }
 
         private static bool SamePlatePolicy(IBeamSplicePlatePolicy a, IBeamSplicePlatePolicy b)
-            => SameCode(a.Code, b.Code) && a.GammaM1 == b.GammaM1 && a.ElasticModulus == b.ElasticModulus;
-        private static bool SameCode(ConnectionDesignCode a, ConnectionDesignCode b)
-            => a.IsNtc == b.IsNtc && a.Plates.GammaM0 == b.Plates.GammaM0
-                && a.Plates.GammaM2 == b.Plates.GammaM2 && a.GammaM2Connection == b.GammaM2Connection;
+            => ReferenceEquals(a, b) || SpliceIdentity.Code(a.Code, b.Code) && a.GammaM1 == b.GammaM1 && a.ElasticModulus == b.ElasticModulus;
         private static bool SamePlateDetail(IBeamSplicePlateInput a, IBeamSplicePlateInput b)
-            => SameGeometry(a.Forces, b.Forces) && SameBolts(a.Bolts, b.Bolts)
-                && SamePlate(a.FlangeCover, b.FlangeCover) && SamePlate(a.WebCover, b.WebCover)
+            => SpliceIdentity.IBeamGeometry(a.Forces, b.Forces) && SpliceIdentity.IBeamBolts(a.Bolts, b.Bolts)
+                && SpliceIdentity.Plate(a.FlangeCover, b.FlangeCover) && SpliceIdentity.Plate(a.WebCover, b.WebCover)
                 && a.FlangeCoverEnd == b.FlangeCoverEnd && a.WebCoverEnd == b.WebCoverEnd && a.ButtGap == b.ButtGap
                 && a.BeamFlangeFy == b.BeamFlangeFy && a.BeamFlangeFu == b.BeamFlangeFu && a.Exposed == b.Exposed;
-        private static bool SamePlate(ConnectionPlate a, ConnectionPlate b)
-            => a.Width == b.Width && a.Thickness == b.Thickness && a.Fy == b.Fy && a.Fu == b.Fu;
-        private static bool SameGeometry(IBeamSpliceForceInput a, IBeamSpliceForceInput b)
-        {
-            var x = a.Section; var y = b.Section;
-            return a.StrongAxisSecondMoment == b.StrongAxisSecondMoment && x.Height == y.Height && x.Width == y.Width
-                && x.WebThickness == y.WebThickness && x.FlangeThickness == y.FlangeThickness && x.RootRadius == y.RootRadius
-                && x.Area == y.Area && x.Fy == y.Fy && x.Fu == y.Fu
-                && SameGrid(a.FlangeBolts, b.FlangeBolts) && SameGrid(a.WebBolts, b.WebBolts);
-        }
-        private static bool SameGrid(SpliceBoltLayout a, SpliceBoltLayout b)
-            => a.LongitudinalRows == b.LongitudinalRows && a.TransverseRows == b.TransverseRows
-                && a.LongitudinalPitch == b.LongitudinalPitch && a.TransversePitch == b.TransversePitch && a.FirstBoltDistance == b.FirstBoltDistance;
-        private static bool SameBolts(IBeamSpliceBoltSet a, IBeamSpliceBoltSet b)
-            => SameBolt(a.FlangeBolt, b.FlangeBolt) && SameBolt(a.WebBolt, b.WebBolt)
-                && a.FlangeHardwareEnvelopeDiameter == b.FlangeHardwareEnvelopeDiameter
-                && a.WebHardwareEnvelopeDiameter == b.WebHardwareEnvelopeDiameter;
-        private static bool SameBolt(ConnectionBolt a, ConnectionBolt b)
-            => a.Diameter == b.Diameter && a.HoleDiameter == b.HoleDiameter && a.TensileArea == b.TensileArea
-                && a.Grade == b.Grade && a.ThreadedShearPlanes == b.ThreadedShearPlanes;
         private static bool SameSlipPolicyAndSurface(IBeamSpliceBoltSlipInput a, IBeamSpliceBoltSlipInput b)
-            => SameCode(a.Policy.Code, b.Policy.Code) && a.Policy.GammaM3Ultimate == b.Policy.GammaM3Ultimate
+            => SpliceIdentity.Code(a.Policy.Code, b.Policy.Code) && a.Policy.GammaM3Ultimate == b.Policy.GammaM3Ultimate
                 && a.Policy.GammaM3Serviceability == b.Policy.GammaM3Serviceability
                 && a.FlangeFrictionCoefficient == b.FlangeFrictionCoefficient && a.WebFrictionCoefficient == b.WebFrictionCoefficient
                 && a.TighteningControl == b.TighteningControl;
-        private static bool SameActions(PlanarConnectionActions a, PlanarConnectionActions b)
-            => a.Fx == b.Fx && a.Fy == b.Fy && a.Fz == b.Fz && a.Mx == b.Mx && a.My == b.My && a.Mz == b.Mz
-                && a.ApplicationX == b.ApplicationX && a.ApplicationY == b.ApplicationY && a.ApplicationZ == b.ApplicationZ;
     }
 }

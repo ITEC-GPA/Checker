@@ -142,7 +142,7 @@ namespace GPC.Checkers.Steel.Connections
                 var c = new WeldedSpliceStandardCaseResult(input, envelope.UltimateCases.Single(x => x.Input.Id == input.Id), p.BlockMethod, p.FaceModel, p.PlateStability);
                 cases.Add(c); string id = input.Id;
                 foreach (var issue in c.Components.BindingDiagnostics.Concat(c.Parents.BindingDiagnostics)) missing.Add(id + ":" + issue);
-                if (!SameWelds(p.Cases[0].Parents.Welds, input.Parents.Welds)) missing.Add(id + ":LONGITUDINAL_WELD_DETAIL_MISMATCH");
+                if (!SpliceIdentity.Welds(p.Cases[0].Parents.Welds, input.Parents.Welds)) missing.Add(id + ":LONGITUDINAL_WELD_DETAIL_MISMATCH");
                 if (c.Model.Status != ConnectionStatus.Passed) missing.AddRange(c.Model.Diagnostics.Select(x => id + ":Model:" + x));
                 Assess(id, "Bolts", c.Components.Bolts.ComponentAssessment);
                 Assess(id, "Detailing", c.Components.Detailing.Detailing);
@@ -208,8 +208,5 @@ namespace GPC.Checkers.Steel.Connections
                 if (r.Status == ConnectionStatus.Failed) failed = true;
             }
         }
-        private static bool SameWelds(SpliceLongitudinalFillets a, SpliceLongitudinalFillets b)
-            => a.TopThroat == b.TopThroat && a.BottomThroat == b.BottomThroat && a.EffectiveLengthEachSide == b.EffectiveLengthEachSide
-                && a.TopGrade == b.TopGrade && a.WebGrade == b.WebGrade && a.BottomGrade == b.BottomGrade;
     }
 }

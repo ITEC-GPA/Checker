@@ -120,7 +120,7 @@ namespace GPC.Checkers.Steel.Connections
             foreach (var c in p.UltimateCases)
             {
                 var binding = new List<string>();
-                if (!SamePhysical(reference.Plates.Bolts, c.Detail.Plates.Bolts)) binding.Add("ULTIMATE_PHYSICAL_DETAIL_OR_CODE_MISMATCH");
+                if (!SpliceIdentity.WeldedPhysical(reference.Plates.Bolts, c.Detail.Plates.Bolts)) binding.Add("ULTIMATE_PHYSICAL_DETAIL_OR_CODE_MISMATCH");
                 if (reference.Exposure != c.Detail.Exposure || reference.Plates.Policy.GammaM1 != c.Detail.Plates.Policy.GammaM1)
                     binding.Add("ULTIMATE_EXPOSURE_OR_BUCKLING_POLICY_MISMATCH");
                 var r = new WeldedSpliceUltimateCaseResult(c, p.RequiresCategoryC, binding); ultimate.Add(r);
@@ -135,13 +135,13 @@ namespace GPC.Checkers.Steel.Connections
             foreach (var c in p.SlipCases)
             {
                 var binding = new List<string>();
-                if (!SamePhysical(reference.Plates.Bolts, c.Input.Bolts)) binding.Add("SLIP_PHYSICAL_DETAIL_OR_CODE_MISMATCH");
+                if (!SpliceIdentity.WeldedPhysical(reference.Plates.Bolts, c.Input.Bolts)) binding.Add("SLIP_PHYSICAL_DETAIL_OR_CODE_MISMATCH");
                 if (p.SlipCases.Count > 0 && !SameSlipExecution(p.SlipCases[0].Input, c.Input)) binding.Add("SLIP_SURFACE_ASSEMBLY_OR_FACTOR_MISMATCH");
                 if (c.Input.LimitState == BoltSlipLimitState.Ultimate)
                 {
                     var linked = p.UltimateCases.SingleOrDefault(u => string.Equals(u.Id, c.UltimateCaseId, StringComparison.Ordinal));
                     if (linked == null) binding.Add("LINKED_ULTIMATE_CASE_REQUIRED");
-                    else if (!SameActions(linked.Detail.Plates.Bolts.Detail.Actions, c.Input.Bolts.Detail.Actions)) binding.Add("LINKED_ULTIMATE_ACTIONS_OR_POLE_MISMATCH");
+                    else if (!SpliceIdentity.Actions(linked.Detail.Plates.Bolts.Detail.Actions, c.Input.Bolts.Detail.Actions)) binding.Add("LINKED_ULTIMATE_ACTIONS_OR_POLE_MISMATCH");
                 }
                 else if (c.UltimateCaseId != null) binding.Add("SERVICEABILITY_MUST_NOT_BIND_TO_ULTIMATE_CASE");
                 var r = new WeldedSpliceSlipCaseResult(c, binding); slips.Add(r);
@@ -162,26 +162,9 @@ namespace GPC.Checkers.Steel.Connections
                 foreach (var check in result.Checks) sources.Add(new WeldedSpliceCheckSource(id, component, sls, linked, check));
             }
         }
-        private static bool SameActions(PlanarConnectionActions a, PlanarConnectionActions b)
-            => a.Fx == b.Fx && a.Fy == b.Fy && a.Fz == b.Fz && a.Mx == b.Mx && a.My == b.My && a.Mz == b.Mz
-            && a.ApplicationX == b.ApplicationX && a.ApplicationY == b.ApplicationY && a.ApplicationZ == b.ApplicationZ;
         private static bool SameSlipExecution(WeldedIBeamSpliceSlipInput a, WeldedIBeamSpliceSlipInput b)
             => a.TighteningControl == b.TighteningControl && a.Policy.GammaM3Ultimate == b.Policy.GammaM3Ultimate
             && a.Policy.GammaM3Serviceability == b.Policy.GammaM3Serviceability && a.Surfaces.Count == b.Surfaces.Count
             && a.Surfaces.All(x => b.Surfaces.Any(y => x.Cover == y.Cover && x.Interfaces.Select(i => i.Coefficient).SequenceEqual(y.Interfaces.Select(i => i.Coefficient))));
-        private static bool SamePhysical(WeldedIBeamSpliceBoltInput a, WeldedIBeamSpliceBoltInput b)
-        {
-            var x = a.Detail; var y = b.Detail;
-            return WeldedIBeamSplicePlates.SameCode(a.Code, b.Code) && Bolt(a.FlangeBolt, b.FlangeBolt) && Bolt(a.WebBolt, b.WebBolt)
-                && a.FlangeHardwareDiameter == b.FlangeHardwareDiameter && a.WebHardwareDiameter == b.WebHardwareDiameter
-                && Plate(x.Section.TopFlange, y.Section.TopFlange) && Plate(x.Section.Web, y.Section.Web) && Plate(x.Section.BottomFlange, y.Section.BottomFlange)
-                && x.Section.TopWeldToe == y.Section.TopWeldToe && x.Section.BottomWeldToe == y.Section.BottomWeldToe
-                && Flange(x.Top, y.Top) && Flange(x.Bottom, y.Bottom) && Plate(x.EachWebCover, y.EachWebCover) && Grid(x.WebBolts, y.WebBolts)
-                && x.WebCoverEnd == y.WebCoverEnd && x.ButtGap == y.ButtGap && x.Packing.SamePhysical(y.Packing);
-        }
-        private static bool Plate(ConnectionPlate a, ConnectionPlate b) => a.Width == b.Width && a.Thickness == b.Thickness && a.Fy == b.Fy && a.Fu == b.Fu;
-        private static bool Bolt(ConnectionBolt a, ConnectionBolt b) => a.Diameter == b.Diameter && a.HoleDiameter == b.HoleDiameter && a.TensileArea == b.TensileArea && a.Grade == b.Grade && a.ThreadedShearPlanes == b.ThreadedShearPlanes;
-        private static bool Grid(SpliceBoltLayout a, SpliceBoltLayout b) => a.LongitudinalRows == b.LongitudinalRows && a.TransverseRows == b.TransverseRows && (a.LongitudinalRows == 1 || a.LongitudinalPitch == b.LongitudinalPitch) && (a.TransverseRows == 1 || a.TransversePitch == b.TransversePitch) && a.FirstBoltDistance == b.FirstBoltDistance;
-        private static bool Flange(SpliceFlangeCoverDetail a, SpliceFlangeCoverDetail b) => Plate(a.Outer, b.Outer) && Plate(a.EachInner, b.EachInner) && a.InnerGap == b.InnerGap && a.EndDistance == b.EndDistance && Grid(a.Bolts, b.Bolts);
     }
 }

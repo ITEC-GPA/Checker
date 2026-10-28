@@ -17,6 +17,17 @@ namespace GPC.Checkers.Steel.Connections
             if (!Enum.IsDefined(typeof(SpliceExposure), exposure)) throw new ArgumentOutOfRangeException(nameof(exposure));
             Exposure = exposure;
         }
+        /// <summary>Same exposure as <paramref name="physical"/> for another action state of the same prepared detail.</summary>
+        internal WeldedIBeamSpliceDetailInput(WeldedIBeamSpliceDetailInput physical, WeldedIBeamSplicePlateInput plates)
+        {
+            if (!ReferenceEquals(physical.Plates.Prepared, plates.Prepared)) throw new ArgumentException("The case must share the prepared plate detail.", nameof(plates));
+            Plates = plates; Exposure = physical.Exposure; prepared = physical.Prepared;
+        }
+        private SpliceDetailPreparation prepared;
+        /// <summary>Demand-independent detailing and standard-plate data of this physical detail.</summary>
+        internal SpliceDetailPreparation Prepared => prepared ?? System.Threading.LazyInitializer.EnsureInitialized(ref prepared, () => new SpliceDetailPreparation(this));
+        /// <summary>True when both inputs are action states of one prepared physical detail (reference identity).</summary>
+        internal bool SharesPreparation(WeldedIBeamSpliceDetailInput other) => prepared != null && ReferenceEquals(prepared, other.prepared);
     }
 
     /// <summary>Couples required to move the cut's in-plane force from the contact face

@@ -151,7 +151,7 @@ namespace GPC.Checkers.Steel.Connections
             {
                 var r = c.Result;
                 var first = results[0].Result.Input;
-                if (!WeldedIBeamSplicePlates.SameCode(first.Code, r.Input.Code)
+                if (!SpliceIdentity.Code(first.Code, r.Input.Code)
                     || !SameSection(first.LeftSection.Plan.Input.Section, r.LeftSection.Plan.Input.Section)
                     || !SameSection(first.RightSection.Plan.Input.Section, r.RightSection.Plan.Input.Section)
                     || !SameWeld(first.TopFlange, r.Input.TopFlange) || !SameWeld(first.Web, r.Input.Web)
