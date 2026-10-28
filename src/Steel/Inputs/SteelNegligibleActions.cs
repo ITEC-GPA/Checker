@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using GPC.Checkers.Steel.ModelAdapters;
-using GPC.Checkers.Steel.Selection;
 using GPC.Model.Sections;
 using GPC.Model.Sections.Steel;
 
@@ -105,8 +104,8 @@ namespace GPC.Checkers.Steel.Inputs
 
         private static double Shear(SteelVerificationInput input, ISteelSection section, int axis)
         {
-            if (!SteelMethodSelector.ShearMappingQualified(section)) return double.NaN;
-            return Pipeline.SteelPlasticShear.Resistance(input, axis);
+            if (!SteelSectionFamilies.HasQualifiedShearAreas(section)) return double.NaN;
+            return SteelPlasticShear.Resistance(input, axis);
         }
 
         private static double Torsion(SteelVerificationInput input, ISteelSection section)

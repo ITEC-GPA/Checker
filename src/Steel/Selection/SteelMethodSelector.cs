@@ -241,11 +241,7 @@ namespace GPC.Checkers.Steel.Selection
 
         internal static bool KnownGeometry(ISectionShape shape) => SteelSectionFamilies.Of(shape) != null;
 
-        internal static bool ShearMappingQualified(ISteelSection section)
-        {
-            var family = SteelSectionFamilies.Of(section.SectionShape);
-            return family != null && family.HasShearAreas(section) && Math.Abs(section.AngleX1) <= 1e-10;
-        }
+        internal static bool ShearMappingQualified(ISteelSection section) => SteelSectionFamilies.HasQualifiedShearAreas(section);
 
         internal static bool ColdFormedOpen(ISteelSection section)
             => section.FormedType == Section.FormedTypes.ColdFormed && SteelSectionFamilies.Of(section.SectionShape)?.OpenProfile == true;

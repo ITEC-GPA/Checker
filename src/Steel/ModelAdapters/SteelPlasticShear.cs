@@ -1,8 +1,7 @@
 using System;
 using GPC.Checkers.Steel.Inputs;
-using GPC.Checkers.Steel.ModelAdapters;
 
-namespace GPC.Checkers.Steel.Pipeline
+namespace GPC.Checkers.Steel.ModelAdapters
 {
     /// <summary>The one plastic shear resistance Av fy/(sqrt3 gammaM0) of the section routes,
     /// on the code-specific qualified shear areas (EC3 6.2.6(3), NTC 4.2.4.1.2.4). The operation

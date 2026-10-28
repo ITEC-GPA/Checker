@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using GPC.Checkers.Steel.Inputs;
 using GPC.Checkers.Steel.Sections;
-using GPC.Checkers.Steel.Selection;
 using GPC.Model.Sections;
 using GPC.Model.Sections.Steel;
 

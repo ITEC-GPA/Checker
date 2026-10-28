@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using GPC.Model.Sections;
 using GPC.Model.Sections.Steel;
 
-namespace GPC.Checkers.Steel.Selection
+namespace GPC.Checkers.Steel.ModelAdapters
 {
     internal enum SteelSectionKind { Solid, IOrH, Tee, Channel, Angle, CircularTube, RectangularTube, BuiltUpPair }
 
@@ -56,5 +56,12 @@ namespace GPC.Checkers.Steel.Selection
             => shape != null && Table.TryGetValue(shape.GetType(), out var family) && family.Qualifies(shape) ? family : null;
 
         internal static bool Is(ISectionShape shape, SteelSectionKind kind) => Of(shape)?.Kind == kind;
+
+        /// <summary>Qualified code shear areas on principal axes aligned with the geometry.</summary>
+        internal static bool HasQualifiedShearAreas(ISteelSection section)
+        {
+            var family = Of(section.SectionShape);
+            return family != null && family.HasShearAreas(section) && Math.Abs(section.AngleX1) <= 1e-10;
+        }
     }
 }
