@@ -65,3 +65,13 @@ Verifica della fase: 17 test nativi nuovi; intera Steel.Members 2401 passati;
 11 test nuovi di adattatore d'asta e 23 precedenti di sezione passati;
 5 test nuovi in Model sulla preparazione neutra. Nessun test/atteso legacy cambiato.
 La fase 6 aggiunge i controlli di configurazione, archiviazione e regressione completa.
+
+AGGIORNAMENTO 28/10/2026 (aste senza compressione, vedi CURRENT.txt):
+- Bending: M2 sola (N>=0, anche V1) NotRequired Member.MinorAxisBendingOnly;
+  M1 con M2/V1 -> Member.BiaxialBendingRequiresBeamColumn (in ModelChecker
+  SteelMember.BiaxialBendingRequiresBeamColumn); la trazione e trascurata.
+- BeamColumn: anche N>=0 (interazione a n=0, trazione trascurata e tracciata);
+  N>=0 senza momenti NotRequired Member.NoActiveDemand. Classe dagli N-M
+  dell'inviluppo. Taglio su H esatte senza fonte esplicita: RequiresPreparation
+  con le valutazioni SteelShearBucklingAssessment per ogni taglio attivo, passate
+  a SteelVerificationPipeline.Execute e riportate in ShearAssessments del controllo.

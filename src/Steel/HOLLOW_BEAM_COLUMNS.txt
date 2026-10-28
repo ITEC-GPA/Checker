@@ -8,6 +8,11 @@ Nessuna sostituzione dei coefficienti plastici kzz delle cave con quelli H.
 La somma dei contributi dei due momenti del CHS e' conservativa rispetto
 alla resistenza elastica alla risultante; conserva gli assi del membro.
 La classificazione per compressione uniforme resta conservativa e comune.
+Aggiornamento 28/10/2026: la classe segue gli N-M dell'inviluppo (RHS a spessore
+uniforme via ModelStressClassification; CHS e altre cave restano uniformi), il
+peggiore fra (N,M1,M2), (N,M1,0), (N,0,M2). Per le cave cambia solo classe 4 o
+no (Aeff/Weff oppure A/Wel). Con N>=0 l'interazione elastica vale a n=0. Il
+taglio richiede ancora ShearBucklingExclusionSource: nessun filtro cave qualificato.
 
 Meccanica e numeri EC3/NTC passano attraverso gli stessi contratti; restano
 distinti gamma e riferimenti. EN1993-1-1:2005 6.3.3 / AnnexB TableB.1 p79
