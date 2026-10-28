@@ -99,7 +99,8 @@ namespace GPC.Model.Checker.Configuration
             Require("ExplicitMomentFactors","Provide Cm or select declared linear-diagram preparation.",new[]{"Cm1","Cm2","CmLT"},Is("AnalysisMode","BeamColumn"),IsNot("MomentFactorPreparation","LinearDiagrams"),IsNot("MomentFactorPreparation","ConservativeEnvelope"));
             foreach(var key in new[]{"Cm1","Cm2","CmLT"}) Add(key,EngineParameterKind.Number,"1",min:.4,max:1,modes:new[]{"BeamColumn"});
             foreach(var key in new[]{"MomentFactorSource","StabilityModelSource","LateralTorsionalExclusionSource","ShearBucklingExclusionSource"})
-                Add(key,modes:new[]{"BeamColumn"});
+                Add(key,modes:new[]{"BeamColumn"},description:key!="ShearBucklingExclusionSource"?null
+                    :"Explicit shear-buckling exclusion; it wins. Without it exact H are screened like the section engine (web EC3 6.2.6(6)/NTC 4.2.27, flanges c/t<=14eps GPC criterion); hollow sections require it.");
             Require("UniformForkCurves","The uniform fork method needs its three explicit curves.",new[]{"InPlaneCurve","LateralCurve","LateralTorsionalCurve"},Is("AnalysisMode","UniformFork"));
             Require("GeneralMethodInputs","The external general method requires both multipliers and lateral curves.",
                 new[]{"LateralCurve","LateralTorsionalCurve","AlphaUltK.Value","AlphaUltK.Unit","AlphaUltK.Source","AlphaCrOp.Value","AlphaCrOp.Unit","AlphaCrOp.Source"},Is("AnalysisMode","ExternalInPlane"));

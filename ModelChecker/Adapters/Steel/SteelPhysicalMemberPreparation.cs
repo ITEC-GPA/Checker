@@ -103,12 +103,19 @@ namespace GPC.Model.Checker
         internal SteelActions BeamColumnEnvelope()
         {
             double n=Cuts[0].Actions.N;
+            // The member route neglects tension (favourable to flexural/LTB buckling): only compression must be constant.
+            bool tension=Cuts.All(c=>c.Actions.N>=0);
             foreach(var cut in Cuts)
             {
                 if(cut.Actions.T!=0)throw new NotSupportedException("Applied torque is outside the beam-column route.");
-                if(Math.Abs(cut.Actions.N-n)>1e-10*Math.Max(1,Math.Abs(n)))throw new NotSupportedException("Beam-column compression must be constant over the selected span.");
+                if(!tension&&Math.Abs(cut.Actions.N-n)>1e-10*Math.Max(1,Math.Abs(n)))throw new NotSupportedException("Beam-column compression must be constant over the selected span.");
             }
             var evidence=new List<CheckCalculationValue>(Trace);
+            if(tension&&Cuts.Any(c=>c.Actions.N!=n)) {
+                var least=Cuts.OrderBy(c=>c.Actions.N).First();n=least.Actions.N;
+                evidence.Add(new CheckCalculationValue("Member.Envelope.N",n,"N","Varying tension: smallest value of this ONE design state; neglected as favourable by the member stability route"));
+                evidence.Add(new CheckCalculationValue("Member.Envelope.N.Distance",least.Distance,"mm","Physical-member coordinate of controlling exported cut"));
+            }
             double Maximum(string name,Func<SteelActions,double> component)
             {
                 var cut=Cuts.OrderByDescending(c=>Math.Abs(component(c.Actions))).First();double value=component(cut.Actions);

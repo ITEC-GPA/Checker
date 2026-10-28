@@ -13,7 +13,11 @@ namespace GPC.Checkers.Steel.Pipeline
 {
     internal static class SteelPrismaticMemberExecution
     {
-        internal static SteelMethodDecision Select(SteelMemberAnalysis analysis)
+        internal static SteelMethodDecision Select(SteelMemberAnalysis analysis) => Select(analysis, false);
+
+        /// <param name="slendernessOnly">Beam-column without compression: the flexural slendernesses stay inputs
+        /// of the EC3 Annex B / Circolare C4.2.4.1.3.3 factors, so the axial route is prepared at N=0 too.</param>
+        internal static SteelMethodDecision Select(SteelMemberAnalysis analysis, bool slendernessOnly)
         {
             var i = analysis.Input; var a = i.EffectiveActions; bool compression = analysis.Kind == SteelMemberAnalysisKind.PrismaticCompression;
             var missing = new List<string>();
@@ -22,10 +26,15 @@ namespace GPC.Checkers.Steel.Pipeline
             if (!i.Section.Unperforated.HasValue) missing.Add("Section.Unperforated");
             if (missing.Count > 0) return Missing(missing);
             if (i.Section.Unperforated != true && analysis.PackedPair?.ComputedPacking == null) return Unsupported("Member.PerforatedNotQualified", "Gross-section stability requires an unperforated declaration.");
-            if (a.T != 0 || a.M2 != 0 || compression && (a.M1 != 0 || a.V1 != 0 || a.V2 != 0)
-                || !compression && (a.N != 0 || a.V1 != 0))
-                return Unsupported("Member.PrismaticActionPattern", "Compression route requires concentric constant N only; LTB route requires major-axis bending without N, minor bending or torsion.");
-            if (compression ? a.N >= 0 : a.M1 == 0)
+            if (a.T != 0 || compression && (a.M1 != 0 || a.M2 != 0 || a.V1 != 0 || a.V2 != 0) || !compression && a.N < 0)
+                return Unsupported("Member.PrismaticActionPattern", "Compression route requires concentric constant N only; LTB route requires major-axis bending without compression or torsion (N-M: BeamColumn).");
+            // LTB route: tension is favourable and neglected (traced). Minor-axis bending alone has no LTB.
+            if (!compression && a.M1 == 0 && (a.M2 != 0 || a.V1 != 0))
+                return new SteelMethodDecision(SteelCheckTarget.MemberStability, SteelSelectionStatus.NotRequired, null, "Member.MinorAxisBendingOnly",
+                    "No major-axis moment: minor-axis bending (M2, V1) causes no lateral-torsional buckling (EC3 6.3.2, NTC 4.2.4.1.3.2 concern M1) and without compression no flexural buckling; N, M2 and V1 are section checks.");
+            if (!compression && (a.M2 != 0 || a.V1 != 0))
+                return Unsupported("Member.BiaxialBendingRequiresBeamColumn", "M1 with M2/V1 needs the EC3 6.3.3 / NTC 4.2.4.1.3.3 interaction: use the BeamColumn analysis, which also covers N>=0.");
+            if (compression ? a.N >= 0 && !slendernessOnly : a.M1 == 0)
                 return new SteelMethodDecision(SteelCheckTarget.MemberStability, SteelSelectionStatus.NotRequired, null,
                     "Member.NoActiveDemand", "No compressive force or major-axis moment for this selected mechanism.");
             var section = i.Section.ReadOnlySection; var shape = section.SectionShape;
@@ -46,8 +55,9 @@ namespace GPC.Checkers.Steel.Pipeline
                     || ((SectionH)shape).ThicknessTopFlange != ((SectionH)shape).ThicknessBottomFlange)))
                 return Unsupported("Member.LtbGeometry", "Use a separately qualified method for asymmetric/rotated H or angle bending; this LTB route uses the major principal axis.");
             // EC3 6.3.2.1(3) / NTC 4.2.4.1.3.2: Wy follows the class of the section under the bending itself;
-            // the compression route keeps the uniform-compression class.
-            var cl = SteelMethodSelector.Classification(i, section, analysis.ExternalMemberClass.HasValue
+            // the compression route keeps the uniform-compression class. Neglected tension does not relieve the plates either.
+            var cl = SteelMethodSelector.Classification(!compression && a.N > 0 ? new SteelVerificationInput(i.Section,
+                new SteelActions(0, a.V1, a.V2, a.T, a.M1, a.M2), i.Code, i.Member) : i, section, analysis.ExternalMemberClass.HasValue
                 ? new SteelSectionClassification(i, analysis.ExternalMemberClass.Value, analysis.ClassificationSource) : null,
                 concomitantActions: !compression);
             if (cl.Failure != null) return new SteelMethodDecision(SteelCheckTarget.MemberStability, cl.Failure.Status, null,
@@ -168,6 +178,7 @@ namespace GPC.Checkers.Steel.Pipeline
                 Add(trace, effective ? "Weff1Min" : elastic ? "Wel1Min" : "Wpl1", w, "mm3"); Add(trace, "Mcr", mcr, "Nmm");
                 Add(trace, "AlphaLT", BucklingCurves.Alpha(curve), "1"); Add(trace, "SlendernessLT", slenderness, "1"); Add(trace, "ChiLT", chi, "1");
                 Add(trace, "BetaLT", 1, "1"); Add(trace, "LambdaLT0", .2, "1"); Add(trace, "MomentCorrectionF", 1, "1");
+                if (i.EffectiveActions.N > 0) Add(trace, "TensionNeglectedAsFavourable", i.EffectiveActions.N, "N");
                 unit = "Nmm";
                 reference = ntc ? "NTC 2018 4.2.4.1.3.2, equations 4.2.48-51; Table 4.2.IX (general conservative case)"
                     : "EN 1993-1-1:2005 6.3.2.1-2, equations 6.55-56; recommended Table 6.4 curves";
@@ -177,6 +188,7 @@ namespace GPC.Checkers.Steel.Pipeline
                 reference += "; EN1993-1-5:2006 4.3(3)/(4), 4.4; EN1993-1-1:2005 6.3.1.1(3), 6.3.1.2, 6.3.2.1";
                 scope = "Class4 doubly symmetric H/RHS; Aeff under uniform compression / Weff under pure bending at fy. Effective centroid under N unchanged. Elastic critical values use gross properties. Section/shear interaction remains separate. " + analysis.Prismatic.CriticalMomentBasis;
             }
+            if (!compression && i.EffectiveActions.N > 0) scope += "; tension N>0 neglected as favourable to LTB (class under M1 alone); N-M resistance is a section check";
             Positive(resistance, "Design resistance"); double demand = compression ? Math.Abs(i.EffectiveActions.N) : Math.Abs(i.EffectiveActions.M1);
             double utilization = demand / resistance; SteelInputValidation.Finite(utilization, "Utilization");
             Add(trace, "Resistance", resistance, unit); Add(trace, "Utilization", utilization, "1");
