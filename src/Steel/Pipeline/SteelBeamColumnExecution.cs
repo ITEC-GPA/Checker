@@ -36,8 +36,9 @@ namespace GPC.Checkers.Steel.Pipeline
                 if(h.LenghtTopFlange!=h.LenghtBottomFlange||h.ThicknessTopFlange!=h.ThicknessBottomFlange||Math.Abs(h.AngleX1)>1e-10||section.J11<section.J22)
                     return Unsupported("Member.BeamColumnGeometry","Doubly symmetric H with horizontal major principal axis required.");
             }
-            if(analysis.Values.Any(v=>v.Quantity!=SteelStabilityQuantity.Ncr1&&v.Quantity!=SteelStabilityQuantity.Ncr2&&v.Quantity!=SteelStabilityQuantity.Mcr))
-                throw new ArgumentException("Beam-column route accepts flexural Ncr1/Ncr2 and Mcr; other compression modes require explicit applicability assessments.");
+            // NcrT/NcrFT feed the compression sub-check; without value or exclusion it resolves them automatically where qualified.
+            if(analysis.Values.Any(v=>v.Quantity==SteelStabilityQuantity.AlphaUltK||v.Quantity==SteelStabilityQuantity.AlphaCrOp))
+                throw new ArgumentException("Beam-column route accepts the compression critical forces Ncr1/Ncr2/NcrT/NcrFT and Mcr only.");
             var compression=SteelPrismaticMemberExecution.Select(Compression(analysis));
             if(compression.Status!=SteelSelectionStatus.Ready)return compression;
             bool needsMcr=p.TorsionSusceptible&&a.M1!=0;

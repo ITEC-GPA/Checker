@@ -53,6 +53,19 @@ Stato reale del taglio (28 ottobre 2026):
   (criterio GPC, non clausola di norma). ModelChecker lo applica in automatico
   sulle H esatte quando manca una valutazione esplicita ShearBucklingExcluded1.
 
+Valori critici automatici (28 ottobre 2026):
+  Senza valore ne' esclusione, NcrT/NcrFT si risolvono in automatico solo per le H
+  doppiamente simmetriche (NcrT=(G It+pi^2 E Iw/LcrT^2)/i0^2 con LcrT esplicita o
+  fra ritegni torsionali alle estremita'; FT non distinto) e per le cave chiuse
+  doppiamente simmetriche (escluse con lambda_T<0.2 dal limite G It/i0^2; EC3
+  6.3.1.4, NTC 4.2.4.1.3.1); il dato esplicito prevale, le altre famiglie restano
+  MissingInput. Anche le travi-colonna. In ModelChecker CriticalValues vale anche per
+  BeamColumn e divide l'asta nei ritegni Model a forcella (laterale+torsione): ogni
+  segmento e' a forcella, continuita' trascurata (conservativo), con azioni e valori
+  critici propri; governa il segmento peggiore (Member.Segment.Governing). Ritegni
+  parziali, su un'ala, ignoti o di fase vengono rifiutati con codice preciso.
+  Dettagli in AUTOMATIC_STABILITY.txt.
+
 Coprigiunti bullonati di travi composte saldate a I:
   BridgeSpliceApplication.CreateBolted -> WeldedIBeamSpliceStandard.Verify
   -> BridgeSpliceReport.FromBolted -> SteelAssessmentSummary.From(report).

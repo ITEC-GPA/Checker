@@ -67,7 +67,8 @@ namespace GPC.Checkers.Steel.Pipeline
                     if (Has(analysis, mode.Item1) && mode.Item2 != null)
                         return new SteelMethodDecision(SteelCheckTarget.MemberStability, SteelSelectionStatus.InvalidInput, null,
                             "Member.ConflictingModeAssessment", "A mode cannot be both evaluated and excluded.");
-                    if (!Has(analysis, mode.Item1) && mode.Item2 == null) missing.Add(mode.Item1 + " or explicit mode exclusion");
+                    // Neither value nor exclusion: automatic only where qualified (SteelTorsionalModes).
+                    if (!Has(analysis, mode.Item1) && mode.Item2 == null && SteelTorsionalModes.Automatic(i, mode.Item1).Missing is string label) missing.Add(label);
                 }
                 if (analysis.Values.Any(v => v.Quantity != SteelStabilityQuantity.Ncr1 && v.Quantity != SteelStabilityQuantity.Ncr2
                     && v.Quantity != SteelStabilityQuantity.NcrT && v.Quantity != SteelStabilityQuantity.NcrFT))
@@ -122,13 +123,19 @@ namespace GPC.Checkers.Steel.Pipeline
                 double characteristic = area * fy;
                 Positive(characteristic, "Characteristic axial resistance"); Add(trace, "Area", section.Area, "mm2");
                 resistance = characteristic / i.Code.SectionCode.GammaM0; Add(trace, "SectionResistance", resistance, "N");
+                var automatic = new List<string>();
                 foreach (var mode in new[] { SteelStabilityQuantity.Ncr1, SteelStabilityQuantity.Ncr2, SteelStabilityQuantity.NcrT, SteelStabilityQuantity.NcrFT })
                 {
                     bool first = mode == SteelStabilityQuantity.Ncr1, second = mode == SteelStabilityQuantity.Ncr2;
                     var value = analysis.Values.SingleOrDefault(v => v.Quantity == mode);
-                    if (value == null && !first && !second) { Add(trace, mode + ".Excluded", 1, "1"); continue; }
+                    var auto = value != null || first || second || (mode == SteelStabilityQuantity.NcrT ? analysis.Prismatic.TorsionalExclusionSource
+                        : analysis.Prismatic.FlexuralTorsionalExclusionSource) != null ? null : SteelTorsionalModes.Automatic(i, mode);
+                    if (auto?.Missing != null) throw new InvalidOperationException("Unresolved " + mode + " reached execution.");
+                    if (auto != null) { trace.AddRange(auto.Trace); automatic.Add(auto.Reference); }
+                    if (value == null && !first && !second && auto?.Value == null) { Add(trace, mode + ".Excluded", 1, "1"); continue; }
                     double ncr;
                     if (value != null) ncr = value.Value;
+                    else if (auto != null) ncr = auto.Value.Value;
                     else
                     {
                         double length = first ? i.Member.BucklingLength1.Value : i.Member.BucklingLength2.Value;
@@ -152,6 +159,7 @@ namespace GPC.Checkers.Steel.Pipeline
                 unit = "N";
                 reference = ntc ? "NTC 2018 4.2.4.1.3.1, equations 4.2.41-46; Table 4.2.VIII"
                     : "EN 1993-1-1:2005 6.3.1.1-4, equations 6.47/6.49/6.52; Table 6.1";
+                if (automatic.Count > 0) reference += "; automatic torsional modes: " + string.Join("; ", automatic);
                 scope = "Prismatic concentric constant compression, classes 1-3. All four instability modes evaluated or explicitly excluded; curves are caller-established. No N-M interaction.";
             }
             else

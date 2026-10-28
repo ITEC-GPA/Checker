@@ -117,7 +117,8 @@ namespace GPC.Model.Checker
                 if (mode == "Compression" || mode == "Bending" || mode == "BeamColumn")
                     {
                     physical = SteelPhysicalMemberPreparation.Create(input, common.Section, section.SectionShape, context);
-                    common = new SteelVerificationInput(common.Section, physical.Cuts[0].Actions, common.Code, common.Member);
+                    common = new SteelVerificationInput(common.Section, physical.Cuts[0].Actions, common.Code, TorsionalMember(input, common, physical, mode));
+                    if (SegmentedPreparation(input, common, mode)) return VerifySegments(input, common, context, mode, physical, fingerprint, token);
                     analysis = mode == "BeamColumn" ? BeamColumn(input, common, physical) : Prismatic(input, common, context, mode, physical);
                 }
                 else
@@ -181,6 +182,7 @@ namespace GPC.Model.Checker
                 var result = NativeResults.Missing("SteelMember.InvalidOrMissingInput");
                 result.Diagnostics.Add(ModelDiagnostic.Error("SteelMember.InputDetail", message: ex.Message)); return result;
             }
+            catch (SteelPreparationRefusal ex) { return NativeResults.Unavailable(ex.Code, ex.Message); }
             catch (NotSupportedException ex) { return NativeResults.Unavailable("SteelMember.NotSupported", ex.Message); }
         }
         private SteelMemberAnalysis Prismatic(PhysicalMemberCheckInput input, SteelVerificationInput common, SteelDesignContext context, string mode, SteelPhysicalMemberPreparation physical)

@@ -32,6 +32,24 @@ namespace GPC.Model.Checker
         }
         internal IReadOnlyList<Cut> Cuts { get; private set; }
         internal IReadOnlyList<CheckCalculationValue> Trace { get; private set; }
+        /// <summary>Common section frame of the normalized cuts; principal axes rotate from it by the section angle.</summary>
+        internal CoordinateSystem Frame { get; private set; }
+        /// <summary>Fork-supported evaluation span of the segment-wise preparation, null for the whole span.
+        /// In a segment view cut distances are measured from the segment start.</summary>
+        internal SteelForkSegment Segment { get; private set; }
+
+        /// <summary>Same-state cuts of one segment, both boundary cuts required (no interpolation).</summary>
+        internal SteelPhysicalMemberPreparation ForSegment(SteelForkSegment segment)
+        {
+            const double tolerance=1e-7;var cuts=new List<Cut>();
+            foreach(var c in Cuts.Where(c=>c.Distance>=segment.Start-tolerance&&c.Distance<=segment.End+tolerance))
+                cuts.Add(new Cut{Source=c.Source,Actions=c.Actions,Distance=Math.Abs(c.Distance-segment.Start)<=tolerance?0
+                    :Math.Abs(c.Distance-segment.End)<=tolerance?segment.Length:c.Distance-segment.Start});
+            if(!cuts.Any(c=>c.Distance==0)||!cuts.Any(c=>c.Distance==segment.Length))
+                throw new SteelPreparationRefusal("SteelMember.Segment.BoundaryCutRequired","Segment "+segment.Index+" needs exported concomitant cuts at both restraint boundaries; no interpolation.");
+            return new SteelPhysicalMemberPreparation{Cuts=cuts.ToArray(),Trace=Trace,Frame=Frame,Segment=segment};
+        }
+        internal void AddEvidence(IEnumerable<CheckCalculationValue> values)=>Trace=Trace.Concat(values).ToArray();
 
         /// <param name="shape">Shape of the owned cut property the section snapshot was copied from:
         /// reading it avoids a further XML copy of the snapshot.</param>
@@ -98,7 +116,7 @@ namespace GPC.Model.Checker
             }
             trace.Add(new CheckCalculationValue("Member.Geometry.ElementCount",count,"1","Number of participating FE elements; not a restraint count"));
             trace.Add(new CheckCalculationValue("Member.Geometry.CutCount",cuts.Count,"1","Exported concomitant cuts; no assertion of continuous coverage"));
-            return new SteelPhysicalMemberPreparation{Cuts=cuts.OrderBy(c=>c.Distance).ToArray(),Trace=trace};
+            return new SteelPhysicalMemberPreparation{Cuts=cuts.OrderBy(c=>c.Distance).ToArray(),Trace=trace,Frame=frame};
         }
         internal SteelActions BeamColumnEnvelope()
         {
@@ -113,7 +131,7 @@ namespace GPC.Model.Checker
             {
                 var cut=Cuts.OrderByDescending(c=>Math.Abs(component(c.Actions))).First();double value=component(cut.Actions);
                 evidence.Add(new CheckCalculationValue("Member.Envelope."+name,value,name.StartsWith("V")?"N":"Nmm","Signed absolute maximum within this ONE design state; not a fictitious section cut"));
-                evidence.Add(new CheckCalculationValue("Member.Envelope."+name+".Distance",cut.Distance,"mm","Physical-member coordinate of controlling exported cut"));
+                evidence.Add(new CheckCalculationValue("Member.Envelope."+name+".Distance",cut.Distance+(Segment?.Start??0),"mm","Physical-member coordinate of controlling exported cut"));
                 evidence.Add(new CheckCalculationValue("Member.Envelope."+name+".BeamId",cut.Source.Element.Id,"1","Original FE element; concomitant state retained in member snapshot"));
                 return value;
             }

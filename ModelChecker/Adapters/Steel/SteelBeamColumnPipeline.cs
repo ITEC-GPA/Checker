@@ -23,7 +23,7 @@ namespace GPC.Model.Checker
             var cm=PrepareMomentFactors(input,common,physical,out var momentSource);
             var data=new SteelBeamColumnParameters(CompressionCurve(common,"CompressionCurve1"),CompressionCurve(common,"CompressionCurve2"),
                 susceptible,cm[0],cm[1],cm[2],momentSource,Required("StabilityModelSource"),
-                Required("TorsionalExclusionSource"),Required("FlexuralTorsionalExclusionSource"),EnumValue<SteelCriticalMomentBasis>("McrBasis"),
+                Optional("TorsionalExclusionSource"),Optional("FlexuralTorsionalExclusionSource"),EnumValue<SteelCriticalMomentBasis>("McrBasis"),
                 _parameters.TryGetValue("LateralTorsionalExclusionSource",out var excludeLT)?excludeLT:null,
                 _parameters.TryGetValue("ShearBucklingExclusionSource",out var excludeV)?excludeV:null);
             int? memberClass=null;
@@ -35,9 +35,13 @@ namespace GPC.Model.Checker
             foreach(SteelStabilityQuantity q in Enum.GetValues(typeof(SteelStabilityQuantity)))
                 if(new[]{".Value",".Unit",".Source"}.Any(s=>_parameters.ContainsKey(q+s)))
                     values.Add(new SteelStabilityValue(q,Number(q+".Value"),EnumValue<SteelStabilityUnit>(q+".Unit"),Required(q+".Source")));
+            values=PrepareBeamColumnCriticalValues(input,common,physical,susceptible,values).ToList();
             return SteelMemberAnalysis.BeamColumn(common,Required("LoadPatternReference"),PreparedParameterSet(common),data,values,memberClass,
                 _parameters.TryGetValue("ClassificationSource",out var source)?source:null);
         }
+
+        // Null: the library resolves the mode from a value or automatically (doubly symmetric H, closed hollow).
+        private string Optional(string key)=>_parameters.TryGetValue(key,out var value)?value:null;
 
         private void ValidatePrismaticCoefficients(bool compression,bool bending)
         {

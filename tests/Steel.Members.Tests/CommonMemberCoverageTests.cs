@@ -71,7 +71,9 @@ public class CommonMemberCoverageTests
         var i=Input("H",true);
         var missing=Run(SteelMemberAnalysis.Compression(i,"N","explicit curves",SteelBucklingCurve.B,SteelBucklingCurve.C,SteelBucklingCurve.C));
         Assert.AreEqual(SteelExecutionStatus.MissingInput,missing.Status); Assert.IsNull(missing.Resistance);
-        Assert.AreEqual(2,missing.Decision.MissingInputs.Count);
+        // Doubly symmetric H (x0=y0=0): det=(N1-N)(N2-N)(NT-N), FT is no distinct mode and is resolved
+        // automatically; NcrT stays missing without a torsional length or end twist restraints.
+        Assert.AreEqual(1,missing.Decision.MissingInputs.Count); StringAssert.StartsWith(missing.Decision.MissingInputs[0],"NcrT");
         var conflict=Run(SteelMemberAnalysis.Compression(i,"N","explicit curves",SteelBucklingCurve.B,SteelBucklingCurve.C,SteelBucklingCurve.C,
             new[]{Value(SteelStabilityQuantity.NcrT,1e7)},"excluded","excluded"));
         Assert.AreEqual(SteelExecutionStatus.InvalidInput,conflict.Status);

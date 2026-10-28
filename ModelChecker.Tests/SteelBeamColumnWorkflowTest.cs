@@ -111,7 +111,9 @@ public class SteelBeamColumnWorkflowTest
     }
 
     [DataTestMethod] [DataRow("Cm1")] [DataRow("Cm2")] [DataRow("CmLT")] [DataRow("MomentFactorSource")]
-    [DataRow("StabilityModelSource")] [DataRow("TorsionalExclusionSource")] [DataRow("FlexuralTorsionalExclusionSource")]
+    // FlexuralTorsionalExclusionSource: no longer missing evidence on this doubly symmetric H column, see
+    // AutomaticCriticalValuesTest.DoublySymmetricHColumnResolvesFlexuralTorsionalModeWithUnchangedUtilization.
+    [DataRow("StabilityModelSource")] [DataRow("TorsionalExclusionSource")]
     [DataRow("ShearBucklingExclusionSource")] [DataRow("LateralTorsionalExclusionSource")]
     public void MissingMethodEvidenceCannotBecomeAPassingMember(string missing)
     {
