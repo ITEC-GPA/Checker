@@ -59,12 +59,13 @@ namespace GPC.Checkers.Steel.Pipeline
         internal static SteelCheckExecution Execute(SteelMemberAnalysis analysis,SteelMethodDecision decision)
         {
             var i=analysis.Input;var p=analysis.BeamColumnParameters;var section=i.Section.ReadOnlySection;
-            var comp=Compression(analysis);var compression=SteelPrismaticMemberExecution.Execute(comp,SteelPrismaticMemberExecution.Select(comp));
+            var comp=Compression(analysis);
+            var compression=SteelPrismaticMemberExecution.Execute(comp,SteelPrismaticMemberExecution.Select(comp),out var flexural);
             var trace=new List<SectionResistanceValue>(compression.Trace.Where(v=>v.Name!="Resistance"&&v.Name!="Utilization"));
-            double Value(string name)=>compression.Trace.Single(v=>v.Name==name).Value;
             bool effective=decision.SectionClass==4;
-            double gamma=i.Code.GammaM1.Value,fy=i.Section.YieldStrength,nrk=(effective?Value("AreaEffective"):section.Area)*fy;
-            double lambda1=Value("Ncr1.Slenderness"),lambda2=Value("Ncr2.Slenderness"),chi1=Value("Ncr1.Chi"),chi2=Value("Ncr2.Chi");
+            // Typed compression intermediates: the class4 Aeff exists exactly when the compression route used it.
+            double gamma=i.Code.GammaM1.Value,fy=i.Section.YieldStrength,nrk=(effective?flexural.EffectiveArea.Value:section.Area)*fy;
+            double lambda1=flexural.Slenderness1,lambda2=flexural.Slenderness2,chi1=flexural.Chi1,chi2=flexural.Chi2;
             bool elastic=decision.SectionClass>=3||Hollow(section.SectionShape),ntc=i.Code.SectionCode.Standard==SectionResistanceStandard.Ntc2018;
             double w1=effective?SteelEffectiveMemberProperties.BendingModulus(i,1):(elastic?section.Wel1:section.Wpl1);
             double w2=effective?SteelEffectiveMemberProperties.BendingModulus(i,2):(elastic?section.Wel2:section.Wpl2);
@@ -73,9 +74,9 @@ namespace GPC.Checkers.Steel.Pipeline
             if(p.TorsionSusceptible&&i.Actions.M1!=0)
             {
                 double mcr=analysis.Values.Single(v=>v.Quantity==SteelStabilityQuantity.Mcr).Value;
-                double lambdaLT=Math.Sqrt(m1rk)/Math.Sqrt(mcr);var curve=SteelPrismaticMemberExecution.LtbCurve(section,ntc);
-                chiLT=SteelPrismaticMemberExecution.Reduction(lambdaLT,curve);
-                Add(trace,"Mcr",mcr,"Nmm");Add(trace,"LambdaLT",lambdaLT,"1");Add(trace,"AlphaLT",SteelPrismaticMemberExecution.Alpha(curve),"1");
+                double lambdaLT=Math.Sqrt(m1rk)/Math.Sqrt(mcr);var curve=BucklingCurves.LateralTorsional(section,ntc);
+                chiLT=BucklingCurves.Reduction(lambdaLT,curve);
+                Add(trace,"Mcr",mcr,"Nmm");Add(trace,"LambdaLT",lambdaLT,"1");Add(trace,"AlphaLT",BucklingCurves.Alpha(curve),"1");
             }
             double nb1=chi1*nrk/gamma,nb2=chi2*nrk/gamma,mb=chiLT*m1rk/gamma,mz=m2rk/gamma;
             var result=BeamColumnInteraction.Evaluate(-i.Actions.N/nb1,-i.Actions.N/nb2,Math.Abs(i.Actions.M1)/mb,Math.Abs(i.Actions.M2)/mz,

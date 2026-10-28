@@ -33,18 +33,6 @@ namespace GPC.Checkers.Steel.Members
                 resistanceFactor, gammaM1, lateralCurve, lateralTorsionalCurve, parameterSet, analysisReference);
         }
 
-        internal static double ImperfectionFactor(Ec3GeneralMethodCurve curve)
-        {
-            switch (curve)
-            {
-                case Ec3GeneralMethodCurve.A0: return .13;
-                case Ec3GeneralMethodCurve.A: return .21;
-                case Ec3GeneralMethodCurve.B: return .34;
-                case Ec3GeneralMethodCurve.C: return .49;
-                case Ec3GeneralMethodCurve.D: return .76;
-                default: throw new ArgumentOutOfRangeException(nameof(curve));
-            }
-        }
         internal static double ElasticBowDivisor(Ec3GeneralMethodCurve curve)
         {
             // EN 1993-1-1:2005 Table 5.1, elastic analysis column.
@@ -60,10 +48,9 @@ namespace GPC.Checkers.Steel.Members
         }
         private static double Reduction(double lambda, Ec3GeneralMethodCurve curve)
         {
-            double alpha = ImperfectionFactor(curve);
+            double alpha = BucklingCurves.Alpha(curve);
             if (lambda <= .2) return 1;
-            double phi = .5 * (1 + alpha * (lambda - .2) + lambda * lambda);
-            return 1 / (phi + Math.Sqrt(phi * phi - lambda * lambda));
+            return BucklingCurves.PerryRobertson(alpha, lambda);
         }
         internal static void Positive(double value, string name)
         { if (!(value > 0) || double.IsInfinity(value)) throw new ArgumentOutOfRangeException(name); }
