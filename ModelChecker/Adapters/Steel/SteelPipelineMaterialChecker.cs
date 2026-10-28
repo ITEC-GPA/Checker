@@ -88,10 +88,12 @@ namespace GPC.Model.Checker
                     string propertyKey = ModelValues.Fingerprint(new object[] { input.Property });
                     if (options.SectionFingerprint != null && options.SectionFingerprint != propertyKey)
                         return NativeResults.Missing("SteelPipeline.AssessmentSectionMismatch");
-                    string key = ModelValues.Fingerprint(new object[] { input.Property, _owner.Configuration });
+                    // One entry per distinct property and engine configuration, as before; the property
+                    // fingerprint is not computed a second time for it.
+                    string key = propertyKey + "\n" + _owner.Configuration;
                     if (!_sections.TryGetValue(key, out var snapshot))
                     {
-                        snapshot = new SteelSectionInput(section, options.Unperforated, options.NetArea);
+                        snapshot = SteelPreparedSections.Get(section, propertyKey, options.Unperforated, options.NetArea);
                         _sections.Add(key, snapshot);
                     }
                     var common = ModelSteelInput.FromSectionAxes(snapshot, input.Forces, context);
