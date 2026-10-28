@@ -54,7 +54,7 @@ namespace GPC.Checkers.Steel.Connections
         public ConnectionCheck GoverningCheck => IsComponentAssessmentComplete ? Checks.OrderByDescending(c => c.Utilization).First() : null;
         public double? Utilization => GoverningCheck?.Utilization;
         public double? LoadUtilization => IsComponentAssessmentComplete
-            ? (double?)Checks.Where(c => c.Id != "Tying.Weld.FullStrengthWebYieldThroat").Max(c => c.Utilization) : null;
+            ? (double?)ConnectionOutcome.LoadChecks(Checks).Max(c => c.Utilization) : null;
         public double? WeldTyingResistance => IsComponentAssessmentComplete
             ? (double?)typedTyingResistance.Value : null;
         private readonly double? typedTyingResistance;
@@ -120,7 +120,7 @@ namespace GPC.Checkers.Steel.Connections
             Value("Geometry.LeftRootX", -g.Beam.WebThickness / 2, "mm");
             Value("Geometry.RightRootX", g.Beam.WebThickness / 2, "mm");
             Value("Actions.WeldCentreY", c.ApplicationY, "mm");
-            Check("Tying.Weld.FullStrengthWebYieldThroat", required, a, "SCI P358(2014) AppendixC.1 p279: beam-web yielding, not ultimate strength", "mm");
+            Check("Tying.Weld.FullStrengthWebYieldThroat", required, a, "SCI P358(2014) AppendixC.1 p279: beam-web yielding, not ultimate strength", "mm", ConnectionCheckRole.Detailing);
             Check("Tying.Weld.DirectionalEquivalent", equivalent, equivalentResistance,
                 "SCI P358(2014) AppendixC.1 p279; EN1993-1-8:2005 4.5.3.2 eq4.1 with explicit SCI gammaMu", "MPa");
             Check("Tying.Weld.NormalTension", Math.Max(0, sigma), normalResistance,
@@ -134,10 +134,10 @@ namespace GPC.Checkers.Steel.Connections
                 if (Finite(value)) { trace.Add(new SectionResistanceValue(name, value, unit)); return true; }
                 issues.Add(name + "OutsideNumericRange"); return false;
             }
-            void Check(string id, double demand, double resistance, string source, string unit)
+            void Check(string id, double demand, double resistance, string source, string unit, ConnectionCheckRole role = ConnectionCheckRole.Resistance)
             {
                 if (!Finite(demand) || !Finite(resistance) || demand < 0 || resistance <= 0) issues.Add(id + "OutsideNumericRange");
-                else checks.Add(new ConnectionCheck(id, demand, resistance, source, unit));
+                else checks.Add(new ConnectionCheck(id, demand, resistance, source, unit, role));
             }
             FlexibleEndPlateTyingWeldResult Result() => new FlexibleEndPlateTyingWeldResult(p, component, atWeld, checks, trace, issues, tying);
         }

@@ -70,11 +70,15 @@ namespace GPC.Checkers.Steel.Connections
         /// <summary>The trace entries the producer marks for reports, in trace order. Reports
         /// select these typed entries instead of matching trace labels.</summary>
         internal IReadOnlyList<SectionResistanceValue> ReportedValues { get; }
+        /// <summary>The role of this component in its calling joint, shared by its own checks.</summary>
+        internal ConnectionCheckRole Role { get; }
 
         internal ConnectionVerification(TInput input, ConnectionDesignCode code, string methodId, string scope,
             IEnumerable<ConnectionCheck> checks, IEnumerable<SectionResistanceValue> trace,
-            IEnumerable<string> diagnostics, IEnumerable<string> assumptions = null, IEnumerable<SectionResistanceValue> reported = null)
+            IEnumerable<string> diagnostics, IEnumerable<string> assumptions = null, IEnumerable<SectionResistanceValue> reported = null,
+            ConnectionCheckRole role = ConnectionCheckRole.Resistance)
         {
+            Role = role;
             ReportedValues = Array.AsReadOnly(reported == null ? Array.Empty<SectionResistanceValue>() : reported.ToArray());
             Input = input ?? throw new ArgumentNullException(nameof(input));
             Code = code ?? throw new ArgumentNullException(nameof(code));
@@ -101,6 +105,15 @@ namespace GPC.Checkers.Steel.Connections
         internal static ConnectionStatus Status(IReadOnlyCollection<ConnectionCheck> retained, int diagnostics)
             => retained.Any(c => !c.Passed) ? ConnectionStatus.Failed
                 : IsComplete(retained, diagnostics) ? ConnectionStatus.Passed : ConnectionStatus.NotSupported;
+        /// <summary>Checks that compare an actual action effect with a capacity. Applicability and
+        /// detailing rules still decide the status, but never the load utilization.</summary>
+        internal static IEnumerable<ConnectionCheck> LoadChecks(IEnumerable<ConnectionCheck> checks)
+            => checks.Where(c => IsActionUtilization(c.Role));
+        internal static bool IsActionUtilization(ConnectionCheckRole role)
+            => role == ConnectionCheckRole.Resistance || role == ConnectionCheckRole.Serviceability;
+        /// <summary>A failed applicability check means "outside this sufficient method": it is a
+        /// missing requirement of the calling joint, never a known load failure.</summary>
+        internal static bool IsDomainPrerequisite(ConnectionCheckRole role) => role == ConnectionCheckRole.Applicability;
     }
 
     internal static class ConnectionNumbers

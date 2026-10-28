@@ -37,11 +37,16 @@ namespace GPC.Checkers.Steel.Connections
         public ConnectionVerification<WeldedIBeamSplicePlateInput> AxialBlockTearing { get; }
         /// <summary>Typed net area behind the Sections trace entry NetArea.</summary>
         internal double NetArea { get; }
+        private readonly HashSet<ConnectionCheck> compressionShearBending;
+        /// <summary>True for the P398 compression-bending-shear interaction checks of LongitudinalCompression.</summary>
+        internal bool IsCompressionShearBending(ConnectionCheck check) => compressionShearBending.Contains(check);
         internal SpliceCoverPlateAssessment(WeldedSpliceCover cover, IEnumerable<SpliceCoverCut> cuts,
             ConnectionVerification<WeldedIBeamSplicePlateInput> sections,
             ConnectionVerification<WeldedIBeamSplicePlateInput> compression,
-            ConnectionVerification<WeldedIBeamSplicePlateInput> block, double netArea = double.NaN)
-        { NetArea = netArea; Cover = cover; Cuts = Array.AsReadOnly(cuts.ToArray()); Sections = sections; LongitudinalCompression = compression; AxialBlockTearing = block; }
+            ConnectionVerification<WeldedIBeamSplicePlateInput> block, double netArea = double.NaN, IEnumerable<ConnectionCheck> interaction = null)
+        {
+            NetArea = netArea; compressionShearBending = new HashSet<ConnectionCheck>(interaction ?? Enumerable.Empty<ConnectionCheck>());
+            Cover = cover; Cuts = Array.AsReadOnly(cuts.ToArray()); Sections = sections; LongitudinalCompression = compression; AxialBlockTearing = block; }
     }
 
     public sealed class WeldedIBeamSplicePlateResult
@@ -96,6 +101,7 @@ namespace GPC.Checkers.Steel.Connections
                 Value(trace, "HolesPerSection", rows, "1"); Value(trace, "TransverseCentroid", centre, "mm");
                 var sectionChecks = new List<ConnectionCheck>(); var compressionChecks = new List<ConnectionCheck>();
                 var compressionIssues = new List<string>(localIssues); var compressionTrace = new List<SectionResistanceValue>();
+                var interactionChecks = new List<ConnectionCheck>();
                 var factors = p.Policy.Code.Plates;
                 double maxCompression = 0;
                 if (localIssues.Count == 0)
@@ -153,9 +159,13 @@ namespace GPC.Checkers.Steel.Connections
                         double rho = vr <= .5 ? 0 : vr >= 1 ? 1 : Math.Pow(2 * vr - 1, 2);
                         double remaining = Math.Max(0, 1 - Math.Abs(c.N) / nb) * (1 - rho) * w * plate.Fy / factors.GammaM0;
                         if (!Finite(remaining)) compressionIssues.Add("COMPRESSION_SHEAR_BENDING_NUMERIC_RANGE");
-                        else compressionChecks.Add(new ConnectionCheck("Cut" + cuts.IndexOf(c) + ".CompressionShearBending",
-                            Math.Abs(c.M), remaining,
-                            "SCI P398 p59 compression-bending-shear interaction; conservative Nwp,Rd=min(Afy/gammaM0,Nb,Rd) from Table3.3 strip buckling", "Nmm"));
+                        else
+                        {
+                            var interaction = new ConnectionCheck("Cut" + cuts.IndexOf(c) + ".CompressionShearBending",
+                                Math.Abs(c.M), remaining,
+                                "SCI P398 p59 compression-bending-shear interaction; conservative Nwp,Rd=min(Afy/gammaM0,Nb,Rd) from Table3.3 strip buckling", "Nmm");
+                            compressionChecks.Add(interaction); interactionChecks.Add(interaction);
+                        }
                     }
                     else compressionIssues.Add("COMPRESSION_RESISTANCE_NUMERIC_RANGE");
                     Value(compressionTrace, "CompressionResistanceForInteraction", nb, "N");
@@ -167,7 +177,7 @@ namespace GPC.Checkers.Steel.Connections
                 covers.Add(new SpliceCoverPlateAssessment(left.Cover, cuts,
                     Result(p, "Sections." + left.Cover, "Gross elastic N-V-M envelope and separate net axial/shear components; NOT combined net-section fracture or plate stability.", sectionChecks, trace, localIssues),
                     Result(p, "LongitudinalCompression." + left.Cover, "Longitudinal filled-fastener strip compression only; NOT complete shear/lateral plate buckling.", compressionChecks, compressionTrace, compressionIssues),
-                    AxialBlocks(p, group.ToArray(), localIssues), net));
+                    AxialBlocks(p, group.ToArray(), localIssues), net, interactionChecks));
 
                 void Add(IList<ConnectionCheck> list, string id, double demand, double resistance, string unit = "N")
                     => list.Add(new ConnectionCheck(id, demand, resistance, NormalReference(p), unit));

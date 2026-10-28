@@ -144,32 +144,27 @@ namespace GPC.Checkers.Steel.Connections
                 foreach (var issue in c.Components.BindingDiagnostics.Concat(c.Parents.BindingDiagnostics)) missing.Add(id + ":" + issue);
                 if (!SameWelds(p.Cases[0].Parents.Welds, input.Parents.Welds)) missing.Add(id + ":LONGITUDINAL_WELD_DETAIL_MISMATCH");
                 if (c.Model.Status != ConnectionStatus.Passed) missing.AddRange(c.Model.Diagnostics.Select(x => id + ":Model:" + x));
-                Include(id, "Bolts", c.Components.Bolts.ComponentAssessment);
-                Include(id, "Detailing", c.Components.Detailing.Detailing);
+                Assess(id, "Bolts", c.Components.Bolts.ComponentAssessment);
+                Assess(id, "Detailing", c.Components.Detailing.Detailing);
                 foreach (var plate in c.Components.Plates.Covers)
                 {
-                    Include(id, plate.Cover + ".GrossSections", plate.Sections);
-                    if (c.EffectiveCompression == null) Include(id, plate.Cover + ".Compression", plate.LongitudinalCompression);
+                    Assess(id, plate.Cover + ".GrossSections", plate.Sections);
+                    if (c.EffectiveCompression == null) Assess(id, plate.Cover + ".Compression", plate.LongitudinalCompression);
                 }
-                if (c.EffectiveCompression != null) Include(id, "EffectiveCoverCompression", c.EffectiveCompression);
+                if (c.EffectiveCompression != null) Assess(id, "EffectiveCoverCompression", c.EffectiveCompression);
                 if (c.Components.Plates.Covers.Count != 8) missing.Add(id + ":EIGHT_COVER_ASSESSMENTS_REQUIRED");
                 foreach (var issue in c.Components.Plates.Diagnostics) missing.Add(id + ":Plates:" + issue);
-                Include(id, "CombinedNetSections", c.AdditionalPlates.NetSections);
+                Assess(id, "CombinedNetSections", c.AdditionalPlates.NetSections);
+                // Optional groups are assessed only when they were enumerated; their role decides
+                // whether a failure is a load failure or an unestablished sufficient domain.
                 if (c.AdditionalPlates.BlockHierarchy.Checks.Count != 0 || c.AdditionalPlates.BlockHierarchy.Diagnostics.Count != 0)
-                    Prerequisite("BlockHierarchy", c.AdditionalPlates.BlockHierarchy);
+                    Assess(id, "BlockHierarchy", c.AdditionalPlates.BlockHierarchy);
                 if (c.AdditionalPlates.DirectBlockTearing.Checks.Count != 0 || c.AdditionalPlates.DirectBlockTearing.Diagnostics.Count != 0)
-                    Include(id, "DirectBlockTearing", c.AdditionalPlates.DirectBlockTearing);
-                Prerequisite("CompactPlateDomain", c.AdditionalPlates.CompactPlateDomain);
-                if (c.Components.NetAxialPlastic != null) Include(id, "CategoryC.NetAxial", c.Components.NetAxialPlastic);
-                Include(id, "LongitudinalWelds", c.Parents.LongitudinalWelds);
+                    Assess(id, "DirectBlockTearing", c.AdditionalPlates.DirectBlockTearing);
+                Assess(id, "CompactPlateDomain", c.AdditionalPlates.CompactPlateDomain);
+                if (c.Components.NetAxialPlastic != null) Assess(id, "CategoryC.NetAxial", c.Components.NetAxialPlastic);
+                Assess(id, "LongitudinalWelds", c.Parents.LongitudinalWelds);
                 Parent("Left.Section", input.Parents.LeftSection); Parent("Right.Section", input.Parents.RightSection);
-                void Prerequisite(string component, ConnectionVerification<WeldedIBeamSpliceDetailInput> r)
-                {
-                    if (r.Status != ConnectionStatus.Passed)
-                        missing.Add(id + ":" + component + ":SUFFICIENT_DOMAIN_NOT_ESTABLISHED");
-                    foreach (var issue in r.Diagnostics) missing.Add(id + ":" + component + ":" + issue);
-                    // A hierarchy/domain ratio is not an actual load utilization.
-                }
                 void Parent(string part, SteelVerificationResult r)
                 {
                     if (!r.IsComplete) missing.Add(id + ":" + part + ":INCOMPLETE_STEEL_ASSESSMENT");
@@ -184,7 +179,7 @@ namespace GPC.Checkers.Steel.Connections
             foreach (var slip in envelope.SlipCases)
             {
                 foreach (var issue in slip.BindingDiagnostics) missing.Add(slip.Input.Id + ":" + issue);
-                Include(slip.Input.Id, "Slip", slip.Assessment, slip.Input.Input.LimitState == BoltSlipLimitState.Serviceability);
+                Assess(slip.Input.Id, "Slip", slip.Assessment, slip.Input.Input.LimitState == BoltSlipLimitState.Serviceability);
             }
             if (p.Envelope.Category == SpliceBoltCategory.B && !envelope.SlipCases.Any(s => s.IsBound && s.Input.Input.LimitState == BoltSlipLimitState.Serviceability))
                 missing.Add("CATEGORY_B_SERVICEABILITY_CASE_REQUIRED");
@@ -193,7 +188,19 @@ namespace GPC.Checkers.Steel.Connections
                     missing.Add(c.Id + ":CATEGORY_C_BOUND_ULTIMATE_SLIP_REQUIRED");
             return new WeldedIBeamSpliceStandardResult(p, cases, envelope.SlipCases, missing, sources, failed);
 
-            void Include<T>(string id, string component, ConnectionVerification<T> r, bool sls = false) where T : class
+            void Assess<T>(string id, string component, ConnectionVerification<T> r, bool sls = false) where T : class
+            {
+                if (ConnectionOutcome.IsDomainPrerequisite(r.Role)) Prerequisite(id, component, r);
+                else Include(id, component, r, sls);
+            }
+            void Prerequisite<T>(string id, string component, ConnectionVerification<T> r) where T : class
+            {
+                if (r.Status != ConnectionStatus.Passed)
+                    missing.Add(id + ":" + component + ":SUFFICIENT_DOMAIN_NOT_ESTABLISHED");
+                foreach (var issue in r.Diagnostics) missing.Add(id + ":" + component + ":" + issue);
+                // A hierarchy/domain ratio is not an actual load utilization.
+            }
+            void Include<T>(string id, string component, ConnectionVerification<T> r, bool sls) where T : class
             {
                 if (!r.IsComplete) missing.Add(id + ":" + component + ":INCOMPLETE_COMPONENT");
                 foreach (var issue in r.Diagnostics) missing.Add(id + ":" + component + ":" + issue);

@@ -164,7 +164,7 @@ namespace GPC.Checkers.Steel.Connections
                 var r = FilletWeldResistance.Verify(code, new FilletWeldMaterial(grade, plate.Fu, plate.Thickness),
                     new FilletWeldMaterial(w.WebGrade, s.Web.Fu, s.Web.Thickness), 0, 0, tau, FilletWeldMethod.Directional);
                 weldIssues.AddRange(r.Diagnostics);
-                foreach (var check in r.Checks) checks.Add(new ConnectionCheck(name + "." + check.Id, check.Demand, check.Resistance, check.Reference, check.Unit));
+                foreach (var check in r.Checks) checks.Add(check.WithId(name + "." + check.Id));
                 trace.Add(new SectionResistanceValue(name + ".ShearFlow", flow, "N/mm"));
                 trace.Add(new SectionResistanceValue(name + ".TauParallel", tau, "MPa"));
             }

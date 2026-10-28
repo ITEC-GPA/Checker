@@ -151,10 +151,10 @@ namespace GPC.Checkers.Steel.Connections
             {
                 var list = new List<ConnectionCheck>(); double pv = PanelEnvelope(state, upperShear);
                 Add("Panel.Shear", pv, panelResistance, "EN1993-1-8 6.2.6.1; actual cumulative normal-force equilibrium");
-                foreach (var constraint in g.Baseline.MomentComponents.Constraints.Where(c => c.Id.Contains(".TStub") || c.Id.Contains(".Web")))
+                foreach (var constraint in g.Baseline.MomentComponents.Constraints.Where(c => c.Kind != EndPlateRowComponentKind.Global))
                 {
                     double force = state.Rows.Skip(constraint.FirstRow).Take(constraint.RowCount).Sum(r => r.Tension);
-                    if (constraint.Id.StartsWith("Column.") && constraint.Id.EndsWith(".Web"))
+                    if (constraint.Kind == EndPlateRowComponentKind.ColumnWeb)
                         Add("Components." + constraint.Id, force / constraint.Resistance + pv / panelResistance, transverseMargin,
                             constraint.Reference + "; supplementary conservative linear longitudinal/transverse/panel interaction", "1");
                     else Add("Components." + constraint.Id, force, constraint.Resistance, constraint.Reference);
@@ -219,7 +219,7 @@ namespace GPC.Checkers.Steel.Connections
             void Check(string id, double d, double r, string reference, string unit = "N")
             { if (!(r > 0) || double.IsInfinity(d / r) || double.IsNaN(d / r)) issues.Add("NumericRange:" + id); else checks.Add(new ConnectionCheck(id, d, r, reference, unit)); }
             void AddChecks(string prefix, IEnumerable<ConnectionCheck> source)
-            { checks.AddRange(source.Select(c => new ConnectionCheck(prefix + c.Id, c.Demand, c.Resistance, c.Reference, c.Unit))); }
+            { checks.AddRange(source.Select(c => c.WithId(prefix + c.Id))); }
             EndPlateNmvResult Result() => new EndPlateNmvResult(p, eq, checks, trace, issues, capacities, componentUse);
         }
 

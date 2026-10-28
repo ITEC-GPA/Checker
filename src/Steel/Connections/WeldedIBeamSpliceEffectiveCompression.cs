@@ -67,8 +67,8 @@ namespace GPC.Checkers.Steel.Connections
                     reduced |= inner.Rho < 1;
                 }
                 if (!reduced)
-                    foreach (var check in cover.LongitudinalCompression.Checks.Where(x => x.Id.EndsWith(".CompressionShearBending", StringComparison.Ordinal)))
-                        checks.Add(new ConnectionCheck(name + "." + check.Id, check.Demand, check.Resistance, check.Reference, check.Unit));
+                    foreach (var check in cover.LongitudinalCompression.Checks.Where(cover.IsCompressionShearBending))
+                        checks.Add(check.WithId(name + "." + check.Id));
                 bool reducedWithShear = reduced && cover.Cuts.Any(c => c.V != 0);
                 if (reducedWithShear && !allowLowShear)
                     issues.Add(name + ".CLASS4_COMPRESSION_WITH_SHEAR_REQUIRES_INTERACTION");

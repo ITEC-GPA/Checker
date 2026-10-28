@@ -55,7 +55,7 @@ namespace GPC.Checkers.Steel.Connections
             {
                 // Preserve adverse child evidence even when another component prevented
                 // the legacy local aggregator from producing its combined check list.
-                checks.AddRange(local.BeamAndMoment.BeamSection.Checks.Select(c=>new ConnectionCheck("BeamSection."+c.Id,c.Demand,c.Resistance,c.Reference,c.Unit)));
+                checks.AddRange(local.BeamAndMoment.BeamSection.Checks.Select(c=>c.WithId("BeamSection."+c.Id)));
                 if(local.BeamAndMoment.MomentComponents!=null)checks.AddRange(local.BeamAndMoment.MomentComponents.ComponentAssessment.Checks);
                 checks.AddRange(local.Connection.Bolts.BoltAssessment.Checks);
                 if(local.Connection.FilletWelds!=null)checks.AddRange(local.Connection.FilletWelds.WeldAssessment.Checks);

@@ -133,10 +133,11 @@ namespace GPC.Checkers.Steel.Connections
                     "Minimum holes/edges/hardware and seam collisions are inherited from the same bolt input. Parent-web lateral edges are welded boundaries, not exposed free cover edges.",
                     "FaceTransfers are the transport couples r cross F from the contact face to each cover midsurface, with u=X; v=Y,w=Z for webs and v=Z,w=-Y for flanges. They do not solve contact normal forces, prying or bolt tension.",
                     "ElasticFaceDiagnostics interpolate the two axial face strains and compare them with the parent flange strain field. Zero residual is NOT a qualification; the diagnostic excludes local plate bending, slip and weld restraint.",
-                    "No numerical acceptance tolerance on face strain mismatch, percentage stiffness rule or user provenance string is used to certify mechanical compatibility. Full local force introduction remains open." });
+                    "No numerical acceptance tolerance on face strain mismatch, percentage stiffness rule or user provenance string is used to certify mechanical compatibility. Full local force introduction remains open." },
+                role: ConnectionCheckRole.Detailing);
             return new WeldedIBeamSpliceDetailResult(p, result, transfers, strain);
             void Check(string id, double demand, double resistance) => checks.Add(new ConnectionCheck(id, demand, resistance,
-                "EN1993-1-8:2005 Table3.3, notes1-3; conservative compression-pitch limit for every cover; supplementary for NTC2018", "mm"));
+                "EN1993-1-8:2005 Table3.3, notes1-3; conservative compression-pitch limit for every cover; supplementary for NTC2018", "mm", ConnectionCheckRole.Detailing));
         }
     }
 }

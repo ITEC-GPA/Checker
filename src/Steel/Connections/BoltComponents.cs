@@ -303,7 +303,7 @@ namespace GPC.Checkers.Steel.Connections
             {
                 foreach (var diagnostic in diagnostics) issues.Add(prefix + ":" + diagnostic);
                 foreach (var check in evaluated)
-                    checks.Add(new ConnectionCheck(prefix + "." + check.Id, check.Demand, check.Resistance, check.Reference, check.Unit));
+                    checks.Add(check.WithId(prefix + "." + check.Id));
             }
             Include("Bolt", bolt.Checks, bolt.Diagnostics);
             Include("HeadPly", headBearing.Checks, headBearing.Diagnostics); Include("NutPly", nutBearing.Checks, nutBearing.Diagnostics);

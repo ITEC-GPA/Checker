@@ -108,7 +108,7 @@ namespace GPC.Checkers.Steel.Connections
                         string id = g.Side + "." + g.Cover + ".Bolt" + force.Index
                             + (packed ? "." + surface.InterfaceName(layer) : "");
                         foreach (var issue in r.Diagnostics) issues.Add(id + ":" + issue);
-                        foreach (var c in r.Checks) checks.Add(new ConnectionCheck(id + "." + c.Id, c.Demand, c.Resistance, c.Reference, c.Unit));
+                        foreach (var c in r.Checks) checks.Add(c.WithId(id + "." + c.Id));
                         foreach (var t in r.Trace) trace.Add(new SectionResistanceValue(id + "." + t.Name, t.Value, t.Unit));
                     }
                 }

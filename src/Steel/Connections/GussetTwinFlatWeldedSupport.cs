@@ -128,11 +128,10 @@ namespace GPC.Checkers.Steel.Connections
                 if (!weld.IsComplete) issues.AddRange(weld.Diagnostics.Select(d => "SupportWeld:" + d));
                 if (issues.Count == 0)
                 {
-                    foreach (var k in bolts.Checks) checks.Add(new ConnectionCheck("Transfer." + k.Id, k.Demand, k.Resistance, k.Reference, k.Unit));
+                    foreach (var k in bolts.Checks) checks.Add(k.WithId("Transfer." + k.Id));
                     foreach (var point in weld.Points)
                         foreach (var k in point.Verification.Checks)
-                            checks.Add(new ConnectionCheck("SupportWeld.Segment" + point.SegmentIndex + (point.AtStart ? ".Start." : ".End.")
-                                + k.Id, k.Demand, k.Resistance, k.Reference, k.Unit));
+                            checks.Add(k.WithId("SupportWeld.Segment" + point.SegmentIndex + (point.AtStart ? ".Start." : ".End.") + k.Id));
                 }
             }
             var assessment = new ConnectionVerification<GussetTwinFlatWeldedSupportInput>(p, t.Code,

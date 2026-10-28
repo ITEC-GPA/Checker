@@ -113,9 +113,10 @@ namespace GPC.Checkers.Steel.Connections
                     trace.Add(new SectionResistanceValue("ResidualClampingForce", remaining, "N"));
                     trace.Add(new SectionResistanceValue("BetaLongJoint", betaLong, "1"));
                     // The reserve check prevents zero shear masking a negative residual preload.
-                    checks.Add(new ConnectionCheck("Slip.PreloadReserve", .8 * p.TensionForce, preload, reference));
+                    var role = p.LimitState == BoltSlipLimitState.Serviceability ? ConnectionCheckRole.Serviceability : ConnectionCheckRole.Resistance;
+                    checks.Add(new ConnectionCheck("Slip.PreloadReserve", .8 * p.TensionForce, preload, reference, "N", role));
                     checks.Add(new ConnectionCheck(p.LimitState == BoltSlipLimitState.Serviceability ? "Slip.Serviceability" : "Slip.Ultimate",
-                        p.ShearForce, resistance, reference + (betaLong < 1 ? "; conservative long-joint extension SCI P398 section4 Step2" : "")));
+                        p.ShearForce, resistance, reference + (betaLong < 1 ? "; conservative long-joint extension SCI P398 section4 Step2" : ""), "N", role));
                 }
             }
             return new ConnectionVerification<BoltSlipInput>(p, code, "Steel.Connection.Bolt.Slip",

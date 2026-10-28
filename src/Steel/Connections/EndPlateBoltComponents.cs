@@ -240,7 +240,7 @@ namespace GPC.Checkers.Steel.Connections
             {
                 issues.AddRange(childIssues.Select(d => name + ":" + d));
                 trace.AddRange(childTrace.Select(t => new SectionResistanceValue(name + "." + t.Name, t.Value, t.Unit)));
-                if (includeChecks) checks.AddRange(childChecks.Select(c => new ConnectionCheck(name + "." + c.Id, c.Demand, c.Resistance, c.Reference, c.Unit)));
+                if (includeChecks) checks.AddRange(childChecks.Select(c => c.WithId(name + "." + c.Id)));
             }
             EndPlateBoltComponentResult Result() => new EndPlateBoltComponentResult(new ConnectionVerification<EndPlateBoltComponentInput>(
                 p, code, "Steel.Connection.EndPlate.BoltComponents",

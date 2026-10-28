@@ -22,6 +22,8 @@ namespace GPC.Checkers.Steel.Connections
             { ConnectionNumbers.Finite(value, name); trace.Add(new SectionResistanceValue(name, value, unit)); }
             void Check(string id, double demand, double resistance, string source, string unit = "N")
                 => checks.Add(new ConnectionCheck(id, demand, resistance, source, unit));
+            void Detail(string id, double demand, double resistance, string source, string unit = "N")
+                => checks.Add(new ConnectionCheck(id, demand, resistance, source, unit, ConnectionCheckRole.Detailing));
             FlexibleEndPlateResult Result() => new FlexibleEndPlateResult(new ConnectionVerification<FlexibleEndPlateInput>(
                 p, p.Code, "Steel.Connection.FlexibleEndPlate.PartialDepth.ColumnWeb",
                 "Ordinary static downward shear, partial-depth S275 plate, two symmetric columns of M20 8.8 bolts, "
@@ -68,11 +70,11 @@ namespace GPC.Checkers.Steel.Connections
             double v = -a.Fy, gm0 = p.Code.Plates.GammaM0, gm2 = p.Code.Plates.GammaM2;
             double minimumThroat = beam.WebThickness * beam.Fy * .85 * p.Code.GammaM2Connection
                 / (Math.Sqrt(2) * Math.Min(beam.Fu, plate.Fu));
-            Check("Detail.MinimumHeight", .6 * beam.Height, p.Height, "SCI P358 Check1", "mm");
+            Detail("Detail.MinimumHeight", .6 * beam.Height, p.Height, "SCI P358 Check1", "mm");
             double maximumSpacing = Math.Min(14 * Math.Min(plate.Thickness, support.WebThickness), 200);
-            Check("Detail.Pitch", p.Pitch, maximumSpacing, "EN1993-1-8 Table3.3 / NTC Table4.2.XVIII", "mm");
-            Check("Detail.Gauge", p.Gauge, maximumSpacing, "EN1993-1-8 Table3.3 / NTC Table4.2.XVIII", "mm");
-            Check("Weld.FullStrengthThroat", minimumThroat, p.WeldThroat, "SCI P358 AppendixC.1 without optional UK end-plate factor0.8", "mm");
+            Detail("Detail.Pitch", p.Pitch, maximumSpacing, "EN1993-1-8 Table3.3 / NTC Table4.2.XVIII", "mm");
+            Detail("Detail.Gauge", p.Gauge, maximumSpacing, "EN1993-1-8 Table3.3 / NTC Table4.2.XVIII", "mm");
+            Detail("Weld.FullStrengthThroat", minimumThroat, p.WeldThroat, "SCI P358 AppendixC.1 without optional UK end-plate factor0.8", "mm");
             conforms = checks.All(c => c.Passed);
             Gate(!string.IsNullOrWhiteSpace(p.PinnedModelQualificationSource), "PINNED_FRAME_MODEL_QUALIFICATION_REQUIRED");
             if (issues.Count != 0) return Result();
@@ -162,7 +164,7 @@ namespace GPC.Checkers.Steel.Connections
             void Include(string prefix, FlexibleEndPlateResult part)
             {
                 issues.AddRange(part.Diagnostics.Select(d => prefix + ":" + d));
-                foreach (var c in part.Checks) checks.Add(new ConnectionCheck(prefix + "." + c.Id, c.Demand, c.Resistance, c.Reference, c.Unit));
+                foreach (var c in part.Checks) checks.Add(c.WithId(prefix + "." + c.Id));
                 foreach (var t in part.Trace) trace.Add(new SectionResistanceValue(prefix + "." + t.Name, t.Value, t.Unit));
             }
             Include("First", first); Include("Second", second);

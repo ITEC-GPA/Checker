@@ -103,7 +103,7 @@ namespace GPC.Checkers.Steel.Connections
                 issues.AddRange(result.Diagnostics.Select(d => id + ":" + d));
                 foreach (var c in result.Checks)
                     checks.Add(new ConnectionCheck(id + "." + c.Id, c.Demand, c.Resistance,
-                        c.Reference + "; EN1993-1-8:2005 6.2.4.2(3)", c.Unit));
+                        c.Reference + "; EN1993-1-8:2005 6.2.4.2(3)", c.Unit, c.Role));
                 foreach (var value in result.Trace) trace.Add(new SectionResistanceValue(id + "." + value.Name, value.Value, value.Unit));
             }
         }

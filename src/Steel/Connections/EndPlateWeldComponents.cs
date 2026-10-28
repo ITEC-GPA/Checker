@@ -165,7 +165,7 @@ namespace GPC.Checkers.Steel.Connections
             {
                 var result = FilletWeldResistance.Verify(code, material, plateMaterial, sigma, perpendicular, parallel, FilletWeldMethod.Directional);
                 issues.AddRange(result.Diagnostics.Select(d => name + ":" + d));
-                checks.AddRange(result.Checks.Select(c => new ConnectionCheck(name + "." + c.Id, c.Demand, c.Resistance, c.Reference, c.Unit)));
+                checks.AddRange(result.Checks.Select(c => c.WithId(name + "." + c.Id)));
                 if (name != "CompressionFlange") Value(name + ".SigmaPerpendicular", sigma, "MPa");
                 Value(name + ".TauPerpendicular", perpendicular, "MPa"); Value(name + ".TauParallel", parallel, "MPa");
                 Value(name + ".Fu", result.Fu, "MPa"); Value(name + ".BetaW", result.Beta, "1");

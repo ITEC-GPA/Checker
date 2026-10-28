@@ -71,12 +71,17 @@ namespace GPC.Checkers.Steel.Connections
             Cases = Array.AsReadOnly(cases.ToArray()); Rows = Array.AsReadOnly(rows.ToArray());
         }
 
+        /// <summary>Report role of a connection check: action utilizations are resistance rows,
+        /// detailing and applicability rules are applicability rows.</summary>
+        private static SpliceReportRole RowRole(ConnectionCheck c)
+            => ConnectionOutcome.IsActionUtilization(c.Role) ? SpliceReportRole.Resistance : SpliceReportRole.Applicability;
+
         public static BridgeSpliceReport FromBolted(WeldedIBeamSpliceStandardResult result)
         {
             if (result == null) throw new ArgumentNullException(nameof(result));
             var rows = result.CheckSources.Select(x => new SpliceReportRow(x.CaseId, x.Component, x.IsServiceability,
                 // Geometry/pitch constraints are not action utilization.
-                x.Component == "Detailing" ? SpliceReportRole.Applicability : SpliceReportRole.Resistance, x.ComponentCheck, x.SectionCheck)).ToList();
+                x.ComponentCheck == null ? SpliceReportRole.Resistance : RowRole(x.ComponentCheck), x.ComponentCheck, x.SectionCheck)).ToList();
             var cases = new List<SpliceReportCase>();
             var notes = new List<string> { "Block method: " + result.Input.BlockMethod, "Face model: " + result.Input.FaceModel,
                 "N,mm,MPa; physical X longitudinal,Y up; Steel M1=-Mz after pole transport, V2=Fy.",
@@ -124,7 +129,7 @@ namespace GPC.Checkers.Steel.Connections
             return new BridgeSpliceReport("WeldedI.DoubleCover", result.Scope, result.Status, result.IsStaticResistanceComplete,
                 result.HasFailedComponent, result.MissingRequirements, notes, cases, rows);
             void Add(string id, string part, IEnumerable<ConnectionCheck> checks)
-                => rows.AddRange(checks.Select(x => new SpliceReportRow(id, part, false, SpliceReportRole.Applicability, x)));
+                => rows.AddRange(checks.Select(x => new SpliceReportRow(id, part, false, RowRole(x), x)));
             void Member(string id, string part, SteelVerificationResult r)
             {
                 if (r == null) { notes.Add(id + ":" + part + ":NOT_SUPPLIED"); return; }

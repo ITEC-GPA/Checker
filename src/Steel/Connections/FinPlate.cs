@@ -21,6 +21,8 @@ namespace GPC.Checkers.Steel.Connections
             { ConnectionNumbers.Finite(value, name); trace.Add(new SectionResistanceValue(name, value, unit)); }
             void Check(string id, double demand, double resistance, string reference, string unit = "N")
                 => checks.Add(new ConnectionCheck(id, demand, resistance, reference, unit));
+            void Detail(string id, double demand, double resistance, string reference, string unit = "N")
+                => checks.Add(new ConnectionCheck(id, demand, resistance, reference, unit, ConnectionCheckRole.Detailing));
             FinPlateResult Result() => new FinPlateResult(new ConnectionVerification<FinPlateInput>(p, p.Code,
                 FinPlateResult.MethodId,
                 "Ordinary static ULS of a standard short S275 fin plate, 2-5 M20 8.8 bolts in one vertical column, "
@@ -83,9 +85,9 @@ namespace GPC.Checkers.Steel.Connections
             Value("BoltCentroidProjection", z, "mm"); Value("TransferredMoment", v * z, "Nmm");
             Value("BeamTopBoltEdge", beamTopEdge, "mm"); Value("BeamBottomBoltEdge", beamBottomEdge, "mm");
             Value("GammaM0", gm0, "1"); Value("GammaM2Plate", gm2p, "1"); Value("GammaM2Connection", p.Code.GammaM2Connection, "1");
-            Check("Detail.MinimumPlateHeight", .6 * beam.Height, g.Height, "SCI P358 pp109-114", "mm");
-            Check("Detail.MinimumBeamBoltEdge", 2 * p.Bolt.Diameter, Math.Min(beamVerticalEdge, g.BeamEndEdge), "SCI P358 5.3", "mm");
-            Check("Detail.Pitch", g.Pitch, Math.Min(14 * Math.Min(plate.Thickness, beam.WebThickness), 200),
+            Detail("Detail.MinimumPlateHeight", .6 * beam.Height, g.Height, "SCI P358 pp109-114", "mm");
+            Detail("Detail.MinimumBeamBoltEdge", 2 * p.Bolt.Diameter, Math.Min(beamVerticalEdge, g.BeamEndEdge), "SCI P358 5.3", "mm");
+            Detail("Detail.Pitch", g.Pitch, Math.Min(14 * Math.Min(plate.Thickness, beam.WebThickness), 200),
                 p.Code.IsNtc ? "NTC2018 Table4.2.XVIII" : "EN1993-1-8:2005 Table3.3", "mm");
             // The detail qualification includes EVERY geometric check, not the action-dependent capacities.
             // Evaluate it before checking caller evidence so missing evidence cannot hide a failed detail.
@@ -180,7 +182,7 @@ namespace GPC.Checkers.Steel.Connections
                     Check("Weld" + (point.SegmentIndex + 1) + (point.AtStart ? ".Start." : ".End.") + check.Id,
                         check.Demand, check.Resistance, check.Reference, check.Unit);
             foreach (var item in welds.Trace) Value("WeldGroup." + item.Name, item.Value, item.Unit);
-            Check("Weld.FullStrengthThroat", requiredThroat, p.Weld.Throat, "SCI P358 AppendixC.1/C.3, unrounded full-strength rule", "mm");
+            Detail("Weld.FullStrengthThroat", requiredThroat, p.Weld.Throat, "SCI P358 AppendixC.1/C.3, unrounded full-strength rule", "mm");
 
             double supportArea = g.Height * support.WebThickness;
             Value("Support.LocalShearArea", supportArea, "mm2");

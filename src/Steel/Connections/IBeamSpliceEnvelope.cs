@@ -270,7 +270,7 @@ namespace GPC.Checkers.Steel.Connections
                 foreach (var check in child.Checks)
                 {
                     string aggregateId = prefix + "." + component + "." + check.Id;
-                    checks.Add(new ConnectionCheck(aggregateId, check.Demand, check.Resistance, check.Reference, check.Unit));
+                    checks.Add(check.WithId(aggregateId));
                     sources.Add(new IBeamSpliceEnvelopeCheckSource(aggregateId, id, component, serviceability, linkedId, check));
                 }
             }

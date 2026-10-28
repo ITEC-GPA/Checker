@@ -166,7 +166,7 @@ namespace GPC.Checkers.Steel.Connections
         {
             string prefix = g.Side + "." + g.Part + ".Bolt" + (f.Index + 1);
             foreach (var d in component.Diagnostics) issues.Add(prefix + ":" + d);
-            foreach (var c in component.Checks) checks.Add(new ConnectionCheck(prefix + "." + c.Id, c.Demand, c.Resistance, c.Reference, c.Unit));
+            foreach (var c in component.Checks) checks.Add(c.WithId(prefix + "." + c.Id));
             foreach (var t in component.Trace) trace.Add(new SectionResistanceValue(prefix + "." + t.Name, t.Value, t.Unit));
             trace.Add(new SectionResistanceValue(prefix + ".Fx", f.Fx, "N"));
             trace.Add(new SectionResistanceValue(prefix + ".Fy", f.Fy, "N"));

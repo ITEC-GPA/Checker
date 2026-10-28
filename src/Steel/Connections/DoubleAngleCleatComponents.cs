@@ -61,7 +61,7 @@ namespace GPC.Checkers.Steel.Connections
         public IReadOnlyList<string> MissingWholeJointChecks { get; } = Array.AsReadOnly(new[] {
             "SUPPORT_MEMBER_BEARING", "SUPPORT_LOCAL_RESISTANCE_AND_CONCURRENT_ACTIONS", "FRAME_ROTATION_QUALIFICATION" });
         public double? LoadUtilization => ComponentAssessment.IsComplete
-            ? (double?)ComponentAssessment.Checks.Where(c => !c.Id.StartsWith("Detail.")).Max(c => c.Utilization) : null;
+            ? (double?)ConnectionOutcome.LoadChecks(ComponentAssessment.Checks).Max(c => c.Utilization) : null;
         internal DoubleAngleCleatComponentResult(ConnectionVerification<DoubleAngleCleatComponentInput> assessment,
             ElasticBoltGroupResult beamBolts, ElasticBoltGroupResult left, ElasticBoltGroupResult right)
         { ComponentAssessment = assessment; BeamBolts = beamBolts; LeftSupportBolts = left; RightSupportBolts = right; }
@@ -82,6 +82,8 @@ namespace GPC.Checkers.Steel.Connections
             { ConnectionNumbers.Finite(value, name); trace.Add(new SectionResistanceValue(name, value, unit)); }
             void Check(string id, double demand, double resistance, string source, string unit = "N")
                 => checks.Add(new ConnectionCheck(id, demand, resistance, source, unit));
+            void Detail(string id, double demand, double resistance, string source, string unit = "N")
+                => checks.Add(new ConnectionCheck(id, demand, resistance, source, unit, ConnectionCheckRole.Detailing));
             DoubleAngleCleatComponentResult Result() => new DoubleAngleCleatComponentResult(
                 new ConnectionVerification<DoubleAngleCleatComponentInput>(p, p.Code, "Steel.Connection.DoubleAngleCleat.Components",
                     "Ordinary downward shear components of two identical mirrored L90x90x10 S275 cleats and an unnotched restrained rolled I/H beam. "
@@ -114,8 +116,8 @@ namespace GPC.Checkers.Steel.Connections
 
             double v = -a.Fy, gm0 = p.Code.Plates.GammaM0, gm2 = p.Code.Plates.GammaM2;
             double beamTopEdge = p.TopOffset + 40, beamBottomEdge = beam.Height - beamTopEdge - (p.Rows - 1) * p.Pitch;
-            Check("Detail.MinimumHeight", .6 * beam.Height, p.Height, "SBE-MS5 chapter4 cleat detail", "mm");
-            Check("Detail.Pitch", p.Pitch, Math.Min(14 * Math.Min(leg.Thickness, beam.WebThickness), 200), "EN1993-1-8 Table3.3 / NTC Table4.2.XVIII", "mm");
+            Detail("Detail.MinimumHeight", .6 * beam.Height, p.Height, "SBE-MS5 chapter4 cleat detail", "mm");
+            Detail("Detail.Pitch", p.Pitch, Math.Min(14 * Math.Min(leg.Thickness, beam.WebThickness), 200), "EN1993-1-8 Table3.3 / NTC Table4.2.XVIII", "mm");
             Value("Geometry.Eccentricity", p.Eccentricity, "mm"); Value("Geometry.SupportGauge", p.SupportGauge, "mm");
             Value("Geometry.BeamTopBoltEdge", beamTopEdge, "mm"); Value("Geometry.BeamBottomBoltEdge", beamBottomEdge, "mm");
             var positions = Enumerable.Range(0, p.Rows).Select(i => new ConnectionPoint2D(0, (p.Rows - 1) * p.Pitch / 2 - i * p.Pitch)).ToArray();

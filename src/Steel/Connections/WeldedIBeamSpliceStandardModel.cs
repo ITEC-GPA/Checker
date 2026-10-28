@@ -44,7 +44,7 @@ namespace GPC.Checkers.Steel.Connections
             {
                 FaceStiffness(d.Top, d.Section.TopFlange, true); FaceStiffness(d.Bottom, d.Section.BottomFlange, false);
                 checks.Add(new ConnectionCheck("ForceModel.Equilibrium", 0, 1,
-                    "EN1993-1-8:2005 2.5,3.12; SCI P357 section12; declared two-face membrane double-cover idealisation", "1"));
+                    "EN1993-1-8:2005 2.5,3.12; SCI P357 section12; declared two-face membrane double-cover idealisation", "1", ConnectionCheckRole.Applicability));
             }
             return new ConnectionVerification<WeldedIBeamSpliceDetailInput>(p, b.Code,
                 "Steel.Connection.WeldedIBeamSplice.StandardModel",
@@ -56,7 +56,8 @@ namespace GPC.Checkers.Steel.Connections
                     "No continuous equal-strain bond between parent and covers is assumed. Bolt shear and bearing, slip, actual plate areas, outstands, net sections and parent welds are verified separately. This remains a conventional static double-lap model; it does not solve local contact/plate lifting or supply rotational stiffness.",
                     "Contact-face transport couples alone are not an externally applied bolt tension. This conventional double-lap membrane model does not solve contact, prying or plate lifting. Those details must use another method.",
                     "All covers are continuous and flat. PackedIndependentFaceDimensions permits full-footprint parallel packing layers per face and per member side, identical on left/right, with no load or stiffness credit; actual total offsets, bolt reduction and every serial friction interface are assessed. No tapered/discontinuous packs, stiffener cut-outs, notches, section changes or out-of-plane actions.",
-                    "The structural analysis must justify continuity, restraints and second-order actions separately. This assessment supplies no rotational stiffness or fatigue qualification." }, reported);
+                    "The structural analysis must justify continuity, restraints and second-order actions separately. This assessment supplies no rotational stiffness or fatigue qualification." }, reported,
+                ConnectionCheckRole.Applicability);
 
             void FaceStiffness(SpliceFlangeCoverDetail x, ConnectionPlate parent, bool top)
             {

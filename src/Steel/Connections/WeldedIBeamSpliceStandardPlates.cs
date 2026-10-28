@@ -106,10 +106,10 @@ namespace GPC.Checkers.Steel.Connections
                         Value(c.Cover + ".UsesStandardBoltedCoverMethod", 1, "1");
                         Value(c.Cover + ".WholeWidthThicknessRatio", plate.Width / t, "1");
                         void Domain(string id, double demand, double resistance, string unit = "1") => compact.Add(new ConnectionCheck(prefix + id,
-                            demand, resistance, "SCI P398 4.3 pp57-59 conventional bolted cover procedure; EC Table3.3 fastener spacing; supplementary conservative class3 bounds on every outstand", unit));
+                            demand, resistance, "SCI P398 4.3 pp57-59 conventional bolted cover procedure; EC Table3.3 fastener spacing; supplementary conservative class3 bounds on every outstand", unit, ConnectionCheckRole.Applicability));
                     }
                     else compact.Add(new ConnectionCheck(c.Cover + ".NoShearBucklingDomain", zeroShear ? 0 : plate.Width / plate.Thickness,
-                        60 * Math.Sqrt(235 / plate.Fy), "EN1993-1-1:2005 6.2.6(6), EN1993-1-5:2006 5.1; eta=1.2 sufficient domain, or exactly zero shear at every cut", "1"));
+                        60 * Math.Sqrt(235 / plate.Fy), "EN1993-1-1:2005 6.2.6(6), EN1993-1-5:2006 5.1; eta=1.2 sufficient domain, or exactly zero shear at every cut", "1", ConnectionCheckRole.Applicability));
                     double half = grid.FirstBoltDistance + grid.LongitudinalSpan + WeldedIBeamSplicePlates.End(d, g);
                     Hierarchy(c.Cover.ToString(), plate, bolt, groups.SelectMany(x => x.Distribution.Points).Distinct().ToArray(),
                         -half, half, g.TransverseMinimum, g.TransverseMaximum, 1, groups.SelectMany(x => x.Distribution.Forces));
@@ -132,9 +132,10 @@ namespace GPC.Checkers.Steel.Connections
                         .SelectMany(g => g.Distribution.Forces));
                 }
             }
-            return new WeldedIBeamSpliceStandardPlateResult(Result("NetSections", net), Result("BlockHierarchy", blocks), Result("CompactDomain", compact), Result("DirectBlockTearing", direct));
+            return new WeldedIBeamSpliceStandardPlateResult(Result("NetSections", net, ConnectionCheckRole.Resistance), Result("BlockHierarchy", blocks, ConnectionCheckRole.Applicability),
+                Result("CompactDomain", compact, ConnectionCheckRole.Applicability), Result("DirectBlockTearing", direct, ConnectionCheckRole.Resistance));
 
-            ConnectionVerification<WeldedIBeamSpliceDetailInput> Result(string name, IEnumerable<ConnectionCheck> checks)
+            ConnectionVerification<WeldedIBeamSpliceDetailInput> Result(string name, IEnumerable<ConnectionCheck> checks, ConnectionCheckRole role)
                 => new ConnectionVerification<WeldedIBeamSpliceDetailInput>(p, code, "Steel.Connection.WeldedIBeamSplice.Standard." + name,
                     "DirectBlockTearing uses collinear actual bolt forces and eccentric resistance, without cancellation. Other block groups retain the hierarchy. Conservative standard-detail sufficient checks. Block/compact-domain failure means outside this method, not an actual load-capacity failure.",
                     checks, trace, issues.Distinct(), new[] {
@@ -143,7 +144,7 @@ namespace GPC.Checkers.Steel.Connections
                         "Opt-in direct checks are limited to longitudinal collinear bolt actions (including sign reversal). All rectangular prefixes and transverse subsets are checked using sum(abs(Fx)); opposite loads on a continuous cover do not cancel. The eccentric coefficient 0.5 is retained for every subset. No mixed-direction N-V-M rupture interaction is inferred. Non-collinear groups use the unchanged hierarchy.",
                         "Hierarchy requires every path to be stronger than all its fasteners. It is a sufficient exclusion of block tearing for this regular detail; a failed hierarchy requires a separate loaded-block method and prevents whole-detail qualification.",
                         "Parent net-section check assumes all flange/web holes aligned longitudinally and the full member actions retained in the parent, with no cover credit. Maximum lap-end moment is included. Unnotched parent-web block tearing is inapplicable per SCI P398 p59.",
-                        "CompactCovers retains the whole-width no-shear-buckling screen. StandardBoltedCovers explicitly uses SCI P398 pp57-59 for continuous flat rectangular covers with regular closely spaced filled normal fasteners, class1-3 strips/outstands in both directions and every existing compression/shear/bending/net/block check. It is not an EN1993-1-5 free-panel buckling or tension-field method; locally class4 strips remain outside StandardBoltedCovers. EffectiveCompressionWithLowShear is assessed separately and retains the whole-width screen. No continuous line supports are inferred from discrete bolts." }, reported);
+                        "CompactCovers retains the whole-width no-shear-buckling screen. StandardBoltedCovers explicitly uses SCI P398 pp57-59 for continuous flat rectangular covers with regular closely spaced filled normal fasteners, class1-3 strips/outstands in both directions and every existing compression/shear/bending/net/block check. It is not an EN1993-1-5 free-panel buckling or tension-field method; locally class4 strips remain outside StandardBoltedCovers. EffectiveCompressionWithLowShear is assessed separately and retains the whole-width screen. No continuous line supports are inferred from discrete bolts." }, reported, role);
             void Value(string name, double value, string unit)
             { if (WeldedIBeamSplicePlates.Finite(value)) trace.Add(new SectionResistanceValue(name, value, unit)); else issues.Add(name + ".NUMERIC_RANGE"); }
             void ParentNet()
@@ -209,7 +210,8 @@ namespace GPC.Checkers.Steel.Connections
                             (collinear ? direct : blocks).Add(new ConnectionCheck(name + ".Axis" + axis + ".Direction" + sign + ".Path" + ++id + "." + mode,
                                 demand, resistance, collinear
                                     ? "EN1993-1-8:2005 3.10.2(3) eq3.10; collinear actual force sum, eccentric factor0.5; SCI P398 pp136,139 path geometry"
-                                    : "EN1993-1-8:2005 3.10.2(3) eq3.10; sufficient fastener/block hierarchy, NOT actual action demand"));
+                                    : "EN1993-1-8:2005 3.10.2(3) eq3.10; sufficient fastener/block hierarchy, NOT actual action demand",
+                                "N", collinear ? ConnectionCheckRole.Resistance : ConnectionCheckRole.Applicability));
                         }
                     }
                 }

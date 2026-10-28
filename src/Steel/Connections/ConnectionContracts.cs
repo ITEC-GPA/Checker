@@ -95,6 +95,13 @@ namespace GPC.Checkers.Steel.Connections
     }
 
     public enum ConnectionStatus { Passed, Failed, NotSupported }
+
+    /// <summary>What a check establishes. Resistance and Serviceability compare an actual
+    /// action effect with a capacity; Applicability bounds the domain of the method (a failed
+    /// applicability check means "outside this method", not a load failure); Detailing is a
+    /// geometric/execution rule (pitch, edge, full-strength throat), not an action utilization.</summary>
+    public enum ConnectionCheckRole { Resistance = 0, Serviceability = 1, Applicability = 2, Detailing = 3 }
+
     public sealed class ConnectionCheck
     {
         public string Id { get; }
@@ -104,11 +111,16 @@ namespace GPC.Checkers.Steel.Connections
         public bool Passed => Utilization <= 1;
         public string Reference { get; }
         public string Unit { get; }
-        internal ConnectionCheck(string id, double demand, double resistance, string reference, string unit = "N")
+        /// <summary>One role per check; the outcome rules use it instead of check-id or component-name text.</summary>
+        public ConnectionCheckRole Role { get; }
+        internal ConnectionCheck(string id, double demand, double resistance, string reference, string unit = "N",
+            ConnectionCheckRole role = ConnectionCheckRole.Resistance)
         {
             ConnectionValidation.Nonnegative(demand, nameof(demand)); ConnectionValidation.Nonnegative(resistance, nameof(resistance));
-            Id = id; Demand = demand; Resistance = resistance; Reference = reference; Unit = unit;
+            Id = id; Demand = demand; Resistance = resistance; Reference = reference; Unit = unit; Role = role;
         }
+        /// <summary>The same check under a composed identifier; demand, resistance, reference, unit and role are kept.</summary>
+        internal ConnectionCheck WithId(string id) => new ConnectionCheck(id, Demand, Resistance, Reference, Unit, Role);
     }
     public sealed class DoubleCoverSpliceResult
     {

@@ -358,7 +358,7 @@ namespace GPC.Checkers.Steel.Connections
             ICollection<SectionResistanceValue> trace, ICollection<string> issues) where T : class
         {
             foreach (var issue in child.Diagnostics) issues.Add(prefix + issue);
-            foreach (var c in child.Checks) checks.Add(new ConnectionCheck(prefix + c.Id, c.Demand, c.Resistance, c.Reference, c.Unit));
+            foreach (var c in child.Checks) checks.Add(c.WithId(prefix + c.Id));
             foreach (var v in child.Trace) trace.Add(new SectionResistanceValue(prefix + v.Name, v.Value, v.Unit));
         }
         private static bool Finite(double x) => !double.IsNaN(x) && !double.IsInfinity(x);

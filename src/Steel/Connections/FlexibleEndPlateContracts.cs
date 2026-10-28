@@ -80,8 +80,7 @@ namespace GPC.Checkers.Steel.Connections
         public FilletWeldGroupResult WeldVerification { get; }
         public bool ConformsToSciPinnedDetail { get; }
         public string Scope => Assessment.Scope;
-        public double? LoadUtilization => IsComplete ? (double?)Checks.Where(c => !c.Id.StartsWith("Detail.")
-            && c.Id != "Weld.FullStrengthThroat").Max(c => c.Utilization) : null;
+        public double? LoadUtilization => IsComplete ? (double?)ConnectionOutcome.LoadChecks(Checks).Max(c => c.Utilization) : null;
         /// <summary>Typed support-web bearing resistance per bolt behind the trace entry of the same name; null when not traced.</summary>
         internal double? SupportBearingPerBolt { get; }
         internal FlexibleEndPlateResult(ConnectionVerification<FlexibleEndPlateInput> assessment,

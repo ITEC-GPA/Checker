@@ -144,7 +144,7 @@ namespace GPC.Checkers.Steel.Connections
             IList<SectionResistanceValue> trace, IList<string> issues) where T : class
         {
             foreach (var d in result.Diagnostics) issues.Add(name + ":" + d);
-            foreach (var c in result.Checks) checks.Add(new ConnectionCheck(name + "." + c.Id, c.Demand, c.Resistance, c.Reference, c.Unit));
+            foreach (var c in result.Checks) checks.Add(c.WithId(name + "." + c.Id));
             foreach (var t in result.Trace) trace.Add(new SectionResistanceValue(name + "." + t.Name, t.Value, t.Unit));
         }
         private static bool SameCode(ConnectionDesignCode a, ConnectionDesignCode b) => a.IsNtc == b.IsNtc
