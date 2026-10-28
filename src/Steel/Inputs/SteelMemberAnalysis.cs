@@ -97,7 +97,10 @@ namespace GPC.Checkers.Steel.Inputs
         /// <summary>EC3/NTC prismatic concentric CONSTANT compression. Curves must
         /// be established for the fabrication/grade/axis. Ncr1/2 may be supplied or
         /// calculated by Euler from explicit effective lengths. NcrT and NcrFT each
-        /// require either a value or a reasoned exclusion source. No absence inference.</summary>
+        /// take a value or a reasoned exclusion source; without either they are resolved
+        /// only for doubly symmetric H (NcrT from Member.TorsionalBucklingLength or end twist
+        /// restraints, FT not distinct) and closed doubly symmetric hollow sections (excluded,
+        /// lower-bound lambda_T&lt;0.2), traced; other families report missing input.</summary>
         public static SteelMemberAnalysis Compression(SteelVerificationInput input, string loadPatternReference,
             string parameterSet, SteelBucklingCurve curve1, SteelBucklingCurve curve2, SteelBucklingCurve torsionalCurve,
             IEnumerable<SteelStabilityValue> values = null, string torsionalExclusionSource = null,
@@ -138,8 +141,8 @@ namespace GPC.Checkers.Steel.Inputs
         /// Circular Method B. N is constant compression; M1/M2 are signed absolute
         /// maxima over ONE whole-member design state, not a concomitant section cut.
         /// Values are Ncr1/Ncr2 (or explicit effective lengths) and Mcr if susceptible.
-        /// Cm and global analysis assumptions are explicit. Other compression modes
-        /// must be independently assessed as excluded; no generic warping analysis.
+        /// Cm and global analysis assumptions are explicit. NcrT/NcrFT follow the compression
+        /// route: value, exclusion or its automatic resolution; no generic warping analysis.
         /// Section resistance and shear checks remain separately required; use
         /// SelectMember with Member scope only, never SectionAndMember.</summary>
         public static SteelMemberAnalysis BeamColumn(SteelVerificationInput input, string loadPatternReference,
