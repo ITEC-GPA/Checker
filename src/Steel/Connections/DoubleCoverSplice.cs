@@ -49,15 +49,14 @@ namespace GPC.Checkers.Steel.Connections
             if (issues.Count != 0) return new DoubleCoverSpliceResult(p, checks, trace, issues);
 
             var boltComponent = BoltStrength.Verify(new BoltStrengthInput(c, b, a.N / (2 * p.Rows), 0,
-                shearPlanes: 2, jointLength: lj, holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource));
+                shearPlanes: 2, jointLength: lj, holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource), out var boltValues);
             if (!boltComponent.IsComplete)
                 return new DoubleCoverSpliceResult(p, checks, trace, boltComponent.Diagnostics.ToList());
-            Value("BoltShearArea", boltComponent.Trace.Single(v => v.Name == "ShearArea").Value, "mm2");
-            Value("AlphaV", boltComponent.Trace.Single(v => v.Name == "AlphaV").Value, "1");
-            Value("BetaLongJoint", boltComponent.Trace.Single(v => v.Name == "BetaLongJoint").Value, "1");
-            var shearCheck = boltComponent.Checks.Single(v => v.Id == "Bolt.Shear");
-            double boltRd = shearCheck.Resistance;
-            string boltRef = shearCheck.Reference;
+            Value("BoltShearArea", boltValues.ShearArea, "mm2");
+            Value("AlphaV", boltValues.AlphaV, "1");
+            Value("BetaLongJoint", boltValues.BetaLongJoint, "1");
+            double boltRd = boltValues.ShearResistance;
+            string boltRef = boltValues.Reference;
             for (int side = 1; side <= 2; side++)
                 for (int row = 1; row <= p.Rows; row++)
                     for (int column = 1; column <= 2; column++)
@@ -78,14 +77,14 @@ namespace GPC.Checkers.Steel.Connections
             {
                 var component = BoltBearing.Verify(new BoltBearingInput(c, b, plate, demand, e1, e2,
                     p.Rows > 1 ? (double?)p.Pitch : null, p.Gauge, endBolt, edgeBolt: true,
-                    holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource));
+                    holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource), out var bearingValues);
                 if (!component.IsComplete)
                 {
                     issues.AddRange(component.Diagnostics.Select(d => id + ":" + d));
                     return;
                 }
-                Value(id + ".AlphaB", component.Trace.Single(v => v.Name == "AlphaB").Value, "1");
-                Value(id + ".K1", component.Trace.Single(v => v.Name == "K1").Value, "1");
+                Value(id + ".AlphaB", bearingValues.AlphaB, "1");
+                Value(id + ".K1", bearingValues.K1, "1");
                 var bearing = component.Checks.Single();
                 checks.Add(new ConnectionCheck(id, demand, bearing.Resistance, bearing.Reference));
             }
@@ -103,7 +102,7 @@ namespace GPC.Checkers.Steel.Connections
                 // Both symmetric paths use the assigned plate fracture factor (SCI P358 p179).
                 checks.Add(new ConnectionCheck(id + ".BlockInside", demand, Block(antInside), "EN1993-1-8 3.10.2(2); SCI P358 p179"));
                 checks.Add(new ConnectionCheck(id + ".BlockOutside", demand, Block(antOutside), "EN1993-1-8 3.10.2(2); SCI P358 p179"));
-                double Block(double ant) => plate.Fu * ant / c.Plates.GammaM2 + plate.Fy * anv / (Math.Sqrt(3) * c.Plates.GammaM0);
+                double Block(double ant) => plate.Fu * ant / c.Plates.GammaM2 + PlasticShear.Resistance(plate.Fy, anv, c.Plates.GammaM0);
             }
         }
     }

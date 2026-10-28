@@ -138,7 +138,7 @@ namespace GPC.Checkers.Steel.Connections
             foreach (var cover in r.Covers)
             {
                 if (!cover.Sections.IsComplete) { issues.AddRange(cover.Sections.Diagnostics); continue; }
-                double net = cover.Sections.Trace.Single(t => t.Name == "NetArea").Value;
+                double net = cover.NetArea;
                 var f = forces.CoverGroups.First(g => g.Cover == cover.Cover);
                 double n = cover.Cuts.Max(c => Math.Max(0, c.N));
                 Add(cover.Cover.ToString(), n, net, f.Plate.Fy);
@@ -150,11 +150,11 @@ namespace GPC.Checkers.Steel.Connections
                     string name = top ? "Top" : "Bottom"; var detail = top ? p.Bolts.Detail.Top : p.Bolts.Detail.Bottom;
                     var plate = top ? p.Bolts.Detail.Section.TopFlange : p.Bolts.Detail.Section.BottomFlange;
                     double net = (plate.Width - detail.Bolts.TransverseRows * p.Bolts.FlangeBolt.HoleDiameter) * plate.Thickness;
-                    double n = forces.Trace.Single(t => t.Name == "Left." + name + ".ParentAxial").Value;
+                    double n = forces.Flange(SpliceSide.Left, top).ParentAxial;
                     Add(name + ".Parent", Math.Max(0, n), net, plate.Fy);
                 }
                 var web = p.Bolts.Detail.Section.Web;
-                Add("Web.Parent", Math.Max(0, forces.Trace.Single(t => t.Name == "Web.AxialForce").Value),
+                Add("Web.Parent", Math.Max(0, forces.WebAxialForce),
                     (web.Width - p.Bolts.Detail.WebBolts.TransverseRows * p.Bolts.WebBolt.HoleDiameter) * web.Thickness, web.Fy);
             }
             else issues.AddRange(forces.Diagnostics);

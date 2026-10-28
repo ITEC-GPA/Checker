@@ -23,8 +23,8 @@ namespace GPC.Checkers.Steel.Connections
                 var plate = p.WebCover; var section = p.Forces.Section; var code = p.Policy.Code;
                 int holes = p.Forces.WebBolts.TransverseRows; double d0 = p.Bolts.WebBolt.HoleDiameter;
                 double area = plate.Width * plate.Thickness, net = (plate.Width - holes * d0) * plate.Thickness;
-                double grossV = area * plate.Fy / (1.27 * Math.Sqrt(3) * code.Plates.GammaM0);
-                double netV = net * plate.Fu / (Math.Sqrt(3) * code.Plates.GammaM2);
+                double grossV = PlasticShear.Resistance(area, plate.Fy, 1.27, code.Plates.GammaM0);
+                double netV = PlasticShear.Resistance(net, plate.Fu, code.Plates.GammaM2);
                 double shear = Math.Min(grossV, netV);
                 double grossN = SectionResistanceArithmetic.Normal(area, plate.Fy, code.Plates.GammaM0);
                 double netTension = SectionResistanceArithmetic.NetTension(net, plate.Fu, code.Plates.GammaM2);
@@ -38,7 +38,7 @@ namespace GPC.Checkers.Steel.Connections
                     section.ClearWeb * section.WebThickness);
                 double avNet = av - holes * d0 * section.WebThickness;
                 double memberGrossV = SectionResistanceArithmetic.Shear(av, section.Fy, code.Plates.GammaM0);
-                double memberNetV = avNet * section.Fu / (Math.Sqrt(3) * code.Plates.GammaM2);
+                double memberNetV = PlasticShear.Resistance(avNet, section.Fu, code.Plates.GammaM2);
                 if (new[] { area, net, grossV, netV, grossN, netTension, modulus, elasticM, av, avNet, memberGrossV, memberNetV }
                     .Any(v => !Finite(v) || v <= 0)) issues.Add("WEB_SECTION_PROPERTIES_OUTSIDE_NUMERIC_RANGE");
                 if (issues.Count == 0)

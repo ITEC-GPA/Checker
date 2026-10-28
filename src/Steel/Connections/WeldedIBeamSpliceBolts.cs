@@ -81,24 +81,21 @@ namespace GPC.Checkers.Steel.Connections
                     // Fv,Rd depends on the bolt, joint length and packing of the group, not on the demand:
                     // evaluate it once per group. With diagnostics keep the per-bolt path and its messages.
                     var groupStrength = BoltStrength.Verify(new BoltStrengthInput(p.Code, bolt, 0, 0, 1,
-                        jointLength, d.Packing.ThickerFace(g.Cover), p.HoleClearanceServiceabilitySource));
-                    var groupShear = groupStrength.IsComplete ? groupStrength.Checks.Single(c => c.Id == "Bolt.Shear") : null;
+                        jointLength, d.Packing.ThickerFace(g.Cover), p.HoleClearanceServiceabilitySource), out var groupValues);
+                    var groupShear = groupStrength.IsComplete ? groupValues : null;
                     foreach (var force in g.Distribution.Forces)
                     {
                         string id = g.Side + "." + g.Cover + ".Bolt" + force.Index;
                         // One check per physical shear plane: unequal/opposite forces are not replaced by half of the resultant.
                         if (groupShear != null)
-                            checks.Add(new ConnectionCheck(id + ".ShearPlane", force.Shear, groupShear.Resistance, groupShear.Reference));
+                            checks.Add(new ConnectionCheck(id + ".ShearPlane", force.Shear, groupShear.ShearResistance, groupShear.Reference));
                         else
                         {
                             var strength = BoltStrength.Verify(new BoltStrengthInput(p.Code, bolt, force.Shear, 0, 1,
-                                jointLength, d.Packing.ThickerFace(g.Cover), p.HoleClearanceServiceabilitySource));
+                                jointLength, d.Packing.ThickerFace(g.Cover), p.HoleClearanceServiceabilitySource), out var values);
                             foreach (string issue in strength.Diagnostics) issues.Add(id + ":" + issue);
                             if (strength.IsComplete)
-                            {
-                                var shear = strength.Checks.Single(c => c.Id == "Bolt.Shear");
-                                checks.Add(new ConnectionCheck(id + ".ShearPlane", shear.Demand, shear.Resistance, shear.Reference));
-                            }
+                                checks.Add(new ConnectionCheck(id + ".ShearPlane", force.Shear, values.ShearResistance, values.Reference));
                         }
                         Bearing(g.Plate, bolt, grid, across, halfLength - Math.Abs(force.Position.X),
                             Math.Min(force.Position.Y - g.TransverseMinimum, g.TransverseMaximum - force.Position.Y),

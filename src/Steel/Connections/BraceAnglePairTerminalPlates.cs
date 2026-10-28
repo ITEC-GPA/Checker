@@ -61,7 +61,7 @@ namespace GPC.Checkers.Steel.Connections
             if(t.InPlaneBoltGroup.Forces.Any(f=>f.Fy!=0))bi.Add("COLLINEAR_LONGITUDINAL_BOLT_FORCES_REQUIRED");
             else
             {
-                double heel=Trace("AngleHeelTangentEdge"),toe=Trace("AngleToeTangentEdge");
+                double heel=t.HeelTangentEdge.Value,toe=t.ToeTangentEdge.Value;
                 foreach(int side in new[]{0,1})
                     Blocks("Angle"+side,first.Section.Thickness,first.Section.Fy,first.Section.Fu,
                         p.AngleEndDistance,heel,toe,false,.5);
@@ -80,7 +80,7 @@ namespace GPC.Checkers.Steel.Connections
                     foreach(var edge in new[]{new{Id="NegativeEdge",Distance=left},new{Id="PositiveEdge",Distance=right}})
                     {
                         double ant=(edge.Distance-d0/2)*thickness;
-                        double capacity=.5*ant*fu/p.Code.Plates.GammaM2+anv*fy/(Math.Sqrt(3)*p.Code.Plates.GammaM0);
+                        double capacity=.5*ant*fu/p.Code.Plates.GammaM2+PlasticShear.Resistance(anv, fy, p.Code.Plates.GammaM0);
                         if(!(capacity>0)||double.IsInfinity(capacity)){bi.Add("BLOCK_RESISTANCE_NUMERIC_RANGE");continue;}
                         block.Add(new ConnectionCheck(label+"."+edge.Id+".Prefix"+k,demand,capacity,
                             "EN1993-1-8:2005 3.10.2 eccentric edge block; actual collinear bolt forces; both conservative straight-strip edges"));
@@ -88,7 +88,6 @@ namespace GPC.Checkers.Steel.Connections
                     }
                 }
             }
-            double Trace(string key)=>t.InPlaneComponents.Trace.Single(v=>v.Name==key).Value;
             void Value(string key,double value,string unit)=>trace.Add(new SectionResistanceValue(key,value,unit));
             BraceAnglePairTerminalPlateResult Finish()=>new BraceAnglePairTerminalPlateResult(t,
                 new ConnectionVerification<BraceAnglePairBoltedTransferInput>(p,p.Code,"Steel.Connection.BraceAnglePair.GussetNetSection",

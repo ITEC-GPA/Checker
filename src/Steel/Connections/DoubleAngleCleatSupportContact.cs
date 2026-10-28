@@ -83,9 +83,9 @@ namespace GPC.Checkers.Steel.Connections
                     Math.Min(c.CleatLeg.Fy, c.Beam.Fy) / c.Code.Plates.GammaM0,
                     "Weynand/Oerder/Demonceau section3.1 Fig8-9; rectangular contact patch, elastic compression only", "MPa"));
                 var bolt = BoltStrength.Verify(new BoltStrengthInput(c.Code, c.Bolt, 0, 0,
-                    jointLength: (c.Rows - 1) * c.Pitch, holeClearanceServiceabilitySource: c.HoleClearanceServiceabilitySource));
-                double fv = bolt.Checks.Single(x => x.Id == "Bolt.Shear").Resistance;
-                double ft = bolt.Checks.Single(x => x.Id == "Bolt.Tension").Resistance;
+                    jointLength: (c.Rows - 1) * c.Pitch, holeClearanceServiceabilitySource: c.HoleClearanceServiceabilitySource), out var boltValues);
+                double fv = boltValues.Evaluated(bolt).ShearResistance;
+                double ft = boltValues.TensionResistance;
                 // Sufficient punching hierarchy. It is independent of a presumed
                 // prying force and is NOT a verification that the bolt can carry Ft+V.
                 foreach (var ply in new[] { c.CleatLeg, s.ColumnFlange })

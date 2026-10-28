@@ -149,12 +149,12 @@ namespace GPC.Checkers.Steel.Connections
             double beamV = Bearing(web, Math.Min(beamTopEdge, beamBottomEdge), p.BeamEndEdge, true, "BeamBearing.Vertical");
             double beamH = Bearing(web, Math.Min(beamTopEdge, beamBottomEdge), p.BeamEndEdge, false, "BeamBearing.Horizontal");
             var strength = BoltStrength.Verify(new BoltStrengthInput(p.Code, p.Bolt, 0, 0,
-                jointLength: (p.Rows - 1) * p.Pitch, holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource));
+                jointLength: (p.Rows - 1) * p.Pitch, holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource), out var strengthValues);
             if (!strength.IsComplete) issues.AddRange(strength.Diagnostics);
             if (issues.Count != 0) return Result();
-            double fv = strength.Checks.Single(c => c.Id == "Bolt.Shear").Resistance;
+            double fv = strengthValues.ShearResistance;
             Value("Bolt.SingleShearResistance", fv, "N");
-            Value("Bolt.BetaLongJoint", strength.Trace.Single(t => t.Name == "BetaLongJoint").Value, "1");
+            Value("Bolt.BetaLongJoint", strengthValues.BetaLongJoint, "1");
             Value("BeamBolts.EquivalentGroupResistance", 2 * fv / forcePerUnit, "N");
             Value("CleatBearing.EquivalentGroupResistance", 2 / ElasticBoltGroup.Hypot(1 / (p.Rows * legV), beta / legH), "N");
             Value("BeamBearing.EquivalentGroupResistance", 1 / ElasticBoltGroup.Hypot(1 / (p.Rows * beamV), beta / beamH), "N");
@@ -189,9 +189,9 @@ namespace GPC.Checkers.Steel.Connections
             foreach (string side in new[] { "Left", "Right" }) foreach (string part in new[] { "BeamLeg", "SupportLeg" })
             {
                 string id = side + "." + part;
-                Check(id + ".GrossShear", v / 2, p.Height * leg.Thickness * leg.Fy / (1.27 * Math.Sqrt(3) * gm0), "SBE4.2.2, guidance1.27 nominal bending");
-                Check(id + ".NetShear", v / 2, avNet * leg.Fu / (Math.Sqrt(3) * gm2), "SBE4.2.2");
-                Check(id + ".BlockTearing", v / 2, .5 * ant * leg.Fu / gm2 + anv * leg.Fy / (Math.Sqrt(3) * gm0), "SBE4.2.2; EN1993-1-8 3.10.2 eccentric block");
+                Check(id + ".GrossShear", v / 2, PlasticShear.Resistance(p.Height * leg.Thickness, leg.Fy, 1.27, gm0), "SBE4.2.2, guidance1.27 nominal bending");
+                Check(id + ".NetShear", v / 2, PlasticShear.Resistance(avNet, leg.Fu, gm2), "SBE4.2.2");
+                Check(id + ".BlockTearing", v / 2, .5 * ant * leg.Fu / gm2 + PlasticShear.Resistance(anv, leg.Fy, gm0), "SBE4.2.2; EN1993-1-8 3.10.2 eccentric block");
             }
             double av = Math.Max(beam.Area - 2 * beam.Width * beam.FlangeThickness + (beam.WebThickness + 2 * beam.RootRadius) * beam.FlangeThickness,
                 (beam.Height - 2 * beam.FlangeThickness) * beam.WebThickness);
@@ -199,9 +199,9 @@ namespace GPC.Checkers.Steel.Connections
             double antBeam = beam.WebThickness * (p.BeamEndEdge - p.Bolt.HoleDiameter / 2);
             double anvBeam = beam.WebThickness * (beamTopEdge + (p.Rows - 1) * p.Pitch - (p.Rows - .5) * p.Bolt.HoleDiameter);
             Value("Beam.Av", av, "mm2"); Value("Beam.AvNet", net, "mm2"); Value("Beam.Ant", antBeam, "mm2"); Value("Beam.Anv", anvBeam, "mm2");
-            Check("Beam.GrossShear", v, av * beam.Fy / (Math.Sqrt(3) * gm0), "SBE4.2.3.1 rolled I/H web");
-            Check("Beam.NetShear", v, net * beam.Fu / (Math.Sqrt(3) * gm2), "SBE4.2.3.1");
-            Check("Beam.BlockTearing", v, .5 * antBeam * beam.Fu / gm2 + anvBeam * beam.Fy / (Math.Sqrt(3) * gm0), "SBE4.2.3.1 and example4.4 p77: unnotched beam top block path");
+            Check("Beam.GrossShear", v, PlasticShear.Resistance(av, beam.Fy, gm0), "SBE4.2.3.1 rolled I/H web");
+            Check("Beam.NetShear", v, PlasticShear.Resistance(net, beam.Fu, gm2), "SBE4.2.3.1");
+            Check("Beam.BlockTearing", v, .5 * antBeam * beam.Fu / gm2 + PlasticShear.Resistance(anvBeam, beam.Fy, gm0), "SBE4.2.3.1 and example4.4 p77: unnotched beam top block path");
             return Result();
         }
     }

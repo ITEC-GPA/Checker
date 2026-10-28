@@ -221,10 +221,10 @@ namespace GPC.Checkers.Steel.Connections
             if (p.Beta > 0) Add("ColumnPanelTransformation", 0, levers.Length,
                 panel.Checks.Min(c => c.Resistance) / p.Beta, "EN6.2.7.2(7); " + p.TransformationSource);
             var bolt = BoltStrength.Verify(new BoltStrengthInput(code, p.Bolt, 0, 0,
-                holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource));
+                holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource), out var boltValues);
             Include("Bolt", bolt.Trace, bolt.Diagnostics);
             if (issues.Count != 0) return Result();
-            double threshold = 1.9 * bolt.Checks.Single(c => c.Id == "Bolt.Tension").Resistance;
+            double threshold = 1.9 * boltValues.TensionResistance;
             Value("EN626ElasticRowThreshold", threshold, "N");
             int? elasticReference = null;
             for (int i = 0; i < levers.Length; i++)

@@ -29,7 +29,7 @@ namespace GPC.Checkers.Steel.Connections
             var code = p.Plates.Policy.Code; var d = p.Plates.Bolts.Detail;
             var forces = plates.PreparedBolts.Forces;
             var issues = new List<string>(plates.Diagnostics.Concat(forces.Diagnostics));
-            var checks = new List<ConnectionCheck>(); var trace = new List<SectionResistanceValue>();
+            var checks = new List<ConnectionCheck>(); var trace = new List<SectionResistanceValue>(); var reported = new List<SectionResistanceValue>();
             foreach (var cover in plates.Covers)
             {
                 string name = cover.Cover.ToString();
@@ -88,11 +88,11 @@ namespace GPC.Checkers.Steel.Connections
                     // existing whole-width exclusion is mandatory here, even standalone.
                     double slenderness = plate.Width / plate.Thickness;
                     double slendernessLimit = 60 * Math.Sqrt(235 / plate.Fy);
-                    double shearResistance = Math.Min(a * plate.Fy / (1.27 * Math.Sqrt(3) * code.Plates.GammaM0),
+                    double shearResistance = Math.Min(PlasticShear.Resistance(a, plate.Fy, 1.27, code.Plates.GammaM0),
                         net.Area * Math.Min(plate.Fy / code.Plates.GammaM0, plate.Fu / code.Plates.GammaM2) / (1.5 * Math.Sqrt(3)));
                     // Also bound eta=1 web shear resistance with the separately selected
                     // gammaM1. User EC parameter sets need not have gammaM1=gammaM0.
-                    double shearBucklingReference = a * plate.Fy / (Math.Sqrt(3) * p.Plates.Policy.GammaM1);
+                    double shearBucklingReference = PlasticShear.Resistance(a, plate.Fy, p.Plates.Policy.GammaM1);
                     shearResistance = Math.Min(shearResistance, shearBucklingReference);
                     Value(name + ".LowShear.ShearBucklingReferenceResistance", shearBucklingReference, "N");
                     double maximumShear = cover.Cuts.Max(c => Math.Abs(c.V));
@@ -112,14 +112,14 @@ namespace GPC.Checkers.Steel.Connections
                 double chi = exempt ? 1 : BucklingReductionArithmetic.AxialChi(BucklingReductionArithmetic.Phi(.49, lambda), lambda);
                 double limit = exempt ? plate.Fy / code.Plates.GammaM0 : chi * plate.Fy / p.Plates.Policy.GammaM1;
                 Value(name + ".HasCompression", compressed ? 1 : 0, "1");
-                Value(name + ".IsLocallyReduced", reduced ? 1 : 0, "1");
-                Value(name + ".GrossArea", a, "mm2"); Value(name + ".EffectiveArea", effective.Area, "mm2");
+                Reported(name + ".IsLocallyReduced", reduced ? 1 : 0, "1");
+                Value(name + ".GrossArea", a, "mm2"); Reported(name + ".EffectiveArea", effective.Area, "mm2");
                 Value(name + ".EffectiveCentroid", effective.Centroid, "mm"); Value(name + ".EffectiveInertia", effective.Inertia, "mm4");
-                Value(name + ".EffectiveNetArea", net.Area, "mm2"); Value(name + ".EffectiveNetCentroid", net.Centroid, "mm");
+                Reported(name + ".EffectiveNetArea", net.Area, "mm2"); Value(name + ".EffectiveNetCentroid", net.Centroid, "mm");
                 Value(name + ".EffectiveNetInertia", net.Inertia, "mm4");
                 Value(name + ".AreaRatio", q, "1"); Value(name + ".EffectiveLength", length, "mm");
                 Value(name + ".GrossSlenderness", lambdaGross, "1"); Value(name + ".EffectiveSlenderness", lambda, "1");
-                Value(name + ".Chi", chi, "1"); Value(name + ".GrossWeakAxisNcr", Math.PI * Math.PI * p.Plates.Policy.ElasticModulus
+                Reported(name + ".Chi", chi, "1"); Value(name + ".GrossWeakAxisNcr", Math.PI * Math.PI * p.Plates.Policy.ElasticModulus
                     * a * plate.Thickness * plate.Thickness / (12 * length * length), "N");
                 double maxCompression = 0;
                 int k = 0;
@@ -158,9 +158,11 @@ namespace GPC.Checkers.Steel.Connections
                     "All cuts are transported to the effective centroid. Gross bounding edges and maximum compressive stress give a conservative strip demand; no plastic redistribution is used.",
                     "The low-shear extension uses a stricter nominal shear resistance: effective net area, peak elastic factor1.5, min(fy/gammaM0,fu/gammaM2), bounded by the existing gross resistance. Combined effective-net elastic stress is still checked, with no plastic redistribution or use of gross area to hide removed material.",
                     "This is not a general buckling model for plates with empty cut-outs, shear-buckling-sensitive free plates or class4 at high shear. The opt-in method uses EN1993-1-5 7.1(1) as an explicit supplementary design rule under NTC2018 as well, retaining its factors."
-                });
+                }, reported);
             void Value(string id, double x, string unit)
             { if (Finite(x)) trace.Add(new SectionResistanceValue(id, x, unit)); else issues.Add(id + ".NUMERIC_RANGE"); }
+            void Reported(string id, double x, string unit)
+            { Value(id, x, unit); if (Finite(x)) reported.Add(trace[trace.Count - 1]); }
             void Check(string id, double demand, double resistance, string reference, string unit)
             {
                 if (!Finite(demand) || !Finite(resistance) || demand < 0 || resistance <= 0) issues.Add(id + ".NUMERIC_RANGE");

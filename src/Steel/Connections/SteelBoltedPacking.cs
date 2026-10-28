@@ -129,9 +129,9 @@ namespace GPC.Checkers.Steel.Connections
             double resistance=double.MaxValue;
             if(issues.Count==0)
             {
-                var strength=BoltStrength.Verify(new BoltStrengthInput(code,bolt,q,0,1,0,gap,detail.HoleClearanceSource));
+                var strength=BoltStrength.Verify(new BoltStrengthInput(code,bolt,q,0,1,0,gap,detail.HoleClearanceSource),out var strengthValues);
                 if(!strength.IsComplete)issues.AddRange(strength.Diagnostics);
-                else {checks.AddRange(strength.Checks);resistance=Math.Min(resistance,strength.Checks.Single(v=>v.Id=="Bolt.Shear").Resistance);}
+                else {checks.AddRange(strength.Checks);resistance=Math.Min(resistance,strengthValues.ShearResistance);}
                 foreach(var v in strength.Trace)trace.Add(new SectionResistanceValue("Packing."+v.Name,v.Value,v.Unit));
                 // A deliberately isolated central strip no wider than the actual packing:
                 // edges at the strip boundary and both force signs. Material beyond it is
@@ -147,7 +147,7 @@ namespace GPC.Checkers.Steel.Connections
                     double ant=(detail.Width/2-d0/2)*thickness,anv=(detail.Length/2-d0/2)*thickness;
                     double net=SectionResistanceArithmetic.NetTension(an,fu,code.Plates.GammaM2);
                     // One-sided paths retain half of the load and use the eccentric block rule.
-                    double block=.5*fu*ant/code.Plates.GammaM2+fy*anv/(Math.Sqrt(3)*code.Plates.GammaM0);
+                    double block=.5*fu*ant/code.Plates.GammaM2+PlasticShear.Resistance(fy, anv, code.Plates.GammaM0);
                     Check(name+".NetRupture",q,net,"EN1993-1-1 6.2.3");
                     Check(name+".BlockEachSide",q/2,block,"EN1993-1-8 3.10.2(3), both symmetric isolated-strip paths");
                     resistance=Math.Min(resistance,Math.Min(net,2*block));

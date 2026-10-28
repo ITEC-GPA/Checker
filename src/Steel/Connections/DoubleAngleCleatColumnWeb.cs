@@ -186,9 +186,9 @@ namespace GPC.Checkers.Steel.Connections
                             double net = area - rows * d0 * t;
                             double v = -c.Actions.Fy * rows / (2 * c.Rows);
                             Value(id + ".GrossStripArea", area, "mm2"); Value(id + ".NetStripArea", net, "mm2");
-                            Check(id + ".GrossShear", v, area * col.Fy / (Math.Sqrt(3) * c.Code.Plates.GammaM0),
+                            Check(id + ".GrossShear", v, PlasticShear.Resistance(area, col.Fy, c.Code.Plates.GammaM0),
                                 "SCI P358 Check10 support-web strip; supplementary application to SBE-MS5 double cleats");
-                            Check(id + ".NetShear", v, net * col.Fu / (Math.Sqrt(3) * c.Code.Plates.GammaM2),
+                            Check(id + ".NetShear", v, PlasticShear.Resistance(net, col.Fu, c.Code.Plates.GammaM2),
                                 "SCI P358 Check10 net strip; both directions and every loaded prefix");
                             Check(id + ".ConcomitantNetYield", sigma + Math.Sqrt(3) * (tauFlange + v / net),
                                 fy / c.Code.Plates.GammaM0, "Sufficient additive elastic stress bound; concurrent column stresses plus local net strip shear", "MPa");

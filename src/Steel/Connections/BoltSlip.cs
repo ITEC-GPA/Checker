@@ -97,7 +97,7 @@ namespace GPC.Checkers.Steel.Connections
                 double preload = nominal / gammaPreload;
                 double gammaSlip = p.LimitState == BoltSlipLimitState.Serviceability ? p.Policy.GammaM3Serviceability : p.Policy.GammaM3Ultimate;
                 double remaining = Math.Max(0, preload - .8 * p.TensionForce);
-                double betaLong = Math.Max(.75, Math.Min(1, 1 - (p.JointLength - 15 * p.Bolt.Diameter) / (200 * p.Bolt.Diameter)));
+                double betaLong = BoltLongJoint.Reduction(p.JointLength, p.Bolt.Diameter);
                 double resistance = betaLong * BoltSlipMath.DesignResistance(1, p.FrictionPlanes, p.FrictionCoefficient, p.TensionForce, gammaSlip, preload);
                 if (double.IsNaN(resistance) || double.IsInfinity(resistance) || double.IsInfinity(nominal))
                     issues.Add("SLIP_CAPACITY_OUTSIDE_NUMERIC_RANGE");

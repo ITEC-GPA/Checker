@@ -115,14 +115,14 @@ namespace GPC.Checkers.Steel.Connections
                 if (p.BoltElongation.GripLength < p.FlangeThickness) issues.Add("GripShorterThanTStubFlange");
             }
             var bolt = BoltStrength.Verify(new BoltStrengthInput(p.Code, p.Bolt, 0, 0,
-                holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource));
+                holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource), out var boltValues);
             issues.AddRange(bolt.Diagnostics.Select(d => "Bolt:" + d));
             if (issues.Count != 0) return Result();
 
             double n = Math.Min(p.Emin, 1.25 * p.M), t = p.FlangeThickness;
             double moment1 = .25 * p.EffectiveLengths.Mode1 * t * t * p.FlangeYieldStrength / p.Code.Plates.GammaM0;
             double moment2 = .25 * p.EffectiveLengths.Mode2 * t * t * p.FlangeYieldStrength / p.Code.Plates.GammaM0;
-            double totalBolt = 2 * p.BoltRows * bolt.Checks.Single(c => c.Id == "Bolt.Tension").Resistance;
+            double totalBolt = 2 * p.BoltRows * boltValues.TensionResistance;
             // Corrected Table6.2 uses n_b = number of rows, NOT number of bolts.
             double lengthLimit = 8.8 * p.M * p.M * p.M * p.Bolt.TensileArea * p.BoltRows
                 / (p.EffectiveLengths.Mode1 * t * t * t);

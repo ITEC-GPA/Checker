@@ -35,9 +35,34 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
+    /// <summary>Typed intermediate values of one bolt strength assessment. The trace and
+    /// checks are derived from them; callers read these values, never trace labels.</summary>
+    internal sealed class BoltStrengthValues
+    {
+        internal double ShearArea { get; }
+        internal double AlphaV { get; }
+        internal double BetaLongJoint { get; }
+        internal double BetaPacking { get; }
+        internal double ShearResistance { get; }
+        internal double TensionResistance { get; }
+        internal string Reference { get; }
+        internal BoltStrengthValues(double shearArea, double alphaV, double betaLongJoint, double betaPacking,
+            double shearResistance, double tensionResistance, string reference)
+        {
+            ShearArea = shearArea; AlphaV = alphaV; BetaLongJoint = betaLongJoint; BetaPacking = betaPacking;
+            ShearResistance = shearResistance; TensionResistance = tensionResistance; Reference = reference;
+        }
+        /// <summary>These values, when the verification evaluated its checks; otherwise the same
+        /// InvalidOperationException a lookup of the missing check raised before.</summary>
+        internal BoltStrengthValues Evaluated(ConnectionVerification<BoltStrengthInput> verification)
+            => verification.Checks.Count != 0 ? this : throw new InvalidOperationException("The bolt strength checks were not evaluated.");
+    }
+
     public static class BoltStrength
     {
-        public static ConnectionVerification<BoltStrengthInput> Verify(BoltStrengthInput p)
+        public static ConnectionVerification<BoltStrengthInput> Verify(BoltStrengthInput p) => Verify(p, out _);
+
+        internal static ConnectionVerification<BoltStrengthInput> Verify(BoltStrengthInput p, out BoltStrengthValues values)
         {
             if (p == null) throw new ArgumentNullException(nameof(p));
             var checks = new List<ConnectionCheck>(); var trace = new List<SectionResistanceValue>();
@@ -49,10 +74,11 @@ namespace GPC.Checkers.Steel.Connections
             double betaLong = BoltLongJoint.Reduction(p.JointLength, b.Diameter);
             double betaPacking = p.PackingThickness <= b.Diameter / 3 ? 1
                 : 9 / (8 + 3 * (p.PackingThickness / b.Diameter));
-            double shear = p.ShearPlanes * alpha * b.Fu * area / p.Code.GammaM2Connection * betaLong * betaPacking;
-            double tension = .9 * b.Fu * b.TensileArea / p.Code.GammaM2Connection;
+            double shear = BoltResistance.Shear(p.ShearPlanes, alpha, b.Fu, area, p.Code.GammaM2Connection, betaLong, betaPacking);
+            double tension = BoltResistance.Tension(b.Fu, b.TensileArea, p.Code.GammaM2Connection);
             string reference = p.Code.IsNtc ? "NTC2018 4.2.8.1.1 (4.2.63-66,4.2.68); EN1993-1-8 Table3.4,3.6.1(12-13),3.8"
                 : "EN1993-1-8:2005 Table3.4; 3.6.1(12-13); 3.8";
+            values = new BoltStrengthValues(area, alpha, betaLong, betaPacking, shear, tension, reference);
             trace.Add(new SectionResistanceValue("ShearArea", area, "mm2"));
             trace.Add(new SectionResistanceValue("AlphaV", alpha, "1"));
             trace.Add(new SectionResistanceValue("BetaLongJoint", betaLong, "1"));
@@ -127,9 +153,22 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
+    /// <summary>Typed intermediate values of one ply bearing assessment; the trace is derived from them.</summary>
+    internal sealed class BoltBearingValues
+    {
+        internal double AlphaD { get; }
+        internal double AlphaB { get; }
+        internal double K1 { get; }
+        internal double Resistance { get; }
+        internal BoltBearingValues(double alphaD, double alphaB, double k1, double resistance)
+        { AlphaD = alphaD; AlphaB = alphaB; K1 = k1; Resistance = resistance; }
+    }
+
     public static class BoltBearing
     {
-        public static ConnectionVerification<BoltBearingInput> Verify(BoltBearingInput p)
+        public static ConnectionVerification<BoltBearingInput> Verify(BoltBearingInput p) => Verify(p, out _);
+
+        internal static ConnectionVerification<BoltBearingInput> Verify(BoltBearingInput p, out BoltBearingValues values)
         {
             if (p == null) throw new ArgumentNullException(nameof(p));
             var checks = new List<ConnectionCheck>(); var trace = new List<SectionResistanceValue>();
@@ -159,6 +198,7 @@ namespace GPC.Checkers.Steel.Connections
                 bearing = Math.Min(bearing, singleLapLimit);
             }
             BoltComponentRules.Capacity(bearing, "PlateBearingOutsideNumericRange", issues);
+            values = new BoltBearingValues(ad, ab, k, bearing);
             if (issues.Count == 0)
                 checks.Add(new ConnectionCheck("Plate.Bearing", p.Force,
                     bearing,
@@ -256,8 +296,8 @@ namespace GPC.Checkers.Steel.Connections
             var code = p.Bolt.Code; var checks = new List<ConnectionCheck>(); var trace = new List<SectionResistanceValue>();
             var issues = new List<string>();
             if (p.Bolt.ShearPlanes != 1) issues.Add("AssemblyRequiresSingleShearPlane");
-            var bolt = BoltStrength.Verify(p.Bolt);
-            var headBearing = BoltBearing.Verify(p.HeadPlyBearing); var nutBearing = BoltBearing.Verify(p.NutPlyBearing);
+            var bolt = BoltStrength.Verify(p.Bolt, out var boltValues);
+            var headBearing = BoltBearing.Verify(p.HeadPlyBearing, out var headValues); var nutBearing = BoltBearing.Verify(p.NutPlyBearing, out var nutValues);
             var headPunching = BoltPunching.Verify(p.HeadPlyPunching); var nutPunching = BoltPunching.Verify(p.NutPlyPunching);
             void Include(string prefix, IEnumerable<ConnectionCheck> evaluated, IEnumerable<string> diagnostics)
             {
@@ -270,9 +310,8 @@ namespace GPC.Checkers.Steel.Connections
             Include("HeadPly", headPunching.Checks, headPunching.Diagnostics); Include("NutPly", nutPunching.Checks, nutPunching.Diagnostics);
             if (issues.Count == 0)
             {
-                double shear = Math.Min(bolt.Checks.Single(c => c.Id == "Bolt.Shear").Resistance,
-                    Math.Min(headBearing.Checks.Single().Resistance, nutBearing.Checks.Single().Resistance));
-                double tension = Math.Min(bolt.Checks.Single(c => c.Id == "Bolt.Tension").Resistance,
+                double shear = Math.Min(boltValues.ShearResistance, Math.Min(headValues.Resistance, nutValues.Resistance));
+                double tension = Math.Min(boltValues.TensionResistance,
                     Math.Min(headPunching.Checks.Single().Resistance, nutPunching.Checks.Single().Resistance));
                 trace.Add(new SectionResistanceValue("AssembledShearResistance", shear, "N"));
                 trace.Add(new SectionResistanceValue("AssembledTensionResistance", tension, "N"));
@@ -303,6 +342,26 @@ namespace GPC.Checkers.Steel.Connections
     {
         internal static double Reduction(double jointLength, double diameter)
             => Math.Max(.75, Math.Min(1, 1 - (jointLength - 15 * diameter) / (200 * diameter)));
+    }
+
+    /// <summary>The only implementation of the bolt shear/tension resistance formulas
+    /// (EN1993-1-8 Table3.4, NTC2018 4.2.63-4.2.68). The operand order is part of the
+    /// contract: every caller reproduces its previous results bit for bit.</summary>
+    internal static class BoltResistance
+    {
+        /// <summary>Fv,Rd = n alphaV fub A / gamma * betaLf * betaP, evaluated left to right.</summary>
+        internal static double Shear(int planes, double alphaV, double fub, double area, double gamma, double betaLong = 1, double betaPacking = 1)
+            => planes * alphaV * fub * area / gamma * betaLong * betaPacking;
+        /// <summary>Ft,Rd = 0.9 fub As / gamma.</summary>
+        internal static double Tension(double fub, double tensileArea, double gamma) => .9 * fub * tensileArea / gamma;
+    }
+
+    /// <summary>The only implementation of the plastic shear resistance Vpl = A fy / (factor sqrt3 gamma)
+    /// and of the net shear fracture bound A fu / (sqrt3 gamma). factor=1.27 is the SCI nominal-moment reduction.</summary>
+    internal static class PlasticShear
+    {
+        internal static double Resistance(double area, double fy, double gamma) => area * fy / (Math.Sqrt(3) * gamma);
+        internal static double Resistance(double area, double fy, double factor, double gamma) => area * fy / (factor * Math.Sqrt(3) * gamma);
     }
 
     internal static class BoltComponentRules

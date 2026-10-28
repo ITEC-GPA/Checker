@@ -111,14 +111,13 @@ namespace GPC.Checkers.Steel.Connections
                 Value(id + ".Fx", f.Fx, "N"); Value(id + ".Fy", f.Fy, "N");
                 var strength = BoltStrength.Verify(new BoltStrengthInput(c, b, f.Shear, 0,
                     shearPlanes: 2, jointLength: lj,
-                    holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource));
+                    holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource), out var strengthValues);
                 if (!strength.IsComplete)
                 {
                     issues.AddRange(strength.Diagnostics.Select(d => id + ":" + d));
                     continue;
                 }
-                var shear = strength.Checks.Single(k => k.Id == "Bolt.Shear");
-                Check(id + ".Shear", f.Shear, shear.Resistance, shear.Reference);
+                Check(id + ".Shear", f.Shear, strengthValues.ShearResistance, strengthValues.Reference);
                 int row = f.Index / 2;
                 Bearing(id + ".GussetBearing", p.Gusset, p.GussetEnd, eg, row == 0, f.Shear);
                 Bearing(id + ".Brace1Bearing", p.EachBrace, p.BraceEnd, eb, row == p.Rows - 1, f.Shear / 2);
@@ -172,7 +171,7 @@ namespace GPC.Checkers.Steel.Connections
                 Check(id + ".BlockInside", force, Block(antInside), blockRef);
                 Check(id + ".BlockOutside", force, Block(antOutside), blockRef);
                 double Block(double ant) => plate.Fu * ant / c.Plates.GammaM2
-                    + plate.Fy * anv / (Math.Sqrt(3) * c.Plates.GammaM0);
+                    + PlasticShear.Resistance(plate.Fy, anv, c.Plates.GammaM0);
             }
             ConnectionVerification<GussetTwinFlatTensionInput> Result()
                 => new ConnectionVerification<GussetTwinFlatTensionInput>(p, c,

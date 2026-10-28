@@ -116,10 +116,14 @@ namespace GPC.Checkers.Steel.Connections
         public double? Utilization => GoverningCheck?.Utilization;
         public double? ComponentTyingResistance => IsComponentAssessmentComplete ? (double?)Checks.Min(c => c.Resistance) : null;
         public string Scope => "SCI P358(2014) partial-depth plate/bolt group in accidental tying (Check11) and supported unnotched beam web (Check12), two columns M20 8.8, standard S275 detail. No weld or support verification, ordinary N+V, full-depth end plate or whole-joint qualification.";
+        /// <summary>Typed resistances of the checks Tying.EndPlate.Mode1 and Tying.BeamWeb.Tension; null when not evaluated.</summary>
+        internal double? EndPlateMode1Resistance { get; }
+        internal double? BeamWebTensionResistance { get; }
         internal FlexibleEndPlateTyingResult(FlexibleEndPlateTyingInput input,
             PlanarConnectionActions centred, List<ConnectionCheck> checks,
-            List<SectionResistanceValue> trace, List<string> diagnostics)
+            List<SectionResistanceValue> trace, List<string> diagnostics, double? endPlateMode1 = null, double? beamWebTension = null)
         {
+            EndPlateMode1Resistance = endPlateMode1; BeamWebTensionResistance = beamWebTension;
             Input = input; ActionsAtPlateCentre = centred;
             Diagnostics = Array.AsReadOnly(diagnostics.Distinct().ToArray());
             var evaluated = ConnectionOutcome.Retained(checks, Diagnostics.Count);
@@ -136,7 +140,7 @@ namespace GPC.Checkers.Steel.Connections
             if (p == null) throw new ArgumentNullException(nameof(p));
             var g = p.Geometry; var a = p.Actions; var beam = g.Beam; var plate = g.Plate;
             var checks = new List<ConnectionCheck>(); var trace = new List<SectionResistanceValue>();
-            var issues = new List<string>(); PlanarConnectionActions centred = null;
+            var issues = new List<string>(); PlanarConnectionActions centred = null; double? mode1 = null, web = null;
             Required(p.Policy.DesignSituationSource, "ACCIDENTAL_TYING_DESIGN_SITUATION_REQUIRED");
             Required(g.GeometrySource, "ACTUAL_PARTIAL_DEPTH_GEOMETRY_SOURCE_REQUIRED");
             Required(g.ContactHardwareSource, "ACTUAL_END_PLATE_CONTACT_HARDWARE_SOURCE_REQUIRED");
@@ -184,7 +188,7 @@ namespace GPC.Checkers.Steel.Connections
                 && effectiveEnd > 0 && effectivePitch > 0 && g.ContactWidth < 2 * Math.Min(m, g.FreeEdge),
                 "EQUIVALENT_TSTUB_GEOMETRY_OUTSIDE_SCOPE");
             double moment = .25 * length * plate.Thickness * plate.Thickness * plate.Fu / p.Policy.GammaMu;
-            double boltResistance = .9 * g.Bolt.Fu * g.Bolt.TensileArea / p.Policy.GammaMu;
+            double boltResistance = BoltResistance.Tension(g.Bolt.Fu, g.Bolt.TensileArea, p.Policy.GammaMu);
             double totalBolt = 2 * g.Rows * boltResistance;
             Value("Geometry.EffectiveEnd", effectiveEnd, "mm"); Value("Geometry.EffectivePitch", effectivePitch, "mm");
             Value("Geometry.EffectiveEndLimit", endLimit, "mm"); Value("Geometry.EffectivePitchLimit", pitchLimit, "mm");
@@ -200,23 +204,23 @@ namespace GPC.Checkers.Steel.Connections
             var modes = TStubMechanismArithmetic.Calculate(moment, moment, m, n, ew, totalBolt,
                 true, TStubMode1Method.DistributedContact);
             if (!modes.IsFinitePositive) { issues.Add("TSTUB_RESISTANCES_OUTSIDE_NUMERIC_RANGE"); return Result(); }
-            Check("Tying.EndPlate.Mode1", modes.PlateMode1, "SCI P358(2014) Check11, AppendixA/B; AD396");
+            if (Check("Tying.EndPlate.Mode1", modes.PlateMode1, "SCI P358(2014) Check11, AppendixA/B; AD396")) mode1 = modes.PlateMode1;
             Check("Tying.EndPlate.Mode2", modes.CombinedMode2.Value, "SCI P358(2014) Check11, AppendixA/B; AD396");
             Check("Tying.EndPlate.Mode3", modes.BoltsMode3, "SCI P358(2014) Check11, AppendixA/B");
-            Check("Tying.BeamWeb.Tension", beam.WebThickness * g.Height * beam.Fu / p.Policy.GammaMu,
-                "SCI P358(2014) Check12, unnotched unperforated supported beam web");
+            double webTension = beam.WebThickness * g.Height * beam.Fu / p.Policy.GammaMu;
+            if (Check("Tying.BeamWeb.Tension", webTension, "SCI P358(2014) Check12, unnotched unperforated supported beam web")) web = webTension;
             return Result();
 
             void Required(string source, string diagnostic) { if (string.IsNullOrWhiteSpace(source)) issues.Add(diagnostic); }
             void Gate(bool condition, string diagnostic) { if (!condition) issues.Add(diagnostic); }
             void Value(string name, double value, string unit)
             { if (Finite(value)) trace.Add(new SectionResistanceValue(name, value, unit)); else issues.Add(name + "OutsideNumericRange"); }
-            void Check(string id, double resistance, string reference)
+            bool Check(string id, double resistance, string reference)
             {
-                if (!(resistance > 0) || !Finite(resistance)) issues.Add(id + "OutsideNumericRange");
-                else checks.Add(new ConnectionCheck(id, a.Fz, resistance, reference));
+                if (!(resistance > 0) || !Finite(resistance)) { issues.Add(id + "OutsideNumericRange"); return false; }
+                checks.Add(new ConnectionCheck(id, a.Fz, resistance, reference)); return true;
             }
-            FlexibleEndPlateTyingResult Result() => new FlexibleEndPlateTyingResult(p, centred, checks, trace, issues);
+            FlexibleEndPlateTyingResult Result() => new FlexibleEndPlateTyingResult(p, centred, checks, trace, issues, mode1, web);
         }
         private static bool Finite(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
     }

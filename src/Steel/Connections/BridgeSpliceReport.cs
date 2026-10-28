@@ -88,17 +88,16 @@ namespace GPC.Checkers.Steel.Connections
                 if (c.EffectiveCompression != null)
                 {
                     notes.Add(c.Input.Id + ":Plate stability:" + result.Input.PlateStability);
-                    foreach (var t in c.EffectiveCompression.Trace.Where(t => t.Name.EndsWith(".EffectiveArea")
-                        || t.Name.EndsWith(".EffectiveNetArea") || t.Name.EndsWith(".Chi") || t.Name.EndsWith(".IsLocallyReduced")))
+                    foreach (var t in c.EffectiveCompression.ReportedValues)
                         notes.Add(c.Input.Id + ":" + t.Name + "=" + t.Value.ToString("R", System.Globalization.CultureInfo.InvariantCulture) + " " + t.Unit);
                 }
-                foreach (var t in c.Model.Trace.Where(t => t.Name.Contains(".FaceModel.")))
+                foreach (var t in c.Model.ReportedValues)
                     notes.Add(c.Input.Id + ":" + t.Name + "=" + Number(t.Value) + " " + t.Unit);
                 notes.Add("gammaM1 plates=" + Number(c.Input.Parents.Detail.Plates.Policy.GammaM1));
                 if (b.Detail.Packing.HasPacking) notes.Add(c.Input.Id + ":packing=" + b.Detail.Packing.ExecutionSource);
                 Add(c.Input.Id, "BlockHierarchy", c.AdditionalPlates.BlockHierarchy.Checks);
                 Add(c.Input.Id, "CompactPlateDomain", c.AdditionalPlates.CompactPlateDomain.Checks);
-                foreach (var t in c.AdditionalPlates.BlockHierarchy.Trace.Where(t => t.Name.EndsWith(".ActualCollinearBlockMethod")))
+                foreach (var t in c.AdditionalPlates.BlockHierarchy.ReportedValues)
                     notes.Add(c.Input.Id + ":" + t.Name + "=" + Number(t.Value));
                 Member(c.Input.Id, "Left.Member", c.Input.Parents.LeftMember);
                 Member(c.Input.Id, "Right.Member", c.Input.Parents.RightMember);

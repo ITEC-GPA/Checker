@@ -29,7 +29,7 @@ namespace GPC.Checkers.Steel.Connections
             var b = p.Plates.Bolts; var d = b.Detail;
             var issues = new List<string>(f.Diagnostics);
             var checks = new List<ConnectionCheck>();
-            var trace = new List<SectionResistanceValue>(f.Trace);
+            var trace = new List<SectionResistanceValue>(f.Trace); var reported = new List<SectionResistanceValue>();
             Flange(d.Top, "Top"); Flange(d.Bottom, "Bottom");
             if (d.Packing.HasPacking && faceModel != SpliceFlangeFaceModel.PackedIndependentFaceDimensions)
                 issues.Add("EXPLICIT_PACKED_FACE_MODEL_REQUIRED");
@@ -56,7 +56,7 @@ namespace GPC.Checkers.Steel.Connections
                     "No continuous equal-strain bond between parent and covers is assumed. Bolt shear and bearing, slip, actual plate areas, outstands, net sections and parent welds are verified separately. This remains a conventional static double-lap model; it does not solve local contact/plate lifting or supply rotational stiffness.",
                     "Contact-face transport couples alone are not an externally applied bolt tension. This conventional double-lap membrane model does not solve contact, prying or plate lifting. Those details must use another method.",
                     "All covers are continuous and flat. PackedIndependentFaceDimensions permits full-footprint parallel packing layers per face and per member side, identical on left/right, with no load or stiffness credit; actual total offsets, bolt reduction and every serial friction interface are assessed. No tapered/discontinuous packs, stiffener cut-outs, notches, section changes or out-of-plane actions.",
-                    "The structural analysis must justify continuity, restraints and second-order actions separately. This assessment supplies no rotational stiffness or fatigue qualification." });
+                    "The structural analysis must justify continuity, restraints and second-order actions separately. This assessment supplies no rotational stiffness or fatigue qualification." }, reported);
 
             void FaceStiffness(SpliceFlangeCoverDetail x, ConnectionPlate parent, bool top)
             {
@@ -67,7 +67,8 @@ namespace GPC.Checkers.Steel.Connections
                 double area = ao + ai, first = ao * yo + ai * yi, second = ao * yo * yo + ai * yi * yi;
                 // Positive factored determinant avoids subtraction of large nearly equal terms.
                 double determinant = ao * ai * (yo - yi) * (yo - yi);
-                double n = T("ParentAxial"), m = T("ParentLocalMoment"), e = p.Plates.Policy.ElasticModulus;
+                var typed = f.Flange(SpliceSide.Left, top);
+                double n = typed.ParentAxial, m = typed.ParentLocalMoment, e = p.Plates.Policy.ElasticModulus;
                 double strain = (second * n + first * m) / (e * determinant);
                 double curvature = (-area * m - first * n) / (e * determinant);
                 double outer = e * ao * (strain + curvature * yo), inner = e * ai * (strain + curvature * yi);
@@ -76,13 +77,16 @@ namespace GPC.Checkers.Steel.Connections
                 Value("OuterForce", outer, "N"); Value("BothInnerForce", inner, "N");
                 double scale = Math.Abs(n) + Math.Abs(m / (yo - yi));
                 if (!WeldedIBeamSplicePlates.Finite(outer) || !WeldedIBeamSplicePlates.Finite(inner)
-                    || Math.Abs(outer - T("OuterForce")) > 128 * 2.2204460492503131e-16 * scale
-                    || Math.Abs(inner - T("BothInnerForce")) > 128 * 2.2204460492503131e-16 * scale)
+                    || Math.Abs(outer - typed.OuterForce) > 128 * 2.2204460492503131e-16 * scale
+                    || Math.Abs(inner - typed.BothInnerForce) > 128 * 2.2204460492503131e-16 * scale)
                     issues.Add(name + ".TWO_FACE_MEMBRANE_EQUILIBRIUM");
-                double T(string key) => f.Trace.Single(v => v.Name == "Left." + name + "." + key).Value;
                 void Value(string key, double value, string unit)
                 {
-                    if (WeldedIBeamSplicePlates.Finite(value)) trace.Add(new SectionResistanceValue(name + ".FaceModel." + key, value, unit));
+                    if (WeldedIBeamSplicePlates.Finite(value))
+                    {
+                        var entry = new SectionResistanceValue(name + ".FaceModel." + key, value, unit);
+                        trace.Add(entry); reported.Add(entry);
+                    }
                     else issues.Add(name + ".FACE_MODEL_NUMERIC_RANGE");
                 }
             }

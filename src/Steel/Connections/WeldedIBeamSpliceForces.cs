@@ -146,6 +146,17 @@ namespace GPC.Checkers.Steel.Connections
             TransverseMinimum = min; TransverseMaximum = max; Distribution = distribution; }
     }
 
+    /// <summary>Typed parent-flange forces of one member side; the trace entries of the same names are derived from them.</summary>
+    internal sealed class SpliceFlangeForces
+    {
+        internal double ParentAxial { get; }
+        internal double ParentLocalMoment { get; }
+        internal double OuterForce { get; }
+        internal double BothInnerForce { get; }
+        internal SpliceFlangeForces(double parentAxial, double parentLocalMoment, double outerForce, double bothInnerForce)
+        { ParentAxial = parentAxial; ParentLocalMoment = parentLocalMoment; OuterForce = outerForce; BothInnerForce = bothInnerForce; }
+    }
+
     public sealed class WeldedIBeamSpliceForceResult
     {
         public WeldedIBeamSpliceForceInput Input { get; }
@@ -158,9 +169,17 @@ namespace GPC.Checkers.Steel.Connections
         public string Scope => "Elastic force distribution for identical welded I sections, including flange self-bending, "
             + "unequal upper/lower flanges, two faces of every splice and all cover centroid offsets. "
             + "Not a resistance, stiffness, load-introduction, execution or fatigue qualification.";
+        private readonly SpliceFlangeForces[] flanges;
+        /// <summary>Typed web axial force and local moment behind Web.AxialForce and Web.LocalMoment.</summary>
+        internal double WebAxialForce { get; }
+        internal double WebLocalMoment { get; }
+        /// <summary>Typed parent-flange forces behind the trace entries Side.Top/Bottom.*; null before they were calculated.</summary>
+        internal SpliceFlangeForces Flange(SpliceSide side, bool top) => flanges[(side == SpliceSide.Left ? 0 : 2) + (top ? 0 : 1)];
         internal WeldedIBeamSpliceForceResult(WeldedIBeamSpliceForceInput input, PlanarConnectionActions actions,
-            IList<WeldedSpliceCoverForceGroup> groups, IList<SectionResistanceValue> trace, IList<string> issues)
+            IList<WeldedSpliceCoverForceGroup> groups, IList<SectionResistanceValue> trace, IList<string> issues,
+            SpliceFlangeForces[] flanges = null, double webAxialForce = double.NaN, double webLocalMoment = double.NaN)
         {
+            this.flanges = flanges ?? new SpliceFlangeForces[4]; WebAxialForce = webAxialForce; WebLocalMoment = webLocalMoment;
             Input = input; ActionsAtJoint = issues.Count == 0 ? actions : null;
             Diagnostics = Array.AsReadOnly(issues.ToArray());
             CoverGroups = Array.AsReadOnly(issues.Count == 0 ? groups.ToArray() : Array.Empty<WeldedSpliceCoverForceGroup>());
@@ -177,9 +196,10 @@ namespace GPC.Checkers.Steel.Connections
             var issues = new List<string>(); var trace = new List<SectionResistanceValue>();
             var groups = new List<WeldedSpliceCoverForceGroup>(); var s = p.Section; var a = p.Actions;
             PlanarConnectionActions actions = null;
+            var flanges = new SpliceFlangeForces[4]; double webAxial = double.NaN, webMoment = double.NaN;
             void Value(string name, double value, string unit)
             { if (!Finite(value)) issues.Add(name + ".NUMERIC_RANGE"); else trace.Add(new SectionResistanceValue(name, value, unit)); }
-            WeldedIBeamSpliceForceResult Result() => new WeldedIBeamSpliceForceResult(p, actions, groups, trace, issues);
+            WeldedIBeamSpliceForceResult Result() => new WeldedIBeamSpliceForceResult(p, actions, groups, trace, issues, flanges, webAxial, webMoment);
             if (a.Fz != 0 || a.Mx != 0 || a.My != 0 || a.ApplicationZ != 0) issues.Add("IN_PLANE_N_V_M_ONLY");
             ValidateFlange(p.Top, s.TopFlange, s.TopWeldToe, "Top");
             ValidateFlange(p.Bottom, s.BottomFlange, s.BottomWeldToe, "Bottom");
@@ -206,7 +226,7 @@ namespace GPC.Checkers.Steel.Connections
             actions = new PlanarConnectionActions(a.Fx, a.Fy, 0, 0, 0, moment);
             // Exact integrals of sigma=N/A-M*y/I on the three rectangular parent plates.
             double webN = Normal(s.Web, s.WebY), webM = moment * (s.Web.Thickness * Math.Pow(s.Web.Width, 3) / (12 * s.StrongAxisSecondMoment));
-            Value("Web.AxialForce", webN, "N"); Value("Web.LocalMoment", webM, "Nmm");
+            Value("Web.AxialForce", webN, "N"); Value("Web.LocalMoment", webM, "Nmm"); webAxial = webN; webMoment = webM;
             Value("Web.OffsetY", s.WebY, "mm");
             if (issues.Count != 0) return Result();
             foreach (SpliceSide side in new[] { SpliceSide.Left, SpliceSide.Right })
@@ -275,6 +295,7 @@ namespace GPC.Checkers.Steel.Connections
                 string name = side + (top ? ".Top" : ".Bottom");
                 Value(name + ".ParentAxial", sign * n, "N"); Value(name + ".ParentLocalMoment", sign * m, "Nmm");
                 Value(name + ".OuterForce", sign * outer, "N"); Value(name + ".BothInnerForce", sign * inner, "N");
+                flanges[(side == SpliceSide.Left ? 0 : 2) + (top ? 0 : 1)] = new SpliceFlangeForces(sign * n, sign * m, sign * outer, sign * inner);
                 if (issues.Count != 0) return;
                 Add(side, top ? WeldedSpliceCover.TopOuter : WeldedSpliceCover.BottomOuter, d.Outer, y + yo, 0,
                     -d.Outer.Width / 2, d.Outer.Width / 2,

@@ -35,11 +35,13 @@ namespace GPC.Checkers.Steel.Connections
         public ConnectionVerification<WeldedIBeamSplicePlateInput> Sections { get; }
         public ConnectionVerification<WeldedIBeamSplicePlateInput> LongitudinalCompression { get; }
         public ConnectionVerification<WeldedIBeamSplicePlateInput> AxialBlockTearing { get; }
+        /// <summary>Typed net area behind the Sections trace entry NetArea.</summary>
+        internal double NetArea { get; }
         internal SpliceCoverPlateAssessment(WeldedSpliceCover cover, IEnumerable<SpliceCoverCut> cuts,
             ConnectionVerification<WeldedIBeamSplicePlateInput> sections,
             ConnectionVerification<WeldedIBeamSplicePlateInput> compression,
-            ConnectionVerification<WeldedIBeamSplicePlateInput> block)
-        { Cover = cover; Cuts = Array.AsReadOnly(cuts.ToArray()); Sections = sections; LongitudinalCompression = compression; AxialBlockTearing = block; }
+            ConnectionVerification<WeldedIBeamSplicePlateInput> block, double netArea = double.NaN)
+        { NetArea = netArea; Cover = cover; Cuts = Array.AsReadOnly(cuts.ToArray()); Sections = sections; LongitudinalCompression = compression; AxialBlockTearing = block; }
     }
 
     public sealed class WeldedIBeamSplicePlateResult
@@ -99,8 +101,8 @@ namespace GPC.Checkers.Steel.Connections
                 if (localIssues.Count == 0)
                 {
                     double nr = area * plate.Fy / factors.GammaM0, nt = .9 * net * plate.Fu / factors.GammaM2;
-                    double vg = area * plate.Fy / (1.27 * Math.Sqrt(3) * factors.GammaM0);
-                    double vn = net * plate.Fu / (Math.Sqrt(3) * factors.GammaM2);
+                    double vg = PlasticShear.Resistance(area, plate.Fy, 1.27, factors.GammaM0);
+                    double vn = PlasticShear.Resistance(net, plate.Fu, factors.GammaM2);
                     double mr = w * plate.Fy / factors.GammaM0;
                     foreach (var c in cuts.Where(c => c.X > -half && c.X < half))
                     {
@@ -146,8 +148,8 @@ namespace GPC.Checkers.Steel.Connections
                     double nb = area * Math.Min(plate.Fy / factors.GammaM0, rb);
                     if (Finite(nb) && nb > 0) foreach (var c in cuts.Where(c => c.X > -half && c.X < half && c.N < 0))
                     {
-                        double vr = Math.Abs(c.V) / Math.Min(area * plate.Fy / (1.27 * Math.Sqrt(3) * factors.GammaM0),
-                            net * plate.Fu / (Math.Sqrt(3) * factors.GammaM2));
+                        double vr = Math.Abs(c.V) / Math.Min(PlasticShear.Resistance(area, plate.Fy, 1.27, factors.GammaM0),
+                            PlasticShear.Resistance(net, plate.Fu, factors.GammaM2));
                         double rho = vr <= .5 ? 0 : vr >= 1 ? 1 : Math.Pow(2 * vr - 1, 2);
                         double remaining = Math.Max(0, 1 - Math.Abs(c.N) / nb) * (1 - rho) * w * plate.Fy / factors.GammaM0;
                         if (!Finite(remaining)) compressionIssues.Add("COMPRESSION_SHEAR_BENDING_NUMERIC_RANGE");
@@ -165,7 +167,7 @@ namespace GPC.Checkers.Steel.Connections
                 covers.Add(new SpliceCoverPlateAssessment(left.Cover, cuts,
                     Result(p, "Sections." + left.Cover, "Gross elastic N-V-M envelope and separate net axial/shear components; NOT combined net-section fracture or plate stability.", sectionChecks, trace, localIssues),
                     Result(p, "LongitudinalCompression." + left.Cover, "Longitudinal filled-fastener strip compression only; NOT complete shear/lateral plate buckling.", compressionChecks, compressionTrace, compressionIssues),
-                    AxialBlocks(p, group.ToArray(), localIssues)));
+                    AxialBlocks(p, group.ToArray(), localIssues), net));
 
                 void Add(IList<ConnectionCheck> list, string id, double demand, double resistance, string unit = "N")
                     => list.Add(new ConnectionCheck(id, demand, resistance, NormalReference(p), unit));
@@ -224,7 +226,7 @@ namespace GPC.Checkers.Steel.Connections
                         // Always use the reduced tensile contribution of the eccentric EC expression;
                         // no concentrated, variable-direction NVM field is approved by this choice.
                         double resistance = .5 * ant * plate.Fu / p.Policy.Code.Plates.GammaM2
-                            + anv * plate.Fy / (Math.Sqrt(3) * p.Policy.Code.Plates.GammaM0);
+                            + PlasticShear.Resistance(anv, plate.Fy, p.Policy.Code.Plates.GammaM0);
                         if (!(ant > 0) || !(anv > 0) || !Finite(resistance)) { issues.Add(id + ".INVALID_BLOCK_LIGAMENT"); return; }
                         checks.Add(new ConnectionCheck(id, demand, resistance,
                             "EN1993-1-8:2005 3.10.2(3) eq3.10; rectangular axial paths, conservative 0.5 tension term; NTC factors when selected"));

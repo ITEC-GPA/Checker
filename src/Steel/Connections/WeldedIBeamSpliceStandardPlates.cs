@@ -54,7 +54,7 @@ namespace GPC.Checkers.Steel.Connections
             if (!WeldedIBeamSplicePlates.SameCode(code, p.Plates.Bolts.Code)) issues.Add("PLATE_CODE_MISMATCH");
             var net = new List<ConnectionCheck>(); var blocks = new List<ConnectionCheck>(); var compact = new List<ConnectionCheck>();
             var direct = new List<ConnectionCheck>();
-            var trace = new List<SectionResistanceValue>();
+            var trace = new List<SectionResistanceValue>(); var reported = new List<SectionResistanceValue>();
             if (issues.Count == 0)
             {
                 foreach (var c in plates.Covers)
@@ -143,7 +143,7 @@ namespace GPC.Checkers.Steel.Connections
                         "Opt-in direct checks are limited to longitudinal collinear bolt actions (including sign reversal). All rectangular prefixes and transverse subsets are checked using sum(abs(Fx)); opposite loads on a continuous cover do not cancel. The eccentric coefficient 0.5 is retained for every subset. No mixed-direction N-V-M rupture interaction is inferred. Non-collinear groups use the unchanged hierarchy.",
                         "Hierarchy requires every path to be stronger than all its fasteners. It is a sufficient exclusion of block tearing for this regular detail; a failed hierarchy requires a separate loaded-block method and prevents whole-detail qualification.",
                         "Parent net-section check assumes all flange/web holes aligned longitudinally and the full member actions retained in the parent, with no cover credit. Maximum lap-end moment is included. Unnotched parent-web block tearing is inapplicable per SCI P398 p59.",
-                        "CompactCovers retains the whole-width no-shear-buckling screen. StandardBoltedCovers explicitly uses SCI P398 pp57-59 for continuous flat rectangular covers with regular closely spaced filled normal fasteners, class1-3 strips/outstands in both directions and every existing compression/shear/bending/net/block check. It is not an EN1993-1-5 free-panel buckling or tension-field method; locally class4 strips remain outside StandardBoltedCovers. EffectiveCompressionWithLowShear is assessed separately and retains the whole-width screen. No continuous line supports are inferred from discrete bolts." });
+                        "CompactCovers retains the whole-width no-shear-buckling screen. StandardBoltedCovers explicitly uses SCI P398 pp57-59 for continuous flat rectangular covers with regular closely spaced filled normal fasteners, class1-3 strips/outstands in both directions and every existing compression/shear/bending/net/block check. It is not an EN1993-1-5 free-panel buckling or tension-field method; locally class4 strips remain outside StandardBoltedCovers. EffectiveCompressionWithLowShear is assessed separately and retains the whole-width screen. No continuous line supports are inferred from discrete bolts." }, reported);
             void Value(string name, double value, string unit)
             { if (WeldedIBeamSplicePlates.Finite(value)) trace.Add(new SectionResistanceValue(name, value, unit)); else issues.Add(name + ".NUMERIC_RANGE"); }
             void ParentNet()
@@ -181,10 +181,11 @@ namespace GPC.Checkers.Steel.Connections
                     g => Tuple.Create(g.Sum(x => Math.Abs(x.Fx)), g.Sum(x => Math.Abs(x.Fy))));
                 double scale = forces.Values.Sum(x => Math.Abs(x.Item1) + Math.Abs(x.Item2));
                 bool collinear = actualCollinearBlockForces && forces.Values.All(x => Math.Abs(x.Item2) <= 32 * 2.2204460492503131e-16 * scale);
-                trace.Add(new SectionResistanceValue(name + ".ActualCollinearBlockMethod", collinear ? 1 : 0, "1"));
-                var capacity = BoltStrength.Verify(new BoltStrengthInput(code, bolt, 0, 0, planes, 0, 0, p.Plates.Bolts.HoleClearanceServiceabilitySource));
+                var method = new SectionResistanceValue(name + ".ActualCollinearBlockMethod", collinear ? 1 : 0, "1");
+                trace.Add(method); reported.Add(method);
+                var capacity = BoltStrength.Verify(new BoltStrengthInput(code, bolt, 0, 0, planes, 0, 0, p.Plates.Bolts.HoleClearanceServiceabilitySource), out var capacityValues);
                 if (!capacity.IsComplete) { issues.AddRange(capacity.Diagnostics); return; }
-                double rb = capacity.Checks.Single(c => c.Id == "Bolt.Shear").Resistance;
+                double rb = capacityValues.ShearResistance;
                 for (int axis = 0; axis < (collinear ? 1 : 2); axis++) foreach (int sign in new[] { -1, 1 })
                 {
                     double[] us = points.Select(q => sign * (axis == 0 ? q.X : q.Y)).Distinct().OrderBy(x => x).ToArray();
@@ -201,7 +202,7 @@ namespace GPC.Checkers.Steel.Connections
                         if (last == vs.Length - 1) Path(vmax - vs[first] - (count - .5) * bolt.HoleDiameter, lv, "Lmax");
                         void Path(double lt, double ls, string mode)
                         {
-                            double resistance = (.5 * lt * plate.Fu / code.Plates.GammaM2 + ls * plate.Fy / (Math.Sqrt(3) * code.Plates.GammaM0)) * plate.Thickness;
+                            double resistance = (.5 * lt * plate.Fu / code.Plates.GammaM2 + PlasticShear.Resistance(ls, plate.Fy, code.Plates.GammaM0)) * plate.Thickness;
                             if (lt < 0 || ls <= 0 || !WeldedIBeamSplicePlates.Finite(resistance)) { issues.Add(name + ".INVALID_BLOCK_PATH"); return; }
                             double demand = collinear ? points.Where(q => sign * q.X <= us[k - 1] && q.Y >= vs[first] && q.Y <= vs[last])
                                 .Sum(q => Math.Abs(forces[q].Item1)) : k * count * rb;

@@ -67,11 +67,15 @@ namespace GPC.Checkers.Steel.Connections
         public IReadOnlyList<string> Assumptions { get; }
         public ConnectionCheck GoverningCheck => IsComplete ? Checks.OrderByDescending(c => c.Utilization).First() : null;
         public double? Utilization => GoverningCheck?.Utilization;
+        /// <summary>The trace entries the producer marks for reports, in trace order. Reports
+        /// select these typed entries instead of matching trace labels.</summary>
+        internal IReadOnlyList<SectionResistanceValue> ReportedValues { get; }
 
         internal ConnectionVerification(TInput input, ConnectionDesignCode code, string methodId, string scope,
             IEnumerable<ConnectionCheck> checks, IEnumerable<SectionResistanceValue> trace,
-            IEnumerable<string> diagnostics, IEnumerable<string> assumptions = null)
+            IEnumerable<string> diagnostics, IEnumerable<string> assumptions = null, IEnumerable<SectionResistanceValue> reported = null)
         {
+            ReportedValues = Array.AsReadOnly(reported == null ? Array.Empty<SectionResistanceValue>() : reported.ToArray());
             Input = input ?? throw new ArgumentNullException(nameof(input));
             Code = code ?? throw new ArgumentNullException(nameof(code));
             MethodId = methodId; Scope = scope;

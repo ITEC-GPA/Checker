@@ -111,7 +111,8 @@ namespace GPC.Checkers.Steel.Connections
                     double yo = outward * ((parent.Thickness + cover.Outer.Thickness) / 2 + (top ? d.Packing.TopOuter : d.Packing.BottomOuter));
                     double yi = -outward * ((parent.Thickness + cover.EachInner.Thickness) / 2 + (top ? d.Packing.TopInner : d.Packing.BottomInner));
                     double ao = cover.Outer.Width * cover.Outer.Thickness, ai = 2 * cover.EachInner.Width * cover.EachInner.Thickness;
-                    double n = T("ParentAxial"), m = T("ParentLocalMoment"), no = T("OuterForce"), ni = T("BothInnerForce");
+                    var typed = forces.Flange(SpliceSide.Left, top);
+                    double n = typed.ParentAxial, m = typed.ParentLocalMoment, no = typed.OuterForce, ni = typed.BothInnerForce;
                     double e = p.Plates.Policy.ElasticModulus;
                     double eo = no / (e * ao), ei = ni / (e * ai);
                     double k = (eo - ei) / (yo - yi), e0 = eo - k * yo;
@@ -121,7 +122,6 @@ namespace GPC.Checkers.Steel.Connections
                     Value("OuterAxialStrain", eo, "1"); Value("InnerAxialStrain", ei, "1");
                     Value("FaceStrainGradient", k, "1/mm"); Value("ParentStrainGradient", kp, "1/mm");
                     Value("AtParentCentroidStrainJump", e0 - ep, "1"); Value("StrainGradientJump", k - kp, "1/mm");
-                    double T(string key) => forces.Trace.Single(v => v.Name == "Left." + name + "." + key).Value;
                     void Value(string key, double value, string unit)
                     { if (WeldedIBeamSplicePlates.Finite(value)) strain.Add(new SectionResistanceValue(name + "." + key, value, unit)); else issues.Add(name + ".ELASTIC_FACE_NUMERIC_RANGE"); }
                 }

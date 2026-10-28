@@ -168,8 +168,8 @@ namespace GPC.Checkers.Steel.Connections
             double anv = 2 * plate.Thickness * (end + grid.LongitudinalSpan - (grid.LongitudinalRows - .5) * d0);
             double yield = SectionResistanceArithmetic.Normal(area, plate.Fy, factors.GammaM0);
             double rupture = SectionResistanceArithmetic.NetTension(net, plate.Fu, factors.GammaM2);
-            double blockInside = antInside * plate.Fu / factors.GammaM2 + anv * plate.Fy / (Math.Sqrt(3) * factors.GammaM0);
-            double blockOutside = antOutside * plate.Fu / factors.GammaM2 + anv * plate.Fy / (Math.Sqrt(3) * factors.GammaM0);
+            double blockInside = antInside * plate.Fu / factors.GammaM2 + PlasticShear.Resistance(anv, plate.Fy, factors.GammaM0);
+            double blockOutside = antOutside * plate.Fu / factors.GammaM2 + PlasticShear.Resistance(anv, plate.Fy, factors.GammaM0);
             var capacities = new[] { yield, rupture, blockInside, blockOutside };
             if (capacities.Any(c => !Finite(c) || c <= 0)) { issues.Add(id + ".RESISTANCE_OUTSIDE_NUMERIC_RANGE"); return; }
             string normal = (p.Policy.Code.IsNtc ? "NTC2018 4.2.4.1.2" : "EN1993-1-1:2005 6.2.3-6.2.4") + "; SCI P398 pp56-57";

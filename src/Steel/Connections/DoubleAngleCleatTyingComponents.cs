@@ -212,8 +212,8 @@ namespace GPC.Checkers.Steel.Connections
             Gate(end > 0 && pitch > 0 && m > d0 / 2 && n > 0 && denominator > 0
                 && g.SupportContactWidth < 2 * Math.Min(m, g.FreeEdge), "EQUIVALENT_TSTUB_GEOMETRY_OUTSIDE_SCOPE");
             double moment = .25 * length * leg.Thickness * leg.Thickness * leg.Fu / gm;
-            double ft = .9 * bolt.Fu * bolt.TensileArea / gm, sumFt = 2 * g.Rows * ft;
-            double fv = .6 * bolt.Fu * bolt.TensileArea / gm;
+            double ft = BoltResistance.Tension(bolt.Fu, bolt.TensileArea, gm), sumFt = 2 * g.Rows * ft;
+            double fv = BoltResistance.Shear(1, .6, bolt.Fu, bolt.TensileArea, gm);
             Value("Geometry.EffectiveEnd", end, "mm"); Value("Geometry.EffectivePitch", pitch, "mm");
             Value("Geometry.EffectiveLength", length, "mm"); Value("Geometry.M", m, "mm");
             Value("Geometry.N", n, "mm"); Value("Geometry.ContactEw", ew, "mm");
@@ -253,7 +253,7 @@ namespace GPC.Checkers.Steel.Connections
             void Block(string id, double ant, double anv, double yield, double ultimate, string reference)
             {
                 Value(id + ".Ant", ant, "mm2"); Value(id + ".Anv", anv, "mm2");
-                double tension = ant * ultimate / gm, shear = anv * yield / (Math.Sqrt(3) * p.Policy.GammaM0);
+                double tension = ant * ultimate / gm, shear = PlasticShear.Resistance(anv, yield, p.Policy.GammaM0);
                 Value(id + ".TensionTerm", tension, "N"); Value(id + ".ShearYieldTerm", shear, "N");
                 Gate(ant > 0 && anv > 0, id + ".NONPOSITIVE_BLOCK_AREA");
                 Check(id, tension + shear, reference);
