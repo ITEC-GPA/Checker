@@ -28,7 +28,7 @@ namespace GPC.Checkers.Steel.Pipeline
             var h=(SectionH)section.SectionShape;
             var p=Ec3WebPanelShear.Calculate(h.HeightWeb,h.ThicknessWeb,input.Section.YieldStrength,input.Section.ElasticModulus,
                 input.Code.SectionCode.GammaM0,gammaM1,eta,panelLength,rigidEndPost);
-            double vpl=ModelShearAreas.GetArea2(section,input.Code.SectionCode.Standard)*input.Section.YieldStrength/(Math.Sqrt(3)*input.Code.SectionCode.GammaM0);
+            double vpl=SteelPlasticShear.Resistance(input,2);
             double resistance=Math.Min(vpl,p.BucklingResistance);
             SteelInputValidation.Positive(resistance,"web resistance");
             return new SteelShearBucklingAssessment(input,2,false,stiffenerDetailSource,

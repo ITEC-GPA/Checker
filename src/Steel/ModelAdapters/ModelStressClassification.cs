@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using GPC.Checkers.Steel.Inputs;
 using GPC.Checkers.Steel.Sections;
+using GPC.Checkers.Steel.Selection;
 using GPC.Model.Sections;
 using GPC.Model.Sections.Steel;
 
@@ -35,7 +36,8 @@ namespace GPC.Checkers.Steel.ModelAdapters
         internal static Result TryEvaluate(SteelVerificationInput input, ISteelSection section)
         {
             var shape = section.SectionShape;
-            if (Math.Abs(shape.AngleX1) > 1e-10 || section.FormedType == Section.FormedTypes.ColdFormed && !(shape is SectionRHSRoundedCorners || shape is SectionRHS))
+            var family = SteelSectionFamilies.Of(shape);
+            if (family == null || Math.Abs(shape.AngleX1) > 1e-10 || section.FormedType == Section.FormedTypes.ColdFormed && family.OpenProfile)
                 return null;
             var a = input.EffectiveActions;
             double fy = input.Section.YieldStrength, area = input.Section.Area;
@@ -45,10 +47,9 @@ namespace GPC.Checkers.Steel.ModelAdapters
             double m1 = Math.Abs(a.M1), m2 = Math.Abs(a.M2);
             if (m1 == 0 && m2 == 0) return null; // Uniform compression or tension: the nominal route applies as is.
             List<Part> parts;
-            if (shape.GetType() == typeof(SectionH)) parts = H((SectionH)shape, fy, eps, sigmaN, nc, m1, m2, i1, i2);
-            else if (shape.GetType() == typeof(SectionC)) parts = C((SectionC)shape, fy, eps, sigmaN, nc, m1, m2, i1);
-            else if (shape.GetType() == typeof(SectionRHS) || shape.GetType() == typeof(SectionRHSRoundedCorners))
-                parts = Box(section, fy, eps, sigmaN, nc, m1, m2, i1, i2);
+            if (family.Kind == SteelSectionKind.IOrH) parts = H((SectionH)shape, fy, eps, sigmaN, nc, m1, m2, i1, i2);
+            else if (family.Kind == SteelSectionKind.Channel) parts = C((SectionC)shape, fy, eps, sigmaN, nc, m1, m2, i1);
+            else if (family.Kind == SteelSectionKind.RectangularTube) parts = Box(section, fy, eps, sigmaN, nc, m1, m2, i1, i2);
             else return null;
             if (parts == null) return null;
             foreach (var p in parts) Classify(p);

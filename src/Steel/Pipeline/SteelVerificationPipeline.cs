@@ -259,7 +259,7 @@ namespace GPC.Checkers.Steel.Pipeline
             var h = (SectionH)section.SectionShape;
             double fy = input.Section.YieldStrength, gamma = input.Code.SectionCode.GammaM0;
             double av = ModelShearAreas.GetArea2(section, input.Code.SectionCode.Standard);
-            double vpl = av * fy / (Math.Sqrt(3) * gamma), ratio = Math.Abs(input.EffectiveActions.V2) / vpl;
+            double vpl = SteelPlasticShear.Resistance(input, 2), ratio = Math.Abs(input.EffectiveActions.V2) / vpl;
             var trace = NormalTrace(input, decision);
             Add(trace, "V2", input.EffectiveActions.V2, "N"); Add(trace, "Av2", av, "mm2");
             Add(trace, "VplRd", vpl, "N"); Add(trace, "ShearRatio2", ratio, "1");

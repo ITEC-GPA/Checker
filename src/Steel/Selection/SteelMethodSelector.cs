@@ -66,7 +66,7 @@ namespace GPC.Checkers.Steel.Selection
         private static SteelMethodDecision SlenderWebRoute(SteelVerificationInput input, ISteelSection section)
         {
             var shape = section.SectionShape;
-            if (shape.GetType() != typeof(SectionH) || input.EffectiveActions.V1 != 0 || Math.Abs(shape.AngleX1) > 1e-10) return null;
+            if (!SteelSectionFamilies.Is(shape, SteelSectionKind.IOrH) || input.EffectiveActions.V1 != 0 || Math.Abs(shape.AngleX1) > 1e-10) return null;
             var uniform = Classification(input, section, null);
             if (uniform.Failure != null || uniform.Class != 4) return null;
             try { SteelEffectiveSectionSolver.Qualify(input.Section); }
@@ -110,7 +110,7 @@ namespace GPC.Checkers.Steel.Selection
             int cl = classInfo.Class.Value;
             if (cl == 4)
             {
-                if (shear && (shape.GetType()!=typeof(SectionH) || a.V1!=0 || Math.Abs(shape.AngleX1)>1e-10))
+                if (shear && (!SteelSectionFamilies.Is(shape, SteelSectionKind.IOrH) || a.V1!=0 || Math.Abs(shape.AngleX1)>1e-10))
                     return Unsupported(target, "Class4.ShearInteractionNotQualified", "Class4 shear interaction currently requires H web-direction shear only.");
                 try { SteelEffectiveSectionSolver.Qualify(s); }
                 catch (NotSupportedException ex) { return new SteelMethodDecision(target, SteelSelectionStatus.NotSupported, null,
@@ -118,13 +118,13 @@ namespace GPC.Checkers.Steel.Selection
                 return shear ? AwaitShearAssessment(target, SteelMethod.EffectiveNormalResistance, cl, classInfo.Source)
                     : Ready(target, SteelMethod.EffectiveNormalResistance, cl, classInfo.Source);
             }
-            bool plasticH = interaction && ec3 && cl <= 2 && shape.GetType() == typeof(SectionH)
+            bool plasticH = interaction && ec3 && cl <= 2 && SteelSectionFamilies.Is(shape, SteelSectionKind.IOrH)
                 && ((SectionH)shape).R == 0 && Math.Abs(shape.AngleX1) <= 1e-10;
             // Doubly symmetric I/H, rolled or NTC: the code's closed-form plastic interaction.
-            bool plasticIH = interaction && !plasticH && cl <= 2 && shape.GetType() == typeof(SectionH)
+            bool plasticIH = interaction && !plasticH && cl <= 2 && SteelSectionFamilies.Is(shape, SteelSectionKind.IOrH)
                 && !asymmetricH && Math.Abs(shape.AngleX1) <= 1e-10;
             bool elastic = interaction && !plasticH && !plasticIH || moment &&
-                (shape.GetType() == typeof(SectionL) || shape.GetType() == typeof(SectionRHSRoundedCorners));
+                SteelSectionFamilies.Of(shape).ElasticBendingOnly;
             SteelMethod method = !moment ? SteelMethod.SectionCompression
                 : plasticH ? SteelMethod.Ec3PlasticHInteraction
                 : plasticIH ? SteelMethod.IHPlasticInteractionFormulas
@@ -148,7 +148,7 @@ namespace GPC.Checkers.Steel.Selection
             if (Math.Abs(a.V1) > .5 * ShearResistance(input, section, 1)
                 || Math.Abs(a.V2) > .5 * ShearResistance(input, section, 2))
             {
-                if (cl <= 2 && shape.GetType() == typeof(SectionH) && !asymmetricH
+                if (cl <= 2 && SteelSectionFamilies.Is(shape, SteelSectionKind.IOrH) && !asymmetricH
                     && a.N == 0 && a.M2 == 0 && a.V1 == 0 && Math.Abs(shape.AngleX1) <= 1e-10)
                     return AwaitShearAssessment(target, SteelMethod.HMajorBendingShear, cl, classInfo.Source);
                 return LinearInteraction(input, section, cl, classInfo.Source);
@@ -173,10 +173,10 @@ namespace GPC.Checkers.Steel.Selection
             }
             var shape = section.SectionShape;
             bool ntc = input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018;
-            if (shape.GetType() == typeof(SectionRectangular) || shape.GetType() == typeof(SectionCircular))
+            if (SteelSectionFamilies.Is(shape, SteelSectionKind.Solid))
                 return new ClassificationInfo(3, (ntc ? "NTC 2018 4.2.3.2" : "EN 1993-1-1:2005 6.2.1(4)")
                     + "; solid section, conservative elastic resistance; no plate local buckling");
-            if (shape.GetType() == typeof(SectionL))
+            if (SteelSectionFamilies.Is(shape, SteelSectionKind.Angle))
             {
                 var angle = (SectionL)shape;
                 if (angle.HorizontalLegThickness != angle.VerticalLegThickness)
@@ -239,30 +239,16 @@ namespace GPC.Checkers.Steel.Selection
                 "One cut and end restraints do not establish a member load diagram, uniformity, first/second-order analysis or curve selection. Existing specialized member APIs remain explicit until the member-analysis adapter is implemented.");
         }
 
-        internal static bool KnownGeometry(ISectionShape shape)
-        {
-            var t = shape.GetType();
-            return t == typeof(SectionBuiltUp) || t == typeof(SectionRectangular) || t == typeof(SectionCircular) || t == typeof(SectionH) || t == typeof(SectionT) || t == typeof(SectionC) || t == typeof(SectionL)
-                || t == typeof(SectionCHS) || t == typeof(SectionRHSRoundedCorners)
-                || t == typeof(SectionRHS) && ((SectionRHS)shape).R == 0;
-        }
+        internal static bool KnownGeometry(ISectionShape shape) => SteelSectionFamilies.Of(shape) != null;
 
         internal static bool ShearMappingQualified(ISteelSection section)
         {
-            var t = section.SectionShape.GetType();
-            bool mapped = t == typeof(SectionH) || t == typeof(SectionT) || t == typeof(SectionC)
-                || t == typeof(SectionCHS) || t == typeof(SectionRHS) && ((SectionRHS)section.SectionShape).R == 0
-                || t == typeof(SectionRHSRoundedCorners) && section.SectionType == Section.SectionTypes.Rolled
-                    && section.FormedType == Section.FormedTypes.HotFinished;
-            return mapped && Math.Abs(section.AngleX1) <= 1e-10;
+            var family = SteelSectionFamilies.Of(section.SectionShape);
+            return family != null && family.HasShearAreas(section) && Math.Abs(section.AngleX1) <= 1e-10;
         }
 
         internal static bool ColdFormedOpen(ISteelSection section)
-        {
-            var t = section.SectionShape.GetType();
-            return section.FormedType == Section.FormedTypes.ColdFormed
-                && (t == typeof(SectionBuiltUp) || t == typeof(SectionH) || t == typeof(SectionT) || t == typeof(SectionC) || t == typeof(SectionL));
-        }
+            => section.FormedType == Section.FormedTypes.ColdFormed && SteelSectionFamilies.Of(section.SectionShape)?.OpenProfile == true;
 
         internal static void ValidateGeometry(ISteelSection section)
         {
@@ -270,9 +256,10 @@ namespace GPC.Checkers.Steel.Selection
                 || !Enum.IsDefined(typeof(Section.FormedTypes), section.FormedType))
                 throw new ArgumentException("Unknown section fabrication/formation.");
             var shape = section.SectionShape;
-            if (shape.GetType() == typeof(SectionRectangular) || shape.GetType() == typeof(SectionCircular))
+            var kind = SteelSectionFamilies.Of(shape)?.Kind;
+            if (kind == SteelSectionKind.Solid)
             { Positive(shape.Height); Positive(shape.Width); Positive(shape.Area); return; }
-            if (shape.GetType() == typeof(SectionL))
+            if (kind == SteelSectionKind.Angle)
             {
                 var angle = (SectionL)shape;
                 Positive(angle.HorizontalLegLength - angle.VerticalLegThickness - angle.R);
@@ -281,12 +268,12 @@ namespace GPC.Checkers.Steel.Selection
                 if (!(angle.R >= 0) || double.IsInfinity(angle.R)) throw new ArgumentException("Invalid angle radius.");
                 return;
             }
-            if (shape.GetType() == typeof(SectionCHS))
+            if (kind == SteelSectionKind.CircularTube)
             {
                 var chs = (SectionCHS)shape;
                 Positive(chs.Diameter - 2 * chs.Thickness);
             }
-            if (shape.GetType() == typeof(SectionBuiltUp))
+            if (kind == SteelSectionKind.BuiltUpPair)
             {
                 var pair=(SectionBuiltUp)shape; ModelBuiltUpGeometry.Create(pair);
                 ValidateGeometry(new SteelSection(pair.Parts[0].Section,section.SteelMaterial,section.SectionType,section.FormedType));

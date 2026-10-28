@@ -106,9 +106,7 @@ namespace GPC.Checkers.Steel.Inputs
         private static double Shear(SteelVerificationInput input, ISteelSection section, int axis)
         {
             if (!SteelMethodSelector.ShearMappingQualified(section)) return double.NaN;
-            double area = axis == 1 ? ModelShearAreas.GetArea1(section)
-                : ModelShearAreas.GetArea2(section, input.Code.SectionCode.Standard);
-            return area * input.Section.YieldStrength / (Math.Sqrt(3) * input.Code.SectionCode.GammaM0);
+            return Pipeline.SteelPlasticShear.Resistance(input, axis);
         }
 
         private static double Torsion(SteelVerificationInput input, ISteelSection section)
@@ -122,12 +120,13 @@ namespace GPC.Checkers.Steel.Inputs
             var shape = section.SectionShape;
             if (shape is SectionBuiltUp pair)
                 return MinimumThickness(new SteelSection(pair.Parts[0].Section, section.SteelMaterial, section.SectionType, section.FormedType));
-            if (shape.GetType() == typeof(SectionL))
+            var kind = SteelSectionFamilies.Of(shape)?.Kind;
+            if (kind == SteelSectionKind.Angle)
             {
                 var angle = (SectionL)shape;
                 return Math.Min(angle.HorizontalLegThickness, angle.VerticalLegThickness);
             }
-            if (shape.GetType() == typeof(SectionRectangular) || shape.GetType() == typeof(SectionCircular))
+            if (kind == SteelSectionKind.Solid)
                 return Math.Min(shape.Height, shape.Width);
             if (ModelCompressionGeometry.CanMap(section))
                 return ModelCompressionGeometry.Create(section).Parts.Min(p => p.Thickness);

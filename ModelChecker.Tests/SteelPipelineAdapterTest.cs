@@ -98,7 +98,7 @@ public class SteelPipelineAdapterTest
     public void UncoveredInventoryCannotBeReportedAsACompletePass(string kind)
     {
         var input = Input();
-        if (kind == "torsion") { input.Forces.N = 1e4; input.Forces.T = 1; }
+        if (kind == "torsion") { input.Forces.N = 1e4; input.Forces.T = 1e5; } // 1 Nmm is now below the negligible-action limit
         if (kind == "two shears") input.Forces.V1 = input.Forces.V2 = 1e3;
         var result = Run(input);
         Assert.AreEqual(EngineeringOutcome.NotEvaluated, result.Outcome);

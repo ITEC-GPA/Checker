@@ -21,7 +21,7 @@ namespace GPC.Checkers.Steel.Pipeline
             double utilization=r.Utilization,shearRatio=0,interaction=0;
             if(a.V2!=0) {
                 var section=input.Section.ReadOnlySection;
-                double resistance=assessments.Single().BucklingResistance ?? ModelShearAreas.GetArea2(section,input.Code.SectionCode.Standard)*input.Section.YieldStrength/(Math.Sqrt(3)*input.Code.SectionCode.GammaM0);
+                double resistance=assessments.Single().BucklingResistance ?? SteelPlasticShear.Resistance(input,2);
                 shearRatio=Math.Abs(a.V2)/resistance;
                 if(shearRatio>.5 && (a.N!=0||a.M2!=0||!section.SectionShape.IsDoubleSymmetric))
                     return new SteelCheckExecution(decision,SteelExecutionStatus.NotSupported,"Class4.HighShearInteractionNotQualified",
