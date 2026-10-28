@@ -7,7 +7,7 @@ namespace GPC.Checkers.Steel.Connections
 {
     /// <summary>One complete concomitant ULS state, with a caller-defined ordinal
     /// identifier. Plates, actions, application point and provenance are retained.</summary>
-    public sealed class IBeamSpliceUltimateCase
+    internal sealed class IBeamSpliceUltimateCase
     {
         public string Id { get; }
         public IBeamSplicePlateInput Plates { get; }
@@ -21,7 +21,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>A separately supplied slip state. An ULS slip must name exactly
     /// one UltimateCaseId with identical actions AND application point. An SLS
     /// slip has no ULS binding. Missing/wrong bindings produce diagnostics.</summary>
-    public sealed class IBeamSpliceSlipCase
+    internal sealed class IBeamSpliceSlipCase
     {
         public string Id { get; }
         public IBeamSpliceBoltSlipInput Input { get; }
@@ -38,7 +38,7 @@ namespace GPC.Checkers.Steel.Connections
     /// StringComparer.Ordinal. No independent maxima of N/V/M are synthesized.
     /// Category C is requested by RequiredSlipLimitState=Ultimate OR any ULS slip;
     /// it requires one explicitly bound ULS slip for every supplied ULS case.</summary>
-    public sealed class IBeamSpliceEnvelopeInput
+    internal sealed class IBeamSpliceEnvelopeInput
     {
         public IReadOnlyList<IBeamSpliceUltimateCase> UltimateCases { get; }
         public IReadOnlyList<IBeamSpliceSlipCase> SlipCases { get; }
@@ -65,7 +65,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>The original results calculated once for one ULS case. A failed
     /// binding never deletes a failure in that case's independently evaluated
     /// components. Status covers these components/binding, not the whole joint.</summary>
-    public sealed class IBeamSpliceUltimateCaseResult
+    internal sealed class IBeamSpliceUltimateCaseResult
     {
         public IBeamSpliceUltimateCase Input { get; }
         public IBeamSpliceComponentResult Components { get; }
@@ -92,7 +92,7 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>Original slip result and separate binding evidence. A result for
     /// another detail remains inspectable, but cannot qualify this envelope.</summary>
-    public sealed class IBeamSpliceSlipCaseResult
+    internal sealed class IBeamSpliceSlipCaseResult
     {
         public IBeamSpliceSlipCase Input { get; }
         public ConnectionVerification<IBeamSpliceBoltSlipInput> Assessment { get; }
@@ -109,7 +109,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Links one aggregate check to its ORIGINAL immutable leaf check.
     /// IsServiceability distinguishes SLS from ULS without parsing an Id. A slip
     /// source uses its slip Id, and LinkedUltimateCaseId identifies its ULS case.</summary>
-    public sealed class IBeamSpliceEnvelopeCheckSource
+    internal sealed class IBeamSpliceEnvelopeCheckSource
     {
         public string AggregateCheckId { get; }
         public string CaseId { get; }
@@ -129,7 +129,7 @@ namespace GPC.Checkers.Steel.Connections
     /// only. NS suppresses favourable aggregate checks/ratios; every original
     /// case and known failure remains available. It never qualifies a full joint
     /// or proves that the caller supplied every necessary structural combination.</summary>
-    public sealed class IBeamSpliceEnvelopeResult
+    internal sealed class IBeamSpliceEnvelopeResult
     {
         public ConnectionVerification<IBeamSpliceEnvelopeInput> ComponentAssessment { get; }
         public IReadOnlyList<IBeamSpliceUltimateCaseResult> UltimateCases { get; }
@@ -170,7 +170,8 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class IBeamSpliceEnvelope
+    [Obsolete("Approximate envelope of the IBeamSplice family; use WeldedIBeamSpliceStandard.")]
+    internal static class IBeamSpliceEnvelope
     {
         public const string MethodId = "Steel.Connection.IBeamSplice.ConcomitantCaseEnvelope";
         public static IBeamSpliceEnvelopeResult Verify(IBeamSpliceEnvelopeInput p)
@@ -224,8 +225,8 @@ namespace GPC.Checkers.Steel.Connections
                 var s = item.Input; var binding = new List<string>();
                 bool serviceability = s.LimitState == BoltSlipLimitState.Serviceability;
                 string prefix = serviceability ? "SLS" + (++serviceabilityIndex) : "SlipULS" + (++ultimateSlipIndex);
-                if (!SameCode(anchor.Policy.Code, s.Policy.Code)) binding.Add("SLIP_CASE_DESIGN_CODE_MISMATCH");
-                if (!SameGeometry(anchor.Forces, s.Forces) || !SameBolts(anchor.Bolts, s.Bolts))
+                if (!SpliceIdentity.Code(anchor.Policy.Code, s.Policy.Code)) binding.Add("SLIP_CASE_DESIGN_CODE_MISMATCH");
+                if (!SpliceIdentity.IBeamGeometry(anchor.Forces, s.Forces) || !SpliceIdentity.IBeamBolts(anchor.Bolts, s.Bolts))
                     binding.Add("SLIP_CASE_PHYSICAL_DETAIL_MISMATCH");
                 if (!SameSlipPolicyAndSurface(slipAnchor, s)) binding.Add("SLIP_POLICY_SURFACE_OR_TIGHTENING_MISMATCH");
                 if (serviceability)
@@ -237,7 +238,7 @@ namespace GPC.Checkers.Steel.Connections
                     IBeamSpliceUltimateCase linked;
                     if (item.UltimateCaseId == null || !byId.TryGetValue(item.UltimateCaseId, out linked))
                         binding.Add("ULTIMATE_SLIP_CASE_BINDING_MISSING_OR_UNKNOWN");
-                    else if (!SameActions(linked.Plates.Forces.Actions, s.Forces.Actions))
+                    else if (!SpliceIdentity.Actions(linked.Plates.Forces.Actions, s.Forces.Actions))
                         binding.Add("ULTIMATE_SLIP_CONCOMITANT_ACTIONS_OR_APPLICATION_POINT_MISMATCH");
                 }
                 var result = IBeamSpliceBolts.VerifySlip(s);
@@ -270,49 +271,23 @@ namespace GPC.Checkers.Steel.Connections
                 foreach (var check in child.Checks)
                 {
                     string aggregateId = prefix + "." + component + "." + check.Id;
-                    checks.Add(new ConnectionCheck(aggregateId, check.Demand, check.Resistance, check.Reference, check.Unit));
+                    checks.Add(check.WithId(aggregateId));
                     sources.Add(new IBeamSpliceEnvelopeCheckSource(aggregateId, id, component, serviceability, linkedId, check));
                 }
             }
         }
 
         private static bool SamePlatePolicy(IBeamSplicePlatePolicy a, IBeamSplicePlatePolicy b)
-            => SameCode(a.Code, b.Code) && a.GammaM1 == b.GammaM1 && a.ElasticModulus == b.ElasticModulus;
-        private static bool SameCode(ConnectionDesignCode a, ConnectionDesignCode b)
-            => a.IsNtc == b.IsNtc && a.Plates.GammaM0 == b.Plates.GammaM0
-                && a.Plates.GammaM2 == b.Plates.GammaM2 && a.GammaM2Connection == b.GammaM2Connection;
+            => ReferenceEquals(a, b) || SpliceIdentity.Code(a.Code, b.Code) && a.GammaM1 == b.GammaM1 && a.ElasticModulus == b.ElasticModulus;
         private static bool SamePlateDetail(IBeamSplicePlateInput a, IBeamSplicePlateInput b)
-            => SameGeometry(a.Forces, b.Forces) && SameBolts(a.Bolts, b.Bolts)
-                && SamePlate(a.FlangeCover, b.FlangeCover) && SamePlate(a.WebCover, b.WebCover)
+            => SpliceIdentity.IBeamGeometry(a.Forces, b.Forces) && SpliceIdentity.IBeamBolts(a.Bolts, b.Bolts)
+                && SpliceIdentity.Plate(a.FlangeCover, b.FlangeCover) && SpliceIdentity.Plate(a.WebCover, b.WebCover)
                 && a.FlangeCoverEnd == b.FlangeCoverEnd && a.WebCoverEnd == b.WebCoverEnd && a.ButtGap == b.ButtGap
                 && a.BeamFlangeFy == b.BeamFlangeFy && a.BeamFlangeFu == b.BeamFlangeFu && a.Exposed == b.Exposed;
-        private static bool SamePlate(ConnectionPlate a, ConnectionPlate b)
-            => a.Width == b.Width && a.Thickness == b.Thickness && a.Fy == b.Fy && a.Fu == b.Fu;
-        private static bool SameGeometry(IBeamSpliceForceInput a, IBeamSpliceForceInput b)
-        {
-            var x = a.Section; var y = b.Section;
-            return a.StrongAxisSecondMoment == b.StrongAxisSecondMoment && x.Height == y.Height && x.Width == y.Width
-                && x.WebThickness == y.WebThickness && x.FlangeThickness == y.FlangeThickness && x.RootRadius == y.RootRadius
-                && x.Area == y.Area && x.Fy == y.Fy && x.Fu == y.Fu
-                && SameGrid(a.FlangeBolts, b.FlangeBolts) && SameGrid(a.WebBolts, b.WebBolts);
-        }
-        private static bool SameGrid(SpliceBoltLayout a, SpliceBoltLayout b)
-            => a.LongitudinalRows == b.LongitudinalRows && a.TransverseRows == b.TransverseRows
-                && a.LongitudinalPitch == b.LongitudinalPitch && a.TransversePitch == b.TransversePitch && a.FirstBoltDistance == b.FirstBoltDistance;
-        private static bool SameBolts(IBeamSpliceBoltSet a, IBeamSpliceBoltSet b)
-            => SameBolt(a.FlangeBolt, b.FlangeBolt) && SameBolt(a.WebBolt, b.WebBolt)
-                && a.FlangeHardwareEnvelopeDiameter == b.FlangeHardwareEnvelopeDiameter
-                && a.WebHardwareEnvelopeDiameter == b.WebHardwareEnvelopeDiameter;
-        private static bool SameBolt(ConnectionBolt a, ConnectionBolt b)
-            => a.Diameter == b.Diameter && a.HoleDiameter == b.HoleDiameter && a.TensileArea == b.TensileArea
-                && a.Grade == b.Grade && a.ThreadedShearPlanes == b.ThreadedShearPlanes;
         private static bool SameSlipPolicyAndSurface(IBeamSpliceBoltSlipInput a, IBeamSpliceBoltSlipInput b)
-            => SameCode(a.Policy.Code, b.Policy.Code) && a.Policy.GammaM3Ultimate == b.Policy.GammaM3Ultimate
+            => SpliceIdentity.Code(a.Policy.Code, b.Policy.Code) && a.Policy.GammaM3Ultimate == b.Policy.GammaM3Ultimate
                 && a.Policy.GammaM3Serviceability == b.Policy.GammaM3Serviceability
                 && a.FlangeFrictionCoefficient == b.FlangeFrictionCoefficient && a.WebFrictionCoefficient == b.WebFrictionCoefficient
                 && a.TighteningControl == b.TighteningControl;
-        private static bool SameActions(PlanarConnectionActions a, PlanarConnectionActions b)
-            => a.Fx == b.Fx && a.Fy == b.Fy && a.Fz == b.Fz && a.Mx == b.Mx && a.My == b.My && a.Mz == b.Mz
-                && a.ApplicationX == b.ApplicationX && a.ApplicationY == b.ApplicationY && a.ApplicationZ == b.ApplicationZ;
     }
 }

@@ -7,7 +7,7 @@ namespace GPC.Checkers.Steel.Connections
 {
     public enum JointStiffnessClass { NominallyPinned, SemiRigid, Rigid }
 
-    public sealed class JointStiffnessClassificationInput
+    internal sealed class JointStiffnessClassificationInput
     {
         public EndPlateRotationalStiffnessResult Stiffness { get; }
         public JointFrameMemberStiffness ConnectedBeam { get; }
@@ -24,7 +24,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public sealed class JointStiffnessClassificationResult
+    internal sealed class JointStiffnessClassificationResult
     {
         public JointStiffnessClassificationInput Input { get; }
         public JointStiffnessClass? NumericalZone { get; }
@@ -52,7 +52,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class JointStiffnessClassification
+    internal static class JointStiffnessClassification
     {
         public static JointStiffnessClassificationResult Classify(JointStiffnessClassificationInput p)
         {

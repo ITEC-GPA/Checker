@@ -61,7 +61,7 @@ namespace GPC.Checkers.Steel.Connections
         public IReadOnlyList<string> MissingWholeJointChecks { get; } = Array.AsReadOnly(new[] {
             "SUPPORT_MEMBER_BEARING", "SUPPORT_LOCAL_RESISTANCE_AND_CONCURRENT_ACTIONS", "FRAME_ROTATION_QUALIFICATION" });
         public double? LoadUtilization => ComponentAssessment.IsComplete
-            ? (double?)ComponentAssessment.Checks.Where(c => !c.Id.StartsWith("Detail.")).Max(c => c.Utilization) : null;
+            ? (double?)ConnectionOutcome.LoadChecks(ComponentAssessment.Checks).Max(c => c.Utilization) : null;
         internal DoubleAngleCleatComponentResult(ConnectionVerification<DoubleAngleCleatComponentInput> assessment,
             ElasticBoltGroupResult beamBolts, ElasticBoltGroupResult left, ElasticBoltGroupResult right)
         { ComponentAssessment = assessment; BeamBolts = beamBolts; LeftSupportBolts = left; RightSupportBolts = right; }
@@ -82,6 +82,8 @@ namespace GPC.Checkers.Steel.Connections
             { ConnectionNumbers.Finite(value, name); trace.Add(new SectionResistanceValue(name, value, unit)); }
             void Check(string id, double demand, double resistance, string source, string unit = "N")
                 => checks.Add(new ConnectionCheck(id, demand, resistance, source, unit));
+            void Detail(string id, double demand, double resistance, string source, string unit = "N")
+                => checks.Add(new ConnectionCheck(id, demand, resistance, source, unit, ConnectionCheckRole.Detailing));
             DoubleAngleCleatComponentResult Result() => new DoubleAngleCleatComponentResult(
                 new ConnectionVerification<DoubleAngleCleatComponentInput>(p, p.Code, "Steel.Connection.DoubleAngleCleat.Components",
                     "Ordinary downward shear components of two identical mirrored L90x90x10 S275 cleats and an unnotched restrained rolled I/H beam. "
@@ -114,8 +116,8 @@ namespace GPC.Checkers.Steel.Connections
 
             double v = -a.Fy, gm0 = p.Code.Plates.GammaM0, gm2 = p.Code.Plates.GammaM2;
             double beamTopEdge = p.TopOffset + 40, beamBottomEdge = beam.Height - beamTopEdge - (p.Rows - 1) * p.Pitch;
-            Check("Detail.MinimumHeight", .6 * beam.Height, p.Height, "SBE-MS5 chapter4 cleat detail", "mm");
-            Check("Detail.Pitch", p.Pitch, Math.Min(14 * Math.Min(leg.Thickness, beam.WebThickness), 200), "EN1993-1-8 Table3.3 / NTC Table4.2.XVIII", "mm");
+            Detail("Detail.MinimumHeight", .6 * beam.Height, p.Height, "SBE-MS5 chapter4 cleat detail", "mm");
+            Detail("Detail.Pitch", p.Pitch, Math.Min(14 * Math.Min(leg.Thickness, beam.WebThickness), 200), "EN1993-1-8 Table3.3 / NTC Table4.2.XVIII", "mm");
             Value("Geometry.Eccentricity", p.Eccentricity, "mm"); Value("Geometry.SupportGauge", p.SupportGauge, "mm");
             Value("Geometry.BeamTopBoltEdge", beamTopEdge, "mm"); Value("Geometry.BeamBottomBoltEdge", beamBottomEdge, "mm");
             var positions = Enumerable.Range(0, p.Rows).Select(i => new ConnectionPoint2D(0, (p.Rows - 1) * p.Pitch / 2 - i * p.Pitch)).ToArray();
@@ -149,12 +151,12 @@ namespace GPC.Checkers.Steel.Connections
             double beamV = Bearing(web, Math.Min(beamTopEdge, beamBottomEdge), p.BeamEndEdge, true, "BeamBearing.Vertical");
             double beamH = Bearing(web, Math.Min(beamTopEdge, beamBottomEdge), p.BeamEndEdge, false, "BeamBearing.Horizontal");
             var strength = BoltStrength.Verify(new BoltStrengthInput(p.Code, p.Bolt, 0, 0,
-                jointLength: (p.Rows - 1) * p.Pitch, holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource));
+                jointLength: (p.Rows - 1) * p.Pitch, holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource), out var strengthValues);
             if (!strength.IsComplete) issues.AddRange(strength.Diagnostics);
             if (issues.Count != 0) return Result();
-            double fv = strength.Checks.Single(c => c.Id == "Bolt.Shear").Resistance;
+            double fv = strengthValues.ShearResistance;
             Value("Bolt.SingleShearResistance", fv, "N");
-            Value("Bolt.BetaLongJoint", strength.Trace.Single(t => t.Name == "BetaLongJoint").Value, "1");
+            Value("Bolt.BetaLongJoint", strengthValues.BetaLongJoint, "1");
             Value("BeamBolts.EquivalentGroupResistance", 2 * fv / forcePerUnit, "N");
             Value("CleatBearing.EquivalentGroupResistance", 2 / ElasticBoltGroup.Hypot(1 / (p.Rows * legV), beta / legH), "N");
             Value("BeamBearing.EquivalentGroupResistance", 1 / ElasticBoltGroup.Hypot(1 / (p.Rows * beamV), beta / beamH), "N");
@@ -189,9 +191,9 @@ namespace GPC.Checkers.Steel.Connections
             foreach (string side in new[] { "Left", "Right" }) foreach (string part in new[] { "BeamLeg", "SupportLeg" })
             {
                 string id = side + "." + part;
-                Check(id + ".GrossShear", v / 2, p.Height * leg.Thickness * leg.Fy / (1.27 * Math.Sqrt(3) * gm0), "SBE4.2.2, guidance1.27 nominal bending");
-                Check(id + ".NetShear", v / 2, avNet * leg.Fu / (Math.Sqrt(3) * gm2), "SBE4.2.2");
-                Check(id + ".BlockTearing", v / 2, .5 * ant * leg.Fu / gm2 + anv * leg.Fy / (Math.Sqrt(3) * gm0), "SBE4.2.2; EN1993-1-8 3.10.2 eccentric block");
+                Check(id + ".GrossShear", v / 2, PlasticShear.Resistance(p.Height * leg.Thickness, leg.Fy, 1.27, gm0), "SBE4.2.2, guidance1.27 nominal bending");
+                Check(id + ".NetShear", v / 2, PlasticShear.Resistance(avNet, leg.Fu, gm2), "SBE4.2.2");
+                Check(id + ".BlockTearing", v / 2, .5 * ant * leg.Fu / gm2 + PlasticShear.Resistance(anv, leg.Fy, gm0), "SBE4.2.2; EN1993-1-8 3.10.2 eccentric block");
             }
             double av = Math.Max(beam.Area - 2 * beam.Width * beam.FlangeThickness + (beam.WebThickness + 2 * beam.RootRadius) * beam.FlangeThickness,
                 (beam.Height - 2 * beam.FlangeThickness) * beam.WebThickness);
@@ -199,9 +201,9 @@ namespace GPC.Checkers.Steel.Connections
             double antBeam = beam.WebThickness * (p.BeamEndEdge - p.Bolt.HoleDiameter / 2);
             double anvBeam = beam.WebThickness * (beamTopEdge + (p.Rows - 1) * p.Pitch - (p.Rows - .5) * p.Bolt.HoleDiameter);
             Value("Beam.Av", av, "mm2"); Value("Beam.AvNet", net, "mm2"); Value("Beam.Ant", antBeam, "mm2"); Value("Beam.Anv", anvBeam, "mm2");
-            Check("Beam.GrossShear", v, av * beam.Fy / (Math.Sqrt(3) * gm0), "SBE4.2.3.1 rolled I/H web");
-            Check("Beam.NetShear", v, net * beam.Fu / (Math.Sqrt(3) * gm2), "SBE4.2.3.1");
-            Check("Beam.BlockTearing", v, .5 * antBeam * beam.Fu / gm2 + anvBeam * beam.Fy / (Math.Sqrt(3) * gm0), "SBE4.2.3.1 and example4.4 p77: unnotched beam top block path");
+            Check("Beam.GrossShear", v, PlasticShear.Resistance(av, beam.Fy, gm0), "SBE4.2.3.1 rolled I/H web");
+            Check("Beam.NetShear", v, PlasticShear.Resistance(net, beam.Fu, gm2), "SBE4.2.3.1");
+            Check("Beam.BlockTearing", v, .5 * antBeam * beam.Fu / gm2 + PlasticShear.Resistance(anvBeam, beam.Fy, gm0), "SBE4.2.3.1 and example4.4 p77: unnotched beam top block path");
             return Result();
         }
     }

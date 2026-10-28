@@ -12,7 +12,7 @@ namespace GPC.Checkers.Steel.Connections
     /// normals. Cut coordinates are actual column-centroid points (0,Y,0).
     /// Lower minus upper, after transport, balances the beam-on-column action.
     /// End distances run from extreme bolt centres to actual column ends. N,mm,MPa.</summary>
-    public sealed class DoubleAngleCleatColumnWebInput
+    internal sealed class DoubleAngleCleatColumnWebInput
     {
         public DoubleAngleCleatComponentInput Cleats { get; }
         public ConnectionRolledISection Column { get; }
@@ -42,7 +42,7 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>Named support components, not a whole-joint verdict. Previously
     /// evaluated failures remain visible when another component is unsupported.</summary>
-    public sealed class DoubleAngleCleatColumnWebResult
+    internal sealed class DoubleAngleCleatColumnWebResult
     {
         public DoubleAngleCleatColumnWebInput Input { get; }
         public DoubleAngleCleatComponentResult Cleats { get; }
@@ -63,7 +63,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>SBE-MS5 shear components plus a supplementary column-web assessment:
     /// bearing, SCI P358 Check10 strip shear, net-section elastic stress and equilibrium
     /// of actual concomitant cuts. No inference of bolt-axis force from in-plane shear.</summary>
-    public static class DoubleAngleCleatColumnWeb
+    internal static class DoubleAngleCleatColumnWeb
     {
         public static DoubleAngleCleatColumnWebResult Verify(DoubleAngleCleatColumnWebInput p)
         {
@@ -186,9 +186,9 @@ namespace GPC.Checkers.Steel.Connections
                             double net = area - rows * d0 * t;
                             double v = -c.Actions.Fy * rows / (2 * c.Rows);
                             Value(id + ".GrossStripArea", area, "mm2"); Value(id + ".NetStripArea", net, "mm2");
-                            Check(id + ".GrossShear", v, area * col.Fy / (Math.Sqrt(3) * c.Code.Plates.GammaM0),
+                            Check(id + ".GrossShear", v, PlasticShear.Resistance(area, col.Fy, c.Code.Plates.GammaM0),
                                 "SCI P358 Check10 support-web strip; supplementary application to SBE-MS5 double cleats");
-                            Check(id + ".NetShear", v, net * col.Fu / (Math.Sqrt(3) * c.Code.Plates.GammaM2),
+                            Check(id + ".NetShear", v, PlasticShear.Resistance(net, col.Fu, c.Code.Plates.GammaM2),
                                 "SCI P358 Check10 net strip; both directions and every loaded prefix");
                             Check(id + ".ConcomitantNetYield", sigma + Math.Sqrt(3) * (tauFlange + v / net),
                                 fy / c.Code.Plates.GammaM0, "Sufficient additive elastic stress bound; concurrent column stresses plus local net strip shear", "MPa");

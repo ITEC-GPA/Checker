@@ -85,7 +85,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class EndPlateBeamSectionAdapter
+    internal static class EndPlateBeamSectionAdapter
     {
         public const string MethodId = "Steel.Connection.EndPlate.BeamSectionAdapter";
         public static EndPlateBeamSectionAssessment Evaluate(EndPlateBeamSectionInput p)

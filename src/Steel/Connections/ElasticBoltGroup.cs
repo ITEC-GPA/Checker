@@ -41,11 +41,12 @@ namespace GPC.Checkers.Steel.Connections
         public IReadOnlyList<string> Diagnostics { get; }
         public string Scope => "Equal-stiffness point bolts and rigid connected parts; small-displacement elastic "
             + "distribution only. No bolt resistance, plate flexibility, prying, slip or compression contact model.";
-        internal ElasticBoltGroupResult(ConnectionPoint2D[] points, PlanarConnectionActions input,
+        internal ElasticBoltGroupResult(IReadOnlyList<ConnectionPoint2D> points, PlanarConnectionActions input,
             ConnectionPoint2D centroid, int rank, ElasticBoltGroupStatus status, IList<ElasticBoltForce> forces,
             PlanarConnectionActions atCentroid, PlanarConnectionActions residual, double? minimumTrialFz, string diagnostic)
         {
-            Points = Array.AsReadOnly((ConnectionPoint2D[])points.Clone()); InputActions = input;
+            // An immutable copy of the positions, shared by the results of the same prepared group.
+            Points = points; InputActions = input;
             Centroid = centroid; GeometryRank = rank; Status = status;
             Forces = Array.AsReadOnly(forces.ToArray()); ActionsAtCentroid = atCentroid;
             EquilibriumResidual = residual; MinimumTrialFz = minimumTrialFz;
@@ -55,7 +56,7 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>Elastic distribution on identical bolts in XY. Units N, mm and Nmm; right-handed moments.
     /// Equilibrium equations and a linear normal-force field are solved, without normative resistance factors.</summary>
-    public static class ElasticBoltGroup
+    internal static class ElasticBoltGroup
     {
         // No action floor in N/Nmm: checks scale with their own terms, including tiny demands.
         public const double EquilibriumRelativeTolerance = 1e-10;
@@ -66,6 +67,34 @@ namespace GPC.Checkers.Steel.Connections
         {
             if (points == null) throw new ArgumentNullException(nameof(points));
             if (actions == null) throw new ArgumentNullException(nameof(actions));
+            return Evaluate(Prepare(points), actions);
+        }
+
+        /// <summary>Geometry-only part of the elastic distribution, shared by every action state
+        /// on the same immutable bolt positions. Evaluate repeats exactly the floating-point
+        /// operations of a direct calculation, so prepared and direct results are bit-identical.</summary>
+        internal sealed class Prepared
+        {
+            internal ConnectionPoint2D[] Points;
+            internal IReadOnlyList<ConnectionPoint2D> ReadOnlyPoints;
+            internal int Count;
+            internal bool CentroidFinite;
+            internal double Cx, Cy;
+            internal ConnectionPoint2D Centroid;
+            internal double[] X, Y;     // relative coordinates, divided by Scale when Scale != 0
+            internal double Scale;
+            internal bool ScaleFinite;
+            internal int Rank;          // 1 or 2 when Scale != 0
+            internal double Ux, Uy, Qq, Polar;
+            internal double[] Q, R;     // rank-1 basis (Q = X, R = Y for rank 2)
+            internal ElasticBoltGroupStatus? GeometryRejection;
+            internal string GeometryReason;
+            internal double Xx, Yy, Xy, XyDeterminant;
+        }
+
+        internal static Prepared Prepare(IEnumerable<ConnectionPoint2D> points)
+        {
+            if (points == null) throw new ArgumentNullException(nameof(points));
             var p = points.ToArray();
             if (p.Length == 0) throw new ArgumentException("At least one bolt is required.", nameof(points));
             var distinct = new HashSet<Tuple<double, double>>();
@@ -74,46 +103,84 @@ namespace GPC.Checkers.Steel.Connections
                 if (!Finite(point.X) || !Finite(point.Y)) throw new ArgumentException("Coordinates must be finite.", nameof(points));
                 if (!distinct.Add(Tuple.Create(point.X, point.Y))) throw new ArgumentException("Repeated bolt positions are not permitted.", nameof(points));
             }
-            var centroid = p[0]; int rank = 0;
-            PlanarConnectionActions load = null;
-            ElasticBoltGroupResult Reject(ElasticBoltGroupStatus status, string reason, double? minimumTrial = null)
-                => new ElasticBoltGroupResult(p, actions, centroid, rank, status, new ElasticBoltForce[0], load, null, minimumTrial, reason);
-
+            var g = new Prepared { Points = p, ReadOnlyPoints = Array.AsReadOnly((ConnectionPoint2D[])p.Clone()), Count = p.Length, Centroid = p[0] };
             // Referencing the first bolt avoids loss of small spacing under large translations.
             double cx = p[0].X + Sum(p.Select(v => (v.X - p[0].X) / p.Length));
             double cy = p[0].Y + Sum(p.Select(v => (v.Y - p[0].Y) / p.Length));
-            if (!Finite(cx) || !Finite(cy)) return Reject(ElasticBoltGroupStatus.NumericalFailure, "Centroid calculation exceeds the numeric range.");
-            centroid = new ConnectionPoint2D(cx, cy);
+            g.Cx = cx; g.Cy = cy;
+            g.CentroidFinite = Finite(cx) && Finite(cy);
+            if (!g.CentroidFinite) return g;
+            g.Centroid = new ConnectionPoint2D(cx, cy);
+            var x = p.Select(v => v.X - cx).ToArray(); var y = p.Select(v => v.Y - cy).ToArray();
+            double scale = Math.Max(x.Max(v => Math.Abs(v)), y.Max(v => Math.Abs(v)));
+            g.Scale = scale; g.ScaleFinite = Finite(scale); g.X = x; g.Y = y;
+            g.Q = new double[p.Length]; g.R = new double[p.Length];
+            if (!g.ScaleFinite || scale == 0) return g;
+            var q = g.Q; var r = g.R;
+            for (int i = 0; i < p.Length; i++) { x[i] /= scale; y[i] /= scale; }
+            int furthest = 0;
+            for (int i = 1; i < p.Length; i++) if (Hypot(x[i], y[i]) > Hypot(x[furthest], y[furthest])) furthest = i;
+            double radius = Hypot(x[furthest], y[furthest]);
+            double ux = x[furthest] / radius, uy = y[furthest] / radius;
+            for (int i = 0; i < p.Length; i++) { q[i] = ux * x[i] + uy * y[i]; r[i] = -uy * x[i] + ux * y[i]; }
+            double qq = Sum(q.Select(v => v * v)), rr = Sum(r.Select(v => v * v));
+            double qr = Sum(q.Select((v, i) => v * r[i]));
+            g.Polar = Sum(x.Select((v, i) => v * v + y[i] * y[i]));
+            g.Ux = ux; g.Uy = uy; g.Qq = qq;
+            if (r.Max(v => Math.Abs(v)) <= CollinearityTolerance * radius) { g.Rank = 1; return g; }
+            g.Rank = 2;
+            double determinant = qq * rr - qr * qr;
+            double largest = (qq + rr + Hypot(qq - rr, 2 * qr)) / 2;
+            if (!(determinant / largest / largest > MinimumInertiaRatio))
+            {
+                g.GeometryRejection = ElasticBoltGroupStatus.UnsupportedGeometry;
+                g.GeometryReason = "The planar group is too close to collinear for a reliable full-rank elastic solution (inertia ratio <= 1e-12).";
+                return g;
+            }
+            // Solve in the original XY basis after the stable conditioning assessment.
+            // This preserves exact neutral-row zeros for axis-aligned symmetric groups.
+            g.Xx = Sum(x.Select(v => v * v)); g.Yy = Sum(y.Select(v => v * v));
+            g.Xy = Sum(x.Select((v, i) => v * y[i]));
+            g.XyDeterminant = g.Xx * g.Yy - g.Xy * g.Xy;
+            if (!(g.XyDeterminant > 0))
+            {
+                g.GeometryRejection = ElasticBoltGroupStatus.NumericalFailure;
+                g.GeometryReason = "The normal-force matrix lost positive definiteness numerically.";
+            }
+            return g;
+        }
+
+        internal static ElasticBoltGroupResult Evaluate(Prepared g, PlanarConnectionActions actions)
+        {
+            if (actions == null) throw new ArgumentNullException(nameof(actions));
+            var p = g.Points;
+            var centroid = g.CentroidFinite ? g.Centroid : p[0]; int rank = 0;
+            PlanarConnectionActions load = null;
+            ElasticBoltGroupResult Reject(ElasticBoltGroupStatus status, string reason, double? minimumTrial = null)
+                => new ElasticBoltGroupResult(g.ReadOnlyPoints, actions, centroid, rank, status, new ElasticBoltForce[0], load, null, minimumTrial, reason);
+
+            if (!g.CentroidFinite) return Reject(ElasticBoltGroupStatus.NumericalFailure, "Centroid calculation exceeds the numeric range.");
+            double cx = g.Cx, cy = g.Cy;
             double rx = actions.ApplicationX - cx, ry = actions.ApplicationY - cy, rz = actions.ApplicationZ;
             double mx = actions.Mx + ry * actions.Fz - rz * actions.Fy;
             double my = actions.My + rz * actions.Fx - rx * actions.Fz;
             double mz = actions.Mz + rx * actions.Fy - ry * actions.Fx;
             if (!Finite(mx) || !Finite(my) || !Finite(mz)) return Reject(ElasticBoltGroupStatus.NumericalFailure, "Moment transport exceeds the numeric range.");
             load = new PlanarConnectionActions(actions.Fx, actions.Fy, actions.Fz, mx, my, mz, cx, cy, 0);
-            var x = p.Select(v => v.X - cx).ToArray(); var y = p.Select(v => v.Y - cy).ToArray();
-            double scale = Math.Max(x.Max(v => Math.Abs(v)), y.Max(v => Math.Abs(v)));
-            if (!Finite(scale)) return Reject(ElasticBoltGroupStatus.NumericalFailure, "Bolt spacing exceeds the numeric range.");
+            var x = g.X; var y = g.Y; double scale = g.Scale;
+            if (!g.ScaleFinite) return Reject(ElasticBoltGroupStatus.NumericalFailure, "Bolt spacing exceeds the numeric range.");
             if (scale == 0 && (mx != 0 || my != 0 || mz != 0))
                 return Reject(ElasticBoltGroupStatus.UnsupportedGeometry, "A single point bolt cannot transmit a free moment, however small.");
 
-            var q = new double[p.Length]; var r = new double[p.Length];
+            var q = g.Q; var r = g.R;
             double cq = 0, cr = 0, shearRotation = 0;
             if (scale != 0)
             {
-                for (int i = 0; i < p.Length; i++) { x[i] /= scale; y[i] /= scale; }
-                int furthest = 0;
-                for (int i = 1; i < p.Length; i++) if (Hypot(x[i], y[i]) > Hypot(x[furthest], y[furthest])) furthest = i;
-                double radius = Hypot(x[furthest], y[furthest]);
-                double ux = x[furthest] / radius, uy = y[furthest] / radius;
-                for (int i = 0; i < p.Length; i++) { q[i] = ux * x[i] + uy * y[i]; r[i] = -uy * x[i] + ux * y[i]; }
-                double qq = Sum(q.Select(v => v * v)), rr = Sum(r.Select(v => v * v));
-                double qr = Sum(q.Select((v, i) => v * r[i]));
-                double polar = Sum(x.Select((v, i) => v * v + y[i] * y[i]));
-                shearRotation = (mz / scale) / polar;
+                double ux = g.Ux, uy = g.Uy;
+                shearRotation = (mz / scale) / g.Polar;
                 // Normal forces produce (Mx, My) = (sum(y*T), -sum(x*T)).
                 double targetQ = (-ux * my + uy * mx) / scale;
-                double targetR = (uy * my + ux * mx) / scale;
-                if (r.Max(v => Math.Abs(v)) <= CollinearityTolerance * radius)
+                if (g.Rank == 1)
                 {
                     rank = 1;
                     // A relative cancellation test uses only the terms in the unsupported projection.
@@ -121,24 +188,14 @@ namespace GPC.Checkers.Steel.Connections
                     double nullMoment = uy * my + ux * mx;
                     if (!NearZero(nullMoment, Math.Abs(uy * my) + Math.Abs(ux * mx), CollinearityTolerance))
                         return Reject(ElasticBoltGroupStatus.UnsupportedGeometry, "The bending moment has a component about the bolt line which normal bolt forces cannot transmit.");
-                    cq = targetQ / qq;
+                    cq = targetQ / g.Qq;
                 }
                 else
                 {
                     rank = 2;
-                    double determinant = qq * rr - qr * qr;
-                    double largest = (qq + rr + Hypot(qq - rr, 2 * qr)) / 2;
-                    if (!(determinant / largest / largest > MinimumInertiaRatio))
-                        return Reject(ElasticBoltGroupStatus.UnsupportedGeometry, "The planar group is too close to collinear for a reliable full-rank elastic solution (inertia ratio <= 1e-12).");
-                    // Solve in the original XY basis after the stable conditioning assessment.
-                    // This preserves exact neutral-row zeros for axis-aligned symmetric groups.
-                    double xx = Sum(x.Select(v => v * v)), yy = Sum(y.Select(v => v * v));
-                    double xy = Sum(x.Select((v, i) => v * y[i]));
-                    double xyDeterminant = xx * yy - xy * xy;
-                    if (!(xyDeterminant > 0))
-                        return Reject(ElasticBoltGroupStatus.NumericalFailure, "The normal-force matrix lost positive definiteness numerically.");
-                    cq = (yy * (-my / scale) - xy * (mx / scale)) / xyDeterminant;
-                    cr = (xx * (mx / scale) - xy * (-my / scale)) / xyDeterminant;
+                    if (g.GeometryRejection.HasValue) return Reject(g.GeometryRejection.Value, g.GeometryReason);
+                    cq = (g.Yy * (-my / scale) - g.Xy * (mx / scale)) / g.XyDeterminant;
+                    cr = (g.Xx * (mx / scale) - g.Xy * (-my / scale)) / g.XyDeterminant;
                     q = x; r = y;
                 }
             }
@@ -172,7 +229,7 @@ namespace GPC.Checkers.Steel.Connections
                 if (!Finite(residual[i]) || !Finite(magnitude) || !NearZero(residual[i], magnitude, EquilibriumRelativeTolerance))
                     return Reject(ElasticBoltGroupStatus.NumericalFailure, "The reconstructed bolt forces do not meet the six equilibrium equations within relative tolerance.", minimum);
             }
-            return new ElasticBoltGroupResult(p, actions, centroid, rank, ElasticBoltGroupStatus.Balanced, forces, load,
+            return new ElasticBoltGroupResult(g.ReadOnlyPoints, actions, centroid, rank, ElasticBoltGroupStatus.Balanced, forces, load,
                 new PlanarConnectionActions(residual[0], residual[1], residual[2], residual[3], residual[4], residual[5], cx, cy, 0), minimum, null);
         }
 

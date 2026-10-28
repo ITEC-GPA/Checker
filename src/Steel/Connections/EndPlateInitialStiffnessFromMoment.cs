@@ -88,7 +88,7 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>Binds initial stiffness to the actual homogeneous Model beam case and its
     /// moment geometry. All parent tension rows are retained; no artificial MjRd or zero load.</summary>
-    public static class EndPlateInitialStiffnessFromMoment
+    internal static class EndPlateInitialStiffnessFromMoment
     {
         /// <summary>Derive every row's stiffness lengths from the SAME parent geometry.
         /// Hardware elongation lengths and the geometry's chart-alpha qualification

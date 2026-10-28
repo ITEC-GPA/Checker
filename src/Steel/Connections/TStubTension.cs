@@ -6,12 +6,12 @@ using GPC.Checkers.Steel.Sections;
 namespace GPC.Checkers.Steel.Connections
 {
     public enum TStubMode1Method { PointForce, DistributedContact }
-    public enum TStubPryingModel { Develops, FromBoltElongation }
+    internal enum TStubPryingModel { Develops, FromBoltElongation }
 
     /// <summary>Total effective lengths for the two plastic mechanisms, not physical plate lengths.
     /// The caller derives them for the actual single row or adjacent-row group using EN1993-1-8
     /// 6.2.6 and identifies that derivation in Source. All lengths are in mm.</summary>
-    public sealed class TStubEffectiveLengths
+    internal sealed class TStubEffectiveLengths
     {
         public double Mode1 { get; }
         public double Mode2 { get; }
@@ -27,7 +27,7 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>Actual steel-bolt elongation length: grip including washers + half head/nut heights.
     /// Anchors, grout and foundation bolts are outside this contract. Dimensions in mm.</summary>
-    public sealed class TStubBoltElongation
+    internal sealed class TStubBoltElongation
     {
         public double GripLength { get; }
         public double HeadHeight { get; }
@@ -48,7 +48,7 @@ namespace GPC.Checkers.Steel.Connections
     /// Positive axial tension N; geometry mm; yield strength MPa at the actual flange thickness.
     /// M is the Figure6.2 plastic-hinge-to-bolt distance; Emin refers to both connected sides.
     /// No load redistribution between rows is inferred. No shear or bolt punching is included.</summary>
-    public sealed class TStubTensionInput
+    internal sealed class TStubTensionInput
     {
         public ConnectionDesignCode Code { get; }
         public ConnectionBolt Bolt { get; }
@@ -89,7 +89,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class TStubTension
+    internal static class TStubTension
     {
         public static ConnectionVerification<TStubTensionInput> Verify(TStubTensionInput p)
         {
@@ -115,14 +115,14 @@ namespace GPC.Checkers.Steel.Connections
                 if (p.BoltElongation.GripLength < p.FlangeThickness) issues.Add("GripShorterThanTStubFlange");
             }
             var bolt = BoltStrength.Verify(new BoltStrengthInput(p.Code, p.Bolt, 0, 0,
-                holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource));
+                holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource), out var boltValues);
             issues.AddRange(bolt.Diagnostics.Select(d => "Bolt:" + d));
             if (issues.Count != 0) return Result();
 
             double n = Math.Min(p.Emin, 1.25 * p.M), t = p.FlangeThickness;
             double moment1 = .25 * p.EffectiveLengths.Mode1 * t * t * p.FlangeYieldStrength / p.Code.Plates.GammaM0;
             double moment2 = .25 * p.EffectiveLengths.Mode2 * t * t * p.FlangeYieldStrength / p.Code.Plates.GammaM0;
-            double totalBolt = 2 * p.BoltRows * bolt.Checks.Single(c => c.Id == "Bolt.Tension").Resistance;
+            double totalBolt = 2 * p.BoltRows * boltValues.TensionResistance;
             // Corrected Table6.2 uses n_b = number of rows, NOT number of bolts.
             double lengthLimit = 8.8 * p.M * p.M * p.M * p.Bolt.TensileArea * p.BoltRows
                 / (p.EffectiveLengths.Mode1 * t * t * t);

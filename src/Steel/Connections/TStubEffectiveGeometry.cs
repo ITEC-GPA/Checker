@@ -9,7 +9,7 @@ namespace GPC.Checkers.Steel.Connections
     /// Row coordinates run along the column. Continuations are actual distances from
     /// outermost rows to free column-flange ends, mm; both must be beyond the mechanisms.
     /// No intervening stiffeners, backing plates, notches or haunches are represented.</summary>
-    public sealed class TStubUnstiffenedColumnGeometry
+    internal sealed class TStubUnstiffenedColumnGeometry
     {
         public double ColumnFlangeWidth { get; }
         public double ColumnWebThickness { get; }
@@ -69,7 +69,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public sealed class TStubDerivedGroupLengths
+    internal sealed class TStubDerivedGroupLengths
     {
         public int FirstRow { get; }
         public int RowCount { get; }
@@ -80,7 +80,7 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>Contribution of ONE physical row to one adjacent-row mechanism,
     /// before summation and before taking the circular/non-circular minimum.</summary>
-    public sealed class TStubRowGroupLength
+    internal sealed class TStubRowGroupLength
     {
         public int FirstRow { get; }
         public int RowCount { get; }
@@ -94,7 +94,7 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>Geometric derivation only. IsSupported is not a resistance or joint qualification.
     /// Unsupported geometry exposes no lengths and cannot construct a verification input.</summary>
-    public sealed class TStubDerivedGeometry
+    internal sealed class TStubDerivedGeometry
     {
         public string MethodId { get; }
         public string DetailSource { get; }
@@ -169,7 +169,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class TStubEffectiveGeometry
+    internal static class TStubEffectiveGeometry
     {
         public static TStubDerivedGeometry UnstiffenedColumnFlange(TStubUnstiffenedColumnGeometry p)
         {

@@ -9,7 +9,7 @@ namespace GPC.Checkers.Steel.Connections
     /// shear component. End distances run from the extreme bolt centres to the
     /// ACTUAL column ends, not to the ends of the cleats. Flange strengths belong
     /// to its actual thickness; Column.Fy/Fu belong to the column web. N,mm,MPa.</summary>
-    public sealed class DoubleAngleCleatColumnFlangeBearingInput
+    internal sealed class DoubleAngleCleatColumnFlangeBearingInput
     {
         public DoubleAngleCleatComponentInput Cleats { get; }
         public ConnectionRolledISection Column { get; }
@@ -34,7 +34,7 @@ namespace GPC.Checkers.Steel.Connections
     /// double-angle shear detail. Does not check the support's block/net/yield,
     /// bending, concurrent member actions or parasitic bolt tension. A successful
     /// bearing component does not close phase2c.3 or qualify the whole joint.</summary>
-    public static class DoubleAngleCleatColumnFlangeBearing
+    internal static class DoubleAngleCleatColumnFlangeBearing
     {
         public static ConnectionVerification<DoubleAngleCleatColumnFlangeBearingInput> Verify(DoubleAngleCleatColumnFlangeBearingInput p)
         {

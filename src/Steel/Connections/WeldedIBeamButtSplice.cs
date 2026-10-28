@@ -88,7 +88,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class WeldedIBeamButtSplice
+    internal static class WeldedIBeamButtSplice
     {
         public static WeldedIBeamButtSpliceResult Verify(WeldedIBeamButtSpliceInput p)
         {

@@ -60,7 +60,7 @@ namespace GPC.Checkers.Steel.Connections
         private static bool Close(double a, double b, double scale) => Math.Abs(a - b) <= 1e-8 * scale;
     }
 
-    public static class EndPlateNmvStiffness
+    internal static class EndPlateNmvStiffness
     {
         public static EndPlateNmvStiffnessResult Evaluate(EndPlateNmvResult resistance)
         {

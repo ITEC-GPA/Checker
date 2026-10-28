@@ -82,6 +82,10 @@ namespace GPC.Checkers.Steel.Connections
         public PlanarConnectionActions ActionsOnGussetAtBoltGroup { get; }
         public IReadOnlyList<string> Diagnostics { get; }
         public IReadOnlyList<string> MissingWholeJointChecks { get; }
+        /// <summary>Typed values behind the trace entries of the same name; null when not traced.</summary>
+        internal double? HeelTangentEdge { get; }
+        internal double? ToeTangentEdge { get; }
+        internal double? InPlaneLever { get; }
         public ConnectionStatus Status => ConnectionStatus.NotSupported;
         public ConnectionStatus LocalThreeDimensionalStatus => ConnectionStatus.NotSupported;
         public bool CanQualifyWholeJoint => false;
@@ -91,8 +95,9 @@ namespace GPC.Checkers.Steel.Connections
             ConnectionVerification<BraceAnglePairBoltedTransferInput> planar,
             IEnumerable<ConnectionVerification<BraceAngleTensionInput>> sections,
             IEnumerable<BraceAnglePairFaceDemand> faces, ElasticBoltGroupResult group,
-            PlanarConnectionActions actions, IEnumerable<string> diagnostics)
+            PlanarConnectionActions actions, IEnumerable<string> diagnostics, double? heel = null, double? toe = null, double? lever = null)
         {
+            HeelTangentEdge = heel; ToeTangentEdge = toe; InPlaneLever = lever;
             Input = input; InPlaneComponents = planar; AngleSections = Array.AsReadOnly(sections.ToArray());
             FaceDemands = Array.AsReadOnly(faces.ToArray()); InPlaneBoltGroup = group;
             ActionsOnGussetAtBoltGroup = actions;
@@ -104,7 +109,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class BraceAnglePairBoltedTransfer
+    internal static class BraceAnglePairBoltedTransfer
     {
         public const string MethodId = "Steel.Connection.BraceAnglePair.OneLineBoltedTransfer";
         private const string EllipseReference = "SBE_SS5:2010 AppendixA p5-68, ECCS P126 additional bearing interaction; complementary to EN1993-1-8 Table3.4 / NTC2018 4.2.67";
@@ -117,6 +122,7 @@ namespace GPC.Checkers.Steel.Connections
             var sections = new List<ConnectionVerification<BraceAngleTensionInput>>();
             var faces = new List<BraceAnglePairFaceDemand>();
             ElasticBoltGroupResult group = null; PlanarConnectionActions resultant = null;
+            double? tracedHeel = null, tracedToe = null, tracedLever = null;
             void Require(bool condition, string diagnostic) { if (!condition) issues.Add(diagnostic); }
             Require(p.Angles.IsPair, "TWO_IDENTICAL_MODEL_ANGLES_REQUIRED");
             Require(!p.HasAdditionalHolesOrCuts, "ADDITIONAL_HOLES_OR_CUTS_OUTSIDE_SCOPE");
@@ -176,7 +182,8 @@ namespace GPC.Checkers.Steel.Connections
                     "EXPOSED_GUSSET_MAXIMUM_EDGE_DISTANCE");
             }
             AddValue(trace, issues, "AngleFlatStripLow", low, "mm"); AddValue(trace, issues, "AngleFlatStripHigh", high, "mm");
-            AddValue(trace, issues, "AngleHeelTangentEdge", heelEdge, "mm"); AddValue(trace, issues, "AngleToeTangentEdge", toeEdge, "mm");
+            if (AddValue(trace, issues, "AngleHeelTangentEdge", heelEdge, "mm")) tracedHeel = heelEdge;
+            if (AddValue(trace, issues, "AngleToeTangentEdge", toeEdge, "mm")) tracedToe = toeEdge;
             AddValue(trace, issues, "JointLength", length, "mm");
             try
             {
@@ -217,7 +224,7 @@ namespace GPC.Checkers.Steel.Connections
                 bool reversedInPlane = vertical ? pair.Parts[0].MirrorY : pair.Parts[0].MirrorX;
                 double localCentroid = vertical ? angle.Centroid.Y : angle.Centroid.X;
                 double lever = (boltPosition - localCentroid) * (reversedInPlane ? -1 : 1);
-                AddValue(trace, issues, "GussetAtGroup.InPlaneLever", lever, "mm");
+                if (AddValue(trace, issues, "GussetAtGroup.InPlaneLever", lever, "mm")) tracedLever = lever;
                 resultant = new PlanarConnectionActions(source.N, 0, 0, 0, 0, source.N * lever);
                 ActionsTrace(trace, "GussetAtGroup", resultant);
                 ActionsTrace(trace, "GussetAtGroup.ArithmeticResidual", new PlanarConnectionActions(
@@ -300,7 +307,7 @@ namespace GPC.Checkers.Steel.Connections
                         "Zero normal bolt force is a conditional plane subproblem, not a solution or exemption for the retained local out-of-plane couples.",
                         "Bearing ellipse is a complementary ECCS recommendation as reproduced in SBE_SS5, not an EN/NTC formula.",
                         "CatA only; direct contact, no packing. All remaining net/block, 3D contact/prying, support and serviceability checks remain open." });
-                return new BraceAnglePairBoltedTransferResult(p, planar, sections, faces, group, resultant, issues.Concat(localIssues));
+                return new BraceAnglePairBoltedTransferResult(p, planar, sections, faces, group, resultant, issues.Concat(localIssues), tracedHeel, tracedToe, tracedLever);
             }
         }
 
@@ -351,12 +358,12 @@ namespace GPC.Checkers.Steel.Connections
             ICollection<SectionResistanceValue> trace, ICollection<string> issues) where T : class
         {
             foreach (var issue in child.Diagnostics) issues.Add(prefix + issue);
-            foreach (var c in child.Checks) checks.Add(new ConnectionCheck(prefix + c.Id, c.Demand, c.Resistance, c.Reference, c.Unit));
+            foreach (var c in child.Checks) checks.Add(c.WithId(prefix + c.Id));
             foreach (var v in child.Trace) trace.Add(new SectionResistanceValue(prefix + v.Name, v.Value, v.Unit));
         }
         private static bool Finite(double x) => !double.IsNaN(x) && !double.IsInfinity(x);
-        private static void AddValue(ICollection<SectionResistanceValue> trace, ICollection<string> issues, string name, double value, string unit)
-        { if (Finite(value)) trace.Add(new SectionResistanceValue(name, value, unit)); else issues.Add("NONFINITE_" + name); }
+        private static bool AddValue(ICollection<SectionResistanceValue> trace, ICollection<string> issues, string name, double value, string unit)
+        { if (Finite(value)) { trace.Add(new SectionResistanceValue(name, value, unit)); return true; } issues.Add("NONFINITE_" + name); return false; }
         private static void ActionsTrace(ICollection<SectionResistanceValue> trace, string prefix, PlanarConnectionActions a)
         {
             var values = new[] { a.Fx, a.Fy, a.Fz, a.Mx, a.My, a.Mz };

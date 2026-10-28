@@ -16,7 +16,7 @@ namespace GPC.Checkers.Steel.Connections
     /// compression is Fx negative. Application offsets are transported before validation.
     /// Physical end fixity/compactness are explicit external assessments, not inferred from labels.
     /// This component computes plate sway resistance only, not bolt or weld resistance.</summary>
-    public sealed class GussetLapCompressionInput
+    internal sealed class GussetLapCompressionInput
     {
         public ConnectionDesignCode Code { get; }
         public ConnectionPlate Tab { get; }
@@ -60,7 +60,7 @@ namespace GPC.Checkers.Steel.Connections
     /// A supplementary design model for both EC3 and NTC2018, never an invented code equation
     /// or an Euler-column check with an assumed effective length. The partial-plastic modulus
     /// is wt^2/5, exactly as in P358 step 5.</summary>
-    public static class GussetLapCompression
+    internal static class GussetLapCompression
     {
         public static ConnectionVerification<GussetLapCompressionInput> Verify(GussetLapCompressionInput p)
         {

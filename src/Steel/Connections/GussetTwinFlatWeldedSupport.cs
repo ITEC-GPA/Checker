@@ -13,7 +13,7 @@ namespace GPC.Checkers.Steel.Connections
     /// SupportFaceWidth is along Y, SupportFaceDepth along Z; support material thickness
     /// is along X. The support patch is centred on Y=Z=0. No support resistance is inferred.
     /// Two equal 45-degree fillets extend along the full gusset width; Throat is a, not leg size.</summary>
-    public sealed class GussetTwinFlatWeldedSupportInput
+    internal sealed class GussetTwinFlatWeldedSupportInput
     {
         public GussetTwinFlatTensionInput Transfer { get; }
         public double SupportDistance { get; }
@@ -49,7 +49,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public sealed class GussetTwinFlatWeldedSupportResult
+    internal sealed class GussetTwinFlatWeldedSupportResult
     {
         public ConnectionVerification<GussetTwinFlatWeldedSupportInput> Verification { get; }
         public ConnectionVerification<GussetTwinFlatTensionInput> BoltedTransfer { get; }
@@ -72,7 +72,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Aggregates the existing bolted load-transfer and weld kernels for one
     /// actual symmetric T detail. The assessment stops at the support face. It does not
     /// establish support-plate bending/punching, member adequacy or joint stiffness.</summary>
-    public static class GussetTwinFlatWeldedSupport
+    internal static class GussetTwinFlatWeldedSupport
     {
         public static GussetTwinFlatWeldedSupportResult Verify(GussetTwinFlatWeldedSupportInput p)
         {
@@ -128,11 +128,10 @@ namespace GPC.Checkers.Steel.Connections
                 if (!weld.IsComplete) issues.AddRange(weld.Diagnostics.Select(d => "SupportWeld:" + d));
                 if (issues.Count == 0)
                 {
-                    foreach (var k in bolts.Checks) checks.Add(new ConnectionCheck("Transfer." + k.Id, k.Demand, k.Resistance, k.Reference, k.Unit));
+                    foreach (var k in bolts.Checks) checks.Add(k.WithId("Transfer." + k.Id));
                     foreach (var point in weld.Points)
                         foreach (var k in point.Verification.Checks)
-                            checks.Add(new ConnectionCheck("SupportWeld.Segment" + point.SegmentIndex + (point.AtStart ? ".Start." : ".End.")
-                                + k.Id, k.Demand, k.Resistance, k.Reference, k.Unit));
+                            checks.Add(k.WithId("SupportWeld.Segment" + point.SegmentIndex + (point.AtStart ? ".Start." : ".End.") + k.Id));
                 }
             }
             var assessment = new ConnectionVerification<GussetTwinFlatWeldedSupportInput>(p, t.Code,

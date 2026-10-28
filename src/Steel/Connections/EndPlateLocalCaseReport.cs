@@ -8,7 +8,7 @@ using GPC.Checkers.Steel.Sections;
 namespace GPC.Checkers.Steel.Connections
 {
     /// <summary>Original checks and traces of one child; no reconstructed utilization.</summary>
-    public sealed class EndPlateReportComponent
+    internal sealed class EndPlateReportComponent
     {
         public string Id { get; }
         public ConnectionStatus Status { get; }
@@ -21,7 +21,7 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>Reviewable local calculation evidence even when aggregation is unsupported.
     /// A passing component set never becomes a passing complete moment joint.</summary>
-    public sealed class EndPlateLocalCaseReport
+    internal sealed class EndPlateLocalCaseReport
     {
         public string CaseId { get; }
         public EndPlateLocalCaseAssessmentResult Assessment { get; }

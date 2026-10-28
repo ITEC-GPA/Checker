@@ -5,7 +5,7 @@ using GPC.Checkers.Steel.Sections;
 
 namespace GPC.Checkers.Steel.Connections
 {
-    public enum EndPlateRotationCapacityStatus
+    internal enum EndPlateRotationCapacityStatus
     {
         NotRequiredByOverstrength, SufficientForPlasticAnalysis,
         CannotAssumeSufficientForPlasticAnalysis, NotDemonstratedBySimplifiedRules,
@@ -15,7 +15,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Simplified sufficient-rotation criteria for static bolted end-plate
     /// beam-to-column-flange joints. Nominal grades are explicit: thickness-dependent
     /// fy does not identify the grade. No numeric rotation capacity is inferred.</summary>
-    public sealed class EndPlateRotationCapacityInput
+    internal sealed class EndPlateRotationCapacityInput
     {
         public EndPlateJointResistanceEvidence Resistance { get; }
         public JointNominalSteelGrade BeamGrade { get; }
@@ -36,7 +36,7 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>Qualitative sufficient condition or exemption, never a measured rotation
     /// capacity. Failure of a sufficient condition does not prove inadequate ductility.</summary>
-    public sealed class EndPlateRotationCapacityResult
+    internal sealed class EndPlateRotationCapacityResult
     {
         public EndPlateRotationCapacityInput Input { get; }
         public EndPlateRotationCapacityStatus Status { get; }
@@ -58,7 +58,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class EndPlateRotationCapacity
+    internal static class EndPlateRotationCapacity
     {
         public static EndPlateRotationCapacityResult Assess(EndPlateRotationCapacityInput p)
         {

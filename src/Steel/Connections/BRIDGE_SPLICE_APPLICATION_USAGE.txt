@@ -53,3 +53,12 @@ Il rapporto non certifica esecuzione, fatica o rigidezza rotazionale.
 strisce/sbalzi localmente classe1-3, anche con una colonna d'anima per lato.
 Tutti i controlli di resistenza e gerarchia restano; il default non cambia.
 Vedi BRIDGE_SPLICE_STANDARD_BOLTED_COVERS.txt per modello e qualificazione.
+
+28/10/2026 - Dettaglio preparato. CreateBolted costruisce un solo
+PreparedWeldedIBeamSplice (sezione dal modello + template) e crea ogni caso
+SLU/SLE con CreateCase(azioni, fonte): forze, bulloni, piastre e blocchi
+riusano i dati indipendenti dalle azioni, con risultati identici bit a bit.
+Uso diretto: var p = PreparedWeldedIBeamSplice.Prepare(template);
+var caso = p.CreateCase(azioni, "combinazione"); p.Owns(caso) == true.
+I componenti (WeldedIBeamSpliceBolts, Plates, Envelope, ...) sono interni:
+l'ingresso pubblico resta WeldedIBeamSpliceStandard.Verify.

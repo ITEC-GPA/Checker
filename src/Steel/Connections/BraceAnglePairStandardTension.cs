@@ -72,7 +72,7 @@ namespace GPC.Checkers.Steel.Connections
             // The gusset and collector centroid must lie on the MEMBER setting-out
             // line, not necessarily on the bolt line. The actual in-plane bolt moment
             // and every transverse bolt force are retained and checked.
-            var lever=r.Transfer.InPlaneComponents.Trace.FirstOrDefault(t=>t.Name=="GussetAtGroup.InPlaneLever");
+            var lever=r.Transfer.InPlaneLever;
             if (lever==null || lever.Value+g.Width/2-p.Transfer.GussetNegativeYEdge!=0)
                 issues.Add("GUSSET_CENTROID_MUST_ALIGN_WITH_MEMBER_SETTING_OUT_LINE");
             if (first.BoltCount<3) issues.Add("AT_LEAST_THREE_BOLTS_REQUIRED_FOR_THIS_STANDARD_DETAIL");

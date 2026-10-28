@@ -16,12 +16,14 @@ namespace GPC.Checkers.Steel.Connections
             var checks = new List<ConnectionCheck>(); var trace = new List<SectionResistanceValue>();
             var issues = new List<string>(); var plate = p.Plate; var beam = p.Beam; var support = p.Support;
             ElasticBoltGroupResult bolts = null; FilletWeldGroupResult welds = null;
-            bool conforms = false;
+            bool conforms = false; double? supportBearingPerBolt = null;
             void Gate(bool condition, string reason) { if (!condition) issues.Add(reason); }
             void Value(string name, double value, string unit)
             { ConnectionNumbers.Finite(value, name); trace.Add(new SectionResistanceValue(name, value, unit)); }
             void Check(string id, double demand, double resistance, string source, string unit = "N")
                 => checks.Add(new ConnectionCheck(id, demand, resistance, source, unit));
+            void Detail(string id, double demand, double resistance, string source, string unit = "N")
+                => checks.Add(new ConnectionCheck(id, demand, resistance, source, unit, ConnectionCheckRole.Detailing));
             FlexibleEndPlateResult Result() => new FlexibleEndPlateResult(new ConnectionVerification<FlexibleEndPlateInput>(
                 p, p.Code, "Steel.Connection.FlexibleEndPlate.PartialDepth.ColumnWeb",
                 "Ordinary static downward shear, partial-depth S275 plate, two symmetric columns of M20 8.8 bolts, "
@@ -35,7 +37,7 @@ namespace GPC.Checkers.Steel.Connections
                     "Support top/bottom edges refer to the actual column ends, not the plate ends. The initial model has no other support actions.",
                     "Conformity to a detail is separate from the caller's qualification of nominally pinned frame behaviour; no stiffness is calculated.",
                     "Only normal round holes, no packing or preloading, unexposed detail and full-size weld ends. Execution and clearance sources are caller evidence."
-                }), bolts, welds, conforms);
+                }), bolts, welds, conforms, supportBearingPerBolt);
 
             var a = p.Actions;
             Gate(a.Fx == 0 && a.Fy <= 0 && a.Fz == 0 && a.Mx == 0 && a.My == 0 && a.Mz == 0
@@ -68,11 +70,11 @@ namespace GPC.Checkers.Steel.Connections
             double v = -a.Fy, gm0 = p.Code.Plates.GammaM0, gm2 = p.Code.Plates.GammaM2;
             double minimumThroat = beam.WebThickness * beam.Fy * .85 * p.Code.GammaM2Connection
                 / (Math.Sqrt(2) * Math.Min(beam.Fu, plate.Fu));
-            Check("Detail.MinimumHeight", .6 * beam.Height, p.Height, "SCI P358 Check1", "mm");
+            Detail("Detail.MinimumHeight", .6 * beam.Height, p.Height, "SCI P358 Check1", "mm");
             double maximumSpacing = Math.Min(14 * Math.Min(plate.Thickness, support.WebThickness), 200);
-            Check("Detail.Pitch", p.Pitch, maximumSpacing, "EN1993-1-8 Table3.3 / NTC Table4.2.XVIII", "mm");
-            Check("Detail.Gauge", p.Gauge, maximumSpacing, "EN1993-1-8 Table3.3 / NTC Table4.2.XVIII", "mm");
-            Check("Weld.FullStrengthThroat", minimumThroat, p.WeldThroat, "SCI P358 AppendixC.1 without optional UK end-plate factor0.8", "mm");
+            Detail("Detail.Pitch", p.Pitch, maximumSpacing, "EN1993-1-8 Table3.3 / NTC Table4.2.XVIII", "mm");
+            Detail("Detail.Gauge", p.Gauge, maximumSpacing, "EN1993-1-8 Table3.3 / NTC Table4.2.XVIII", "mm");
+            Detail("Weld.FullStrengthThroat", minimumThroat, p.WeldThroat, "SCI P358 AppendixC.1 without optional UK end-plate factor0.8", "mm");
             conforms = checks.All(c => c.Passed);
             Gate(!string.IsNullOrWhiteSpace(p.PinnedModelQualificationSource), "PINNED_FRAME_MODEL_QUALIFICATION_REQUIRED");
             if (issues.Count != 0) return Result();
@@ -83,30 +85,29 @@ namespace GPC.Checkers.Steel.Connections
             bolts = ElasticBoltGroup.Calculate(positions, a);
             if (!bolts.IsSupported) { issues.AddRange(bolts.Diagnostics); return Result(); }
             var bolt = BoltStrength.Verify(new BoltStrengthInput(p.Code, p.Bolt, v / (2 * p.Rows), 0,
-                jointLength: (p.Rows - 1) * p.Pitch, holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource));
+                jointLength: (p.Rows - 1) * p.Pitch, holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource), out var boltValues);
             if (!bolt.IsComplete) { issues.AddRange(bolt.Diagnostics); return Result(); }
-            double singleShear = bolt.Checks.Single(c => c.Id == "Bolt.Shear").Resistance;
-            Value("Bolt.BetaLongJoint", bolt.Trace.Single(t => t.Name == "BetaLongJoint").Value, "1");
+            double singleShear = boltValues.ShearResistance;
+            Value("Bolt.BetaLongJoint", boltValues.BetaLongJoint, "1");
             Value("Bolt.SciParasiticTensionFactor", .8, "1");
             Check("BoltGroup.ShearWithParasiticTension", v, 2 * p.Rows * .8 * singleShear, "SCI P358 Check8; EN1993-1-8 Table3.4 and3.8");
             double Bearing(ConnectionPlate part, double e1, double e2, string prefix)
             {
                 var end = BoltBearing.Verify(new BoltBearingInput(p.Code, p.Bolt, part, 0, e1, e2,
-                    p.Pitch, p.Gauge, true, true, p.HoleClearanceServiceabilitySource));
+                    p.Pitch, p.Gauge, true, true, p.HoleClearanceServiceabilitySource), out var endValues);
                 var inner = BoltBearing.Verify(new BoltBearingInput(p.Code, p.Bolt, part, 0, e1, e2,
-                    p.Pitch, p.Gauge, false, true, p.HoleClearanceServiceabilitySource));
+                    p.Pitch, p.Gauge, false, true, p.HoleClearanceServiceabilitySource), out var innerValues);
                 if (!end.IsComplete || !inner.IsComplete)
                 { issues.AddRange(end.Diagnostics.Concat(inner.Diagnostics).Select(s => prefix + ":" + s)); return 0; }
-                Value(prefix + ".AlphaB", Math.Min(end.Trace.Single(t => t.Name == "AlphaB").Value,
-                    inner.Trace.Single(t => t.Name == "AlphaB").Value), "1");
-                Value(prefix + ".K1", end.Trace.Single(t => t.Name == "K1").Value, "1");
-                return Math.Min(end.Checks.Single().Resistance, inner.Checks.Single().Resistance);
+                Value(prefix + ".AlphaB", Math.Min(endValues.AlphaB, innerValues.AlphaB), "1");
+                Value(prefix + ".K1", endValues.K1, "1");
+                return Math.Min(endValues.Resistance, innerValues.Resistance);
             }
             double plateBearing = Bearing(plate, 40, 30, "PlateBearing");
             double supportBearing = Bearing(new ConnectionPlate(support.ClearWeb, support.WebThickness, support.Fy, support.Fu),
                 Math.Min(p.SupportTopBoltEdge, p.SupportBottomBoltEdge), (support.ClearWeb - p.Gauge) / 2, "SupportBearing");
             if (issues.Count != 0) return Result();
-            Value("PlateBearing.PerBolt", plateBearing, "N"); Value("SupportBearing.PerBolt", supportBearing, "N");
+            Value("PlateBearing.PerBolt", plateBearing, "N"); Value("SupportBearing.PerBolt", supportBearing, "N"); supportBearingPerBolt = supportBearing;
             foreach (var force in bolts.Forces)
             {
                 Check("Bolt" + (force.Index + 1) + ".PlateBearing", force.Shear, plateBearing, "SCI P358 Check8; " + (p.Code.IsNtc ? "NTC4.2.67" : "EN Table3.4"));
@@ -115,7 +116,7 @@ namespace GPC.Checkers.Steel.Connections
 
             double av = .9 * p.Height * beam.WebThickness;
             Value("Beam.EffectiveShearArea", av, "mm2");
-            Check("Beam.WebShear", v, av * beam.Fy / (Math.Sqrt(3) * gm0), "SCI P358 Check4/SN014, effective factor0.9");
+            Check("Beam.WebShear", v, PlasticShear.Resistance(av, beam.Fy, gm0), "SCI P358 Check4/SN014, effective factor0.9");
             double avNet = plate.Thickness * (p.Height - p.Rows * p.Bolt.HoleDiameter);
             double ant = plate.Thickness * (30 - p.Bolt.HoleDiameter / 2);
             double anv = plate.Thickness * (p.Height - 40 - (p.Rows - .5) * p.Bolt.HoleDiameter);
@@ -123,9 +124,9 @@ namespace GPC.Checkers.Steel.Connections
             double blockFactor = shortPlate && p.Rows > 1 ? .5 : 1;
             Value("Plate.NetAreaPerSide", avNet, "mm2"); Value("Plate.AntPerSide", ant, "mm2");
             Value("Plate.AnvPerSide", anv, "mm2"); Value("Plate.BlockTensionFactor", blockFactor, "1");
-            Check("Plate.GrossShear", v, 2 * p.Height * plate.Thickness * plate.Fy / (1.27 * Math.Sqrt(3) * gm0), "SCI P358 Check9, nominal bending factor1.27");
-            Check("Plate.NetShear", v, 2 * avNet * plate.Fu / (Math.Sqrt(3) * gm2), "SCI P358 Check9");
-            Check("Plate.BlockTearing", v, 2 * (blockFactor * ant * plate.Fu / gm2 + anv * plate.Fy / (Math.Sqrt(3) * gm0)), "SCI P358 Check9; EN1993-1-8 3.10.2");
+            Check("Plate.GrossShear", v, PlasticShear.Resistance(2 * p.Height * plate.Thickness, plate.Fy, 1.27, gm0), "SCI P358 Check9, nominal bending factor1.27");
+            Check("Plate.NetShear", v, PlasticShear.Resistance(2 * avNet, plate.Fu, gm2), "SCI P358 Check9");
+            Check("Plate.BlockTearing", v, 2 * (blockFactor * ant * plate.Fu / gm2 + PlasticShear.Resistance(anv, plate.Fy, gm0)), "SCI P358 Check9; EN1993-1-8 3.10.2");
             if (shortPlate) Check("Plate.InPlaneBending", v,
                 2 * plate.Thickness * p.Height * p.Height * plate.Fy / (3 * (p.Gauge - beam.WebThickness) * gm0), "SCI P358 Check9, hp<1.36g");
 
@@ -163,15 +164,14 @@ namespace GPC.Checkers.Steel.Connections
             void Include(string prefix, FlexibleEndPlateResult part)
             {
                 issues.AddRange(part.Diagnostics.Select(d => prefix + ":" + d));
-                foreach (var c in part.Checks) checks.Add(new ConnectionCheck(prefix + "." + c.Id, c.Demand, c.Resistance, c.Reference, c.Unit));
+                foreach (var c in part.Checks) checks.Add(c.WithId(prefix + "." + c.Id));
                 foreach (var t in part.Trace) trace.Add(new SectionResistanceValue(prefix + "." + t.Name, t.Value, t.Unit));
             }
             Include("First", first); Include("Second", second);
             if (issues.Count == 0)
             {
                 double v1 = -p.First.Actions.Fy, v2 = -p.Second.Actions.Fy;
-                double bearing = Math.Min(first.Trace.Single(t => t.Name == "SupportBearing.PerBolt").Value,
-                    second.Trace.Single(t => t.Name == "SupportBearing.PerBolt").Value);
+                double bearing = Math.Min(first.SupportBearingPerBolt.Value, second.SupportBearingPerBolt.Value);
                 int rows = Math.Max(p.First.Rows, p.Second.Rows);
                 // SCI Check10 shared support: each beam contributes its own uniform reaction per row.
                 // Every upper prefix is checked; no shared region is verified with only one beam's demand.
@@ -205,9 +205,9 @@ namespace GPC.Checkers.Steel.Connections
             trace.Add(new SectionResistanceValue(prefix + ".GrossAreaPerSide", area, "mm2"));
             trace.Add(new SectionResistanceValue(prefix + ".NetAreaPerSide", net, "mm2"));
             checks.Add(new ConnectionCheck(prefix + ".GrossShear", fullShear / 2,
-                area * p.Support.Fy / (Math.Sqrt(3) * p.Code.Plates.GammaM0), "SCI P358 Check10 column web"));
+                PlasticShear.Resistance(area, p.Support.Fy, p.Code.Plates.GammaM0), "SCI P358 Check10 column web"));
             checks.Add(new ConnectionCheck(prefix + ".NetShear", fullShear / 2,
-                net * p.Support.Fu / (Math.Sqrt(3) * p.Code.Plates.GammaM2), "SCI P358 Check10 column web"));
+                PlasticShear.Resistance(net, p.Support.Fu, p.Code.Plates.GammaM2), "SCI P358 Check10 column web"));
         }
         private static bool Zero(PlanarConnectionActions p) => p.Fx == 0 && p.Fy == 0 && p.Fz == 0 && p.Mx == 0 && p.My == 0 && p.Mz == 0;
     }

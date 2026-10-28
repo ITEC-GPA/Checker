@@ -76,7 +76,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Gross yielding and effective net-section rupture of one angle according to
     /// EN1993-1-8:2005 3.10.3. The eccentricity allowance in that clause applies to this
     /// section resistance only; it does not certify gusset bending, fasteners or supports.</summary>
-    public static class BraceAngleTension
+    internal static class BraceAngleTension
     {
         public static ConnectionVerification<BraceAngleTensionInput> Verify(BraceAngleTensionInput p)
         {

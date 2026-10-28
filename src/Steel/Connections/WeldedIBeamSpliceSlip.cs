@@ -70,7 +70,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class WeldedIBeamSpliceSlip
+    internal static class WeldedIBeamSpliceSlip
     {
         public static ConnectionVerification<WeldedIBeamSpliceSlipInput> Verify(WeldedIBeamSpliceSlipInput p)
         {
@@ -80,7 +80,7 @@ namespace GPC.Checkers.Steel.Connections
             // is not silently applied to an SLS case and its result is not used as slip.
             var issues = new List<string>(prepared.ComponentAssessment.Diagnostics);
             var trace = new List<SectionResistanceValue>(); var checks = new List<ConnectionCheck>();
-            if (!WeldedIBeamSplicePlates.SameCode(p.Policy.Code, p.Bolts.Code)) issues.Add("SLIP_BOLT_POLICY_MISMATCH");
+            if (!SpliceIdentity.Code(p.Policy.Code, p.Bolts.Code)) issues.Add("SLIP_BOLT_POLICY_MISMATCH");
             foreach (WeldedSpliceCover cover in Enum.GetValues(typeof(WeldedSpliceCover)))
                 if (!p.Surfaces.Any(s => s.Cover == cover)) issues.Add(cover + ".FRICTION_SURFACE_REQUIRED");
             if (issues.Count == 0) foreach (var g in prepared.Forces.CoverGroups)
@@ -108,7 +108,7 @@ namespace GPC.Checkers.Steel.Connections
                         string id = g.Side + "." + g.Cover + ".Bolt" + force.Index
                             + (packed ? "." + surface.InterfaceName(layer) : "");
                         foreach (var issue in r.Diagnostics) issues.Add(id + ":" + issue);
-                        foreach (var c in r.Checks) checks.Add(new ConnectionCheck(id + "." + c.Id, c.Demand, c.Resistance, c.Reference, c.Unit));
+                        foreach (var c in r.Checks) checks.Add(c.WithId(id + "." + c.Id));
                         foreach (var t in r.Trace) trace.Add(new SectionResistanceValue(id + "." + t.Name, t.Value, t.Unit));
                     }
                 }
@@ -138,7 +138,7 @@ namespace GPC.Checkers.Steel.Connections
             foreach (var cover in r.Covers)
             {
                 if (!cover.Sections.IsComplete) { issues.AddRange(cover.Sections.Diagnostics); continue; }
-                double net = cover.Sections.Trace.Single(t => t.Name == "NetArea").Value;
+                double net = cover.NetArea;
                 var f = forces.CoverGroups.First(g => g.Cover == cover.Cover);
                 double n = cover.Cuts.Max(c => Math.Max(0, c.N));
                 Add(cover.Cover.ToString(), n, net, f.Plate.Fy);
@@ -150,11 +150,11 @@ namespace GPC.Checkers.Steel.Connections
                     string name = top ? "Top" : "Bottom"; var detail = top ? p.Bolts.Detail.Top : p.Bolts.Detail.Bottom;
                     var plate = top ? p.Bolts.Detail.Section.TopFlange : p.Bolts.Detail.Section.BottomFlange;
                     double net = (plate.Width - detail.Bolts.TransverseRows * p.Bolts.FlangeBolt.HoleDiameter) * plate.Thickness;
-                    double n = forces.Trace.Single(t => t.Name == "Left." + name + ".ParentAxial").Value;
+                    double n = forces.Flange(SpliceSide.Left, top).ParentAxial;
                     Add(name + ".Parent", Math.Max(0, n), net, plate.Fy);
                 }
                 var web = p.Bolts.Detail.Section.Web;
-                Add("Web.Parent", Math.Max(0, forces.Trace.Single(t => t.Name == "Web.AxialForce").Value),
+                Add("Web.Parent", Math.Max(0, forces.WebAxialForce),
                     (web.Width - p.Bolts.Detail.WebBolts.TransverseRows * p.Bolts.WebBolt.HoleDiameter) * web.Thickness, web.Fy);
             }
             else issues.AddRange(forces.Diagnostics);

@@ -17,6 +17,17 @@ namespace GPC.Checkers.Steel.Connections
             if (!Enum.IsDefined(typeof(SpliceExposure), exposure)) throw new ArgumentOutOfRangeException(nameof(exposure));
             Exposure = exposure;
         }
+        /// <summary>Same exposure as <paramref name="physical"/> for another action state of the same prepared detail.</summary>
+        internal WeldedIBeamSpliceDetailInput(WeldedIBeamSpliceDetailInput physical, WeldedIBeamSplicePlateInput plates)
+        {
+            if (!ReferenceEquals(physical.Plates.Prepared, plates.Prepared)) throw new ArgumentException("The case must share the prepared plate detail.", nameof(plates));
+            Plates = plates; Exposure = physical.Exposure; prepared = physical.Prepared;
+        }
+        private SpliceDetailPreparation prepared;
+        /// <summary>Demand-independent detailing and standard-plate data of this physical detail.</summary>
+        internal SpliceDetailPreparation Prepared => prepared ?? System.Threading.LazyInitializer.EnsureInitialized(ref prepared, () => new SpliceDetailPreparation(this));
+        /// <summary>True when both inputs are action states of one prepared physical detail (reference identity).</summary>
+        internal bool SharesPreparation(WeldedIBeamSpliceDetailInput other) => prepared != null && ReferenceEquals(prepared, other.prepared);
     }
 
     /// <summary>Couples required to move the cut's in-plane force from the contact face
@@ -47,7 +58,7 @@ namespace GPC.Checkers.Steel.Connections
         { Input = input; Detailing = detailing; FaceTransfers = Array.AsReadOnly(transfer.ToArray()); ElasticFaceDiagnostics = Array.AsReadOnly(strain.ToArray()); }
     }
 
-    public static class WeldedIBeamSpliceDetailing
+    internal static class WeldedIBeamSpliceDetailing
     {
         public static WeldedIBeamSpliceDetailResult Verify(WeldedIBeamSpliceDetailInput p)
         {
@@ -111,7 +122,8 @@ namespace GPC.Checkers.Steel.Connections
                     double yo = outward * ((parent.Thickness + cover.Outer.Thickness) / 2 + (top ? d.Packing.TopOuter : d.Packing.BottomOuter));
                     double yi = -outward * ((parent.Thickness + cover.EachInner.Thickness) / 2 + (top ? d.Packing.TopInner : d.Packing.BottomInner));
                     double ao = cover.Outer.Width * cover.Outer.Thickness, ai = 2 * cover.EachInner.Width * cover.EachInner.Thickness;
-                    double n = T("ParentAxial"), m = T("ParentLocalMoment"), no = T("OuterForce"), ni = T("BothInnerForce");
+                    var typed = forces.Flange(SpliceSide.Left, top);
+                    double n = typed.ParentAxial, m = typed.ParentLocalMoment, no = typed.OuterForce, ni = typed.BothInnerForce;
                     double e = p.Plates.Policy.ElasticModulus;
                     double eo = no / (e * ao), ei = ni / (e * ai);
                     double k = (eo - ei) / (yo - yi), e0 = eo - k * yo;
@@ -121,7 +133,6 @@ namespace GPC.Checkers.Steel.Connections
                     Value("OuterAxialStrain", eo, "1"); Value("InnerAxialStrain", ei, "1");
                     Value("FaceStrainGradient", k, "1/mm"); Value("ParentStrainGradient", kp, "1/mm");
                     Value("AtParentCentroidStrainJump", e0 - ep, "1"); Value("StrainGradientJump", k - kp, "1/mm");
-                    double T(string key) => forces.Trace.Single(v => v.Name == "Left." + name + "." + key).Value;
                     void Value(string key, double value, string unit)
                     { if (WeldedIBeamSplicePlates.Finite(value)) strain.Add(new SectionResistanceValue(name + "." + key, value, unit)); else issues.Add(name + ".ELASTIC_FACE_NUMERIC_RANGE"); }
                 }
@@ -133,10 +144,11 @@ namespace GPC.Checkers.Steel.Connections
                     "Minimum holes/edges/hardware and seam collisions are inherited from the same bolt input. Parent-web lateral edges are welded boundaries, not exposed free cover edges.",
                     "FaceTransfers are the transport couples r cross F from the contact face to each cover midsurface, with u=X; v=Y,w=Z for webs and v=Z,w=-Y for flanges. They do not solve contact normal forces, prying or bolt tension.",
                     "ElasticFaceDiagnostics interpolate the two axial face strains and compare them with the parent flange strain field. Zero residual is NOT a qualification; the diagnostic excludes local plate bending, slip and weld restraint.",
-                    "No numerical acceptance tolerance on face strain mismatch, percentage stiffness rule or user provenance string is used to certify mechanical compatibility. Full local force introduction remains open." });
+                    "No numerical acceptance tolerance on face strain mismatch, percentage stiffness rule or user provenance string is used to certify mechanical compatibility. Full local force introduction remains open." },
+                role: ConnectionCheckRole.Detailing);
             return new WeldedIBeamSpliceDetailResult(p, result, transfers, strain);
             void Check(string id, double demand, double resistance) => checks.Add(new ConnectionCheck(id, demand, resistance,
-                "EN1993-1-8:2005 Table3.3, notes1-3; conservative compression-pitch limit for every cover; supplementary for NTC2018", "mm"));
+                "EN1993-1-8:2005 Table3.3, notes1-3; conservative compression-pitch limit for every cover; supplementary for NTC2018", "mm", ConnectionCheckRole.Detailing));
         }
     }
 }

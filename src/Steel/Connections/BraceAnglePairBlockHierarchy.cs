@@ -8,7 +8,7 @@ namespace GPC.Checkers.Steel.Connections
     /// connected strips and central gusset. All orthogonal U/L prefixes and contiguous
     /// transverse subsets, both directions. The demand is unreduced bolt resistance,
     /// NOT applied load. Failure excludes this sufficient method, not proof of rupture.</summary>
-    public static class BraceAnglePairBlockHierarchy
+    internal static class BraceAnglePairBlockHierarchy
     {
         public static ConnectionVerification<BraceAnglePairBoltedTransferInput> Verify(BraceAnglePairBoltedTransferInput p)
             => Verify(p,BraceAnglePairBoltedTransfer.Verify(p));
@@ -20,13 +20,13 @@ namespace GPC.Checkers.Steel.Connections
             else
             {
                 var first=p.Angles.Components[0].Input;var bolt=first.Bolt;
-                var raw=BoltStrength.Verify(new BoltStrengthInput(p.Code,bolt,0,0,1,0,0,p.HoleClearanceServiceabilitySource));
+                var raw=BoltStrength.Verify(new BoltStrengthInput(p.Code,bolt,0,0,1,0,0,p.HoleClearanceServiceabilitySource),out var rawValues);
                 if(!raw.IsComplete)issues.AddRange(raw.Diagnostics);
                 else
                 {
-                    double rb=raw.Checks.Single(c=>c.Id=="Bolt.Shear").Resistance;
-                    double heel=r.InPlaneComponents.Trace.Single(t=>t.Name=="AngleHeelTangentEdge").Value;
-                    double toe=r.InPlaneComponents.Trace.Single(t=>t.Name=="AngleToeTangentEdge").Value;
+                    double rb=rawValues.ShearResistance;
+                    double heel=r.HeelTangentEdge.Value;
+                    double toe=r.ToeTangentEdge.Value;
                     Plate("Angle0",first.Section.Thickness,first.Section.Fy,first.Section.Fu,heel,toe,rb);
                     Plate("Angle1",first.Section.Thickness,first.Section.Fy,first.Section.Fu,heel,toe,rb);
                     Plate("Gusset",p.Gusset.Thickness,p.Gusset.Fy,p.Gusset.Fu,p.GussetNegativeYEdge,p.Gusset.Width-p.GussetNegativeYEdge,2*rb);
@@ -50,7 +50,7 @@ namespace GPC.Checkers.Steel.Connections
                                 if(end==vs.Length-1)Path(vmax-vs[begin]-(count-.5)*bolt.HoleDiameter,lv,"Lmax");
                                 void Path(double lt,double ls,string mode)
                                 {
-                                    double capacity=thickness*(.5*lt*fu/p.Code.Plates.GammaM2+ls*fy/(Math.Sqrt(3)*p.Code.Plates.GammaM0));
+                                    double capacity=thickness*(.5*lt*fu/p.Code.Plates.GammaM2+PlasticShear.Resistance(ls, fy, p.Code.Plates.GammaM0));
                                     if(lt<0||ls<=0||double.IsInfinity(capacity)){issues.Add(name+".INVALID_BLOCK_PATH");return;}
                                     checks.Add(new ConnectionCheck(name+".Axis"+axis+".Direction"+sign+".Path"+(++id)+"."+mode,
                                         k*count*resistancePerBolt,capacity,"EN1993-1-8:2005 3.10.2(3); sufficient rectangular block/fastener hierarchy, not applied demand"));

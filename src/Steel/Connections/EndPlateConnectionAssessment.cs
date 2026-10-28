@@ -57,7 +57,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class EndPlateConnectionAssessment
+    internal static class EndPlateConnectionAssessment
     {
         /// <summary>Extended plate with paired fillets. Both adapters must retain the
         /// SAME moment-result instance. Equal numeric actions or source text are not

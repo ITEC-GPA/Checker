@@ -6,7 +6,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Local throat-stress checks in MPa, actual throat plane only. Does not check weld geometry,
     /// compatible consumables, execution, local bending or parent parts. Compression is included in the quadratic
     /// criterion; the separate 0.9fu/gammaM2 criterion applies to tensile normal stress.</summary>
-    public static class FilletWeldResistance
+    internal static class FilletWeldResistance
     {
         public static FilletWeldStressResult Verify(ConnectionDesignCode code, FilletWeldMaterial firstMaterial,
             FilletWeldMaterial secondMaterial, double sigmaPerpendicular, double tauPerpendicular,

@@ -10,7 +10,7 @@ namespace GPC.Checkers.Steel.Connections
     /// End distances run from extreme bolt rows to the actual nearest longitudinal end/interruption.
     /// ExistingSupportActions is the same concomitant accidental state, excluding this connection.
     /// All presence flags are mandatory. A description of an interior model is not a finite-boundary certificate.</summary>
-    public sealed class FlexibleEndPlateTyingSupportWebInput
+    internal sealed class FlexibleEndPlateTyingSupportWebInput
     {
         public FlexibleEndPlateTyingInput Tying { get; }
         public ConnectionRolledISection Support { get; }
@@ -45,7 +45,7 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>Check14 resistance of the ideal continuous interior-web mechanism only.
     /// LocalModelStatus never qualifies actual finite boundaries or the supporting member.</summary>
-    public sealed class FlexibleEndPlateTyingSupportWebResult
+    internal sealed class FlexibleEndPlateTyingSupportWebResult
     {
         public FlexibleEndPlateTyingSupportWebInput Input { get; }
         public FlexibleEndPlateTyingResult PlateAndBeamAssessment { get; }
@@ -87,7 +87,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class FlexibleEndPlateTyingSupportWeb
+    internal static class FlexibleEndPlateTyingSupportWeb
     {
         public static FlexibleEndPlateTyingSupportWebResult Verify(FlexibleEndPlateTyingSupportWebInput p)
         {
