@@ -117,11 +117,37 @@ namespace ConcreteTests
             Assert.AreEqual(r.TRld, r.TRd); Assert.AreEqual(30e6 / r.TRld, r.TorsionRatio.Value, 1e-12);
             Assert.AreEqual(763.541, r.RequiredLongitudinalArea, 1e-3); Assert.AreEqual(.27907, r.RequiredLinkAreaPerLength, 1e-5);
             Assert.AreEqual(TorsionVerdict.Satisfied, r.Verdict); Assert.IsFalse(r.QuadraticInteraction);
-            // NTC: f'cd = 0.5 fcd with the same truss; UNI (DM 31/07/2012): ν = 0.5 up to C70/85; DS: ν = 0.7 − fck/200 = 0.55.
+            // NTC: f'cd = 0.5 fcd with the same truss; UNI (DM 31/07/2012): ν = 0.5 up to C70/85; DS: νt = 0.7 (0.7 − fck/200) = 0.385
+            // (R16, 1.16.0; 80.3366 kNm with νv = 0.55 before, now the legacy option).
             Assert.AreEqual(73.0333, SectionTorsionCalculator.Evaluate(Input(new StandardNTC2018Concrete()), null, null).TRcd / 1e6, 1e-4);
             Assert.AreEqual(73.0333, SectionTorsionCalculator.Evaluate(Input(new StandardUNIEN1992p11()), null, null).TRcd / 1e6, 1e-4);
-            Assert.AreEqual(80.3366, SectionTorsionCalculator.Evaluate(Input(new StandardDSEN1992p11()), null, null).TRcd / 1e6, 1e-4);
+            Assert.AreEqual(56.2356, SectionTorsionCalculator.Evaluate(Input(new StandardDSEN1992p11()), null, null).TRcd / 1e6, 1e-4);
             Assert.AreEqual(r.TRcd, SectionTorsionCalculator.Evaluate(Input(new StandardNSEN1992p11()), null, null).TRcd, 1e-6);
+        }
+
+        /// <summary>
+        /// R16 (1.16.0): DS torsion with νt = 0.7 (0.7 − fck/200) of DK NA (5.104 NA) for walls reinforced on the outer face only, νv for walls
+        /// reinforced on both faces and, with shear, the mean of νv and νt weighted on the wall shear stresses; the legacy option keeps νv.
+        /// </summary>
+        [TestMethod]
+        public void DsTorsionUsesTheTorsionEfficiencyOfDkNa()
+        {
+            var ds = new StandardDSEN1992p11();
+            double truss = 2 * 82416 * 96 * 20 * 1.5 / 3.25; // 2 Ak tef fcd cot θ/(1 + cot²θ) per unit ν
+            Assert.AreEqual(.385 * truss, SectionTorsionCalculator.Evaluate(Input(ds), null, null).TRcd, 1e-3);
+            Assert.AreEqual(.55 * truss, SectionTorsionCalculator.Evaluate(Input(ds, box: true), null, null).TRcd, 1e-3);
+            var legacy = new SectionTorsionInput(ds, 30e6, new TorsionGeometry(82416, 1216, 96), 30, 20, 1.5, 500 / 1.15, 500 / 1.15, 50.27, 150, 804, 1.5, 90, false,
+                DsTorsionStrutEfficiency.ShearFactor);
+            Assert.AreEqual(.55 * truss, SectionTorsionCalculator.Evaluate(legacy, null, null).TRcd, 1e-3);
+            // V = 100 kN with VRcd = 400 kN: τV = 0.25 · 0.55 · 20 · 1.5/3.25 = 1.26923 MPa, τT = 30e6/(2 · 82416 · 96) = 1.89587 MPa;
+            // ν = (0.55 τV + 0.385 τT)/(τV + τT) = 0.45117, TRcd = 65.9003 kNm; interaction T/TRcd + (V/VRcd) 0.55/ν = 0.76000.
+            double tauV = .25 * .55 * 20 * 1.5 / 3.25, tauT = 30e6 / (2 * 82416 * 96.0), nu = (.55 * tauV + .385 * tauT) / (tauV + tauT);
+            var r = SectionTorsionCalculator.Evaluate(Input(ds), new TorsionShearComponent(100e3, 300e3, 400e3, 1.5), null);
+            Assert.AreEqual(nu * truss, r.TRcd, 1e-3); Assert.AreEqual(65.9003, r.TRcd / 1e6, 1e-4);
+            Assert.AreEqual(30e6 / (nu * truss) + .25 * .55 / nu, r.ConcreteInteraction.Value, 1e-9); Assert.AreEqual(.76, r.ConcreteInteraction.Value, 1e-5);
+            // Legacy: νv in the strut and the shear ratio unscaled.
+            var old = SectionTorsionCalculator.Evaluate(legacy, new TorsionShearComponent(100e3, 300e3, 400e3, 1.5), null);
+            Assert.AreEqual(30e6 / (.55 * truss) + .25, old.ConcreteInteraction.Value, 1e-9);
         }
 
         [TestMethod]

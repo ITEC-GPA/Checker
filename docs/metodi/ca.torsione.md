@@ -171,7 +171,7 @@ cot θ/(1 + cot²θ) = sin θ cos θ. La resistenza delle bielle fc,s dipende da
 | NTC 2018, CNR-DT 200 | f'cd = ν fcd con ν = 0,5 (Circolare 2019 C4.1.2.3.6) |
 | EN 1992-1-1, NS | ν fcd, ν = 0,6 (1 − fck/250), αcw = 1; NS con fck ≤ 60 MPa e fcd ridotto in proporzione |
 | UNI | ν fcd, ν = 0,5 per fck ≤ 70 MPa, altrimenti come EN |
-| DS | ν fcd, ν = max(0,45; 0,7 − fck/200), cioè νv del taglio anche in torsione (riquadro R-4) |
+| DS | ν fcd: νt = 0,7 (0,7 − fck/200) (5.104 NA), νv = max(0,45; 0,7 − fck/200) del taglio con pareti armate su entrambe le facce; con il taglio la media pesata (R.6a); opzione storica: νv in ogni caso (riquadro R-4) |
 | DIN | ν fcd, ν = 0,525 ν2 (0,75 ν2 per sezioni cave armate sulle due facce delle pareti), ν2 = min(1; 1,1 − fck/500) |
 | Model Code 2010 | kc fck/γc, con kc da (R.6) |
 
@@ -181,6 +181,20 @@ cot θ/(1 + cot²θ) = sin θ cos θ. La resistenza delle bielle fc,s dipende da
 
 con εx la maggiore delle deformazioni longitudinali del taglio delle due direzioni (pagina
 [ca.taglio](ca.taglio.md), (T.6)); senza dati di taglio εx = 0.
+
+DS con taglio e torsione insieme (DK NA 5.6.1(3)P: «media di νv e νt pesata sulle due azioni»; la norma non scrive i
+pesi): i pesi sono le tensioni tangenziali delle pareti, τT della torsione e τV del taglio ricavata da VRcd della (6.9)
+con αcw = 1 e lo stesso cot θ; la parte del taglio nell'interazione (R.7) si riferisce allo stesso ν:
+
+```math
+\tau_T = \frac{|T_{Ed}|}{2 A_k t_{ef}}, \qquad \tau_V = \sum_i \frac{|V_i|}{V_{Rcd,i}}\,\nu_v f_{cd} \frac{\cot\theta}{1 + \cot^2\theta}, \qquad
+\nu = \frac{\nu_v \tau_V + \nu_t \tau_T}{\tau_V + \tau_T}, \qquad
+\eta_c = \frac{|T_{Ed}|}{T_{Rcd}(\nu)} + \frac{\nu_v}{\nu} \sum_i \frac{|V_i|}{V_{Rcd,i}} \qquad \text{(R.6a)}
+```
+
+Con la sola torsione ν = νt, con il solo taglio ν = νv. L'interazione vale (τT + τV)(1 + cot²θ)/(ν fcd cot θ): la
+tensione totale della parete contro la resistenza delle bielle con il fattore medio. I pesi sono una nostra lettura
+del testo (fonte secondaria della forma pesata; da riscontrare sul testo del DK NA).
 
 ### 6.3 Interazione con il taglio
 
@@ -264,20 +278,24 @@ accetta solo cot θ = 1.
 >   più stretto (a favore).
 > - Stato: dichiarato.
 
-> **Scostamento dichiarato — R-4 (R16) DS: fattore di efficienza delle bielle in torsione**
+> **Scostamento corretto — R-4 (R16) DS: fattore di efficienza delle bielle in torsione**
 >
 > - Norma: DK NA 5.6.1(3)P, informazione supplementare, distingue il fattore di efficienza del taglio,
 >   νv = 0,7 − fck/200 ≥ 0,45 (5.103 NA), da quello della torsione, νt = 0,7 (0,7 − fck/200) (5.104 NA); νt si
 >   può porre uguale a νv solo se le pareti del profilo resistente sono armate con staffe chiuse sul perimetro e
 >   barre longitudinali distribuite su entrambe le facce. Con taglio e torsione insieme si usa la media di νv e νt
 >   pesata sulle due azioni.
-> - Programma: νv in ogni caso, anche per le sezioni piene armate sulla sola faccia esterna; l'indicatore
->   `HollowWithReinforcementOnBothFaces` non è usato dal profilo DS.
-> - Effetto: a sfavore di sicurezza. TRcd e la parte di torsione dell'interazione delle bielle valgono 1/0,7 = 1,43
->   volte quelli della norma (1,61 volte con fck = 60 MPa, dove νv è limitato a 0,45 e νt no). Con il profilo
->   dell'esempio (DS, fcd = 30/1,45 MPa, cot θ = 1,5): TRcd = 83,11 kNm con νv = 0,55 invece di 58,17 kNm con
->   νt = 0,385.
-> - Stato: da discutere (voce R16 del registro delle differenze, a sfavore di sicurezza).
+> - Programma fino a Concrete 0.27: νv in ogni caso, anche per le sezioni piene armate sulla sola faccia esterna;
+>   l'indicatore `HollowWithReinforcementOnBothFaces` non era usato dal profilo DS. Effetto: TRcd e la parte di
+>   torsione dell'interazione delle bielle valevano 1/0,7 = 1,43 volte quelli della norma (1,61 volte con
+>   fck = 60 MPa, dove νv è limitato a 0,45 e νt no). Con il profilo dell'esempio (DS, fcd = 30/1,45 MPa,
+>   cot θ = 1,5): TRcd = 83,11 kNm con νv = 0,55 invece di 58,17 kNm con νt = 0,385.
+> - Correzione (ANTHEA 1.16.0, decisione dell'utente del 28/10/2026 «Fonti secondarie»): νt per le pareti armate
+>   sulla sola faccia esterna, νv con `HollowWithReinforcementOnBothFaces`, media pesata (R.6a) con il taglio.
+>   Fonti: testo del DK NA per νv e νt; per la media pesata il testo dice solo «pesata sulle due azioni» (riscontrato
+>   anche su una copia secondaria del DK NA): i pesi sulle tensioni delle pareti sono una nostra lettura, da
+>   riscontrare sul testo. Opzione storica: `DsTorsionStrutEfficiency.ShearFactor`.
+> - Stato: corretto (voce R16 del registro delle differenze).
 
 Il campo di cot θ del profilo Model Code 2010 non dipende da εx: vale il riquadro T-1 della pagina
 [ca.taglio](ca.taglio.md).
@@ -289,7 +307,8 @@ Il campo di cot θ del profilo Model Code 2010 non dipende da εx: vale il riqua
 | f'cd | 0,5 fcd | NTC, CNR-DT 200 | NTC [4.1.35]; Circolare C4.1.2.3.6 | no | `SectionTorsionCalculator.Evaluate` |
 | ν | 0,6 (1 − fck/250) | EN, NS (fck ≤ 60) | EN (6.6N) | no | `SectionShearCalculator.StrutEfficiency` |
 | ν | 0,5 (fck ≤ 70) | UNI | DM 2012 6.2.2(6) | no | idem |
-| ν | max(0,45; 0,7 − fck/200) | DS | DK NA (5.103 NA), νv del taglio; per la torsione vedi riquadro R-4 | no | idem |
+| ν | max(0,45; 0,7 − fck/200) | DS | DK NA (5.103 NA), νv del taglio; in torsione con pareti armate su entrambe le facce | no | idem |
+| νt | 0,7 (0,7 − fck/200) | DS | DK NA (5.104 NA); media pesata con il taglio (R.6a) | sì (`DsTorsionStrutEfficiency.ShearFactor`: νv, storico) | `SectionTorsionCalculator.Evaluate` |
 | ν | 0,525 ν2; 0,75 ν2 sezioni cave armate sulle due facce | DIN | NA DIN 6.3.2 | no (indicatore della sezione cava sì) | `SectionTorsionCalculator.Evaluate` |
 | ν2 | min(1; 1,1 − fck/500) | DIN | NA DIN 6.2.3(3) | no | idem |
 | kc,max, ηfc | 0,65; min[1; (30/fck)^(1/3)] | Model Code 2010 | MC2010 7.3.3.3 | no | idem |
@@ -341,7 +360,7 @@ Il metodo non ha iterazioni: cot θ è un dato.
   TEd/TRd,c + VEd/VRd,c ≤ 1): non usati; la verifica richiede sempre staffe chiuse.
 - Torsione di congruenza e ridistribuzione: il metodo verifica la torsione assegnata.
 - Sezioni composte da più rettangoli (EN 1992-1-1 6.3.1(3)): il profilo resistente va assegnato come un'unica parete.
-- DS: regola di DK NA 6.3.2(6) (riquadro R-2) e fattore νt della torsione (riquadro R-4).
+- DS: regola di DK NA 6.3.2(6) (riquadro R-2).
 - CNR-DT 204 (fibre più staffe) e contributo FRP di CNR-DT 200.
 - Norme americane.
 - Testo dei riferimenti (`TorsionProfiles.Reference`), corretto il 26/10/2026 (voce R19 del registro delle differenze): per
