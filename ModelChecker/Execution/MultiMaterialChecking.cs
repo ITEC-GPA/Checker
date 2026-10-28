@@ -121,7 +121,7 @@ namespace GPC.Model.Checker
                         {
                             string owned = OwnedCheckInputs.Of(item);
                             result = engine is IPhysicalMemberVerifier memberVerifier
-                                ? MemberCheckExecution.Run(plan.Plan, item, memberVerifier, token)
+                                ? MemberChecking.Run(item, memberVerifier, token)
                                 : NativeResults.Unavailable("MaterialGlobalCheckerUnavailable");
                             token.ThrowIfCancellationRequested();
                             if (engine != null && EngineKey(engine) != key || OwnedCheckInputs.Of(item) != owned) result = new CheckResult { Data = DataStatus.Stale };
