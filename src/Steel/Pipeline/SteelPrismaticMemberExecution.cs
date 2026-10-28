@@ -113,7 +113,7 @@ namespace GPC.Checkers.Steel.Pipeline
             if (compression)
             {
                 var typed = new CompressionValues();
-                double area = effective ? SteelEffectiveMemberProperties.Compression(i.Section).Area : section.Area;
+                double area = effective ? MemoizedEffectiveProperties.CompressionArea(i.Section) : section.Area;
                 if (effective) { Add(trace, "AreaEffective", area, "mm2"); Add(trace, "EffectiveCentroidShiftX", 0, "mm"); Add(trace, "EffectiveCentroidShiftY", 0, "mm"); typed.EffectiveArea = area; }
                 double characteristic = area * fy;
                 Positive(characteristic, "Characteristic axial resistance"); Add(trace, "Area", section.Area, "mm2");
@@ -155,7 +155,7 @@ namespace GPC.Checkers.Steel.Pipeline
                 // Rounded RHS uses its independently qualified elastic modulus;
                 // a conservative elastic check is also permitted for compact sections.
                 bool elastic = decision.SectionClass >= 3 || section.SectionShape.GetType() == typeof(SectionRHSRoundedCorners);
-                double w = effective ? SteelEffectiveMemberProperties.BendingModulus(i, 1) : elastic ? section.Wel1 : section.Wpl1; Positive(w, "Section modulus");
+                double w = effective ? MemoizedEffectiveProperties.BendingModulus(i, 1) : elastic ? section.Wel1 : section.Wpl1; Positive(w, "Section modulus");
                 double mcr = analysis.Values.Single(v => v.Quantity == SteelStabilityQuantity.Mcr).Value;
                 double characteristic = w * fy; Positive(characteristic, "Characteristic moment resistance");
                 var curve = BucklingCurves.LateralTorsional(section, ntc);

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using GPC.Checkers.Steel.Inputs;
-using GPC.Checkers.Steel.EffectiveSections;
 using GPC.Checkers.Steel.Members;
 using GPC.Checkers.Steel.ModelAdapters;
 using GPC.Checkers.Steel.Sections;
@@ -67,8 +66,8 @@ namespace GPC.Checkers.Steel.Pipeline
             double gamma=i.Code.GammaM1.Value,fy=i.Section.YieldStrength,nrk=(effective?flexural.EffectiveArea.Value:section.Area)*fy;
             double lambda1=flexural.Slenderness1,lambda2=flexural.Slenderness2,chi1=flexural.Chi1,chi2=flexural.Chi2;
             bool elastic=decision.SectionClass>=3||Hollow(section.SectionShape),ntc=i.Code.SectionCode.Standard==SectionResistanceStandard.Ntc2018;
-            double w1=effective?SteelEffectiveMemberProperties.BendingModulus(i,1):(elastic?section.Wel1:section.Wpl1);
-            double w2=effective?SteelEffectiveMemberProperties.BendingModulus(i,2):(elastic?section.Wel2:section.Wpl2);
+            double w1=effective?MemoizedEffectiveProperties.BendingModulus(i,1):(elastic?section.Wel1:section.Wpl1);
+            double w2=effective?MemoizedEffectiveProperties.BendingModulus(i,2):(elastic?section.Wel2:section.Wpl2);
             double m1rk=w1*fy,m2rk=w2*fy,chiLT=1;
             if(effective) {Add(trace,"Weff1Min",w1,"mm3");Add(trace,"Weff2Min",w2,"mm3");}
             if(p.TorsionSusceptible&&i.Actions.M1!=0)
