@@ -61,6 +61,34 @@ namespace GPC.Checkers.Steel.Pipeline
             return EvaluateHWeb(input, 1, source, true);
         }
 
+        /// <summary>V1 on an exact H with horizontal principal axis 1: the flanges carry the shear.
+        /// Shear buckling is excluded when every flange outstand stays within the uniform-compression
+        /// class 3 limit c/t &lt;= 14 epsilon (EN 1993-1-1 Table 5.2, NTC Table 4.2.IV): its elastic
+        /// critical stress with k=0.43 is then at least 1.7 fy, above the level at which
+        /// EN 1993-1-1 6.2.6(6) and NTC 4.2.27 exclude web shear buckling (about 1.2 fy).
+        /// Otherwise the assessment is negative: no slender-flange shear resistance is provided.</summary>
+        public static SteelShearBucklingAssessment EvaluateHFlanges(SteelVerificationInput input, string source)
+        {
+            if (input == null) throw new ArgumentNullException(nameof(input));
+            var shape = input.Section.ReadOnlySection.SectionShape;
+            if (shape.GetType() != typeof(SectionH) || Math.Abs(shape.AngleX1) > 1e-10)
+                throw new NotSupportedException("Exact H geometry with horizontal principal axis 1 is required.");
+            var h = (SectionH)shape;
+            double epsilon = Math.Sqrt(235 / input.Section.YieldStrength), limit = 14 * epsilon;
+            double top = ((h.LenghtTopFlange - h.ThicknessWeb) / 2 - h.R) / h.ThicknessTopFlange;
+            double bottom = ((h.LenghtBottomFlange - h.ThicknessWeb) / 2 - h.R) / h.ThicknessBottomFlange;
+            double slenderness = Math.Max(top, bottom);
+            if (!(slenderness > 0) || double.IsInfinity(slenderness) || !(limit > 0) || double.IsInfinity(limit))
+                throw new ArithmeticException("Shear-buckling assessment is outside the finite positive numerical range.");
+            bool ntc = input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018;
+            return new SteelShearBucklingAssessment(input, 1, slenderness <= limit, source,
+                (ntc ? "NTC 2018 Table 4.2.IV" : "EN 1993-1-1:2005 Table 5.2")
+                + "; flange outstands within the class 3 uniform-compression limit exclude shear buckling under V1", new[] {
+                    new SectionResistanceValue("Fy", input.Section.YieldStrength, "MPa"),
+                    new SectionResistanceValue("FlangeOutstandSlenderness", slenderness, "1"),
+                    new SectionResistanceValue("FlangeOutstandSlendernessLimit", limit, "1") });
+        }
+
         private static SteelShearBucklingAssessment EvaluateHWeb(SteelVerificationInput input, double eta, string source, bool ntc)
         {
             var shape = input.Section.ReadOnlySection.SectionShape;

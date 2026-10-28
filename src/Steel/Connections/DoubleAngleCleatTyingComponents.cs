@@ -9,7 +9,7 @@ namespace GPC.Checkers.Steel.Connections
     /// belongs to this complementary guidance, not to an automatically selected
     /// EC/NTC national code. GammaM0 applies only to the yielding term of block
     /// tearing and must be supplied with its own design-context source.</summary>
-    public sealed class SbeAccidentalTyingPolicy
+    internal sealed class SbeAccidentalTyingPolicy
     {
         public double GammaMu => 1.1;
         public double GammaM0 { get; }
@@ -35,7 +35,7 @@ namespace GPC.Checkers.Steel.Connections
     /// Z=+/-SupportGauge/2. Dimensions mm, strengths MPa. Geometry sources identify
     /// the actual identical products; this type contains no support member.
     /// Hardware widths are actual head/nut/washer dimensions, not bolt diameter.</summary>
-    public sealed class DoubleAngleCleatTyingGeometry
+    internal sealed class DoubleAngleCleatTyingGeometry
     {
         public ConnectionPlate CleatLeg { get; }
         public double CleatRootRadius { get; }
@@ -84,7 +84,7 @@ namespace GPC.Checkers.Steel.Connections
     /// wrench is transported from its actual application point to the cleat-centre
     /// origin. Only centred positive Fx, or the null case, is in this first scope.
     /// No ordinary load, Passed certificate or national-code inference is accepted.</summary>
-    public sealed class DoubleAngleCleatTyingInput
+    internal sealed class DoubleAngleCleatTyingInput
     {
         public SbeAccidentalTyingPolicy Policy { get; }
         public DoubleAngleCleatTyingGeometry Geometry { get; }
@@ -98,7 +98,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public sealed class DoubleAngleCleatTyingResult
+    internal sealed class DoubleAngleCleatTyingResult
     {
         public DoubleAngleCleatTyingInput Input { get; }
         public PlanarConnectionActions ActionsAtCleatCentre { get; }
@@ -142,7 +142,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class DoubleAngleCleatTyingComponents
+    internal static class DoubleAngleCleatTyingComponents
     {
         public const string MethodId = "Steel.Connection.DoubleAngleCleat.AccidentalTyingComponents";
         public static DoubleAngleCleatTyingResult Verify(DoubleAngleCleatTyingInput p)
@@ -212,8 +212,8 @@ namespace GPC.Checkers.Steel.Connections
             Gate(end > 0 && pitch > 0 && m > d0 / 2 && n > 0 && denominator > 0
                 && g.SupportContactWidth < 2 * Math.Min(m, g.FreeEdge), "EQUIVALENT_TSTUB_GEOMETRY_OUTSIDE_SCOPE");
             double moment = .25 * length * leg.Thickness * leg.Thickness * leg.Fu / gm;
-            double ft = .9 * bolt.Fu * bolt.TensileArea / gm, sumFt = 2 * g.Rows * ft;
-            double fv = .6 * bolt.Fu * bolt.TensileArea / gm;
+            double ft = BoltResistance.Tension(bolt.Fu, bolt.TensileArea, gm), sumFt = 2 * g.Rows * ft;
+            double fv = BoltResistance.Shear(1, .6, bolt.Fu, bolt.TensileArea, gm);
             Value("Geometry.EffectiveEnd", end, "mm"); Value("Geometry.EffectivePitch", pitch, "mm");
             Value("Geometry.EffectiveLength", length, "mm"); Value("Geometry.M", m, "mm");
             Value("Geometry.N", n, "mm"); Value("Geometry.ContactEw", ew, "mm");
@@ -253,7 +253,7 @@ namespace GPC.Checkers.Steel.Connections
             void Block(string id, double ant, double anv, double yield, double ultimate, string reference)
             {
                 Value(id + ".Ant", ant, "mm2"); Value(id + ".Anv", anv, "mm2");
-                double tension = ant * ultimate / gm, shear = anv * yield / (Math.Sqrt(3) * p.Policy.GammaM0);
+                double tension = ant * ultimate / gm, shear = PlasticShear.Resistance(anv, yield, p.Policy.GammaM0);
                 Value(id + ".TensionTerm", tension, "N"); Value(id + ".ShearYieldTerm", shear, "N");
                 Gate(ant > 0 && anv > 0, id + ".NONPOSITIVE_BLOCK_AREA");
                 Check(id, tension + shear, reference);

@@ -39,7 +39,7 @@ namespace GPC.Checkers.Steel.Connections
     /// Tension includes any already-assessed prying. No implicit SLS/ULS conversion.
     /// FrictionPlanes counts interfaces, not bolts. FrictionCoefficient is qualified
     /// by the caller for the actual surface/condition; no treatment is inferred.</summary>
-    public sealed class BoltSlipInput
+    internal sealed class BoltSlipInput
     {
         public BoltSlipPolicy Policy { get; }
         public ConnectionBolt Bolt { get; }
@@ -75,7 +75,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class BoltSlip
+    internal static class BoltSlip
     {
         public static ConnectionVerification<BoltSlipInput> Verify(BoltSlipInput p)
         {
@@ -97,7 +97,7 @@ namespace GPC.Checkers.Steel.Connections
                 double preload = nominal / gammaPreload;
                 double gammaSlip = p.LimitState == BoltSlipLimitState.Serviceability ? p.Policy.GammaM3Serviceability : p.Policy.GammaM3Ultimate;
                 double remaining = Math.Max(0, preload - .8 * p.TensionForce);
-                double betaLong = Math.Max(.75, Math.Min(1, 1 - (p.JointLength - 15 * p.Bolt.Diameter) / (200 * p.Bolt.Diameter)));
+                double betaLong = BoltLongJoint.Reduction(p.JointLength, p.Bolt.Diameter);
                 double resistance = betaLong * BoltSlipMath.DesignResistance(1, p.FrictionPlanes, p.FrictionCoefficient, p.TensionForce, gammaSlip, preload);
                 if (double.IsNaN(resistance) || double.IsInfinity(resistance) || double.IsInfinity(nominal))
                     issues.Add("SLIP_CAPACITY_OUTSIDE_NUMERIC_RANGE");
@@ -113,9 +113,10 @@ namespace GPC.Checkers.Steel.Connections
                     trace.Add(new SectionResistanceValue("ResidualClampingForce", remaining, "N"));
                     trace.Add(new SectionResistanceValue("BetaLongJoint", betaLong, "1"));
                     // The reserve check prevents zero shear masking a negative residual preload.
-                    checks.Add(new ConnectionCheck("Slip.PreloadReserve", .8 * p.TensionForce, preload, reference));
+                    var role = p.LimitState == BoltSlipLimitState.Serviceability ? ConnectionCheckRole.Serviceability : ConnectionCheckRole.Resistance;
+                    checks.Add(new ConnectionCheck("Slip.PreloadReserve", .8 * p.TensionForce, preload, reference, "N", role));
                     checks.Add(new ConnectionCheck(p.LimitState == BoltSlipLimitState.Serviceability ? "Slip.Serviceability" : "Slip.Ultimate",
-                        p.ShearForce, resistance, reference + (betaLong < 1 ? "; conservative long-joint extension SCI P398 section4 Step2" : "")));
+                        p.ShearForce, resistance, reference + (betaLong < 1 ? "; conservative long-joint extension SCI P398 section4 Step2" : ""), "N", role));
                 }
             }
             return new ConnectionVerification<BoltSlipInput>(p, code, "Steel.Connection.Bolt.Slip",

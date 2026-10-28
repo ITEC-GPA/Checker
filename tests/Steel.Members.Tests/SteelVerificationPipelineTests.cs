@@ -131,7 +131,25 @@ public class SteelVerificationPipelineTests
     }
 
     [DataTestMethod]
-    [DataRow(1)] [DataRow(2)] [DataRow(3)]
+    [DataRow(1)] [DataRow(2)]
+    public void NtcClass12InteractionUsesTheClosedFormPlasticResistance(int cl)
+    {
+        // NTC 2018 4.2.4.1.2.7 for doubly symmetric H: welded 300x12, flanges 150x12, S235, gammaM0=1.05.
+        var input = Input(n: -1000, m1: 1e6, m2: -2e6, ntc: true);
+        double fd = 235 / 1.05, area = 2 * 150 * 12 + 276 * 12;
+        double wpl1 = 2 * 150 * 12 * 144 + 12 * 276.0 * 276 / 4, wpl2 = 2 * 12 * 150.0 * 150 / 4 + 276 * 12.0 * 12 / 4;
+        double n = 1000 / (area * fd), a = Math.Min((area - 2 * 150 * 12) / area, .5);
+        double mn1 = Math.Min(wpl1 * fd, wpl1 * fd * (1 - n) / (1 - .5 * a)), mn2 = n <= a ? wpl2 * fd : double.NaN;
+        double q1 = 1e6 / mn1, q2 = 2e6 / mn2; // beta = max(5n, 1) = 1: (q1/u)^2 + q2/u = 1
+        double expected = (q2 + Math.Sqrt(q2 * q2 + 4 * q1 * q1)) / 2;
+        var result = SteelVerificationPipeline.Execute(Plan(input, cl)); var check = Normal(result);
+        Assert.AreEqual(SteelMethod.IHPlasticInteractionFormulas, check.Decision.Method);
+        Assert.AreEqual(expected, check.Utilization!.Value, 1e-12);
+        StringAssert.Contains(check.Reference, "NTC 2018 4.2.4.1.2.7"); Assert.AreEqual(Status.Passed, check.Status);
+    }
+
+    [DataTestMethod]
+    [DataRow(3)]
     public void NtcInteractionReportsTheConservativeElasticBound(int cl)
     {
         var input = Input(n: -1000, m1: 1e6, m2: -2e6, ntc: true);

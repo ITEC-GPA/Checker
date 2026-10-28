@@ -31,7 +31,7 @@ namespace GPC.Checkers.Steel.Pipeline
             if(ntc&&(!Ntc2018DesignPolicy.IsGammaM1(gammaM1)||eta!=1))throw new ArgumentException("NTC web resistance requires gammaM1=1.05 (1.10 for bridges) and eta=1.");
             var h=(SectionH)section.SectionShape;
             double vb=Ec3WebShearBuckling.NonRigidEndPostResistance(h.HeightWeb,h.ThicknessWeb,input.Section.YieldStrength,gammaM1,eta);
-            double vpl=ModelShearAreas.GetArea2(section,input.Code.SectionCode.Standard)*input.Section.YieldStrength/(Math.Sqrt(3)*input.Code.SectionCode.GammaM0);
+            double vpl=SteelPlasticShear.Resistance(input,2);
             double resistance=Math.Min(vb,vpl);SteelInputValidation.Positive(resistance,"web design resistance");
             return new SteelShearBucklingAssessment(input,2,false,supportDetailSource,
                 (ntc?"NTC 2018 4.2.4.1.2.4; ":"")+"EN1993-1-5:2006 5.2/5.3, Table5.1, equation5.5; web only; support detail assessed externally",

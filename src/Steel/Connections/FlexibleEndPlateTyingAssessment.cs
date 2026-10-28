@@ -8,7 +8,7 @@ namespace GPC.Checkers.Steel.Connections
     /// ideal interior-support-web components. All input adapters must contain the SAME
     /// immutable FlexibleEndPlateTyingInput instance; equal numeric forces from separate
     /// states are not evidence of concomitance. No complete-joint resistance is returned.</summary>
-    public sealed class FlexibleEndPlateTyingAssessmentResult
+    internal sealed class FlexibleEndPlateTyingAssessmentResult
     {
         public FlexibleEndPlateTyingWeldResult Welds { get; }
         public FlexibleEndPlateTyingSupportWebResult SupportWeb { get; }
@@ -52,7 +52,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class FlexibleEndPlateTyingAssessment
+    internal static class FlexibleEndPlateTyingAssessment
     {
         /// <summary>Both adapters must reference the same Tying object. Their source
         /// strings are provenance descriptions, not interchangeable load-case identifiers.

@@ -8,7 +8,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Two equal continuous 90-degree fillet welds along the full plate height,
     /// one on each beam-web face. Geometry and accidental actions are taken only from Tying.
     /// WeldDetailSource records this physical detail; no reduced/incomplete/intermittent weld is inferred.</summary>
-    public sealed class FlexibleEndPlateTyingWeldInput
+    internal sealed class FlexibleEndPlateTyingWeldInput
     {
         public FlexibleEndPlateTyingInput Tying { get; }
         public FilletWeldEndCondition Ends { get; }
@@ -28,7 +28,7 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>SCI accidental-tying weld component only. The C.1 throat requirement develops
     /// beam-web yielding, not the ultimate web resistance of Check12 or whole-joint ductility.</summary>
-    public sealed class FlexibleEndPlateTyingWeldResult
+    internal sealed class FlexibleEndPlateTyingWeldResult
     {
         public FlexibleEndPlateTyingWeldInput Input { get; }
         public FlexibleEndPlateTyingResult PlateAndBeamAssessment { get; }
@@ -54,14 +54,16 @@ namespace GPC.Checkers.Steel.Connections
         public ConnectionCheck GoverningCheck => IsComponentAssessmentComplete ? Checks.OrderByDescending(c => c.Utilization).First() : null;
         public double? Utilization => GoverningCheck?.Utilization;
         public double? LoadUtilization => IsComponentAssessmentComplete
-            ? (double?)Checks.Where(c => c.Id != "Tying.Weld.FullStrengthWebYieldThroat").Max(c => c.Utilization) : null;
+            ? (double?)ConnectionOutcome.LoadChecks(Checks).Max(c => c.Utilization) : null;
         public double? WeldTyingResistance => IsComponentAssessmentComplete
-            ? (double?)Trace.Single(v => v.Name == "Weld.TyingResistance").Value : null;
+            ? (double?)typedTyingResistance.Value : null;
+        private readonly double? typedTyingResistance;
         public string Scope => "SCI P358(2014) AppendixC.1 accidental-tying weld resistance and beam-web yield-strength throat criterion, standard partial-depth S275 end plate. No ordinary N+V, support verification or whole-joint qualification.";
         internal FlexibleEndPlateTyingWeldResult(FlexibleEndPlateTyingWeldInput input,
             FlexibleEndPlateTyingResult component, PlanarConnectionActions actions,
-            IList<ConnectionCheck> checks, IList<SectionResistanceValue> trace, IList<string> diagnostics)
+            IList<ConnectionCheck> checks, IList<SectionResistanceValue> trace, IList<string> diagnostics, double? tyingResistance = null)
         {
+            typedTyingResistance = tyingResistance;
             Input = input; PlateAndBeamAssessment = component; ActionsAtWeldCentre = actions;
             Diagnostics = Array.AsReadOnly(diagnostics.Distinct().ToArray());
             var evaluated = ConnectionOutcome.Retained(checks, Diagnostics.Count);
@@ -71,14 +73,14 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class FlexibleEndPlateTyingWeld
+    internal static class FlexibleEndPlateTyingWeld
     {
         public static FlexibleEndPlateTyingWeldResult Verify(FlexibleEndPlateTyingWeldInput p)
         {
             if (p == null) throw new ArgumentNullException(nameof(p));
             var component = FlexibleEndPlateTyingComponents.Verify(p.Tying);
             var checks = new List<ConnectionCheck>(); var trace = new List<SectionResistanceValue>();
-            var issues = new List<string>(); PlanarConnectionActions atWeld = null;
+            var issues = new List<string>(); PlanarConnectionActions atWeld = null; double? tying = null;
             if (!component.IsComponentAssessmentComplete)
                 issues.AddRange(component.Diagnostics.Select(d => "PlateAndBeam:" + d));
             Require(p.Ends == FilletWeldEndCondition.FullSize, "FULL_SIZE_WELD_ENDS_REQUIRED");
@@ -103,22 +105,22 @@ namespace GPC.Checkers.Steel.Connections
             double directionalCapacity = Math.Sqrt(2) * a * length * equivalentResistance;
             double normalCapacity = 2 * Math.Sqrt(2) * a * length * normalResistance;
             double capacity = Math.Min(directionalCapacity, normalCapacity);
-            double mode1 = component.Checks.Single(v => v.Id == "Tying.EndPlate.Mode1").Resistance;
+            double mode1 = component.EndPlateMode1Resistance.Value;
             Value("Policy.GammaMu", gamma, "1"); Value("Weld.BetaW", beta, "1"); Value("Weld.Fu", fu, "MPa");
             Value("Weld.Throat", a, "mm"); Value("Weld.EffectiveLengthPerSide", length, "mm");
             Value("Weld.TotalThroatArea", area, "mm2"); Value("Weld.RequiredWebYieldThroat", required, "mm");
             Value("Weld.SigmaPerpendicular", sigma, "MPa"); Value("Weld.TauPerpendicular", tau, "MPa");
             Value("Weld.TauParallel", 0, "MPa"); Value("Weld.DirectionalResistance", directionalCapacity, "N");
-            Value("Weld.NormalResistance", normalCapacity, "N"); Value("Weld.TyingResistance", capacity, "N");
+            Value("Weld.NormalResistance", normalCapacity, "N"); if (Value("Weld.TyingResistance", capacity, "N")) tying = capacity;
             Value("BeamWeb.YieldForce", g.Beam.WebThickness * length * g.Beam.Fy, "N");
-            Value("BeamWeb.UltimateForce", component.Checks.Single(v => v.Id == "Tying.BeamWeb.Tension").Resistance, "N");
+            Value("BeamWeb.UltimateForce", component.BeamWebTensionResistance.Value, "N");
             Value("Plate.Mode1Resistance", mode1, "N"); Value("Plate.Mode1ToWeldResistanceRatio", mode1 / capacity, "1");
             Value("Actions.TransmittedFz", c.Fz, "N"); Value("Actions.WeldReactionOnBeamFz", -c.Fz, "N");
             Value("Geometry.WeldRootZ", g.Plate.Thickness, "mm"); Value("Geometry.PlateCentreZ", c.ApplicationZ, "mm");
             Value("Geometry.LeftRootX", -g.Beam.WebThickness / 2, "mm");
             Value("Geometry.RightRootX", g.Beam.WebThickness / 2, "mm");
             Value("Actions.WeldCentreY", c.ApplicationY, "mm");
-            Check("Tying.Weld.FullStrengthWebYieldThroat", required, a, "SCI P358(2014) AppendixC.1 p279: beam-web yielding, not ultimate strength", "mm");
+            Check("Tying.Weld.FullStrengthWebYieldThroat", required, a, "SCI P358(2014) AppendixC.1 p279: beam-web yielding, not ultimate strength", "mm", ConnectionCheckRole.Detailing);
             Check("Tying.Weld.DirectionalEquivalent", equivalent, equivalentResistance,
                 "SCI P358(2014) AppendixC.1 p279; EN1993-1-8:2005 4.5.3.2 eq4.1 with explicit SCI gammaMu", "MPa");
             Check("Tying.Weld.NormalTension", Math.Max(0, sigma), normalResistance,
@@ -127,14 +129,17 @@ namespace GPC.Checkers.Steel.Connections
 
             void Required(string source, string diagnostic) => Require(!string.IsNullOrWhiteSpace(source), diagnostic);
             void Require(bool condition, string diagnostic) { if (!condition) issues.Add(diagnostic); }
-            void Value(string name, double value, string unit)
-            { if (Finite(value)) trace.Add(new SectionResistanceValue(name, value, unit)); else issues.Add(name + "OutsideNumericRange"); }
-            void Check(string id, double demand, double resistance, string source, string unit)
+            bool Value(string name, double value, string unit)
+            {
+                if (Finite(value)) { trace.Add(new SectionResistanceValue(name, value, unit)); return true; }
+                issues.Add(name + "OutsideNumericRange"); return false;
+            }
+            void Check(string id, double demand, double resistance, string source, string unit, ConnectionCheckRole role = ConnectionCheckRole.Resistance)
             {
                 if (!Finite(demand) || !Finite(resistance) || demand < 0 || resistance <= 0) issues.Add(id + "OutsideNumericRange");
-                else checks.Add(new ConnectionCheck(id, demand, resistance, source, unit));
+                else checks.Add(new ConnectionCheck(id, demand, resistance, source, unit, role));
             }
-            FlexibleEndPlateTyingWeldResult Result() => new FlexibleEndPlateTyingWeldResult(p, component, atWeld, checks, trace, issues);
+            FlexibleEndPlateTyingWeldResult Result() => new FlexibleEndPlateTyingWeldResult(p, component, atWeld, checks, trace, issues, tying);
         }
         private static bool Finite(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
     }

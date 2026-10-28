@@ -56,8 +56,8 @@ namespace GPC.Checkers.Steel.Connections
                 throw new ArgumentException("This report requires typed calculated packing AND terminal results; legacy scalar assessments remain separate.");
             var terminal=p.ComputedTerminal;var code=terminal.Detail.Lap.Code;var model=terminal.Demand;
             bool welded=p.ComputedWeldedPacking!=null;
-            var checks=terminal.Checks.Select(c=>new ConnectionCheck("Terminal."+c.Id,c.Demand,c.Resistance,c.Reference,c.Unit))
-                .Concat((welded?p.ComputedWeldedPacking.Checks:p.ComputedPacking.Checks).Select(c=>new ConnectionCheck("Packing."+c.Id,c.Demand,c.Resistance,c.Reference,c.Unit))).ToArray();
+            var checks=terminal.Checks.Select(c=>c.WithId("Terminal."+c.Id))
+                .Concat((welded?p.ComputedWeldedPacking.Checks:p.ComputedPacking.Checks).Select(c=>c.WithId("Packing."+c.Id))).ToArray();
             var issues=terminal.Diagnostics.Concat(welded?p.ComputedWeldedPacking.Diagnostics:p.ComputedPacking.Diagnostics).ToArray();
             bool complete=terminal.IsComplete&&(welded?p.ComputedWeldedPacking.IsComplete:p.ComputedPacking.IsComplete);
             var status=checks.Any(x=>!x.Passed)?ConnectionStatus.Failed:complete?ConnectionStatus.Passed:ConnectionStatus.NotSupported;

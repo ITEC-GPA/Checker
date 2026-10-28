@@ -72,6 +72,10 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
+    /// <summary>Approximate SCI force distribution for rolled I/H splices, kept for compatibility. Shared
+    /// kernels (bolt strength and bearing with betaLf, plastic shear, detail identity) are the same as in
+    /// the qualified welded-I path; that path integrates the parent stresses exactly and is the one to use.</summary>
+    [Obsolete("Approximate component envelope. Use BridgeSpliceApplication.CreateBolted -> WeldedIBeamSpliceStandard.Verify (exact integrals, complete standard typology).")]
     public static class IBeamSpliceComponents
     {
         public static IBeamSpliceComponentResult Verify(IBeamSpliceComponentInput p)
@@ -99,8 +103,8 @@ namespace GPC.Checkers.Steel.Connections
             foreach (var s in p.SlipCases)
             {
                 var caseIssues = new List<string>();
-                if (!SameCode(code, s.Policy.Code)) caseIssues.Add("SLIP_CASE_DESIGN_CODE_MISMATCH");
-                if (!SameGeometry(plates.Forces, s.Forces) || !SameBolts(plates.Bolts, s.Bolts))
+                if (!SpliceIdentity.Code(code, s.Policy.Code)) caseIssues.Add("SLIP_CASE_DESIGN_CODE_MISMATCH");
+                if (!SpliceIdentity.IBeamGeometry(plates.Forces, s.Forces) || !SpliceIdentity.IBeamBolts(plates.Bolts, s.Bolts))
                     caseIssues.Add("SLIP_CASE_PHYSICAL_DETAIL_MISMATCH");
                 var result = caseIssues.Count == 0 ? IBeamSpliceBolts.VerifySlip(s)
                     : new ConnectionVerification<IBeamSpliceBoltSlipInput>(s, code, "Steel.Connection.IBeamSplice.InvalidSlipBinding",
@@ -144,25 +148,8 @@ namespace GPC.Checkers.Steel.Connections
             IList<SectionResistanceValue> trace, IList<string> issues) where T : class
         {
             foreach (var d in result.Diagnostics) issues.Add(name + ":" + d);
-            foreach (var c in result.Checks) checks.Add(new ConnectionCheck(name + "." + c.Id, c.Demand, c.Resistance, c.Reference, c.Unit));
+            foreach (var c in result.Checks) checks.Add(c.WithId(name + "." + c.Id));
             foreach (var t in result.Trace) trace.Add(new SectionResistanceValue(name + "." + t.Name, t.Value, t.Unit));
         }
-        private static bool SameCode(ConnectionDesignCode a, ConnectionDesignCode b) => a.IsNtc == b.IsNtc
-            && a.Plates.GammaM0 == b.Plates.GammaM0 && a.Plates.GammaM2 == b.Plates.GammaM2 && a.GammaM2Connection == b.GammaM2Connection;
-        private static bool SameGeometry(IBeamSpliceForceInput a, IBeamSpliceForceInput b)
-        {
-            var x = a.Section; var y = b.Section;
-            return a.StrongAxisSecondMoment == b.StrongAxisSecondMoment && x.Height == y.Height && x.Width == y.Width
-                && x.WebThickness == y.WebThickness && x.FlangeThickness == y.FlangeThickness && x.RootRadius == y.RootRadius
-                && x.Area == y.Area && x.Fy == y.Fy && x.Fu == y.Fu && SameGrid(a.FlangeBolts, b.FlangeBolts) && SameGrid(a.WebBolts, b.WebBolts);
-        }
-        private static bool SameGrid(SpliceBoltLayout a, SpliceBoltLayout b) => a.LongitudinalRows == b.LongitudinalRows
-            && a.TransverseRows == b.TransverseRows && a.LongitudinalPitch == b.LongitudinalPitch
-            && a.TransversePitch == b.TransversePitch && a.FirstBoltDistance == b.FirstBoltDistance;
-        private static bool SameBolts(IBeamSpliceBoltSet a, IBeamSpliceBoltSet b) => SameBolt(a.FlangeBolt, b.FlangeBolt)
-            && SameBolt(a.WebBolt, b.WebBolt) && a.FlangeHardwareEnvelopeDiameter == b.FlangeHardwareEnvelopeDiameter
-            && a.WebHardwareEnvelopeDiameter == b.WebHardwareEnvelopeDiameter;
-        private static bool SameBolt(ConnectionBolt a, ConnectionBolt b) => a.Diameter == b.Diameter && a.HoleDiameter == b.HoleDiameter
-            && a.TensileArea == b.TensileArea && a.Grade == b.Grade && a.ThreadedShearPlanes == b.ThreadedShearPlanes;
     }
 }

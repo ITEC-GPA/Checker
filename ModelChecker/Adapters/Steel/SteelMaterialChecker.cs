@@ -15,7 +15,12 @@ using GPC.Model.Checking.Reports;
 namespace GPC.Model.Checker
 {
     /// <summary>Qualified native shear and optional uniaxial bending primitives on stocky symmetric H cuts, T=0.
-    /// Global buckling and cross-section interactions remain gated by the unresolved legacy regressions.</summary>
+    /// Global buckling and cross-section interactions remain gated by the unresolved legacy regressions.
+    /// Superseded by SteelPipelineMaterialChecker for the same section check; kept unchanged, with its engine IDs,
+    /// because existing configurations and reports name it and its results, trace and scope differ.</summary>
+    [Obsolete("Superseded by SteelPipelineMaterialChecker (engine Steel.Pipeline.Section): the complete EC3:2005/NTC:2018 section "
+        + "inventory at one cut, shears, bending and their interactions included. Kept for the configurations and reports that name "
+        + "Steel.EN1993.PlasticShear or Steel.EN1993.Section; its results are not those of the pipeline.")]
     public sealed class SteelMaterialChecker : IMaterialChecker
     {
         public StandardEN1993p11 Code { get; }

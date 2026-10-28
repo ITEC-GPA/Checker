@@ -85,6 +85,8 @@ namespace GPC.Checkers.Steel.Connections
             if (original.Code.IsNtc && template.Plates.Policy.GammaM1 != Ntc2018DesignPolicy.GammaM1Bridges)
                 throw new ArgumentException("NTC 2018 Table 4.2.VII: bridge members use gammaM1=1.10. Use IBeamSplicePlatePolicy.Ntc2018Bridges().", nameof(template));
             var shape = WeldedIBeamSpliceSection.FromModel(left, original.Detail.Section.TopWeldToe, original.Detail.Section.BottomWeldToe);
+            // One preparation for the physical detail: every ULS/SLS case shares its demand-independent results.
+            var prepared = PreparedWeldedIBeamSplice.Prepare(template, shape);
             var cases = u.Select(c =>
             {
                 var detail = Detail(c);
@@ -95,7 +97,7 @@ namespace GPC.Checkers.Steel.Connections
             var slips = new List<WeldedSpliceSlipCase>();
             if (slipTemplate != null)
             {
-                if (!WeldedIBeamSplicePlates.SameCode(slipTemplate.Policy.Code, original.Code))
+                if (!SpliceIdentity.Code(slipTemplate.Policy.Code, original.Code))
                     throw new ArgumentException("Slip policy and section/bolt policy must match.");
                 if (category == SpliceBoltCategory.C)
                     foreach (var c in u) slips.Add(Slip(c, BoltSlipLimitState.Ultimate, c.Id + ".slip", c.Id));
@@ -104,14 +106,7 @@ namespace GPC.Checkers.Steel.Connections
             // No SLS values are synthesized. Missing B/C evidence is reported by Verify.
             return new WeldedIBeamSpliceStandardInput(cases, category, slips, blockMethod, faceModel, plateStability);
 
-            WeldedIBeamSpliceDetailInput Detail(SpliceActionCase c)
-            {
-                var d = original.Detail;
-                var geometry = new WeldedIBeamSpliceForceInput(shape, d.Top, d.Bottom, d.EachWebCover, d.WebBolts, d.WebCoverEnd, d.ButtGap, c.Actions, d.Packing);
-                var bolts = new WeldedIBeamSpliceBoltInput(original.Code, geometry, original.FlangeBolt, original.WebBolt,
-                    original.FlangeHardwareDiameter, original.WebHardwareDiameter, c.Source, original.HoleClearanceServiceabilitySource);
-                return new WeldedIBeamSpliceDetailInput(new WeldedIBeamSplicePlateInput(template.Plates.Policy, bolts), template.Exposure);
-            }
+            WeldedIBeamSpliceDetailInput Detail(SpliceActionCase c) => prepared.CreateCase(c.Actions, c.Source);
             WeldedSpliceSlipCase Slip(SpliceActionCase c, BoltSlipLimitState state, string id, string ulsId)
                 => new WeldedSpliceSlipCase(id, new WeldedIBeamSpliceSlipInput(slipTemplate.Policy, Detail(c).Plates.Bolts, state,
                     slipTemplate.Surfaces, slipTemplate.TighteningControl, slipTemplate.AssemblyQualificationSource, c.Source), ulsId);

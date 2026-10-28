@@ -50,8 +50,7 @@ namespace GPC.Checkers.Steel.Connections
             // a single ratio cannot represent an incomplete or mismatched assessment.
             Checks = Array.AsReadOnly(CoveredComponentsStatus == ConnectionStatus.NotSupported
                 ? Array.Empty<ConnectionCheck>()
-                : beamAndMoment.BeamSection.Checks.Select(c => new ConnectionCheck("BeamSection." + c.Id,
-                    c.Demand, c.Resistance, c.Reference, c.Unit)).Concat(connection.Checks).ToArray());
+                : beamAndMoment.BeamSection.Checks.Select(c => c.WithId("BeamSection." + c.Id)).Concat(connection.Checks).ToArray());
             PendingWholeJointChecks = Array.AsReadOnly(connection.PendingWholeJointChecks.Concat(initial.PendingChecks)
                 .Concat(new[] { "The Model beam check covers the actual cut, not member stability or the supporting column member",
                     "Initial stiffness does not qualify complete-joint Mj,Rd, secant stiffness, rotation or ductility" })
@@ -59,7 +58,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class EndPlateLocalCaseAssessment
+    internal static class EndPlateLocalCaseAssessment
     {
         public static EndPlateLocalCaseAssessmentResult Assess(EndPlateMomentWithBeamSectionResult beamAndMoment,
             EndPlateConnectionAssessmentResult connection, EndPlateInitialStiffnessFromMomentResult initialStiffness)

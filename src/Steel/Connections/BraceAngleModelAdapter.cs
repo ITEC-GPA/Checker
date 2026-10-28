@@ -61,7 +61,7 @@ namespace GPC.Checkers.Steel.Connections
     /// First means the horizontal leg of SectionL; Second means its vertical leg.
     /// Their identity is not changed by AngleX1 or by reflection of a built-up component.
     /// All dimensions remain mm and all actions N/Nmm, already factored and concomitant.</summary>
-    public static class BraceAngleModelAdapter
+    internal static class BraceAngleModelAdapter
     {
         /// <summary>Adapts pure centroidal tension of a single actual L. The equivalent
         /// equal-short-leg Model section is optional only where 3.10.3 does not require it.

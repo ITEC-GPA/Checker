@@ -57,3 +57,11 @@ materiali disomogenei, basi, tubolari, fatica e capacita' rotazionale esclusi.
 Per esportare otto esempi JSON EC/NTC, impostare GPC_ENDPLATE_APP_REPORT_DIR
 e lanciare StandardEndPlateApplicationTests. I JSON sono rapporti numerici
 di dettagli analitici, non certificati sperimentali o elaborati esecutivi.
+
+28/10/2026 - Nodo preparato. var p = StandardEndPlate.Prepare(input);
+StandardEndPlate.Evaluate(p, azioniFaccia, taglioSuperiore, taglioInferiore,
+fonte) equivale a Verify del caso corrispondente. Una volta per nodo:
+validazione della disposizione, alfa, geometria T-stub interna/estesa e
+stati di equilibrio a carico puro. Preparazione della trave al V2 reale,
+componenti, bulloni e saldature restano per caso. EndPlateNmv, TStub* e i
+componenti di bulloni/saldature sono interni alla libreria.

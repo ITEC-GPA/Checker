@@ -8,7 +8,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>One contiguous subgroup in the ordered bolt-row set. Indices are zero based.
     /// The equivalent T-stub lengths must be derived for this subgroup, not copied/summed
     /// from the individually acting rows. Its tension is the sum of their concomitant forces.</summary>
-    public sealed class TStubAdjacentRows
+    internal sealed class TStubAdjacentRows
     {
         public int FirstRow { get; }
         public int RowCount { get; }
@@ -26,7 +26,7 @@ namespace GPC.Checkers.Steel.Connections
     /// OrderedRows follow physical order in one uninterrupted tension zone. Split at a
     /// stiffener/other boundary according to the applicable EN1993-1-8 component model.
     /// All forces are one externally established concomitant row-force distribution.</summary>
-    public sealed class TStubBoltRowsInput
+    internal sealed class TStubBoltRowsInput
     {
         public IReadOnlyList<TStubTensionInput> OrderedRows { get; }
         public IReadOnlyList<TStubAdjacentRows> AdjacentGroups { get; }
@@ -43,7 +43,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class TStubBoltRows
+    internal static class TStubBoltRows
     {
         public static ConnectionVerification<TStubBoltRowsInput> Verify(TStubBoltRowsInput p)
         {
@@ -103,7 +103,7 @@ namespace GPC.Checkers.Steel.Connections
                 issues.AddRange(result.Diagnostics.Select(d => id + ":" + d));
                 foreach (var c in result.Checks)
                     checks.Add(new ConnectionCheck(id + "." + c.Id, c.Demand, c.Resistance,
-                        c.Reference + "; EN1993-1-8:2005 6.2.4.2(3)", c.Unit));
+                        c.Reference + "; EN1993-1-8:2005 6.2.4.2(3)", c.Unit, c.Role));
                 foreach (var value in result.Trace) trace.Add(new SectionResistanceValue(id + "." + value.Name, value.Value, value.Unit));
             }
         }

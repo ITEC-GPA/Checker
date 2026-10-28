@@ -103,7 +103,7 @@ namespace GPC.Checkers.Steel.Pipeline
             // The existing assessment validates exact H, axes, material/code and panel length.
             SteelShearBucklingAssessment.EvaluateTransverselyStiffenedHWeb(input,a,false,gm1,eta,"typed detail validation");
             var section=input.Section.ReadOnlySection;var h=(SectionH)section.SectionShape;
-            if(section.SectionType!=Section.SectionTypes.Welded||h.R!=0||input.Actions.T!=0||input.Actions.V1!=0||input.Actions.M2!=0)
+            if(section.SectionType!=Section.SectionTypes.Welded||h.R!=0||input.EffectiveActions.T!=0||input.EffectiveActions.V1!=0||input.EffectiveActions.M2!=0)
                 throw new NotSupportedException("Homogeneous flat welded H under N/M1/V2, no torsion or skew boundary, required.");
             double hw=h.HeightWeb,tw=h.ThicknessWeb,fy=input.Section.YieldStrength,e=input.Section.ElasticModulus;
             if(fy>460)throw new NotSupportedException("Carbon steel up to S460 required for this weld/detail policy.");
@@ -124,7 +124,7 @@ namespace GPC.Checkers.Steel.Pipeline
                 bool end=b.Kind==SteelWebBoundaryKind.EndSupport;
                 double other=end?a:b.AdjacentPanelLength;
                 double removed=end?a:a+other;
-                double shear=Math.Max(Math.Abs(input.Actions.V2),b.AdjacentShear);
+                double shear=Math.Max(Math.Abs(input.EffectiveActions.V2),b.AdjacentShear);
                 double tau=Ec3WebPanelShear.Calculate(hw,tw,fy,e,gm0,gm1,eta,removed).TauCritical;
                 double nst=Math.Max(0,shear-tau*hw*tw/gm1)+b.ExternalCompression;
                 double near=end?b.EndDistance:other/2,far=a/2;

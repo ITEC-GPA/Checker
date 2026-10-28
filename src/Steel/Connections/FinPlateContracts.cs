@@ -117,8 +117,7 @@ namespace GPC.Checkers.Steel.Connections
         public double? Utilization => Assessment.Utilization;
         /// <summary>Load-dependent resistance check only. Overall GoverningCheck also includes
         /// minimum geometry and full-strength weld hierarchy, whose ratios do not scale with V.</summary>
-        public ConnectionCheck LoadGoverningCheck => IsComplete ? Checks.Where(c => !c.Id.StartsWith("Detail.")
-            && c.Id != "Weld.FullStrengthThroat").OrderByDescending(c => c.Utilization).First() : null;
+        public ConnectionCheck LoadGoverningCheck => IsComplete ? ConnectionOutcome.LoadChecks(Checks).OrderByDescending(c => c.Utilization).First() : null;
         public double? LoadUtilization => LoadGoverningCheck?.Utilization;
         public ElasticBoltGroupResult BoltDistribution { get; }
         public FilletWeldGroupResult WeldVerification { get; }

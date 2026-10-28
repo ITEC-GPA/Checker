@@ -46,6 +46,10 @@ namespace GPC.Checkers.Steel.Pipeline
             Trace = Array.AsReadOnly((trace ?? Enumerable.Empty<SectionResistanceValue>()).ToArray());
             ShearAssessments = Array.AsReadOnly((shearAssessments ?? Enumerable.Empty<SteelShearBucklingAssessment>()).ToArray());
         }
+
+        internal SteelCheckExecution WithTrace(IEnumerable<SectionResistanceValue> extra)
+            => new SteelCheckExecution(Decision, Status, DiagnosticCode, Message, Reference, Scope,
+                Resistance, ResistanceUnit, Utilization, Trace.Concat(extra), ShearAssessments);
     }
 
     /// <summary>Outcome for the requested plan scope only. A failure remains a failure

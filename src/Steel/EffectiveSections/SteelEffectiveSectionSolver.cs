@@ -49,7 +49,7 @@ namespace GPC.Checkers.Steel.EffectiveSections
             double tolerance=1e-8,CancellationToken cancellation=default)
         {
             if(input==null)throw new ArgumentNullException(nameof(input));
-            var a=input.Actions;
+            var a=input.Actions; // A stress-distribution definition: callers pass the actions to use.
             if(a.V1!=0||a.V2!=0||a.T!=0)throw new NotSupportedException("This effective-section solver handles normal forces only; shear/torsion require separate qualified interaction.");
             var geometry=Qualify(input.Section);double fy=input.Section.YieldStrength;
             double length=Math.Max(geometry.MaxX-geometry.MinX,geometry.MaxY-geometry.MinY);

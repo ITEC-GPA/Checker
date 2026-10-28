@@ -121,6 +121,150 @@ namespace GPC.Checkers.Steel.Connections
             ConnectionValidation.Nonnegative(buttGap, nameof(buttGap));
             WebCoverEnd = webCoverEnd; ButtGap = buttGap; Packing = packing ?? WeldedSplicePacking.None;
         }
+        /// <summary>Another action state on exactly the same immutable physical parts: the
+        /// geometry-only preparation is shared, never recomputed.</summary>
+        internal WeldedIBeamSpliceForceInput(WeldedIBeamSpliceForceInput physical, PlanarConnectionActions actions)
+        {
+            Section = physical.Section; Top = physical.Top; Bottom = physical.Bottom; EachWebCover = physical.EachWebCover;
+            WebBolts = physical.WebBolts; WebCoverEnd = physical.WebCoverEnd; ButtGap = physical.ButtGap; Packing = physical.Packing;
+            Actions = actions ?? throw new ArgumentNullException(nameof(actions));
+            geometry = physical.Geometry;
+        }
+        private SpliceForceGeometry geometry;
+        /// <summary>Geometry-only preparation of these physical parts; identical for every action state built from them.</summary>
+        internal SpliceForceGeometry Geometry => geometry ?? System.Threading.LazyInitializer.EnsureInitialized(ref geometry, () => new SpliceForceGeometry(this));
+    }
+
+    /// <summary>Everything of the force distribution that does not depend on the actions:
+    /// validation, section coefficients, cover offsets, names and prepared bolt groups.
+    /// The evaluation repeats the original floating-point operations in the original order.</summary>
+    internal sealed class SpliceForceGeometry
+    {
+        internal sealed class FlangePart
+        {
+            internal bool Top;
+            internal SpliceFlangeCoverDetail Cover;
+            internal ConnectionPlate Parent;
+            internal double Y, AreaRatio, InertiaRatio, BendingRatio, Yo, Yi;
+            internal string ParentAxial, ParentLocalMoment, OuterForce, BothInnerForce;
+            internal WeldedSpliceCover OuterCover, NegativeCover, PositiveCover;
+            internal double NegativeMin, NegativeMax, NegativeCentre, PositiveMin, PositiveMax, PositiveCentre;
+            internal Lazy<ElasticBoltGroup.Prepared> Outer, Negative, Positive;
+        }
+        internal sealed class SidePart
+        {
+            internal SpliceSide Side;
+            internal double Sign;
+            internal FlangePart TopFlange, BottomFlange;
+            internal Lazy<ElasticBoltGroup.Prepared> Web;
+            internal string[] ResidualNames;
+        }
+        internal readonly string[] Issues;
+        internal readonly SectionResistanceValue Area, Centroid, Inertia, WebOffset;
+        internal readonly double WebAreaRatio, WebInertiaRatio, WebBendingRatio, WebY, WebFaceOffset;
+        internal readonly bool WebOffsetFinite;
+        internal readonly SidePart[] Sides;
+        /// <summary>The sixteen cover groups in the order the force calculation creates them.</summary>
+        internal sealed class GroupDescriptor
+        {
+            internal SpliceSide Side; internal WeldedSpliceCover Cover; internal ConnectionPlate Plate;
+            internal double Minimum, Maximum; internal Lazy<ElasticBoltGroup.Prepared> Group;
+        }
+        internal readonly GroupDescriptor[] Groups;
+        internal static readonly string[] ResidualComponents = { "Fx", "Fy", "Fz", "Mx", "My", "Mz" };
+
+        internal SpliceForceGeometry(WeldedIBeamSpliceForceInput p)
+        {
+            var s = p.Section; var issues = new List<string>();
+            ValidateFlange(p.Top, s.TopFlange, s.TopWeldToe, "Top");
+            ValidateFlange(p.Bottom, s.BottomFlange, s.BottomWeldToe, "Bottom");
+            if (p.WebBolts.TransverseRows < 2) issues.Add("WEB_AT_LEAST_TWO_TRANSVERSE_BOLTS_REQUIRED");
+            if (p.EachWebCover.Width > s.Web.Width - 2 * Math.Max(s.TopWeldToe, s.BottomWeldToe))
+                issues.Add("WEB_COVER_INTERSECTS_LONGITUDINAL_SEAMS");
+            if (p.Packing.HasPacking)
+            {
+                double webOuterZ = s.Web.Thickness / 2 + p.Packing.EachWeb + p.EachWebCover.Thickness;
+                double topStack = p.Top.EachInner.Thickness + p.Packing.TopInner;
+                double bottomStack = p.Bottom.EachInner.Thickness + p.Packing.BottomInner;
+                if (topStack + bottomStack > s.Web.Width
+                    || webOuterZ > p.Top.InnerGap / 2 && p.EachWebCover.Width / 2 + topStack > s.Web.Width / 2
+                    || webOuterZ > p.Bottom.InnerGap / 2 && p.EachWebCover.Width / 2 + bottomStack > s.Web.Width / 2)
+                    issues.Add("PACKED_INNER_FLANGES_INTERSECT_WEB_COVERS");
+            }
+            if (p.WebBolts.TransverseSpan >= p.EachWebCover.Width) issues.Add("WEB_BOLTS_OUTSIDE_COVER");
+            if (p.WebBolts.FirstBoltDistance <= p.ButtGap / 2) issues.Add("WEB_BOLTS_INSIDE_BUTT_GAP");
+            Issues = issues.ToArray();
+            Area = Entry("Section.Area", s.Area, "mm2"); Centroid = Entry("Section.CentroidYFromBottom", s.CentroidY, "mm");
+            Inertia = Entry("Section.StrongAxisSecondMoment", s.StrongAxisSecondMoment, "mm4");
+            WebAreaRatio = s.Web.Width * s.Web.Thickness / s.Area; WebInertiaRatio = s.Web.Width * s.Web.Thickness / s.StrongAxisSecondMoment;
+            WebBendingRatio = s.Web.Thickness * Math.Pow(s.Web.Width, 3) / (12 * s.StrongAxisSecondMoment);
+            WebY = s.WebY; WebOffset = Entry("Web.OffsetY", s.WebY, "mm"); WebOffsetFinite = WebOffset != null;
+            WebFaceOffset = (s.Web.Thickness + p.EachWebCover.Thickness) / 2 + p.Packing.EachWeb;
+            Sides = new[] { Side(SpliceSide.Left, 1), Side(SpliceSide.Right, -1) };
+            var descriptors = new List<GroupDescriptor>();
+            foreach (var side in Sides)
+            {
+                foreach (var f in new[] { side.TopFlange, side.BottomFlange })
+                {
+                    descriptors.Add(new GroupDescriptor { Side = side.Side, Cover = f.OuterCover, Plate = f.Cover.Outer, Minimum = -f.Cover.Outer.Width / 2, Maximum = f.Cover.Outer.Width / 2, Group = f.Outer });
+                    descriptors.Add(new GroupDescriptor { Side = side.Side, Cover = f.NegativeCover, Plate = f.Cover.EachInner, Minimum = f.NegativeMin, Maximum = f.NegativeMax, Group = f.Negative });
+                    descriptors.Add(new GroupDescriptor { Side = side.Side, Cover = f.PositiveCover, Plate = f.Cover.EachInner, Minimum = f.PositiveMin, Maximum = f.PositiveMax, Group = f.Positive });
+                }
+                foreach (var cover in new[] { WeldedSpliceCover.WebNegative, WeldedSpliceCover.WebPositive })
+                    descriptors.Add(new GroupDescriptor { Side = side.Side, Cover = cover, Plate = p.EachWebCover, Minimum = -p.EachWebCover.Width / 2, Maximum = p.EachWebCover.Width / 2, Group = side.Web });
+            }
+            Groups = descriptors.ToArray();
+
+            SidePart Side(SpliceSide side, double sign) => new SidePart
+            {
+                Side = side, Sign = sign,
+                TopFlange = Flange(side, true, p.Top, s.TopFlange, s.TopY),
+                BottomFlange = Flange(side, false, p.Bottom, s.BottomFlange, s.BottomY),
+                Web = Group(() => p.WebBolts.Points(side)),
+                ResidualNames = ResidualComponents.Select(c => side + ".Residual." + c).ToArray()
+            };
+            FlangePart Flange(SpliceSide side, bool top, SpliceFlangeCoverDetail d, ConnectionPlate parent, double y)
+            {
+                double outward = top ? 1 : -1;
+                string name = side + (top ? ".Top" : ".Bottom");
+                var f = new FlangePart
+                {
+                    Top = top, Cover = d, Parent = parent, Y = y,
+                    AreaRatio = parent.Width * parent.Thickness / s.Area, InertiaRatio = parent.Width * parent.Thickness / s.StrongAxisSecondMoment,
+                    BendingRatio = parent.Width * Math.Pow(parent.Thickness, 3) / (12 * s.StrongAxisSecondMoment),
+                    Yo = outward * ((parent.Thickness + d.Outer.Thickness) / 2 + (top ? p.Packing.TopOuter : p.Packing.BottomOuter)),
+                    Yi = -outward * ((parent.Thickness + d.EachInner.Thickness) / 2 + (top ? p.Packing.TopInner : p.Packing.BottomInner)),
+                    ParentAxial = name + ".ParentAxial", ParentLocalMoment = name + ".ParentLocalMoment",
+                    OuterForce = name + ".OuterForce", BothInnerForce = name + ".BothInnerForce",
+                    OuterCover = top ? WeldedSpliceCover.TopOuter : WeldedSpliceCover.BottomOuter,
+                    NegativeCover = top ? WeldedSpliceCover.TopInnerNegative : WeldedSpliceCover.BottomInnerNegative,
+                    PositiveCover = top ? WeldedSpliceCover.TopInnerPositive : WeldedSpliceCover.BottomInnerPositive,
+                    Outer = Group(() => d.Bolts.Points(side)),
+                    Negative = Group(() => d.Bolts.Points(side).Where(point => Math.Sign(point.Y) == -1)),
+                    Positive = Group(() => d.Bolts.Points(side).Where(point => Math.Sign(point.Y) == 1))
+                };
+                f.NegativeMin = -d.InnerGap / 2 - d.EachInner.Width; f.NegativeMax = f.NegativeMin + d.EachInner.Width;
+                f.NegativeCentre = (f.NegativeMin + f.NegativeMax) / 2;
+                f.PositiveMin = d.InnerGap / 2; f.PositiveMax = f.PositiveMin + d.EachInner.Width;
+                f.PositiveCentre = (f.PositiveMin + f.PositiveMax) / 2;
+                return f;
+            }
+            void ValidateFlange(SpliceFlangeCoverDetail d, ConnectionPlate parent, double toe, string name)
+            {
+                if (d.Bolts.TransverseRows < 2 || d.Bolts.TransverseRows % 2 != 0 || d.Bolts.LongitudinalRows < 2)
+                    issues.Add(name + ".EVEN_TRANSVERSE_BOLT_LINES_AND_MULTIPLE_LONGITUDINAL_ROWS_REQUIRED");
+                if (d.InnerGap < s.Web.Thickness + 2 * toe) issues.Add(name + ".INNER_COVER_INTERSECTS_WEB_OR_SEAM");
+                if (d.Outer.Width > parent.Width || d.InnerGap + 2 * d.EachInner.Width > parent.Width) issues.Add(name + ".COVERS_OUTSIDE_FLANGE");
+                double z = d.Bolts.TransversePitch / 2, far = d.Bolts.TransverseSpan / 2;
+                if (far >= d.Outer.Width / 2 || z <= d.InnerGap / 2 || far >= d.InnerGap / 2 + d.EachInner.Width)
+                    issues.Add(name + ".BOLTS_OUTSIDE_INNER_OR_OUTER_COVER");
+                if (d.Bolts.FirstBoltDistance <= p.ButtGap / 2) issues.Add(name + ".BOLTS_INSIDE_BUTT_GAP");
+            }
+        }
+        private static Lazy<ElasticBoltGroup.Prepared> Group(Func<IEnumerable<ConnectionPoint2D>> points)
+            => new Lazy<ElasticBoltGroup.Prepared>(() => ElasticBoltGroup.Prepare(points()), System.Threading.LazyThreadSafetyMode.ExecutionAndPublication);
+        private static SectionResistanceValue Entry(string name, double value, string unit)
+            => double.IsNaN(value) || double.IsInfinity(value) ? null : new SectionResistanceValue(name, value, unit);
     }
 
     public enum WeldedSpliceCover { TopOuter, TopInnerNegative, TopInnerPositive,
@@ -146,6 +290,17 @@ namespace GPC.Checkers.Steel.Connections
             TransverseMinimum = min; TransverseMaximum = max; Distribution = distribution; }
     }
 
+    /// <summary>Typed parent-flange forces of one member side; the trace entries of the same names are derived from them.</summary>
+    internal sealed class SpliceFlangeForces
+    {
+        internal double ParentAxial { get; }
+        internal double ParentLocalMoment { get; }
+        internal double OuterForce { get; }
+        internal double BothInnerForce { get; }
+        internal SpliceFlangeForces(double parentAxial, double parentLocalMoment, double outerForce, double bothInnerForce)
+        { ParentAxial = parentAxial; ParentLocalMoment = parentLocalMoment; OuterForce = outerForce; BothInnerForce = bothInnerForce; }
+    }
+
     public sealed class WeldedIBeamSpliceForceResult
     {
         public WeldedIBeamSpliceForceInput Input { get; }
@@ -158,9 +313,17 @@ namespace GPC.Checkers.Steel.Connections
         public string Scope => "Elastic force distribution for identical welded I sections, including flange self-bending, "
             + "unequal upper/lower flanges, two faces of every splice and all cover centroid offsets. "
             + "Not a resistance, stiffness, load-introduction, execution or fatigue qualification.";
+        private readonly SpliceFlangeForces[] flanges;
+        /// <summary>Typed web axial force and local moment behind Web.AxialForce and Web.LocalMoment.</summary>
+        internal double WebAxialForce { get; }
+        internal double WebLocalMoment { get; }
+        /// <summary>Typed parent-flange forces behind the trace entries Side.Top/Bottom.*; null before they were calculated.</summary>
+        internal SpliceFlangeForces Flange(SpliceSide side, bool top) => flanges[(side == SpliceSide.Left ? 0 : 2) + (top ? 0 : 1)];
         internal WeldedIBeamSpliceForceResult(WeldedIBeamSpliceForceInput input, PlanarConnectionActions actions,
-            IList<WeldedSpliceCoverForceGroup> groups, IList<SectionResistanceValue> trace, IList<string> issues)
+            IList<WeldedSpliceCoverForceGroup> groups, IList<SectionResistanceValue> trace, IList<string> issues,
+            SpliceFlangeForces[] flanges = null, double webAxialForce = double.NaN, double webLocalMoment = double.NaN)
         {
+            this.flanges = flanges ?? new SpliceFlangeForces[4]; WebAxialForce = webAxialForce; WebLocalMoment = webLocalMoment;
             Input = input; ActionsAtJoint = issues.Count == 0 ? actions : null;
             Diagnostics = Array.AsReadOnly(issues.ToArray());
             CoverGroups = Array.AsReadOnly(issues.Count == 0 ? groups.ToArray() : Array.Empty<WeldedSpliceCoverForceGroup>());
@@ -169,126 +332,90 @@ namespace GPC.Checkers.Steel.Connections
         private static bool Finite(double v) => !double.IsInfinity(v) && !double.IsNaN(v);
     }
 
-    public static class WeldedIBeamSpliceForces
+    internal static class WeldedIBeamSpliceForces
     {
         public static WeldedIBeamSpliceForceResult Calculate(WeldedIBeamSpliceForceInput p)
         {
             if (p == null) throw new ArgumentNullException(nameof(p));
+            var g = p.Geometry;
             var issues = new List<string>(); var trace = new List<SectionResistanceValue>();
-            var groups = new List<WeldedSpliceCoverForceGroup>(); var s = p.Section; var a = p.Actions;
+            var groups = new List<WeldedSpliceCoverForceGroup>(14); var a = p.Actions;
             PlanarConnectionActions actions = null;
+            var flanges = new SpliceFlangeForces[4]; double webAxial = double.NaN, webMoment = double.NaN;
             void Value(string name, double value, string unit)
             { if (!Finite(value)) issues.Add(name + ".NUMERIC_RANGE"); else trace.Add(new SectionResistanceValue(name, value, unit)); }
-            WeldedIBeamSpliceForceResult Result() => new WeldedIBeamSpliceForceResult(p, actions, groups, trace, issues);
+            void Prepared(SectionResistanceValue entry, string name) { if (entry == null) issues.Add(name + ".NUMERIC_RANGE"); else trace.Add(entry); }
+            WeldedIBeamSpliceForceResult Result() => new WeldedIBeamSpliceForceResult(p, actions, groups, trace, issues, flanges, webAxial, webMoment);
             if (a.Fz != 0 || a.Mx != 0 || a.My != 0 || a.ApplicationZ != 0) issues.Add("IN_PLANE_N_V_M_ONLY");
-            ValidateFlange(p.Top, s.TopFlange, s.TopWeldToe, "Top");
-            ValidateFlange(p.Bottom, s.BottomFlange, s.BottomWeldToe, "Bottom");
-            if (p.WebBolts.TransverseRows < 2) issues.Add("WEB_AT_LEAST_TWO_TRANSVERSE_BOLTS_REQUIRED");
-            if (p.EachWebCover.Width > s.Web.Width - 2 * Math.Max(s.TopWeldToe, s.BottomWeldToe))
-                issues.Add("WEB_COVER_INTERSECTS_LONGITUDINAL_SEAMS");
-            if (p.Packing.HasPacking)
-            {
-                double webOuterZ = s.Web.Thickness / 2 + p.Packing.EachWeb + p.EachWebCover.Thickness;
-                double topStack = p.Top.EachInner.Thickness + p.Packing.TopInner;
-                double bottomStack = p.Bottom.EachInner.Thickness + p.Packing.BottomInner;
-                if (topStack + bottomStack > s.Web.Width
-                    || webOuterZ > p.Top.InnerGap / 2 && p.EachWebCover.Width / 2 + topStack > s.Web.Width / 2
-                    || webOuterZ > p.Bottom.InnerGap / 2 && p.EachWebCover.Width / 2 + bottomStack > s.Web.Width / 2)
-                    issues.Add("PACKED_INNER_FLANGES_INTERSECT_WEB_COVERS");
-            }
-            if (p.WebBolts.TransverseSpan >= p.EachWebCover.Width) issues.Add("WEB_BOLTS_OUTSIDE_COVER");
-            if (p.WebBolts.FirstBoltDistance <= p.ButtGap / 2) issues.Add("WEB_BOLTS_INSIDE_BUTT_GAP");
+            issues.AddRange(g.Issues);
             double moment = a.Mz + a.ApplicationX * a.Fy - a.ApplicationY * a.Fx;
-            Value("Section.Area", s.Area, "mm2"); Value("Section.CentroidYFromBottom", s.CentroidY, "mm");
-            Value("Section.StrongAxisSecondMoment", s.StrongAxisSecondMoment, "mm4");
+            Prepared(g.Area, "Section.Area"); Prepared(g.Centroid, "Section.CentroidYFromBottom");
+            Prepared(g.Inertia, "Section.StrongAxisSecondMoment");
             Value("Actions.MzAtJoint", moment, "Nmm");
             if (issues.Count != 0) return Result();
             actions = new PlanarConnectionActions(a.Fx, a.Fy, 0, 0, 0, moment);
             // Exact integrals of sigma=N/A-M*y/I on the three rectangular parent plates.
-            double webN = Normal(s.Web, s.WebY), webM = moment * (s.Web.Thickness * Math.Pow(s.Web.Width, 3) / (12 * s.StrongAxisSecondMoment));
-            Value("Web.AxialForce", webN, "N"); Value("Web.LocalMoment", webM, "Nmm");
-            Value("Web.OffsetY", s.WebY, "mm");
+            double webN = g.WebAreaRatio * a.Fx - moment * g.WebInertiaRatio * g.WebY, webM = moment * g.WebBendingRatio;
+            Value("Web.AxialForce", webN, "N"); Value("Web.LocalMoment", webM, "Nmm"); webAxial = webN; webMoment = webM;
+            Prepared(g.WebOffset, "Web.OffsetY");
             if (issues.Count != 0) return Result();
-            foreach (SpliceSide side in new[] { SpliceSide.Left, SpliceSide.Right })
+            foreach (var side in g.Sides)
             {
-                double sign = side == SpliceSide.Left ? 1 : -1;
-                AddFlange(side, sign, true, p.Top, s.TopFlange, s.TopY);
-                AddFlange(side, sign, false, p.Bottom, s.BottomFlange, s.BottomY);
+                double sign = side.Sign;
+                AddFlange(side, side.TopFlange);
+                AddFlange(side, side.BottomFlange);
                 // The two identical web covers share half of the web actions: one distribution for both faces.
-                var d = ElasticBoltGroup.Calculate(p.WebBolts.Points(side),
+                var d = ElasticBoltGroup.Evaluate(side.Web.Value,
                     new PlanarConnectionActions(sign * webN / 2, sign * a.Fy / 2, 0, 0, 0, sign * webM / 2));
-                foreach (int face in new[] { -1, 1 })
-                {
-                    Add(side, face < 0 ? WeldedSpliceCover.WebNegative : WeldedSpliceCover.WebPositive,
-                        p.EachWebCover, s.WebY, face * ((s.Web.Thickness + p.EachWebCover.Thickness) / 2 + p.Packing.EachWeb),
-                        -p.EachWebCover.Width / 2, p.EachWebCover.Width / 2, d);
-                }
+                Add(side.Side, WeldedSpliceCover.WebNegative, p.EachWebCover, g.WebY, -1 * g.WebFaceOffset, -p.EachWebCover.Width / 2, p.EachWebCover.Width / 2, d);
+                Add(side.Side, WeldedSpliceCover.WebPositive, p.EachWebCover, g.WebY, 1 * g.WebFaceOffset, -p.EachWebCover.Width / 2, p.EachWebCover.Width / 2, d);
             }
             if (issues.Count != 0) return Result();
-            foreach (SpliceSide side in new[] { SpliceSide.Left, SpliceSide.Right })
+            foreach (var side in g.Sides)
             {
+                // Same terms and summation order as the original six-component arrays.
                 var sum = new double[6]; var scale = new double[6];
-                foreach (var g in groups.Where(g => g.Side == side)) foreach (var f in g.Distribution.Forces)
+                foreach (var group in groups) if (group.Side == side.Side) foreach (var f in group.Distribution.Forces)
                 {
-                    double x = f.Position.X, y = g.OriginY + (g.IsWeb ? f.Position.Y : 0),
-                        z = g.OriginZ + (g.IsWeb ? 0 : f.Position.Y);
-                    double fx = f.Fx, fy = g.IsWeb ? f.Fy : 0, fz = g.IsWeb ? 0 : f.Fy;
-                    var terms = new[] { fx, fy, fz, y * fz - z * fy, z * fx - x * fz, x * fy - y * fx };
-                    var magnitudes = new[] { Math.Abs(fx), Math.Abs(fy), Math.Abs(fz),
-                        Math.Abs(y * fz) + Math.Abs(z * fy), Math.Abs(z * fx) + Math.Abs(x * fz), Math.Abs(x * fy) + Math.Abs(y * fx) };
-                    for (int i = 0; i < 6; i++) { sum[i] += terms[i]; scale[i] += magnitudes[i]; }
+                    double x = f.Position.X, y = group.OriginY + (group.IsWeb ? f.Position.Y : 0),
+                        z = group.OriginZ + (group.IsWeb ? 0 : f.Position.Y);
+                    double fx = f.Fx, fy = group.IsWeb ? f.Fy : 0, fz = group.IsWeb ? 0 : f.Fy;
+                    sum[0] += fx; sum[1] += fy; sum[2] += fz;
+                    sum[3] += y * fz - z * fy; sum[4] += z * fx - x * fz; sum[5] += x * fy - y * fx;
+                    scale[0] += Math.Abs(fx); scale[1] += Math.Abs(fy); scale[2] += Math.Abs(fz);
+                    scale[3] += Math.Abs(y * fz) + Math.Abs(z * fy); scale[4] += Math.Abs(z * fx) + Math.Abs(x * fz);
+                    scale[5] += Math.Abs(x * fy) + Math.Abs(y * fx);
                 }
-                double sign = side == SpliceSide.Left ? 1 : -1;
+                double sign = side.Sign;
                 var expected = new[] { sign * a.Fx, sign * a.Fy, 0, 0, 0, sign * moment };
-                var names = new[] { "Fx", "Fy", "Fz", "Mx", "My", "Mz" };
                 for (int i = 0; i < 6; i++)
                 {
                     double residual = sum[i] - expected[i];
-                    Value(side + ".Residual." + names[i], residual, i < 3 ? "N" : "Nmm");
+                    Value(side.ResidualNames[i], residual, i < 3 ? "N" : "Nmm");
                     if (!Finite(residual) || !Finite(scale[i]) || Math.Abs(residual) > ElasticBoltGroup.EquilibriumRelativeTolerance * (scale[i] + Math.Abs(expected[i])))
-                        issues.Add(side + ".GLOBAL_EQUILIBRIUM_" + names[i]);
+                        issues.Add(side.Side + ".GLOBAL_EQUILIBRIUM_" + SpliceForceGeometry.ResidualComponents[i]);
                 }
             }
             return Result();
 
-            double Normal(ConnectionPlate plate, double y) => (plate.Width * plate.Thickness / s.Area) * a.Fx
-                - moment * (plate.Width * plate.Thickness / s.StrongAxisSecondMoment) * y;
-            void ValidateFlange(SpliceFlangeCoverDetail d, ConnectionPlate parent, double toe, string name)
+            void AddFlange(SpliceForceGeometry.SidePart side, SpliceForceGeometry.FlangePart part)
             {
-                if (d.Bolts.TransverseRows < 2 || d.Bolts.TransverseRows % 2 != 0 || d.Bolts.LongitudinalRows < 2)
-                    issues.Add(name + ".EVEN_TRANSVERSE_BOLT_LINES_AND_MULTIPLE_LONGITUDINAL_ROWS_REQUIRED");
-                if (d.InnerGap < s.Web.Thickness + 2 * toe) issues.Add(name + ".INNER_COVER_INTERSECTS_WEB_OR_SEAM");
-                if (d.Outer.Width > parent.Width || d.InnerGap + 2 * d.EachInner.Width > parent.Width) issues.Add(name + ".COVERS_OUTSIDE_FLANGE");
-                double z = d.Bolts.TransversePitch / 2, far = d.Bolts.TransverseSpan / 2;
-                if (far >= d.Outer.Width / 2 || z <= d.InnerGap / 2 || far >= d.InnerGap / 2 + d.EachInner.Width)
-                    issues.Add(name + ".BOLTS_OUTSIDE_INNER_OR_OUTER_COVER");
-                if (d.Bolts.FirstBoltDistance <= p.ButtGap / 2) issues.Add(name + ".BOLTS_INSIDE_BUTT_GAP");
-            }
-            void AddFlange(SpliceSide side, double sign, bool top, SpliceFlangeCoverDetail d, ConnectionPlate parent, double y)
-            {
-                double n = Normal(parent, y), m = moment * (parent.Width * Math.Pow(parent.Thickness, 3) / (12 * s.StrongAxisSecondMoment));
-                double outward = top ? 1 : -1;
-                double yo = outward * ((parent.Thickness + d.Outer.Thickness) / 2 + (top ? p.Packing.TopOuter : p.Packing.BottomOuter)),
-                    yi = -outward * ((parent.Thickness + d.EachInner.Thickness) / 2 + (top ? p.Packing.TopInner : p.Packing.BottomInner));
+                double sign = side.Sign;
+                double n = part.AreaRatio * a.Fx - moment * part.InertiaRatio * part.Y, m = moment * part.BendingRatio;
+                double yo = part.Yo, yi = part.Yi;
                 // Fo+Fi=N; -yo*Fo-yi*Fi=M. No assumed N/2 or area-based split.
                 double outer = (-m - yi * n) / (yo - yi), inner = n - outer;
-                string name = side + (top ? ".Top" : ".Bottom");
-                Value(name + ".ParentAxial", sign * n, "N"); Value(name + ".ParentLocalMoment", sign * m, "Nmm");
-                Value(name + ".OuterForce", sign * outer, "N"); Value(name + ".BothInnerForce", sign * inner, "N");
+                Value(part.ParentAxial, sign * n, "N"); Value(part.ParentLocalMoment, sign * m, "Nmm");
+                Value(part.OuterForce, sign * outer, "N"); Value(part.BothInnerForce, sign * inner, "N");
+                flanges[(side.Side == SpliceSide.Left ? 0 : 2) + (part.Top ? 0 : 1)] = new SpliceFlangeForces(sign * n, sign * m, sign * outer, sign * inner);
                 if (issues.Count != 0) return;
-                Add(side, top ? WeldedSpliceCover.TopOuter : WeldedSpliceCover.BottomOuter, d.Outer, y + yo, 0,
-                    -d.Outer.Width / 2, d.Outer.Width / 2,
-                    ElasticBoltGroup.Calculate(d.Bolts.Points(side), new PlanarConnectionActions(sign * outer, 0, 0, 0, 0, 0)));
-                foreach (int transverseSide in new[] { -1, 1 })
-                {
-                    double min = transverseSide < 0 ? -d.InnerGap / 2 - d.EachInner.Width : d.InnerGap / 2;
-                    double max = min + d.EachInner.Width, centre = (min + max) / 2;
-                    var points = d.Bolts.Points(side).Where(point => Math.Sign(point.Y) == transverseSide);
-                    var cover = top ? (transverseSide < 0 ? WeldedSpliceCover.TopInnerNegative : WeldedSpliceCover.TopInnerPositive)
-                        : (transverseSide < 0 ? WeldedSpliceCover.BottomInnerNegative : WeldedSpliceCover.BottomInnerPositive);
-                    Add(side, cover, d.EachInner, y + yi, 0, min, max,
-                        ElasticBoltGroup.Calculate(points, new PlanarConnectionActions(sign * inner / 2, 0, 0, 0, 0, 0, applicationY: centre)));
-                }
+                var d = part.Cover;
+                Add(side.Side, part.OuterCover, d.Outer, part.Y + yo, 0, -d.Outer.Width / 2, d.Outer.Width / 2,
+                    ElasticBoltGroup.Evaluate(part.Outer.Value, new PlanarConnectionActions(sign * outer, 0, 0, 0, 0, 0)));
+                Add(side.Side, part.NegativeCover, d.EachInner, part.Y + yi, 0, part.NegativeMin, part.NegativeMax,
+                    ElasticBoltGroup.Evaluate(part.Negative.Value, new PlanarConnectionActions(sign * inner / 2, 0, 0, 0, 0, 0, applicationY: part.NegativeCentre)));
+                Add(side.Side, part.PositiveCover, d.EachInner, part.Y + yi, 0, part.PositiveMin, part.PositiveMax,
+                    ElasticBoltGroup.Evaluate(part.Positive.Value, new PlanarConnectionActions(sign * inner / 2, 0, 0, 0, 0, 0, applicationY: part.PositiveCentre)));
             }
             void Add(SpliceSide side, WeldedSpliceCover cover, ConnectionPlate plate, double y, double z, double min, double max, ElasticBoltGroupResult d)
             {

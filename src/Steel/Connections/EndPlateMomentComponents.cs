@@ -91,6 +91,9 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
+    /// <summary>Typed kind of a row capacity constraint; callers use it instead of the identifier text.</summary>
+    internal enum EndPlateRowComponentKind { Global, TStub, BeamWeb, ColumnWeb }
+
     public sealed class EndPlateRowCapacityConstraint
     {
         public string Id { get; }
@@ -98,8 +101,10 @@ namespace GPC.Checkers.Steel.Connections
         public int RowCount { get; }
         public double Resistance { get; }
         public string Reference { get; }
-        internal EndPlateRowCapacityConstraint(string id, int first, int count, double resistance, string reference)
-        { Id = id; FirstRow = first; RowCount = count; Resistance = resistance; Reference = reference; }
+        internal EndPlateRowComponentKind Kind { get; }
+        internal EndPlateRowCapacityConstraint(string id, int first, int count, double resistance, string reference,
+            EndPlateRowComponentKind kind = EndPlateRowComponentKind.Global)
+        { Id = id; FirstRow = first; RowCount = count; Resistance = resistance; Reference = reference; Kind = kind; }
     }
 
     public sealed class EndPlateEffectiveRow
@@ -136,7 +141,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class EndPlateMomentComponents
+    internal static class EndPlateMomentComponents
     {
         public static EndPlateMomentComponentResult Verify(EndPlateMomentComponentInput p)
         {
@@ -221,10 +226,10 @@ namespace GPC.Checkers.Steel.Connections
             if (p.Beta > 0) Add("ColumnPanelTransformation", 0, levers.Length,
                 panel.Checks.Min(c => c.Resistance) / p.Beta, "EN6.2.7.2(7); " + p.TransformationSource);
             var bolt = BoltStrength.Verify(new BoltStrengthInput(code, p.Bolt, 0, 0,
-                holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource));
+                holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource), out var boltValues);
             Include("Bolt", bolt.Trace, bolt.Diagnostics);
             if (issues.Count != 0) return Result();
-            double threshold = 1.9 * bolt.Checks.Single(c => c.Id == "Bolt.Tension").Resistance;
+            double threshold = 1.9 * boltValues.TensionResistance;
             Value("EN626ElasticRowThreshold", threshold, "N");
             int? elasticReference = null;
             for (int i = 0; i < levers.Length; i++)
@@ -284,7 +289,7 @@ namespace GPC.Checkers.Steel.Connections
             {
                 var t = TStubTension.Verify(input); Include(name, t.Trace, t.Diagnostics);
                 if (!t.IsComplete) return;
-                Add(name + ".TStub", first, count, t.Checks.Min(c => c.Resistance), "EN6.2.4/Table6.2; " + input.EffectiveLengths.Source);
+                Add(name + ".TStub", first, count, t.Checks.Min(c => c.Resistance), "EN6.2.4/Table6.2; " + input.EffectiveLengths.Source, EndPlateRowComponentKind.TStub);
                 // Explicit conservative choice also for bolt-governed modes, never GoverningCheck at zero demand.
                 double width = Math.Min(input.EffectiveLengths.Mode1, input.EffectiveLengths.Mode2);
                 Value(name + ".ConservativeWebEffectiveWidth", width, "mm");
@@ -294,14 +299,15 @@ namespace GPC.Checkers.Steel.Connections
                         new ColumnWebEffectiveWidth(width, input.EffectiveLengths.Source + "; min(leff1,leff2) conservative"), 0,
                         p.Beta, p.TransformationSource, p.ActionCombinationSource));
                     Include(name + ".Web", w.Trace, w.Diagnostics);
-                    if (w.IsComplete) Add(name + ".Web", first, count, w.Checks.Min(c => c.Resistance), "EN6.2.6.3");
+                    if (w.IsComplete) Add(name + ".Web", first, count, w.Checks.Min(c => c.Resistance), "EN6.2.6.3", EndPlateRowComponentKind.ColumnWeb);
                 }
-                else if (!outside) Add(name + ".Web", first, count, width * beam.WebThickness * beam.Fy / code.Plates.GammaM0, "EN6.2.6.8(6.22), min(leff1,leff2) conservative");
+                else if (!outside) Add(name + ".Web", first, count, width * beam.WebThickness * beam.Fy / code.Plates.GammaM0, "EN6.2.6.8(6.22), min(leff1,leff2) conservative",
+                    EndPlateRowComponentKind.BeamWeb);
             }
-            void Add(string name, int first, int count, double resistance, string source)
+            void Add(string name, int first, int count, double resistance, string source, EndPlateRowComponentKind kind = EndPlateRowComponentKind.Global)
             {
                 if (!(resistance > 0) || !Finite(resistance)) issues.Add(name + "OutsideNumericRange");
-                else constraints.Add(new EndPlateRowCapacityConstraint(name, first, count, resistance, source));
+                else constraints.Add(new EndPlateRowCapacityConstraint(name, first, count, resistance, source, kind));
             }
             void Include(string name, IEnumerable<SectionResistanceValue> values, IEnumerable<string> diagnostics)
             {

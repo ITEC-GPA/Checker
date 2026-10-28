@@ -71,12 +71,17 @@ namespace GPC.Checkers.Steel.Connections
             Cases = Array.AsReadOnly(cases.ToArray()); Rows = Array.AsReadOnly(rows.ToArray());
         }
 
+        /// <summary>Report role of a connection check: action utilizations are resistance rows,
+        /// detailing and applicability rules are applicability rows.</summary>
+        private static SpliceReportRole RowRole(ConnectionCheck c)
+            => ConnectionOutcome.IsActionUtilization(c.Role) ? SpliceReportRole.Resistance : SpliceReportRole.Applicability;
+
         public static BridgeSpliceReport FromBolted(WeldedIBeamSpliceStandardResult result)
         {
             if (result == null) throw new ArgumentNullException(nameof(result));
             var rows = result.CheckSources.Select(x => new SpliceReportRow(x.CaseId, x.Component, x.IsServiceability,
                 // Geometry/pitch constraints are not action utilization.
-                x.Component == "Detailing" ? SpliceReportRole.Applicability : SpliceReportRole.Resistance, x.ComponentCheck, x.SectionCheck)).ToList();
+                x.ComponentCheck == null ? SpliceReportRole.Resistance : RowRole(x.ComponentCheck), x.ComponentCheck, x.SectionCheck)).ToList();
             var cases = new List<SpliceReportCase>();
             var notes = new List<string> { "Block method: " + result.Input.BlockMethod, "Face model: " + result.Input.FaceModel,
                 "N,mm,MPa; physical X longitudinal,Y up; Steel M1=-Mz after pole transport, V2=Fy.",
@@ -88,17 +93,16 @@ namespace GPC.Checkers.Steel.Connections
                 if (c.EffectiveCompression != null)
                 {
                     notes.Add(c.Input.Id + ":Plate stability:" + result.Input.PlateStability);
-                    foreach (var t in c.EffectiveCompression.Trace.Where(t => t.Name.EndsWith(".EffectiveArea")
-                        || t.Name.EndsWith(".EffectiveNetArea") || t.Name.EndsWith(".Chi") || t.Name.EndsWith(".IsLocallyReduced")))
+                    foreach (var t in c.EffectiveCompression.ReportedValues)
                         notes.Add(c.Input.Id + ":" + t.Name + "=" + t.Value.ToString("R", System.Globalization.CultureInfo.InvariantCulture) + " " + t.Unit);
                 }
-                foreach (var t in c.Model.Trace.Where(t => t.Name.Contains(".FaceModel.")))
+                foreach (var t in c.Model.ReportedValues)
                     notes.Add(c.Input.Id + ":" + t.Name + "=" + Number(t.Value) + " " + t.Unit);
                 notes.Add("gammaM1 plates=" + Number(c.Input.Parents.Detail.Plates.Policy.GammaM1));
                 if (b.Detail.Packing.HasPacking) notes.Add(c.Input.Id + ":packing=" + b.Detail.Packing.ExecutionSource);
                 Add(c.Input.Id, "BlockHierarchy", c.AdditionalPlates.BlockHierarchy.Checks);
                 Add(c.Input.Id, "CompactPlateDomain", c.AdditionalPlates.CompactPlateDomain.Checks);
-                foreach (var t in c.AdditionalPlates.BlockHierarchy.Trace.Where(t => t.Name.EndsWith(".ActualCollinearBlockMethod")))
+                foreach (var t in c.AdditionalPlates.BlockHierarchy.ReportedValues)
                     notes.Add(c.Input.Id + ":" + t.Name + "=" + Number(t.Value));
                 Member(c.Input.Id, "Left.Member", c.Input.Parents.LeftMember);
                 Member(c.Input.Id, "Right.Member", c.Input.Parents.RightMember);
@@ -125,7 +129,7 @@ namespace GPC.Checkers.Steel.Connections
             return new BridgeSpliceReport("WeldedI.DoubleCover", result.Scope, result.Status, result.IsStaticResistanceComplete,
                 result.HasFailedComponent, result.MissingRequirements, notes, cases, rows);
             void Add(string id, string part, IEnumerable<ConnectionCheck> checks)
-                => rows.AddRange(checks.Select(x => new SpliceReportRow(id, part, false, SpliceReportRole.Applicability, x)));
+                => rows.AddRange(checks.Select(x => new SpliceReportRow(id, part, false, RowRole(x), x)));
             void Member(string id, string part, SteelVerificationResult r)
             {
                 if (r == null) { notes.Add(id + ":" + part + ":NOT_SUPPLIED"); return; }
@@ -147,7 +151,7 @@ namespace GPC.Checkers.Steel.Connections
             {
                 var r = c.Result;
                 var first = results[0].Result.Input;
-                if (!WeldedIBeamSplicePlates.SameCode(first.Code, r.Input.Code)
+                if (!SpliceIdentity.Code(first.Code, r.Input.Code)
                     || !SameSection(first.LeftSection.Plan.Input.Section, r.LeftSection.Plan.Input.Section)
                     || !SameSection(first.RightSection.Plan.Input.Section, r.RightSection.Plan.Input.Section)
                     || !SameWeld(first.TopFlange, r.Input.TopFlange) || !SameWeld(first.Web, r.Input.Web)

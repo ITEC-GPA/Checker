@@ -11,7 +11,7 @@ namespace GPC.Checkers.Steel.Connections
     /// model. This component is NOT a complete N-V-M plate-stability assessment:
     /// shear buckling, lateral torsional deformation, block tearing, load
     /// introduction and member/joint qualification remain separate.</summary>
-    public static class IBeamSpliceWebLongitudinal
+    internal static class IBeamSpliceWebLongitudinal
     {
         private const string Prefix = "Web.Longitudinal.";
 

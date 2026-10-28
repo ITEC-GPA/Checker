@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Threading;
 using GPC.Checkers.Steel.Sections;
 
 namespace GPC.Checkers.Steel.Inputs
@@ -36,9 +38,15 @@ namespace GPC.Checkers.Steel.Inputs
     {
         public SectionResistanceCode SectionCode { get; }
         public double? GammaM1 { get; }
+        /// <summary>Limits below which an action component counts as zero; default 1e-6 of its resistance.</summary>
+        public SteelNegligibleActionPolicy NegligibleActions { get; }
 
         public SteelDesignContext(SectionResistanceCode sectionCode, double? gammaM1 = null)
+            : this(sectionCode, gammaM1, null) { }
+
+        public SteelDesignContext(SectionResistanceCode sectionCode, double? gammaM1, SteelNegligibleActionPolicy negligibleActions)
         {
+            NegligibleActions = negligibleActions ?? SteelNegligibleActionPolicy.Default;
             SectionCode = sectionCode ?? throw new ArgumentNullException(nameof(sectionCode));
             SteelInputValidation.PositiveOptional(gammaM1, nameof(gammaM1));
             if (sectionCode.Standard == SectionResistanceStandard.Ntc2018 && gammaM1.HasValue
@@ -46,6 +54,9 @@ namespace GPC.Checkers.Steel.Inputs
                 throw new ArgumentException("The NTC 2018 profile requires gammaM1=1.05, or 1.10 for road and railway bridges (Table 4.2.VII).", nameof(gammaM1));
             GammaM1 = gammaM1;
         }
+
+        public SteelDesignContext WithNegligibleActions(SteelNegligibleActionPolicy negligibleActions)
+            => new SteelDesignContext(SectionCode, GammaM1, negligibleActions ?? throw new ArgumentNullException(nameof(negligibleActions)));
 
         public static SteelDesignContext Ntc2018()
             => new SteelDesignContext(SectionResistanceCode.Ntc2018(), Ntc2018DesignPolicy.GammaM1);
@@ -73,6 +84,28 @@ namespace GPC.Checkers.Steel.Inputs
             Actions = actions ?? throw new ArgumentNullException(nameof(actions));
             Code = code ?? throw new ArgumentNullException(nameof(code));
             Member = member;
+        }
+
+        private sealed class Effective
+        {
+            internal SteelActions Actions;
+            internal IReadOnlyList<SteelNeglectedAction> Neglected;
+        }
+        private Effective effective;
+
+        /// <summary>Components set to zero by Code.NegligibleActions; Actions keeps the original values.</summary>
+        public IReadOnlyList<SteelNeglectedAction> NeglectedActions => Resolve().Neglected;
+
+        /// <summary>Actions used for routing and resistance: Actions with negligible components set to zero.</summary>
+        public SteelActions EffectiveActions => Resolve().Actions;
+
+        private Effective Resolve()
+        {
+            var current = Volatile.Read(ref effective);
+            if (current != null) return current;
+            var actions = SteelNegligibleActions.Apply(this, out var neglected);
+            Interlocked.CompareExchange(ref effective, new Effective { Actions = actions, Neglected = Array.AsReadOnly(neglected) }, null);
+            return effective;
         }
     }
 

@@ -24,7 +24,7 @@ namespace GPC.Checkers.Steel.Connections
         { Bolts=bolts;Checks=Array.AsReadOnly(checks.ToArray());Trace=Array.AsReadOnly(trace.ToArray());Diagnostics=Array.AsReadOnly(issues.ToArray()); }
     }
 
-    public static class EndPlateInPlaneChecks
+    internal static class EndPlateInPlaneChecks
     {
         public static EndPlateInPlaneResult Verify(EndPlateBoltComponentResult bolts)
         {
@@ -62,12 +62,12 @@ namespace GPC.Checkers.Steel.Connections
                 // resistance of an end plate carrying transverse bolt tension.
                 double ag=p.Width*t,an=(p.Width-2*d0)*t;
                 Value(name+".GrossArea",ag,"mm2");Value(name+".NetArea",an,"mm2");
-                Check(name+".GrossShear",m.Shear,ag*p.Fy/(Math.Sqrt(3)*gm0),"EN1993-1-1 6.2.6; full joint shear envelope");
+                Check(name+".GrossShear",m.Shear,PlasticShear.Resistance(ag, p.Fy, gm0),"EN1993-1-1 6.2.6; full joint shear envelope");
                 Check(name+".NetShearBound",m.Shear,an*Math.Min(p.Fy/gm0,p.Fu/gm2)/Math.Sqrt(3),"Supplementary elastic net-area shear bound; no out-of-plane fracture formula implied");
                 var baseBolt=BoltStrength.Verify(new BoltStrengthInput(m.Policy.Code,m.Bolt,0,0,jointLength:rows.Last().Y-rows.First().Y,
-                    holeClearanceServiceabilitySource:m.HoleClearanceServiceabilitySource));
+                    holeClearanceServiceabilitySource:m.HoleClearanceServiceabilitySource),out var baseValues);
                 if(!baseBolt.IsComplete){issues.AddRange(baseBolt.Diagnostics);return;}
-                double fv=baseBolt.Checks.Single(c=>c.Id=="Bolt.Shear").Resistance;
+                double fv=baseValues.ShearResistance;
                 var resistances=new List<double>();
                 for(int i=0;i<rows.Count;i++)
                 {
@@ -99,8 +99,8 @@ namespace GPC.Checkers.Steel.Connections
                     double q=selected.Sum(r=>r.LeftShear+r.RightShear);
                     string id=name+"."+(direction==0?"Top":"Bottom")+".Row"+(cut+1);
                     Value(id+".AnvOneSide",av,"mm2");Value(id+".AntOuter",atOuter,"mm2");Value(id+".AntInner",atInner,"mm2");
-                    Check(id+".OuterBlock",q/2,.5*p.Fu*atOuter/gm2+p.Fy*av/(Math.Sqrt(3)*gm0),"EN1993-1-8:2005 3.10.2(3); single outer strip, in-plane action only");
-                    Check(id+".InnerBlock",q,.5*p.Fu*atInner/gm2+2*p.Fy*av/(Math.Sqrt(3)*gm0),"EN1993-1-8:2005 3.10.2(3); two-column block, in-plane action only");
+                    Check(id+".OuterBlock",q/2,.5*p.Fu*atOuter/gm2+PlasticShear.Resistance(p.Fy, av, gm0),"EN1993-1-8:2005 3.10.2(3); single outer strip, in-plane action only");
+                    Check(id+".InnerBlock",q,.5*p.Fu*atInner/gm2+PlasticShear.Resistance(2*p.Fy, av, gm0),"EN1993-1-8:2005 3.10.2(3); two-column block, in-plane action only");
                 }
             }
         }

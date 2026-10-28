@@ -27,6 +27,12 @@ namespace GPC.Model.Checker.Configuration
             }
             Add("Unperforated",EngineParameterKind.Boolean,description:"Explicit absence/presence of holes; never inferred from the outline.");
             Add("ClassificationSource",description:"Source of the externally supplied nominal section/member class.",modes:member?new[]{"ExternalInPlane","Compression","Bending","BeamColumn"}:null);
+            Add("Negligible.Relative",EngineParameterKind.Number,"1",min:0,max:.01,
+                description:"Action components up to this fraction of the matching section resistance count as zero; default 1e-6, 0 for exact zero.");
+            Add("Negligible.Force",EngineParameterKind.Number,"N",min:0,
+                description:"Absolute limit below which N, V1 and V2 count as zero; the larger of this and the relative limit applies; default 0.");
+            Add("Negligible.Moment",EngineParameterKind.Number,"Nmm",min:0,
+                description:"Absolute limit below which T, M1 and M2 count as zero; the larger of this and the relative limit applies; default 0.");
             if(!member) {
                 Add("HWebResistance",EngineParameterKind.Choice,choices:new[]{"NonRigidEndPost"},description:"Web-only H shear buckling resistance; support stiffeners and attachments verified separately.");
                 Add("HWebSupportSource",description:"Evidence for support stiffeners, attachments and end force transfer, same section and load state.");

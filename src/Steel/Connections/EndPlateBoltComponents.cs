@@ -91,7 +91,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class EndPlateBoltComponents
+    internal static class EndPlateBoltComponents
     {
         public static EndPlateBoltComponentResult Verify(EndPlateBoltComponentInput p)
         {
@@ -143,11 +143,11 @@ namespace GPC.Checkers.Steel.Connections
             if (issues.Count != 0) return Result();
             var columnPly = new ConnectionPlate(m.Column.Width, m.Column.FlangeThickness, m.ColumnFlangeFy, p.ColumnFlangeFu);
             var baseBolt = BoltStrength.Verify(new BoltStrengthInput(code, m.Bolt, 0, 0, jointLength: jointLength,
-                holeClearanceServiceabilitySource: m.HoleClearanceServiceabilitySource));
+                holeClearanceServiceabilitySource: m.HoleClearanceServiceabilitySource), out var baseValues);
             Include("BaseBolt", baseBolt.Checks, baseBolt.Trace, baseBolt.Diagnostics, false);
             if (issues.Count != 0) return Result();
-            double ft = baseBolt.Checks.Single(c => c.Id == "Bolt.Tension").Resistance;
-            double fv = baseBolt.Checks.Single(c => c.Id == "Bolt.Shear").Resistance;
+            double ft = baseValues.TensionResistance;
+            double fv = baseValues.ShearResistance;
             Value("FullTensionEnvelopePerBolt", ft, "N");
             Value("TensionBoltResidualShearFactor", 2d / 7, "1");
             Value("BoltsOnlyShearEnvelope", p.Rows.Sum(r => 2 * fv * (r.MomentRowIndex.HasValue ? 2d / 7 : 1)), "N");
@@ -240,7 +240,7 @@ namespace GPC.Checkers.Steel.Connections
             {
                 issues.AddRange(childIssues.Select(d => name + ":" + d));
                 trace.AddRange(childTrace.Select(t => new SectionResistanceValue(name + "." + t.Name, t.Value, t.Unit)));
-                if (includeChecks) checks.AddRange(childChecks.Select(c => new ConnectionCheck(name + "." + c.Id, c.Demand, c.Resistance, c.Reference, c.Unit)));
+                if (includeChecks) checks.AddRange(childChecks.Select(c => c.WithId(name + "." + c.Id)));
             }
             EndPlateBoltComponentResult Result() => new EndPlateBoltComponentResult(new ConnectionVerification<EndPlateBoltComponentInput>(
                 p, code, "Steel.Connection.EndPlate.BoltComponents",

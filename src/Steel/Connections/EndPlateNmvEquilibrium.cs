@@ -136,7 +136,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Two-DOF analytic unilateral elastic equilibrium. Nested monotone solves
     /// avoid an arbitrary active-set choice at zero opening. No material plasticity,
     /// generic plate FE, resistance, normative secant law or panel shear stiffness.</summary>
-    public static class EndPlateNmvEquilibrium
+    internal static class EndPlateNmvEquilibrium
     {
         public static EndPlateNmvEquilibriumResult Solve(IEnumerable<EndPlateNmvSpringRow> rows,
             IEnumerable<EndPlateNmvContactBand> contacts, double axialForce, double moment)

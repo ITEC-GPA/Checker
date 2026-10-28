@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using GPC.Checkers.Steel.Inputs;
 using GPC.Model.Checker.Configuration;
 
 namespace GPC.Model.Checker
@@ -22,6 +23,7 @@ namespace GPC.Model.Checker
         internal bool? ShearExcluded2 { get; }
         internal string ShearSource1 { get; }
         internal string ShearSource2 { get; }
+        internal SteelNegligibleActionPolicy NegligibleActions { get; }
 
         internal SteelPipelineParameters(IDictionary<string, string> parameters)
         {
@@ -31,6 +33,7 @@ namespace GPC.Model.Checker
             foreach (var pair in Values)
                 if (!known.Contains(pair.Key) || string.IsNullOrWhiteSpace(pair.Value))
                     throw new ArgumentException("UnknownOrEmptySteelPipelineParameter: " + pair.Key);
+            NegligibleActions = Negligible(Values);
             Unperforated = Boolean("Unperforated"); NetArea = Positive("NetArea");
             if (NetArea.HasValue && Unperforated != false) throw new ArgumentException("NetAreaRequiresPerforatedDeclaration");
             var cl = Text("UniformCompressionClass");
@@ -67,6 +70,21 @@ namespace GPC.Model.Checker
             if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double result)
                 || !(result > 0) || double.IsInfinity(result)) throw new ArgumentException("InvalidSteelPositiveValue: " + key);
             return result;
+        }
+        /// <summary>Negligible.Relative/Force/Moment of both steel schemas; omitted values keep the library defaults.</summary>
+        internal static SteelNegligibleActionPolicy Negligible(IDictionary<string, string> values)
+        {
+            double? Read(string key, double max)
+            {
+                if (!values.TryGetValue(key, out var value)) return null;
+                if (!double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double result)
+                    || !(result >= 0) || !(result <= max)) throw new ArgumentException("InvalidSteelNegligibleLimit: " + key);
+                return result;
+            }
+            double? relative = Read("Negligible.Relative", .01), force = Read("Negligible.Force", double.MaxValue),
+                moment = Read("Negligible.Moment", double.MaxValue);
+            if (relative == null && force == null && moment == null) return SteelNegligibleActionPolicy.Default;
+            return new SteelNegligibleActionPolicy(relative ?? SteelNegligibleActionPolicy.DefaultRelativeToResistance, force ?? 0, moment ?? 0);
         }
         private static void Pair(bool supplied, string source, string name)
         { if (supplied != (source != null)) throw new ArgumentException(name + "ValueAndSourceRequiredTogether"); }

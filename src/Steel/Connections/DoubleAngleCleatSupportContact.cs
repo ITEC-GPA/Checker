@@ -8,7 +8,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Supplementary short-leg contact model. ContactHeight/Width describe
     /// the actual rectangular upper cleat-to-BEAM-WEB contact patch on EACH side.
     /// They are not an effective column-flange width. N, mm, MPa.</summary>
-    public sealed class DoubleAngleCleatSupportContactInput
+    internal sealed class DoubleAngleCleatSupportContactInput
     {
         public DoubleAngleCleatColumnFlangeBearingInput Support { get; }
         public double ContactHeight { get; }
@@ -27,7 +27,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public sealed class DoubleAngleCleatSupportContactResult
+    internal sealed class DoubleAngleCleatSupportContactResult
     {
         public ConnectionVerification<DoubleAngleCleatSupportContactInput> ContactAndShear { get; }
         public DoubleAngleCleatComponentResult Cleats { get; }
@@ -49,7 +49,7 @@ namespace GPC.Checkers.Steel.Connections
     /// section3.1, Figures7-9. Solves the transverse IN-PLANE bolt forces for a
     /// supplied upper contact patch and an elastic force distribution. It does not
     /// infer bolt-axis tension from these forces or from the SBE0.8 factor.</summary>
-    public static class DoubleAngleCleatSupportContact
+    internal static class DoubleAngleCleatSupportContact
     {
         public static DoubleAngleCleatSupportContactResult Verify(DoubleAngleCleatSupportContactInput p)
         {
@@ -83,9 +83,9 @@ namespace GPC.Checkers.Steel.Connections
                     Math.Min(c.CleatLeg.Fy, c.Beam.Fy) / c.Code.Plates.GammaM0,
                     "Weynand/Oerder/Demonceau section3.1 Fig8-9; rectangular contact patch, elastic compression only", "MPa"));
                 var bolt = BoltStrength.Verify(new BoltStrengthInput(c.Code, c.Bolt, 0, 0,
-                    jointLength: (c.Rows - 1) * c.Pitch, holeClearanceServiceabilitySource: c.HoleClearanceServiceabilitySource));
-                double fv = bolt.Checks.Single(x => x.Id == "Bolt.Shear").Resistance;
-                double ft = bolt.Checks.Single(x => x.Id == "Bolt.Tension").Resistance;
+                    jointLength: (c.Rows - 1) * c.Pitch, holeClearanceServiceabilitySource: c.HoleClearanceServiceabilitySource), out var boltValues);
+                double fv = boltValues.Evaluated(bolt).ShearResistance;
+                double ft = boltValues.TensionResistance;
                 // Sufficient punching hierarchy. It is independent of a presumed
                 // prying force and is NOT a verification that the bolt can carry Ft+V.
                 foreach (var ply in new[] { c.CleatLeg, s.ColumnFlange })

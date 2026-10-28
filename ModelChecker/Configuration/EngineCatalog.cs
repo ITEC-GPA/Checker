@@ -125,6 +125,8 @@ namespace GPC.Model.Checker.Configuration
                     if (definition.Concrete != null || definition.BridgeCases != null || definition.BridgeHistory != null) throw new ArgumentException("OptionsOnDifferentEngine");
                     return new SteelMemberPipelineChecker(code, context.Edition, context.NationalAnnex, definition.Parameters);
                 }, (engine, mechanism, check) => check == null && ((SteelMemberPipelineChecker)engine).Supports(SteelMemberPipelineChecker.EngineId, mechanism)));
+            // The legacy steel section engines stay registered: saved configurations and reports name them.
+#pragma warning disable CS0618
             foreach (var capability in new[] { SteelSectionCapability.Shear, SteelSectionCapability.Section })
                 catalog.Register(new EngineCapability(capability.Id, 1, capability.Description, capability.Limitations,
                     (definition, context) => {
@@ -135,6 +137,7 @@ namespace GPC.Model.Checker.Configuration
                         var steel = (SteelMaterialChecker)engine;
                         return check == null && steel.Capability.ContextFailure(steel.Code, steel.Edition, mechanism) == null;
                     }));
+#pragma warning restore CS0618
             catalog.Register(new EngineCapability("CompositeBridge.Section", 1, "Composite bridge section", "Explicit phase history and moment reference required; SLE stresses and web shear only.",
                 (definition, context) => {
                     NoExtraParameters(definition);

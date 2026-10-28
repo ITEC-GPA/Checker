@@ -41,7 +41,7 @@ namespace GPC.Model.Checker
                 else
                 {
                     string owned = OwnedCheckInputs.Of(item);
-                    result = item.Scope == CheckScope.PhysicalMember ? MemberCheckExecution.Run(plan, item, memberEngine, token)
+                    result = item.Scope == CheckScope.PhysicalMember ? MemberChecking.Run(item, memberEngine, token)
                         : item.Check == null ? SectionCheckExecution.Run(item.Section, item.Mechanism, sectionEngine, token)
                         : SectionCheckExecution.Run(item.Section, item.Check, sectionEngine, token);
                     if (!token.IsCancellationRequested && OwnedCheckInputs.Of(item) != owned)

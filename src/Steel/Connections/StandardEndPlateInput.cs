@@ -162,5 +162,12 @@ namespace GPC.Checkers.Steel.Connections
             if (appliedGlobalTangent != null && !appliedGlobalTangent.IsPositiveDefinite) throw new ArgumentException("Applied matrix must be positive definite.");
             AppliedGlobalTangent = appliedGlobalTangent;
         }
+        private StandardEndPlatePreparation prepared;
+        /// <summary>Action-independent preparation of this physical joint; shared by the cases of one PreparedStandardEndPlate.</summary>
+        internal StandardEndPlatePreparation Prepared
+        {
+            get => prepared ?? System.Threading.LazyInitializer.EnsureInitialized(ref prepared, () => new StandardEndPlatePreparation(this));
+            set => prepared = value;
+        }
     }
 }

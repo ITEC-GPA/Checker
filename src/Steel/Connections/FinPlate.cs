@@ -21,6 +21,8 @@ namespace GPC.Checkers.Steel.Connections
             { ConnectionNumbers.Finite(value, name); trace.Add(new SectionResistanceValue(name, value, unit)); }
             void Check(string id, double demand, double resistance, string reference, string unit = "N")
                 => checks.Add(new ConnectionCheck(id, demand, resistance, reference, unit));
+            void Detail(string id, double demand, double resistance, string reference, string unit = "N")
+                => checks.Add(new ConnectionCheck(id, demand, resistance, reference, unit, ConnectionCheckRole.Detailing));
             FinPlateResult Result() => new FinPlateResult(new ConnectionVerification<FinPlateInput>(p, p.Code,
                 FinPlateResult.MethodId,
                 "Ordinary static ULS of a standard short S275 fin plate, 2-5 M20 8.8 bolts in one vertical column, "
@@ -83,9 +85,9 @@ namespace GPC.Checkers.Steel.Connections
             Value("BoltCentroidProjection", z, "mm"); Value("TransferredMoment", v * z, "Nmm");
             Value("BeamTopBoltEdge", beamTopEdge, "mm"); Value("BeamBottomBoltEdge", beamBottomEdge, "mm");
             Value("GammaM0", gm0, "1"); Value("GammaM2Plate", gm2p, "1"); Value("GammaM2Connection", p.Code.GammaM2Connection, "1");
-            Check("Detail.MinimumPlateHeight", .6 * beam.Height, g.Height, "SCI P358 pp109-114", "mm");
-            Check("Detail.MinimumBeamBoltEdge", 2 * p.Bolt.Diameter, Math.Min(beamVerticalEdge, g.BeamEndEdge), "SCI P358 5.3", "mm");
-            Check("Detail.Pitch", g.Pitch, Math.Min(14 * Math.Min(plate.Thickness, beam.WebThickness), 200),
+            Detail("Detail.MinimumPlateHeight", .6 * beam.Height, g.Height, "SCI P358 pp109-114", "mm");
+            Detail("Detail.MinimumBeamBoltEdge", 2 * p.Bolt.Diameter, Math.Min(beamVerticalEdge, g.BeamEndEdge), "SCI P358 5.3", "mm");
+            Detail("Detail.Pitch", g.Pitch, Math.Min(14 * Math.Min(plate.Thickness, beam.WebThickness), 200),
                 p.Code.IsNtc ? "NTC2018 Table4.2.XVIII" : "EN1993-1-8:2005 Table3.3", "mm");
             // The detail qualification includes EVERY geometric check, not the action-dependent capacities.
             // Evaluate it before checking caller evidence so missing evidence cannot hide a failed detail.
@@ -130,10 +132,9 @@ namespace GPC.Checkers.Steel.Connections
             {
                 string id = "Bolt" + (force.Index + 1);
                 var strength = BoltStrength.Verify(new BoltStrengthInput(p.Code, p.Bolt, force.Shear, 0,
-                    jointLength: (g.Rows - 1) * g.Pitch, holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource));
+                    jointLength: (g.Rows - 1) * g.Pitch, holeClearanceServiceabilitySource: p.HoleClearanceServiceabilitySource), out var strengthValues);
                 if (!strength.IsComplete) { issues.AddRange(strength.Diagnostics.Select(s => id + ": " + s)); continue; }
-                var shearCheck = strength.Checks.Single(c => c.Id == "Bolt.Shear");
-                Check(id + ".Shear", force.Shear, shearCheck.Resistance, shearCheck.Reference);
+                Check(id + ".Shear", force.Shear, strengthValues.ShearResistance, strengthValues.Reference);
                 Check(id + ".PlateBearingInteraction", ElasticBoltGroup.Hypot(force.Fx / plateHorizontal, force.Fy / plateVertical),
                     1, "SCI P358 Check2; " + (p.Code.IsNtc ? "NTC2018 (4.2.67)" : "EN1993-1-8 Table3.4"), "1");
                 Check(id + ".BeamBearingInteraction", ElasticBoltGroup.Hypot(force.Fx / beamHorizontal, force.Fy / beamVertical),
@@ -147,9 +148,9 @@ namespace GPC.Checkers.Steel.Connections
             double anv = plate.Thickness * (g.Height - g.TopEdge - (g.Rows - .5) * p.Bolt.HoleDiameter);
             double wel = plate.Thickness * g.Height * g.Height / 6;
             Value("Plate.AvNet", avNet, "mm2"); Value("Plate.Ant", ant, "mm2"); Value("Plate.Anv", anv, "mm2"); Value("Plate.Wel", wel, "mm3");
-            Check("Plate.GrossShear", v, g.Height * plate.Thickness * plate.Fy / (1.27 * Math.Sqrt(3) * gm0), "SCI P358 Check3 p118, nominal-moment factor1.27");
-            Check("Plate.NetShear", v, avNet * plate.Fu / (Math.Sqrt(3) * gm2p), "SCI P358 Check3 p118");
-            Check("Plate.BlockTearing", v, .5 * plate.Fu * ant / gm2p + plate.Fy * anv / (Math.Sqrt(3) * gm0),
+            Check("Plate.GrossShear", v, PlasticShear.Resistance(g.Height * plate.Thickness, plate.Fy, 1.27, gm0), "SCI P358 Check3 p118, nominal-moment factor1.27");
+            Check("Plate.NetShear", v, PlasticShear.Resistance(avNet, plate.Fu, gm2p), "SCI P358 Check3 p118");
+            Check("Plate.BlockTearing", v, .5 * plate.Fu * ant / gm2p + PlasticShear.Resistance(plate.Fy, anv, gm0),
                 "SCI P358 Check3 p118; EN1993-1-8 3.10.2, eccentric block");
             Check("Plate.ShortPlateFlexure", v * z, wel * plate.Fy / gm0, "SCI P358 Check3 p119, short plate; finite elastic bound", "Nmm");
             Value("Plate.ShortPlateLimit", plate.Thickness / .15, "mm");
@@ -159,8 +160,8 @@ namespace GPC.Checkers.Steel.Connections
                 (beam.Height - 2 * beam.FlangeThickness) * beam.WebThickness);
             double avNetBeam = avBeam - g.Rows * p.Bolt.HoleDiameter * beam.WebThickness;
             Value("Beam.Av", avBeam, "mm2"); Value("Beam.AvNet", avNetBeam, "mm2");
-            Check("Beam.GrossShear", v, avBeam * beam.Fy / (Math.Sqrt(3) * gm0), "SCI P358 Check4 p121, unnotched rolled I/H");
-            Check("Beam.NetShear", v, avNetBeam * beam.Fu / (Math.Sqrt(3) * gm2p), "SCI P358 Check4 p121, unnotched rolled I/H");
+            Check("Beam.GrossShear", v, PlasticShear.Resistance(avBeam, beam.Fy, gm0), "SCI P358 Check4 p121, unnotched rolled I/H");
+            Check("Beam.NetShear", v, PlasticShear.Resistance(avNetBeam, beam.Fu, gm2p), "SCI P358 Check4 p121, unnotched rolled I/H");
 
             // Component basis (Y,Z,X). The moment is bending Mx, not planar torsion Mz.
             double halfHeight = g.Height / 2, halfThickness = plate.Thickness / 2;
@@ -181,13 +182,13 @@ namespace GPC.Checkers.Steel.Connections
                     Check("Weld" + (point.SegmentIndex + 1) + (point.AtStart ? ".Start." : ".End.") + check.Id,
                         check.Demand, check.Resistance, check.Reference, check.Unit);
             foreach (var item in welds.Trace) Value("WeldGroup." + item.Name, item.Value, item.Unit);
-            Check("Weld.FullStrengthThroat", requiredThroat, p.Weld.Throat, "SCI P358 AppendixC.1/C.3, unrounded full-strength rule", "mm");
+            Detail("Weld.FullStrengthThroat", requiredThroat, p.Weld.Throat, "SCI P358 AppendixC.1/C.3, unrounded full-strength rule", "mm");
 
             double supportArea = g.Height * support.WebThickness;
             Value("Support.LocalShearArea", supportArea, "mm2");
             Value("Support.WebSlenderness", support.ClearWeb / support.WebThickness, "1");
             Value("Support.ConservativePlateThicknessLimit", support.WebThickness * support.Fu / (plate.Fy * gm2p), "mm");
-            Check("Support.LocalShear", v / 2, supportArea * support.Fy / (Math.Sqrt(3) * gm0), "SCI P358 Check10 p128");
+            Check("Support.LocalShear", v / 2, PlasticShear.Resistance(supportArea, support.Fy, gm0), "SCI P358 Check10 p128");
             Check("Support.Punching", v, support.WebThickness * support.Fu * g.Height * g.Height / (6 * z * gm2p),
                 "SCI P358 Check10 p128, actual-load form; SCI AD422 (gammaM2_plate)");
             return Result();
