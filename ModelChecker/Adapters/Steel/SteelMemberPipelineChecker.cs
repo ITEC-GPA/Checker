@@ -111,12 +111,12 @@ namespace GPC.Model.Checker
                     return NativeResults.Unavailable("SteelMember.NtcFactorsNotQualified");
                 var member = new SteelMemberInput(snapshot.SpanEnd - snapshot.SpanStart,
                     snapshot.Context.EffectiveLength1, snapshot.Context.EffectiveLength2);
-                var common = ModelSteelInput.FromSectionAxes(new SteelSectionInput(section, unperforated), first.Forces, context, member);
+                var common = ModelSteelInput.FromSectionAxes(SteelPreparedSections.Get(section, unperforated), first.Forces, context, member);
                 SteelMemberAnalysis analysis;
                 SteelPhysicalMemberPreparation physical = null;
                 if (mode == "Compression" || mode == "Bending" || mode == "BeamColumn")
                     {
-                    physical = SteelPhysicalMemberPreparation.Create(input, common.Section, context);
+                    physical = SteelPhysicalMemberPreparation.Create(input, common.Section, section.SectionShape, context);
                     common = new SteelVerificationInput(common.Section, physical.Cuts[0].Actions, common.Code, common.Member);
                     analysis = mode == "BeamColumn" ? BeamColumn(input, common, physical) : Prismatic(input, common, context, mode, physical);
                 }
@@ -159,7 +159,7 @@ namespace GPC.Model.Checker
                     foreach (var cut in input.ActionSections)
                     {
                         if (!(cut.Property is ISteelSection steel)) return NativeResults.Unavailable("SteelMember.NonSteelSection");
-                        var sectionInput = new SteelSectionInput(steel, unperforated);
+                        var sectionInput = SteelPreparedSections.Get(steel, unperforated);
                         if(memberClass.HasValue)SteelGeneralMethodApplicability.QualifySection(sectionInput,memberClass.Value);
                         var a = ModelSteelInput.FromSectionAxes(sectionInput, cut.Forces, context).Actions;
                         if (a.N > 0 || a.V1 != 0 || a.V2 != 0 || a.T != 0 || a.M2 != 0) return NativeResults.Unavailable("SteelMember.ExternalPatternNotInPlane");

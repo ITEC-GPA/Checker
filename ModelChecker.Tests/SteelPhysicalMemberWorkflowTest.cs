@@ -35,6 +35,29 @@ public class SteelPhysicalMemberWorkflowTest
         var result=new SteelMemberPipelineChecker(new StandardEN1993p11(),"2005",parameters:options).Verify(input,CancellationToken.None);
         Assert.AreEqual(EngineeringOutcome.Satisfied,result.Outcome);
     }
+    /// <summary>Member engines are bound to one member and one state; equal properties share one owned
+    /// section snapshot across engines, a different property never reuses it.</summary>
+    [TestMethod]
+    public void SharedSectionSnapshotsNeverMixDifferentProperties()
+    {
+        string Run(double flange)
+        {
+            var model=SteelReferenceFrame.Create(false,false,m=> {
+                var column=new SteelSection(new SectionH(300,12,150,flange,150,flange,"Column"),SteelMaterialEN1993Data.S355);m.AddProperty(column);
+                foreach(var beam in m.BeamElements.Values.Where(b=>b.Assignments.LogicalMember=="C1")) {
+                    beam.BeamProperty=column;beam.Assignments.Sections.Clear();
+                    beam.Assignments.Sections.Add(new BeamSectionAssignment{Start=0,End=1,Property=column});
+                }
+            });
+            var options=SteelReferenceFrame.Configure(model,false).Engines[0].Parameters;
+            var input=BeamCheckPlan.PrepareActions(model,SteelReferenceFrame.Plan("C1","ULS-A",false)).WorkItems.Single().Member;
+            var r=new SteelMemberPipelineChecker(new StandardEN1993p11(),"2005",parameters:options).Verify(input,CancellationToken.None);
+            Assert.AreEqual(EngineeringOutcome.Satisfied,r.Outcome);
+            return string.Join("|",r.Details.Trace.Select(t=>t.Key+"="+t.Value?.ToString("R")));
+        }
+        string first=Run(18),other=Run(20),again=Run(18);
+        Assert.AreEqual(first,again);Assert.AreNotEqual(first,other);
+    }
     [DataTestMethod] [DataRow(false,false)] [DataRow(false,true)] [DataRow(true,false)] [DataRow(true,true)]
     public void SubdivisionAndReversedConnectivityPreserveThePhysicalChecks(bool ntc,bool reversed)
     {

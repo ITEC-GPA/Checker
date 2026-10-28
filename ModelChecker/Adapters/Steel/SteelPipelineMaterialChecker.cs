@@ -69,14 +69,26 @@ namespace GPC.Model.Checker
                 null, _parameters.NegligibleActions);
         }
 
-        private sealed class Session : IMaterialCheckSession
+        private sealed class Session : IConcurrentMaterialSession
         {
             private readonly SteelPipelineMaterialChecker _owner;
-            private readonly Dictionary<string, SteelSectionInput> _sections = new Dictionary<string, SteelSectionInput>();
-            public int CreatedCheckers => _sections.Count;
+            // One entry per distinct property and engine configuration prepared by this session.
+            private readonly HashSet<string> _prepared = new HashSet<string>(StringComparer.Ordinal);
+            public int CreatedCheckers => _prepared.Count;
             internal Session(SteelPipelineMaterialChecker owner) { _owner = owner; }
 
             public CheckResult Verify(BeamActionInput input, CheckMechanism mechanism, CancellationToken token)
+            {
+                string prepared = null;
+                try { return Evaluate(input, mechanism, token, ref prepared); }
+                finally { Record(prepared); }
+            }
+
+            public void Record(string prepared) { if (prepared != null) _prepared.Add(prepared); }
+
+            /// <summary>Thread-safe: reads only the owned copies of the task, the immutable engine
+            /// parameters and the shared section snapshots; the session itself is not touched.</summary>
+            public CheckResult Evaluate(BeamActionInput input, CheckMechanism mechanism, CancellationToken token, ref string prepared)
             {
                 token.ThrowIfCancellationRequested();
                 if (input == null) return NativeResults.Missing("SteelPipeline.Input.Required");
@@ -89,12 +101,9 @@ namespace GPC.Model.Checker
                     string propertyKey = ModelValues.Fingerprint(new object[] { input.Property });
                     if (options.SectionFingerprint != null && options.SectionFingerprint != propertyKey)
                         return NativeResults.Missing("SteelPipeline.AssessmentSectionMismatch");
-                    string key = ModelValues.Fingerprint(new object[] { input.Property, _owner.Configuration });
-                    if (!_sections.TryGetValue(key, out var snapshot))
-                    {
-                        snapshot = new SteelSectionInput(section, options.Unperforated, options.NetArea);
-                        _sections.Add(key, snapshot);
-                    }
+                    var snapshot = SteelPreparedSections.Get(section, propertyKey, options.Unperforated, options.NetArea);
+                    // Recorded once the snapshot exists, even if the calculation then fails (as before).
+                    prepared = propertyKey + "\n" + _owner.Configuration;
                     var common = ModelSteelInput.FromSectionAxes(snapshot, input.Forces, context);
                     var classification = options.UniformCompressionClass.HasValue
                         ? new SteelSectionClassification(common, options.UniformCompressionClass.Value,

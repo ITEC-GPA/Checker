@@ -33,14 +33,16 @@ namespace GPC.Model.Checker
         internal IReadOnlyList<Cut> Cuts { get; private set; }
         internal IReadOnlyList<CheckCalculationValue> Trace { get; private set; }
 
-        internal static SteelPhysicalMemberPreparation Create(PhysicalMemberCheckInput input, SteelSectionInput section, SteelDesignContext code)
+        /// <param name="shape">Shape of the owned cut property the section snapshot was copied from:
+        /// reading it avoids a further XML copy of the snapshot.</param>
+        internal static SteelPhysicalMemberPreparation Create(PhysicalMemberCheckInput input, SteelSectionInput section, ISectionShape shape, SteelDesignContext code)
         {
             var s=input.Snapshot;var first=input.ActionSections[0];
             var geometry=new PhysicalMemberGeometry(first.Model,s.Definition);
             if (!(s.SpanEnd>s.SpanStart) || s.SpanStart<0 || s.SpanEnd>s.Length || Math.Abs(s.Length-s.DeformableLength)>1e-7)
                 throw new NotSupportedException("Prismatic member requires a nonzero deformable span without rigid zones.");
             var old=first.Forces.CoordinateSystem;var frame=Axes.Beam(old.Origin,old.Origin+s.Axes.V3,old.V1);
-            bool symmetric=Bisymmetric(section.CreateSectionCopy().SectionShape);
+            bool symmetric=Bisymmetric(shape);
             string property=ModelValues.Fingerprint(new object[]{first.Property});
             var cuts=new List<Cut>();var trace=new List<CheckCalculationValue>{
                 new CheckCalculationValue("Member.Geometry.Length",s.Length,"mm","Physical path; independent of FE discretization"),
@@ -50,7 +52,7 @@ namespace GPC.Model.Checker
                 new CheckCalculationValue("Member.Geometry.Restraints",s.Context.Restraints.Count,"1","Declared restraints; never inferred from mesh nodes")};
             foreach(var cut in input.ActionSections)
             {
-                if(ModelValues.Fingerprint(new object[]{cut.Property})!=property)throw new NotSupportedException("Nonuniform prismatic section.");
+                if(!ReferenceEquals(cut.Property,first.Property)&&ModelValues.Fingerprint(new object[]{cut.Property})!=property)throw new NotSupportedException("Nonuniform prismatic section.");
                 var axes=cut.Forces.CoordinateSystem;Axes.Validate(axes);
                 double x=Axes.Dot(axes.V1,frame.V1),y=Axes.Dot(axes.V2,frame.V2),z=Axes.Dot(axes.V3,frame.V3);
                 if(Math.Abs(x)<1-1e-10 || Math.Abs(y)<1-1e-10 || Math.Abs(z)<1-1e-10)

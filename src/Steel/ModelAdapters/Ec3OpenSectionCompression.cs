@@ -1,4 +1,5 @@
 using System;
+using GPC.Checkers.Steel.Inputs;
 using GPC.Checkers.Steel.Members;
 using GPC.Checkers.Steel.Sections;
 using GPC.Model.Sections;
@@ -31,7 +32,7 @@ namespace GPC.Checkers.Steel.ModelAdapters
                     throw new NotSupportedException("Angle classification requires equal leg thicknesses.");
                 nominalClass = Ec3AngleCompression.Classify(angle.VerticalLegLength, angle.HorizontalLegLength,
                     angle.VerticalLegThickness, yieldStrength, angle.R);
-                alpha = .34; // Table 6.2: angles, curve b.
+                alpha = BucklingCurves.Alpha(SteelBucklingCurve.B); // Table 6.2: angles, curve b.
             }
             else
             {
@@ -41,7 +42,7 @@ namespace GPC.Checkers.Steel.ModelAdapters
                 var classification = Ec3UniformCompressionClassification.Evaluate(ModelCompressionGeometry.Create(section), yieldStrength);
                 if (!classification.IsEvaluated) throw new ArgumentException(classification.DiagnosticCode, nameof(section));
                 nominalClass = classification.NominalClass.Value;
-                alpha = .49; // Table 6.2: channels, curve c.
+                alpha = BucklingCurves.Alpha(SteelBucklingCurve.C); // Table 6.2: channels, curve c.
             }
             if (nominalClass == 4) throw new NotSupportedException("Class4EffectivePropertiesRequired");
             double area = section.Area, i1 = section.J11, i2 = section.J22;
