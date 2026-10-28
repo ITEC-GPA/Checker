@@ -49,7 +49,9 @@ Stato reale del taglio (28 ottobre 2026):
   chiuse EC3 (6.36)-(6.38), (6.41): IHPlasticInteractionFormulas. Le H
   saldate EC3 conservano la soluzione esatta Ec3PlasticHInteraction.
   V1 sulle H: SteelShearBucklingAssessment.EvaluateHFlanges esclude
-  l'instabilita a taglio delle ali se gli sbalzi restano entro 14 eps.
+  l'instabilita a taglio delle ali se gli sbalzi restano entro 14 eps
+  (criterio GPC, non clausola di norma). ModelChecker lo applica in automatico
+  sulle H esatte quando manca una valutazione esplicita ShearBucklingExcluded1.
 
 Coprigiunti bullonati di travi composte saldate a I:
   BridgeSpliceApplication.CreateBolted -> WeldedIBeamSpliceStandard.Verify

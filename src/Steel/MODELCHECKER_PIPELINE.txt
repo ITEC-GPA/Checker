@@ -23,8 +23,14 @@ EngineDefinition.Parameters: vocabolario chiuso, cultura numerica invariant.
   materiale o fabbricazione invalida la dichiarazione. Una rotta con questi
   dati deve selezionare solo sezioni con la stessa impronta.
 Le fonti registrano dichiarazioni del chiamante, non certificazioni.
-Senza valutazione esterna viene usato il solo filtro interno EC3 H/V2
-gia' qualificato, con eta del profilo normativo effettivamente utilizzato.
+Senza valutazione esterna valgono i filtri interni sulle H esatte con asse 1
+orizzontale: per V2 quello d'anima (EC3 con l'eta del profilo normativo
+effettivamente utilizzato, NTC eq. 4.2.27 con eta=1); per V1 quello delle ali,
+SteelShearBucklingAssessment.EvaluateHFlanges (sbalzi c/t <= 14 eps, criterio
+GPC e non clausola di norma, dichiarato come tale nella traccia). Oltre il
+limite la valutazione e' negativa e la riga resta non valutata. Una
+valutazione esplicita ShearBucklingExcluded1/2 prevale sempre sui filtri.
+I filtri leggono le azioni dopo la soglia di trascurabilita', come il selettore.
 
 La cache contiene solo snapshot di sezione, chiave proprieta'+configurazione.
 Azioni, piano ed esiti vengono ricalcolati per ogni taglio/stato.
