@@ -26,7 +26,7 @@ namespace GPC.Checkers.Steel.Selection
             var decisions = new List<SteelMethodDecision>();
             if (scope != SteelCheckScope.Member)
             {
-                var section = input.Section.CreateSectionCopy();
+                var section = input.Section.ReadOnlySection;
                 decisions.Add(Guard(SteelCheckTarget.NormalResistance, () => Normal(input, section, classification)));
                 decisions.Add(Guard(SteelCheckTarget.Shear1, () => Shear(input, section, 1)));
                 decisions.Add(Guard(SteelCheckTarget.Shear2, () => Shear(input, section, 2)));

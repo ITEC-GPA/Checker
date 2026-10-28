@@ -214,7 +214,7 @@ namespace GPC.Checkers.Steel.Connections
             void Grid(string name, SpliceBoltLayout g, double end)
             {
                 Value(name + ".LongitudinalRows", g.LongitudinalRows, "1"); Value(name + ".TransverseRows", g.TransverseRows, "1");
-                Value(name + ".LongitudinalPitch", g.LongitudinalPitch); Value(name + ".TransversePitch", g.TransversePitch);
+                Value(name + ".LongitudinalPitch", g.LongitudinalRows > 1 ? g.LongitudinalPitch : 0); Value(name + ".TransversePitch", g.TransverseRows > 1 ? g.TransversePitch : 0);
                 Value(name + ".FirstBoltDistance", g.FirstBoltDistance); Value(name + ".CoverEnd", end);
             }
             void Bolt(string name, ConnectionBolt bolt)
@@ -227,7 +227,7 @@ namespace GPC.Checkers.Steel.Connections
         private static IEnumerable<SectionResistanceValue> WeldedValues(WeldedIBeamButtSpliceInput p)
         {
             var v = new List<SectionResistanceValue>();
-            var s = p.LeftSection.Plan.Input.Section; var h = s.CreateSectionCopy().SectionShape as GPC.Model.Sections.SectionH;
+            var s = p.LeftSection.Plan.Input.Section; var h = s.ReadOnlySection.SectionShape as GPC.Model.Sections.SectionH;
             if (h != null)
             {
                 Value("Parent.Height", h.Height); Value("Parent.WebThickness", h.ThicknessWeb);
@@ -247,8 +247,8 @@ namespace GPC.Checkers.Steel.Connections
         }
         private static bool SameSection(SteelSectionInput a, SteelSectionInput b)
         {
-            var x = a.CreateSectionCopy().SectionShape as GPC.Model.Sections.SectionH;
-            var y = b.CreateSectionCopy().SectionShape as GPC.Model.Sections.SectionH;
+            var x = a.ReadOnlySection.SectionShape as GPC.Model.Sections.SectionH;
+            var y = b.ReadOnlySection.SectionShape as GPC.Model.Sections.SectionH;
             return x != null && y != null && x.Height == y.Height && x.ThicknessWeb == y.ThicknessWeb
                 && x.LenghtTopFlange == y.LenghtTopFlange && x.LenghtBottomFlange == y.LenghtBottomFlange
                 && x.ThicknessTopFlange == y.ThicknessTopFlange && x.ThicknessBottomFlange == y.ThicknessBottomFlange && x.R == y.R

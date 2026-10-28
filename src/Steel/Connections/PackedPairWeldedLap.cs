@@ -51,7 +51,7 @@ namespace GPC.Checkers.Steel.Connections
     {
         internal static PackedPairWeldedLapResult Verify(PackedPairImperfectionModel demand,PackedPairWeldedLapDetail d,double force)
         {
-            var r=new PackedPairWeldedLapResult();var input=demand.Layout.Input;var property=input.Section.CreateSectionCopy();
+            var r=new PackedPairWeldedLapResult();var input=demand.Layout.Input;var property=input.Section.ReadOnlySection;
             var pair=(SectionBuiltUp)property.SectionShape;var chord=pair.Parts[0].Section;var geometry=ModelBuiltUpGeometry.Create(pair);
             var c=chord as SectionC;var l=chord as SectionL;bool vertical=pair.Parts[0].MirrorX!=pair.Parts[1].MirrorX;
             double t=!(c is null)?c.ThicknessWeb:vertical?l.VerticalLegThickness:l.HorizontalLegThickness;

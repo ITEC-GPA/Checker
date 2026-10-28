@@ -51,5 +51,11 @@ namespace GPC.Checkers.Steel.Inputs
         /// <summary>Returns a detached, mutable Model value for existing calculators.
         /// Changes to this copy cannot change the input or subsequent copies.</summary>
         public ISteelSection CreateSectionCopy() => ModelValues.CopyValue(snapshot);
+
+        /// <summary>The owned snapshot itself, for the calculators of this library that only READ it.
+        /// It keeps Model's thread-safe lazy caches (torsion, shear centre, plastic moduli) across
+        /// the checks of a cut, where every CreateSectionCopy cost an XML round trip (about 1.3 ms
+        /// for an H) and rebuilt those caches. Never modify it; use CreateSectionCopy for that.</summary>
+        internal ISteelSection ReadOnlySection => snapshot;
     }
 }

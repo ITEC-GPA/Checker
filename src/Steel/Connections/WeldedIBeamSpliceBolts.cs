@@ -51,12 +51,14 @@ namespace GPC.Checkers.Steel.Connections
             var f = WeldedIBeamSpliceForces.Calculate(p.Detail); var d = p.Detail;
             var issues = new List<string>(f.Diagnostics); var trace = new List<SectionResistanceValue>(f.Trace);
             var checks = new List<ConnectionCheck>();
+            var bearings = new Dictionary<(ConnectionPlate, ConnectionBolt, double, double, double?, double?, bool, bool), ConnectionVerification<BoltBearingInput>>();
             if (string.IsNullOrWhiteSpace(p.UltimateCombinationSource)) issues.Add("ULTIMATE_COMBINATION_SOURCE_REQUIRED");
             if (p.FlangeHardwareDiameter < p.FlangeBolt.HoleDiameter || p.WebHardwareDiameter < p.WebBolt.HoleDiameter)
                 issues.Add("HARDWARE_ENVELOPE_MUST_COVER_HOLE");
             foreach (var item in new[] { Tuple.Create(d.Top.Bolts, p.FlangeHardwareDiameter),
                 Tuple.Create(d.Bottom.Bolts, p.FlangeHardwareDiameter), Tuple.Create(d.WebBolts, p.WebHardwareDiameter) })
-                if (item.Item1.LongitudinalPitch < item.Item2 || item.Item1.TransversePitch < item.Item2
+                if (item.Item1.LongitudinalRows > 1 && item.Item1.LongitudinalPitch < item.Item2
+                    || item.Item1.TransverseRows > 1 && item.Item1.TransversePitch < item.Item2
                     || 2 * item.Item1.FirstBoltDistance < item.Item2) issues.Add("ADJACENT_BOLT_HARDWARE_OVERLAP");
             if (issues.Count == 0)
             {
@@ -76,21 +78,32 @@ namespace GPC.Checkers.Steel.Connections
                     trace.Add(new SectionResistanceValue(g.Side + "." + g.Cover + ".ConservativeJointLength", jointLength, "mm"));
                     trace.Add(new SectionResistanceValue(g.Side + "." + g.Cover + ".PackingThicknessForShear", d.Packing.ThickerFace(g.Cover), "mm"));
                     trace.Add(new SectionResistanceValue(g.Side + "." + g.Cover + ".GripThickness", d.Packing.Grip(d, g.Cover), "mm"));
+                    // Fv,Rd depends on the bolt, joint length and packing of the group, not on the demand:
+                    // evaluate it once per group. With diagnostics keep the per-bolt path and its messages.
+                    var groupStrength = BoltStrength.Verify(new BoltStrengthInput(p.Code, bolt, 0, 0, 1,
+                        jointLength, d.Packing.ThickerFace(g.Cover), p.HoleClearanceServiceabilitySource));
+                    var groupShear = groupStrength.IsComplete ? groupStrength.Checks.Single(c => c.Id == "Bolt.Shear") : null;
                     foreach (var force in g.Distribution.Forces)
                     {
                         string id = g.Side + "." + g.Cover + ".Bolt" + force.Index;
                         // One check per physical shear plane: unequal/opposite forces are not replaced by half of the resultant.
-                        var strength = BoltStrength.Verify(new BoltStrengthInput(p.Code, bolt, force.Shear, 0, 1,
-                            jointLength, d.Packing.ThickerFace(g.Cover), p.HoleClearanceServiceabilitySource));
-                        foreach (string issue in strength.Diagnostics) issues.Add(id + ":" + issue);
-                        if (strength.IsComplete)
+                        if (groupShear != null)
+                            checks.Add(new ConnectionCheck(id + ".ShearPlane", force.Shear, groupShear.Resistance, groupShear.Reference));
+                        else
                         {
-                            var shear = strength.Checks.Single(c => c.Id == "Bolt.Shear");
-                            checks.Add(new ConnectionCheck(id + ".ShearPlane", shear.Demand, shear.Resistance, shear.Reference));
+                            var strength = BoltStrength.Verify(new BoltStrengthInput(p.Code, bolt, force.Shear, 0, 1,
+                                jointLength, d.Packing.ThickerFace(g.Cover), p.HoleClearanceServiceabilitySource));
+                            foreach (string issue in strength.Diagnostics) issues.Add(id + ":" + issue);
+                            if (strength.IsComplete)
+                            {
+                                var shear = strength.Checks.Single(c => c.Id == "Bolt.Shear");
+                                checks.Add(new ConnectionCheck(id + ".ShearPlane", shear.Demand, shear.Resistance, shear.Reference));
+                            }
                         }
                         Bearing(g.Plate, bolt, grid, across, halfLength - Math.Abs(force.Position.X),
                             Math.Min(force.Position.Y - g.TransverseMinimum, g.TransverseMaximum - force.Position.Y),
-                            force.Fx, force.Fy, g.IsWeb ? p.WebHardwareDiameter : p.FlangeHardwareDiameter, id + ".Cover");
+                            force.Fx, force.Fy, g.IsWeb ? p.WebHardwareDiameter : p.FlangeHardwareDiameter, id + ".Cover",
+                            BoltLongJoint.Reduction(jointLength, bolt.Diameter));
                     }
                 }
                 foreach (SpliceSide side in new[] { SpliceSide.Left, SpliceSide.Right })
@@ -111,7 +124,8 @@ namespace GPC.Checkers.Steel.Connections
                         string id = side + "." + part + ".Parent.Bolt" + index;
                         if (location.Count() != 2) { issues.Add(id + ".EXACTLY_TWO_SHEAR_PLANES_REQUIRED"); continue; }
                         Bearing(parent, bolt, grid, grid.TransverseRows, Math.Abs(pos.X) - d.ButtGap / 2,
-                            parent.Width / 2 - Math.Abs(pos.Y), fx, fy, web ? p.WebHardwareDiameter : p.FlangeHardwareDiameter, id);
+                            parent.Width / 2 - Math.Abs(pos.Y), fx, fy, web ? p.WebHardwareDiameter : p.FlangeHardwareDiameter, id,
+                            BoltLongJoint.Reduction(ElasticBoltGroup.Hypot(grid.LongitudinalSpan, grid.TransverseSpan), bolt.Diameter));
                         trace.Add(new SectionResistanceValue(id + ".Fx", fx, "N")); trace.Add(new SectionResistanceValue(id + ".Fy", fy, "N"));
                     }
                 }
@@ -127,26 +141,31 @@ namespace GPC.Checkers.Steel.Connections
             return new WeldedIBeamSpliceBoltResult(f, assessment);
 
             void Bearing(ConnectionPlate plate, ConnectionBolt bolt, SpliceBoltLayout grid, int across,
-                double ex, double ey, double fx, double fy, double hardware, string id)
+                double ex, double ey, double fx, double fy, double hardware, string id, double betaLong)
             {
                 double minimum = Math.Max(1.2 * bolt.HoleDiameter, hardware / 2);
                 if (ex < minimum || ey < minimum) { issues.Add(id + ".PHYSICAL_EDGE_OR_HARDWARE_CLEARANCE"); return; }
-                double rx = Capacity(ex, ey, grid.LongitudinalPitch, across > 1 ? (double?)grid.TransversePitch : null, grid.LongitudinalRows, across);
-                double ry = Capacity(ey, ex, across > 1 ? (double?)grid.TransversePitch : null, grid.LongitudinalPitch, across, grid.LongitudinalRows);
+                // Same policy as IBeamSplicePlates: SCI P398 p55 extends the long-joint reduction to bearing.
+                double rx = betaLong * Capacity(ex, ey, grid.LongitudinalRows > 1 ? (double?)grid.LongitudinalPitch : null, across > 1 ? (double?)grid.TransversePitch : null, grid.LongitudinalRows, across);
+                double ry = betaLong * Capacity(ey, ex, across > 1 ? (double?)grid.TransversePitch : null, grid.LongitudinalRows > 1 ? (double?)grid.LongitudinalPitch : null, across, grid.LongitudinalRows);
                 if (!(rx > 0) || !(ry > 0)) return;
                 double ratio = Math.Abs(fx) / rx + Math.Abs(fy) / ry;
                 if (double.IsNaN(ratio) || double.IsInfinity(ratio)) { issues.Add(id + ".BEARING_NUMERIC_RANGE"); return; }
                 checks.Add(new ConnectionCheck(id + ".BearingInteraction", ratio, 1,
-                    (p.Code.IsNtc ? "NTC2018 4.2.8.1.1 eq4.2.67" : "EN1993-1-8:2005 Table3.4") + "; conservative directional linear interaction", "1"));
+                    (p.Code.IsNtc ? "NTC2018 4.2.8.1.1 eq4.2.67" : "EN1993-1-8:2005 Table3.4") + "; conservative directional linear interaction; SCI P398 p55 long-joint reduction", "1"));
                 trace.Add(new SectionResistanceValue(id + ".BearingX", rx, "N")); trace.Add(new SectionResistanceValue(id + ".BearingY", ry, "N"));
+                trace.Add(new SectionResistanceValue(id + ".BearingBetaLongJoint", betaLong, "1"));
                 double Capacity(double e1, double e2, double? p1, double? p2, int alongCount, int acrossCount)
                 {
                     double resistance = double.PositiveInfinity;
                     foreach (bool endBolt in alongCount > 1 ? new[] { true, false } : new[] { true })
                     foreach (bool edgeBolt in acrossCount > 2 ? new[] { true, false } : new[] { true })
                     {
-                        var r = BoltBearing.Verify(new BoltBearingInput(p.Code, bolt, plate, 0, e1, e2, p1, p2,
-                            endBolt, edgeBolt, p.HoleClearanceServiceabilitySource));
+                        // Same ply, bolt, distances and pitches give the same resistance: evaluate once per call.
+                        var memo = (plate, bolt, e1, e2, p1, p2, endBolt, edgeBolt);
+                        if (!bearings.TryGetValue(memo, out var r))
+                            bearings.Add(memo, r = BoltBearing.Verify(new BoltBearingInput(p.Code, bolt, plate, 0, e1, e2, p1, p2,
+                                endBolt, edgeBolt, p.HoleClearanceServiceabilitySource)));
                         foreach (string issue in r.Diagnostics) issues.Add(id + ":" + issue);
                         if (!r.IsComplete) return 0;
                         resistance = Math.Min(resistance, r.Checks.Single().Resistance);

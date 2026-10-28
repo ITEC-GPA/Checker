@@ -20,6 +20,8 @@ namespace GPC.Checkers.Steel.Connections
         public double LongitudinalSpan => (LongitudinalRows - 1) * LongitudinalPitch;
         public double TransverseSpan => (TransverseRows - 1) * TransversePitch;
         public double CentroidDistance => FirstBoltDistance + LongitudinalSpan / 2;
+        // No imaginary pitch when the layout contains only one column on each side.
+        internal double MaximumLongitudinalGap => Math.Max(2 * FirstBoltDistance, LongitudinalRows > 1 ? LongitudinalPitch : 0);
         public SpliceBoltLayout(int longitudinalRows, int transverseRows, double longitudinalPitch,
             double transversePitch, double firstBoltDistance)
         {

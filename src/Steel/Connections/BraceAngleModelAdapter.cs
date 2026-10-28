@@ -75,7 +75,7 @@ namespace GPC.Checkers.Steel.Connections
             if (code == null) throw new ArgumentNullException(nameof(code));
             if (actions == null) throw new ArgumentNullException(nameof(actions));
             if (bolt == null) throw new ArgumentNullException(nameof(bolt));
-            var property = section.CreateSectionCopy();
+            var property = section.ReadOnlySection;
             var angle = Angle(property);
             if (actions.N < 0 || actions.V1 != 0 || actions.V2 != 0 || actions.T != 0 || actions.M1 != 0 || actions.M2 != 0)
                 throw new NotSupportedException("A single-angle adapter requires pure centroidal tension; nonzero member actions must not be discarded.");
@@ -108,7 +108,7 @@ namespace GPC.Checkers.Steel.Connections
             ConnectionValidation.Nonnegative(secondTension, nameof(secondTension));
             if (string.IsNullOrWhiteSpace(forceDistributionSource))
                 throw new ArgumentException("An explicit concomitant chord-force distribution source is required.", nameof(forceDistributionSource));
-            var property = section.CreateSectionCopy();
+            var property = section.ReadOnlySection;
             Manufacturing(property);
             if (property.SectionShape.GetType() != typeof(SectionBuiltUp))
                 throw new NotSupportedException("An exact Model SectionBuiltUp pair is required.");
@@ -168,7 +168,7 @@ namespace GPC.Checkers.Steel.Connections
             double? equivalentArea = null;
             if (equivalentSection != null)
             {
-                var equivalentProperty = equivalentSection.CreateSectionCopy(); var equal = Angle(equivalentProperty);
+                var equivalentProperty = equivalentSection.ReadOnlySection; var equal = Angle(equivalentProperty);
                 double shortLength = Math.Min(angle.HorizontalLegLength, angle.VerticalLegLength);
                 if (equal.HorizontalLegLength != shortLength || equal.VerticalLegLength != shortLength
                     || equal.HorizontalLegThickness != angle.HorizontalLegThickness

@@ -3,6 +3,8 @@
   <Import Project="..\packages\MSTest.TestAdapter.3.1.1\build\net462\MSTest.TestAdapter.props" Condition="Exists('..\packages\MSTest.TestAdapter.3.1.1\build\net462\MSTest.TestAdapter.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
+    <!-- Legacy facades are tested on purpose. -->
+    <NoWarn>$(NoWarn);CS0618</NoWarn>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{51D5ABED-1F21-4CCD-BF6A-B79C715F2A62}</ProjectGuid>
@@ -84,15 +86,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class4Test.cs" />
     <Compile Include="CopSuos2011Test.cs" />
-    <Compile Include="ECPlateTest.cs" />
     <Compile Include="EN1993BoltCheckerTest.cs" />
     <Compile Include="EN1993p11Test.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SteelClassificationTest.cs" />
-    <Compile Include="SteelInstabilityTest.cs" />
-    <Compile Include="SteelResistanceTest.cs" />
     <Compile Include="MethodRegressionTests.cs" />
     <Compile Include="EN1993ResultIntegrityTests.cs" />
   </ItemGroup>

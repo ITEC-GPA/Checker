@@ -51,7 +51,8 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>Common immutable assessment for one explicitly scoped component or joint.
     /// A component passing does not qualify its parent joint. Input must itself be immutable.
-    /// Blocked calculations expose diagnostics and trace, never favourable partial checks.</summary>
+    /// Blocked calculations expose diagnostics and trace, never favourable partial checks;
+    /// an evaluated failed check is a known failure and stays visible (Failed, incomplete).</summary>
     public sealed class ConnectionVerification<TInput> where TInput : class
     {
         public TInput Input { get; }
@@ -59,7 +60,7 @@ namespace GPC.Checkers.Steel.Connections
         public string MethodId { get; }
         public string Scope { get; }
         public ConnectionStatus Status { get; }
-        public bool IsComplete => Status != ConnectionStatus.NotSupported;
+        public bool IsComplete { get; }
         public IReadOnlyList<ConnectionCheck> Checks { get; }
         public IReadOnlyList<SectionResistanceValue> Trace { get; }
         public IReadOnlyList<string> Diagnostics { get; }
@@ -75,13 +76,27 @@ namespace GPC.Checkers.Steel.Connections
             Code = code ?? throw new ArgumentNullException(nameof(code));
             MethodId = methodId; Scope = scope;
             Diagnostics = Array.AsReadOnly(diagnostics.ToArray());
-            var evaluated = Diagnostics.Count == 0 ? checks.ToArray() : Array.Empty<ConnectionCheck>();
+            var evaluated = ConnectionOutcome.Retained(checks, Diagnostics.Count);
             Checks = Array.AsReadOnly(evaluated);
             Trace = Array.AsReadOnly(trace.ToArray());
             Assumptions = Array.AsReadOnly((assumptions ?? Array.Empty<string>()).ToArray());
-            Status = Diagnostics.Count != 0 || evaluated.Length == 0 ? ConnectionStatus.NotSupported
-                : evaluated.All(c => c.Passed) ? ConnectionStatus.Passed : ConnectionStatus.Failed;
+            IsComplete = ConnectionOutcome.IsComplete(evaluated, Diagnostics.Count);
+            Status = ConnectionOutcome.Status(evaluated, Diagnostics.Count);
         }
+    }
+
+    /// <summary>One rule for the leaf assessments: a failure wins over incompleteness.
+    /// With diagnostics only the FAILED evaluated checks are retained, never favourable
+    /// partial ones; completeness is reported separately from the status.</summary>
+    internal static class ConnectionOutcome
+    {
+        internal static ConnectionCheck[] Retained(IEnumerable<ConnectionCheck> checks, int diagnostics)
+            => diagnostics == 0 ? checks.ToArray() : checks.Where(c => !c.Passed).ToArray();
+        internal static bool IsComplete(IReadOnlyCollection<ConnectionCheck> retained, int diagnostics)
+            => diagnostics == 0 && retained.Count != 0;
+        internal static ConnectionStatus Status(IReadOnlyCollection<ConnectionCheck> retained, int diagnostics)
+            => retained.Any(c => !c.Passed) ? ConnectionStatus.Failed
+                : IsComplete(retained, diagnostics) ? ConnectionStatus.Passed : ConnectionStatus.NotSupported;
     }
 
     internal static class ConnectionNumbers

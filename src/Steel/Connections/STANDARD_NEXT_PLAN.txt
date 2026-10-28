@@ -1,3 +1,9 @@
+STATO CORRENTE: ../CURRENT.txt (aggiornamento27/10/2026).
+Le indicazioni di avanzamento e le versioni nel testo seguente sono CHECKPOINT
+STORICI. Per copertura attuale, limiti aperti e API consigliate usare l'indice
+corrente e ConnectionCapabilityCatalog; le specifiche dei singoli metodi
+restano documentazione tecnica del contratto relativo.
+
 SEQUENZA AUTORIZZATA - 26/10/2026
 1a,1b,1c: piastra di estremita' a momento;2: terminali2C/2L;
 3: imbottitura saldata standard;4: catalogo, esempi, report e set coerente.

@@ -45,6 +45,7 @@ namespace GPC.Checkers.Steel.Connections
     public sealed class WeldedIBeamSplicePlateResult
     {
         public WeldedIBeamSplicePlateInput Input { get; }
+        internal WeldedIBeamSpliceBoltResult PreparedBolts { get; }
         public IReadOnlyList<SpliceCoverPlateAssessment> Covers { get; }
         public IReadOnlyList<string> Diagnostics { get; }
         public bool CanQualifyWholeJoint => false;
@@ -53,8 +54,8 @@ namespace GPC.Checkers.Steel.Connections
             "COMBINED_NET_SECTION_FRACTURE_AND_CATEGORY_C_NET_PLASTIC_NVM", "GENERAL_NVM_BLOCK_TEARING",
             "PLATE_SHEAR_AND_LATERAL_STABILITY", "PARENT_MEMBER_SECTION_AND_STABILITY",
             "LOCAL_SECONDARY_BENDING_AND_FORCE_INTRODUCTION" });
-        internal WeldedIBeamSplicePlateResult(WeldedIBeamSplicePlateInput input, IEnumerable<SpliceCoverPlateAssessment> covers, IEnumerable<string> issues)
-        { Input = input; Covers = Array.AsReadOnly(covers.ToArray()); Diagnostics = Array.AsReadOnly(issues.Distinct().ToArray()); }
+        internal WeldedIBeamSplicePlateResult(WeldedIBeamSplicePlateInput input, WeldedIBeamSpliceBoltResult bolts, IEnumerable<SpliceCoverPlateAssessment> covers, IEnumerable<string> issues)
+        { Input = input; PreparedBolts = bolts; Covers = Array.AsReadOnly(covers.ToArray()); Diagnostics = Array.AsReadOnly(issues.Distinct().ToArray()); }
     }
 
     /// <summary>Section and longitudinal strip COMPONENTS of all eight covers.
@@ -65,11 +66,15 @@ namespace GPC.Checkers.Steel.Connections
         public static WeldedIBeamSplicePlateResult Verify(WeldedIBeamSplicePlateInput p)
         {
             if (p == null) throw new ArgumentNullException(nameof(p));
-            var bolts = WeldedIBeamSpliceBolts.Verify(p.Bolts);
+            return Verify(p, WeldedIBeamSpliceBolts.Verify(p.Bolts));
+        }
+        internal static WeldedIBeamSplicePlateResult Verify(WeldedIBeamSplicePlateInput p, WeldedIBeamSpliceBoltResult bolts)
+        {
+            if (!ReferenceEquals(p.Bolts, bolts.ComponentAssessment.Input)) throw new ArgumentException("Prepared bolts belong to another input.");
             var issues = new List<string>(bolts.ComponentAssessment.Diagnostics);
             var covers = new List<SpliceCoverPlateAssessment>();
             if (!SameCode(p.Policy.Code, p.Bolts.Code)) issues.Add("PLATE_BOLT_POLICY_MISMATCH");
-            if (issues.Count != 0) return new WeldedIBeamSplicePlateResult(p, covers, issues);
+            if (issues.Count != 0) return new WeldedIBeamSplicePlateResult(p, bolts, covers, issues);
             foreach (var group in bolts.Forces.CoverGroups.GroupBy(g => g.Cover))
             {
                 var left = group.Single(g => g.Side == SpliceSide.Left);
@@ -115,7 +120,7 @@ namespace GPC.Checkers.Steel.Connections
                         Add(sectionChecks, id + ".AxialShearBending", Math.Abs(c.M), remainingM, "Nmm");
                         maxCompression = Math.Max(maxCompression, compression);
                     }
-                    double pitch = Math.Max(grid.LongitudinalPitch, 2 * grid.FirstBoltDistance);
+                    double pitch = grid.MaximumLongitudinalGap;
                     double eps = Math.Sqrt(235 / plate.Fy), length = .6 * pitch;
                     double lambda = length * Math.Sqrt(12 * plate.Fy / p.Policy.ElasticModulus) / (Math.PI * plate.Thickness);
                     bool exempt = pitch / plate.Thickness <= 9 * eps;
@@ -135,6 +140,23 @@ namespace GPC.Checkers.Steel.Connections
                         compressionChecks.Add(new ConnectionCheck("MaximumCompression.InterFastenerBuckling", maxCompression, rb,
                             "SCI P398 p57; EN1993-1-8:2005 Table3.3 note2; EC solid-strip curve c with declared gammaM1", "MPa"));
                     }
+                    // P398 p59 combines the compressive resistance with the moment
+                    // resistance reduced by the SAME cut's shear. Independent N-M-V
+                    // yielding and maximum-compression checks do not imply this bound.
+                    double nb = area * Math.Min(plate.Fy / factors.GammaM0, rb);
+                    if (Finite(nb) && nb > 0) foreach (var c in cuts.Where(c => c.X > -half && c.X < half && c.N < 0))
+                    {
+                        double vr = Math.Abs(c.V) / Math.Min(area * plate.Fy / (1.27 * Math.Sqrt(3) * factors.GammaM0),
+                            net * plate.Fu / (Math.Sqrt(3) * factors.GammaM2));
+                        double rho = vr <= .5 ? 0 : vr >= 1 ? 1 : Math.Pow(2 * vr - 1, 2);
+                        double remaining = Math.Max(0, 1 - Math.Abs(c.N) / nb) * (1 - rho) * w * plate.Fy / factors.GammaM0;
+                        if (!Finite(remaining)) compressionIssues.Add("COMPRESSION_SHEAR_BENDING_NUMERIC_RANGE");
+                        else compressionChecks.Add(new ConnectionCheck("Cut" + cuts.IndexOf(c) + ".CompressionShearBending",
+                            Math.Abs(c.M), remaining,
+                            "SCI P398 p59 compression-bending-shear interaction; conservative Nwp,Rd=min(Afy/gammaM0,Nb,Rd) from Table3.3 strip buckling", "Nmm"));
+                    }
+                    else compressionIssues.Add("COMPRESSION_RESISTANCE_NUMERIC_RANGE");
+                    Value(compressionTrace, "CompressionResistanceForInteraction", nb, "N");
                     Value(compressionTrace, "MaximumUnrestrainedPitch", pitch, "mm"); Value(compressionTrace, "EffectiveLength", length, "mm");
                     Value(compressionTrace, "Slenderness", lambda, "1"); Value(compressionTrace, "Chi", chi, "1");
                     Value(compressionTrace, "Exempt", exempt ? 1 : 0, "1"); Value(compressionTrace, "MaximumCompression", maxCompression, "MPa");
@@ -148,7 +170,7 @@ namespace GPC.Checkers.Steel.Connections
                 void Add(IList<ConnectionCheck> list, string id, double demand, double resistance, string unit = "N")
                     => list.Add(new ConnectionCheck(id, demand, resistance, NormalReference(p), unit));
             }
-            return new WeldedIBeamSplicePlateResult(p, covers, issues);
+            return new WeldedIBeamSplicePlateResult(p, bolts, covers, issues);
         }
 
         private static ConnectionVerification<WeldedIBeamSplicePlateInput> AxialBlocks(WeldedIBeamSplicePlateInput p,

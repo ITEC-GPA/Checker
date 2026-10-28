@@ -144,7 +144,7 @@ namespace GPC.Checkers.Steel.Connections
             Require(first.BoltCount <= 1000, "BOLT_COUNT_OUTSIDE_SCOPE");
             Require(p.GussetNegativeYEdge < p.Gusset.Width, "BOLT_LINE_OUTSIDE_GUSSET");
             Require(p.HardwareEnvelopeDiameter > first.Bolt.HoleDiameter, "HARDWARE_ENVELOPE_MUST_COVER_HOLE");
-            var property = p.Angles.SourceSection.CreateSectionCopy();
+            var property = p.Angles.SourceSection.ReadOnlySection;
             var pair = (SectionBuiltUp)property.SectionShape;
             var angle = (SectionL)pair.Parts[0].Section;
             bool vertical = first.ConnectedLeg == BraceAngleConnectedLeg.Second;
@@ -281,7 +281,7 @@ namespace GPC.Checkers.Steel.Connections
                 var y = BoltBearing.Verify(new BoltBearingInput(p.Code, first.Bolt, plate, Math.Abs(fy),
                     yEnd, longitudinalEnd, null, pitch, true, edgeBoltY, p.HoleClearanceServiceabilitySource));
                 Append(prefix + "X.", x, checks, trace, issues); Append(prefix + "Y.", y, checks, trace, issues);
-                if (x.Status != ConnectionStatus.NotSupported && y.Status != ConnectionStatus.NotSupported)
+                if (x.IsComplete && y.IsComplete)
                 {
                     double ux = Math.Abs(fx) / x.Checks[0].Resistance, uy = Math.Abs(fy) / y.Checks[0].Resistance;
                     double interaction = ux * ux + uy * uy;

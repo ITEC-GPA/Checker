@@ -19,12 +19,12 @@ namespace GPC.Checkers.Steel.Pipeline
             SteelInputValidation.Positive(panelLength,nameof(panelLength));
             if(input.Section.Unperforated!=true||Math.Abs(input.Section.PoissonRatio-.3)>1e-10)
                 throw new NotSupportedException("Unperforated web and nu=.3 required.");
-            var section=input.Section.CreateSectionCopy();SteelMethodSelector.ValidateGeometry(section);
+            var section=input.Section.ReadOnlySection;SteelMethodSelector.ValidateGeometry(section);
             if(section.SectionShape.GetType()!=typeof(SectionH)||Math.Abs(section.AngleX1)>1e-10||SteelMethodSelector.ColdFormedOpen(section))
                 throw new NotSupportedException("Exact H with horizontal principal major axis required.");
             if(input.Member!=null&&panelLength>input.Member.Length)throw new ArgumentException("Panel exceeds physical member length.");
             bool ntc=input.Code.SectionCode.Standard==SectionResistanceStandard.Ntc2018;
-            if(ntc&&(gammaM1!=Ntc2018DesignPolicy.GammaM1||eta!=1))throw new ArgumentException("NTC requires gammaM1=1.05 and eta=1.");
+            if(ntc&&(!Ntc2018DesignPolicy.IsGammaM1(gammaM1)||eta!=1))throw new ArgumentException("NTC requires gammaM1=1.05 (1.10 for bridges) and eta=1.");
             var h=(SectionH)section.SectionShape;
             var p=Ec3WebPanelShear.Calculate(h.HeightWeb,h.ThicknessWeb,input.Section.YieldStrength,input.Section.ElasticModulus,
                 input.Code.SectionCode.GammaM0,gammaM1,eta,panelLength,rigidEndPost);

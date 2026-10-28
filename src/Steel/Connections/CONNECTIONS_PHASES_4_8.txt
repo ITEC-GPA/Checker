@@ -1,3 +1,9 @@
+STATO CORRENTE: ../CURRENT.txt (aggiornamento27/10/2026).
+Le indicazioni di avanzamento e le versioni nel testo seguente sono CHECKPOINT
+STORICI. Per copertura attuale, limiti aperti e API consigliate usare l'indice
+corrente e ConnectionCapabilityCatalog; le specifiche dei singoli metodi
+restano documentazione tecnica del contratto relativo.
+
 CONNESSIONI STANDARD - FASI4-8, AUTORIZZAZIONE26/10/2026
 
 Numerazione approvata:4 doppio angolare;5 controventi;6 terminali profili

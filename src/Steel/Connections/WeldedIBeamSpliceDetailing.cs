@@ -52,14 +52,18 @@ namespace GPC.Checkers.Steel.Connections
         public static WeldedIBeamSpliceDetailResult Verify(WeldedIBeamSpliceDetailInput p)
         {
             if (p == null) throw new ArgumentNullException(nameof(p));
-            var plateResult = WeldedIBeamSplicePlates.Verify(p.Plates);
+            return Verify(p, WeldedIBeamSplicePlates.Verify(p.Plates));
+        }
+        internal static WeldedIBeamSpliceDetailResult Verify(WeldedIBeamSpliceDetailInput p, WeldedIBeamSplicePlateResult plateResult)
+        {
+            if (!ReferenceEquals(p.Plates, plateResult.Input)) throw new ArgumentException("Prepared plates belong to another input.");
             var issues = new List<string>(plateResult.Diagnostics); var checks = new List<ConnectionCheck>();
             var trace = new List<SectionResistanceValue>(); var transfers = new List<SpliceCoverFaceTransfer>();
             var strain = new List<SectionResistanceValue>(); var d = p.Plates.Bolts.Detail;
             if (p.Exposure == SpliceExposure.UnprotectedWeatheringSteel) issues.Add("UNPROTECTED_WEATHERING_DETAIL_NOT_SUPPORTED");
             if (issues.Count == 0)
             {
-                var forces = WeldedIBeamSpliceForces.Calculate(d);
+                var forces = plateResult.PreparedBolts.Forces;
                 foreach (var c in plateResult.Covers)
                 {
                     var g = forces.CoverGroups.Single(x => x.Cover == c.Cover && x.Side == SpliceSide.Left);
@@ -70,7 +74,7 @@ namespace GPC.Checkers.Steel.Connections
                     double outerThickness = g.IsWeb ? d.EachWebCover.Thickness : Math.Min(flange.Outer.Thickness, flange.EachInner.Thickness);
                     double limit = Math.Min(14 * outerThickness, 200);
                     string name = c.Cover.ToString();
-                    Check(name + ".LongitudinalPitch", grid.LongitudinalPitch, limit);
+                    if (grid.LongitudinalRows > 1) Check(name + ".LongitudinalPitch", grid.LongitudinalPitch, limit);
                     Check(name + ".CentralPitch", 2 * grid.FirstBoltDistance, limit);
                     if (g.Distribution.Points.Select(b => b.Y).Distinct().Count() > 1)
                         Check(name + ".TransversePitch", grid.TransversePitch, limit);

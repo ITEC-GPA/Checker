@@ -30,14 +30,23 @@ namespace GPC.Model.Checker
                     try { memberEngine = memberFactory(job); } catch (Exception ex) { memberError = ex; }
             }
             var results = new List<CheckResult>();
+            // Whole-plan revalidation once (see OwnedCheckInputs), not before every task.
+            bool planCurrent = !token.IsCancellationRequested && plan.IsCurrent;
+            string revision = model.VerificationFingerprint(plan.Request.Settings);
             foreach (var item in plan.WorkItems)
             {
                 CheckResult result;
                 if (token.IsCancellationRequested) result = new CheckResult { Execution = ExecutionStatus.Cancelled, Data = DataStatus.Insufficient };
-                else if (!plan.IsCurrent) result = new CheckResult { Data = DataStatus.Stale, Diagnostics = new List<ModelDiagnostic> { ModelDiagnostic.Error("StaleBeamPlan") } };
-                else if (item.Scope == CheckScope.PhysicalMember) result = MemberCheckExecution.Run(plan, item, memberEngine, token);
-                else result = item.Check == null ? SectionCheckExecution.Run(item.Section, item.Mechanism, sectionEngine, token)
-                    : SectionCheckExecution.Run(item.Section, item.Check, sectionEngine, token);
+                else if (!planCurrent) result = new CheckResult { Data = DataStatus.Stale, Diagnostics = new List<ModelDiagnostic> { ModelDiagnostic.Error("StaleBeamPlan") } };
+                else
+                {
+                    string owned = OwnedCheckInputs.Of(item);
+                    result = item.Scope == CheckScope.PhysicalMember ? MemberCheckExecution.Run(plan, item, memberEngine, token)
+                        : item.Check == null ? SectionCheckExecution.Run(item.Section, item.Mechanism, sectionEngine, token)
+                        : SectionCheckExecution.Run(item.Section, item.Check, sectionEngine, token);
+                    if (!token.IsCancellationRequested && OwnedCheckInputs.Of(item) != owned)
+                        result = new CheckResult { Data = DataStatus.Stale, Diagnostics = new List<ModelDiagnostic> { ModelDiagnostic.Error("StaleBeamPlan") } };
+                }
                 var error = item.Scope == CheckScope.PhysicalMember ? memberError : sectionError;
                 if (error != null && result.Execution != ExecutionStatus.Cancelled)
                 { result.Execution = ExecutionStatus.Error; result.Outcome = EngineeringOutcome.NotEvaluated; result.Diagnostics.Add(ModelDiagnostic.Error("CheckerCreationFailed", message: error.Message)); }
@@ -48,7 +57,7 @@ namespace GPC.Model.Checker
                 result.Dataset = item.Selection.Dataset; result.Case = item.Selection.Case; result.Phase = item.Selection.Phase; result.Step = item.Selection.Step;
                 result.ConcomitantStateId = item.Selection.ConcomitantState; result.Mode = item.Selection.Mode; result.MovingLoadPosition = item.Selection.MovingLoadPosition;
                 result.Station = item.Station; result.Side = item.Side; result.Coverage = item.Coverage.Limitation;
-                result.VerificationRevision = model.VerificationFingerprint(plan.Request.Settings);
+                result.VerificationRevision = revision;
                 if (item.Scope == CheckScope.SectionSample)
                 {
                     var beam = model.BeamElements[item.Target.BeamId.Value]; result.ElementId = beam.Id; result.Family = EntityFamily.Beam;

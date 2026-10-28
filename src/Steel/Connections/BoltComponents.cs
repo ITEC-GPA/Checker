@@ -46,7 +46,7 @@ namespace GPC.Checkers.Steel.Connections
             BoltComponentRules.NtcHole(p.Code, b, p.HoleClearanceServiceabilitySource, issues);
             double area = b.ThreadedShearPlanes ? b.TensileArea : Math.PI * b.Diameter * b.Diameter / 4;
             double alpha = b.ThreadedShearPlanes && b.Grade == ConnectionBoltGrade.Class10_9 ? .5 : .6;
-            double betaLong = Math.Max(.75, Math.Min(1, 1 - (p.JointLength - 15 * b.Diameter) / (200 * b.Diameter)));
+            double betaLong = BoltLongJoint.Reduction(p.JointLength, b.Diameter);
             double betaPacking = p.PackingThickness <= b.Diameter / 3 ? 1
                 : 9 / (8 + 3 * (p.PackingThickness / b.Diameter));
             double shear = p.ShearPlanes * alpha * b.Fu * area / p.Code.GammaM2Connection * betaLong * betaPacking;
@@ -296,6 +296,13 @@ namespace GPC.Checkers.Steel.Connections
                     "NTC interaction uses the assembled resistance minima; EC interaction remains the Table3.4 bolt check with separate plate checks.",
                     "Single-lap Figure3.3 applicability, full punching perimeter and end/edge distances must be assigned for each actual ply." });
         }
+    }
+
+    /// <summary>EN1993-1-8 3.8(1) long-joint factor betaLf for the joint length between end fasteners.</summary>
+    internal static class BoltLongJoint
+    {
+        internal static double Reduction(double jointLength, double diameter)
+            => Math.Max(.75, Math.Min(1, 1 - (jointLength - 15 * diameter) / (200 * diameter)));
     }
 
     internal static class BoltComponentRules

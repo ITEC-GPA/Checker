@@ -13,10 +13,10 @@ public class IBeamSplicePlateTests
         ConnectionPlate? flange=null,ConnectionPlate? web=null,double flangeEnd=60,double webEnd=50,
         double gap=0,double beamFlangeFy=275,double beamFlangeFu=410,bool exposed=true,
         string? source="P398 D.1 ULS; butt-gap zero is explicit test assumption",string? holes="Separate NTC SLE clearance evidence",
-        double gammaM1=1,ConnectionBolt? bolt=null)
+        double gammaM1=1,ConnectionBolt? bolt=null,IBeamSplicePlatePolicy? policy=null)
     {
         bolt??=new(20,22,245,ConnectionBoltGrade.Class8_8,true);
-        return new(Policy(ntc,gammaM1),forces??IBeamSpliceForceTests.Input(),new(bolt,bolt,37,37,holes),
+        return new(policy??Policy(ntc,gammaM1),forces??IBeamSpliceForceTests.Input(),new(bolt,bolt,37,37,holes),
             flange??new(180,12,275,410),web??new(340,10,275,410),flangeEnd,webEnd,gap,
             beamFlangeFy,beamFlangeFu,exposed,source);
     }

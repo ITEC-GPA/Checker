@@ -74,7 +74,7 @@ namespace GPC.Checkers.Steel.Pipeline
             if(sectionResult==null)throw new ArgumentNullException(nameof(sectionResult));
             SteelInputValidation.Positive(force,nameof(force));
             if(string.IsNullOrWhiteSpace(source))throw new ArgumentException("Same-case patch, restraint and force-transfer qualification required.");
-            var input=sectionResult.Plan.Input; var section=input.Section.CreateSectionCopy();
+            var input=sectionResult.Plan.Input; var section=input.Section.ReadOnlySection;
             if(input.Section.Unperforated!=true||section.SectionShape.GetType()!=typeof(SectionH)
                 ||section.SectionType!=Section.SectionTypes.Welded||SteelMethodSelector.ColdFormedOpen(section)
                 ||Math.Abs(section.AngleX1)>1e-10||input.Actions.M2!=0||input.Actions.V1!=0||input.Actions.T!=0)
@@ -85,8 +85,8 @@ namespace GPC.Checkers.Steel.Pipeline
             if(type==WebPatchLoadType.OppositeFlanges&&!h.IsDoubleSymmetric)
                 throw new NotSupportedException("Opposite patch route requires identical opposed flanges.");
             if(input.Member!=null&&panelLength>input.Member.Length)throw new ArgumentException("Panel exceeds physical member length.");
-            if(input.Code.SectionCode.Standard==SectionResistanceStandard.Ntc2018&&gammaM1!=Ntc2018DesignPolicy.GammaM1)
-                throw new ArgumentException("NTC patch route requires gammaM1=1.05.");
+            if(input.Code.SectionCode.Standard==SectionResistanceStandard.Ntc2018&&!Ntc2018DesignPolicy.IsGammaM1(gammaM1))
+                throw new ArgumentException("NTC patch route requires gammaM1=1.05 (1.10 for bridges).");
             double bf=topFlange?h.LenghtTopFlange:h.LenghtBottomFlange,tf=topFlange?h.ThicknessTopFlange:h.ThicknessBottomFlange;
             var p=endDistance.HasValue?Ec3WebPatchLoading.CalculateAtUnstiffenedEnd(h.HeightWeb,h.ThicknessWeb,bf,tf,
                 input.Section.YieldStrength,input.Section.YieldStrength,input.Section.ElasticModulus,panelLength,stiffBearingLength,endDistance.Value,gammaM1)

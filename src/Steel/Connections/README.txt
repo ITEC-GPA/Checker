@@ -1,3 +1,9 @@
+STATO CORRENTE: ../CURRENT.txt (aggiornamento27/10/2026).
+Le indicazioni di avanzamento e le versioni nel testo seguente sono CHECKPOINT
+STORICI. Per copertura attuale, limiti aperti e API consigliate usare l'indice
+corrente e ConnectionCapabilityCatalog; le specifiche dei singoli metodi
+restano documentazione tecnica del contratto relativo.
+
 CONNESSIONI STANDARD - INDICE DELLA LIBRERIA
 ==========================================
 Versione sorgente Steel 2.92.0.0. Solo librerie, nessuna interfacciaANTHEA.

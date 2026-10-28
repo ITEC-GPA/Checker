@@ -28,7 +28,7 @@ namespace GPC.Checkers.Steel.ModelAdapters
             if(input==null)throw new ArgumentNullException(nameof(input));
             if(standard!=SectionResistanceStandard.Eurocode3_2005&&standard!=SectionResistanceStandard.Ntc2018)
                 throw new ArgumentOutOfRangeException(nameof(standard));
-            var s=input.CreateSectionCopy();var shape=s.SectionShape;var type=shape.GetType();
+            var s=input.ReadOnlySection;var shape=s.SectionShape;var type=shape.GetType();
             SteelMethodSelector.ValidateGeometry(s);
             if(!new[]{235d,275d,355d,420d,460d}.Contains(input.YieldStrength))
                 throw new NotSupportedException("Automatic curves require a steel grade covered by the selected table; use explicit curves otherwise.");
@@ -81,7 +81,7 @@ namespace GPC.Checkers.Steel.ModelAdapters
             var a=input.Actions;
             if(a.T!=0||a.V1!=0||a.V2!=0||a.M2!=0||(bending?(a.N!=0||a.M1==0):(a.M1!=0||a.N>=0)))
                 throw new NotSupportedException("Uniform fork preparation requires pure constant concentric compression or pure uniform major-axis bending.");
-            var s=input.Section.CreateSectionCopy();var shape=s.SectionShape;var type=shape.GetType();
+            var s=input.Section.ReadOnlySection;var shape=s.SectionShape;var type=shape.GetType();
             SteelMethodSelector.ValidateGeometry(s);
             if(SteelMethodSelector.ColdFormedOpen(s)||!(type==typeof(SectionH)||type==typeof(SectionC)||type==typeof(SectionT)||type==typeof(SectionL)))
                 throw new NotSupportedException("Automatic torsional eigenvalues require qualified exact open H/C/T/L geometry; other families use explicit values or mode assessments.");

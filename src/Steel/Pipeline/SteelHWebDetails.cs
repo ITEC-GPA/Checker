@@ -102,7 +102,7 @@ namespace GPC.Checkers.Steel.Pipeline
             Input=input;PanelLength=a;GammaM1=gm1;Eta=eta;Left=left;Right=right;
             // The existing assessment validates exact H, axes, material/code and panel length.
             SteelShearBucklingAssessment.EvaluateTransverselyStiffenedHWeb(input,a,false,gm1,eta,"typed detail validation");
-            var section=input.Section.CreateSectionCopy();var h=(SectionH)section.SectionShape;
+            var section=input.Section.ReadOnlySection;var h=(SectionH)section.SectionShape;
             if(section.SectionType!=Section.SectionTypes.Welded||h.R!=0||input.Actions.T!=0||input.Actions.V1!=0||input.Actions.M2!=0)
                 throw new NotSupportedException("Homogeneous flat welded H under N/M1/V2, no torsion or skew boundary, required.");
             double hw=h.HeightWeb,tw=h.ThicknessWeb,fy=input.Section.YieldStrength,e=input.Section.ElasticModulus;

@@ -51,7 +51,7 @@ namespace GPC.Checkers.Steel.Connections
         public FlexibleEndPlateTyingResult PlateAndBeamAssessment { get; }
         public PlanarConnectionActions ActionsAtSupportWebMidplane { get; }
         public ConnectionStatus LocalModelStatus { get; }
-        public bool IsLocalModelCalculated => LocalModelStatus != ConnectionStatus.NotSupported;
+        public bool IsLocalModelCalculated { get; }
         public bool IsSupportBoundaryCompatibilityVerified => false;
         public bool CanQualifyWholeJoint => false;
         public IReadOnlyList<ConnectionCheck> Checks { get; }
@@ -80,10 +80,10 @@ namespace GPC.Checkers.Steel.Connections
         {
             Input = input; PlateAndBeamAssessment = component; ActionsAtSupportWebMidplane = actions;
             Diagnostics = Array.AsReadOnly(diagnostics.Distinct().ToArray());
-            var evaluated = Diagnostics.Count == 0 ? checks.ToArray() : Array.Empty<ConnectionCheck>();
+            var evaluated = ConnectionOutcome.Retained(checks, Diagnostics.Count);
             Checks = Array.AsReadOnly(evaluated); Trace = Array.AsReadOnly(trace.ToArray());
-            LocalModelStatus = Diagnostics.Count != 0 || evaluated.Length == 0 ? ConnectionStatus.NotSupported
-                : evaluated.All(c => c.Passed) ? ConnectionStatus.Passed : ConnectionStatus.Failed;
+            IsLocalModelCalculated = ConnectionOutcome.IsComplete(evaluated, Diagnostics.Count);
+            LocalModelStatus = ConnectionOutcome.Status(evaluated, Diagnostics.Count);
         }
     }
 

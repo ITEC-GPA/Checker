@@ -54,7 +54,7 @@ namespace GPC.Checkers.Steel.ModelAdapters
             var imperfection=member.Imperfections;
             if(imperfection!=null&&(imperfection.Sway1.GetValueOrDefault()!=0||imperfection.Sway2.GetValueOrDefault()!=0||imperfection.IncludedInAnalysis))
                 throw new NotSupportedException("Use first-order centroidal N; frame sway and already included second-order effects are not reinterpreted.");
-            var property=input.Section.CreateSectionCopy();
+            var property=input.Section.ReadOnlySection;
             if(!(property.SectionShape is SectionBuiltUp shape))throw new NotSupportedException("Identical packed C/L pair required.");
             var g=ModelBuiltUpGeometry.Create(shape);var chord=shape.Parts[0].Section;
             bool horizontal=shape.Parts[0].MirrorX!=shape.Parts[1].MirrorX;

@@ -7,7 +7,10 @@ namespace GPC.Checkers.Steel.Sections
     {
         internal const double GammaM0 = 1.05;
         internal const double GammaM1 = 1.05;
+        // Table4.2.VII: member buckling of road and railway bridges uses 1.10, not 1.05.
+        internal const double GammaM1Bridges = 1.10;
         internal const double GammaM2 = 1.25;
+        internal static bool IsGammaM1(double gammaM1) => gammaM1 == GammaM1 || gammaM1 == GammaM1Bridges;
         internal const double AlphaA0 = .13, AlphaA = .21, AlphaB = .34, AlphaC = .49, AlphaD = .76;
         internal static bool IsNominalGrade(int grade)
             => grade == 235 || grade == 275 || grade == 355 || grade == 420 || grade == 460;

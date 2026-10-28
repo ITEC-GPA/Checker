@@ -55,7 +55,7 @@ namespace GPC.Checkers.Steel.EffectiveSections
         public double MaxY { get; }
         private SteelEffectiveGeometry(SteelSectionInput input,IEnumerable<EffectiveSectionPlate> plates)
         {
-            Section=input;Plates=Array.AsReadOnly(plates.ToArray());var s=input.CreateSectionCopy();
+            Section=input;Plates=Array.AsReadOnly(plates.ToArray());var s=input.ReadOnlySection;
             GrossX=s.Centroid.X;GrossY=s.Centroid.Y;GrossIxx=s.Jxx;GrossIyy=s.Jyy;GrossIxy=s.Jxy;
             var points=s.SectionShape is SectionBuiltUp assembled
                 ?assembled.Parts.SelectMany(part=>part.Section.GetSectionPoints().Select(v=>part.Place(v.X,v.Y))).ToArray()
@@ -65,7 +65,7 @@ namespace GPC.Checkers.Steel.EffectiveSections
         public static SteelEffectiveGeometry Create(SteelSectionInput input)
         {
             if(input==null)throw new ArgumentNullException(nameof(input));
-            var s=input.CreateSectionCopy();SteelMethodSelector.ValidateGeometry(s);
+            var s=input.ReadOnlySection;SteelMethodSelector.ValidateGeometry(s);
             if(SteelMethodSelector.ColdFormedOpen(s))throw new NotSupportedException("Cold-formed open sections require distortional/local qualification to EN1993-1-3.");
             var shape=s.SectionShape;var type=shape.GetType();var p=new List<EffectiveSectionPlate>();
             void Add(string id,EffectivePlateKind kind,double x1,double y1,double x2,double y2,double t,double? b=null,double? designWidth=null)

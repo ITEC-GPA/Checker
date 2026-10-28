@@ -1,0 +1,35 @@
+COPRIGIUNTI CLASSE 4 COMPRESSI CON TAGLIO BASSO - 2026-10-27
+
+Ingresso: SplicePlateStabilityMethod.EffectiveCompressionWithLowShear.
+Il precedente EffectiveCompression conserva il contratto a taglio esattamente nullo.
+Il nuovo modo raggiunge il controllo completo del giunto solo se passano anche
+blocchi, bulloni, detailing, sezione madre, saldature e binding dei casi.
+
+Fondamento: EN1993-1-5:2006 7.1(1), nessuna riduzione della resistenza normale
+per eta3 <= 0.5. Fonte di riscontro: JRC/ECCS Commentary EN1993-1-5, EUR22898EN,
+capitolo 7, pp93-97; COMBRI Design Manual Part I, capitolo 3, p92.
+https://eurocodes.jrc.ec.europa.eu/sites/default/files/2021-12/EUR22898EN.pdf
+https://sections.arcelormittal.com/repo/Sections/Steel%20Research%20Reports/5_COMBRI_Part_I_EN.pdf
+
+Dominio volutamente piu ristretto: b/t <= 60 sqrt(235/fy) sull'intera larghezza;
+non si inventano vincoli continui tra bulloni. Per ciascuna piastra ridotta:
+R=min[Ag fy/(1.27 sqrt(3) gammaM0),
+      Aeff,net min(fy/gammaM0,fu/gammaM2)/(1.5 sqrt(3)),
+      Ag fy/(sqrt(3) gammaM1)].
+Ogni taglio fisico deve avere |V| <= R/2. Aeff e i fori provengono dal medesimo
+kernel di larghezze efficaci Steel/CompositeBridge, senza sottrazioni doppie.
+Questa definizione di R e un limite conservativo supplementare del software,
+NON una nuova formula normativa della resistenza a taglio di una piastra classe4.
+Restano il controllo elastico NVM sulla sezione efficace netta (con fattore0.9
+sulla resistenza ultima normale), compressione, instabilita tra bulloni e tutti
+i controlli del dettaglio. Sotto NTC la regola EC e dichiarata complementare,
+conservando i coefficienti NTC. Nessuna estensione automatica al taglio elevato.
+
+Prove: BridgeSpliceClass4LowShearTests, EC/NTC, +/-V, area efficace netta
+calcolata indipendentemente, soglia R/2 dai due lati, larghezza sensibile al
+taglio, tagli non nulli arbitrariamente piccoli e sovraccarico.
+Dettaglio positivo: anima 280x6 con due file trasversali a70mm, sporgenze105mm,
+bulloni M12 8.8/fori13. Non si riducono attesi legacy o fattori per ammetterlo.
+
+APERTO: taglio > R/2, instabilita a taglio e tension field, blocchi misti fuori
+dalla gerarchia. Un controllo parziale superato non qualifica questi casi.

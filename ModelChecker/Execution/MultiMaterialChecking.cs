@@ -104,6 +104,8 @@ namespace GPC.Model.Checker
             foreach (var plan in plans)
             {
                 var results = new List<CheckResult>();
+                // Whole-plan revalidation once per plan (see OwnedCheckInputs), not around every task.
+                bool planCurrent = Current(model, plan); string revision = model.VerificationFingerprint(plan.Settings);
                 foreach (var item in plan.Plan.WorkItems)
                 {
                     var route = item.Scope == CheckScope.PhysicalMember ? MemberRouteId(item.Target.MemberId, item.Mechanism, item.MethodId)
@@ -114,14 +116,15 @@ namespace GPC.Model.Checker
                     try
                     {
                         if (token.IsCancellationRequested) result.Execution = ExecutionStatus.Cancelled;
-                        else if (!Current(model, plan)) result.Data = DataStatus.Stale;
+                        else if (!planCurrent) result.Data = DataStatus.Stale;
                         else if (item.Scope == CheckScope.PhysicalMember)
                         {
+                            string owned = OwnedCheckInputs.Of(item);
                             result = engine is IPhysicalMemberVerifier memberVerifier
                                 ? MemberCheckExecution.Run(plan.Plan, item, memberVerifier, token)
                                 : NativeResults.Unavailable("MaterialGlobalCheckerUnavailable");
                             token.ThrowIfCancellationRequested();
-                            if (engine != null && EngineKey(engine) != key || !Current(model, plan)) result = new CheckResult { Data = DataStatus.Stale };
+                            if (engine != null && EngineKey(engine) != key || OwnedCheckInputs.Of(item) != owned) result = new CheckResult { Data = DataStatus.Stale };
                         }
                         else if (engine == null) result = NativeResults.Unavailable("NoMaterialCheckerAssignment");
                         else if (item.Data == DataStatus.Ready && item.Actions?.Input != null)
@@ -130,13 +133,13 @@ namespace GPC.Model.Checker
                                 try { sessions[key] = engine.CreateSession() ?? throw new InvalidOperationException("NullCheckerSession"); }
                                 catch (Exception ex) { sessionErrors[key] = ex; }
                             if (sessionErrors.TryGetValue(key, out var error)) throw new InvalidOperationException("CheckerCreationFailed", error);
-                            var session = sessions[key];
+                            var session = sessions[key]; string owned = OwnedCheckInputs.Of(item);
                             if (item.Check == null) result = session.Verify(item.Actions.Input, item.Mechanism, token) ?? throw new InvalidOperationException("NullCheckerOutcome");
                             else if (session is ISectionCheckSession specific && specific.Supports(item.Check))
                                 result = specific.Verify(item.Actions.Input, item.Check.Copy(), token) ?? throw new InvalidOperationException("NullCheckerOutcome");
                             else result = NativeResults.Unavailable("UnsupportedSectionCheck", item.Check.Key);
                             token.ThrowIfCancellationRequested();
-                            if (EngineKey(engine) != key || !Current(model, plan)) result = new CheckResult { Data = DataStatus.Stale };
+                            if (EngineKey(engine) != key || OwnedCheckInputs.Of(item) != owned) result = new CheckResult { Data = DataStatus.Stale };
                         }
                     }
                     catch (OperationCanceledException) { result = new CheckResult { Execution = ExecutionStatus.Cancelled, Data = DataStatus.Insufficient }; }
@@ -155,7 +158,7 @@ namespace GPC.Model.Checker
                     result.Dataset = item.Selection.Dataset; result.Case = item.Selection.Case; result.Phase = item.Selection.Phase; result.Step = item.Selection.Step;
                     result.ConcomitantStateId = item.Selection.ConcomitantState; result.Mode = item.Selection.Mode; result.MovingLoadPosition = item.Selection.MovingLoadPosition;
                     result.Input = result.Input ?? item.Actions?.Input?.Snapshot; result.SampleRevision = item.Actions?.Input?.Snapshot.SampleFingerprint;
-                    result.VerificationRevision = model.VerificationFingerprint(result.Settings);
+                    result.VerificationRevision = revision;
                     result.EngineVersion = engine?.Version; result.EngineConfiguration = engine?.Configuration; result.Standard = engine?.Standard;
                     if (item.Target.BeamId.HasValue && model.BeamElements.TryGetValue(item.Target.BeamId.Value, out var beam))
                     { result.Source = beam.Source; result.GroupNames = beam.Groups.Keys.OrderBy(g => g, StringComparer.Ordinal).ToArray(); }

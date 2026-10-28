@@ -1,0 +1,173 @@
+CHECKER.STEEL - STATO CORRENTE E INGRESSI CONSIGLIATI
+Aggiornamento: 27 ottobre 2026. Unita: N, mm, MPa, Nmm.
+
+Questo e l'indice corrente della libreria. I piani datati, le note PHASE_*
+e STEEL_REVIEW_2026_10_27.txt conservano decisioni ed evidenze storiche;
+non sono un elenco aggiornato delle funzionalita mancanti. Le specifiche
+tecniche dei metodi restano valide per il rispettivo contratto.
+La versione numerica si legge in GPCChecker.Steel.csproj/AssemblyInfo.cs.
+
+Campo: EC3 edizione2005 e NTC2018; statica ordinaria. Gli eventuali modelli
+complementari EN1993-1-5:2006 sono espliciti e conservano i fattori NTC.
+Il campo di una sezione/asta non si trasferisce automaticamente a un nodo.
+Le condizioni reali vengono sempre controllate durante l'esecuzione.
+
+COME INTEGRARE LA LIBRERIA
+
+Sezioni e aste:
+  Model -> snapshot SteelSectionInput -> SteelVerificationInput oppure
+  SteelMemberAnalysis -> SteelMethodSelector.Select/SelectMember ->
+  SteelVerificationPipeline.Execute -> risultato originale + Summary.
+  Le preparazioni richieste dal piano restano esplicite. Non usare una
+  resistenza scalare o una classificazione isolata come verifica completa.
+  Integrazione esistente in ModelChecker: SteelPipelineMaterialChecker e
+  SteelMemberPipelineChecker, con combinazioni e aste fisiche del modello.
+  Riferimenti: COMMON_INPUT.txt, METHOD_SELECTION.txt,
+  VERIFICATION_PIPELINE.txt, MEMBER_ANALYSIS_PIPELINE.txt, COVERAGE_CLASS4.txt.
+
+Coprigiunti bullonati di travi composte saldate a I:
+  BridgeSpliceApplication.CreateBolted -> WeldedIBeamSpliceStandard.Verify
+  -> BridgeSpliceReport.FromBolted -> SteelAssessmentSummary.From(report).
+  Servono le due sezioni, geometria fisica, bulloni/fori, saldature
+  longitudinali, casi concomitanti, norma/fattori e condizioni del modello.
+  B richiede SLE; C richiede scorrimento SLU associato a ogni caso resistente.
+  Le sei azioni si trasportano prima al polo: X longitudinale, Y verso alto,
+  M1 Steel=-Mz fisico e V2=Fy. Non combinare massimi indipendenti N,V,M.
+  Vedi Connections/BRIDGE_SPLICE_APPLICATION_USAGE.txt e relativi test.
+
+Giunti saldati di testa:
+  BridgeSpliceApplication.VerifyWelded -> BridgeSpliceReport.FromWelded.
+  Il percorso attuale richiede geometria identica, allineata e integra,
+  tre saldature CJP, materiali e documentazione esecutiva qualificati.
+
+Piastra di estremita a momento, anche N diverso da zero:
+  StandardEndPlate.Verify(StandardEndPlateInput) -> result.Report
+  -> SteelAssessmentSummary.From(result.Report).
+  Questo e l'ingresso consigliato; prepara internamente i componenti.
+  Le API EndPlateNmv*, TStub* e EndPlateMoment* restano disponibili per
+  controlli specialistici. Le vecchie sequenze N=0 restano compatibili.
+  I/H laminati, nodo monolatero e geometria standard; tagli reali nel
+  pilastro, contatti inizialmente chiusi, rigidezze/materiali/hardware reali.
+  Vedi Connections/END_PLATE_APPLICATION_USAGE.txt e
+  Connections/END_PLATE_NMV_USAGE.txt; i test StandardEndPlate* sono esempi
+  eseguibili. Rigidezza locale, collegamento al FEM e capacita rotazionale
+  sono grandezze diverse: il report le mantiene separate.
+
+Controventi e profili accoppiati:
+  BraceAnglePairStandardTension.Verify: terminale2L teso nel modello
+  convenzionale, profili identici, lato collegato esplicito, collettore CJP.
+  GussetTwinFlatCollector.Verify: due piatti tesi, collettore complanare.
+  SteelPackedPairTerminal.Verify + SteelWeldedPacking.Verify oppure
+  SteelBoltedPacking.Verify -> SteelPackedPairAssessment.FromWeldedPacking
+  oppure FromBoltedPacking -> pipeline dell'asta con la stessa valutazione.
+  Gli ultimi due metodi di assemblaggio stanno nel namespace Inputs.
+  Imbotiture bullonate non significano terminale bullonato: il terminale
+  compresso qualificato resta saldato. Vedi PACKED_PAIR_STANDARD_WELDED_USAGE
+  nella cartella Connections e PACKED_BOLTED_STANDARD.txt.
+
+Taglio ordinario:
+  FinPlate.Verify e FlexibleEndPlate.Verify/VerifyPair nelle proprie
+  geometrie SCI; DoubleAngleCleat* e ancora una famiglia di COMPONENTI.
+  Le API di componente hanno un campo limitato anche quando Status=Passed.
+
+La scelta per famiglia e interrogabile da ConnectionCapabilityCatalog.
+RecommendedEntryPoint identifica da dove iniziare; EntryPoints contiene
+anche API specialistiche. Un metodo di costruzione non esegue da solo la
+verifica. Il catalogo descrive copertura, non autorizza il caso concreto.
+
+COPERTURA ATTUALE DEI COPRIGIUNTI
+
+Metodo                            | Copertura aggiuntiva
+CompactCovers                     | Campo compatto precedente.
+StandardBoltedCovers               | Procedura SCI per piastre regolari,
+                                  | strisce/sbalzi localmente classe1-3,
+                                  | anche una colonna d'anima per lato.
+EffectiveCompression              | Larghezze efficaci; classe4 compressa
+                                  | a taglio esattamente nullo nei tagli.
+EffectiveCompressionWithLowShear   | Estensione esplicita a |V|<=R/2,
+                                  | area efficace netta e esclusione
+                                  | instabilita a taglio sull'intera b/t.
+
+R non e una nuova resistenza normativa: e il limite conservativo descritto
+in Connections/BRIDGE_SPLICE_CLASS4_LOW_SHEAR.txt. Taglio elevato e lastre
+sensibili a instabilita a taglio restano fuori dal nuovo metodo.
+Le scelte di piastra non disattivano bulloni, blocchi, detailing o genitori.
+I compensatori ammessi sono paralleli, integri, a piena impronta, anche
+multistrato con interfacce in serie. Non sono una transizione di sezione.
+
+STATO DEGLI OTTO PUNTI RICHIESTI IN QUESTO BLOCCO
+
+1 Blocchi misti fuori gerarchia: APERTO. Studio della fonte DTU completato;
+  nessun nuovo esito resistente qualificato. Vedi OPEN_MECHANISMS_REVIEW.txt
+  in Connections. Un criterio sufficiente non soddisfatto non prova rottura.
+2 Transizioni fra sezioni: APERTO. Nessun nuovo modello implementato;
+  servono trasferimenti equilibrati fra ali/anima e relativo dettaglio locale.
+3 Classe4 compressa+taglio: PARZIALE. Chiuso il sottodominio a taglio basso;
+  alto taglio/instabilita della lastra restano da implementare.
+4 Terminali/supporti: APERTO per le estensioni generali. Restano i percorsi
+  saldati/complanari o2L tesi gia qualificati; nessun terminale bullonato
+  compresso o doppio angolare completo e stato aggiunto in questo blocco.
+5 Documentazione corrente: COMPLETATO. Questo indice prevale sui checkpoint.
+6 Preparazioni ripetute: COMPLETATO nel workflow dei coprigiunti. Ogni caso
+  riusa risultati immutabili, senza cache globale o scambio di azioni fra casi.
+7 Ingressi consigliati: COMPLETATO in questo indice e nel catalogo interrogabile.
+8 Presentazione esiti: COMPLETATO con SteelAssessmentSummary sulle pipeline,
+  sui componenti e sui report di connessione. Contratti precedenti preservati.
+
+LEGGERE GLI ESITI
+
+SteelAssessmentSummary.From e una proiezione dei risultati, non un nuovo
+verificatore. Vive in Reporting: i nuclei e i contratti di calcolo non
+dipendono dalla reportistica. Nessun campo persistito esistente e cambiato.
+Outcome         | IsComplete | Interpretazione entro Scope
+Satisfied       | true       | Tutti i controlli richiesti eseguiti e soddisfatti.
+NotSatisfied    | true       | Verifica completa, almeno un fallimento noto.
+NotSatisfied    | false      | Fallimento noto E ulteriori controlli mancanti.
+NotEvaluated    | false      | Esito complessivo non disponibile.
+
+Mostrare sempre Scope, Outcome, IsComplete e MissingRequirements insieme.
+HasFailedLinkedMember non modifica il verdetto del nodo locale; va mostrato
+separatamente. ExternalConditions conserva le condizioni del campo applicato.
+Non esiste un nuovo utilizzo globale: percorsi resistenti, dominio e asta
+collegata non vengono mescolati. I vecchi Status non sono stati rinominati.
+I controlli parziali che il contratto originale sopprime per applicabilita
+non vengono recuperati o presentati come verifiche valide dalla proiezione.
+
+Esempio per un risultato r di WeldedIBeamSpliceStandard:
+  var summary = SteelAssessmentSummary.From(r);
+  var report = BridgeSpliceReport.FromBolted(r);
+  // Conservare anche report.Rows, unita, fonti e dettaglio dei controlli.
+  // summary.Outcome da solo NON significa che il campo richiesto e completo.
+
+ARCHITETTURA E PRESTAZIONI
+
+L'architettura attuale consente riuso dei nuclei, politiche EC/NTC distinte,
+snapshot immutabili, verifiche concomitanti e report separati dai calcoli.
+Il risultato completo di un'asta e distinto da quello di un componente/nodo.
+Steel dipende ancora da Model come assembly; i nuclei scalari ne sono separati
+nel codice. Model resta a monte: questa attivita non cambia le dipendenze.
+
+La duplicazione osservata nel workflow dei coprigiunti e stata eliminata:
+1 calcolo forze anziche10, 1 bulloni anziche4, 1 piastre anziche3 nel casoA.
+Misure e limiti: Connections/SPLICE_PREPARATION_REUSE.txt. Allocazioni ridotte
+di circa55-57% nei casi misurati; nessuna pretesa sulle prestazioni ANTHEA.
+Gli inviluppi B/C mantengono i propri casi di scorrimento. Non esiste cache
+fra casi diversi, e gli overload interni rifiutano risultati di altri input.
+
+Ulteriori semplificazioni sensate, non eseguite in questo blocco:
+- estrarre altri orchestratori solo dopo aver misurato duplicazioni reali;
+- preparare la topologia dei percorsi di blocco indipendentemente dalle azioni,
+  mantenendo tutti i percorsi e le verifiche di identita del dettaglio;
+- evitare nuove facciate equivalenti: estendere gli ingressi consigliati;
+- aggiornare questo indice e il catalogo a ogni estensione del dominio.
+Una riscrittura unica di aste e connessioni o un input universale con campi
+opzionali non e motivata dai problemi misurati.
+
+VALIDAZIONE
+I file test nuovi: BridgeSpliceClass4LowShearTests (14),
+SplicePreparationReuseTests (7), SteelAssessmentSummaryTests (11),
+ConnectionRecommendedEntryTests (6). Non sono stati modificati attesi legacy,
+fixture storiche o allowlist. I risultati finali delle suite sono registrati
+in EIGHT_POINTS_VALIDATION_2026_10_27.txt al termine dell'esecuzione.
+Nessuna modifica ANTHEA, Model, merge, push o rilascio del set coerente.
+

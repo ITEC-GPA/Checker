@@ -18,7 +18,7 @@ namespace GPC.Checkers.Steel.Connections
         public static WeldedIBeamSpliceSection FromModel(SteelSectionInput section, double topWeldToe, double bottomWeldToe)
         {
             if (section == null) throw new ArgumentNullException(nameof(section));
-            var copy = section.CreateSectionCopy();
+            var copy = section.ReadOnlySection;
             if (copy.SectionShape.GetType() != typeof(SectionH) || copy.SectionType != Section.SectionTypes.Welded)
                 throw new NotSupportedException("An exact welded Model SectionH is required.");
             var h = (SectionH)copy.SectionShape;
@@ -183,7 +183,7 @@ namespace GPC.Checkers.Steel.Connections
             if (a.Fz != 0 || a.Mx != 0 || a.My != 0 || a.ApplicationZ != 0) issues.Add("IN_PLANE_N_V_M_ONLY");
             ValidateFlange(p.Top, s.TopFlange, s.TopWeldToe, "Top");
             ValidateFlange(p.Bottom, s.BottomFlange, s.BottomWeldToe, "Bottom");
-            if (p.WebBolts.LongitudinalRows < 2 || p.WebBolts.TransverseRows < 2) issues.Add("WEB_RECTANGULAR_MULTIROW_GRID_REQUIRED");
+            if (p.WebBolts.TransverseRows < 2) issues.Add("WEB_AT_LEAST_TWO_TRANSVERSE_BOLTS_REQUIRED");
             if (p.EachWebCover.Width > s.Web.Width - 2 * Math.Max(s.TopWeldToe, s.BottomWeldToe))
                 issues.Add("WEB_COVER_INTERSECTS_LONGITUDINAL_SEAMS");
             if (p.Packing.HasPacking)
@@ -214,10 +214,11 @@ namespace GPC.Checkers.Steel.Connections
                 double sign = side == SpliceSide.Left ? 1 : -1;
                 AddFlange(side, sign, true, p.Top, s.TopFlange, s.TopY);
                 AddFlange(side, sign, false, p.Bottom, s.BottomFlange, s.BottomY);
+                // The two identical web covers share half of the web actions: one distribution for both faces.
+                var d = ElasticBoltGroup.Calculate(p.WebBolts.Points(side),
+                    new PlanarConnectionActions(sign * webN / 2, sign * a.Fy / 2, 0, 0, 0, sign * webM / 2));
                 foreach (int face in new[] { -1, 1 })
                 {
-                    var d = ElasticBoltGroup.Calculate(p.WebBolts.Points(side),
-                        new PlanarConnectionActions(sign * webN / 2, sign * a.Fy / 2, 0, 0, 0, sign * webM / 2));
                     Add(side, face < 0 ? WeldedSpliceCover.WebNegative : WeldedSpliceCover.WebPositive,
                         p.EachWebCover, s.WebY, face * ((s.Web.Thickness + p.EachWebCover.Thickness) / 2 + p.Packing.EachWeb),
                         -p.EachWebCover.Width / 2, p.EachWebCover.Width / 2, d);

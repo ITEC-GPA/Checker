@@ -63,7 +63,7 @@ namespace GPC.Checkers.Steel.Pipeline
 
         private static SteelShearBucklingAssessment EvaluateHWeb(SteelVerificationInput input, double eta, string source, bool ntc)
         {
-            var shape = input.Section.CreateSectionCopy().SectionShape;
+            var shape = input.Section.ReadOnlySection.SectionShape;
             if (shape.GetType() != typeof(SectionH) || Math.Abs(shape.AngleX1) > 1e-10)
                 throw new NotSupportedException("Exact H geometry with horizontal principal axis 1 is required.");
             var h = (SectionH)shape;

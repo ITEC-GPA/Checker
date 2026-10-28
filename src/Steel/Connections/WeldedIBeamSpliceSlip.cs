@@ -127,9 +127,14 @@ namespace GPC.Checkers.Steel.Connections
         public static ConnectionVerification<WeldedIBeamSplicePlateInput> VerifyNetAxialPlastic(WeldedIBeamSplicePlateInput p)
         {
             if (p == null) throw new ArgumentNullException(nameof(p));
-            var r = WeldedIBeamSplicePlates.Verify(p); var issues = new List<string>(r.Diagnostics);
+            return VerifyNetAxialPlastic(p, WeldedIBeamSplicePlates.Verify(p));
+        }
+        internal static ConnectionVerification<WeldedIBeamSplicePlateInput> VerifyNetAxialPlastic(WeldedIBeamSplicePlateInput p, WeldedIBeamSplicePlateResult r)
+        {
+            if (!ReferenceEquals(p, r.Input)) throw new ArgumentException("Prepared plates belong to another input.");
+            var issues = new List<string>(r.Diagnostics);
             var checks = new List<ConnectionCheck>(); var trace = new List<SectionResistanceValue>();
-            var forces = WeldedIBeamSpliceForces.Calculate(p.Bolts.Detail);
+            var forces = r.PreparedBolts.Forces;
             foreach (var cover in r.Covers)
             {
                 if (!cover.Sections.IsComplete) { issues.AddRange(cover.Sections.Diagnostics); continue; }

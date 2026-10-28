@@ -55,9 +55,9 @@ namespace GPC.Checkers.Steel.Connections
         internal WeldedSpliceUltimateCaseResult(WeldedSpliceUltimateCase input, bool categoryC, IEnumerable<string> issues)
         {
             Input = input; BindingDiagnostics = Array.AsReadOnly(issues.ToArray());
-            Bolts = WeldedIBeamSpliceBolts.Verify(input.Detail.Plates.Bolts); Plates = WeldedIBeamSplicePlates.Verify(input.Detail.Plates);
-            Detailing = WeldedIBeamSpliceDetailing.Verify(input.Detail);
-            NetAxialPlastic = categoryC ? WeldedIBeamSpliceSlip.VerifyNetAxialPlastic(input.Detail.Plates) : null;
+            Bolts = WeldedIBeamSpliceBolts.Verify(input.Detail.Plates.Bolts); Plates = WeldedIBeamSplicePlates.Verify(input.Detail.Plates, Bolts);
+            Detailing = WeldedIBeamSpliceDetailing.Verify(input.Detail, Plates);
+            NetAxialPlastic = categoryC ? WeldedIBeamSpliceSlip.VerifyNetAxialPlastic(input.Detail.Plates, Plates) : null;
         }
     }
     public sealed class WeldedSpliceSlipCaseResult
@@ -181,7 +181,7 @@ namespace GPC.Checkers.Steel.Connections
         }
         private static bool Plate(ConnectionPlate a, ConnectionPlate b) => a.Width == b.Width && a.Thickness == b.Thickness && a.Fy == b.Fy && a.Fu == b.Fu;
         private static bool Bolt(ConnectionBolt a, ConnectionBolt b) => a.Diameter == b.Diameter && a.HoleDiameter == b.HoleDiameter && a.TensileArea == b.TensileArea && a.Grade == b.Grade && a.ThreadedShearPlanes == b.ThreadedShearPlanes;
-        private static bool Grid(SpliceBoltLayout a, SpliceBoltLayout b) => a.LongitudinalRows == b.LongitudinalRows && a.TransverseRows == b.TransverseRows && a.LongitudinalPitch == b.LongitudinalPitch && a.TransversePitch == b.TransversePitch && a.FirstBoltDistance == b.FirstBoltDistance;
+        private static bool Grid(SpliceBoltLayout a, SpliceBoltLayout b) => a.LongitudinalRows == b.LongitudinalRows && a.TransverseRows == b.TransverseRows && (a.LongitudinalRows == 1 || a.LongitudinalPitch == b.LongitudinalPitch) && (a.TransverseRows == 1 || a.TransversePitch == b.TransversePitch) && a.FirstBoltDistance == b.FirstBoltDistance;
         private static bool Flange(SpliceFlangeCoverDetail a, SpliceFlangeCoverDetail b) => Plate(a.Outer, b.Outer) && Plate(a.EachInner, b.EachInner) && a.InnerGap == b.InnerGap && a.EndDistance == b.EndDistance && Grid(a.Bolts, b.Bolts);
     }
 }

@@ -1,0 +1,74 @@
+COPRIGIUNTI REGOLARI BULLONATI - 27/10/2026
+
+ESTENSIONE IMPLEMENTATA
+SplicePlateStabilityMethod.StandardBoltedCovers seleziona esplicitamente
+il procedimento convenzionale SCI per coprigiunti piani continui, fori normali
+riempiti e griglia regolare. Le ali restano su due facce; l'anima puo' avere
+anche UNA colonna per lato, con almeno due bulloni trasversali distinti.
+Il default CompactCovers conserva il precedente limite sull'intera larghezza.
+EffectiveCompression conserva il proprio dominio, incluso il rifiuto della
+compressione localmente classe4 con taglio concomitante.
+
+Non viene calcolato un autovalore di piastra libera o un campo postcritico.
+Non si interpretano i bulloni discreti come bordi continui di una lastra.
+La qualifica e' quella del dettaglio convenzionale SCI, limitata ulteriormente
+dal software a interassi <=min(14t,200mm), strisce interne p2/t<=42epsilon e
+ogni sbalzo <=14epsilon, con epsilon=sqrt(235/fy). I limiti locali valgono
+anche quando la combinazione corrente non produce compressione assiale.
+Restano attivi dettagli, bulloni/rifollamento, tutti i tagli N-M-V delle
+otto piastre, sezioni nette, instabilita' fra bulloni, blocchi, sezioni madri,
+cordoni longitudinali, scorrimento e identita' delle combinazioni.
+
+CORREZIONE DELL'INTERAZIONE
+Il solo controllo elastico N-M-V affiancato alla massima compressione di
+striscia non implica l'interazione compressione-taglio-flessione di P398 p59.
+Per ciascun taglio fisico con N<0 viene ora verificato:
+  |M| <= max(0,1-|N|/Nb) (1-rho) Wel fy/gammaM0
+  Nb = A min(fy/gammaM0, chi fy/gammaM1)
+con il ramo esente di Table3.3 conservato e Vrd=min(Vgross,Vnet) gia' usato
+dal componente. rho=0 fino a V/Vrd=.5, (2V/Vrd-1)^2 fino a1, poi1.
+L'impiego di Nb nel termine assiale e di Wel e' un criterio sufficiente
+conservativo esplicito: non viene presentato come trascrizione di una nuova
+formula normativa. I precedenti controlli non vengono cancellati.
+Anche EffectiveCompression conserva questi check sulle piastre non ridotte.
+
+UNA SOLA COLONNA D'ANIMA
+Il passo longitudinale resta un parametro positivo nel contratto esistente,
+ma non rappresenta una distanza fisica quando c'e' una sola colonna:
+non interviene in rifollamento, distanze fra ferramenta, instabilita',
+binding dei casi o report. Nel report vale0; la distanza effettiva attraverso
+il giunto e'2*FirstBoltDistance. Il requisito sulle colonne delle ali resta.
+
+FONTI E DISTINZIONE DELLE EVIDENZE
+SCI P398, Joints in Steel Construction,2013, cap4.3, pp57-59:
+compressione dei coprigiunti, striscia con Lcr=.6p e curva c, taglio e
+interazione N-M-V. La procedura descrive dettagli convenzionali, non piastre
+arbitrarie. I vincoli geometrici aggiuntivi sopra sono restrizioni del software.
+https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf
+SCI P357, Composite Highway Bridge Design: Worked Examples,2010/corr2014,
+esempio1, sez12.4-12.7, pp56-61: una colonna per lato,12 bulloni a75mm,
+coprigiunto d'anima925x10, Ncomp305kN, V417kN, Mmax101kNm per faccia.
+https://steelconstruction.info/images/2/20/SCI_P357.pdf
+Il test ricostruisce le azioni madri con integrali geometrici e verifica
+forze individuali, modulo polare J/ymax=1950mm, tensione circa104MPa e
+bilancio delle azioni. P357 impiega curva a e gammaM1=1.1: non si forza
+il risultato del codice a coincidere. Si conserva curva c da P398 e la
+politica EC/NTC selezionata. Non vengono importati coefficienti UK in NTC.
+Le incongruenze tipografiche di P357 non sono usate come attesi numerici.
+
+PROVE
+37 nuovi casi:12 di interazione e25 di dettaglio/flusso. EC3 e NTC2018;
+A/B/C; rifollamento con passo inesistente; legame SLU/scorrimento; segni;
+limiti inclusivi; sovraccarico; input fuori campo; una/due colonne;
+propagazione nei report; confronto indipendente SCI e sostituzioni manuali.
+L'esempio completo con anima925x10 usa M16 e un dettaglio d'ala conforme.
+Con M24 sulla stessa piastra sottile la gerarchia sufficiente dei blocchi
+puo' fallire: il test richiede NotSupported, non una falsa rottura e non Passed.
+Il confronto dei componenti pubblicati non qualifica automaticamente il nodo.
+
+ANCORA APERTO
+- Blocchi sotto forze di direzione mista fuori dalla gerarchia sufficiente.
+- Classe4 compressa con taglio, lastre fuori dal dominio convenzionale.
+- Transizioni fra sezioni madri diverse e compensatori non paralleli.
+- Contatto/prying generale e risposta fuori piano.
+Nessuna estensione a fatica, sisma, basi o nodi tubolari. Nessuna UI ANTHEA.

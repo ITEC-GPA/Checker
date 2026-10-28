@@ -71,10 +71,16 @@ namespace GPC.Checkers.Steel.ModelAdapters
 
     // Exact integration of rectangular areas cut by a plastic neutral line.
     // Each rectangle is symmetric about x=0. Coordinates are normalized before entry.
+    // The nested bisections call Integrate about 4200 times per section: it works on two
+    // reused scratch arrays, with the same floating-point operations in the same order as
+    // the former allocating version (bit-identical results).
     internal static class RectangularPlasticEquilibrium
     {
         internal static double[] Solve(double[][] rectangles, double targetArea, double mx, double my)
         {
+            // Sutherland-Hodgman on a rectangle: at most 4 vertices plus 2 intersections.
+            var px = new double[6]; var py = new double[6];
+            double Area(double a, double b, double c) { Integrate(rectangles, a, b, c, px, py, out double area, out _, out _); return area; }
             double[] Evaluate(double angle)
             {
                 double a = Math.Sin(angle) * (my < 0 ? -1 : 1), b = Math.Cos(angle);
@@ -82,9 +88,10 @@ namespace GPC.Checkers.Steel.ModelAdapters
                 for (int j = 0; j < 64; j++)
                 {
                     double c = (lo + hi) / 2;
-                    if (Integrate(rectangles, a, b, c)[0] > targetArea) lo = c; else hi = c;
+                    if (Area(a, b, c) > targetArea) lo = c; else hi = c;
                 }
-                return Integrate(rectangles, a, b, (lo + hi) / 2);
+                Integrate(rectangles, a, b, (lo + hi) / 2, px, py, out double area, out double qx, out double qy);
+                return new[] { area, qx, qy };
             }
             double targetAngle = Math.Atan2(Math.Abs(my), -mx), low = 0, high = Math.PI;
             for (int i = 0; i < 64; i++)
@@ -100,35 +107,36 @@ namespace GPC.Checkers.Steel.ModelAdapters
             return answer;
         }
 
-        private static double[] Integrate(double[][] rectangles, double a, double b, double c)
+        private static void Integrate(double[][] rectangles, double a, double b, double c,
+            double[] px, double[] py, out double area, out double qx, out double qy)
         {
-            double area = 0, qx = 0, qy = 0;
+            area = 0; qx = 0; qy = 0;
             foreach (double[] r in rectangles)
             {
-                var vertices = new[] { new[] { -r[0] / 2, r[1] }, new[] { r[0] / 2, r[1] },
-                    new[] { r[0] / 2, r[2] }, new[] { -r[0] / 2, r[2] } };
-                var polygon = new List<double[]>(6);
-                double[] previous = vertices[3]; double gp = a * previous[0] + b * previous[1] - c;
-                foreach (double[] current in vertices)
+                // Vertices in order (-w/2,y0), (w/2,y0), (w/2,y1), (-w/2,y1); start from the last.
+                double left = -r[0] / 2, right = r[0] / 2;
+                int count = 0;
+                double previousX = left, previousY = r[2], gp = a * previousX + b * previousY - c;
+                for (int k = 0; k < 4; k++)
                 {
-                    double g = a * current[0] + b * current[1] - c;
+                    double currentX = k == 0 || k == 3 ? left : right, currentY = k < 2 ? r[1] : r[2];
+                    double g = a * currentX + b * currentY - c;
                     if ((g >= 0) != (gp >= 0))
                     {
                         double fraction = gp / (gp - g);
-                        polygon.Add(new[] { previous[0] + fraction * (current[0] - previous[0]),
-                            previous[1] + fraction * (current[1] - previous[1]) });
+                        px[count] = previousX + fraction * (currentX - previousX);
+                        py[count] = previousY + fraction * (currentY - previousY); count++;
                     }
-                    if (g >= 0) polygon.Add(current);
-                    previous = current; gp = g;
+                    if (g >= 0) { px[count] = currentX; py[count] = currentY; count++; }
+                    previousX = currentX; previousY = currentY; gp = g;
                 }
-                for (int i = 0; i < polygon.Count; i++)
+                for (int i = 0; i < count; i++)
                 {
-                    double[] p = polygon[i], q = polygon[(i + 1) % polygon.Count];
-                    double cross = p[0] * q[1] - q[0] * p[1];
-                    area += cross / 2; qx += (p[0] + q[0]) * cross / 6; qy += (p[1] + q[1]) * cross / 6;
+                    int j = (i + 1) % count;
+                    double cross = px[i] * py[j] - px[j] * py[i];
+                    area += cross / 2; qx += (px[i] + px[j]) * cross / 6; qy += (py[i] + py[j]) * cross / 6;
                 }
             }
-            return new[] { area, qx, qy };
         }
     }
 }

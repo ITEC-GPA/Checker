@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 
 namespace GPC.Checkers.Steel.Checkers
 {
+    [Obsolete("Frozen legacy facade with no application consumer; a failed station can be overwritten by the next one. No equivalent in the GPC.Checkers.Steel core.")]
     public class Cop2011Checker : BeamChecker
     {
         #region Public enum

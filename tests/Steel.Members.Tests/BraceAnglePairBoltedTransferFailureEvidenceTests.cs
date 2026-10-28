@@ -24,8 +24,10 @@ public class BraceAnglePairBoltedTransferFailureEvidenceTests
             "Conditional in-plane model", "ULS failure-evidence regression", null);
         var result = BraceAnglePairBoltedTransfer.Verify(input);
 
-        Assert.AreEqual(ConnectionStatus.NotSupported, result.InPlaneComponents.Status);
-        Assert.AreEqual(0, result.InPlaneComponents.Checks.Count);
+        // Missing NTC bolt evidence keeps the assessment incomplete; only the known failures stay visible.
+        Assert.AreEqual(ConnectionStatus.Failed, result.InPlaneComponents.Status);
+        Assert.IsFalse(result.InPlaneComponents.IsComplete);
+        Assert.IsTrue(result.InPlaneComponents.Checks.Count > 0 && result.InPlaneComponents.Checks.All(c => !c.Passed));
         Assert.IsNull(result.InPlaneComponents.Utilization);
         Assert.AreEqual(2, result.AngleSections.Count);
         foreach (var section in result.AngleSections)

@@ -1,3 +1,19 @@
+STATO CORRENTE: ../CURRENT.txt (aggiornamento27/10/2026).
+Le indicazioni di avanzamento e le versioni nel testo seguente sono CHECKPOINT
+STORICI. Per copertura attuale, limiti aperti e API consigliate usare l'indice
+corrente e ConnectionCapabilityCatalog; le specifiche dei singoli metodi
+restano documentazione tecnica del contratto relativo.
+
+AGGIORNAMENTO27/10/2026 - questo blocco aggiorna le note storiche sottostanti.
+StandardBoltedCovers chiude il percorso convenzionale SCI per piastre
+regolari localmente classe1-3, anche sottili rispetto alla larghezza totale.
+Supportata una sola colonna d'anima per lato; aggiunta l'interazione accoppiata
+compressione-taglio-flessione, conservata anche nei percorsi alternativi.
+Fonti, limiti e37 nuove prove: BRIDGE_SPLICE_STANDARD_BOLTED_COVERS.txt.
+La classe4 compressa+taglio, le transizioni, i blocchi misti fuori gerarchia,
+il doppio angolare completo, C/2C d'anima e terminali compressi generici
+restano aperti. Non viene dichiarata chiusa la richiesta complessiva.
+
 CHECKER - CHIUSURE E LIMITI DEL26/10/2026
 
 Richiesta: chiudere i punti ancora aperti. Solo Checker, un agente;

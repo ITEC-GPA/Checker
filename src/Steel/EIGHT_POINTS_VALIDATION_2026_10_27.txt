@@ -1,0 +1,40 @@
+CHECKER.STEEL - COLLAUDO OTTO PUNTI, 27/10/2026
+Versione DLL: 2.122.0.1. Revisione sorgente verificata: f9f02e5a.
+Branch: codex/connections-remaining-mechanisms.
+Stato funzionale e limiti: CURRENT.txt. Non tutti gli otto punti sono chiusi.
+
+SUITE ESEGUITE SULLA VERSIONE FINALE
+Steel.Members: 6498 superati,0 falliti,0 non eseguiti.
+Steel.net472: 122 superati,0 falliti,0 non eseguiti.
+ModelChecker.Steel: 249 superati,0 falliti,0 non eseguiti.
+Totale: 6869. Nuovi casi:38.
+Steel.Members eseguita integralmente; Steel.NET Framework4.7.2 integralmente;
+ModelChecker con filtro FullyQualifiedName~Steel. Le altre suite Checker
+non sono state rieseguite in questo blocco: NON e un rilascio del set coerente.
+Tutte le copie Steel nei tre runner hanno lo stesso hash della DLL principale.
+SHA256: FBC32C71350C25D2AC4494263CB3FE6D2869EA902A093640937C4F4661B40313
+
+COMMIT
+dd028a39 classe4 con taglio basso; 17ddcc9b versione2.120.
+6c7636f2 riuso preparazioni; 36df81f9 versione2.121.
+18886e16 ingressi consigliati e proiezione esiti; db6b8109 versione2.122.
+91dc1e36 limite gammaM1 indipendente; f9f02e5a versione2.122.0.1.
+Documentazione corrente/evidenze registrate nel commit che contiene questo file.
+
+PROVE MIRATE
+14 nuovi casi classe4 basso taglio, compresi i due lati della soglia e gammaM1.
+7 casi riuso: EC/NTC A/B/C, isolamento e immutabilita fra combinazioni.
+11 casi esiti: completo, incompleto, fallimento noto, gerarchia non sufficiente,
+componenti e report terminali, nessuna falsa qualifica dell'asta, serializzazione.
+6 casi catalogo: esistenza metodi, ingresso consigliato e limiti ancora aperti.
+Gli attesi legacy, fixture storiche e allowlist non sono stati modificati.
+
+PRESTAZIONI
+Confronto separato in Connections/SPLICE_PREPARATION_REUSE.txt.
+Le misure riguardano due casi rappresentativi, non ANTHEA o l'intera libreria.
+
+EVIDENZE LOCALI
+ChatGPT/Checker/audit-results/connections/eight-points/final-2.122.0.1:
+TRX, log, summary.json, verified-evidence.json con hash.
+I collaudi intermedi sono conservati in sottocartelle distinte e non vengono
+confusi con quelli finali. Nessuna suite modificata per nascondere fallimenti.

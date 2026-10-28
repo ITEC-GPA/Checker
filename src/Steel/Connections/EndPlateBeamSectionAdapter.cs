@@ -125,7 +125,7 @@ namespace GPC.Checkers.Steel.Connections
             Value("GammaM0", p.Code.Plates.GammaM0, "1");
             try
             {
-                var model = s.CreateSectionCopy();
+                var model = s.ReadOnlySection;
                 Gate(model.SectionShape.GetType() == typeof(SectionH) && model.SectionType == Section.SectionTypes.Rolled
                     && model.FormedType == Section.FormedTypes.HotFinished, "EXACT_ROLLED_HOT_FINISHED_H_REQUIRED");
                 if (model.SectionShape.GetType() != typeof(SectionH)) return Result();

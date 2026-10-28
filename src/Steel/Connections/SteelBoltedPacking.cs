@@ -66,8 +66,8 @@ namespace GPC.Checkers.Steel.Connections
         public static SteelBoltedPackingResult Verify(PackedPairImperfectionModel demand,SteelBoltedPackingDetail detail)
         {
             if(demand==null)throw new ArgumentNullException(nameof(demand));if(detail==null)throw new ArgumentNullException(nameof(detail));
-            var layout=demand.Layout;var input=layout.Input;var shape=(SectionBuiltUp)input.Section.CreateSectionCopy().SectionShape;
-            var property=input.Section.CreateSectionCopy();var chord=shape.Parts[0].Section;var g=ModelBuiltUpGeometry.Create(shape);
+            var layout=demand.Layout;var input=layout.Input;var shape=(SectionBuiltUp)input.Section.ReadOnlySection.SectionShape;
+            var property=input.Section.ReadOnlySection;var chord=shape.Parts[0].Section;var g=ModelBuiltUpGeometry.Create(shape);
             var code=detail.Code;var bolt=detail.Bolt;double d0=bolt.HoleDiameter;
             var checks=new List<ConnectionCheck>();var trace=new List<SectionResistanceValue>(demand.Trace);var issues=new List<string>();
             void Require(bool condition,string message){if(!condition)issues.Add(message);}

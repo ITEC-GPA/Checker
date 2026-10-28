@@ -1,0 +1,27 @@
+RIUSO PREPARAZIONI COPRIGIUNTI - 27/10/2026
+
+Risultati immutabili e locali al caso: forze -> bulloni -> piastre -> detailing,
+dominio, piastre supplementari, compressione efficace e sezioni madri.
+Gli overload interni controllano l'identita dell'input. Le API pubbliche e i
+binding tra geometrie, norme, combinazioni SLU/SLE e risultati restano attivi.
+Nessuna cache globale; casi diversi non condividono risultati dipendenti dalle azioni.
+
+Percorso ordinario A: le forze passano da10 calcoli a1, i bulloni da4 a1,
+le piastre da3 a1. La preparazione delle sezioni madri resta esterna ed esplicita.
+Ogni caso di scorrimento B/C conserva il proprio calcolo: non viene sostituito
+dal caso SLU per risparmiare tempo. Nessun nuovo modello numerico.
+
+Misure indicative sullo stesso computer, .NET8.0.33 x64 Release, tiered JIT
+disabilitato; input preparati prima, report fuori tempo.5 warmup e5x20 prove;
+mediane. La memoria e quella ALLOCATA, non il picco di memoria residente.
+Caso | tempo prima -> dopo [ms] | allocazioni prima -> dopo [MB decimali]
+Compact x1 | 4.85 -> 3.34 | 8.69 -> 3.71
+Compact x10 | 86.37 -> 67.11 | 86.77 -> 37.00
+RegularThin x1 | 6.43 -> 4.86 | 8.80 -> 3.96
+RegularThin x10 | 89.34 -> 71.06 | 87.98 -> 39.61
+
+Numeri di righe report e controlli invariati.999 regressioni Splice superate;
+7 prove aggiuntive EC/NTC A/B/C confrontano tutte le foglie e tracce pubbliche
+con il percorso composto, due casi di segno opposto, ripetizione e immutabilita.
+Non e una misura delle prestazioni ANTHEA e non garantisce questi tempi su altri PC.
+Il numero e l'ordine dei blocchi enumerati non sono stati ridotti.
