@@ -100,6 +100,21 @@ namespace GPC.Model.Checker.Configuration
             foreach(var key in new[]{"Cm1","Cm2","CmLT"}) Add(key,EngineParameterKind.Number,"1",min:.4,max:1,modes:new[]{"BeamColumn"});
             foreach(var key in new[]{"MomentFactorSource","StabilityModelSource","LateralTorsionalExclusionSource","ShearBucklingExclusionSource"})
                 Add(key,modes:new[]{"BeamColumn"});
+            // LTB method: General is the default; the rolled method uses the code object's *Mod beta/lambdaLT0 and f from kc.
+            var ltbModes=new[]{"Bending","BeamColumn"};var ltbMoment=new[]{"LtbMomentDistribution","LtbPsi","LtbMomentSource"};
+            Add("LtbMethod",EngineParameterKind.Choice,choices:new[]{"General","RolledOrEquivalentWelded"},modes:ltbModes,
+                description:"LTB reduction: General (EC3 6.3.2.2; NTC f=beta=1, lambdaLT0=0.2; default) or EC3 6.3.2.3 / NTC 4.2.4.1.3.2 for rolled or equivalent welded doubly symmetric I/H, with BetaForLateralTorsionalBucklingMod/LambdaLT0ForLateralTorsionalBucklingMod of the code object.");
+            Add("LtbMomentDistribution",EngineParameterKind.Choice,modes:ltbModes,choices:new[]{"Uniform","Linear","SimplySupportedUniformLoad","FixedEndsUniformLoad",
+                "OneEndFixedUniformLoad","SimplySupportedCentralLoad","FixedEndsCentralLoad","OneEndFixedCentralLoad"},
+                description:"Declared Table 6.6 kc row of the moment diagram between lateral restraints, only without a diagram preparation; otherwise kc=1.");
+            Add("LtbPsi",EngineParameterKind.Number,"1",min:-1,max:1,modes:ltbModes,description:"End-moment ratio of the declared linear diagram, smaller/larger end moment with sign.");
+            Add("LtbMomentSource",modes:ltbModes,description:"Provenance of the declared moment diagram between lateral restraints, same member and design state.");
+            Together("LtbMomentPair","LtbMomentDistribution","LtbMomentSource");
+            Require("LtbPsiRequired","A linear kc diagram needs its end-moment ratio.",new[]{"LtbPsi"},Is("LtbMomentDistribution","Linear"));
+            rules.Add(new EngineParameterRule("LtbPsiWithoutLinear","Psi belongs to the linear kc row only.",new[]{IsNot("LtbMomentDistribution","Linear")},null,new[]{"LtbPsi"}));
+            rules.Add(new EngineParameterRule("LtbMomentWithoutRolledMethod","kc applies only to the rolled or equivalent welded method.",new[]{IsNot("LtbMethod","RolledOrEquivalentWelded")},null,ltbMoment));
+            foreach(var key in new[]{"CriticalValues","MomentFactorPreparation"})
+                rules.Add(new EngineParameterRule("LtbMomentConflictsWithPreparation","A prepared diagram establishes kc; do not declare another.",new[]{Has(key)},null,ltbMoment));
             Require("UniformForkCurves","The uniform fork method needs its three explicit curves.",new[]{"InPlaneCurve","LateralCurve","LateralTorsionalCurve"},Is("AnalysisMode","UniformFork"));
             Require("GeneralMethodInputs","The external general method requires both multipliers and lateral curves.",
                 new[]{"LateralCurve","LateralTorsionalCurve","AlphaUltK.Value","AlphaUltK.Unit","AlphaUltK.Source","AlphaCrOp.Value","AlphaCrOp.Unit","AlphaCrOp.Source"},Is("AnalysisMode","ExternalInPlane"));

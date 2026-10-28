@@ -171,7 +171,7 @@ namespace GPC.Model.Checker
                 }
                 else throw new ArgumentException("UnknownSteelMemberAnalysisMode");
                 }
-                var result = SteelVerificationPipeline.Execute(SteelMethodSelector.SelectMember(analysis), cancellationToken: token);
+                var result = SteelVerificationPipeline.Execute(SteelMethodSelector.SelectMember(WithLtbMethod(analysis, mode, physical)), cancellationToken: token);
                 var mapped = SteelPipelineResults.Map(result, fingerprint, Id, Limitations);
                 physical?.AddTrace(mapped);
                 return mapped;
