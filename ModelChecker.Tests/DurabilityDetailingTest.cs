@@ -100,11 +100,14 @@ public class DurabilityDetailingTest
     [TestMethod]
     public void EurocodeStructuralClassesAdditionsAndIndicativeStrength()
     {
-        // XC3, S4: 25 mm; cnom 30 ≤ 34; Table E.1N C25/30 = fck.
+        // XC3, S4: 25 mm; cnom 30 ≤ 34. Table E.1N: XC3 shares the cell of XC4, C30/37 > fck 25 (R17 of ANTHEA, 1.16.0; before C25/30 = fck,
+        // so the case was satisfied): the cover is satisfied, the indicative class is not.
         var en = Run(Model(Data("XC3")), new StandardEN1992p11());
-        Assert.AreEqual(EngineeringOutcome.Satisfied, en.Outcome, Describe(en));
-        Assert.AreEqual(30, Metric(en, "NominalCover").Capacity!.Value, 1e-12); StringAssert.Contains(Trace(en, "cmin,dur").Expression, "XC3 S4 25");
+        Assert.AreEqual(EngineeringOutcome.NotSatisfied, en.Outcome, Describe(en));
+        Assert.AreEqual(30, Metric(en, "NominalCover").Capacity!.Value, 1e-12); Assert.AreEqual(true, Metric(en, "NominalCover").Passed);
+        StringAssert.Contains(Trace(en, "cmin,dur").Expression, "XC3 S4 25");
         StringAssert.Contains(Metric(en, "MinimumStrength").Reference, "E.1N");
+        Assert.AreEqual(30, Metric(en, "MinimumStrength").Capacity!.Value); Assert.AreEqual(false, Metric(en, "MinimumStrength").Passed);
         // 100 years: S6, 35 mm → 40 > 34; S6 with strength reduction and quality control: S4 again.
         Assert.AreEqual(40, Metric(Run(Model(new ConcreteDurabilityData(new[] { "XC3" }, 100, "r")), new StandardEN1992p11()), "NominalCover").Capacity!.Value, 1e-12);
         var reduced = Run(Model(new ConcreteDurabilityData(new[] { "XC3" }, 100, "r", strengthReduction: true, specialQualityControl: true)), new StandardEN1992p11());

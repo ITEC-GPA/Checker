@@ -75,7 +75,7 @@ classe minima di resistenza della sezione.
 | Caratteristiche del calcestruzzo secondo le Linee Guida del C.S.LL.PP., con riferimento a UNI EN 206 e UNI 11104 | NTC | 2018 | 11.2.11 | — | testo |
 | Copriferri minimi per ambiente, elemento (piastra o altro) e classe (C ≥ C0; Cmin ≤ C < C0); +10 mm per 100 anni; +5 mm sotto Cmin; −5 mm con controllo di qualità; tolleranza di posa 10 mm o minore; Cmin riferita alla pertinente classe di esposizione della UNI EN 206:2016 | Circolare | 2019 | C4.1.6.1.3 | Tab. C4.1.IV | testo |
 | cnom = cmin + Δcdev; cmin = max(cmin,b; cmin,dur; 10 mm); classi strutturali S1-S6 (S4 di base); maggiorazioni 4.4.1.2(11), (13); getti contro terreno 4.4.1.3(4) | EN 1992-1-1 | 2004 + AC:2010, valori raccomandati | 4.4.1.1-4.4.1.3 | (4.1), (4.2), prospetti 4.2, 4.3N, 4.4N | testo |
-| Classi indicative di resistenza per esposizione; XF4 assente | EN 1992-1-1 | 2004 + AC:2010 | appendice E | prospetto E.1N (informativo) | testo; impaginazione di XC2-XC4 da riscontrare (riquadro C-3) |
+| Classi indicative di resistenza per esposizione; XF4 assente | EN 1992-1-1 | 2004 + AC:2010 | appendice E | prospetto E.1N (informativo) | testo; XC3 C30/37 da fonte secondaria, da riscontrare (riquadro C-3) |
 | S4 di base con le modifiche del prospetto 4.3N; prospetto 4.4N; Δcdur = 0; k1/k2/k3 = 5/10/15 mm; Δcdev = 10 mm, riducibile fino a 5 o 0 mm; getti contro terreno 40/75 mm | UNI EN 1992-1-1 | DM 31/07/2012 | 4.4.1.2(5)-(8), (13), 4.4.1.3(2)-(4) | — | testo |
 | Prospetto E.1N nazionale (XC1 C25/30, XC2 C25/30, XC3-XC4 C30/37, XF2 C30/37) | UNI EN 1992-1-1 | DM 31/07/2012 | E.1(2) | prospetto E.1N | testo (riquadro C-3) |
 | cmin,dur per esposizione senza classi strutturali, vita di almeno 50 anni; Δcdev ≥ 5 mm (10 mm nella classe di controllo ridotta); resistenza minima per gruppi | DS/EN 1992-1-1 | DK NA:2024 | 4.4.1.2(5), 4.4.1.3(1)P, E.1(2) | Tabel 4.4N NA, Tabel E.1(2) | testo |
@@ -143,7 +143,7 @@ Valori implementati per classe. Colonne:
 | X0 | — / C12/15 / — / — | 0 | X0 | — / C12/15 / — | C12/15 / C12/15 | 12 |
 | XC1 | 0,65 / C20/25 / 260 / — | 0 | XC1 | 0,60 / C25/30 / 300 | C20/25 / C25/30 | 12 |
 | XC2 | 0,60 / C25/30 / 280 / — | 0 | XC2-XC3 | 0,60 / C25/30 / 300 | C25/30 / C25/30 | 30 |
-| XC3 | 0,55 / C30/37 / 280 / — | 0 | XC2-XC3 | 0,55 / C30/37 / 320 | C25/30 / C25/30 | 30 |
+| XC3 | 0,55 / C30/37 / 280 / — | 0 | XC2-XC3 | 0,55 / C30/37 / 320 | C30/37 / C30/37 | 30 |
 | XC4 | 0,50 / C30/37 / 300 / — | 1 | XC4 | 0,50 / C32/40 / 340 | C30/37 / C30/37 | 30 |
 | XD1 | 0,55 / C30/37 / 300 / — | 1 | XD1-XS1 | 0,55 / C30/37 / 320 | C30/37 / C30/37 | 35 |
 | XD2 | 0,55 / C30/37 / 300 / — | 2 | XD2-XS2 | 0,50 / C32/40 / 340 | C30/37 / C30/37 | 40 |
@@ -292,16 +292,18 @@ f_{ck,min}(X) = \begin{cases} \max_X f_{UNI\,11104}(X) & \text{NTC, CNR-DT 200 (
 Requisiti di composizione UNI 11104 della combinazione: a/c = minX, cemento = maxX, aria come sopra. EN 206 F.1 è
 disponibile per classe e come massimo della resistenza minima.
 
-> **Scostamento dichiarato — C-3 (R17) Prospetto E.1N per XC3**
+> **Scostamento corretto — C-3 (R17) Prospetto E.1N per XC3**
 >
 > - Norma: il prospetto E.1N del DM 31/07/2012 dà per XC3 e XC4 una sola cella con C30/37 (XC1 e XC2 hanno celle
 >   proprie, C25/30); il DM riproduce l'impaginazione del prospetto E.1N della EN 1992-1-1 cambiando i valori
->   nazionali, quindi anche la EN assegna probabilmente C30/37 a XC3.
-> - Programma: C25/30 per XC3 nei profili EN e UNI, con le celle unite lette come XC2-XC3.
-> - Effetto: a sfavore di sicurezza; con XC3 sola (o combinata con classi meno severe) il controllo della classe
->   minima accetta C25/30 e C28/35. Nessun effetto sui copriferri.
-> - Stato: da discutere (voce R17 del registro delle differenze, a sfavore di sicurezza). Per il profilo UNI il testo
->   è riscontrato; per il profilo EN resta da riscontrare l'impaginazione del prospetto della EN 1992-1-1.
+>   nazionali. Le riproduzioni del prospetto E.1N della EN danno XC3 C30/37, come XC4 (fonte secondaria).
+> - Programma fino a Concrete 0.27: C25/30 per XC3 nei profili EN e UNI, con le celle unite lette come XC2-XC3. Effetto:
+>   a sfavore di sicurezza; con XC3 sola (o combinata con classi meno severe) il controllo della classe minima accettava
+>   C25/30 e C28/35. Nessun effetto sui copriferri.
+> - Correzione (ANTHEA 1.16.0, decisione dell'utente del 28/10/2026 «Fonti secondarie»): C30/37 per XC3 nei profili EN e
+>   UNI. Per il profilo UNI il testo è riscontrato; per il profilo EN la fonte è secondaria, da riscontrare sul testo
+>   della EN 1992-1-1. Opzione storica: `IndicativeStrengthReading.MergedXc2Xc3` di `ExposureClasses.MinimumStrength`.
+> - Stato: corretto (voce R17 del registro delle differenze).
 
 ## 7. Coefficienti e valori predefiniti
 
@@ -363,7 +365,6 @@ Percorsi relativi alla radice del repository Checker (namespace `GPC.Checkers.Co
 - UNI 11104: valori dell'edizione 2016, prospetto 5, da fonte secondaria. I valori del prospetto 6 dell'edizione
   2025, in vigore, non sono implementati; secondo l'estratto cambiano classe minima e a/c di XF1 e il cemento minimo
   (riquadro C-1).
-- Prospetto E.1N: XC3 letto come C25/30 (riquadro C-3).
 - Testo dei riferimenti (R14): per il profilo NTC il risultato cita «UNI 11104 prospetto 5», il prospetto
   dell'edizione 2016, senza l'edizione; i valori limite sono nel prospetto 4 nella 2004 e nel prospetto 6 nella 2025.
 - Aria inglobata UNI 11104: nessun valore per 16 mm < dg ≤ 20 mm e per dg < 12 mm, dove la norma indica solo un
@@ -436,7 +437,8 @@ Valori della libreria (GPCChecker.Concrete 0.0.17.0, eseguita):
   - `DurabilityExamplesTests` (5 esempi calcolati a mano: NTC aggressivo, EN con classe strutturale, UNI contro
     terreno, DS marino con abrasione, NTC piastra a 100 anni).
 
-  I test della classe minima fissano per XC3 il valore C25/30 del prospetto E.1N letto dal codice (riquadro C-3).
+  I test della classe minima fissano per XC3 il valore C30/37 del prospetto E.1N dal testo del DM e dalla riproduzione
+  della EN (riquadro C-3); C25/30 resta nell'opzione storica.
 - **Esempi di questa pagina**: eseguiti con la libreria 0.0.17.0 e ricalcolati in modo indipendente, scarto nullo.
 - **Benchmark indipendenti pubblicati**: nessuno, per ora.
 
