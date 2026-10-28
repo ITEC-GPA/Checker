@@ -3,7 +3,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using GPC.Checkers.Steel.Inputs;
+using GPC.Checkers.Steel.Pipeline;
+using GPC.Checkers.Steel.Sections;
+using GPC.Checkers.Steel.Selection;
 using GPC.Model.Checking.Contracts;
+using GPC.Model.Sections;
 
 namespace GPC.Model.Checker
 {
@@ -37,6 +41,23 @@ namespace GPC.Model.Checker
                     values.Add(new SteelStabilityValue(q,Number(q+".Value"),EnumValue<SteelStabilityUnit>(q+".Unit"),Required(q+".Source")));
             return SteelMemberAnalysis.BeamColumn(common,Required("LoadPatternReference"),PreparedParameterSet(common),data,values,memberClass,
                 _parameters.TryGetValue("ClassificationSource",out var source)?source:null);
+        }
+
+        // Mirrors the section engine (SteelPipelineMaterialChecker.Assessments) when the beam-column waits for shear
+        // assessments, i.e. exact H without an explicit ShearBucklingExclusionSource. A negative one leaves it unevaluated.
+        private IEnumerable<SteelShearBucklingAssessment> BeamColumnShearAssessments(SteelSelectionPlan plan)
+        {
+            var input=plan.Input;
+            if(!plan.Decisions.Any(d=>d.Status==SteelSelectionStatus.RequiresPreparation)
+                ||input.Section.GeometryType!=typeof(SectionH)||Math.Abs(input.Section.PrincipalAxisAngle)>1e-10)yield break;
+            if(input.EffectiveActions.V1!=0)
+                yield return SteelShearBucklingAssessment.EvaluateHFlanges(input,"GPC automatic flange outstand screen c/t<=14eps for V1 (not a code clause)");
+            if(input.EffectiveActions.V2==0)yield break;
+            if(input.Code.SectionCode.Standard==SectionResistanceStandard.Ntc2018)
+            { yield return SteelShearBucklingAssessment.EvaluateNtcHWeb(input,"NTC 2018 equation4.2.27 conservative eta=1");yield break; }
+            bool lowGrade=input.Section.YieldStrength<=460;
+            yield return SteelShearBucklingAssessment.EvaluateEc3HWeb(input,lowGrade?Code.NShearBucklingLowGradeOfSteel:Code.NShearBucklingHighGradeOfSteel,
+                "StandardEN1993p11."+(lowGrade?"NShearBucklingLowGradeOfSteel":"NShearBucklingHighGradeOfSteel"));
         }
 
         private void ValidatePrismaticCoefficients(bool compression,bool bending)

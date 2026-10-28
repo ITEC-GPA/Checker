@@ -29,7 +29,7 @@ namespace GPC.Model.Checker
     public sealed partial class SteelMemberPipelineChecker : IMaterialChecker, IPhysicalMemberVerifier
     {
         public const string EngineId = "Steel.Pipeline.Member";
-        internal const string Limitations = "EC3:2005/NTC2018 prismatic compression and major-axis LTB with explicit critical values/mode assessments. EC3 also has uniform H/T fork. External in-plane EN6.3.4 supports EC3/NTC with mono/double symmetry and explicit analysis; class4 requires effective-analysis provenance. Doubly symmetric H and hollow beam-columns use EC3 Annex B / NTC Circular Method B with explicit model and equivalent-moment factors; hollow sections use conservative elastic properties. Class4 H/RHS double symmetry uses Aeff/Weff at fy and gross elastic critical values; asymmetric class4 needs a separate eccentric-member method. Packed identical 2C/2L compression requires explicit detailing, complete local envelopes and design resistances; connection design is external. No general arbitrary-section biaxial method, torsion or plastic hinges. Section/shear checks are separate.";
+        internal const string Limitations = "EC3:2005/NTC2018 prismatic compression and major-axis LTB with explicit critical values/mode assessments. EC3 also has uniform H/T fork. External in-plane EN6.3.4 supports EC3/NTC with mono/double symmetry and explicit analysis; class4 requires effective-analysis provenance. Doubly symmetric H and hollow beam-columns use EC3 Annex B / NTC Circular Method B with explicit model and equivalent-moment factors; hollow sections use conservative elastic properties. Without compression (biaxial bending, tension neglected as favourable) the interaction runs at NEd=0; LTB also neglects tension. Class4 H/RHS double symmetry uses Aeff/Weff at fy and gross elastic critical values; asymmetric class4 needs a separate eccentric-member method. Packed identical 2C/2L compression requires explicit detailing, complete local envelopes and design resistances; connection design is external. No general arbitrary-section biaxial method, torsion or plastic hinges. Section/shear checks are separate.";
         private readonly Dictionary<string, string> _parameters;
         public IReadOnlyDictionary<string, string> Parameters { get; }
         public StandardEN1993p11 Code { get; }
@@ -117,6 +117,10 @@ namespace GPC.Model.Checker
                 if (mode == "Compression" || mode == "Bending" || mode == "BeamColumn")
                     {
                     physical = SteelPhysicalMemberPreparation.Create(input, common.Section, section.SectionShape, context);
+                    // Bending is major-axis LTB only; M1 with M2/V1 is the EC3 6.3.3 / NTC 4.2.4.1.3.3 interaction (N>=0 too).
+                    if (mode == "Bending" && physical.Cuts.Any(c => c.Actions.M1 != 0) && physical.Cuts.Any(c => c.Actions.M2 != 0 || c.Actions.V1 != 0))
+                        return NativeResults.Unavailable("SteelMember.BiaxialBendingRequiresBeamColumn",
+                            "Minor-axis M2/V1 with major-axis M1: configure AnalysisMode=BeamColumn (biaxial interaction, also with N>=0).");
                     common = new SteelVerificationInput(common.Section, physical.Cuts[0].Actions, common.Code, common.Member);
                     analysis = mode == "BeamColumn" ? BeamColumn(input, common, physical) : Prismatic(input, common, context, mode, physical);
                 }
@@ -171,7 +175,8 @@ namespace GPC.Model.Checker
                 }
                 else throw new ArgumentException("UnknownSteelMemberAnalysisMode");
                 }
-                var result = SteelVerificationPipeline.Execute(SteelMethodSelector.SelectMember(analysis), cancellationToken: token);
+                var plan = SteelMethodSelector.SelectMember(analysis);
+                var result = SteelVerificationPipeline.Execute(plan, mode == "BeamColumn" ? BeamColumnShearAssessments(plan) : null, token);
                 var mapped = SteelPipelineResults.Map(result, fingerprint, Id, Limitations);
                 physical?.AddTrace(mapped);
                 return mapped;
@@ -194,8 +199,9 @@ namespace GPC.Model.Checker
             foreach (var cut in physical.Cuts)
             {
                 var a = cut.Actions;
-                if (a.T != 0 || a.M2 != 0 || a.V1 != 0 || compression && (a.M1 != 0 || a.V2 != 0 || a.N > 0)
-                    || !compression && a.N != 0) throw new NotSupportedException("Actions outside selected prismatic mechanism.");
+                // Bending: tension is neglected by the LTB route; M2/V1 only without M1 (no LTB demand, checked in Verify).
+                if (a.T != 0 || compression && (a.M1 != 0 || a.M2 != 0 || a.V1 != 0 || a.V2 != 0 || a.N > 0)
+                    || !compression && a.N < 0) throw new NotSupportedException("Actions outside selected prismatic mechanism.");
                 if (compression && Math.Abs(a.N - common.Actions.N) > 1e-10 * Math.Max(1, Math.Abs(common.Actions.N)))
                     throw new NotSupportedException("Compression must be constant over the full member.");
                 if (!compression && Math.Abs(a.M1) > Math.Abs(common.Actions.M1))
