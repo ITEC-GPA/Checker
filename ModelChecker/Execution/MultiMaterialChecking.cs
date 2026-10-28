@@ -94,6 +94,35 @@ namespace GPC.Model.Checker
             var plans = request.Jobs.Select(j => PrepareMaterialJob(model, j, token)).ToArray();
             return VerifyMaterialPlans(model, plans, provenance, token, progress);
         }
+        /// <summary>Engine part of the next block of steel pipeline section tasks, in parallel (see PrecomputedSection).
+        /// Only engines of this assembly whose calculation reads nothing but the owned copies of the task and immutable
+        /// engine data qualify: the steel section pipeline. Member tasks read the shared model while they prepare the
+        /// physical span, which is most of their cost: they stay in the sequential pass, like every other engine.
+        /// Sessions are created in task order, as the sequential pass would on reaching the task.</summary>
+        private static PrecomputedSection[] Precompute(MaterialPlan plan, IReadOnlyList<CheckWorkItem> items, int start,
+            Dictionary<string, IMaterialCheckSession> sessions, Dictionary<string, Exception> sessionErrors, CancellationToken token)
+        {
+            var slots = new PrecomputedSection[Math.Min(PrecomputedSection.Block, items.Count - start)];
+            var work = new List<(PrecomputedSection, BeamActionInput, CheckMechanism, Func<string>, Func<bool>)>();
+            for (int k = 0; k < slots.Length; k++)
+            {
+                var item = items[start + k];
+                if (item.Scope == CheckScope.PhysicalMember || !item.Target.BeamId.HasValue || item.Check != null
+                    || item.Data != DataStatus.Ready || item.Actions?.Input == null) continue;
+                var route = RouteId(item.Target.BeamId.Value, item.Mechanism, item.Check);
+                if (!plan.Routes.TryGetValue(route, out var engine) || !(engine is SteelPipelineMaterialChecker)
+                    || !plan.Keys.TryGetValue(route, out var key) || sessionErrors.ContainsKey(key)) continue;
+                if (!sessions.ContainsKey(key))
+                    try { sessions[key] = engine.CreateSession() ?? throw new InvalidOperationException("NullCheckerSession"); }
+                    catch (Exception ex) { sessionErrors[key] = ex; continue; }
+                if (!(sessions[key] is IConcurrentMaterialSession concurrent)) continue;
+                slots[k] = new PrecomputedSection { Session = concurrent };
+                work.Add((slots[k], item.Actions.Input, item.Mechanism, () => OwnedCheckInputs.Of(item), () => EngineKey(engine) != key));
+            }
+            if (work.Count > 1) PrecomputedSection.Run(work, token);
+            else if (work.Count == 1) return new PrecomputedSection[slots.Length]; // nothing to gain: sequential pass
+            return slots;
+        }
         private ModelCheckReport VerifyMaterialPlans(Models.Model model, MaterialPlan[] plans, VerificationProvenance provenance,
             CancellationToken token, IProgress<VerificationProgress> progress)
         {
@@ -106,8 +135,12 @@ namespace GPC.Model.Checker
                 var results = new List<CheckResult>();
                 // Whole-plan revalidation once per plan (see OwnedCheckInputs), not around every task.
                 bool planCurrent = Current(model, plan); string revision = model.VerificationFingerprint(plan.Settings);
-                foreach (var item in plan.Plan.WorkItems)
+                var items = plan.Plan.WorkItems; PrecomputedSection[] ahead = null; int aheadStart = 0;
+                for (int index = 0; index < items.Count; index++)
                 {
+                    var item = items[index];
+                    if (index % PrecomputedSection.Block == 0)
+                    { aheadStart = index; ahead = planCurrent && !token.IsCancellationRequested ? Precompute(plan, items, index, sessions, sessionErrors, token) : null; }
                     var route = item.Scope == CheckScope.PhysicalMember ? MemberRouteId(item.Target.MemberId, item.Mechanism, item.MethodId)
                         : item.Target.BeamId.HasValue ? RouteId(item.Target.BeamId.Value, item.Mechanism, item.Check) : null;
                     var engine = route != null && plan.Routes.TryGetValue(route, out var routed) ? routed : null;
@@ -133,13 +166,24 @@ namespace GPC.Model.Checker
                                 try { sessions[key] = engine.CreateSession() ?? throw new InvalidOperationException("NullCheckerSession"); }
                                 catch (Exception ex) { sessionErrors[key] = ex; }
                             if (sessionErrors.TryGetValue(key, out var error)) throw new InvalidOperationException("CheckerCreationFailed", error);
-                            var session = sessions[key]; string owned = OwnedCheckInputs.Of(item);
-                            if (item.Check == null) result = session.Verify(item.Actions.Input, item.Mechanism, token) ?? throw new InvalidOperationException("NullCheckerOutcome");
-                            else if (session is ISectionCheckSession specific && specific.Supports(item.Check))
-                                result = specific.Verify(item.Actions.Input, item.Check.Copy(), token) ?? throw new InvalidOperationException("NullCheckerOutcome");
-                            else result = NativeResults.Unavailable("UnsupportedSectionCheck", item.Check.Key);
-                            token.ThrowIfCancellationRequested();
-                            if (EngineKey(engine) != key || OwnedCheckInputs.Of(item) != owned) result = new CheckResult { Data = DataStatus.Stale };
+                            var session = sessions[key];
+                            var pre = ahead?[index - aheadStart];
+                            if (pre != null)
+                            {
+                                result = pre.Take();
+                                token.ThrowIfCancellationRequested();
+                                if (pre.Changed) result = new CheckResult { Data = DataStatus.Stale };
+                            }
+                            else
+                            {
+                                string owned = OwnedCheckInputs.Of(item);
+                                if (item.Check == null) result = session.Verify(item.Actions.Input, item.Mechanism, token) ?? throw new InvalidOperationException("NullCheckerOutcome");
+                                else if (session is ISectionCheckSession specific && specific.Supports(item.Check))
+                                    result = specific.Verify(item.Actions.Input, item.Check.Copy(), token) ?? throw new InvalidOperationException("NullCheckerOutcome");
+                                else result = NativeResults.Unavailable("UnsupportedSectionCheck", item.Check.Key);
+                                token.ThrowIfCancellationRequested();
+                                if (EngineKey(engine) != key || OwnedCheckInputs.Of(item) != owned) result = new CheckResult { Data = DataStatus.Stale };
+                            }
                         }
                     }
                     catch (OperationCanceledException) { result = new CheckResult { Execution = ExecutionStatus.Cancelled, Data = DataStatus.Insufficient }; }
