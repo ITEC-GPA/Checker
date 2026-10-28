@@ -90,6 +90,7 @@ namespace GPC.Checkers.Steel.Pipeline
                 if (i.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018
                     && analysis.Prismatic.CriticalMomentBasis != SteelCriticalMomentBasis.UniformMoment)
                     return Unsupported("Member.NtcUniformMcrRequired", "NTC 4.2.4.1.3.2 uses Mcr under uniform moment; this conservative route uses f=beta=Kchi=1 and lambda0=0.2.");
+                var ltb = SteelLateralTorsionalExecution.Qualify(analysis); if (ltb != null) return ltb;
             }
             if (missing.Count > 0) return Missing(missing);
             return new SteelMethodDecision(SteelCheckTarget.MemberStability, SteelSelectionStatus.Ready,
@@ -172,15 +173,16 @@ namespace GPC.Checkers.Steel.Pipeline
                 double w = effective ? MemoizedEffectiveProperties.BendingModulus(i, 1) : elastic ? section.Wel1 : section.Wpl1; Positive(w, "Section modulus");
                 double mcr = analysis.Values.Single(v => v.Quantity == SteelStabilityQuantity.Mcr).Value;
                 double characteristic = w * fy; Positive(characteristic, "Characteristic moment resistance");
-                var curve = BucklingCurves.LateralTorsional(section, ntc);
-                double slenderness = Math.Sqrt(characteristic) / Math.Sqrt(mcr), chi = BucklingCurves.Reduction(slenderness, curve);
+                double slenderness = Math.Sqrt(characteristic) / Math.Sqrt(mcr);
+                var ltb = SteelLateralTorsionalExecution.Reduce(analysis, section, slenderness, ntc); var curve = ltb.Curve; double chi = ltb.Chi;
                 resistance = Math.Min(chi * characteristic / gamma, characteristic / i.Code.SectionCode.GammaM0);
                 Add(trace, effective ? "Weff1Min" : elastic ? "Wel1Min" : "Wpl1", w, "mm3"); Add(trace, "Mcr", mcr, "Nmm");
                 Add(trace, "AlphaLT", BucklingCurves.Alpha(curve), "1"); Add(trace, "SlendernessLT", slenderness, "1"); Add(trace, "ChiLT", chi, "1");
-                Add(trace, "BetaLT", 1, "1"); Add(trace, "LambdaLT0", .2, "1"); Add(trace, "MomentCorrectionF", 1, "1");
+                Add(trace, "BetaLT", ltb.Beta, "1"); Add(trace, "LambdaLT0", ltb.LambdaLT0, "1"); Add(trace, "MomentCorrectionF", ltb.F, "1");
+                SteelLateralTorsionalExecution.AddTrace(trace, ltb);
                 if (i.EffectiveActions.N > 0) Add(trace, "TensionNeglectedAsFavourable", i.EffectiveActions.N, "N");
                 unit = "Nmm";
-                reference = ntc ? "NTC 2018 4.2.4.1.3.2, equations 4.2.48-51; Table 4.2.IX (general conservative case)"
+                reference = ltb.IsRolled ? SteelLateralTorsionalExecution.Reference(ntc) : ntc ? "NTC 2018 4.2.4.1.3.2, equations 4.2.48-51; Table 4.2.IX (general conservative case)"
                     : "EN 1993-1-1:2005 6.3.2.1-2, equations 6.55-56; recommended Table 6.4 curves";
                 scope = "Prismatic major-axis LTB; explicit gross-section elastic Mcr and whole-member maximum M1. Shear/section checks remain separate. " + analysis.Prismatic.CriticalMomentBasis;
             }

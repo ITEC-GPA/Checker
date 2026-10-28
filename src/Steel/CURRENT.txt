@@ -86,6 +86,31 @@ Stabilita delle aste senza compressione (28 ottobre 2026, branch steel-aste-rout
   risponde SteelMember.BiaxialBendingRequiresBeamColumn. Un esito NotRequired
   d'asta resta NotEvaluated nel resoconto di Model (nessun esito "non richiesto").
 
+Svergolamento di profili laminati o saldati equivalenti (28/10/2026):
+  il default resta il caso generale (EC3 6.3.2.2, Tab. 6.4; NTC 4.2.4.1.3.2
+  con f=beta=1, lambdaLT0=0.2). Il metodo EC3 6.3.2.3 / NTC 4.2.4.1.3.2 per
+  laminati e saldati si sceglie solo in modo esplicito: nella libreria
+  SteelMemberAnalysis.WithLateralTorsionalMethod(SteelLateralTorsionalMethod.
+  RolledOrEquivalentWelded(beta, lambdaLT0, kc, fonte)), in ModelChecker il
+  parametro LtbMethod=RolledOrEquivalentWelded dei modi Bending e BeamColumn,
+  con BetaForLateralTorsionalBucklingMod e LambdaLT0ForLateralTorsionalBucklingMod
+  dell'oggetto norma (campo 0.75..1 e 0.2..0.4; alphaLT restano quelli della
+  Tab. 6.3). Vale per la verifica LTB e per il chiLT della trave-colonna.
+  Solo H/I esatte doppiamente simmetriche, laminate o saldate secondo
+  Section.SectionTypes (sceglierlo per una saldata ne dichiara l'equivalenza);
+  le altre famiglie sono rifiutate con Member.LtbMethodGeometry.
+  Curve Tab. 6.5 = Tab. 4.2.IX: laminate h/b<=2 b, >2 c; saldate c, d.
+  EC3: chiLT<=1 e <=1/lambda^2, chiLT,mod=chiLT/f<=1 e <=1/lambda^2.
+  NTC: chiLT=(1/f)/(PhiLT+rad(PhiLT^2-beta lambda^2))<=1 e <=1/(f lambda^2),
+  Mcr sempre a momento uniforme. f=1-0.5(1-kc)[1-2(lambda-0.8)^2]<=1; kc da
+  Tab. 6.6 (NTC Tab. 4.2.X): 1.0, 1/(1.33-0.33psi), 0.94/0.90/0.91/0.86/0.77/
+  0.82. kc solo da un diagramma accertato: ForkDiagram EndMoments, Uniform-
+  TransverseLoad o CentralPointLoad, CriticalValues=UniformFork, Moment-
+  FactorPreparation=LinearDiagrams, oppure LtbMomentDistribution (LtbPsi se
+  Linear) con LtbMomentSource; altrimenti kc=1 (f=1), traccia KcNotEstablished.
+  Traccia: BetaLT, LambdaLT0, MomentCorrectionF, PhiLT, ChiLTBase, Kc, KcPsi;
+  report Member.LtbMethod e Member.LtbKc. Nessun atteso esistente modificato.
+
 Coprigiunti bullonati di travi composte saldate a I:
   BridgeSpliceApplication.CreateBolted -> WeldedIBeamSpliceStandard.Verify
   -> BridgeSpliceReport.FromBolted -> SteelAssessmentSummary.From(report).

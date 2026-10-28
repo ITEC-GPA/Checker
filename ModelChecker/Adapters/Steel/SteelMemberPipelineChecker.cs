@@ -175,7 +175,7 @@ namespace GPC.Model.Checker
                 }
                 else throw new ArgumentException("UnknownSteelMemberAnalysisMode");
                 }
-                var plan = SteelMethodSelector.SelectMember(analysis);
+                var plan = SteelMethodSelector.SelectMember(WithLtbMethod(analysis, mode, physical));
                 var result = SteelVerificationPipeline.Execute(plan, mode == "BeamColumn" ? BeamColumnShearAssessments(plan) : null, token);
                 var mapped = SteelPipelineResults.Map(result, fingerprint, Id, Limitations);
                 physical?.AddTrace(mapped);

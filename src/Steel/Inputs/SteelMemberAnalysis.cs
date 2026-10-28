@@ -58,6 +58,18 @@ namespace GPC.Checkers.Steel.Inputs
         public SteelPrismaticMemberData Prismatic { get; }
         public SteelBeamColumnParameters BeamColumnParameters { get; }
         public SteelPackedPairAssessment PackedPair { get; }
+        /// <summary>LTB reduction of the bending and beam-column routes: General unless WithLateralTorsionalMethod selects another.</summary>
+        public SteelLateralTorsionalMethod LateralTorsionalMethod { get; private set; } = SteelLateralTorsionalMethod.General;
+
+        /// <summary>Same analysis with an explicit LTB method (EN 1993-1-1:2005 6.3.2.3 / NTC 2018 4.2.4.1.3.2 for
+        /// rolled or equivalent welded I/H). Only prismatic bending and H beam-column analyses have an LTB reduction.</summary>
+        public SteelMemberAnalysis WithLateralTorsionalMethod(SteelLateralTorsionalMethod method)
+        {
+            if (method == null) throw new ArgumentNullException(nameof(method));
+            if (Kind != SteelMemberAnalysisKind.PrismaticBending && Kind != SteelMemberAnalysisKind.HBeamColumn)
+                throw new ArgumentException("The LTB method belongs to prismatic bending and H beam-column analyses.", nameof(method));
+            var copy = (SteelMemberAnalysis)MemberwiseClone(); copy.LateralTorsionalMethod = method; return copy;
+        }
 
         private SteelMemberAnalysis(SteelVerificationInput input, SteelMemberAnalysisKind kind,
             string loadPatternReference, string parameterSet, Ec3GeneralMethodCurve inPlane,
@@ -112,6 +124,7 @@ namespace GPC.Checkers.Steel.Inputs
         /// Mcr describes gross-section elastic bifurcation and the full restraint/load
         /// model. NTC requires UniformMoment basis, using f=beta=Kchi=1,lambda0=.2.
         /// EC3 uses 6.3.2.2 recommended Table6.4 curves; NTC uses its Table4.2.IX.
+        /// WithLateralTorsionalMethod selects EC3 6.3.2.3 / NTC f, beta, lambda0 for rolled or welded I/H.
         /// Shear resistance/interaction at every cut must be checked separately.</summary>
         public static SteelMemberAnalysis Bending(SteelVerificationInput input, string loadPatternReference,
             string parameterSet, SteelCriticalMomentBasis basis, SteelStabilityValue criticalMoment,

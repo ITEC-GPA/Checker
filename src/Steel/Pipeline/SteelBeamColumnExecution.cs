@@ -85,6 +85,7 @@ namespace GPC.Checkers.Steel.Pipeline
             if(!needsMcr&&analysis.Values.Any(v=>v.Quantity==SteelStabilityQuantity.Mcr))throw new ArgumentException("Mcr supplied for an inactive or explicitly excluded lateral-torsional mechanism.");
             if(needsMcr&&i.Code.SectionCode.Standard==SectionResistanceStandard.Ntc2018&&p.CriticalMomentBasis!=SteelCriticalMomentBasis.UniformMoment)
                 return Unsupported("Member.NtcUniformMcrRequired","NTC conservative general LTB requires a uniform-moment Mcr.");
+            var ltb=SteelLateralTorsionalExecution.Qualify(analysis);if(ltb!=null)return ltb;
             if(a.V1!=0||a.V2!=0)
             {
                 // No qualified automatic screen for hollow sections: their explicit assessment stays required.
@@ -116,12 +117,14 @@ namespace GPC.Checkers.Steel.Pipeline
             double w2=effective?MemoizedEffectiveProperties.BendingModulus(i,2):(elastic?section.Wel2:section.Wpl2);
             double m1rk=w1*fy,m2rk=w2*fy,chiLT=1;
             if(effective) {Add(trace,"Weff1Min",w1,"mm3");Add(trace,"Weff2Min",w2,"mm3");}
+            SteelLateralTorsionalExecution.Reduction ltb=null;
             if(p.TorsionSusceptible&&i.EffectiveActions.M1!=0)
             {
                 double mcr=analysis.Values.Single(v=>v.Quantity==SteelStabilityQuantity.Mcr).Value;
-                double lambdaLT=Math.Sqrt(m1rk)/Math.Sqrt(mcr);var curve=BucklingCurves.LateralTorsional(section,ntc);
-                chiLT=BucklingCurves.Reduction(lambdaLT,curve);
+                double lambdaLT=Math.Sqrt(m1rk)/Math.Sqrt(mcr);ltb=SteelLateralTorsionalExecution.Reduce(analysis,section,lambdaLT,ntc);var curve=ltb.Curve;
+                chiLT=ltb.Chi;
                 Add(trace,"Mcr",mcr,"Nmm");Add(trace,"LambdaLT",lambdaLT,"1");Add(trace,"AlphaLT",BucklingCurves.Alpha(curve),"1");
+                SteelLateralTorsionalExecution.AddTrace(trace,ltb,curveParameters:true);
             }
             double nb1=chi1*nrk/gamma,nb2=chi2*nrk/gamma,mb=chiLT*m1rk/gamma,mz=m2rk/gamma;
             // N>=0: n1=n2=0, so k11=Cm1, k22=Cm2, k12/k21 from Tables B.1-B.2 (C4.2.IV-V) at n=0; CmLT-.25>=.15.
@@ -137,7 +140,8 @@ namespace GPC.Checkers.Steel.Pipeline
             double utilization=Math.Max(result.Utilization,compression.Utilization.Value);
             Add(trace,"Utilization",utilization,"1");
             return new SteelCheckExecution(decision,utilization<=1?SteelExecutionStatus.Passed:SteelExecutionStatus.Failed,
-                reference:result.Reference+(effective?"; EN1993-1-5:2006 4.3(3)/(4), class4 Aeff/Weff at fy; gross critical values":""),scope:"Doubly symmetric prismatic H/RHS/SHS/CHS classes1-3, qualified H/RHS class4 with zero uniform-compression centroid shift; hollow sections use conservative elastic moduli and elastic interaction coefficients; N constant, M1/M2 maxima from one design state; explicit Cm, global-analysis and mode assessments. Section/shear verification is separate."
+                reference:result.Reference+(effective?"; EN1993-1-5:2006 4.3(3)/(4), class4 Aeff/Weff at fy; gross critical values":"")
+                    +(ltb?.IsRolled==true?"; chiLT: "+SteelLateralTorsionalExecution.Reference(ntc):""),scope:"Doubly symmetric prismatic H/RHS/SHS/CHS classes1-3, qualified H/RHS class4 with zero uniform-compression centroid shift; hollow sections use conservative elastic moduli and elastic interaction coefficients; N constant, M1/M2 maxima from one design state; explicit Cm, global-analysis and mode assessments. Section/shear verification is separate."
                     +(i.EffectiveActions.N>=0?" N>=0: interaction at NEd=0, tension neglected as favourable to flexural and lateral-torsional buckling; N-M resistance is a section check.":""),
                 utilization:utilization,trace:trace);
         }
