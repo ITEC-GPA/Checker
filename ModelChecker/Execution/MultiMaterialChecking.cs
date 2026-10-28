@@ -177,6 +177,7 @@ namespace GPC.Model.Checker
             for (int i = 0; i < plans.Length; i++) if (!Current(model, plans[i]))
                 foreach (var result in reports[i].Results.Where(r => r.Outcome != EngineeringOutcome.NotEvaluated))
                 { result.Data = DataStatus.Stale; result.Outcome = EngineeringOutcome.NotEvaluated; result.Diagnostics.Add(ModelDiagnostic.Error("MaterialInputsChangedDuringRun")); result.SealEvidence(); }
+            if (TraceRetention == CheckTraceRetention.GoverningAndFailed) TraceCompaction.Apply(reports.SelectMany(r => r.Results));
             return WithProvenance(new ModelCheckReport { Jobs = reports.AsReadOnly(), CreatedCheckers = sessions.Values.Sum(s => s.CreatedCheckers) }, model, provenance);
         }
         /// <summary>Validate persisted scopes against current model, routing, methods and external module parameters without recalculating.</summary>
