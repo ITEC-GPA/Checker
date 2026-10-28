@@ -15,7 +15,7 @@ namespace GPC.Checkers.Steel.Pipeline
     {
         internal static SteelCheckExecution Execute(SteelVerificationInput input,SteelMethodDecision decision,CancellationToken cancellation,IReadOnlyList<SteelShearBucklingAssessment> assessments)
         {
-            var a=input.Actions;
+            var a=input.EffectiveActions;
             var normal=new SteelVerificationInput(input.Section,new SteelActions(a.N,0,0,0,a.M1,a.M2),input.Code);
             var r=SteelEffectiveSectionSolver.Solve(normal,cancellation:cancellation);var s=r.State;
             double utilization=r.Utilization,shearRatio=0,interaction=0;
@@ -35,7 +35,7 @@ namespace GPC.Checkers.Steel.Pipeline
             }
             var trace=new List<SectionResistanceValue>();
             void Add(string name,double value,string unit)=>trace.Add(new SectionResistanceValue(name,value,unit));
-            Add("N",input.Actions.N,"N");Add("M1",input.Actions.M1,"Nmm");Add("M2",input.Actions.M2,"Nmm");
+            Add("N",input.EffectiveActions.N,"N");Add("M1",input.EffectiveActions.M1,"Nmm");Add("M2",input.EffectiveActions.M2,"Nmm");
             Add("AreaGross",input.Section.Area,"mm2");Add("AreaEffective",s.Area,"mm2");
             Add("CentroidShiftX",s.CentroidShiftX,"mm");Add("CentroidShiftY",s.CentroidShiftY,"mm");
             Add("EffectiveIxx",s.Ixx,"mm4");Add("EffectiveIyy",s.Iyy,"mm4");Add("EffectiveIxy",s.Ixy,"mm4");

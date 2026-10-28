@@ -32,7 +32,7 @@ namespace GPC.Checkers.Steel.Pipeline
             SectionResult=section; Patch=patch; Force=force; Source=source;
             if(double.IsNaN(ForceUtilization)||double.IsInfinity(ForceUtilization))
                 throw new ArithmeticException("Patch utilization outside finite numerical range.");
-            var a=Input.Actions;
+            var a=Input.EffectiveActions;
             bool noSectionActions=a.N==0&&a.M1==0&&a.M2==0&&a.V1==0&&a.V2==0&&a.T==0;
             var normal=section.Checks.FirstOrDefault(c=>c.Decision.Target==SteelCheckTarget.NormalResistance);
             bool needsNormal=a.N!=0||a.M1!=0;
@@ -77,7 +77,7 @@ namespace GPC.Checkers.Steel.Pipeline
             var input=sectionResult.Plan.Input; var section=input.Section.ReadOnlySection;
             if(input.Section.Unperforated!=true||section.SectionShape.GetType()!=typeof(SectionH)
                 ||section.SectionType!=Section.SectionTypes.Welded||SteelMethodSelector.ColdFormedOpen(section)
-                ||Math.Abs(section.AngleX1)>1e-10||input.Actions.M2!=0||input.Actions.V1!=0||input.Actions.T!=0)
+                ||Math.Abs(section.AngleX1)>1e-10||input.EffectiveActions.M2!=0||input.EffectiveActions.V1!=0||input.EffectiveActions.T!=0)
                 throw new NotSupportedException("Homogeneous welded H, unperforated planar web, N/M1/V2 actions required.");
             SteelMethodSelector.ValidateGeometry(section);
             var h=(SectionH)section.SectionShape;

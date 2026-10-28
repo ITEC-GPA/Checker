@@ -2,6 +2,7 @@ using System.Collections;
 using GPC.Checkers.Steel.Inputs;
 using GPC.Checkers.Steel.Members;
 using GPC.Checkers.Steel.ModelAdapters;
+using GPC.Checkers.Steel.Pipeline;
 using GPC.Checkers.Steel.Selection;
 using GPC.Checkers.Steel.Sections;
 using GPC.Model.Materials;
@@ -167,8 +168,9 @@ public class SteelMethodSelectorTests
     [TestMethod]
     public void PreviouslyUnqualifiedInteractionsNowSelectAnExplicitElasticMethod()
     {
+        // Rolled doubly symmetric H: EN 1993-1-1 6.2.9.1(5) closed-form plastic interaction.
         var roundedH = SteelMethodSelector.Select(Input(H(radius: 5), n: -1000, m1: 1e6));
-        Assert.AreEqual(SteelMethod.ElasticNormalInteraction, Normal(roundedH).Method);
+        Assert.AreEqual(SteelMethod.IHPlasticInteractionFormulas, Normal(roundedH).Method);
         var tee = SteelMethodSelector.Select(Input(new SectionT(120, 100, 20, 20, "T"), n: -1000, m1: 1e6));
         Assert.AreEqual(SteelMethod.ElasticNormalInteraction, Normal(tee).Method);
         var input = Input(n: -1000, m1: 1e6);
@@ -337,9 +339,12 @@ public class SteelMethodSelectorTests
     [TestMethod]
     public void ExternalStateClassificationIsRetainedWithoutRelaxingMemberClass()
     {
+        // Web d/tw = 276/5 = 55.2: class 4 in uniform compression (> 42 eps), class 1 in pure bending
+        // (alpha = 0.5, limit 72 eps); flange outstands 72.5/12 = 6.04 <= 9 eps. S235, eps = 1.
         var input = Input(H(web: 5), m1: 1e6);
         var conservative = SteelMethodSelector.Select(input);
-        Assert.AreEqual(4, Normal(conservative).SectionClass);
+        Assert.AreEqual(1, Normal(conservative).SectionClass);
+        Assert.AreEqual(4, Normal(SteelMethodSelector.Select(Input(H(web: 5), n: -1000))).SectionClass);
         var classified = SteelMethodSelector.Select(input, classification: new SteelSectionClassification(input, 3, "external actual bending-state classification"));
         Assert.AreEqual(Status.Ready, Normal(classified).Status);
         Assert.AreEqual(3, Normal(classified).SectionClass);
@@ -375,15 +380,18 @@ public class SteelMethodSelectorTests
     [DataRow(SteelMethod.SectionTension)] [DataRow(SteelMethod.SectionCompression)]
     [DataRow(SteelMethod.SectionBending1)] [DataRow(SteelMethod.SectionBending2)]
     [DataRow(SteelMethod.Ec3PlasticHInteraction)] [DataRow(SteelMethod.NtcElasticNormalInteraction)]
+    [DataRow(SteelMethod.IHPlasticInteractionFormulas)]
     public void ReadyMethodHasTheInputsRequiredByItsExistingApi(SteelMethod expected)
     {
-        bool interaction = expected is SteelMethod.Ec3PlasticHInteraction or SteelMethod.NtcElasticNormalInteraction;
+        bool interaction = expected is SteelMethod.Ec3PlasticHInteraction or SteelMethod.NtcElasticNormalInteraction
+            or SteelMethod.IHPlasticInteractionFormulas;
         var input = Input(n: expected == SteelMethod.SectionTension ? 1000 : expected == SteelMethod.SectionCompression || interaction ? -1000 : 0,
             m1: expected == SteelMethod.SectionBending1 || interaction ? 1e6 : 0,
             m2: expected == SteelMethod.SectionBending2 || interaction ? -2e6 : 0,
-            ntc: expected == SteelMethod.NtcElasticNormalInteraction);
-        var plan = SteelMethodSelector.Select(input, classification: expected == SteelMethod.NtcElasticNormalInteraction
-            ? new SteelSectionClassification(input, 1, "test preparation") : null);
+            ntc: expected is SteelMethod.NtcElasticNormalInteraction or SteelMethod.IHPlasticInteractionFormulas);
+        // NTC doubly symmetric H: class 1/2 takes the closed-form plastic interaction, class 3 the elastic bound.
+        var plan = SteelMethodSelector.Select(input, classification: input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018
+            ? new SteelSectionClassification(input, expected == SteelMethod.NtcElasticNormalInteraction ? 3 : 1, "test preparation") : null);
         var decision = Normal(plan); var s = input.Section.CreateSectionCopy(); var a = input.Actions;
         Assert.AreEqual(expected, decision.Method);
         Assert.IsTrue(plan.IsReadyForExecution);
@@ -410,6 +418,9 @@ public class SteelMethodSelectorTests
             case SteelMethod.NtcElasticNormalInteraction:
                 Assert.IsTrue(double.IsFinite(Ntc2018SectionResistance.ElasticNormalInteraction(a.N, a.M1, a.M2,
                     s.Area, s.Wel1, s.Wel2, input.Section.YieldStrength, decision.SectionClass!.Value)));
+                break;
+            case SteelMethod.IHPlasticInteractionFormulas:
+                Assert.IsTrue(SteelVerificationPipeline.Execute(plan).Checks.Single(c => c.Decision.Target == SteelCheckTarget.NormalResistance).IsEvaluated);
                 break;
             default: Assert.Fail("Unmapped ready method."); break;
         }

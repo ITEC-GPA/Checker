@@ -30,7 +30,7 @@ namespace GPC.Checkers.Steel.Selection
                 decisions.Add(Guard(SteelCheckTarget.NormalResistance, () => Normal(input, section, classification)));
                 decisions.Add(Guard(SteelCheckTarget.Shear1, () => Shear(input, section, 1)));
                 decisions.Add(Guard(SteelCheckTarget.Shear2, () => Shear(input, section, 2)));
-                decisions.Add(input.Actions.T == 0 ? NotRequired(SteelCheckTarget.Torsion)
+                decisions.Add(input.EffectiveActions.T == 0 ? NotRequired(SteelCheckTarget.Torsion, input, "T")
                     : Unsupported(SteelCheckTarget.Torsion, "Torsion.NotIntegrated", "No torsion route is integrated in the common input selector."));
             }
             if (scope != SteelCheckScope.Section) decisions.Add(Member(input));
@@ -54,9 +54,33 @@ namespace GPC.Checkers.Steel.Selection
         private static SteelMethodDecision Normal(SteelVerificationInput input, ISteelSection section,
             SteelSectionClassification suppliedClass)
         {
+            var decision = NormalCore(input, section, suppliedClass);
+            if (suppliedClass == null && input.EffectiveActions.V2 != 0 && decision.Status == SteelSelectionStatus.RequiresPreparation
+                && decision.Method != SteelMethod.EffectiveNormalResistance)
+                decision.SlenderWebAlternative = SlenderWebRoute(input, section);
+            return decision;
+        }
+
+        // The route that applied before classification followed the actual state; kept for webs
+        // whose shear buckling is not excluded, the only case the class 1-3 methods cannot cover.
+        private static SteelMethodDecision SlenderWebRoute(SteelVerificationInput input, ISteelSection section)
+        {
+            var shape = section.SectionShape;
+            if (shape.GetType() != typeof(SectionH) || input.EffectiveActions.V1 != 0 || Math.Abs(shape.AngleX1) > 1e-10) return null;
+            var uniform = Classification(input, section, null);
+            if (uniform.Failure != null || uniform.Class != 4) return null;
+            try { SteelEffectiveSectionSolver.Qualify(input.Section); }
+            catch (NotSupportedException) { return null; }
+            return AwaitShearAssessment(SteelCheckTarget.NormalResistance, SteelMethod.EffectiveNormalResistance, 4,
+                uniform.Source + "; web shear buckling not excluded: EN 1993-1-5 7.1 on the effective section");
+        }
+
+        private static SteelMethodDecision NormalCore(SteelVerificationInput input, ISteelSection section,
+            SteelSectionClassification suppliedClass)
+        {
             const SteelCheckTarget target = SteelCheckTarget.NormalResistance;
-            var a = input.Actions; var s = input.Section; var shape = section.SectionShape;
-            if (a.N == 0 && a.M1 == 0 && a.M2 == 0) return NotRequired(target);
+            var a = input.EffectiveActions; var s = input.Section; var shape = section.SectionShape;
+            if (a.N == 0 && a.M1 == 0 && a.M2 == 0) return NotRequired(target, input, "N", "M1", "M2");
             if (a.T != 0) return Unsupported(target, "TorsionInteraction.NotIntegrated", "Normal resistance with torsion needs a qualified interaction method.");
             if (!KnownGeometry(shape)) return Unsupported(target, "Geometry.NotQualified", "This exact geometry type has no common-input route.");
             if (ColdFormedOpen(section)) return Unsupported(target, "ColdFormedOpenSection.NotQualified", "Cold-formed open sections require their own qualified design route.");
@@ -81,7 +105,7 @@ namespace GPC.Checkers.Steel.Selection
             bool asymmetricH = shape is SectionH h &&
                 (h.LenghtTopFlange != h.LenghtBottomFlange || h.ThicknessTopFlange != h.ThicknessBottomFlange);
             bool interaction = combined || moment && asymmetricH;
-            var classInfo = Classification(input, section, suppliedClass);
+            var classInfo = Classification(input, section, suppliedClass, true);
             if (classInfo.Failure != null) return classInfo.Failure;
             int cl = classInfo.Class.Value;
             if (cl == 4)
@@ -96,10 +120,14 @@ namespace GPC.Checkers.Steel.Selection
             }
             bool plasticH = interaction && ec3 && cl <= 2 && shape.GetType() == typeof(SectionH)
                 && ((SectionH)shape).R == 0 && Math.Abs(shape.AngleX1) <= 1e-10;
-            bool elastic = interaction && !plasticH || moment &&
+            // Doubly symmetric I/H, rolled or NTC: the code's closed-form plastic interaction.
+            bool plasticIH = interaction && !plasticH && cl <= 2 && shape.GetType() == typeof(SectionH)
+                && !asymmetricH && Math.Abs(shape.AngleX1) <= 1e-10;
+            bool elastic = interaction && !plasticH && !plasticIH || moment &&
                 (shape.GetType() == typeof(SectionL) || shape.GetType() == typeof(SectionRHSRoundedCorners));
             SteelMethod method = !moment ? SteelMethod.SectionCompression
                 : plasticH ? SteelMethod.Ec3PlasticHInteraction
+                : plasticIH ? SteelMethod.IHPlasticInteractionFormulas
                 : elastic ? (ec3 ? SteelMethod.ElasticNormalInteraction : SteelMethod.NtcElasticNormalInteraction)
                 : a.M1 != 0 ? SteelMethod.SectionBending1 : SteelMethod.SectionBending2;
             // A resistance-domain bound, not a shear-stress field or a von Mises check.
@@ -110,6 +138,8 @@ namespace GPC.Checkers.Steel.Selection
             {
                 if (elastic)
                 { Positive(section.Wel1); Positive(section.Wel2); }
+                else if (method == SteelMethod.IHPlasticInteractionFormulas)
+                { Positive(section.Wpl1); Positive(section.Wpl2); }
                 else if (method != SteelMethod.Ec3PlasticHInteraction)
                     Positive(a.M1 != 0 ? (cl <= 2 ? section.Wpl1 : section.Wel1) : (cl <= 2 ? section.Wpl2 : section.Wel2));
             }
@@ -126,8 +156,11 @@ namespace GPC.Checkers.Steel.Selection
             return AwaitShearAssessment(target, method, cl, classInfo.Source);
         }
 
+        /// <summary>A supplied class wins. With concomitantActions the class follows the cut's
+        /// N-M1-M2 distribution where ModelStressClassification covers the family; otherwise,
+        /// and for whole members, the conservative nominal uniform-compression class.</summary>
         internal static ClassificationInfo Classification(SteelVerificationInput input, ISteelSection section,
-            SteelSectionClassification supplied)
+            SteelSectionClassification supplied, bool concomitantActions = false)
         {
             if (supplied != null) return new ClassificationInfo(supplied.SectionClass, supplied.Source);
             if (section.SectionShape is SectionBuiltUp pair)
@@ -154,6 +187,12 @@ namespace GPC.Checkers.Steel.Selection
             }
             if (!ModelCompressionGeometry.CanMap(section))
                 return new ClassificationInfo(Unsupported(SteelCheckTarget.NormalResistance, "Classification.GeometryNotQualified", "No automatic uniform-compression mapping for this exact geometry."));
+            if (concomitantActions)
+            {
+                ModelCompressionGeometry.Create(section); // Same geometry qualification as the uniform route.
+                var stress = ModelStressClassification.TryEvaluate(input, section);
+                if (stress != null) return new ClassificationInfo(stress.Class, stress.Source);
+            }
             var result = ntc ? Ntc2018CompressionClassification.Evaluate(ModelCompressionGeometry.Create(section), input.Section.YieldStrength)
                 : Ec3UniformCompressionClassification.Evaluate(ModelCompressionGeometry.Create(section), input.Section.YieldStrength);
             if (!result.IsEvaluated) return new ClassificationInfo(Invalid(SteelCheckTarget.NormalResistance, result.DiagnosticCode, "Uniform-compression classification could not be established."));
@@ -165,8 +204,8 @@ namespace GPC.Checkers.Steel.Selection
         private static SteelMethodDecision Shear(SteelVerificationInput input, ISteelSection section, int axis)
         {
             var target = axis == 1 ? SteelCheckTarget.Shear1 : SteelCheckTarget.Shear2;
-            var a = input.Actions;
-            if ((axis == 1 ? a.V1 : a.V2) == 0) return NotRequired(target);
+            var a = input.EffectiveActions;
+            if ((axis == 1 ? a.V1 : a.V2) == 0) return NotRequired(target, input, axis == 1 ? "V1" : "V2");
             if (a.T != 0) return Unsupported(target, "ShearTorsionInteraction.NotIntegrated", "Shear with torsion requires a qualified interaction method.");
             if (!ShearMappingQualified(section)) return Unsupported(target, "ShearAxes.NotQualified", "No qualified shear-area mapping for this exact geometry and principal-axis orientation.");
             if (ColdFormedOpen(section)) return Unsupported(target, "ColdFormedOpenSection.NotQualified", "Cold-formed open sections require their own qualified design route.");
@@ -184,8 +223,8 @@ namespace GPC.Checkers.Steel.Selection
         {
             if (!ShearMappingQualified(section)) return Unsupported(SteelCheckTarget.NormalResistance,
                 "ShearAxes.NotQualified", "The linear interaction requires qualified pure-shear resistances on both active axes.");
-            if (input.Actions.M1 != 0) Positive(section.Wel1);
-            if (input.Actions.M2 != 0) Positive(section.Wel2);
+            if (input.EffectiveActions.M1 != 0) Positive(section.Wel1);
+            if (input.EffectiveActions.M2 != 0) Positive(section.Wel2);
             return AwaitShearAssessment(SteelCheckTarget.NormalResistance, SteelMethod.LinearResistanceInteraction, cl, source);
         }
 
@@ -208,7 +247,7 @@ namespace GPC.Checkers.Steel.Selection
                 || t == typeof(SectionRHS) && ((SectionRHS)shape).R == 0;
         }
 
-        private static bool ShearMappingQualified(ISteelSection section)
+        internal static bool ShearMappingQualified(ISteelSection section)
         {
             var t = section.SectionShape.GetType();
             bool mapped = t == typeof(SectionH) || t == typeof(SectionT) || t == typeof(SectionC)
@@ -284,6 +323,15 @@ namespace GPC.Checkers.Steel.Selection
             => new SteelMethodDecision(target, SteelSelectionStatus.RequiresPreparation, method, "ShearBuckling.AssessmentRequired",
                 "The pipeline must exclude shear buckling under the selected code before executing this primitive. No eta or panel model is assumed.", cl, source,
                 new[] { SteelPreparationRequirement.ShearBucklingAssessment });
+        private static SteelMethodDecision NotRequired(SteelCheckTarget target, SteelVerificationInput input, params string[] components)
+        {
+            var neglected = input.NeglectedActions.Where(n => components.Contains(n.Component)).ToArray();
+            if (neglected.Length == 0) return NotRequired(target);
+            return new SteelMethodDecision(target, SteelSelectionStatus.NotRequired, null, "Actions.Negligible",
+                "Associated actions are below the negligible-action limits and count as zero: "
+                + string.Join("; ", neglected.Select(n => n.Component + "=" + n.Value.ToString("R", System.Globalization.CultureInfo.InvariantCulture)
+                    + " " + n.Unit + " <= " + n.Limit.ToString("R", System.Globalization.CultureInfo.InvariantCulture))) + ".");
+        }
         private static SteelMethodDecision NotRequired(SteelCheckTarget target)
             => new SteelMethodDecision(target, SteelSelectionStatus.NotRequired, null, "Actions.Zero", "No associated action at this cut; no resistance or member-wide conclusion is implied.");
         private static SteelMethodDecision Unsupported(SteelCheckTarget target, string code, string message)

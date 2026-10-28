@@ -11,7 +11,7 @@ namespace GPC.Checkers.Steel.Selection
     public enum SteelMethod
     {
         SectionTension, SectionCompression, SectionBending1, SectionBending2,
-        SectionShear1, SectionShear2, Ec3PlasticHInteraction, NtcElasticNormalInteraction, Ec3UniformForkMember, Ec3ExternalGeneralMember, ElasticNormalInteraction, PrismaticCompression, PrismaticLateralTorsionalBuckling, HMajorBendingShear, HBeamColumn, LinearResistanceInteraction, LinearShearInteraction, EffectiveNormalResistance, WebPanelDetails
+        SectionShear1, SectionShear2, Ec3PlasticHInteraction, NtcElasticNormalInteraction, Ec3UniformForkMember, Ec3ExternalGeneralMember, ElasticNormalInteraction, PrismaticCompression, PrismaticLateralTorsionalBuckling, HMajorBendingShear, HBeamColumn, LinearResistanceInteraction, LinearShearInteraction, EffectiveNormalResistance, WebPanelDetails, IHPlasticInteractionFormulas
     }
     public enum SteelPreparationRequirement { ShearBucklingAssessment }
 
@@ -47,6 +47,9 @@ namespace GPC.Checkers.Steel.Selection
         public string Message { get; }
         public IReadOnlyList<SteelPreparationRequirement> RequiredPreparation { get; }
         public IReadOnlyList<string> MissingInputs { get; }
+        /// <summary>Same check on the effective section (EN 1993-1-5 7.1) when the actual state is class 1-3 but
+        /// uniform compression is class 4 and web shear buckling turns out not to be excluded.</summary>
+        internal SteelMethodDecision SlenderWebAlternative { get; set; }
 
         internal SteelMethodDecision(SteelCheckTarget target, SteelSelectionStatus status,
             SteelMethod? method, string diagnostic, string message, int? sectionClass = null,

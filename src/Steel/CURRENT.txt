@@ -25,6 +25,29 @@ Sezioni e aste:
   Riferimenti: COMMON_INPUT.txt, METHOD_SELECTION.txt,
   VERIFICATION_PIPELINE.txt, MEMBER_ANALYSIS_PIPELINE.txt, COVERAGE_CLASS4.txt.
 
+Stato reale del taglio (28 ottobre 2026):
+  Azioni trascurabili: SteelDesignContext.NegligibleActions. Una componente
+  vale zero se |valore| <= max(relativo x resistenza, limite assoluto);
+  default relativo 1e-6, assoluti 0 (forze in N, momenti in Nmm).
+  Resistenze di riferimento: Npl, Vpl sulle aree qualificate, Mel, torsione
+  fy/(rad3 gM0) A tmin/3. SteelVerificationInput.Actions resta l'originale;
+  EffectiveActions e NeglectedActions mostrano cosa e stato azzerato, e ogni
+  controllo riporta Neglected.<componente> e il limite nella traccia.
+  ExactZero ripristina il confronto esatto con zero.
+  Classe: per le H doppiamente simmetriche, i cassoni a spessore uniforme e
+  le C con M2=0 la classe segue N-M1-M2 concomitanti del taglio (EC3 5.5.2,
+  Tab. 5.2; NTC Tab. 4.2.III-IV): alfa plastico per classi 1-2, psi elastico
+  per la classe 3. Compressione pura, altre famiglie e aste restano sulla
+  compressione uniforme. Se la classe uniforme e 4 e l'instabilita a taglio
+  d'anima non e esclusa, resta il percorso EN 1993-1-5 7.1 sulla sezione
+  efficace.
+  N-M plastica: H laminate doppiamente simmetriche (EC3) e tutte le H
+  doppiamente simmetriche (NTC 4.2.4.1.2.7), classi 1-2, con le formule
+  chiuse EC3 (6.36)-(6.38), (6.41): IHPlasticInteractionFormulas. Le H
+  saldate EC3 conservano la soluzione esatta Ec3PlasticHInteraction.
+  V1 sulle H: SteelShearBucklingAssessment.EvaluateHFlanges esclude
+  l'instabilita a taglio delle ali se gli sbalzi restano entro 14 eps.
+
 Coprigiunti bullonati di travi composte saldate a I:
   BridgeSpliceApplication.CreateBolted -> WeldedIBeamSpliceStandard.Verify
   -> BridgeSpliceReport.FromBolted -> SteelAssessmentSummary.From(report).

@@ -40,7 +40,11 @@ public class EffectiveShearTests
     [DataTestMethod,DynamicData(nameof(Cases))]
     public void Class4MajorBendingWebShearMatchesConservativeEquation71(bool ntc,double ratio,double sign)
     {
-        var pure=Input(ntc,0,sign*1e7);var normal=SteelVerificationPipeline.Execute(SteelMethodSelector.Select(pure)).Checks.First();
+        // Web d/tw = 360.4/6.4 = 56.3 <= 72 eps: class 1 in pure bending, class 4 in uniform compression.
+        // Web shear buckling is not excluded, so the shear cases keep the effective-section route.
+        var pure=Input(ntc,0,sign*1e7);
+        Assert.AreEqual(1,SteelMethodSelector.Select(pure).Decisions.Single(d=>d.Target==SteelCheckTarget.NormalResistance).SectionClass);
+        var normal=SteelVerificationPipeline.Execute(SteelMethodSelector.Select(pure,classification:new SteelSectionClassification(pure,4,"uniform compression"))).Checks.First();
         var i=Input(ntc,sign*ratio*SciResistance(ntc),sign*1e7);
         var r=SteelVerificationPipeline.Execute(SteelMethodSelector.Select(i),new[]{Assessment(i,ntc)});var check=r.Checks.First();
         double expected=Math.Max(ratio,normal.Utilization!.Value+(ratio<=.5?0:Math.Pow(2*ratio-1,2)));
