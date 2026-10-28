@@ -71,8 +71,12 @@ Stabilita delle aste senza compressione (28 ottobre 2026, branch steel-aste-rout
   NTC 4.2.4.1.3.3) con ModelStressClassification; con M1 e M2 entrambi presenti si
   classificano (N,M1,M2), (N,M1,0) e (N,0,M2) e vale la classe peggiore, perche i
   massimi possono venire da tagli diversi (con N<0 e M2 l'anima puo restare in
-  compressione uniforme). Classe 4: Aeff/Weff come prima; MemberClass fornita
-  prevale. Es.: UKB406x140x39 S355, N=-10 kN e M1: alfa=0,506, classe 1 (prima 4).
+  compressione uniforme). Con compressione vale solo una classe 1-2 con M1
+  (alfa dipende solo da N, quindi tiene lungo l'asta); la classe 3 dipende da psi,
+  cioe da M/N che varia lungo l'asta, e con M1=0 l'alfa delle ali dipende da M2:
+  in questi casi resta la classe a compressione uniforme. Classe 4: Aeff/Weff come
+  prima; MemberClass fornita prevale. Es.: UKB406x140x39 S355, N=-10 kN e M1:
+  alfa=0,506, classe 1 (prima 4); N=-200 kN e M1=100 kNm: classe 3 per psi, resta 4.
   Taglio: senza ShearBucklingExclusionSource le H esatte attendono le valutazioni
   per ogni taglio attivo (anima EvaluateEc3HWeb/EvaluateNtcHWeb, ali
   EvaluateHFlanges, criterio GPC); ModelChecker le calcola come il motore di

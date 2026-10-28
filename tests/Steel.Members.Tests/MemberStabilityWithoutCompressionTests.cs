@@ -186,6 +186,21 @@ public class MemberStabilityWithoutCompressionTests
     }
 
     [DataTestMethod] [DataRow(false)] [DataRow(true)]
+    public void BeamColumnWithCompressionKeepsOnlyAlphaBasedClassGains(bool ntc)
+    {
+        // UKB406 S355, N = -200 kN: alpha = 0.5 + 200/(2*818.8) = 0.622, class 2 limit 456 eps/(13 alpha - 1) = 52.4 < 56.31.
+        // With M1 = 100 kNm the web edges carry about -184 and +104 MPa: psi = -0.56, 42 eps/(0.67 + 0.33 psi) = 70.6 -> class 3.
+        // With 20 kNm at another cut psi = +0.17 and the limit 47.1 < 56.31 -> class 4: psi depends on M/N along the member,
+        // so the uniform-compression class 4 governs (56.31 > 42 eps = 34.17).
+        var r = Run(BeamColumn(Input(Ukb406(), ntc, n: -2e5, m1: 1e8), false));
+        Assert.IsTrue(r.IsEvaluated, r.Message); Assert.AreEqual(4, r.Decision.SectionClass);
+        StringAssert.Contains(r.Decision.ClassificationSource, "the N-M class 3");
+        Assert.IsTrue(r.Trace.Any(v => v.Name == "AreaEffective"));
+        // Minor-axis bending with compression: the flange alpha depends on M2, the web carries N alone -> uniform class 4.
+        Assert.AreEqual(4, Run(BeamColumn(Input(Ukb406(), ntc, n: -1e4, m2: 1e6), false)).Decision.SectionClass);
+    }
+
+    [DataTestMethod] [DataRow(false)] [DataRow(true)]
     public void BeamColumnClassTakesTheWorstEnvelopeStateAndASuppliedClassWins(bool ntc)
     {
         // UKB406 with N = -10 kN, M1 = 100 kNm, M2 = 1 kNm: the two maxima may come from different cuts. (N,M1,M2) and (N,M1,0)

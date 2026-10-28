@@ -25,7 +25,8 @@ namespace GPC.Checkers.Steel.Pipeline
         /// <summary>EC3 6.3.3 Table 6.7 / NTC 4.2.4.1.3.3: NRk and MiRk follow the class of the section under the
         /// beam-column's own N-M (EC3 5.5.2, NTC 4.2.3.1 via ModelStressClassification), tension neglected. The envelope
         /// maxima may come from different cuts: (N,M1,M2), (N,M1,0) and (N,0,M2) are classified and the highest class
-        /// governs. Families without a stress-based route keep the uniform-compression class; a supplied class wins.</summary>
+        /// governs. With compression only alpha-based classes 1-2 with M1 are kept, otherwise the uniform-compression
+        /// class. Families without a stress-based route keep the uniform-compression class; a supplied class wins.</summary>
         private static SteelMethodSelector.ClassificationInfo Class(SteelMemberAnalysis analysis)
         {
             var i=analysis.Input;var a=i.EffectiveActions;
@@ -39,6 +40,17 @@ namespace GPC.Checkers.Steel.Pipeline
                     i.Section.ReadOnlySection,null,concomitantActions:true);
                 if(info.Failure!=null)return info;
                 if(worst==null||info.Class>worst.Class){worst=info;state=s.Name;}
+            }
+            // With compression only alpha-based classes 1-2 under N and M1 hold along the whole member: alpha depends on N
+            // alone and (N,M1,0) keeps the flanges uniformly compressed. Class 3 rests on psi, i.e. on M/N, which varies along
+            // the member, and with M1=0 the flange alpha depends on M2: the uniform-compression class then governs.
+            if(n<0&&(worst.Class>2||a.M1==0))
+            {
+                var uniform=SteelMethodSelector.Classification(new SteelVerificationInput(i.Section,new SteelActions(n,0,0,0,0,0),i.Code,i.Member),
+                    i.Section.ReadOnlySection,null);
+                if(uniform.Failure!=null)return uniform;
+                if(uniform.Class>worst.Class)return new SteelMethodSelector.ClassificationInfo(uniform.Class.Value,uniform.Source
+                    +"; beam-column with compression: the N-M class "+worst.Class+" ("+state+") depends on the moment level along the member");
             }
             return new SteelMethodSelector.ClassificationInfo(worst.Class.Value,worst.Source+"; beam-column envelope state "+state
                 +(states.Count>1?" (highest of (N,M1,M2), (N,M1,0), (N,0,M2): maxima of different cuts are not taken as concomitant)":"")
