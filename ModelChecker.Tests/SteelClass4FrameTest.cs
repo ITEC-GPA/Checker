@@ -25,6 +25,13 @@ public class SteelClass4FrameTest
             var a=baseReport.Jobs[j].Results.Single(r=>r.Scope==CheckScope.PhysicalMember);
             var b=report.Jobs[j].Results.Single(r=>r.Scope==CheckScope.PhysicalMember);
             Assert.AreEqual(a.Utilization!.Value,b.Utilization!.Value,1e-10);
+            if(b.Target.MemberId.StartsWith("B")) {
+                // UKB406x140x39 S355 under LTB: web c/t=(398-2*8.6-2*10.2)/6.4=56.3 <= 72eps=58.6, flange 6.69 <= 9eps:
+                // class 1 in bending (EC3 6.3.2.1(3)), class 4 only in uniform compression.
+                Assert.IsTrue(b.Details.Trace.Any(t=>t.Key=="MemberStability.MemberClass"&&t.Value==1));
+                Assert.IsTrue(b.Details.Trace.Any(t=>t.Key.EndsWith(".Wpl1")));
+                continue;
+            }
             Assert.IsTrue(b.Details.Trace.Any(t=>t.Key=="MemberStability.MemberClass"&&t.Value==4));
             Assert.IsTrue(b.Details.Trace.Any(t=>t.Key.EndsWith(".AreaEffective")||t.Key.EndsWith(".Weff1Min")));
         }

@@ -106,7 +106,7 @@ public class CommonMemberCoverageTests
         SteelMemberAnalysis A(SteelVerificationInput i)=>SteelMemberAnalysis.Compression(i,"declaration","curves",SteelBucklingCurve.B,SteelBucklingCurve.C,SteelBucklingCurve.C,
             torsionalExclusionSource:"assessed",flexuralTorsionalExclusionSource:"assessed");
         Assert.AreEqual(SteelExecutionStatus.NotRequired,Run(A(Input("H",true,n:1000))).Status);
-        Assert.AreEqual(SteelExecutionStatus.NotSupported,Run(A(Input("H",true,m:1))).Status);
+        Assert.AreEqual(SteelExecutionStatus.NotSupported,Run(A(Input("H",true,m:1e5))).Status); // 1 Nmm is below the negligible-action limit
         var i=Input("H",true); var b=SteelMemberAnalysis.Bending(i,"N+M","profile",SteelCriticalMomentBasis.UniformMoment,new(SteelStabilityQuantity.Mcr,1e8,SteelStabilityUnit.Nmm,"source"));
         Assert.AreEqual(SteelExecutionStatus.NotSupported,Run(b).Status);
     }

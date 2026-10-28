@@ -23,7 +23,7 @@ namespace GPC.Checkers.Steel.Pipeline
             if (missing.Count > 0) return Decision(SteelSelectionStatus.MissingInput, "Member.InputRequired", string.Join(", ", missing), missing);
             if (analysis.Kind == SteelMemberAnalysisKind.UniformForkHOrT && i.Code.SectionCode.Standard != SectionResistanceStandard.Eurocode3_2005)
                 return Decision(SteelSelectionStatus.NotSupported, "Member.NtcMethodNotQualified", "This EC3 general-method route is not qualified as an NTC method.");
-            var a = i.Actions;
+            var a = i.EffectiveActions;
             if (i.Section.Unperforated != true || a.N > 0 || a.M2 != 0 || a.V1 != 0 || a.V2 != 0 || a.T != 0)
                 return Decision(SteelSelectionStatus.NotSupported, "Member.ActionPatternNotQualified", "Unperforated in-plane compression/major bending only; no transverse actions or torsion.");
             if (a.N == 0 && a.M1 == 0) return Decision(SteelSelectionStatus.NotRequired, "Member.NoActions", "No active member action pattern.");
@@ -70,14 +70,14 @@ namespace GPC.Checkers.Steel.Pipeline
             Ec3GeneralMethodResult result; double utilization;
             if (analysis.Kind == SteelMemberAnalysisKind.UniformForkHOrT)
             {
-                var r = Ec3MonosymmetricMember.EvaluateUniformFork(i.Section.ReadOnlySection, i.Member.Length, i.Actions.N, i.Actions.M1,
+                var r = Ec3MonosymmetricMember.EvaluateUniformFork(i.Section.ReadOnlySection, i.Member.Length, i.EffectiveActions.N, i.EffectiveActions.M1,
                     analysis.InPlaneCurve, analysis.LateralCurve, analysis.LateralTorsionalCurve,
                     i.Code.SectionCode.GammaM0, i.Code.GammaM1.Value, analysis.ParameterSet);
                 result = r.GeneralMethod; utilization = r.Utilization;
                 Add(trace, "Ncr1", r.NcrInPlane, "N"); Add(trace, "Ncr2", r.NcrOutOfPlane, "N");
                 Add(trace, "InitialBow", r.InitialBow, "mm"); Add(trace, "SectionUtilization", r.SectionUtilization, "1");
                 Add(trace, "MemberClass", r.NominalCompressionClass, "1");
-                if (i.Actions.N == 0) Add(trace, "Mcr", result.AlphaCrOp * Math.Abs(i.Actions.M1), "Nmm");
+                if (i.EffectiveActions.N == 0) Add(trace, "Mcr", result.AlphaCrOp * Math.Abs(i.EffectiveActions.M1), "Nmm");
             }
             else
             {

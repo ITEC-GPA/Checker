@@ -140,7 +140,7 @@ public class BeamColumnReferenceTests
     {
         var i=Input(true,3,3);
         if(problem=="torque"||problem=="tension"||problem.Contains("shear"))i=new(i.Section,
-            new SteelActions(problem=="tension"?100:i.Actions.N,0,problem.Contains("shear")?1e8:0,problem=="torque"?1:0,i.Actions.M1,i.Actions.M2),i.Code,i.Member);
+            new SteelActions(problem=="tension"?100:i.Actions.N,0,problem.Contains("shear")?1e8:0,problem=="torque"?1e5:0,i.Actions.M1,i.Actions.M2),i.Code,i.Member); // 1 Nmm of torque is below the negligible-action limit
         var original=Analysis(i,problem=="class4"?4:3,basis:problem=="ntc-mcr-basis"?SteelCriticalMomentBasis.ActualMomentDiagram:SteelCriticalMomentBasis.UniformMoment,
             shear:problem=="high-shear"?"Independent buckling screen":null);
         var a=problem=="missing-mcr"?SteelMemberAnalysis.BeamColumn(i,"state","policy",Parameters(),original.Values.Where(v=>v.Quantity!=SteelStabilityQuantity.Mcr),3,"class3"):original;

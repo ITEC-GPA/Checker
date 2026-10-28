@@ -157,8 +157,9 @@ namespace GPC.Checkers.Steel.Selection
         }
 
         /// <summary>A supplied class wins. With concomitantActions the class follows the cut's
-        /// N-M1-M2 distribution where ModelStressClassification covers the family; otherwise,
-        /// and for whole members, the conservative nominal uniform-compression class.</summary>
+        /// N-M1-M2 distribution where ModelStressClassification covers the family (sections, and
+        /// members under lateral-torsional buckling); otherwise, and for compression members and
+        /// beam-columns, the conservative nominal uniform-compression class.</summary>
         internal static ClassificationInfo Classification(SteelVerificationInput input, ISteelSection section,
             SteelSectionClassification supplied, bool concomitantActions = false)
         {

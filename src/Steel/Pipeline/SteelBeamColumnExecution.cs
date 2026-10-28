@@ -15,14 +15,14 @@ namespace GPC.Checkers.Steel.Pipeline
         private static SteelMemberAnalysis Compression(SteelMemberAnalysis analysis)
         {
             var i=analysis.Input;var p=analysis.BeamColumnParameters;
-            return SteelMemberAnalysis.Compression(new SteelVerificationInput(i.Section,new SteelActions(i.Actions.N,0,0,0,0,0),i.Code,i.Member),
+            return SteelMemberAnalysis.Compression(new SteelVerificationInput(i.Section,new SteelActions(i.EffectiveActions.N,0,0,0,0,0),i.Code,i.Member),
                 analysis.LoadPatternReference,analysis.ParameterSet,p.Curve1,p.Curve2,SteelBucklingCurve.D,
                 analysis.Values.Where(v=>v.Quantity!=SteelStabilityQuantity.Mcr),p.TorsionalExclusionSource,p.FlexuralTorsionalExclusionSource,
                 analysis.ExternalMemberClass,analysis.ClassificationSource);
         }
         internal static SteelMethodDecision Select(SteelMemberAnalysis analysis)
         {
-            var i=analysis.Input;var a=i.Actions;var p=analysis.BeamColumnParameters;
+            var i=analysis.Input;var a=i.EffectiveActions;var p=analysis.BeamColumnParameters;
             if(a.N>=0)return Unsupported("Member.BeamColumnCompressionRequired","Use the tension/section or pure bending route when no compressive force is present.");
             if(a.T!=0)return Unsupported("Member.BeamColumnTorsion","Applied torque/warping is outside this beam-column method.");
             var section=i.Section.ReadOnlySection;
@@ -48,8 +48,8 @@ namespace GPC.Checkers.Steel.Pipeline
             if(a.V1!=0||a.V2!=0)
             {
                 if(p.ShearBucklingExclusionSource==null)return Missing("BeamColumn.ShearBucklingExclusionSource");
-                double ratio1=Math.Abs(a.V1)/(ModelShearAreas.GetArea1(section)*i.Section.YieldStrength/(Math.Sqrt(3)*i.Code.SectionCode.GammaM0));
-                double ratio2=Math.Abs(a.V2)/(ModelShearAreas.GetArea2(section,i.Code.SectionCode.Standard)*i.Section.YieldStrength/(Math.Sqrt(3)*i.Code.SectionCode.GammaM0));
+                double ratio1=Math.Abs(a.V1)/SteelPlasticShear.Resistance(i,1);
+                double ratio2=Math.Abs(a.V2)/SteelPlasticShear.Resistance(i,2);
                 if(ratio1>.5||ratio2>.5)return Unsupported("Member.BeamColumnHighShear","High shear needs reduced interaction resistances; this member route requires each shear <= 0.5 VplRd, with shear buckling excluded.");
             }
             return new SteelMethodDecision(SteelCheckTarget.MemberStability,SteelSelectionStatus.Ready,SteelMethod.HBeamColumn,
@@ -70,7 +70,7 @@ namespace GPC.Checkers.Steel.Pipeline
             double w2=effective?MemoizedEffectiveProperties.BendingModulus(i,2):(elastic?section.Wel2:section.Wpl2);
             double m1rk=w1*fy,m2rk=w2*fy,chiLT=1;
             if(effective) {Add(trace,"Weff1Min",w1,"mm3");Add(trace,"Weff2Min",w2,"mm3");}
-            if(p.TorsionSusceptible&&i.Actions.M1!=0)
+            if(p.TorsionSusceptible&&i.EffectiveActions.M1!=0)
             {
                 double mcr=analysis.Values.Single(v=>v.Quantity==SteelStabilityQuantity.Mcr).Value;
                 double lambdaLT=Math.Sqrt(m1rk)/Math.Sqrt(mcr);var curve=BucklingCurves.LateralTorsional(section,ntc);
@@ -78,7 +78,7 @@ namespace GPC.Checkers.Steel.Pipeline
                 Add(trace,"Mcr",mcr,"Nmm");Add(trace,"LambdaLT",lambdaLT,"1");Add(trace,"AlphaLT",BucklingCurves.Alpha(curve),"1");
             }
             double nb1=chi1*nrk/gamma,nb2=chi2*nrk/gamma,mb=chiLT*m1rk/gamma,mz=m2rk/gamma;
-            var result=BeamColumnInteraction.Evaluate(-i.Actions.N/nb1,-i.Actions.N/nb2,Math.Abs(i.Actions.M1)/mb,Math.Abs(i.Actions.M2)/mz,
+            var result=BeamColumnInteraction.Evaluate(-i.EffectiveActions.N/nb1,-i.EffectiveActions.N/nb2,Math.Abs(i.EffectiveActions.M1)/mb,Math.Abs(i.EffectiveActions.M2)/mz,
                 lambda1,lambda2,elastic?3:decision.SectionClass.Value,p.TorsionSusceptible,p.Cm1,p.Cm2,p.CmLT,ntc);
             Add(trace,"ElasticInteraction",elastic?1:0,"1");
             Add(trace,"NRk",nrk,"N");Add(trace,"M1Rk",m1rk,"Nmm");Add(trace,"M2Rk",m2rk,"Nmm");Add(trace,"ChiLT",chiLT,"1");
@@ -91,7 +91,7 @@ namespace GPC.Checkers.Steel.Pipeline
                 reference:result.Reference+(effective?"; EN1993-1-5:2006 4.3(3)/(4), class4 Aeff/Weff at fy; gross critical values":""),scope:"Doubly symmetric prismatic H/RHS/SHS/CHS classes1-3, qualified H/RHS class4 with zero uniform-compression centroid shift; hollow sections use conservative elastic moduli and elastic interaction coefficients; N constant, M1/M2 maxima from one design state; explicit Cm, global-analysis and mode assessments. Section/shear verification is separate.",
                 utilization:utilization,trace:trace);
         }
-        private static bool Hollow(ISectionShape shape) => shape.GetType()==typeof(SectionCHS)||shape.GetType()==typeof(SectionRHS)||shape.GetType()==typeof(SectionRHSRoundedCorners);
+        private static bool Hollow(ISectionShape shape) => SteelSectionFamilies.Is(shape,SteelSectionKind.CircularTube)||SteelSectionFamilies.Is(shape,SteelSectionKind.RectangularTube);
         private static void Add(List<SectionResistanceValue> t,string n,double v,string u)
         {SteelInputValidation.Finite(v,n);t.Add(new SectionResistanceValue(n,v,u));}
         private static SteelMethodDecision Unsupported(string code,string message)=>new SteelMethodDecision(SteelCheckTarget.MemberStability,SteelSelectionStatus.NotSupported,null,code,message);

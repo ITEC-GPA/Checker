@@ -4,6 +4,7 @@ using System.Linq;
 using GPC.Checkers.Steel.Inputs;
 using GPC.Checkers.Steel.EffectiveSections;
 using GPC.Checkers.Steel.Members;
+using GPC.Checkers.Steel.ModelAdapters;
 using GPC.Checkers.Steel.Sections;
 using GPC.Checkers.Steel.Selection;
 using GPC.Model.Sections;
@@ -14,7 +15,7 @@ namespace GPC.Checkers.Steel.Pipeline
     {
         internal static SteelMethodDecision Select(SteelMemberAnalysis analysis)
         {
-            var i = analysis.Input; var a = i.Actions; bool compression = analysis.Kind == SteelMemberAnalysisKind.PrismaticCompression;
+            var i = analysis.Input; var a = i.EffectiveActions; bool compression = analysis.Kind == SteelMemberAnalysisKind.PrismaticCompression;
             var missing = new List<string>();
             if (i.Member == null) missing.Add("Member");
             if (!i.Code.GammaM1.HasValue) missing.Add("Code.GammaM1");
@@ -44,8 +45,11 @@ namespace GPC.Checkers.Steel.Pipeline
                 || shape.GetType() == typeof(SectionH) && (Math.Abs(shape.AngleX1) > 1e-10 || ((SectionH)shape).LenghtTopFlange != ((SectionH)shape).LenghtBottomFlange
                     || ((SectionH)shape).ThicknessTopFlange != ((SectionH)shape).ThicknessBottomFlange)))
                 return Unsupported("Member.LtbGeometry", "Use a separately qualified method for asymmetric/rotated H or angle bending; this LTB route uses the major principal axis.");
+            // EC3 6.3.2.1(3) / NTC 4.2.4.1.3.2: Wy follows the class of the section under the bending itself;
+            // the compression route keeps the uniform-compression class.
             var cl = SteelMethodSelector.Classification(i, section, analysis.ExternalMemberClass.HasValue
-                ? new SteelSectionClassification(i, analysis.ExternalMemberClass.Value, analysis.ClassificationSource) : null);
+                ? new SteelSectionClassification(i, analysis.ExternalMemberClass.Value, analysis.ClassificationSource) : null,
+                concomitantActions: !compression);
             if (cl.Failure != null) return new SteelMethodDecision(SteelCheckTarget.MemberStability, cl.Failure.Status, null,
                 cl.Failure.DiagnosticCode, cl.Failure.Message, missing: cl.Failure.MissingInputs);
             if (cl.Class == 4)
@@ -154,7 +158,7 @@ namespace GPC.Checkers.Steel.Pipeline
             {
                 // Rounded RHS uses its independently qualified elastic modulus;
                 // a conservative elastic check is also permitted for compact sections.
-                bool elastic = decision.SectionClass >= 3 || section.SectionShape.GetType() == typeof(SectionRHSRoundedCorners);
+                bool elastic = decision.SectionClass >= 3 || SteelSectionFamilies.Of(section.SectionShape)?.ElasticBendingOnly == true;
                 double w = effective ? MemoizedEffectiveProperties.BendingModulus(i, 1) : elastic ? section.Wel1 : section.Wpl1; Positive(w, "Section modulus");
                 double mcr = analysis.Values.Single(v => v.Quantity == SteelStabilityQuantity.Mcr).Value;
                 double characteristic = w * fy; Positive(characteristic, "Characteristic moment resistance");
@@ -173,7 +177,7 @@ namespace GPC.Checkers.Steel.Pipeline
                 reference += "; EN1993-1-5:2006 4.3(3)/(4), 4.4; EN1993-1-1:2005 6.3.1.1(3), 6.3.1.2, 6.3.2.1";
                 scope = "Class4 doubly symmetric H/RHS; Aeff under uniform compression / Weff under pure bending at fy. Effective centroid under N unchanged. Elastic critical values use gross properties. Section/shear interaction remains separate. " + analysis.Prismatic.CriticalMomentBasis;
             }
-            Positive(resistance, "Design resistance"); double demand = compression ? Math.Abs(i.Actions.N) : Math.Abs(i.Actions.M1);
+            Positive(resistance, "Design resistance"); double demand = compression ? Math.Abs(i.EffectiveActions.N) : Math.Abs(i.EffectiveActions.M1);
             double utilization = demand / resistance; SteelInputValidation.Finite(utilization, "Utilization");
             Add(trace, "Resistance", resistance, unit); Add(trace, "Utilization", utilization, "1");
             var result = new SteelCheckExecution(decision, utilization <= 1 ? SteelExecutionStatus.Passed : SteelExecutionStatus.Failed,

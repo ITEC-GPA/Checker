@@ -158,4 +158,31 @@ public class ActualStateRoutingTests
         var slender = SteelShearBucklingAssessment.EvaluateHFlanges(Input(new SectionH(500, 10, 400, 12, 400, 12, "w", 0), 235, v1: 1e5), "test");
         Assert.IsFalse(slender.IsBucklingExcluded);
     }
+
+    [DataTestMethod] [DataRow(false)] [DataRow(true)]
+    public void LateralTorsionalBucklingUsesTheBendingClassOfTheSection(bool ntc)
+    {
+        // IPE 300 S355: web class 4 in uniform compression, class 1 in bending, so EC3 6.3.2.1(3) and
+        // NTC 4.2.4.1.3.2 take Wy = Wpl,y. Curve a (EC3 Table 6.4) / b (NTC Table 4.2.IX), h/b = 2;
+        // general case lambdaLT0 = 0.2, beta = 1. Before, the uniform class 4 gave Weff = Wel.
+        var code = ntc ? SteelDesignContext.Ntc2018() : new SteelDesignContext(SectionResistanceCode.Eurocode3(1, 1.25, "test"), 1.0);
+        var section = new SteelSectionInput(new SteelSection(Ipe300(), new SteelMaterial("S", 210000, 355, 510)), true);
+        var input = new SteelVerificationInput(section, new SteelActions(0, 0, 0, 0, 1e8, 0), code, new SteelMemberInput(4000, 4000, 4000));
+        double mcr = 2e8;
+        var analysis = SteelMemberAnalysis.Bending(input, "uniform moment", "profile", SteelCriticalMomentBasis.UniformMoment,
+            new SteelStabilityValue(SteelStabilityQuantity.Mcr, mcr, SteelStabilityUnit.Nmm, "independent"));
+        var check = SteelVerificationPipeline.Execute(SteelMethodSelector.SelectMember(analysis)).Checks.Single();
+        Assert.IsTrue(check.IsEvaluated, check.Message);
+        Assert.AreEqual(1, check.Decision.SectionClass); StringAssert.Contains(check.Decision.ClassificationSource, "alpha");
+        double wpl = check.Trace.Single(v => v.Name == "Wpl1").Value;
+        Assert.AreEqual(628.4e3, wpl, 628.4e3 * 3e-3);
+        double gamma0 = ntc ? 1.05 : 1, gamma1 = ntc ? 1.05 : 1, alpha = ntc ? .34 : .21;
+        double lambda = Math.Sqrt(wpl * 355 / mcr), phi = .5 * (1 + alpha * (lambda - .2) + lambda * lambda);
+        double chi = Math.Min(1, 1 / (phi + Math.Sqrt(phi * phi - lambda * lambda)));
+        Assert.AreEqual(Math.Min(chi * wpl * 355 / gamma1, wpl * 355 / gamma0), check.Resistance!.Value, 1e-6);
+        var compression = SteelMemberAnalysis.Compression(new SteelVerificationInput(section, new SteelActions(-1e5, 0, 0, 0, 0, 0), code, input.Member),
+            "constant N", "curves", SteelBucklingCurve.A, SteelBucklingCurve.B, SteelBucklingCurve.B,
+            torsionalExclusionSource: "assessed", flexuralTorsionalExclusionSource: "assessed");
+        Assert.AreEqual(4, SteelMethodSelector.SelectMember(compression).Decisions.Single().SectionClass);
+    }
 }
