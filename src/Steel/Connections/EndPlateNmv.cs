@@ -36,6 +36,31 @@ namespace GPC.Checkers.Steel.Connections
                 throw new ArgumentException("The applied two-DOF matrix must be positive definite.", nameof(appliedGlobalTangent));
             AppliedGlobalTangent = appliedGlobalTangent;
         }
+        /// <summary>Pure-load equilibrium states shared by the cases of one prepared joint; null for a stand-alone input.</summary>
+        internal EndPlateNmvPureStates PureStates { get; set; }
+    }
+
+    /// <summary>Pure-load (N or M1 alone) equilibrium states depend only on the spring rows and contact
+    /// bands. Cases of one prepared joint with the same numeric rows and bands reuse the deterministic
+    /// solution; the case-specific component bounds are still evaluated per case.</summary>
+    internal sealed class EndPlateNmvPureStates
+    {
+        private const int Capacity = 256;
+        private readonly System.Collections.Concurrent.ConcurrentDictionary<string, EndPlateNmvEquilibriumResult> states
+            = new System.Collections.Concurrent.ConcurrentDictionary<string, EndPlateNmvEquilibriumResult>(StringComparer.Ordinal);
+        internal EndPlateNmvEquilibriumResult Solve(IReadOnlyList<EndPlateNmvSpringRow> rows, IReadOnlyList<EndPlateNmvContactBand> contacts, double n, double moment)
+        {
+            var key = new System.Text.StringBuilder();
+            void Add(double v) => key.Append(BitConverter.DoubleToInt64Bits(v).ToString("X16")).Append('|');
+            Add(n); Add(moment); key.Append(rows.Count).Append('|').Append(contacts.Count).Append('|');
+            foreach (var r in rows) { Add(r.Z); Add(r.Stiffness); }
+            foreach (var c in contacts) { Add(c.LowerZ); Add(c.UpperZ); Add(c.Stiffness); }
+            string k = key.ToString();
+            if (states.TryGetValue(k, out var state)) return state;
+            state = EndPlateNmvEquilibrium.Solve(rows, contacts, n, moment);
+            if (states.Count < Capacity) states.TryAdd(k, state);
+            return state;
+        }
     }
 
     public sealed class EndPlateNmvResult
@@ -181,7 +206,7 @@ namespace GPC.Checkers.Steel.Connections
             {
                 // Constitutive basis calculation, never a fabricated FEM combination.
                 // Initially closed contact is homogeneous: all variable demands scale.
-                var state = EndPlateNmvEquilibrium.Solve(g.Rows, g.Contacts, n, moment);
+                var state = p.PureStates != null ? p.PureStates.Solve(g.Rows, g.Contacts, n, moment) : EndPlateNmvEquilibrium.Solve(g.Rows, g.Contacts, n, moment);
                 if (!state.IsConverged) return double.NaN;
                 double utilization = ComponentChecks(state, 0).Max(c => c.Utilization);
                 return (n == 0 ? Math.Abs(moment) : Math.Abs(n)) / utilization;
