@@ -4,8 +4,8 @@ using System.Linq;
 
 namespace GPC.Checkers.Steel.Connections
 {
-    public enum JointResistanceEvidenceScope { CompleteJoint, ComponentSubset }
-    public enum EndPlateGoverningMechanism
+    internal enum JointResistanceEvidenceScope { CompleteJoint, ComponentSubset }
+    internal enum EndPlateGoverningMechanism
     {
         ColumnWebPanelShear, ColumnWebCompression, ColumnWebTension, ColumnFlangeBending,
         EndPlateBending, BoltShear, BoltTension, BeamCompression, BeamWebTension,
@@ -22,7 +22,7 @@ namespace GPC.Checkers.Steel.Connections
     /// GoverningMechanisms includes ALL co-governing mechanisms at the ultimate resistance,
     /// not checks ranked by utilization at zero load. Column.Fy applies to its WEB; flange
     /// Fy is separate for product/thickness dependence. The connected member is the beam.</summary>
-    public sealed class EndPlateJointResistanceEvidence
+    internal sealed class EndPlateJointResistanceEvidence
     {
         public ConnectionDesignCode Code { get; }
         public ConnectionRolledISection Column { get; }
@@ -82,7 +82,7 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>I in mm4 about the frame bending axis, length in mm. For a beam use
     /// centre-to-centre column spacing, for a column use the storey height (Figure5.4).</summary>
-    public sealed class JointFrameMemberStiffness
+    internal sealed class JointFrameMemberStiffness
     {
         public double SecondMoment { get; }
         public double Length { get; }
@@ -96,7 +96,7 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>ALL beams at the top of one storey and ALL columns of that storey.
     /// Each K is the arithmetic mean of individual I/L, not a sum or global ratio.</summary>
-    public sealed class JointFrameStoreyStiffness
+    internal sealed class JointFrameStoreyStiffness
     {
         public IReadOnlyList<JointFrameMemberStiffness> BeamsAtTop { get; }
         public IReadOnlyList<JointFrameMemberStiffness> Columns { get; }
@@ -120,7 +120,7 @@ namespace GPC.Checkers.Steel.Connections
     /// (displacement without bracing - displacement with bracing)/displacement without
     /// bracing under the same lateral action. A value >=0.8 permits the Figure5.4 kb=8
     /// branch. Other frames require every storey, not only the connected node's storey.</summary>
-    public sealed class JointFrameClassificationContext
+    internal sealed class JointFrameClassificationContext
     {
         public double BracingDisplacementReduction { get; }
         public IReadOnlyList<JointFrameStoreyStiffness> Storeys { get; }

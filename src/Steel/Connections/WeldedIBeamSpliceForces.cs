@@ -332,7 +332,7 @@ namespace GPC.Checkers.Steel.Connections
         private static bool Finite(double v) => !double.IsInfinity(v) && !double.IsNaN(v);
     }
 
-    public static class WeldedIBeamSpliceForces
+    internal static class WeldedIBeamSpliceForces
     {
         public static WeldedIBeamSpliceForceResult Calculate(WeldedIBeamSpliceForceInput p)
         {

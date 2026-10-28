@@ -58,7 +58,7 @@ namespace GPC.Checkers.Steel.Connections
         { Input = input; Detailing = detailing; FaceTransfers = Array.AsReadOnly(transfer.ToArray()); ElasticFaceDiagnostics = Array.AsReadOnly(strain.ToArray()); }
     }
 
-    public static class WeldedIBeamSpliceDetailing
+    internal static class WeldedIBeamSpliceDetailing
     {
         public static WeldedIBeamSpliceDetailResult Verify(WeldedIBeamSpliceDetailInput p)
         {

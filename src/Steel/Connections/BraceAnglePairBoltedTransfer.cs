@@ -109,7 +109,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class BraceAnglePairBoltedTransfer
+    internal static class BraceAnglePairBoltedTransfer
     {
         public const string MethodId = "Steel.Connection.BraceAnglePair.OneLineBoltedTransfer";
         private const string EllipseReference = "SBE_SS5:2010 AppendixA p5-68, ECCS P126 additional bearing interaction; complementary to EN1993-1-8 Table3.4 / NTC2018 4.2.67";

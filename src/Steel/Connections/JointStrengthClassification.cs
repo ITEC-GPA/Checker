@@ -5,8 +5,8 @@ using GPC.Checkers.Steel.Sections;
 
 namespace GPC.Checkers.Steel.Connections
 {
-    public enum JointColumnPosition { TopOfColumn, WithinContinuousEquivalentColumn }
-    public enum JointStrengthRange { PinnedRange, PartialStrengthRange, FullStrengthRange }
+    internal enum JointColumnPosition { TopOfColumn, WithinContinuousEquivalentColumn }
+    internal enum JointStrengthRange { PinnedRange, PartialStrengthRange, FullStrengthRange }
     public enum JointStrengthClass { NominallyPinned, PartialStrength, FullStrength }
 
     /// <summary>The typed plastic-rotation criterion must belong to the SAME immutable
@@ -14,7 +14,7 @@ namespace GPC.Checkers.Steel.Connections
     /// assessment that the simple model transfers the forces without adverse moments and
     /// can accept the rotations imposed by the actual load case. A thin plate alone or a
     /// rotation M/S is not this evidence. Neither statement is independently certified here.</summary>
-    public sealed class EndPlatePinnedRotationEvidence
+    internal sealed class EndPlatePinnedRotationEvidence
     {
         public EndPlateRotationCapacityResult RotationCriterion { get; }
         public string GlobalAnalysisCompatibilitySource { get; }
@@ -29,7 +29,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Figure5.5 beam-to-column configuration, same bending axis/direction.
     /// WithinContinuousEquivalentColumn requires the same relevant column resistance
     /// above and below, not an unqualified factor2 for unlike columns or multiple beams.</summary>
-    public sealed class JointStrengthClassificationInput
+    internal sealed class JointStrengthClassificationInput
     {
         public EndPlateJointResistanceEvidence Resistance { get; }
         public JointColumnPosition Position { get; }
@@ -46,7 +46,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public sealed class JointStrengthClassificationResult
+    internal sealed class JointStrengthClassificationResult
     {
         public JointStrengthClassificationInput Input { get; }
         public JointStrengthRange? NumericalRange { get; }
@@ -70,7 +70,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class JointStrengthClassification
+    internal static class JointStrengthClassification
     {
         public static JointStrengthClassificationResult Classify(JointStrengthClassificationInput p)
         {

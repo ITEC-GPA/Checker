@@ -70,7 +70,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class WeldedIBeamSpliceSlip
+    internal static class WeldedIBeamSpliceSlip
     {
         public static ConnectionVerification<WeldedIBeamSpliceSlipInput> Verify(WeldedIBeamSpliceSlipInput p)
         {

@@ -232,7 +232,7 @@ namespace GPC.Checkers.Steel.Connections
         { Forces = forces; ComponentAssessment = assessment; }
     }
 
-    public static class WeldedIBeamSpliceBolts
+    internal static class WeldedIBeamSpliceBolts
     {
         public static WeldedIBeamSpliceBoltResult Verify(WeldedIBeamSpliceBoltInput p)
         {

@@ -12,7 +12,7 @@ namespace GPC.Checkers.Steel.Connections
     /// All models require identical materials and centred inner-strip bolt
     /// groups, no credited contact bearing or externally applied bolt-axis load. Packing requires its explicit model.
     /// Unequal TOP/BOTTOM parent flanges are permitted. No rotational stiffness calculation.</summary>
-    public static class WeldedIBeamSpliceStandardModel
+    internal static class WeldedIBeamSpliceStandardModel
     {
         public static ConnectionVerification<WeldedIBeamSpliceDetailInput> Verify(WeldedIBeamSpliceDetailInput p)
             => Verify(p, SpliceFlangeFaceModel.BalancedEqualFaces);

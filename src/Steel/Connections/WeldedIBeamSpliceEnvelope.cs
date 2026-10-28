@@ -69,7 +69,7 @@ namespace GPC.Checkers.Steel.Connections
         internal WeldedSpliceSlipCaseResult(WeldedSpliceSlipCase input, IEnumerable<string> issues)
         { Input = input; BindingDiagnostics = Array.AsReadOnly(issues.ToArray()); Assessment = WeldedIBeamSpliceSlip.Verify(input.Input); }
     }
-    public sealed class WeldedSpliceCheckSource
+    internal sealed class WeldedSpliceCheckSource
     {
         public string CaseId { get; }
         public string Component { get; }
@@ -79,7 +79,7 @@ namespace GPC.Checkers.Steel.Connections
         internal WeldedSpliceCheckSource(string id, string component, bool sls, string ultimate, ConnectionCheck check)
         { CaseId = id; Component = component; IsServiceability = sls; UltimateCaseId = ultimate; Check = check; }
     }
-    public sealed class WeldedIBeamSpliceEnvelopeResult
+    internal sealed class WeldedIBeamSpliceEnvelopeResult
     {
         public WeldedIBeamSpliceEnvelopeInput Input { get; }
         public IReadOnlyList<WeldedSpliceUltimateCaseResult> UltimateCases { get; }
@@ -109,7 +109,7 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>Typed component envelope of ONE physical splice under all supplied
     /// concomitant ULS/SLS cases. Neither global force maxima nor missing SLS are synthesized.</summary>
-    public static class WeldedIBeamSpliceEnvelope
+    internal static class WeldedIBeamSpliceEnvelope
     {
         public static WeldedIBeamSpliceEnvelopeResult Verify(WeldedIBeamSpliceEnvelopeInput p)
         {

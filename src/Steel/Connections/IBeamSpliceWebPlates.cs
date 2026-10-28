@@ -5,7 +5,7 @@ using GPC.Checkers.Steel.Sections;
 
 namespace GPC.Checkers.Steel.Connections
 {
-    public static partial class IBeamSplicePlates
+    internal static partial class IBeamSplicePlates
     {
         /// <summary>SCI P398 section4 Steps5-6, pp58-59: web-cover cross-section
         /// shear, axial and elastic bending interaction on BOTH sides; beam-web

@@ -9,7 +9,7 @@ namespace GPC.Checkers.Steel.Connections
     /// belongs to this complementary guidance, not to an automatically selected
     /// EC/NTC national code. GammaM0 applies only to the yielding term of block
     /// tearing and must be supplied with its own design-context source.</summary>
-    public sealed class SbeAccidentalTyingPolicy
+    internal sealed class SbeAccidentalTyingPolicy
     {
         public double GammaMu => 1.1;
         public double GammaM0 { get; }
@@ -35,7 +35,7 @@ namespace GPC.Checkers.Steel.Connections
     /// Z=+/-SupportGauge/2. Dimensions mm, strengths MPa. Geometry sources identify
     /// the actual identical products; this type contains no support member.
     /// Hardware widths are actual head/nut/washer dimensions, not bolt diameter.</summary>
-    public sealed class DoubleAngleCleatTyingGeometry
+    internal sealed class DoubleAngleCleatTyingGeometry
     {
         public ConnectionPlate CleatLeg { get; }
         public double CleatRootRadius { get; }
@@ -84,7 +84,7 @@ namespace GPC.Checkers.Steel.Connections
     /// wrench is transported from its actual application point to the cleat-centre
     /// origin. Only centred positive Fx, or the null case, is in this first scope.
     /// No ordinary load, Passed certificate or national-code inference is accepted.</summary>
-    public sealed class DoubleAngleCleatTyingInput
+    internal sealed class DoubleAngleCleatTyingInput
     {
         public SbeAccidentalTyingPolicy Policy { get; }
         public DoubleAngleCleatTyingGeometry Geometry { get; }
@@ -98,7 +98,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public sealed class DoubleAngleCleatTyingResult
+    internal sealed class DoubleAngleCleatTyingResult
     {
         public DoubleAngleCleatTyingInput Input { get; }
         public PlanarConnectionActions ActionsAtCleatCentre { get; }
@@ -142,7 +142,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class DoubleAngleCleatTyingComponents
+    internal static class DoubleAngleCleatTyingComponents
     {
         public const string MethodId = "Steel.Connection.DoubleAngleCleat.AccidentalTyingComponents";
         public static DoubleAngleCleatTyingResult Verify(DoubleAngleCleatTyingInput p)

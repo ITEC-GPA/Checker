@@ -28,7 +28,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Completes the in-plane net/gross gusset section and, for strictly
     /// collinear bolt forces, all one-line edge-block prefixes of the2L terminal.
     /// Local out-of-plane couples are retained in Transfer, never cancelled.</summary>
-    public static class BraceAnglePairTerminalPlates
+    internal static class BraceAnglePairTerminalPlates
     {
         public static BraceAnglePairTerminalPlateResult Verify(BraceAnglePairBoltedTransferInput p)
         {

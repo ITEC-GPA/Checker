@@ -8,7 +8,7 @@ namespace GPC.Checkers.Steel.Connections
     /// connected strips and central gusset. All orthogonal U/L prefixes and contiguous
     /// transverse subsets, both directions. The demand is unreduced bolt resistance,
     /// NOT applied load. Failure excludes this sufficient method, not proof of rupture.</summary>
-    public static class BraceAnglePairBlockHierarchy
+    internal static class BraceAnglePairBlockHierarchy
     {
         public static ConnectionVerification<BraceAnglePairBoltedTransferInput> Verify(BraceAnglePairBoltedTransferInput p)
             => Verify(p,BraceAnglePairBoltedTransfer.Verify(p));

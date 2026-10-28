@@ -8,7 +8,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Two equal continuous 90-degree fillet welds along the full plate height,
     /// one on each beam-web face. Geometry and accidental actions are taken only from Tying.
     /// WeldDetailSource records this physical detail; no reduced/incomplete/intermittent weld is inferred.</summary>
-    public sealed class FlexibleEndPlateTyingWeldInput
+    internal sealed class FlexibleEndPlateTyingWeldInput
     {
         public FlexibleEndPlateTyingInput Tying { get; }
         public FilletWeldEndCondition Ends { get; }
@@ -28,7 +28,7 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>SCI accidental-tying weld component only. The C.1 throat requirement develops
     /// beam-web yielding, not the ultimate web resistance of Check12 or whole-joint ductility.</summary>
-    public sealed class FlexibleEndPlateTyingWeldResult
+    internal sealed class FlexibleEndPlateTyingWeldResult
     {
         public FlexibleEndPlateTyingWeldInput Input { get; }
         public FlexibleEndPlateTyingResult PlateAndBeamAssessment { get; }
@@ -73,7 +73,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class FlexibleEndPlateTyingWeld
+    internal static class FlexibleEndPlateTyingWeld
     {
         public static FlexibleEndPlateTyingWeldResult Verify(FlexibleEndPlateTyingWeldInput p)
         {

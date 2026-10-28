@@ -66,7 +66,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class TStubInternalEndPlateLengths
+    internal static class TStubInternalEndPlateLengths
     {
         public static TStubDerivedGeometry Calculate(TStubInternalEndPlateGeometry p)
         {

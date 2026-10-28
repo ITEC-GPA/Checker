@@ -8,7 +8,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Force resultants for bolt strength; N/mm. Preload/slip and contact are separate.
     /// JointLength is the distance between the end fasteners in the force-transfer direction.
     /// PackingThickness is the thicker packing for a connection with two shear planes.</summary>
-    public sealed class BoltStrengthInput
+    internal sealed class BoltStrengthInput
     {
         public ConnectionDesignCode Code { get; }
         public ConnectionBolt Bolt { get; }
@@ -58,7 +58,7 @@ namespace GPC.Checkers.Steel.Connections
             => verification.Checks.Count != 0 ? this : throw new InvalidOperationException("The bolt strength checks were not evaluated.");
     }
 
-    public static class BoltStrength
+    internal static class BoltStrength
     {
         public static ConnectionVerification<BoltStrengthInput> Verify(BoltStrengthInput p) => Verify(p, out _);
 
@@ -112,7 +112,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>One plate ply at one bolt. End/edge distances are measured in the direction
     /// and transverse to the considered force component. Null pitch means no neighbouring
     /// bolt in that direction; an interior bolt requires its corresponding pitch.</summary>
-    public sealed class BoltBearingInput
+    internal sealed class BoltBearingInput
     {
         public ConnectionDesignCode Code { get; }
         public ConnectionBolt Bolt { get; }
@@ -164,7 +164,7 @@ namespace GPC.Checkers.Steel.Connections
         { AlphaD = alphaD; AlphaB = alphaB; K1 = k1; Resistance = resistance; }
     }
 
-    public static class BoltBearing
+    internal static class BoltBearing
     {
         public static ConnectionVerification<BoltBearingInput> Verify(BoltBearingInput p) => Verify(p, out _);
 
@@ -214,7 +214,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public sealed class BoltPunchingInput
+    internal sealed class BoltPunchingInput
     {
         public ConnectionDesignCode Code { get; }
         public ConnectionPlate Plate { get; }
@@ -234,7 +234,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class BoltPunching
+    internal static class BoltPunching
     {
         public static ConnectionVerification<BoltPunchingInput> Verify(BoltPunchingInput p)
         {
@@ -259,7 +259,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>One bolt in single shear between two plate plies, with named head-side and nut-side plates.
     /// Component input objects share the exact code/bolt/plate snapshots and concomitant force demands.
     /// This contract does not assemble a bolt group or qualify the whole connection.</summary>
-    public sealed class BoltSingleShearAssemblyInput
+    internal sealed class BoltSingleShearAssemblyInput
     {
         public BoltStrengthInput Bolt { get; }
         public BoltBearingInput HeadPlyBearing { get; }
@@ -288,7 +288,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class BoltSingleShearAssembly
+    internal static class BoltSingleShearAssembly
     {
         public static ConnectionVerification<BoltSingleShearAssemblyInput> Verify(BoltSingleShearAssemblyInput p)
         {

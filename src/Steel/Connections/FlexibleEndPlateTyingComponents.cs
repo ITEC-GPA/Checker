@@ -9,7 +9,7 @@ namespace GPC.Checkers.Steel.Connections
     /// EC3/NTC material policy. gammaMu=1.1 is a SCI recommendation, not an EN/NTC
     /// partial factor inferred from a selected national code. The external design
     /// situation must establish that the action is a robustness tying force.</summary>
-    public sealed class SciAccidentalTyingPolicy
+    internal sealed class SciAccidentalTyingPolicy
     {
         public double GammaMu => 1.1;
         public string MethodId => "SCI.P358.2014.AccidentalTying";
@@ -29,7 +29,7 @@ namespace GPC.Checkers.Steel.Connections
     /// the beam centroid. The initial detail fixes p70, e1=40, e2=30, top offset50.
     /// ContactWidth is actual washer diameter or head/nut width across points on
     /// the end-plate side, not nominal bolt diameter or hole diameter.</summary>
-    public sealed class FlexibleEndPlateTyingGeometry
+    internal sealed class FlexibleEndPlateTyingGeometry
     {
         public ConnectionPlate Plate { get; }
         public ConnectionBolt Bolt { get; }
@@ -71,7 +71,7 @@ namespace GPC.Checkers.Steel.Connections
     /// are transported from their stated application point to the physical plate
     /// centre by Mcentre=Mpoint+(rpoint-rcentre)xF. Only centred positive Fz, or
     /// the null case, is in this first field. Ordinary actions/results are not inputs.</summary>
-    public sealed class FlexibleEndPlateTyingInput
+    internal sealed class FlexibleEndPlateTyingInput
     {
         public SciAccidentalTyingPolicy Policy { get; }
         public FlexibleEndPlateTyingGeometry Geometry { get; }
@@ -87,7 +87,7 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>Only SCI Checks11/12. Incomplete supporting/weld mechanisms stay
     /// explicit even when all assessed component checks pass.</summary>
-    public sealed class FlexibleEndPlateTyingResult
+    internal sealed class FlexibleEndPlateTyingResult
     {
         public FlexibleEndPlateTyingInput Input { get; }
         public ConnectionStatus Status { get; }
@@ -133,7 +133,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class FlexibleEndPlateTyingComponents
+    internal static class FlexibleEndPlateTyingComponents
     {
         public static FlexibleEndPlateTyingResult Verify(FlexibleEndPlateTyingInput p)
         {

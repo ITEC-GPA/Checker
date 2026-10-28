@@ -12,7 +12,7 @@ namespace GPC.Checkers.Steel.Connections
     /// normals. Cut coordinates are actual column-centroid points (0,Y,0).
     /// Lower minus upper, after transport, balances the beam-on-column action.
     /// End distances run from extreme bolt centres to actual column ends. N,mm,MPa.</summary>
-    public sealed class DoubleAngleCleatColumnWebInput
+    internal sealed class DoubleAngleCleatColumnWebInput
     {
         public DoubleAngleCleatComponentInput Cleats { get; }
         public ConnectionRolledISection Column { get; }
@@ -42,7 +42,7 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>Named support components, not a whole-joint verdict. Previously
     /// evaluated failures remain visible when another component is unsupported.</summary>
-    public sealed class DoubleAngleCleatColumnWebResult
+    internal sealed class DoubleAngleCleatColumnWebResult
     {
         public DoubleAngleCleatColumnWebInput Input { get; }
         public DoubleAngleCleatComponentResult Cleats { get; }
@@ -63,7 +63,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>SBE-MS5 shear components plus a supplementary column-web assessment:
     /// bearing, SCI P358 Check10 strip shear, net-section elastic stress and equilibrium
     /// of actual concomitant cuts. No inference of bolt-axis force from in-plane shear.</summary>
-    public static class DoubleAngleCleatColumnWeb
+    internal static class DoubleAngleCleatColumnWeb
     {
         public static DoubleAngleCleatColumnWebResult Verify(DoubleAngleCleatColumnWebInput p)
         {

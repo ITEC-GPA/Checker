@@ -6,12 +6,12 @@ using GPC.Checkers.Steel.Sections;
 namespace GPC.Checkers.Steel.Connections
 {
     public enum TStubMode1Method { PointForce, DistributedContact }
-    public enum TStubPryingModel { Develops, FromBoltElongation }
+    internal enum TStubPryingModel { Develops, FromBoltElongation }
 
     /// <summary>Total effective lengths for the two plastic mechanisms, not physical plate lengths.
     /// The caller derives them for the actual single row or adjacent-row group using EN1993-1-8
     /// 6.2.6 and identifies that derivation in Source. All lengths are in mm.</summary>
-    public sealed class TStubEffectiveLengths
+    internal sealed class TStubEffectiveLengths
     {
         public double Mode1 { get; }
         public double Mode2 { get; }
@@ -27,7 +27,7 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>Actual steel-bolt elongation length: grip including washers + half head/nut heights.
     /// Anchors, grout and foundation bolts are outside this contract. Dimensions in mm.</summary>
-    public sealed class TStubBoltElongation
+    internal sealed class TStubBoltElongation
     {
         public double GripLength { get; }
         public double HeadHeight { get; }
@@ -48,7 +48,7 @@ namespace GPC.Checkers.Steel.Connections
     /// Positive axial tension N; geometry mm; yield strength MPa at the actual flange thickness.
     /// M is the Figure6.2 plastic-hinge-to-bolt distance; Emin refers to both connected sides.
     /// No load redistribution between rows is inferred. No shear or bolt punching is included.</summary>
-    public sealed class TStubTensionInput
+    internal sealed class TStubTensionInput
     {
         public ConnectionDesignCode Code { get; }
         public ConnectionBolt Bolt { get; }
@@ -89,7 +89,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class TStubTension
+    internal static class TStubTension
     {
         public static ConnectionVerification<TStubTensionInput> Verify(TStubTensionInput p)
         {

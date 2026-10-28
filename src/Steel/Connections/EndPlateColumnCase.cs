@@ -51,7 +51,7 @@ namespace GPC.Checkers.Steel.Connections
         {Input=input;Checks=Array.AsReadOnly(checks.ToArray());Trace=Array.AsReadOnly(trace.ToArray());Diagnostics=Array.AsReadOnly(issues.ToArray());ContactLimitedMomentResistance=resistance;}
     }
 
-    public static class EndPlateColumnCase
+    internal static class EndPlateColumnCase
     {
         public static EndPlateColumnCaseResult Verify(EndPlateColumnCaseInput p)
         {

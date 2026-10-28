@@ -5,7 +5,7 @@ using GPC.Checkers.Steel.Sections;
 
 namespace GPC.Checkers.Steel.Connections
 {
-    public static class FilletWeldGroup
+    internal static class FilletWeldGroup
     {
         private sealed class EffectiveSegment
         {

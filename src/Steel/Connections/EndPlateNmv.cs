@@ -100,7 +100,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class EndPlateNmv
+    internal static class EndPlateNmv
     {
         public static EndPlateNmvResult Verify(EndPlateNmvInput p)
         {

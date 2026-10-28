@@ -17,7 +17,7 @@ namespace GPC.Checkers.Steel.Connections
     /// to the centre of that face in these same local axes. No force is inferred
     /// from the global member N. LocalStateId includes the concomitant combination
     /// and, where relevant, the local imperfection/load-introduction scenario.</summary>
-    public sealed class PackingFaceActionState
+    internal sealed class PackingFaceActionState
     {
         public SteelVerificationInput SourceInput { get; }
         public string LocalStateId { get; }
@@ -41,7 +41,7 @@ namespace GPC.Checkers.Steel.Connections
     /// existing Geometry CoordinateSystem. ActionsOnBlockAtFaceCentre can be used by a
     /// future qualified attachment model in the local XY face plane. Action/reaction
     /// on the chord has the opposite sign in these same axes; it is not applied here.</summary>
-    public sealed class PackingFaceDemand
+    internal sealed class PackingFaceDemand
     {
         private readonly CoordinateSystem _axes;
         public PackingFaceActionState Source { get; }
@@ -76,7 +76,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Geometry, demand transformation and static equilibrium ONLY.
     /// No resistance, member qualification, automatic force split, or successful
     /// joint status is represented. A nonzero residual remains available for diagnosis.</summary>
-    public sealed class PackingFaceActionAdapterResult
+    internal sealed class PackingFaceActionAdapterResult
     {
         private readonly double _centreX, _centreY, _centreZ;
         public SteelVerificationInput SourceInput { get; }
@@ -110,7 +110,7 @@ namespace GPC.Checkers.Steel.Connections
         private static bool Balanced(double a, double b) => Math.Abs(a + b) <= 1e-10 * Math.Abs(a) + 1e-10 * Math.Abs(b);
     }
 
-    public static class PackingFaceActionAdapter
+    internal static class PackingFaceActionAdapter
     {
         /// <summary>Adapts both explicitly supplied face actions for one rectangular
         /// packing station. Station is the block-centre coordinate along member +Z.

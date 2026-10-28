@@ -13,7 +13,7 @@ namespace GPC.Checkers.Steel.Connections
     /// SupportFaceWidth is along Y, SupportFaceDepth along Z; support material thickness
     /// is along X. The support patch is centred on Y=Z=0. No support resistance is inferred.
     /// Two equal 45-degree fillets extend along the full gusset width; Throat is a, not leg size.</summary>
-    public sealed class GussetTwinFlatWeldedSupportInput
+    internal sealed class GussetTwinFlatWeldedSupportInput
     {
         public GussetTwinFlatTensionInput Transfer { get; }
         public double SupportDistance { get; }
@@ -49,7 +49,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public sealed class GussetTwinFlatWeldedSupportResult
+    internal sealed class GussetTwinFlatWeldedSupportResult
     {
         public ConnectionVerification<GussetTwinFlatWeldedSupportInput> Verification { get; }
         public ConnectionVerification<GussetTwinFlatTensionInput> BoltedTransfer { get; }
@@ -72,7 +72,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Aggregates the existing bolted load-transfer and weld kernels for one
     /// actual symmetric T detail. The assessment stops at the support face. It does not
     /// establish support-plate bending/punching, member adequacy or joint stiffness.</summary>
-    public static class GussetTwinFlatWeldedSupport
+    internal static class GussetTwinFlatWeldedSupport
     {
         public static GussetTwinFlatWeldedSupportResult Verify(GussetTwinFlatWeldedSupportInput p)
         {

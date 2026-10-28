@@ -8,7 +8,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Supplementary short-leg contact model. ContactHeight/Width describe
     /// the actual rectangular upper cleat-to-BEAM-WEB contact patch on EACH side.
     /// They are not an effective column-flange width. N, mm, MPa.</summary>
-    public sealed class DoubleAngleCleatSupportContactInput
+    internal sealed class DoubleAngleCleatSupportContactInput
     {
         public DoubleAngleCleatColumnFlangeBearingInput Support { get; }
         public double ContactHeight { get; }
@@ -27,7 +27,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public sealed class DoubleAngleCleatSupportContactResult
+    internal sealed class DoubleAngleCleatSupportContactResult
     {
         public ConnectionVerification<DoubleAngleCleatSupportContactInput> ContactAndShear { get; }
         public DoubleAngleCleatComponentResult Cleats { get; }
@@ -49,7 +49,7 @@ namespace GPC.Checkers.Steel.Connections
     /// section3.1, Figures7-9. Solves the transverse IN-PLANE bolt forces for a
     /// supplied upper contact patch and an elastic force distribution. It does not
     /// infer bolt-axis tension from these forces or from the SBE0.8 factor.</summary>
-    public static class DoubleAngleCleatSupportContact
+    internal static class DoubleAngleCleatSupportContact
     {
         public static DoubleAngleCleatSupportContactResult Verify(DoubleAngleCleatSupportContactInput p)
         {

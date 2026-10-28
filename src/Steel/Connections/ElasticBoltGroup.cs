@@ -56,7 +56,7 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>Elastic distribution on identical bolts in XY. Units N, mm and Nmm; right-handed moments.
     /// Equilibrium equations and a linear normal-force field are solved, without normative resistance factors.</summary>
-    public static class ElasticBoltGroup
+    internal static class ElasticBoltGroup
     {
         // No action floor in N/Nmm: checks scale with their own terms, including tiny demands.
         public const double EquilibriumRelativeTolerance = 1e-10;

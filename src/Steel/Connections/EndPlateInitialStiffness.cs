@@ -58,7 +58,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class EndPlateInitialStiffness
+    internal static class EndPlateInitialStiffness
     {
         public static EndPlateInitialStiffnessResult Calculate(EndPlateInitialStiffnessInput p)
         {

@@ -73,7 +73,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Plate COMPONENTS, not the complete splice. Bearing uses the
     /// conservative minimum end/interior capacities for every bolt and a linear
     /// interaction of the two in-plane force components (SCI P398 p55).</summary>
-    public static partial class IBeamSplicePlates
+    internal static partial class IBeamSplicePlates
     {
         public static ConnectionVerification<IBeamSplicePlateInput> VerifyBearing(IBeamSplicePlateInput p)
         {

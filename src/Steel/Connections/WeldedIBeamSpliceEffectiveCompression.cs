@@ -11,7 +11,7 @@ namespace GPC.Checkers.Steel.Connections
     /// holes, same physical fastener layout, EC Table3.3 inter-fastener strip and
     /// outstand requirements. Effective widths use the shared Steel/bridge kernel.
     /// The explicit low-shear overload extends the default zero-shear contract within a bounded domain.</summary>
-    public static class WeldedIBeamSpliceEffectiveCompression
+    internal static class WeldedIBeamSpliceEffectiveCompression
     {
         public static ConnectionVerification<WeldedIBeamSpliceDetailInput> Verify(WeldedIBeamSpliceDetailInput p)
             => Verify(p, false);

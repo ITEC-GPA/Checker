@@ -10,7 +10,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>One physical equal-leg fillet loop, directly between the solid packing
     /// and the chord identified by Model PartIndex. Throat in mm. FullSize evidence
     /// includes starts, corners and terminations; no penetration allowance is inferred.</summary>
-    public sealed class PackingFaceWeldDetail
+    internal sealed class PackingFaceWeldDetail
     {
         public int PartIndex { get; }
         public double Throat { get; }
@@ -33,7 +33,7 @@ namespace GPC.Checkers.Steel.Connections
     /// Sources must qualify compatible consumables, sound unperforated flat weld footprints,
     /// no root gap, corner details, and the local rigid-distributor/eccentricity model.
     /// These sources record caller evidence and do not certify execution or local chord strength.</summary>
-    public sealed class PackingWeldedStationInput
+    internal sealed class PackingWeldedStationInput
     {
         public ConnectionDesignCode Code { get; }
         public PackingFaceActionAdapterResult Demand { get; }
@@ -68,7 +68,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public sealed class PackingFaceWeldComponent
+    internal sealed class PackingFaceWeldComponent
     {
         public PackingFaceDemand Face { get; }
         public FilletWeldGroupResult Verification { get; }
@@ -79,7 +79,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Separate actual-face weld results and nominal prismatic-block yielding.
     /// CoveredComponentsStatus qualifies only these explicitly named components. No
     /// scalar complete-connection resistance is produced for SteelPackedPairAssessment.</summary>
-    public sealed class PackingWeldedStationResult
+    internal sealed class PackingWeldedStationResult
     {
         public PackingWeldedStationInput Input { get; }
         public IReadOnlyList<PackingFaceWeldComponent> FaceWelds { get; }
@@ -104,7 +104,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class PackingWeldedStationComponents
+    internal static class PackingWeldedStationComponents
     {
         public const string MethodId = "Steel.Connection.PackingWeldedStation.Components";
         public static PackingWeldedStationResult Verify(PackingWeldedStationInput p)

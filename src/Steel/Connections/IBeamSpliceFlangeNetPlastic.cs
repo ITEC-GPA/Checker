@@ -4,7 +4,7 @@ using GPC.Checkers.Steel.Sections;
 
 namespace GPC.Checkers.Steel.Connections
 {
-    public static partial class IBeamSplicePlates
+    internal static partial class IBeamSplicePlates
     {
         /// <summary>The additional flange net-plastic tension criterion for a
         /// category C splice: EN1993-1-1:2005 6.2.3(4), equation6.8. Explicit

@@ -39,7 +39,7 @@ namespace GPC.Checkers.Steel.Connections
     /// Tension includes any already-assessed prying. No implicit SLS/ULS conversion.
     /// FrictionPlanes counts interfaces, not bolts. FrictionCoefficient is qualified
     /// by the caller for the actual surface/condition; no treatment is inferred.</summary>
-    public sealed class BoltSlipInput
+    internal sealed class BoltSlipInput
     {
         public BoltSlipPolicy Policy { get; }
         public ConnectionBolt Bolt { get; }
@@ -75,7 +75,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class BoltSlip
+    internal static class BoltSlip
     {
         public static ConnectionVerification<BoltSlipInput> Verify(BoltSlipInput p)
         {

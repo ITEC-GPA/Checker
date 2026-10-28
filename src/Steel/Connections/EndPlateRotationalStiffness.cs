@@ -132,7 +132,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class EndPlateRotationalStiffness
+    internal static class EndPlateRotationalStiffness
     {
         public static EndPlateRotationalStiffnessResult Calculate(EndPlateRotationalStiffnessInput p)
         {

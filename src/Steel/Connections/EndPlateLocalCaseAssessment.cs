@@ -58,7 +58,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class EndPlateLocalCaseAssessment
+    internal static class EndPlateLocalCaseAssessment
     {
         public static EndPlateLocalCaseAssessmentResult Assess(EndPlateMomentWithBeamSectionResult beamAndMoment,
             EndPlateConnectionAssessmentResult connection, EndPlateInitialStiffnessFromMomentResult initialStiffness)

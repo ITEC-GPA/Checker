@@ -75,7 +75,7 @@ namespace GPC.Checkers.Steel.Connections
     }
     /// <summary>Scoped bolt components, not a whole splice. Plate bearing/net/block,
     /// flange-cover compression/buckling, web N-V-M and member checks remain separate.</summary>
-    public static class IBeamSpliceBolts
+    internal static class IBeamSpliceBolts
     {
         public static ConnectionVerification<IBeamSpliceBoltStrengthInput> VerifyStrength(IBeamSpliceBoltStrengthInput p)
         {

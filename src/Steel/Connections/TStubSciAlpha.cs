@@ -4,7 +4,7 @@ namespace GPC.Checkers.Steel.Connections
 {
     /// <summary>Explicit alternative to a chart reading: inverse of SCI P398
     /// AppendixG (p163). Never silently substituted for supplied EN chart alpha.</summary>
-    public static class TStubSciAlpha
+    internal static class TStubSciAlpha
     {
         public static TStubChartAlpha Calculate(double m, double e, double m2, string geometrySource)
         {

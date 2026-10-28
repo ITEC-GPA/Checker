@@ -72,6 +72,10 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
+    /// <summary>Approximate SCI force distribution for rolled I/H splices, kept for compatibility. Shared
+    /// kernels (bolt strength and bearing with betaLf, plastic shear, detail identity) are the same as in
+    /// the qualified welded-I path; that path integrates the parent stresses exactly and is the one to use.</summary>
+    [Obsolete("Approximate component envelope. Use BridgeSpliceApplication.CreateBolted -> WeldedIBeamSpliceStandard.Verify (exact integrals, complete standard typology).")]
     public static class IBeamSpliceComponents
     {
         public static IBeamSpliceComponentResult Verify(IBeamSpliceComponentInput p)

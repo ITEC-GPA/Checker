@@ -115,7 +115,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Full-strength CJP equivalence of the upper flange plus local paired-fillet
     /// web/lower-flange checks. Top flush only, lower plate projection retained. No joint
     /// strength or rotation qualification is implied by the CJP equivalence.</summary>
-    public static class TopFlushCjpEndPlateWeldComponents
+    internal static class TopFlushCjpEndPlateWeldComponents
     {
         public static TopFlushCjpEndPlateWeldResult Verify(TopFlushCjpEndPlateWeldInput p)
         {

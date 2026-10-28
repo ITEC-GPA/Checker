@@ -49,8 +49,8 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
     public enum SpliceSide { Left, Right }
-    public enum IBeamSplicePart { TopFlange, BottomFlange, Web }
-    public enum IBeamSpliceForceStatus { Balanced, NotSupported, NumericalFailure }
+    internal enum IBeamSplicePart { TopFlange, BottomFlange, Web }
+    internal enum IBeamSpliceForceStatus { Balanced, NotSupported, NumericalFailure }
 
     /// <summary>Two identical, aligned, doubly symmetric rolled I/H sections with
     /// mirrored grids; the same flange layout is used above and below. N, mm, Nmm.
@@ -76,7 +76,7 @@ namespace GPC.Checkers.Steel.Connections
             StrongAxisSecondMoment = strongAxisSecondMoment;
         }
     }
-    public sealed class IBeamSpliceResultants
+    internal sealed class IBeamSpliceResultants
     {
         public double TopFlangeAxial { get; }
         public double BottomFlangeAxial { get; }
@@ -87,7 +87,7 @@ namespace GPC.Checkers.Steel.Connections
         internal IBeamSpliceResultants(double top, double bottom, double axial, double shear, double moment, double lever)
         { TopFlangeAxial = top; BottomFlangeAxial = bottom; WebAxial = axial; WebShear = shear; WebMoment = moment; FlangeLeverArm = lever; }
     }
-    public sealed class IBeamSpliceBoltGroup
+    internal sealed class IBeamSpliceBoltGroup
     {
         public SpliceSide Side { get; }
         public IBeamSplicePart Part { get; }
@@ -97,7 +97,7 @@ namespace GPC.Checkers.Steel.Connections
     }
     /// <summary>A force distribution, never a resistance verification. Resultants and
     /// BoltGroups are unavailable on failure; no favourable utilization is returned.</summary>
-    public sealed class IBeamSpliceForceResult
+    internal sealed class IBeamSpliceForceResult
     {
         public IBeamSpliceForceInput Input { get; }
         public IBeamSpliceForceStatus Status { get; }
@@ -121,7 +121,7 @@ namespace GPC.Checkers.Steel.Connections
             Trace = Array.AsReadOnly(trace.ToArray()); Diagnostics = Array.AsReadOnly(diagnostics.ToArray());
         }
     }
-    public static class IBeamSpliceForces
+    internal static class IBeamSpliceForces
     {
         public static IBeamSpliceForceResult Calculate(IBeamSpliceForceInput p)
         {

@@ -24,7 +24,7 @@ namespace GPC.Checkers.Steel.Connections
         { Bolts=bolts;Checks=Array.AsReadOnly(checks.ToArray());Trace=Array.AsReadOnly(trace.ToArray());Diagnostics=Array.AsReadOnly(issues.ToArray()); }
     }
 
-    public static class EndPlateInPlaneChecks
+    internal static class EndPlateInPlaneChecks
     {
         public static EndPlateInPlaneResult Verify(EndPlateBoltComponentResult bolts)
         {

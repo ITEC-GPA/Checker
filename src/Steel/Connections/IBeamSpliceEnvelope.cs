@@ -7,7 +7,7 @@ namespace GPC.Checkers.Steel.Connections
 {
     /// <summary>One complete concomitant ULS state, with a caller-defined ordinal
     /// identifier. Plates, actions, application point and provenance are retained.</summary>
-    public sealed class IBeamSpliceUltimateCase
+    internal sealed class IBeamSpliceUltimateCase
     {
         public string Id { get; }
         public IBeamSplicePlateInput Plates { get; }
@@ -21,7 +21,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>A separately supplied slip state. An ULS slip must name exactly
     /// one UltimateCaseId with identical actions AND application point. An SLS
     /// slip has no ULS binding. Missing/wrong bindings produce diagnostics.</summary>
-    public sealed class IBeamSpliceSlipCase
+    internal sealed class IBeamSpliceSlipCase
     {
         public string Id { get; }
         public IBeamSpliceBoltSlipInput Input { get; }
@@ -38,7 +38,7 @@ namespace GPC.Checkers.Steel.Connections
     /// StringComparer.Ordinal. No independent maxima of N/V/M are synthesized.
     /// Category C is requested by RequiredSlipLimitState=Ultimate OR any ULS slip;
     /// it requires one explicitly bound ULS slip for every supplied ULS case.</summary>
-    public sealed class IBeamSpliceEnvelopeInput
+    internal sealed class IBeamSpliceEnvelopeInput
     {
         public IReadOnlyList<IBeamSpliceUltimateCase> UltimateCases { get; }
         public IReadOnlyList<IBeamSpliceSlipCase> SlipCases { get; }
@@ -65,7 +65,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>The original results calculated once for one ULS case. A failed
     /// binding never deletes a failure in that case's independently evaluated
     /// components. Status covers these components/binding, not the whole joint.</summary>
-    public sealed class IBeamSpliceUltimateCaseResult
+    internal sealed class IBeamSpliceUltimateCaseResult
     {
         public IBeamSpliceUltimateCase Input { get; }
         public IBeamSpliceComponentResult Components { get; }
@@ -92,7 +92,7 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>Original slip result and separate binding evidence. A result for
     /// another detail remains inspectable, but cannot qualify this envelope.</summary>
-    public sealed class IBeamSpliceSlipCaseResult
+    internal sealed class IBeamSpliceSlipCaseResult
     {
         public IBeamSpliceSlipCase Input { get; }
         public ConnectionVerification<IBeamSpliceBoltSlipInput> Assessment { get; }
@@ -109,7 +109,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Links one aggregate check to its ORIGINAL immutable leaf check.
     /// IsServiceability distinguishes SLS from ULS without parsing an Id. A slip
     /// source uses its slip Id, and LinkedUltimateCaseId identifies its ULS case.</summary>
-    public sealed class IBeamSpliceEnvelopeCheckSource
+    internal sealed class IBeamSpliceEnvelopeCheckSource
     {
         public string AggregateCheckId { get; }
         public string CaseId { get; }
@@ -129,7 +129,7 @@ namespace GPC.Checkers.Steel.Connections
     /// only. NS suppresses favourable aggregate checks/ratios; every original
     /// case and known failure remains available. It never qualifies a full joint
     /// or proves that the caller supplied every necessary structural combination.</summary>
-    public sealed class IBeamSpliceEnvelopeResult
+    internal sealed class IBeamSpliceEnvelopeResult
     {
         public ConnectionVerification<IBeamSpliceEnvelopeInput> ComponentAssessment { get; }
         public IReadOnlyList<IBeamSpliceUltimateCaseResult> UltimateCases { get; }
@@ -170,7 +170,8 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class IBeamSpliceEnvelope
+    [Obsolete("Approximate envelope of the IBeamSplice family; use WeldedIBeamSpliceStandard.")]
+    internal static class IBeamSpliceEnvelope
     {
         public const string MethodId = "Steel.Connection.IBeamSplice.ConcomitantCaseEnvelope";
         public static IBeamSpliceEnvelopeResult Verify(IBeamSpliceEnvelopeInput p)

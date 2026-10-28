@@ -77,7 +77,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Section and longitudinal strip COMPONENTS of all eight covers.
     /// The exact concentrated-force envelope retains local transverse forces
     /// in the inner strips. No complete plate stability or NVM fracture claim.</summary>
-    public static class WeldedIBeamSplicePlates
+    internal static class WeldedIBeamSplicePlates
     {
         public static WeldedIBeamSplicePlateResult Verify(WeldedIBeamSplicePlateInput p)
         {

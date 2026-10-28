@@ -82,7 +82,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Local full-yield normal-force envelope of qualified paired fillets, with all concomitant
     /// vertical shear carried by the web welds. N, mm, MPa. Equal legs and90-degree fusion faces only;
     /// effective throat is leg/sqrt(2), with no additional penetration or root-gap allowance.</summary>
-    public static class EndPlateWeldComponents
+    internal static class EndPlateWeldComponents
     {
         public static EndPlateWeldComponentResult Verify(EndPlateWeldComponentInput p)
         {

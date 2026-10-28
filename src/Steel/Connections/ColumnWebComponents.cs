@@ -75,7 +75,7 @@ namespace GPC.Checkers.Steel.Connections
 
     public enum ColumnWebPanelConfiguration { SingleSidedJoint, DoubleSidedSimilarBeamDepths, DoubleSidedUnequalBeamDepths }
 
-    public sealed class ColumnWebPanelInput
+    internal sealed class ColumnWebPanelInput
     {
         public ColumnWebPolicy Policy { get; }
         public ConnectionRolledISection Column { get; }
@@ -96,7 +96,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Transverse web tension under one concomitant row/group action.
     /// Beta is the independently determined EN5.3 transformation parameter, 0..2;
     /// it is not computed from isolated beam moments by this component.</summary>
-    public sealed class ColumnWebTensionInput
+    internal sealed class ColumnWebTensionInput
     {
         public ColumnWebPolicy Policy { get; }
         public ConnectionRolledISection Column { get; }
@@ -125,7 +125,7 @@ namespace GPC.Checkers.Steel.Connections
     /// positive compression, zero only if justified by the supplied stress source. Unequal
     /// stress across the web is represented by its maximum, not its average. No plastic
     /// redistribution of this longitudinal stress or column-sway restraint is inferred.</summary>
-    public sealed class ColumnWebCompressionInput
+    internal sealed class ColumnWebCompressionInput
     {
         public ColumnWebPolicy Policy { get; }
         public ConnectionRolledISection Column { get; }
@@ -155,7 +155,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class ColumnWebComponents
+    internal static class ColumnWebComponents
     {
         public static ConnectionVerification<ColumnWebPanelInput> VerifyPanelShear(ColumnWebPanelInput p)
         {

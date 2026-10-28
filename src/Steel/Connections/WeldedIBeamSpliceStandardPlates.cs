@@ -24,7 +24,7 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>Sufficient conservative checks for the standard splice, added to the
     /// existing gross sections, strip buckling, bolts and detailing. No plastic redistribution.
     /// The net stress check deliberately retains holes under compression as well.</summary>
-    public static class WeldedIBeamSpliceStandardPlates
+    internal static class WeldedIBeamSpliceStandardPlates
     {
         public static WeldedIBeamSpliceStandardPlateResult Verify(WeldedIBeamSpliceDetailInput p) => Verify(p, false);
 

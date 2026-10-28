@@ -70,7 +70,7 @@ namespace GPC.Checkers.Steel.Connections
         { Input = input; BindingDiagnostics = Array.AsReadOnly(issues.Distinct().ToArray()); LongitudinalWelds = welds; }
     }
 
-    public static class WeldedIBeamSpliceParents
+    internal static class WeldedIBeamSpliceParents
     {
         /// <summary>Splice X=member longitudinal, Y=section up. Steel M1=int(sigma*y),
         /// while splice Mz=-int(sigma*y): M1=-Mz, V2=Fy. Transport the pole FIRST.

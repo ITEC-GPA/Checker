@@ -141,7 +141,7 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
-    public static class EndPlateMomentComponents
+    internal static class EndPlateMomentComponents
     {
         public static EndPlateMomentComponentResult Verify(EndPlateMomentComponentInput p)
         {
