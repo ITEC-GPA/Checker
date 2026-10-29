@@ -142,6 +142,7 @@ namespace GPC.Checkers.Steel.Connections
                     var linked = p.UltimateCases.SingleOrDefault(u => string.Equals(u.Id, c.UltimateCaseId, StringComparison.Ordinal));
                     if (linked == null) binding.Add("LINKED_ULTIMATE_CASE_REQUIRED");
                     else if (!SpliceIdentity.Actions(linked.Detail.Plates.Bolts.Detail.Actions, c.Input.Bolts.Detail.Actions)) binding.Add("LINKED_ULTIMATE_ACTIONS_OR_POLE_MISMATCH");
+                    else if (linked.Detail.Plates.Bolts.Detail.CoverDistribution != c.Input.Bolts.Detail.CoverDistribution) binding.Add("LINKED_ULTIMATE_COVER_DISTRIBUTION_MISMATCH");
                 }
                 else if (c.UltimateCaseId != null) binding.Add("SERVICEABILITY_MUST_NOT_BIND_TO_ULTIMATE_CASE");
                 var r = new WeldedSpliceSlipCaseResult(c, binding); slips.Add(r);
@@ -165,6 +166,7 @@ namespace GPC.Checkers.Steel.Connections
         private static bool SameSlipExecution(WeldedIBeamSpliceSlipInput a, WeldedIBeamSpliceSlipInput b)
             => a.TighteningControl == b.TighteningControl && a.Policy.GammaM3Ultimate == b.Policy.GammaM3Ultimate
             && a.Policy.GammaM3Serviceability == b.Policy.GammaM3Serviceability && a.Surfaces.Count == b.Surfaces.Count
-            && a.Surfaces.All(x => b.Surfaces.Any(y => x.Cover == y.Cover && x.Interfaces.Select(i => i.Coefficient).SequenceEqual(y.Interfaces.Select(i => i.Coefficient))));
+            && a.Surfaces.All(x => b.Surfaces.Any(y => x.Cover == y.Cover && x.Interfaces.Select(i => i.Coefficient).SequenceEqual(y.Interfaces.Select(i => i.Coefficient))
+                && x.RightInterfaces.Select(i => i.Coefficient).SequenceEqual(y.RightInterfaces.Select(i => i.Coefficient))));
     }
 }

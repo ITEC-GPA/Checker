@@ -53,6 +53,19 @@ Stato reale del taglio (28 ottobre 2026):
   l'instabilita a taglio delle ali se gli sbalzi restano entro 14 eps
   (criterio GPC, non clausola di norma). ModelChecker lo applica in automatico
   sulle H esatte quando manca una valutazione esplicita ShearBucklingExcluded1.
+  Cave rettangolari (29 ottobre 2026): SectionRHS a spigoli vivi e
+  SectionRHSRoundedCorners con asse 1 orizzontale. Le pareti parallele al taglio
+  sono anime non irrigidite: V2 le pareti di altezza h, V1 quelle di larghezza b.
+  SteelShearBucklingAssessment.EvaluateEc3RhsWebs (EC3 6.2.6(6), EN 1993-1-5
+  5.1(2): hw/t <= 72 eps/eta, eta esplicito) ed EvaluateNtcRhsWebs (NTC eq.
+  4.2.27, eta=1). hw = h - tsup - tinf oppure b - tsx - tdx fra le facce interne,
+  raggi di raccordo trascurati (piu della parte piana e di c = h - 3t: a favore
+  di sicurezza); t e la parete piu sottile. ModelChecker li applica come per le
+  H, nel motore di sezione e nella trave-colonna, con l'eta del profilo
+  normativo per grado; la valutazione esplicita prevale e il filtro negativo
+  lascia la riga non valutata. CHS e assi ruotati: nessun filtro, resta la
+  valutazione esplicita (EN 1993-1-5 non copre i tubi circolari; i gusci di
+  EN 1993-1-6 richiedono lunghezza fra vincoli e qualita di fabbricazione).
 
 Stabilita delle aste senza compressione (28 ottobre 2026, branch steel-aste-routing):
   Flessione M2 sola (con o senza trazione, V1): lo svergolamento non e richiesto
@@ -81,10 +94,15 @@ Stabilita delle aste senza compressione (28 ottobre 2026, branch steel-aste-rout
   per ogni taglio attivo (anima EvaluateEc3HWeb/EvaluateNtcHWeb, ali
   EvaluateHFlanges, criterio GPC); ModelChecker le calcola come il motore di
   sezione (eta del profilo normativo). Negativa: ShearBuckling.ResistanceMethodRequired,
-  nessuna resistenza ridotta. La fonte esplicita prevale; le cave la richiedono
-  ancora. Resta V<=0,5 Vpl. In ModelChecker la modalita Bending con M1 e M2/V1
-  risponde SteelMember.BiaxialBendingRequiresBeamColumn. Un esito NotRequired
-  d'asta resta NotEvaluated nel resoconto di Model (nessun esito "non richiesto").
+  nessuna resistenza ridotta. La fonte esplicita prevale; senza di essa le RHS
+  con asse 1 orizzontale attendono EvaluateEc3RhsWebs/EvaluateNtcRhsWebs per ogni
+  taglio attivo, le CHS e le cave ruotate la richiedono ancora. Resta V<=0,5 Vpl.
+  In ModelChecker la modalita Bending con M1 e M2/V1 risponde
+  SteelMember.BiaxialBendingRequiresBeamColumn. Un esito d'asta con
+  tutti i meccanismi NotRequired diventa nel resoconto di Model una riga non
+  applicabile (CheckApplicability.NotApplicable, motivo = codici e messaggi):
+  conta come risolta, mai come verificata. I tagli di sezione nulli restano
+  NotEvaluated (nessuna conclusione sull'asta).
 
 Svergolamento di profili laminati o saldati equivalenti (28/10/2026):
   il default resta il caso generale (EC3 6.3.2.2, Tab. 6.4; NTC 4.2.4.1.3.2
@@ -111,6 +129,58 @@ Svergolamento di profili laminati o saldati equivalenti (28/10/2026):
   Traccia: BetaLT, LambdaLT0, MomentCorrectionF, PhiLT, ChiLTBase, Kc, KcPsi;
   report Member.LtbMethod e Member.LtbKc. Nessun atteso esistente modificato.
 
+Opzioni EC3 dello svergolamento (29/10/2026, branch steel-ltb-esenzione):
+  due scelte esplicite, per il metodo generale e per quello dei laminati;
+  senza di esse nulla cambia. Sotto NTC 2018 sono rifiutate.
+  Esenzione per momento basso, EC3 6.3.2.2(4) secondo criterio: nella libreria
+  SteelLateralTorsionalMethod.WithLowMomentExemption(fonte), in ModelChecker
+  LtbLowMomentExemption=true con LtbLowMomentExemptionSource (solo Bending).
+  Se MEd/Mcr <= lambdaLT0^2 la verifica LTB e NotRequired
+  (Member.LtbLowMomentExemption) e restano le verifiche di sezione; MEd e il
+  massimo |M1| dell'asta (o del segmento a forcella), Mcr quello della verifica.
+  lambdaLT0 e quello del metodo in uso: 0,2 nel caso generale (plateau della
+  6.56, limite 0,04), LambdaLT0ForLateralTorsionalBucklingMod dell'oggetto norma
+  col metodo dei laminati (0,4: limite 0,16). La clausola rinvia lambdaLT0 alla
+  6.3.2.3: nel caso generale si tiene lo 0,2 della sua curva, il limite minore.
+  Traccia LowMoment.MEd, .Mcr, .MEdOverMcr, .LambdaLT0, .Limit, .Exempt anche
+  quando il criterio non vale (la verifica prosegue identica); riga
+  Member.LtbLowMomentExemption. Primo criterio (lambdaLT <= lambdaLT0): gia
+  chiLT=1 nelle due riduzioni (test SlendernessUpToLambdaLT0GivesChiLTOne), la
+  verifica resta eseguita con gammaM1; con MEd <= Wy fy il secondo criterio lo
+  comprende. In ModelChecker l'asta esentata e una riga non applicabile
+  (CheckApplicability.NotApplicable con il motivo), come ogni NotRequired d'asta.
+  Trave-colonna: non applicata (WithLateralTorsionalMethod la rifiuta; in
+  ModelChecker ParameterOnAnotherMode e LtbLowMomentExemptionOnAnotherRoute).
+  La 6.3.2.2(4) e una regola della 6.3.2 (membrature inflesse) e lascia le sole
+  verifiche di sezione, che non sostituiscono le 6.61-6.62; il criterio ignora
+  NEd, che abbassa il carico critico flesso-torsionale (l'Annesso A usa un
+  criterio proprio funzione di N). Per escludere lo svergolamento della
+  trave-colonna resta TorsionSusceptible=false con LateralTorsionalExclusionSource.
+  NTC: nessuna clausola equivalente verificabile nei sorgenti (NTC 2018
+  4.2.4.1.3.2, Circolare 2019): Member.LtbLowMomentExemptionNotInNtc.
+  Curva nazionale (EC3 6.3.2.2(2) e 6.3.2.3(1): le assegnazioni delle Tab. 6.4
+  e 6.5 sono raccomandazioni, NDP): nella libreria WithDeclaredCurve(curva,
+  fonte), in ModelChecker LtbCurve=A|B|C|D con LtbCurveSource (Annesso
+  Nazionale e clausola), modi Bending e BeamColumn. Sostituisce la curva della
+  tabella del metodo (generale Tab. 6.4, laminati Tab. 6.5) nella verifica LTB
+  e nel chiLT della trave-colonna; alphaLT resta quello della Tab. 6.3 per la
+  curva dichiarata, il metodo dei laminati resta limitato alle H/I esatte.
+  Traccia LtbCurveDeclared e AlphaLTTableCurve (alphaLT della curva di tabella),
+  riferimento con curva, fonte e tabella sostituita; riga Member.LtbCurve.
+  Rifiuti: NTC Member.LtbCurveFixedByNtc (curve fissate dalla Tab. 4.2.IX);
+  trave-colonna senza chiLT (TorsionSusceptible=false, cave)
+  Member.LtbCurveWithoutLtbReduction.
+  Oggetto norma: alphaLT per curva diversi da 0,21/0,34/0,49/0,76 restano
+  rifiutati (LtbImperfectionFactorsNotQualified), cosi beta/lambdaLT0 del caso
+  generale diversi da 1/0,2 (LtbGeneralParametersNotQualified: la 6.56 li fissa,
+  quelli nazionali sono della 6.3.2.3 e dei campi *Mod). Nota: la NOTA della
+  6.3.2.2(2) lascia all'Annesso Nazionale anche alphaLT (la Tab. 6.3 e intitolata
+  "valori raccomandati"); un alphaLT nazionale richiederebbe un percorso
+  proprio, oggi assente.
+  Test: LtbLowMomentAndNationalCurveTests (20 casi, valori a mano nei commenti)
+  e SteelLtbNationalOptionsPipelineTest (14 casi). Nessun atteso esistente
+  modificato.
+
 Valori critici automatici (28 ottobre 2026):
   Senza valore ne' esclusione, NcrT/NcrFT si risolvono in automatico solo per le H
   doppiamente simmetriche (NcrT=(G It+pi^2 E Iw/LcrT^2)/i0^2 con LcrT esplicita o
@@ -123,6 +193,77 @@ Valori critici automatici (28 ottobre 2026):
   critici propri; governa il segmento peggiore (Member.Segment.Governing). Ritegni
   parziali, su un'ala, ignoti o di fase vengono rifiutati con codice preciso.
   Dettagli in AUTOMATIC_STABILITY.txt.
+
+Modi sway nella trave-colonna (29 ottobre 2026, branch claude/steel-cm-sway):
+  dichiarazione esplicita e facoltativa SwayBucklingPlanes=1|2|1,2 con
+  SwayModeSource (solo BeamColumn, mai dedotta dalla mesh). Nel piano
+  dichiarato Cm=0.9 qualunque sia il diagramma (EC3 Tab. B.3, nota; NTC:
+  Circolare Tab. C4.2.VI, ipotesi GPC dichiarata perche' il testo della
+  Circolare non e' nel repository). L'altro piano resta LinearDiagrams,
+  ConservativeEnvelope o esplicito; CmLT non cambia. Un Cm esplicito sul piano
+  sway e' un conflitto. L'Ncr del piano sway e' esplicito o viene da una
+  EffectiveLength dichiarata; i valori automatici dei segmenti a forcella sono
+  nonsway e vengono rifiutati (SteelMember.Sway.NonswayNcr1/NonswayNcr2), ma
+  con piano1 sway e Ncr1 sway i segmenti restano per Ncr2, NcrT e Mcr. Traccia
+  per piano: Member.MomentFactor.*, Member.Sway.Plane*. Senza dichiarazione
+  nessun risultato cambia. Libreria: SteelSwayMomentFactor (For accetta solo la
+  mensola di FlexuralModes). Dettagli in MEMBER_SCHEME_PREPARATION.txt.
+
+Tensioni di esercizio delle sezioni (29 ottobre 2026, branch steel-sle-tensioni):
+  SteelServiceStressCheck.Evaluate(input, SteelServiceStressBasis, classe, token)
+  limita le tensioni elastiche nominali di un taglio: sigma <= fy/gM,ser,
+  tau <= fy/(rad3 gM,ser) e rad(sigma^2+3tau^2) <= fy/gM,ser, nella forma di
+  EN 1993-2:2006 7.3(1) eq. (7.1)-(7.3); le azioni sono quelle della combinazione
+  caratteristica, dichiarata dal chiamante. gM,ser e' un parametro nazionale
+  (raccomandato 1,00): nessun default, valore >= 1 con la sua fonte. Serve anche
+  la fonte di applicabilita' (ponte, requisito di progetto): EN 1993-1-1 non
+  richiede la verifica per gli edifici e nel repository non c'e' un testo NTC
+  2018/Circolare 2019 verificato per le tensioni di esercizio dell'acciaio; con
+  NTC i limiti sono quelli dichiarati, nella stessa forma, e il riferimento lo dice.
+  sigma = N/A + Mx y/Ixx - My x/Iyy sulla sezione lorda di Model (classi 1-3, o
+  nessuna fibra compressa: classificazione non richiesta). Classe 4 dalla
+  classificazione concomitante del taglio: sezione efficace di
+  SteelEffectiveSectionSolver (larghezze a fy, conservative in esercizio), sigma
+  sul rettangolo di ingombro e von Mises come combinazione dei massimi di punti
+  diversi (IsBound). tau = V S/(I t) (EN 1993-1-1 6.2.6(4) eq. (6.20)) con S e I
+  dello stesso modello, cosi' i flussi equilibrano V1 e V2 sommati: H doppiamente
+  simmetrica (linea media aperta dalle punte delle ali, raccordi trascurati in
+  tau), RHS a pareti simmetriche (cella chiusa con il flusso costante di rotazione
+  nulla; angoli arrotondati come spigoli vivi, punti d'angolo esterni
+  conservativi), CHS (parete sottile, massimo 2V/A), rettangolo pieno solo con un
+  taglio e larghezza trasversale <= meta' della profondita' (Jourawski, criterio
+  GPC). I massimi di sigma, tau e von Mises sono esatti lungo ogni linea di fibre
+  (facce delle pareti, angoli): radici del polinomio di quarto grado, per la CHS di
+  una quartica in tan(theta/2). Utilizzo = massimo dei tre rapporti tensione/limite.
+  Rifiuti con codice ServiceStress.*: T non nullo dopo la soglia di trascurabilita'
+  (Torsion.NotIntegrated: la libreria non calcola tensioni di St Venant o di
+  ingobbamento), altre famiglie, H monosimmetriche, profili aperti formati a
+  freddo, fori non dichiarati o presenti, rettangolo con due tagli o troppo largo,
+  classe 4 non qualificata (CHS), base mancante (BasisRequired). Azioni tutte
+  nulle: NotRequired, come la pipeline. Esclusi: shear lag ed effetti secondari
+  (EN 1993-2 7.3(1): nelle azioni o coperti dalla fonte), tensioni trasversali,
+  carichi concentrati, respiro d'anima, fatica, collegamenti.
+  ModelChecker: compito Serviceability/StressLimits/Characteristic del motore
+  Steel.Pipeline.Section, vedi MODELCHECKER_PIPELINE.txt. Test: SteelServiceStressTests
+  (25, Steel.Members.Tests) e SteelServiceStressTest (12, ModelChecker.Tests).
+
+Verifiche di esercizio delle aste (29 ottobre 2026, branch steel-sle-aste):
+  motore ModelChecker Steel.Serviceability.Member (SteelMemberServiceability-
+  Checker) e nucleo Serviceability/SteelMemberDeformation. Freccia verticale
+  (EC3 7.2.1, EN 1990 A1.4.3; NTC 4.2.4.2.1) relativa alla corda degli appoggi
+  del tratto o all'estremo vincolato di uno sbalzo, delta_max con
+  controfreccia firmata e delta2 dei variabili (stato dichiarato o differenza
+  lineare); spostamento relativo degli estremi contro h/n (EC3 7.2.2; NTC
+  4.2.4.2.2); frequenza f=17,75/rad(delta[mm]) dell'asta appoggiata a massa
+  uniforme o con coefficiente qualificato (EC3 7.2.3; NTC 4.2.4.2.3).
+  Il task SLE si dichiara in Model con MemberCheckSpecification.Category e
+  .Deformation; il piano prepara gli spostamenti nodali negli assi dell'asta,
+  che entrano in snapshot, impronte e currency come le forze. Limiti L/n e
+  h/n, schemi, controfreccia, lunghezza di riferimento degli sbalzi, massa e
+  copertura dei nodi sono parametri dichiarati con fonte: nessun preset delle
+  Tab. 4.2.XII/XIII (testi assenti dal repository); una dichiarazione mancante
+  e un MissingInput preciso. Solo nodi esportati, nessuna interpolazione.
+  Dettagli in SERVICEABILITY_MEMBERS.txt.
 
 Coprigiunti bullonati di travi composte saldate a I:
   BridgeSpliceApplication.CreateBolted -> WeldedIBeamSpliceStandard.Verify
@@ -168,13 +309,26 @@ Controventi e profili accoppiati:
   oppure FromBoltedPacking -> pipeline dell'asta con la stessa valutazione.
   Gli ultimi due metodi di assemblaggio stanno nel namespace Inputs.
   Imbotiture bullonate non significano terminale bullonato: il terminale
-  compresso qualificato resta saldato. Vedi PACKED_PAIR_STANDARD_WELDED_USAGE
+  saldato resta quello del percorso saldato. Vedi PACKED_PAIR_STANDARD_WELDED_USAGE
   nella cartella Connections e PACKED_BOLTED_STANDARD.txt.
+  Terminale BULLONATO compresso (29/10/2026): SteelPackedPairBoltedTerminal.Verify
+  -> SteelPackedPairAssessment.FromBoltedTerminal(packing,terminal,vincoli) con
+  imbottiture intermedie bullonate sullo stesso modello di domanda; vincolo
+  d'estremita' DICHIARATO dal terminale (traslazioni trattenute, rotazioni
+  flessionali libere). Vedi Connections/PACKED_PAIR_BOLTED_TERMINAL.txt.
+  C/2C collegate solo d'anima in trazione: ChannelWebTension.Verify con scelta
+  esplicita ConnectedWebOnly (limite inferiore, striscia d'anima) o
+  AiscShearLagAlternative dichiarata; solo l'estremita' del canale, vedi
+  Connections/PHASE_3C_3E_CHANNEL_TENSION_REVIEW.txt (aggiornamento 29/10).
 
 Taglio ordinario:
   FinPlate.Verify e FlexibleEndPlate.Verify/VerifyPair nelle proprie
   geometrie SCI; DoubleAngleCleatComponents.Verify e ancora una famiglia di
   COMPONENTI (contatto, anima del pilastro e tying sono interni).
+  Doppio angolare su ANIMA di pilastro, taglio ordinario (29/10/2026):
+  DoubleAngleCleatColumnWebStandard.Verify e il percorso standard completo nel
+  dettaglio SBE-MS5; il tying resta una situazione distinta e dichiarata.
+  Vedi Connections/DOUBLE_ANGLE_COLUMN_WEB.txt (aggiornamento 29/10).
   Le API di componente hanno un campo limitato anche quando Status=Passed.
 
 Superficie pubblica delle connessioni (28/10/2026):
@@ -205,26 +359,56 @@ EffectiveCompression              | Larghezze efficaci; classe4 compressa
 EffectiveCompressionWithLowShear   | Estensione esplicita a |V|<=R/2,
                                   | area efficace netta e esclusione
                                   | instabilita a taglio sull'intera b/t.
+EffectiveCompressionWithShearBuckling | Taglio di qualunque entita (29/10):
+                                  | EN1993-1-5 sez.5 sull'intera lastra,
+                                  | montante non rigido, eta=1, chi<=1/lambda^2,
+                                  | interazione 7.1 oltre eta3=0.5.
 
 R non e una nuova resistenza normativa: e il limite conservativo descritto
 in Connections/BRIDGE_SPLICE_CLASS4_LOW_SHEAR.txt. Taglio elevato e lastre
-sensibili a instabilita a taglio restano fuori dal nuovo metodo.
+sensibili a instabilita a taglio restano fuori da quel metodo e sono coperte
+dal metodo esplicito EffectiveCompressionWithShearBuckling
+(Connections/BRIDGE_SPLICE_CLASS4_SHEAR_BUCKLING.txt), salvo un taglio con
+eta3>0.5 senza fibre tese, che EN1993-1-5 7.1(5) rinvia alla sezione10.
+Blocchi: FastenerHierarchy (default), ActualCollinearForcesWithHierarchyFallback,
+oppure ActualForcesWithMixedBlockInteraction: nei gruppi misti ogni percorso
+fuori gerarchia e verificato con le azioni reali (Connections/BRIDGE_SPLICE_MIXED_BLOCKS.txt).
 Le scelte di piastra non disattivano bulloni, blocchi, detailing o genitori.
 I compensatori ammessi sono paralleli, integri, a piena impronta, anche
 multistrato con interfacce in serie. Non sono una transizione di sezione.
+Transizioni (faceModel PackedSectionTransition): sezione destra e compensatori per
+lato in WeldedSpliceSectionTransition; CreateBolted crea <id>.LeftDistribution e
+<id>.RightDistribution per ogni caso. Connections/BRIDGE_SPLICE_TRANSITIONS.txt.
 
 STATO DEGLI OTTO PUNTI RICHIESTI IN QUESTO BLOCCO
 
-1 Blocchi misti fuori gerarchia: APERTO. Studio della fonte DTU completato;
-  nessun nuovo esito resistente qualificato. Vedi OPEN_MECHANISMS_REVIEW.txt
-  in Connections. Un criterio sufficiente non soddisfatto non prova rottura.
-2 Transizioni fra sezioni: APERTO. Nessun nuovo modello implementato;
-  servono trasferimenti equilibrati fra ali/anima e relativo dettaglio locale.
-3 Classe4 compressa+taglio: PARZIALE. Chiuso il sottodominio a taglio basso;
-  alto taglio/instabilita della lastra restano da implementare.
-4 Terminali/supporti: APERTO per le estensioni generali. Restano i percorsi
-  saldati/complanari o2L tesi gia qualificati; nessun terminale bullonato
-  compresso o doppio angolare completo e stato aggiunto in questo blocco.
+1 Blocchi misti fuori gerarchia: COMPLETATO (29/10) con il metodo esplicito
+  ActualForcesWithMixedBlockInteraction: U con la sola componente nel verso di
+  strappo, L con interazione lineare convessa Veff,2/Veff,2/coppia statica.
+  Restano esclusi i percorsi non rettangolari. Connections/BRIDGE_SPLICE_MIXED_BLOCKS.txt.
+  Un criterio sufficiente non soddisfatto non prova rottura: senza opt-in resta NotSupported.
+2 Transizioni fra sezioni: PARZIALE (29/10/2026). Implementato il modello a pari
+  altezza, facce esterne e piano dell'anima comuni, stesse larghezze: spessori di
+  ali/anima diversi colmati da compensatori paralleli per lato (PackedSectionTransition).
+  I coprigiunti portano UNA distribuzione elastica, ogni caso con entrambe (sinistra e
+  destra); il membro che ridistribuisce verifica trasferimenti ala-anima, coppie di
+  giunto, cordoni, anima e piastre forate. Restano rifiutati con codice preciso: altezza
+  o larghezza diverse, offset, rastremazioni, classe4 efficace, taglio alto nei
+  coprigiunti (anche EffectiveCompressionWithShearBuckling). Vedi
+  Connections/BRIDGE_SPLICE_TRANSITIONS.txt.
+3 Classe4 compressa+taglio: COMPLETATO (29/10) salvo un sottocaso. Taglio basso
+  e alto, lastre sensibili a instabilita: EffectiveCompressionWithShearBuckling.
+  Rifiutato con codice: eta3>0.5 su taglio interamente compresso (sezione10).
+4 Terminali/supporti: PARZIALE (29/10/2026). Chiusi nel campo dichiarato:
+  terminale BULLONATO di 2C/2L compressi (StandardBoltedPackedTerminal, vincolo
+  d'asta dichiarato), doppio angolare su anima di pilastro a taglio ordinario
+  (DoubleAngleCleatColumnWebShear, procedura SBE-MS5 cap.4 + P358 Check10,
+  gerarchia del punzonamento), estremita' di C/2C collegate solo d'anima in
+  trazione (ChannelWebOnlyTensionEnd, campo d'anima a limite inferiore o
+  alternativa AISC dichiarata). Restano aperti: attacchi a T su flange di
+  pilastri, piu' file/fori asolati, tying di squadrette e anima (P358 Check14
+  per lo schema delle squadrette), fazzoletto/collettore e supporto dei C/2C,
+  C/2C compressi collegati d'anima con altri dettagli, supporti generici.
 5 Documentazione corrente: COMPLETATO. Questo indice prevale sui checkpoint.
 6 Preparazioni ripetute: COMPLETATO nel workflow dei coprigiunti. Ogni caso
   riusa risultati immutabili, senza cache globale o scambio di azioni fra casi.
@@ -300,4 +484,7 @@ ConnectionRecommendedEntryTests (6). Non sono stati modificati attesi legacy,
 fixture storiche o allowlist. I risultati finali delle suite sono registrati
 in EIGHT_POINTS_VALIDATION_2026_10_27.txt al termine dell'esecuzione.
 Nessuna modifica ANTHEA, Model, merge, push o rilascio del set coerente.
+29/10/2026: BridgeSpliceMixedBlockInteractionTests (30) e
+BridgeSpliceClass4ShearBucklingTests (16), calcoli a mano EC3/NTC; nessun atteso
+o esito valutato in precedenza modificato.
 

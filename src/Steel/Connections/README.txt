@@ -311,6 +311,10 @@ I risultati restano consumabili dalle librerie; integrazioneANTHEA rinviata.
 
 Aggiornamento coprigiunti: BRIDGE_SPLICE_NEXT_STEPS.txt.
 - SpliceBlockVerificationMethod.ActualCollinearForcesWithHierarchyFallback.
+- SpliceBlockVerificationMethod.ActualForcesWithMixedBlockInteraction (29/10):
+  percorsi misti fuori gerarchia con azioni reali, BRIDGE_SPLICE_MIXED_BLOCKS.txt.
+- SplicePlateStabilityMethod.EffectiveCompressionWithShearBuckling (29/10):
+  EN1993-1-5 sez.5 e 7.1, BRIDGE_SPLICE_CLASS4_SHEAR_BUCKLING.txt.
 - SpliceFlangeFaceModel.EqualThicknessIndependentWidths (pari spessore).
 - BridgeSpliceApplication: casi Model/azioni EC/NTC; BridgeSpliceReport:
   rapporto bullonato/CJP, completo o sintetico. Guide BRIDGE_SPLICE_APPLICATION_USAGE.txt

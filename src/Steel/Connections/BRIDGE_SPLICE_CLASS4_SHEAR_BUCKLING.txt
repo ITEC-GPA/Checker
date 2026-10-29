@@ -1,0 +1,69 @@
+COPRIGIUNTI CON TAGLIO ELEVATO E INSTABILITA' A TAGLIO - 29/10/2026
+EC3 2005 / NTC2018, statica ordinaria. Stato generale: ../CURRENT.txt.
+
+INGRESSO
+SplicePlateStabilityMethod.EffectiveCompressionWithShearBuckling (plateStability).
+CompactCovers resta il default; EffectiveCompression, StandardBoltedCovers e
+EffectiveCompressionWithLowShear sono invariati. Il nuovo metodo riusa tutto
+EffectiveCompression: larghezze efficaci, NVM efficace netto con 1.5V,
+compressione e instabilita' tra bulloni, interazione P398 delle piastre non
+ridotte. Per ogni coprigiunto con taglio sostituisce il limite |V|<=R/2 e lo
+schermo b/t<=60eps con la resistenza EN1993-1-5 sezione5 e l'interazione 7.1.
+
+MODELLO DELLA LASTRA E SCELTE
+Pannello unico di altezza hw=b (intera larghezza) e spessore t, come lo schermo
+esistente. Bordi lunghi vincolati dalle file esterne di bulloni: almeno due file
+e passi longitudinali <= min(14t,200mm), anche attraverso il giunto (Tabella3.3,
+la distanza con cui EN1993-1-8 esclude l'instabilita' locale tra i dispositivi).
+Dominio ShearPanel.* (Applicability) e diagnostica SHEAR_PANEL_RESTRAINT_NOT_ESTABLISHED.
+Bulloni interni non accreditati come irrigidimenti: k_tau=5.34 (AnnexA.3 con
+a/hw infinito, minimo). b non e' minore della distanza fra le file esterne.
+Montante d'estremita' NON RIGIDO: le estremita' del coprigiunto sono bordi
+liberi; Tabella5.1 chi_w=eta per lambda_w<0.83/eta, poi 0.83/lambda_w. Il
+montante rigido non e' applicabile. Nessuna ala: Vbf,Rd=0.
+eta=1: 5.1(2) nota2 affida eta all'appendice nazionale (raccomandato1.2 fino a
+S460); la politica del coprigiunto non porta eta, quindi si usa il valore valido
+per ogni appendice e imposto per NTC (come EvaluateNtcHWeb).
+Nessuna riserva postcritica (tension field): le forze nei bulloni sono la
+soluzione elastica del gruppo e non contengono forze di ancoraggio della banda
+tesa; quindi anche chi_w<=1/lambda_w^2, cioe' tau<=tau_cr (conta per lambda_w>1.205).
+Vbw,Rd = chi_w b t fy/(rad3 gammaM1), nucleo comune Ec3WebPanelShear (nu=0.3,
+E=210000). Taglio lordo e netto restano verificati dai tagli esistenti.
+
+VERIFICHE PER OGNI TAGLIO
+- |V| <= Vbw,Rd (Cut*.ShearBuckling).
+- eta3=|V|/Vbw,Rd > 0.5: 7.1(1) eta1+(1-Mf,Rd/Mpl,Rd)(2eta3-1)^2 <= 1 con
+  Mf,Rd=0 e eta1=(|N|/Aeff+|M+eN N|c/Ieff)/(fy/gammaM0) della sezione efficace
+  elastica (4.6), maggiorante di M/MN,Rd chiesto da 7.1(5) (per la sezione
+  rettangolare in tutto il dominio elastico ammissibile). Cut*.ShearNormalInteraction.
+- eta3<=0.5: nessuna riduzione di N e M (7.1(1)), anche in compressione.
+- RIFIUTO: eta3>0.5 su un taglio senza fibre tese (N/A+|M|/W<0) di un
+  coprigiunto ridotto o con chi_w<1. 7.1(5) rinvia alla sezione10, che richiede
+  alpha_cr dell'unica lastra sotto l'intero campo; la libreria vincola la
+  compressione alle file di bulloni e il taglio all'intera larghezza, quindi
+  non esiste un modello unico qualificato. Codice:
+  HIGH_SHEAR_WHOLE_PLATE_COMPRESSED_REQUIRES_EN1993_1_5_SECTION10.
+  Piastra non ridotta con chi_w=1: resta l'interazione P398 / EN1993-1-1 6.2.8.
+
+NTC2018
+La libreria applica gia' EN1993-1-5 5.2/5.3 come metodo integrativo dichiarato
+per NTC 4.2.4.1.2.4 (EvaluateNonRigidHWeb, EvaluateTransverselyStiffenedHWeb) e
+7.1(1) nel metodo a taglio basso. Stesso percorso con coefficienti NTC
+(gammaM0=1.05, gammaM1 della politica, eta=1). Il testo NTC non e' nel
+repository: il rinvio e' verificato dalle fonti e dai riferimenti del codice.
+
+FONTI
+EN1993-1-5:2006 4.6, 5.1(2), 5.2(1), 5.3, Tabella5.1, AnnexA.3, 7.1(1),(5);
+JRC/ECCS Commentary EUR22898EN capitoli5 e7; EN1993-1-8:2005 Tabella3.3.
+
+PROVE: BridgeSpliceClass4ShearBucklingTests, 16 casi EC3/NTC.
+- t=6 (b/t=46.7): lambda_w=0.6636, chi_w=1, Vbw=344.33kN (EC3); |V|=85kN oltre
+  R/2=80.4kN: taglio basso NotSupported, nuovo Passed; flusso completo Passed
+  con entrambi i metodi dei blocchi; schermo sostituito solo dove c'e' taglio.
+- t=4 (b/t=70>60eps), quattro file a56mm: lambda_w=0.99544, chi_w=0.8338,
+  Vbw=191.40kN; |V|=100kN, eta3=0.52: interazione su tre tagli rifatta a mano
+  con Aeff=(168+2*56rho)*4, rho=0.8621; taglio basso CLASS4_SHEAR_BUCKLING_NOT_EXCLUDED.
+- t=3 (b/t=93.3): lambda_w=1.3272, Tabella5.1 0.6254, limite elastico 0.5677.
+- |V|=210kN>Vbw: Failed. Compresso con eta3>0.5: rifiuto sezione10; compresso
+  con eta3<=0.5: Passed. Passi 70>14t: dominio non stabilito. V=0: identico a
+  EffectiveCompression.

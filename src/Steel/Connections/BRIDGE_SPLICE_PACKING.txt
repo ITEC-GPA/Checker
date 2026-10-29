@@ -8,7 +8,8 @@ Spessore identico sui due lati longitudinali del giunto; i due coprigiunti
 interni di un'ala sono identici; i due compensatori d'anima sono identici.
 Il compensatore non contribuisce ad area resistente o rigidezza del giunto.
 Cunei, compensatori discontinui e transizioni fra sezioni diverse restano
-fuori campo. I fogli multipli sono dichiarati con FromLayers, ordinati dal
+fuori campo (dal 29/10/2026 le transizioni a pari altezza con compensatori per lato
+hanno il proprio modello: BRIDGE_SPLICE_TRANSITIONS.txt). I fogli multipli sono dichiarati con FromLayers, ordinati dal
 coprigiunto verso la madre e copiati in collezioni immutabili. Specifica esecutiva obbligatoria nel risultato globale;
 deve documentare contatto, rondelle, grip disponibile e posizione filettatura.
 La libreria restituisce lo spessore totale serrato; non certifica il montaggio.

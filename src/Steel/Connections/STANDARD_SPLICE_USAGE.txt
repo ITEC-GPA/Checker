@@ -38,7 +38,9 @@ CONTROLLI DEL PERCORSO UNICO
    R_block >= somma delle resistenze non ridotte dei piani dei bulloni contenuti.
    Formula eccentrica EC con contributo0.5Ant. Niente cancellazione di forze.
    Se la gerarchia non vale, il metodo e' FUORI CAMPO: non si dichiara collasso
-   del blocco con le azioni reali. Occorre un altro modello del blocco caricato.
+   del blocco con le azioni reali. Occorre un altro modello del blocco caricato:
+   dal 29/10/2026 l'opt-in ActualForcesWithMixedBlockInteraction verifica quei
+   percorsi con le azioni reali (BRIDGE_SPLICE_MIXED_BLOCKS.txt).
 4. Intera sezione madre netta: tutti i fori conservativamente allineati, azioni
    intere senza contributo dei coprigiunti, momento massimo agli estremi del
    tratto sovrapposto. Risultati lordi Steel dei due lati collegati e conservati.

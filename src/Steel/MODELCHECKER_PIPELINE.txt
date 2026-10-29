@@ -28,8 +28,24 @@ orizzontale: per V2 quello d'anima (EC3 con l'eta del profilo normativo
 effettivamente utilizzato, NTC eq. 4.2.27 con eta=1); per V1 quello delle ali,
 SteelShearBucklingAssessment.EvaluateHFlanges (sbalzi c/t <= 14 eps, criterio
 GPC e non clausola di norma, dichiarato come tale nella traccia). Oltre il
-limite la valutazione e' negativa e la riga resta non valutata. Una
-valutazione esplicita ShearBucklingExcluded1/2 prevale sempre sui filtri.
+limite la valutazione e' negativa e la riga resta non valutata.
+Dal 29/10/2026 anche le cave rettangolari (SectionRHS a spigoli vivi e
+SectionRHSRoundedCorners, le famiglie qualificate) con asse 1 orizzontale:
+le pareti parallele al taglio sono anime non irrigidite, per entrambi gli
+assi (V2 le pareti di altezza h, V1 quelle di larghezza b). Stesso criterio
+d'anima: EC3 6.2.6(6) / EN 1993-1-5 5.1(2) hw/t <= 72 eps/eta con l'eta del
+profilo normativo per grado, NTC eq. 4.2.27 con eta=1
+(SteelShearBucklingAssessment.EvaluateEc3RhsWebs/EvaluateNtcRhsWebs). hw e' la
+distanza netta fra le facce interne delle pareti ortogonali al taglio
+(h - tsup - tinf, b - tsx - tdx), raggi di raccordo trascurati: supera la parte
+piana e c = h - 3t della Tab. 5.2, quindi e' conservativa; t e' la parete piu'
+sottile. Traccia hw, t, fy, eta, snellezza e limite; riferimento e fonte
+dichiarano pareti e hw. Oltre il limite la riga resta non valutata.
+Le CHS non hanno filtro: EN 1993-1-5 non copre i tubi circolari, EC3 6.2.6(6)
+e NTC 4.2.27 riguardano anime, e l'instabilita' a taglio dei gusci (EN 1993-1-6)
+dipende dalla lunghezza fra vincoli e dalla qualita' di fabbricazione, non note
+alla sezione. CHS e assi principali ruotati richiedono ShearBucklingExcluded1/2.
+Una valutazione esplicita ShearBucklingExcluded1/2 prevale sempre sui filtri.
 I filtri leggono le azioni dopo la soglia di trascurabilita', come il selettore.
 
 La cache contiene solo snapshot di sezione, chiave proprieta'+configurazione.
@@ -43,3 +59,37 @@ Archivi e impronte usano i campi gia' persistiti, senza migrazione del formato.
 
 Verifica mirata: SteelPipelineAdapterTest, 23 casi, nessun atteso legacy cambiato.
 Evidenza completa di suite/API registrata nel commit di questa fase.
+
+TENSIONI DI ESERCIZIO - 29 OTTOBRE 2026
+Compito tipizzato Serviceability/StressLimits con categoria Characteristic
+(SectionCheckSpecification.StressLimits): la sessione implementa
+ISectionCheckSession e il catalogo dichiara il motore solo per questa specifica.
+Frequent, QuasiPermanent, CrackWidth e il meccanismo Serviceability senza
+specifica restano non supportati (UnsupportedSectionCheck): EN 1993-2 7.3(1)
+limita la combinazione caratteristica e nessun'altra categoria e' giustificata.
+Il piano di Model crea il compito solo sulle selezioni dichiarate Characteristic;
+le azioni del taglio si usano come sono, senza coefficienti.
+Parametri, tutti e tre o nessuno (regola ServiceStressBasis):
+- ServiceStress.GammaMSer: gM,ser >= 1 (EN 1993-2 7.3(1), parametro nazionale,
+  raccomandato 1,00), nessun default.
+- ServiceStress.GammaMSerSource: provenienza (appendice nazionale, progetto).
+- ServiceStress.ApplicabilitySource: perche' la limitazione si applica (ponte
+  EN 1993-2 7.3, requisito di progetto); EN 1993-1-1 non la richiede per gli
+  edifici e non si assume un testo NTC. Copre anche shear lag ed effetti
+  secondari, che non sono calcolati.
+Senza parametri il compito e' dato mancante (SteelPipeline.ServiceStress.
+BasisRequired). Valgono Unperforated, SectionFingerprint,
+UniformCompressionClass/ClassificationSource e le soglie Negligible.*.
+Esito: ServiceabilityCheckDetails, metodo Steel.ServiceStress, criterio
+stress/limit, categoria Characteristic. Metriche NormalStress (sigma con segno),
+ShearStress (|tau|) ed EquivalentStress con limite, utilizzo e riferimento;
+punti governanti nel piano della sezione (assi geometrici per il baricentro
+lordo, frame SectionGeometryCentroidal); traccia con azioni, proprieta', fonti,
+classe, modello di taglio, posizioni e azioni trascurate. Utilizzo della riga =
+massimo dei tre rapporti, che hanno la stessa definizione. Una riga non
+valutata conserva stato, codice SteelPipeline.ServiceStress.* e traccia.
+Il compito resta nel passo sequenziale (il calcolo anticipato in parallelo
+riguarda solo i compiti senza specifica). Il testo Limitations dei risultati
+SLU e' invariato; il catalogo aggiunge la portata SLE.
+Verifica mirata: SteelServiceStressTest (12 casi) in ModelChecker.Tests e
+SteelServiceStressTests (25) in Steel.Members.Tests; nessun atteso cambiato.

@@ -24,10 +24,23 @@ namespace GPC.Checkers.Steel.Connections
         StandardBoltedCovers,
         /// <summary>Effective compression plus concomitant shear up to half the
         /// conservatively bounded shear resistance; whole-width shear buckling excluded.</summary>
-        EffectiveCompressionWithLowShear
+        EffectiveCompressionWithLowShear,
+        /// <summary>Effective compression plus concomitant shear of any magnitude: whole-width EN1993-1-5
+        /// section5 shear-buckling resistance (k_tau=5.34, non-rigid end post, eta=1, no reserve beyond
+        /// tau_cr) and the 7.1 interaction. A wholly compressed cut at high shear stays unsupported (section10).</summary>
+        EffectiveCompressionWithShearBuckling
     }
 
-    public enum SpliceBlockVerificationMethod { FastenerHierarchy, ActualCollinearForcesWithHierarchyFallback }
+    public enum SpliceBlockVerificationMethod
+    {
+        FastenerHierarchy,
+        ActualCollinearForcesWithHierarchyFallback,
+        /// <summary>Collinear groups as ActualCollinearForcesWithHierarchyFallback. In a mixed-direction group every
+        /// path that fails the sufficient hierarchy is verified with its actual bolt actions: U paths by the force
+        /// component in their only admissible tearing direction, edge L paths by the linear interaction of the
+        /// two Veff,2 tearing resistances and a static lower bound of the pure-moment resistance.</summary>
+        ActualForcesWithMixedBlockInteraction
+    }
 
     public sealed class WeldedIBeamSpliceStandardInput
     {
@@ -70,13 +83,17 @@ namespace GPC.Checkers.Steel.Connections
         public WeldedIBeamSpliceStandardPlateResult AdditionalPlates { get; }
         public WeldedIBeamSpliceParentResult Parents { get; }
         public ConnectionVerification<WeldedIBeamSpliceDetailInput> EffectiveCompression { get; }
+        /// <summary>Section-transition transfer and envelope applicability of this cover distribution; null for identical sections.</summary>
+        public WeldedIBeamSpliceTransitionResult Transition { get; }
         internal WeldedSpliceStandardCaseResult(WeldedSpliceStandardCase input, WeldedSpliceUltimateCaseResult components, SpliceBlockVerificationMethod blockMethod, SpliceFlangeFaceModel faceModel, SplicePlateStabilityMethod plateStability)
         {
-            EffectiveCompression = (plateStability == SplicePlateStabilityMethod.EffectiveCompression || plateStability == SplicePlateStabilityMethod.EffectiveCompressionWithLowShear)
-                ? WeldedIBeamSpliceEffectiveCompression.Verify(input.Parents.Detail, plateStability == SplicePlateStabilityMethod.EffectiveCompressionWithLowShear, components.Plates) : null;
+            EffectiveCompression = WeldedIBeamSpliceEffectiveCompression.UsesEffectiveWidths(plateStability)
+                ? WeldedIBeamSpliceEffectiveCompression.Verify(input.Parents.Detail, plateStability, components.Plates) : null;
             Input = input; Components = components; Model = WeldedIBeamSpliceStandardModel.Verify(input.Parents.Detail, faceModel, components.Bolts.Forces);
-            AdditionalPlates = WeldedIBeamSpliceStandardPlates.Verify(input.Parents.Detail, blockMethod == SpliceBlockVerificationMethod.ActualCollinearForcesWithHierarchyFallback, plateStability, components.Plates, Model);
+            AdditionalPlates = WeldedIBeamSpliceStandardPlates.Verify(input.Parents.Detail, blockMethod, plateStability, components.Plates, Model);
             Parents = WeldedIBeamSpliceParents.Verify(input.Parents, components.Bolts.Forces);
+            if (input.Parents.Detail.Plates.Bolts.Detail.Transition != null)
+                Transition = WeldedIBeamSpliceTransfer.Verify(input.Parents, components.Bolts.Forces, components.Plates, plateStability);
         }
     }
     /// <summary>Reference to the original leaf check, never a recomputed resistance.
@@ -115,7 +132,10 @@ namespace GPC.Checkers.Steel.Connections
         public bool CalculatesRotationalStiffness => false;
         public bool CertifiesExecution => false;
         public string Scope => "Static resistance of the declared welded-I double-cover typology (face model: " + Input.FaceModel + ") under the supplied concomitant ULS/SLS cases. "
-            + "Includes bolts/bearing, selected slip category, gross/net plates, selected collinear block checks/hierarchy, cover stability (" + Input.PlateStability + "), gross/net parent section and continuous longitudinal fillets. "
+            + "Includes bolts/bearing, selected slip category, gross/net plates, selected collinear block checks/hierarchy"
+            + (Input.BlockMethod == SpliceBlockVerificationMethod.ActualForcesWithMixedBlockInteraction ? " with actual-force mixed-direction block interaction (" + Input.BlockMethod + ")" : "")
+            + ", cover stability (" + Input.PlateStability + "), gross/net parent section and continuous longitudinal fillets. "
+            + (Input.FaceModel == SpliceFlangeFaceModel.PackedSectionTransition ? "Section transition: both cover distributions per action state and the internal flange/web transfer of the redistributing member. " : "")
             + "Conditional on declared execution and structural continuity/second-order analysis. Linked whole-member outcomes are separate; no fatigue or rotational stiffness calculation.";
         internal WeldedIBeamSpliceStandardResult(WeldedIBeamSpliceStandardInput input, IEnumerable<WeldedSpliceStandardCaseResult> cases,
             IEnumerable<WeldedSpliceSlipCaseResult> slips, IEnumerable<string> missing, IEnumerable<WeldedSpliceStandardCheckSource> sources, bool failed)
@@ -164,6 +184,14 @@ namespace GPC.Checkers.Steel.Connections
                 Assess(id, "CompactPlateDomain", c.AdditionalPlates.CompactPlateDomain);
                 if (c.Components.NetAxialPlastic != null) Assess(id, "CategoryC.NetAxial", c.Components.NetAxialPlastic);
                 Assess(id, "LongitudinalWelds", c.Parents.LongitudinalWelds);
+                if (c.Transition != null)
+                {
+                    Assess(id, "SectionTransfer", c.Transition.Transfer); Assess(id, "TransitionDomain", c.Transition.Domain);
+                    // One distribution alone is never complete: the same actions with the other cover distribution are required.
+                    var d = input.Parents.Detail.Plates.Bolts.Detail;
+                    if (!p.Cases.Any(o => !ReferenceEquals(o, input) && Opposite(d, o.Parents.Detail.Plates.Bolts.Detail)))
+                        missing.Add(id + ":TRANSITION_OPPOSITE_COVER_DISTRIBUTION_CASE_REQUIRED");
+                }
                 Parent("Left.Section", input.Parents.LeftSection); Parent("Right.Section", input.Parents.RightSection);
                 void Parent(string part, SteelVerificationResult r)
                 {
@@ -180,6 +208,10 @@ namespace GPC.Checkers.Steel.Connections
             {
                 foreach (var issue in slip.BindingDiagnostics) missing.Add(slip.Input.Id + ":" + issue);
                 Assess(slip.Input.Id, "Slip", slip.Assessment, slip.Input.Input.LimitState == BoltSlipLimitState.Serviceability);
+                var d = slip.Input.Input.Bolts.Detail;
+                if (d.Transition != null && !envelope.SlipCases.Any(o => !ReferenceEquals(o, slip) && o.Input.Input.LimitState == slip.Input.Input.LimitState
+                    && Opposite(d, o.Input.Input.Bolts.Detail)))
+                    missing.Add(slip.Input.Id + ":TRANSITION_OPPOSITE_COVER_DISTRIBUTION_CASE_REQUIRED");
             }
             if (p.Envelope.Category == SpliceBoltCategory.B && !envelope.SlipCases.Any(s => s.IsBound && s.Input.Input.LimitState == BoltSlipLimitState.Serviceability))
                 missing.Add("CATEGORY_B_SERVICEABILITY_CASE_REQUIRED");
@@ -188,6 +220,10 @@ namespace GPC.Checkers.Steel.Connections
                     missing.Add(c.Id + ":CATEGORY_C_BOUND_ULTIMATE_SLIP_REQUIRED");
             return new WeldedIBeamSpliceStandardResult(p, cases, envelope.SlipCases, missing, sources, failed);
 
+            // The other cover distribution of the same action state on the same physical transition.
+            bool Opposite(WeldedIBeamSpliceForceInput a, WeldedIBeamSpliceForceInput b)
+                => b.Transition != null && a.CoverDistribution != b.CoverDistribution && SpliceIdentity.Actions(a.Actions, b.Actions)
+                    && a.Transition.SamePhysical(b.Transition);
             void Assess<T>(string id, string component, ConnectionVerification<T> r, bool sls = false) where T : class
             {
                 if (ConnectionOutcome.IsDomainPrerequisite(r.Role)) Prerequisite(id, component, r);

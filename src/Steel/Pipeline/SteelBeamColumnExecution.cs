@@ -89,15 +89,23 @@ namespace GPC.Checkers.Steel.Pipeline
             var ltb=SteelLateralTorsionalExecution.Qualify(analysis);if(ltb!=null)return ltb;
             if(a.V1!=0||a.V2!=0)
             {
-                // No qualified automatic screen for hollow sections: their explicit assessment stays required.
-                if(p.ShearBucklingExclusionSource==null&&hollow)return Missing("BeamColumn.ShearBucklingExclusionSource");
+                // Automatic screens exist for the exact H and the RHS with principal axis 1 horizontal (walls parallel to each
+                // shear as webs); CHS and rotated hollow sections keep the explicit assessment.
+                bool rhs=SteelSectionFamilies.Is(shape,SteelSectionKind.RectangularTube)&&Math.Abs(shape.AngleX1)<=1e-10;
+                if(p.ShearBucklingExclusionSource==null&&hollow&&!rhs)return Missing("BeamColumn.ShearBucklingExclusionSource");
+                // Plastic shear areas follow the geometry axes: with rotated principal axes (e.g. a wide RHS, axis 1
+                // vertical) they would not belong to V1/V2 and could overestimate VplRd. Same rule as the section route.
+                if(!SteelSectionFamilies.HasQualifiedShearAreas(section))return Unsupported("Member.BeamColumnShearAreasNotQualified",
+                    "Each shear <= 0.5 VplRd needs code shear areas on principal axes aligned with the section geometry; rotated principal axes are not supported with shear.");
                 double ratio1=Math.Abs(a.V1)/SteelPlasticShear.Resistance(i,1);
                 double ratio2=Math.Abs(a.V2)/SteelPlasticShear.Resistance(i,2);
                 if(ratio1>.5||ratio2>.5)return Unsupported("Member.BeamColumnHighShear","High shear needs reduced interaction resistances; this member route requires each shear <= 0.5 VplRd, with shear buckling excluded.");
-                // Exact H without an explicit source: one assessment per active shear, as on the section route (web
-                // EvaluateEc3HWeb/EvaluateNtcHWeb, flanges EvaluateHFlanges). A negative one stops the route; no reduced resistance.
+                // Without an explicit source: one assessment per active shear, as on the section route (H web
+                // EvaluateEc3HWeb/EvaluateNtcHWeb, flanges EvaluateHFlanges; RHS EvaluateEc3RhsWebs/EvaluateNtcRhsWebs).
+                // A negative one stops the route; no reduced resistance.
                 if(p.ShearBucklingExclusionSource==null)return new SteelMethodDecision(SteelCheckTarget.MemberStability,SteelSelectionStatus.RequiresPreparation,
-                    SteelMethod.HBeamColumn,"ShearBuckling.AssessmentRequired","Without BeamColumn.ShearBucklingExclusionSource every active shear of the exact H needs a shear-buckling assessment (web: EvaluateEc3HWeb/EvaluateNtcHWeb; flanges: EvaluateHFlanges).",
+                    SteelMethod.HBeamColumn,"ShearBuckling.AssessmentRequired",rhs?"Without BeamColumn.ShearBucklingExclusionSource every active shear of the rectangular hollow section needs a shear-buckling assessment of the walls parallel to it (EvaluateEc3RhsWebs/EvaluateNtcRhsWebs)."
+                        :"Without BeamColumn.ShearBucklingExclusionSource every active shear of the exact H needs a shear-buckling assessment (web: EvaluateEc3HWeb/EvaluateNtcHWeb; flanges: EvaluateHFlanges).",
                     compression.SectionClass,compression.ClassificationSource,new[]{SteelPreparationRequirement.ShearBucklingAssessment});
             }
             return new SteelMethodDecision(SteelCheckTarget.MemberStability,SteelSelectionStatus.Ready,SteelMethod.HBeamColumn,
@@ -125,7 +133,7 @@ namespace GPC.Checkers.Steel.Pipeline
                 double lambdaLT=Math.Sqrt(m1rk)/Math.Sqrt(mcr);ltb=SteelLateralTorsionalExecution.Reduce(analysis,section,lambdaLT,ntc);var curve=ltb.Curve;
                 chiLT=ltb.Chi;
                 Add(trace,"Mcr",mcr,"Nmm");Add(trace,"LambdaLT",lambdaLT,"1");Add(trace,"AlphaLT",BucklingCurves.Alpha(curve),"1");
-                SteelLateralTorsionalExecution.AddTrace(trace,ltb,curveParameters:true);
+                SteelLateralTorsionalExecution.AddTrace(trace,ltb,curveParameters:true);SteelLateralTorsionalExecution.AddCurveTrace(trace,ltb);
             }
             double nb1=chi1*nrk/gamma,nb2=chi2*nrk/gamma,mb=chiLT*m1rk/gamma,mz=m2rk/gamma;
             // N>=0: n1=n2=0, so k11=Cm1, k22=Cm2, k12/k21 from Tables B.1-B.2 (C4.2.IV-V) at n=0; CmLT-.25>=.15.
@@ -142,7 +150,7 @@ namespace GPC.Checkers.Steel.Pipeline
             Add(trace,"Utilization",utilization,"1");
             return new SteelCheckExecution(decision,utilization<=1?SteelExecutionStatus.Passed:SteelExecutionStatus.Failed,
                 reference:result.Reference+(effective?"; EN1993-1-5:2006 4.3(3)/(4), class4 Aeff/Weff at fy; gross critical values":"")
-                    +(ltb?.IsRolled==true?"; chiLT: "+SteelLateralTorsionalExecution.Reference(ntc):""),scope:"Doubly symmetric prismatic H/RHS/SHS/CHS classes1-3, qualified H/RHS class4 with zero uniform-compression centroid shift; hollow sections use conservative elastic moduli and elastic interaction coefficients; N constant, M1/M2 maxima from one design state; explicit Cm, global-analysis and mode assessments. Section/shear verification is separate."
+                    +(ltb?.IsRolled==true?"; chiLT: "+SteelLateralTorsionalExecution.Reference(ntc):"")+(ltb!=null?SteelLateralTorsionalExecution.CurveReference(ltb):""),scope:"Doubly symmetric prismatic H/RHS/SHS/CHS classes1-3, qualified H/RHS class4 with zero uniform-compression centroid shift; hollow sections use conservative elastic moduli and elastic interaction coefficients; N constant, M1/M2 maxima from one design state; explicit Cm, global-analysis and mode assessments. Section/shear verification is separate."
                     +(i.EffectiveActions.N>=0?" N>=0: interaction at NEd=0, tension neglected as favourable to flexural and lateral-torsional buckling; N-M resistance is a section check.":""),
                 utilization:utilization,trace:trace);
         }

@@ -34,6 +34,9 @@ namespace GPC.Checkers.Steel.Pipeline
             if(p.ComputedTerminal!=null&&(!p.ComputedTerminal.IsComplete
                 ||!ReferenceEquals(p.ComputedTerminal.Demand.Layout.Input,analysis.Input)))
                 throw new ArgumentException("Incomplete or different-state computed terminal.");
+            if(p.ComputedBoltedTerminal!=null&&(!p.ComputedBoltedTerminal.IsComplete
+                ||!ReferenceEquals(p.ComputedBoltedTerminal.Demand.Layout.Input,analysis.Input)))
+                throw new ArgumentException("Incomplete or different-state computed bolted terminal.");
             var a=shape.Parts[0];var b=shape.Parts[1];var chord=a.Section;
             bool horizontal=a.MirrorX!=b.MirrorX;
             if(chord is SectionC c && (!horizontal || c.LengthTop!=c.LengthBottom || c.ThicknessTop!=c.ThicknessBottom))
@@ -82,6 +85,12 @@ namespace GPC.Checkers.Steel.Pipeline
                 foreach(var value in p.ComputedTerminal.Trace)trace.Add(new SectionResistanceValue("PackedPair.Terminal."+value.Name,value.Value,value.Unit));
                 foreach(var check in p.ComputedTerminal.Checks)trace.Add(new SectionResistanceValue("PackedPair.Terminal."+check.Id,check.Utilization,"1"));
             }
+            if(p.ComputedBoltedTerminal!=null)
+            {
+                u=Math.Max(u,p.ComputedBoltedTerminal.Utilization.Value);
+                foreach(var value in p.ComputedBoltedTerminal.Trace)trace.Add(new SectionResistanceValue("PackedPair.BoltedTerminal."+value.Name,value.Value,value.Unit));
+                foreach(var check in p.ComputedBoltedTerminal.Checks)trace.Add(new SectionResistanceValue("PackedPair.BoltedTerminal."+check.Id,check.Utilization,"1"));
+            }
             void Add(string name,double value,string unit) {
                 SteelInputValidation.Finite(value,name);trace.Add(new SectionResistanceValue("PackedPair."+name,value,unit));
             }
@@ -102,7 +111,8 @@ namespace GPC.Checkers.Steel.Pipeline
             bool ntc=analysis.Input.Code.SectionCode.Standard==SectionResistanceStandard.Ntc2018;
             return new SteelCheckExecution(decision,u<=1?SteelExecutionStatus.Passed:SteelExecutionStatus.Failed,
                 reference:global.Reference+(ntc?"; Circular7/2019 C4.2.4.1.3.1.5, Table C4.2.III":"; EN1993-1-1:2005 6.4.4, Figure6.12, Table6.9"),
-                scope:(p.ComputedTerminal!=null?"Computed welded terminal to coplanar collector. ":"")+(p.ComputedWeldedPacking!=null?"Computed intermediate welded packing/wall checks. ":p.ComputedPacking!=null?"Computed standard bolted intermediate packings and wall/lap checks; terminal checks retained separately. ":p.ChordCalculation==null?"External chord resistances. ":"Computed axial fork chord panel resistances; full connection resistance external. ")+"Identical hot-finished packed 2C/2L, constant concentric compression, class1-3; integral global stability plus explicitly qualified local component and complete connection envelopes/resistances. Packing excluded from longitudinal area. No batten/lacing or beam-column method.",
+                scope:(p.ComputedTerminal!=null?"Computed welded terminal to coplanar collector. ":"")
+                    +(p.ComputedBoltedTerminal!=null?"Computed bolted terminal (single bolt line, pinned member end declared) to coplanar collector. ":"")+(p.ComputedWeldedPacking!=null?"Computed intermediate welded packing/wall checks. ":p.ComputedPacking!=null?"Computed standard bolted intermediate packings and wall/lap checks; terminal checks retained separately. ":p.ChordCalculation==null?"External chord resistances. ":"Computed axial fork chord panel resistances; full connection resistance external. ")+"Identical hot-finished packed 2C/2L, constant concentric compression, class1-3; integral global stability plus explicitly qualified local component and complete connection envelopes/resistances. Packing excluded from longitudinal area. No batten/lacing or beam-column method.",
                 utilization:u,trace:trace);
         }
     }

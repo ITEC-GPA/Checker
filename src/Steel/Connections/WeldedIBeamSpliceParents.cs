@@ -85,6 +85,13 @@ namespace GPC.Checkers.Steel.Connections
             var a = f.ActionsAtJoint;
             return new SteelActions(a.Fx, 0, a.Fy, 0, -a.Mz, 0);
         }
+        /// <summary>Section actions of one member: across a transition the moment about its own centroid.</summary>
+        private static SteelActions ToSteelActions(WeldedIBeamSpliceForceResult f, SpliceSide side)
+        {
+            if (f.Input.Transition == null) return ToSteelActions(f);
+            var a = f.ActionsAtJoint;
+            return new SteelActions(a.Fx, 0, a.Fy, 0, -f.MomentAt(side), 0);
+        }
         public static WeldedIBeamSpliceParentResult Verify(WeldedIBeamSpliceParentInput p)
         {
             if (p == null) throw new ArgumentNullException(nameof(p));
@@ -99,13 +106,14 @@ namespace GPC.Checkers.Steel.Connections
             if (string.IsNullOrWhiteSpace(p.ContinuityAndSecondOrderAnalysisSource)) issues.Add("CONTINUITY_RESTRAINTS_AND_SECOND_ORDER_ANALYSIS_SOURCE_REQUIRED");
             if (f.IsBalanced)
             {
-                var a = ToSteelActions(f);
-                Bind(p.LeftSection, "Left.Section", false); Bind(p.RightSection, "Right.Section", false);
-                if (p.LeftMember != null) Bind(p.LeftMember, "Left.Member", true);
-                if (p.RightMember != null) Bind(p.RightMember, "Right.Member", true);
-                void Bind(SteelVerificationResult result, string name, bool member)
+                Bind(p.LeftSection, "Left.Section", false, SpliceSide.Left); Bind(p.RightSection, "Right.Section", false, SpliceSide.Right);
+                if (p.LeftMember != null) Bind(p.LeftMember, "Left.Member", true, SpliceSide.Left);
+                if (p.RightMember != null) Bind(p.RightMember, "Right.Member", true, SpliceSide.Right);
+                void Bind(SteelVerificationResult result, string name, bool member, SpliceSide side)
                 {
-                    var i = result.Plan.Input; var c = i.Section.ReadOnlySection; var h = c.SectionShape as SectionH; var s = d.Section;
+                    // Each member is bound to its own parent geometry and to the actions about its own centroid.
+                    var a = ToSteelActions(f, side);
+                    var i = result.Plan.Input; var c = i.Section.ReadOnlySection; var h = c.SectionShape as SectionH; var s = d.SectionOf(side);
                     if (c.SectionShape.GetType() != typeof(SectionH) || c.SectionType != Section.SectionTypes.Welded || h == null || h.R != 0)
                         issues.Add(name + ".EXACT_WELDED_I_REQUIRED");
                     else if (h.HeightWeb != s.Web.Width || h.ThicknessWeb != s.Web.Thickness || h.LenghtTopFlange != s.TopFlange.Width
@@ -142,7 +150,8 @@ namespace GPC.Checkers.Steel.Connections
                 Math.Max(d.Top.Bolts.FirstBoltDistance + d.Top.Bolts.LongitudinalSpan + d.Top.EndDistance,
                 d.Bottom.Bolts.FirstBoltDistance + d.Bottom.Bolts.LongitudinalSpan + d.Bottom.EndDistance));
             if (w.EffectiveLengthEachSide < half - d.ButtGap / 2) weldIssues.Add("CONTINUOUS_WELD_MUST_COVER_ENTIRE_LAP");
-            Weld(true); Weld(false);
+            if (d.Transition == null) { Weld(true, null); Weld(false, null); }
+            else foreach (var side in new[] { SpliceSide.Left, SpliceSide.Right }) { Weld(true, side); Weld(false, side); }
             var assessment = new ConnectionVerification<WeldedIBeamSpliceParentInput>(p, code, "Steel.Connection.WeldedIBeamSplice.LongitudinalWelds",
                 "Continuous double web/flange fillets under longitudinal elastic shear flow VQ/I. No transverse concentrated force, intermittent seam or execution certification.",
                 checks, trace, weldIssues.Distinct(), new[] {
@@ -150,11 +159,12 @@ namespace GPC.Checkers.Steel.Connections
                     "Actual parent materials, seam throats and complete effective lap length are bound to the splice geometry. FilletWeldResistance is reused with the directional method.",
                     "Gross parent section results are retained unchanged. Perforated parent section is checked separately by StandardPlates. Member stability is reported only when actual member assessments are supplied; no length, Mcr or restraint is invented." });
             return new WeldedIBeamSpliceParentResult(p, issues, assessment);
-            void Weld(bool top)
+            // Across a transition the same fillets are assessed on each member with its own section.
+            void Weld(bool top, SpliceSide? side)
             {
-                var s = d.Section; var plate = top ? s.TopFlange : s.BottomFlange;
+                var s = side.HasValue ? d.SectionOf(side.Value) : d.Section; var plate = top ? s.TopFlange : s.BottomFlange;
                 double throat = top ? w.TopThroat : w.BottomThroat, toe = top ? s.TopWeldToe : s.BottomWeldToe;
-                var grade = top ? w.TopGrade : w.BottomGrade; string name = top ? "Top" : "Bottom";
+                var grade = top ? w.TopGrade : w.BottomGrade; string name = (side.HasValue ? side.Value + "." : "") + (top ? "Top" : "Bottom");
                 if (throat < 3 || w.EffectiveLengthEachSide < Math.Max(30, 6 * throat)) weldIssues.Add(name + ".FILLET_MINIMUM_GEOMETRY");
                 if (Math.Sqrt(2) * throat > toe) weldIssues.Add(name + ".FILLET_LEG_EXCEEDS_DECLARED_SEAM_ENVELOPE");
                 if (plate.Fy > (int)grade || s.Web.Fy > (int)w.WebGrade) weldIssues.Add(name + ".PARENT_GRADE_INCONSISTENT_WITH_YIELD_STRENGTH");

@@ -13,6 +13,9 @@ uniforme via ModelStressClassification; CHS e altre cave restano uniformi), il
 peggiore fra (N,M1,M2), (N,M1,0), (N,0,M2). Per le cave cambia solo classe 4 o
 no (Aeff/Weff oppure A/Wel). Con N>=0 l'interazione elastica vale a n=0. Il
 taglio richiede ancora ShearBucklingExclusionSource: nessun filtro cave qualificato.
+Aggiornamento 29/10/2026: senza la fonte le RHS con asse 1 orizzontale attendono
+i filtri delle pareti parallele a ogni taglio attivo (EvaluateEc3RhsWebs/
+EvaluateNtcRhsWebs, vedi CURRENT.txt); CHS e cave ruotate la richiedono ancora.
 
 Meccanica e numeri EC3/NTC passano attraverso gli stessi contratti; restano
 distinti gamma e riferimenti. EN1993-1-1:2005 6.3.3 / AnnexB TableB.1 p79

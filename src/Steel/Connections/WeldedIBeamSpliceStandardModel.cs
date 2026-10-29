@@ -5,7 +5,9 @@ using GPC.Checkers.Steel.Sections;
 
 namespace GPC.Checkers.Steel.Connections
 {
-    public enum SpliceFlangeFaceModel { BalancedEqualFaces, EqualThicknessIndependentWidths, IndependentFaceDimensions, PackedIndependentFaceDimensions }
+    /// <summary>PackedSectionTransition: PackedIndependentFaceDimensions across a WeldedSpliceSectionTransition,
+    /// each cover distribution evaluated as a separate case (BRIDGE_SPLICE_TRANSITIONS.txt).</summary>
+    public enum SpliceFlangeFaceModel { BalancedEqualFaces, EqualThicknessIndependentWidths, IndependentFaceDimensions, PackedIndependentFaceDimensions, PackedSectionTransition }
 
     /// <summary>Applicability of the conventional two-membrane double-cover model.
     /// Equal thickness/areas remain the default; independent widths or dimensions are explicitly selected.
@@ -31,39 +33,55 @@ namespace GPC.Checkers.Steel.Connections
             var checks = new List<ConnectionCheck>();
             var trace = new List<SectionResistanceValue>(f.Trace); var reported = new List<SectionResistanceValue>();
             Flange(d.Top, "Top"); Flange(d.Bottom, "Bottom");
-            if (d.Packing.HasPacking && faceModel != SpliceFlangeFaceModel.PackedIndependentFaceDimensions)
+            bool transition = faceModel == SpliceFlangeFaceModel.PackedSectionTransition;
+            bool packedModel = faceModel == SpliceFlangeFaceModel.PackedIndependentFaceDimensions || transition;
+            if (d.Packing.HasPacking && !packedModel)
                 issues.Add("EXPLICIT_PACKED_FACE_MODEL_REQUIRED");
             if (d.Packing.HasPacking && string.IsNullOrWhiteSpace(d.Packing.ExecutionSource))
                 issues.Add("PACKING_EXECUTION_SOURCE_REQUIRED");
+            if (d.Transition != null && !transition) issues.Add("EXPLICIT_SECTION_TRANSITION_MODEL_REQUIRED");
+            if (d.Transition == null && transition) issues.Add("SECTION_TRANSITION_DETAIL_REQUIRED");
+            if (d.Transition != null && d.Transition.RightPacking.HasPacking && string.IsNullOrWhiteSpace(d.Transition.RightPacking.ExecutionSource))
+                issues.Add("Right.PACKING_EXECUTION_SOURCE_REQUIRED");
             if (d.WebBolts.LongitudinalRows > 20 || d.WebBolts.TransverseRows > 16)
                 issues.Add("STANDARD_WEB_GRID_LIMIT_20_BY_16");
             foreach (var plate in new[] { d.Section.TopFlange, d.Section.Web, d.Section.BottomFlange,
                 d.Top.Outer, d.Top.EachInner, d.Bottom.Outer, d.Bottom.EachInner, d.EachWebCover })
                 if (plate.Fy > 460) issues.Add("STANDARD_CARBON_STEEL_FY_UP_TO_460_REQUIRED");
+            if (d.Transition != null)
+                foreach (var plate in new[] { d.Transition.Right.TopFlange, d.Transition.Right.Web, d.Transition.Right.BottomFlange })
+                    if (plate.Fy > 460) issues.Add("STANDARD_CARBON_STEEL_FY_UP_TO_460_REQUIRED");
             if (f.IsBalanced)
             {
-                FaceStiffness(d.Top, d.Section.TopFlange, true); FaceStiffness(d.Bottom, d.Section.BottomFlange, false);
+                // The face model of the parent whose elastic share the covers carry.
+                var distributing = d.SectionOf(d.CoverDistribution);
+                FaceStiffness(d.Top, distributing.TopFlange, true); FaceStiffness(d.Bottom, distributing.BottomFlange, false);
                 checks.Add(new ConnectionCheck("ForceModel.Equilibrium", 0, 1,
                     "EN1993-1-8:2005 2.5,3.12; SCI P357 section12; declared two-face membrane double-cover idealisation", "1", ConnectionCheckRole.Applicability));
             }
-            return new ConnectionVerification<WeldedIBeamSpliceDetailInput>(p, b.Code,
-                "Steel.Connection.WeldedIBeamSplice.StandardModel",
-                "Applicability of the declared aligned double-cover static force model: " + faceModel + "; not resistance or rotational stiffness.",
-                checks, trace, issues.Distinct(), new[] {
+            var assumptions = new List<string> {
                     "SCI P357 example1 section12.7 p60 uses half flange load on each face and verifies the actual inner strip areas separately. EqualThicknessIndependentWidths extends the conventional equal-thickness double-lap model to independent widths with symmetric inner strips; no force-proportional-to-area redistribution is made.",
                     "BalancedEqualFaces retains the2.90 equal-area/equal-thickness restriction; EqualThicknessIndependentWidths retains equal thickness. IndependentFaceDimensions explicitly permits unequal face thickness using actual centre-plane offsets. All modes require identical material, centred inner-strip bolt groups and every actual gross/net/block/stability/detail check.",
                     "The independent two-line membrane stiffness system E[[A,S],[S,I]]*(epsilon0,kappa)=(N,-M) reproduces both face forces and retains parent flange self-bending. I excludes each cover own bending inertia: the physical idealisation is axial membranes at their centroids. The nonzero face strain gradient is reported, not forced to zero or used as proof of contact compatibility.",
                     "No continuous equal-strain bond between parent and covers is assumed. Bolt shear and bearing, slip, actual plate areas, outstands, net sections and parent welds are verified separately. This remains a conventional static double-lap model; it does not solve local contact/plate lifting or supply rotational stiffness.",
                     "Contact-face transport couples alone are not an externally applied bolt tension. This conventional double-lap membrane model does not solve contact, prying or plate lifting. Those details must use another method.",
                     "All covers are continuous and flat. PackedIndependentFaceDimensions permits full-footprint parallel packing layers per face and per member side, identical on left/right, with no load or stiffness credit; actual total offsets, bolt reduction and every serial friction interface are assessed. No tapered/discontinuous packs, stiffener cut-outs, notches, section changes or out-of-plane actions.",
-                    "The structural analysis must justify continuity, restraints and second-order actions separately. This assessment supplies no rotational stiffness or fatigue qualification." }, reported,
+                    "The structural analysis must justify continuity, restraints and second-order actions separately. This assessment supplies no rotational stiffness or fatigue qualification." };
+            if (d.Transition != null)
+                assumptions.Add("PackedSectionTransition: same depth, common outer flange planes and web mid-plane, equal widths; per-side packings fill every cover plane. This case carries the "
+                    + d.CoverDistribution + " elastic distribution through the covers; the other member's internal transfer is assessed by SectionTransfer and the opposite distribution is a separate required case.");
+            return new ConnectionVerification<WeldedIBeamSpliceDetailInput>(p, b.Code,
+                "Steel.Connection.WeldedIBeamSplice.StandardModel",
+                "Applicability of the declared aligned double-cover static force model: " + faceModel + "; not resistance or rotational stiffness.",
+                checks, trace, issues.Distinct(), assumptions, reported,
                 ConnectionCheckRole.Applicability);
 
             void FaceStiffness(SpliceFlangeCoverDetail x, ConnectionPlate parent, bool top)
             {
                 string name = top ? "Top" : "Bottom"; double direction = top ? 1 : -1;
-                double yo = direction * ((parent.Thickness + x.Outer.Thickness) / 2 + (top ? d.Packing.TopOuter : d.Packing.BottomOuter));
-                double yi = -direction * ((parent.Thickness + x.EachInner.Thickness) / 2 + (top ? d.Packing.TopInner : d.Packing.BottomInner));
+                var packing = d.PackingOf(d.CoverDistribution);
+                double yo = direction * ((parent.Thickness + x.Outer.Thickness) / 2 + (top ? packing.TopOuter : packing.BottomOuter));
+                double yi = -direction * ((parent.Thickness + x.EachInner.Thickness) / 2 + (top ? packing.TopInner : packing.BottomInner));
                 double ao = x.Outer.Width * x.Outer.Thickness, ai = 2 * x.EachInner.Width * x.EachInner.Thickness;
                 double area = ao + ai, first = ao * yo + ai * yi, second = ao * yo * yo + ai * yi * yi;
                 // Positive factored determinant avoids subtraction of large nearly equal terms.
@@ -93,7 +111,8 @@ namespace GPC.Checkers.Steel.Connections
             }
             void Flange(SpliceFlangeCoverDetail x, string name)
             {
-                if (faceModel != SpliceFlangeFaceModel.IndependentFaceDimensions && faceModel != SpliceFlangeFaceModel.PackedIndependentFaceDimensions && x.Outer.Thickness != x.EachInner.Thickness
+                if (faceModel != SpliceFlangeFaceModel.IndependentFaceDimensions && faceModel != SpliceFlangeFaceModel.PackedIndependentFaceDimensions
+                    && faceModel != SpliceFlangeFaceModel.PackedSectionTransition && x.Outer.Thickness != x.EachInner.Thickness
                     || faceModel == SpliceFlangeFaceModel.BalancedEqualFaces && x.Outer.Width != 2 * x.EachInner.Width)
                     issues.Add(name + ".BALANCED_FACE_THICKNESS_AND_AREA_REQUIRED");
                 if (x.Outer.Fy != x.EachInner.Fy || x.Outer.Fu != x.EachInner.Fu)

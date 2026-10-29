@@ -175,11 +175,21 @@ namespace GPC.Checkers.Steel.Pipeline
             }
             else
             {
+                double mcr = analysis.Values.Single(v => v.Quantity == SteelStabilityQuantity.Mcr).Value;
+                // Opt-in EN 1993-1-1:2005 6.3.2.2(4): MEd/Mcr <= lambdaLT0^2 leaves the section checks only.
+                if (SteelLateralTorsionalExecution.LowMomentExempt(analysis.LateralTorsionalMethod, Math.Abs(i.EffectiveActions.M1), mcr, trace))
+                {
+                    if (i.EffectiveActions.N > 0) Add(trace, "TensionNeglectedAsFavourable", i.EffectiveActions.N, "N");
+                    return new SteelCheckExecution(decision, SteelExecutionStatus.NotRequired, "Member.LtbLowMomentExemption",
+                        "MEd/Mcr <= lambdaLT,0^2 (EN 1993-1-1:2005 6.3.2.2(4)): lateral-torsional buckling effects are ignored; the cross-section checks remain required.",
+                        reference: SteelLateralTorsionalExecution.LowMomentReference(analysis.LateralTorsionalMethod),
+                        scope: "Prismatic major-axis bending, whole-member maximum M1 and explicit gross-section elastic Mcr; LTB not required by the low-moment criterion. Section, shear and N-M checks remain separate and required. "
+                            + analysis.Prismatic.CriticalMomentBasis, trace: trace);
+                }
                 // Rounded RHS uses its independently qualified elastic modulus;
                 // a conservative elastic check is also permitted for compact sections.
                 bool elastic = decision.SectionClass >= 3 || SteelSectionFamilies.Of(section.SectionShape)?.ElasticBendingOnly == true;
                 double w = effective ? MemoizedEffectiveProperties.BendingModulus(i, 1) : elastic ? section.Wel1 : section.Wpl1; Positive(w, "Section modulus");
-                double mcr = analysis.Values.Single(v => v.Quantity == SteelStabilityQuantity.Mcr).Value;
                 double characteristic = w * fy; Positive(characteristic, "Characteristic moment resistance");
                 double slenderness = Math.Sqrt(characteristic) / Math.Sqrt(mcr);
                 var ltb = SteelLateralTorsionalExecution.Reduce(analysis, section, slenderness, ntc); var curve = ltb.Curve; double chi = ltb.Chi;
@@ -187,11 +197,11 @@ namespace GPC.Checkers.Steel.Pipeline
                 Add(trace, effective ? "Weff1Min" : elastic ? "Wel1Min" : "Wpl1", w, "mm3"); Add(trace, "Mcr", mcr, "Nmm");
                 Add(trace, "AlphaLT", BucklingCurves.Alpha(curve), "1"); Add(trace, "SlendernessLT", slenderness, "1"); Add(trace, "ChiLT", chi, "1");
                 Add(trace, "BetaLT", ltb.Beta, "1"); Add(trace, "LambdaLT0", ltb.LambdaLT0, "1"); Add(trace, "MomentCorrectionF", ltb.F, "1");
-                SteelLateralTorsionalExecution.AddTrace(trace, ltb);
+                SteelLateralTorsionalExecution.AddTrace(trace, ltb); SteelLateralTorsionalExecution.AddCurveTrace(trace, ltb);
                 if (i.EffectiveActions.N > 0) Add(trace, "TensionNeglectedAsFavourable", i.EffectiveActions.N, "N");
                 unit = "Nmm";
-                reference = ltb.IsRolled ? SteelLateralTorsionalExecution.Reference(ntc) : ntc ? "NTC 2018 4.2.4.1.3.2, equations 4.2.48-51; Table 4.2.IX (general conservative case)"
-                    : "EN 1993-1-1:2005 6.3.2.1-2, equations 6.55-56; recommended Table 6.4 curves";
+                reference = (ltb.IsRolled ? SteelLateralTorsionalExecution.Reference(ntc) : ntc ? "NTC 2018 4.2.4.1.3.2, equations 4.2.48-51; Table 4.2.IX (general conservative case)"
+                    : "EN 1993-1-1:2005 6.3.2.1-2, equations 6.55-56; recommended Table 6.4 curves") + SteelLateralTorsionalExecution.CurveReference(ltb);
                 scope = "Prismatic major-axis LTB; explicit gross-section elastic Mcr and whole-member maximum M1. Shear/section checks remain separate. " + analysis.Prismatic.CriticalMomentBasis;
             }
             if (effective) {

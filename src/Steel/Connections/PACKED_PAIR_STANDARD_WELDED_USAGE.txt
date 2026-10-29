@@ -68,7 +68,8 @@ BINDING AL MEMBRO
 2. Calcolare SteelPackedPairTerminal.Verify(demand,terminalDetail).
 3. Calcolare SteelWeldedPacking.Verify(demand,lapDetail), oppure il percorso
    SteelBoltedPacking gia' presente per intermedi bullonati (vedere
-   ../PACKED_BOLTED_STANDARD.txt). Il terminale qui rimane saldato.
+   ../PACKED_BOLTED_STANDARD.txt). Il terminale qui rimane saldato; per il
+   terminale bullonato (29/10/2026) vedere PACKED_PAIR_BOLTED_TERMINAL.txt.
 4. SteelPackedPairAssessment.FromWeldedPacking(packing,terminal,restraintSource)
    oppure FromBoltedPacking(packing,terminal,restraintSource). Occorre lo STESSO
    oggetto domanda; le factory verificano anche gli ingombri fra terminali e

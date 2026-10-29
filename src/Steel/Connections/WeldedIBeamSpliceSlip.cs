@@ -18,11 +18,15 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
     /// <summary>Actual serial contact interfaces, ordered from cover towards parent,
-    /// common to both sides of the butt. Inner strips/web faces may have distinct coefficients.</summary>
+    /// common to both sides of the butt unless declared per side (section transitions, where the
+    /// packing layers differ). Inner strips/web faces may have distinct coefficients.</summary>
     public sealed class WeldedSpliceFrictionSurface
     {
         public WeldedSpliceCover Cover { get; }
+        /// <summary>Interfaces on the left member (on both members unless declared per side).</summary>
         public IReadOnlyList<WeldedSpliceFrictionInterface> Interfaces { get; }
+        /// <summary>Interfaces on the right member; the same list as Interfaces unless declared per side.</summary>
+        public IReadOnlyList<WeldedSpliceFrictionInterface> RightInterfaces { get; }
         public double Coefficient => Interfaces[0].Coefficient;
         public string QualificationSource => Interfaces[0].QualificationSource;
         public double? PackingToParentCoefficient => Interfaces.Count > 1 ? (double?)Interfaces[Interfaces.Count - 1].Coefficient : null;
@@ -36,13 +40,28 @@ namespace GPC.Checkers.Steel.Connections
         public WeldedSpliceFrictionSurface(WeldedSpliceCover cover, IEnumerable<WeldedSpliceFrictionInterface> interfaces)
         {
             if (!Enum.IsDefined(typeof(WeldedSpliceCover), cover)) throw new ArgumentOutOfRangeException(nameof(cover));
-            if (interfaces == null) throw new ArgumentNullException(nameof(interfaces));
-            var values = interfaces.ToArray();
-            if (values.Length == 0 || values.Any(v => v == null)) throw new ArgumentException("Every physical interface is required.", nameof(interfaces));
-            Cover = cover; Interfaces = Array.AsReadOnly(values);
+            Cover = cover; Interfaces = Copy(interfaces, nameof(interfaces)); RightInterfaces = Interfaces;
         }
-        internal string InterfaceName(int index) => Interfaces.Count == 1 ? "" : index == 0 ? "CoverToPacking"
-            : index == Interfaces.Count - 1 ? "PackingToParent" : "Packing" + index + "ToPacking" + (index + 1);
+        /// <summary>Different serial interfaces on the two members of the same cover (e.g. packing only on
+        /// the thinner member of a section transition). Each list is ordered from cover towards parent.</summary>
+        public WeldedSpliceFrictionSurface(WeldedSpliceCover cover, IEnumerable<WeldedSpliceFrictionInterface> leftInterfaces,
+            IEnumerable<WeldedSpliceFrictionInterface> rightInterfaces)
+        {
+            if (!Enum.IsDefined(typeof(WeldedSpliceCover), cover)) throw new ArgumentOutOfRangeException(nameof(cover));
+            Cover = cover; Interfaces = Copy(leftInterfaces, nameof(leftInterfaces)); RightInterfaces = Copy(rightInterfaces, nameof(rightInterfaces));
+        }
+        private static IReadOnlyList<WeldedSpliceFrictionInterface> Copy(IEnumerable<WeldedSpliceFrictionInterface> interfaces, string name)
+        {
+            if (interfaces == null) throw new ArgumentNullException(name);
+            var values = interfaces.ToArray();
+            if (values.Length == 0 || values.Any(v => v == null)) throw new ArgumentException("Every physical interface is required.", name);
+            return Array.AsReadOnly(values);
+        }
+        internal IReadOnlyList<WeldedSpliceFrictionInterface> On(SpliceSide side) => side == SpliceSide.Right ? RightInterfaces : Interfaces;
+        internal string InterfaceName(int index) => InterfaceName(Interfaces.Count, index);
+        internal string InterfaceName(SpliceSide side, int index) => InterfaceName(On(side).Count, index);
+        private static string InterfaceName(int count, int index) => count == 1 ? "" : index == 0 ? "CoverToPacking"
+            : index == count - 1 ? "PackingToParent" : "Packing" + index + "ToPacking" + (index + 1);
     }
 
     public sealed class WeldedIBeamSpliceSlipInput
@@ -86,9 +105,11 @@ namespace GPC.Checkers.Steel.Connections
             if (issues.Count == 0) foreach (var g in prepared.Forces.CoverGroups)
             {
                 var surface = p.Surfaces.Single(s => s.Cover == g.Cover);
-                int layerCount = p.Bolts.Detail.Packing.Layers(g.Cover).Count;
+                // Each member has its own packing layers across a section transition.
+                int layerCount = p.Bolts.Detail.PackingOf(g.Side).Layers(g.Cover).Count;
                 bool packed = layerCount > 0;
-                if (surface.Interfaces.Count != layerCount + 1)
+                var interfaces = surface.On(g.Side);
+                if (interfaces.Count != layerCount + 1)
                 { issues.Add(g.Cover + ".PACKING_FRICTION_INTERFACES_MISMATCH"); continue; }
                 var grid = WeldedIBeamSplicePlates.Grid(p.Bolts.Detail, g);
                 double span = g.Distribution.Points.Max(b => b.Y) - g.Distribution.Points.Min(b => b.Y);
@@ -98,15 +119,15 @@ namespace GPC.Checkers.Steel.Connections
                 {
                     // ONE real interface with its own force; the common bolt preload
                     // clamps each interface. Neither Fp/2 nor a pooled 2*mu*Fp capacity.
-                    for (int layer = 0; layer < surface.Interfaces.Count; ++layer)
+                    for (int layer = 0; layer < interfaces.Count; ++layer)
                     {
                         var r = BoltSlip.Verify(new BoltSlipInput(p.Policy, bolt, p.LimitState, force.Shear, 0, 1,
-                            surface.Interfaces[layer].Coefficient,
+                            interfaces[layer].Coefficient,
                             p.TighteningControl, p.AssemblyQualificationSource,
-                            surface.Interfaces[layer].QualificationSource,
+                            interfaces[layer].QualificationSource,
                             p.ActionCombinationSource, p.Bolts.HoleClearanceServiceabilitySource, length));
                         string id = g.Side + "." + g.Cover + ".Bolt" + force.Index
-                            + (packed ? "." + surface.InterfaceName(layer) : "");
+                            + (packed ? "." + surface.InterfaceName(g.Side, layer) : "");
                         foreach (var issue in r.Diagnostics) issues.Add(id + ":" + issue);
                         foreach (var c in r.Checks) checks.Add(c.WithId(id + "." + c.Id));
                         foreach (var t in r.Trace) trace.Add(new SectionResistanceValue(id + "." + t.Name, t.Value, t.Unit));
@@ -143,7 +164,27 @@ namespace GPC.Checkers.Steel.Connections
                 double n = cover.Cuts.Max(c => Math.Max(0, c.N));
                 Add(cover.Cover.ToString(), n, net, f.Plate.Fy);
             }
-            if (forces.IsBalanced)
+            if (forces.IsBalanced && p.Bolts.Detail.Transition != null)
+            {
+                // Each member's own plates. The redistributing member is bounded over the whole lap by the
+                // delivered tension plus the absolute transfer to its own elastic share.
+                var detail = p.Bolts.Detail;
+                foreach (var side in new[] { SpliceSide.Left, SpliceSide.Right })
+                {
+                    var s = detail.SectionOf(side); bool own = side == detail.CoverDistribution;
+                    foreach (bool top in new[] { true, false })
+                    {
+                        var cover = top ? detail.Top : detail.Bottom; var plate = top ? s.TopFlange : s.BottomFlange;
+                        double net = (plate.Width - cover.Bolts.TransverseRows * p.Bolts.FlangeBolt.HoleDiameter) * plate.Thickness;
+                        double n = forces.Flange(SpliceSide.Left, top).ParentAxial;
+                        Add(side + "." + (top ? "Top" : "Bottom") + ".Parent", Math.Max(0, n) + (own ? 0 : Math.Abs(forces.OwnShare(side, top ? 0 : 2) - n)), net, plate.Fy);
+                    }
+                    double webN = forces.WebAxialForce;
+                    Add(side + ".Web.Parent", Math.Max(0, webN) + (own ? 0 : Math.Abs(forces.OwnShare(side, 4) - webN)),
+                        (s.Web.Width - detail.WebBolts.TransverseRows * p.Bolts.WebBolt.HoleDiameter) * s.Web.Thickness, s.Web.Fy);
+                }
+            }
+            else if (forces.IsBalanced)
             {
                 foreach (bool top in new[] { true, false })
                 {

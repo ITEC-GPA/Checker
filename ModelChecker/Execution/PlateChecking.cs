@@ -87,9 +87,11 @@ namespace GPC.Model.Checker
                 plan.WorkItems = tasks.AsReadOnly();
                 var revision = model.VerificationFingerprint(routing.Request.Settings);
                 plan.Current = () => {
+                    // The prepared inputs of all the tasks in one read of the model (its digests once, not once per task), then the engines.
                     try { return plan.ScopeFingerprint == ModelPreparation.FingerprintShellScope(model, ResolvePlateJob(model, job).Request)
                             && revision == model.VerificationFingerprint(plan.Preparation.Request.Settings)
-                            && plan.WorkItems.All(t => (t.Input == null || t.Input.IsCurrent) && t.EngineKey == PlateEngineKey(t.Engine)); }
+                            && ShellCheckInput.AreCurrent(plan.WorkItems.Where(t => t.Input != null).Select(t => t.Input))
+                            && plan.WorkItems.All(t => t.EngineKey == PlateEngineKey(t.Engine)); }
                     catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException || ex is NotSupportedException || ex is KeyNotFoundException) { return false; }
                 };
                 plans.Add(plan);
@@ -216,6 +218,8 @@ namespace GPC.Model.Checker
             try
             {
                 var plans = PreparePlates(model, request);
+                // The rows share their provenance: it is compared with the model once per call, not once per row.
+                var provenances = new ProvenanceCurrency(model);
                 for (int i = 0; i < plans.Count; i++)
                 {
                     var saved = report.Jobs[i]; var plan = plans[i];
@@ -224,7 +228,7 @@ namespace GPC.Model.Checker
                     for (int j = 0; j < plan.WorkItems.Count; j++)
                     {
                         var result = saved.Results[j]; var task = plan.WorkItems[j];
-                        if (!result.HasUnchangedEvidence || result.Provenance == null || !result.Provenance.IsCurrent(model)
+                        if (!result.HasUnchangedEvidence || result.Provenance == null || !provenances.IsCurrent(result.Provenance)
                             || result.EngineVersion != task.Engine?.Version || result.EngineConfiguration != task.Engine?.Configuration
                             || result.Standard?.Identity != task.Engine?.Standard?.Identity) return EngineeringOutcome.NotEvaluated;
                     }

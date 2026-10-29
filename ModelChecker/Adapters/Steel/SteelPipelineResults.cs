@@ -84,6 +84,12 @@ namespace GPC.Model.Checker
                     trace.Add(new CheckCalculationValue("Member.LtbMethod", null, null, ltb.Kind + "; " + ltb.ParameterSource));
                     trace.Add(new CheckCalculationValue("Member.LtbKc", ltb.MomentFactor.Kc, "1", ltb.MomentFactor.Distribution + "; " + ltb.MomentFactor.Source));
                 }
+                // EN 1993-1-1 options, rows only when declared.
+                if (ltb.DeclaredCurve.HasValue)
+                    trace.Add(new CheckCalculationValue("Member.LtbCurve", null, null, ltb.DeclaredCurve.Value + "; " + ltb.DeclaredCurveSource));
+                if (ltb.LowMomentExemption)
+                    trace.Add(new CheckCalculationValue("Member.LtbLowMomentExemption", ltb.LambdaLT0 * ltb.LambdaLT0, "1",
+                        "EN 1993-1-1:2005 6.3.2.2(4), limit lambdaLT,0^2 of MEd/Mcr; " + ltb.LowMomentExemptionSource));
                 foreach (var v in analysis.Values)
                 {
                     trace.Add(new CheckCalculationValue("Member.External." + v.Quantity, v.Value, v.Unit, v.Source));
@@ -153,6 +159,14 @@ namespace GPC.Model.Checker
                 result.Data = DataStatus.Insufficient;
             else if (native.Checks.Any(c => c.Status == SteelExecutionStatus.NotSupported))
                 result.Data = DataStatus.NotSupported;
+            // A member mechanism the code does not require for this pattern (e.g. minor-axis bending alone,
+            // no compression) is not applicable, not unevaluated: Model counts it as resolved, never as satisfied.
+            // Section cuts keep NotEvaluated: a zero cut implies no member-wide conclusion.
+            if (native.Plan.MemberAnalysis != null && native.Checks.Count != 0 && native.Checks.All(c => c.Status == SteelExecutionStatus.NotRequired))
+            {
+                result.Applicability = CheckApplicability.NotApplicable; result.Execution = ExecutionStatus.NotExecuted;
+                result.ApplicabilityReason = string.Join("; ", native.Checks.Select(c => c.Decision.Target + " " + c.DiagnosticCode + ": " + c.Message));
+            }
             return result;
         }
     }
