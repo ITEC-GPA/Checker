@@ -179,7 +179,7 @@ namespace GPC.Checkers.Concrete.Detailing
     /// Minimum and maximum reinforcement, links, spacing and cover of beam and column sections. NTC 2018 §4.1.6.1 transferred from ANTHEA
     /// (ConcreteDetailingCalculator, commit fe4652c; fixtures detailing-legacy.csv). EN 1992-1-1 §§8.2, 4.4.1, 9.2, 9.5 with the recommended values,
     /// UNI with DM 31/07/2012 (st,max ≤ 300 mm; columns Ømin 12, As,min 0.003 Ac, scl,tmax = min(12 Ømin; b; 250)), DS with DK NA (chapter 9
-    /// unchanged except the beam As,min 9.2.1.1(1) and ρw,min 9.2.2(5), pending).
+    /// unchanged except the beam As,min 9.2.1.1(1), pending, and ρw,min = 0.063 √fck / fyk of 9.2.2(5)).
     /// Solid slab strips and walls (0.0.18.0): NTC 2018 profile with EC2 §§9.3 and 9.6 as in ANTHEA (ConcreteDetailing.cs at ANTHEA 98a21d4; fixtures
     /// detailing-plate-legacy.csv): the slab needs a rectangular strip without holes (b = width, h = thickness), the other profiles are not implemented.
     /// </summary>
@@ -205,11 +205,13 @@ namespace GPC.Checkers.Concrete.Detailing
             var g = p.Geometry; var bars = g.Bars; var r = new List<DetailingCheck>();
             bool ntc = DetailingProfiles.IsNtc(profile), uni = profile == DetailingProfile.UniEN1992p11, ds = profile == DetailingProfile.DsEN1992p11;
             string reference = ntc ? "NTC 2018 §4.1.6.1" : profile == DetailingProfile.EN1992p11 ? "EN 1992-1-1" : uni ? "UNI EN 1992-1-1 + DM 31/07/2012" : "DS/EN 1992-1-1 + DK NA";
+            // R14 of ANTHEA (1.16.0): a sub-clause of NTC §4.1.6.1 (".1") follows the number without a space («§4.1.6.1.1», before «§4.1.6.1 .1»).
+            string Ref(string clause) => clause.Length == 0 ? reference : clause[0] == '.' ? reference + clause : reference + " " + clause;
             void Min(string key, double actual, double limit, string unit, string clause, string expression)
-                => r.Add(new DetailingCheck(key, double.IsInfinity(actual) || double.IsNaN(actual) ? (double?)null : actual, limit, unit, actual >= limit, reference + " " + clause, expression));
+                => r.Add(new DetailingCheck(key, double.IsInfinity(actual) || double.IsNaN(actual) ? (double?)null : actual, limit, unit, actual >= limit, Ref(clause), expression));
             void Max(string key, double actual, double limit, string unit, string clause, string expression)
-                => r.Add(new DetailingCheck(key, double.IsInfinity(actual) || double.IsNaN(actual) ? (double?)null : actual, limit, unit, actual <= limit, reference + " " + clause, expression));
-            void Pending(string key, string clause, string explanation) => r.Add(new DetailingCheck(key, null, null, "", null, reference + " " + clause, explanation));
+                => r.Add(new DetailingCheck(key, double.IsInfinity(actual) || double.IsNaN(actual) ? (double?)null : actual, limit, unit, actual <= limit, Ref(clause), expression));
+            void Pending(string key, string clause, string explanation) => r.Add(new DetailingCheck(key, null, null, "", null, Ref(clause), explanation));
 
             double minPhi = bars.Min(b => b.Diameter), maxPhi = bars.Max(b => b.Diameter), steel = bars.Sum(b => b.Area);
             double clear = double.PositiveInfinity;
@@ -239,7 +241,7 @@ namespace GPC.Checkers.Concrete.Detailing
             }
             if (ntc && p.HasLinks && !p.CompressionBarsRestrained) Pending("BarsHeldByLinks", "", "Confirm the arrangement of links and ties on the compression bars.");
             if (p.LapZone && (p.Kind == MemberDetailingKind.Column || p.Kind == MemberDetailingKind.Wall))
-                Max("MaximumAtLap", steel, .08 * p.ConcreteArea, "mm2", p.Kind == MemberDetailingKind.Wall ? "EC2 §§9.5.2 / 9.6.2" : ntc ? "EC2 §§9.5.2" : "§9.5.2(3)",
+                Max("MaximumAtLap", steel, .08 * p.ConcreteArea, "mm2", p.Kind == MemberDetailingKind.Wall ? "EC2 §§9.5.2 / 9.6.2" : ntc ? "EC2 §9.5.2(3)" : "§9.5.2(3)",
                     "As ≤ 0.08 Ac at laps, all lapped bars in the section");
             return new MemberDetailingResult { Profile = profile, Kind = p.Kind, Checks = r.AsReadOnly(), Reference = DetailingProfiles.Reference(profile) };
         }
@@ -376,7 +378,7 @@ namespace GPC.Checkers.Concrete.Detailing
                 double area = faceBars.Sum(b => b.Area), ys = faceBars.Sum(b => b.Area * b.Y) / area;
                 double d = top ? ys - minY : maxY - ys, bt = top ? p.TopWidth : p.BottomWidth;
                 if (ds) r.Add(National("MinimumTension:" + face, "§9.2.1.1(1)", "DK NA national value of As,min not available in this implementation."));
-                else Min("MinimumTension:" + face, area, rhoMin * bt * d, "mm2", ntc ? ".1 / EC2 §9.3.1.1" : "§9.2.1.1(1)", "max(0.26 fctm/fyk; 0.0013) bt d; both faces potentially tensioned");
+                else Min("MinimumTension:" + face, area, rhoMin * bt * d, "mm2", ntc ? (slab ? ".1 / EC2 §9.3.1.1" : ".1 / EC2 §9.2.1.1") : "§9.2.1.1(1)", "max(0.26 fctm/fyk; 0.0013) bt d; both faces potentially tensioned");
                 if (!p.LapZone) Max("MaximumTension:" + face, area, LongitudinalReinforcementLimits.MaximumRatioOutsideLaps * p.ConcreteArea, "mm2", ntc ? ".1" : "§9.2.1.1(3)", "As of the zone ≤ 0.04 Ac");
                 if (slab) continue;
                 if (ntc)
@@ -386,7 +388,8 @@ namespace GPC.Checkers.Concrete.Detailing
                 }
                 else
                 {
-                    if (ds) r.Add(National("MinimumLinks:" + face, "§9.2.2(5)", "DK NA national value of ρw,min not available in this implementation."));
+                    // R20 of ANTHEA (1.16.0): DK NA 9.2.2(5), ρw,min = 0.063 √fck / fyk (9.5N NA); before it was pending as a national value not implemented.
+                    if (ds) Min("MinimumLinks:" + face, linksPerMetre, .063 * Math.Sqrt(p.Fck) / p.Fyk * p.WebWidth * 1000, "mm2/m", "§9.2.2(5)", "ρw,min = 0.063 √fck / fyk (9.5N NA), links at 90°");
                     else Min("MinimumLinks:" + face, linksPerMetre, .08 * Math.Sqrt(p.Fck) / p.Fyk * p.WebWidth * 1000, "mm2/m", "§9.2.2(5)", "ρw,min = 0.08 √fck / fyk (9.5N), links at 90°");
                     Max("LinkSpacing:" + face, p.HasLinks ? p.LinkSpacing : double.PositiveInfinity, .75 * d, "mm", "§9.2.2(6)", "sl,max = 0.75 d (1 + cot α), α = 90°");
                     double legLimit = Math.Min(.75 * d, uni ? 300 : 600);
@@ -397,8 +400,10 @@ namespace GPC.Checkers.Concrete.Detailing
                 }
             }
             if (slab) return; // ANTHEA: compression bar restraint and end supports for beams only (ConcreteDetailing.cs:119-123)
-            if (ntc) Max("CompressionBarRestraint", p.HasLinks ? p.LinkSpacing : double.PositiveInfinity, 15 * minPhi, "mm", ".1", "spacing ≤ 15Ø of the compression bars considered resistant");
-            else if (!p.CompressionBarsRestrained) Pending("BarsHeldByLinks", "§9.2.1.2 / 9.5.3(6)", "Confirm the restraint of the compression bars considered in the resistance.");
+            // R14 of ANTHEA (1.16.0): EN 9.2.1.2(3) computed as in NTC §4.1.6.1.1 (Ømin of the section), before a confirmation of the Eurocode family.
+            // DS keeps the confirmation of 9.5.3(6), which DK NA 9.2.1.2(3) extends to beams.
+            Max("CompressionBarRestraint", p.HasLinks ? p.LinkSpacing : double.PositiveInfinity, 15 * minPhi, "mm", ntc ? ".1" : "§9.2.1.2(3)", "spacing ≤ 15Ø of the compression bars considered resistant");
+            if (ds && !p.CompressionBarsRestrained) Pending("BarsHeldByLinks", "§9.5.3(6)", "DK NA 9.2.1.2(3): confirm that every corner bar is held by links and no compression bar is farther than 150 mm from a restrained bar.");
             if (!p.EndZonesConfirmed) Pending("EndSupportAnchorage", ntc ? ".1" : "§9.2.1.4", "Confirm the shift rule and the bottom bars anchored at the end supports.");
         }
     }

@@ -68,9 +68,26 @@ namespace GPC.Checkers.Concrete.Torsion
             if (profile == TorsionProfile.DinEN1992p11 && axis1 == null && axis2 == null && cot > 1 + 1e-12)
                 throw new ArgumentException("DIN: without the shear data of the directions the range of cot θ (VEd,T+V) is not known; use cot θ = 1.");
 
-            double strut;
+            double strut, shearStrutScale = 1;
             switch (profile)
             {
+                case TorsionProfile.DsEN1992p11 when p.DsStrutEfficiency == DsTorsionStrutEfficiency.DkNa:
+                    {
+                        // R16: DK NA 5.6.1(3)P. The weights are the shear stresses of the walls: τT = |T|/(2 Ak tef) and, for each direction,
+                        // τV = |V|/(bw z) = (|V|/VRcd) νv fcd cot θ/(1 + cot²θ) from VRcd = bw z νv fcd cot θ/(1 + cot²θ) of (6.9) with αcw = 1.
+                        // The shear part of the strut interaction is then referred to the same weighted ν (scale νv/ν).
+                        double nuV = SectionShearCalculator.StrutEfficiency(TorsionProfiles.Shear(profile), fck), nuT = box ? nuV : .7 * (.7 - fck / 200);
+                        double tauT = Math.Abs(p.T) / (2 * ak * tef), tauV = 0;
+                        foreach (var c in new[] { axis1, axis2 })
+                            if (c != null && c.VRcd > 0 && Math.Abs(c.Demand) >= 1e-9) tauV += Math.Abs(c.Demand) / c.VRcd * nuV * fcd * cot / (1 + cot * cot);
+                        double nu = tauV + tauT > 0 ? (nuV * tauV + nuT * tauT) / (tauV + tauT) : nuT;
+                        strut = nu * fcd; shearStrutScale = nuV / nu;
+                        Add("νv", nuV, "−", "max(0.45; 0.7 − fck/200) (5.103 NA)");
+                        Add("νt", nuT, "−", box ? "νv: walls reinforced on both faces (DK NA 5.6.1(3)P)" : "0.7 (0.7 − fck/200) (5.104 NA)");
+                        if (tauV > 0) { Add("τT", tauT, "MPa", "|T|/(2 Ak tef)"); Add("τV", tauV, "MPa", "Σ (|V|/VRcd) νv fcd cot θ/(1 + cot²θ)"); }
+                        Add("ν", nu, "−", tauV > 0 ? "(νv τV + νt τT)/(τV + τT), mean weighted on the two actions" : "νt");
+                        break;
+                    }
                 case TorsionProfile.Ntc2018:
                 case TorsionProfile.CnrDT200:
                     strut = .5 * fcd; Add("f'cd", strut, "MPa", "0.5 fcd"); break;
@@ -111,7 +128,7 @@ namespace GPC.Checkers.Concrete.Torsion
                     throw new ArgumentException("Shear and torsion must use the same cot θ.");
 
             double eta = TorsionRatio(rd);
-            double shearConcrete = ShearRatio(axis1, true) + ShearRatio(axis2, true), torsionConcrete = TorsionRatio(rc);
+            double shearConcrete = (ShearRatio(axis1, true) + ShearRatio(axis2, true)) * shearStrutScale, torsionConcrete = TorsionRatio(rc);
             double concreteInteraction = p.LinkLegArea == 0 && t > 0 ? double.PositiveInfinity
                 : quadratic ? Math.Sqrt(torsionConcrete * torsionConcrete + shearConcrete * shearConcrete) : torsionConcrete + shearConcrete;
             double linkInteraction = TorsionRatio(rs) + Math.Max(ShearRatio(axis1, false), ShearRatio(axis2, false));

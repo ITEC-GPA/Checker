@@ -213,7 +213,9 @@ Il punto Mb raffinato è inserito nella curva. La curvatura ultima è quella del
 >   bilinearizzazione.
 > - Effetto: χu non tiene conto della parte di curva dopo il picco fino a 0,85 Mmax; il rapporto χu/χy,1 non coincide
 >   con μφ e non va usato in sua vece senza la bilinearizzazione.
-> - Stato: da discutere (voce R14 del registro delle differenze).
+> - Stato: dichiarato (voce R14 del registro delle differenze, 1.16.0): le grandezze restituite sono quelle definite
+>   sopra, con i loro nomi; la duttilità μφ della NTC con il ramo dopo il picco e la bilinearizzazione della Fig. C4.1.12
+>   non sono calcolate (opzione possibile in una versione successiva).
 
 > **Scostamento dichiarato — M-3 Tension stiffening opzionale nelle risposte (16/10/2026)**
 >

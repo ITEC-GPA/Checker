@@ -15,6 +15,18 @@ namespace GPC.Checkers.Concrete.Torsion
         EquivalentLimitedByWall
     }
 
+    /// <summary>Strut efficiency of the DS profile in torsion (R16 of ANTHEA).</summary>
+    public enum DsTorsionStrutEfficiency
+    {
+        /// <summary>
+        /// DK NA 5.6.1(3)P, supplementary information: νt = 0.7 (0.7 − fck/200) (5.104 NA), νt = νv when the walls are reinforced on both
+        /// faces; with shear and torsion together the mean of νv and νt weighted on the wall shear stresses of the two actions.
+        /// </summary>
+        DkNa,
+        /// <summary>νv of the shear also in torsion, as before Concrete 0.28 (unsafe for walls reinforced on the outer face only).</summary>
+        ShearFactor
+    }
+
     /// <summary>
     /// Resisting thin-walled profile: Ak area enclosed by the centre line of the walls (holes included), mm²; uk its perimeter, mm;
     /// tef wall thickness, mm. Explicit data; the static methods are suggestions from typical outlines, never confirmations.
@@ -118,14 +130,23 @@ namespace GPC.Checkers.Concrete.Torsion
         public double LinkAngleDegrees { get; }
         /// <summary>Box section with reinforcement on both faces of the walls (DIN ν and linear interaction; Model Code 2010 linear interaction).</summary>
         public bool HollowWithReinforcementOnBothFaces { get; }
+        /// <summary>Strut efficiency of the DS profile; ignored by the other profiles.</summary>
+        public DsTorsionStrutEfficiency DsStrutEfficiency { get; }
 
         public SectionTorsionInput(Standard standard, double t, TorsionGeometry geometry, double fck, double fcd, double gammaC, double linkFyd, double longitudinalFyd,
             double linkLegArea, double spacing, double longitudinalArea, double cotTheta, double linkAngleDegrees = 90, bool hollowWithReinforcementOnBothFaces = false)
+            : this(standard, t, geometry, fck, fcd, gammaC, linkFyd, longitudinalFyd, linkLegArea, spacing, longitudinalArea, cotTheta, linkAngleDegrees,
+                hollowWithReinforcementOnBothFaces, DsTorsionStrutEfficiency.DkNa) { }
+
+        public SectionTorsionInput(Standard standard, double t, TorsionGeometry geometry, double fck, double fcd, double gammaC, double linkFyd, double longitudinalFyd,
+            double linkLegArea, double spacing, double longitudinalArea, double cotTheta, double linkAngleDegrees, bool hollowWithReinforcementOnBothFaces,
+            DsTorsionStrutEfficiency dsStrutEfficiency)
         {
             Standard = standard ?? throw new ArgumentNullException(nameof(standard));
             Geometry = geometry ?? throw new ArgumentNullException(nameof(geometry));
             T = t; Fck = fck; Fcd = fcd; GammaC = gammaC; LinkFyd = linkFyd; LongitudinalFyd = longitudinalFyd; LinkLegArea = linkLegArea; Spacing = spacing;
             LongitudinalArea = longitudinalArea; CotTheta = cotTheta; LinkAngleDegrees = linkAngleDegrees; HollowWithReinforcementOnBothFaces = hollowWithReinforcementOnBothFaces;
+            DsStrutEfficiency = dsStrutEfficiency;
         }
     }
 

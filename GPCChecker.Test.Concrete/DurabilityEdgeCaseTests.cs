@@ -122,8 +122,12 @@ namespace ConcreteTests
         public void MinimumStrengthDependsOnTheProfile()
         {
             StrengthRequirement S(DurabilityProfile p, params string[] codes) => ExposureClasses.MinimumStrength(p, codes);
-            // XC3: EN Table E.1N C25/30, DM 2012 C25/30, DK NA 30 MPa, UNI 11104:2016 and 2025 C30/37.
-            Assert.AreEqual(25, S(DurabilityProfile.EN1992p11, "XC3").Fck); Assert.AreEqual(25, S(DurabilityProfile.UniEN1992p11, "XC3").Fck);
+            // XC3: EN Table E.1N C30/37 and DM 2012 Prospetto E.1N C30/37 (XC3 and XC4 in one cell: DM text; EN from a reproduction of the table,
+            // secondary source; R17, 1.16.0: before C25/30 from the same reading of the code, now the legacy option), DK NA 30 MPa, UNI 11104:2016 and 2025 C30/37.
+            Assert.AreEqual(30, S(DurabilityProfile.EN1992p11, "XC3").Fck); Assert.AreEqual(30, S(DurabilityProfile.UniEN1992p11, "XC3").Fck);
+            Assert.AreEqual(25, ExposureClasses.MinimumStrength(DurabilityProfile.EN1992p11, new[] { "XC3" }, IndicativeStrengthReading.MergedXc2Xc3).Fck);
+            Assert.AreEqual(25, ExposureClasses.MinimumStrength(DurabilityProfile.UniEN1992p11, new[] { "XC2", "XC3" }, IndicativeStrengthReading.MergedXc2Xc3).Fck);
+            Assert.AreEqual(30, ExposureClasses.MinimumStrength(DurabilityProfile.EN1992p11, new[] { "XC3", "XC4" }, IndicativeStrengthReading.MergedXc2Xc3).Fck);
             Assert.AreEqual(30, S(DurabilityProfile.DsEN1992p11, "XC3").Fck); Assert.AreEqual(30, S(DurabilityProfile.Ntc2018, "XC3").Fck);
             Assert.AreEqual(30, S(DurabilityProfile.CnrDT200, "XC3").Fck);
             // Italian annex differences: XC1 C25/30 (EN C20/25), XF2 C30/37 (EN C25/30).

@@ -424,6 +424,29 @@ namespace ConcreteTests
         }
 
         /// <summary>
+        /// R8 of ANTHEA (1.16.0, decision of the user 28/10/2026, secondary sources): with ModelCode2010ShrinkageStrain the width of fib MC2010 is
+        /// wd = 2 ls,max (εsm − εcm − εcs) (7.6-3). Same data as <see cref="ModelCode2010StagesFollowTable762"/>, long term, ρ = 0.02, stabilized:
+        /// ls,max term 2 [40 + 20/(4 · 1.8 · 0.02)] = 357.78 mm, εcs = −0.0003 adds 357.78 · 0.0003 = 0.10733 mm to 0.330890. Default 0: unchanged.
+        /// </summary>
+        [TestMethod]
+        public void ModelCode2010ShrinkageWidensTheCrack()
+        {
+            var options = SectionCrackOptions.Default.WithModelCode2010BondStages(true).WithModelCode2010ShrinkageStrain(-.0003);
+            var input = new CrackWidthInput(250, 200000, 33000, 2.9, .02, 20, 40, 100, 330, false, true, .5);
+            var details = new List<ShearCalculationDetail>();
+            double wk = CrackWidthCalculator.Width(CrackProfile.ModelCode2010, input, details, options);
+            Assert.AreEqual(0.3308902356902357 + 2 * (40 + 20 / (4 * 1.8 * .02)) * .0003, wk, 1e-12);
+            StringAssert.Contains(details.Single(d => d.Symbol == "εsm − εcm").Expression, "εcs");
+            Assert.AreEqual(0.3308902356902357, CrackWidthCalculator.Width(CrackProfile.ModelCode2010, input, null, SectionCrackOptions.Default.WithModelCode2010BondStages(true)), 1e-12);
+            Assert.AreEqual(0, SectionCrackOptions.Default.ModelCode2010ShrinkageStrain);
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => SectionCrackOptions.Default.WithModelCode2010ShrinkageStrain(.0001));
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => SectionCrackOptions.Default.WithModelCode2010ShrinkageStrain(double.NaN));
+            // Only MC2010 reads it.
+            foreach (var profile in new[] { CrackProfile.Ntc2018, CrackProfile.EN1992p11, CrackProfile.DinEN1992p11, CrackProfile.DsEN1992p11 })
+                Assert.AreEqual(CrackWidthCalculator.Width(profile, input), CrackWidthCalculator.Width(profile, input, null, options), profile.ToString());
+        }
+
+        /// <summary>
         /// R2 of ANTHEA (decision of the user 15/10/2026, secondary sources): with DinKtByDuration the DIN profile uses kt = 0.6 short and 0.4 long term.
         /// Independent values (exact fractions): σs = 250, ρ = 0.02: short 0.211742, long 0.256902; σs = 150, ρ = 0.01, short: 0.129310 (0.6 σs/Es governs).
         /// The default keeps kt = 0.4 for every duration (DIN 1045-1), so its short-term width is the long-term one.

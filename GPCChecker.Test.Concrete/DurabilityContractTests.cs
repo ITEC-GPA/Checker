@@ -42,6 +42,9 @@ namespace ConcreteTests
     /// Regenerated once, on 26/10/2026, with the user's approval («R11 ok, correggi»): without a pertinent Cmin the NTC and CNR-DT 200 profiles take the
     /// UNI 11104 class of the exposures instead of the table value 25 + 5 × group. Only the 1604 NTC/CNR states without Cmin changed, and in them only
     /// ntcCmin, the low-strength addition and the covers that follow (cnom higher in 210 states, lower in 70: X0, XF2, XF3 below the table value).
+    /// Regenerated again for ANTHEA 1.16.0 (R17, user decisions of 28/10/2026 «Fonti secondarie» and «Approvati se spiegati»): XC3 is C30/37 in Table
+    /// E.1N of the EN and UNI profiles (cell shared with XC4). 5 lines changed: the catalog entry of XC3 (en1992IndicativeStrength and
+    /// uniIndicativeStrength 25 → 30) and the 4 minimum-strength rows of XC3 alone and XC3 + XC3 for EN1992p11 and UniEN1992p11 (fck 25 → 30).
     /// </summary>
     [TestClass]
     public class DurabilityContractTests

@@ -617,7 +617,7 @@ convergente» in ANTHEA):
   cmin = max(10; cmin,b; cmin,dur) + superficie + abrasione; cnom = max(cmin + Δcdev; getto contro terreno).
 - **Classe minima di resistenza** (`ExposureClasses.MinimumStrength`): UNI 11104:2016, prospetto 5, per NTC e
   CNR-DT 200, Appendice E (informativa) per EN e UNI, DK NA E.1(2) per DS. Per NTC e CNR-DT 200 il riferimento
-  restituito resta «UNI 11104 prospetto 5 (NTC 2018 §11.2.11)».
+  restituito è «UNI 11104:2016 prospetto 5 (NTC 2018 §11.2.11)».
 - **Casi legacy congelati e riprodotti** (`DurabilityMigrationTests`, `Fixtures/durability-legacy.csv`): 588
   copriferri EC2, 1932 NTC, 505 rifiuti e 23 requisiti UNI 11104 su 24 combinazioni, 7 resistenze e 6 insiemi di
   opzioni. Casi limite in `DurabilityEdgeCaseTests`, cinque esempi in `DurabilityExamplesTests`.

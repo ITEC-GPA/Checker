@@ -72,7 +72,7 @@ sospeso se nessun controllo fallisce ma almeno uno è in sospeso, soddisfatto ne
 | NTC 2018; CNR-DT 200 R1/2013 (membratura in c.a. secondo NTC) | supportato | profilo NTC |
 | EN 1992-1-1, valori raccomandati | supportato | profilo EN |
 | UNI EN 1992-1-1 con DM 31/07/2012 | supportato | valori nazionali di 9.2.2(8), 9.5.2(1)-(2), 9.5.3(3) |
-| DS/EN 1992-1-1 con DK NA | supportato in parte | capitolo 9 invariato salvo le scelte nazionali; travi: As,min (9.2.1.1(1)) e ρw,min (9.2.2(5)) in sospeso come regole non implementate (riquadro D-5) |
+| DS/EN 1992-1-1 con DK NA | supportato in parte | capitolo 9 invariato salvo le scelte nazionali; travi: ρw,min = 0,063 √fck/fyk (9.2.2(5)); As,min (9.2.1.1(1)) in sospeso come regola non implementata (riquadro D-5) |
 | DIN EN, NS-EN, Model Code 2010, CNR-DT 204 | non supportato | `NotSupportedException` con il motivo |
 | CS-TR34 | non applicabile | motivo restituito |
 | ACI 318, AASHTO | non supportato | implementazione futura |
@@ -201,17 +201,21 @@ Staffe con la famiglia Eurocodice (EN 9.2.2(5), (6), (8) con α = 90°), chiavi 
 \frac{A_{sw}}{s} \ge \rho_{w,min}\,b_w\cdot 1000, \quad \rho_{w,min} = \frac{0{,}08\sqrt{f_{ck}}}{f_{yk}}; \qquad s \le 0{,}75\,d; \qquad s_t = \frac{b_w - 2\,c_{nom} - \varnothing_w}{n-1} \le \min\left(0{,}75\,d;\ s_{t,lim}\right) \qquad \text{(D.7)}
 ```
 
-con st,lim = 600 mm (EN e DS) oppure 300 mm (DM 31/07/2012). Con meno di due braccia st è in sospeso. Con DS i
-controlli di ρmin (D.5) e di ρw,min (D.7) sono in sospeso come regole nazionali non implementate (riquadro D-5).
+con st,lim = 600 mm (EN e DS) oppure 300 mm (DM 31/07/2012). Con meno di due braccia st è in sospeso. Con DS
+ρw,min = 0,063 √fck/fyk (DK NA 9.2.2(5), (9.5N NA)); il controllo di ρmin (D.5) resta in sospeso come regola
+nazionale non implementata (riquadro D-5).
 
-> **Scostamento dichiarato — D-1 (R14) Trattenimento delle barre compresse nelle travi (Eurocodice)**
+> **Scostamento corretto — D-1 (R14) Trattenimento delle barre compresse nelle travi (Eurocodice)**
 >
 > - Norma: EN 9.2.1.2(3) richiede un passo delle staffe ≤ 15Ø per le barre compresse considerate nella resistenza
 >   (anche NTC §4.1.6.1.1).
-> - Programma: nella famiglia Eurocodice il limite non è calcolato e il controllo chiede una conferma
->   (`BarsHeldByLinks`); il profilo NTC lo calcola, con Ømin di tutte le barre della sezione.
-> - Effetto: senza conferma il controllo è in sospeso; con la conferma il limite di 15Ø non è verificato.
-> - Stato: da discutere (voce R14 del registro delle differenze).
+> - Programma fino a Concrete 0.27: nella famiglia Eurocodice il limite non era calcolato e il controllo chiedeva una
+>   conferma (`BarsHeldByLinks`); il profilo NTC lo calcola, con Ømin di tutte le barre della sezione.
+> - Correzione (ANTHEA 1.16.0): `CompressionBarRestraint` anche per EN, UNI e DS, passo ≤ 15 Ømin con Ømin di tutte le
+>   barre della sezione come per NTC (a favore di sicurezza quando le barre più piccole non sono considerate nella
+>   resistenza). La conferma `BarsHeldByLinks` resta solo per DS, sulla regola 9.5.3(6) che il DK NA 9.2.1.2(3) estende
+>   alle travi (riquadro D-5).
+> - Stato: corretto (voce R14 del registro delle differenze).
 
 ### 6.3 Pilastri
 
@@ -300,16 +304,18 @@ L'esito complessivo è:
 \text{Passed} = \begin{cases} \text{false} & \exists\ \text{controllo non soddisfatto} \\ \text{null} & \text{altrimenti, se}\ \exists\ \text{controllo in sospeso} \\ \text{true} & \text{altrimenti} \end{cases} \qquad \text{(D.11)}
 ```
 
-> **Scostamento dichiarato — D-5 (R20) DS: valori nazionali delle travi non implementati**
+> **Scostamento dichiarato in parte — D-5 (R20) DS: valori nazionali delle travi**
 >
 > - Norma: DK NA:2024 9.2.2(5) fissa ρw,min = 0,063 √fck/fyk (9.5N NA); la scelta nazionale di 9.2.1.1(1) prescrive
 >   nelle anime alte un'armatura distribuita sulle facce con il rapporto di 9.2.2(5); 9.2.1.2(3) estende alle travi la
 >   regola 9.5.3(6).
-> - Programma: i controlli `MinimumTension:<faccia>` e `MinimumLinks:<faccia>` del profilo DS restano in sospeso con
->   `NotImplemented` = true; il trattenimento delle barre compresse è una conferma.
-> - Effetto: esito complessivo DS delle travi sempre in sospeso; nessun esito errato. Il valore di ρw,min è nel testo
->   e può essere implementato.
-> - Stato: da discutere (voce R20 del registro delle differenze, per ρw,min).
+> - Programma: dalla 1.16.0 di ANTHEA (Concrete 0.28) `MinimumLinks:<faccia>` applica ρw,min della (9.5N NA); prima era
+>   in sospeso con `NotImplemented` = true. `MinimumTension:<faccia>` resta in sospeso con `NotImplemented` = true (la
+>   regola nazionale delle anime alte non è implementata); il trattenimento delle barre compresse è una conferma.
+> - Effetto: l'esito complessivo DS delle travi resta in sospeso per As,min, salvo quando un controllo calcolato non è
+>   soddisfatto (per esempio staffe sotto ρw,min): allora è «non soddisfatto». Nessun esito errato.
+> - Stato: ρw,min corretto (voce R20 del registro delle differenze, decisione dell'utente del 28/10/2026); As,min e
+>   9.5.3(6) dichiarati.
 
 ### 6.5 Solette e pareti: interasse delle barre
 
@@ -336,6 +342,7 @@ restituisce i valori di ANTHEA. La regola dei pilastri (riquadro D-2) non cambia
 | As,max | 0,04 Ac (0,08 Ac nelle sovrapposizioni dei pilastri) | NTC §4.1.6.1.1-2; EN 9.2.1.1(3), 9.5.2(3) | no | `Beam`, `Column`, `Calculate` |
 | staffe minime NTC | 1,5 b mm²/m; 3 staffe/m; 0,8 d; 15Ø | NTC §4.1.6.1.1 | no | `Beam` |
 | ρw,min | 0,08 √fck/fyk | EN (9.5N) | no | `Beam` |
+| ρw,min | 0,063 √fck/fyk | DS (9.5N NA) | no | `Beam` |
 | sl,max | 0,75 d | EN (9.6N), α = 90° | no | `Beam` |
 | st,max | min(0,75 d; 600 mm), UNI min(0,75 d; 300 mm) | EN (9.8N); DM 31/07/2012 | no | `Beam` |
 | pilastri NTC | Ø ≥ 12; 300 mm; 0,10 NEd/fyd; 0,003 Ac; 6 mm; Ømax/4; 12 Ømin; 250 mm | NTC §4.1.6.1.2 | no | `Column` |
@@ -397,10 +404,11 @@ Percorsi relativi alla radice del repository Checker (namespace `GPC.Checkers.Co
 - Il trattenimento delle barre compresse nelle travi Eurocodice è una conferma, non un calcolo (riquadro D-1).
 - La quota minima di staffe nell'armatura a taglio, la presenza di una barra in ogni spigolo dei pilastri
   poligonali, le staffe inclinate e le regole sismiche non sono verificate.
-- Con DS, As,min e ρw,min delle travi restano in sospeso (riquadro D-5).
-- Testo dei riferimenti (R14): nel profilo NTC il riferimento di `MinimumTension:<faccia>` cita EC2 §9.3.1.1
-  (solette) invece di §9.2.1.1, i riferimenti NTC hanno uno spazio prima del numero del sottoparagrafo (per esempio
-  «§4.1.6.1 .3») e `MaximumAtLap` cita «EC2 §§9.5.2». Il valore calcolato non cambia.
+- Con DS, As,min delle travi resta in sospeso (riquadro D-5).
+- Testo dei riferimenti (R14), corretto nella 1.16.0 di ANTHEA (Concrete 0.28): nel profilo NTC il riferimento di
+  `MinimumTension:<faccia>` delle travi cita EC2 §9.2.1.1 (prima §9.3.1.1, delle solette, che resta per le solette), i
+  riferimenti NTC non hanno più lo spazio prima del numero del sottoparagrafo («§4.1.6.1.3», prima «§4.1.6.1 .3») e
+  `MaximumAtLap` dei pilastri cita «EC2 §9.5.2(3)» (prima «EC2 §§9.5.2»). Il valore calcolato non cambia.
 
 ## 10. Esempio numerico verificato
 
@@ -429,7 +437,8 @@ barre superiori 2Ø14 in y = 200 mm (x = ±100). Staffe a passo 200 mm; bt = bw 
    - EN: ρw,min bw · 1000 = 0,08 · 5/450 · 300 · 1000 = 266,67 mm²/m; sl,max = 0,75 · 447 = 335,25 mm (inferiore) e
      337,5 mm (superiore); st = (300 − 70 − 8)/1 = 222 mm ≤ min(335,25; 600) = 335,25 mm.
    - UNI: st,max = min(335,25; 300) = 300 mm.
-   - DS: ρmin e ρw,min in sospeso, quindi esito complessivo in sospeso.
+   - DS: ρw,min bw · 1000 = 0,063 · 5/450 · 300 · 1000 = 210,00 mm²/m ≤ 502,65 mm²/m, soddisfatto; ρmin in sospeso,
+     quindi esito complessivo in sospeso.
 
 **Pilastro 400 × 400 mm.** 8Ø16 negli angoli e a metà dei lati, in ±149 mm. NEd = 2000 kN; staffe a passo 250 mm.
 

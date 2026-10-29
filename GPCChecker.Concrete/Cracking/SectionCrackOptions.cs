@@ -79,6 +79,15 @@ namespace GPC.Checkers.Concrete.Cracking
         public bool ModelCode2010BondStages { get; private set; }
 
         /// <summary>
+        /// fib Model Code 2010 (§7.6.4.4, eq. 7.6-3): free shrinkage strain εcs of the concrete in wd = 2 ls,max (εsm − εcm − εcs), signed (shrinkage
+        /// negative, so it widens the crack); 0 by default, the rule of 0.0.17.0 (εcs neglected) kept for the frozen fixtures and the contract K0. The
+        /// value is the caller's (time, humidity, member size); the coefficient ηr of the refined form of the mean strain is not applied. Only the
+        /// Model Code 2010 profile reads it, in the width formula with bonded bars. ANTHEA registro-differenze R8 (1.16.0, decision of the user
+        /// 28/10/2026 «Fonti secondarie»: secondary sources, to be checked on the text).
+        /// </summary>
+        public double ModelCode2010ShrinkageStrain { get; private set; }
+
+        /// <summary>
         /// DIN EN 1992-1-1/NA: kt = 0.6 short and 0.4 long term, as EN 1992-1-1 7.3.4(2) (false by default: kt = 0.4 for every duration, the fixed value of
         /// DIN 1045-1 kept for the frozen fixtures and the contract K0). ANTHEA registro-differenze R2, decision of the user 15/10/2026.
         /// </summary>
@@ -163,6 +172,14 @@ namespace GPC.Checkers.Concrete.Cracking
         public SectionCrackOptions WithModelCode2010BondStages(bool bondStages)
         {
             var copy = Copy(); copy.ModelCode2010BondStages = bondStages; return copy;
+        }
+
+        /// <summary>Copy with <see cref="ModelCode2010ShrinkageStrain"/>; finite and not positive (a free shrinkage strain).</summary>
+        public SectionCrackOptions WithModelCode2010ShrinkageStrain(double shrinkageStrain)
+        {
+            if (double.IsNaN(shrinkageStrain) || double.IsInfinity(shrinkageStrain) || shrinkageStrain > 0)
+                throw new ArgumentOutOfRangeException(nameof(shrinkageStrain), "Cracking: the shrinkage strain εcs must be finite and not positive.");
+            var copy = Copy(); copy.ModelCode2010ShrinkageStrain = shrinkageStrain; return copy;
         }
 
         /// <summary>Copy with <see cref="DinKtByDuration"/>.</summary>

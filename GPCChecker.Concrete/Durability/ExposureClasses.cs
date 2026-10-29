@@ -11,7 +11,7 @@ namespace GPC.Checkers.Concrete.Durability
     /// Transferred from ANTHEA (Materiali.Durability, MinimumConcrete, AtecapMix and NtcCover.Severity, commit fe4652c). EN 206 F.1 and NTC
     /// Tab. 4.1.III verified on the texts; UNI 11104:2016 prospetto 5 from ANTHEA, as reproduced in ATECAP 2020 p. 19 (secondary source). UNI 11104:2025 (in force since 24/07/2025), prospetto 6, according to an extract published on 28/07/2025 (secondary source, to be checked on the text of the standard):
     /// same minimum classes except XF1 (C30/37), w/c 0.55 for XF1 and lower minimum cement contents; XC3, XD1, XF4 and XA1 are C30/37 in both editions (C28/35 attributed to UNI 11104:2004). Indicative classes of Annex E: EN 1992-1-1:2004 Table E.1N, DM 31/07/2012 Prospetto E.1N
-    /// (XC1 C25/30, XF2 C30/37; merged cells read as in the recommended table), DK NA:2024 Tabel E.1(2).
+    /// (XC1 C25/30, XF2 C30/37; merged cells read as in the recommended table: XC3 and XC4 share one cell, C30/37, R17 of ANTHEA), DK NA:2024 Tabel E.1(2).
     /// </summary>
     public sealed class ExposureClass
     {
@@ -50,6 +50,15 @@ namespace GPC.Checkers.Concrete.Durability
         internal StrengthRequirement(int? fck, string reference, string[] undefined) { Fck = fck; Reference = reference; Undefined = undefined; }
     }
 
+    /// <summary>Reading of the merged cells of Table E.1N (EN 1992-1-1 and DM 31/07/2012) for the indicative class of XC3 (R17 of ANTHEA).</summary>
+    public enum IndicativeStrengthReading
+    {
+        /// <summary>XC3 in the cell of XC4, C30/37: DM 31/07/2012 Prospetto E.1N (text) and the reproductions of EN Table E.1N (secondary source).</summary>
+        Text,
+        /// <summary>XC3 in the cell of XC2, C25/30, as before Concrete 0.28.</summary>
+        MergedXc2Xc3
+    }
+
     /// <summary>Exposure classes of EN 206 and their requirements; combinations of classes act together (the most severe value governs).</summary>
     public static class ExposureClasses
     {
@@ -58,7 +67,8 @@ namespace GPC.Checkers.Concrete.Durability
             new ExposureClass("X0", "No risk; for reinforcement very dry", null, 12, 0, 0, 0, 0, 12, null, null, 12, 12, 12),
             new ExposureClass("XC1", "Carbonation, dry or permanently wet", .65, 20, 260, 0, 1, 0, 25, .60, 300, 20, 25, 12),
             new ExposureClass("XC2", "Carbonation, wet, rarely dry", .60, 25, 280, 0, 2, 0, 25, .60, 300, 25, 25, 30),
-            new ExposureClass("XC3", "Carbonation, moderate humidity", .55, 30, 280, 0, 2, 0, 30, .55, 320, 25, 25, 30),
+            // R17 of ANTHEA (1.16.0): XC3 shares the cell of XC4 in Table E.1N (C30/37), before read as XC2-XC3 (C25/30).
+            new ExposureClass("XC3", "Carbonation, moderate humidity", .55, 30, 280, 0, 2, 0, 30, .55, 320, 30, 30, 30),
             new ExposureClass("XC4", "Carbonation, cyclic wet and dry", .50, 30, 300, 0, 3, 1, 32, .50, 340, 30, 30, 30),
             new ExposureClass("XD1", "Chlorides not from sea water, moderate humidity", .55, 30, 300, 0, 4, 1, 30, .55, 320, 30, 30, 35),
             new ExposureClass("XD2", "Chlorides not from sea water, wet, rarely dry", .55, 30, 300, 0, 5, 2, 32, .50, 340, 30, 30, 40),
@@ -98,6 +108,13 @@ namespace GPC.Checkers.Concrete.Durability
         /// DS, DK NA Tabel E.1(2) (requirement for reinforced concrete).
         /// </summary>
         public static StrengthRequirement MinimumStrength(DurabilityProfile profile, IEnumerable<string> codes)
+            => MinimumStrength(profile, codes, IndicativeStrengthReading.Text);
+
+        /// <summary>
+        /// As <see cref="MinimumStrength(DurabilityProfile, IEnumerable{string})"/>; <paramref name="reading"/> chooses the reading of the merged cells of
+        /// Table E.1N for XC3 (EN and UNI profiles only).
+        /// </summary>
+        public static StrengthRequirement MinimumStrength(DurabilityProfile profile, IEnumerable<string> codes, IndicativeStrengthReading reading)
         {
             var values = Resolve(codes);
             switch (profile)
@@ -108,7 +125,8 @@ namespace GPC.Checkers.Concrete.Durability
                 case DurabilityProfile.EN1992p11:
                 case DurabilityProfile.UniEN1992p11:
                     bool uni = profile == DurabilityProfile.UniEN1992p11;
-                    var defined = values.Select(e => uni ? e.UniIndicativeStrength : e.En1992IndicativeStrength).Where(v => v.HasValue).Select(v => v.Value).ToArray();
+                    int? Indicative(ExposureClass e) => reading == IndicativeStrengthReading.MergedXc2Xc3 && e.Code == "XC3" ? 25 : uni ? e.UniIndicativeStrength : e.En1992IndicativeStrength;
+                    var defined = values.Select(Indicative).Where(v => v.HasValue).Select(v => v.Value).ToArray();
                     return new StrengthRequirement(defined.Length == 0 ? (int?)null : defined.Max(),
                         uni ? "UNI EN 1992-1-1 Annex E, DM 31/07/2012 Prospetto E.1N (informative)" : "EN 1992-1-1 Annex E, Table E.1N (informative)",
                         values.Where(e => (uni ? e.UniIndicativeStrength : e.En1992IndicativeStrength) == null).Select(e => e.Code).ToArray());
