@@ -10,8 +10,9 @@ public static partial class BridgeConcept
         return i.Median > 0 ? RoadTraffic.OuterPlane(width, new(i.BarrierWidth, carriage / 2), new(i.BarrierWidth + carriage / 2 + i.Median, carriage / 2))
             : RoadTraffic.OuterPlane(width, new CarriagewayStrip(i.BarrierWidth, carriage));
     }
-    private static BeamLoadResult UpperLoads(BridgeModel data, string id, double[] spans, double permanent, UpperStructure structure, bool factored)
+    private static BeamLoadResult UpperLoads(BridgeModel data, string id, double[] spans, double permanent, double nonStructural, UpperStructure structure, bool factored)
     {
+        if (factored && FromProfile(data)) return ProfileUpperLoads(data, id, spans, permanent, nonStructural, structure);
         double gg = factored ? data.Assumptions.GammaG : 1, gq = factored ? data.Assumptions.GammaQ : 1;
         if (data.Input.TrafficModel == TrafficModel.LegacyUniform)
         {

@@ -5,6 +5,8 @@ public sealed record BridgeInput
 {
     /// <summary>Defaults only for source compatibility; archive adapters must explicitly identify old documents.</summary>
     public TrafficModel TrafficModel { get; init; } = TrafficModel.LegacyUniform;
+    /// <summary>Default for source and archive compatibility: the multipliers of the project. New documents choose the rows of the profile.</summary>
+    public PartialFactorSource PartialFactors { get; init; } = PartialFactorSource.ProjectMultipliers;
     public required double Length { get; init; }
     public required double Height { get; init; }
     public required double ObstacleWidth { get; init; }
