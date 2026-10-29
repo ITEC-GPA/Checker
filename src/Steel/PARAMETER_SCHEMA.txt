@@ -17,3 +17,6 @@ persistite conservano EngineDefinition.Parameters e i contratti precedenti;
 nessun descrittore e nessuna funzione entra nell'archivio o nelle impronte.
 La UI futura puo' leggere metadata e chiamare Validate; non deve riscrivere
 la logica delle condizioni. Provenienza e fingerprint restano dati richiesti.
+Dal 29/10/2026 anche Steel.Serviceability.Member (SteelParameterSchemas.Member-
+Serviceability): limiti, schemi e fonti delle verifiche di esercizio delle aste,
+vedi SERVICEABILITY_MEMBERS.txt.
