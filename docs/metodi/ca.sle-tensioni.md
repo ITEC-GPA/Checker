@@ -211,12 +211,17 @@ rapporto massimo.
 >   ridotta del fattore αcc/γc (0,567 con NTC), quindi anche il suo massimo.
 > - Stato: da discutere (voce R5 del registro delle differenze: correzione nel solutore o avviso nel risultato).
 
-> **Scostamento dichiarato — E-5 (R6) DIN: limite dei trefoli**
+> **Scostamento corretto — E-5 (R6) DIN: limite dei trefoli**
 >
-> - Norma: secondo una fonte secondaria l'annesso tedesco fissa k5 = 0,65 in 7.2(5); da riscontrare sul testo.
-> - Programma: la classe DIN eredita k5 = 0,75 della classe base.
-> - Effetto: se confermato, a sfavore di sicurezza per i trefoli con DIN (+15% sul limite).
-> - Stato: da riscontrare (voce R6 del registro delle differenze).
+> - Norma: secondo un estratto del DIN EN 1992-1-1/NA (fonte secondaria, da riscontrare sul testo) NDP 7.2(5) fissa
+>   k5 = 0,65 per la combinazione quasi permanente.
+> - Programma fino a GPCModel 5.23: la classe DIN ereditava k5 = 0,75 della classe base. Effetto: a sfavore di sicurezza
+>   per i trefoli con DIN (+15% sul limite).
+> - Correzione (ANTHEA 1.16.0, decisione dell'utente del 28/10/2026 «Fonti secondarie»): k5 = 0,65 nella classe DIN. Il
+>   limite resta quello della combinazione caratteristica di `GetServiceabilityPrestressLimitStress`: la tensione
+>   caratteristica non è minore di quella quasi permanente, quindi il controllo copre il limite tedesco a favore di
+>   sicurezza. I documenti salvati conservano il coefficiente scritto con la versione precedente.
+> - Stato: corretto (voce R6 del registro delle differenze).
 
 > **Scostamento dichiarato — E-6 Tension stiffening opzionale nell'analisi non lineare (16/10/2026)**
 >
@@ -239,7 +244,7 @@ rapporto massimo.
 | k1 | 0,60 | EN 7.2(2), NTC 4.1.2.2.5.1 | sì (proprietà della classe normativa) | `StandardModelCode2010.ServiceabilityStressConcreteCoefficientForCharacteristicCombination` |
 | k2 | 0,45 | EN 7.2(3), NTC 4.1.2.2.5.1 | sì | `StandardModelCode2010.ServiceabilityStressConcreteCoefficientForQuasiPermanentCombination` |
 | k3 | 0,80 | EN 7.2(5), NTC 4.1.2.2.5.2 | sì | `StandardModelCode2010.ServiceabilityStressSteelCoefficientForCharacteristicCombination` |
-| k5 | 0,75 su fpk (base); 0,70 su fpk (UNI); 0,80 su fp(0,1)k (NTC, CNR-DT 200) | EN 7.2(5); DM 2012 7.2; NTC 4.1.8.1.5 | sì (coefficiente); la grandezza di riferimento dipende dalla classe | `StandardModelCode2010.ServiceabilityStressPrestressSteelCoefficientForCharacteristicCombination`, `GetServiceabilityPrestressLimitStress` |
+| k5 | 0,75 su fpk (base); 0,70 su fpk (UNI); 0,65 su fpk (DIN, R6); 0,80 su fp(0,1)k (NTC, CNR-DT 200) | EN 7.2(5); DM 2012 7.2; NTC 4.1.8.1.5 | sì (coefficiente); la grandezza di riferimento dipende dalla classe | `StandardModelCode2010.ServiceabilityStressPrestressSteelCoefficientForCharacteristicCombination`, `GetServiceabilityPrestressLimitStress` |
 | fs | 1; 0,8 per getti sottili | NTC 4.1.2.2.5.1; DM 2012 7.2 | sì, in (0; 1] | argomento `concreteLimitFactor` di `StressLimitCheck.Evaluate` |
 | φ | 0 | — | sì (opzioni del solutore) | `StressAnalysisResult.PsiRebar`, `PsiTendon` |
 
