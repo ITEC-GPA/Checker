@@ -8,6 +8,7 @@ using GPC.Checkers.Steel.ModelAdapters;
 using GPC.Checkers.Steel.Pipeline;
 using GPC.Checkers.Steel.Sections;
 using GPC.Checkers.Steel.Selection;
+using GPC.Checkers.Steel.Serviceability;
 using GPC.Model.Checking.Contracts;
 using GPC.Model.Checking.Preparation;
 using GPC.Model.Checking.Reports;
@@ -24,7 +25,10 @@ namespace GPC.Model.Checker
     /// EC3/NTC share the pipeline but retain their separate qualification policies.
     /// Explicit opt-in engine; existing isolated-check engine IDs keep their contracts.
     /// Parameters describe assigned sections, never an implicit absence of holes or
-    /// member buckling. No action projection, synthetic load or member model is used.</summary>
+    /// member buckling. No action projection, synthetic load or member model is used.
+    /// The typed task Serviceability/StressLimits/Characteristic limits the elastic service stresses
+    /// (SteelServiceStressCheck) with the explicit ServiceStress.* basis; legacy mechanism-only
+    /// Serviceability tasks, without a declared category, are not supported.</summary>
     public sealed class SteelPipelineMaterialChecker : IMaterialChecker
     {
         public const string EngineId = "Steel.Pipeline.Section";
@@ -49,11 +53,18 @@ namespace GPC.Model.Checker
             Parameters = new ReadOnlyDictionary<string, string>(_parameters.Values);
         }
 
+        /// <summary>Scope of the serviceability stress task, added to the catalog metadata (results keep their own scope).</summary>
+        internal const string ServiceLimitations = "Serviceability/StressLimits on Characteristic selections only: limits of EN 1993-2 7.3 form with explicit gammaM,ser, its source and the applicability source; doubly symmetric H, RHS, CHS and narrow solid rectangles, no torsion or shear lag.";
         public bool Accepts(BeamElement element) => element?.BeamProperty is ISteelSection;
         public IMaterialCheckSession CreateSession() => new Session(this);
-        internal bool Supports(CheckMechanism mechanism) => mechanism == CheckMechanism.UlsBiaxialSection
-            && (Code.GetType() == typeof(StandardEN1993p11) && Edition == "2005"
-                || Code.GetType() == typeof(StandardNTC2018Steel) && Edition == "2018");
+        private bool Qualified => Code.GetType() == typeof(StandardEN1993p11) && Edition == "2005"
+            || Code.GetType() == typeof(StandardNTC2018Steel) && Edition == "2018";
+        internal bool Supports(CheckMechanism mechanism) => mechanism == CheckMechanism.UlsBiaxialSection && Qualified;
+        /// <summary>EN 1993-2 7.3(1) limits the stresses of the characteristic combination: frequent and quasi-permanent
+        /// selections have no stress limit of this form and are not supported (no other category is justified).</summary>
+        internal bool Supports(SectionCheckSpecification check) => check != null && Qualified
+            && check.Mechanism == CheckMechanism.Serviceability && check.Criterion == SectionCheckCriterion.StressLimits
+            && check.Direction == SectionCheckDirection.None && check.Category == CombinationCategory.Characteristic;
 
         private SteelDesignContext Context()
         {
@@ -69,7 +80,7 @@ namespace GPC.Model.Checker
                 null, _parameters.NegligibleActions);
         }
 
-        private sealed class Session : IConcurrentMaterialSession
+        private sealed class Session : IConcurrentMaterialSession, ISectionCheckSession
         {
             private readonly SteelPipelineMaterialChecker _owner;
             // One entry per distinct property and engine configuration prepared by this session.
@@ -81,6 +92,17 @@ namespace GPC.Model.Checker
             {
                 string prepared = null;
                 try { return Evaluate(input, mechanism, token, ref prepared); }
+                finally { Record(prepared); }
+            }
+
+            public bool Supports(SectionCheckSpecification check) => _owner.Supports(check);
+
+            /// <summary>Serviceability stress limits of the cut (the only typed task of this engine). The plan
+            /// routes it to selections declared Characteristic; the actions are used as they are, without factors.</summary>
+            public CheckResult Verify(BeamActionInput input, SectionCheckSpecification check, CancellationToken token)
+            {
+                string prepared = null;
+                try { return EvaluateServiceStress(input, check, token, ref prepared); }
                 finally { Record(prepared); }
             }
 
@@ -113,6 +135,43 @@ namespace GPC.Model.Checker
                     var result = SteelVerificationPipeline.Execute(plan, assessments, token);
                     string inputKey = ModelValues.Fingerprint(new object[] { input.Property, input.Forces, _owner.Configuration });
                     return SteelPipelineResults.Map(result, inputKey);
+                }
+                catch (NotSupportedException ex)
+                { return NativeResults.Unavailable("SteelPipeline.PreparationNotSupported", ex.Message); }
+                catch (ArgumentException ex)
+                {
+                    var result = NativeResults.Missing("SteelPipeline.InvalidInput");
+                    result.Diagnostics.Add(ModelDiagnostic.Error("SteelPipeline.InvalidInput.Detail", message: ex.Message));
+                    return result;
+                }
+                catch (ArithmeticException ex)
+                {
+                    return new CheckResult { Data = DataStatus.Ready, Execution = ExecutionStatus.Error,
+                        Diagnostics = new List<ModelDiagnostic> { ModelDiagnostic.Error("SteelPipeline.PreparationNumericalRange", message: ex.Message) } };
+                }
+            }
+
+            private CheckResult EvaluateServiceStress(BeamActionInput input, SectionCheckSpecification check, CancellationToken token, ref string prepared)
+            {
+                token.ThrowIfCancellationRequested();
+                if (input == null) return NativeResults.Missing("SteelPipeline.Input.Required");
+                if (!_owner.Supports(check)) return NativeResults.Unavailable("UnsupportedSectionCheck", check?.Key);
+                if (!(input.Property is ISteelSection section)) return NativeResults.Unavailable("SteelPipeline.SteelSectionRequired");
+                try
+                {
+                    var options = _owner._parameters;
+                    var context = _owner.Context();
+                    string propertyKey = ModelValues.Fingerprint(new object[] { input.Property });
+                    if (options.SectionFingerprint != null && options.SectionFingerprint != propertyKey)
+                        return NativeResults.Missing("SteelPipeline.AssessmentSectionMismatch");
+                    var snapshot = SteelPreparedSections.Get(section, propertyKey, options.Unperforated, options.NetArea);
+                    prepared = propertyKey + "\n" + _owner.Configuration;
+                    var common = ModelSteelInput.FromSectionAxes(snapshot, input.Forces, context);
+                    var classification = options.UniformCompressionClass.HasValue
+                        ? new SteelSectionClassification(common, options.UniformCompressionClass.Value,
+                            "External nominal uniform-compression classification: " + options.ClassificationSource) : null;
+                    var result = SteelServiceStressCheck.Evaluate(common, options.ServiceStress, classification, token);
+                    return SteelServiceStressResults.Map(result, check.Category);
                 }
                 catch (NotSupportedException ex)
                 { return NativeResults.Unavailable("SteelPipeline.PreparationNotSupported", ex.Message); }

@@ -50,11 +50,18 @@ namespace GPC.Model.Checker.Configuration
                 }
                 foreach(var key in new[]{"NetArea","UniformCompressionClass","ShearBucklingExcluded1","ShearBucklingExcluded2"})
                     Require("AssessmentFingerprintRequired","Section-specific values require the property fingerprint.",new[]{"SectionFingerprint"},Has(key));
+                // Serviceability/StressLimits/Characteristic tasks: explicit NDP and declared applicability, no default.
+                Add("ServiceStress.GammaMSer",EngineParameterKind.Number,"1",min:1,
+                    description:"gammaM,ser of the service stress limits fy/gammaM,ser, fy/(sqrt3 gammaM,ser), sqrt(sigma^2+3tau^2)<=fy/gammaM,ser (EN 1993-2:2006 7.3(1), NDP, recommended 1.00); no default.");
+                Add("ServiceStress.GammaMSerSource",description:"Provenance of gammaM,ser: national annex or project document.");
+                Add("ServiceStress.ApplicabilitySource",description:"Why stress limitation applies (EN 1993-2 7.3 bridge, project requirement): EN 1993-1-1 does not require it for buildings and no NTC 2018/Circolare text is assumed. It also covers shear lag and secondary effects, which are not computed.");
+                Together("ServiceStressBasis","ServiceStress.GammaMSer","ServiceStress.GammaMSerSource","ServiceStress.ApplicabilitySource");
                 Require("NetAreaDeclarationRequired","Net area requires an explicit perforated declaration.",new[]{"Unperforated"},Has("NetArea"));
                 rules.Add(new EngineParameterRule("NetAreaRequiresPerforated","Net area cannot accompany an unperforated declaration.",new[]{Is("Unperforated","true")},null,new[]{"NetArea"}));
                 return new EngineParameterSchema(SteelPipelineMaterialChecker.EngineId,fields,rules,new[]{
                     "Section geometry, material, steel production type, code edition and concomitant actions are checked at execution.",
-                    "Automatic classification/shear assessment is available only for the qualified geometry and production conditions."});
+                    "Automatic classification/shear assessment is available only for the qualified geometry and production conditions.",
+                    "Service stress tasks require result selections declared Characteristic; the ServiceStress values are checked only when such a task runs."});
             }
             Add("AnalysisMode",EngineParameterKind.Choice,choices:new[]{"UniformFork","ExternalInPlane","Compression","Bending","BeamColumn"});
             Add("LoadPatternReference",description:"Source describing the same member's complete load pattern.");

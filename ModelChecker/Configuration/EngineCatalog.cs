@@ -110,14 +110,17 @@ namespace GPC.Model.Checker.Configuration
                     return check == null ? verifier.Capabilities.Contains(mechanism) : check.Mechanism == mechanism && verifier.Supports(check);
                 }));
             catalog.Register(new EngineCapability(SteelPipelineMaterialChecker.EngineId, 1,
-                "Steel section verification pipeline", SteelPipelineMaterialChecker.Limitations,
+                "Steel section verification pipeline", SteelPipelineMaterialChecker.Limitations + " " + SteelPipelineMaterialChecker.ServiceLimitations,
                 (definition, context) => {
                     if (!(context.Code is StandardEN1993p11 code) || context.BridgeCode.HasValue)
                         throw new ArgumentException("SteelCodeRequired");
                     if (definition.Concrete != null || definition.BridgeCases != null || definition.BridgeHistory != null)
                         throw new ArgumentException("OptionsOnDifferentEngine");
                     return new SteelPipelineMaterialChecker(code, context.Edition, context.NationalAnnex, definition.Parameters);
-                }, (engine, mechanism, check) => check == null && ((SteelPipelineMaterialChecker)engine).Supports(mechanism)));
+                }, (engine, mechanism, check) => {
+                    var steel = (SteelPipelineMaterialChecker)engine;
+                    return check == null ? steel.Supports(mechanism) : check.Mechanism == mechanism && steel.Supports(check);
+                }));
             catalog.Register(new EngineCapability(SteelMemberPipelineChecker.EngineId, 1,
                 "Steel physical-member analysis pipeline", SteelMemberPipelineChecker.Limitations,
                 (definition, context) => {
