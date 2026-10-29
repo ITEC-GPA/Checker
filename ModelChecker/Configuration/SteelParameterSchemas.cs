@@ -20,6 +20,7 @@ namespace GPC.Model.Checker.Configuration
             EngineParameterCondition Has(string key)=>new EngineParameterCondition(key);
             EngineParameterCondition Is(string key,string value)=>new EngineParameterCondition(key,value);
             EngineParameterCondition IsNot(string key,string value)=>new EngineParameterCondition(key,value,true);
+            EngineParameterCondition Lacks(string key)=>new EngineParameterCondition(key,null,true);
             void Require(string code,string description,string[] keys,params EngineParameterCondition[] when)
                 =>rules.Add(new EngineParameterRule(code,description,when,new[]{keys}));
             void Together(string code,params string[] keys) {
@@ -82,9 +83,12 @@ namespace GPC.Model.Checker.Configuration
             Add("CriticalValuesSource",description:"Explicit fork/free-warping declaration of the member ends, no offsets; declared Model restraints split it into fork segments.",modes:new[]{"Compression","Bending","BeamColumn"});
             Together("CriticalPreparationPair","CriticalValues","CriticalValuesSource");
             rules.Add(new EngineParameterRule("AutomaticCurvesConflict","Choose automatic or explicit curves.",new[]{Is("CurveSelection","Automatic")},null,new[]{"CompressionCurve1","CompressionCurve2","TorsionalCurve"}));
-            // Explicit NcrT/NcrFT values or exclusions win over the automatic modes and remain admissible.
+            // Explicit NcrT/NcrFT values or exclusions win over the automatic modes and remain admissible;
+            // so does the explicit sway Ncr1 of a declared sway plane 1 (the fork spans give nonsway values).
             rules.Add(new EngineParameterRule("AutomaticCriticalConflict","Automatic critical values cannot accompany external Ncr1/Ncr2/Mcr or general-method values.",new[]{Has("CriticalValues")},null,
-                new[]{"Ncr1","Ncr2","Mcr","AlphaUltK","AlphaCrOp"}.SelectMany(q=>new[]{q+".Value",q+".Unit",q+".Source"}).ToArray()));
+                new[]{"Ncr2","Mcr","AlphaUltK","AlphaCrOp"}.SelectMany(q=>new[]{q+".Value",q+".Unit",q+".Source"}).ToArray()));
+            rules.Add(new EngineParameterRule("AutomaticCriticalConflict","Automatic critical values cannot accompany external Ncr1/Ncr2/Mcr or general-method values.",new[]{Has("CriticalValues"),IsNot("SwayBucklingPlanes","1")},null,
+                new[]{"Ncr1.Value","Ncr1.Unit","Ncr1.Source"}));
             Add("MemberClass",EngineParameterKind.Integer,min:1,max:4,modes:new[]{"ExternalInPlane","Compression","Bending","BeamColumn"});
             Together("MemberClassificationPair","MemberClass","ClassificationSource");
             Add("EffectiveSectionAnalysisSource",description:"External characteristic analysis with effective widths, centroid shifts, imperfections and second order; same load pattern as the critical factor.",modes:new[]{"ExternalInPlane"});
@@ -95,9 +99,25 @@ namespace GPC.Model.Checker.Configuration
                 Add(key,description:"Reasoned exclusion of this critical mode; missing critical data is not an exclusion.",modes:new[]{"Compression","BeamColumn"});
             Add("McrBasis",EngineParameterKind.Choice,choices:new[]{"ActualMomentDiagram","UniformMoment"},modes:new[]{"Bending","BeamColumn"});
             Add("TorsionSusceptible",EngineParameterKind.Boolean,modes:new[]{"BeamColumn"});
-            Add("MomentFactorPreparation",EngineParameterKind.Choice,choices:new[]{"LinearDiagrams","ConservativeEnvelope"},description:"Explicit nonsway case; same full braced span for both bending planes and LTB; validates all exported moments.",modes:new[]{"BeamColumn"});
+            Add("MomentFactorPreparation",EngineParameterKind.Choice,choices:new[]{"LinearDiagrams","ConservativeEnvelope"},description:"Explicit nonsway case (a plane in SwayBucklingPlanes takes Cm=0.9 instead); same full braced span for both bending planes and LTB; validates all exported moments.",modes:new[]{"BeamColumn"});
             rules.Add(new EngineParameterRule("AutomaticMomentFactorsConflict","Choose computed or explicit Cm.",new[]{Has("MomentFactorPreparation")},null,new[]{"Cm1","Cm2","CmLT"}));
-            Require("ExplicitMomentFactors","Provide Cm or select declared linear-diagram preparation.",new[]{"Cm1","Cm2","CmLT"},Is("AnalysisMode","BeamColumn"),IsNot("MomentFactorPreparation","LinearDiagrams"),IsNot("MomentFactorPreparation","ConservativeEnvelope"));
+            Require("ExplicitMomentFactors","Provide Cm or select declared linear-diagram preparation.",new[]{"Cm1","Cm2","CmLT"},Is("AnalysisMode","BeamColumn"),IsNot("MomentFactorPreparation","LinearDiagrams"),IsNot("MomentFactorPreparation","ConservativeEnvelope"),Lacks("SwayBucklingPlanes"));
+            // Sway buckling planes (EN1993-1-1 Table B.3 note; Circolare Table C4.2.VI): Cm=0.9 in the declared plane, the
+            // other plane and CmLT keep their preparation or explicit value; never inferred, its Ncr must be a sway value.
+            Add("SwayBucklingPlanes",EngineParameterKind.Choice,choices:new[]{"1","2","1,2"},modes:new[]{"BeamColumn"},
+                description:"Principal bending planes whose relevant flexural buckling mode is a sway mode (1: M1 with Ncr1, 2: M2 with Ncr2): Cm=0.9 there whatever the diagram (EN1993-1-1 Table B.3 note; NTC: Circolare Table C4.2.VI, same note assumed). Explicit declaration, never inferred; the plane's Ncr must be an explicit sway value or a declared sway effective length.");
+            Add("SwayModeSource",modes:new[]{"BeamColumn"},description:"Provenance of the sway classification of the declared planes (global buckling mode, bracing assessment, analysis method).");
+            Together("SwayDeclarationPair","SwayBucklingPlanes","SwayModeSource");
+            foreach(var planes in new[]{"1","2","1,2"}) {
+                bool first=planes!="2",second=planes!="1";
+                var explicitKeys=new List<string>{"CmLT"};if(!first)explicitKeys.Add("Cm1");if(!second)explicitKeys.Add("Cm2");
+                Require("ExplicitMomentFactors","Provide Cm or select declared linear-diagram preparation.",explicitKeys.ToArray(),Is("AnalysisMode","BeamColumn"),Is("SwayBucklingPlanes",planes),
+                    IsNot("MomentFactorPreparation","LinearDiagrams"),IsNot("MomentFactorPreparation","ConservativeEnvelope"));
+                rules.Add(new EngineParameterRule("SwayMomentFactorConflict","A declared sway plane takes Cm=0.9: choose computed or explicit moment factors, not both.",
+                    new[]{Is("SwayBucklingPlanes",planes)},null,new[]{"Cm1","Cm2"}.Where(k=>k=="Cm1"?first:second).ToArray()));
+                if(second)rules.Add(new EngineParameterRule("SwayForkSegmentsConflict","Fork segments fix the lateral translation: a sway plane 2 needs explicit critical values.",
+                    new[]{Is("SwayBucklingPlanes",planes)},null,new[]{"CriticalValues"}));
+            }
             foreach(var key in new[]{"Cm1","Cm2","CmLT"}) Add(key,EngineParameterKind.Number,"1",min:.4,max:1,modes:new[]{"BeamColumn"});
             foreach(var key in new[]{"MomentFactorSource","StabilityModelSource","LateralTorsionalExclusionSource","ShearBucklingExclusionSource"})
                 Add(key,modes:new[]{"BeamColumn"},description:key!="ShearBucklingExclusionSource"?null
@@ -166,6 +186,7 @@ namespace GPC.Model.Checker.Configuration
                 "NcrT/NcrFT: value, reasoned exclusion or automatic resolution (doubly symmetric H with explicit twist restraints, closed hollow sections); otherwise execution reports missing input.",
                 "CriticalValues splits the member at declared fork restraints (lateral+twist); partial, one-flange, unknown or phase-dependent restraints are refused.",
                 "Beam-column Mcr is required when the active major moment and torsional susceptibility demand it; shear assessments depend on the actual actions.",
+                "SwayBucklingPlanes: the Ncr of a declared sway plane comes from an explicit value or a declared MemberDesignContext effective length; with CriticalValues plane 1 needs one of them and plane 2 is refused.",
                 "Geometry, full-span actions, norm/edition, mode applicability and connection/detailing qualification remain execution checks.",
                 "UniformFork is EC3 only. ExternalInPlane also supports EN6.3.4 under NTC4.2.4.1.3.3 with NTC factors; class4 requires effective-analysis evidence."});
         }

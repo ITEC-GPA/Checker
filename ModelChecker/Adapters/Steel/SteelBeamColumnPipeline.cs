@@ -14,7 +14,8 @@ namespace GPC.Model.Checker
     public sealed partial class SteelMemberPipelineChecker
     {
         private static readonly string[] BeamColumnKeys={"TorsionSusceptible","Cm1","Cm2","CmLT","MomentFactorSource",
-            "StabilityModelSource","LateralTorsionalExclusionSource","ShearBucklingExclusionSource","MomentFactorPreparation"};
+            "StabilityModelSource","LateralTorsionalExclusionSource","ShearBucklingExclusionSource","MomentFactorPreparation",
+            "SwayBucklingPlanes","SwayModeSource"};
 
         private SteelMemberAnalysis BeamColumn(PhysicalMemberCheckInput input,SteelVerificationInput common,SteelPhysicalMemberPreparation physical)
         {
@@ -40,6 +41,7 @@ namespace GPC.Model.Checker
                 if(new[]{".Value",".Unit",".Source"}.Any(s=>_parameters.ContainsKey(q+s)))
                     values.Add(new SteelStabilityValue(q,Number(q+".Value"),EnumValue<SteelStabilityUnit>(q+".Unit"),Required(q+".Source")));
             values=PrepareBeamColumnCriticalValues(input,common,physical,susceptible,values).ToList();
+            if(SwayPlane(1)||SwayPlane(2))TraceSwayCriticalForces(input,common,values,physical);
             return SteelMemberAnalysis.BeamColumn(common,Required("LoadPatternReference"),PreparedParameterSet(common),data,values,memberClass,
                 _parameters.TryGetValue("ClassificationSource",out var source)?source:null);
         }

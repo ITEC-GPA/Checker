@@ -124,6 +124,21 @@ Valori critici automatici (28 ottobre 2026):
   parziali, su un'ala, ignoti o di fase vengono rifiutati con codice preciso.
   Dettagli in AUTOMATIC_STABILITY.txt.
 
+Modi sway nella trave-colonna (29 ottobre 2026, branch claude/steel-cm-sway):
+  dichiarazione esplicita e facoltativa SwayBucklingPlanes=1|2|1,2 con
+  SwayModeSource (solo BeamColumn, mai dedotta dalla mesh). Nel piano
+  dichiarato Cm=0.9 qualunque sia il diagramma (EC3 Tab. B.3, nota; NTC:
+  Circolare Tab. C4.2.VI, ipotesi GPC dichiarata perche' il testo della
+  Circolare non e' nel repository). L'altro piano resta LinearDiagrams,
+  ConservativeEnvelope o esplicito; CmLT non cambia. Un Cm esplicito sul piano
+  sway e' un conflitto. L'Ncr del piano sway e' esplicito o viene da una
+  EffectiveLength dichiarata; i valori automatici dei segmenti a forcella sono
+  nonsway e vengono rifiutati (SteelMember.Sway.NonswayNcr1/NonswayNcr2), ma
+  con piano1 sway e Ncr1 sway i segmenti restano per Ncr2, NcrT e Mcr. Traccia
+  per piano: Member.MomentFactor.*, Member.Sway.Plane*. Senza dichiarazione
+  nessun risultato cambia. Libreria: SteelSwayMomentFactor (For accetta solo la
+  mensola di FlexuralModes). Dettagli in MEMBER_SCHEME_PREPARATION.txt.
+
 Coprigiunti bullonati di travi composte saldate a I:
   BridgeSpliceApplication.CreateBolted -> WeldedIBeamSpliceStandard.Verify
   -> BridgeSpliceReport.FromBolted -> SteelAssessmentSummary.From(report).

@@ -82,6 +82,7 @@ namespace GPC.Model.Checker
             SteelPhysicalMemberPreparation physical, out string source)
         {
             source = Required("MomentFactorSource");
+            if (SwayPlane(1) || SwayPlane(2)) return PrepareSwayMomentFactors(member, input, physical, ref source);
             if (!_parameters.TryGetValue("MomentFactorPreparation", out var method)) return new[] { Number("Cm1"), Number("Cm2"), Number("CmLT") };
             if ((method != "LinearDiagrams" && method != "ConservativeEnvelope") || new[] { "Cm1", "Cm2", "CmLT" }.Any(_parameters.ContainsKey))
                 throw new ArgumentException("Choose computed or explicit moment factors, not both.");
@@ -94,23 +95,26 @@ namespace GPC.Model.Checker
             }
             // Caller explicitly qualifies nonsway behavior and the same relevant
             // braced span in MomentFactorSource/StabilityModelSource. No mesh inference.
-            double Factor(Func<SteelActions, double> action)
-            {
-                double a = action(physical.Cuts.First().Actions), b = action(physical.Cuts.Last().Actions);
-                double maximum = Math.Max(Math.Abs(a), Math.Abs(b));
-                foreach (var cut in physical.Cuts)
-                {
-                    double x = cut.Distance / input.Member.Length;
-                    if (!Close(action(cut.Actions), (1 - x) * a + x * b, maximum))
-                        throw new NotSupportedException("Moment factors require actual linear diagrams over the relevant braced span.");
-                }
-                return maximum == 0 ? 1 : SteelForkMomentDiagram.EndMoments(a, b, "Validated physical span").EquivalentMomentFactor;
-            }
-            double first = Factor(a => a.M1), second = Factor(a => a.M2);
+            double first = LinearMomentFactor(input, physical, a => a.M1), second = LinearMomentFactor(input, physical, a => a.M2);
             source += input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018
                 ? "; Circolare2019 TableC4.2.VI, linear nonsway diagrams, same explicit full braced span"
                 : "; EN1993-1-1:2005 TableB.3, linear nonsway diagrams, same explicit full braced span";
             return new[] { first, second, first };
+        }
+
+        /// <summary>EN 1993-1-1:2005 Table B.3 (Circolare 2019 Table C4.2.VI) for an actual linear diagram over the
+        /// exported cuts of the relevant span; any other diagram is refused. A zero diagram keeps Cm=1.</summary>
+        private static double LinearMomentFactor(SteelVerificationInput input, SteelPhysicalMemberPreparation physical, Func<SteelActions, double> action)
+        {
+            double a = action(physical.Cuts.First().Actions), b = action(physical.Cuts.Last().Actions);
+            double maximum = Math.Max(Math.Abs(a), Math.Abs(b));
+            foreach (var cut in physical.Cuts)
+            {
+                double x = cut.Distance / input.Member.Length;
+                if (!Close(action(cut.Actions), (1 - x) * a + x * b, maximum))
+                    throw new NotSupportedException("Moment factors require actual linear diagrams over the relevant braced span.");
+            }
+            return maximum == 0 ? 1 : SteelForkMomentDiagram.EndMoments(a, b, "Validated physical span").EquivalentMomentFactor;
         }
         private static bool Close(double value, double expected, double scale) => Math.Abs(value - expected) <= 1e-9 * Math.Max(1, scale);
     }

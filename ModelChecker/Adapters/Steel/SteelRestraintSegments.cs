@@ -85,9 +85,10 @@ namespace GPC.Model.Checker
         }
 
         /// <summary>Fork segments of the full span [0,L]; the ends are the declared forks. flexural: Ncr1/Ncr2,
-        /// torsion: NcrT, lateralTorsional: Mcr. Evidence records the role given to every restraint.</summary>
+        /// torsion: NcrT, lateralTorsional: Mcr. inPlaneSpans=false (declared sway plane 1 with an explicit Ncr1): the
+        /// in-plane flags are not read, so the ends may translate in that plane. Evidence records every restraint role.</summary>
         internal static IReadOnlyList<SteelForkSegment> Plan(MemberInputSnapshot s, CoordinateSystem frame, double angle,
-            bool flexural, bool torsion, bool lateralTorsional, List<CheckCalculationValue> evidence)
+            bool flexural, bool torsion, bool lateralTorsional, List<CheckCalculationValue> evidence, bool inPlaneSpans = true)
         {
             double length = s.Length; var inPlane = new List<double> { 0, length }; var fork = new List<double> { 0, length }; var twist = new List<double> { 0, length };
             int index = 0;
@@ -97,14 +98,14 @@ namespace GPC.Model.Checker
                 SteelPreparationRefusal Unknown(string flag) => new SteelPreparationRefusal("SteelMember.Restraint.Unknown", "Unknown " + flag + " flag" + at + "; null is never assumed free or fixed.");
                 if (g.Distance <= Tolerance || g.Distance >= length - Tolerance)
                 {
-                    if (g.Lateral == false || g.InPlane == false || g.Twist == false)
+                    if (g.Lateral == false || inPlaneSpans && g.InPlane == false || g.Twist == false)
                         throw new SteelPreparationRefusal("SteelMember.Restraint.EndConflictsWithFork", "Explicitly free translation or twist conflicts with the declared fork end" + at + ".");
                     role = "declared fork end";
                 }
                 else
                 {
                     var roles = new List<string>();
-                    if (flexural)
+                    if (flexural && inPlaneSpans)
                     {
                         if (g.InPlane == null) throw Unknown("in-plane translation (principal axis 2)");
                         if (g.InPlane == true) { inPlane.Add(g.Distance); roles.Add("in-plane (Ncr1)"); }
@@ -205,20 +206,23 @@ namespace GPC.Model.Checker
                 throw new SteelPreparationRefusal("SteelMember.Segment.SectionNotQualified", "Segment-wise automatic critical values: doubly symmetric H, or closed doubly symmetric hollow sections without LTB.");
             if (s.SpanStart != 0 || s.SpanEnd != s.Length || Math.Abs(s.Length - s.DeformableLength) > 1e-7)
                 throw new SteelPreparationRefusal("SteelMember.Segment.FullSpanRequired", "Segment-wise preparation covers the full deformable member; declared forks at both member ends.");
+            // Declared sway plane 1: explicit Ncr1 or the declared sway EffectiveLength1, in-plane restraints not read.
+            bool sway1 = QualifySwaySegments(s, mode);
             bool flexural = mode != "Bending", torsion = flexural && h && !_parameters.ContainsKey("TorsionalExclusionSource") && !_parameters.ContainsKey("NcrT.Value");
             bool ltb = mode == "Bending" || mode == "BeamColumn" && _parameters.TryGetValue("TorsionSusceptible", out var t) && t == "true" && physical.Cuts.Any(x => x.Actions.M1 != 0);
             var evidence = new List<CheckCalculationValue>();
-            var segments = SteelRestraintSegments.Plan(s, physical.Frame, common.Section.PrincipalAxisAngle, flexural, torsion, ltb, evidence);
+            var segments = SteelRestraintSegments.Plan(s, physical.Frame, common.Section.PrincipalAxisAngle, flexural, torsion, ltb, evidence, !sway1);
             var declared = s.Context;
             bool Matches(double? length, Func<SteelForkSegment, double> derived) => !length.HasValue || segments.All(x => Math.Abs(length.Value - derived(x)) <= 1e-10 * length.Value);
-            if (!Matches(declared.EffectiveLength1, x => x.InPlaneLength) || !Matches(declared.EffectiveLength2, x => x.Length) || !Matches(declared.LateralTorsionalLength, x => x.Length))
+            if ((!sway1 && !Matches(declared.EffectiveLength1, x => x.InPlaneLength)) || !Matches(declared.EffectiveLength2, x => x.Length) || !Matches(declared.LateralTorsionalLength, x => x.Length))
                 throw new ArgumentException("Declared effective lengths conflict with the restraint-derived fork segments.");
             var outcomes = new List<(SteelForkSegment Segment, SteelPhysicalMemberPreparation View, SteelVerificationResult Result)>();
             foreach (var segment in segments)
             {
                 token.ThrowIfCancellationRequested();
                 var view = physical.ForSegment(segment);
-                var member = new SteelMemberInput(segment.Length, flexural ? segment.InPlaneLength : (double?)null, flexural ? segment.Length : (double?)null, segment.TorsionalLength);
+                var member = new SteelMemberInput(segment.Length, flexural ? (sway1 ? declared.EffectiveLength1 : segment.InPlaneLength) : (double?)null,
+                    flexural ? segment.Length : (double?)null, segment.TorsionalLength);
                 var segmentInput = new SteelVerificationInput(common.Section, view.Cuts[0].Actions, common.Code, member);
                 var analysis = mode == "BeamColumn" ? BeamColumn(input, segmentInput, view) : Prismatic(input, segmentInput, context, mode, view);
                 // Same per-segment treatment as the single-span route: LTB method with the segment's own kc, automatic H shear screens.
@@ -241,7 +245,7 @@ namespace GPC.Model.Checker
                 string k = "Member.Segment." + o.Segment.Index; var check = o.Result.Checks.FirstOrDefault(x => x.Decision.Target == SteelCheckTarget.MemberStability);
                 evidence.Add(new CheckCalculationValue(k + ".Start", o.Segment.Start, "mm", "Physical-member coordinate"));
                 evidence.Add(new CheckCalculationValue(k + ".End", o.Segment.End, "mm", "Physical-member coordinate"));
-                if (flexural) evidence.Add(new CheckCalculationValue(k + ".InPlaneLength", o.Segment.InPlaneLength, "mm", "Ncr1: longest span between in-plane restraints overlapping this segment"));
+                if (flexural && !sway1) evidence.Add(new CheckCalculationValue(k + ".InPlaneLength", o.Segment.InPlaneLength, "mm", "Ncr1: longest span between in-plane restraints overlapping this segment"));
                 if (o.Segment.TorsionalLength.HasValue) evidence.Add(new CheckCalculationValue(k + ".TorsionalLength", o.Segment.TorsionalLength, "mm", "NcrT: longest span between twist restraints in this segment"));
                 foreach (var v in o.Result.Plan.MemberAnalysis.Values.Where(v => v.Quantity == SteelStabilityQuantity.Mcr))
                     evidence.Add(new CheckCalculationValue(k + ".Mcr", v.Value, v.Unit, v.Source));

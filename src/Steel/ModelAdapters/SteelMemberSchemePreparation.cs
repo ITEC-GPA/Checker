@@ -24,6 +24,9 @@ namespace GPC.Checkers.Steel.ModelAdapters
             : Boundary == SteelIdealFlexuralBoundary.Cantilever ? 2
             : Boundary == SteelIdealFlexuralBoundary.FixedPinned ? Math.PI / 4.493409457909064 : 1;
         public double EffectiveLength => Length * EffectiveLengthFactor;
+        /// <summary>Only the cantilever lets one end translate relative to the other in this plane: a sway
+        /// flexural mode. Pinned/fixed boundaries fix both end translations (nonsway modes).</summary>
+        public bool IsSwayMode => Boundary == SteelIdealFlexuralBoundary.Cantilever;
         public SteelIdealFlexuralSpan(double length, SteelIdealFlexuralBoundary boundary, string source)
         {
             SteelInputValidation.Positive(length, nameof(length));
@@ -31,6 +34,39 @@ namespace GPC.Checkers.Steel.ModelAdapters
             if (string.IsNullOrWhiteSpace(source)) throw new ArgumentException("An isolated ideal-column model declaration is required.", nameof(source));
             Length = length; Boundary = boundary; Source = source;
             SteelInputValidation.Positive(EffectiveLength, nameof(EffectiveLength));
+        }
+    }
+
+    /// <summary>Equivalent uniform moment factor of a principal bending plane whose relevant flexural buckling
+    /// mode is a sway mode: EN 1993-1-1:2005 Annex B Table B.3 note, Cmy=0.9 or Cmz=0.9 respectively, whatever
+    /// the moment diagram. NTC 2018: the Circolare 2019 Method B (C4.2.4.1.3.3.2, Table C4.2.VI) follows Annex B;
+    /// the Circolare text is not among the library sources, so the same note is a stated GPC assumption.
+    /// CmLT belongs to the lateral-torsional segment and is not affected. The factor is consistent only with a
+    /// sway Ncr of the same plane; the sway mode is a caller declaration, never inferred from a mesh.</summary>
+    public static class SteelSwayMomentFactor
+    {
+        public const double Value = .9;
+
+        public static string Reference(SectionResistanceStandard standard)
+        {
+            if (standard == SectionResistanceStandard.Eurocode3_2005)
+                return "EN1993-1-1:2005 AnnexB TableB.3 note: sway buckling mode, Cm=0.9 whatever the diagram";
+            if (standard == SectionResistanceStandard.Ntc2018)
+                return "Circolare2019 C4.2.4.1.3.3.2 Method B TableC4.2.VI: sway buckling mode, Cm=0.9 as the EN1993-1-1:2005 TableB.3 note"
+                    + " (GPC assumption: Method B follows Annex B, Circolare text not among the library sources)";
+            throw new ArgumentOutOfRangeException(nameof(standard));
+        }
+
+        /// <summary>Cm=0.9 for the plane of an ideal isolated column whose idealization is a sway mode
+        /// (cantilever). Pinned/fixed boundaries fix both end translations: their Ncr is a nonsway value
+        /// and cannot carry the sway factor.</summary>
+        public static double For(SteelIdealFlexuralSpan span)
+        {
+            if (span == null) throw new ArgumentNullException(nameof(span));
+            if (!span.IsSwayMode)
+                throw new NotSupportedException("The sway factor Cm=0.9 needs a sway Ncr; the " + span.Boundary
+                    + " idealization fixes both end translations (nonsway mode).");
+            return Value;
         }
     }
 
