@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using GPC.Checkers.Geotechnics.Seismic;
 using GPC.Checkers.Geotechnics.Walls;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using static GeotechnicsTests.GeotechnicsFixture;
 using static GeotechnicsTests.PilesFixture;
 using static GeotechnicsTests.WallEdgeCaseTests;
 using static GeotechnicsTests.WallsFixture;
@@ -16,9 +17,10 @@ namespace GeotechnicsTests;
 /// coefficient (bits of the doubles), and the same exception (type and message) where the generator refuses the input. Inputs: the documents of
 /// the two wall captures of ANTHEA and 3000 walls drawn with a fixed seed. Declared differences: the adapter refuses the inputs that ANTHEA
 /// already refuses before the generation (ψ of a variable action outside 0 ≤ ψ2 ≤ ψ1 ≤ ψ0 ≤ 1, a group of correlated actions with two natures),
-/// which the frozen generator accepted; and the decisions of the ANTHEA user of 28/10/2026 on the census D4 and D5 («Sì, D4 b e D5 b»), applied
-/// to the frozen rows before the comparison (<see cref="Decided"/>): favourable G2 0.8 instead of 0 in the ULS rows (and in the global
-/// stability), γR 1, 1, 1.2 of NTC 2018 Tab. 7.11.III instead of 1.1, 1.15, 1.4 in the seismic rows with assigned kh and kv.
+/// which the frozen generator accepted; and the decisions of the ANTHEA user of 28/10/2026 on the census D4, D5 («Sì, D4 b e D5 b») and D6
+/// («Come raccomandato»: D6 a), applied to the frozen rows before the comparison (<see cref="Decided"/>): favourable G2 0.8 instead of 0 in the
+/// ULS rows (and in the global stability), γR 1, 1, 1.2 of NTC 2018 Tab. 7.11.III instead of 1.1, 1.15, 1.4 in the seismic rows with assigned kh
+/// and kv, every variable group present or absent in the seismic and accidental rows (also of the global stability), with the rows renumbered.
 /// </summary>
 [TestClass]
 public class WallCombinationsEquivalenceTests
@@ -45,14 +47,22 @@ public class WallCombinationsEquivalenceTests
         return text.ToString();
     }
 
-    /// <summary>The frozen rows with the decisions D4 b and D5 b (<see cref="WallsFixture.Decided"/>).</summary>
-    static IReadOnlyList<WallCombination> Decided(WallInput input) => FrozenWallCombinations.Generate(input).Select(r => WallsFixture.Decided(r, input)).ToList();
+    /// <summary>
+    /// The frozen rows with the decisions D4 b and D5 b (<see cref="WallsFixture.Decided"/>) and D6 a (<see cref="WallsFixture.DecidedD6"/>: the
+    /// variable groups present or absent in the seismic and accidental rows, renumbered), at most 4096 rows as the adapter.
+    /// </summary>
+    static IReadOnlyList<WallCombination> Decided(WallInput input)
+    {
+        var rows = WallsFixture.DecidedD6(FrozenWallCombinations.Generate(input).Select(r => WallsFixture.Decided(r, input)).ToList(), input, true).Select(e => e.Row).ToList();
+        if (rows.Count > 4096) throw new ArgumentException("Oltre 4096 combinazioni: raggruppare le azioni correlate o predisporre una matrice personalizzata.");
+        return rows;
+    }
 
-    /// <summary>The global rows of the frozen code with the decision D4 b (<see cref="WallsFixture.DecidedGlobal"/>).</summary>
+    /// <summary>The global rows of the frozen code with the decisions D4 b (<see cref="WallsFixture.DecidedGlobal"/>) and D6 a (<see cref="WallsFixture.DecidedGlobalD6"/>).</summary>
     static IReadOnlyList<GPC.Checkers.Geotechnics.Slopes.SlopeFactors> DecidedGlobal(WallInput input, WallGlobalSeismic? seismic, bool undrained) =>
-        FrozenWallCombinations.Global(input, seismic, undrained).Select(r => new GPC.Checkers.Geotechnics.Slopes.SlopeFactors(r.Name, r.SoilWeight, r.BodyWeight,
+        WallsFixture.DecidedGlobalD6(FrozenWallCombinations.Global(input, seismic, undrained).Select(r => new GPC.Checkers.Geotechnics.Slopes.SlopeFactors(r.Name, r.SoilWeight, r.BodyWeight,
             r.TanFrictionAngle, r.EffectiveCohesion, r.UndrainedShearStrength, r.ResistanceFactor, r.Kh, r.Kv, r.Undrained,
-            r.Loads.ToDictionary(p => p.Key, p => WallsFixture.DecidedGlobal(r.Name, input, p.Key, p.Value)))).ToList();
+            r.Loads.ToDictionary(p => p.Key, p => WallsFixture.DecidedGlobal(r.Name, input, p.Key, p.Value)))).ToList(), input).Select(e => e.Row).ToList();
 
     /// <summary>Inputs refused by ANTHEA before the generation (RetainingWall.ValidateActions) and now also by the adapter.</summary>
     static bool Declared(WallInput input)
@@ -158,6 +168,116 @@ public class WallCombinationsEquivalenceTests
         Assert.IsTrue(tally.Declared > 0, "declared refusals exercised");
         foreach (string refusal in new[] { "Oltre 4096", "Generazione troppo estesa", "Sisma Generale" })
             Assert.IsTrue(tally.Refusals.Keys.Any(k => k.Contains(refusal)), "refusal exercised: " + refusal);
+    }
+
+    /// <summary>
+    /// Census D7 a (decision of the ANTHEA user of 28/10/2026, «Come raccomandato»): the fixed cases of the version 1 documents, generated by Model
+    /// through <see cref="WallCombinations.Version1"/>, are those of ANTHEA until 1.15.0 (<see cref="FrozenWallVersion1Combinations"/>) bit for bit:
+    /// on every version 1 document of the two captures and on a grid of water, heel, ψ1, ψ2 and seismic coefficients. On the documents with a legacy
+    /// result the rows without the twins are also those of the capture (names, states, factors, kh, kv, loads).
+    /// </summary>
+    [TestMethod]
+    public void TheVersion1CasesAreTheFrozenOnes()
+    {
+        static string Rows(Func<IReadOnlyList<WallCombination>> generate)
+        {
+            IReadOnlyList<WallCombination> rows;
+            try { rows = generate(); } catch (Exception e) { return "ERR " + e.GetType().FullName + " " + e.Message; }
+            static string B(double v) => BitConverter.DoubleToInt64Bits(v).ToString("X16");
+            var text = new StringBuilder();
+            foreach (var r in rows)
+            {
+                text.Append(r.Name).Append('|').Append(r.State).Append('|').Append(r.Purpose).Append('|').Append(r.Approach).Append('|').Append(r.VariableSurchargeOnHeel);
+                foreach (double v in new[] { r.Wall, r.Soil, r.ValleySoil, r.Water, r.FrictionFactor, r.SlidingFactor, r.OverturningFactor, r.BearingFactor, r.Kh, r.Kv, r.PassiveFactor })
+                    text.Append('|').Append(B(v));
+                foreach (var p in r.Coefficients) text.Append('|').Append(p.Key).Append('=').Append(B(p.Value));
+                text.Append('\n');
+            }
+            return text.ToString();
+        }
+        int compared = 0, documents = 0, captured = 0, rows = 0;
+        void Compare(bool water, bool heel, double psi1, double psi2, double? kh, double kv, string id)
+        {
+            string frozen = Rows(() => FrozenWallVersion1Combinations.Generate(water, heel, psi1, psi2, kh, kv)), model = Rows(() => WallCombinations.Version1(water, heel, psi1, psi2, kh, kv));
+            Assert.AreEqual(frozen, model, id); Assert.IsFalse(frozen.StartsWith("ERR"), id);
+            compared++; rows += frozen.Count(c => c == '\n');
+        }
+        foreach (bool water in new[] { false, true }) foreach (bool heel in new[] { false, true })
+            foreach (var (psi1, psi2) in new[] { (.5, .3), (0d, 0d), (1d, 1d), (.2, .2), (.7, .1), (1d, 0d) })
+                foreach (var (kh, kv) in new (double?, double)[] { (null, 0), (.1, .05), (.2, 0), (.4, .2), (0, 0) })
+                    Compare(water, heel, psi1, psi2, kh, kv, $"grid water {water} heel {heel} ψ {psi1}/{psi2} kh {kh} kv {kv}");
+        var lines = Lines("walls-combinations.jsonl").Select(l => (Str(l["name"]), l["input"] as JsonObject, (JsonObject?)null))
+            .Concat(GzipLines("walls-documents.jsonl.gz").Select(l => (Str(l["name"]), l["input"] as JsonObject, l["result"] as JsonObject)));
+        foreach (var (name, doc, result) in lines)
+        {
+            if (doc == null || (Num(doc["version"]) ?? 1) >= 2) continue;
+            var seismic = doc["seismic"]; bool enabled = seismic != null && Bool(seismic["enabled"]);
+            bool water = doc["water"] != null && Bool(doc["water"]!["enabled"]), heel = (Num(doc["geometry"]?["heel"]) ?? 0) > 0;
+            double psi1 = Num(doc["loads"]?["psi1"]) ?? double.NaN, psi2 = Num(doc["loads"]?["psi2"]) ?? double.NaN;
+            double? kh = enabled ? Num(seismic!["kh"]) ?? double.NaN : null; double kv = enabled ? Num(seismic!["kv"]) ?? double.NaN : 0;
+            Compare(water, heel, psi1, psi2, kh, kv, name); documents++;
+            if (result == null || result["combinazioni"] is not JsonArray) continue;
+            // The legacy capture (before MUR-1 and MUR-2): the rows without the twins.
+            var legacy = WallsFixture.Combinations(doc, result);
+            var model = WallCombinations.Version1(water, heel, psi1, psi2, kh, kv).Where(r => r.VariableSurchargeOnHeel).ToArray();
+            Assert.AreEqual(legacy.Length, model.Length, name);
+            for (int i = 0; i < legacy.Length; i++)
+            {
+                var l = legacy[i]; var m = model[i]; string id = name + " " + l.Name;
+                Assert.AreEqual(l.Name, m.Name, id); Assert.AreEqual(l.State, m.State, id);
+                foreach (var (a, b, what) in new[] { (l.Wall, m.Wall, "wall"), (l.Soil, m.Soil, "soil"), (l.Water, m.Water, "water"), (l.SlidingFactor, m.SlidingFactor, "rslide"),
+                    (l.OverturningFactor, m.OverturningFactor, "rover"), (l.BearingFactor, m.BearingFactor, "rbearing"), (l.Kh, m.Kh, "kh"), (l.Kv, m.Kv, "kv"), (l.Coefficients["q"], m.Coefficients["q"], "loads") })
+                    Close(a, b, id + " " + what, 1e-14, 1e-16);
+            }
+            captured++;
+        }
+        TestContext.WriteLine($"{compared} comparisons ({documents} version 1 documents, {captured} with the legacy rows), {rows} rows identical");
+        Assert.IsTrue(documents > 5 && captured > 5, $"{documents} version 1 documents, {captured} captured");
+    }
+
+    /// <summary>
+    /// Census D6 a: the rows added by the decision on the corpus (the documents of the two captures and the walls drawn with the seed), before the
+    /// change and after it, local and global; written to the output and to d6-righe.csv in the results folder. Counting only.
+    /// </summary>
+    [TestMethod]
+    public void TheRowsOfTheDecisionD6AreCounted()
+    {
+        static int Count(Func<int> rows) { try { return rows(); } catch (ArgumentException) { return -1; } }
+        var csv = new StringBuilder("documento;righe_prima;righe_dopo;sismiche_eccezionali_prima;sismiche_eccezionali_dopo;globali_prima;globali_dopo\n");
+        int documents = 0, changed = 0, before = 0, after = 0, special = 0, specialAfter = 0, globalBefore = 0, globalAfter = 0, globalChanged = 0, refusedAfter = 0;
+        static int Special(IEnumerable<WallCombination> rows) => rows.Count(r => r.State == WallLimitState.Seismic || r.State == WallLimitState.Exceptional);
+        void Tally(string id, WallInput input, WallGlobalSeismic? seismic, bool global)
+        {
+            if (Declared(input)) return;
+            IReadOnlyList<WallCombination> old, now;
+            try { old = FrozenWallCombinations.Generate(input).Select(r => WallsFixture.Decided(r, input)).ToList(); } catch (ArgumentException) { return; }
+            try { now = WallCombinations.Generate(input); } catch (ArgumentException) { refusedAfter++; csv.Append(id).Append(";").Append(old.Count).Append(";rifiutato;;;;\n"); return; }
+            int gb = global ? Count(() => FrozenWallCombinations.Global(input, seismic, false).Count) : 0, ga = global ? Count(() => WallGlobalStability.Combinations(input, seismic, false).Count) : 0;
+            documents++; before += old.Count; after += now.Count; special += Special(old); specialAfter += Special(now);
+            if (now.Count != old.Count) changed++;
+            if (gb > 0) { globalBefore += gb; globalAfter += Math.Max(ga, 0); if (ga != gb) globalChanged++; }
+            csv.Append(id.Replace(';', ',')).Append(';').Append(old.Count).Append(';').Append(now.Count).Append(';').Append(Special(old)).Append(';').Append(Special(now)).Append(';')
+                .Append(global ? gb.ToString() : "").Append(';').Append(global ? ga.ToString() : "").Append('\n');
+        }
+        foreach (var (name, doc) in Lines("walls-combinations.jsonl").Select(l => (Str(l["name"]), l["input"] as JsonObject))
+            .Concat(GzipLines("walls-documents.jsonl.gz").Select(l => (Str(l["name"]), l["input"] as JsonObject))))
+        {
+            if (doc == null) continue;
+            WallInput input; try { input = Input(doc); } catch (ArgumentException) { continue; }
+            WallGlobalSeismic? seismic = null; bool global = doc["global_stability"] is JsonObject;
+            if (global) try { seismic = GlobalSeismic(doc); } catch (Exception) { global = false; }
+            Tally(name, input, seismic, global);
+        }
+        int corpus = documents, corpusChanged = changed, corpusBefore = before, corpusAfter = after, corpusSpecial = special, corpusSpecialAfter = specialAfter;
+        int n = 0; foreach (var input in RandomWalls(3000)) Tally("casuale " + n++, input, (n % 3) switch { 0 => null, 1 => WallGlobalSeismic.Assigned(.1, .05), _ => WallGlobalSeismic.Assigned(.08, 0) }, n % 2 == 0);
+        string summary = $"Capture documents: {corpus}, with more rows {corpusChanged}; rows {corpusBefore} -> {corpusAfter} (+{corpusAfter - corpusBefore}); seismic and accidental {corpusSpecial} -> {corpusSpecialAfter}. "
+            + $"With the 3000 random walls: {documents} inputs, {changed} with more rows; rows {before} -> {after} (+{after - before}); seismic and accidental {special} -> {specialAfter}; "
+            + $"refused after (over 4096 rows) {refusedAfter}; global rows {globalBefore} -> {globalAfter} in {globalChanged} inputs.";
+        TestContext.WriteLine(summary);
+        string folder = TestContext.TestRunResultsDirectory ?? Path.GetTempPath();
+        Directory.CreateDirectory(folder);
+        File.WriteAllText(Path.Combine(folder, "d6-righe.csv"), csv.ToString() + "# " + summary + "\n", new UTF8Encoding(false));
+        Assert.IsTrue(corpus > 200 && corpusAfter > corpusBefore, summary);
     }
 
     /// <summary>The combinations of the global stability as text with the bits of every double, or the refusal.</summary>

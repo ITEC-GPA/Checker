@@ -187,7 +187,9 @@ public class WallEdgeCaseTests
     {
         var input = Wall(seismic: WallSeismic.Assigned(WallSeismicMethod.MononobeOkabe, .1, .05));
         var rows = WallCombinations.Generate(input); var r = RetainingWallAnalysis.Calculate(input, rows);
-        WallCaseResult Pick(double kv, bool onHeel) => r.Cases.Single(c => c.Combination.State == WallLimitState.Seismic && c.Combination.Kv == kv && c.Combination.VariableSurchargeOnHeel == onHeel);
+        // The rows with ψ2 q (census D6 a also gives, for every sign, the row with q absent: VariableGroupsAbsentInTheSeismicAndAccidentalRows).
+        WallCaseResult Pick(double kv, bool onHeel) => r.Cases.Single(c => c.Combination.State == WallLimitState.Seismic && c.Combination.Kv == kv && c.Combination.VariableSurchargeOnHeel == onHeel
+            && c.Combination.Coefficients["q"] > 0);
         double Ratio(WallCaseResult c, WallCheckKind kind) => r.Checks.Single(k => k.Combination == c.Combination.Name && k.Kind == kind).Ratio!.Value;
         foreach (var (kv, onHeel, h, n, ms, mr, sliding, overturning) in new[]
         {
@@ -208,13 +210,52 @@ public class WallEdgeCaseTests
         // Accidental: the twin loses ψ2 q b = 0.3 · 10 · 1.9 = 5.7 kN/m of N and its moment about the toe, 5.7 · 2.05.
         var impact = new WallAction("u", "Urto", WallActionType.Impact, WallActionCategory.A, 40, 2000);
         var accidental = Wall(actions: new[] { Surcharge(10), impact }); var ra = RetainingWallAnalysis.Calculate(accidental, WallCombinations.Generate(accidental));
-        var parent = ra.Cases.Single(c => c.Combination.State == WallLimitState.Exceptional && c.Combination.VariableSurchargeOnHeel);
+        var parent = ra.Cases.Single(c => c.Combination.State == WallLimitState.Exceptional && c.Combination.VariableSurchargeOnHeel && c.Combination.Coefficients["q"] > 0);
         var twin = ra.Cases.Single(c => c.Combination.State == WallLimitState.Exceptional && !c.Combination.VariableSurchargeOnHeel);
         Close(5.7, parent.Vertical - twin.Vertical, "ψ2 q b", 1e-9); Close(5.7 * 2.05 * KNm, parent.Stabilizing - twin.Stabilizing, "ψ2 q b (a + s + b/2)", 1e-9);
         Close(parent.Horizontal, twin.Horizontal, "same thrust", 1e-12);
         // No twin without a heel or without a variable surcharge.
         Assert.IsFalse(WallCombinations.Generate(Wall(toe: 2.7, heel: 0, seismic: WallSeismic.Assigned(WallSeismicMethod.MononobeOkabe, .1, .05))).Any(x => !x.VariableSurchargeOnHeel));
         Assert.IsFalse(WallCombinations.Generate(Wall(actions: new[] { Surcharge(5, "g", WallActionCategory.G2) }, seismic: WallSeismic.Assigned(WallSeismicMethod.MononobeOkabe, .1, .05))).Any(x => !x.VariableSurchargeOnHeel));
+    }
+
+    /// <summary>
+    /// Census D6 a (decision of the ANTHEA user of 28/10/2026, «Come raccomandato»): ψ2 Qk only where unfavourable in the seismic and accidental
+    /// combinations (NTC 2018 §2.5.3), so these rows have every variable group present or absent, as the ULS rows. The row with q absent is the
+    /// combination of the same wall without the action: same thrust, forces and moments as the row of the wall without q, and the present row minus
+    /// ψ2 q on the heel b and in the thrust. Two groups (q, q2): 4 rows for every sign of kv; a group with ψ2 = 0 adds none.
+    /// </summary>
+    [TestMethod]
+    public void VariableGroupsAbsentInTheSeismicAndAccidentalRows()
+    {
+        var seismic = WallSeismic.Assigned(WallSeismicMethod.MononobeOkabe, .1, .05);
+        var impact = new WallAction("u", "Urto", WallActionType.Impact, WallActionCategory.A, 40, 2000);
+        var input = Wall(actions: new[] { Surcharge(10), impact }, seismic: seismic);
+        var rows = WallCombinations.Generate(input);
+        var bare = Wall(actions: new[] { impact }, seismic: seismic); var bareRows = WallCombinations.Generate(bare);
+        foreach (var state in new[] { WallLimitState.Seismic, WallLimitState.Exceptional })
+        {
+            var absent = rows.Where(r => r.State == state && r.Coefficients["q"] == 0).ToArray();
+            var reference = bareRows.Where(r => r.State == state).ToArray();
+            Assert.AreEqual(reference.Length, absent.Length, state + ": one row with q absent for every row of the wall without q");
+            for (int i = 0; i < absent.Length; i++)
+            {
+                Assert.IsTrue(absent[i].VariableSurchargeOnHeel, "no twin without the surcharge");
+                var a = RetainingWallAnalysis.Calculate(input, new[] { absent[i] }).Cases[0]; var b = RetainingWallAnalysis.Calculate(bare, new[] { reference[i] }).Cases[0];
+                string id = state + " " + absent[i].Name;
+                Close(b.Horizontal, a.Horizontal, "H " + id, 1e-12); Close(b.Vertical, a.Vertical, "N " + id, 1e-12);
+                Close(b.Stabilizing, a.Stabilizing, "Ms " + id, 1e-12); Close(b.Overturning, a.Overturning, "Mr " + id, 1e-12);
+            }
+        }
+        // Order and names: for every sign q present (with its twin), then q absent, one counter.
+        var signs = rows.Where(r => r.State == WallLimitState.Seismic).Select(r => r.Name).ToArray();
+        int first = int.Parse(signs[0].Split(' ')[^1]);
+        CollectionAssert.AreEqual(new[] { $"Sisma kv− {first}", $"Sisma kv− {first}b", $"Sisma kv− {first + 1}", $"Sisma kv+ {first + 2}", $"Sisma kv+ {first + 2}b", $"Sisma kv+ {first + 3}" }, signs);
+        // Two groups: (q, q2) present, q absent, q2 absent, both absent; a third group with ψ2 = 0 merges with its absence.
+        var two = WallCombinations.Generate(Wall(actions: new[] { Surcharge(10), Surcharge(5, "q2"), new WallAction("w", "Vento", WallActionType.HorizontalForce, WallActionCategory.Q, 5, 2000, 0, 0, .6, .2, 0) }, seismic: seismic))
+            .Where(r => r.State == WallLimitState.Seismic && r.VariableSurchargeOnHeel && r.Kv < 0).ToArray();
+        CollectionAssert.AreEqual(new[] { (.3, .3), (0, .3), (.3, 0), (0d, 0d) }, two.Select(r => (r.Coefficients["q"], r.Coefficients["q2"])).ToArray());
+        Assert.IsTrue(two.All(r => r.Coefficients["w"] == 0));
     }
 
     /// <summary>
@@ -356,22 +397,30 @@ public class WallEdgeCaseTests
         Assert.AreEqual(0, Twins(WallCombinations.Generate(Wall(actions: new[] { Surcharge(5, "g", WallActionCategory.G2) }))));
         var grouped = WallCombinations.Generate(Wall(actions: new[] { Surcharge(10, "a", group: "G"), Surcharge(5, "b", group: "G") }));
         Assert.AreEqual(8, Ultimate(grouped));
-        // Accidental: separate, ψ2 of the variables, γR = 1.
+        // Accidental: separate, ψ2 of the variables, γR = 1; census D6 a (decision of 28/10/2026): q present (ψ2, with its twin), then absent (0,
+        // no twin, the next number), so 3 accidental rows.
         var impact = new WallAction("u", "Urto", WallActionType.Impact, WallActionCategory.A, 40, 2000);
         var acc = WallCombinations.Generate(Wall(actions: new[] { Surcharge(10), impact }));
-        var e = acc.Single(r => r.State == WallLimitState.Exceptional && r.VariableSurchargeOnHeel); Assert.AreEqual(1, e.Coefficients["u"]); Close(.3, e.Coefficients["q"], "ψ2");
+        Assert.AreEqual(3, acc.Count(r => r.State == WallLimitState.Exceptional));
+        var e = acc.First(r => r.State == WallLimitState.Exceptional); Assert.AreEqual(1, e.Coefficients["u"]); Close(.3, e.Coefficients["q"], "ψ2");
+        var absent = acc.Last(r => r.State == WallLimitState.Exceptional);
+        Assert.IsTrue(absent.VariableSurchargeOnHeel && absent.Coefficients["q"] == 0 && absent.Coefficients["u"] == 1, "q absent");
+        Assert.AreEqual("Eccezionale Urto " + (int.Parse(e.Name.Split(' ')[^1]) + 1), absent.Name, "the next number");
         Assert.AreEqual(e.Name + "b", acc.Single(r => r.State == WallLimitState.Exceptional && !r.VariableSurchargeOnHeel).Name, "accidental twin without ψ2 q on the heel");
         Assert.IsTrue(acc.Where(r => r.State != WallLimitState.Exceptional).All(r => r.Coefficients["u"] == 0));
         var withImpact = RetainingWallAnalysis.Calculate(Wall(actions: new[] { Surcharge(10), impact }), acc);
-        var qp = withImpact.Cases.Single(c => c.Combination.State == WallLimitState.QuasiPermanent); var ec = withImpact.Cases.Single(c => c.Combination.State == WallLimitState.Exceptional && c.Combination.VariableSurchargeOnHeel);
+        var qp = withImpact.Cases.Single(c => c.Combination.State == WallLimitState.QuasiPermanent); var ec = withImpact.Cases.Single(c => c.Combination.Name == e.Name);
         Close(40, ec.Horizontal - qp.Horizontal, "impact force", 1e-12); Close(40 * 2000, ec.Overturning - qp.Overturning, "impact arm", 1e-12);
         // Assigned seismic: both signs of kv, quasi permanent actions; site: general and overturning.
         var manual = WallCombinations.Generate(Wall(seismic: WallSeismic.Assigned(WallSeismicMethod.MononobeOkabe, .1, .05)));
-        Assert.AreEqual(2, manual.Count(r => r.State == WallLimitState.Seismic && r.VariableSurchargeOnHeel)); Assert.IsTrue(manual.Any(r => r.Name.StartsWith("Sisma kv−")));
+        // Census D6 a: for every sign q present (ψ2) and absent.
+        Assert.AreEqual(4, manual.Count(r => r.State == WallLimitState.Seismic && r.VariableSurchargeOnHeel)); Assert.IsTrue(manual.Any(r => r.Name.StartsWith("Sisma kv−")));
+        Assert.AreEqual(2, manual.Count(r => r.State == WallLimitState.Seismic && r.Coefficients["q"] == 0), "q absent");
         Assert.AreEqual(2, Twins(manual.Where(r => r.State == WallLimitState.Seismic)), "seismic twins without ψ2 q on the heel");
         var site = NtcSiteAmplification.Create(.15, (NtcSoilCategory.C, 2.5), null, (NtcTopography.Flat, 0, 0, 0), null);
         var slv = WallCombinations.Generate(Wall(seismic: WallSeismic.FromSite(WallSeismicMethod.MononobeOkabe, site)));
-        Assert.AreEqual(4, slv.Count(r => r.State == WallLimitState.Seismic && r.VariableSurchargeOnHeel)); Assert.AreEqual(4, Twins(slv.Where(r => r.State == WallLimitState.Seismic)));
+        Assert.AreEqual(8, slv.Count(r => r.State == WallLimitState.Seismic && r.VariableSurchargeOnHeel), "4 variants, q present and absent");
+        Assert.AreEqual(4, Twins(slv.Where(r => r.State == WallLimitState.Seismic)));
         var over = slv.First(r => r.Purpose == WallSeismicPurpose.Overturning); Close(.57 * site.AmaxG, over.Kh, "β overturning", 1e-14);
         Assert.AreEqual(1.2, over.BearingFactor); Assert.AreEqual(1, over.SlidingFactor);
         // Overturning combinations give only the overturning check, general ones no overturning check.
@@ -456,7 +505,8 @@ public class WallEdgeCaseTests
         StringAssert.Contains(general.Message, "combinazioni SLV generali"); StringAssert.Contains(general.Message, "βm = 0,38");
         // φ′ = 16°: both inside the field, the calculation runs.
         var ok = RetainingWallAnalysis.Calculate(Input(16), WallCombinations.Generate(Input(16)));
-        Assert.AreEqual(4, ok.Cases.Count(c => c.Combination.State == WallLimitState.Seismic && c.Combination.VariableSurchargeOnHeel));
+        // 4 SLV rows (general and overturning, ±kv) with ψ2 q and 4 with q absent (census D6 a).
+        Assert.AreEqual(8, ok.Cases.Count(c => c.Combination.State == WallLimitState.Seismic && c.Combination.VariableSurchargeOnHeel));
         // Assigned coefficients keep the check of the assigned kh, kv.
         Throws(() => RetainingWallAnalysis.Calculate(Wall(fill: Column(3.4, (Fill(12), 10)), seismic: WallSeismic.Assigned(WallSeismicMethod.MononobeOkabe, .3, .05)), new[] { Row() }), "assigned beyond φ");
     }

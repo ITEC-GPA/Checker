@@ -101,7 +101,8 @@ public class WallExamplesTests
         Close(.38 * .22125, seismic.Kh, "kh", 1e-14); Close(.57 * .22125, seismic.KhOverturning, "kh overturning", 1e-14);
         var input = Cantilever(seismic: seismic); var rows = WallCombinations.Generate(input); var r = RetainingWallAnalysis.Calculate(input, rows);
         var general = r.Cases.Where(x => x.Combination.Purpose == WallSeismicPurpose.General).ToArray();
-        Assert.AreEqual(4, general.Length, "kv−, kv+ and their twins without ψ2 q on the heel");
+        // kv−, kv+ with ψ2 q, their twins without ψ2 q on the heel, and the rows with q absent (census D6 a, decision of 28/10/2026).
+        Assert.AreEqual(6, general.Length, "kv−, kv+, their twins and the rows without q");
         foreach (var c in general)
         {
             double theta = Math.Atan(c.Combination.Kh / (1 - c.Combination.Kv));
@@ -118,8 +119,8 @@ public class WallExamplesTests
         // without it 0.806293, which governs (MUR-1 extended to the seismic rows).
         Assert.IsFalse(r.Cases.Single(x => x.Combination.Name == worst.Combination).Combination.VariableSurchargeOnHeel, "the twin governs");
         Close(.806293, worst.Ratio!.Value, "ex4_annexF.py (EN 1998-5, F̄ without γRd)", 1e-5);
-        Close(.760311, r.Checks.Where(k => k.Kind == WallCheckKind.Bearing && k.Ratio.HasValue && r.Cases.Single(x => x.Combination.Name == k.Combination).Combination.VariableSurchargeOnHeel)
-            .Max(k => k.Ratio!.Value), "ex4_annexF.py, rows with ψ2 q on the heel", 1e-5);
+        Close(.760311, r.Checks.Where(k => k.Kind == WallCheckKind.Bearing && k.Ratio.HasValue && r.Cases.Single(x => x.Combination.Name == k.Combination).Combination is { VariableSurchargeOnHeel: true } c
+            && c.Coefficients["q"] > 0).Max(k => k.Ratio!.Value), "ex4_annexF.py, rows with ψ2 q on the heel", 1e-5);
         // With γRd = 1.15 also on F̄, as ANTHEA: more conservative.
         var legacy = Cantilever(seismic: WallSeismic.FromSite(WallSeismicMethod.MononobeOkabe, site, WallSeismicBearing.FromSite(1.15, true)));
         // ex4_annexF.py with F̄ = γRd amax/(g tan φ): 0.839698 for the twin (0.791142, reported before, with ψ2 q on the heel).
@@ -134,7 +135,8 @@ public class WallExamplesTests
         var input = new WallInput(WallFamily.Gravity, new WallGeometry(3000, 2200, 550, 450, 250, 250), 24 * KN3, Column(3.45, (Fill(30), 10)), new Soil("F", 19 * KN3, 21 * KN3, 34 * Deg, 0, "e"),
             WallValley.Free(Column(0, (Fill(30), 10))), new WallInterface(WallFriction.Assigned), new WallInterface(WallFriction.Assigned, 26 * Deg), null, new[] { Surcharge(10), impact });
         var rows = WallCombinations.Generate(input); var r = RetainingWallAnalysis.Calculate(input, rows);
-        var accident = r.Cases.Single(c => c.Combination.State == WallLimitState.Exceptional && c.Combination.VariableSurchargeOnHeel); var qp = r.Cases.Single(c => c.Combination.State == WallLimitState.QuasiPermanent);
+        // The accidental row with ψ2 q (census D6 a adds the one with q absent).
+        var accident = r.Cases.Single(c => c.Combination.State == WallLimitState.Exceptional && c.Combination.VariableSurchargeOnHeel && c.Combination.Coefficients["q"] > 0); var qp = r.Cases.Single(c => c.Combination.State == WallLimitState.QuasiPermanent);
         Close(40, accident.Horizontal - qp.Horizontal, "impact", 1e-12); Close(40 * 2000, accident.Overturning - qp.Overturning, "arm", 1e-12);
         // Stem weight (2.2 + 0.55)/2 · 3 · 24 and its centroid from the back.
         double stem = (2200 + 550) * 3000 / 2.0 * 24 * KN3;

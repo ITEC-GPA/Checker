@@ -1,5 +1,6 @@
 using GPC.Checkers.Geotechnics.Seismic;
 using GPC.Checkers.Geotechnics.Slopes;
+using GPC.Model.Design.Combinations;
 using GPC.Model.Geotechnics;
 using GPC.Model.Standards;
 
@@ -69,7 +70,8 @@ namespace GPC.Checkers.Geotechnics.Walls
         /// <summary>
         /// Combinations of the global stability from the ordinary ones of the wall (without the seismic action): every ULS with the factors of the actions
         /// of A2 (G1 1, the others × 1.3/1.5) and M2, γR 1.1; every accidental combination with unit factors; with the seismic action, the quasi
-        /// permanent actions with ±kv and γR 1.2. Identical rows are merged; at most 256. A2, M2 and γR (R2) are those of NTC 2018 in Model
+        /// permanent actions with ±kv and γR 1.2. In the accidental and seismic rows every variable group is present (ψ2) or absent (census D6 a,
+        /// decision of the ANTHEA user of 28/10/2026; one row each until GPCChecker.Geotechnics 0.25). Identical rows are merged; at most 256. A2, M2 and γR (R2) are those of NTC 2018 in Model
         /// (<see cref="StandardNTC2018Geotechnics"/>, §6.8.2 and §7.11.4; ANTHEA 1.14.4, combinations in Model, step 2); the factors of the actions
         /// keep the rule A1 × γQ,A2/γQ,A1 of the rows of the wall (census risk R2: the same digits as before), but the favourable G2, 0.8 in A1 and
         /// A2 (census D4 b, decision of the ANTHEA user of 28/10/2026; 0 until ANTHEA 1.14.3).
@@ -107,9 +109,15 @@ namespace GPC.Checkers.Geotechnics.Walls
             }
             if (seismic != null)
             {
-                var quasi = ordinary.First(c => c.State == WallLimitState.QuasiPermanent).Coefficients;
-                foreach (double sign in new[] { -seismic.Kv, seismic.Kv }.Distinct())
-                    Add("Globale SLV kv" + (sign < 0 ? "−" : "+"), quasi, 1, 1, 1, seismicResistance, seismic.Kh, sign, "SISMA");
+                // The seismic rows of the generator of Model for ±kv: the quasi permanent actions with every variable group present (ψ2) or
+                // absent (census D6 a; until GPCChecker.Geotechnics 0.25 one row for every sign, all the variables at ψ2).
+                var signs = new[] { -seismic.Kv, seismic.Kv }.Distinct().ToArray();
+                var request = new GeotechnicalCombinationRequest(a2, input.Actions.Where(a => a.Enabled).Select(WallCombinations.Action), null, null, signs.Length);
+                foreach (var row in GeotechnicalCombinations.Generate(request).Where(r => r.State == GeotechnicalLimitState.Seismic))
+                {
+                    double sign = signs[row.SeismicVariant];
+                    Add("Globale SLV kv" + (sign < 0 ? "−" : "+"), row.Factors, 1, 1, 1, seismicResistance, seismic.Kh, sign, "SISMA");
+                }
             }
             return result;
         }
