@@ -1,3 +1,22 @@
+# ANTHEA 1.16.0 — wall reinforcement and schedule as on a drawing (GPC.Design 0.42.0.0)
+
+The preliminary schedule below is superseded (user request of 29/10/2026). `WallReinforcementDetailing` now:
+- spaces the main bars at 1000/n (the spacing of As = n·πØ²/4 per metre in a continuous wall) in the clear spacing,
+  maximum spacing, lap pair spacing and mandrel (ab) checks; the panel count is ⌈(L − 2c_e − Ø)/spacing⌉ + 1;
+- crosses the stem feet in the foundation (upstream bars towards the toe, downstream towards the heel; opening corner,
+  EN 1992-1-1 Annex J.2.3), the other way only when the tail does not fit (`FootReversed`, schedule warning);
+- rests the foot on the bottom mesh (cover + transverse Ø + longitudinal Ø + Ø/2);
+- makes the toe and heel bars of a layer one bar when they have the same Ø and number and fit in the stock bar
+  (`WallDetailOptions.StockLength`), with end bends at the free edges (EN 1992-1-1 9.3.1.4, fig. 9.8);
+- closes the head with U-bars (legs 2·head thickness), computes the lap ties (135° hooks + 10Ø, NTC 2018 7.4.6.2.2),
+  states the batter bend angle, and places the longitudinal bars inside the main bars with one in each corner.
+
+`WallBarScheduling` numbers the positions in drawing order, rounds the legs at the centre line to the cm (cut length =
+their sum), splices the longitudinal bars beyond the stock bar into equal pieces with the Concrete lap, and returns the
+totals per diameter, the concrete volume of the panel and the incidence. Shapes are built by `WallBarShapes` (fillets of
+the corner polyline, exact arcs). Tests: `WallTavolaTests` (hand-computed); the frozen F4 tests compare every value, the
+corrected ones against the old value transformed by the declared correction.
+
 # F4.10a — preliminary wall bar schedule
 
 `WallBarScheduling` consumes the same typed detail input and calls
