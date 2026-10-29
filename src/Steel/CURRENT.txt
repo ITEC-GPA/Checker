@@ -111,6 +111,57 @@ Svergolamento di profili laminati o saldati equivalenti (28/10/2026):
   Traccia: BetaLT, LambdaLT0, MomentCorrectionF, PhiLT, ChiLTBase, Kc, KcPsi;
   report Member.LtbMethod e Member.LtbKc. Nessun atteso esistente modificato.
 
+Opzioni EC3 dello svergolamento (29/10/2026, branch steel-ltb-esenzione):
+  due scelte esplicite, per il metodo generale e per quello dei laminati;
+  senza di esse nulla cambia. Sotto NTC 2018 sono rifiutate.
+  Esenzione per momento basso, EC3 6.3.2.2(4) secondo criterio: nella libreria
+  SteelLateralTorsionalMethod.WithLowMomentExemption(fonte), in ModelChecker
+  LtbLowMomentExemption=true con LtbLowMomentExemptionSource (solo Bending).
+  Se MEd/Mcr <= lambdaLT0^2 la verifica LTB e NotRequired
+  (Member.LtbLowMomentExemption) e restano le verifiche di sezione; MEd e il
+  massimo |M1| dell'asta (o del segmento a forcella), Mcr quello della verifica.
+  lambdaLT0 e quello del metodo in uso: 0,2 nel caso generale (plateau della
+  6.56, limite 0,04), LambdaLT0ForLateralTorsionalBucklingMod dell'oggetto norma
+  col metodo dei laminati (0,4: limite 0,16). La clausola rinvia lambdaLT0 alla
+  6.3.2.3: nel caso generale si tiene lo 0,2 della sua curva, il limite minore.
+  Traccia LowMoment.MEd, .Mcr, .MEdOverMcr, .LambdaLT0, .Limit, .Exempt anche
+  quando il criterio non vale (la verifica prosegue identica); riga
+  Member.LtbLowMomentExemption. Primo criterio (lambdaLT <= lambdaLT0): gia
+  chiLT=1 nelle due riduzioni (test SlendernessUpToLambdaLT0GivesChiLTOne), la
+  verifica resta eseguita con gammaM1; con MEd <= Wy fy il secondo criterio lo
+  comprende. In ModelChecker il NotRequired d'asta resta NotEvaluated.
+  Trave-colonna: non applicata (WithLateralTorsionalMethod la rifiuta; in
+  ModelChecker ParameterOnAnotherMode e LtbLowMomentExemptionOnAnotherRoute).
+  La 6.3.2.2(4) e una regola della 6.3.2 (membrature inflesse) e lascia le sole
+  verifiche di sezione, che non sostituiscono le 6.61-6.62; il criterio ignora
+  NEd, che abbassa il carico critico flesso-torsionale (l'Annesso A usa un
+  criterio proprio funzione di N). Per escludere lo svergolamento della
+  trave-colonna resta TorsionSusceptible=false con LateralTorsionalExclusionSource.
+  NTC: nessuna clausola equivalente verificabile nei sorgenti (NTC 2018
+  4.2.4.1.3.2, Circolare 2019): Member.LtbLowMomentExemptionNotInNtc.
+  Curva nazionale (EC3 6.3.2.2(2) e 6.3.2.3(1): le assegnazioni delle Tab. 6.4
+  e 6.5 sono raccomandazioni, NDP): nella libreria WithDeclaredCurve(curva,
+  fonte), in ModelChecker LtbCurve=A|B|C|D con LtbCurveSource (Annesso
+  Nazionale e clausola), modi Bending e BeamColumn. Sostituisce la curva della
+  tabella del metodo (generale Tab. 6.4, laminati Tab. 6.5) nella verifica LTB
+  e nel chiLT della trave-colonna; alphaLT resta quello della Tab. 6.3 per la
+  curva dichiarata, il metodo dei laminati resta limitato alle H/I esatte.
+  Traccia LtbCurveDeclared e AlphaLTTableCurve (alphaLT della curva di tabella),
+  riferimento con curva, fonte e tabella sostituita; riga Member.LtbCurve.
+  Rifiuti: NTC Member.LtbCurveFixedByNtc (curve fissate dalla Tab. 4.2.IX);
+  trave-colonna senza chiLT (TorsionSusceptible=false, cave)
+  Member.LtbCurveWithoutLtbReduction.
+  Oggetto norma: alphaLT per curva diversi da 0,21/0,34/0,49/0,76 restano
+  rifiutati (LtbImperfectionFactorsNotQualified), cosi beta/lambdaLT0 del caso
+  generale diversi da 1/0,2 (LtbGeneralParametersNotQualified: la 6.56 li fissa,
+  quelli nazionali sono della 6.3.2.3 e dei campi *Mod). Nota: la NOTA della
+  6.3.2.2(2) lascia all'Annesso Nazionale anche alphaLT (la Tab. 6.3 e intitolata
+  "valori raccomandati"); un alphaLT nazionale richiederebbe un percorso
+  proprio, oggi assente.
+  Test: LtbLowMomentAndNationalCurveTests (20 casi, valori a mano nei commenti)
+  e SteelLtbNationalOptionsPipelineTest (14 casi). Nessun atteso esistente
+  modificato.
+
 Valori critici automatici (28 ottobre 2026):
   Senza valore ne' esclusione, NcrT/NcrFT si risolvono in automatico solo per le H
   doppiamente simmetriche (NcrT=(G It+pi^2 E Iw/LcrT^2)/i0^2 con LcrT esplicita o

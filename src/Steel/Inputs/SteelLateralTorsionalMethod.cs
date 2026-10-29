@@ -52,7 +52,9 @@ namespace GPC.Checkers.Steel.Inputs
     /// <summary>Explicit choice of the LTB reduction. RolledOrEquivalentWelded applies only to exact doubly symmetric
     /// rolled or welded I/H (Section.SectionTypes); choosing it for a welded section declares that it is an equivalent
     /// welded section. Beta/LambdaLT0 are the national values of that method: 0.75 &lt;= beta &lt;= 1 (NTC: never below
-    /// 0.75), 0.2 &lt;= lambdaLT0 &lt;= 0.4 (EC3 recommended maximum, NTC never above 0.4).</summary>
+    /// 0.75), 0.2 &lt;= lambdaLT0 &lt;= 0.4 (EC3 recommended maximum, NTC never above 0.4).
+    /// Two EN 1993-1-1 options, both opt-in and refused under NTC 2018 by the routes: WithDeclaredCurve (national curve
+    /// assignment) and WithLowMomentExemption (6.3.2.2(4), prismatic bending only).</summary>
     public sealed class SteelLateralTorsionalMethod
     {
         public SteelLateralTorsionalMethodKind Kind { get; }
@@ -60,8 +62,37 @@ namespace GPC.Checkers.Steel.Inputs
         public double LambdaLT0 { get; }
         public SteelLtbMomentFactor MomentFactor { get; }
         public string ParameterSource { get; }
+        /// <summary>LTB curve assigned by the National Annex to this member's section, in place of the recommended
+        /// assignment of EN 1993-1-1:2005 Table 6.4 (general) or Table 6.5 (rolled method), both NDPs (6.3.2.2(2),
+        /// 6.3.2.3(1)); alphaLT stays the Table 6.3 value of that curve. Null keeps the table of the method.</summary>
+        public SteelBucklingCurve? DeclaredCurve { get; private set; }
+        /// <summary>National Annex clause of DeclaredCurve; null without a declaration.</summary>
+        public string DeclaredCurveSource { get; private set; }
+        /// <summary>Design-basis source adopting EN 1993-1-1:2005 6.3.2.2(4), second criterion: for MEd/Mcr &lt;= lambdaLT0^2
+        /// LTB effects are ignored and only section checks apply. lambdaLT0 is LambdaLT0 of the method in use (0.2 of
+        /// equation (6.56) for the general case, the national value of the rolled method). Null: not adopted.</summary>
+        public string LowMomentExemptionSource { get; private set; }
+        public bool LowMomentExemption => LowMomentExemptionSource != null;
         private SteelLateralTorsionalMethod(SteelLateralTorsionalMethodKind kind, double beta, double lambdaLT0, SteelLtbMomentFactor factor, string source)
         { Kind = kind; Beta = beta; LambdaLT0 = lambdaLT0; MomentFactor = factor; ParameterSource = source; }
+
+        /// <summary>Same method with the national LTB curve of this member's section (curves a-d of Table 6.3; a0 is not an
+        /// LTB curve). EN 1993-1-1 only: NTC 2018 fixes its curves (Tab. 4.2.IX) and the routes refuse the declaration.</summary>
+        public SteelLateralTorsionalMethod WithDeclaredCurve(SteelBucklingCurve curve, string nationalAnnexSource)
+        {
+            if (!Enum.IsDefined(typeof(SteelBucklingCurve), curve) || curve == SteelBucklingCurve.A0)
+                throw new ArgumentOutOfRangeException(nameof(curve), "EN 1993-1-1:2005 Table 6.3 defines the LTB curves a, b, c and d.");
+            if (string.IsNullOrWhiteSpace(nationalAnnexSource)) throw new ArgumentException("National Annex provenance of the LTB curve required.", nameof(nationalAnnexSource));
+            var copy = (SteelLateralTorsionalMethod)MemberwiseClone(); copy.DeclaredCurve = curve; copy.DeclaredCurveSource = nationalAnnexSource; return copy;
+        }
+
+        /// <summary>Same method adopting EN 1993-1-1:2005 6.3.2.2(4), MEd/Mcr &lt;= lambdaLT0^2. Prismatic bending only (a beam-column
+        /// analysis refuses it); EN 1993-1-1 only, the routes refuse it under NTC 2018.</summary>
+        public SteelLateralTorsionalMethod WithLowMomentExemption(string designBasisSource)
+        {
+            if (string.IsNullOrWhiteSpace(designBasisSource)) throw new ArgumentException("Source adopting the low-moment criterion required.", nameof(designBasisSource));
+            var copy = (SteelLateralTorsionalMethod)MemberwiseClone(); copy.LowMomentExemptionSource = designBasisSource; return copy;
+        }
 
         public static SteelLateralTorsionalMethod General { get; } = new SteelLateralTorsionalMethod(SteelLateralTorsionalMethodKind.General, 1, .2,
             SteelLtbMomentFactor.NotEstablished("General case: f=1"), "EN 1993-1-1:2005 6.3.2.2 / NTC 2018 4.2.4.1.3.2 general values");
