@@ -116,11 +116,13 @@ namespace GPC.Checkers.Steel.Connections
                 FaceDiagnostic(true); FaceDiagnostic(false);
                 void FaceDiagnostic(bool top)
                 {
-                    var cover = top ? d.Top : d.Bottom; var parent = top ? d.Section.TopFlange : d.Section.BottomFlange;
+                    // The parent of the member whose elastic distribution the covers carry.
+                    var section = d.SectionOf(d.CoverDistribution); var packing = d.PackingOf(d.CoverDistribution);
+                    var cover = top ? d.Top : d.Bottom; var parent = top ? section.TopFlange : section.BottomFlange;
                     string name = top ? "Top" : "Bottom";
                     double outward = top ? 1 : -1;
-                    double yo = outward * ((parent.Thickness + cover.Outer.Thickness) / 2 + (top ? d.Packing.TopOuter : d.Packing.BottomOuter));
-                    double yi = -outward * ((parent.Thickness + cover.EachInner.Thickness) / 2 + (top ? d.Packing.TopInner : d.Packing.BottomInner));
+                    double yo = outward * ((parent.Thickness + cover.Outer.Thickness) / 2 + (top ? packing.TopOuter : packing.BottomOuter));
+                    double yi = -outward * ((parent.Thickness + cover.EachInner.Thickness) / 2 + (top ? packing.TopInner : packing.BottomInner));
                     double ao = cover.Outer.Width * cover.Outer.Thickness, ai = 2 * cover.EachInner.Width * cover.EachInner.Thickness;
                     var typed = forces.Flange(SpliceSide.Left, top);
                     double n = typed.ParentAxial, m = typed.ParentLocalMoment, no = typed.OuterForce, ni = typed.BothInnerForce;

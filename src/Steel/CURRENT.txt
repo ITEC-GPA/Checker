@@ -353,14 +353,23 @@ sensibili a instabilita a taglio restano fuori dal nuovo metodo.
 Le scelte di piastra non disattivano bulloni, blocchi, detailing o genitori.
 I compensatori ammessi sono paralleli, integri, a piena impronta, anche
 multistrato con interfacce in serie. Non sono una transizione di sezione.
+Transizioni (faceModel PackedSectionTransition): sezione destra e compensatori per
+lato in WeldedSpliceSectionTransition; CreateBolted crea <id>.LeftDistribution e
+<id>.RightDistribution per ogni caso. Connections/BRIDGE_SPLICE_TRANSITIONS.txt.
 
 STATO DEGLI OTTO PUNTI RICHIESTI IN QUESTO BLOCCO
 
 1 Blocchi misti fuori gerarchia: APERTO. Studio della fonte DTU completato;
   nessun nuovo esito resistente qualificato. Vedi OPEN_MECHANISMS_REVIEW.txt
   in Connections. Un criterio sufficiente non soddisfatto non prova rottura.
-2 Transizioni fra sezioni: APERTO. Nessun nuovo modello implementato;
-  servono trasferimenti equilibrati fra ali/anima e relativo dettaglio locale.
+2 Transizioni fra sezioni: PARZIALE (29/10/2026). Implementato il modello a pari
+  altezza, facce esterne e piano dell'anima comuni, stesse larghezze: spessori di
+  ali/anima diversi colmati da compensatori paralleli per lato (PackedSectionTransition).
+  I coprigiunti portano UNA distribuzione elastica, ogni caso con entrambe (sinistra e
+  destra); il membro che ridistribuisce verifica trasferimenti ala-anima, coppie di
+  giunto, cordoni, anima e piastre forate. Restano rifiutati con codice preciso: altezza
+  o larghezza diverse, offset, rastremazioni, classe4 efficace, taglio alto nei
+  coprigiunti. Vedi Connections/BRIDGE_SPLICE_TRANSITIONS.txt.
 3 Classe4 compressa+taglio: PARZIALE. Chiuso il sottodominio a taglio basso;
   alto taglio/instabilita della lastra restano da implementare.
 4 Terminali/supporti: APERTO per le estensioni generali. Restano i percorsi

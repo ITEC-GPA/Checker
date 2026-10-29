@@ -85,6 +85,9 @@ namespace GPC.Checkers.Steel.Connections
             if (original.Code.IsNtc && template.Plates.Policy.GammaM1 != Ntc2018DesignPolicy.GammaM1Bridges)
                 throw new ArgumentException("NTC 2018 Table 4.2.VII: bridge members use gammaM1=1.10. Use IBeamSplicePlatePolicy.Ntc2018Bridges().", nameof(template));
             var shape = WeldedIBeamSpliceSection.FromModel(left, original.Detail.Section.TopWeldToe, original.Detail.Section.BottomWeldToe);
+            if (original.Detail.Transition != null)
+                return CreateTransition(template, shape, left, right, u, s, welds, continuityAndSecondOrderSource, category,
+                    plateStability, shearPreparation, slipTemplate, blockMethod, faceModel);
             // One preparation for the physical detail: every ULS/SLS case shares its demand-independent results.
             var prepared = PreparedWeldedIBeamSplice.Prepare(template, shape);
             var cases = u.Select(c =>
@@ -111,6 +114,57 @@ namespace GPC.Checkers.Steel.Connections
                 => new WeldedSpliceSlipCase(id, new WeldedIBeamSpliceSlipInput(slipTemplate.Policy, Detail(c).Plates.Bolts, state,
                     slipTemplate.Surfaces, slipTemplate.TighteningControl, slipTemplate.AssemblyQualificationSource, c.Source), ulsId);
         }
+
+        /// <summary>Case identifier of one cover distribution of a transition action state.</summary>
+        public static string TransitionCaseId(string id, SpliceSide coverDistribution) => id + "." + coverDistribution + "Distribution";
+
+        /// <summary>Section transition: both members read from Model, the right packing and offsets from the
+        /// template. Every ULS/SLS state becomes TWO cases, one per cover distribution, on two preparations
+        /// of the same physical detail; the right section is evaluated about its own centroid.</summary>
+        private static WeldedIBeamSpliceStandardInput CreateTransition(WeldedIBeamSpliceDetailInput template, WeldedIBeamSpliceSection shape,
+            SteelSectionInput left, SteelSectionInput right, SpliceActionCase[] u, SpliceActionCase[] s, SpliceLongitudinalFillets welds,
+            string continuityAndSecondOrderSource, SpliceBoltCategory category, SplicePlateStabilityMethod plateStability,
+            Func<SteelVerificationInput, IEnumerable<SteelShearBucklingAssessment>> shearPreparation,
+            WeldedIBeamSpliceSlipInput slipTemplate, SpliceBlockVerificationMethod blockMethod, SpliceFlangeFaceModel faceModel)
+        {
+            var original = template.Plates.Bolts; var declared = original.Detail.Transition;
+            var transition = new WeldedSpliceSectionTransition(WeldedIBeamSpliceSection.FromModel(right, declared.Right.TopWeldToe, declared.Right.BottomWeldToe),
+                declared.RightPacking, declared.OuterPlaneOffset, declared.WebPlaneOffset);
+            var sides = new[] { SpliceSide.Left, SpliceSide.Right };
+            var prepared = sides.Select(side => PreparedWeldedIBeamSplice.Prepare(template, shape, transition, side)).ToArray();
+            // The actions are given at the pole measured from the LEFT centroid: shift it to the right centroid.
+            double shift = shape.CentroidY - transition.Right.CentroidY;
+            var cases = new List<WeldedSpliceStandardCase>();
+            foreach (var c in u)
+            {
+                var leftSection = EvaluateSection(left, c.Actions, original.Code, shearPreparation);
+                var rightSection = EvaluateSection(right, Shift(c.Actions, shift), original.Code, shearPreparation);
+                for (int k = 0; k < 2; k++)
+                    cases.Add(new WeldedSpliceStandardCase(TransitionCaseId(c.Id, sides[k]), new WeldedIBeamSpliceParentInput(
+                        prepared[k].CreateCase(c.Actions, c.Source), leftSection, rightSection, welds, continuityAndSecondOrderSource)));
+            }
+            var slips = new List<WeldedSpliceSlipCase>();
+            if (slipTemplate != null)
+            {
+                if (!SpliceIdentity.Code(slipTemplate.Policy.Code, original.Code))
+                    throw new ArgumentException("Slip policy and section/bolt policy must match.");
+                for (int k = 0; k < 2; k++)
+                {
+                    if (category == SpliceBoltCategory.C)
+                        foreach (var c in u) slips.Add(Slip(c, BoltSlipLimitState.Ultimate, TransitionCaseId(c.Id, sides[k]) + ".slip", TransitionCaseId(c.Id, sides[k]), k));
+                    foreach (var c in s) slips.Add(Slip(c, BoltSlipLimitState.Serviceability, TransitionCaseId(c.Id, sides[k]), null, k));
+                }
+            }
+            return new WeldedIBeamSpliceStandardInput(cases, category, slips, blockMethod, faceModel, plateStability);
+
+            WeldedSpliceSlipCase Slip(SpliceActionCase c, BoltSlipLimitState state, string id, string ulsId, int k)
+                => new WeldedSpliceSlipCase(id, new WeldedIBeamSpliceSlipInput(slipTemplate.Policy, prepared[k].CreateCase(c.Actions, c.Source).Plates.Bolts, state,
+                    slipTemplate.Surfaces, slipTemplate.TighteningControl, slipTemplate.AssemblyQualificationSource, c.Source), ulsId);
+        }
+        /// <summary>The same physical actions with the pole measured from another centroid; out-of-plane
+        /// components are kept so that the section conversion still rejects them.</summary>
+        private static PlanarConnectionActions Shift(PlanarConnectionActions a, double shift)
+            => shift == 0 ? a : new PlanarConnectionActions(a.Fx, a.Fy, a.Fz, a.Mx, a.My, a.Mz, a.ApplicationX, a.ApplicationY + shift, a.ApplicationZ);
 
         public static IReadOnlyList<WeldedSpliceButtCaseResult> VerifyWelded(ConnectionDesignCode code,
             SteelSectionInput left, SteelSectionInput right, IEnumerable<SpliceActionCase> ultimateCases,

@@ -117,12 +117,14 @@ namespace GPC.Checkers.Steel.Connections
                 // Retain this conservative length for every group, without a uniform-transfer exemption.
                 double jointLength = ElasticBoltGroup.Hypot(grid.LongitudinalSpan, transverseSpan);
                 string prefix = g.Side + "." + g.Cover;
+                // The bolts of each member pass through that member's packing (3.6.1(12)-(13) per side).
+                var packing = d.PackingOf(g.Side);
                 var group = new Group
                 {
                     Joint = new SectionResistanceValue(prefix + ".ConservativeJointLength", jointLength, "mm"),
-                    Packing = new SectionResistanceValue(prefix + ".PackingThicknessForShear", d.Packing.ThickerFace(g.Cover), "mm"),
-                    Grip = new SectionResistanceValue(prefix + ".GripThickness", d.Packing.Grip(d, g.Cover), "mm"),
-                    BoltType = bolt, JointLength = jointLength, PackingThickness = d.Packing.ThickerFace(g.Cover)
+                    Packing = new SectionResistanceValue(prefix + ".PackingThicknessForShear", packing.ThickerFace(g.Cover), "mm"),
+                    Grip = new SectionResistanceValue(prefix + ".GripThickness", packing.Grip(d, d.SectionOf(g.Side), g.Cover), "mm"),
+                    BoltType = bolt, JointLength = jointLength, PackingThickness = packing.ThickerFace(g.Cover)
                 };
                 // Fv,Rd depends on the bolt, joint length and packing of the group, not on the demand:
                 // evaluate it once per detail. With diagnostics keep the per-bolt path and its messages.
@@ -151,7 +153,10 @@ namespace GPC.Checkers.Steel.Connections
                 bool web = part == IBeamSplicePart.Web, top = part == IBeamSplicePart.TopFlange;
                 var grid = web ? d.WebBolts : top ? d.Top.Bolts : d.Bottom.Bolts;
                 var bolt = web ? p.WebBolt : p.FlangeBolt;
-                var parent = web ? d.Section.Web : top ? d.Section.TopFlange : d.Section.BottomFlange;
+                var section = d.SectionOf(side);
+                var parent = web ? section.Web : top ? section.TopFlange : section.BottomFlange;
+                // Web bolts are positioned from the web cover centre, which may sit off this member's web centre.
+                double offset = web ? d.WebCoverOffset(side) : 0;
                 var members = Enumerable.Range(0, descriptors.Length).Where(gi => descriptors[gi].Side == side && (web
                     ? descriptors[gi].Cover == WeldedSpliceCover.WebNegative || descriptors[gi].Cover == WeldedSpliceCover.WebPositive
                     : top ? descriptors[gi].Cover == WeldedSpliceCover.TopOuter || descriptors[gi].Cover == WeldedSpliceCover.TopInnerNegative || descriptors[gi].Cover == WeldedSpliceCover.TopInnerPositive
@@ -170,7 +175,7 @@ namespace GPC.Checkers.Steel.Connections
                         Count = items.Length, Groups = items.Select(x => x.gi).ToArray(), Forces = items.Select(x => x.k).ToArray()
                     };
                     if (entry.Count == 2) entry.Bearing = PrepareBearing(parent, bolt, grid, grid.TransverseRows, Math.Abs(pos.X) - d.ButtGap / 2,
-                        parent.Width / 2 - Math.Abs(pos.Y), hardware, id, betaLong);
+                        parent.Width / 2 - Math.Abs(offset == 0 ? pos.Y : pos.Y + offset), hardware, id, betaLong);
                     locations.Add(entry);
                 }
             }

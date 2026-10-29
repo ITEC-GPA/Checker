@@ -5,9 +5,9 @@ using System.Linq;
 namespace GPC.Checkers.Steel.Connections
 {
     /// <summary>Non-structural parallel packing, mm. One or more unspliced full-footprint parallel plates
-    /// per cover face and member side; equal packing on the left and right members.
-    /// Both inner strips share thickness; both web faces share thickness. No taper,
-    /// transition between different parent sections. Plates have the same
+    /// per cover face and member side; equal packing on the left and right members, except across a
+    /// WeldedSpliceSectionTransition, whose RightPacking fills the thickness change of the right member.
+    /// Both inner strips share thickness; both web faces share thickness. No taper. Plates have the same
     /// grade as their associated cover. No packing area, bearing, stiffness or butt
     /// contact is credited. ExecutionSource identifies the fitted detail, full contact,
     /// adequate bolt grip/thread position, washers and assembly specification.</summary>
@@ -91,13 +91,18 @@ namespace GPC.Checkers.Steel.Connections
         public double Grip(WeldedIBeamSpliceForceInput detail, WeldedSpliceCover cover)
         {
             if (detail == null) throw new ArgumentNullException(nameof(detail));
+            return Grip(detail, detail.Section, cover);
+        }
+        /// <summary>Clamped thickness on the member of <paramref name="section"/> (the right one across a transition).</summary>
+        internal double Grip(WeldedIBeamSpliceForceInput detail, WeldedIBeamSpliceSection section, WeldedSpliceCover cover)
+        {
             Thickness(cover);
             bool top = cover == WeldedSpliceCover.TopOuter || cover == WeldedSpliceCover.TopInnerNegative || cover == WeldedSpliceCover.TopInnerPositive;
             bool bottom = cover == WeldedSpliceCover.BottomOuter || cover == WeldedSpliceCover.BottomInnerNegative || cover == WeldedSpliceCover.BottomInnerPositive;
             var face = top ? detail.Top : detail.Bottom;
-            return top || bottom ? (top ? detail.Section.TopFlange.Thickness + TopOuter + TopInner
-                : detail.Section.BottomFlange.Thickness + BottomOuter + BottomInner) + face.Outer.Thickness + face.EachInner.Thickness
-                : detail.Section.Web.Thickness + 2 * (detail.EachWebCover.Thickness + EachWeb);
+            return top || bottom ? (top ? section.TopFlange.Thickness + TopOuter + TopInner
+                : section.BottomFlange.Thickness + BottomOuter + BottomInner) + face.Outer.Thickness + face.EachInner.Thickness
+                : section.Web.Thickness + 2 * (detail.EachWebCover.Thickness + EachWeb);
         }
         internal bool SamePhysical(WeldedSplicePacking other) => other != null
             && TopOuterLayers.SequenceEqual(other.TopOuterLayers) && TopInnerLayers.SequenceEqual(other.TopInnerLayers)

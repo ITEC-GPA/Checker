@@ -62,3 +62,14 @@ Uso diretto: var p = PreparedWeldedIBeamSplice.Prepare(template);
 var caso = p.CreateCase(azioni, "combinazione"); p.Owns(caso) == true.
 I componenti (WeldedIBeamSpliceBolts, Plates, Envelope, ...) sono interni:
 l'ingresso pubblico resta WeldedIBeamSpliceStandard.Verify.
+
+29/10/2026 - Transizioni di sezione (punto 2). Template con la transizione:
+var f = new WeldedIBeamSpliceForceInput(sinistra, top, bottom, web, bulloniAnima, estremita,
+    gioco, azioni, compensatoriSinistri, new WeldedSpliceSectionTransition(destra, compensatoriDestri));
+CreateBolted(template, sinistraModel, destraModel, casi, ..., faceModel:
+SpliceFlangeFaceModel.PackedSectionTransition) legge entrambe le sezioni da Model, valuta la
+destra rispetto al proprio baricentro (polo misurato dal baricentro sinistro) e crea per ogni
+caso <id>.LeftDistribution e <id>.RightDistribution; per B/C anche gli scorrimenti, con
+WeldedSpliceFrictionSurface(cover, interfacceSinistre, interfacceDestre). Ogni caso espone
+Transition.Transfer (resistenza) e Transition.Domain (applicabilita'). Modello, campo e
+rifiuti: BRIDGE_SPLICE_TRANSITIONS.txt.
