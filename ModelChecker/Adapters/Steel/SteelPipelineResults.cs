@@ -153,6 +153,14 @@ namespace GPC.Model.Checker
                 result.Data = DataStatus.Insufficient;
             else if (native.Checks.Any(c => c.Status == SteelExecutionStatus.NotSupported))
                 result.Data = DataStatus.NotSupported;
+            // A member mechanism the code does not require for this pattern (e.g. minor-axis bending alone,
+            // no compression) is not applicable, not unevaluated: Model counts it as resolved, never as satisfied.
+            // Section cuts keep NotEvaluated: a zero cut implies no member-wide conclusion.
+            if (native.Plan.MemberAnalysis != null && native.Checks.Count != 0 && native.Checks.All(c => c.Status == SteelExecutionStatus.NotRequired))
+            {
+                result.Applicability = CheckApplicability.NotApplicable; result.Execution = ExecutionStatus.NotExecuted;
+                result.ApplicabilityReason = string.Join("; ", native.Checks.Select(c => c.Decision.Target + " " + c.DiagnosticCode + ": " + c.Message));
+            }
             return result;
         }
     }

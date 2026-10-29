@@ -209,5 +209,13 @@ public class SteelBeamColumnWorkflowTest
         var minor=Single(model,options,ntc);
         Assert.AreEqual("NotRequired",minor.Details.Trace.Single(t=>t.Key=="MemberStability.Status").Expression);
         Assert.AreEqual(0,minor.Diagnostics.Count,Diagnostics(new[]{minor}));
+        // Not required is a resolved, not applicable row in Model's report, never a satisfied one.
+        Assert.AreEqual(CheckApplicability.NotApplicable,minor.Applicability);
+        StringAssert.Contains(minor.ApplicabilityReason,"Member.MinorAxisBendingOnly");
+        Assert.AreEqual(ExecutionStatus.NotExecuted,minor.Execution);Assert.AreEqual(DataStatus.Ready,minor.Data);
+        Assert.AreEqual(EngineeringOutcome.NotEvaluated,minor.Outcome);Assert.IsNull(minor.Utilization);
+        var summary=new CheckSummary(1,new[]{minor});
+        Assert.AreEqual(1,summary.NotApplicable);Assert.AreEqual(0,summary.Outstanding);Assert.AreEqual(0,summary.Invalid);
+        Assert.AreEqual(EngineeringOutcome.NotEvaluated,summary.Outcome);
     }
 }

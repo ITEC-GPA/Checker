@@ -83,8 +83,11 @@ Stabilita delle aste senza compressione (28 ottobre 2026, branch steel-aste-rout
   sezione (eta del profilo normativo). Negativa: ShearBuckling.ResistanceMethodRequired,
   nessuna resistenza ridotta. La fonte esplicita prevale; le cave la richiedono
   ancora. Resta V<=0,5 Vpl. In ModelChecker la modalita Bending con M1 e M2/V1
-  risponde SteelMember.BiaxialBendingRequiresBeamColumn. Un esito NotRequired
-  d'asta resta NotEvaluated nel resoconto di Model (nessun esito "non richiesto").
+  risponde SteelMember.BiaxialBendingRequiresBeamColumn. Un esito d'asta con
+  tutti i meccanismi NotRequired diventa nel resoconto di Model una riga non
+  applicabile (CheckApplicability.NotApplicable, motivo = codici e messaggi):
+  conta come risolta, mai come verificata. I tagli di sezione nulli restano
+  NotEvaluated (nessuna conclusione sull'asta).
 
 Svergolamento di profili laminati o saldati equivalenti (28/10/2026):
   il default resta il caso generale (EC3 6.3.2.2, Tab. 6.4; NTC 4.2.4.1.3.2
