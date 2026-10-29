@@ -209,6 +209,44 @@ Modi sway nella trave-colonna (29 ottobre 2026, branch claude/steel-cm-sway):
   nessun risultato cambia. Libreria: SteelSwayMomentFactor (For accetta solo la
   mensola di FlexuralModes). Dettagli in MEMBER_SCHEME_PREPARATION.txt.
 
+Tensioni di esercizio delle sezioni (29 ottobre 2026, branch steel-sle-tensioni):
+  SteelServiceStressCheck.Evaluate(input, SteelServiceStressBasis, classe, token)
+  limita le tensioni elastiche nominali di un taglio: sigma <= fy/gM,ser,
+  tau <= fy/(rad3 gM,ser) e rad(sigma^2+3tau^2) <= fy/gM,ser, nella forma di
+  EN 1993-2:2006 7.3(1) eq. (7.1)-(7.3); le azioni sono quelle della combinazione
+  caratteristica, dichiarata dal chiamante. gM,ser e' un parametro nazionale
+  (raccomandato 1,00): nessun default, valore >= 1 con la sua fonte. Serve anche
+  la fonte di applicabilita' (ponte, requisito di progetto): EN 1993-1-1 non
+  richiede la verifica per gli edifici e nel repository non c'e' un testo NTC
+  2018/Circolare 2019 verificato per le tensioni di esercizio dell'acciaio; con
+  NTC i limiti sono quelli dichiarati, nella stessa forma, e il riferimento lo dice.
+  sigma = N/A + Mx y/Ixx - My x/Iyy sulla sezione lorda di Model (classi 1-3, o
+  nessuna fibra compressa: classificazione non richiesta). Classe 4 dalla
+  classificazione concomitante del taglio: sezione efficace di
+  SteelEffectiveSectionSolver (larghezze a fy, conservative in esercizio), sigma
+  sul rettangolo di ingombro e von Mises come combinazione dei massimi di punti
+  diversi (IsBound). tau = V S/(I t) (EN 1993-1-1 6.2.6(4) eq. (6.20)) con S e I
+  dello stesso modello, cosi' i flussi equilibrano V1 e V2 sommati: H doppiamente
+  simmetrica (linea media aperta dalle punte delle ali, raccordi trascurati in
+  tau), RHS a pareti simmetriche (cella chiusa con il flusso costante di rotazione
+  nulla; angoli arrotondati come spigoli vivi, punti d'angolo esterni
+  conservativi), CHS (parete sottile, massimo 2V/A), rettangolo pieno solo con un
+  taglio e larghezza trasversale <= meta' della profondita' (Jourawski, criterio
+  GPC). I massimi di sigma, tau e von Mises sono esatti lungo ogni linea di fibre
+  (facce delle pareti, angoli): radici del polinomio di quarto grado, per la CHS di
+  una quartica in tan(theta/2). Utilizzo = massimo dei tre rapporti tensione/limite.
+  Rifiuti con codice ServiceStress.*: T non nullo dopo la soglia di trascurabilita'
+  (Torsion.NotIntegrated: la libreria non calcola tensioni di St Venant o di
+  ingobbamento), altre famiglie, H monosimmetriche, profili aperti formati a
+  freddo, fori non dichiarati o presenti, rettangolo con due tagli o troppo largo,
+  classe 4 non qualificata (CHS), base mancante (BasisRequired). Azioni tutte
+  nulle: NotRequired, come la pipeline. Esclusi: shear lag ed effetti secondari
+  (EN 1993-2 7.3(1): nelle azioni o coperti dalla fonte), tensioni trasversali,
+  carichi concentrati, respiro d'anima, fatica, collegamenti.
+  ModelChecker: compito Serviceability/StressLimits/Characteristic del motore
+  Steel.Pipeline.Section, vedi MODELCHECKER_PIPELINE.txt. Test: SteelServiceStressTests
+  (25, Steel.Members.Tests) e SteelServiceStressTest (12, ModelChecker.Tests).
+
 Coprigiunti bullonati di travi composte saldate a I:
   BridgeSpliceApplication.CreateBolted -> WeldedIBeamSpliceStandard.Verify
   -> BridgeSpliceReport.FromBolted -> SteelAssessmentSummary.From(report).

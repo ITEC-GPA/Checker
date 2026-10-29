@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using GPC.Checkers.Steel.Inputs;
+using GPC.Checkers.Steel.Serviceability;
 using GPC.Model.Checker.Configuration;
 
 namespace GPC.Model.Checker
@@ -24,6 +25,8 @@ namespace GPC.Model.Checker
         internal string ShearSource1 { get; }
         internal string ShearSource2 { get; }
         internal SteelNegligibleActionPolicy NegligibleActions { get; }
+        /// <summary>Basis of the serviceability stress limits; null when not configured (the task then reports missing input).</summary>
+        internal SteelServiceStressBasis ServiceStress { get; }
 
         internal SteelPipelineParameters(IDictionary<string, string> parameters)
         {
@@ -55,6 +58,17 @@ namespace GPC.Model.Checker
             Pair(ShearExcluded2.HasValue, ShearSource2, "ShearBuckling2");
             if ((NetArea.HasValue || UniformCompressionClass.HasValue || ShearExcluded1.HasValue || ShearExcluded2.HasValue || HWebResistance != null)
                 && SectionFingerprint == null) throw new ArgumentException("SectionFingerprintRequiredForSteelAssessment");
+            // gammaM,ser is a nationally determined parameter: value, its source and the applicability of the
+            // stress limitation come together or not at all; nothing is defaulted.
+            var service = new[] { Text("ServiceStress.GammaMSer"), Text("ServiceStress.GammaMSerSource"), Text("ServiceStress.ApplicabilitySource") };
+            int supplied = service.Count(v => v != null);
+            if (supplied != 0 && supplied != service.Length) throw new ArgumentException("ServiceStressValueAndSourcesRequiredTogether");
+            if (supplied != 0)
+            {
+                if (!double.TryParse(service[0], NumberStyles.Float, CultureInfo.InvariantCulture, out double gamma)
+                    || !(gamma >= 1) || double.IsInfinity(gamma)) throw new ArgumentException("InvalidSteelServiceStressGammaMSer");
+                ServiceStress = new SteelServiceStressBasis(gamma, service[1], service[2]);
+            }
         }
 
         private string Text(string key) => Values.TryGetValue(key, out var value) ? value : null;

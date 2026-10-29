@@ -59,3 +59,37 @@ Archivi e impronte usano i campi gia' persistiti, senza migrazione del formato.
 
 Verifica mirata: SteelPipelineAdapterTest, 23 casi, nessun atteso legacy cambiato.
 Evidenza completa di suite/API registrata nel commit di questa fase.
+
+TENSIONI DI ESERCIZIO - 29 OTTOBRE 2026
+Compito tipizzato Serviceability/StressLimits con categoria Characteristic
+(SectionCheckSpecification.StressLimits): la sessione implementa
+ISectionCheckSession e il catalogo dichiara il motore solo per questa specifica.
+Frequent, QuasiPermanent, CrackWidth e il meccanismo Serviceability senza
+specifica restano non supportati (UnsupportedSectionCheck): EN 1993-2 7.3(1)
+limita la combinazione caratteristica e nessun'altra categoria e' giustificata.
+Il piano di Model crea il compito solo sulle selezioni dichiarate Characteristic;
+le azioni del taglio si usano come sono, senza coefficienti.
+Parametri, tutti e tre o nessuno (regola ServiceStressBasis):
+- ServiceStress.GammaMSer: gM,ser >= 1 (EN 1993-2 7.3(1), parametro nazionale,
+  raccomandato 1,00), nessun default.
+- ServiceStress.GammaMSerSource: provenienza (appendice nazionale, progetto).
+- ServiceStress.ApplicabilitySource: perche' la limitazione si applica (ponte
+  EN 1993-2 7.3, requisito di progetto); EN 1993-1-1 non la richiede per gli
+  edifici e non si assume un testo NTC. Copre anche shear lag ed effetti
+  secondari, che non sono calcolati.
+Senza parametri il compito e' dato mancante (SteelPipeline.ServiceStress.
+BasisRequired). Valgono Unperforated, SectionFingerprint,
+UniformCompressionClass/ClassificationSource e le soglie Negligible.*.
+Esito: ServiceabilityCheckDetails, metodo Steel.ServiceStress, criterio
+stress/limit, categoria Characteristic. Metriche NormalStress (sigma con segno),
+ShearStress (|tau|) ed EquivalentStress con limite, utilizzo e riferimento;
+punti governanti nel piano della sezione (assi geometrici per il baricentro
+lordo, frame SectionGeometryCentroidal); traccia con azioni, proprieta', fonti,
+classe, modello di taglio, posizioni e azioni trascurate. Utilizzo della riga =
+massimo dei tre rapporti, che hanno la stessa definizione. Una riga non
+valutata conserva stato, codice SteelPipeline.ServiceStress.* e traccia.
+Il compito resta nel passo sequenziale (il calcolo anticipato in parallelo
+riguarda solo i compiti senza specifica). Il testo Limitations dei risultati
+SLU e' invariato; il catalogo aggiunge la portata SLE.
+Verifica mirata: SteelServiceStressTest (12 casi) in ModelChecker.Tests e
+SteelServiceStressTests (25) in Steel.Members.Tests; nessun atteso cambiato.
