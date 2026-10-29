@@ -5,9 +5,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>GPC.Checkers.CompositeBridge</RootNamespace>
-    <Version>1.19.0.10</Version>
-    <AssemblyVersion>1.19.0.10</AssemblyVersion>
-    <FileVersion>1.19.0.10</FileVersion>
+    <Version>1.19.0.12</Version>
+    <AssemblyVersion>1.19.0.12</AssemblyVersion>
+    <FileVersion>1.19.0.12</FileVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
