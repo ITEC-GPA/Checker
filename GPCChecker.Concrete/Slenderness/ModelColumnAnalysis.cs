@@ -43,25 +43,111 @@ namespace GPC.Checkers.Concrete.Slenderness
         /// <summary>With <paramref name="creepPath"/> the integration of the creep is used also at φef = 0 (tests of the bit-identical path).</summary>
         internal static ModelColumnResult Calculate(ModelColumnRequest request, SectionCheckerModelCode2010 checker, ReinforcedConcreteSection section,
             CoordinateSystem axes, CancellationToken token, bool creepPath)
+            => Calculate(request, checker, section, axes, token, creepPath, null);
+
+        /// <summary>
+        /// With a cache of the curves at imposed curvature (0.28.0.0): requests with the same N, direction, φef, l0²/c and steps share one curve,
+        /// computed once (<see cref="ModelColumnEnvelope"/>, <see cref="Domain"/>); the result is the one of the request alone, bit for bit.
+        /// </summary>
+        internal static ModelColumnResult Calculate(ModelColumnRequest request, SectionCheckerModelCode2010 checker, ReinforcedConcreteSection section,
+            CoordinateSystem axes, CancellationToken token, bool creepPath, ModelColumnCurveCache cache)
         {
             if (request == null || checker == null || section == null || axes == null) throw new ArgumentNullException();
             Validate(request);
             token.ThrowIfCancellationRequested();
-            if (!ModelColumnProfiles.TryResolve(checker.StandardModelCode2010, out var profile))
-                throw Reject(ModelColumnRejection.UnsupportedStandard, ModelColumnProfiles.NotSupportedReason(checker.StandardModelCode2010), request.AxialForce);
-            if (!(checker.SectionSolver is SectionSolverModelCode2010 solver) || !ReferenceEquals(solver.ConcreteSection, section))
-                throw Reject(ModelColumnRejection.InvalidRequest, "Model column: the section must be the section of the checker.", request.AxialForce);
-            if (checker.SectionCheckerOptions.FailureDomainType != SectionSolver.FailureDomainTypes.Plastic)
-                throw Reject(ModelColumnRejection.UnsupportedChecker, "Model column: the checker must use the plastic failure domain.", request.AxialForce);
-            if (solver.ConsiderTensileConcrete)
-                throw Reject(ModelColumnRejection.UnsupportedChecker, "Model column: the concrete in tension is neglected (NTC 2018 §4.1.2.3.9.2); use a checker without it.", request.AxialForce);
-            if (!(section.ConcreteMaterial is ConcreteMaterialEuropeanCommon concrete) || concrete.ConcreteType != ConcreteMaterial.ConcreteTypes.Concrete)
-                throw Reject(ModelColumnRejection.UnsupportedSection, "Model column: ordinary concrete of the European standards only.", request.AxialForce);
-            if (section.RebarsCount == 0 || section.SteelSections.Count > 0)
-                throw Reject(ModelColumnRejection.UnsupportedSection, "Model column: reinforced concrete section with bars and without steel profiles only.", request.AxialForce);
+            var (profile, solver, concrete) = Resolve(request.AxialForce, checker, section);
             if (request.AxialForce > 0)
                 throw Reject(ModelColumnRejection.TensionAxialForce, "Model column: tensile axial force; the model column is a compression member.", request.AxialForce);
-            return new ModelColumnEngine(request, checker, solver, section, concrete, axes, profile, token, creepPath).Run();
+            return new ModelColumnEngine(request, checker, solver, section, concrete, axes, profile, token, creepPath, cache).Run();
+        }
+
+        /// <summary>The checks of the standard, the checker and the section, common to every request on them; the profile, the solver and the concrete.</summary>
+        internal static (ModelColumnProfile Profile, SectionSolverModelCode2010 Solver, ConcreteMaterialEuropeanCommon Concrete) Resolve(double axialForce,
+            SectionCheckerModelCode2010 checker, ReinforcedConcreteSection section)
+        {
+            if (!ModelColumnProfiles.TryResolve(checker.StandardModelCode2010, out var profile))
+                throw Reject(ModelColumnRejection.UnsupportedStandard, ModelColumnProfiles.NotSupportedReason(checker.StandardModelCode2010), axialForce);
+            if (!(checker.SectionSolver is SectionSolverModelCode2010 solver) || !ReferenceEquals(solver.ConcreteSection, section))
+                throw Reject(ModelColumnRejection.InvalidRequest, "Model column: the section must be the section of the checker.", axialForce);
+            if (checker.SectionCheckerOptions.FailureDomainType != SectionSolver.FailureDomainTypes.Plastic)
+                throw Reject(ModelColumnRejection.UnsupportedChecker, "Model column: the checker must use the plastic failure domain.", axialForce);
+            if (solver.ConsiderTensileConcrete)
+                throw Reject(ModelColumnRejection.UnsupportedChecker, "Model column: the concrete in tension is neglected (NTC 2018 §4.1.2.3.9.2); use a checker without it.", axialForce);
+            if (!(section.ConcreteMaterial is ConcreteMaterialEuropeanCommon concrete) || concrete.ConcreteType != ConcreteMaterial.ConcreteTypes.Concrete)
+                throw Reject(ModelColumnRejection.UnsupportedSection, "Model column: ordinary concrete of the European standards only.", axialForce);
+            if (section.RebarsCount == 0 || section.SteelSections.Count > 0)
+                throw Reject(ModelColumnRejection.UnsupportedSection, "Model column: reinforced concrete section with bars and without steel profiles only.", axialForce);
+            return (profile, solver, concrete);
+        }
+
+        /// <summary>
+        /// Reduced domain N–M1Rd,max of the column of the request (0.28.0.0): the capacity of the first order M1Rd,max and the moment M(χu) of the
+        /// section at constant N, in the direction θ of the request, for N = j/n NRd,c (j = 0…n, n = <paramref name="intervals"/>, NRd,c the
+        /// resistance in centred compression with the law of the creep) and at the N of the request. Same l0, l, c, imperfection, minimum
+        /// eccentricity and steps as the request; φef is the one of the request (with (5.19) the φef of its N and M0Ed) at every N. The request is
+        /// calculated first and its rejections are thrown (<see cref="ModelColumnException"/>); a point rejected for the transverse moment is
+        /// kept without values. Progress: <see cref="ModelColumnStage.Domain"/>, one step per point.
+        /// </summary>
+        public static ModelColumnDomain Domain(ModelColumnRequest request, SectionCheckerModelCode2010 checker, ReinforcedConcreteSection section,
+            CoordinateSystem axes, int intervals = 40, IProgress<ModelColumnProgress> progress = null, CancellationToken token = default(CancellationToken))
+        {
+            if (request == null || checker == null || section == null || axes == null) throw new ArgumentNullException();
+            ValidateIntervals(intervals, request.AxialForce);
+            var cache = new ModelColumnCurveCache();
+            var own = Calculate(request, checker, section, axes, token, false, cache);
+            return Domain(request, own, new[] { request.AxialForce }, checker, section, axes, intervals, cache, progress, token);
+        }
+
+        internal static void ValidateIntervals(int intervals, double axialForce)
+        {
+            if (intervals < MinimumDomainIntervals || intervals > MaximumDomainIntervals)
+                throw Reject(ModelColumnRejection.InvalidRequest, "Model column: " + MinimumDomainIntervals + "-" + MaximumDomainIntervals
+                    + " intervals of the reduced domain.", axialForce);
+        }
+
+        /// <summary>Limits of the number of intervals of the reduced domain.</summary>
+        public const int MinimumDomainIntervals = 4, MaximumDomainIntervals = 200;
+
+        /// <summary>
+        /// The reduced domain of a calculated column <paramref name="reference"/> (its direction, φef, imperfection and minimum), at the grid of N
+        /// and at the extra axial forces (compression), on the cache of the curves.
+        /// </summary>
+        internal static ModelColumnDomain Domain(ModelColumnRequest template, ModelColumnResult reference, IEnumerable<double> extra,
+            SectionCheckerModelCode2010 checker, ReinforcedConcreteSection section, CoordinateSystem axes, int intervals, ModelColumnCurveCache cache,
+            IProgress<ModelColumnProgress> progress, CancellationToken token)
+        {
+            double phi = reference.Creep.EffectiveRatio, resistance = reference.Section.CompressionResistance;
+            // φef of the reference at every N: assigned (0 is the same curve as the creep neglected, scale 1 + φef = 1)
+            var creep = phi == 0 ? ModelColumnCreep.Neglected(template.Creep.FinalCoefficient)
+                : ModelColumnCreep.Effective(phi, template.Creep.FinalCoefficient);
+            var forces = Enumerable.Range(0, intervals + 1).Select(j => j == 0 ? 0.0 : j == intervals ? resistance : resistance * j / intervals)
+                .Concat(extra.Where(n => n <= 0 && n >= resistance)).Distinct().OrderByDescending(n => n).ToList();
+            var (profile, solver, concrete) = Resolve(template.AxialForce, checker, section);
+            var points = new List<ModelColumnDomainPoint>();
+            for (int i = 0; i < forces.Count; i++)
+            {
+                token.ThrowIfCancellationRequested();
+                var request = new ModelColumnRequest(forces[i], reference.DirectionDegrees, template.EffectiveLength, template.MemberLength, null, template.CurvatureFactor,
+                    template.Imperfection, template.MinimumEccentricity, creep, template.EndMomentRatio, template.Steps, template.AxialTolerance,
+                    template.TransverseMomentLimit, template.RejectTransverseMoment);
+                var point = new ModelColumnDomainPoint { AxialForce = forces[i] };
+                try
+                {
+                    // the engine directly: φef is the one of the reference also beyond the limit of an assigned φef (10) of the validation
+                    var r = new ModelColumnEngine(request, checker, solver, section, concrete, axes, profile, token, false, cache).Run();
+                    point.MaximumFirstOrderMoment = r.Capacity.MaximumFirstOrderMoment; point.UltimateMoment = r.Capacity.UltimateMoment;
+                    point.CurvatureAtMaximum = r.Capacity.CurvatureAtMaximum; point.DeflectionAtMaximum = r.Capacity.DeflectionAtMaximum; point.Mode = r.Capacity.Mode;
+                }
+                catch (ModelColumnException rejection) { point.Rejection = rejection.Reason; }
+                points.Add(point);
+                progress?.Report(new ModelColumnProgress(ModelColumnStage.Domain, i + 1, forces.Count));
+            }
+            return new ModelColumnDomain
+            {
+                DirectionDegrees = reference.DirectionDegrees, EffectiveLength = reference.EffectiveLength, CurvatureFactor = reference.CurvatureFactor,
+                EffectiveCreepRatio = phi, CompressionResistance = resistance, ImperfectionEccentricity = reference.Imperfection.Eccentricity,
+                MinimumEccentricity = reference.FirstOrder.MinimumEccentricity, Points = points.AsReadOnly()
+            };
         }
 
         internal static ModelColumnException Reject(ModelColumnRejection reason, string message, double axialForce, double value = double.NaN)
@@ -98,6 +184,23 @@ namespace GPC.Checkers.Concrete.Slenderness
         }
     }
 
+    /// <summary>
+    /// Cache of the curves at imposed curvature of one envelope or reduced domain (0.28.0.0): one template, so a curve depends only on N, the
+    /// direction, 1 + φef, k = |N| l0²/c and the steps. Not thread-safe; one per calculation.
+    /// </summary>
+    internal sealed class ModelColumnCurveCache
+    {
+        private readonly Dictionary<(double N, double Direction, double Scale, double K, int Steps), ModelColumnEngine.Curve> curves
+            = new Dictionary<(double, double, double, double, int), ModelColumnEngine.Curve>();
+
+        /// <summary>The distinct curves calculated.</summary>
+        internal int Count => curves.Count;
+
+        internal bool TryGet((double, double, double, double, int) key, out ModelColumnEngine.Curve curve) => curves.TryGetValue(key, out curve);
+
+        internal void Add((double, double, double, double, int) key, ModelColumnEngine.Curve curve) => curves[key] = curve;
+    }
+
     /// <summary>The calculation of one model column (state of one call).</summary>
     internal sealed class ModelColumnEngine
     {
@@ -106,10 +209,22 @@ namespace GPC.Checkers.Concrete.Slenderness
             public double N, M, T;
         }
 
-        private sealed class Sample
+        internal sealed class Sample
         {
             public double Chi, Strain, N, M, T, Concrete, Steel;
             public bool Yielded;
+        }
+
+        /// <summary>
+        /// The curve at imposed curvature at NEd: the samples (first yield and maximum inserted), χu, the first yield, the transverse ratio and the
+        /// maximum of M − k χ (null when the transverse moment rejects the request). Read only once built.
+        /// </summary>
+        internal sealed class Curve
+        {
+            public List<Sample> Samples;
+            public double UltimateCurvature, TransverseRatio;
+            public double? YieldCurvature;
+            public Sample YieldSample, Maximum;
         }
 
         private readonly ModelColumnRequest p;
@@ -122,6 +237,7 @@ namespace GPC.Checkers.Concrete.Slenderness
         private readonly ModelColumnProfile profile;
         private readonly CancellationToken token;
         private readonly bool creepPath;
+        private readonly ModelColumnCurveCache cache;
         private readonly Point2d origin;
         private readonly ReinforcedConcreteRebar[] rebars;
         private readonly Dictionary<int, bool> inside;
@@ -133,10 +249,11 @@ namespace GPC.Checkers.Concrete.Slenderness
         private double[] vertexW;
 
         internal ModelColumnEngine(ModelColumnRequest request, SectionCheckerModelCode2010 checker, SectionSolverModelCode2010 solver, ReinforcedConcreteSection section,
-            ConcreteMaterialEuropeanCommon concrete, CoordinateSystem axes, ModelColumnProfile profile, CancellationToken token, bool creepPath)
+            ConcreteMaterialEuropeanCommon concrete, CoordinateSystem axes, ModelColumnProfile profile, CancellationToken token, bool creepPath,
+            ModelColumnCurveCache cache = null)
         {
             p = request; this.checker = checker; this.solver = solver; this.section = section; this.concrete = concrete; this.axes = axes; this.profile = profile;
-            this.token = token; this.creepPath = creepPath; standard = checker.StandardModelCode2010;
+            this.token = token; this.creepPath = creepPath; this.cache = cache; standard = checker.StandardModelCode2010;
             forceAxes = checker.SectionCheckerOptions.ForceReferenceCoordinateSystem;
             origin = solver.IntegrationReferencePoint;
             rebars = section.GetRebars();
@@ -210,30 +327,16 @@ namespace GPC.Checkers.Concrete.Slenderness
                 throw ModelColumnAnalysis.Reject(ModelColumnRejection.AxialForceBeyondResistance, "Model column: |NEd| = " + n.ToString("G6", CultureInfo.InvariantCulture)
                     + " N beyond the resistance in centred compression " + Math.Abs(compressionResistance).ToString("G6", CultureInfo.InvariantCulture) + " N.",
                     nEd, compressionResistance);
-            double chiU = UltimateCurvature();
-            var samples = new List<Sample>();
-            for (int i = 0; i <= p.Steps; i++)
+            var key = (nEd, p.DirectionDegrees, scale, k, p.Steps);
+            Curve curve = null;
+            if (cache == null || !cache.TryGet(key, out curve))
             {
-                token.ThrowIfCancellationRequested();
-                samples.Add(Required(i == p.Steps ? chiU : chiU * i / p.Steps));
+                curve = BuildCurve();
+                cache?.Add(key, curve);
             }
-            double? yieldCurvature = null; Sample yieldSample = null;
-            int firstYield = samples.FindIndex(s => s.Yielded);
-            if (firstYield == 0) { yieldCurvature = 0; yieldSample = samples[0]; }
-            else if (firstYield > 0)
-            {
-                double low = samples[firstYield - 1].Chi; Sample high = samples[firstYield];
-                for (int i = 0; i < 50 && high.Chi - low > 1e-15 * chiU; i++)
-                {
-                    token.ThrowIfCancellationRequested();
-                    var candidate = Required(0.5 * (low + high.Chi));
-                    if (candidate.Yielded) high = candidate; else low = candidate.Chi;
-                }
-                if (high.Chi < samples[firstYield].Chi) samples.Insert(firstYield, high);
-                yieldCurvature = high.Chi; yieldSample = high;
-            }
-            double maxMoment = samples.Max(s => Math.Abs(s.M)), maxTransverse = samples.Max(s => Math.Abs(s.T));
-            double transverseRatio = maxMoment > 0 ? maxTransverse / maxMoment : 0;
+            var samples = curve.Samples;
+            double chiU = curve.UltimateCurvature, transverseRatio = curve.TransverseRatio;
+            double? yieldCurvature = curve.YieldCurvature; Sample yieldSample = curve.YieldSample;
             if (transverseRatio > p.TransverseMomentLimit)
             {
                 if (p.RejectTransverseMoment)
@@ -242,25 +345,8 @@ namespace GPC.Checkers.Concrete.Slenderness
                         + " %: the section is not symmetric about the plane of bending.", nEd, transverseRatio);
                 warnings.Add(ModelColumnWarning.TransverseMoment);
             }
-
-            // ---- maximum of M - k chi
-            int best = 0;
-            for (int i = 1; i < samples.Count; i++) if (G(samples[i]) > G(samples[best])) best = i;
-            Sample maximum = samples[best];
-            if (samples.Count > 1)
-            {
-                double a = samples[Math.Max(0, best - 1)].Chi, b = samples[Math.Min(samples.Count - 1, best + 1)].Chi;
-                var refined = Golden(a, b);
-                if (G(refined) > G(maximum)) maximum = refined;
-            }
+            Sample maximum = curve.Maximum;
             double chiStar = maximum.Chi, m1Rd = G(maximum);
-            // the maximum refined between two samples is a point of the curve too (tangent of the graphical reading)
-            if (!samples.Contains(maximum))
-            {
-                var same = samples.FirstOrDefault(s => s.Chi == chiStar);
-                if (same != null) maximum = same;
-                else samples.Insert(samples.FindIndex(s => s.Chi > chiStar), maximum);
-            }
             var mode = chiU - chiStar <= 1e-9 * chiU ? ModelColumnMode.SectionFailure : ModelColumnMode.Instability;
             if (n == 0) warnings.Add(ModelColumnWarning.NoAxialForce);
 
@@ -312,6 +398,65 @@ namespace GPC.Checkers.Concrete.Slenderness
             result.Trace = trace.AsReadOnly();
             result.Warnings = warnings.AsReadOnly();
             return result;
+        }
+
+        /// <summary>
+        /// The curve at NEd: χu, uniform samples on [0; χu] with the first yield inserted, the transverse ratio and, unless it rejects the request,
+        /// the maximum of M − k χ (best sample, golden section between its neighbours, inserted in the samples).
+        /// </summary>
+        private Curve BuildCurve()
+        {
+            double chiU = UltimateCurvature();
+            var samples = new List<Sample>();
+            for (int i = 0; i <= p.Steps; i++)
+            {
+                token.ThrowIfCancellationRequested();
+                samples.Add(Required(i == p.Steps ? chiU : chiU * i / p.Steps));
+            }
+            double? yieldCurvature = null; Sample yieldSample = null;
+            int firstYield = samples.FindIndex(s => s.Yielded);
+            if (firstYield == 0) { yieldCurvature = 0; yieldSample = samples[0]; }
+            else if (firstYield > 0)
+            {
+                double low = samples[firstYield - 1].Chi; Sample high = samples[firstYield];
+                for (int i = 0; i < 50 && high.Chi - low > 1e-15 * chiU; i++)
+                {
+                    token.ThrowIfCancellationRequested();
+                    var candidate = Required(0.5 * (low + high.Chi));
+                    if (candidate.Yielded) high = candidate; else low = candidate.Chi;
+                }
+                if (high.Chi < samples[firstYield].Chi) samples.Insert(firstYield, high);
+                yieldCurvature = high.Chi; yieldSample = high;
+            }
+            double maxMoment = samples.Max(s => Math.Abs(s.M)), maxTransverse = samples.Max(s => Math.Abs(s.T));
+            // moments of the round-off only (|NEd| = NRd,c of a symmetric section, χu = 0: 1e-11 (Ac fcd + As fyd) h is far above them): no ratio
+            var curve = new Curve
+            {
+                Samples = samples, UltimateCurvature = chiU, TransverseRatio = maxMoment > nTolerance * (wMax - wMin) ? maxTransverse / maxMoment : 0, YieldCurvature = yieldCurvature,
+                YieldSample = yieldSample
+            };
+            if (curve.TransverseRatio > p.TransverseMomentLimit && p.RejectTransverseMoment) return curve;
+
+            // ---- maximum of M - k chi
+            int best = 0;
+            for (int i = 1; i < samples.Count; i++) if (G(samples[i]) > G(samples[best])) best = i;
+            Sample maximum = samples[best];
+            if (samples.Count > 1)
+            {
+                double a = samples[Math.Max(0, best - 1)].Chi, b = samples[Math.Min(samples.Count - 1, best + 1)].Chi;
+                var refined = Golden(a, b);
+                if (G(refined) > G(maximum)) maximum = refined;
+            }
+            double chiStar = maximum.Chi;
+            // the maximum refined between two samples is a point of the curve too (tangent of the graphical reading)
+            if (!samples.Contains(maximum))
+            {
+                var same = samples.FirstOrDefault(s => s.Chi == chiStar);
+                if (same != null) maximum = same;
+                else samples.Insert(samples.FindIndex(s => s.Chi > chiStar), maximum);
+            }
+            curve.Maximum = maximum;
+            return curve;
         }
 
         // ---------------------------------------------------------------- geometry

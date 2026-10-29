@@ -161,6 +161,17 @@ def model_column(section, n_ed, l0, c=10.0, samples=3000, first_order=None):
     return out
 
 
+def reduced_domain(section, l0, forces_kn, c=10.0, samples=3000):
+    """Reduced domain N-M1Rd,max (0.28.0.0): the capacity of the first order and the moment at the ultimate curvature at each N (kN)."""
+    out = {"N_kN": list(forces_kn), "M1Rd_max_Nmm": [], "M_at_chi_u_Nmm": [], "mode": []}
+    for n in forces_kn:
+        case = model_column(section, n * 1e3, l0, c=c, samples=samples)
+        out["M1Rd_max_Nmm"].append(case["M1Rd_max_Nmm"])
+        out["M_at_chi_u_Nmm"].append(case["M_at_chi_u_Nmm"])
+        out["mode"].append(case["mode"])
+    return out
+
+
 def vcaslu(phi=0.0, net=True):
     return Rectangle(400.0, 400.0, 0.85 * 25 / 1.5, [(160.0, 3, 24.0), (-160.0, 3, 24.0)], 450 / 1.15, 200000.0, 0.075,
                      phi=phi, net=net)
@@ -223,6 +234,13 @@ def main():
     cases["R400-3+3D24-N3200-l0-3"] = model_column(s, 3200e3, 3000.0)
     r = s.bracket(0.0)
     cases["R400-3+3D24-NRdc"] = {"NRd_c_N": s.forces(r[1], 0.0)[0]}
+    # 0.28.0.0: reduced domain at l0 = 6 m and the creep of (5.19) of an action of the envelope
+    cases["R400-3+3D24-l0-6-domain"] = reduced_domain(s, 6000.0, [0, 500, 1000, 1500, 2000, 2500, 3000, 3200])
+    # phi_ef = phi(inf) (M0Eqp + |NEqp| ei) / (M0Ed + |NEd| ei) = 2 (30 + 350 x 0.020) / (100 + 1000 x 0.020) kNm, ei = 20 mm
+    phi = 2 * (30e6 + 350e3 * 20) / (100e6 + 1000e3 * 20)
+    case = model_column(vcaslu(phi=phi), 1000e3, 6000.0)
+    case["phi_ef"] = phi
+    cases["R400-3+3D24-l0-6-N1000-phi519"] = case
     for net in (False, True):
         u = units(net=net)
         for l0 in (8000.0, 13000.0, 18000.0):
@@ -233,7 +251,10 @@ def main():
         f.write("\n")
     for key in sorted(cases):
         c = cases[key]
-        if "M1Rd_max_Nmm" in c:
+        if "N_kN" in c:
+            for n, m1, mu, mode in zip(c["N_kN"], c["M1Rd_max_Nmm"], c["M_at_chi_u_Nmm"], c["mode"]):
+                print("%-30s N = %6g kN  M1Rd,max = %10.3f kNm  M(chi_u) = %8.3f kNm  %s" % (key, n, m1 / 1e6, mu / 1e6, mode))
+        elif "M1Rd_max_Nmm" in c:
             print("%-30s M1Rd,max = %10.3f kNm  chi* = %.6e  e2* = %7.2f mm  chi_u = %.6e  M(chi_u) = %8.3f  %s" % (
                 key, c["M1Rd_max_Nmm"] / 1e6, c["chi_star_per_mm"], c["e2_star_mm"], c["chi_u_per_mm"], c["M_at_chi_u_Nmm"] / 1e6, c["mode"]))
             if c.get("equilibrium"):

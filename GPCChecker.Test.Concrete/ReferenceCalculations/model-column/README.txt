@@ -1,4 +1,4 @@
-RIFERIMENTI DELLA COLONNA MODELLO - 28/10/2026 (GPCChecker.Concrete 0.27.0.0)
+RIFERIMENTI DELLA COLONNA MODELLO - 28/10/2026 (GPCChecker.Concrete 0.27.0.0; 0.28.0.0 dal 29/10/2026)
 
 Contenuto
 - derive_model_column_oracles.py: riferimento indipendente, solo libreria standard di
@@ -75,6 +75,21 @@ Altri casi dello script (stessa sezione R400, netta; libreria entro 0,2 %, 0,5 %
   chi_u: con la sezione netta la pendenza è minore di |N| l0^2/c);
 - N = 0: 174,198 kNm = M(chi_u); N = 2000 kN, l0 = 6 m: 121,874 kNm;
   N = 3200 kN, l0 = 3 m: 10,796 kNm; NRd,c = 3290,345 kN (rifiuto oltre).
+
+Casi della 0.28.0.0 (29/10/2026: inviluppo delle azioni e dominio ridotto, prove in
+ModelColumnEnvelopeTests.cs; i casi precedenti dello script restano identici)
+- R400-3+3D24-l0-6-domain: dominio ridotto della sezione R400 netta a l0 = 6 m, c = 10,
+  phi_ef = 0, a N = 0 / 500 / 1000 / 1500 / 2000 / 2500 / 3000 / 3200 kN:
+  M1Rd,max = 174,198 / 213,921 / 223,656 / 169,407 / 121,874 / 65,608 / 17,829 / 3,897 kNm,
+  M(chi_u) = 174,198 / 246,264 / 276,512 / 234,963 / 183,951 / 119,789 / 44,827 / 14,179 kNm.
+- R400-3+3D24-l0-6-N1000-phi519: N = 1000 kN, l0 = 6 m, phi_ef della (5.19)
+  phi(inf) (M0Eqp + |NEqp| ei)/(M0Ed + |NEd| ei) = 2 (30 + 350 x 0,020)/(100 + 1000 x 0,020)
+  = 0,61667: M1Rd,max = 212,609 kNm.
+Confronti (libreria 0.28.0.0): dominio M1Rd,max da -0,0003 % a +0,0013 %, M(chi_u) entro
+0,0001 %; phi519 +0,0002 %; rapporto dell'azione di 3000 kN e 25 kNm 1,40225 (riferimento
+25/17,8285 = 1,40225). Gli attesi dell'inviluppo (rapporti M0Ed/M1Rd,max, azione che
+governa, proiezione M = M1 cos theta + M2 sin theta, phi_ef della (5.19) per azione) sono
+calcolati a mano nelle prove dai valori di questi casi.
 
 Forme chiuse a mano (EN 1992-1-1, NTC 2018), caso R400
 i = 400/√12 = 115,470 mm; lambda = 103,92; nu = 0,22059; omega = 0,46859;
