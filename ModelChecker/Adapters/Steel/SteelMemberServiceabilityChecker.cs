@@ -14,16 +14,24 @@ using GPC.Model.Core.Diagnostics;
 using GPC.Model.Elements;
 using GPC.Model.Sections.Steel;
 using GPC.Model.Standards;
+using GPC.Model.Structure.Members;
 
 namespace GPC.Model.Checker
 {
     /// <summary>Physical-member serviceability (deformation) engine: vertical deflection, drift between the span ends and the
     /// natural frequency of the member, from the member-node displacements that BeamCheckPlan prepares for a deformation task
     /// (MemberCheckSpecification.Category/Deformation). Limits, support schemes, precamber, coverage and mass state are declared
-    /// parameters with their sources; a missing declaration is a precise missing input, never a default limit.</summary>
+    /// parameters with their sources; a missing declaration is a precise missing input, never a default limit. A member may carry
+    /// its own scheme, cantilever reference, limits and precamber (PhysicalMemberDefinition.ServiceabilityLimits, copied into
+    /// MemberDeformationSnapshot.ServiceabilityLimits): they take precedence over the parameters, which are the fallback, and the
+    /// trace of such a member records the origin of every value (".Origin": Member or Engine).</summary>
     public sealed class SteelMemberServiceabilityChecker : IMaterialChecker, IPhysicalMemberVerifier
     {
         public const string EngineId = "Steel.Serviceability.Member";
+        /// <summary>Source written for Deflection.CantileverReference = Ntc2018. NTC 2018 4.2.4.2.1, verified on the published text
+        /// (DM 17/01/2018, GU n. 42 of 20/02/2018, S.O. n. 8, p. 106): the limits of Tab. 4.2.XII refer to L, the span of the element
+        /// or, for cantilevers, twice the cantilever length.</summary>
+        internal const string NtcCantileverReference = "NTC 2018 4.2.4.2.1: L of the limits of Tab. 4.2.XII is, for cantilevers, twice the cantilever length (\"nel caso di mensole, il doppio dello sbalzo\"; GU n. 42 of 20/02/2018, S.O. n. 8, p. 106)";
         internal const string Limitations = "EC3:2005 7.2 with EN1990 A1.4 / NTC2018 4.2.4.2 member deformations from the exported member-node displacements of one declared state, in member axes: vertical deflection relative to the chord of the design span or to the supported end of a cantilever (maximum over the exported nodes only, declared coverage; precamber at the governing node), variable-action deflection from a declared state or a linear difference of states, relative displacement of the span ends against h/n, natural frequency f=17.75/sqrt(delta[mm]) of a simply supported member with uniform mass or a declared qualified coefficient. Every limit, scheme and source is declared: no table value of the standards is built in. Building-level drift of several column lines, floor response/acceleration criteria, dynamic analyses and time-dependent deflections are outside.";
         private readonly Dictionary<string, string> _parameters;
         public IReadOnlyDictionary<string, string> Parameters { get; }
@@ -46,6 +54,9 @@ namespace GPC.Model.Checker
             foreach (var pair in _parameters)
                 if (!fields.TryGetValue(pair.Key, out var field) || string.IsNullOrWhiteSpace(pair.Value)) throw new ArgumentException("UnknownOrEmptySteelServiceabilityParameter: " + pair.Key);
                 else if (!field.Accepts(pair.Value)) throw new ArgumentException("InvalidSteelServiceabilityParameter: " + pair.Key);
+            // The option cites NTC 2018: under another code the reference of a cantilever is a declared factor with its own source.
+            if (_parameters.ContainsKey("Deflection.CantileverReference") && !Ntc)
+                throw new ArgumentException("CantileverReferenceIsNtc2018: declare Deflection.CantileverLengthFactor and Deflection.CantileverLengthSource for " + Code.Name);
             Parameters = new ReadOnlyDictionary<string, string>(_parameters);
         }
         public bool Accepts(BeamElement element) => element?.BeamProperty is ISteelSection;
@@ -73,6 +84,14 @@ namespace GPC.Model.Checker
         {
             var present = keys.Where(Has).ToArray();
             if (present.Length != 0) throw new ArgumentException(reason + ": " + string.Join(", ", present));
+        }
+        /// <summary>The value the member declares or, without it, the parameter pair of the engine (same reading order as before).</summary>
+        private (double Value, string Source, bool Member) Declared(MemberDeclaredValue member, string key, string sourceKey, string code)
+            => member != null ? (member.Value, member.Source, true) : (Number(key, code), Text(sourceKey, code), false);
+        /// <summary>Origin of a value, recorded only for members with declarations: the rows of the other members are unchanged.</summary>
+        private static void Origin(List<CheckCalculationValue> trace, MemberServiceabilityLimits limits, string key, bool member)
+        {
+            if (limits != null) trace.Add(new CheckCalculationValue(key + ".Origin", null, null, member ? "Member" : "Engine"));
         }
 
         private string Clause(MemberDeformationCriterion criterion)
@@ -133,25 +152,42 @@ namespace GPC.Model.Checker
 
         private List<SteelDeformationCheck> Deflection(MemberInputSnapshot snapshot, MemberDeformationSnapshot deformation, MemberDeformationSpecification spec, List<CheckCalculationValue> trace)
         {
-            string schemeText = Text("Deflection.Scheme", "SteelServiceability.MissingDeflectionScheme");
+            // Values declared on the member win; the parameters are the fallback, read in the same order as without member values.
+            var member = deformation.ServiceabilityLimits;
+            bool memberScheme = member?.DeflectionScheme != null;
+            string schemeText = memberScheme ? member.DeflectionScheme.Value.ToString() : Text("Deflection.Scheme", "SteelServiceability.MissingDeflectionScheme");
             var scheme = (SteelDeflectionScheme)Enum.Parse(typeof(SteelDeflectionScheme), schemeText, false);
-            string schemeSource = Text("Deflection.SchemeSource", "SteelServiceability.MissingDeflectionScheme");
+            string schemeSource = memberScheme ? member.DeflectionSchemeSource : Text("Deflection.SchemeSource", "SteelServiceability.MissingDeflectionScheme");
             string coverage = Text("Deformation.CoverageSource", "SteelServiceability.MissingCoverageSource");
-            bool max = Has("Deflection.MaxRatio") || Has("Deflection.MaxSource"), variable = Has("Deflection.VariableRatio") || Has("Deflection.VariableSource");
+            bool max = member?.MaxDeflectionRatio != null || Has("Deflection.MaxRatio") || Has("Deflection.MaxSource"),
+                variable = member?.VariableDeflectionRatio != null || Has("Deflection.VariableRatio") || Has("Deflection.VariableSource");
             if (!max && !variable) throw new MissingDeclaration("SteelServiceability.MissingDeflectionLimit", "Declare Deflection.MaxRatio/MaxSource and/or Deflection.VariableRatio/VariableSource.");
             bool basis = spec.VariableBasis != MemberVariableDeflectionBasis.None;
             if (variable && !basis) throw new MissingDeclaration("SteelServiceability.MissingVariableDeflectionState", "The task declares no variable-action state (MemberDeformationSpecification.VariableBasis).");
             if (basis && !variable) throw new MissingDeclaration("SteelServiceability.MissingVariableDeflectionLimit", "The task declares a variable-action state: declare Deflection.VariableRatio and Deflection.VariableSource.");
             double span = snapshot.SpanEnd - snapshot.SpanStart, reference = span;
-            if (scheme == SteelDeflectionScheme.SupportedEnds) Forbid("CantileverReferenceOnSupportedSpan", "Deflection.CantileverLengthFactor", "Deflection.CantileverLengthSource");
+            // The engine factor belongs to the engine's own cantilever scheme (refused with SupportedEnds, as before); the NTC
+            // reference is a rule for every cantilever and excludes a declared engine factor.
+            if (Has("Deflection.CantileverReference")) Forbid("CantileverReferenceConflict", "Deflection.CantileverLengthFactor", "Deflection.CantileverLengthSource");
+            if (Has("Deflection.Scheme") && _parameters["Deflection.Scheme"] == nameof(SteelDeflectionScheme.SupportedEnds))
+                Forbid("CantileverReferenceOnSupportedSpan", "Deflection.CantileverLengthFactor", "Deflection.CantileverLengthSource");
+            if (scheme == SteelDeflectionScheme.SupportedEnds)
+            {
+                if (member?.CantileverLengthFactor != null) throw new ArgumentException("CantileverReferenceOnSupportedSpan: MemberServiceabilityLimits.CantileverLengthFactor");
+            }
             else
             {
-                double factor = Number("Deflection.CantileverLengthFactor", "SteelServiceability.MissingCantileverReference");
-                trace.Add(new CheckCalculationValue("Deflection.CantileverLengthFactor", factor, "1", Text("Deflection.CantileverLengthSource", "SteelServiceability.MissingCantileverReference")));
+                double factor; string source; bool fromMember = member?.CantileverLengthFactor != null;
+                if (fromMember) { factor = member.CantileverLengthFactor.Value; source = member.CantileverLengthFactor.Source; }
+                else if (Has("Deflection.CantileverReference")) { factor = 2; source = NtcCantileverReference; }
+                else { factor = Number("Deflection.CantileverLengthFactor", "SteelServiceability.MissingCantileverReference"); source = Text("Deflection.CantileverLengthSource", "SteelServiceability.MissingCantileverReference"); }
+                trace.Add(new CheckCalculationValue("Deflection.CantileverLengthFactor", factor, "1", source));
+                Origin(trace, member, "Deflection.CantileverLengthFactor", fromMember);
                 reference = factor * span;
             }
             var total = SteelDeflectionProfile.Create(Points(deformation.Total, spec.Direction), snapshot.SpanStart, snapshot.SpanEnd, scheme);
             trace.Add(new CheckCalculationValue("Deflection.Scheme", null, null, scheme + ": " + schemeSource));
+            Origin(trace, member, "Deflection.Scheme", memberScheme);
             trace.Add(new CheckCalculationValue("Deflection.Coverage", null, null, coverage));
             trace.Add(new CheckCalculationValue("Deflection.Span", span, "mm", "SpanEnd - SpanStart"));
             trace.Add(new CheckCalculationValue("Deflection.ReferenceLength", reference, "mm", scheme == SteelDeflectionScheme.SupportedEnds ? "L = span" : "L = factor x cantilever length"));
@@ -162,24 +198,38 @@ namespace GPC.Model.Checker
             var checks = new List<SteelDeformationCheck>();
             if (max)
             {
-                double ratio = Number("Deflection.MaxRatio", "SteelServiceability.MissingDeflectionLimit");
-                string source = Text("Deflection.MaxSource", "SteelServiceability.MissingDeflectionLimit");
-                double precamber = Number("Deflection.Precamber", "SteelServiceability.MissingPrecamber");
-                if (precamber != 0) trace.Add(new CheckCalculationValue("Deflection.PrecamberSource", null, null, Text("Deflection.PrecamberSource", "SteelServiceability.MissingPrecamberSource")));
+                var (ratio, source, ratioFromMember) = Declared(member?.MaxDeflectionRatio, "Deflection.MaxRatio", "Deflection.MaxSource", "SteelServiceability.MissingDeflectionLimit");
+                double precamber; bool precamberFromMember = member?.Precamber != null;
+                if (precamberFromMember)
+                {
+                    precamber = member.Precamber.Value;
+                    trace.Add(new CheckCalculationValue("Deflection.PrecamberSource", null, null, member.Precamber.Source));
+                }
+                else
+                {
+                    precamber = Number("Deflection.Precamber", "SteelServiceability.MissingPrecamber");
+                    if (precamber != 0) trace.Add(new CheckCalculationValue("Deflection.PrecamberSource", null, null, Text("Deflection.PrecamberSource", "SteelServiceability.MissingPrecamberSource")));
+                }
                 trace.Add(new CheckCalculationValue("Deflection.Precamber", precamber, "mm", "Signed unloaded offset at the governing node; delta_max = |delta_tot + precamber|"));
+                Origin(trace, member, "Deflection.Precamber", precamberFromMember);
                 trace.Add(new CheckCalculationValue("Deflection.MaxRatio", ratio, "1", "L/n"));
+                Origin(trace, member, "Deflection.MaxRatio", ratioFromMember);
                 checks.Add(SteelMemberDeformation.MaximumDeflection(total, precamber, new SteelDeformationLimit(ratio, reference, source), Clause(spec.Criterion)));
             }
-            else Forbid("PrecamberWithoutMaximumDeflection", "Deflection.Precamber", "Deflection.PrecamberSource");
+            else
+            {
+                Forbid("PrecamberWithoutMaximumDeflection", "Deflection.Precamber", "Deflection.PrecamberSource");
+                if (member?.Precamber != null) throw new ArgumentException("PrecamberWithoutMaximumDeflection: MemberServiceabilityLimits.Precamber");
+            }
             if (variable)
             {
-                double ratio = Number("Deflection.VariableRatio", "SteelServiceability.MissingVariableDeflectionLimit");
-                string source = Text("Deflection.VariableSource", "SteelServiceability.MissingVariableDeflectionLimit");
+                var (ratio, source, fromMember) = Declared(member?.VariableDeflectionRatio, "Deflection.VariableRatio", "Deflection.VariableSource", "SteelServiceability.MissingVariableDeflectionLimit");
                 var state = SteelDeflectionProfile.Create(Points(deformation.Variable, spec.Direction), snapshot.SpanStart, snapshot.SpanEnd, scheme);
                 var profile = spec.VariableBasis == MemberVariableDeflectionBasis.Difference ? total.Minus(state) : state;
                 trace.Add(new CheckCalculationValue("Deflection.VariableBasis", null, null, spec.VariableBasis == MemberVariableDeflectionBasis.Difference
                     ? "Task state minus " + spec.VariableSelection.Case + " (linear superposition)" : "Declared variable-action state " + spec.VariableSelection.Case));
                 trace.Add(new CheckCalculationValue("Deflection.VariableRatio", ratio, "1", "L/n"));
+                Origin(trace, member, "Deflection.VariableRatio", fromMember);
                 checks.Add(SteelMemberDeformation.VariableDeflection(profile, new SteelDeformationLimit(ratio, reference, source), Clause(spec.Criterion)));
             }
             return checks;
@@ -187,8 +237,8 @@ namespace GPC.Model.Checker
 
         private List<SteelDeformationCheck> Drift(MemberInputSnapshot snapshot, MemberDeformationSnapshot deformation, MemberDeformationSpecification spec, List<CheckCalculationValue> trace)
         {
-            double ratio = Number("Drift.Ratio", "SteelServiceability.MissingDriftLimit");
-            string source = Text("Drift.Source", "SteelServiceability.MissingDriftLimit");
+            var member = deformation.ServiceabilityLimits;
+            var (ratio, source, fromMember) = Declared(member?.DriftRatio, "Drift.Ratio", "Drift.Source", "SteelServiceability.MissingDriftLimit");
             var start = deformation.Total.FirstOrDefault(s => Math.Abs(s.Location.Distance - snapshot.SpanStart) <= 1e-7);
             var end = deformation.Total.LastOrDefault(s => Math.Abs(s.Location.Distance - snapshot.SpanEnd) <= 1e-7);
             if (start == null || end == null) throw new ArgumentException("DisplacementPointsRequiredAtBothSpanEnds");
@@ -199,6 +249,7 @@ namespace GPC.Model.Checker
                 new SteelDeformationLimit(ratio, height, source), Clause(spec.Criterion));
             trace.Add(new CheckCalculationValue("Drift.Height", height, "mm", "h = SpanEnd - SpanStart"));
             trace.Add(new CheckCalculationValue("Drift.Ratio", ratio, "1", "h/n"));
+            Origin(trace, member, "Drift.Ratio", fromMember);
             trace.Add(new CheckCalculationValue("Drift.Delta1", end.D1 - start.D1, "mm", "Relative displacement along member axis 1, node " + end.NodeId + " minus node " + start.NodeId));
             trace.Add(new CheckCalculationValue("Drift.Delta2", end.D2 - start.D2, "mm", "Relative displacement along member axis 2"));
             trace.Add(new CheckCalculationValue("Drift.Direction", null, null, spec.Direction == MemberDeformationDirection.Transverse ? "Magnitude of both transverse components" : spec.Direction.ToString()));
@@ -207,8 +258,8 @@ namespace GPC.Model.Checker
 
         private List<SteelDeformationCheck> Vibration(MemberInputSnapshot snapshot, MemberDeformationSnapshot deformation, MemberDeformationSpecification spec, List<CheckCalculationValue> trace)
         {
-            double minimum = Number("Vibration.MinimumFrequency", "SteelServiceability.MissingFrequencyLimit");
-            string source = Text("Vibration.Source", "SteelServiceability.MissingFrequencyLimit");
+            var member = deformation.ServiceabilityLimits;
+            var (minimum, source, fromMember) = Declared(member?.MinimumFrequency, "Vibration.MinimumFrequency", "Vibration.Source", "SteelServiceability.MissingFrequencyLimit");
             string scheme = Text("Vibration.Scheme", "SteelServiceability.MissingVibrationScheme");
             string schemeSource = Text("Vibration.SchemeSource", "SteelServiceability.MissingVibrationScheme");
             string mass = Text("Vibration.MassStateSource", "SteelServiceability.MissingMassStateSource");
@@ -238,6 +289,7 @@ namespace GPC.Model.Checker
             trace.Add(new CheckCalculationValue("Vibration.Deflection", delta, "mm", (basis == "RelativeToChord" ? "Relative to the chord of the supports" : "Total, support displacements included") + " at " + governing.Label));
             trace.Add(new CheckCalculationValue("Vibration.Deflection.Location", governing.Distance, "mm", governing.Label));
             trace.Add(new CheckCalculationValue("Vibration.Frequency", frequency, "Hz", "f = K / sqrt(delta[mm])"));
+            Origin(trace, member, "Vibration.MinimumFrequency", fromMember);
             return new List<SteelDeformationCheck> { SteelMemberDeformation.Frequency(frequency, minimum, governing.Distance, governing.Label, Clause(spec.Criterion), source) };
         }
 
