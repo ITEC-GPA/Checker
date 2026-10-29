@@ -67,23 +67,24 @@ namespace GPC.Model.Checker.Configuration
             foreach(var key in new[]{"CompressionCurve1","CompressionCurve2","TorsionalCurve"})
                 Add(key,EngineParameterKind.Choice,choices:curves,modes:key=="TorsionalCurve"?new[]{"Compression"}:new[]{"Compression","BeamColumn"});
             Add("CurveSelection",EngineParameterKind.Choice,choices:new[]{"Automatic"},modes:new[]{"Compression","BeamColumn"});
-            Add("CriticalValues",EngineParameterKind.Choice,choices:new[]{"UniformFork","ForkDiagram"},modes:new[]{"Compression","Bending"});
-            Add("ForkDiagram",EngineParameterKind.Choice,choices:new[]{"EndMoments","UniformTransverseLoad","CentralPointLoad","GenericEnvelope"},modes:new[]{"Bending"});
+            Add("CriticalValues",EngineParameterKind.Choice,choices:new[]{"UniformFork","ForkDiagram"},modes:new[]{"Compression","Bending","BeamColumn"});
+            Add("ForkDiagram",EngineParameterKind.Choice,choices:new[]{"EndMoments","UniformTransverseLoad","CentralPointLoad","GenericEnvelope"},modes:new[]{"Bending","BeamColumn"});
             Add("MomentDiagramCoverageSource",description:"Qualification that every boundary, internal extrema and discontinuity face is exported in the same FEM design state; no peak is inferred between samples.",modes:new[]{"Bending","BeamColumn"});
             Require("GenericMomentCoverage","Generic moment envelopes require explicit export coverage.",new[]{"MomentDiagramCoverageSource"},Is("ForkDiagram","GenericEnvelope"));
             Require("GenericFactorCoverage","Generic Cm envelopes require explicit export coverage.",new[]{"MomentDiagramCoverageSource"},Is("MomentFactorPreparation","ConservativeEnvelope"));
-            Add("ForkLoadHeight",EngineParameterKind.Number,"mm",description:"Signed load height: positive toward shear centre (destabilizing); explicit zero at shear centre.",modes:new[]{"Bending"});
+            Add("ForkLoadHeight",EngineParameterKind.Number,"mm",description:"Signed load height: positive toward shear centre (destabilizing); explicit zero at shear centre.",modes:new[]{"Bending","BeamColumn"});
             Require("ForkDiagramRequired","Declare the full-span diagram and Mcr basis.",new[]{"ForkDiagram","McrBasis"},Is("CriticalValues","ForkDiagram"));
             foreach(var shape in new[]{"UniformTransverseLoad","CentralPointLoad","GenericEnvelope"})
                 Require("ForkLoadHeightRequired","Transverse load height must be explicit.",new[]{"ForkLoadHeight"},Is("ForkDiagram",shape));
             rules.Add(new EngineParameterRule("ForkParametersWithoutPreparation","Fork diagram fields require their preparation method.",new[]{IsNot("CriticalValues","ForkDiagram")},null,new[]{"ForkDiagram","ForkLoadHeight"}));
             rules.Add(new EngineParameterRule("EndMomentHeightConflict","End-moment loading has no transverse force height.",new[]{Is("ForkDiagram","EndMoments")},null,new[]{"ForkLoadHeight"}));
             rules.Add(new EngineParameterRule("CompressionDiagramConflict","ForkDiagram is a bending-only preparation.",new[]{Is("AnalysisMode","Compression"),Is("CriticalValues","ForkDiagram")},null,new[]{"CriticalValues"}));
-            Add("CriticalValuesSource",description:"Explicit full-span fork/free-warping declaration, no offsets or intermediate restraints.",modes:new[]{"Compression","Bending"});
+            Add("CriticalValuesSource",description:"Explicit fork/free-warping declaration of the member ends, no offsets; declared Model restraints split it into fork segments.",modes:new[]{"Compression","Bending","BeamColumn"});
             Together("CriticalPreparationPair","CriticalValues","CriticalValuesSource");
             rules.Add(new EngineParameterRule("AutomaticCurvesConflict","Choose automatic or explicit curves.",new[]{Is("CurveSelection","Automatic")},null,new[]{"CompressionCurve1","CompressionCurve2","TorsionalCurve"}));
-            rules.Add(new EngineParameterRule("AutomaticCriticalConflict","Automatic critical values cannot accompany external values or mode exclusions.",new[]{Has("CriticalValues")},null,
-                new[]{"Ncr1","Ncr2","NcrT","NcrFT","Mcr","AlphaUltK","AlphaCrOp"}.SelectMany(q=>new[]{q+".Value",q+".Unit",q+".Source"}).Concat(new[]{"TorsionalExclusionSource","FlexuralTorsionalExclusionSource"})));
+            // Explicit NcrT/NcrFT values or exclusions win over the automatic modes and remain admissible.
+            rules.Add(new EngineParameterRule("AutomaticCriticalConflict","Automatic critical values cannot accompany external Ncr1/Ncr2/Mcr or general-method values.",new[]{Has("CriticalValues")},null,
+                new[]{"Ncr1","Ncr2","Mcr","AlphaUltK","AlphaCrOp"}.SelectMany(q=>new[]{q+".Value",q+".Unit",q+".Source"}).ToArray()));
             Add("MemberClass",EngineParameterKind.Integer,min:1,max:4,modes:new[]{"ExternalInPlane","Compression","Bending","BeamColumn"});
             Together("MemberClassificationPair","MemberClass","ClassificationSource");
             Add("EffectiveSectionAnalysisSource",description:"External characteristic analysis with effective widths, centroid shifts, imperfections and second order; same load pattern as the critical factor.",modes:new[]{"ExternalInPlane"});
@@ -99,7 +100,23 @@ namespace GPC.Model.Checker.Configuration
             Require("ExplicitMomentFactors","Provide Cm or select declared linear-diagram preparation.",new[]{"Cm1","Cm2","CmLT"},Is("AnalysisMode","BeamColumn"),IsNot("MomentFactorPreparation","LinearDiagrams"),IsNot("MomentFactorPreparation","ConservativeEnvelope"));
             foreach(var key in new[]{"Cm1","Cm2","CmLT"}) Add(key,EngineParameterKind.Number,"1",min:.4,max:1,modes:new[]{"BeamColumn"});
             foreach(var key in new[]{"MomentFactorSource","StabilityModelSource","LateralTorsionalExclusionSource","ShearBucklingExclusionSource"})
-                Add(key,modes:new[]{"BeamColumn"});
+                Add(key,modes:new[]{"BeamColumn"},description:key!="ShearBucklingExclusionSource"?null
+                    :"Explicit shear-buckling exclusion; it wins. Without it exact H are screened like the section engine (web EC3 6.2.6(6)/NTC 4.2.27, flanges c/t<=14eps GPC criterion); hollow sections require it.");
+            // LTB method: General is the default; the rolled method uses the code object's *Mod beta/lambdaLT0 and f from kc.
+            var ltbModes=new[]{"Bending","BeamColumn"};var ltbMoment=new[]{"LtbMomentDistribution","LtbPsi","LtbMomentSource"};
+            Add("LtbMethod",EngineParameterKind.Choice,choices:new[]{"General","RolledOrEquivalentWelded"},modes:ltbModes,
+                description:"LTB reduction: General (EC3 6.3.2.2; NTC f=beta=1, lambdaLT0=0.2; default) or EC3 6.3.2.3 / NTC 4.2.4.1.3.2 for rolled or equivalent welded doubly symmetric I/H, with BetaForLateralTorsionalBucklingMod/LambdaLT0ForLateralTorsionalBucklingMod of the code object.");
+            Add("LtbMomentDistribution",EngineParameterKind.Choice,modes:ltbModes,choices:new[]{"Uniform","Linear","SimplySupportedUniformLoad","FixedEndsUniformLoad",
+                "OneEndFixedUniformLoad","SimplySupportedCentralLoad","FixedEndsCentralLoad","OneEndFixedCentralLoad"},
+                description:"Declared Table 6.6 kc row of the moment diagram between lateral restraints, only without a diagram preparation; otherwise kc=1.");
+            Add("LtbPsi",EngineParameterKind.Number,"1",min:-1,max:1,modes:ltbModes,description:"End-moment ratio of the declared linear diagram, smaller/larger end moment with sign.");
+            Add("LtbMomentSource",modes:ltbModes,description:"Provenance of the declared moment diagram between lateral restraints, same member and design state.");
+            Together("LtbMomentPair","LtbMomentDistribution","LtbMomentSource");
+            Require("LtbPsiRequired","A linear kc diagram needs its end-moment ratio.",new[]{"LtbPsi"},Is("LtbMomentDistribution","Linear"));
+            rules.Add(new EngineParameterRule("LtbPsiWithoutLinear","Psi belongs to the linear kc row only.",new[]{IsNot("LtbMomentDistribution","Linear")},null,new[]{"LtbPsi"}));
+            rules.Add(new EngineParameterRule("LtbMomentWithoutRolledMethod","kc applies only to the rolled or equivalent welded method.",new[]{IsNot("LtbMethod","RolledOrEquivalentWelded")},null,ltbMoment));
+            foreach(var key in new[]{"CriticalValues","MomentFactorPreparation"})
+                rules.Add(new EngineParameterRule("LtbMomentConflictsWithPreparation","A prepared diagram establishes kc; do not declare another.",new[]{Has(key)},null,ltbMoment));
             Require("UniformForkCurves","The uniform fork method needs its three explicit curves.",new[]{"InPlaneCurve","LateralCurve","LateralTorsionalCurve"},Is("AnalysisMode","UniformFork"));
             Require("GeneralMethodInputs","The external general method requires both multipliers and lateral curves.",
                 new[]{"LateralCurve","LateralTorsionalCurve","AlphaUltK.Value","AlphaUltK.Unit","AlphaUltK.Source","AlphaCrOp.Value","AlphaCrOp.Unit","AlphaCrOp.Source"},Is("AnalysisMode","ExternalInPlane"));
@@ -108,24 +125,25 @@ namespace GPC.Model.Checker.Configuration
             Require("BendingCriticalMoment","Bending requires a sourced critical moment and its basis.",new[]{"Mcr.Value","Mcr.Unit","Mcr.Source","McrBasis"},Is("AnalysisMode","Bending"),IsNot("CriticalValues","UniformFork"),IsNot("CriticalValues","ForkDiagram"));
             Require("AutomaticMomentBasis","Automatic Mcr requires its uniform-moment basis.",new[]{"McrBasis"},Is("AnalysisMode","Bending"),Is("CriticalValues","UniformFork"));
             Require("BeamColumnModel","Beam-column checks require curves, moment factors and the explicit stability model.",
-                new[]{"TorsionSusceptible","MomentFactorSource","StabilityModelSource", "TorsionalExclusionSource","FlexuralTorsionalExclusionSource","McrBasis"},Is("AnalysisMode","BeamColumn"));
+                new[]{"TorsionSusceptible","MomentFactorSource","StabilityModelSource","McrBasis"},Is("AnalysisMode","BeamColumn"));
             Require("BeamColumnCurves","Provide the two flexural curves or select automatic preparation.",new[]{"CompressionCurve1","CompressionCurve2"},Is("AnalysisMode","BeamColumn"),IsNot("CurveSelection","Automatic"));
             Require("LateralModeAssessment","A reasoned exclusion is required when lateral-torsional susceptibility is false.",new[]{"LateralTorsionalExclusionSource"},Is("AnalysisMode","BeamColumn"),Is("TorsionSusceptible","false"));
             rules.Add(new EngineParameterRule("ConflictingLateralMode","Susceptibility and exclusion cannot both be declared.",new[]{Is("TorsionSusceptible","true")},null,new[]{"LateralTorsionalExclusionSource"}));
             foreach(var q in new[]{"Ncr1","Ncr2","NcrT","NcrFT","Mcr","AlphaUltK","AlphaCrOp"}) {
                 bool alpha=q.StartsWith("Alpha",StringComparison.Ordinal); bool moment=q=="Mcr";
                 var modes=alpha?new[]{"ExternalInPlane"}:moment?new[]{"ExternalInPlane","Bending","BeamColumn"}
-                    :(q=="NcrT"||q=="NcrFT")?new[]{"ExternalInPlane","Compression"}:new[]{"ExternalInPlane","Compression","BeamColumn"};
+                    :new[]{"ExternalInPlane","Compression","BeamColumn"};
                 Add(q+".Value",EngineParameterKind.Number,"selected by "+q+".Unit",min:0,exclusive:true,modes:modes);
                 Add(q+".Unit",EngineParameterKind.Choice,choices:alpha?new[]{"One"}:moment?new[]{"Nmm","KNm"}:new[]{"N","KN"},modes:modes);
                 Add(q+".Source",description:"Provenance of this critical value for the same physical member and load state.",modes:modes);
                 Together(q+"Triplet",q+".Value",q+".Unit",q+".Source");
             }
             foreach(var mode in new[]{"T","FT"}) {
+                // Without value or exclusion the mode is resolved at execution (doubly symmetric H with torsional
+                // restraints, closed hollow) or reported as missing input: like Ncr1/Ncr2 it may come from the model context.
                 string source=mode=="T"?"TorsionalExclusionSource":"FlexuralTorsionalExclusionSource";
-                rules.Add(new EngineParameterRule("CompressionMode"+mode,"Supply this critical mode or a reasoned exclusion.",new[]{Is("AnalysisMode","Compression"),IsNot("CriticalValues","UniformFork")},
-                    new[]{new[]{"Ncr"+mode+".Value","Ncr"+mode+".Unit","Ncr"+mode+".Source"},new[]{source}}));
-                rules.Add(new EngineParameterRule("ConflictingCompressionMode"+mode,"A mode cannot be both supplied and excluded.",new[]{Is("AnalysisMode","Compression"),Has(source)},null,new[]{"Ncr"+mode+".Value","Ncr"+mode+".Unit","Ncr"+mode+".Source"}));
+                foreach(var route in new[]{"Compression","BeamColumn"})
+                    rules.Add(new EngineParameterRule("ConflictingCompressionMode"+mode,"A mode cannot be both supplied and excluded.",new[]{Is("AnalysisMode",route),Has(source)},null,new[]{"Ncr"+mode+".Value","Ncr"+mode+".Unit","Ncr"+mode+".Source"}));
             }
             foreach(var key in new[]{"Pitch","Thickness","GussetThickness","ChordCompression","ChordCompressionResistance","ChordTension","ChordTensionResistance","ConnectionDemand","ConnectionResistance"})
                 Add("Packed."+key,EngineParameterKind.Number,key=="Pitch"||key.Contains("Thickness")?"mm":"N",min:0,
@@ -145,6 +163,8 @@ namespace GPC.Model.Checker.Configuration
                 new[]{"Packed.ChordCompressionResistance","Packed.ChordTensionResistance"}));
             return new EngineParameterSchema(SteelMemberPipelineChecker.EngineId,fields,rules,new[]{
                 "Ncr1/Ncr2 or explicit effective lengths in MemberDesignContext are required; FEM nodes do not imply restraints.",
+                "NcrT/NcrFT: value, reasoned exclusion or automatic resolution (doubly symmetric H with explicit twist restraints, closed hollow sections); otherwise execution reports missing input.",
+                "CriticalValues splits the member at declared fork restraints (lateral+twist); partial, one-flange, unknown or phase-dependent restraints are refused.",
                 "Beam-column Mcr is required when the active major moment and torsional susceptibility demand it; shear assessments depend on the actual actions.",
                 "Geometry, full-span actions, norm/edition, mode applicability and connection/detailing qualification remain execution checks.",
                 "UniformFork is EC3 only. ExternalInPlane also supports EN6.3.4 under NTC4.2.4.1.3.3 with NTC factors; class4 requires effective-analysis evidence."});

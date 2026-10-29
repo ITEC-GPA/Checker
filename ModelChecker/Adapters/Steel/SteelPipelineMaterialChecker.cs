@@ -135,7 +135,7 @@ namespace GPC.Model.Checker
                 var input = plan.Input;
                 for (int axis = 1; axis <= 2; axis++)
                 {
-                    if ((axis == 1 ? input.Actions.V1 : input.Actions.V2) == 0) continue;
+                    if ((axis == 1 ? input.EffectiveActions.V1 : input.EffectiveActions.V2) == 0) continue;
                     if (axis == 2 && options.HWebResistance != null)
                     {
                         double eta = input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018 ? 1
@@ -150,7 +150,16 @@ namespace GPC.Model.Checker
                             axis == 1 ? options.ShearSource1 : options.ShearSource2);
                         continue;
                     }
-                    if (axis == 2 && input.Section.GeometryType == typeof(SectionH) && Math.Abs(input.Section.PrincipalAxisAngle) <= 1e-10)
+                    bool exactH = input.Section.GeometryType == typeof(SectionH) && Math.Abs(input.Section.PrincipalAxisAngle) <= 1e-10;
+                    if (axis == 1 && exactH)
+                    {
+                        // A GPC screen, not a code clause: flange outstands within the class 3 limit 14 eps.
+                        // Beyond it the assessment is negative and the row stays not evaluated.
+                        yield return SteelShearBucklingAssessment.EvaluateHFlanges(input,
+                            "GPC automatic flange outstand screen c/t<=14eps for V1 (not a code clause)");
+                        continue;
+                    }
+                    if (axis == 2 && exactH)
                     {
                         if (input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018)
                         {

@@ -27,6 +27,8 @@ namespace GPC.Model.Checker
             internal Dictionary<string, string> Keys;
             internal string Settings;
         }
+        /// <summary>False: every task in the sequential pass, the reference of the concurrent section rows (tests).</summary>
+        internal bool ConcurrentSectionRows { get; set; } = true;
         private static string EngineKey(IMaterialChecker c) => c == null ? null : ModelValues.Fingerprint(new object[] {
             c.GetType().AssemblyQualifiedName, c.Id, c.Version, c.Configuration, c.Standard?.Identity });
         private static string RouteId(int beam, CheckMechanism mechanism, SectionCheckSpecification check)
@@ -103,7 +105,7 @@ namespace GPC.Model.Checker
             Dictionary<string, IMaterialCheckSession> sessions, Dictionary<string, Exception> sessionErrors, CancellationToken token)
         {
             var slots = new PrecomputedSection[Math.Min(PrecomputedSection.Block, items.Count - start)];
-            var work = new List<(PrecomputedSection, BeamActionInput, CheckMechanism, Func<string>, Func<bool>)>();
+            var work = new List<(PrecomputedSection, BeamActionInput, CheckMechanism, Func<string>, Func<string>, string)>();
             for (int k = 0; k < slots.Length; k++)
             {
                 var item = items[start + k];
@@ -117,7 +119,7 @@ namespace GPC.Model.Checker
                     catch (Exception ex) { sessionErrors[key] = ex; continue; }
                 if (!(sessions[key] is IConcurrentMaterialSession concurrent)) continue;
                 slots[k] = new PrecomputedSection { Session = concurrent };
-                work.Add((slots[k], item.Actions.Input, item.Mechanism, () => OwnedCheckInputs.Of(item), () => EngineKey(engine) != key));
+                work.Add((slots[k], item.Actions.Input, item.Mechanism, () => OwnedCheckInputs.Of(item), () => EngineKey(engine), key));
             }
             if (work.Count > 1) PrecomputedSection.Run(work, token);
             else if (work.Count == 1) return new PrecomputedSection[slots.Length]; // nothing to gain: sequential pass
@@ -140,7 +142,7 @@ namespace GPC.Model.Checker
                 {
                     var item = items[index];
                     if (index % PrecomputedSection.Block == 0)
-                    { aheadStart = index; ahead = planCurrent && !token.IsCancellationRequested ? Precompute(plan, items, index, sessions, sessionErrors, token) : null; }
+                    { aheadStart = index; ahead = ConcurrentSectionRows && planCurrent && !token.IsCancellationRequested ? Precompute(plan, items, index, sessions, sessionErrors, token) : null; }
                     var route = item.Scope == CheckScope.PhysicalMember ? MemberRouteId(item.Target.MemberId, item.Mechanism, item.MethodId)
                         : item.Target.BeamId.HasValue ? RouteId(item.Target.BeamId.Value, item.Mechanism, item.Check) : null;
                     var engine = route != null && plan.Routes.TryGetValue(route, out var routed) ? routed : null;
@@ -168,6 +170,9 @@ namespace GPC.Model.Checker
                             if (sessionErrors.TryGetValue(key, out var error)) throw new InvalidOperationException("CheckerCreationFailed", error);
                             var session = sessions[key];
                             var pre = ahead?[index - aheadStart];
+                            // Computed with the engine and owned copies of the start of the block: kept only if the task reads
+                            // the same now (a progress callback or another engine may have changed them), else computed here.
+                            if (pre != null && !pre.ReadsTheSame(EngineKey(engine), OwnedCheckInputs.Of(item))) pre = null;
                             if (pre != null)
                             {
                                 result = pre.Take();

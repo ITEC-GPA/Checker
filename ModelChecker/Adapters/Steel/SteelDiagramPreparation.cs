@@ -21,8 +21,11 @@ namespace GPC.Model.Checker
         private IReadOnlyList<SteelStabilityValue> PrepareForkDiagram(PhysicalMemberCheckInput member,
             SteelVerificationInput input, SteelPhysicalMemberPreparation physical)
         {
-            FullDeclaredSpan(member);
+            // A fork segment is qualified by its restraint plan; its cuts are measured from the segment start.
+            if (physical.Segment == null) FullDeclaredSpan(member);
             var shape = EnumValue<SteelForkMomentShape>("ForkDiagram");
+            if (physical.Segment?.Count > 1 && (shape == SteelForkMomentShape.UniformTransverseLoad || shape == SteelForkMomentShape.CentralPointLoad))
+                throw new SteelPreparationRefusal("SteelMember.Segment.DiagramShapeNotQualified", "A full-span transverse-load shape does not describe a fork segment; use EndMoments or GenericEnvelope per segment.");
             double first = physical.Cuts.First().Actions.M1, last = physical.Cuts.Last().Actions.M1;
             double maximum = physical.Cuts.OrderByDescending(c => Math.Abs(c.Actions.M1)).First().Actions.M1;
             string source = Required("LoadPatternReference");
@@ -64,7 +67,8 @@ namespace GPC.Model.Checker
                     4 * Math.Abs(maximum) / input.Member.Length))
                     throw new NotSupportedException("Exported shear conflicts with equilibrium of the declared moment diagram.");
             }
-            var prepared = SteelMemberSchemePreparation.ForkBending(input.Section, input.Member, diagram, Required("CriticalValuesSource"));
+            var prepared = SteelMemberSchemePreparation.ForkBending(input.Section, physical.Segment == null ? input.Member : new SteelMemberInput(input.Member.Length),
+                diagram, CriticalSource(physical));
             var basis = EnumValue<SteelCriticalMomentBasis>("McrBasis");
             bool ntc = input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018;
             if (ntc && basis != SteelCriticalMomentBasis.UniformMoment)
@@ -81,7 +85,8 @@ namespace GPC.Model.Checker
             if (!_parameters.TryGetValue("MomentFactorPreparation", out var method)) return new[] { Number("Cm1"), Number("Cm2"), Number("CmLT") };
             if ((method != "LinearDiagrams" && method != "ConservativeEnvelope") || new[] { "Cm1", "Cm2", "CmLT" }.Any(_parameters.ContainsKey))
                 throw new ArgumentException("Choose computed or explicit moment factors, not both.");
-            FullDeclaredSpan(member);
+            // Cm1 belongs to the in-plane span: linear factors of a segment only when it is the whole span.
+            if (physical.Segment == null || method == "LinearDiagrams" && physical.Segment.Count > 1) FullDeclaredSpan(member);
             if (method == "ConservativeEnvelope")
             {
                 source += "; generic same-case FEM diagrams, conservative Cm1=Cm2=CmLT=1; exported extrema qualification: " + Required("MomentDiagramCoverageSource");
