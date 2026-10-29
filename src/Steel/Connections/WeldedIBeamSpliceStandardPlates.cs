@@ -87,7 +87,10 @@ namespace GPC.Checkers.Steel.Connections
                     else compact.Add(zeroShear ? pc.NoShearBucklingAtZeroShear : pc.NoShearBuckling);
                     Hierarchy(pc.Hierarchy);
                 }
-                ParentNet(prepared.Parent);
+                if (prepared.SideParents == null) ParentNet(prepared.Parent, "Parent", f.ActionsAtJoint.Mz);
+                // Across a transition each member's perforated section with the moment about its own centroid.
+                else foreach (var side in new[] { SpliceSide.Left, SpliceSide.Right })
+                    ParentNet(prepared.SideParents[side == SpliceSide.Left ? 0 : 1], side + ".Parent", f.MomentAt(side));
                 // The unnotched beam WEB is not a block-tearing case (SCI P398 p59).
                 // Flange blocks are bounded using both shear planes and the actual free butt edge.
                 foreach (var h in prepared.ParentHierarchies) Hierarchy(h);
@@ -105,18 +108,18 @@ namespace GPC.Checkers.Steel.Connections
                         "Parent net-section check assumes all flange/web holes aligned longitudinally and the full member actions retained in the parent, with no cover credit. Maximum lap-end moment is included. Unnotched parent-web block tearing is inapplicable per SCI P398 p59.",
                         "CompactCovers retains the whole-width no-shear-buckling screen. StandardBoltedCovers explicitly uses SCI P398 pp57-59 for continuous flat rectangular covers with regular closely spaced filled normal fasteners, class1-3 strips/outstands in both directions and every existing compression/shear/bending/net/block check. It is not an EN1993-1-5 free-panel buckling or tension-field method; locally class4 strips remain outside StandardBoltedCovers. EffectiveCompressionWithLowShear is assessed separately and retains the whole-width screen. No continuous line supports are inferred from discrete bolts." }, reported, role);
             void Prepared(StandardPlatePreparation.Entry e) { if (e.Value == null) issues.Add(e.Issue); else trace.Add(e.Value); }
-            void ParentNet(StandardPlatePreparation.ParentSection s)
+            void ParentNet(StandardPlatePreparation.ParentSection s, string name, double moment)
             {
                 if (s.Invalid) { issues.Add("INVALID_PARENT_NET_SECTION"); return; }
                 double n = f.ActionsAtJoint.Fx, v = f.ActionsAtJoint.Fy;
-                double m = Math.Abs(f.ActionsAtJoint.Mz + s.Yc * n) + s.Half * Math.Abs(v);
+                double m = Math.Abs(moment + s.Yc * n) + s.Half * Math.Abs(v);
                 double sigma = Math.Abs(n) / s.Area + m * s.Lever / s.Inertia;
                 double tau = 1.5 * Math.Abs(v) / s.WebArea;
-                net.Add(new ConnectionCheck("Parent.NetElasticNVM", ElasticBoltGroup.Hypot(sigma, Math.Sqrt(3) * tau), s.Limit,
+                net.Add(new ConnectionCheck(name + ".NetElasticNVM", ElasticBoltGroup.Hypot(sigma, Math.Sqrt(3) * tau), s.Limit,
                     "EN1993-1-1:2005 6.2.1,6.2.3; full-load, all-holes-aligned elastic sufficient check, no splice-cover credit", "MPa"));
                 Prepared(s.Anet); Prepared(s.Offset); Prepared(s.Inet);
-                if (WeldedIBeamSplicePlates.Finite(m)) trace.Add(new SectionResistanceValue("Parent.BoundingMomentAboutNetCentroid", m, "Nmm"));
-                else issues.Add("Parent.BoundingMomentAboutNetCentroid.NUMERIC_RANGE");
+                if (WeldedIBeamSplicePlates.Finite(m)) trace.Add(new SectionResistanceValue(name + ".BoundingMomentAboutNetCentroid", m, "Nmm"));
+                else issues.Add(name + ".BoundingMomentAboutNetCentroid.NUMERIC_RANGE");
             }
             void Hierarchy(StandardPlatePreparation.HierarchyPreparation h)
             {
@@ -193,6 +196,8 @@ namespace GPC.Checkers.Steel.Connections
         }
         internal readonly Cover[] Covers;
         internal readonly ParentSection Parent;
+        /// <summary>Left and right perforated parent sections across a transition; null otherwise.</summary>
+        internal readonly ParentSection[] SideParents;
         internal readonly HierarchyPreparation[] ParentHierarchies;
 
         internal StandardPlatePreparation(WeldedIBeamSpliceDetailInput p)
@@ -248,11 +253,13 @@ namespace GPC.Checkers.Steel.Connections
                 ConnectionCheck NoShearBuckling(double demand) => new ConnectionCheck(name + ".NoShearBucklingDomain", demand,
                     60 * Math.Sqrt(235 / plate.Fy), "EN1993-1-1:2005 6.2.6(6), EN1993-1-5:2006 5.1; eta=1.2 sufficient domain, or exactly zero shear at every cut", "1", ConnectionCheckRole.Applicability);
             }
-            Parent = ParentNet();
+            if (d.Transition == null) Parent = ParentNet(SpliceSide.Left, "Parent");
+            else SideParents = new[] { ParentNet(SpliceSide.Left, "Left.Parent"), ParentNet(SpliceSide.Right, "Right.Parent") };
             var parents = new List<HierarchyPreparation>();
             foreach (bool top in new[] { true, false }) foreach (SpliceSide side in new[] { SpliceSide.Left, SpliceSide.Right })
             {
-                var flange = top ? d.Top : d.Bottom; var parent = top ? d.Section.TopFlange : d.Section.BottomFlange;
+                var section = d.SectionOf(side);
+                var flange = top ? d.Top : d.Bottom; var parent = top ? section.TopFlange : section.BottomFlange;
                 var points = flange.Bolts.Points(side).ToArray();
                 double far = flange.Bolts.FirstBoltDistance + flange.Bolts.LongitudinalSpan + flange.EndDistance;
                 var members = Enumerable.Range(0, descriptors.Length).Where(i => descriptors[i].Side == side && (top
@@ -265,18 +272,22 @@ namespace GPC.Checkers.Steel.Connections
             }
             ParentHierarchies = parents.ToArray();
 
-            ParentSection ParentNet()
+            ParentSection ParentNet(SpliceSide side, string name)
             {
-                var s = d.Section; double df = p.Plates.Bolts.FlangeBolt.HoleDiameter, dw = p.Plates.Bolts.WebBolt.HoleDiameter;
+                var s = d.SectionOf(side); double df = p.Plates.Bolts.FlangeBolt.HoleDiameter, dw = p.Plates.Bolts.WebBolt.HoleDiameter;
                 double at = (s.TopFlange.Width - d.Top.Bolts.TransverseRows * df) * s.TopFlange.Thickness;
                 double ab = (s.BottomFlange.Width - d.Bottom.Bolts.TransverseRows * df) * s.BottomFlange.Thickness;
+                // Web holes about this member's web centre: the web cover may sit off it across a transition.
+                double offset = d.WebCoverOffset(side);
+                var holes = d.WebBolts.Points(SpliceSide.Left).Select(x => x.Y).Distinct().Select(y => offset == 0 ? y : y + offset).ToArray();
                 double aw = (s.Web.Width - d.WebBolts.TransverseRows * dw) * s.Web.Thickness;
-                double area = at + ab + aw, yc = (at * s.TopY + aw * s.WebY + ab * s.BottomY) / area;
+                double webShift = offset == 0 ? 0 : -holes.Sum(y => dw * s.Web.Thickness * y) / aw;
+                double area = at + ab + aw, yc = (at * s.TopY + aw * (offset == 0 ? s.WebY : s.WebY + webShift) + ab * s.BottomY) / area;
                 double iw = s.Web.Thickness * Math.Pow(s.Web.Width, 3) / 12
-                    - d.WebBolts.Points(SpliceSide.Left).Select(x => x.Y).Distinct().Sum(y => s.Web.Thickness * (Math.Pow(dw, 3) / 12 + dw * y * y));
+                    - holes.Sum(y => s.Web.Thickness * (Math.Pow(dw, 3) / 12 + dw * y * y)) - (offset == 0 ? 0 : aw * webShift * webShift);
                 double inertia = at * (s.TopFlange.Thickness * s.TopFlange.Thickness / 12 + Math.Pow(s.TopY - yc, 2))
                     + ab * (s.BottomFlange.Thickness * s.BottomFlange.Thickness / 12 + Math.Pow(s.BottomY - yc, 2))
-                    + iw + aw * Math.Pow(s.WebY - yc, 2);
+                    + iw + aw * Math.Pow((offset == 0 ? s.WebY : s.WebY + webShift) - yc, 2);
                 if (!(at > 0 && ab > 0 && aw > 0 && inertia > 0)) return new ParentSection { Invalid = true };
                 double half = Math.Max(d.WebBolts.FirstBoltDistance + d.WebBolts.LongitudinalSpan + d.WebCoverEnd,
                     Math.Max(d.Top.Bolts.FirstBoltDistance + d.Top.Bolts.LongitudinalSpan + d.Top.EndDistance,
@@ -285,7 +296,7 @@ namespace GPC.Checkers.Steel.Connections
                 {
                     Area = area, Yc = yc, Inertia = inertia, Half = half, Lever = Math.Max(s.Height - s.CentroidY - yc, s.CentroidY + yc), WebArea = aw,
                     Limit = new[] { s.TopFlange, s.Web, s.BottomFlange }.Min(q => Math.Min(q.Fy / code.Plates.GammaM0, .9 * q.Fu / code.Plates.GammaM2)),
-                    Anet = Value("Parent.Anet", area, "mm2"), Offset = Value("Parent.NetCentroidOffsetY", yc, "mm"), Inet = Value("Parent.Inet", inertia, "mm4")
+                    Anet = Value(name + ".Anet", area, "mm2"), Offset = Value(name + ".NetCentroidOffsetY", yc, "mm"), Inet = Value(name + ".Inet", inertia, "mm4")
                 };
             }
             HierarchyPreparation Hierarchy(string name, ConnectionPlate plate, ConnectionBolt bolt, ConnectionPoint2D[] points,

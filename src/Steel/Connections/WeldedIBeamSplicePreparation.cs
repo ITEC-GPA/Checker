@@ -24,12 +24,16 @@ namespace GPC.Checkers.Steel.Connections
         public static PreparedWeldedIBeamSplice Prepare(WeldedIBeamSpliceDetailInput template)
             => new PreparedWeldedIBeamSplice(template ?? throw new ArgumentNullException(nameof(template)));
 
-        /// <summary>The template detail with the welded section read from the member model.</summary>
-        internal static PreparedWeldedIBeamSplice Prepare(WeldedIBeamSpliceDetailInput template, WeldedIBeamSpliceSection section)
+        /// <summary>The template detail with the welded section read from the member model; across a
+        /// transition also the right section and one cover distribution.</summary>
+        internal static PreparedWeldedIBeamSplice Prepare(WeldedIBeamSpliceDetailInput template, WeldedIBeamSpliceSection section,
+            WeldedSpliceSectionTransition transition = null, SpliceSide distribution = SpliceSide.Left)
         {
             if (template == null) throw new ArgumentNullException(nameof(template));
             var b = template.Plates.Bolts; var d = b.Detail;
-            var geometry = new WeldedIBeamSpliceForceInput(section, d.Top, d.Bottom, d.EachWebCover, d.WebBolts, d.WebCoverEnd, d.ButtGap, d.Actions, d.Packing);
+            var geometry = transition == null
+                ? new WeldedIBeamSpliceForceInput(section, d.Top, d.Bottom, d.EachWebCover, d.WebBolts, d.WebCoverEnd, d.ButtGap, d.Actions, d.Packing)
+                : new WeldedIBeamSpliceForceInput(section, d.Top, d.Bottom, d.EachWebCover, d.WebBolts, d.WebCoverEnd, d.ButtGap, d.Actions, d.Packing, transition, distribution);
             var bolts = new WeldedIBeamSpliceBoltInput(b.Code, geometry, b.FlangeBolt, b.WebBolt,
                 b.FlangeHardwareDiameter, b.WebHardwareDiameter, b.UltimateCombinationSource, b.HoleClearanceServiceabilitySource);
             return new PreparedWeldedIBeamSplice(new WeldedIBeamSpliceDetailInput(new WeldedIBeamSplicePlateInput(template.Plates.Policy, bolts), template.Exposure));
@@ -89,7 +93,9 @@ namespace GPC.Checkers.Steel.Connections
                 && Plate(x.Section.TopFlange, y.Section.TopFlange) && Plate(x.Section.Web, y.Section.Web) && Plate(x.Section.BottomFlange, y.Section.BottomFlange)
                 && x.Section.TopWeldToe == y.Section.TopWeldToe && x.Section.BottomWeldToe == y.Section.BottomWeldToe
                 && Flange(x.Top, y.Top) && Flange(x.Bottom, y.Bottom) && Plate(x.EachWebCover, y.EachWebCover) && Grid(x.WebBolts, y.WebBolts, true)
-                && x.WebCoverEnd == y.WebCoverEnd && x.ButtGap == y.ButtGap && x.Packing.SamePhysical(y.Packing);
+                && x.WebCoverEnd == y.WebCoverEnd && x.ButtGap == y.ButtGap && x.Packing.SamePhysical(y.Packing)
+                // The cover distribution is an analysis variant of the same physical transition, not part of it.
+                && (x.Transition == null ? y.Transition == null : x.Transition.SamePhysical(y.Transition));
         }
 
         internal static bool IBeamGeometry(IBeamSpliceForceInput a, IBeamSpliceForceInput b)

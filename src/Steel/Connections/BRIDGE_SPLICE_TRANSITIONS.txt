@@ -1,0 +1,137 @@
+TRANSIZIONI DI SEZIONE NEI COPRIGIUNTI BULLONATI - PUNTO 2
+29/10/2026 - EC3 2005 / NTC2018, statica ordinaria. Unita': N, mm, Nmm, MPa.
+Stato corrente generale: ../CURRENT.txt. Riesame di partenza: OPEN_MECHANISMS_REVIEW.txt.
+
+SELEZIONE ESPLICITA
+WeldedSpliceSectionTransition(right, rightPacking[, outerPlaneOffset, webPlaneOffset])
+nel costruttore WeldedIBeamSpliceForceInput(..., packing, transition, coverDistribution):
+Section e Packing sono quelli del membro SINISTRO, la transizione porta sezione e
+compensatori del DESTRO. SpliceFlangeFaceModel.PackedSectionTransition in CreateBolted.
+CreateBolted legge entrambe le sezioni da Model (left, right); dal template prende
+compensatori destri, offset dichiarati e cordoni (toe) destri. Ogni stato SLU/SLE diventa
+DUE casi, <id>.LeftDistribution e <id>.RightDistribution (TransitionCaseId), su due
+preparati dello stesso dettaglio fisico; per C lo scorrimento SLU e' <id>.<lato>Distribution.slip.
+Superfici d'attrito per lato: WeldedSpliceFrictionSurface(cover, interfacce sinistre,
+interfacce destre); il costruttore precedente resta valido per entrambi i membri.
+Senza transizione nessun risultato numerico cambia (vedi VERIFICA DI NON REGRESSIONE).
+
+CAMPO QUALIFICATO
+Stessa altezza complessiva; facce esterne delle ali comuni e piano medio dell'anima comune
+(offset dichiarati nulli); stesse larghezze delle ali. Variano gli spessori dell'ala superiore,
+dell'anima e dell'ala inferiore, anche insieme, e i materiali (fy<=460). Ogni coprigiunto
+continuo e piano ha UN solo piano di contatto sui due membri: i compensatori paralleli a piena
+impronta, anche multistrato, colmano esattamente il salto:
+  piatti interni  tL+pL = tR+pR;   piatti esterni  pL = pR;   anima  twL/2+pwL = twR/2+pwR.
+Nessuna tolleranza di montaggio e nessuna flessione del coprigiunto chiudono un salto residuo.
+Il coprigiunto d'anima e' centrato sulla mezzeria dell'anima SINISTRA e deve stare fra i
+cordoni di entrambe le anime (per il caso opposto si specchia il dettaglio).
+Polo delle azioni misurato dal baricentro SINISTRO. Il destro riceve
+  MR = Mz + x Fy - (y + ycL - ycR) Fx,
+e la sezione Steel destra e' valutata con queste azioni; i due membri non sono mediati.
+Metodi di piastra: CompactCovers o StandardBoltedCovers; EffectiveCompression* rifiutati.
+
+MODELLO DI EQUILIBRIO
+1) Ogni coprigiunto continuo e' un corpo libero caricato solo dai propri bulloni. Porta UNA
+   distribuzione: quella elastica della sezione J (CoverDistribution), applicata ai due
+   membri nei piani comuni dei coprigiunti. Per ogni ala Fo+Fi=N_J, -(yo Fo+yi Fi)=M_J con le
+   quote reali (compensatori inclusi); anima N_wJ, V, M_wJ applicati nel baricentro dell'anima
+   J, cioe' con eccentricita' e=Y_wJ-Y_wc rispetto al centro del coprigiunto d'anima.
+   Sono riportati i residui di bordo libero degli otto coprigiunti (Transition.<cover>.
+   ContinuousCoverResidual) e i sei residui globali per lato.
+2) Due distribuzioni elastiche indipendenti NON si equilibrano solo nel totale: con la
+   distribuzione sinistra sui bulloni sinistri e la destra sui destri ogni coprigiunto d'ala
+   resterebbe squilibrato di N_fR-N_fL. La differenza fra la quota elastica propria del
+   membro S (l'altro) e le forze consegnate dai coprigiunti e' un insieme autoequilibrato
+   portato DENTRO S, nella sovrapposizione:
+     ali       T_sup = N_tS - N_tJ,  T_inf = N_bS - N_bJ  (dall'anima, attraverso il giunto ala-anima)
+     coppie    dM_sup = M_tS - M'_t - T_sup t_t/2,  dM_inf = M_bS - M'_b + T_inf t_b/2
+               M' = momento delle forze consegnate rispetto al baricentro dell'ala di S
+     anima     N_wS - N_wJ + T_sup + T_inf = 0
+               M_wS - M'_w - h/2 (T_sup - T_inf) + dM_sup + dM_inf = 0,  M'_w = M_wJ - e N_wJ
+   I due residui dell'anima sono calcolati e controllati (TRANSFER_FREE_BODY_EQUILIBRIUM),
+   mai imposti. Con J = S la differenza e' nulla esattamente.
+3) Inviluppo. Per ogni stato di azioni sono obbligatorie entrambe le distribuzioni: i due
+   estremi in cui uno dei membri porta tutto il trasferimento. Forze nei bulloni e N,V,M nei
+   tagli dei coprigiunti sono affini nella miscela lambda J_L+(1-lambda) J_R; i trasferimenti
+   intermedi sono frazioni lambda e (1-lambda) di quelli estremi. Ogni verifica mantenuta e'
+   convessa in queste grandezze se rho=0 in ogni taglio, condizione TransitionDomain:
+   |V|<=0.5 min(Vpl,Vnet) in ogni taglio di ogni coprigiunto, in entrambe le distribuzioni.
+   Le due varianti limitano quindi ogni distribuzione intermedia. Un caso senza il proprio
+   opposto: TRANSITION_OPPOSITE_COVER_DISTRIBUTION_CASE_REQUIRED (anche per B/C).
+   La rigidezza di coprigiunti e membri non e' modellata: e' la convenzione del percorso a
+   geometria identica (coprigiunti per la distribuzione della madre), estesa ai due estremi.
+
+VERIFICHE AGGIUNTE: SectionTransfer, solo nel membro che ridistribuisce
+- Cordoni longitudinali ala-anima: q_par = |V A_f y_f/I_S| + |T|/L, q_perp = 4|dM|/L^2
+  (due carichi verticali uniformi opposti sulle due meta'), L = sovrapposizione del
+  coprigiunto d'ala da faccia di testa a estremita' = e1+campata+estremita'-gioco/2.
+  tau_par = q_par/(2a), sigma_perp = tau_perp = q_perp/(2 sqrt2 a); metodo direzionale
+  EN1993-1-8 4.5.3.2 eq4.1 / NTC 4.2.8.2.4 eq4.2.81, resistenza per betaLw,1=1.2-0.2L/(150a)
+  se L>150a (4.11). La quota VQ/I e' sommata per prudenza.
+- Anima al giunto: sqrt(sx^2+sz^2+|sx sz|+3 tau^2) <= fy/gammaM0 (EN1993-1-1 6.2.1(5) eq6.1)
+  con tau=q_par/tw, sz=q_perp/tw e sx limite superiore della fibra estrema dell'anima.
+- Piastre madri forate di S: somma dei valori assoluti delle azioni consegnate e trasferite
+  piu' la quota elastica di V per la sovrapposizione, limite per qualunque consegna e
+  trasferimento monotoni lungo la sovrapposizione. Ali N/Anet + M/(b_net t^2/6), anima con
+  baricentro netto reale (fori eccentrici) e 1.5 V/Anet; min(fy/gammaM0, 0.9 fu/gammaM2).
+- Categoria C: NetAxialPlastic per lato, domanda max(0,N_J)+|N_S-N_J| nel membro S.
+
+VERIFICHE DEL PERCORSO IDENTICO, ORA PER LATO
+Bulloni piano per piano; betaP per lato (EN1993-1-8 3.6.1(12) eq3.3 e 3.6.1(13): spessore
+totale della pila piu' spessa sulle due facce del MEMBRO attraversato), betaLf come prima;
+rifollamento sulle piastre madri del proprio membro e sul bordo d'anima con l'offset reale
+del coprigiunto; grip per lato; scorrimento B/C con interfacce in serie per lato; piastre,
+blocchi, gerarchie (ali madri per lato), detailing, sezione netta di ciascun membro
+(Left/Right.Parent.NetElasticNVM con il momento rispetto al proprio baricentro), cordoni
+VQ/I per lato, sezioni Steel sinistra e destra con le proprie azioni.
+
+RIFIUTI CON CODICE PRECISO
+TRANSITION_OVERALL_DEPTH_CHANGE_NOT_QUALIFIED      facce esterne non comuni, altro modello.
+TRANSITION_FLANGE_WIDTH_CHANGE_NOT_QUALIFIED       diffusione nel piano delle ali (shear lag).
+TRANSITION_OUTER_FLANGE_PLANE_OFFSET_NOT_QUALIFIED salto dei piani esterni dichiarato.
+TRANSITION_OUT_OF_PLANE_WEB_OFFSET_NOT_QUALIFIED   flessione fuori piano e torsione locale.
+TRANSITION_<TOP_OUTER|TOP_INNER|BOTTOM_OUTER|BOTTOM_INNER|WEB>_COVER_PLANE_MISMATCH.
+Right.WEB_COVER_INTERSECTS_LONGITUDINAL_SEAMS, Right.PACKING_EXECUTION_SOURCE_REQUIRED.
+EXPLICIT_SECTION_TRANSITION_MODEL_REQUIRED, SECTION_TRANSITION_DETAIL_REQUIRED.
+TRANSITION_EFFECTIVE_COMPRESSION_NOT_QUALIFIED     larghezze efficaci non convesse.
+<cover>.CoverShearInConvexEnvelopeDomain           taglio alto: dominio non stabilito.
+TRANSITION_OPPOSITE_COVER_DISTRIBUTION_CASE_REQUIRED, LINKED_ULTIMATE_COVER_DISTRIBUTION_MISMATCH.
+IN_PLANE_N_V_M_ONLY resta. Ali rastremate e compensatori a cuneo o discontinui non sono
+rappresentabili (sezioni prismatiche per lato, compensatori paralleli): vanno rifiutati a monte.
+
+FONTI E NATURA DELLE EVIDENZE
+EN1993-1-8:2005 2.5 (distribuzione realistica, equilibrio, capacita' di deformazione),
+3.6.1(12)-(13), 3.12, 4.5.3.2, 4.11; EN1993-1-1:2005 6.2.1(5), 6.2.3, 6.2.6, 6.2.8;
+NTC2018 4.2.8.1.1 e 4.2.8.2.4 con i coefficienti NTC. SCI P398 sezione4 e SCI GN2.02/2.06
+per dettaglio e compensatori; SCI P357 sezione12 per il riparto convenzionale. Corpi liberi,
+coppie di giunto e inviluppo a due distribuzioni sono un modello statico della libreria,
+non una formula normativa o un benchmark sperimentale.
+
+TEST
+BridgeSpliceTransitionTests, 55 casi. Oracolo indipendente a frazioni esatte nel riferimento
+globale (faccia inferiore, polo al baricentro sinistro), senza il distributore della libreria:
+- ala superiore 30->40, N=1e6: MR=2e7, Fo=235215.05 Fi=168010.75 (J sinistra),
+  T_sup=22631.583 N, T_inf=1659.464 N, dM_sup=1602974.3 Nmm, e=5 mm, cordone 19.635 MPa;
+  J destra: T_sup=-22631.583 N, dM_sup=-1829290.1 Nmm, cordone 20.879 MPa;
+- N+M+V (2e5,-1e5,50e6) per ala 30->40, anima 16->24, entrambe, e inversione di segno:
+  trasferimenti e coppie cambiano segno, tensioni nei cordoni no; EC e NTC;
+- coprigiunti in equilibrio e confronto con le due quote indipendenti (squilibrio 5679.28 N);
+- betaP=216/222 solo sui bulloni del membro con compensatore da 10 mm, grip 80 e 74 mm per
+  lato, rifollamento della madre destra 40/30 di quella sinistra;
+- flusso completo EC/NTC A/B/C su quattro geometrie, sezioni valutate al proprio baricentro,
+  caso singolo rifiutato, binding della sezione destra, otto rifiuti geometrici, modelli e
+  metodi fuori campo, taglio alto, betaLw,1 e rottura del cordone, transizione nulla uguale
+  al percorso identico, interfacce d'attrito per lato, rapporto.
+
+VERIFICA DI NON REGRESSIONE
+Prima e dopo la modifica: 134 flussi esistenti (98 Passed, 32 NotSupported, 4 Failed;
+standard, applicazione, larghezze, spessori, compensatori, multistrato, scenari,
+StandardBoltedCovers, EffectiveCompression, taglio nullo; EC/NTC e A/B/C) esportati con
+forze dei bulloni, tagli, tracce, verifiche, ipotesi e rapporti: file identico (SHA-256,
+221 MB). Nessun atteso esistente e' stato modificato.
+
+LIMITI RESIDUI
+Rigidezza del giunto e distribuzione reale non calcolate (inviluppo dei due estremi).
+Trasferimento uniforme sulla sovrapposizione con riduzione 4.11: modello staticamente
+ammissibile, non soluzione di shear lag o di contatto; fatica esclusa. Altezze, larghezze,
+offset, rastremazioni, classe4 efficace e taglio alto restano fuori campo.

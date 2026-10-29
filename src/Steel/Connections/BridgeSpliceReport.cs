@@ -100,6 +100,13 @@ namespace GPC.Checkers.Steel.Connections
                     notes.Add(c.Input.Id + ":" + t.Name + "=" + Number(t.Value) + " " + t.Unit);
                 notes.Add("gammaM1 plates=" + Number(c.Input.Parents.Detail.Plates.Policy.GammaM1));
                 if (b.Detail.Packing.HasPacking) notes.Add(c.Input.Id + ":packing=" + b.Detail.Packing.ExecutionSource);
+                if (c.Transition != null)
+                {
+                    notes.Add(c.Input.Id + ":coverDistribution=" + c.Transition.CoverDistribution + ";redistributingMember=" + c.Transition.RedistributingMember);
+                    if (b.Detail.Transition.RightPacking.HasPacking) notes.Add(c.Input.Id + ":rightPacking=" + b.Detail.Transition.RightPacking.ExecutionSource);
+                    foreach (var t in c.Transition.Transfer.ReportedValues) notes.Add(c.Input.Id + ":" + t.Name + "=" + Number(t.Value) + " " + t.Unit);
+                    Add(c.Input.Id, "TransitionDomain", c.Transition.Domain.Checks);
+                }
                 Add(c.Input.Id, "BlockHierarchy", c.AdditionalPlates.BlockHierarchy.Checks);
                 Add(c.Input.Id, "CompactPlateDomain", c.AdditionalPlates.CompactPlateDomain.Checks);
                 foreach (var t in c.AdditionalPlates.BlockHierarchy.ReportedValues)
@@ -122,6 +129,11 @@ namespace GPC.Checkers.Steel.Connections
                     for (int j = 1; j < surface.Interfaces.Count; ++j)
                         notes.Add(c.Input.Id + ":" + surface.Cover + ":" + surface.InterfaceName(j) + ":mu="
                             + Number(surface.Interfaces[j].Coefficient) + ";source=" + surface.Interfaces[j].QualificationSource);
+                    // Per-side interfaces of a section transition: the right member's list is reported separately.
+                    if (!ReferenceEquals(surface.RightInterfaces, surface.Interfaces))
+                        for (int j = 0; j < surface.RightInterfaces.Count; ++j)
+                            notes.Add(c.Input.Id + ":" + surface.Cover + ":Right" + (surface.RightInterfaces.Count == 1 ? "" : ":" + surface.InterfaceName(SpliceSide.Right, j))
+                                + ":mu=" + Number(surface.RightInterfaces[j].Coefficient) + ";source=" + surface.RightInterfaces[j].QualificationSource);
                 }
                 cases.Add(new SpliceReportCase(c.Input.Id, c.Input.Input.ActionCombinationSource, b.Code, b.Detail.Actions,
                     c.Input.Input.LimitState == BoltSlipLimitState.Serviceability, BoltedValues(b)));
@@ -200,6 +212,17 @@ namespace GPC.Checkers.Steel.Connections
                 foreach (WeldedSpliceCover face in Enum.GetValues(typeof(WeldedSpliceCover)))
                     for (int j = 0; j < d.Packing.Layers(face).Count; ++j)
                         Value("Packing." + face + ".Layer" + (j + 1), d.Packing.Layers(face)[j]);
+            }
+            if (d.Transition != null)
+            {
+                var r = d.Transition.Right; var q = d.Transition.RightPacking;
+                Value("Transition.CoverDistribution", d.CoverDistribution == SpliceSide.Left ? 0 : 1, "1");
+                Plate("Right.Parent.Top", r.TopFlange); Plate("Right.Parent.Web", r.Web); Plate("Right.Parent.Bottom", r.BottomFlange);
+                Value("Right.TopWeldToe", r.TopWeldToe); Value("Right.BottomWeldToe", r.BottomWeldToe);
+                Value("Transition.OuterPlaneOffset", d.Transition.OuterPlaneOffset); Value("Transition.WebPlaneOffset", d.Transition.WebPlaneOffset);
+                foreach (WeldedSpliceCover face in Enum.GetValues(typeof(WeldedSpliceCover)))
+                    for (int j = 0; j < q.Layers(face).Count; ++j)
+                        Value("Right.Packing." + face + ".Layer" + (j + 1), q.Layers(face)[j]);
             }
             if (welds != null)
             {

@@ -35,6 +35,9 @@ Prossimo modello da sviluppare: stessa altezza complessiva, variazioni di
 spessore e compensatori paralleli per lato; risolvere prima l'equilibrio
 del dettaglio, poi verificare piastre, bulloni, saldature e trasferimenti.
 Il campo a geometria identica resta distinto, anche per le saldature CJP.
+Aggiornamento 29/10/2026: questo modello e' implementato per i coprigiunti bullonati
+(PackedSectionTransition, BRIDGE_SPLICE_TRANSITIONS.txt); le altre transizioni e i giunti
+CJP fra sezioni diverse restano rifiutati.
 
 TERMINALI E SUPPORTI
 Percorsi esistenti: 2L tese al collettore complanare CJP; piatti gemelli tesi;

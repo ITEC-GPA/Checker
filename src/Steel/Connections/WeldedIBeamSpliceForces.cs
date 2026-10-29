@@ -100,6 +100,12 @@ namespace GPC.Checkers.Steel.Connections
         public double ButtGap { get; }
         public PlanarConnectionActions Actions { get; }
         public WeldedSplicePacking Packing { get; }
+        /// <summary>Different right parent section and its packing; null for two identical sections.
+        /// Section and Packing are then the LEFT member's.</summary>
+        public WeldedSpliceSectionTransition Transition { get; }
+        /// <summary>Member whose elastic flange/web distribution the continuous covers carry across the butt;
+        /// the other member redistributes the difference internally. Always Left without a transition.</summary>
+        public SpliceSide CoverDistribution { get; }
         /// <summary>Two identical, aligned I sections. Actions act TO the left member,
         /// in X longitudinal, Y up, Z transverse, at the supplied pole relative to the section centroid.
         /// Positive N is tension; positive Mz compresses the top flange. Equal steel E is assumed.</summary>
@@ -121,15 +127,40 @@ namespace GPC.Checkers.Steel.Connections
             ConnectionValidation.Nonnegative(buttGap, nameof(buttGap));
             WebCoverEnd = webCoverEnd; ButtGap = buttGap; Packing = packing ?? WeldedSplicePacking.None;
         }
+        /// <summary>Bolted splice across a section transition: <paramref name="section"/> and <paramref name="packing"/>
+        /// belong to the LEFT member, <paramref name="transition"/> to the right one. The pole of the actions is
+        /// measured from the LEFT centroid. One input carries ONE joint distribution: the complete verification
+        /// requires the same actions with both <paramref name="coverDistribution"/> sides (see BRIDGE_SPLICE_TRANSITIONS.txt).</summary>
+        public WeldedIBeamSpliceForceInput(WeldedIBeamSpliceSection section, SpliceFlangeCoverDetail top,
+            SpliceFlangeCoverDetail bottom, ConnectionPlate eachWebCover, SpliceBoltLayout webBolts,
+            double webCoverEnd, double buttGap, PlanarConnectionActions actions, WeldedSplicePacking packing,
+            WeldedSpliceSectionTransition transition, SpliceSide coverDistribution = SpliceSide.Left)
+            : this(section, top, bottom, eachWebCover, webBolts, webCoverEnd, buttGap, actions, packing)
+        {
+            if (!Enum.IsDefined(typeof(SpliceSide), coverDistribution)) throw new ArgumentOutOfRangeException(nameof(coverDistribution));
+            Transition = transition ?? throw new ArgumentNullException(nameof(transition));
+            CoverDistribution = coverDistribution;
+        }
         /// <summary>Another action state on exactly the same immutable physical parts: the
         /// geometry-only preparation is shared, never recomputed.</summary>
         internal WeldedIBeamSpliceForceInput(WeldedIBeamSpliceForceInput physical, PlanarConnectionActions actions)
         {
             Section = physical.Section; Top = physical.Top; Bottom = physical.Bottom; EachWebCover = physical.EachWebCover;
             WebBolts = physical.WebBolts; WebCoverEnd = physical.WebCoverEnd; ButtGap = physical.ButtGap; Packing = physical.Packing;
+            Transition = physical.Transition; CoverDistribution = physical.CoverDistribution;
             Actions = actions ?? throw new ArgumentNullException(nameof(actions));
             geometry = physical.Geometry;
         }
+        /// <summary>Parent section of one member: the right one differs only across a transition.</summary>
+        internal WeldedIBeamSpliceSection SectionOf(SpliceSide side) => side == SpliceSide.Right && Transition != null ? Transition.Right : Section;
+        /// <summary>Packing between the covers and one member: the right one differs only across a transition.</summary>
+        internal WeldedSplicePacking PackingOf(SpliceSide side) => side == SpliceSide.Right && Transition != null ? Transition.RightPacking : Packing;
+        /// <summary>Height of the left centroid above the centroid of <paramref name="side"/>, in the common
+        /// frame of the bottom outer flange face: the pole shift of the actions to that member.</summary>
+        internal double CentroidShift(SpliceSide side) => side == SpliceSide.Right && Transition != null ? Section.CentroidY - Transition.Right.CentroidY : 0;
+        /// <summary>Height of the web cover centre (the left web mid-height) above the mid-height of the web of <paramref name="side"/>.</summary>
+        internal double WebCoverOffset(SpliceSide side) => side == SpliceSide.Right && Transition != null
+            ? Section.BottomFlange.Thickness + Section.Web.Width / 2 - (Transition.Right.BottomFlange.Thickness + Transition.Right.Web.Width / 2) : 0;
         private SpliceForceGeometry geometry;
         /// <summary>Geometry-only preparation of these physical parts; identical for every action state built from them.</summary>
         internal SpliceForceGeometry Geometry => geometry ?? System.Threading.LazyInitializer.EnsureInitialized(ref geometry, () => new SpliceForceGeometry(this));
@@ -159,11 +190,23 @@ namespace GPC.Checkers.Steel.Connections
             internal Lazy<ElasticBoltGroup.Prepared> Web;
             internal string[] ResidualNames;
         }
+        /// <summary>Elastic share coefficients of one member's own section (transition only), with the
+        /// expressions of FlangePart/web so that the distributing member reproduces its cover forces exactly.</summary>
+        internal sealed class OwnSection
+        {
+            internal double PoleShift, TopAreaRatio, TopInertiaRatio, TopBendingRatio, TopY,
+                BottomAreaRatio, BottomInertiaRatio, BottomBendingRatio, BottomY, WebAreaRatio, WebInertiaRatio, WebBendingRatio, WebY;
+        }
         internal readonly string[] Issues;
         internal readonly SectionResistanceValue Area, Centroid, Inertia, WebOffset;
         internal readonly double WebAreaRatio, WebInertiaRatio, WebBendingRatio, WebY, WebFaceOffset;
+        /// <summary>Web cover centre relative to the distributing centroid, and the height of the distributing
+        /// web centroid in the web-cover frame (zero without a transition or with the left distribution).</summary>
+        internal readonly double WebCoverY, WebApplicationY, PoleShift;
         internal readonly bool WebOffsetFinite;
         internal readonly SidePart[] Sides;
+        /// <summary>Own elastic coefficients of the left and right members; null without a transition.</summary>
+        internal readonly OwnSection[] Own;
         /// <summary>The sixteen cover groups in the order the force calculation creates them.</summary>
         internal sealed class GroupDescriptor
         {
@@ -176,8 +219,17 @@ namespace GPC.Checkers.Steel.Connections
         internal SpliceForceGeometry(WeldedIBeamSpliceForceInput p)
         {
             var s = p.Section; var issues = new List<string>();
+            // The covers carry the elastic distribution of ONE section; identical sections: the left one.
+            var j = p.SectionOf(p.CoverDistribution); var jp = p.PackingOf(p.CoverDistribution);
             ValidateFlange(p.Top, s.TopFlange, s.TopWeldToe, "Top");
             ValidateFlange(p.Bottom, s.BottomFlange, s.BottomWeldToe, "Bottom");
+            if (p.Transition != null)
+            {
+                var r = p.Transition.Right;
+                ValidateFlange(p.Top, r.TopFlange, r.TopWeldToe, "Right.Top");
+                ValidateFlange(p.Bottom, r.BottomFlange, r.BottomWeldToe, "Right.Bottom");
+                issues.AddRange(WeldedSpliceSectionTransition.GeometryIssues(p));
+            }
             if (p.WebBolts.TransverseRows < 2) issues.Add("WEB_AT_LEAST_TWO_TRANSVERSE_BOLTS_REQUIRED");
             if (p.EachWebCover.Width > s.Web.Width - 2 * Math.Max(s.TopWeldToe, s.BottomWeldToe))
                 issues.Add("WEB_COVER_INTERSECTS_LONGITUDINAL_SEAMS");
@@ -194,12 +246,18 @@ namespace GPC.Checkers.Steel.Connections
             if (p.WebBolts.TransverseSpan >= p.EachWebCover.Width) issues.Add("WEB_BOLTS_OUTSIDE_COVER");
             if (p.WebBolts.FirstBoltDistance <= p.ButtGap / 2) issues.Add("WEB_BOLTS_INSIDE_BUTT_GAP");
             Issues = issues.ToArray();
-            Area = Entry("Section.Area", s.Area, "mm2"); Centroid = Entry("Section.CentroidYFromBottom", s.CentroidY, "mm");
-            Inertia = Entry("Section.StrongAxisSecondMoment", s.StrongAxisSecondMoment, "mm4");
-            WebAreaRatio = s.Web.Width * s.Web.Thickness / s.Area; WebInertiaRatio = s.Web.Width * s.Web.Thickness / s.StrongAxisSecondMoment;
-            WebBendingRatio = s.Web.Thickness * Math.Pow(s.Web.Width, 3) / (12 * s.StrongAxisSecondMoment);
-            WebY = s.WebY; WebOffset = Entry("Web.OffsetY", s.WebY, "mm"); WebOffsetFinite = WebOffset != null;
-            WebFaceOffset = (s.Web.Thickness + p.EachWebCover.Thickness) / 2 + p.Packing.EachWeb;
+            Area = Entry("Section.Area", j.Area, "mm2"); Centroid = Entry("Section.CentroidYFromBottom", j.CentroidY, "mm");
+            Inertia = Entry("Section.StrongAxisSecondMoment", j.StrongAxisSecondMoment, "mm4");
+            WebAreaRatio = j.Web.Width * j.Web.Thickness / j.Area; WebInertiaRatio = j.Web.Width * j.Web.Thickness / j.StrongAxisSecondMoment;
+            WebBendingRatio = j.Web.Thickness * Math.Pow(j.Web.Width, 3) / (12 * j.StrongAxisSecondMoment);
+            WebY = j.WebY; WebOffset = Entry("Web.OffsetY", j.WebY, "mm"); WebOffsetFinite = WebOffset != null;
+            WebFaceOffset = (j.Web.Thickness + p.EachWebCover.Thickness) / 2 + jp.EachWeb;
+            // The web cover is centred on the LEFT web: across a transition the distributing web force
+            // may act off the cover centre, at its own centroid (real eccentricity, no averaging).
+            PoleShift = p.CentroidShift(p.CoverDistribution);
+            WebCoverY = p.Transition == null ? s.WebY : s.BottomFlange.Thickness + s.Web.Width / 2 - j.CentroidY;
+            WebApplicationY = p.Transition == null ? 0 : -p.WebCoverOffset(p.CoverDistribution);
+            if (p.Transition != null) Own = new[] { OwnOf(SpliceSide.Left), OwnOf(SpliceSide.Right) };
             Sides = new[] { Side(SpliceSide.Left, 1), Side(SpliceSide.Right, -1) };
             var descriptors = new List<GroupDescriptor>();
             foreach (var side in Sides)
@@ -218,11 +276,25 @@ namespace GPC.Checkers.Steel.Connections
             SidePart Side(SpliceSide side, double sign) => new SidePart
             {
                 Side = side, Sign = sign,
-                TopFlange = Flange(side, true, p.Top, s.TopFlange, s.TopY),
-                BottomFlange = Flange(side, false, p.Bottom, s.BottomFlange, s.BottomY),
+                TopFlange = Flange(side, true, p.Top, j.TopFlange, j.TopY),
+                BottomFlange = Flange(side, false, p.Bottom, j.BottomFlange, j.BottomY),
                 Web = Group(() => p.WebBolts.Points(side)),
                 ResidualNames = ResidualComponents.Select(c => side + ".Residual." + c).ToArray()
             };
+            OwnSection OwnOf(SpliceSide side)
+            {
+                var o = p.SectionOf(side);
+                return new OwnSection
+                {
+                    PoleShift = p.CentroidShift(side),
+                    TopAreaRatio = o.TopFlange.Width * o.TopFlange.Thickness / o.Area, TopInertiaRatio = o.TopFlange.Width * o.TopFlange.Thickness / o.StrongAxisSecondMoment,
+                    TopBendingRatio = o.TopFlange.Width * Math.Pow(o.TopFlange.Thickness, 3) / (12 * o.StrongAxisSecondMoment), TopY = o.TopY,
+                    BottomAreaRatio = o.BottomFlange.Width * o.BottomFlange.Thickness / o.Area, BottomInertiaRatio = o.BottomFlange.Width * o.BottomFlange.Thickness / o.StrongAxisSecondMoment,
+                    BottomBendingRatio = o.BottomFlange.Width * Math.Pow(o.BottomFlange.Thickness, 3) / (12 * o.StrongAxisSecondMoment), BottomY = o.BottomY,
+                    WebAreaRatio = o.Web.Width * o.Web.Thickness / o.Area, WebInertiaRatio = o.Web.Width * o.Web.Thickness / o.StrongAxisSecondMoment,
+                    WebBendingRatio = o.Web.Thickness * Math.Pow(o.Web.Width, 3) / (12 * o.StrongAxisSecondMoment), WebY = o.WebY
+                };
+            }
             FlangePart Flange(SpliceSide side, bool top, SpliceFlangeCoverDetail d, ConnectionPlate parent, double y)
             {
                 double outward = top ? 1 : -1;
@@ -230,10 +302,10 @@ namespace GPC.Checkers.Steel.Connections
                 var f = new FlangePart
                 {
                     Top = top, Cover = d, Parent = parent, Y = y,
-                    AreaRatio = parent.Width * parent.Thickness / s.Area, InertiaRatio = parent.Width * parent.Thickness / s.StrongAxisSecondMoment,
-                    BendingRatio = parent.Width * Math.Pow(parent.Thickness, 3) / (12 * s.StrongAxisSecondMoment),
-                    Yo = outward * ((parent.Thickness + d.Outer.Thickness) / 2 + (top ? p.Packing.TopOuter : p.Packing.BottomOuter)),
-                    Yi = -outward * ((parent.Thickness + d.EachInner.Thickness) / 2 + (top ? p.Packing.TopInner : p.Packing.BottomInner)),
+                    AreaRatio = parent.Width * parent.Thickness / j.Area, InertiaRatio = parent.Width * parent.Thickness / j.StrongAxisSecondMoment,
+                    BendingRatio = parent.Width * Math.Pow(parent.Thickness, 3) / (12 * j.StrongAxisSecondMoment),
+                    Yo = outward * ((parent.Thickness + d.Outer.Thickness) / 2 + (top ? jp.TopOuter : jp.BottomOuter)),
+                    Yi = -outward * ((parent.Thickness + d.EachInner.Thickness) / 2 + (top ? jp.TopInner : jp.BottomInner)),
                     ParentAxial = name + ".ParentAxial", ParentLocalMoment = name + ".ParentLocalMoment",
                     OuterForce = name + ".OuterForce", BothInnerForce = name + ".BothInnerForce",
                     OuterCover = top ? WeldedSpliceCover.TopOuter : WeldedSpliceCover.BottomOuter,
@@ -310,20 +382,35 @@ namespace GPC.Checkers.Steel.Connections
         public IReadOnlyList<WeldedSpliceCoverForceGroup> CoverGroups { get; }
         public IReadOnlyList<SectionResistanceValue> Trace { get; }
         public IReadOnlyList<string> Diagnostics { get; }
-        public string Scope => "Elastic force distribution for identical welded I sections, including flange self-bending, "
+        /// <summary>Across a transition ActionsAtJoint, the cover groups and the residuals refer to the centroid of
+        /// the CoverDistribution member; both members are loaded by that one cover force field.</summary>
+        public string Scope => Input.Transition != null
+            ? "Elastic force distribution of the " + Input.CoverDistribution + " section carried by the continuous covers across a section transition, "
+                + "with actual cover planes, packings and web-cover eccentricity; the other member's internal transfer is assessed separately. "
+                + "Not a resistance, stiffness, load-introduction, execution or fatigue qualification."
+            : "Elastic force distribution for identical welded I sections, including flange self-bending, "
             + "unequal upper/lower flanges, two faces of every splice and all cover centroid offsets. "
             + "Not a resistance, stiffness, load-introduction, execution or fatigue qualification.";
         private readonly SpliceFlangeForces[] flanges;
+        private readonly double[] moments, own;
         /// <summary>Typed web axial force and local moment behind Web.AxialForce and Web.LocalMoment.</summary>
         internal double WebAxialForce { get; }
         internal double WebLocalMoment { get; }
         /// <summary>Typed parent-flange forces behind the trace entries Side.Top/Bottom.*; null before they were calculated.</summary>
         internal SpliceFlangeForces Flange(SpliceSide side, bool top) => flanges[(side == SpliceSide.Left ? 0 : 2) + (top ? 0 : 1)];
+        /// <summary>Planar moment about the centroid of <paramref name="side"/> after pole transport; equal to
+        /// ActionsAtJoint.Mz without a transition. NaN before it was calculated.</summary>
+        internal double MomentAt(SpliceSide side) => moments == null ? (ActionsAtJoint?.Mz ?? double.NaN) : moments[side == SpliceSide.Left ? 0 : 1];
+        /// <summary>Own elastic share of one member (transition only), left-member sign convention:
+        /// part 0..5 = top N, top local M, bottom N, bottom local M, web N, web local M.</summary>
+        internal double OwnShare(SpliceSide side, int part) => own == null ? double.NaN : own[(side == SpliceSide.Left ? 0 : 6) + part];
         internal WeldedIBeamSpliceForceResult(WeldedIBeamSpliceForceInput input, PlanarConnectionActions actions,
             IList<WeldedSpliceCoverForceGroup> groups, IList<SectionResistanceValue> trace, IList<string> issues,
-            SpliceFlangeForces[] flanges = null, double webAxialForce = double.NaN, double webLocalMoment = double.NaN)
+            SpliceFlangeForces[] flanges = null, double webAxialForce = double.NaN, double webLocalMoment = double.NaN,
+            double[] moments = null, double[] own = null)
         {
             this.flanges = flanges ?? new SpliceFlangeForces[4]; WebAxialForce = webAxialForce; WebLocalMoment = webLocalMoment;
+            this.moments = moments; this.own = own;
             Input = input; ActionsAtJoint = issues.Count == 0 ? actions : null;
             Diagnostics = Array.AsReadOnly(issues.ToArray());
             CoverGroups = Array.AsReadOnly(issues.Count == 0 ? groups.ToArray() : Array.Empty<WeldedSpliceCoverForceGroup>());
@@ -342,13 +429,16 @@ namespace GPC.Checkers.Steel.Connections
             var groups = new List<WeldedSpliceCoverForceGroup>(14); var a = p.Actions;
             PlanarConnectionActions actions = null;
             var flanges = new SpliceFlangeForces[4]; double webAxial = double.NaN, webMoment = double.NaN;
+            double[] moments = null, own = null;
             void Value(string name, double value, string unit)
             { if (!Finite(value)) issues.Add(name + ".NUMERIC_RANGE"); else trace.Add(new SectionResistanceValue(name, value, unit)); }
             void Prepared(SectionResistanceValue entry, string name) { if (entry == null) issues.Add(name + ".NUMERIC_RANGE"); else trace.Add(entry); }
-            WeldedIBeamSpliceForceResult Result() => new WeldedIBeamSpliceForceResult(p, actions, groups, trace, issues, flanges, webAxial, webMoment);
+            WeldedIBeamSpliceForceResult Result() => new WeldedIBeamSpliceForceResult(p, actions, groups, trace, issues, flanges, webAxial, webMoment, moments, own);
             if (a.Fz != 0 || a.Mx != 0 || a.My != 0 || a.ApplicationZ != 0) issues.Add("IN_PLANE_N_V_M_ONLY");
             issues.AddRange(g.Issues);
-            double moment = a.Mz + a.ApplicationX * a.Fy - a.ApplicationY * a.Fx;
+            // Across a transition the moment is taken about the centroid of the distributing member:
+            // the pole (measured from the left centroid) is shifted by the actual centroid offset.
+            double moment = Moment(a, g.PoleShift);
             Prepared(g.Area, "Section.Area"); Prepared(g.Centroid, "Section.CentroidYFromBottom");
             Prepared(g.Inertia, "Section.StrongAxisSecondMoment");
             Value("Actions.MzAtJoint", moment, "Nmm");
@@ -358,6 +448,7 @@ namespace GPC.Checkers.Steel.Connections
             double webN = g.WebAreaRatio * a.Fx - moment * g.WebInertiaRatio * g.WebY, webM = moment * g.WebBendingRatio;
             Value("Web.AxialForce", webN, "N"); Value("Web.LocalMoment", webM, "Nmm"); webAxial = webN; webMoment = webM;
             Prepared(g.WebOffset, "Web.OffsetY");
+            if (g.Own != null) OwnShares();
             if (issues.Count != 0) return Result();
             foreach (var side in g.Sides)
             {
@@ -365,10 +456,11 @@ namespace GPC.Checkers.Steel.Connections
                 AddFlange(side, side.TopFlange);
                 AddFlange(side, side.BottomFlange);
                 // The two identical web covers share half of the web actions: one distribution for both faces.
+                // Across a transition the distributing web force acts at its own centroid, off the cover centre.
                 var d = ElasticBoltGroup.Evaluate(side.Web.Value,
-                    new PlanarConnectionActions(sign * webN / 2, sign * a.Fy / 2, 0, 0, 0, sign * webM / 2));
-                Add(side.Side, WeldedSpliceCover.WebNegative, p.EachWebCover, g.WebY, -1 * g.WebFaceOffset, -p.EachWebCover.Width / 2, p.EachWebCover.Width / 2, d);
-                Add(side.Side, WeldedSpliceCover.WebPositive, p.EachWebCover, g.WebY, 1 * g.WebFaceOffset, -p.EachWebCover.Width / 2, p.EachWebCover.Width / 2, d);
+                    new PlanarConnectionActions(sign * webN / 2, sign * a.Fy / 2, 0, 0, 0, sign * webM / 2, applicationY: g.WebApplicationY));
+                Add(side.Side, WeldedSpliceCover.WebNegative, p.EachWebCover, g.WebCoverY, -1 * g.WebFaceOffset, -p.EachWebCover.Width / 2, p.EachWebCover.Width / 2, d);
+                Add(side.Side, WeldedSpliceCover.WebPositive, p.EachWebCover, g.WebCoverY, 1 * g.WebFaceOffset, -p.EachWebCover.Width / 2, p.EachWebCover.Width / 2, d);
             }
             if (issues.Count != 0) return Result();
             foreach (var side in g.Sides)
@@ -398,6 +490,26 @@ namespace GPC.Checkers.Steel.Connections
             }
             return Result();
 
+            // Own elastic shares of BOTH members about their own centroids (left-member signs). With the
+            // distributing member these repeat its expressions exactly: zero transfer on that side.
+            void OwnShares()
+            {
+                moments = new double[2]; own = new double[12];
+                for (int k = 0; k < 2; k++)
+                {
+                    var o = g.Own[k]; string name = (k == 0 ? "Left" : "Right") + ".Own.";
+                    double mk = Moment(a, o.PoleShift); moments[k] = mk;
+                    var shares = new[] {
+                        o.TopAreaRatio * a.Fx - mk * o.TopInertiaRatio * o.TopY, mk * o.TopBendingRatio,
+                        o.BottomAreaRatio * a.Fx - mk * o.BottomInertiaRatio * o.BottomY, mk * o.BottomBendingRatio,
+                        o.WebAreaRatio * a.Fx - mk * o.WebInertiaRatio * o.WebY, mk * o.WebBendingRatio };
+                    Array.Copy(shares, 0, own, 6 * k, 6);
+                    Value(name + "MzAtCentroid", mk, "Nmm");
+                    Value(name + "Top.Axial", shares[0], "N"); Value(name + "Top.LocalMoment", shares[1], "Nmm");
+                    Value(name + "Bottom.Axial", shares[2], "N"); Value(name + "Bottom.LocalMoment", shares[3], "Nmm");
+                    Value(name + "Web.Axial", shares[4], "N"); Value(name + "Web.LocalMoment", shares[5], "Nmm");
+                }
+            }
             void AddFlange(SpliceForceGeometry.SidePart side, SpliceForceGeometry.FlangePart part)
             {
                 double sign = side.Sign;
@@ -424,6 +536,11 @@ namespace GPC.Checkers.Steel.Connections
                 groups.Add(new WeldedSpliceCoverForceGroup(side, cover, plate, y, z, min, max, d));
             }
         }
+        /// <summary>Planar moment after pole transport; <paramref name="shift"/> is the height of the left
+        /// centroid above the reference centroid (zero keeps the original expression).</summary>
+        internal static double Moment(PlanarConnectionActions a, double shift)
+            => shift == 0 ? a.Mz + a.ApplicationX * a.Fy - a.ApplicationY * a.Fx
+                : a.Mz + a.ApplicationX * a.Fy - (a.ApplicationY + shift) * a.Fx;
         private static bool Finite(double value) => !double.IsInfinity(value) && !double.IsNaN(value);
     }
 }
