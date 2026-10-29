@@ -26,25 +26,57 @@ namespace GPC.Checker.SectionSolvers
         /// </summary>
         Mesh _domainMesh;
 
+        /// <summary>
+        /// The domain of the mesh as the solver would compute it when the strategy is created (the strategy computed it in its constructor
+        /// before 29/10/2026); null for a type of domain that is neither elastic nor plastic or for a solver type outside the library
+        /// </summary>
+        private readonly FailureDomainRequest _request;
+
+        private readonly object _sync = new object();
+
+        /// <summary>
+        /// The strategy is created without computing anything: the domain and its mesh are made on the first point (see
+        /// <see cref="CalculateDomainMesh"/>), so that a checker with this strategy is as quick to create as with the iterative one
+        /// </summary>
         public DomainPointStrategyIntersection(in SectionSolver solver)
         {
             _solver = solver;
             _failureAnalysisIntersectionTolerance = 10;
             _vertexToDomainPoint = null;
             _domainMesh = null;
-            CalculateDomainMesh();
+            var type = solver.SectionOption.FailureDomainType;
+            if (type == SectionSolver.FailureDomainTypes.Elastic || type == SectionSolver.FailureDomainTypes.Plastic)
+                _request = FailureDomainRequest.Snapshot3d(solver, type);
         }
 
         /// <summary>
-        /// Domain mesh calculation, will be performed only if not already done.
+        /// The mesh of the domain, made only if not already done: the domain of the state of the solver when the strategy was created, from the
+        /// domains of the solver (<see cref="SectionSolver.GetDomainCore"/>: a domain and a mesh already made for the same key are not made
+        /// again, also by another solver); for a solver type outside the library, the domain of <see cref="SectionSolver.GetFailureDomainResult"/>
+        /// as before. Thread-safe: the searches of <see cref="SectionSolver.CalculateDomainPoints"/> run in parallel
         /// </summary>
-        private void CalculateDomainMesh()
+        /// <returns>False if the section has no domain (plain concrete without bars and steel sections) or the domain could not be computed: no
+        /// point is found (before, the constructor threw NullReferenceException)</returns>
+        private bool CalculateDomainMesh()
         {
-            // Is the calculation done?
-            if (_vertexToDomainPoint is null || _domainMesh is null)
+            lock (_sync)
             {
+                // Is the calculation done?
+                if (_vertexToDomainPoint != null && _domainMesh != null)
+                    return true;
+                if (_request != null && _solver.IsLibrarySolver)
+                {
+                    var core = _solver.GetDomainCore(_request);
+                    if (core.Domain == null)
+                        return false;
+                    _domainMesh = core.GetIntersectionMesh(out _vertexToDomainPoint);
+                    return true;
+                }
                 var failureDomain = _solver.GetFailureDomainResult();
+                if (failureDomain?.Domain == null)
+                    return false;
                 _domainMesh = failureDomain.Domain.GetMesh(failureDomain.Domain, out _vertexToDomainPoint);
+                return true;
             }
         }
 
@@ -58,7 +90,8 @@ namespace GPC.Checker.SectionSolvers
         /// </summary>
         public FailureDomain.FailureDomainPoint CalculateDomainPoint(ResultBeamForces targetLocalForces, SectionSolver.FailureAnalysisTypes? failureAnalysisTypeOverride = null)
         {
-            CalculateDomainMesh();
+            if (!CalculateDomainMesh())
+                return null;
             var failureAnalysisType = failureAnalysisTypeOverride is null ? _solver.SectionOption.FailureAnalysisType : failureAnalysisTypeOverride.Value;
             // the domain is in the solver axes: the force is converted into them, with the transport moment when its origin is another one
             // (before, the components were used as they were given)

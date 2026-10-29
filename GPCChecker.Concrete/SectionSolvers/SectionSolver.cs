@@ -6,6 +6,7 @@ using GPC.Checkers.Concrete.Helper;
 using GPC.Checkers.Concrete.Results;
 using GPC.Geometry;
 using GPC.Model;
+using GPC.Model.Core;
 using GPC.Model.Materials;
 using GPC.Model.Maths.GaussIntegrations;
 using GPC.Model.Results;
@@ -231,7 +232,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
         protected LineGaussPoints.GaussPointNumber _gaussIntegrationLinePoints;
 
         protected GaussIntegration.GlobalCoordinateGaussPoint[][] _globalCoordinateGaussPointsMesh;
-        private StressBlockIntegration _stressBlockIntegration;
+        [NonSerialized]
+        private StressBlockState _stressBlockIntegration;
         protected ThinWallSection.ThinWall[][] _steelSectionsThinWallsBreaked;
         protected GaussIntegration.GlobalCoordinateGaussPoint[][][] _globalCoordinateGaussPointsThinWalls;
 
@@ -299,9 +301,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             _gaussIntegrationTriPoints = TriangleGaussPoints.GaussPointNumber.Tri79;
             _gaussIntegrationLinePoints = LineGaussPoints.GaussPointNumber.Line32;
 
+            // the mesh of the Gauss points, read once as before: the key of the cached domains describes it (see GetDomainCore)
+            _constructionMesh = ConcreteSection.Mesh;
             _globalCoordinateGaussPointsMesh = GetMeshGlobalCoordinateGaussPointsLinearShapeFunction();
             _steelSectionsThinWallsBreaked = BreakThinwallAtConcreteIntesections();
             _globalCoordinateGaussPointsThinWalls = GetThinWallsGlobalCoordinateGaussPointsLinearShapeFunction();
+            _constructionDigest = ConstructionDigest();
             _sectionOption = sectionOption;
             _sectionOptionDomainPointStrategy = null;
             SetDomainPointStrategy(_sectionOption.DomainPointStrategy);
@@ -527,55 +532,62 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 return _plasticFailureZonesDiscretizationsFRCNoRebarsSoftening;
         }
 
+        /// <summary>
+        /// The elastic 3D failure domain of the current options. Computed once for the same section content, standards and options of the domain
+        /// (see <see cref="GetDomainCore"/>), also by another solver on an equal section; each call returns new objects (a copy of the points)
+        /// bound to this solver and its options, with the same numbers as a new computation
+        /// </summary>
         public virtual FailureDomainResult GetElasticFailureDomainResult()
         {
             (FailureZones, int)[] zoneDiscretization = GetFailureZonesDiscretization(FailureDomainTypes.Elastic);
             if (zoneDiscretization == null)
                 return null;
 
-            var strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization, zoneDiscretization, FailureDomainTypes.Elastic);
+            FailureDomainCore core = GetDomainCore(FailureDomainRequest.Domain3d(this, FailureDomainTypes.Elastic));
 
-            return new FailureDomainResult(ConcreteSection,
-                CalculateFailureDomain(strainPlanes, _sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Elastic),
+            return new FailureDomainResult(ConcreteSection, core.Copy(),
                 null, this, _standard, _sectionOption, Id, _standardStructuralSteel);
         }
 
+        /// <summary>The elastic N-M domain of the two meridians at <paramref name="angle"/> and <paramref name="angle"/> + π, cached as
+        /// <see cref="GetElasticFailureDomainResult"/> (the rebuild along N and the 2D conversion are made on a copy at each call)</summary>
         public virtual FailureDomainResult2d GetElasticFailureDomainResult2d(double angle = 0)
         {
             (FailureZones, int)[] zoneDiscretization = GetFailureZonesDiscretization(FailureDomainTypes.Elastic);
             if (zoneDiscretization == null)
                 return null;
 
-            var strainPlanes = CalculateDesignFailureStrainPlanes(2, zoneDiscretization, FailureDomainTypes.Elastic, angle);
+            FailureDomainCore core = GetDomainCore(FailureDomainRequest.Meridians(this, FailureDomainTypes.Elastic, angle));
 
             return new FailureDomainResult2d(ConcreteSection,
-                ConvertFailureDomain3dTo2d(CalculateFailureDomain(strainPlanes, _sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Elastic).RebuildFailureDomain(), angle),
+                ConvertFailureDomain3dTo2d(core.Copy().RebuildFailureDomain(), angle),
                 null, this, _standard, _sectionOption, Id, _standardStructuralSteel);
         }
 
+        /// <inheritdoc cref="GetElasticFailureDomainResult"/>
         public virtual FailureDomainResult GetPlasticFailureDomainResult()
         {
             (FailureZones, int)[] zoneDiscretization = GetFailureZonesDiscretization(FailureDomainTypes.Plastic);
             if (zoneDiscretization == null)
                 return null;
 
-            var strainPlanes = CalculateDesignFailureStrainPlanes(_tetaDiscretization, zoneDiscretization, FailureDomainTypes.Plastic);
+            FailureDomainCore core = GetDomainCore(FailureDomainRequest.Domain3d(this, FailureDomainTypes.Plastic));
 
-            return new FailureDomainResult(ConcreteSection,
-                CalculateFailureDomain(strainPlanes, _sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Plastic), null, this, _standard,
+            return new FailureDomainResult(ConcreteSection, core.Copy(), null, this, _standard,
                 _sectionOption, Id, _standardStructuralSteel);
         }
 
+        /// <inheritdoc cref="GetElasticFailureDomainResult2d"/>
         public virtual FailureDomainResult2d GetPlasticFailureDomainResult2d(double angle = 0)
         {
             (FailureZones, int)[] zoneDiscretization = GetFailureZonesDiscretization(FailureDomainTypes.Plastic);
             if (zoneDiscretization == null)
                 return null;
 
-            var strainPlanes = CalculateDesignFailureStrainPlanes(2, zoneDiscretization, FailureDomainTypes.Plastic, angle);
+            FailureDomainCore core = GetDomainCore(FailureDomainRequest.Meridians(this, FailureDomainTypes.Plastic, angle));
 
             return new FailureDomainResult2d(ConcreteSection,
-                ConvertFailureDomain3dTo2d(CalculateFailureDomain(strainPlanes, _sectionOption.ForceReferenceCoordinateSystem, FailureDomainTypes.Plastic).RebuildFailureDomain(), angle), null, this, _standard,
+                ConvertFailureDomain3dTo2d(core.Copy().RebuildFailureDomain(), angle), null, this, _standard,
                 _sectionOption, Id, _standardStructuralSteel);
         }
 
@@ -796,6 +808,267 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #region Internal methods
 
+        #region Cached failure domains
+
+        /// <summary>The mesh of the Gauss points of the concrete, read by the constructor</summary>
+        [NonSerialized]
+        private GPC.Geometry.Meshes.Mesh _constructionMesh;
+
+        /// <summary>SHA-256 of the state built by the constructor from the section: the mesh of the Gauss points and the broken thin walls of
+        /// the steel sections with their Gauss points. Null: the domains of this solver are not cached (deserialized solver, failed digest)</summary>
+        [NonSerialized]
+        private readonly byte[] _constructionDigest;
+
+        [NonSerialized]
+        private readonly object _domainCoreSync = new object();
+
+        /// <summary>The domains of this solver, the most recent first (at most <see cref="SolverDomainCores"/>)</summary>
+        [NonSerialized]
+        private readonly List<KeyValuePair<string, FailureDomainCore>> _domainCores = new List<KeyValuePair<string, FailureDomainCore>>();
+
+        private const int SolverDomainCores = 4;
+
+        [NonSerialized]
+        private int _domainComputations;
+
+        /// <summary>Domains computed by this solver (tests: a cached domain is not computed again)</summary>
+        internal int DomainComputations => System.Threading.Volatile.Read(ref _domainComputations);
+
+        /// <summary>False: every domain of this solver is computed again, as before the cache (tests compare the two paths)</summary>
+        internal bool DomainCacheEnabled { get; set; } = true;
+
+        /// <summary>
+        /// The failure domain of the request, computed or cached. The key holds everything the computation reads: the solver type, the request
+        /// (meridians, angle, type, tensile concrete, <see cref="DomainState"/> of a derived solver, origin of the force reference axes), the
+        /// integration reference point and the Gauss points, the digest of the state built by the constructor (the mesh of the
+        /// concrete, the thin walls of the steel sections), the mesh of the integration of the stress blocks, and the content fingerprints
+        /// (<see cref="ModelValues.Fingerprint"/>) of the section (shape, holes, bars with positions, diameters, materials and initial strains,
+        /// concrete, steel sections) and of the standards. The key is computed again at each call, so that any change of these inputs (setters
+        /// of the solver, of the options, of the section, of the materials or of the standards) gives a new computation. A domain is kept, for
+        /// this solver and in the cache shared by the solvers (<see cref="FailureDomainCache"/>), only for the library solvers on a
+        /// <see cref="ReinforcedConcreteSection"/> and only if its computation wrote nothing in the log (no exception inside it), so that a domain
+        /// found in the cache is the one a new computation would give, numbers, order and log included. The options that the domain does not
+        /// read (criterion, strategy, stress analyses, ψ, concrete in tension of the stress analyses, orientation of the force axes) are not in
+        /// the key: the checkers that differ only in them share the domain
+        /// </summary>
+        /// <param name="request">What to compute</param>
+        /// <returns>The domain (its <see cref="FailureDomainCore.Domain"/> null if the section has no domain or the computation failed)</returns>
+        internal FailureDomainCore GetDomainCore(FailureDomainRequest request)
+        {
+            string key = DomainCacheEnabled && IsDomainCacheType ? DomainKey(request) : null;
+            if (key == null)
+                return ComputeDomainCore(request);
+
+            lock (_domainCoreSync)
+            {
+                for (int i = 0; i < _domainCores.Count; i++)
+                    if (_domainCores[i].Key == key)
+                    {
+                        var found = _domainCores[i];
+                        _domainCores.RemoveAt(i);
+                        _domainCores.Insert(0, found);
+                        return found.Value;
+                    }
+            }
+
+            if (!FailureDomainCache.TryGet(key, out FailureDomainCore core))
+            {
+                int logEntries = LogCount();
+                core = ComputeDomainCore(request);
+                if (core.Domain == null || LogCount() != logEntries)
+                    return core;
+                core = FailureDomainCache.Add(key, core);
+            }
+
+            lock (_domainCoreSync)
+            {
+                if (!_domainCores.Exists(e => e.Key == key))
+                {
+                    _domainCores.Insert(0, new KeyValuePair<string, FailureDomainCore>(key, core));
+                    if (_domainCores.Count > SolverDomainCores)
+                        _domainCores.RemoveAt(_domainCores.Count - 1);
+                }
+            }
+            return core;
+        }
+
+        /// <summary>The computation of the domain, the same calls as before the cache</summary>
+        private FailureDomainCore ComputeDomainCore(FailureDomainRequest request)
+        {
+            System.Threading.Interlocked.Increment(ref _domainComputations);
+            FailureDomainCache.CountComputation();
+            // a strategy created before the checker assigned the tensile concrete of the options (or before the constructor body of a derived
+            // solver assigned its state) computes with the values of that moment
+            SectionSolver solver = request.ConsiderTensileConcrete == _considerTensileConcrete && request.SolverState == DomainState ? this
+                : WithDomainState(request.ConsiderTensileConcrete, request.SolverState);
+            (FailureZones, int)[] zoneDiscretization = solver.GetFailureZonesDiscretization(request.Type);
+            if (zoneDiscretization == null)
+                return FailureDomainCore.None;
+            var strainPlanes = solver.CalculateDesignFailureStrainPlanes(request.Teta, zoneDiscretization, request.Type, request.Angle);
+            // the range of N (two meridians) returned null without strain planes; the 3D domain passed them on (NullReferenceException)
+            if (strainPlanes == null && request.TwoMeridians)
+                return FailureDomainCore.None;
+            return new FailureDomainCore(solver.CalculateFailureDomain(strainPlanes, request.Axes, request.Type));
+        }
+
+        /// <summary>A shallow copy with another tensile concrete and state: the same section, standards, Gauss points, options and log</summary>
+        private SectionSolver WithDomainState(bool considerTensileConcrete, int state)
+        {
+            var solver = (SectionSolver)MemberwiseClone();
+            solver._considerTensileConcrete = considerTensileConcrete;
+            solver.SetDomainState(state);
+            return solver;
+        }
+
+        /// <summary>The fields of a derived solver that the domain reads, as a number (ACI 318: the spiral); 0 for this class</summary>
+        internal virtual int DomainState => 0;
+
+        /// <summary>Assigns <see cref="DomainState"/> (only on the copies of <see cref="WithDomainState"/>)</summary>
+        internal virtual void SetDomainState(int state)
+        {
+        }
+
+        /// <summary>The solver types of the library, whose state the key of the cached domains describes (a derived type may add more)</summary>
+        internal bool IsLibrarySolver => GetType() == typeof(SectionSolverModelCode2010) || GetType() == typeof(SectionSolverACI318);
+
+        /// <summary>The library solvers on a reinforced concrete section, built by the constructor (not deserialized)</summary>
+        private bool IsDomainCacheType => _constructionDigest != null && _concreteSection is ReinforcedConcreteSection && IsLibrarySolver;
+
+        private int LogCount()
+        {
+            lock (_log)
+                return _log.Count;
+        }
+
+        /// <summary>The key of the request (see <see cref="GetDomainCore"/>); null if it cannot be computed (the domain is then not cached)</summary>
+        private string DomainKey(FailureDomainRequest request)
+        {
+            try
+            {
+                using (var memory = new System.IO.MemoryStream())
+                using (var writer = new System.IO.BinaryWriter(memory))
+                {
+                    writer.Write("GPC.Checkers.Concrete.FailureDomain/1");
+                    writer.Write(GetType().AssemblyQualifiedName);
+                    writer.Write(request.TwoMeridians);
+                    writer.Write(request.Teta);
+                    writer.Write(request.Angle);
+                    writer.Write((int)request.Type);
+                    writer.Write(request.ConsiderTensileConcrete);
+                    // GetExternalForces reads only X and Y of the origin of the force reference axes
+                    writer.Write(request.Axes.Origin.X);
+                    writer.Write(request.Axes.Origin.Y);
+                    writer.Write(_integrationReferencePoint.X);
+                    writer.Write(_integrationReferencePoint.Y);
+                    writer.Write((int)_gaussIntegrationQuadPoints);
+                    writer.Write((int)_gaussIntegrationTriPoints);
+                    writer.Write((int)_gaussIntegrationLinePoints);
+                    writer.Write(_constructionDigest);
+                    // the integration of the stress blocks (no tensile concrete only) is built once, from the mesh of the section of that moment
+                    if (request.ConsiderTensileConcrete)
+                        writer.Write("no stress blocks");
+                    else
+                    {
+                        var state = _stressBlockIntegration;
+                        var mesh = state != null ? state.Mesh : ConcreteSection.Mesh;
+                        if (ReferenceEquals(mesh, _constructionMesh))
+                            writer.Write("stress blocks on the mesh of the Gauss points");
+                        else
+                        {
+                            writer.Write("stress blocks on another mesh");
+                            WriteMesh(writer, mesh);
+                        }
+                    }
+                    writer.Write(request.SolverState);
+                    writer.Write(ModelValues.Fingerprint(new object[] { _concreteSection }));
+                    writer.Write(ModelValues.Fingerprint(new object[] { _standard, _standardStructuralSteel }));
+                    writer.Flush();
+                    using (var sha = System.Security.Cryptography.SHA256.Create())
+                        return BitConverter.ToString(sha.ComputeHash(memory.GetBuffer(), 0, (int)memory.Length));
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>The digest of the constructor state (see <see cref="_constructionDigest"/>); null if it cannot be computed</summary>
+        private byte[] ConstructionDigest()
+        {
+            try
+            {
+                using (var memory = new System.IO.MemoryStream())
+                using (var writer = new System.IO.BinaryWriter(memory))
+                {
+                    WriteMesh(writer, _constructionMesh);
+                    writer.Write(_steelSectionsThinWallsBreaked.Length);
+                    for (int i = 0; i < _steelSectionsThinWallsBreaked.Length; i++)
+                    {
+                        var walls = _steelSectionsThinWallsBreaked[i];
+                        writer.Write(walls == null ? -1 : walls.Length);
+                        if (walls != null)
+                            foreach (var wall in walls)
+                            {
+                                writer.Write(wall.T); writer.Write(wall.L); writer.Write(wall.Angle);
+                                writer.Write(wall.Point.X); writer.Write(wall.Point.Y); writer.Write(wall.IsInsideConcrete);
+                            }
+                        var points = _globalCoordinateGaussPointsThinWalls[i];
+                        writer.Write(points == null ? -1 : points.Length);
+                        if (points != null)
+                            foreach (var wall in points)
+                            {
+                                writer.Write(wall == null ? -1 : wall.Length);
+                                if (wall != null)
+                                    foreach (var point in wall)
+                                    {
+                                        writer.Write(point.GpX); writer.Write(point.GpY); writer.Write(point.GpZ);
+                                        // the product weight × det(J) × factor of the point
+                                        writer.Write(point.EvaluateFunction((x, y) => 1.0));
+                                    }
+                            }
+                    }
+                    writer.Flush();
+                    using (var sha = System.Security.Cryptography.SHA256.Create())
+                        return sha.ComputeHash(memory.GetBuffer(), 0, (int)memory.Length);
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>The faces of a mesh as the Gauss points (face enumerator, points) and the stress blocks (faces, vertex coordinates) read them</summary>
+        private static void WriteMesh(System.IO.BinaryWriter writer, GPC.Geometry.Meshes.Mesh mesh)
+        {
+            if (mesh == null)
+            {
+                writer.Write(-1);
+                return;
+            }
+            writer.Write(mesh.FacesCount);
+            var faces = mesh.GetFacesEnumerator();
+            while (faces.MoveNext())
+            {
+                writer.Write(faces.Current.IsQuad);
+                foreach (var point in mesh.GetFacePoints(faces.Current))
+                {
+                    writer.Write(point.X); writer.Write(point.Y); writer.Write(point.Z);
+                }
+            }
+            foreach (var face in mesh.Faces)
+            {
+                writer.Write(face.IsTriangle);
+                foreach (int id in face.IsTriangle ? new[] { face.A, face.B, face.C } : new[] { face.A, face.B, face.C, face.D })
+                {
+                    writer.Write(mesh.Vertices[id].Point.X); writer.Write(mesh.Vertices[id].Point.Y);
+                }
+            }
+        }
+
+        #endregion
+
         internal void SetDomainPointStrategy(DomainPointStrategyTypes domainPointStrategyTypes)
         {
             if (!_sectionOptionDomainPointStrategy.HasValue || _sectionOptionDomainPointStrategy.Value != domainPointStrategyTypes)
@@ -835,8 +1108,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             (FailureZones, int)[] zoneDiscretization = GetFailureZonesDiscretization(type);
             if (zoneDiscretization == null)
                 return null;
-            var strainPlanes = CalculateDesignFailureStrainPlanes(2, zoneDiscretization, type);
-            FailureDomain domain = strainPlanes == null ? null : CalculateFailureDomain(strainPlanes, _sectionOption.ForceReferenceCoordinateSystem, type);
+            // the two meridians at 0 and π, cached (the same as those of the 2D domain at the angle 0); the points returned are copies
+            FailureDomain domain = GetDomainCore(FailureDomainRequest.Meridians(this, type, 0)).Domain;
             if (domain == null)
                 return null;
             FailureDomain.FailureDomainPoint compression = null, tension = null;
@@ -852,7 +1125,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 }
             if (compression == null || tension == null)
                 return null;
-            return (compression, tension);
+            if (ReferenceEquals(compression, tension))
+            {
+                var copy = FailureDomainCopy.OfPoint(compression);
+                return (copy, copy);
+            }
+            return (FailureDomainCopy.OfPoint(compression), FailureDomainCopy.OfPoint(tension));
         }
 
         /// <summary>
@@ -873,7 +1151,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected virtual GaussIntegration.GlobalCoordinateGaussPoint[][] GetMeshGlobalCoordinateGaussPointsLinearShapeFunction()
         {
-            return GaussIntegration.GetGlobalCoordinateGaussPointsLinearShapeFunction(ConcreteSection.Mesh, _gaussIntegrationQuadPoints, _gaussIntegrationTriPoints);
+            return GaussIntegration.GetGlobalCoordinateGaussPointsLinearShapeFunction(_constructionMesh ?? ConcreteSection.Mesh, _gaussIntegrationQuadPoints, _gaussIntegrationTriPoints);
         }
 
         protected virtual GaussIntegration.GlobalCoordinateGaussPoint[][][] GetThinWallsGlobalCoordinateGaussPointsLinearShapeFunction()
@@ -1096,14 +1374,23 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         private StressBlockIntegration GetStressBlockIntegration()
         {
-            var integration = _stressBlockIntegration;
-            if (integration == null)
+            var state = _stressBlockIntegration;
+            if (state == null)
             {
-                integration = new StressBlockIntegration(ConcreteSection.Mesh, _integrationReferencePoint);
-                System.Threading.Interlocked.CompareExchange(ref _stressBlockIntegration, integration, null);
-                integration = _stressBlockIntegration;
+                var mesh = ConcreteSection.Mesh;
+                state = new StressBlockState(new StressBlockIntegration(mesh, _integrationReferencePoint), mesh);
+                System.Threading.Interlocked.CompareExchange(ref _stressBlockIntegration, state, null);
+                state = _stressBlockIntegration;
             }
-            return integration;
+            return state.Integration;
+        }
+
+        /// <summary>The integration of the stress blocks with the mesh it was built from (the key of the cached domains describes it)</summary>
+        private sealed class StressBlockState
+        {
+            internal readonly StressBlockIntegration Integration;
+            internal readonly GPC.Geometry.Meshes.Mesh Mesh;
+            internal StressBlockState(StressBlockIntegration integration, GPC.Geometry.Meshes.Mesh mesh) { Integration = integration; Mesh = mesh; }
         }
 
         /// <summary>

@@ -44,6 +44,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         #endregion
 
+        /// <summary>The spiral changes the reduction factor and the compression limit of the domain (key of the cached domains)</summary>
+        internal override int DomainState => _haveSpiral ? 1 : 0;
+
+        internal override void SetDomainState(int state)
+        {
+            _haveSpiral = state == 1;
+        }
+
         #region Protected Solver Override 
 
         protected override double GetFck()
