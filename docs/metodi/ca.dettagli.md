@@ -205,14 +205,17 @@ con st,lim = 600 mm (EN e DS) oppure 300 mm (DM 31/07/2012). Con meno di due bra
 ρw,min = 0,063 √fck/fyk (DK NA 9.2.2(5), (9.5N NA)); il controllo di ρmin (D.5) resta in sospeso come regola
 nazionale non implementata (riquadro D-5).
 
-> **Scostamento dichiarato — D-1 (R14) Trattenimento delle barre compresse nelle travi (Eurocodice)**
+> **Scostamento corretto — D-1 (R14) Trattenimento delle barre compresse nelle travi (Eurocodice)**
 >
 > - Norma: EN 9.2.1.2(3) richiede un passo delle staffe ≤ 15Ø per le barre compresse considerate nella resistenza
 >   (anche NTC §4.1.6.1.1).
-> - Programma: nella famiglia Eurocodice il limite non è calcolato e il controllo chiede una conferma
->   (`BarsHeldByLinks`); il profilo NTC lo calcola, con Ømin di tutte le barre della sezione.
-> - Effetto: senza conferma il controllo è in sospeso; con la conferma il limite di 15Ø non è verificato.
-> - Stato: da discutere (voce R14 del registro delle differenze).
+> - Programma fino a Concrete 0.27: nella famiglia Eurocodice il limite non era calcolato e il controllo chiedeva una
+>   conferma (`BarsHeldByLinks`); il profilo NTC lo calcola, con Ømin di tutte le barre della sezione.
+> - Correzione (ANTHEA 1.16.0): `CompressionBarRestraint` anche per EN, UNI e DS, passo ≤ 15 Ømin con Ømin di tutte le
+>   barre della sezione come per NTC (a favore di sicurezza quando le barre più piccole non sono considerate nella
+>   resistenza). La conferma `BarsHeldByLinks` resta solo per DS, sulla regola 9.5.3(6) che il DK NA 9.2.1.2(3) estende
+>   alle travi (riquadro D-5).
+> - Stato: corretto (voce R14 del registro delle differenze).
 
 ### 6.3 Pilastri
 

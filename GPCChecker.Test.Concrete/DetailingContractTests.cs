@@ -42,6 +42,9 @@ namespace ConcreteTests
     ///   Accepted change (ANTHEA 1.16.0, R14, citations): only the Reference column of 2754 checks, each matched by a script to one rewrite: NTC
     ///   sub-clauses without the space («§4.1.6.1.3», 2358 lines, plus 328 beam MinimumTension lines that also cite EC2 §9.2.1.1 instead of §9.3.1.1 of
     ///   slabs), no trailing space after «§4.1.6.1» (54) and MaximumAtLap of NTC columns «EC2 §9.5.2(3)» instead of «EC2 §§9.5.2» (14).
+    ///   Accepted change (ANTHEA 1.16.0, R14, EN 9.2.1.2(3)): 246 beam cases of EN, UNI and DS get CompressionBarRestraint (link spacing ≤ 15 Ømin, the
+    ///   limit of the NTC case of the same section); BarsHeldByLinks leaves EN and UNI (36 pending confirmations) and stays for DS on §9.5.3(6) (18); every
+    ///   other check is unchanged except its index; 2 overall outcomes follow the new check. Verified case by case by a script.
     /// Doubles are written with the round-trip format (G17 where "R" does not round-trip, −0 kept), so the comparison is bit for bit. Generation runs with the
     /// invariant culture and UI culture (mscorlib messages in English on every machine). On a difference the generated text is written to
     /// %TEMP%\&lt;fixture&gt;.actual and the first differing line is reported.

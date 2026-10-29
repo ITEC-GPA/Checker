@@ -400,8 +400,10 @@ namespace GPC.Checkers.Concrete.Detailing
                 }
             }
             if (slab) return; // ANTHEA: compression bar restraint and end supports for beams only (ConcreteDetailing.cs:119-123)
-            if (ntc) Max("CompressionBarRestraint", p.HasLinks ? p.LinkSpacing : double.PositiveInfinity, 15 * minPhi, "mm", ".1", "spacing ≤ 15Ø of the compression bars considered resistant");
-            else if (!p.CompressionBarsRestrained) Pending("BarsHeldByLinks", "§9.2.1.2 / 9.5.3(6)", "Confirm the restraint of the compression bars considered in the resistance.");
+            // R14 of ANTHEA (1.16.0): EN 9.2.1.2(3) computed as in NTC §4.1.6.1.1 (Ømin of the section), before a confirmation of the Eurocode family.
+            // DS keeps the confirmation of 9.5.3(6), which DK NA 9.2.1.2(3) extends to beams.
+            Max("CompressionBarRestraint", p.HasLinks ? p.LinkSpacing : double.PositiveInfinity, 15 * minPhi, "mm", ntc ? ".1" : "§9.2.1.2(3)", "spacing ≤ 15Ø of the compression bars considered resistant");
+            if (ds && !p.CompressionBarsRestrained) Pending("BarsHeldByLinks", "§9.5.3(6)", "DK NA 9.2.1.2(3): confirm that every corner bar is held by links and no compression bar is farther than 150 mm from a restrained bar.");
             if (!p.EndZonesConfirmed) Pending("EndSupportAnchorage", ntc ? ".1" : "§9.2.1.4", "Confirm the shift rule and the bottom bars anchored at the end supports.");
         }
     }

@@ -365,8 +365,8 @@ Percorsi relativi alla radice del repository Checker (namespace `GPC.Checkers.Co
 - UNI 11104: valori dell'edizione 2016, prospetto 5, da fonte secondaria. I valori del prospetto 6 dell'edizione
   2025, in vigore, non sono implementati; secondo l'estratto cambiano classe minima e a/c di XF1 e il cemento minimo
   (riquadro C-1).
-- Testo dei riferimenti (R14): per il profilo NTC il risultato cita «UNI 11104 prospetto 5», il prospetto
-  dell'edizione 2016, senza l'edizione; i valori limite sono nel prospetto 4 nella 2004 e nel prospetto 6 nella 2025.
+- Testo dei riferimenti (R14): per il profilo NTC il risultato cita «UNI 11104:2016 prospetto 5», con l'edizione; i
+  valori limite sono nel prospetto 4 nella 2004 e nel prospetto 6 nella 2025.
 - Aria inglobata UNI 11104: nessun valore per 16 mm < dg ≤ 20 mm e per dg < 12 mm, dove la norma indica solo un
   aumento rispetto al 4%.
 - Nel profilo NTC, senza Cmin pertinente si usa la classe di tabella dell'ambiente (riquadro C-2).
