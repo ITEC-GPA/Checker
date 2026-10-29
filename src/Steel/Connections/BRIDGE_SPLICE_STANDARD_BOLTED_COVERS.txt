@@ -67,8 +67,11 @@ puo' fallire: il test richiede NotSupported, non una falsa rottura e non Passed.
 Il confronto dei componenti pubblicati non qualifica automaticamente il nodo.
 
 ANCORA APERTO
-- Blocchi sotto forze di direzione mista fuori dalla gerarchia sufficiente.
-- Classe4 compressa con taglio, lastre fuori dal dominio convenzionale.
+- Blocchi sotto forze di direzione mista fuori dalla gerarchia sufficiente
+  (dal 29/10/2026 opt-in ActualForcesWithMixedBlockInteraction: il caso M24
+  qui citato diventa verificato, BRIDGE_SPLICE_MIXED_BLOCKS.txt).
+- Classe4 compressa con taglio, lastre fuori dal dominio convenzionale
+  (dal 29/10/2026 opt-in EffectiveCompressionWithShearBuckling).
 - Transizioni fra sezioni madri diverse e compensatori non paralleli.
 - Contatto/prying generale e risposta fuori piano.
 Nessuna estensione a fatica, sisma, basi o nodi tubolari. Nessuna UI ANTHEA.

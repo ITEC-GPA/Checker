@@ -73,3 +73,10 @@ caso <id>.LeftDistribution e <id>.RightDistribution; per B/C anche gli scorrimen
 WeldedSpliceFrictionSurface(cover, interfacceSinistre, interfacceDestre). Ogni caso espone
 Transition.Transfer (resistenza) e Transition.Domain (applicabilita'). Modello, campo e
 rifiuti: BRIDGE_SPLICE_TRANSITIONS.txt.
+
+29/10/2026 - Due opt-in espliciti, default invariati. blockMethod:
+ActualForcesWithMixedBlockInteraction (percorsi misti fuori gerarchia con azioni
+reali; BRIDGE_SPLICE_MIXED_BLOCKS.txt). plateStability:
+EffectiveCompressionWithShearBuckling (EN1993-1-5 sez.5 e 7.1 sui coprigiunti
+con taglio; BRIDGE_SPLICE_CLASS4_SHEAR_BUCKLING.txt). Il rapporto riporta
+metodo dei blocchi, metodo delle piastre e i valori governanti nelle note.

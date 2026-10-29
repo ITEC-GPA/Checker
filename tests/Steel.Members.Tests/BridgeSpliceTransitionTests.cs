@@ -296,6 +296,10 @@ public class BridgeSpliceTransitionTests
         var effective=WeldedIBeamSpliceStandard.Verify(Create(stability:SplicePlateStabilityMethod.EffectiveCompression));
         Assert.AreEqual(ConnectionStatus.NotSupported,effective.Status);
         Assert.IsTrue(effective.MissingRequirements.Any(m=>m.EndsWith("TransitionDomain:TRANSITION_EFFECTIVE_COMPRESSION_NOT_QUALIFIED")),All(effective));
+        // The shear-buckling method (claude/conn-blocchi-classe4) is an effective-compression method too.
+        var buckling=WeldedIBeamSpliceStandard.Verify(Create(stability:SplicePlateStabilityMethod.EffectiveCompressionWithShearBuckling));
+        Assert.AreEqual(ConnectionStatus.NotSupported,buckling.Status);
+        Assert.IsTrue(buckling.MissingRequirements.Any(m=>m.EndsWith("TransitionDomain:TRANSITION_EFFECTIVE_COMPRESSION_NOT_QUALIFIED")),All(buckling));
         var identical=WeldedIBeamSpliceStandardTests.Workflow(false,SpliceBoltCategory.A);
         var noTransition=WeldedIBeamSpliceStandard.Verify(new WeldedIBeamSpliceStandardInput(identical.Cases,SpliceBoltCategory.A,null,identical.BlockMethod,SpliceFlangeFaceModel.PackedSectionTransition));
         Assert.AreEqual(ConnectionStatus.NotSupported,noTransition.Status);

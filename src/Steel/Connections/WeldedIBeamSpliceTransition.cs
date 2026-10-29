@@ -100,7 +100,9 @@ namespace GPC.Checkers.Steel.Connections
             var trace = new List<SectionResistanceValue>(); var reported = new List<SectionResistanceValue>();
             var domainIssues = new List<string>(f.Diagnostics.Concat(plates.Diagnostics)); var domainChecks = new List<ConnectionCheck>();
             var domainTrace = new List<SectionResistanceValue>();
-            if (stability == SplicePlateStabilityMethod.EffectiveCompression || stability == SplicePlateStabilityMethod.EffectiveCompressionWithLowShear)
+            // Effective widths are not convex in the distribution mixture: every effective-compression method is refused.
+            if (stability == SplicePlateStabilityMethod.EffectiveCompression || stability == SplicePlateStabilityMethod.EffectiveCompressionWithLowShear
+                || stability == SplicePlateStabilityMethod.EffectiveCompressionWithShearBuckling)
                 domainIssues.Add("TRANSITION_EFFECTIVE_COMPRESSION_NOT_QUALIFIED");
             var reference = d.CoverDistribution;
             var member = reference == SpliceSide.Left ? SpliceSide.Right : SpliceSide.Left;

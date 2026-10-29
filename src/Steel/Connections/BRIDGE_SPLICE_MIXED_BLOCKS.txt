@@ -1,0 +1,88 @@
+BLOCCHI A DIREZIONE MISTA FUORI GERARCHIA - 29/10/2026
+EC3 2005 / NTC2018, statica ordinaria. Stato generale: ../CURRENT.txt.
+
+INGRESSO
+SpliceBlockVerificationMethod.ActualForcesWithMixedBlockInteraction, parametro
+blockMethod di WeldedIBeamSpliceStandardInput e di BridgeSpliceApplication.CreateBolted.
+FastenerHierarchy resta il default; ActualCollinearForcesWithHierarchyFallback
+e' invariato. Precedenza:
+1 gruppo collineare: verifiche dirette collineari esistenti, stessi ID e valori;
+2 gruppo misto, per OGNI percorso: la gerarchia sufficiente invariata;
+3 solo i percorsi che non la soddisfano sono verificati con le azioni reali
+  (ID del percorso + ".MixedInteraction", ruolo Resistance, in DirectBlockTearing).
+Un caso gia' qualificato dalla gerarchia resta identico, controllo per controllo.
+Traccia per gruppo: MixedInteractionPaths e i termini del percorso governante.
+
+PERCORSI
+Stessa enumerazione della gerarchia: rettangoli U e L di bordo, tutti i prefissi
+dai bordi liberi, sottoinsiemi contigui, due assi e due versi. Tagli netti di
+EN1993-1-8 3.10.2 per i centri dei fori: taglio di testa (perpendicolare al verso
+di strappo) e taglio/i laterale/i. Percorsi a gradino non enumerati, come prima.
+
+AZIONI DEL BLOCCO
+Forze di tutti i bulloni racchiusi (attribuzione piena, come in 3.10.2) riportate
+al baricentro G dei bulloni del percorso. Pt e Pn sono somme dei valori assoluti
+delle componenti su tutti i piani e i bulloni: nessuna cancellazione, come nel
+metodo collineare. M e' il momento risultante delle stesse forze attorno a G.
+
+DOMINIO E LIMITE INFERIORE
+Il dominio del blocco (azioni Pt,Pn,M in G che non producono lo strappo del
+rettangolo) e' convesso: insieme delle azioni equilibrate da campi ammissibili
+(equilibrio lineare, materiale convesso) o intersezione dei semispazi dei
+meccanismi. Se +/-Rt, +/-Rn, +/-Rm sono punti del dominio, il loro inviluppo
+convesso Pt/Rt+Pn/Rn+|M|/Rm<=1 vi e' contenuto: limite inferiore dimostrato
+rispetto alle resistenze ad azione singola dello STESSO blocco.
+- U: confinato su tre lati da materiale continuo. L'unico moto rigido senza
+  compenetrazione dei tagli laterali e di testa e' la traslazione verso il bordo
+  libero: Pn e M passano per contatto e non separano il blocco (3.10.2 verifica
+  il blocco nel suo verso di strappo). Verifica: Pt <= Veff,2 del percorso, anche
+  per i percorsi dell'asse trasversale (Sum|Fy| per l'anima con taglio).
+- L di bordo: due bordi liberi, quindi traslazioni verso ciascun bordo e
+  rotazioni ammissibili. Rt = Veff,2 del percorso (trazione sul taglio di testa);
+  Rn = Veff,2 dello stesso rettangolo strappato verso il bordo laterale (trazione
+  sul taglio laterale, taglio su quello di testa). Entrambe con 0.5Ant fu/gammaM2
+  (3.10.2(3), carico eccentrico): una forza per G nel verso di strappo e' il caso
+  del gruppo di bulloni caricato eccentricamente rispetto al blocco.
+  Rm = sigma t (Z_testa + Z_laterale), sigma = min(0.5fu/gammaM2, fy/gammaM0):
+  coppia pura di trazioni normali antisimmetriche a blocco su ciascun taglio netto,
+  diviso in due meta' di pari lunghezza netta; Z = integrale di |s-s_h| sui
+  segmenti netti. Campo statico mai oltre il livello eccentrico e sotto fy: limite
+  inferiore della coppia pura. Combinando i tre campi con frazioni a somma <=1,
+  ogni punto dei tagli resta nel rombo |sigma|/sigma_c+|tau|/tau_c<=1.
+Segni: resistenze simmetriche; dove il blocco e' spinto verso l'interno la
+resistenza reale e' almeno pari (confinamento). Inversione delle azioni: stessi esiti.
+NTC2018: stesso modello con gammaM0=1.05 e gammaM2=1.25 della politica NTC.
+
+VERIFICHE CIRCOSTANTI RICHIESTE (gia' obbligatorie nel flusso standard)
+Bulloni e rifollamento con le forze reali; tagli N-V-M lordi e netti dei
+coprigiunti a ogni colonna (assorbono le pressioni di contatto dei blocchi U);
+compressione e instabilita' tra bulloni; tutti i rettangoli L/U che includono il
+materiale confinante; sezione madre netta; dettagli Tabella3.3.
+
+FONTI E NATURA DELLE EVIDENZE
+EN1993-1-8:2005 3.10.2(2)-(3), eq3.9/3.10, Fig.3.8: percorsi U/L, fattore0.5.
+Teorema statico della plasticita': convessita' e combinazione lineare di stati
+ammissibili. Jonsson, Generalized Block Failure, NSCC2015 (OPEN_MECHANISMS_REVIEW.txt):
+conferma il ruolo di rotazione e interazione ma NON e' usato come formula; nessun
+coefficiente universale e nessuna somma dei moduli contro un'unica Veff.
+
+LIMITI
+- La gerarchia resta un criterio sufficiente per percorso, non modificato. Per
+  forze inclinate copre le traslazioni con dissipazione additiva dei due piani,
+  non le rotazioni dei blocchi L: osservazione da riesaminare, nessun esito cambiato.
+- Conservativo per piastre sottili con gruppi ruotati (termine M): un esito
+  Failed significa verifica non soddisfatta, non prova di rottura.
+- INVALID_MIXED_BLOCK_PATH, MIXED_INTERACTION_NUMERIC_RANGE: fuori campo.
+- Percorsi a gradino, fori sfalsati, asole e campi di attrito non sono coperti.
+
+PROVE: BridgeSpliceMixedBlockInteractionTests, 30 casi EC3/NTC.
+web-12 (coprigiunto 280x12 S355, 3x3 M24 per lato, fori26): percorso L marginale
+dal bordo inferiore e dall'estremita' sinistra, due colonne e due file, a mano:
+tagli netti 101 e 91mm, Z=3512.25 e 3214.25mm2, Rt=471.06kN, Rn=471.18kN,
+Rm=16.466kNm (EC3; gerarchia 4x135.6kN non soddisfatta). N+V+M (200kN,-100kN,
+50kNm): Pt=12.92kN, Pn=12.17kN, M=0.933kNm, u=0.110; taglio puro u=0.132.
+Percorso U trasversale (due file superiori, tre colonne): Rt=712.2kN,
+Sum|Fy|=36.2kN. Segni invertiti identici, N puro uguale al metodo collineare,
+percorsi in gerarchia invariati, caso gia' qualificato identico, sovraccarico
+Failed, P357 con M24 Passed (u max0.12), web-12 Passed (u max0.38) mentre i
+vecchi metodi restano NotSupported.

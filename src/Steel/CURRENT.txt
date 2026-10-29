@@ -359,10 +359,20 @@ EffectiveCompression              | Larghezze efficaci; classe4 compressa
 EffectiveCompressionWithLowShear   | Estensione esplicita a |V|<=R/2,
                                   | area efficace netta e esclusione
                                   | instabilita a taglio sull'intera b/t.
+EffectiveCompressionWithShearBuckling | Taglio di qualunque entita (29/10):
+                                  | EN1993-1-5 sez.5 sull'intera lastra,
+                                  | montante non rigido, eta=1, chi<=1/lambda^2,
+                                  | interazione 7.1 oltre eta3=0.5.
 
 R non e una nuova resistenza normativa: e il limite conservativo descritto
 in Connections/BRIDGE_SPLICE_CLASS4_LOW_SHEAR.txt. Taglio elevato e lastre
-sensibili a instabilita a taglio restano fuori dal nuovo metodo.
+sensibili a instabilita a taglio restano fuori da quel metodo e sono coperte
+dal metodo esplicito EffectiveCompressionWithShearBuckling
+(Connections/BRIDGE_SPLICE_CLASS4_SHEAR_BUCKLING.txt), salvo un taglio con
+eta3>0.5 senza fibre tese, che EN1993-1-5 7.1(5) rinvia alla sezione10.
+Blocchi: FastenerHierarchy (default), ActualCollinearForcesWithHierarchyFallback,
+oppure ActualForcesWithMixedBlockInteraction: nei gruppi misti ogni percorso
+fuori gerarchia e verificato con le azioni reali (Connections/BRIDGE_SPLICE_MIXED_BLOCKS.txt).
 Le scelte di piastra non disattivano bulloni, blocchi, detailing o genitori.
 I compensatori ammessi sono paralleli, integri, a piena impronta, anche
 multistrato con interfacce in serie. Non sono una transizione di sezione.
@@ -372,9 +382,11 @@ lato in WeldedSpliceSectionTransition; CreateBolted crea <id>.LeftDistribution e
 
 STATO DEGLI OTTO PUNTI RICHIESTI IN QUESTO BLOCCO
 
-1 Blocchi misti fuori gerarchia: APERTO. Studio della fonte DTU completato;
-  nessun nuovo esito resistente qualificato. Vedi OPEN_MECHANISMS_REVIEW.txt
-  in Connections. Un criterio sufficiente non soddisfatto non prova rottura.
+1 Blocchi misti fuori gerarchia: COMPLETATO (29/10) con il metodo esplicito
+  ActualForcesWithMixedBlockInteraction: U con la sola componente nel verso di
+  strappo, L con interazione lineare convessa Veff,2/Veff,2/coppia statica.
+  Restano esclusi i percorsi non rettangolari. Connections/BRIDGE_SPLICE_MIXED_BLOCKS.txt.
+  Un criterio sufficiente non soddisfatto non prova rottura: senza opt-in resta NotSupported.
 2 Transizioni fra sezioni: PARZIALE (29/10/2026). Implementato il modello a pari
   altezza, facce esterne e piano dell'anima comuni, stesse larghezze: spessori di
   ali/anima diversi colmati da compensatori paralleli per lato (PackedSectionTransition).
@@ -382,9 +394,11 @@ STATO DEGLI OTTO PUNTI RICHIESTI IN QUESTO BLOCCO
   destra); il membro che ridistribuisce verifica trasferimenti ala-anima, coppie di
   giunto, cordoni, anima e piastre forate. Restano rifiutati con codice preciso: altezza
   o larghezza diverse, offset, rastremazioni, classe4 efficace, taglio alto nei
-  coprigiunti. Vedi Connections/BRIDGE_SPLICE_TRANSITIONS.txt.
-3 Classe4 compressa+taglio: PARZIALE. Chiuso il sottodominio a taglio basso;
-  alto taglio/instabilita della lastra restano da implementare.
+  coprigiunti (anche EffectiveCompressionWithShearBuckling). Vedi
+  Connections/BRIDGE_SPLICE_TRANSITIONS.txt.
+3 Classe4 compressa+taglio: COMPLETATO (29/10) salvo un sottocaso. Taglio basso
+  e alto, lastre sensibili a instabilita: EffectiveCompressionWithShearBuckling.
+  Rifiutato con codice: eta3>0.5 su taglio interamente compresso (sezione10).
 4 Terminali/supporti: PARZIALE (29/10/2026). Chiusi nel campo dichiarato:
   terminale BULLONATO di 2C/2L compressi (StandardBoltedPackedTerminal, vincolo
   d'asta dichiarato), doppio angolare su anima di pilastro a taglio ordinario
@@ -470,4 +484,7 @@ ConnectionRecommendedEntryTests (6). Non sono stati modificati attesi legacy,
 fixture storiche o allowlist. I risultati finali delle suite sono registrati
 in EIGHT_POINTS_VALIDATION_2026_10_27.txt al termine dell'esecuzione.
 Nessuna modifica ANTHEA, Model, merge, push o rilascio del set coerente.
+29/10/2026: BridgeSpliceMixedBlockInteractionTests (30) e
+BridgeSpliceClass4ShearBucklingTests (16), calcoli a mano EC3/NTC; nessun atteso
+o esito valutato in precedenza modificato.
 

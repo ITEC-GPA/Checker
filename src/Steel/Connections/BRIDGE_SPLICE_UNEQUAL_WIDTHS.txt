@@ -55,7 +55,9 @@ rapporti EC/NTC con geometria, materiali, azioni, norme e fonti delle superfici.
 
 LIMITI RESIDUI
 Il metodo diretto del block tearing e' collineare. I gruppi misti d'anima
-mantengono il filtro di gerarchia; se non passa, l'esito resta NotSupported.
+mantengono il filtro di gerarchia; se non passa, l'esito resta NotSupported
+(salvo l'opt-in ActualForcesWithMixedBlockInteraction del 29/10/2026,
+BRIDGE_SPLICE_MIXED_BLOCKS.txt).
 Classe4 forata, piastre snelle fuori dominio, fatica e certificazione della
 rigidezza/esecuzione restano esclusi. Questa chiusura non chiude le fasi1-4
 generali di tutte le connessioni, ne' la piastra di estremita' a momento.

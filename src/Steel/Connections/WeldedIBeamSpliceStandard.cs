@@ -24,10 +24,23 @@ namespace GPC.Checkers.Steel.Connections
         StandardBoltedCovers,
         /// <summary>Effective compression plus concomitant shear up to half the
         /// conservatively bounded shear resistance; whole-width shear buckling excluded.</summary>
-        EffectiveCompressionWithLowShear
+        EffectiveCompressionWithLowShear,
+        /// <summary>Effective compression plus concomitant shear of any magnitude: whole-width EN1993-1-5
+        /// section5 shear-buckling resistance (k_tau=5.34, non-rigid end post, eta=1, no reserve beyond
+        /// tau_cr) and the 7.1 interaction. A wholly compressed cut at high shear stays unsupported (section10).</summary>
+        EffectiveCompressionWithShearBuckling
     }
 
-    public enum SpliceBlockVerificationMethod { FastenerHierarchy, ActualCollinearForcesWithHierarchyFallback }
+    public enum SpliceBlockVerificationMethod
+    {
+        FastenerHierarchy,
+        ActualCollinearForcesWithHierarchyFallback,
+        /// <summary>Collinear groups as ActualCollinearForcesWithHierarchyFallback. In a mixed-direction group every
+        /// path that fails the sufficient hierarchy is verified with its actual bolt actions: U paths by the force
+        /// component in their only admissible tearing direction, edge L paths by the linear interaction of the
+        /// two Veff,2 tearing resistances and a static lower bound of the pure-moment resistance.</summary>
+        ActualForcesWithMixedBlockInteraction
+    }
 
     public sealed class WeldedIBeamSpliceStandardInput
     {
@@ -74,10 +87,10 @@ namespace GPC.Checkers.Steel.Connections
         public WeldedIBeamSpliceTransitionResult Transition { get; }
         internal WeldedSpliceStandardCaseResult(WeldedSpliceStandardCase input, WeldedSpliceUltimateCaseResult components, SpliceBlockVerificationMethod blockMethod, SpliceFlangeFaceModel faceModel, SplicePlateStabilityMethod plateStability)
         {
-            EffectiveCompression = (plateStability == SplicePlateStabilityMethod.EffectiveCompression || plateStability == SplicePlateStabilityMethod.EffectiveCompressionWithLowShear)
-                ? WeldedIBeamSpliceEffectiveCompression.Verify(input.Parents.Detail, plateStability == SplicePlateStabilityMethod.EffectiveCompressionWithLowShear, components.Plates) : null;
+            EffectiveCompression = WeldedIBeamSpliceEffectiveCompression.UsesEffectiveWidths(plateStability)
+                ? WeldedIBeamSpliceEffectiveCompression.Verify(input.Parents.Detail, plateStability, components.Plates) : null;
             Input = input; Components = components; Model = WeldedIBeamSpliceStandardModel.Verify(input.Parents.Detail, faceModel, components.Bolts.Forces);
-            AdditionalPlates = WeldedIBeamSpliceStandardPlates.Verify(input.Parents.Detail, blockMethod == SpliceBlockVerificationMethod.ActualCollinearForcesWithHierarchyFallback, plateStability, components.Plates, Model);
+            AdditionalPlates = WeldedIBeamSpliceStandardPlates.Verify(input.Parents.Detail, blockMethod, plateStability, components.Plates, Model);
             Parents = WeldedIBeamSpliceParents.Verify(input.Parents, components.Bolts.Forces);
             if (input.Parents.Detail.Plates.Bolts.Detail.Transition != null)
                 Transition = WeldedIBeamSpliceTransfer.Verify(input.Parents, components.Bolts.Forces, components.Plates, plateStability);
@@ -119,7 +132,9 @@ namespace GPC.Checkers.Steel.Connections
         public bool CalculatesRotationalStiffness => false;
         public bool CertifiesExecution => false;
         public string Scope => "Static resistance of the declared welded-I double-cover typology (face model: " + Input.FaceModel + ") under the supplied concomitant ULS/SLS cases. "
-            + "Includes bolts/bearing, selected slip category, gross/net plates, selected collinear block checks/hierarchy, cover stability (" + Input.PlateStability + "), gross/net parent section and continuous longitudinal fillets. "
+            + "Includes bolts/bearing, selected slip category, gross/net plates, selected collinear block checks/hierarchy"
+            + (Input.BlockMethod == SpliceBlockVerificationMethod.ActualForcesWithMixedBlockInteraction ? " with actual-force mixed-direction block interaction (" + Input.BlockMethod + ")" : "")
+            + ", cover stability (" + Input.PlateStability + "), gross/net parent section and continuous longitudinal fillets. "
             + (Input.FaceModel == SpliceFlangeFaceModel.PackedSectionTransition ? "Section transition: both cover distributions per action state and the internal flange/web transfer of the redistributing member. " : "")
             + "Conditional on declared execution and structural continuity/second-order analysis. Linked whole-member outcomes are separate; no fatigue or rotational stiffness calculation.";
         internal WeldedIBeamSpliceStandardResult(WeldedIBeamSpliceStandardInput input, IEnumerable<WeldedSpliceStandardCaseResult> cases,
