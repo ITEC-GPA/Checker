@@ -1,6 +1,42 @@
 FASE 3C / 3E - C E 2C IN TRAZIONE COLLEGATI SULL'ANIMA
 24 ottobre 2026. Ricerca di campo; nessuna produzione, build o Git.
 
+AGGIORNAMENTO 29/10/2026 - METODI IMPLEMENTATI (ChannelWebTension.Verify)
+La decisione sotto resta valida per cio' che esclude (nessuna beta degli L, nessuna
+regola area collegata+meta' sporgenti, nessuna cancellazione delle coppie). E' stato
+aggiunto un percorso che NON richiede un'area efficace da shear lag:
+1 ConnectedWebOnly (metodo conservativo, scelta esplicita): campo staticamente
+  ammissibile in cui la striscia d'anima h*tw porta l'intera forza del canale sul
+  proprio piano medio per tutta l'asta e le ali sono scariche. Con il gruppo di
+  bulloni centrato a meta' altezza il campo e' in equilibrio ovunque; i suoi limiti
+  sono quindi un limite inferiore: snervamento lordo h*tw*fy/gammaM0 e rottura netta
+  0.9(h-r*d0)tw*fu/gammaM2 (EN1993-1-1 6.2.3), blocchi nell'anima EN1993-1-8 3.10.2
+  (interno concentrico fra le file esterne; blocchi di bordo eccentrici dalla fila
+  esterna al bordo della striscia, con la quota di quella fila, l'intera forza se la
+  fila e' unica). Il materiale delle ali e' trascurato anche nei blocchi.
+  Non serve trasferire forza alle ali, quindi non serve una formula di shear lag.
+  Per lo stesso dettaglio e' piu' cautelativo dell'alternativa AISC.
+2 AiscShearLagAlternative (alternativa DICHIARATA, con fonte di accettazione
+  obbligatoria): AISC 360-16 D3, Tabella D3.1 caso2, U=1-xbar/l con xbar dal dorso
+  dell'anima al baricentro e l lunghezza fra i bulloni estremi. NON si usa la
+  concessione di D3 che limita U inferiormente al rapporto A_anima/A: con l molto
+  corta U resta la formula, e U<=0 e' rifiutato. Applicata come 0.9 U An fu/gammaM2
+  (0.72 fu U An per gammaM2=1.25, piu' cautelativa di phi=0.75 AISC), con lo
+  snervamento lordo dell'intero canale. Sotto NTC resta metodo supplementare.
+Entrambi: bulloni a taglio per piano (un piano per canale; 2C speculari a doppio
+taglio con la quota esplicita di un canale), betaLf, rifollamento dell'anima.
+Rifiutati: metodo non scelto, AISC senza accettazione, SectionCTaperFlange/UPN,
+profili formati a freddo, ali disuguali, un solo bullone per fila, bulloni o
+ferramenta fuori dalla parte piana dell'anima, passi oltre la Tabella3.3, e1
+minimo, fonte geometrica mancante. Fuori campo anche fazzoletto/collettore,
+supporto, compressione, quote disuguali, imbottiture e i dettagli fisici diversi
+(rinforzo SCI P358 8.2, angolari lug 3.10.4). Catalogo: ChannelWebOnlyTensionEnd
+(ComponentsOnly: l'estremita' del canale e' verificata, il nodo completo no).
+Prove ChannelWebTensionTests (17): benchmark sotto (A=3208, xbar=73132/3208),
+aree di striscia 1600/1424/1248, blocchi a mano, U=1-xbar/140, U formula sotto
+A_anima/A con ali larghe e l=49 (nessuna concessione), U<=0 rifiutato, coppia 2C identica al singolo,
+dieci rifiuti, sovraccarico come fallimento noto, EC/NTC.
+
 DECISIONE
 Non qualificare ora automaticamente il netto efficace di C/2C collegati
 soltanto sull'anima/dorso, nel perimetro EN 1993-1-8:2005 / NTC2018.
