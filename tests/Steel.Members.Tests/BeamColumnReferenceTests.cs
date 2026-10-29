@@ -149,6 +149,15 @@ public class BeamColumnReferenceTests
             Assert.IsTrue(r.IsEvaluated,r.Message);Assert.IsTrue(r.Trace.Any(t=>t.Name=="AreaEffective"));
             Assert.IsTrue(r.Trace.Any(t=>t.Name=="Weff1Min"));return;
         }
+        if(problem=="tension") {
+            // Was NotSupported (compression required). Tension is neglected as favourable: n1=n2=0, so with class3 NTC,
+            // Cm=.8/.9/.7 and susceptibility k11=.8, k12=k22=.9, k21=max(1-.05*lambda2*0/.45,1-.05*0/.45)=1 (Table C4.2.V);
+            // m1=1.05*.1/chiLT(.9, curve b), m2=1.05*.06; governing row 2: m1+.9 m2.
+            Assert.IsTrue(r.IsEvaluated,r.Message);Assert.AreEqual(100,r.Trace.Single(t=>t.Name=="TensionNeglectedAsFavourable").Value);
+            double m1=1.05*.1/RootChi(.9,.34),m2=1.05*.06;
+            Assert.AreEqual(m1+.9*m2,r.Utilization!.Value,(m1+.9*m2)*4e-6);Assert.AreEqual(1,r.Trace.Single(t=>t.Name=="K21").Value,1e-12);
+            return;
+        }
         Assert.IsFalse(r.IsEvaluated);Assert.IsNull(r.Utilization);
     }
     [DataTestMethod] [DataRow("C")] [DataRow("T")] [DataRow("L")] [DataRow("RHS")]

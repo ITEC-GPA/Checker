@@ -5,7 +5,8 @@ namespace GPC.Checkers.Steel.Inputs
     /// <summary>Qualified doubly symmetric H/hollow beam-column assumptions. Cm factors refer to the actual
     /// restraint intervals and the same load state; Cm=1 is an explicit conservative
     /// choice, never inferred from a few exported cuts. Global second-order effects
-    /// must be accounted for by the declared analysis model where relevant.</summary>
+    /// must be accounted for by the declared analysis model where relevant. A null T/FT exclusion
+    /// leaves the mode to a supplied value or to the automatic resolution of the compression route.</summary>
     public sealed class SteelBeamColumnParameters
     {
         public SteelBucklingCurve Curve1 { get; }
@@ -30,8 +31,11 @@ namespace GPC.Checkers.Steel.Inputs
         {
             foreach(var curve in new[]{curve1,curve2})if(!Enum.IsDefined(typeof(SteelBucklingCurve),curve))throw new ArgumentOutOfRangeException(nameof(curve));
             foreach(var cm in new[]{cm1,cm2,cmLT})ValidateMomentFactor(cm);
-            foreach(var source in new[]{momentFactorSource,stabilityModelSource,torsionalExclusionSource,flexuralTorsionalExclusionSource})
-                if(string.IsNullOrWhiteSpace(source))throw new ArgumentException("Explicit beam-column model, moment-factor and compression-mode assessments required.");
+            foreach(var source in new[]{momentFactorSource,stabilityModelSource})
+                if(string.IsNullOrWhiteSpace(source))throw new ArgumentException("Explicit beam-column model and moment-factor assessments required.");
+            // Null T/FT exclusion: value or automatic resolution of the compression route (doubly symmetric H, closed hollow).
+            foreach(var source in new[]{torsionalExclusionSource,flexuralTorsionalExclusionSource})
+                if(source!=null&&string.IsNullOrWhiteSpace(source))throw new ArgumentException("A compression-mode exclusion cannot be empty.");
             if(!Enum.IsDefined(typeof(SteelCriticalMomentBasis),criticalMomentBasis))throw new ArgumentOutOfRangeException(nameof(criticalMomentBasis));
             if(torsionSusceptible ? lateralTorsionalExclusionSource!=null : string.IsNullOrWhiteSpace(lateralTorsionalExclusionSource))
                 throw new ArgumentException("Declare either torsional susceptibility or a reasoned lateral-torsional exclusion, never both.");

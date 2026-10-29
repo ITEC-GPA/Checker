@@ -22,9 +22,9 @@ namespace ModelChecker.Tests;
 [TestClass]
 public class SteelPipelineAdapterTest
 {
-    private static BeamActionInput Input()
+    private static BeamActionInput Input(SectionH? shape = null)
     {
-        var section = new SteelSection(new SectionH(300, 12, 150, 18, 150, 18, "H300"), SteelMaterialEN1993Data.S355);
+        var section = new SteelSection(shape ?? new SectionH(300, 12, 150, 18, 150, 18, "H300"), SteelMaterialEN1993Data.S355);
         var model = MixedModelFactory.Create(m => {
             var beam = m.BeamElements[250]; beam.BeamProperty = section;
             beam.Assignments.Sections.Clear();
@@ -97,7 +97,9 @@ public class SteelPipelineAdapterTest
     [DataRow("zero")] [DataRow("torsion")] [DataRow("two shears")]
     public void UncoveredInventoryCannotBeReportedAsACompletePass(string kind)
     {
-        var input = Input();
+        // Two shears on the H300 are covered by the automatic web and flange screens; welded
+        // flanges with c/t = (400-10)/2/12 = 16.25 > 14 eps are not.
+        var input = kind == "two shears" ? Input(new SectionH(500, 10, 400, 12, 400, 12, "W500")) : Input();
         if (kind == "torsion") { input.Forces.N = 1e4; input.Forces.T = 1e5; } // 1 Nmm is now below the negligible-action limit
         if (kind == "two shears") input.Forces.V1 = input.Forces.V2 = 1e3;
         var result = Run(input);
@@ -170,7 +172,8 @@ public class SteelPipelineAdapterTest
     public void ExternalShearAssessmentIsExplicitBoundAndCannotInventResistance(bool excluded)
     {
         var input = Input(); input.Forces.M2 = 1e6; input.Forces.V1 = 1e3;
-        Assert.AreEqual(EngineeringOutcome.NotEvaluated, Run(input).Outcome);
+        // Without an explicit assessment the automatic flange screen applies: c/t = 69/18 = 3.83 <= 14 eps.
+        Assert.AreEqual(EngineeringOutcome.Satisfied, Run(input).Outcome);
         var options = Options(); Bind(options, input);
         options["ShearBucklingExcluded1"] = excluded.ToString(); options["ShearBucklingSource1"] = "Independent section assessment A, rev 2";
         var result = Run(input, options);
@@ -178,6 +181,31 @@ public class SteelPipelineAdapterTest
         Assert.IsTrue(result.Details.Trace.Any(t => t.Expression == options["ShearBucklingSource1"]));
         options["SectionFingerprint"] = "different-section";
         Assert.AreEqual(DataStatus.Insufficient, Run(input, options).Data);
+    }
+
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public void FlangeShearBucklingScreenAppliesOnlyWithinFourteenEpsilon(bool ntc)
+    {
+        // H300 S355: flange outstand c/t = (150-12)/2/18 = 3.83 <= 14*sqrt(235/355) = 11.39.
+        var input = Input(); input.Forces.V1 = 1e3;
+        var result = Run(input, ntc: ntc);
+        Assert.AreEqual(EngineeringOutcome.Satisfied, result.Outcome, string.Join(";", result.Diagnostics.Select(d => d.Code)));
+        Assert.IsTrue(result.Details.Trace.Any(t => t.Key.EndsWith(".ShearAssessment1.Excluded") && t.Value == 1
+            && t.Expression!.Contains("not a code clause")));
+        Assert.AreEqual(69.0 / 18, result.Details.Trace.First(t => t.Key.EndsWith(".ShearAssessment1.FlangeOutstandSlenderness")).Value!.Value, 1e-12);
+        Assert.AreEqual(14 * Math.Sqrt(235.0 / 355), result.Details.Trace.First(t => t.Key.EndsWith(".ShearAssessment1.FlangeOutstandSlendernessLimit")).Value!.Value, 1e-12);
+        // Both shears: web (264/12 = 22) and flange screens admit the linear shear interaction.
+        input.Forces.V2 = 1e3;
+        var both = Run(input, ntc: ntc);
+        Assert.AreEqual(EngineeringOutcome.Satisfied, both.Outcome, string.Join(";", both.Diagnostics.Select(d => d.Code)));
+        Assert.AreEqual(1d, both.Details.Trace.Single(t => t.Key == "Pipeline.IsComplete").Value);
+        // Welded flange (400-10)/2/12 = 16.25 > 11.39: negative screen, no resistance is invented.
+        var slender = Input(new SectionH(500, 10, 400, 12, 400, 12, "W500")); slender.Forces.V1 = 1e3;
+        var negative = Run(slender, ntc: ntc);
+        Assert.AreEqual(EngineeringOutcome.NotEvaluated, negative.Outcome);
+        Assert.IsTrue(negative.Diagnostics.Any(d => d.Code.EndsWith(".ShearBuckling.ResistanceMethodRequired")));
+        Assert.IsTrue(negative.Details.Trace.Any(t => t.Key.EndsWith(".ShearAssessment1.Excluded") && t.Value == 0));
     }
 
     [TestMethod]

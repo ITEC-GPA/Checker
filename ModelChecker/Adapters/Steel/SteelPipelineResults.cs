@@ -78,6 +78,12 @@ namespace GPC.Model.Checker
                     if (analysis.Kind == GPC.Checkers.Steel.Inputs.SteelMemberAnalysisKind.UniformForkHOrT)
                         trace.Add(new CheckCalculationValue("Member.InPlaneCurve", null, null, analysis.InPlaneCurve.ToString()));
                 }
+                var ltb = analysis.LateralTorsionalMethod; // rows only for an explicitly selected non-general LTB method
+                if (ltb.Kind != GPC.Checkers.Steel.Inputs.SteelLateralTorsionalMethodKind.General)
+                {
+                    trace.Add(new CheckCalculationValue("Member.LtbMethod", null, null, ltb.Kind + "; " + ltb.ParameterSource));
+                    trace.Add(new CheckCalculationValue("Member.LtbKc", ltb.MomentFactor.Kc, "1", ltb.MomentFactor.Distribution + "; " + ltb.MomentFactor.Source));
+                }
                 foreach (var v in analysis.Values)
                 {
                     trace.Add(new CheckCalculationValue("Member.External." + v.Quantity, v.Value, v.Unit, v.Source));

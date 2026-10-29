@@ -26,3 +26,68 @@ manuali non vengono sovrascritti: il conflitto viene segnalato.
 I valori conservano unita' e provenienza nel tracciato Member.External per
 compatibilita' del report (il nome storico non implica origine esterna).
 Nessuna modifica al contratto di archivio: i parametri restano fingerprintati.
+
+MODI TORSIONALI, TRAVI-COLONNA E SEGMENTI FRA RITEGNI - 28/10/2026
+Libreria (SteelTorsionalModes; compressione e sottoverifica della trave-colonna):
+senza valore ne' esclusione di NcrT/NcrFT il modo si risolve solo nei campi
+qualificati, altrimenti resta MissingInput. Il dato esplicito prevale sempre.
+- H doppiamente simmetriche: NcrT=(G It+pi^2 E Iw/LcrT^2)/i0^2, i0^2=(I1+I2)/A,
+  proprieta' lorde Model, ElasticStabilityArithmetic.Torsional. LcrT =
+  Member.TorsionalBucklingLength, oppure Member.Length se Rotation3=Fixed a entrambe
+  le estremita' (ingobbamento libero: L limita superiormente la lunghezza efficace).
+  NcrFT: centro di taglio nel baricentro, il determinante si fattorizza in Ncr1,
+  Ncr2, NcrT; nessun modo distinto.
+- Cave chiuse doppiamente simmetriche (CHS, RHS qualificate): limite inferiore
+  NcrT>=G It/i0^2 (ingobbamento trascurato, qualunque lunghezza); se lambda_T<0.2
+  T e FT sono esclusi. EC3 6.3.1.4(1) richiede i modi torsionali per le sezioni
+  aperte, 6.3.1.2(4) lambda<=0.2; NTC 4.2.4.1.3.1 chiede Ncr del modo appropriato
+  (flessionale, torsionale o flesso-torsionale) e trascura l'instabilita' per
+  lambda<0.2 (testo GU 20/2/2018 p.102). Riferimenti distinti EC3/NTC nel report.
+- Altre famiglie (C, T, L, accoppiati): input esplicito come prima.
+Tracce NcrT.Automatic/Length/LengthFromEndTwistRestraints/ShearModulus/
+TorsionConstant/WarpingConstant/PolarRadiusSquared, NcrT.LowerBound/
+LowerBoundSlenderness/AutomaticExclusion, NcrFT.AutomaticExclusion.
+SteelBeamColumnParameters accetta esclusioni T/FT nulle e la trave-colonna accetta
+NcrT/NcrFT come valori; la sua sottoverifica a compressione usa la curva D per T/FT.
+
+ModelChecker:
+- Senza CriticalValues (Compression/BeamColumn, H doppiamente simmetrica, nessun
+  NcrT o esclusione): LcrT = tratto piu' lungo fra ritegni torsionali espliciti di
+  Model, torsione impedita a entrambe le estremita' della campata verificata;
+  traccia Member.Torsional.Length oppure Member.Torsional.LengthNotDerived.
+- CriticalValues=UniformFork|ForkDiagram anche per BeamColumn: Ncr1, Ncr2, NcrT e
+  Mcr se TorsionSusceptible con M1 attivo nel segmento. Mcr UniformFork richiede M1
+  costante nel segmento (SteelMember.Segment.UniformMomentRequired); ForkDiagram
+  usa il diagramma del segmento: EndMoments/GenericEnvelope, carichi trasversali
+  solo con un segmento unico. Cm espliciti o ConservativeEnvelope; LinearDiagrams
+  solo con un segmento (Cm1 appartiene al tratto nel piano).
+- NcrT/NcrFT espliciti (valore o esclusione) prevalgono anche con CriticalValues;
+  Ncr1/Ncr2/Mcr espliciti restano in conflitto.
+Ritegni Model (MemberRestraint, sola lettura): Distance lungo l'asta, sei flag rigidi
+nel sistema del ritegno (traslazioni V1..V3, poi rotazioni), null = ignoto; nessuna
+rigidezza, nessun flag di ingobbamento, nessuna quota di applicazione. Sugli assi
+principali: laterale = traslazione lungo l'asse 1, nel piano = lungo l'asse 2,
+torsione = rotazione attorno all'asse dell'asta. Ritegni coincidenti si sommano.
+- forcella (laterale+torsione): estremo dei tratti Ncr2, Mcr e NcrT; con torsione
+  nulla la sezione e' trattenuta lateralmente a qualunque quota del ritegno;
+- solo nel piano: estremo dei soli tratti Ncr1; solo torsione: dei soli tratti NcrT;
+- rifiuti: laterale senza torsione (un'ala o quota ignota) LateralWithoutTwist,
+  torsione senza laterale se serve Mcr TwistWithoutLateral, flag ignoti dei modi
+  richiesti Unknown, Phase non nulla PhaseDependent, sistema non allineato SkewFrame,
+  flag liberi alle estremita' dichiarate a forcella EndConflictsWithFork (prefisso
+  SteelMember.Restraint.). Serve l'asta deformabile intera.
+Ogni segmento fra forcelle e' una campata a forcella con ingobbamento libero; la
+continuita' fra segmenti e' trascurata: limite inferiore, conservativo. Ncr2 e Mcr
+sulla lunghezza del segmento, Ncr1 sul tratto piu' lungo fra ritegni nel piano che lo
+interseca (l'intera asta senza ritegni nel piano), NcrT sul sottotratto torsionale piu'
+lungo. Ogni segmento usa le proprie azioni (tagli dello stesso stato, entrambe le
+estremita' esportate, nessuna interpolazione) e i propri valori critici; governa il
+segmento non valutato o con utilizzo massimo. Tracce Member.Segment.Count/Governing/
+Governing.Start/End, Member.Segment.k.Start/End/InPlaneLength/TorsionalLength/Mcr/
+Utilization e Member.Restraint.k.Distance con il ruolo. EffectiveLength1/2 e
+LateralTorsionalLength dichiarati devono coincidere con le lunghezze dei segmenti.
+Invariati: H/C/T/L senza ritegni con UniformFork (valori storici sull'intera campata,
+NcrFT calcolato); C/T/L e accoppiati con ritegni restano rifiutati.
+Mancano in Model: quota di applicazione del ritegno (ala o centro di taglio), vincolo
+di ingobbamento, rigidezza, ritegni continui, associazione fase/stato di calcolo.
+Test: AutomaticTorsionalModeTests (12), AutomaticCriticalValuesTest (17).

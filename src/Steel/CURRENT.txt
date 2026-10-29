@@ -40,8 +40,9 @@ Stato reale del taglio (28 ottobre 2026):
   le C con M2=0 la classe segue N-M1-M2 concomitanti del taglio (EC3 5.5.2,
   Tab. 5.2; NTC Tab. 4.2.III-IV): alfa plastico per classi 1-2, psi elastico
   per la classe 3. Lo svergolamento delle aste usa la stessa classe a
-  flessione (EC3 6.3.2.1(3), Wy per classe). Compressione pura, altre famiglie,
-  aste compresse e travi-colonna restano sulla compressione uniforme. Se la classe uniforme e 4 e l'instabilita a taglio
+  flessione (EC3 6.3.2.1(3), Wy per classe), le travi-colonna quella sotto i
+  propri N-M (vedi sotto). Compressione pura, altre famiglie e aste compresse
+  restano sulla compressione uniforme. Se la classe uniforme e 4 e l'instabilita a taglio
   d'anima non e esclusa, resta il percorso EN 1993-1-5 7.1 sulla sezione
   efficace.
   N-M plastica: H laminate doppiamente simmetriche (EC3) e tutte le H
@@ -49,7 +50,79 @@ Stato reale del taglio (28 ottobre 2026):
   chiuse EC3 (6.36)-(6.38), (6.41): IHPlasticInteractionFormulas. Le H
   saldate EC3 conservano la soluzione esatta Ec3PlasticHInteraction.
   V1 sulle H: SteelShearBucklingAssessment.EvaluateHFlanges esclude
-  l'instabilita a taglio delle ali se gli sbalzi restano entro 14 eps.
+  l'instabilita a taglio delle ali se gli sbalzi restano entro 14 eps
+  (criterio GPC, non clausola di norma). ModelChecker lo applica in automatico
+  sulle H esatte quando manca una valutazione esplicita ShearBucklingExcluded1.
+
+Stabilita delle aste senza compressione (28 ottobre 2026, branch steel-aste-routing):
+  Flessione M2 sola (con o senza trazione, V1): lo svergolamento non e richiesto
+  (NotRequired, Member.MinorAxisBendingOnly); N, M2 e V1 restano al motore di
+  sezione. M1 con M2/V1 sul percorso LTB: Member.BiaxialBendingRequiresBeamColumn;
+  compressione con flessione resta trave-colonna. La trazione e favorevole a
+  instabilita flessionale e flesso-torsionale: LTB e trave-colonna la trascurano
+  (traccia TensionNeglectedAsFavourable, classe senza la trazione); la resistenza
+  N-M resta una verifica di sezione. La trave-colonna (EC3 6.3.3 eq. 6.61-62,
+  Annesso B; NTC 4.2.4.1.3.3, Circolare C4.2.IV-V) vale anche con N>=0: n=0, quindi
+  kyy=Cmy, kzz=Cmz, kyz/kzy dalle tabelle a n=0 (CmLT-0,25>=0,15, nessuna divisione
+  per zero); le snellezze restano ingressi (kzy=0,6+lambda_z sotto 0,4 per classi
+  1-2 sensibili alla torsione). Una trazione variabile nell'asta e ammessa in
+  ModelChecker (Member.Envelope.N, minimo); la compressione resta costante.
+  Classe della trave-colonna: N-M concomitanti dell'inviluppo (EC3 Tab. 6.7,
+  NTC 4.2.4.1.3.3) con ModelStressClassification; con M1 e M2 entrambi presenti si
+  classificano (N,M1,M2), (N,M1,0) e (N,0,M2) e vale la classe peggiore, perche i
+  massimi possono venire da tagli diversi (con N<0 e M2 l'anima puo restare in
+  compressione uniforme). Con compressione vale solo una classe 1-2 con M1
+  (alfa dipende solo da N, quindi tiene lungo l'asta); la classe 3 dipende da psi,
+  cioe da M/N che varia lungo l'asta, e con M1=0 l'alfa delle ali dipende da M2:
+  in questi casi resta la classe a compressione uniforme. Classe 4: Aeff/Weff come
+  prima; MemberClass fornita prevale. Es.: UKB406x140x39 S355, N=-10 kN e M1:
+  alfa=0,506, classe 1 (prima 4); N=-200 kN e M1=100 kNm: classe 3 per psi, resta 4.
+  Taglio: senza ShearBucklingExclusionSource le H esatte attendono le valutazioni
+  per ogni taglio attivo (anima EvaluateEc3HWeb/EvaluateNtcHWeb, ali
+  EvaluateHFlanges, criterio GPC); ModelChecker le calcola come il motore di
+  sezione (eta del profilo normativo). Negativa: ShearBuckling.ResistanceMethodRequired,
+  nessuna resistenza ridotta. La fonte esplicita prevale; le cave la richiedono
+  ancora. Resta V<=0,5 Vpl. In ModelChecker la modalita Bending con M1 e M2/V1
+  risponde SteelMember.BiaxialBendingRequiresBeamColumn. Un esito NotRequired
+  d'asta resta NotEvaluated nel resoconto di Model (nessun esito "non richiesto").
+
+Svergolamento di profili laminati o saldati equivalenti (28/10/2026):
+  il default resta il caso generale (EC3 6.3.2.2, Tab. 6.4; NTC 4.2.4.1.3.2
+  con f=beta=1, lambdaLT0=0.2). Il metodo EC3 6.3.2.3 / NTC 4.2.4.1.3.2 per
+  laminati e saldati si sceglie solo in modo esplicito: nella libreria
+  SteelMemberAnalysis.WithLateralTorsionalMethod(SteelLateralTorsionalMethod.
+  RolledOrEquivalentWelded(beta, lambdaLT0, kc, fonte)), in ModelChecker il
+  parametro LtbMethod=RolledOrEquivalentWelded dei modi Bending e BeamColumn,
+  con BetaForLateralTorsionalBucklingMod e LambdaLT0ForLateralTorsionalBucklingMod
+  dell'oggetto norma (campo 0.75..1 e 0.2..0.4; alphaLT restano quelli della
+  Tab. 6.3). Vale per la verifica LTB e per il chiLT della trave-colonna.
+  Solo H/I esatte doppiamente simmetriche, laminate o saldate secondo
+  Section.SectionTypes (sceglierlo per una saldata ne dichiara l'equivalenza);
+  le altre famiglie sono rifiutate con Member.LtbMethodGeometry.
+  Curve Tab. 6.5 = Tab. 4.2.IX: laminate h/b<=2 b, >2 c; saldate c, d.
+  EC3: chiLT<=1 e <=1/lambda^2, chiLT,mod=chiLT/f<=1 e <=1/lambda^2.
+  NTC: chiLT=(1/f)/(PhiLT+rad(PhiLT^2-beta lambda^2))<=1 e <=1/(f lambda^2),
+  Mcr sempre a momento uniforme. f=1-0.5(1-kc)[1-2(lambda-0.8)^2]<=1; kc da
+  Tab. 6.6 (NTC Tab. 4.2.X): 1.0, 1/(1.33-0.33psi), 0.94/0.90/0.91/0.86/0.77/
+  0.82. kc solo da un diagramma accertato: ForkDiagram EndMoments, Uniform-
+  TransverseLoad o CentralPointLoad, CriticalValues=UniformFork, Moment-
+  FactorPreparation=LinearDiagrams, oppure LtbMomentDistribution (LtbPsi se
+  Linear) con LtbMomentSource; altrimenti kc=1 (f=1), traccia KcNotEstablished.
+  Traccia: BetaLT, LambdaLT0, MomentCorrectionF, PhiLT, ChiLTBase, Kc, KcPsi;
+  report Member.LtbMethod e Member.LtbKc. Nessun atteso esistente modificato.
+
+Valori critici automatici (28 ottobre 2026):
+  Senza valore ne' esclusione, NcrT/NcrFT si risolvono in automatico solo per le H
+  doppiamente simmetriche (NcrT=(G It+pi^2 E Iw/LcrT^2)/i0^2 con LcrT esplicita o
+  fra ritegni torsionali alle estremita'; FT non distinto) e per le cave chiuse
+  doppiamente simmetriche (escluse con lambda_T<0.2 dal limite G It/i0^2; EC3
+  6.3.1.4, NTC 4.2.4.1.3.1); il dato esplicito prevale, le altre famiglie restano
+  MissingInput. Anche le travi-colonna. In ModelChecker CriticalValues vale anche per
+  BeamColumn e divide l'asta nei ritegni Model a forcella (laterale+torsione): ogni
+  segmento e' a forcella, continuita' trascurata (conservativo), con azioni e valori
+  critici propri; governa il segmento peggiore (Member.Segment.Governing). Ritegni
+  parziali, su un'ala, ignoti o di fase vengono rifiutati con codice preciso.
+  Dettagli in AUTOMATIC_STABILITY.txt.
 
 Coprigiunti bullonati di travi composte saldate a I:
   BridgeSpliceApplication.CreateBolted -> WeldedIBeamSpliceStandard.Verify
