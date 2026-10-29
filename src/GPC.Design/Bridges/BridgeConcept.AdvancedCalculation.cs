@@ -41,14 +41,17 @@ public static partial class BridgeConcept
         var deck = ExtendedDeck(i, family, width, length, depth, ortho);
         double volumeDeck = deck.ConcreteArea * length, deckRebar = volumeDeck * 120 / 1000;
         double deckPermanent = deck.ConcreteArea * 25 + deck.SteelMass / length * 9.81 + width * a.WearLoad + (i.Median > 0 ? 3 : 2) * 8;
+        // G2 of NTC 2018 Tab. 5.1.V: surfacing and barriers; the unfavourable factors of the members and towers (profile or project multipliers).
+        double nonStructural = width * a.WearLoad + (i.Median > 0 ? 3 : 2) * 8; var unfavourable = UnfavourableAssumptions(data);
         double live = width * a.TrafficLoad, extraMass = 0;
         UpperStructure structure = new([], 0, 0, 0, 0, 0); int iteration = 0;
         if (upper)
         {
             for (; iteration < 80; iteration++)
             {
-                double design = a.GammaG * (deckPermanent + extraMass / length * 9.81) + a.GammaQ * live;
-                structure = ExtendedMembers(i, a, id, spans, design, i.TrafficModel == TrafficModel.LegacyUniform ? null : a.GammaG * (deckPermanent + extraMass / length * 9.81));
+                double permanentDesign = DesignPermanent(data, deckPermanent + extraMass / length * 9.81, nonStructural);
+                double design = FromProfile(data) ? permanentDesign + unfavourable.GammaQ * live : a.GammaG * (deckPermanent + extraMass / length * 9.81) + a.GammaQ * live;
+                structure = ExtendedMembers(i, unfavourable, id, spans, design, i.TrafficModel == TrafficModel.LegacyUniform ? null : FromProfile(data) ? permanentDesign : a.GammaG * (deckPermanent + extraMass / length * 9.81));
                 double next = structure.Steel + structure.Cables;
                 if (Math.Abs(next - extraMass) <= 1e-8 * Math.Max(1, next)) { extraMass = next; break; }
                 extraMass = next;
@@ -57,8 +60,8 @@ public static partial class BridgeConcept
         }
         double permanent = deckPermanent + extraMass / length * 9.81, q = permanent + live, qd = a.GammaG * permanent + a.GammaQ * live;
         double ec = ConcreteModulus(i.Fc);
-        var serviceLoads = upper ? UpperLoads(data, id, spans, permanent, structure, false) : Loads(data, spans, permanent, ec * 1000 * deck.Inertia, false);
-        var factoredLoads = upper ? UpperLoads(data, id, spans, permanent, structure, true) : Loads(data, spans, permanent, ec * 1000 * deck.Inertia, true);
+        var serviceLoads = upper ? UpperLoads(data, id, spans, permanent, nonStructural, structure, false) : Loads(data, spans, permanent, nonStructural, ec * 1000 * deck.Inertia, false);
+        var factoredLoads = upper ? UpperLoads(data, id, spans, permanent, nonStructural, structure, true) : Loads(data, spans, permanent, nonStructural, ec * 1000 * deck.Inertia, true);
         var service = (serviceLoads.Reactions, serviceLoads.Stations);
         var factored = (factoredLoads.Reactions, factoredLoads.Stations);
         var reactions = service.Item1;
@@ -79,14 +82,14 @@ public static partial class BridgeConcept
             double ph = tower ? height - depth + structure.Tower : pier ? height - depth : Math.Min(7, height - depth);
             bool wall = !tower && i.Pier == "Setto";
             int columns = tower ? 2 : pier && i.Pier == "Telaio a colonne" ? Math.Max(2, (int)Math.Ceiling(width / 7)) : 1;
-            double towerAvailable = 2 * a.ConceptTower * 1000 - a.GammaG * 25 * (2 * ph + width);
+            double towerAvailable = 2 * a.ConceptTower * 1000 - unfavourable.GammaG * 25 * (2 * ph + width);
             if (tower && towerAvailable <= 0 && i.PierSize == 0) throw new ArgumentException("Antenna: tensione di riferimento insufficiente rispetto al peso proprio.");
             double automatic = tower ? Math.Max(1.5, Math.Max(Math.Sqrt(Math.Max(0, factored.Item1[k]) / towerAvailable), 2 * ph * Math.Sqrt(12) / 90)) : 0;
             double size = tower ? Auto(i.PierSize, automatic) : AutoPierSize(i, ph, reactions[k], width * (i.Pier == "Testa a martello" ? 3.6 : 2.1), width, columns, wall), area = tower ? 2 * size * size : wall ? size * Math.Max(1, width - 2) : Math.PI * size * size / 4 * columns;
             bool hammer = !tower && i.Pier == "Testa a martello";
             double capB = tower ? size : hammer ? 2 : 1.5, capT = tower ? size : hammer ? 1.8 : 1.4;
             double sv = pier ? area * ph + width * capB * capT : width * (ph * Math.Max(.6, ph / 7) + 3);
-            if (tower) towerStressRatio = Math.Max(towerStressRatio, (factored.Item1[k] + a.GammaG * 25 * sv) / area / 1000 / a.ConceptTower);
+            if (tower) towerStressRatio = Math.Max(towerStressRatio, (factored.Item1[k] + unfavourable.GammaG * 25 * sv) / area / 1000 / a.ConceptTower);
             double av = id == "suspension" && (k == 0 || k == count) ? anchorVolume / 2 : 0;
             double axial = reactions[k] + 25 * (sv + av);
             if (axial <= 0) throw new ArgumentException($"Appoggio {k + 1}: risultante di fondazione non compressa dopo i pesi delle sottostrutture.");
@@ -198,6 +201,7 @@ public static partial class BridgeConcept
         if (maxRatio > 1 || maxSlenderness > 100 || maxStress > .3) warnings.Add("Una o più soglie indicative di pile / fondazioni sono superate; soluzione esclusa dalla ricerca.");
         if (i.TrafficModel == TrafficModel.LegacyUniform) CostWarnings(warnings, length, factored.Item1.Where(v => v > 0).Sum(), (i.Continuous ? count + 1 : 2 * count) * Math.Max(2, deck.Girders), BearingRate(data));
         else EnvelopeCostWarnings(warnings, length, factored.Item1, Math.Max(2, deck.Girders), i.Continuous, BearingRate(data));
+        if (FromProfile(data)) details.Add(new("Permanenti non strutturali G2", nonStructural, "kN/m", "g2 W + 8 per barriera; γG2 1,50/0, γG1 1,35/1,00, γQ 1,35/0: NTC 2018 Tabella 5.1.V, A1 (GPC.Model)"));
         DescribeTraffic(details, data, serviceLoads, factoredLoads, warnings);
         if (upper && i.TrafficModel == TrafficModel.Ntc2018Schema1)
         {

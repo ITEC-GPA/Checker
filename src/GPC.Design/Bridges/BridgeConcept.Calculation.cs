@@ -102,9 +102,11 @@ public static partial class BridgeConcept
         double deckRebar = volumeDeck * (family.Steel ? 120 : family.Prestressed ? a.RebarPsc : a.RebarRc) / 1000;
         double pt = family.Prestressed ? volumeDeck * a.PtDensity / 1000 : 0;
         double permanent = areaConcrete * 25 + massSteel / length * 9.81 + width * a.WearLoad + (i.Median > 0 ? 3 : 2) * 8;
+        // G2 of NTC 2018 Tab. 5.1.V: surfacing and barriers (their own factors only with the rows of the profile).
+        double nonStructural = width * a.WearLoad + (i.Median > 0 ? 3 : 2) * 8;
         double live = width * a.TrafficLoad, q = permanent + live;
-        var service = Loads(data, spans, permanent, ec * 1000 * inertia, false);
-        var factored = Loads(data, spans, permanent, ec * 1000 * inertia, true);
+        var service = Loads(data, spans, permanent, nonStructural, ec * 1000 * inertia, false);
+        var factored = Loads(data, spans, permanent, nonStructural, ec * 1000 * inertia, true);
         int soil = Soils.ToList().IndexOf(i.Soil);
         double pressure = Auto(a.SoilPressure, new double[] { 1000, 400, 200, 100 }[soil]);
         double skin = Auto(a.PileSkin, new double[] { 150, 70, 45, 25 }[soil]);
@@ -199,7 +201,7 @@ public static partial class BridgeConcept
             new("Modulo elastico cls", ec, "MPa", "22000 × ((fc + 8)/10)^0.3; stima, senza viscosità"),
             new("Permanenti sull'intero impalcato", permanent, "kN/m", "25 Acls + 9.81 massa acciaio/m + g2 W + 8 per barriera"),
             new("Traffico equivalente sull'intero impalcato", live, "kN/m", "q equivalente × W; carico uniforme su TUTTE le campate, senza assi mobili"),
-            new("Momento positivo indicativo", Math.Max(0, factored.Stations.Max(s => s.Moment)), "kNm", "Intero impalcato: γG G + γQ Q; tre momenti, EI costante"),
+            new("Momento positivo indicativo", Math.Max(0, factored.Stations.Max(s => s.Moment)), "kNm", FromProfile(data) ? "Intero impalcato: combinazioni SLU A1 di GPC.Model, γG1 G1 + γG2 G2 + γQ Q; tre momenti, EI costante" : "Intero impalcato: γG G + γQ Q; tre momenti, EI costante"),
             new("Momento negativo indicativo", Math.Min(0, factored.Stations.Min(s => s.Moment)), "kNm", "Intero impalcato: carico uniforme su tutte le campate; non è inviluppo di traffico"),
             new("Freccia elastica indicativa", service.Stations.Max(s => Math.Abs(s.DeflectionMm)), "mm", "Doppia integrazione M/EI, G + Q; esclusi precompressione, fessurazione e viscosità"),
             new("Pressione terreno adottata", pressure, "kPa", "Parametro editabile o classe convenzionale; nessuna indagine geotecnica"),
@@ -212,6 +214,7 @@ public static partial class BridgeConcept
             new("Costo totale indicativo", total, "€", "Diretto × (1 + oneri/100) × (1 + imprevisti/100); IVA esclusa"),
             new("Durata indicativa", months, "mesi", "Avvio + campate × coeff. + pile × coeff. + fondazioni / conci; incertezza ±25%")
         };
+        if (FromProfile(data)) details.Add(new("Permanenti non strutturali G2", nonStructural, "kN/m", "g2 W + 8 per barriera; γG2 1,50/0, γG1 1,35/1,00, γQ 1,35/0: NTC 2018 Tabella 5.1.V, A1 (GPC.Model)"));
         DescribeTraffic(details, data, service, factored, warnings);
         if (i.TrafficModel != TrafficModel.LegacyUniform)
             for (int k = 0; k < supports.Count; k++) supports[k] = supports[k] with { MinimumReaction = service.MinimumReactions[k] };

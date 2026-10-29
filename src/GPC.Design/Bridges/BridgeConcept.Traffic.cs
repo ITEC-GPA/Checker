@@ -27,8 +27,9 @@ public static partial class BridgeConcept
         }
         return cached.Value;
     }
-    private static BeamLoadResult Loads(BridgeModel model, double[] spans, double permanent, double ei, bool factored)
+    private static BeamLoadResult Loads(BridgeModel model, double[] spans, double permanent, double nonStructural, double ei, bool factored)
     {
+        if (factored && FromProfile(model)) return ProfileLoads(model, spans, permanent, nonStructural, ei);
         var i = model.Input; var a = model.Assumptions;
         double gg = factored ? a.GammaG : 1, gq = factored ? a.GammaQ : 1;
         if (i.TrafficModel == TrafficModel.LegacyUniform)
@@ -65,8 +66,9 @@ public static partial class BridgeConcept
     {
         if (data.Input.TrafficModel == TrafficModel.LegacyUniform) return null;
         var t = TrafficLayout(data.Input);
+        var factors = UnfavourableAssumptions(data);
         return new(TrafficModel.Ntc2018Schema1, RoadTraffic.Reference, t.Lanes.Count, t.UniformKnPerMetre, 2 * t.AxleKn,
-            data.Assumptions.GammaG, data.Assumptions.GammaQ, upper
+            factors.GammaG, factors.GammaQ, upper
                 ? "Strutture superiori: azioni globali equivalenti e carichi locali sui due piani; stima parametrica, non analisi di arco/cavi."
                 : "Inviluppi longitudinali su trave prismatica a EI costante, 41 sezioni/campata. Estremi non concomitanti; nessuna ripartizione trasversale o verifica locale.");
     }
@@ -77,16 +79,22 @@ public static partial class BridgeConcept
         int at = details.FindIndex(d => d.Name == "Traffico equivalente sull'intero impalcato");
         if (at >= 0) details[at] = new("Schema 1 · carico distribuito", t.UniformKnPerMetre, "kN/m", RoadTraffic.Reference + "; solo porzioni sfavorevoli");
         details.Add(new("Schema 1 · peso totale tandem", 2 * t.AxleKn, "kN", $"{t.Lanes.Count} corsie convenzionali, due assi a 1.20 m; massimo/minimo indipendente per ogni effetto"));
-        details.Add(new("Moltiplicatore traffico adottato", data.Assumptions.GammaQ, "—", "Valore esplicito del progetto; NTC 2018 Tabella 5.1.V, A1 sfavorevole: 1.35"));
+        bool profile = FromProfile(data);
+        details.Add(profile
+            ? new("Moltiplicatore traffico adottato", UnfavourableAssumptions(data).GammaQ, "—", "NTC 2018 Tabella 5.1.V, A1 (GPC.Model): γQ 1.35 sfavorevole, 0 favorevole")
+            : new("Moltiplicatore traffico adottato", data.Assumptions.GammaQ, "—", "Valore esplicito del progetto; NTC 2018 Tabella 5.1.V, A1 sfavorevole: 1.35"));
+        string envelope = profile ? "combinazioni SLU A1 di GPC.Model, γG1 G1 + γG2 G2 + γQ Q" : "γG G + γQ Q";
         for (int k = 0; k < details.Count; k++)
         {
             var d = details[k];
-            if (d.Name == "Momento positivo indicativo") details[k] = d with { Rule = "Inviluppo massimo γG G + γQ Q, Schema 1, EI costante" };
-            if (d.Name == "Momento negativo indicativo") details[k] = d with { Value = Math.Min(0, factored.Stations.Min(s => s.MomentMinimum ?? s.Moment)), Rule = "Inviluppo minimo γG G + γQ Q, Schema 1, EI costante" };
+            if (d.Name == "Momento positivo indicativo") details[k] = d with { Rule = "Inviluppo massimo " + envelope + ", Schema 1, EI costante" };
+            if (d.Name == "Momento negativo indicativo") details[k] = d with { Value = Math.Min(0, factored.Stations.Min(s => s.MomentMinimum ?? s.Moment)), Rule = "Inviluppo minimo " + envelope + ", Schema 1, EI costante" };
             if (d.Name == "Freccia elastica indicativa") details[k] = d with { Value = service.Stations.Max(s => Math.Max(Math.Abs(s.DeflectionMm), Math.Abs(s.DeflectionMinimumMm ?? s.DeflectionMm))), Rule = "Massima assoluta dell'inviluppo G + Q; sezione lorda non fessurata, senza viscosità/precompressione" };
         }
         if (service.MinimumReactions.Any(x => x < -1e-8)) warnings.Add("Inviluppo minimo G + Q: possibile sollevamento; dispositivi antisollevamento non dimensionati.");
-        warnings.Add("Schema 1: massimi/minimi di sezioni e appoggi non concomitanti; non sommare le reazioni dell'inviluppo. G2 trattato come permanente portato ben definito col γG esplicito.");
+        warnings.Add(profile
+            ? "Schema 1: massimi/minimi di sezioni e appoggi non concomitanti; non sommare le reazioni dell'inviluppo. G2 (finiture e barriere) con γG2 1,50/0 della Tab. 5.1.V; permanenti favorevoli nei minimi."
+            : "Schema 1: massimi/minimi di sezioni e appoggi non concomitanti; non sommare le reazioni dell'inviluppo. G2 trattato come permanente portato ben definito col γG esplicito.");
         if (data.Input.Length > 200) warnings.Add("Lunghezza caricata oltre 200 m: richiede una valutazione specifica del traffico; Schemi 6 e grandi luci non trattati dal modello parametrico.");
     }
     private static void EnvelopeCostWarnings(List<string> warnings, double length, double[] reactions, int devicesPerEnd, bool continuous, double bearingRate)

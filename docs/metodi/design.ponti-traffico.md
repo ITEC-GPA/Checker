@@ -37,6 +37,7 @@ registro delle differenze di ANTHEA).
 | (B-T2) carichi dello Schema 1 | NTC 2018 | §5.1.3.3.3, Tabella 5.1.II | testo |
 | parte rimanente 2,5 kN/m² | EN 1991-2 | §4.3.2, Tabella 4.2 | testo |
 | γQ sfavorevole 1,35 | NTC 2018 | Tabella 5.1.V | testo |
+| righe SLU A1 dei ponti: γG1 1,35/1,00, γG2 1,50/0, γQ 1,35/0 | NTC 2018 | §5.1.3.12, Tabella 5.1.V | testo (G.U. S.O. n. 8 del 20/02/2018), GPC.Model `RoadBridgeCombinations` |
 
 ## 4. Ipotesi
 
@@ -76,6 +77,7 @@ influenza e massimizzano analiticamente l'effetto dei due assi Q a 1,20 m.
 | q corsia 1 / altre / rimanente | 9 / 2,5 / 2,5 kN/m² | NTC Tab. 5.1.II, EN 1991-2 Tab. 4.2 | no | `RoadTraffic.Ntc2018` |
 | Q corsie 1, 2, 3 | 300, 200, 100 kN | NTC Tab. 5.1.II | no | `RoadTraffic.Ntc2018` |
 | γQ | 1,35 proposto | NTC Tab. 5.1.V | sì (ipotesi del progetto) | `BridgeAssumptions.GammaQ` |
+| fonte dei coefficienti | moltiplicatori del progetto (predefinito) o righe A1 di GPC.Model | NTC Tab. 5.1.V | sì | `BridgeInput.PartialFactors` |
 
 ## 8. Implementazione
 
@@ -84,6 +86,11 @@ influenza e massimizzano analiticamente l'effetto dei due assi Q a 1,20 m.
 - `src/GPC.Design/Bridges/BeamTrafficEnvelope.cs`: equazione dei tre momenti per le travi continue, linee di influenza,
   inviluppi di reazioni (`Reaction`) e sezioni (`At`).
 - `src/GPC.Design/Bridges/BridgeConcept.Traffic.cs`: combinazione γG G + γQ Q, 41 sezioni per campata, avvisi.
+- `src/GPC.Design/Bridges/BridgeConcept.PartialFactors.cs` (D8 del censimento delle combinazioni di ANTHEA, decisione del
+  29/10/2026): con `PartialFactorSource.Ntc2018RoadBridges` massimi e minimi sono gli estremi delle 8 righe SLU A1 di
+  GPC.Model (`RoadBridgeCombinations.Deck`): γG1 G1 + γG2 G2 + γQ Q, con G2 = finiture e barriere e i permanenti
+  favorevoli nei minimi; le aste delle strutture superiori e le antenne usano i coefficienti sfavorevoli (γG1 1,35,
+  γG2 1,50, γQ 1,35). Con i moltiplicatori del progetto (predefinito, archivi) il calcolo è quello di prima.
 
 ## 9. Limiti e casi non supportati
 

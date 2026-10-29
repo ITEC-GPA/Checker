@@ -1,6 +1,12 @@
 namespace GPC.Design.Bridges;
 
 public enum TrafficModel { LegacyUniform, Ntc2018Schema1 }
+/// <summary>
+/// Source of the partial factors of the ultimate envelopes: the multipliers of the project (γG on G1 and G2, γQ on the traffic, the same in the
+/// maxima and in the minima, as until GPC.Design 0.41), or the rows of NTC 2018 Tab. 5.1.V, set A1, from GPC.Model (γG1 1.35/1.00, γG2 1.50/0,
+/// γQ 1.35/0; ANTHEA census of the combinations, D8).
+/// </summary>
+public enum PartialFactorSource { ProjectMultipliers, Ntc2018RoadBridges }
 public sealed record CarriagewayStrip(double Start, double Width);
 public sealed record PlaneTraffic(double UniformKnPerMetre, double AxleKn)
 {
