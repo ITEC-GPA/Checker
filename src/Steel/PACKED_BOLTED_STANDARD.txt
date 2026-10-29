@@ -99,5 +99,9 @@ FromBoltedPacking(packing,terminal,restraintSource) accetta ora il risultato
 SteelPackedPairTerminal dello stesso PackedPairImperfectionModel. Il terminale
 qui implementato e' SALDATO, con collettore complanare, CJP e radice vincolata;
 non e' un terminale bullonato. Il vecchio overload scalare resta distinto.
+AGGIUNTA 29/10/2026: il terminale BULLONATO calcolato e' ora disponibile con
+SteelPackedPairAssessment.FromBoltedTerminal(packing,terminal,restraintSource);
+vedi Connections/PACKED_PAIR_BOLTED_TERMINAL.txt. I fori del terminale devono
+essere quelli della stessa fila dichiarata per NetArea.
 Limiti, esempio e controlli trasferiti al membro sono documentati in
 Connections/PACKED_PAIR_STANDARD_WELDED_USAGE.txt.

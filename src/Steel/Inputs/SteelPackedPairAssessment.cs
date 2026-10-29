@@ -19,6 +19,7 @@ namespace GPC.Checkers.Steel.Inputs
         public SteelBoltedPackingResult ComputedPacking { get; private set; }
         public SteelPackedPairTerminalResult ComputedTerminal { get; private set; }
         public SteelWeldedPackingResult ComputedWeldedPacking { get; private set; }
+        public SteelPackedPairBoltedTerminalResult ComputedBoltedTerminal { get; private set; }
 
         /// <summary>All-welded standard intermediate packings and terminals, computed
         /// from one immutable demand model. No scalar terminal resistance is supplied.</summary>
@@ -62,6 +63,37 @@ namespace GPC.Checkers.Steel.Inputs
             var result=FromBoltedPacking(packing,terminal.ForcePerChord,terminal.ForceResistance.Value,
                 "Computed welded standard terminal to coplanar collector; complete typed same-case checks",endRestraintSource);
             result.ComputedTerminal=terminal;return result;
+        }
+
+        /// <summary>Computed intermediate bolts and the computed BOLTED terminal on the SAME
+        /// demand model. The terminal declares its member-end condition (translations held,
+        /// flexural rotations free); a member input crediting end fixity or free translation is
+        /// refused here, not reinterpreted. Welded packings need unperforated chords and cannot
+        /// be combined with this perforated terminal.</summary>
+        public static SteelPackedPairAssessment FromBoltedTerminal(SteelBoltedPackingResult packing,
+            SteelPackedPairBoltedTerminalResult terminal,string endRestraintSource)
+        {
+            if(packing==null)throw new ArgumentNullException(nameof(packing));
+            if(terminal==null)throw new ArgumentNullException(nameof(terminal));
+            if(!terminal.IsComplete||!terminal.ForceResistance.HasValue)
+                throw new NotSupportedException(string.Join("; ",terminal.Diagnostics));
+            if(!ReferenceEquals(packing.Demand,terminal.Demand))throw new ArgumentException("Same immutable packing/terminal demand required.");
+            var layout=packing.Demand.Layout;var member=layout.Input.Member;var declared=terminal.AssumedMemberEnd;
+            if((member.BucklingLength1??member.Length)<member.Length||(member.BucklingLength2??member.Length)<member.Length)
+                throw new NotSupportedException("The bolted terminal provides no flexural end fixity: buckling lengths below the member length are refused.");
+            foreach(var end in new[]{member.StartRestraints,member.EndRestraints})
+                if(end!=null&&(end.Rotation1==SteelRestraintState.Fixed&&declared.Rotation1!=SteelRestraintState.Fixed
+                    ||end.Rotation2==SteelRestraintState.Fixed&&declared.Rotation2!=SteelRestraintState.Fixed
+                    ||end.Translation1==SteelRestraintState.Free||end.Translation2==SteelRestraintState.Free))
+                    throw new NotSupportedException("Member end restraints contradict the declared bolted-terminal condition.");
+            if(terminal.Detail.Bolt.HoleDiameter!=packing.Detail.Bolt.HoleDiameter)
+                throw new NotSupportedException("Terminal and packing holes must match the declared single line of filled holes.");
+            double clearance=(terminal.Detail.BoltCount-1)*terminal.Detail.Pitch/2+terminal.Detail.GussetTipDistance+packing.Detail.Length/2;
+            if(layout.PanelLengths[0]<clearance||layout.PanelLengths[layout.PanelLengths.Count-1]<clearance)
+                throw new NotSupportedException("Terminal gusset and neighbouring packing footprints overlap.");
+            var result=FromBoltedPacking(packing,terminal.ForcePerChord,terminal.ForceResistance.Value,
+                "Computed bolted standard terminal to coplanar collector; complete typed same-case checks",endRestraintSource);
+            result.ComputedBoltedTerminal=terminal;return result;
         }
 
         /// <summary>Computed intermediate standard packing detail plus actual terminal

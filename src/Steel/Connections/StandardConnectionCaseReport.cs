@@ -52,6 +52,7 @@ namespace GPC.Checkers.Steel.Connections
         public static StandardConnectionCaseReport Create(SteelPackedPairAssessment p)
         {
             if(p==null)throw new ArgumentNullException(nameof(p));
+            if(p.ComputedBoltedTerminal!=null&&p.ComputedPacking!=null)return CreateBolted(p);
             if(p.ComputedTerminal==null||(p.ComputedPacking==null&&p.ComputedWeldedPacking==null))
                 throw new ArgumentException("This report requires typed calculated packing AND terminal results; legacy scalar assessments remain separate.");
             var terminal=p.ComputedTerminal;var code=terminal.Detail.Lap.Code;var model=terminal.Demand;
@@ -75,6 +76,31 @@ namespace GPC.Checkers.Steel.Connections
                     "Root fixity, unperforated weld footprints, execution and coplanar full-penetration collector attachment must match the supplied detail.",
                     "Conditional local force resistance is not a global critical load. No generic six-action packing, arbitrary brace joint, fatigue or serviceability slip qualification."
                 },new[]{p.DetailingSource,p.LocalAnalysisSource,terminal.Detail.SupportAndWeldSource,"STANDARD_NEXT_PLAN.txt; PACKED_PAIR_STANDARD_WELDED_USAGE.txt"});
+        }
+        private static StandardConnectionCaseReport CreateBolted(SteelPackedPairAssessment p)
+        {
+            var terminal=p.ComputedBoltedTerminal;var d=terminal.Detail;var code=d.Code;var packing=p.ComputedPacking;
+            var checks=terminal.Checks.Select(c=>c.WithId("Terminal."+c.Id)).Concat(packing.Checks.Select(c=>c.WithId("Packing."+c.Id))).ToArray();
+            var issues=terminal.Diagnostics.Concat(packing.Diagnostics).ToArray();
+            bool complete=terminal.IsComplete&&packing.IsComplete;
+            var status=checks.Any(x=>!x.Passed)?ConnectionStatus.Failed:complete?ConnectionStatus.Passed:ConnectionStatus.NotSupported;
+            var input=Factors(code);input.AddRange(new[]{V("Member.N",p.Input.Actions.N,"N"),V("Member.Length",p.Input.Member.Length,"mm"),V("Member.MaximumPitch",p.MaximumPitch,"mm"),
+                V("Pair.Gap",p.PackingThickness,"mm"),V("Terminal.BoltCount",d.BoltCount,"1"),V("Terminal.Pitch",d.Pitch,"mm"),
+                V("Terminal.BoltLine",d.TransverseCoordinate,"mm"),V("Terminal.ChordEndDistance",d.ChordEndDistance,"mm"),
+                V("Terminal.GussetTipDistance",d.GussetTipDistance,"mm"),V("Terminal.GussetWidth",d.Gusset.Width,"mm"),V("Terminal.GussetThickness",d.Gusset.Thickness,"mm"),
+                V("Terminal.PackingThickness",d.Packing==null?0:d.Packing.Thickness,"mm"),V("Terminal.FreeLength",d.FreeLength,"mm"),
+                V("Bolt.Diameter",d.Bolt.Diameter,"mm"),V("Bolt.HoleDiameter",d.Bolt.HoleDiameter,"mm")});
+            var values=new List<SectionResistanceValue>(terminal.Demand.Trace);
+            values.Add(V("Terminal.ForcePerChord",terminal.ForcePerChord,"N"));
+            if(terminal.ForceResistance.HasValue)values.Add(V("Terminal.ConditionalLocalForceResistance",terminal.ForceResistance.Value,"N"));
+            values.Add(V("Packing.MaximumForcePerFace",packing.MaximumConnectionDemand,"N"));
+            return new StandardConnectionCaseReport("Steel.Connection.PackedPair.BoltedPackingBoltedTerminal",code,
+                "Local standard intermediate bolted packings and bolted terminals to a coplanar collector. Member values describe demand; this report is not a member stability result.",
+                status,complete,input,values,checks,issues,new[]{
+                    "Global member compression and chord checks must use the same SteelPackedPairAssessment in the member pipeline; global T/FT modes require separate exclusion.",
+                    "Declared member end: translations held, flexural rotations free. Root fixity, aligned mid-surfaces, filled normal holes and the coplanar full-penetration collector must match the supplied detail.",
+                    "Bolt tension from the transported out-of-plane couple uses contact at the node-side row and a rigid-flange prying bound; no contact FEM. Conditional local force resistance is not a global critical load."
+                },new[]{p.DetailingSource,p.LocalAnalysisSource,d.SupportAndWeldSource,d.ExecutionSource,"PACKED_PAIR_BOLTED_TERMINAL.txt"});
         }
         private static List<SectionResistanceValue> Factors(ConnectionDesignCode c)=>new List<SectionResistanceValue>{
             V("GammaM0",c.Plates.GammaM0,"1"),V("GammaM2Plate",c.Plates.GammaM2,"1"),V("GammaM2Connection",c.GammaM2Connection,"1")};

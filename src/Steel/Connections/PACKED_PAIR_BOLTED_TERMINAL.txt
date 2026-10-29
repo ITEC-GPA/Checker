@@ -1,0 +1,110 @@
+PROFILI DOPPI COMPRESSI - TERMINALE BULLONATO STANDARD - 29/10/2026
+
+API: SteelPackedPairBoltedTerminal.Verify(demand,detail) ->
+SteelPackedPairAssessment.FromBoltedTerminal(packing,terminal,restraintSource) ->
+SteelMemberAnalysis.PackedCompression / SteelVerificationPipeline e
+StandardConnectionCaseReport.Create(assessment). Catalogo: StandardBoltedPackedTerminal.
+
+TIPOLOGIA
+Due C o due L IDENTICI laminati a caldo, dorsi contrapposti, compressione centrata
+costante del modello PackedPairImperfectionModel (asta incernierata, stessa domanda delle
+imbottiture). Ai due nodi: UNA fila longitudinale di BoltCount>=2 bulloni passanti 8.8/10.9,
+categoria A, fori normali riempiti, attraverso i due dorsi, un'eventuale imbottitura identica
+per faccia e un fazzoletto centrale. Fazzoletto+2 imbottiture riempiono il distacco.
+Il fazzoletto e' centrato sulla linea baricentrica dei correnti (linea d'asse), la radice e'
+vincolata alla rotazione fuori piano a distanza FreeLength dall'estremita' dei correnti e
+prosegue con saldatura di testa a piena penetrazione in un collettore COMPLANARE, come nel
+terminale saldato. La stazione 0/L del layout e' il baricentro del gruppo di bulloni.
+Le imbottiture intermedie devono essere bullonate (SteelBoltedPacking): quelle saldate
+richiedono correnti non forati e non sono combinabili con questo terminale.
+
+FORZE E TRASPORTO DELLE ECCENTRICITA' (N, mm, Nmm, MPa)
+Per ciascun corrente F=|N|/2+Q_end, Q_end inviluppo dei trasferimenti terminali (come nel
+terminale saldato). La forza e' trasportata ESPLICITAMENTE dal baricentro del corrente alla
+linea dei bulloni sul piano di taglio (faccia del dorso):
+- nel piano: e_t=coordinata bulloni-baricentro trasversale; Mz=F*e_t sulla fila elastica
+  (ElasticBoltGroup, bulloni uguali, lamiere rigide), componenti trasversali conservate;
+- fuori piano: e_n=distanza baricentro-dorso; la coppia F*e_n di OGNI corrente e' chiusa da
+  trazione nei bulloni e contatto alla fila lato nodo (fila0):
+  T_i=F*e_n*x_i/sum(x_j^2), x_i=i*p. Il bullone passante e' comune ai due correnti
+  speculari: le due coppie uguali non si sommano nello stesso bullone.
+Con questa ripartizione il corrente oltre il giunto porta solo F al baricentro; non si
+trasmette momento d'apertura alle imbottiture intermedie (che non lo ammettono).
+Prying: per gli L la punta libera oltre la fila consente un contatto: si usa il limite
+statico della flangia rigida B=T*(m+n)/n, m=distanza bullone-(spessore ala uscente+0.8r),
+n=min(distanza dalla punta,1.25m) come in EN1993-1-8 Tabella6.2. L'anima di un C e' trattenuta
+da entrambe le ali e non ha bordo libero: B=T.
+
+CONTROLLI
+1 Bulloni, per piano di taglio (uno per corrente): V_i=risultante (F/n,F_y,i), trazione B_i;
+  Fv,Rd con betaLf (EN3.8, Lj=(n-1)p) e betaP=9d/(8d+3tp) (EN3.6.1(12-13), tp spessore
+  dell'imbottitura per faccia); Ft,Rd; interazione V/Fv+B/(1.4Ft)<=1 (Tabella3.4).
+  NTC: anche (4.2.71) con i minimi assemblati taglio/rifollamento e trazione/punzonamento.
+2 Punzonamento sotto testa/dado sulla parete del corrente: Bp,Rd=0.6 pi dm t fu/gammaM2.
+3 Rifollamento di ogni lamina (parete, imbottitura, fazzoletto con 2V) nelle due componenti
+  ed ellisse ECCS/SBE complementare. Le distanze d'estremita' reali valgono in ENTRAMBI i
+  versi: nessun credito al verso di compressione verso materiale continuo.
+4 Flessione della parete che riporta la trazione al resto del corrente, striscia plastica
+  non sovrapposta di lunghezza tributaria (p o p/2+min(p/2,e1)), Mpl=0.25 l t^2 fy/gammaM0:
+  L: modo1 di un lato del T-stub, T<=2Mpl/m; C: cerniere alle due radici e sotto il bullone,
+  T<=2Mpl(a+b)/(ab).
+5 Corrente al terminale in compressione lorda F<=A fy/gammaM0 (EN1993-1-1 6.2.4; fori
+  normali riempiti, 6.2.4(3)).
+6 Fazzoletto e collettore: risultante 2F sulla linea d'asse dopo la coppia della fila.
+  Banda efficace=diffusione a 30 gradi della fila (Whitmore) alla fila lato nodo, troncata
+  dai bordi reali e mai allargata verso la radice; momento nel piano 2F*scostamento della
+  banda. Mensola dalla radice vincolata con spostamento libero all'estremita' dei correnti:
+  Lk=2(FreeLength+e1) DICHIARATA; Ncr di Eulero, difetto Lk/150 (curva d, cautelativa per
+  piatti pieni, EN1993-1-1 5.3.2), amplificazione 1/(1-N/Ncr), verifica elastica EN6.2.1
+  con min(fy/gammaM0,0.9fu/gammaM2) del fazzoletto e del collettore. Momento fuori piano
+  dovuto al trasferimento differenziale: correnti N/2+Q e N/2-Q sulle linee baricentriche,
+  quindi Q per la distanza fra i baricentri. Con N>=Ncr fallimento esplicito.
+  GussetLapCompression (SCI P358 8.5) NON si applica: e' un giunto a semplice sovrapposizione
+  con eccentricita' intrinseca, qui il fazzoletto e' centrale e simmetrico.
+Prescrizioni (fuori campo => NotSupported, nessun controllo favorevole): contesto di calcolo
+uguale all'asta, fori normali dichiarati e area netta coerente con una sola fila, laminati a
+caldo, acciaio fino a S460, C ad ali uguali, dorsi verso la pila, pila=distacco<=3tmin,
+fila e ferramenta nella parte dritta del dorso, fazzoletto centrato che contiene la fila
+con distanze minime, p>=max(2.4d0, ferramenta) (forze bidirezionali), p<=min(14t,200)
+(EN Tabella3.3 per membrature compresse), e1>=max(1.2d0, ferramenta/2), fazzoletto che
+termina prima della stazione successiva, collettore, CJP, saldatura compatibile, vincolo
+della radice con fonte, fonte di esecuzione.
+
+VINCOLO DICHIARATO PER LA PIPELINE D'ASTA
+Il risultato espone AssumedMemberEnd: traslazioni1/2 trattenute alla radice, rotazioni
+flessionali1/2 LIBERE (una fila di bulloni e' una cerniera per l'asta), torsione/ingobbamento
+non forniti. FromBoltedTerminal rifiuta lunghezze di libera inflessione minori della
+lunghezza dell'asta e vincoli di estremita' dell'input in contrasto con questa dichiarazione;
+il modello di domanda e' gia' incernierato. Nessun incastro viene dedotto dal dettaglio.
+
+BINDING
+1 Un solo PackedPairImperfectionModel; 2 SteelBoltedPacking.Verify e
+SteelPackedPairBoltedTerminal.Verify sullo STESSO oggetto domanda; 3 FromBoltedTerminal:
+stessa domanda, fori uguali a quelli delle imbottiture, distanza fra punta del fazzoletto e
+imbottitura adiacente; 4 pipeline d'asta con esclusione indipendente dei modi T/FT;
+5 StandardConnectionCaseReport.Create (MethodId ...BoltedPackingBoltedTerminal).
+ForceResistance e' la resistenza locale condizionata allo schema di forze fissato
+(scalatura lineare, ellisse quadratica, fazzoletto per bisezione), non un carico critico.
+
+FONTI
+EN1993-1-8:2005 Tabelle3.2,3.3,3.4, 3.6.1(12-13), 3.8, 4.7.1, Tabella6.2;
+EN1993-1-1:2005 5.3.2/Tabella5.1, 6.2.1, 6.2.4(3); NTC2018 4.2.8.1.1 (4.2.63-4.2.71).
+Ellisse di rifollamento: SBE_SS5:2010 AppendiceA, ECCS P126 (complementare).
+Diffusione a 30 gradi: R.E.Whitmore 1952; W.A.Thornton, AISC Eng.J.1984: usata SOLO come
+limite superiore della larghezza efficace, non come resistenza.
+La ripartizione trazione/contatto, il limite di prying della flangia rigida e la mensola
+del fazzoletto sono composizioni statiche dichiarate, non formule normative del nodo.
+
+PROVE (PackedPairBoltedTerminalTests, 25 casi)
+C EC/NTC con oracolo a rettangoli: e_n=76300/3560, T_i=F e_n x_i/12500, Fv=60288,
+Ft=90432, Bp=0.6 pi 25.4*10*360/1.25, leva parete 22, Mpl=293750/gammaM0, Ncr e tensione del
+fazzoletto; NTC (4.2.71) con i minimi di rifollamento calcolati a mano; L lato lungo con
+e_t, ripartizione elastica, prying 138/70, banda troncata e scostamento; betaLf=0.98125 e
+betaP=144/149 con imbottiture7mm e sette bulloni; dodici prescrizioni fisiche; vincolo
+dichiarato; passaggio a asta e report; domanda diversa, terminale incompleto, impronte
+sovrapposte; fallimento del fazzoletto non nascosto; percorso saldato invariato; voce di catalogo.
+
+LIMITI
+Nessun attacco a T a flange di pilastri, piu' file, fori asolati/maggiorati, bulloni
+precaricati/scorrimento, contatto o FEM locale, fatica, sisma, incendio. I modi globali T/FT
+dell'asta restano da escludere indipendentemente.

@@ -1,4 +1,4 @@
-STATO CORRENTE: ../CURRENT.txt (aggiornamento27/10/2026).
+STATO CORRENTE: ../CURRENT.txt (aggiornamento27/10/2026; punto4 al29/10/2026).
 Le indicazioni di avanzamento e le versioni nel testo seguente sono CHECKPOINT
 STORICI. Per copertura attuale, limiti aperti e API consigliate usare l'indice
 corrente e ConnectionCapabilityCatalog; le specifiche dei singoli metodi
@@ -69,6 +69,19 @@ per il gruppo lato supporto include0.8 nel caso governato dai bulloni
 ignorata nei componenti gia' implementati; non fornisce pero' il valore di
 trazione per verificare qualunque pilastro. Supporto locale/concomitanti e
 qualificazione globale restano da completare. Non promossi a Passed.
+AGGIORNAMENTO 29/10/2026: CHIUSO A TAGLIO ORDINARIO SU ANIMA DI PILASTRO.
+SCI P358 non ha un capitolo sulle squadrette (Tabella3.1); la procedura e'
+SBE-MS5 cap.4 piu' P358 Check10. DoubleAngleCleatColumnWebStandard.Verify
+riusa invariati i componenti e aggiunge: regole di dettaglio della cerniera
+nominale (SBE 1.2/4.1, P358 Check1), gerarchia del punzonamento Bp,Rd>=Ft,Rd
+(EN Tabelle3.2/3.4, NTC 4.2.71) per ala della squadretta e anima del pilastro,
+dichiarazioni del modello a cerniera e della situazione di tying. Con la
+gerarchia la trazione nominale coperta da0.8/1.27 non puo' punzonare; senza,
+NotSupported (anime sottili). Catalogo DoubleAngleCleatColumnWebShear
+(StandardStaticVerification); DoubleAngleCleat resta ComponentsOnly. Restano
+fuori il tying (SBE4.3 interni, Check14 non implementato per le squadrette),
+flange di pilastro, travi intagliate, due travi sulla stessa anima, Fz/torsione.
+10 nuove prove. Dettagli in DOUBLE_ANGLE_COLUMN_WEB.txt.
 
 5. C/2C COLLEGATE SOLO D'ANIMA: ANCORA APERTO
 Non estesa beta2/beta3 degli angolari alleC. Il requisito di eccentricita'/
@@ -76,6 +89,18 @@ shear lag3.10.3(1) e la soluzione con rinforzo SCI P3588.2 non autorizzano
 una formula universale di area efficace del canale. La sola area netta
 o il trasporto elastico N+M non dimostrano il trasferimento completo dalle
 ali all'anima. Rimane valido PHASE_3C_3E_CHANNEL_TENSION_REVIEW.txt.
+AGGIORNAMENTO 29/10/2026: ESTREMITA' DEL CANALE CHIUSA SENZA SHEAR LAG.
+ChannelWebTension.Verify, scelta esplicita del metodo. ConnectedWebOnly: la
+striscia d'anima h*tw porta da sola l'intera forza sul proprio piano medio
+lungo l'asta, ali scariche: campo in equilibrio (gruppo centrato), quindi
+limite inferiore senza alcun trasferimento alle ali da dimostrare; snervamento
+lordo, 0.9 Anet fu/gammaM2 della striscia, blocchi nell'anima (3.10.2).
+AiscShearLagAlternative: AISC 360-16 D3 caso2 U=1-xbar/l come alternativa
+dichiarata con fonte di accettazione, senza la concessione sul rapporto
+A_anima/A, 0.9 U An fu/gammaM2. Bulloni e rifollamento dell'anima inclusi.
+Catalogo ChannelWebOnlyTensionEnd (ComponentsOnly): fazzoletto/collettore,
+supporto, UPN, formati a freddo, quote disuguali e dettagli P358 8.2/3.10.4
+restano fuori. 17 nuove prove.
 
 6. CONTROVENTI COMPRESSI: CAMPO SALDATO ESISTENTE, ESTENSIONE GENERALE APERTA
 Il percorso gia' presente SteelPackedPairTerminal ->
@@ -85,6 +110,22 @@ terminale SALDATO e collettore complanare. Non richiede una resistenza numerica
 del nodo inventata dal chiamante. Rimangono limiti effettivi: terminale
 bullonato, attacco aT, azioni generiche e modi torsionali non rappresentati
 dal modello flessionale. Non dichiarati chiusi con la sola simmetria.
+AGGIORNAMENTO 29/10/2026: TERMINALE BULLONATO CHIUSO NEL CAMPO DICHIARATO.
+SteelPackedPairBoltedTerminal.Verify -> FromBoltedTerminal -> pipeline d'asta
+e report. Una fila di bulloni passanti categoriaA attraverso i dorsi,
+imbottiture identiche facoltative e fazzoletto centrale, collettore complanare
+CJP con radice vincolata. Eccentricita' del lato collegato trasportate:
+coppia nel piano sulla fila elastica, coppia fuori piano chiusa da trazione nei
+bulloni con contatto alla fila lato nodo, limite di prying della flangia rigida
+per gli L; betaLf/betaP, interazione taglio-trazione, punzonamento,
+rifollamento in entrambi i versi, flessione della parete, compressione lorda
+del corrente; fazzoletto come mensola dichiarata Lk=2(Lf+e1) con difetto Lk/150
+sulla banda a30 gradi. GussetLapCompression (P358 8.5) non e' applicabile al
+fazzoletto centrale simmetrico. Vincolo d'asta DICHIARATO dal terminale:
+traslazioni trattenute, rotazioni flessionali libere; la fabbrica rifiuta
+input d'asta in contrasto. Catalogo StandardBoltedPackedTerminal. Restano
+attacco aT, piu' file, azioni generiche, modi T/FT da escludere a parte.
+25 nuove prove. Dettagli in PACKED_PAIR_BOLTED_TERMINAL.txt.
 
 CONSEGNA
 Le suite complete e gli hash vengono registrati nel set candidato e nel

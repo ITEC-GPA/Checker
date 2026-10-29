@@ -1,6 +1,53 @@
 DOPPIO ANGOLARE - COMPONENTI DEL PILASTRO COLLEGATO D'ANIMA
 26/10/2026 - DoubleAngleCleatColumnWeb.Verify
 
+AGGIORNAMENTO 29/10/2026 - PERCORSO STANDARD A TAGLIO ORDINARIO
+API pubblica DoubleAngleCleatColumnWebStandard.Verify; catalogo
+DoubleAngleCleatColumnWebShear (StandardStaticVerification). La voce DoubleAngleCleat
+resta ComponentsOnly: descrive la famiglia di componenti, non il percorso standard.
+
+Procedura di riferimento. SCI P358(2014) NON contiene un capitolo sulle squadrette
+d'anima: la Tabella3.1 elenca solo piastre di estremita' parziali/complete e fin plate
+(verificato sul testo, PDF19). La procedura seguita dai componenti e' CTICM/SCI SBE-MS5
+cap.4 (squadrette doppie), sviluppata dalle regole delle piastre di estremita' e fin
+plate; per il supporto si usa il Check10 di P358 come gia' fatto. Elenco e copertura:
+- SBE 4.1 dettagli raccomandati (hac>=0.6hb, sporgenza ~10mm, gioco10mm, M20, fori
+  d+2): dettaglio fisso del componente, Detail.MinimumHeight e controlli Procedure.*.
+- SBE 4.2.1.1/4.2.1.2 gruppi di bulloni lato trave e lato supporto (0.8): componenti.
+- SBE 4.2.2 taglio lordo (1.27), netto e blocco delle due ali di ogni squadretta: componenti.
+- SBE 4.2.3.1 anima della trave, taglio e blocco: componenti.
+- SBE 4.2.3.2, 4.2.4, 4.2.5 (trave intagliata): non applicabili, trave non intagliata
+  imposta dai cancelli; P358 Check7 (trave non vincolata): esclusa dal cancello.
+- P358 Check10 anima del supporto, taglio locale e rifollamento: DoubleAngleCleatColumnWeb,
+  piu' la sezione netta concomitante del pilastro gia' documentata sotto.
+- Comportamento a cerniera nominale, capacita' rotazionale e duttilita': SBE-MS5 1.2
+  le qualifica con il dettaglio (angolari S275 da8/10mm, M20 8.8) e 4.1; P358 Check1
+  (posizione50mm sotto l'estradosso per il vincolo). Non si calcola una rotazione: e'
+  la regola della procedura. Controlli Procedure.NominalPin.* e Restraint.* (Detailing).
+- Trazione nei bulloni da momento nominale e prying: nella procedura sono coperti dai
+  fattori0.8 (bulloni lato supporto) e1.27 (taglio delle squadrette); non vengono
+  invertiti in una forza. Nuovo controllo di GERARCHIA del punzonamento (EN1993-1-8
+  Tabella3.2: Ft,Ed<=Bp,Rd; Tabella3.4 Bp,Rd=0.6 pi dm t fu/gammaM2; NTC (4.2.71)):
+  Bp,Rd>=Ft,Rd sia per l'ala della squadretta sia per l'anima del pilastro. Se vale,
+  il punzonamento non puo' precedere la trazione del bullone e non serve un valore di
+  trazione; se non vale (anime sottili, es. tw6.5 S275 con M20: 132766<141120 N) la
+  procedura non basta: requisito mancante, NON fallimento e NON verifica superata.
+- Risposta fuori piano dell'anima a taglio ordinario: non richiesta dalla procedura;
+  il pilastro si progetta per N e momento nominale della reazione al filo dell'anima
+  (condizione esterna dichiarata con NominallyPinnedModelSource).
+- Tying (SBE 4.3, P358 Check14 sull'anima): situazione eccezionale distinta
+  (EN1991-1-7 AllegatoA). Il percorso standard e' quello ORDINARIO: TyingSituationSource
+  dichiara come e' soddisfatto il requisito. I componenti di tying restano interni e il
+  Check14 per lo schema di bulloni delle squadrette non e' implementato.
+Esito: tutti i controlli della procedura per il taglio ordinario sono coperti; per
+questo il nuovo percorso e' StandardStaticVerification nel campo dichiarato. Fallimenti
+di carico o di dettaglio => Failed; fonti mancanti, campo dei componenti non soddisfatto
+o gerarchia non stabilita => NotSupported con MissingRequirements.
+Prove: DoubleAngleCleatColumnWebStandardTests (10): EC/NTC completi con Ft,Rd=141120 N
+e Bp,Rd a mano (dm31.5), controlli riusati identici bit a bit ai percorsi componenti,
+anima sottile 6.5mm (132766 N) contro 7.5mm (153192 N), fonti mancanti, trave intagliata,
+ferramenta che non copre il foro, sovraccarico visibile, voce di catalogo.
+
 STATO
 Nuovo percorso complementare a DoubleAngleCleatComponents. Chiude il blocco
 di calcolo del rifollamento, delle sezioni nette e dell'interazione nominale
