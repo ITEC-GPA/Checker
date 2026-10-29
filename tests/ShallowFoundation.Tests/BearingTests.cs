@@ -120,6 +120,52 @@ public sealed class BearingTests
     }
 
     [TestMethod]
+    public void HansenWithAnInclinedLoad()
+    {
+        // Properties of the reference manual (3.23)-(3.27), independent of the numbers frozen in califfo-reference.json.
+        foreach (var condition in new[]{FoundationSoilCondition.Drained,FoundationSoilCondition.Undrained})
+        {
+            // Strip: only the direction of B′; the inclined expressions tend to the normal-load ones as H → 0.
+            var x=Input(FoundationBearingMethod.Hansen);x.Condition=condition;x.Shape=FoundationShape.Strip;x.Normal=300000;
+            double normal=ShallowFoundationBearing.Calculate(x).UltimatePressure;
+            x.HorizontalX=1e-3;
+            var strip=ShallowFoundationBearing.Calculate(x);
+            Close(normal,strip.UltimatePressure,1e-7);StringAssert.Contains(strip.Reference,"carico inclinato");
+            // Square and circle: the same result for H along X or Y; the circle also for any direction of H.
+            x=Input(FoundationBearingMethod.Hansen);x.Condition=condition;x.Length=x.Width;x.HorizontalX=60000;
+            double square=ShallowFoundationBearing.Calculate(x).UltimatePressure;
+            (x.HorizontalX,x.HorizontalY)=(0,60000);Close(square,ShallowFoundationBearing.Calculate(x).UltimatePressure);
+            x.Shape=FoundationShape.Circle;(x.HorizontalX,x.HorizontalY)=(50000,0);
+            double circle=ShallowFoundationBearing.Calculate(x).UltimatePressure;
+            (x.HorizontalX,x.HorizontalY)=(30000,-40000);Close(circle,ShallowFoundationBearing.Calculate(x).UltimatePressure);
+            // Axis exchange when B > L: H along the geometric X of the rotated footing.
+            x=Input(FoundationBearingMethod.Hansen);x.Condition=condition;x.HorizontalY=40000;x.HorizontalX=10000;
+            var r=ShallowFoundationBearing.Calculate(x);
+            (x.Width,x.Length)=(x.Length,x.Width);(x.HorizontalX,x.HorizontalY)=(x.HorizontalY,x.HorizontalX);
+            Close(r.UltimatePressure,ShallowFoundationBearing.Calculate(x).UltimatePressure);
+        }
+        // Drained rectangle, D = 1 m: the direction of B′ governs and tends to the normal load.
+        var d=Input(FoundationBearingMethod.Hansen);double q0=ShallowFoundationBearing.Calculate(d).UltimatePressure;
+        d.HorizontalX=1;var small=ShallowFoundationBearing.Calculate(d);
+        Close(q0,small.UltimatePressure,1e-5);Assert.IsTrue(small.UltimatePressure<q0);
+        Assert.IsTrue(small.Warnings.Any(w=>w.Contains("si adotta la minore (B′)")));
+        // Surface footing on sand: the direction of L′ (no inclination, sγ = 0.6) governs also with H_L = 0 (declared discontinuity, safe side).
+        d.Depth=0;d.HorizontalX=0;q0=ShallowFoundationBearing.Calculate(d).UltimatePressure;
+        d.HorizontalX=1;var surface=ShallowFoundationBearing.Calculate(d);
+        Close(.6,surface.Weight.Shape);Close(1,surface.Weight.Inclination);Close(.5*18e-6*2000*surface.Weight.N*.6,surface.UltimatePressure);
+        Assert.IsTrue(surface.UltimatePressure<q0 && surface.Warnings.Any(w=>w.Contains("si adotta la minore (L′)")));
+        // Undrained: s′c = 0.2 i′c B′/L′ vanishes as H → 0 and the direction of L′ (d′c with D/L′) governs: (π+2) cu (1 + 0.4 D/L′) + q.
+        var u=Input(FoundationBearingMethod.Hansen);u.Condition=FoundationSoilCondition.Undrained;u.HorizontalX=1;
+        var undrained=ShallowFoundationBearing.Calculate(u);
+        Close((Math.PI+2)*.075*(1+.4/3)+.018,undrained.UltimatePressure,1e-6);
+        Assert.IsTrue(undrained.Cohesion.Additive && undrained.Cohesion.AdditiveShape<1e-6 && undrained.Warnings.Any(w=>w.Contains("0,2 i′c B′/L′")));
+        // Beyond the domain: null capacity, never an exception.
+        u.HorizontalX=u.Width*u.Length*u.UndrainedStrength+1;Exhausted(ShallowFoundationBearing.Calculate(u));
+        d=Input(FoundationBearingMethod.Hansen);d.HorizontalX=.9*d.Normal;Exhausted(ShallowFoundationBearing.Calculate(d));
+        d.HorizontalX=.8*d.Normal;Assert.IsFalse(ShallowFoundationBearing.Calculate(d).DomainExhausted);
+    }
+
+    [TestMethod]
     public void NearZeroAngleUsesStableLimit()
     {
         var x=Input();x.Cohesion=.02;
@@ -135,9 +181,7 @@ public sealed class BearingTests
         Close(19.7,ShallowFoundationBearing.TerzaghiGamma(30));Close(23.8,ShallowFoundationBearing.TerzaghiGamma(31));
         Close(780.1,ShallowFoundationBearing.TerzaghiGamma(48));
         Assert.ThrowsException<ArgumentOutOfRangeException>(()=>ShallowFoundationBearing.TerzaghiGamma(51));
-        var x=Input(FoundationBearingMethod.Hansen);x.HorizontalX=1;
-        Assert.ThrowsException<NotSupportedException>(()=>ShallowFoundationBearing.Calculate(x));
-        x=Input();x.Shape=FoundationShape.Circle;x.MomentY=1;
+        var x=Input();x.Shape=FoundationShape.Circle;x.MomentY=1;
         Assert.ThrowsException<NotSupportedException>(()=>ShallowFoundationBearing.Calculate(x));
         x=Input();x.RoughBase=false;
         Assert.ThrowsException<NotSupportedException>(()=>ShallowFoundationBearing.Calculate(x));

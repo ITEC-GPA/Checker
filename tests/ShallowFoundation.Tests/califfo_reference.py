@@ -17,7 +17,14 @@ Conventions:
   (Meyerhof 1963 and USACE EM 1110-1-1905 Table 4-3: i_c = i_q for any phi; with phi = 0 only N_q = s_q = d_q = 1).
   The manual writes (3.16) q_ult = (2 + pi) cu s_c d_c i_c + q, without i_q, and gives (3.14) i_c = i_q only for
   phi > 0. Decision of the user (15/10/2026, bug GEO-1): Meyerhof (1963)/USACE, not the manual. The "manual" value
-  keeps + q; the "convention" value is + q i_q, conservative ("le"). Without H the two coincide.
+  keeps + q; the "convention" value is + q i_q, conservative ("le"). Without H the two coincide;
+- Brinch Hansen on a circle with an inclined load: H aligned with B' (H_B = |H|, H_L = 0), since a circle has no
+  preferred axis (the manual gives no rule for the circle; the literal reading here splits H along x and y).
+Brinch Hansen with an inclined load, read literally from the manual: drained (3.23)-(3.25) and undrained (3.27),
+(3.27'), (3.27''); with H > 0 the bearing capacity is computed for a failure in the direction of B' and in the
+direction of L' (also when the component along L' is zero) and the smaller value is adopted (section 3.4.1); a strip
+has only the direction of B'. B'L' in (3.23) and (3.27) is the effective area (pi B^2 / 4 for the circle). With H = 0
+the normal-load expressions (3.19), (3.20), (3.28) apply: neither direction tends to them as H -> 0 in general.
 Actions beyond the domain (section 3.4.1: no inclination factor may be negative) give a null bearing capacity.
 """
 import json, math, os, sys
@@ -96,6 +103,69 @@ def term(N=1.0, S=1.0, D=1.0, I=1.0, additive=None):
     return dict(N=N, S=S, D=D, I=I, add=additive)
 
 
+def hansen_components(cs, g, conv, out):
+    """H_B and H_L of section 3.4.1 (absolute values, already exchanged when B' lies along y)."""
+    hb, hl = g['HB'], g['HL']
+    if conv and cs['shape'] == 'circle' and hl > 0:
+        hb, hl = g['H'], 0.0
+        out['notes'].append('Hansen, cerchio: H allineata a B′ (manuale: nessuna regola per il cerchio, qui componenti su x e y)')
+    return hb, hl
+
+
+def hansen_directions(cs, g, direction):
+    """Section 3.4.1: failure in the direction of B' and of L' (not for a strip); the smaller value is adopted."""
+    rows = [direction('B', g['r'], g['Bdepth'])]
+    if cs['shape'] != 'strip':
+        rows.append(direction('L', g['Lp'] / g['Bp'], g['Lp']))  # (3.24'), (3.25'): L'/B' and D/L'
+    return min(rows, key=lambda row: row[0])
+
+
+def hansen_drained_inclined(cs, g, conv, phi, c, q, gm, out):  # (3.23)-(3.25), eta_B = eta_L = 0
+    nc, nq = prandtl(phi)
+    t, s = math.tan(phi), math.sin(phi)
+    ng = 1.5 * (nq - 1) * t  # (3.18)
+    hb, hl = hansen_components(cs, g, conv, out)
+    den = cs['N'] + g['A'] * c / t  # N + B'L' c cot(phi)
+    iq = {'B': (1 - 0.5 * hb / den) ** 5, 'L': (1 - 0.5 * hl / den) ** 5}
+    ig = {'B': (1 - 0.7 * hb / den) ** 5, 'L': (1 - 0.7 * hl / den) ** 5}
+    ic = {k: iq[k] - (1 - iq[k]) / (nq - 1) for k in iq}
+    if min(list(iq.values()) + list(ig.values()) + list(ic.values())) < 0:  # section 3.4.1: null capacity
+        out.update(exhausted=True, qult=0.0)
+        return out
+
+    def direction(d, ratio, side):
+        other = 'L' if d == 'B' else 'B'
+        sq = 1 + iq[d] * ratio * s  # (3.24)
+        sc = sq - (1 - sq) / (nq - 1)
+        sg = max(0.6, 1 - 0.4 * ratio * ig[d] / ig[other]) if ig[other] > 0 else 0.6  # "comunque >= 0,6"
+        dq = 1 + 2 * t * (1 - s) ** 2 * depth_k(cs['D'], side) if cs.get('depth', True) else 1.0  # (3.25)
+        dc = dq - (1 - dq) / (nc * t)
+        qult = c * nc * sc * dc * ic[d] + q * nq * sq * dq * iq[d] + 0.5 * gm * g['Bp'] * ng * sg * ig[d]
+        return qult, term(nc, sc, dc, ic[d]), term(nq, sq, dq, iq[d]), term(ng, sg, 1.0, ig[d])
+
+    qult, fc, fq, fg = hansen_directions(cs, g, direction)
+    out.update(qult=qult, c=fc, q_=fq, g_=fg)
+    return out
+
+
+def hansen_undrained_inclined(cs, g, conv, q, out):  # (3.26), (3.27), (3.27'), (3.27''); b_c = g_c = 0
+    cu, nc = cs['cu'], PI + 2
+    hb, hl = hansen_components(cs, g, conv, out)
+    if max(hb, hl) > g['A'] * cu:  # square root of a negative number: beyond the domain
+        out.update(exhausted=True, qult=0.0)
+        return out
+    i = {'B': 0.5 - 0.5 * math.sqrt(1 - hb / (g['A'] * cu)), 'L': 0.5 - 0.5 * math.sqrt(1 - hl / (g['A'] * cu))}
+
+    def direction(d, ratio, side):
+        sc = 0.2 * i[d] * ratio  # literally 0.2 i_c B'/L': zero for H -> 0, not 0.2 B'/L' of (3.28)
+        dc = 0.4 * depth_k(cs['D'], side) if cs.get('depth', True) else 0.0
+        return nc * cu * (1 + sc + dc - i[d]) + q, term(nc, additive=[sc, dc, i[d]])
+
+    qult, fc = hansen_directions(cs, g, direction)
+    out.update(qult=qult, c=fc, q_=term(1.0), g_=term(0.0))
+    return out
+
+
 def reference(cs, conv):
     method, drained = cs['method'], cs['cond'] == 'D'
     g = geometry(cs, conv)
@@ -126,6 +196,8 @@ def reference(cs, conv):
                 iq = ic
                 out['notes'].append('Meyerhof non drenato: iq = ic anche sul termine q (Meyerhof 1963, USACE tab. 4-3; manuale (3.16): + q)')
             out.update(qult=nc * cu * sc * dc * ic + q * iq, c=term(nc, sc, dc, ic), q_=term(1.0, I=iq))
+        elif method == 'Hansen' and g['H'] > 0:  # (3.26), (3.27): inclined load
+            return hansen_undrained_inclined(cs, g, conv, q, out)
         elif method == 'Hansen':  # (3.26), (3.28): normal load, additive corrections
             sa, da = 0.2 * g['r'], 0.4 * depth_k(D, g['Bdepth'])
             out.update(qult=nc * cu * (1 + sa + da) + q, c=term(nc, additive=[sa, da, 0.0]))
@@ -153,6 +225,8 @@ def reference(cs, conv):
         fq['N'], fc['N'], fg['N'] = nq, (nq - 1) / t, {34: 36.0, 48: 780.0}[cs['phi']]
         fc['S'] = 1.3 if g['square'] else 1.0
         fg['S'] = 1.0 if cs['shape'] == 'strip' else 0.6 if cs['shape'] == 'circle' else 0.8
+    elif method == 'Hansen' and H > 0:  # (3.23)-(3.25): inclined load
+        return hansen_drained_inclined(cs, g, conv, phi, c, q, gm, out)
     else:
         nc, nq = prandtl(phi)
         fc['N'], fq['N'] = nc, nq
@@ -292,6 +366,33 @@ def cases():
     add(method='Vesic', cond='D', phi=30, c=0, D=1, shape='rect', B=2, L=3, N=600, depth=False)
     add(method='Meyerhof', cond='D', phi=30, c=0, D=1, shape='rect', B=2, L=3, N=600, depth=False)
     add(method='Eurocode7', cond='D', phi=30, c=10, D=1, shape='rect', B=2, L=3, N=600, My=600)
+    # Brinch Hansen with an inclined load (1.16.0): drained (3.23)-(3.25) and undrained (3.27), both directions.
+    rect = dict(shape='rect', B=2, L=3, N=600)
+    for c in (0, 10):
+        for hx, hy in ((60, 0), (0, 60), (40, 30), (6, 0), (0, 6)):
+            add(method='Hansen', cond='D', phi=30, c=c, D=1, Hx=hx, Hy=hy, **rect)
+        add(method='Hansen', cond='D', phi=30, c=c, D=1, Hx=40, Hy=30, My=120, Mx=360, **rect)
+        add(method='Hansen', cond='D', phi=30, c=c, D=1, shape='square', B=2, L=2, N=600, Hx=60)
+        add(method='Hansen', cond='D', phi=30, c=c, D=1, shape='circle', B=2, N=600, Hx=60)
+        add(method='Hansen', cond='D', phi=30, c=c, D=1, shape='circle', B=2, N=600, Hx=40, Hy=30)
+        add(method='Hansen', cond='D', phi=30, c=c, D=1, shape='strip', B=2, N=300, Hx=40)
+        for hx in (480, 540, 600, 700):  # i_c < 0 beyond about 530 kN (c = 0) and 620 kN (c = 10)
+            add(method='Hansen', cond='D', phi=30, c=c, D=1, Hx=hx, **rect)
+    for phi in (20, 38):
+        add(method='Hansen', cond='D', phi=phi, c=10, D=3, Hx=40, Hy=30, **rect)
+    for hx in (6, 60):  # surface footing on sand: the direction of L' governs also with H_L = 0
+        add(method='Hansen', cond='D', phi=30, c=0, D=0, Hx=hx, **rect)
+    add(method='Hansen', cond='D', phi=30, c=0, D=1, Hy=60, depth=False, **rect)
+    for hx, hy in ((60, 0), (0, 60), (40, 30), (6, 0)):
+        add(method='Hansen', cond='U', cu=75, D=1, Hx=hx, Hy=hy, **rect)
+    add(method='Hansen', cond='U', cu=75, D=1, Hx=40, Hy=30, Mx=360, **rect)
+    add(method='Hansen', cond='U', cu=75, D=3, Hx=60, **rect)
+    add(method='Hansen', cond='U', cu=75, D=1, shape='square', B=2, L=2, N=600, Hx=60)
+    add(method='Hansen', cond='U', cu=75, D=1, shape='circle', B=2, N=600, Hx=60)
+    add(method='Hansen', cond='U', cu=75, D=1, shape='circle', B=2, N=600, Hx=40, Hy=30)
+    add(method='Hansen', cond='U', cu=75, D=1, shape='strip', B=2, N=300, Hx=40)
+    for hx in (440, 460):  # A′cu = 450 kN
+        add(method='Hansen', cond='U', cu=75, D=1, Hx=hx, **rect)
     return out
 
 
