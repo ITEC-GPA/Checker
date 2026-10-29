@@ -1,5 +1,7 @@
 MECCANISMI ANCORA APERTI - RIESAME 27/10/2026
 Stato corrente generale: ../CURRENT.txt. Questo riesame non abilita nuove verifiche.
+Aggiornamento 29/10/2026: blocchi misti e classe4 ad alto taglio chiusi da due
+metodi espliciti successivi (vedi i paragrafi BLOCCHI e CLASSE4 qui sotto).
 
 BLOCCHI CON FORZE MISTE
 Fonte primaria: J.Jonsson, Generalized Block Failure, Nordic Steel Construction
@@ -19,6 +21,13 @@ i percorsi effettivi, inclusi L marginali, segni, eccentricita e simultaneita;
 trasporto N,V,M al polo di ogni blocco; dati indipendenti sufficienti a
 verificare le interazioni e il materiale circostante. La sola corrispondenza
 a un singolo carico sperimentale non copre l'intero dominio.
+29/10/2026 IMPLEMENTATO: ActualForcesWithMixedBlockInteraction, per ogni
+percorso fuori gerarchia. U confinati: sola componente nel verso di strappo
+contro Veff,2. L di bordo: Pt/Veff,2+Pn/Veff,2+|M|/Rm<=1 al baricentro dei
+bulloni, Rm coppia statica; dominio convesso, quindi limite inferiore delle
+resistenze ad azione singola dello stesso blocco. Nessun coefficiente di Jonsson,
+nessuna somma dei moduli contro un'unica Veff. BRIDGE_SPLICE_MIXED_BLOCKS.txt.
+Restano esclusi i percorsi a gradino.
 
 TRANSIZIONI
 Riferimenti consultati: SCI Steel Bridge Group GN2.02 (plate dimensions),
@@ -53,7 +62,13 @@ CLASSE4
 Ora implementato il solo ampliamento a taglio basso:
 BRIDGE_SPLICE_CLASS4_LOW_SHEAR.txt. Resta da qualificare alto taglio e il
 modello della lastra instabile; non si assumono appoggi continui ai bulloni.
+29/10/2026 IMPLEMENTATO: EffectiveCompressionWithShearBuckling, pannello
+EN1993-1-5 sez.5 sull'intera larghezza vincolato dalle file esterne (Tab.3.3),
+montante non rigido, eta=1, nessuna riserva oltre tau_cr, interazione 7.1.
+Rifiutato con codice il taglio con eta3>0.5 senza fibre tese (7.1(5): sezione10).
+BRIDGE_SPLICE_CLASS4_SHEAR_BUCKLING.txt.
 
 Questi punti non sono bloccati da autorizzazioni, test legacy o indisponibilita
 di ANTHEA. Sono parti del modello ingegneristico ancora da sviluppare e
-validare. La richiesta di chiudere tutti gli otto punti non e completata.
+validare. La richiesta di chiudere tutti gli otto punti non e completata:
+al 29/10/2026 restano aperti transizioni e terminali/supporti.

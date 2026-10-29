@@ -1,6 +1,8 @@
 ESTENSIONE27/10/2026: il contratto EffectiveCompression qui descritto resta
 a taglio nullo. Per il nuovo opt-in EffectiveCompressionWithLowShear vedere
 BRIDGE_SPLICE_CLASS4_LOW_SHEAR.txt; stato generale in ../CURRENT.txt.
+ESTENSIONE29/10/2026: taglio elevato e instabilita a taglio nell'opt-in
+EffectiveCompressionWithShearBuckling, BRIDGE_SPLICE_CLASS4_SHEAR_BUCKLING.txt.
 
 COPRIGIUNTI: COMPRESSIONE EFFICACE - 26/10/2026
 

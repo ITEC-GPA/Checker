@@ -33,3 +33,7 @@ bulloni M12 8.8/fori13. Non si riducono attesi legacy o fattori per ammetterlo.
 
 APERTO: taglio > R/2, instabilita a taglio e tension field, blocchi misti fuori
 dalla gerarchia. Un controllo parziale superato non qualifica questi casi.
+29/10/2026: questo metodo resta invariato. Taglio > R/2 e lastre sensibili a
+instabilita: opt-in EffectiveCompressionWithShearBuckling
+(BRIDGE_SPLICE_CLASS4_SHEAR_BUCKLING.txt); blocchi misti: opt-in
+ActualForcesWithMixedBlockInteraction (BRIDGE_SPLICE_MIXED_BLOCKS.txt).
