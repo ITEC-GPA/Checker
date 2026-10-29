@@ -36,18 +36,27 @@ namespace GPC.Checkers.Steel.Connections
             => Verify(p, actualCollinearBlockForces, faceModel, SplicePlateStabilityMethod.CompactCovers);
         public static WeldedIBeamSpliceStandardPlateResult Verify(WeldedIBeamSpliceDetailInput p, bool actualCollinearBlockForces,
             SpliceFlangeFaceModel faceModel, SplicePlateStabilityMethod plateStability)
+            => Verify(p, actualCollinearBlockForces ? SpliceBlockVerificationMethod.ActualCollinearForcesWithHierarchyFallback
+                : SpliceBlockVerificationMethod.FastenerHierarchy, faceModel, plateStability);
+        public static WeldedIBeamSpliceStandardPlateResult Verify(WeldedIBeamSpliceDetailInput p, SpliceBlockVerificationMethod blockMethod,
+            SpliceFlangeFaceModel faceModel, SplicePlateStabilityMethod plateStability)
         {
             if (!Enum.IsDefined(typeof(SplicePlateStabilityMethod), plateStability)) throw new ArgumentOutOfRangeException(nameof(plateStability));
+            if (!Enum.IsDefined(typeof(SpliceBlockVerificationMethod), blockMethod)) throw new ArgumentOutOfRangeException(nameof(blockMethod));
             if (p == null) throw new ArgumentNullException(nameof(p));
             var plates = WeldedIBeamSplicePlates.Verify(p.Plates);
-            return Verify(p, actualCollinearBlockForces, plateStability, plates,
+            return Verify(p, blockMethod, plateStability, plates,
                 WeldedIBeamSpliceStandardModel.Verify(p, faceModel, plates.PreparedBolts.Forces));
         }
-        internal static WeldedIBeamSpliceStandardPlateResult Verify(WeldedIBeamSpliceDetailInput p, bool actualCollinearBlockForces,
+        internal static WeldedIBeamSpliceStandardPlateResult Verify(WeldedIBeamSpliceDetailInput p, SpliceBlockVerificationMethod blockMethod,
             SplicePlateStabilityMethod plateStability, WeldedIBeamSplicePlateResult plates, ConnectionVerification<WeldedIBeamSpliceDetailInput> applicability)
         {
             if (!Enum.IsDefined(typeof(SplicePlateStabilityMethod), plateStability)) throw new ArgumentOutOfRangeException(nameof(plateStability));
+            if (!Enum.IsDefined(typeof(SpliceBlockVerificationMethod), blockMethod)) throw new ArgumentOutOfRangeException(nameof(blockMethod));
             if (!ReferenceEquals(p.Plates, plates.Input) || !ReferenceEquals(p, applicability.Input)) throw new ArgumentException("Prepared results belong to another input.");
+            bool actualCollinearBlockForces = blockMethod != SpliceBlockVerificationMethod.FastenerHierarchy;
+            bool mixedInteraction = blockMethod == SpliceBlockVerificationMethod.ActualForcesWithMixedBlockInteraction;
+            bool shearBuckling = plateStability == SplicePlateStabilityMethod.EffectiveCompressionWithShearBuckling;
             var code = p.Plates.Policy.Code;
             var f = plates.PreparedBolts.Forces;
             var issues = new List<string>(applicability.Diagnostics.Concat(plates.Diagnostics));
@@ -84,6 +93,13 @@ namespace GPC.Checkers.Steel.Connections
                         compact.AddRange(pc.StandardBoltedDomain);
                         Prepared(pc.UsesStandardBolted); Prepared(pc.WholeWidthRatio);
                     }
+                    else if (shearBuckling && !zeroShear)
+                    {
+                        // The EN1993-1-5 section5 resistance of the whole-width panel replaces the
+                        // no-buckling screen; only the restraint its idealization needs is a domain.
+                        compact.AddRange(pc.ShearPanelDomain);
+                        Prepared(pc.UsesShearBucklingResistance); Prepared(pc.WholeWidthRatio);
+                    }
                     else compact.Add(zeroShear ? pc.NoShearBucklingAtZeroShear : pc.NoShearBuckling);
                     Hierarchy(pc.Hierarchy);
                 }
@@ -96,14 +112,9 @@ namespace GPC.Checkers.Steel.Connections
                 Result("CompactDomain", compact, ConnectionCheckRole.Applicability), Result("DirectBlockTearing", direct, ConnectionCheckRole.Resistance));
             ConnectionVerification<WeldedIBeamSpliceDetailInput> Result(string name, IEnumerable<ConnectionCheck> checks, ConnectionCheckRole role)
                 => new ConnectionVerification<WeldedIBeamSpliceDetailInput>(p, code, "Steel.Connection.WeldedIBeamSplice.Standard." + name,
-                    "DirectBlockTearing uses collinear actual bolt forces and eccentric resistance, without cancellation. Other block groups retain the hierarchy. Conservative standard-detail sufficient checks. Block/compact-domain failure means outside this method, not an actual load-capacity failure.",
-                    checks, trace, issues.Distinct(), new[] {
-                        "Net rectangular holes remove both area and second moment. Every cover cut conservatively uses the perforated section, including the unperforated centre. Stress maxima are combined conservatively with 1.5 V/Anet; limit=min(fy/gammaM0,0.9fu/gammaM2). This elastic sufficient criterion is not a new plastic rupture interaction formula.",
-                        "Block hierarchy enumerates orthogonal rectangular U and edge L paths, all free-edge prefixes and contiguous transverse subsets, in both directions. Eccentric expression 0.5 Ant fu/gammaM2 + Anv fy/(sqrt(3) gammaM0) is always used. Demand is the SUM of UNREDUCED design shear resistances of the enclosed bolt planes, not the load resultant. No cancellation or plastic bolt redistribution is credited.",
-                        "Opt-in direct checks are limited to longitudinal collinear bolt actions (including sign reversal). All rectangular prefixes and transverse subsets are checked using sum(abs(Fx)); opposite loads on a continuous cover do not cancel. The eccentric coefficient 0.5 is retained for every subset. No mixed-direction N-V-M rupture interaction is inferred. Non-collinear groups use the unchanged hierarchy.",
-                        "Hierarchy requires every path to be stronger than all its fasteners. It is a sufficient exclusion of block tearing for this regular detail; a failed hierarchy requires a separate loaded-block method and prevents whole-detail qualification.",
-                        "Parent net-section check assumes all flange/web holes aligned longitudinally and the full member actions retained in the parent, with no cover credit. Maximum lap-end moment is included. Unnotched parent-web block tearing is inapplicable per SCI P398 p59.",
-                        "CompactCovers retains the whole-width no-shear-buckling screen. StandardBoltedCovers explicitly uses SCI P398 pp57-59 for continuous flat rectangular covers with regular closely spaced filled normal fasteners, class1-3 strips/outstands in both directions and every existing compression/shear/bending/net/block check. It is not an EN1993-1-5 free-panel buckling or tension-field method; locally class4 strips remain outside StandardBoltedCovers. EffectiveCompressionWithLowShear is assessed separately and retains the whole-width screen. No continuous line supports are inferred from discrete bolts." }, reported, role);
+                    "DirectBlockTearing uses collinear actual bolt forces and eccentric resistance, without cancellation. Other block groups retain the hierarchy. Conservative standard-detail sufficient checks. Block/compact-domain failure means outside this method, not an actual load-capacity failure."
+                    + (mixedInteraction ? " Mixed-direction paths outside the hierarchy are verified in DirectBlockTearing by the actual-force block interaction." : ""),
+                    checks, trace, issues.Distinct(), Assumptions(mixedInteraction, shearBuckling), reported, role);
             void Prepared(StandardPlatePreparation.Entry e) { if (e.Value == null) issues.Add(e.Issue); else trace.Add(e.Value); }
             void ParentNet(StandardPlatePreparation.ParentSection s)
             {
@@ -135,21 +146,104 @@ namespace GPC.Checkers.Steel.Connections
                 var method = collinear ? h.Collinear : h.Hierarchical;
                 trace.Add(method); reported.Add(method);
                 if (!h.CapacityComplete) { issues.AddRange(h.CapacityDiagnostics); return; }
-                for (int axis = 0; axis < (collinear ? 1 : 2); axis++) for (int sign = 0; sign < 2; sign++)
-                    foreach (var path in h.Paths[2 * axis + sign])
+                bool interaction = mixedInteraction && !collinear;
+                StandardPlatePreparation.MixedPath[][] mixed = null;
+                double[] netX = null, netY = null;
+                if (interaction)
+                {
+                    // Signed resultants per position, used only for the moment about the enclosed-bolt
+                    // centroid; the force components keep the absolute sums above (no cancellation).
+                    mixed = h.Mixed; netX = new double[h.PositionCount]; netY = new double[h.PositionCount];
+                    for (int j = 0; j < h.AppliedGroup.Length; j++)
                     {
+                        var force = f.CoverGroups[h.AppliedGroup[j]].Distribution.Forces[h.AppliedForce[j]];
+                        int q = h.AppliedPosition[j]; netX[q] += force.Fx; netY[q] += force.Fy;
+                    }
+                }
+                int interacted = 0; ConnectionCheck governing = null; double[] governingTerms = null;
+                for (int axis = 0; axis < (collinear ? 1 : 2); axis++) for (int sign = 0; sign < 2; sign++)
+                {
+                    var paths = h.Paths[2 * axis + sign];
+                    for (int index = 0; index < paths.Length; index++)
+                    {
+                        var path = paths[index];
                         if (path.Issue != null) { issues.Add(path.Issue); continue; }
+                        if (interaction)
+                        {
+                            // Per path: the unchanged sufficient hierarchy, or the actual-force interaction.
+                            var sufficient = new ConnectionCheck(path.Id, path.Fasteners * h.Rb, path.Resistance, HierarchyReference, "N", ConnectionCheckRole.Applicability);
+                            if (sufficient.Passed) { blocks.Add(sufficient); continue; }
+                            var m = mixed[2 * axis + sign][index];
+                            if (m.Issue != null) { issues.Add(m.Issue); continue; }
+                            var terms = MixedTerms(m, axis);
+                            var check = m.Edge ? new ConnectionCheck(path.Id + ".MixedInteraction", terms[0] / path.Resistance + terms[1] / m.Rn + terms[2] / m.Rm, 1, MixedEdgeReference, "1")
+                                : new ConnectionCheck(path.Id + ".MixedInteraction", terms[0], path.Resistance, MixedConfinedReference, "N");
+                            if (!WeldedIBeamSplicePlates.Finite(check.Utilization)) { issues.Add(path.Id + ".MIXED_INTERACTION_NUMERIC_RANGE"); continue; }
+                            direct.Add(check); interacted++;
+                            if (governing == null || check.Utilization > governing.Utilization)
+                            { governing = check; governingTerms = m.Edge ? new[] { terms[0], path.Resistance, terms[1], m.Rn, terms[2], m.Rm } : new[] { terms[0], path.Resistance }; }
+                            continue;
+                        }
                         double demand;
                         if (collinear) { demand = 0; foreach (int point in path.Subset) demand += Math.Abs(sumX[h.PointPosition[point]]); }
                         else demand = path.Fasteners * h.Rb;
                         (collinear ? direct : blocks).Add(new ConnectionCheck(path.Id, demand, path.Resistance, collinear ? DirectReference : HierarchyReference,
                             "N", collinear ? ConnectionCheckRole.Resistance : ConnectionCheckRole.Applicability));
                     }
+                }
+                if (!interaction) return;
+                Reported(h.Name + ".MixedInteractionPaths", interacted, "1");
+                if (governing == null) return;
+                Reported(h.Name + ".MixedInteraction.GoverningUtilization", governing.Utilization, "1");
+                string[] names = { "Pt", "Rt", "Pn", "Rn", "M", "Rm" }; string[] units = { "N", "N", "N", "N", "Nmm", "Nmm" };
+                for (int k = 0; k < governingTerms.Length; k++) Reported(h.Name + ".MixedInteraction.Governing" + names[k], governingTerms[k], units[k]);
+
+                // Pt and Pn are sums of absolute bolt-plane components (no cancellation, as the collinear
+                // checks); M is the resultant moment of the same applied forces about the enclosed-bolt centroid.
+                double[] MixedTerms(StandardPlatePreparation.MixedPath m, int axis)
+                {
+                    double pt = 0, pn = 0, moment = 0;
+                    foreach (int point in m.Subset)
+                    {
+                        int q = h.PointPosition[point];
+                        pt += axis == 0 ? sumX[q] : sumY[q]; pn += axis == 0 ? sumY[q] : sumX[q];
+                        if (m.Edge) moment += (h.Points[point].X - m.Gx) * netY[q] - (h.Points[point].Y - m.Gy) * netX[q];
+                    }
+                    return new[] { pt, pn, Math.Abs(moment) };
+                }
             }
+            void Reported(string name, double value, string unit)
+            {
+                if (!WeldedIBeamSplicePlates.Finite(value)) { issues.Add(name + ".NUMERIC_RANGE"); return; }
+                var entry = new SectionResistanceValue(name, value, unit); trace.Add(entry); reported.Add(entry);
+            }
+        }
+        private static readonly string[] BaseAssumptions = {
+            "Net rectangular holes remove both area and second moment. Every cover cut conservatively uses the perforated section, including the unperforated centre. Stress maxima are combined conservatively with 1.5 V/Anet; limit=min(fy/gammaM0,0.9fu/gammaM2). This elastic sufficient criterion is not a new plastic rupture interaction formula.",
+            "Block hierarchy enumerates orthogonal rectangular U and edge L paths, all free-edge prefixes and contiguous transverse subsets, in both directions. Eccentric expression 0.5 Ant fu/gammaM2 + Anv fy/(sqrt(3) gammaM0) is always used. Demand is the SUM of UNREDUCED design shear resistances of the enclosed bolt planes, not the load resultant. No cancellation or plastic bolt redistribution is credited.",
+            "Opt-in direct checks are limited to longitudinal collinear bolt actions (including sign reversal). All rectangular prefixes and transverse subsets are checked using sum(abs(Fx)); opposite loads on a continuous cover do not cancel. The eccentric coefficient 0.5 is retained for every subset. No mixed-direction N-V-M rupture interaction is inferred. Non-collinear groups use the unchanged hierarchy.",
+            "Hierarchy requires every path to be stronger than all its fasteners. It is a sufficient exclusion of block tearing for this regular detail; a failed hierarchy requires a separate loaded-block method and prevents whole-detail qualification.",
+            "Parent net-section check assumes all flange/web holes aligned longitudinally and the full member actions retained in the parent, with no cover credit. Maximum lap-end moment is included. Unnotched parent-web block tearing is inapplicable per SCI P398 p59.",
+            "CompactCovers retains the whole-width no-shear-buckling screen. StandardBoltedCovers explicitly uses SCI P398 pp57-59 for continuous flat rectangular covers with regular closely spaced filled normal fasteners, class1-3 strips/outstands in both directions and every existing compression/shear/bending/net/block check. It is not an EN1993-1-5 free-panel buckling or tension-field method; locally class4 strips remain outside StandardBoltedCovers. EffectiveCompressionWithLowShear is assessed separately and retains the whole-width screen. No continuous line supports are inferred from discrete bolts." };
+        private static string[] Assumptions(bool mixedInteraction, bool shearBuckling)
+        {
+            if (!mixedInteraction && !shearBuckling) return BaseAssumptions;
+            var a = new List<string>(BaseAssumptions);
+            if (mixedInteraction) a.Add("ActualForcesWithMixedBlockInteraction: a mixed-direction path failing the hierarchy is verified with the actual bolt actions of the same enumerated rectangle. "
+                + "A U path admits no rigid separation except translation towards its free edge (side and end cuts are confined), so only sum(abs(F)) along that direction is compared with its Veff,2. "
+                + "An edge L path can translate towards either free edge and rotate: Pt/Veff,2,t + Pn/Veff,2,n + |M|/Rm <= 1 at the centroid of the enclosed bolts. Veff,2,n is the same rectangle torn towards the side edge; "
+                + "Rm=min(0.5fu/gammaM2,fy/gammaM0)*t*(Z_end+Z_side) is the pure couple of antisymmetric normal tractions on the two net cuts, a static lower bound. "
+                + "The block domain is convex, so the linear interaction of these single-action resistances lies inside it. Pt, Pn are absolute sums over all bolt planes; M is the resultant moment of the enclosed bolt forces. "
+                + "Contact pressures of confined cuts are carried by the surrounding plate checks (bearing, cover N-V-M cuts, compression). Non-rectangular paths are not enumerated.");
+            if (shearBuckling) a.Add("EffectiveCompressionWithShearBuckling replaces the whole-width screen of a sheared cover by the EN1993-1-5 section5 resistance of the whole-width panel, "
+                + "restrained along its long edges by the outer fastener rows (at least two rows, longitudinal gaps <= min(14t,200mm)); interior fasteners are not credited as stiffeners.");
+            return a.ToArray();
         }
         private const string NetReference = "EN1993-1-1:2005 6.2.1(5),6.2.3; conservative elastic NET stress screen, also sufficient for category C net yielding";
         private const string DirectReference = "EN1993-1-8:2005 3.10.2(3) eq3.10; collinear actual force sum, eccentric factor0.5; SCI P398 pp136,139 path geometry";
         private const string HierarchyReference = "EN1993-1-8:2005 3.10.2(3) eq3.10; sufficient fastener/block hierarchy, NOT actual action demand";
+        private const string MixedConfinedReference = "EN1993-1-8:2005 3.10.2(3) eq3.10; confined U path, actual sum(abs(F)) along its only admissible tearing direction, eccentric factor0.5";
+        private const string MixedEdgeReference = "EN1993-1-8:2005 3.10.2(3) eq3.10 in both tearing directions; convex linear interaction Pt/Veff,2t+Pn/Veff,2n+|M|/Rm, static lower-bound couple Rm";
     }
 
     /// <summary>Net sections, compact-domain checks and the complete block-path enumeration of one
@@ -157,7 +251,15 @@ namespace GPC.Checkers.Steel.Connections
     internal sealed class StandardPlatePreparation
     {
         internal sealed class Entry { internal SectionResistanceValue Value; internal string Issue; }
-        internal sealed class Path { internal string Issue, Id; internal double Resistance; internal int Fasteners; internal int[] Subset; }
+        /// <summary>Mode 0 U, 1 edge L at the minimum transverse edge, 2 at the maximum. Lt/Ls are the net
+        /// lengths of the end and of the side cut(s) used by the original resistance.</summary>
+        internal sealed class Path
+        {
+            internal string Issue, Id; internal double Resistance; internal int Fasteners; internal int[] Subset;
+            internal int Axis, Sign, K, First, Last, Mode; internal double Lt, Ls;
+        }
+        /// <summary>Demand-independent data of one path for the mixed-direction interaction.</summary>
+        internal sealed class MixedPath { internal string Issue; internal int[] Subset; internal bool Edge; internal double Rn, Rm, Gx, Gy; }
         internal sealed class HierarchyPreparation
         {
             internal SectionResistanceValue Collinear, Hierarchical;
@@ -165,13 +267,81 @@ namespace GPC.Checkers.Steel.Connections
             internal int[] AppliedGroup, AppliedForce, AppliedPosition, PointPosition;
             internal int PositionCount;
             internal Path[][] Paths;
+            internal string Name; internal ConnectionPoint2D[] Points; internal double XMin, XMax, YMin, YMax, Hole;
+            internal ConnectionPlate Plate; internal double GammaM0, GammaM2;
+            private MixedPath[][] mixed;
+            /// <summary>Built on first use by the opt-in mixed method only; identical for every case.</summary>
+            internal MixedPath[][] Mixed => mixed ?? System.Threading.LazyInitializer.EnsureInitialized(ref mixed, BuildMixed);
+
+            private MixedPath[][] BuildMixed()
+            {
+                var result = new MixedPath[4][];
+                // Normal tractions of the static couple never exceed the eccentric tension level, nor yield.
+                double sigma = Math.Min(.5 * Plate.Fu / GammaM2, Plate.Fy / GammaM0), t = Plate.Thickness;
+                for (int list = 0; list < 4; list++)
+                {
+                    int axis = list / 2, sign = list % 2 == 0 ? -1 : 1;
+                    double[] us = Points.Select(q => sign * (axis == 0 ? q.X : q.Y)).Distinct().OrderBy(x => x).ToArray();
+                    double[] vs = Points.Select(q => axis == 0 ? q.Y : q.X).Distinct().OrderBy(x => x).ToArray();
+                    double start = sign == 1 ? (axis == 0 ? XMin : YMin) : -(axis == 0 ? XMax : YMax);
+                    double vmin = axis == 0 ? YMin : XMin, vmax = axis == 0 ? YMax : XMax;
+                    var paths = Paths[list]; var mixedPaths = new MixedPath[paths.Length];
+                    for (int i = 0; i < paths.Length; i++)
+                    {
+                        var path = paths[i];
+                        if (path.Issue != null) continue;
+                        double uk = us[path.K - 1], v0 = vs[path.First], v1 = vs[path.Last];
+                        var m = new MixedPath
+                        {
+                            Edge = path.Mode != 0,
+                            Subset = path.Subset ?? Enumerable.Range(0, Points.Length).Where(n => sign * (axis == 0 ? Points[n].X : Points[n].Y) <= uk
+                                && (axis == 0 ? Points[n].Y : Points[n].X) >= v0 && (axis == 0 ? Points[n].Y : Points[n].X) <= v1).ToArray()
+                        };
+                        mixedPaths[i] = m;
+                        if (!m.Edge) continue;
+                        m.Gx = m.Subset.Average(n => Points[n].X); m.Gy = m.Subset.Average(n => Points[n].Y);
+                        // End cut from the free transverse edge to the boundary row; side cut along that row from the free end.
+                        double ze = path.Mode == 1 ? Couple(v1 - vmin, vs.Take(path.Last + 1).Select(v => v - vmin))
+                            : Couple(vmax - v0, vs.Skip(path.First).Select(v => v - v0));
+                        double zs = Couple(uk - start, us.Take(path.K).Select(u => u - start));
+                        // Veff,2 of the same rectangle torn towards its side edge: tension on the side cut, shear on the end cut.
+                        m.Rn = (.5 * path.Ls * Plate.Fu / GammaM2 + PlasticShear.Resistance(path.Lt, Plate.Fy, GammaM0)) * t;
+                        m.Rm = sigma * t * (ze + zs);
+                        if (!(m.Rn > 0 && m.Rm > 0) || !WeldedIBeamSplicePlates.Finite(m.Rn + m.Rm + m.Gx + m.Gy)) m.Issue = Name + ".INVALID_MIXED_BLOCK_PATH";
+                    }
+                    result[list] = mixedPaths;
+                }
+                return result;
+            }
+            /// <summary>Z=sum of |s-s_h| ds over the net cut [0,length] minus the holes, with s_h halving the net
+            /// length: the pure couple of a unit rectangular antisymmetric normal traction, per unit thickness.</summary>
+            private double Couple(double length, IEnumerable<double> centres)
+            {
+                var segments = new List<double[]>(); double from = 0;
+                foreach (double c in centres.OrderBy(x => x))
+                {
+                    double lo = Math.Max(0, c - Hole / 2), hi = Math.Min(length, c + Hole / 2);
+                    if (lo > from) segments.Add(new[] { from, lo });
+                    from = Math.Max(from, hi);
+                }
+                if (length > from) segments.Add(new[] { from, length });
+                double net = segments.Sum(s => s[1] - s[0]), split = 0, below = 0;
+                foreach (var s in segments)
+                {
+                    if (below + s[1] - s[0] >= net / 2) { split = s[0] + net / 2 - below; break; }
+                    below += s[1] - s[0];
+                }
+                return segments.Sum(s => s[1] <= split ? (Math.Pow(split - s[0], 2) - Math.Pow(split - s[1], 2)) / 2
+                    : s[0] >= split ? (Math.Pow(s[1] - split, 2) - Math.Pow(s[0] - split, 2)) / 2
+                    : (Math.Pow(split - s[0], 2) + Math.Pow(s[1] - split, 2)) / 2);
+            }
         }
         internal sealed class Cover
         {
             internal bool Invalid; internal string InvalidIssue;
             internal double A, W, Limit;
-            internal Entry Anet, Inet, Wnet, ZeroShear0, ZeroShear1, UsesStandardBolted, WholeWidthRatio;
-            internal ConnectionCheck[] StandardBoltedDomain;
+            internal Entry Anet, Inet, Wnet, ZeroShear0, ZeroShear1, UsesStandardBolted, WholeWidthRatio, UsesShearBucklingResistance;
+            internal ConnectionCheck[] StandardBoltedDomain, ShearPanelDomain;
             internal ConnectionCheck NoShearBuckling, NoShearBucklingAtZeroShear;
             internal HierarchyPreparation Hierarchy;
             private string[] cutIds; private string name;
@@ -237,6 +407,11 @@ namespace GPC.Checkers.Steel.Connections
                 Domain("EndOutstandClass3", end / t, 14 * eps);
                 c.StandardBoltedDomain = domain.ToArray();
                 c.UsesStandardBolted = Value(name + ".UsesStandardBoltedCoverMethod", 1, "1");
+                // Restraint assumed by the whole-width EN1993-1-5 panel: two outer rows, Table3.3 gaps along them.
+                c.ShearPanelDomain = new[] {
+                    new ConnectionCheck(name + ".ShearPanel.MinimumTransverseRows", 2, holes.Length, ShearPanelReference, "1", ConnectionCheckRole.Applicability),
+                    new ConnectionCheck(name + ".ShearPanel.MaximumLongitudinalGap", grid.MaximumLongitudinalGap, Math.Min(14 * t, 200), ShearPanelReference, "mm", ConnectionCheckRole.Applicability) };
+                c.UsesShearBucklingResistance = Value(name + ".UsesShearBucklingResistance", 1, "1");
                 c.WholeWidthRatio = Value(name + ".WholeWidthThicknessRatio", plate.Width / t, "1");
                 c.NoShearBuckling = NoShearBuckling(plate.Width / plate.Thickness);
                 c.NoShearBucklingAtZeroShear = NoShearBuckling(0);
@@ -294,7 +469,9 @@ namespace GPC.Checkers.Steel.Connections
                 var h = new HierarchyPreparation
                 {
                     Collinear = new SectionResistanceValue(name + ".ActualCollinearBlockMethod", 1, "1"),
-                    Hierarchical = new SectionResistanceValue(name + ".ActualCollinearBlockMethod", 0, "1")
+                    Hierarchical = new SectionResistanceValue(name + ".ActualCollinearBlockMethod", 0, "1"),
+                    Name = name, Points = points, XMin = xmin, XMax = xmax, YMin = ymin, YMax = ymax, Hole = bolt.HoleDiameter,
+                    Plate = plate, GammaM0 = code.Plates.GammaM0, GammaM2 = code.Plates.GammaM2
                 };
                 var applied = members.SelectMany(m => descriptors[m].Group.Value.Points.Select((point, k) => (m, k, point))).ToArray();
                 var positions = new Dictionary<ConnectionPoint2D, int>();
@@ -317,10 +494,10 @@ namespace GPC.Checkers.Steel.Connections
                     {
                         int count = last - first + 1;
                         double lv = us[k - 1] - start - (k - .5) * bolt.HoleDiameter;
-                        Add(vs[last] - vs[first] - (count - 1) * bolt.HoleDiameter, 2 * lv, "U");
-                        if (first == 0) Add(vs[last] - vmin - (count - .5) * bolt.HoleDiameter, lv, "Lmin");
-                        if (last == vs.Length - 1) Add(vmax - vs[first] - (count - .5) * bolt.HoleDiameter, lv, "Lmax");
-                        void Add(double lt, double ls, string mode)
+                        Add(vs[last] - vs[first] - (count - 1) * bolt.HoleDiameter, 2 * lv, "U", 0);
+                        if (first == 0) Add(vs[last] - vmin - (count - .5) * bolt.HoleDiameter, lv, "Lmin", 1);
+                        if (last == vs.Length - 1) Add(vmax - vs[first] - (count - .5) * bolt.HoleDiameter, lv, "Lmax", 2);
+                        void Add(double lt, double ls, string mode, int modeIndex)
                         {
                             double resistance = (.5 * lt * plate.Fu / code.Plates.GammaM2 + PlasticShear.Resistance(ls, plate.Fy, code.Plates.GammaM0)) * plate.Thickness;
                             if (lt < 0 || ls <= 0 || !WeldedIBeamSplicePlates.Finite(resistance)) { list.Add(new Path { Issue = name + ".INVALID_BLOCK_PATH" }); return; }
@@ -328,7 +505,8 @@ namespace GPC.Checkers.Steel.Connections
                             list.Add(new Path
                             {
                                 Id = name + ".Axis" + axis + ".Direction" + sign + ".Path" + ++id + "." + mode, Resistance = resistance, Fasteners = k * count,
-                                Subset = axis == 0 ? Enumerable.Range(0, points.Length).Where(n => sign * points[n].X <= uk && points[n].Y >= v0 && points[n].Y <= v1).ToArray() : null
+                                Subset = axis == 0 ? Enumerable.Range(0, points.Length).Where(n => sign * points[n].X <= uk && points[n].Y >= v0 && points[n].Y <= v1).ToArray() : null,
+                                Axis = axis, Sign = sign, K = k, First = first, Last = last, Mode = modeIndex, Lt = lt, Ls = ls
                             });
                         }
                     }
@@ -339,5 +517,6 @@ namespace GPC.Checkers.Steel.Connections
         }
         private static Entry Value(string name, double value, string unit)
             => new Entry { Value = WeldedIBeamSplicePlates.Finite(value) ? new SectionResistanceValue(name, value, unit) : null, Issue = name + ".NUMERIC_RANGE" };
+        private const string ShearPanelReference = "EN1993-1-5:2006 5.1-5.3 whole-width panel idealization; outer fastener rows at EN1993-1-8:2005 Table3.3 maximum spacing";
     }
 }
