@@ -205,11 +205,13 @@ namespace GPC.Checkers.Concrete.Detailing
             var g = p.Geometry; var bars = g.Bars; var r = new List<DetailingCheck>();
             bool ntc = DetailingProfiles.IsNtc(profile), uni = profile == DetailingProfile.UniEN1992p11, ds = profile == DetailingProfile.DsEN1992p11;
             string reference = ntc ? "NTC 2018 §4.1.6.1" : profile == DetailingProfile.EN1992p11 ? "EN 1992-1-1" : uni ? "UNI EN 1992-1-1 + DM 31/07/2012" : "DS/EN 1992-1-1 + DK NA";
+            // R14 of ANTHEA (1.16.0): a sub-clause of NTC §4.1.6.1 (".1") follows the number without a space («§4.1.6.1.1», before «§4.1.6.1 .1»).
+            string Ref(string clause) => clause.Length == 0 ? reference : clause[0] == '.' ? reference + clause : reference + " " + clause;
             void Min(string key, double actual, double limit, string unit, string clause, string expression)
-                => r.Add(new DetailingCheck(key, double.IsInfinity(actual) || double.IsNaN(actual) ? (double?)null : actual, limit, unit, actual >= limit, reference + " " + clause, expression));
+                => r.Add(new DetailingCheck(key, double.IsInfinity(actual) || double.IsNaN(actual) ? (double?)null : actual, limit, unit, actual >= limit, Ref(clause), expression));
             void Max(string key, double actual, double limit, string unit, string clause, string expression)
-                => r.Add(new DetailingCheck(key, double.IsInfinity(actual) || double.IsNaN(actual) ? (double?)null : actual, limit, unit, actual <= limit, reference + " " + clause, expression));
-            void Pending(string key, string clause, string explanation) => r.Add(new DetailingCheck(key, null, null, "", null, reference + " " + clause, explanation));
+                => r.Add(new DetailingCheck(key, double.IsInfinity(actual) || double.IsNaN(actual) ? (double?)null : actual, limit, unit, actual <= limit, Ref(clause), expression));
+            void Pending(string key, string clause, string explanation) => r.Add(new DetailingCheck(key, null, null, "", null, Ref(clause), explanation));
 
             double minPhi = bars.Min(b => b.Diameter), maxPhi = bars.Max(b => b.Diameter), steel = bars.Sum(b => b.Area);
             double clear = double.PositiveInfinity;
@@ -239,7 +241,7 @@ namespace GPC.Checkers.Concrete.Detailing
             }
             if (ntc && p.HasLinks && !p.CompressionBarsRestrained) Pending("BarsHeldByLinks", "", "Confirm the arrangement of links and ties on the compression bars.");
             if (p.LapZone && (p.Kind == MemberDetailingKind.Column || p.Kind == MemberDetailingKind.Wall))
-                Max("MaximumAtLap", steel, .08 * p.ConcreteArea, "mm2", p.Kind == MemberDetailingKind.Wall ? "EC2 §§9.5.2 / 9.6.2" : ntc ? "EC2 §§9.5.2" : "§9.5.2(3)",
+                Max("MaximumAtLap", steel, .08 * p.ConcreteArea, "mm2", p.Kind == MemberDetailingKind.Wall ? "EC2 §§9.5.2 / 9.6.2" : ntc ? "EC2 §9.5.2(3)" : "§9.5.2(3)",
                     "As ≤ 0.08 Ac at laps, all lapped bars in the section");
             return new MemberDetailingResult { Profile = profile, Kind = p.Kind, Checks = r.AsReadOnly(), Reference = DetailingProfiles.Reference(profile) };
         }
@@ -376,7 +378,7 @@ namespace GPC.Checkers.Concrete.Detailing
                 double area = faceBars.Sum(b => b.Area), ys = faceBars.Sum(b => b.Area * b.Y) / area;
                 double d = top ? ys - minY : maxY - ys, bt = top ? p.TopWidth : p.BottomWidth;
                 if (ds) r.Add(National("MinimumTension:" + face, "§9.2.1.1(1)", "DK NA national value of As,min not available in this implementation."));
-                else Min("MinimumTension:" + face, area, rhoMin * bt * d, "mm2", ntc ? ".1 / EC2 §9.3.1.1" : "§9.2.1.1(1)", "max(0.26 fctm/fyk; 0.0013) bt d; both faces potentially tensioned");
+                else Min("MinimumTension:" + face, area, rhoMin * bt * d, "mm2", ntc ? (slab ? ".1 / EC2 §9.3.1.1" : ".1 / EC2 §9.2.1.1") : "§9.2.1.1(1)", "max(0.26 fctm/fyk; 0.0013) bt d; both faces potentially tensioned");
                 if (!p.LapZone) Max("MaximumTension:" + face, area, LongitudinalReinforcementLimits.MaximumRatioOutsideLaps * p.ConcreteArea, "mm2", ntc ? ".1" : "§9.2.1.1(3)", "As of the zone ≤ 0.04 Ac");
                 if (slab) continue;
                 if (ntc)

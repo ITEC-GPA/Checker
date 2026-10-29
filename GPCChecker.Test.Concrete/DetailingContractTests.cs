@@ -39,6 +39,9 @@ namespace ConcreteTests
     ///   MinimumLinks:&lt;face&gt; with ρw,min = 0.063 √fck / fyk of DK NA 9.2.2(5) (9.5N NA) instead of a pending national value; 168 lines
     ///   changed, each verified against the formula from the case inputs: 164 MinimumLinks checks (Actual, Limit, Unit, Passed, Explanation,
     ///   NotImplemented) and 4 DS beam cases whose overall Passed goes from null to false because their links are below ρw,min.
+    ///   Accepted change (ANTHEA 1.16.0, R14, citations): only the Reference column of 2754 checks, each matched by a script to one rewrite: NTC
+    ///   sub-clauses without the space («§4.1.6.1.3», 2358 lines, plus 328 beam MinimumTension lines that also cite EC2 §9.2.1.1 instead of §9.3.1.1 of
+    ///   slabs), no trailing space after «§4.1.6.1» (54) and MaximumAtLap of NTC columns «EC2 §9.5.2(3)» instead of «EC2 §§9.5.2» (14).
     /// Doubles are written with the round-trip format (G17 where "R" does not round-trip, −0 kept), so the comparison is bit for bit. Generation runs with the
     /// invariant culture and UI culture (mscorlib messages in English on every machine). On a difference the generated text is written to
     /// %TEMP%\&lt;fixture&gt;.actual and the first differing line is reported.

@@ -402,9 +402,10 @@ Percorsi relativi alla radice del repository Checker (namespace `GPC.Checkers.Co
 - La quota minima di staffe nell'armatura a taglio, la presenza di una barra in ogni spigolo dei pilastri
   poligonali, le staffe inclinate e le regole sismiche non sono verificate.
 - Con DS, As,min delle travi resta in sospeso (riquadro D-5).
-- Testo dei riferimenti (R14): nel profilo NTC il riferimento di `MinimumTension:<faccia>` cita EC2 §9.3.1.1
-  (solette) invece di §9.2.1.1, i riferimenti NTC hanno uno spazio prima del numero del sottoparagrafo (per esempio
-  «§4.1.6.1 .3») e `MaximumAtLap` cita «EC2 §§9.5.2». Il valore calcolato non cambia.
+- Testo dei riferimenti (R14), corretto nella 1.16.0 di ANTHEA (Concrete 0.28): nel profilo NTC il riferimento di
+  `MinimumTension:<faccia>` delle travi cita EC2 §9.2.1.1 (prima §9.3.1.1, delle solette, che resta per le solette), i
+  riferimenti NTC non hanno più lo spazio prima del numero del sottoparagrafo («§4.1.6.1.3», prima «§4.1.6.1 .3») e
+  `MaximumAtLap` dei pilastri cita «EC2 §9.5.2(3)» (prima «EC2 §§9.5.2»). Il valore calcolato non cambia.
 
 ## 10. Esempio numerico verificato
 
