@@ -35,6 +35,11 @@ Non puo' essere riutilizzata su un'altra istanza, anche numericamente uguale.
   hw e' l'altezza fra le flange, comprese le zone raccordate: non si sottraggono
   i raccordi come nella larghezza di classificazione. Traccia hw, tw, fy, eta,
   snellezza e limite. Non applica automaticamente questa regola a V1 o NTC.
+- EvaluateEc3RhsWebs(input, axis, eta, source) / EvaluateNtcRhsWebs(input, axis,
+  source), 29/10/2026: RHS qualificata con asse1 orizzontale, V1 o V2. Le pareti
+  parallele al taglio sono anime; hw e' la distanza fra le facce interne delle
+  pareti ortogonali (raggi trascurati), t la parete piu' sottile. NTC eta=1.
+  Stessa traccia dell'anima H. Nessuna regola per CHS o assi ruotati.
 - FromExternal(input, axis, isBucklingExcluded, source) riceve una valutazione
   ingegneristica esplicita secondo la norma dell'input. La fonte rende
   tracciabile la dichiarazione del chiamante, non ne certifica la correttezza.

@@ -170,9 +170,30 @@ namespace GPC.Model.Checker
                         double eta = lowGrade ? _owner.Code.NShearBucklingLowGradeOfSteel : _owner.Code.NShearBucklingHighGradeOfSteel;
                         yield return SteelShearBucklingAssessment.EvaluateEc3HWeb(input, eta,
                             "StandardEN1993p11." + (lowGrade ? "NShearBucklingLowGradeOfSteel" : "NShearBucklingHighGradeOfSteel"));
+                        continue;
                     }
+                    // RHS with horizontal principal axis 1: the walls parallel to the shear are the webs (both axes).
+                    // CHS and rotated axes keep the explicit ShearBucklingExcluded1/2; a negative screen stays not evaluated.
+                    if (ExactRhs(input)) yield return RhsWebs(input, axis, _owner.Code);
                 }
             }
+        }
+
+        /// <summary>Exact RHS types with principal axis 1 horizontal, the alignment the H screens also require.
+        /// A SectionRHS with R > 0 is no qualified family: its shear rows are rejected before any preparation.</summary>
+        internal static bool ExactRhs(SteelVerificationInput input)
+            => (input.Section.GeometryType == typeof(SectionRHS) || input.Section.GeometryType == typeof(SectionRHSRoundedCorners))
+                && Math.Abs(input.Section.PrincipalAxisAngle) <= 1e-10;
+
+        /// <summary>EC3 6.2.6(6) / EN1993-1-5 5.1(2) with the code object's eta by grade, as for the H web; NTC eq.4.2.27, eta=1.</summary>
+        internal static SteelShearBucklingAssessment RhsWebs(SteelVerificationInput input, int axis, StandardEN1993p11 code)
+        {
+            if (input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018)
+                return SteelShearBucklingAssessment.EvaluateNtcRhsWebs(input, axis, "NTC 2018 equation4.2.27 conservative eta=1, RHS walls parallel to the shear");
+            bool lowGrade = input.Section.YieldStrength <= 460;
+            return SteelShearBucklingAssessment.EvaluateEc3RhsWebs(input, axis,
+                lowGrade ? code.NShearBucklingLowGradeOfSteel : code.NShearBucklingHighGradeOfSteel,
+                "StandardEN1993p11." + (lowGrade ? "NShearBucklingLowGradeOfSteel" : "NShearBucklingHighGradeOfSteel"));
         }
     }
 }

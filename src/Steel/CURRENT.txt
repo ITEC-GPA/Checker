@@ -53,6 +53,19 @@ Stato reale del taglio (28 ottobre 2026):
   l'instabilita a taglio delle ali se gli sbalzi restano entro 14 eps
   (criterio GPC, non clausola di norma). ModelChecker lo applica in automatico
   sulle H esatte quando manca una valutazione esplicita ShearBucklingExcluded1.
+  Cave rettangolari (29 ottobre 2026): SectionRHS a spigoli vivi e
+  SectionRHSRoundedCorners con asse 1 orizzontale. Le pareti parallele al taglio
+  sono anime non irrigidite: V2 le pareti di altezza h, V1 quelle di larghezza b.
+  SteelShearBucklingAssessment.EvaluateEc3RhsWebs (EC3 6.2.6(6), EN 1993-1-5
+  5.1(2): hw/t <= 72 eps/eta, eta esplicito) ed EvaluateNtcRhsWebs (NTC eq.
+  4.2.27, eta=1). hw = h - tsup - tinf oppure b - tsx - tdx fra le facce interne,
+  raggi di raccordo trascurati (piu della parte piana e di c = h - 3t: a favore
+  di sicurezza); t e la parete piu sottile. ModelChecker li applica come per le
+  H, nel motore di sezione e nella trave-colonna, con l'eta del profilo
+  normativo per grado; la valutazione esplicita prevale e il filtro negativo
+  lascia la riga non valutata. CHS e assi ruotati: nessun filtro, resta la
+  valutazione esplicita (EN 1993-1-5 non copre i tubi circolari; i gusci di
+  EN 1993-1-6 richiedono lunghezza fra vincoli e qualita di fabbricazione).
 
 Stabilita delle aste senza compressione (28 ottobre 2026, branch steel-aste-routing):
   Flessione M2 sola (con o senza trazione, V1): lo svergolamento non e richiesto
@@ -81,9 +94,11 @@ Stabilita delle aste senza compressione (28 ottobre 2026, branch steel-aste-rout
   per ogni taglio attivo (anima EvaluateEc3HWeb/EvaluateNtcHWeb, ali
   EvaluateHFlanges, criterio GPC); ModelChecker le calcola come il motore di
   sezione (eta del profilo normativo). Negativa: ShearBuckling.ResistanceMethodRequired,
-  nessuna resistenza ridotta. La fonte esplicita prevale; le cave la richiedono
-  ancora. Resta V<=0,5 Vpl. In ModelChecker la modalita Bending con M1 e M2/V1
-  risponde SteelMember.BiaxialBendingRequiresBeamColumn. Un esito d'asta con
+  nessuna resistenza ridotta. La fonte esplicita prevale; senza di essa le RHS
+  con asse 1 orizzontale attendono EvaluateEc3RhsWebs/EvaluateNtcRhsWebs per ogni
+  taglio attivo, le CHS e le cave ruotate la richiedono ancora. Resta V<=0,5 Vpl.
+  In ModelChecker la modalita Bending con M1 e M2/V1 risponde
+  SteelMember.BiaxialBendingRequiresBeamColumn. Un esito d'asta con
   tutti i meccanismi NotRequired diventa nel resoconto di Model una riga non
   applicabile (CheckApplicability.NotApplicable, motivo = codici e messaggi):
   conta come risolta, mai come verificata. I tagli di sezione nulli restano
