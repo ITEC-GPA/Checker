@@ -17,6 +17,7 @@ public static partial class WallReinforcementDetailing
             if(!PortableMath.IsFinite(strength) || strength<=0) throw new ArgumentException("Positive finite material strengths and coefficients required.");
         Range(o.Aggregate,4,63,nameof(o.Aggregate)); Range(o.LapClearDistance,0,100,nameof(o.LapClearDistance)); Range(o.LapPercent,1,100,nameof(o.LapPercent));
         if(o.CoverSpecification.DesignLife is not (50 or 100)) throw new ArgumentException("Cover design life must be 50 or 100 years.");
+        Range(o.StockLength,1,18,nameof(o.StockLength));
         if(r.TwoZones) { Range(o.TieDiameter,6,32,nameof(o.TieDiameter)); Range(o.TieSpacing,50,400,nameof(o.TieSpacing)); }
         foreach(var zone in PortableEnum.GetValues<WallRebarZone>())
         {
