@@ -168,13 +168,26 @@ Controventi e profili accoppiati:
   oppure FromBoltedPacking -> pipeline dell'asta con la stessa valutazione.
   Gli ultimi due metodi di assemblaggio stanno nel namespace Inputs.
   Imbotiture bullonate non significano terminale bullonato: il terminale
-  compresso qualificato resta saldato. Vedi PACKED_PAIR_STANDARD_WELDED_USAGE
+  saldato resta quello del percorso saldato. Vedi PACKED_PAIR_STANDARD_WELDED_USAGE
   nella cartella Connections e PACKED_BOLTED_STANDARD.txt.
+  Terminale BULLONATO compresso (29/10/2026): SteelPackedPairBoltedTerminal.Verify
+  -> SteelPackedPairAssessment.FromBoltedTerminal(packing,terminal,vincoli) con
+  imbottiture intermedie bullonate sullo stesso modello di domanda; vincolo
+  d'estremita' DICHIARATO dal terminale (traslazioni trattenute, rotazioni
+  flessionali libere). Vedi Connections/PACKED_PAIR_BOLTED_TERMINAL.txt.
+  C/2C collegate solo d'anima in trazione: ChannelWebTension.Verify con scelta
+  esplicita ConnectedWebOnly (limite inferiore, striscia d'anima) o
+  AiscShearLagAlternative dichiarata; solo l'estremita' del canale, vedi
+  Connections/PHASE_3C_3E_CHANNEL_TENSION_REVIEW.txt (aggiornamento 29/10).
 
 Taglio ordinario:
   FinPlate.Verify e FlexibleEndPlate.Verify/VerifyPair nelle proprie
   geometrie SCI; DoubleAngleCleatComponents.Verify e ancora una famiglia di
   COMPONENTI (contatto, anima del pilastro e tying sono interni).
+  Doppio angolare su ANIMA di pilastro, taglio ordinario (29/10/2026):
+  DoubleAngleCleatColumnWebStandard.Verify e il percorso standard completo nel
+  dettaglio SBE-MS5; il tying resta una situazione distinta e dichiarata.
+  Vedi Connections/DOUBLE_ANGLE_COLUMN_WEB.txt (aggiornamento 29/10).
   Le API di componente hanno un campo limitato anche quando Status=Passed.
 
 Superficie pubblica delle connessioni (28/10/2026):
@@ -222,9 +235,16 @@ STATO DEGLI OTTO PUNTI RICHIESTI IN QUESTO BLOCCO
   servono trasferimenti equilibrati fra ali/anima e relativo dettaglio locale.
 3 Classe4 compressa+taglio: PARZIALE. Chiuso il sottodominio a taglio basso;
   alto taglio/instabilita della lastra restano da implementare.
-4 Terminali/supporti: APERTO per le estensioni generali. Restano i percorsi
-  saldati/complanari o2L tesi gia qualificati; nessun terminale bullonato
-  compresso o doppio angolare completo e stato aggiunto in questo blocco.
+4 Terminali/supporti: PARZIALE (29/10/2026). Chiusi nel campo dichiarato:
+  terminale BULLONATO di 2C/2L compressi (StandardBoltedPackedTerminal, vincolo
+  d'asta dichiarato), doppio angolare su anima di pilastro a taglio ordinario
+  (DoubleAngleCleatColumnWebShear, procedura SBE-MS5 cap.4 + P358 Check10,
+  gerarchia del punzonamento), estremita' di C/2C collegate solo d'anima in
+  trazione (ChannelWebOnlyTensionEnd, campo d'anima a limite inferiore o
+  alternativa AISC dichiarata). Restano aperti: attacchi a T su flange di
+  pilastri, piu' file/fori asolati, tying di squadrette e anima (P358 Check14
+  per lo schema delle squadrette), fazzoletto/collettore e supporto dei C/2C,
+  C/2C compressi collegati d'anima con altri dettagli, supporti generici.
 5 Documentazione corrente: COMPLETATO. Questo indice prevale sui checkpoint.
 6 Preparazioni ripetute: COMPLETATO nel workflow dei coprigiunti. Ogni caso
   riusa risultati immutabili, senza cache globale o scambio di azioni fra casi.

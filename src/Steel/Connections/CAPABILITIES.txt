@@ -75,3 +75,12 @@ StandardMomentEndPlateNMV: percorso supplementare N-M-V con contatto unilaterale
 strisce/sbalzi localmente classe1-3, anche con una colonna d'anima per lato.
 Tutti i controlli di resistenza e gerarchia restano; il default non cambia.
 Vedi BRIDGE_SPLICE_STANDARD_BOLTED_COVERS.txt per modello e qualificazione.
+
+29/10/2026 - TERMINALI E SUPPORTI (punto4 di ../CURRENT.txt)
+StandardBoltedPackedTerminal: terminale bullonato di 2C/2L compressi, una fila di
+  bulloni passanti, eccentricita' trasportate, vincolo d'asta dichiarato.
+  PACKED_PAIR_BOLTED_TERMINAL.txt.
+DoubleAngleCleatColumnWebShear: squadrette SBE-MS5 su anima di pilastro, taglio
+  ordinario completo nel dettaglio fisso; tying distinto. DOUBLE_ANGLE_COLUMN_WEB.txt.
+ChannelWebOnlyTensionEnd (soli componenti): estremita' tesa di C/2C collegate
+  d'anima, metodo scelto esplicitamente. PHASE_3C_3E_CHANNEL_TENSION_REVIEW.txt.

@@ -48,6 +48,13 @@ locale fuori piano del supporto, eventuali modi instabili e qualificazione
 della rotazione. Non si ricava una forza di prying invertendo i fattori
 nominali0.8/1.27. Un attacco aT e un collettore complanare sono schemi diversi.
 Nessuna estensione generale di terminali/supporti e stata implementata qui.
+AGGIORNAMENTO 29/10/2026 (punto4 di ../CURRENT.txt): aggiunti nel campo
+dichiarato il terminale bullonato di 2C/2L compressi (PACKED_PAIR_BOLTED_TERMINAL),
+il doppio angolare su anima a taglio ordinario con gerarchia del punzonamento
+(DOUBLE_ANGLE_COLUMN_WEB) e l'estremita' tesa di C/2C collegate d'anima
+(PHASE_3C_3E_CHANNEL_TENSION_REVIEW). Prying/trazione effettivi nel doppio
+angolare, risposta fuori piano del supporto, tying sull'anima e attacchi aT
+restano aperti; non sono ricavati dai fattori0.8/1.27.
 
 CLASSE4
 Ora implementato il solo ampliamento a taglio basso:
