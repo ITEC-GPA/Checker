@@ -45,12 +45,19 @@ namespace GPC.Model.Checker
         }
 
         // Mirrors the section engine (SteelPipelineMaterialChecker.Assessments) when the beam-column waits for shear
-        // assessments, i.e. exact H without an explicit ShearBucklingExclusionSource. A negative one leaves it unevaluated.
+        // assessments, i.e. exact H or RHS without an explicit ShearBucklingExclusionSource. A negative one leaves it unevaluated.
         private IEnumerable<SteelShearBucklingAssessment> BeamColumnShearAssessments(SteelSelectionPlan plan)
         {
             var input=plan.Input;
-            if(!plan.Decisions.Any(d=>d.Status==SteelSelectionStatus.RequiresPreparation)
-                ||input.Section.GeometryType!=typeof(SectionH)||Math.Abs(input.Section.PrincipalAxisAngle)>1e-10)yield break;
+            if(!plan.Decisions.Any(d=>d.Status==SteelSelectionStatus.RequiresPreparation))yield break;
+            if(SteelPipelineMaterialChecker.ExactRhs(input))
+            {
+                // RHS walls parallel to each active shear as webs, as on the section route.
+                for(int axis=1;axis<=2;axis++)
+                    if((axis==1?input.EffectiveActions.V1:input.EffectiveActions.V2)!=0)yield return SteelPipelineMaterialChecker.RhsWebs(input,axis,Code);
+                yield break;
+            }
+            if(input.Section.GeometryType!=typeof(SectionH)||Math.Abs(input.Section.PrincipalAxisAngle)>1e-10)yield break;
             if(input.EffectiveActions.V1!=0)
                 yield return SteelShearBucklingAssessment.EvaluateHFlanges(input,"GPC automatic flange outstand screen c/t<=14eps for V1 (not a code clause)");
             if(input.EffectiveActions.V2==0)yield break;

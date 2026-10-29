@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using GPC.Checkers.Steel.Inputs;
+using GPC.Checkers.Steel.ModelAdapters;
 using GPC.Checkers.Steel.Sections;
 using GPC.Model.Sections;
 
@@ -89,22 +90,69 @@ namespace GPC.Checkers.Steel.Pipeline
                     new SectionResistanceValue("FlangeOutstandSlendernessLimit", limit, "1") });
         }
 
+        /// <summary>EN 1993-1-1:2005 6.2.6(6) / EN 1993-1-5:2006 5.1(2) on a qualified rectangular hollow section
+        /// (sharp SectionRHS, SectionRHSRoundedCorners) with principal axis 1 horizontal: the two walls parallel to the
+        /// shear are unstiffened webs, those of depth h for V2 and of width b for V1. hw is the clear distance between
+        /// the walls normal to the shear (h - tTop - tBottom, b - tLeft - tRight; corner radii ignored, so hw exceeds
+        /// the flat width and c = h - 3t of Table 5.2: conservative); t is the thinner web. Eta explicit as for the H
+        /// web. No inference for CHS or rotated principal axes.</summary>
+        public static SteelShearBucklingAssessment EvaluateEc3RhsWebs(SteelVerificationInput input, int axis,
+            double eta, string source)
+        {
+            if (input == null) throw new ArgumentNullException(nameof(input));
+            if (input.Code.SectionCode.Standard != SectionResistanceStandard.Eurocode3_2005)
+                throw new NotSupportedException("The EC3 RHS-web assessment is not an NTC assessment.");
+            return EvaluateRhsWebs(input, axis, eta, source, false);
+        }
+
+        /// <summary>NTC 2018 4.2.4.1.2.4 equation4.2.27, conservative eta=1, on the RHS walls parallel to the shear,
+        /// with the geometry and hw of EvaluateEc3RhsWebs. This excludes shear buckling only.</summary>
+        public static SteelShearBucklingAssessment EvaluateNtcRhsWebs(SteelVerificationInput input, int axis, string source)
+        {
+            if (input == null) throw new ArgumentNullException(nameof(input));
+            if (input.Code.SectionCode.Standard != SectionResistanceStandard.Ntc2018)
+                throw new NotSupportedException("The NTC RHS-web assessment requires an NTC input.");
+            return EvaluateRhsWebs(input, axis, 1, source, true);
+        }
+
+        private static SteelShearBucklingAssessment EvaluateRhsWebs(SteelVerificationInput input, int axis, double eta, string source, bool ntc)
+        {
+            if (axis != 1 && axis != 2) throw new ArgumentOutOfRangeException(nameof(axis));
+            var shape = input.Section.ReadOnlySection.SectionShape;
+            if (!SteelSectionFamilies.Is(shape, SteelSectionKind.RectangularTube) || Math.Abs(shape.AngleX1) > 1e-10)
+                throw new NotSupportedException("A qualified rectangular hollow section with horizontal principal axis 1 is required.");
+            var rhs = (SectionRHS)shape;
+            double hw = axis == 2 ? rhs.Heightinternal : rhs.BaseInternal;
+            double t = axis == 2 ? Math.Min(rhs.ThicknessWebLeft, rhs.ThicknessWebRight) : Math.Min(rhs.ThicknessTop, rhs.ThicknessBottom);
+            return Web(input, axis, hw, t, eta, source, (ntc ? "NTC 2018 4.2.4.1.2.4 equation 4.2.27; eta=1"
+                : "EN 1993-1-1:2005 6.2.6(6), EN 1993-1-5:2006 5.1(2); Ec3WebShearBuckling.RequiresCheck")
+                + "; RHS walls parallel to V" + axis + " as unstiffened webs, hw = " + (axis == 2 ? "h - tTop - tBottom" : "b - tLeft - tRight")
+                + " between the inner faces (corner radii ignored), thinner wall");
+        }
+
         private static SteelShearBucklingAssessment EvaluateHWeb(SteelVerificationInput input, double eta, string source, bool ntc)
         {
             var shape = input.Section.ReadOnlySection.SectionShape;
             if (shape.GetType() != typeof(SectionH) || Math.Abs(shape.AngleX1) > 1e-10)
                 throw new NotSupportedException("Exact H geometry with horizontal principal axis 1 is required.");
             var h = (SectionH)shape;
-            bool required = Ec3WebShearBuckling.RequiresCheck(h.HeightWeb, h.ThicknessWeb, input.Section.YieldStrength, eta);
+            return Web(input, 2, h.HeightWeb, h.ThicknessWeb, eta, source,
+                ntc ? "NTC 2018 4.2.4.1.2.4 equation 4.2.27; eta=1" : "EN 1993-1-1:2005 6.2.6(6); Ec3WebShearBuckling.RequiresCheck");
+        }
+
+        // hw/t <= 72 eps/eta on one unstiffened web; the H web and the RHS walls share it.
+        private static SteelShearBucklingAssessment Web(SteelVerificationInput input, int axis, double hw, double t,
+            double eta, string source, string reference)
+        {
+            bool required = Ec3WebShearBuckling.RequiresCheck(hw, t, input.Section.YieldStrength, eta);
             // Guard the comparison's numerical range; do not accept infinity <= infinity.
-            double slenderness = h.HeightWeb / h.ThicknessWeb;
+            double slenderness = hw / t;
             double limit = 72 * Math.Sqrt(235 / input.Section.YieldStrength) / eta;
             if (!(slenderness > 0) || double.IsInfinity(slenderness) || !(limit > 0) || double.IsInfinity(limit))
                 throw new ArithmeticException("Shear-buckling assessment is outside the finite positive numerical range.");
-            return new SteelShearBucklingAssessment(input, 2, !required, source,
-                ntc ? "NTC 2018 4.2.4.1.2.4 equation 4.2.27; eta=1" : "EN 1993-1-1:2005 6.2.6(6); Ec3WebShearBuckling.RequiresCheck", new[] {
-                    new SectionResistanceValue("ClearWebHeight", h.HeightWeb, "mm"),
-                    new SectionResistanceValue("WebThickness", h.ThicknessWeb, "mm"),
+            return new SteelShearBucklingAssessment(input, axis, !required, source, reference, new[] {
+                    new SectionResistanceValue("ClearWebHeight", hw, "mm"),
+                    new SectionResistanceValue("WebThickness", t, "mm"),
                     new SectionResistanceValue("Fy", input.Section.YieldStrength, "MPa"),
                     new SectionResistanceValue("Eta", eta, "1"),
                     new SectionResistanceValue("WebSlenderness", slenderness, "1"),

@@ -89,15 +89,19 @@ namespace GPC.Checkers.Steel.Pipeline
             var ltb=SteelLateralTorsionalExecution.Qualify(analysis);if(ltb!=null)return ltb;
             if(a.V1!=0||a.V2!=0)
             {
-                // No qualified automatic screen for hollow sections: their explicit assessment stays required.
-                if(p.ShearBucklingExclusionSource==null&&hollow)return Missing("BeamColumn.ShearBucklingExclusionSource");
+                // Automatic screens exist for the exact H and the RHS with principal axis 1 horizontal (walls parallel to each
+                // shear as webs); CHS and rotated hollow sections keep the explicit assessment.
+                bool rhs=SteelSectionFamilies.Is(shape,SteelSectionKind.RectangularTube)&&Math.Abs(shape.AngleX1)<=1e-10;
+                if(p.ShearBucklingExclusionSource==null&&hollow&&!rhs)return Missing("BeamColumn.ShearBucklingExclusionSource");
                 double ratio1=Math.Abs(a.V1)/SteelPlasticShear.Resistance(i,1);
                 double ratio2=Math.Abs(a.V2)/SteelPlasticShear.Resistance(i,2);
                 if(ratio1>.5||ratio2>.5)return Unsupported("Member.BeamColumnHighShear","High shear needs reduced interaction resistances; this member route requires each shear <= 0.5 VplRd, with shear buckling excluded.");
-                // Exact H without an explicit source: one assessment per active shear, as on the section route (web
-                // EvaluateEc3HWeb/EvaluateNtcHWeb, flanges EvaluateHFlanges). A negative one stops the route; no reduced resistance.
+                // Without an explicit source: one assessment per active shear, as on the section route (H web
+                // EvaluateEc3HWeb/EvaluateNtcHWeb, flanges EvaluateHFlanges; RHS EvaluateEc3RhsWebs/EvaluateNtcRhsWebs).
+                // A negative one stops the route; no reduced resistance.
                 if(p.ShearBucklingExclusionSource==null)return new SteelMethodDecision(SteelCheckTarget.MemberStability,SteelSelectionStatus.RequiresPreparation,
-                    SteelMethod.HBeamColumn,"ShearBuckling.AssessmentRequired","Without BeamColumn.ShearBucklingExclusionSource every active shear of the exact H needs a shear-buckling assessment (web: EvaluateEc3HWeb/EvaluateNtcHWeb; flanges: EvaluateHFlanges).",
+                    SteelMethod.HBeamColumn,"ShearBuckling.AssessmentRequired",rhs?"Without BeamColumn.ShearBucklingExclusionSource every active shear of the rectangular hollow section needs a shear-buckling assessment of the walls parallel to it (EvaluateEc3RhsWebs/EvaluateNtcRhsWebs)."
+                        :"Without BeamColumn.ShearBucklingExclusionSource every active shear of the exact H needs a shear-buckling assessment (web: EvaluateEc3HWeb/EvaluateNtcHWeb; flanges: EvaluateHFlanges).",
                     compression.SectionClass,compression.ClassificationSource,new[]{SteelPreparationRequirement.ShearBucklingAssessment});
             }
             return new SteelMethodDecision(SteelCheckTarget.MemberStability,SteelSelectionStatus.Ready,SteelMethod.HBeamColumn,

@@ -28,8 +28,24 @@ orizzontale: per V2 quello d'anima (EC3 con l'eta del profilo normativo
 effettivamente utilizzato, NTC eq. 4.2.27 con eta=1); per V1 quello delle ali,
 SteelShearBucklingAssessment.EvaluateHFlanges (sbalzi c/t <= 14 eps, criterio
 GPC e non clausola di norma, dichiarato come tale nella traccia). Oltre il
-limite la valutazione e' negativa e la riga resta non valutata. Una
-valutazione esplicita ShearBucklingExcluded1/2 prevale sempre sui filtri.
+limite la valutazione e' negativa e la riga resta non valutata.
+Dal 29/10/2026 anche le cave rettangolari (SectionRHS a spigoli vivi e
+SectionRHSRoundedCorners, le famiglie qualificate) con asse 1 orizzontale:
+le pareti parallele al taglio sono anime non irrigidite, per entrambi gli
+assi (V2 le pareti di altezza h, V1 quelle di larghezza b). Stesso criterio
+d'anima: EC3 6.2.6(6) / EN 1993-1-5 5.1(2) hw/t <= 72 eps/eta con l'eta del
+profilo normativo per grado, NTC eq. 4.2.27 con eta=1
+(SteelShearBucklingAssessment.EvaluateEc3RhsWebs/EvaluateNtcRhsWebs). hw e' la
+distanza netta fra le facce interne delle pareti ortogonali al taglio
+(h - tsup - tinf, b - tsx - tdx), raggi di raccordo trascurati: supera la parte
+piana e c = h - 3t della Tab. 5.2, quindi e' conservativa; t e' la parete piu'
+sottile. Traccia hw, t, fy, eta, snellezza e limite; riferimento e fonte
+dichiarano pareti e hw. Oltre il limite la riga resta non valutata.
+Le CHS non hanno filtro: EN 1993-1-5 non copre i tubi circolari, EC3 6.2.6(6)
+e NTC 4.2.27 riguardano anime, e l'instabilita' a taglio dei gusci (EN 1993-1-6)
+dipende dalla lunghezza fra vincoli e dalla qualita' di fabbricazione, non note
+alla sezione. CHS e assi principali ruotati richiedono ShearBucklingExcluded1/2.
+Una valutazione esplicita ShearBucklingExcluded1/2 prevale sempre sui filtri.
 I filtri leggono le azioni dopo la soglia di trascurabilita', come il selettore.
 
 La cache contiene solo snapshot di sezione, chiave proprieta'+configurazione.

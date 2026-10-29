@@ -111,10 +111,21 @@ public class MemberStabilityWithoutCompressionTests
         Assert.AreEqual(Math.Max(.9 * m1 + .8 * m2, .72 * m1 + .8 * m2), r.Utilization!.Value, 1e-12);
         var tensionOnly = Run(BeamColumn(Input(rhs, ntc, n: 1e5), false));
         Assert.AreEqual(SteelExecutionStatus.NotRequired, tensionOnly.Status); Assert.AreEqual("Member.NoActiveDemand", tensionOnly.DiagnosticCode);
-        // No qualified automatic hollow screen: shear still needs BeamColumn.ShearBucklingExclusionSource.
-        var sheared = Run(BeamColumn(Input(rhs, ntc, m1: 5e7, v2: 1e4), false));
-        Assert.AreEqual(SteelExecutionStatus.MissingInput, sheared.Status);
-        CollectionAssert.Contains(sheared.Decision.MissingInputs.ToList(), "BeamColumn.ShearBucklingExclusionSource");
+        // Was MissingInput (BeamColumn.ShearBucklingExclusionSource). The RHS 300x200x10 walls parallel to V2 are webs:
+        // hw/t = (300 - 2*10)/10 = 28 <= 72 eps/eta = 48.8 (EC3 6.2.6(6), eta 1.2) or 58.6 (NTC eq. 4.2.27, eta 1).
+        var shearedInput = Input(rhs, ntc, m1: 5e7, v2: 1e4);
+        var shearedPlan = SteelMethodSelector.SelectMember(BeamColumn(shearedInput, false));
+        var sheared = SteelVerificationPipeline.Execute(shearedPlan).Checks.Single();
+        Assert.AreEqual(SteelExecutionStatus.RequiresPreparation, sheared.Status); Assert.AreEqual("ShearBuckling.AssessmentRequired", sheared.DiagnosticCode);
+        var walls = ntc ? SteelShearBucklingAssessment.EvaluateNtcRhsWebs(shearedInput, 2, "NTC eq. 4.2.27")
+            : SteelShearBucklingAssessment.EvaluateEc3RhsWebs(shearedInput, 2, 1.2, "EC3 eta");
+        var screened = SteelVerificationPipeline.Execute(shearedPlan, new[] { walls }).Checks.Single();
+        // V2 = 10 kN <= .5 Vpl leaves the interaction unchanged: .9 m1 with Wel1 = (200*300^3 - 180*280^3)/12/150 = 804800 mm3.
+        Assert.IsTrue(screened.IsEvaluated, screened.Message); Assert.AreEqual(.9 * 5e7 * g / (804800 * 355d), screened.Utilization!.Value, 1e-12);
+        // CHS: no qualified automatic screen (EN 1993-1-5 does not cover circular tubes): the explicit source stays required.
+        var tube = Run(BeamColumn(Input(CommonSectionCoverageTests.Shape("CHS"), ntc, m1: 2e7, v2: 1e4), false));
+        Assert.AreEqual(SteelExecutionStatus.MissingInput, tube.Status);
+        CollectionAssert.Contains(tube.Decision.MissingInputs.ToList(), "BeamColumn.ShearBucklingExclusionSource");
     }
 
     [DataTestMethod] [DataRow(false)] [DataRow(true)]
