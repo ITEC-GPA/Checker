@@ -34,7 +34,7 @@ Fonti tecniche:
 
 Terzaghi Nγ: lacuna della pagina 6 sostituita con interpolazione lineare della tabella USACE 4-1, dichiarata come tale. Nessuna formula interpolante attribuita a Terzaghi senza fonte. Le dimensioni efficaci mancanti a §2.2 sono quelle della EN1997-1, con segni assoluti e controllo di positività. §§3.7–3.8: nessun automatismo per scegliere resistenza di picco/critica e nessuna assunzione generale che Nγ sia trascurabile. Il capitolo sismico incompleto non è stato riempito inventando un'estensione del modello statico.
 
-Hansen: il fattore di forma non drenato inclinato riportato a §3.27 del manuale sembra discontinuo rispetto alla specializzazione a carico normale. Non è stato possibile accertare una correzione sulla pubblicazione originale; questa rimane una questione aperta, non un bug accertato di Checker. Il ramo inclinato è esplicitamente escluso. Il ramo normale è additivo. Le correlazioni sc/sq e dc/dq dell'appendice sono verificate algebricamente per una correzione per volta: non provano equivalenza dei prodotti di più fattori. Il nuovo codice dichiara la variante correlata, non modifica formule altrui come se l'equivalenza fosse universale.
+Hansen: il fattore di forma non drenato inclinato riportato a §3.27 del manuale sembra discontinuo rispetto alla specializzazione a carico normale. Non è stato possibile accertare una correzione sulla pubblicazione originale; questa rimane una questione aperta, non un bug accertato di Checker. Dalla 1.16.0 il ramo inclinato segue il manuale alla lettera, con la discontinuità dichiarata (sezione «Hansen con carico inclinato»). Il ramo normale è additivo. Le correlazioni sc/sq e dc/dq dell'appendice sono verificate algebricamente per una correzione per volta: non provano equivalenza dei prodotti di più fattori. Il nuovo codice dichiara la variante correlata, non modifica formule altrui come se l'equivalenza fosse universale.
 
 Meyerhof 0°–10°: interpolazione degli incrementi di forma/profondità q e γ prevista nella tabella USACE 4-3. Carichi inclinati ammessi solo per striscia per evitare combinazioni non riscontrate con fattori di forma. Meyerhof non drenato con carico inclinato: ic = iq = (1 − θ/90°)² anche sul termine del sovraccarico, qlim = cu Nc sc dc ic + q iq (Meyerhof 1963; USACE tab. 4-3, «ic = iq» per ogni φ; con φ = 0 valgono solo Nq = sq = dq = 1). Hansen/Vesić: k passa da D/B ad atan(D/B) oltre uno, come nella formulazione prescelta; il salto empirico non è nascosto con un raccordo numerico.
 
@@ -62,7 +62,7 @@ Verifiche aggiunte: GraphicsTests (7 casi indipendenti) e SoilProfileTests (6 ca
 
 ## Controllo con il manuale Califfo (12 ottobre 2026)
 
-Confronto formula per formula e numerico con il manuale. `tests/ShallowFoundation.Tests/califfo_reference.py` ricava gli attesi dalle formule del manuale, senza importare il motore, e li congela in `califfo-reference.json` (426 casi); `CaliffoReferenceTests` li confronta con tolleranza relativa 1e-9. Le formule implementate coincidono con il manuale, salvo le convenzioni elencate sotto; nessun errore a sfavore di sicurezza. Il 15/10/2026 la revisione dei bug ha trovato che il termine q del Meyerhof non drenato inclinato seguiva il manuale ma non Meyerhof/USACE (sovrastima): corretto per decisione dell'utente (GEO-1).
+Confronto formula per formula e numerico con il manuale. `tests/ShallowFoundation.Tests/califfo_reference.py` ricava gli attesi dalle formule del manuale, senza importare il motore, e li congela in `califfo-reference.json` (426 casi; 471 dalla 1.16.0 con Hansen inclinato); `CaliffoReferenceTests` li confronta con tolleranza relativa 1e-9. Le formule implementate coincidono con il manuale, salvo le convenzioni elencate sotto; nessun errore a sfavore di sicurezza. Il 15/10/2026 la revisione dei bug ha trovato che il termine q del Meyerhof non drenato inclinato seguiva il manuale ma non Meyerhof/USACE (sovrastima): corretto per decisione dell'utente (GEO-1).
 
 Decisioni dell'utente, applicate con `ContractVersion` "2":
 
@@ -76,8 +76,48 @@ Convenzioni del motore non prescritte dal manuale, registrate nel riferimento co
 - quando l'eccentricità scambia B′ e L′, i fattori di profondità usano il lato geometrico allineato a B′ invece della B geometrica: −3/−6% sulla capacità, a favore di sicurezza;
 - EC7 su pianta quadrata eccentrica: fattori di forma da B′/L′ invece della formula della quadrata, che il manuale applica alla geometria reale: −3/−4%, a favore di sicurezza;
 - Meyerhof con θ > φ′: iγ = 0 (USACE tab. 4-3), dove il manuale scrive solo (1 − θ/φ′)²: a favore di sicurezza;
-- Meyerhof non drenato con H > 0: q iq invece di + q (decisione GEO-1 sopra): a favore di sicurezza. In `califfo_reference.py` è una convenzione con il valore letterale del manuale e il verso «le»; `califfo-reference.json` è stato rigenerato dallo script (cambiano solo i casi 387, 389 e 391, Meyerhof non drenato a striscia con Hx = 40, 150 e 200 kN).
+- Meyerhof non drenato con H > 0: q iq invece di + q (decisione GEO-1 sopra): a favore di sicurezza. In `califfo_reference.py` è una convenzione con il valore letterale del manuale e il verso «le»; `califfo-reference.json` è stato rigenerato dallo script (cambiano solo i casi 387, 389 e 391, Meyerhof non drenato a striscia con Hx = 40, 150 e 200 kN);
+- Hansen inclinato su pianta circolare (1.16.0): H allineata a B′ (HB = |H|, HL = 0), perché il cerchio non ha un asse privilegiato; il manuale non dà regole per il cerchio e il valore letterale del riferimento scompone H su x e y. Casi 434, 448 e 467: −2,8%, −3,7% e −0,8%, a favore di sicurezza.
 
 Non implementati rispetto al manuale, sempre con eccezione esplicita: fattori di inclinazione della base e del pendio (b, g), Meyerhof inclinato su pianta non nastriforme, fattori di compressibilità di Vesić da indice di rigidezza (4.3–4.6), Nγ di Salgado, adesione ca di Bowles, Terzaghi con D > B.
 
-Lavori in coda: Hansen con carico inclinato, drenato (3.23–3.25, calcolo nelle due direzioni con il minore) e non drenato (3.27).
+Lavori in coda dal 12/10: Hansen con carico inclinato, drenato (3.23–3.25, calcolo nelle due direzioni con il minore) e non drenato (3.27). Fatto nella 1.16.0: vedi sotto.
+
+## Hansen con carico inclinato (29 ottobre 2026, 1.16.0)
+
+Prima `ShallowFoundationBearing` rifiutava Brinch Hansen con H > 0 (`NotSupportedException`). Ora segue il manuale alla lettera (pagine 10–13, lette sulle pagine renderizzate con PDFium). Fonte secondaria di riscontro: USACE EM 1110-1-1905 (1992), tab. 4-5, «Data from Hansen 1970», con gli stessi fattori di inclinazione drenati (esponente 5, coefficienti 0,5 e 0,7 − η/450) e non drenati (½ − ½ √(1 − H/(A′ca)), con ca ≤ c). La pubblicazione originale (Brinch Hansen 1970, Danish Geotechnical Institute, Bulletin 28) non era disponibile; Bowles (*Foundation Analysis and Design*) non è stato consultato. I punti che dipendono solo dall'originale sono **da riscontrare sul testo**.
+
+Drenato, (3.23)–(3.25), base e piano campagna orizzontali (η = 0), x = H/(N + A′c′ cot φ′):
+
+- iqB = (1 − 0,5 xB)⁵, iγB = (1 − 0,7 xB)⁵, icB = iqB − (1 − iqB)/(Nq − 1); nella direzione di L′ gli stessi con HL;
+- sqB = 1 + iqB (B′/L′) sin φ′, scB dalla legge di correlazione, sγB = 1 − 0,4 iγB B′/(iγL L′), comunque ≥ 0,6; dqB e dcB come nel carico normale, con D/B;
+- direzione di L′: sqL = 1 + iqL (L′/B′) sin φ′, sγL = 1 − 0,4 iγL L′/(iγB B′) ≥ 0,6, dqL con D/L′. Nel termine di peso resta 0,5 γ B′ Nγ: il manuale fa variare solo i pedici. USACE §4-3d(3) usa invece la lunghezza quando H è parallela a L: non adottato, sarebbe a sfavore di sicurezza;
+- B′L′ del manuale è l'area efficace A′ (π B²/4 per il cerchio).
+
+Non drenato, (3.26), (3.27), (3.27′), (3.27″), correzioni additive (`FoundationTerm.AdditiveShape`, `AdditiveDepth`, `AdditiveInclination`):
+
+- i′cB = 0,5 − 0,5 √(1 − HB/(A′cu)), s′cB = 0,2 i′cB B′/L′, d′cB = 0,4 k(D/B);
+- direzione di L′: i′cL con HL, s′cL = 0,2 i′cL L′/B′, d′cL = 0,4 k(D/L′);
+- qlim = (π + 2) cu (1 + s′c + d′c − i′c) + q, come il carico normale (3.26).
+
+Regole comuni:
+
+- con H > 0 la capacità si calcola per rottura nella direzione di B′ e in quella di L′ e si adotta la minore (§3.4.1: «il calcolo … dovrà in tal caso essere effettuato 2 volte»). La direzione di L′ si calcola anche con HL = 0, lettura letterale e più cautelativa; la nastriforme ha solo la direzione di B′. HB e HL sono le componenti parallele a B′ e L′ dopo l'eventuale scambio degli assi; sul cerchio H è allineata a B′ (convenzione sopra);
+- dominio: un fattore di inclinazione negativo (drenato) oppure HB o HL oltre A′cu (non drenato) danno capacità nulla, `DomainExhausted` (§3.4.1). Nel drenato decide il segno dei fattori, senza il limite H ≥ N + A′c′ cot φ′ di EC7 e Vesić: con c′ = 0 e φ′ = 30° ic diventa negativo per H > 0,88 N circa;
+- gli avvisi del risultato riportano qlim nelle due direzioni, la direzione che governa, qlim con H = 0 e la discontinuità. Nessun campo nuovo nel risultato: documenti salvati e impronte di ANTHEA cambiano solo per la versione della libreria. Con H = 0 risultati e `Reference` restano quelli di prima.
+
+Discontinuità con il carico normale (dichiarate, a favore di sicurezza, non risolte):
+
+1. **Forma non drenata.** Il manuale scrive s′cB = 0,2 i′cB B′/L′ con l'i′c additivo, nullo per H = 0, e nota che con il carico normale vale invece (3.28) s′c = 0,2 B′/L′. Per H → 0 la correzione di forma passa da 0,2 B′/L′ a zero. USACE tab. 4-5 dà s′c = 0,2 B′/W′ senza fattori di inclinazione, ma esclude l'uso congiunto dei fattori di forma e di inclinazione: con H > 0 la forma vale «unity», cioè s′c = 0, valore ancora più basso del manuale. Una variante continua (s′c = 0,2 B′/L′ anche con H > 0) non ha fonte che la sostenga ed è a sfavore di sicurezza rispetto al manuale (fino al +17% nell'esempio sotto): non adottata, resta una domanda per l'utente.
+2. **Direzione di L′ con HL = 0.** Senza inclinazione, con forma L′/B′ (sγL limitato a 0,6) e profondità D/L′, non tende a (3.19)–(3.20) per H → 0. Governa nel non drenato appena H > 0 (1 + d′cL < 1 + d′cB) e nel drenato quando prevale il termine di peso (fondazione superficiale su sabbia). Limitarla ai casi con HL > 0 sarebbe meno cautelativo e non è adottato.
+
+Esempi (rettangolo B = 2 m, L = 3 m, D = 1 m, N = 600 kN, γ = 18 kN/m³, confronto caratteristico):
+
+| Caso | H = 0 | H lungo B | Direzione di B′ | Direzione di L′ | Adottato |
+|---|---|---|---|---|---|
+| drenato, φ′ = 30°, c′ = 0 | 704,29 kPa | 60 kN | 522,63 | 798,16 | 522,63 |
+| drenato, D = 0 | 198,92 kPa | 6 kN | 194,47 | 162,75 | 162,75 (−18,2%) |
+| non drenato, cu = 75 kPa | 532,16 kPa | 1 N | 480,74 | 455,04 | 455,04 (−14,5%) |
+| non drenato, cu = 75 kPa | 532,16 kPa | 60 kN | 469,20 | 455,04 | 455,04 |
+
+Prove: `CaliffoReferenceTests` con 45 casi nuovi (426–470) calcolati da `califfo_reference.py` senza importare il motore; i 426 casi esistenti sono invariati. `BearingTests.HansenWithAnInclinedLoad`: striscia e H → 0, simmetria di quadrato e cerchio, scambio degli assi, le due discontinuità, dominio.
