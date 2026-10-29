@@ -93,6 +93,10 @@ namespace GPC.Checkers.Steel.Pipeline
                 // shear as webs); CHS and rotated hollow sections keep the explicit assessment.
                 bool rhs=SteelSectionFamilies.Is(shape,SteelSectionKind.RectangularTube)&&Math.Abs(shape.AngleX1)<=1e-10;
                 if(p.ShearBucklingExclusionSource==null&&hollow&&!rhs)return Missing("BeamColumn.ShearBucklingExclusionSource");
+                // Plastic shear areas follow the geometry axes: with rotated principal axes (e.g. a wide RHS, axis 1
+                // vertical) they would not belong to V1/V2 and could overestimate VplRd. Same rule as the section route.
+                if(!SteelSectionFamilies.HasQualifiedShearAreas(section))return Unsupported("Member.BeamColumnShearAreasNotQualified",
+                    "Each shear <= 0.5 VplRd needs code shear areas on principal axes aligned with the section geometry; rotated principal axes are not supported with shear.");
                 double ratio1=Math.Abs(a.V1)/SteelPlasticShear.Resistance(i,1);
                 double ratio2=Math.Abs(a.V2)/SteelPlasticShear.Resistance(i,2);
                 if(ratio1>.5||ratio2>.5)return Unsupported("Member.BeamColumnHighShear","High shear needs reduced interaction resistances; this member route requires each shear <= 0.5 VplRd, with shear buckling excluded.");
