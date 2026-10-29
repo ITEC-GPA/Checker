@@ -12,8 +12,8 @@ namespace ModelChecker.Tests;
 public class LargeReportArchiveTest
 {
     /// <summary>7,000 steel pipeline section rows with full traces, about 2,700,000 objects: before the package Save failed
-    /// (maximum number of items 2,000,000). Ten columns and 700 cases keep the currency check short; its cost grows with the
-    /// rows times the elements of the model.</summary>
+    /// (maximum number of items 2,000,000). The currency check reads the model a fixed number of times per call, whatever the
+    /// rows (ReportCurrencyTest: 4,000 rows on 1,000 beams).</summary>
     [TestMethod]
     public void LargeSteelReportSurvivesTheArchiveAndStaysCurrent()
     {

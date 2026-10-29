@@ -360,4 +360,28 @@ public class ConfiguredPlateWorkflowTest
         Assert.ThrowsException<ArgumentException>(() => EngineCatalog.BuiltIn().Supports(definition, context, CheckMechanism.UlsBiaxialSection));
     }
 
+    /// <summary>The currency of a plate report checks the prepared inputs of a plan in one read of the model: its verification digest
+    /// is computed a fixed number of times per call, whatever the tasks (it was computed again for every task). A change of one input
+    /// made after a call is seen by the next one.</summary>
+    [TestMethod]
+    public void PlateCurrencyReadsTheModelOncePerPlanNotOncePerTask()
+    {
+        int VerificationDigests(int checks)
+        {
+            var model = MixedModelFactory.Create(); var config = PlateConfiguration(); var job = config.PlateJobs[0];
+            job.Checks = Enumerable.Range(0, checks).Select(k => { var check = job.Checks[0].Copy(); check.Id = "face-" + k;
+                check.Direction = k % 2 == 0 ? SectionCheckDirection.Axis1 : SectionCheckDirection.Axis2; return check; }).ToArray();
+            var catalog = Catalog(new ProtocolPlate()); var report = new Service().Verify(model, config, catalog);
+            Assert.AreEqual(2 * checks, report.Executed, Diagnostics(report));
+            var keys = ReportCurrencyTest.Computed(() => Assert.AreEqual(EngineeringOutcome.Satisfied, Service.CurrentOutcome(report, model, config, catalog)));
+            Console.WriteLine($"{2 * checks} plate rows: {keys.Count(k => k.StartsWith("verification:", StringComparison.Ordinal))} verification digests, {keys.Count(k => k == "analysis")} analysis walks");
+            // After the call the thickness of one shell changes: the next call sees it, and its undoing.
+            model.AreaElements[1090].Assignments.PhysicalThickness = 301;
+            Assert.AreEqual(EngineeringOutcome.NotEvaluated, Service.CurrentOutcome(report, model, config, catalog));
+            model.AreaElements[1090].Assignments.PhysicalThickness = 300;
+            Assert.AreEqual(EngineeringOutcome.Satisfied, Service.CurrentOutcome(report, model, config, catalog));
+            return keys.Count(k => k.StartsWith("verification:", StringComparison.Ordinal));
+        }
+        Assert.AreEqual(VerificationDigests(1), VerificationDigests(4));
+    }
 }

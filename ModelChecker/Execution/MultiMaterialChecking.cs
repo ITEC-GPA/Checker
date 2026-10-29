@@ -236,11 +236,13 @@ namespace GPC.Model.Checker
             if (AnalysisCompatibilityValidator.Validate(model).Status != AnalysisCompatibility.Compatible) return EngineeringOutcome.NotEvaluated;
             try
             {
+                // The rows share their provenance: it is compared with the model once per call, not once per row.
+                var provenances = new ProvenanceCurrency(model);
                 for (int i = 0; i < request.Jobs.Count; i++)
                 {
                     var current = PrepareMaterialJob(model, request.Jobs[i], new CancellationToken(true)); var saved = report.Jobs[i];
                     if (saved.Job != current.Job.Name || saved.ScopeFingerprint != current.Plan.ScopeFingerprint || !saved.HasUnchangedScope
-                        || saved.Results.Count != current.Plan.WorkItems.Count || saved.Results.Any(r => r == null || !r.HasUnchangedEvidence || r.Provenance != null && !r.Provenance.IsCurrent(model))
+                        || saved.Results.Count != current.Plan.WorkItems.Count || saved.Results.Any(r => r == null || !r.HasUnchangedEvidence || r.Provenance != null && !provenances.IsCurrent(r.Provenance))
                         || !saved.Results.Select(r => r.PlanItemId).SequenceEqual(current.Plan.WorkItems.Select(w => w.Id))) return EngineeringOutcome.NotEvaluated;
                 }
                 return report.Outcome;
