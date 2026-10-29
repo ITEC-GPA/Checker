@@ -61,7 +61,9 @@ namespace GPC.Model.Checker
         {
             if(!_parameters.ContainsKey("CriticalValues"))return external;
             if(physical.Segment==null)throw new SteelPreparationRefusal("SteelMember.Segment.Required","Beam-column automatic critical values are prepared per fork segment.");
-            if(external.Any(v=>v.Quantity!=SteelStabilityQuantity.NcrT&&v.Quantity!=SteelStabilityQuantity.NcrFT))
+            // A declared sway plane 1 keeps its explicit sway Ncr1 (QualifySwaySegments refuses the nonsway in-plane span value).
+            if(external.Any(v=>v.Quantity!=SteelStabilityQuantity.NcrT&&v.Quantity!=SteelStabilityQuantity.NcrFT
+                &&!(v.Quantity==SteelStabilityQuantity.Ncr1&&SwayPlane(1))))
                 throw new ArgumentException("AutomaticCriticalValuesConflictWithExternalAssessment");
             var mcr=susceptible&&input.EffectiveActions.M1!=0?SegmentMoment(member,input,physical):null;
             return mcr==null?external:external.Concat(new[]{mcr}).ToArray();
