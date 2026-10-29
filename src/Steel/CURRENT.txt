@@ -124,6 +124,24 @@ Valori critici automatici (28 ottobre 2026):
   parziali, su un'ala, ignoti o di fase vengono rifiutati con codice preciso.
   Dettagli in AUTOMATIC_STABILITY.txt.
 
+Verifiche di esercizio delle aste (29 ottobre 2026, branch steel-sle-aste):
+  motore ModelChecker Steel.Serviceability.Member (SteelMemberServiceability-
+  Checker) e nucleo Serviceability/SteelMemberDeformation. Freccia verticale
+  (EC3 7.2.1, EN 1990 A1.4.3; NTC 4.2.4.2.1) relativa alla corda degli appoggi
+  del tratto o all'estremo vincolato di uno sbalzo, delta_max con
+  controfreccia firmata e delta2 dei variabili (stato dichiarato o differenza
+  lineare); spostamento relativo degli estremi contro h/n (EC3 7.2.2; NTC
+  4.2.4.2.2); frequenza f=17,75/rad(delta[mm]) dell'asta appoggiata a massa
+  uniforme o con coefficiente qualificato (EC3 7.2.3; NTC 4.2.4.2.3).
+  Il task SLE si dichiara in Model con MemberCheckSpecification.Category e
+  .Deformation; il piano prepara gli spostamenti nodali negli assi dell'asta,
+  che entrano in snapshot, impronte e currency come le forze. Limiti L/n e
+  h/n, schemi, controfreccia, lunghezza di riferimento degli sbalzi, massa e
+  copertura dei nodi sono parametri dichiarati con fonte: nessun preset delle
+  Tab. 4.2.XII/XIII (testi assenti dal repository); una dichiarazione mancante
+  e un MissingInput preciso. Solo nodi esportati, nessuna interpolazione.
+  Dettagli in SERVICEABILITY_MEMBERS.txt.
+
 Coprigiunti bullonati di travi composte saldate a I:
   BridgeSpliceApplication.CreateBolted -> WeldedIBeamSpliceStandard.Verify
   -> BridgeSpliceReport.FromBolted -> SteelAssessmentSummary.From(report).

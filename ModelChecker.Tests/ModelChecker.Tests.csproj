@@ -24,5 +24,6 @@
     <Compile Include="..\Examples\SteelReferenceFrame.cs" Link="Examples\SteelReferenceFrame.cs" />
     <Compile Include="..\Examples\SteelBeamColumnFrame.cs" Link="Examples\SteelBeamColumnFrame.cs" />
     <Compile Include="..\Examples\SteelClass4Frame.cs" Link="Examples\SteelClass4Frame.cs" />
+    <None Include="Fixtures\**\*.gz;Fixtures\**\*.zip" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

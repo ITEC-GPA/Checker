@@ -9,6 +9,80 @@ namespace GPC.Model.Checker.Configuration
     {
         public static EngineParameterSchema Section { get; }=Build(false);
         public static EngineParameterSchema Member { get; }=Build(true);
+        /// <summary>Steel.Serviceability.Member: declared limits, schemes and sources of the member deformation checks.</summary>
+        public static EngineParameterSchema MemberServiceability { get; }=BuildServiceability();
+        private static EngineParameterSchema BuildServiceability()
+        {
+            var fields=new List<EngineParameterDescriptor>();var rules=new List<EngineParameterRule>();
+            void Add(string key,EngineParameterKind kind=EngineParameterKind.Text,string unit=null,string description=null,
+                double? min=null,bool exclusive=false,string[] choices=null)
+                =>fields.Add(new EngineParameterDescriptor(key,kind,unit,description??key,min,null,exclusive,choices,null));
+            EngineParameterCondition Has(string key)=>new EngineParameterCondition(key);
+            EngineParameterCondition Is(string key,string value)=>new EngineParameterCondition(key,value);
+            EngineParameterCondition IsNot(string key,string value)=>new EngineParameterCondition(key,value,true);
+            void Require(string code,string description,string[] keys,params EngineParameterCondition[] when)
+                =>rules.Add(new EngineParameterRule(code,description,when,new[]{keys}));
+            void Together(string code,params string[] keys) {
+                foreach(var key in keys) Require(code,"These values must be supplied together: "+string.Join(", ",keys),keys,Has(key));
+            }
+            Add("Deformation.CoverageSource",description:"Qualification that the exported member nodes include the location of the largest deflection of the same state (refined mesh, symmetry); no deflection is inferred between nodes. Vertical deflection and vibration.");
+            Add("Deflection.Scheme",EngineParameterKind.Choice,choices:new[]{"SupportedEnds","CantileverAtStart","CantileverAtEnd"},
+                description:"Supports at the ends of the design span Start/End: chord through both displaced supports, or the translation of the supported end of a cantilever (its rotation stays in the deflection).");
+            Add("Deflection.SchemeSource",description:"Evidence that the members of this engine are supported as declared at the ends of their design span.");
+            Together("DeflectionSchemePair","Deflection.Scheme","Deflection.SchemeSource");
+            Add("Deflection.MaxRatio",EngineParameterKind.Number,"1",min:0,exclusive:true,description:"n of the limit L/n on delta_max = |delta_tot + precamber| at the node of the largest total deflection (EN 1990 A1.4.3 w_max; NTC 4.2.4.2.1 delta_max).");
+            Add("Deflection.MaxSource",description:"Source of the delta_max limit: standard table row, national annex or project agreement.");
+            Together("DeflectionMaxPair","Deflection.MaxRatio","Deflection.MaxSource");
+            Add("Deflection.VariableRatio",EngineParameterKind.Number,"1",min:0,exclusive:true,description:"n of the limit L/n on the deflection of the variable actions (NTC delta_2, EN 1990 w_3), from the variable state declared by the task.");
+            Add("Deflection.VariableSource",description:"Source of the variable-action deflection limit.");
+            Together("DeflectionVariablePair","Deflection.VariableRatio","Deflection.VariableSource");
+            Add("Deflection.Precamber",EngineParameterKind.Number,"mm",description:"Signed precamber along the checked member axis at the node of the largest total deflection (unloaded offset from the chord); explicit 0 without precamber.");
+            Add("Deflection.PrecamberSource",description:"Source of a nonzero precamber (fabrication drawings, camber specification).");
+            Require("PrecamberRequired","delta_max needs the explicit precamber, 0 for none.",new[]{"Deflection.Precamber"},Has("Deflection.MaxRatio"));
+            Require("PrecamberSourceRequired","A nonzero precamber needs its source.",new[]{"Deflection.PrecamberSource"},Has("Deflection.Precamber"),IsNot("Deflection.Precamber","0"));
+            rules.Add(new EngineParameterRule("PrecamberWithoutMaximumDeflection","The precamber belongs to the delta_max check.",new[]{IsNot("Deflection.MaxRatio",null)},null,new[]{"Deflection.Precamber","Deflection.PrecamberSource"}));
+            Add("Deflection.CantileverLengthFactor",EngineParameterKind.Number,"1",min:0,exclusive:true,
+                description:"Reference length of a cantilever limit as a multiple of the cantilever length (2 where the applicable rule refers the limit of a cantilever to twice its length); declared, never assumed.");
+            Add("Deflection.CantileverLengthSource",description:"Source of the cantilever reference length.");
+            Together("CantileverReferencePair","Deflection.CantileverLengthFactor","Deflection.CantileverLengthSource");
+            foreach(var cantilever in new[]{"CantileverAtStart","CantileverAtEnd"})
+                Require("CantileverReferenceRequired","A cantilever needs its declared reference length.",new[]{"Deflection.CantileverLengthFactor","Deflection.CantileverLengthSource"},Is("Deflection.Scheme",cantilever));
+            rules.Add(new EngineParameterRule("CantileverReferenceOnSupportedSpan","A span supported at both ends uses L = span.",new[]{Is("Deflection.Scheme","SupportedEnds")},null,
+                new[]{"Deflection.CantileverLengthFactor","Deflection.CantileverLengthSource"}));
+            foreach(var limit in new[]{"Deflection.MaxRatio","Deflection.VariableRatio"})
+                Require("DeflectionSchemeRequired","A deflection limit needs the support scheme, its source and the node coverage.",
+                    new[]{"Deflection.Scheme","Deflection.SchemeSource","Deformation.CoverageSource"},Has(limit));
+            rules.Add(new EngineParameterRule("DeflectionLimitRequired","A deflection scheme needs at least one declared limit.",new[]{Has("Deflection.Scheme")},
+                new[]{new[]{"Deflection.MaxRatio","Deflection.MaxSource"},new[]{"Deflection.VariableRatio","Deflection.VariableSource"}}));
+            Add("Drift.Ratio",EngineParameterKind.Number,"1",min:0,exclusive:true,
+                description:"n of the limit h/n on the relative transverse displacement of the span ends, h = SpanEnd - SpanStart (EN 1990 A1.4.3 u_i; NTC 4.2.4.2.2 Delta/h, or delta/H with the full-height column line as the member).");
+            Add("Drift.Source",description:"Source of the drift limit.");
+            Together("DriftPair","Drift.Ratio","Drift.Source");
+            Add("Vibration.MinimumFrequency",EngineParameterKind.Number,"Hz",min:0,exclusive:true,description:"Declared minimum natural frequency.");
+            Add("Vibration.Source",description:"Source of the minimum frequency: national annex, project agreement or standard clause.");
+            Together("VibrationLimitPair","Vibration.MinimumFrequency","Vibration.Source");
+            Add("Vibration.Scheme",EngineParameterKind.Choice,choices:new[]{"SimplySupported","DeclaredCoefficient"},
+                description:"SimplySupported: f = 17.75/sqrt(delta[mm]), uniform mass, simply supported span. DeclaredCoefficient: f = K/sqrt(delta) with a qualified K for another scheme.");
+            Add("Vibration.SchemeSource",description:"Evidence of the support scheme and of a uniformly distributed mass.");
+            Add("Vibration.Coefficient",EngineParameterKind.Number,"Hz mm^0.5",min:0,exclusive:true,description:"K of f = K/sqrt(delta[mm]) for the declared scheme.");
+            Add("Vibration.CoefficientSource",description:"Derivation of K for the actual scheme and mass distribution.");
+            Together("VibrationCoefficientPair","Vibration.Coefficient","Vibration.CoefficientSource");
+            Require("VibrationCoefficientRequired","A declared coefficient needs its value and qualification.",new[]{"Vibration.Coefficient","Vibration.CoefficientSource"},Is("Vibration.Scheme","DeclaredCoefficient"));
+            rules.Add(new EngineParameterRule("CoefficientOnSimplySupported","The simply supported scheme uses K = 17.75.",new[]{Is("Vibration.Scheme","SimplySupported")},null,new[]{"Vibration.Coefficient","Vibration.CoefficientSource"}));
+            Add("Vibration.MassStateSource",description:"Qualification that the task state is the mass state of the estimate: the masses (self weight, permanent, quasi-permanent variable) applied as gravity loads along the checked axis.");
+            Add("Vibration.Deflection",EngineParameterKind.Choice,choices:new[]{"RelativeToChord","Total"},
+                description:"RelativeToChord: the member alone on rigid supports. Total: absolute displacement, support displacements included (estimate of the combined system).");
+            Require("VibrationModelRequired","A frequency limit needs scheme, mass state, deflection basis and node coverage.",
+                new[]{"Vibration.Scheme","Vibration.SchemeSource","Vibration.MassStateSource","Vibration.Deflection","Deformation.CoverageSource"},Has("Vibration.MinimumFrequency"));
+            Require("VibrationLimitRequired","A vibration scheme needs the declared minimum frequency.",new[]{"Vibration.MinimumFrequency","Vibration.Source"},Has("Vibration.Scheme"));
+            rules.Add(new EngineParameterRule("ServiceabilityCriterionRequired","Declare at least one criterion with its limit.",null,
+                new[]{new[]{"Deflection.Scheme"},new[]{"Drift.Ratio"},new[]{"Vibration.MinimumFrequency"}}));
+            return new EngineParameterSchema(SteelMemberServiceabilityChecker.EngineId,fields,rules,new[]{
+                "The plan declares each task: Mechanism Serviceability, a serviceability Category, criterion, member axis and the variable-action basis (MemberCheckSpecification.Category/Deformation); the category is never deduced from case names.",
+                "Member-node displacements of one confirmed concomitant state per task (N,mm,rad datasets), rotated into the member axes; only exported nodes are covered.",
+                "No limit is built in: the values of NTC Tab. 4.2.XII/XIII and of the EC3 national annexes are not in the repository and are always declared with their source.",
+                "Supports, cantilever reference length, precamber, mass state and node coverage are declarations checked only for presence and type: their engineering truth stays with the designer."});
+        }
         private static EngineParameterSchema Build(bool member)
         {
             var fields=new List<EngineParameterDescriptor>();var rules=new List<EngineParameterRule>();

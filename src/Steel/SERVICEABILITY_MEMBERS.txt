@@ -1,0 +1,158 @@
+VERIFICHE DI ESERCIZIO DELLE ASTE (SLE) - 29 OTTOBRE 2026
+Branch claude/steel-sle-aste (Checker) e claude/model-sle-aste (Model).
+Unita: N, mm, rad, Hz. Motore ModelChecker: Steel.Serviceability.Member.
+
+SCOPO
+Spostamenti di esercizio delle aste fisiche in acciaio: freccia verticale,
+spostamento orizzontale relativo (drift) e frequenza naturale. Fino a oggi le
+aste avevano solo verifiche SLU; le verifiche di sezione SLE (tensioni,
+fessure di Concrete e CompositeBridge) restano dove erano.
+Norme: EN 1993-1-1:2005 7.2.1, 7.2.2, 7.2.3 con EN 1990 A1.4.3 e A1.4.4;
+NTC 2018 4.2.4.2.1 (Tab. 4.2.XII), 4.2.4.2.2 (Tab. 4.2.XIII), 4.2.4.2.3.
+Nessun valore limite e incorporato: il repository non contiene il testo
+delle tabelle NTC 4.2.XII/XIII ne quello degli annessi nazionali EC3, quindi
+non esistono preset; ogni limite si dichiara con la sua fonte. I numeri di
+clausola citati nei report vengono dalla richiesta di lavoro e dalla norma,
+non da un testo presente nel repository.
+
+1 MODEL: TASK DICHIARATO E INGRESSO DEFORMATIVO
+MemberCheckSpecification ha due campi facoltativi (null = comportamento e
+impronte storiche invariati):
+- Category: categoria della combinazione. Il task si pianifica SOLO per le
+  ResultSelection dichiarate con quella categoria; mai dedotta dal nome del
+  caso. Obbligatoria per i task SLE (Characteristic, Frequent,
+  QuasiPermanent); una categoria SLU limita un task di stabilita.
+- Deformation (MemberDeformationSpecification): criterio
+  (VerticalDeflection, HorizontalDisplacement, Vibration), direzione negli
+  assi dell'asta (Axis1, Axis2; Transverse = modulo delle due componenti,
+  solo per lo spostamento orizzontale) e base della freccia dei variabili:
+    None       nessuna freccia dei soli variabili;
+    Direct     VariableSelection e lo stato dei soli carichi variabili;
+               ammesso solo con UNO stato della categoria (accoppiamento
+               non ambiguo, altrimenti AmbiguousVariableDeflectionPairing);
+    Difference delta2 = stato del task - VariableSelection (per esempio i
+               soli permanenti), per sovrapposizione lineare: entrambi gli
+               stati devono essere LinearStatic.
+Con Deformation il piano prepara, al posto dei tagli di forza, gli
+spostamenti dei NODI dell'asta (NodeResultDisplacement) nel tratto
+Start/End, ruotati negli assi dell'asta (V3 lungo l'asta, V1/V2 trasversali)
+con le rotazioni: MemberInputSnapshot.Deformation (MemberDeformationSnapshot:
+specifica, categoria, Total e Variable con MemberDisplacementSample).
+Controlli come per i tagli: dataset e unita, stato concomitante confermato,
+componenti complete, stato non incrementale, analisi corrente, spostamenti
+riferiti al nodo, nodi agli estremi del tratto, stati coerenti.
+Lo snapshot entra nell'impronta preparata; le sorgenti si rivalidano in
+BeamCheckPlan.IsCurrent e i campioni nodali degli stati del task e dello
+stato variabile entrano nell'impronta di scopo SOLO quando la richiesta ha
+task deformativi: una variazione di soli spostamenti rende il piano non
+corrente e il resoconto NotEvaluated (CurrentOutcome), come una forza.
+Archivi, impronte e sigilli dei task esistenti restano identici (provato
+su un archivio scritto da master, vedi TEST).
+
+2 FRECCIA VERTICALE (VerticalDeflection)
+Riferimento dichiarato con Deflection.Scheme:
+  SupportedEnds      corda fra gli spostamenti dei due appoggi agli estremi
+                     del tratto (cedimenti esclusi); L = SpanEnd - SpanStart;
+  CantileverAtStart  sbalzo vincolato a Start: freccia relativa alla
+  CantileverAtEnd    traslazione dell'estremo vincolato (la rotazione
+                     dell'appoggio resta nella freccia).
+Per gli sbalzi la lunghezza di riferimento del limite e dichiarata:
+Deflection.CantileverLengthFactor x lunghezza dello sbalzo (per esempio 2
+dove la regola applicata riferisce il limite al doppio dello sbalzo) con la
+fonte; la pratica "L = 2 Lc" non e verificabile dal repository e quindi non
+e mai assunta.
+delta_max = |delta_tot(x*) + precontrofreccia|, x* nodo della massima
+freccia totale (EN 1990 A1.4.3, Fig. A1.1 w_max = w_tot - w_c; NTC
+delta_max = delta_tot - delta_C). Deflection.Precamber e firmato lungo l'asse
+verificato (posizione scarica rispetto alla corda), 0 esplicito senza
+controfreccia, con fonte se diverso da zero. Una controfreccia eccessiva
+(contromonta residua) conta come freccia: scelta conservativa.
+delta_2 (NTC) / w3 (EN 1990): freccia dei soli variabili da Direct o da
+Difference, stesso riferimento, massimo in valore assoluto.
+Limiti: Deflection.MaxRatio e .VariableRatio (n di L/n) con le fonti;
+almeno uno. Il massimo e quello dei NODI esportati: nessuna interpolazione.
+Deformation.CoverageSource qualifica che i nodi comprendano il punto di
+massimo (mesh raffinata, simmetria); un tratto appoggiato senza nodi interni
+e rifiutato (la freccia sarebbe nulla per costruzione).
+
+3 SPOSTAMENTO ORIZZONTALE (HorizontalDisplacement)
+Delta = spostamento trasversale relativo fra gli estremi del tratto (traslazione
+della base esclusa), componente dichiarata o modulo (Transverse); limite h/n
+con h = SpanEnd - SpanStart (Drift.Ratio, Drift.Source). Interpiano Delta/h:
+il tratto del piano. delta/H di NTC Tab. 4.2.XIII: definibile a livello d'asta
+SOLO come allineamento di colonna dall'imposta alla sommita modellato come
+una asta fisica rettilinea (Start=0, End=L); lo spostamento d'insieme
+dell'edificio (piu allineamenti, impalcati) resta fuori campo.
+
+4 VIBRAZIONI (Vibration)
+f = K / sqrt(delta[mm]) Hz. K = 17,75 solo per Vibration.Scheme =
+SimplySupported: trave semplicemente appoggiata, massa uniformemente
+distribuita, primo modo flessionale, delta = freccia in mezzeria dovuta al
+PESO delle masse dello stato del task (Vibration.MassStateSource: per
+esempio G1 + G2 + psi2 Q applicati come carichi gravitazionali lungo l'asse
+verificato). Derivazione: f = (pi/2) sqrt(EI/(m L^4)), delta = 5 m g L^4 /
+(384 EI) -> K = (pi/2) sqrt(5 g / 384) = 17,750 con g = 9806,65 mm/s^2.
+Vibration.Deflection: RelativeToChord (asta su appoggi rigidi) oppure Total
+(spostamento assoluto, cedimenti degli appoggi inclusi: stima del sistema
+combinato). Altri schemi solo con DeclaredCoefficient, Vibration.Coefficient
+e la sua qualifica; ogni altro schema e rifiutato. Limite
+Vibration.MinimumFrequency con fonte (EC3 7.2.3 rinvia ad annesso nazionale e
+accordi di progetto). Utilizzo = f_min / f (domanda = frequenza minima
+richiesta, capacita = frequenza stimata).
+
+5 ESITI
+Ogni verifica riporta in ServiceabilityCheckDetails: metrica con domanda,
+limite, utilizzo = domanda/limite, unita e riferimento "clausola; limit:
+fonte"; punto del massimo (CheckPointValue, Z = distanza lungo l'asta, nodo);
+categoria; traccia con tratto, lunghezza di riferimento, spostamenti degli
+appoggi, valore firmato, controfreccia, schema, copertura, coefficiente.
+Metriche: Deflection.Max, Deflection.Variable, Drift, Vibration.Frequency.
+Una dichiarazione assente da' MissingInput preciso, mai un limite di
+default: SteelServiceability.MissingDeflectionScheme, MissingCoverageSource,
+MissingDeflectionLimit, MissingPrecamber, MissingPrecamberSource,
+MissingVariableDeflectionLimit, MissingVariableDeflectionState,
+MissingCantileverReference, MissingDriftLimit, MissingFrequencyLimit,
+MissingVibrationScheme, MissingMassStateSource,
+MissingVibrationDeflectionBasis, MissingFrequencyCoefficient. Ingressi
+incoerenti: InvalidOrMissingInput con il dettaglio; norma/edizione non
+qualificate: MemberCheckerUnavailable. Il piano rifiuta le dichiarazioni
+incoerenti (MemberServiceabilityRequiresDeformation,
+ServiceabilityCategoryRequired, NoResultSelectionForCategory, ...) e lascia
+Insufficient i task con nodi mancanti (MissingMemberNodeDisplacement,
+MissingMemberDisplacementBoundary, VariableDifferenceRequiresLinearStates).
+
+6 PARAMETRI (SteelParameterSchemas.MemberServiceability)
+Deformation.CoverageSource; Deflection.Scheme, .SchemeSource, .MaxRatio,
+.MaxSource, .VariableRatio, .VariableSource, .Precamber, .PrecamberSource,
+.CantileverLengthFactor, .CantileverLengthSource; Drift.Ratio, .Source;
+Vibration.MinimumFrequency, .Source, .Scheme, .SchemeSource, .Coefficient,
+.CoefficientSource, .MassStateSource, .Deflection. Le regole dello schema
+segnalano coppie incomplete e chiavi incompatibili prima dell'esecuzione;
+il costruttore rifiuta chiavi ignote e valori fuori tipo o campo.
+Un motore serve tutti i task SLE delle aste a cui e instradato (rotta
+Mechanisms = Serviceability): limiti diversi per piani o membrature diverse
+si danno con motori e lavori distinti.
+
+7 TEST
+Model.Core.Tests/MemberDeformationPreparationTest (24): assi dell'asta,
+categorie, Direct/Difference, rifiuti, nodi mancanti, cambi di soli
+spostamenti (stato del task, stato dedotto, rotazione) su piano e scopo,
+copie dei contratti, impronte storiche congelate da master.
+tests/Steel.Members.Tests/SteelMemberDeformationTests (7): forme chiuse
+5qL^4/384EI, corda con cedimenti, sbalzo, controfreccia, delta2, drift,
+frequenza e derivazione di 17,75, rifiuti.
+ModelChecker.Tests/SteelMemberServiceabilityTest (20): spostamenti da un
+solutore FE di trave piana (nodi esatti con carichi consistenti), EC3 e NTC,
+cedimenti, sbalzi ai due estremi, colonna, frequenza Total/RelativeToChord,
+coefficiente dichiarato, dichiarazioni mancanti, rifiuti, schema, archivio e
+CurrentOutcome. MemberServiceabilityLegacyArchiveTest: archivio di modello,
+configurazione e resoconto scritto da master (Fixtures/member-legacy-
+5.23.0.2): stesse impronte di scopo, identita dei task, MemberFingerprint
+dello snapshot e sigilli.
+
+LIMITI
+Solo nodi esportati (StationResultDisplacement non e usato: nessun
+convertitore lo produce); nessuna interpolazione fra nodi; aste rettilinee
+del modello; uno stato concomitante per task; deformazioni differite,
+fluage, accelerazioni e fattori di risposta dei solai, analisi dinamiche e
+drift d'insieme dell'edificio fuori campo.
