@@ -99,7 +99,7 @@ non fessurata), l'esito, tutte le regioni esaminate e la traccia dei valori inte
 | Barre distanziate: Δsm = 0,75 (h − x) nella parte rimanente (riquadro F-1) | Circolare | 2019 | C4.1.2.2.4.5 | [C4.1.10], Fig. C4.1.11 | testo |
 | Requisiti con le condizioni ambientali NTC | UNI EN 1992-1-1 | DM 31/07/2012 | 7.3.1(5) | — | testo |
 | k3 = 3,4, k4 = 0,425 | UNI EN 1992-1-1 | DM 31/07/2012 | 7.3.4(3) | — | testo |
-| wmax per classe di esposizione | EN 1992-1-1 | 2004 + AC:2010 | 7.3.1(5) | Prospetto 7.1N | da riscontrare (in particolare XD3, voce R8) |
+| wmax per classe di esposizione; XD3, che il prospetto non elenca, con XD1, XD2 e XS1-XS3 (0,3 mm), come fanno altri programmi | EN 1992-1-1 | 2004 + AC:2010 | 7.3.1(5) | Prospetto 7.1N | testo; XD3 interpretazione dichiarata da fonte secondaria (voce R8) |
 | hc,eff, Ac,eff | EN 1992-1-1 | 2004 + AC:2010 | 7.3.2(3) | Fig. 7.1 | da riscontrare |
 | wk, εsm − εcm, sr,max, Øeq, k2, barre distanziate e assenza di armatura aderente | EN 1992-1-1 | 2004 + AC:2010 | 7.3.4(1)-(3) | (7.8), (7.9), (7.11)-(7.14) | testo |
 | Prospetto 7.1DE (X0, XC1 0,4; altre 0,3) | DIN EN 1992-1-1 | NA | 7.3.1(5) | Tab. 7.1DE | fonte secondaria |
@@ -553,7 +553,11 @@ Con meno di due barre efficaci, o se la disposizione non è riconosciuta, l'inte
 >   favore); nella formazione della singola fessura il minimo usa β = 0,4 invece di 0,6 (soletta di 200 mm con
 >   Ø12/200, c = 30 mm, σs = 250 MPa: 0,350 mm invece di 0,233 mm, +50%, a favore). Il ritiro trascurato è a sfavore
 >   dove è significativo.
-> - Stato: τbms e β da correggere dopo il riscontro della Tab. 7.6-2 (voce R1); ritiro da riscontrare (voce R8).
+> - Stato: τbms e β da correggere dopo il riscontro della Tab. 7.6-2 (voce R1). Ritiro (voce R8, ANTHEA 1.16.0,
+>   decisione dell'utente del 28/10/2026 «Fonti secondarie»): opzione `SectionCrackOptions.ModelCode2010ShrinkageStrain`
+>   con il ritiro libero εcs ≤ 0 dato dal chiamante nella (7.6-3), wd = 2 ls,max (εsm − εcm − εcs); il predefinito
+>   εcs = 0 resta quello di 0.0.17.0 per le fixture congelate e il contratto K0. Il coefficiente ηr della forma
+>   raffinata della deformazione media non è applicato (da riscontrare sul testo).
 
 > **Scostamento dichiarato — F-7 (R8) DIN: coefficiente di hc,ef**
 >
@@ -563,7 +567,8 @@ Con meno di due barre efficaci, o se la disposizione non è riconosciuta, l'inte
 >   il programma dà 4,5.
 > - Effetto: se il valore corretto è minore, il programma usa un'area efficace maggiore e, di norma, un'ampiezza
 >   maggiore (a favore di sicurezza).
-> - Stato: da riscontrare sul testo dell'annesso tedesco.
+> - Stato: dichiarato (voce R8, 28/10/2026): le fonti secondarie sono discordi e la lettura del programma è a favore di
+>   sicurezza; resta da riscontrare sul testo dell'annesso tedesco.
 
 > **Scostamento dichiarato — F-8 (R2) DIN: kt indipendente dalla durata**
 >

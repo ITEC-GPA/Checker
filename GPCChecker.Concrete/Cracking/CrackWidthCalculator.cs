@@ -131,6 +131,9 @@ namespace GPC.Checkers.Concrete.Cracking
                 strainEc = stabilized ? (sigma - ktEc * sigmaSr) / es : lower * sigma / es;
                 strainExpression = stabilized ? "(σs − β σsr)/Es, stabilized cracking (fib MC2010 Tab. 7.6-2)" : "(1 − β) σs/Es, single crack formation (fib MC2010 Tab. 7.6-2)";
             }
+            // fib MC2010 (7.6-3), option (R8 of ANTHEA): wd = 2 ls,max (εsm − εcm − εcs) with the free shrinkage εcs ≤ 0 given by the caller.
+            double shrinkage = mc ? options.ModelCode2010ShrinkageStrain : 0;
+            if (shrinkage != 0) { strainEc -= shrinkage; strainExpression += " − εcs, εcs = " + shrinkage.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture) + " (fib MC2010 7.6-3)"; }
             string stage = !stages ? null : stabilized ? CrackTraceFlags.StabilizedCrackStage : CrackTraceFlags.SingleCrackStage;
             double k3 = ds && cover > 0 ? 3.4 * Math.Pow(25 / cover, 2d / 3) : 3.4;
             double sr = k3 * cover + (p.Ribbed ? .8 : 1.6) * p.K2 * .425 * phi / rho;
