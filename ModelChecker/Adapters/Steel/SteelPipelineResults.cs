@@ -84,6 +84,12 @@ namespace GPC.Model.Checker
                     trace.Add(new CheckCalculationValue("Member.LtbMethod", null, null, ltb.Kind + "; " + ltb.ParameterSource));
                     trace.Add(new CheckCalculationValue("Member.LtbKc", ltb.MomentFactor.Kc, "1", ltb.MomentFactor.Distribution + "; " + ltb.MomentFactor.Source));
                 }
+                // EN 1993-1-1 options, rows only when declared.
+                if (ltb.DeclaredCurve.HasValue)
+                    trace.Add(new CheckCalculationValue("Member.LtbCurve", null, null, ltb.DeclaredCurve.Value + "; " + ltb.DeclaredCurveSource));
+                if (ltb.LowMomentExemption)
+                    trace.Add(new CheckCalculationValue("Member.LtbLowMomentExemption", ltb.LambdaLT0 * ltb.LambdaLT0, "1",
+                        "EN 1993-1-1:2005 6.3.2.2(4), limit lambdaLT,0^2 of MEd/Mcr; " + ltb.LowMomentExemptionSource));
                 foreach (var v in analysis.Values)
                 {
                     trace.Add(new CheckCalculationValue("Member.External." + v.Quantity, v.Value, v.Unit, v.Source));

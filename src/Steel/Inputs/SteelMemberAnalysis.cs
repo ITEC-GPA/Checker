@@ -68,6 +68,10 @@ namespace GPC.Checkers.Steel.Inputs
             if (method == null) throw new ArgumentNullException(nameof(method));
             if (Kind != SteelMemberAnalysisKind.PrismaticBending && Kind != SteelMemberAnalysisKind.HBeamColumn)
                 throw new ArgumentException("The LTB method belongs to prismatic bending and H beam-column analyses.", nameof(method));
+            // EN 1993-1-1:2005 6.3.2.2(4) is a rule of 6.3.2 (members in bending): its criterion ignores NEd and its
+            // consequence, section checks only, cannot replace the 6.3.3 interaction; a reasoned LTB exclusion does that.
+            if (method.LowMomentExemption && Kind != SteelMemberAnalysisKind.PrismaticBending)
+                throw new ArgumentException("The EN 1993-1-1 6.3.2.2(4) low-moment criterion belongs to prismatic bending; the beam-column keeps chiLT.", nameof(method));
             var copy = (SteelMemberAnalysis)MemberwiseClone(); copy.LateralTorsionalMethod = method; return copy;
         }
 

@@ -117,6 +117,17 @@ namespace GPC.Model.Checker.Configuration
             rules.Add(new EngineParameterRule("LtbMomentWithoutRolledMethod","kc applies only to the rolled or equivalent welded method.",new[]{IsNot("LtbMethod","RolledOrEquivalentWelded")},null,ltbMoment));
             foreach(var key in new[]{"CriticalValues","MomentFactorPreparation"})
                 rules.Add(new EngineParameterRule("LtbMomentConflictsWithPreparation","A prepared diagram establishes kc; do not declare another.",new[]{Has(key)},null,ltbMoment));
+            // EN 1993-1-1 options of both LTB methods, opt-in; refused under NTC 2018 at execution (Member.LtbCurveFixedByNtc,
+            // Member.LtbLowMomentExemptionNotInNtc).
+            Add("LtbCurve",EngineParameterKind.Choice,choices:new[]{"A","B","C","D"},modes:ltbModes,
+                description:"EN 1993-1-1 only: LTB curve that the National Annex assigns to this member's section, in place of the recommended Table 6.4 (General) or Table 6.5 (RolledOrEquivalentWelded) assignment, NDPs of 6.3.2.2(2)/6.3.2.3(1); also for the beam-column chiLT. alphaLT stays the Table 6.3 value of the curve. Refused under NTC 2018 (curves fixed by Tab. 4.2.IX).");
+            Add("LtbCurveSource",modes:ltbModes,description:"National Annex and clause assigning the declared LTB curve to this section family, h/b range and fabrication.");
+            Together("LtbCurvePair","LtbCurve","LtbCurveSource");
+            Add("LtbLowMomentExemption",EngineParameterKind.Boolean,modes:new[]{"Bending"},
+                description:"EN 1993-1-1:2005 6.3.2.2(4), adopted with true: for MEd/Mcr <= lambdaLT,0^2 (0.2 General, LambdaLT0ForLateralTorsionalBucklingMod with RolledOrEquivalentWelded) the LTB check is not required; section checks still apply. Bending only (not the beam-column interaction); refused under NTC 2018.");
+            Add("LtbLowMomentExemptionSource",modes:new[]{"Bending"},description:"Design-basis decision adopting the EN 1993-1-1:2005 6.3.2.2(4) low-moment criterion for this member.");
+            Require("LtbLowMomentExemptionSourceRequired","The adopted low-moment criterion needs its design-basis source.",new[]{"LtbLowMomentExemptionSource"},Is("LtbLowMomentExemption","true"));
+            rules.Add(new EngineParameterRule("LtbLowMomentSourceWithoutExemption","The source belongs to an adopted low-moment criterion.",new[]{IsNot("LtbLowMomentExemption","true")},null,new[]{"LtbLowMomentExemptionSource"}));
             Require("UniformForkCurves","The uniform fork method needs its three explicit curves.",new[]{"InPlaneCurve","LateralCurve","LateralTorsionalCurve"},Is("AnalysisMode","UniformFork"));
             Require("GeneralMethodInputs","The external general method requires both multipliers and lateral curves.",
                 new[]{"LateralCurve","LateralTorsionalCurve","AlphaUltK.Value","AlphaUltK.Unit","AlphaUltK.Source","AlphaCrOp.Value","AlphaCrOp.Unit","AlphaCrOp.Source"},Is("AnalysisMode","ExternalInPlane"));
