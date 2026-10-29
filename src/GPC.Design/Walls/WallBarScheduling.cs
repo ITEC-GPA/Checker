@@ -2,28 +2,41 @@ using GPC.Model.Checking.Contracts;
 
 namespace GPC.Design.Walls;
 
-public enum WallBarKind { Main, Secondary, Tie }
-public enum WallBarNote { None, InclinedStemTransition, LongitudinalEndsToDetail, TieShapeToDetail }
-public enum WallScheduleWarningCode { DetailChecksIncomplete, DetailSummaryDisabled, LongerThanStock, MissingTieDevelopment, Preliminary }
+public enum WallBarKind { Main, Secondary, Tie, Head }
+public enum WallBarNote { None, FootTowardsValley, FootTowardsMountain, Continuous, Longitudinal, Tie, TieAssignedLength, Head }
+public enum WallScheduleWarningCode { DetailChecksIncomplete, DetailSummaryDisabled, LongerThanStock, FootReversed }
+/// <summary>Panel and stock length in m, end cover in mm, ties per metre of wall and row, tie cut length in mm (0 = calculated).</summary>
 public sealed record WallScheduleOptions(double PanelLength, double EndCover, double StockLength, int TiesPerMetre, double TieCutLength,
     bool DetailSummaryEnabled);
-public sealed record WallBarLeg(string Name, double Length);
+/// <summary>A position of the bar schedule. Quantity is the number of pieces in the panel, CutLength the length of a piece (m, sum of the
+/// legs rounded to the cm), Spacing the nominal spacing (mm). Longitudinal bars: Lines in the section, Pieces per line spliced by Lap
+/// (mm); SectionPoints their positions in the section. Ties: rows of ties in the lap; SectionPoints the rows.</summary>
 public sealed record WallScheduledBar(string Mark, WallRebarZone Zone, WallRebarFace? Face, WallBarKind Kind, double Diameter,
     int Quantity, double? CutLength, double Spacing, double Mandrel, double Lap, IReadOnlyList<WallBarLeg> Legs,
     IReadOnlyList<WallBarPoint> Shape, WallBarNote Note, double? ZoneStart = null, double? ZoneEnd = null, int? TieRows = null)
 {
     public double? TotalLength => Quantity * CutLength;
     public double? Weight => TotalLength * Math.PI * Diameter * Diameter / 4 * WallRebarQuantities.SteelKgPerSquareMmMetre;
+    public int? Lines { get; init; }
+    public int? Pieces { get; init; }
+    public IReadOnlyList<WallBarPoint> SectionPoints { get; init; } = [];
 }
+/// <summary>Total of a diameter: length (m), mass per metre (kg/m) and weight (kg).</summary>
+public sealed record WallDiameterTotal(double Diameter, double Length, double KgPerMetre, double Weight);
 public sealed record WallScheduleWarning(WallScheduleWarningCode Code, string? Mark = null, int? Count = null);
 public sealed record WallScheduleResult(double PanelLength, double EndCover, double StockLength,
     IReadOnlyList<WallScheduledBar> Bars, IReadOnlyList<WallScheduleWarning> Warnings)
 {
     public double KnownWeight => Bars.Sum(b => b.Weight ?? 0);
     public bool CompleteQuantities => Bars.All(b => b.CutLength is not null);
+    public IReadOnlyList<WallDiameterTotal> Diameters { get; init; } = [];
+    /// <summary>Concrete of the panel (m³) and steel per cubic metre of concrete (kg/m³), net weight without waste.</summary>
+    public double ConcreteVolume { get; init; }
+    public double Incidence => ConcreteVolume > 0 ? KnownWeight / ConcreteVolume : 0;
 }
-/// <summary>Preliminary take-off of the entered reinforcement, not a certification of a fabrication drawing.
-/// Panel, stock, cut lengths and shape coordinates in m; cover, diameters, spacing, laps and tie cut input in mm.</summary>
+/// <summary>Bar schedule of a panel of wall, as on a reinforcement drawing: positions in drawing order, shapes with the legs at the centre
+/// line rounded to the cm, pieces in the panel, longitudinal bars spliced along the panel, totals per diameter and incidence. Net weight
+/// without waste. Panel, stock, cut lengths and shape coordinates in m; cover, diameters, spacing, laps and tie cut input in mm.</summary>
 public static class WallBarScheduling
 {
     public static WallScheduleResult Calculate(WallDetailInput input, WallScheduleOptions options, CancellationToken token = default)
@@ -33,69 +46,70 @@ public static class WallBarScheduling
         WallReinforcementDetailing.Range(options.PanelLength,.2,100,nameof(options.PanelLength));
         WallReinforcementDetailing.Range(options.EndCover,0,200,nameof(options.EndCover));
         WallReinforcementDetailing.Range(options.StockLength,1,18,nameof(options.StockLength));
-        var g=input.Geometry; var r=input.Reinforcement;
-        double length=options.PanelLength,endCover=options.EndCover,stock=options.StockLength,cover=input.Cover/1000;
-        double h=g.Height,t=g.Slab,a=g.Toe,s=g.StemBase,heel=g.Heel;
-        bool two=r.TwoZones; double split=two?r.LowerHeight:h;
-        var details=WallReinforcementDetailing.Calculate(input,token);
+        var g=input.Geometry;
+        double length=options.PanelLength,endCover=options.EndCover,stock=options.StockLength;
+        var details=WallReinforcementDetailing.Calculate(input with {Options=input.Options with {StockLength=stock}},token);
         var bars=new List<WallScheduledBar>(); var warnings=new List<WallScheduleWarning>();
+        int Pieces(double diameter,double spacing)
+        {
+            double span=length*1000-2*endCover-diameter;
+            if(span<=0 || spacing<=0) throw new ArgumentException("Panel too short for end cover and bars.");
+            // Bars at both ends of the panel, never more than the spacing of the calculation between them.
+            return checked((int)Math.Ceiling(span/spacing-1e-10)+1);
+        }
         foreach(var b in details.Bars)
         {
             token.ThrowIfCancellationRequested();
-            double span=length*1000-2*endCover-b.Diameter;
-            if(span<=0 || b.Spacing<=0) throw new ArgumentException("Panel too short for end cover and bars.");
-            int count=checked((int)Math.Ceiling(span/b.Spacing-1e-10)+1);
-            var legs=new List<WallBarLeg>();
-            if(b.Mandrel>0)
-            {
-                legs.Add(new("A",Distance(b.Path[0],b.Path[1])));
-                legs.Add(new("B",Distance(b.Path[1],b.Path[2])));
-                legs.Add(new("Arc90",(b.Mandrel+b.Diameter)/2000*Math.PI/2));
-                legs.Add(new("C",Distance(b.Path[b.Path.Count - 2],b.Path[b.Path.Count - 1])));
-            }
-            else legs.Add(new("A",b.Length));
-            bars.Add(new(b.Mark,b.Zone,b.Face,WallBarKind.Main,b.Diameter,count,legs.Sum(l=>l.Length),span/(count-1),b.Mandrel,b.Lap,
-                legs.AsReadOnly(),b.Path,b.Zone==WallRebarZone.Stem && b.Face==WallRebarFace.Downstream && s!=g.StemTop?WallBarNote.InclinedStemTransition:WallBarNote.None));
+            var legs=Rounded(b.Legs);
+            var note=b.Continuous?WallBarNote.Continuous:b.Foot==WallFootDirection.Valley?WallBarNote.FootTowardsValley:b.Foot==WallFootDirection.Mountain?WallBarNote.FootTowardsMountain:WallBarNote.None;
+            bars.Add(new(b.Mark,b.Zone,b.Face,WallBarKind.Main,b.Diameter,Pieces(b.Diameter,b.Spacing),legs.Sum(l=>l.Length),b.Spacing,b.Mandrel,b.Lap,legs,b.Path,note));
+            if(b.FootReversed) warnings.Add(new(WallScheduleWarningCode.FootReversed,b.Mark));
         }
-        int secondaryMark=0;
-        foreach(var key in PortableEnum.GetValues<WallRebarZone>())
+        if(details.Head is { } head)
         {
-            if(key==WallRebarZone.StemUpper && !two || key==WallRebarZone.Toe && a==0 || key==WallRebarZone.Heel && heel==0) continue;
-            token.ThrowIfCancellationRequested();
-            var arm=r.Zones[key];double dia=arm.SecondaryDiameter,step=arm.SecondarySpacing;
-            bool stem=key is WallRebarZone.Stem or WallRebarZone.StemUpper,upper=key==WallRebarZone.StemUpper;
-            double start=stem?upper?split:cover+dia/2000:key==WallRebarZone.Toe || a==0?cover+dia/2000:a+s/2;
-            double end=stem?upper || !two?h-cover-dia/2000:split:key==WallRebarZone.Toe && heel>0?a+s/2:a+s+heel-cover-dia/2000;
-            double span=end-start;
-            if(span<=0) throw new ArgumentException("Zone too short for secondary reinforcement: "+key);
-            // Shared boundaries belong to the following zone, never count the same bar twice.
-            bool omitLast=key==WallRebarZone.Stem && two || key==WallRebarZone.Toe && heel>0;
-            int intervals=Math.Max(1,checked((int)Math.Ceiling(span*1000/step-1e-10)));
-            int count=intervals+(omitLast?0:1);double cut=length-2*endCover/1000;
-            if(cut<=0) throw new ArgumentException("Nonpositive net length of secondary bars.");
-            for(int face=0;face<2;face++)
-                bars.Add(new("S"+(++secondaryMark),key,stem?face==0?WallRebarFace.Upstream:WallRebarFace.Downstream:face==0?WallRebarFace.Bottom:WallRebarFace.Top,
-                    WallBarKind.Secondary,dia,count,cut,span*1000/intervals,0,0,Array.AsReadOnly(new[]{new WallBarLeg("A",cut)}),
-                    Array.AsReadOnly(new[]{new WallBarPoint(0,0),new WallBarPoint(cut,0)}),WallBarNote.LongitudinalEndsToDetail,start,end));
+            var legs=Rounded(head.Legs);
+            bars.Add(new(head.Mark,head.Zone,null,WallBarKind.Head,head.Diameter,Pieces(head.Diameter,head.Spacing),legs.Sum(l=>l.Length),head.Spacing,head.Mandrel,0,legs,head.Path,WallBarNote.Head));
         }
-        if(two)
+        if(details.Tie is { } tie)
         {
             WallReinforcementDetailing.Range(options.TiesPerMetre,1,30,nameof(options.TiesPerMetre));
             WallReinforcementDetailing.Range(options.TieCutLength,0,10000,nameof(options.TieCutLength));
-            double cut=options.TieCutLength;
-            int rows=checked((int)Math.Ceiling(details.Bars.Max(b=>b.Lap)/input.Options.TieSpacing)+1);
-            int count=checked(rows*(int)Math.Ceiling(options.TiesPerMetre*length-1e-10));
-            bars.Add(new("C1",WallRebarZone.Stem,null,WallBarKind.Tie,input.Options.TieDiameter,count,cut==0?null:cut/1000,input.Options.TieSpacing,
-                0,0,Array.Empty<WallBarLeg>(),Array.Empty<WallBarPoint>(),WallBarNote.TieShapeToDetail,TieRows:rows));
+            var legs=Rounded(tie.Legs); double cut=options.TieCutLength>0?options.TieCutLength/1000:legs.Sum(l=>l.Length);
+            int count=checked(tie.Rows*(int)Math.Ceiling(options.TiesPerMetre*length-1e-10));
+            double middle=(tie.Path[0].X+tie.Path[tie.Path.Count-1].X)/2;
+            bars.Add(new WallScheduledBar(tie.Mark,WallRebarZone.Stem,null,WallBarKind.Tie,tie.Diameter,count,cut,tie.Spacing,tie.Mandrel,0,legs,tie.Path,
+                options.TieCutLength>0?WallBarNote.TieAssignedLength:WallBarNote.Tie,TieRows:tie.Rows)
+                { SectionPoints=tie.Levels.Select(y=>new WallBarPoint(middle,y)).ToArray() });
+        }
+        double net=length-2*endCover/1000;
+        if(net<=0) throw new ArgumentException("Nonpositive net length of longitudinal bars.");
+        foreach(var l in details.Longitudinals)
+        {
+            token.ThrowIfCancellationRequested();
+            // Spliced along the panel when longer than a stock bar: k equal pieces rounded up to the cm, k-1 laps l0.
+            double lap=l.Lap/1000; int pieces=1; double piece=Centimetres(net,true);
+            if(piece>stock)
+            {
+                if(stock<=lap) throw new ArgumentException("Stock bar not longer than the lap of the longitudinal bars.");
+                pieces=Math.Max(2,checked((int)Math.Ceiling((net-lap)/(stock-lap)-1e-10)));
+                while((piece=Centimetres((net+(pieces-1)*lap)/pieces,true))>stock) pieces++;
+            }
+            var legs=new[]{new WallBarLeg("A",piece){Kind=WallBarLegKind.Straight,From=new(0,0),To=new(piece,0)}};
+            bars.Add(new WallScheduledBar(l.Mark,l.Zone,l.Face,WallBarKind.Secondary,l.Diameter,checked(l.Points.Count*pieces),piece,l.Spacing,0,pieces>1?l.Lap:0,
+                legs,new[]{new WallBarPoint(0,0),new WallBarPoint(piece,0)},WallBarNote.Longitudinal)
+                { Lines=l.Points.Count,Pieces=pieces,SectionPoints=l.Points });
         }
         int failed=details.Checks.Count(c=>c.Outcome!=EngineeringOutcome.Satisfied);
-        if(failed>0) warnings.Add(new(WallScheduleWarningCode.DetailChecksIncomplete,Count:failed));
+        if(failed>0) warnings.Insert(0,new(WallScheduleWarningCode.DetailChecksIncomplete,Count:failed));
         if(!options.DetailSummaryEnabled) warnings.Add(new(WallScheduleWarningCode.DetailSummaryDisabled));
         foreach(var b in bars.Where(b=>b.CutLength>stock)) warnings.Add(new(WallScheduleWarningCode.LongerThanStock,b.Mark));
-        if(bars.Any(b=>b.CutLength is null)) warnings.Add(new(WallScheduleWarningCode.MissingTieDevelopment));
-        warnings.Add(new(WallScheduleWarningCode.Preliminary));
+        double kgPerMetre(double d)=>Math.PI*d*d/4*WallRebarQuantities.SteelKgPerSquareMmMetre;
+        var diameters=bars.GroupBy(b=>b.Diameter).OrderBy(x=>x.Key).Select(x=>new WallDiameterTotal(x.Key,x.Sum(b=>b.TotalLength??0),kgPerMetre(x.Key),x.Sum(b=>b.Weight??0))).ToArray();
+        double area=(g.Toe+g.StemBase+g.Heel)*g.Slab+(g.StemBase+g.StemTop)/2*g.Height;
         token.ThrowIfCancellationRequested();
-        return new(length,endCover,stock,bars.AsReadOnly(),warnings.AsReadOnly());
+        return new(length,endCover,stock,bars.AsReadOnly(),warnings.AsReadOnly()){Diameters=diameters,ConcreteVolume=area*length};
     }
-    static double Distance(WallBarPoint a,WallBarPoint b)=>PortableMath.Hypot(a.X-b.X,a.Y-b.Y);
+    /// <summary>Legs at the centre line rounded to the cm (arcs developed); the cut length is their sum, as written on the shape.</summary>
+    static IReadOnlyList<WallBarLeg> Rounded(IReadOnlyList<WallBarLeg> legs)=>legs.Where(l=>l.Length>0).Select(l=>l with {Length=Centimetres(l.Length,false)}).ToArray();
+    static double Centimetres(double metres,bool up)=>(up?Math.Ceiling(metres*100-1e-9):Math.Round(metres*100,MidpointRounding.AwayFromZero))/100;
 }

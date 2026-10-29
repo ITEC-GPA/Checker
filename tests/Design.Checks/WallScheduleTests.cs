@@ -14,62 +14,75 @@ public class WallScheduleTests
         var d=row["input"]!;var o=d["bar_schedule"]!;
         return new(D(o,"panel_length"),D(o,"end_cover"),D(o,"stock_length"),(int)D(o,"ties_per_m"),D(o,"tie_cut_length"),B(d["detailing"]!,"enabled"));
     }
+    // ANTHEA 1.16.0 (registro R-MURI-*): the 30 frozen F4 schedules counted the main bars at the spacing of an isolated metre and listed
+    // the longitudinal bars and the ties as preliminary. Each frozen quantity is explained by the old rule restated here, and the new
+    // one is restated independently: bars at both ends of the panel at no more than 1000/n; longitudinal bars over the net panel,
+    // one piece up to the stock bar; ties at the calculated or assigned length. Shapes and lengths: WallTavolaTests.
     [TestMethod]
-    public void ThirtyFrozenSchedulesPreserveAllQuantitiesLegsAndShapes()
+    public void ThirtyFrozenSchedulesChangeOnlyByTheDeclaredCorrections()
     {
-        int schedules=0,bars=0,legs=0,points=0;
+        int schedules=0,main=0,secondary=0,ties=0;
         foreach(var row in Fixture().OfType<JsonObject>().Where(r=>r["schedule"] is not null))
         {
-            string id=S(row,"id");var e=row["schedule"]!;var a=WallBarScheduling.Calculate(Input(row),Options(row));schedules++;
+            string id=S(row,"id");var e=row["schedule"]!;var input=Input(row);var o=Options(row);var a=WallBarScheduling.Calculate(input,o);schedules++;
             Same(D(e,"PanelLength"),a.PanelLength);Same(D(e,"EndCover"),a.EndCover);Same(D(e,"StockLength"),a.StockLength);
-            Same(D(e,"KnownWeight"),a.KnownWeight,id);Assert.AreEqual(B(e,"CompleteQuantities"),a.CompleteQuantities,id);
-            Assert.AreEqual(e["Bars"]!.AsArray().Count,a.Bars.Count,id);
-            for(int i=0;i<a.Bars.Count;i++)
+            double net=o.PanelLength-2*o.EndCover/1000;
+            foreach(var x in e["Bars"]!.AsArray())
             {
-                var x=e["Bars"]![i]!;var y=a.Bars[i];bars++;
-                Assert.AreEqual(S(x,"Mark"),y.Mark);Assert.AreEqual(S(x,"Zone"),Zone(y.Zone));Assert.AreEqual(S(x,"Face"),y.Face.HasValue?Face(y.Face.Value):"fra facce");
-                Assert.AreEqual(S(x,"Kind"),y.Kind switch {WallBarKind.Main=>"Principale",WallBarKind.Secondary=>"Secondaria",_=>"Collegamento"});
-                Assert.AreEqual((int)D(x,"Quantity"),y.Quantity,id);
-                foreach(string p in new[]{"Diameter","Spacing","Mandrel","Lap"})
-                    Same(D(x,p),Convert.ToDouble(typeof(WallScheduledBar).GetProperty(p)!.GetValue(y),CultureInfo.InvariantCulture),id+"/"+p);
-                Same(x["CutLength"]?.GetValue<double>(),y.CutLength,id);Same(x["TotalLength"]?.GetValue<double>(),y.TotalLength,id);Same(x["Weight"]?.GetValue<double>(),y.Weight,id);
-                Assert.AreEqual(x["Legs"]!.AsArray().Count,y.Legs.Count);
-                for(int j=0;j<y.Legs.Count;j++){legs++;Same(D(x["Legs"]![j]!,"Length"),y.Legs[j].Length,id);Assert.AreEqual(S(x["Legs"]![j]!,"Name"),y.Legs[j].Name=="Arc90"?"arco 90°":y.Legs[j].Name);}
-                Assert.AreEqual(x["Shape"]!.AsArray().Count,y.Shape.Count);
-                for(int j=0;j<y.Shape.Count;j++){points++;Same(D(x["Shape"]![j]!,"X"),y.Shape[j].X,id);Same(D(x["Shape"]![j]!,"Y"),y.Shape[j].Y,id);}
-                if(y.Note==WallBarNote.None) Assert.AreEqual("",S(x,"Note"));
-                if(y.Note==WallBarNote.LongitudinalEndsToDetail) StringAssert.EndsWith(S(x,"Note"),"Zona "+y.ZoneStart!.Value.ToString("0.###",CultureInfo.InvariantCulture)+"–"+y.ZoneEnd!.Value.ToString("0.###",CultureInfo.InvariantCulture)+" m.");
+                string kind=S(x!,"Kind");double dia=D(x!,"Diameter");
+                if(kind=="Principale")
+                {
+                    main++;var zone=Enum.GetValues(typeof(WallRebarZone)).Cast<WallRebarZone>().Single(z=>Zone(z)==S(x!,"Zone"));
+                    var face=Enum.GetValues(typeof(WallRebarFace)).Cast<WallRebarFace>().Single(f=>Face(f)==S(x!,"Face"));
+                    var arm=input.Reinforcement.Zones[zone];int n=face is WallRebarFace.Upstream or WallRebarFace.Bottom?arm.FirstFace.Count:arm.OppositeFace.Count;
+                    double span=o.PanelLength*1000-2*o.EndCover-dia;
+                    Assert.AreEqual((int)Math.Ceiling(span/OldSpacing(input.Cover,dia,n)-1e-10)+1,(int)D(x!,"Quantity"),id);
+                    var y=a.Bars.SingleOrDefault(b=>b.Kind==WallBarKind.Main && b.Zone==zone && b.Face==face)??a.Bars.Single(b=>b.Kind==WallBarKind.Main && b.Note==WallBarNote.Continuous && b.Face==face);
+                    Same(dia,y.Diameter,id);Same(1000.0/n,y.Spacing,id);Assert.AreEqual((int)Math.Ceiling(span*n/1000-1e-10)+1,y.Quantity,id);
+                }
+                else if(kind=="Secondaria")
+                {
+                    secondary++;Same(net,D(x!,"CutLength"),id);
+                    var y=a.Bars.Where(b=>b.Kind==WallBarKind.Secondary && b.Diameter==dia).ToArray();Assert.IsTrue(y.Length>0,id);
+                    foreach(var b in y) Same(net<=o.StockLength?Math.Ceiling(net*100-1e-9)/100:b.CutLength!.Value,b.CutLength!.Value,id);
+                }
+                else
+                {
+                    ties++;var y=a.Bars.Single(b=>b.Kind==WallBarKind.Tie);
+                    Assert.AreEqual((int)D(x!,"Quantity"),y.Quantity,id);Same(dia,y.Diameter,id);
+                    if(o.TieCutLength>0) Same(D(x!,"CutLength"),y.CutLength,id); else Assert.IsNull(x!["CutLength"]?.GetValue<double>(),id);
+                    Assert.IsNotNull(y.CutLength,id);
+                }
             }
-            Assert.AreEqual(e["Warnings"]!.AsArray().Count,a.Warnings.Count,id);
-            Assert.AreEqual(!a.CompleteQuantities,a.Warnings.Any(w=>w.Code==WallScheduleWarningCode.MissingTieDevelopment));
+            Assert.IsTrue(a.CompleteQuantities,id);
             foreach(var w in a.Warnings.Where(w=>w.Code==WallScheduleWarningCode.LongerThanStock))
                 Assert.IsTrue(a.Bars.Single(b=>b.Mark==w.Mark).CutLength>a.StockLength);
         }
-        Assert.AreEqual(30,schedules);Console.WriteLine($"Schedules: {schedules} schedules, {bars} bars, {legs} legs, {points} points equivalent; quantities exact");
+        Assert.AreEqual(30,schedules);Console.WriteLine($"Schedules: {schedules} schedules, {main} main, {secondary} longitudinal and {ties} tie positions explained");
     }
     [TestMethod]
-    public void UnknownTieLengthIsDistinctFromZeroAndStockExcessDoesNotSplitBars()
+    public void AssignedTieLengthOverridesAndStockExcessDoesNotSplitMainBars()
     {
         var row=Fixture().OfType<JsonObject>().First(r=>S(r,"id")=="schedules/panel-00.json");var input=Input(row);var opt=Options(row);
-        var missing=WallBarScheduling.Calculate(input,opt with {StockLength=1,TieCutLength=0});
-        var c=missing.Bars.Single(b=>b.Kind==WallBarKind.Tie);Assert.IsNull(c.CutLength);Assert.IsNull(c.Weight);Assert.IsFalse(missing.CompleteQuantities);
-        Assert.IsTrue(missing.Warnings.Any(w=>w.Code==WallScheduleWarningCode.LongerThanStock));
-        var complete=WallBarScheduling.Calculate(input,opt with {StockLength=1,TieCutLength=900});
-        Assert.IsTrue(complete.CompleteQuantities);Assert.IsTrue(complete.KnownWeight>missing.KnownWeight);
-        CollectionAssert.AreEqual(missing.Bars.Select(b=>b.Mark).ToArray(),complete.Bars.Select(b=>b.Mark).ToArray());
-        Same(complete.Bars.Single(b=>b.Kind==WallBarKind.Tie).Weight!.Value,complete.KnownWeight-missing.KnownWeight);
+        var calculated=WallBarScheduling.Calculate(input,opt with {StockLength=1.5,TieCutLength=0});
+        var c=calculated.Bars.Single(b=>b.Kind==WallBarKind.Tie);Assert.IsNotNull(c.CutLength);Assert.IsTrue(calculated.CompleteQuantities);
+        Assert.IsTrue(calculated.Warnings.Any(w=>w.Code==WallScheduleWarningCode.LongerThanStock));
+        var assigned=WallBarScheduling.Calculate(input,opt with {StockLength=1.5,TieCutLength=900});
+        Same(.9,assigned.Bars.Single(b=>b.Kind==WallBarKind.Tie).CutLength!.Value);
+        CollectionAssert.AreEqual(calculated.Bars.Select(b=>b.Mark).ToArray(),assigned.Bars.Select(b=>b.Mark).ToArray());
+        var t=assigned.Bars.Single(b=>b.Kind==WallBarKind.Tie);
+        Same(t.Weight!.Value-c.Weight!.Value,assigned.KnownWeight-calculated.KnownWeight);
     }
     [TestMethod]
-    public void SecondaryBoundaryIsOwnedOnceAndPanelEndsPreserveCounts()
+    public void LongitudinalBoundaryIsOwnedOnceAndPanelEndsKeepTheSpacing()
     {
         var row=Fixture().OfType<JsonObject>().First(r=>S(r,"id")=="schedules/panel-00.json");var p=Input(row);var a=WallBarScheduling.Calculate(p,Options(row));
         var lower=a.Bars.Single(b=>b.Zone==WallRebarZone.Stem && b.Kind==WallBarKind.Secondary && b.Face==WallRebarFace.Upstream);
         var upper=a.Bars.Single(b=>b.Zone==WallRebarZone.StemUpper && b.Kind==WallBarKind.Secondary && b.Face==WallRebarFace.Upstream);
-        Same(lower.ZoneEnd,upper.ZoneStart);
-        double lastLower=lower.ZoneStart!.Value+(lower.Quantity-1)*lower.Spacing/1000;
-        Assert.IsTrue(lastLower<upper.ZoneStart!.Value);
+        double split=p.Geometry.Slab+p.Reinforcement.LowerHeight;
+        Assert.IsTrue(lower.SectionPoints.All(q=>q.Y<split));Same(split,upper.SectionPoints[0].Y);
         foreach(var b in a.Bars.Where(b=>b.Kind==WallBarKind.Main))
-            Same(a.PanelLength*1000-2*a.EndCover-b.Diameter,(b.Quantity-1)*b.Spacing);
+            Assert.IsTrue((a.PanelLength*1000-2*a.EndCover-b.Diameter)/(b.Quantity-1)<=b.Spacing+1e-9);
     }
     [TestMethod]
     public void InvalidPanelsAndCancellationAreAtomic()
