@@ -256,7 +256,11 @@ public static class ShallowFoundationBearing
             fq.Depth = 1 + 2 * t * Square(1 - sin) * k;
             fc.Depth = 1 + 2 * Square(1 - sin) * k * (t + 1 / nc);
             if (hansen && h > 0)
-                throw new NotSupportedException("Brinch Hansen: il ramo con carico inclinato richiede la revisione della formulazione direzionale; non viene sostituito con coefficienti di altri metodi.");
+            {
+                var (hB, hL) = HansenComponents(x.Shape, h, hx, hy);
+                HansenDrainedInclined(x, r, c, q, gamma, be, le, ratio, hB, hL, area, k, nc, nq, nqMinusOne, t, sin);
+                return;
+            }
             r.Reference = hansen ? "Brinch Hansen (1970), fattori correlati sc/sq e dc/dq; solo carico normale" : "Vesić (1975), formulazione generalizzata con fattori correlati dc/dq";
         }
         if (x.Method is FoundationBearingMethod.Eurocode7 or FoundationBearingMethod.Vesic)
@@ -296,12 +300,16 @@ public static class ShallowFoundationBearing
         double k = x.IncludeDepthFactors ? DepthRatio(x.Depth / b) : 0;
         if (x.Method == FoundationBearingMethod.Hansen)
         {
-            if (h > 0) throw new NotSupportedException("Hansen non drenato con carico inclinato: formula del fattore di forma da riscontrare sulla fonte originale.");
             // Additive expression, deliberately not the product of shape and depth factors.
             f.Shape = f.Depth = f.Inclination = 1;
             f.Additive = true; f.AdditiveShape = .2 * ratio; f.AdditiveDepth = .4 * k; f.AdditiveInclination = 0;
-            f.Pressure = cu * f.N * f.AdditiveFactor;
-            r.Reference = "Brinch Hansen (1970), non drenato, correzioni additive; carico normale";
+            if (h > 0)
+            {
+                var (hB, hL) = HansenComponents(x.Shape, h, hx, hy);
+                HansenUndrainedInclined(x, r, cu, q, ratio, hB, hL, area, k, r.EffectiveWidth, r.EffectiveLength);
+            }
+            else r.Reference = "Brinch Hansen (1970), non drenato, correzioni additive; carico normale";
+            f.Pressure = r.DomainExhausted ? 0 : cu * f.N * f.AdditiveFactor;
         }
         else
         {
@@ -346,6 +354,124 @@ public static class ShallowFoundationBearing
         r.DomainExhausted = true;
         r.Warnings.Add(reason + " Capacità portante assunta nulla.");
     }
+
+    /// <summary>
+    /// H_B and H_L of Brinch Hansen (reference manual §3.4.1), the components parallel to B′ and L′ (already exchanged with the axes).
+    /// A circle has no preferred axis: H is aligned with B′.
+    /// </summary>
+    static (double B, double L) HansenComponents(FoundationShape shape, double h, double hx, double hy) =>
+        shape == FoundationShape.Circle ? (h, 0) : (hx, hy);
+
+    /// <summary>
+    /// Brinch Hansen (1970) with an inclined load, drained: reference manual (3.23)–(3.25), base and ground horizontal (η = 0). Failure in
+    /// the direction of B′ and, except for the strip, of L′, also when H_L = 0; the smaller pressure governs (§3.4.1). B′L′ of the manual is
+    /// the effective area. The direction of L′ does not tend to the normal-load expressions (3.19)–(3.20) as H → 0: declared in the warnings.
+    /// </summary>
+    static void HansenDrainedInclined(ShallowFoundationInput x, ShallowFoundationResult r, double c, double q, double gamma,
+        double be, double le, double ratio, double hB, double hL, double area, double kB, double nc, double nq, double nqMinusOne, double t, double sin)
+    {
+        var fc = r.Cohesion; var fq = r.Surcharge; var fg = r.Weight;
+        double ng = 1.5 * nqMinusOne * t;
+        // H/(N + A′c′ cot φ′) written as H tan φ′/(N tan φ′ + A′c′), as for EC7 and Vesić.
+        double denominator = x.Normal * t + area * c;
+        (double Q, double G, double C) Inclination(double hd)
+        {
+            double f = hd * t / denominator, baseQ = 1 - .5 * f;
+            double iq = Pow5(baseQ), ig = Pow5(1 - .7 * f);
+            double iqMinusOne = baseQ > 0 ? Expm1(5 * Log1p(-.5 * f)) : iq - 1;
+            return (iq, ig, 1 + iqMinusOne * nq / nqMinusOne);
+        }
+        var iB = Inclination(hB); var iL = Inclination(hL);
+        if (new[] { iB.Q, iB.G, iB.C, iL.Q, iL.G, iL.C }.Any(v => v < 0))
+        {
+            fq.Inclination = Math.Max(0, iB.Q); fg.Inclination = Math.Max(0, iB.G); fc.Inclination = Math.Max(0, iB.C); fg.N = ng;
+            Exhaust(r, "Brinch Hansen: fattore di inclinazione negativo (manuale di riferimento 3.23), componente tangenziale oltre il dominio della formula.");
+            r.Reference = "Brinch Hansen (1970), carico inclinato";
+            return;
+        }
+        (double Total, double Sc, double Sq, double Sg, double Dc, double Dq, double Ic, double Iq, double Ig) Direction(
+            (double Q, double G, double C) i, double other, double shapeRatio, double k)
+        {
+            double sq = 1 + i.Q * shapeRatio * sin, sc = 1 + (sq - 1) * nq / nqMinusOne;
+            double sg = other > 0 ? Math.Max(.6, 1 - .4 * shapeRatio * i.G / other) : .6;
+            double dq = 1 + 2 * t * Square(1 - sin) * k, dc = 1 + 2 * Square(1 - sin) * k * (t + 1 / nc);
+            double total = c * nc * sc * dc * i.C + q * nq * sq * dq * i.Q + .5 * gamma * be * ng * sg * i.G;
+            return (total, sc, sq, sg, dc, dq, i.C, i.Q, i.G);
+        }
+        bool strip = x.Shape == FoundationShape.Strip;
+        var alongB = Direction(iB, iL.G, ratio, kB);
+        var governing = alongB;
+        string reference = "Brinch Hansen (1970), carico inclinato: fattori correlati, ";
+        if (strip)
+        {
+            r.Reference = reference + "fondazione nastriforme, direzione di B′";
+            r.Warnings.Add("Brinch Hansen con carico inclinato (manuale di riferimento 3.23–3.25): fondazione nastriforme, rottura nella sola direzione di B′.");
+        }
+        else
+        {
+            double kL = x.IncludeDepthFactors ? DepthRatio(x.Depth / le) : 0;
+            var alongL = Direction(iL, iB.G, le / be, kL);
+            if (alongL.Total < alongB.Total) governing = alongL;
+            double normal = Direction((1, 1, 1), 1, ratio, kB).Total;
+            r.Reference = reference + "direzioni di B′ e di L′, la minore";
+            r.Warnings.Add($"Brinch Hansen con carico inclinato (manuale di riferimento 3.23–3.25): qlim = {Kpa(alongB.Total)} kPa per rottura nella direzione di B′, {Kpa(alongL.Total)} kPa nella direzione di L′; si adotta la minore ({(governing == alongB ? "B′" : "L′")}).");
+            r.Warnings.Add($"Con H = 0 (carico normale, 3.19–3.20) qlim = {Kpa(normal)} kPa. Per H → 0 la direzione di L′, calcolata anche con HL = 0 (forma L′/B′, profondità D/L′), non tende a questo valore: quando governa, la differenza è a favore di sicurezza.");
+        }
+        fc.Shape = governing.Sc; fc.Depth = governing.Dc; fc.Inclination = governing.Ic;
+        fq.Shape = governing.Sq; fq.Depth = governing.Dq; fq.Inclination = governing.Iq;
+        fg.N = ng; fg.Shape = governing.Sg; fg.Depth = 1; fg.Inclination = governing.Ig;
+        fc.Pressure = c * fc.N * fc.Shape * fc.Depth * fc.Inclination;
+        fq.Pressure = q * fq.N * fq.Shape * fq.Depth * fq.Inclination;
+        fg.Pressure = .5 * gamma * be * fg.N * fg.Shape * fg.Depth * fg.Inclination;
+    }
+
+    /// <summary>
+    /// Brinch Hansen (1970) with an inclined load, undrained: reference manual (3.26), (3.27), (3.27′), (3.27″), additive corrections, in
+    /// the direction of B′ and, except for the strip, of L′; the smaller pressure governs. The manual's s′c = 0.2 i′c B′/L′ vanishes as H → 0
+    /// instead of tending to 0.2 B′/L′ of (3.28): kept literally (on the safe side) and declared in the warnings.
+    /// </summary>
+    static void HansenUndrainedInclined(ShallowFoundationInput x, ShallowFoundationResult r, double cu, double q, double ratio,
+        double hB, double hL, double area, double kB, double be, double le)
+    {
+        var f = r.Cohesion;
+        double capacity = area * cu;
+        if (hB > capacity || hL > capacity)
+        {
+            Exhaust(r, "Brinch Hansen non drenato (manuale di riferimento 3.27): componente tangenziale oltre A′ cu.");
+            r.Reference = "Brinch Hansen (1970), non drenato, correzioni additive; carico inclinato";
+            return;
+        }
+        // 0.5 − 0.5 √(1 − H/(A′cu)), written without cancellation.
+        double Inclination(double hd) { double e = hd / capacity; return .5 * e / (1 + Math.Sqrt(1 - e)); }
+        (double Total, double S, double D, double I) Direction(double i, double shapeRatio, double k)
+        {
+            double s = .2 * i * shapeRatio, d = .4 * k;
+            return (cu * f.N * (1 + s + d - i) + q, s, d, i);
+        }
+        double iB = Inclination(hB), iL = Inclination(hL);
+        var alongB = Direction(iB, ratio, kB);
+        var governing = alongB;
+        string reference = "Brinch Hansen (1970), non drenato, correzioni additive; carico inclinato, ";
+        if (x.Shape == FoundationShape.Strip)
+        {
+            r.Reference = reference + "fondazione nastriforme, direzione di B′";
+            r.Warnings.Add("Brinch Hansen non drenato con carico inclinato (manuale di riferimento 3.27): fondazione nastriforme, rottura nella sola direzione di B′.");
+        }
+        else
+        {
+            double kL = x.IncludeDepthFactors ? DepthRatio(x.Depth / le) : 0;
+            var alongL = Direction(iL, le / be, kL);
+            if (alongL.Total < alongB.Total) governing = alongL;
+            double normal = cu * f.N * (1 + .2 * ratio + .4 * kB) + q;
+            r.Reference = reference + "direzioni di B′ e di L′, la minore";
+            r.Warnings.Add($"Brinch Hansen non drenato con carico inclinato (manuale di riferimento 3.27): qlim = {Kpa(alongB.Total)} kPa per rottura nella direzione di B′, {Kpa(alongL.Total)} kPa nella direzione di L′; si adotta la minore ({(governing == alongB ? "B′" : "L′")}).");
+            r.Warnings.Add($"Con H = 0 (carico normale, 3.28) qlim = {Kpa(normal)} kPa. Il manuale scrive s′c = 0,2 i′c B′/L′, che per H → 0 si annulla invece di tendere a 0,2 B′/L′, e la direzione di L′ vale anche con HL = 0: discontinuità a favore di sicurezza, mantenuta; la pubblicazione originale non è stata riscontrata.");
+        }
+        f.AdditiveShape = governing.S; f.AdditiveDepth = governing.D; f.AdditiveInclination = governing.I;
+    }
+
+    static double Pow5(double x) => x * x * x * x * x;
+    static string Kpa(double mpa) => (mpa * 1000).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture).Replace('.', ',');
 
     static void Terzaghi(ShallowFoundationInput x, ShallowFoundationResult r, double phi, double c, double q, double gamma, double be, double ratio, double h)
     {
