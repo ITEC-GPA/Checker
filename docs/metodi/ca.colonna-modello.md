@@ -10,8 +10,12 @@ classi:
   - GPC.Checkers.Concrete.Slenderness.ModelColumnCreep
   - GPC.Checkers.Concrete.Slenderness.ModelColumnProfiles
   - GPC.Checkers.Concrete.Slenderness.ModelColumnBiaxialCheck
+  - GPC.Checkers.Concrete.Slenderness.ModelColumnEnvelope
+  - GPC.Checkers.Concrete.Slenderness.ModelColumnEnvelopeResult
+  - GPC.Checkers.Concrete.Slenderness.ModelColumnAction
+  - GPC.Checkers.Concrete.Slenderness.ModelColumnDomain
   - GPC.Checkers.Concrete.Checkers.SectionCheckerModelCode2010
-versione: 0.27.0.0
+versione: 0.28.0.0
 norme:
   - ntc2018-4.1.2.3.4.2
   - ntc2018-4.1.2.3.9.2
@@ -43,6 +47,11 @@ Il metodo verifica un pilastro snello in c.a. con gli effetti del secondo ordine
 - a confronto, la curvatura nominale di EN 1992-1-1 5.8.8;
 - la traccia dei passaggi in italiano per la relazione.
 
+Dalla 0.28.0.0 (fase 2) il metodo verifica anche tutte le azioni di una sezione, ognuna con il suo NEd costante, con l'esito
+peggiore e l'azione che governa (`ModelColumnEnvelope`), e dà il dominio ridotto N–M1Rd,max: la capacità del primo ordine al
+variare di NEd fra 0 e la resistenza a compressione centrata, accanto al momento resistente della sezione
+(`ModelColumnAnalysis.Domain`, §6.9).
+
 La flessione deviata si tratta con due colonne modello nelle direzioni principali e con il controllo di
 EN 1992-1-1 5.8.9 (`ModelColumnBiaxialCheck`).
 
@@ -63,7 +72,11 @@ EN 1992-1-1 5.8.9 (`ModelColumnBiaxialCheck`).
 | Calcestruzzo fibrorinforzato, profili d'acciaio, sezioni senza barre | rifiuto | `UnsupportedSection` |
 | Dominio elastico, calcestruzzo teso del verificatore | rifiuto | `UnsupportedChecker` (NTC §4.1.2.3.9.2: calcestruzzo teso trascurato) |
 | Tension stiffening, legge (3.14) di EN 1992-1-1 per la rigidezza | non supportato | fase successiva |
-| Inviluppo di più combinazioni, dominio ridotto N–M1Rd | non supportato | ripetere il calcolo; fase successiva |
+| Inviluppo di più azioni (N, M1, M2) | supportato (0.28.0.0) | una colonna modello per azione a N costante nella direzione θ, o θ + 180° con momento negativo; esito peggiore e azione che governa (§6.9) |
+| Azione di trazione nell'inviluppo | non pertinente | stato `Tension`: nessun effetto del secondo ordine, la sezione si verifica con il dominio |
+| Azione oltre NRd,c nell'inviluppo | non verificata | stato `Rejected` con `AxialForceBeyondResistance`, rapporto +∞ |
+| Momento del primo ordine normale a θ nell'inviluppo | non verificato, avviso | `TransverseFirstOrderMoment` oltre il limite trasversale per il modulo del momento in θ (riquadro K-7) |
+| Dominio ridotto N–M1Rd,max | supportato (0.28.0.0) | griglia di N fra 0 e NRd,c con gli N delle azioni (§6.9) |
 | Telai, colonne a sezione o sforzo normale variabili | non supportato | metodo generale (integrazione delle curvature) |
 
 ## 3. Riferimenti normativi
@@ -125,6 +138,10 @@ modulo della compressione.
 | χeq, e2, M2, MEd | equilibrio con M0Ed | 1/mm, mm, Nmm | `ModelColumnEquilibrium` |
 | χu | curvatura ultima della sezione a NEd | 1/mm | `ModelColumnCapacity.UltimateCurvature` |
 | w | distanza lungo la curvatura, w = (y − y0) cos ϑ − (x − x0) sin ϑ | mm | piano ε = ε0 − χ w |
+| M1, M2 | momenti del primo ordine di un'azione negli assi delle forze, senza imperfezione | Nmm | `ModelColumnAction.Moment1`, `Moment2` |
+| M, M⊥ | momento dell'azione nella direzione θ e normale a θ | Nmm | `ModelColumnActionResult.Moment`, `TransverseMoment` |
+| ηi | rapporto M0Ed,tot/M1Rd,max dell'azione i | — | `ModelColumnActionResult.Ratio` |
+| NRd,c | resistenza a compressione centrata con il legame della viscosità | N | `ModelColumnDomain.CompressionResistance` |
 
 ## 6. Formulazione
 
@@ -260,6 +277,57 @@ ellittiche, altrimenti 1,0 / 1,5 / 2,0 per NEd/NRd = 0,1 / 0,7 / 1,0 con NRd = A
 >   a 0/90/180/270°, 72-gono con 12 barre a 30°); fuori dalle direzioni principali il calcolo non è una flessione retta.
 > - Stato: `dichiarato`; la ricerca dell'asse neutro che annulla il momento trasversale è rinviata.
 
+### 6.9 Inviluppo delle azioni e dominio ridotto (0.28.0.0)
+
+Il modello (template) dà θ, l0, l, c, imperfezione, eccentricità minima, viscosità, rm, passi e limiti; ogni azione
+i = (NEd,i, M1,i, M2,i) è una colonna modello a NEd,i costante:
+
+```math
+M_i = M_{1,i}\cos\theta + M_{2,i}\sin\theta,\quad M_{\perp,i} = -M_{1,i}\sin\theta + M_{2,i}\cos\theta,\quad \vartheta_i = \begin{cases}\theta & M_i \ge 0\\ \theta + 180^\circ & M_i < 0\end{cases},\quad M_{0Ed,i} = |M_i| \qquad \text{(K.7)}
+```
+
+```math
+\eta_i = \frac{M_{0Ed,tot,i}}{M_{1Rd,max}(N_{Ed,i}, \vartheta_i, \varphi_{ef,i})},\qquad \eta = \max_i \eta_i \qquad \text{(K.8)}
+```
+
+- con la (5.19) φef,i = φ(∞, t0) (M0Eqp + NEqp ei)/(M0Ed,i + NEd,i ei): la coppia quasi permanente è una sola, M0Ed e NEd sono
+  quelli dell'azione (EN 5.8.4(2): il rapporto è riferito alla combinazione di progetto considerata);
+- trazione (NEd,i > 0): non pertinente; |NEd,i| > NRd,c: non verificata, ηi = +∞; altri rifiuti (momento trasversale della curva,
+  dati): esito incompleto (`RejectedActions`);
+- esito: non verificato se un'azione non lo è o è oltre NRd,c; indefinito se un'azione è rifiutata per altri motivi o nessuna è
+  compressa; altrimenti verificato. Azione che governa: la ηi massima (`Governing`), e la massima fra quelle calcolate
+  (`GoverningCalculated`) per i grafici;
+- azioni con gli stessi NEd, ϑ e φef condividono la curva M(χ) (cache): ogni risultato è quello della colonna singola, bit per bit.
+
+Dominio ridotto, per ogni direzione usata (θ e, con momenti negativi, θ + 180°):
+
+```math
+N_j = \frac{j}{n} N_{Rd,c}\ (j = 0 \ldots n),\qquad M_{1Rd,max}(N_j),\quad M(\chi_u)(N_j) = M_{Rd}(N_j) \qquad \text{(K.9)}
+```
+
+con n = 40 per default, gli N delle azioni della stessa direzione e φef aggiunti; un'azione è nel dominio ridotto se
+M0Ed,tot ≤ M1Rd,max(NEd). A N = 0 M1Rd,max = M(χu) (k = 0); a NRd,c la curvatura ultima è nulla. Il dominio della sezione
+M(χu)(N) è quello del dominio plastico nella direzione ϑ (stesse deformazioni ultime).
+
+> **Scostamento dichiarato — K-7 Momento normale a θ nell'inviluppo**
+>
+> - Norma: EN 1992-1-1 5.8.9(2)-(4): verifiche separate nelle due direzioni principali e (5.38)/(5.39) se i rapporti non
+>   sono soddisfatti.
+> - Programma: l'inviluppo verifica la sola componente nella direzione θ; M⊥ non è verificato e, oltre il limite trasversale
+>   (1 %) per |M|, dà l'avviso `TransverseFirstOrderMoment` con l'azione segnata (`TransverseNeglected`).
+> - Effetto: con M⊥ significativo la verifica è incompleta, non a favore di sicurezza: va ripetuta a θ + 90° e combinata con
+>   `ModelColumnBiaxialCheck` (5.8.9).
+> - Stato: `dichiarato`.
+
+> **Scostamento dichiarato — K-8 Viscosità del dominio ridotto con la (5.19)**
+>
+> - Norma: (5.19) dà φef per ogni combinazione di progetto.
+> - Programma: il dominio ridotto è disegnato con il φef dell'azione che governa nella direzione; ogni azione è verificata
+>   con il suo φef.
+> - Effetto: solo il grafico; le azioni con un φef maggiore di quello del dominio possono stare dentro la curva e non essere
+>   verificate (lo dice il loro esito).
+> - Stato: `dichiarato`.
+
 ## 7. Coefficienti e valori predefiniti
 
 | Simbolo | Valore | Fonte | Modificabile | Dove nel codice |
@@ -270,6 +338,7 @@ ellittiche, altrimenti 1,0 / 1,5 / 2,0 per NEd/NRd = 0,1 / 0,7 / 1,0 con NRd = A
 | φef | 0 con controllo di 5.8.4(4) | EN 5.8.4 | sì | `ModelColumnCreep` |
 | rm | non noto (C = 0,7) | EN 5.8.3.1(1) | sì | `EndMomentRatio` |
 | passi di curvatura | 200, in [10; 500] | scelta del metodo | sì | `Steps` |
+| intervalli del dominio ridotto | 40, in [4; 200] | scelta del metodo | sì | `ModelColumnEnvelope.Calculate`, `ModelColumnAnalysis.Domain` |
 | tolleranza su N di MRd(N) | 1000 N | scelta del metodo | sì | `AxialTolerance` |
 | limite del momento trasversale | 1 % | scelta del metodo | sì | `TransverseMomentLimit`, `RejectTransverseMoment` |
 | tolleranza dell'equilibrio su N | 1e-11 (Ac fcd + As fyd) | scelta del metodo | no | `ModelColumnEngine.Run` |
@@ -277,8 +346,8 @@ ellittiche, altrimenti 1,0 / 1,5 / 2,0 per NEd/NRd = 0,1 / 0,7 / 1,0 con NRd = A
 ## 8. Implementazione
 
 File `GPCChecker.Concrete/Slenderness/`: `ModelColumnRequest.cs` (richiesta, profili, imperfezione, viscosità),
-`ModelColumnResult.cs` (risultati, traccia, rifiuti), `ModelColumnAnalysis.cs` (validazione e calcolo),
-`ModelColumnBiaxialCheck.cs` (5.8.9).
+`ModelColumnResult.cs` (risultati, traccia, rifiuti), `ModelColumnAnalysis.cs` (validazione, calcolo e dominio ridotto),
+`ModelColumnEnvelope.cs` (azioni, inviluppo, dominio, avanzamento), `ModelColumnBiaxialCheck.cs` (5.8.9).
 
 1. `ModelColumnAnalysis.Calculate`: validazione, profilo (`ModelColumnProfiles.TryResolve`, classe esatta), controlli di
    verificatore e sezione, rifiuto della trazione.
@@ -293,13 +362,22 @@ File `GPCChecker.Concrete/Slenderness/`: `ModelColumnRequest.cs` (richiesta, pro
 8. `Equilibrium`: prima radice di M − kχ = M0Ed,tot sui campioni fino a χ*, 100 bisezioni.
 9. `Nominal` e `Resistance`: curvatura nominale e MRd(NEd) con `SectionSolver.CalculateConvergedDomainPoint` a N
    costante.
+10. `ModelColumnEnvelope.Calculate` (0.28.0.0): controlli comuni (norma, verificatore, sezione, intervalli) una volta, poi (K.7)
+    per ogni azione e la colonna dei punti 1-9 con la cache delle curve (`ModelColumnCurveCache`, chiave NEd, ϑ, 1 + φef,
+    NEd l0²/c, passi): i punti 4-7 si calcolano una volta per chiave; rifiuti di un'azione nel suo risultato; avanzamento
+    `ModelColumnStage.Actions`.
+11. `ModelColumnAnalysis.Domain`: la colonna di riferimento (l'azione che governa nella direzione, o la richiesta), poi una
+    colonna di sola capacità per ogni Nj di (K.9) con il suo φef, sulla stessa cache; un punto rifiutato per il momento
+    trasversale resta senza valori; avanzamento `ModelColumnStage.Domain`.
+12. Il rapporto del momento trasversale non si calcola quando tutti i momenti della curva sono sotto 1e-11 (Ac fcd + As fyd) h
+    (solo arrotondamento: NEd = NRd,c di una sezione simmetrica).
 
 ## 9. Limiti e casi non supportati
 
 - Sezione critica unica, N e sezione costanti, l0 dato dal chiamante (per i telai EN (5.15)-(5.16)).
 - Solo la parabola-rettangolo di progetto per la rigidezza; la (3.14) con fcd ed Ecd = Ecm/γCE (5.8.6(3)) è rinviata.
 - L'acciaio con incrudimento segue la legge di Model (riquadro M-2 di ca.momento-curvatura).
-- Nessun inviluppo di combinazioni, nessun dominio ridotto N–M1Rd.
+- Inviluppo: la sola componente nella direzione θ (riquadro K-7); la flessione deviata delle azioni si tratta a parte con 5.8.9.
 - Il primo snervamento comprende le barre compresse, come la curva momento-curvatura.
 
 ## 10. Esempio numerico verificato
@@ -320,6 +398,22 @@ M0Ed = 137,5 kNm.
 | η | 137,5/156,083 = 0,881 | 0,881, verificato |
 | curvatura nominale: Kr, 1/r0, e2, M2 | 1, 1,20773e-5 1/mm, 173,91 mm, 86,957 kNm | gli stessi |
 
+Inviluppo (0.28.0.0), stessa sezione con l0 = 6 m, l = 3 m, nessuna imperfezione né minimo, φef = 0, θ = 0:
+
+| Azione | NEd [kN] | M1, M2 [kNm] | ϑ | M1Rd,max [kNm] (Python) | η | Libreria |
+| --- | --- | --- | --- | --- | --- | --- |
+| C1 | −1000 | 180, 0 | 0° | 223,656 | 0,8048 | 223,656, verificata |
+| C2 | −2000 | 100, 0 | 0° | 121,874 | 0,8205 | 121,874, verificata |
+| C3 | −1000 | −150, 0 | 180° | 223,656 | 0,6707 | 223,656 (simmetria), verificata |
+| C4 | +200 | 50, 0 | — | — | — | trazione, non pertinente |
+| C5 | −2500 | 40, 30 | 0° | 65,608 | 0,6097 | 65,608, verificata, M⊥ = 30 kNm non verificato (K-7) |
+| C6 | −1000 | 120, 0 | 0° | 223,656 | 0,5365 | curva di C1 |
+| C7 | −1500 | 160, 0 | 0° | 169,407 | 0,9445 | 169,407, governa |
+
+Esito: verificato, governa C7; 27 curve con due domini di 10 intervalli. Dominio ridotto a l0 = 6 m (Python, kNm):
+N = 0 / 500 / 1000 / 1500 / 2000 / 2500 / 3000 / 3200 kN → M1Rd,max = 174,198 / 213,921 / 223,656 / 169,407 / 121,874 /
+65,608 / 17,829 / 3,897, M(χu) = 174,198 / 246,264 / 276,512 / 234,963 / 183,951 / 119,789 / 44,827 / 14,179.
+
 Passaggi: per χ = χ* il piano porta la barra tesa a εyd = 1,957 ‰ (primo snervamento) con il lembo compresso a
 1,895 ‰; M(χ*) = 233,12 kNm, M2* = k χ* = 77,03 kNm, M1Rd,max = 156,08 kNm. Con la sezione lorda il riferimento dà
 157,39 kNm (−0,8 % per la sezione netta).
@@ -338,6 +432,21 @@ due esempi esterni (provenienza nel README della cartella):
   oltre NRd,c, c = 8, φef = 1 e 2, imperfezioni e minimi in forma chiusa, (5.19) e 5.8.4(4);
 - proprietà: M1Rd,max decrescente con l0 e con φef; simmetrie (0/90/180/270°, 30° sul 72-gono); momento trasversale;
   percorso viscoso a φef = 0 identico bit per bit; flessione deviata (5.38)/(5.39).
+
+`GPCChecker.Test.Concrete/ModelColumnEnvelopeTests.cs` (6 prove, 0.28.0.0), con i casi R400-3+3D24-l0-6-domain e
+R400-3+3D24-l0-6-N1000-phi519 dello stesso riferimento:
+
+- inviluppo di sette azioni (§10): capacità e rapporti entro 0,2 % dal riferimento, proiezione e direzione a mano, trazione,
+  momento normale a θ con l'avviso, azione che governa, 27 curve, ogni azione uguale bit per bit alla colonna singola,
+  avanzamento;
+- dominio ridotto contro il riferimento a 8 valori di N: M1Rd,max entro 0,0013 %, M(χu) entro 0,0001 %; M1Rd,max ≤ M(χu), uguali
+  a N = 0, nulli a NRd,c; dominio di θ + 180° uguale per simmetria;
+- viscosità della (5.19) per azione a mano, capacità a 1000 kN contro il riferimento (+0,0002 %), dominio al φef dell'azione
+  che governa;
+- azione non verificata (η = 1,40225 contro 1,40225 del riferimento) e oltre NRd,c (η = +∞, governa); rifiuti per il momento
+  trasversale (esito indefinito, nessun dominio), sola trazione, nessuna azione, intervalli fuori limite, norma senza
+  profilo, annullamento;
+- dominio di una richiesta singola: griglia e N della richiesta, φef, eccentricità minima, avanzamento.
 
 ## 12. Bibliografia
 

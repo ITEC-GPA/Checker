@@ -47,7 +47,7 @@ namespace ConcreteTests
             return section;
         }
 
-        private static ReinforcedConcreteSection Bars(double b, double h, double fck, params double[][] bars)
+        internal static ReinforcedConcreteSection Bars(double b, double h, double fck, params double[][] bars)
         {
             var concrete = new ConcreteMaterialEN1992("C" + fck, fck, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle);
             var steel = new SteelMaterial("B450C", 200000, 450, 450, 0.075, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
