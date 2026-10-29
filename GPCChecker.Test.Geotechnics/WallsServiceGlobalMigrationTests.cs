@@ -82,7 +82,7 @@ public class WallsServiceGlobalMigrationTests
     [TestMethod]
     public void LegacyGlobalCombinationsAreReproduced()
     {
-        int lines = 0, rows = 0, rejected = 0;
+        int lines = 0, rows = 0, rejected = 0, added = 0;
         foreach (var line in Lines("walls-combinations.jsonl"))
         {
             string name = Str(line["name"]); var legacy = line["global"];
@@ -92,24 +92,31 @@ public class WallsServiceGlobalMigrationTests
             // ANTHEA checks the actions while generating; the port checks them in the calculation of the wall.
             if (IsError(legacy)) { Throws(() => { WallGlobalStability.Combinations(input, GlobalSeismic(doc), false); RetainingWallAnalysis.Calculate(input, WallCombinations.Generate(input)); }, name); rejected++; continue; }
             var port = WallGlobalStability.Combinations(input, GlobalSeismic(doc), false); var list = legacy!.AsArray();
-            Assert.AreEqual(list.Count, port.Count, name);
-            for (int i = 0; i < list.Count; i++)
+            // The legacy rows with the decisions D4 b (WallsFixture.DecidedGlobal) and D6 a (WallsFixture.DecidedGlobalD6) of 28/10/2026. The loads by
+            // position: ANTHEA upgrades a version 1 document again inside the generator, with new identifiers of the actions.
+            var decided = list.Select(l =>
             {
-                var l = list[i]!; var p = port[i]; string id = name + " " + Str(l["name"]);
-                Assert.AreEqual(Str(l["name"]), p.Name, id);
-                foreach (var (a, b, what) in new[] { (Req(l["mphi"], "mφ"), p.TanFrictionAngle, "mφ"), (Req(l["mc"], "mc"), p.EffectiveCohesion, "mc"), (Req(l["mcu"], "mcu"), p.UndrainedShearStrength, "mcu"),
-                    (Req(l["r"], "r"), p.ResistanceFactor, "γR"), (Req(l["kh"], "kh"), p.Kh, "kh"), (Req(l["kv"], "kv"), p.Kv, "kv"), (Req(l["soil"], "soil"), p.SoilWeight, "soil"), (Req(l["wall"], "wall"), p.BodyWeight, "wall") })
+                var coefficients = l!["coefficients"]!.AsObject().Select(c => Req(c.Value, c.Key)).ToArray();
+                Assert.AreEqual(coefficients.Length, input.Actions.Count, name + " " + Str(l["name"]));
+                return new GPC.Checkers.Geotechnics.Slopes.SlopeFactors(Str(l["name"]), Req(l["soil"], "soil"), Req(l["wall"], "wall"), Req(l["mphi"], "mφ"), Req(l["mc"], "mc"), Req(l["mcu"], "mcu"),
+                    Req(l["r"], "r"), Req(l["kh"], "kh"), Req(l["kv"], "kv"), false, input.Actions.Select((a, k) => (a.Id, DecidedGlobal(Str(l["name"]), input, a.Id, coefficients[k]))).ToDictionary(p => p.Item1, p => p.Item2));
+            }).ToList();
+            var expected = DecidedGlobalD6(decided, input);
+            Assert.AreEqual(expected.Count, port.Count, name);
+            added += expected.Count - list.Count;
+            for (int i = 0; i < expected.Count; i++)
+            {
+                var l = expected[i].Row; var p = port[i]; string id = name + " " + l.Name;
+                Assert.AreEqual(l.Name, p.Name, id);
+                foreach (var (a, b, what) in new[] { (l.TanFrictionAngle, p.TanFrictionAngle, "mφ"), (l.EffectiveCohesion, p.EffectiveCohesion, "mc"), (l.UndrainedShearStrength, p.UndrainedShearStrength, "mcu"),
+                    (l.ResistanceFactor, p.ResistanceFactor, "γR"), (l.Kh, p.Kh, "kh"), (l.Kv, p.Kv, "kv"), (l.SoilWeight, p.SoilWeight, "soil"), (l.BodyWeight, p.BodyWeight, "wall") })
                     Close(a, b, id + " " + what, 1e-14, 1e-16);
-                // By position: ANTHEA upgrades a version 1 document again inside the generator, with new identifiers of the actions.
-                var coefficients = l["coefficients"]!.AsObject().Select(c => Req(c.Value, c.Key)).ToArray(); var values = input.Actions.Select(a => p.Loads[a.Id]).ToArray();
-                Assert.AreEqual(coefficients.Length, values.Length, id);
-                // with the decision D4 b of 28/10/2026 (WallsFixture.DecidedGlobal)
-                for (int k = 0; k < values.Length; k++) Close(DecidedGlobal(p.Name, input, input.Actions[k].Id, coefficients[k]), values[k], id + " action " + k, 1e-14, 1e-16);
+                foreach (var a in input.Actions) Close(l.Loads[a.Id], p.Loads[a.Id], id + " action " + a.Id, 1e-14, 1e-16);
                 rows++;
             }
             lines++;
         }
-        TestContext.WriteLine($"{lines} documents, {rows} global rows, {rejected} rejected");
+        TestContext.WriteLine($"{lines} documents, {rows} global rows ({added} added by the decision D6 a), {rejected} rejected");
         Assert.IsTrue(lines > 90 && rows > 300, $"{lines} {rows}");
     }
 
@@ -124,11 +131,22 @@ public class WallsServiceGlobalMigrationTests
             var input = Input(doc); var profile = GlobalProfile(doc);
             var rows = WallGlobalStability.Combinations(input, GlobalSeismic(doc), profile.Undrained);
             var result = WallGlobalStability.Calculate(input, profile, rows);
-            var legacy = r["stabilita_globale"]!["Cases"]!.AsArray(); Assert.AreEqual(legacy.Count, result.Cases.Count, name);
+            var legacy = r["stabilita_globale"]!["Cases"]!.AsArray();
+            // The legacy rows with the decisions D4 b and D6 a of 28/10/2026 (WallsFixture.DecidedGlobal, DecidedGlobalD6): every legacy case is
+            // compared with the port case of its row with every variable group present; the rows with absent groups are new (loads by position).
+            var expanded = DecidedGlobalD6(legacy.Select(l =>
+            {
+                var f = l!["Factors"]!; var loads = f["Loads"]!.AsObject().Select(c => Req(c.Value, c.Key)).ToArray(); string row = Str(f["Name"]);
+                Assert.AreEqual(input.Actions.Count, loads.Length, name + " " + row);
+                return new SlopeFactors(row, Req(f["Soil"], "soil"), Req(f["Body"], "body"), Req(f["MPhi"], "mφ"), Req(f["MC"], "mc"), Req(f["MCu"], "mcu"), Req(f["R"], "r"),
+                    Req(f["Kh"], "kh"), Req(f["Kv"], "kv"), Bool(f["Undrained"]), input.Actions.Select((a, k) => (a.Id, DecidedGlobal(row, input, a.Id, loads[k]))).ToDictionary(p => p.Item1, p => p.Item2));
+            }).ToList(), input);
+            Assert.AreEqual(expanded.Count, result.Cases.Count, name);
             for (int i = 0; i < legacy.Count; i++)
             {
-                var l = legacy[i]!; var p = result.Cases[i]; string id = name + " " + Str(l["Factors"]!["Name"]);
-                Assert.AreEqual(Str(l["Factors"]!["Name"]), p.Factors.Name, id);
+                int j = expanded.FindIndex(e => e.Origin == i && e.Pattern == 0);
+                var l = legacy[i]!; var p = result.Cases[j]; string id = name + " " + Str(l["Factors"]!["Name"]);
+                Assert.AreEqual(expanded[j].Row.Name, p.Factors.Name, id);
                 var lc = l["Critical"]; Assert.AreEqual(lc is JsonObject, p.Critical != null, id + " critical");
                 if (lc is not JsonObject critical) continue;
                 var circle = critical["Circle"]!;
@@ -169,8 +187,10 @@ public class WallsServiceGlobalMigrationTests
             }
             var checks = WallGlobalStability.Checks(result);
             var legacyChecks = r["verifiche_geotecniche"]!.AsArray().Where(c => Str(c!["Name"]) == "Stabilità globale · Bishop").ToArray();
-            Assert.AreEqual(legacyChecks.Length, checks.Count, name + " checks");
-            for (int k = 0; k < checks.Count; k++) Close(Req(legacyChecks[k]!["Demand"], "γR"), checks[k].Demand, name + " γR", 1e-15);
+            // One check for every case: the legacy ones are those of the rows with every variable group present (D6 a).
+            Assert.AreEqual(legacy.Count, legacyChecks.Length, name + " legacy checks"); Assert.AreEqual(expanded.Count, checks.Count, name + " checks");
+            for (int k = 0; k < legacyChecks.Length; k++)
+                Close(Req(legacyChecks[k]!["Demand"], "γR"), checks[expanded.FindIndex(e => e.Origin == k && e.Pattern == 0)].Demand, name + " γR", 1e-15);
             docs++;
         }
         TestContext.WriteLine($"{docs} documents, {cases} combinations: {sameCircle} with the legacy circle, {otherCircle} with a lower or equal one, {lostSlice} legacy circles without their last slice; {outside} unconfirmed profiles");

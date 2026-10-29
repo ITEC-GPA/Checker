@@ -185,6 +185,85 @@ internal static class WallsFixture
 
     static bool IsG2(WallInput input, string id) => input.Actions.Any(a => a.Id == id && a.Enabled && a.Category == WallActionCategory.G2);
 
+    /// <summary>The ids of the enabled variable actions by group, the groups in the order of their first enabled action.</summary>
+    static string[][] VariableGroups(WallInput input) => input.Actions.Where(a => a.Enabled && a.Category == WallActionCategory.Q).GroupBy(a => a.Key)
+        .Select(g => g.Select(a => a.Id).ToArray()).ToArray();
+
+    static string R(double v) => v.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// The rows of the frozen generator or of a legacy capture with the decision D6 a of the ANTHEA user of 28/10/2026 on the census of the
+    /// combinations («Come raccomandato»): in the seismic and accidental rows a variable action enters only where unfavourable (ψ2 Qk only if
+    /// unfavourable, NTC 2018 §2.5.3), so every variable group is present or absent, as in the ULS rows. Every seismic or accidental row that is not
+    /// a twin is followed by its copies with absent groups at 0, absence bits in the order of the first enabled variable action of the group (first
+    /// group absent, second, both, ...); a copy with the same coefficients as an earlier copy of the same row is dropped (a group with ψ2 = 0). With
+    /// <paramref name="twins"/> the twins of the input are replaced: every row is followed by its twin «b» when the wall has a heel and an enabled
+    /// variable uniform surcharge has a factor &gt; 0 (MUR-1). The rows are renumbered with one counter, a twin with the number of its parent.
+    /// Origin: the index of the input row and its absence pattern (0: every group present). Written from the decision, without the generator of Model.
+    /// </summary>
+    public static List<(WallCombination Row, int Origin, int Pattern)> DecidedD6(IReadOnlyList<WallCombination> rows, WallInput input, bool twins)
+    {
+        var groups = VariableGroups(input); bool heel = input.Geometry.Heel > 0;
+        bool Twin(WallCombination c) => (c.State == WallLimitState.Ultimate || c.State == WallLimitState.Seismic || c.State == WallLimitState.Exceptional) && heel
+            && input.Actions.Any(x => x.Enabled && x.Type == WallActionType.UniformSurcharge && x.Category == WallActionCategory.Q && c.Coefficients[x.Id] > 0);
+        WallCombination Copy(WallCombination r, string name, IReadOnlyDictionary<string, double> coefficients, bool onHeel) => new(name, r.State, r.Wall, r.Soil, r.ValleySoil,
+            r.Water, r.FrictionFactor, r.SlidingFactor, r.OverturningFactor, r.BearingFactor, r.Kh, r.Kv, coefficients, r.Purpose, r.Approach, onHeel, r.PassiveFactor);
+        var expanded = new List<(WallCombination Row, int Origin, int Pattern)>();
+        for (int i = 0; i < rows.Count; i++)
+        {
+            var r = rows[i];
+            if (twins && !r.VariableSurchargeOnHeel) continue;
+            int patterns = r.State == WallLimitState.Seismic || r.State == WallLimitState.Exceptional ? 1 << groups.Length : 1;
+            var seen = new HashSet<string>();
+            for (int absent = 0; absent < patterns; absent++)
+            {
+                var coefficients = r.Coefficients.ToDictionary(p => p.Key, p => p.Value);
+                for (int g = 0; g < groups.Length; g++) if ((absent & (1 << g)) != 0) foreach (string id in groups[g]) if (coefficients.ContainsKey(id)) coefficients[id] = 0;
+                if (!seen.Add(string.Join(",", coefficients.Select(p => p.Key + "=" + R(p.Value))))) continue;
+                var copy = Copy(r, r.Name, coefficients, r.VariableSurchargeOnHeel);
+                expanded.Add((copy, i, absent));
+                if (twins && Twin(copy)) expanded.Add((Copy(r, r.Name, coefficients, false), i, absent));
+            }
+        }
+        int number = 0;
+        return expanded.Select(e =>
+        {
+            var m = System.Text.RegularExpressions.Regex.Match(e.Row.Name, @"^(.*) \d+b?$");
+            Assert.IsTrue(m.Success, "numbered row " + e.Row.Name);
+            if (e.Row.VariableSurchargeOnHeel) number++;
+            string name = m.Groups[1].Value + " " + number + (e.Row.VariableSurchargeOnHeel ? "" : "b");
+            return (Copy(e.Row, name, e.Row.Coefficients, e.Row.VariableSurchargeOnHeel), e.Origin, e.Pattern);
+        }).ToList();
+    }
+
+    /// <summary>
+    /// The global rows with the decision D6 a (see <see cref="DecidedD6"/>): every «Globale eccezionale» and «Globale SLV» row is followed by its
+    /// copies with absent variable groups; a row equal to an earlier one (state, kh, kv, loads) is dropped, as the generator of the global rows does;
+    /// the rows are renumbered by position. At most 256 rows.
+    /// </summary>
+    public static List<(GPC.Checkers.Geotechnics.Slopes.SlopeFactors Row, int Origin, int Pattern)> DecidedGlobalD6(IReadOnlyList<GPC.Checkers.Geotechnics.Slopes.SlopeFactors> rows, WallInput input)
+    {
+        var groups = VariableGroups(input); var seen = new HashSet<string>();
+        var expanded = new List<(GPC.Checkers.Geotechnics.Slopes.SlopeFactors Row, int Origin, int Pattern)>();
+        for (int i = 0; i < rows.Count; i++)
+        {
+            var r = rows[i]; var m = System.Text.RegularExpressions.Regex.Match(r.Name, @"^(.*) \d+$"); Assert.IsTrue(m.Success, "numbered global row " + r.Name);
+            string label = m.Groups[1].Value;
+            string state = label.StartsWith("Globale A2", StringComparison.Ordinal) ? "SLU" : label.StartsWith("Globale eccezionale", StringComparison.Ordinal) ? "ECCEZIONALE" : "SISMA";
+            int patterns = state == "SLU" ? 1 : 1 << groups.Length;
+            for (int absent = 0; absent < patterns; absent++)
+            {
+                var loads = r.Loads.ToDictionary(p => p.Key, p => p.Value);
+                for (int g = 0; g < groups.Length; g++) if ((absent & (1 << g)) != 0) foreach (string id in groups[g]) if (loads.ContainsKey(id)) loads[id] = 0;
+                if (!seen.Add(state + "/" + R(r.Kh) + "/" + R(r.Kv) + "/" + string.Join(",", input.Actions.Select(a => R(loads[a.Id]))))) continue;
+                if (expanded.Count >= 256) throw new ArgumentException("Oltre 256 combinazioni globali: raggruppare le azioni correlate.");
+                expanded.Add((new GPC.Checkers.Geotechnics.Slopes.SlopeFactors(label + " " + (expanded.Count + 1), r.SoilWeight, r.BodyWeight, r.TanFrictionAngle, r.EffectiveCohesion,
+                    r.UndrainedShearStrength, r.ResistanceFactor, r.Kh, r.Kv, r.Undrained, loads), i, absent));
+            }
+        }
+        return expanded;
+    }
+
     public static WallCombination Combination(JsonObject c)
     {
         var purpose = Str(c["purpose"]) switch { "" => WallSeismicPurpose.None, "Generale" => WallSeismicPurpose.General, "Ribaltamento" => WallSeismicPurpose.Overturning, _ => throw new ArgumentException("Destinazione della combinazione sismica non valida.") };

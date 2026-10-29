@@ -209,7 +209,7 @@ Dv; granulari, c' = 0, falda come dato del muro `WallWater`), terreno di posa `S
 | `Walls.EarthPressure` | Rankine, Coulomb/Mononobe-Okabe (componente orizzontale, attrito del paramento), Jaky (Wood), φd = atan(tan φ/γM) |
 | `Walls.WallInterface` | attrito del paramento e della base: assegnato o k·atan(tan φcv/γM), k = 1, 2/3, 0 |
 | `Walls.WallContact` | contatto senza trazione (trapezio nel terzo medio, triangolo 3x altrimenti), integrazione delle pressioni |
-| `Walls.WallCombinations` | preset NTC A1+M1+R3 (SLE, SLU con ogni fattore, valle, acqua, permanenti, variabili principali, gemelle «b» senza il sovraccarico variabile sulla mensola), sisma assegnato o SLV generale e ribaltamento, eccezionali |
+| `Walls.WallCombinations` | preset NTC A1+M1+R3 (SLE, SLU con ogni fattore, valle, acqua, permanenti, variabili principali, gemelle «b» senza il sovraccarico variabile sulla mensola), sisma assegnato o SLV generale e ribaltamento, eccezionali, con ogni gruppo variabile presente o assente nel sisma e negli eccezionali; `Version1`: casi fissi dei documenti versione 1 di ANTHEA; righe dal generatore di Model |
 | `Walls.RetainingWallAnalysis` | equilibrio per metro: spinte, sottospinta, pesi, terreno a valle e passiva (resistenza con γR,e, η ≤ 0,5), scorrimento, ribaltamento, portanza EN 1997-1 Annesso D e sismica EN 1998-5 Annesso F, sollecitazioni di fusto, mensola a valle e a monte, verifiche geotecniche |
 | `Seismic.NtcSiteAmplification` | amax = Ss St ag (NTC Tab. 3.2.IV, 3.2.V), con Ss o St assegnati |
 
@@ -232,6 +232,22 @@ applicata, NTC 2018 §2.5.3), per esempio «SLV Generale kv− 12b». Esempio: H
 q = 20 kPa sul muro predefinito di ANTHEA: SLU 8b scorrimento 103,91/94,22 = 1,103 (non soddisfatta), ribaltamento 0,527,
 portanza 1,415, contro 0,860, 0,399 e 0,659 della SLU 8 con q sulla mensola (prima della correzione il massimo dello
 scorrimento era 0,870, soddisfatta).
+
+**Variabili presenti o assenti nel sisma e negli eccezionali (censimento D6 a, decisione dell'utente di ANTHEA del
+28/10/2026, «Come raccomandato»).** Nelle combinazioni sismiche ed eccezionali ψ2·Qk entra solo se sfavorevole (NTC 2018
+§2.5.3): come nelle SLU, ogni gruppo variabile è presente (ψ2) o assente. Per ogni variante sismica (kv− e kv+, SLV generali
+e di ribaltamento) e per ogni gruppo di azioni eccezionali la prima riga ha tutte le variabili, poi il primo gruppo assente,
+il secondo, entrambi, …; le righe uguali (un gruppo con ψ2 = 0) si fondono senza consumare numeri, e un contatore solo
+numera tutte le righe, quindi le righe sismiche ed eccezionali successive cambiano numero. Una riga con il sovraccarico
+assente non ha la gemella. Lo stesso vale per le righe eccezionali e sismiche della stabilità globale. Fino alla
+Geotechnics 0.25 c'era una riga sola con tutte le variabili a ψ2. Righe in più sulle catture: 200 su 7652 (40 documenti
+su 204), globali 32 su 374.
+
+**Documenti versione 1 (censimento D7 a).** `WallCombinations.Version1` dà i casi fissi dei documenti versione 1 di
+ANTHEA (caratteristica, frequente ψ1, quasi permanente ψ2; 8 o 16 SLU in ordine muro, terreno, carichi, acqua; sisma ±kv con
+ψ2; gemelle «b») dal generatore di Model, con l'ordine dei bit dichiarato e una riga sismica sola: le stesse righe, bit per
+bit, di `RetainingWall.LegacyCombinations` di ANTHEA fino alla 1.15.0 (riferimento congelato nelle prove). Le decisioni D4,
+D5 e D6 non valgono per questi documenti.
 
 **Resistenza passiva a valle (correzione MUR-2, 15/10/2026).** Con la passiva attiva la frazione mobilitata è η ≤ 0,5
 (NTC 2018 §6.5.3.1.1: aliquota non superiore al 50%, da giustificare con spostamenti compatibili e permanenza del terreno a

@@ -111,15 +111,19 @@ public class WallServiceGlobalEdgeTests
         CollectionAssert.AreEquivalent(new[] { .8, 1.5 * 1.3 / 1.5 }, statics.Select(r => r.Loads["g2"]).Distinct().ToArray(), "G2 0.8/1.3");
         CollectionAssert.AreEquivalent(new[] { 0.0, 1.5 * 1.3 / 1.5 }, statics.Select(r => r.Loads["q"]).Distinct().ToArray(), "Q 0/1.3");
         Assert.AreEqual(4, statics.Length, "q and g2 present or not; identical rows merged");
-        var accidental = rows.Single(r => r.Name.StartsWith("Globale eccezionale"));
-        Assert.AreEqual(1, accidental.Loads["u"]); Close(.3, accidental.Loads["q"], "ψ2"); Assert.AreEqual(1, accidental.ResistanceFactor);
+        // Accidental and seismic rows: q present (ψ2) and absent (census D6 a, decision of 28/10/2026).
+        var accidental = rows.Where(r => r.Name.StartsWith("Globale eccezionale")).ToArray();
+        Assert.AreEqual(2, accidental.Length, "q present and absent");
+        Assert.AreEqual(1, accidental[0].Loads["u"]); Close(.3, accidental[0].Loads["q"], "ψ2"); Assert.AreEqual(1, accidental[0].ResistanceFactor);
+        Assert.AreEqual(1, accidental[1].Loads["u"]); Assert.AreEqual(0, accidental[1].Loads["q"]); Assert.AreEqual(1, accidental[1].Loads["g1"]);
         // Seismic: βs = 0.38 of amax, ±kv, quasi permanent actions, γR 1.2.
         var site = NtcSiteAmplification.Create(.2, (NtcSoilCategory.B, 2.5), null, (NtcTopography.Flat, 0, 0, 0), null);
         var seismic = WallGlobalStability.Combinations(input, WallGlobalSeismic.FromSite(site), true).Where(r => r.Name.StartsWith("Globale SLV")).ToArray();
-        Assert.AreEqual(2, seismic.Length); Close(.38 * site.AmaxG, seismic[0].Kh, "kh", 1e-15); Close(-.19 * site.AmaxG, seismic[0].Kv, "kv−", 1e-15);
-        Assert.IsTrue(seismic.All(r => r.ResistanceFactor == 1.2 && r.TanFrictionAngle == 1 && r.Undrained));
-        Assert.AreEqual(2, WallGlobalStability.Combinations(input, WallGlobalSeismic.Assigned(.1, .05), false).Count(r => r.Name.StartsWith("Globale SLV")));
-        Assert.AreEqual(1, WallGlobalStability.Combinations(input, WallGlobalSeismic.Assigned(.1, 0), false).Count(r => r.Name.StartsWith("Globale SLV")), "kv = 0: one row");
+        Assert.AreEqual(4, seismic.Length, "±kv, q present and absent"); Close(.38 * site.AmaxG, seismic[0].Kh, "kh", 1e-15); Close(-.19 * site.AmaxG, seismic[0].Kv, "kv−", 1e-15);
+        Close(.3, seismic[0].Loads["q"], "ψ2"); Assert.AreEqual(0, seismic[1].Loads["q"]); Assert.AreEqual(seismic[0].Kv, seismic[1].Kv); Assert.IsTrue(seismic[2].Kv > 0);
+        Assert.IsTrue(seismic.All(r => r.ResistanceFactor == 1.2 && r.TanFrictionAngle == 1 && r.Undrained && r.Loads["u"] == 0 && r.Loads["g2"] == 1));
+        Assert.AreEqual(4, WallGlobalStability.Combinations(input, WallGlobalSeismic.Assigned(.1, .05), false).Count(r => r.Name.StartsWith("Globale SLV")));
+        Assert.AreEqual(2, WallGlobalStability.Combinations(input, WallGlobalSeismic.Assigned(.1, 0), false).Count(r => r.Name.StartsWith("Globale SLV")), "kv = 0: one sign");
         Throws(() => WallGlobalSeismic.Assigned(.6, 0), "kh > 0.5");
     }
 

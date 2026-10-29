@@ -104,7 +104,7 @@ public class WallsMigrationTests
     [TestMethod]
     public void LegacyCombinationsAreReproduced()
     {
-        int generated = 0, rows = 0, rejected = 0, twins = 0;
+        int generated = 0, rows = 0, rejected = 0, twins = 0, added = 0;
         foreach (var line in Lines("walls-combinations.jsonl"))
         {
             string name = Str(line["name"]); var legacy = line["ordinary"];
@@ -123,11 +123,14 @@ public class WallsMigrationTests
             for (int i = 0; i < all.Count; i++)
                 if (!all[i].VariableSurchargeOnHeel) { Assert.AreEqual(all[i - 1].Name + "b", all[i].Name, name); twins++; }
             var port = all.Where(p => p.VariableSurchargeOnHeel).ToList();
-            Assert.AreEqual(list.Count, port.Count, name);
+            // The legacy rows with the decisions D4 b and D5 b (WallsFixture.Decided) and D6 a (WallsFixture.DecidedD6: the variable groups present
+            // or absent in the seismic and accidental rows, renumbered) of 28/10/2026.
+            var expected = DecidedD6(list.Select(l => Decided(Combination(l!.AsObject()), input)).ToList(), input, false);
+            Assert.AreEqual(expected.Count, port.Count, name);
+            added += expected.Count - list.Count;
             for (int i = 0; i < port.Count; i++)
             {
-                // The legacy rows with the decisions D4 b and D5 b of 28/10/2026 (WallsFixture.Decided)
-                var c = Decided(Combination(list[i]!.AsObject()), input); var p = port[i]; string id = name + " " + c.Name;
+                var c = expected[i].Row; var p = port[i]; string id = name + " " + c.Name;
                 Assert.AreEqual(c.Name, p.Name, id); Assert.AreEqual(c.State, p.State, id); Assert.AreEqual(c.Approach, p.Approach, id); Assert.AreEqual(c.Purpose, p.Purpose, id);
                 foreach (var (a, b, what) in new[] { (c.Wall, p.Wall, "wall"), (c.Soil, p.Soil, "soil"), (c.ValleySoil, p.ValleySoil, "valley"), (c.Water, p.Water, "water"), (c.FrictionFactor, p.FrictionFactor, "mphi"),
                     (c.SlidingFactor, p.SlidingFactor, "rslide"), (c.OverturningFactor, p.OverturningFactor, "rover"), (c.BearingFactor, p.BearingFactor, "rbearing"), (c.Kh, p.Kh, "kh"), (c.Kv, p.Kv, "kv") })
@@ -140,7 +143,7 @@ public class WallsMigrationTests
         }
         Assert.AreEqual(110, generated + rejected);
         Assert.IsTrue(rows > 1500, "rows " + rows);
-        TestContext.WriteLine($"{generated} generations, {rows} legacy rows reproduced, {twins} twin rows without the variable surcharge on the heel (MUR-1)");
+        TestContext.WriteLine($"{generated} generations, {rows} legacy rows reproduced ({added} added by the decision D6 a), {twins} twin rows without the variable surcharge on the heel (MUR-1)");
     }
 
     /// <summary>Documents rejected by ANTHEA for reasons outside the geotechnical core of W1 (structure, user interface): they are calculated here.</summary>
