@@ -66,6 +66,11 @@ public class TubularJointValidityTests
         ["Angle between braces below 30"] = (() => Two(Chs168, D.Chs(88.9, 5), D.Chs(88.9, 5), 20, angleA: 80, angleB: 80),
             "OUTSIDE_VALIDITY:7.1.2(3):Braces.IncludedAngle=20<30"),
         ["Eccentricity above 0.25 d0"] = (() => Two(Chs168, D.Chs(88.9, 5), D.Chs(88.9, 5), 140), "OUTSIDE_VALIDITY:5.1.5(5):Joint.e/depth0=0.2894>0.25"),
+        // N overlap, A 168.3x8 at 30 deg overlapping B 168.3x8 at 90 deg by 80 % (welded): p = 336.6, g = -269.28,
+        // e = (-269.28 + 168.3 + 84.15)*sin30*sin90/sin120 - 84.15 = -93.87 mm, e/d0 = -0.5577.
+        ["Eccentricity below -0.55 d0"] = (() => Two(Chs168, D.Chs(168.3, 8), D.Chs(168.3, 8), -0.8 * 168.3 / 0.5, angleA: 30, angleB: 90,
+            type: TubularJointType.N, welded: true), "OUTSIDE_VALIDITY:5.1.5(5):Joint.e/depth0=-0.5577<-0.55"),
+        ["CHS unloaded brace outside both brace limits"] = (() => Single(Chs168, D.Chs(139.7, 2.6), 0), "Table7.1:BraceA neither the tension nor the compression limits hold"),
         ["Wall below 2.5 mm"] = (() => Single(Chs168, D.Chs(42.4, 2.0), 50000), "OUTSIDE_VALIDITY:7.1.1(5):BraceA.Thickness=2<2.5"),
         ["Grade above S460"] = (() => Single(D.Chs(168.3, 8, 500, 500, 550), D.Chs(114.3, 6)), "NOMINAL_GRADE_OUTSIDE_S235_TO_S460:Chord (7.1.1(4))"),
         ["Design fy above the nominal grade"] = (() => Single(Chs168, D.Chs(114.3, 6, 355, 375, 510)), "DESIGN_FY_ABOVE_NOMINAL_GRADE:BraceA"),
@@ -108,6 +113,8 @@ public class TubularJointValidityTests
         ["CHS tension brace on RHS chord di/ti above 50"] = (() => Single(Rhs200, D.Chs(139.7, 2.6), 100000),
             "OUTSIDE_VALIDITY:Table7.8:BraceA.di/ti=53.7308>50 (tension brace)"),
         ["CHS compression brace on RHS chord Class 2"] = (() => Single(Rhs200, D.Chs(139.7, 3.6), -100000), "Table7.8:BraceA circular compression brace Class 1 required"),
+        ["CHS unloaded brace on RHS chord outside both limits"] = (() => Single(Rhs200, D.Chs(139.7, 2.6), 0), "Table7.8:BraceA neither the tension nor the compression limits hold"),
+        ["RHS unloaded brace outside both limits"] = (() => Single(Rhs200, D.Rhs(160, 160, 4), 0), "Table7.8:BraceA neither the tension nor the compression limits hold"),
         ["RHS gap below 0.5(1-beta) b0"] = (() => Two(Rhs200, D.Rhs(120, 120, 6), D.Rhs(120, 120, 6), 30), "OUTSIDE_VALIDITY:Table7.8:Joint.g/b0=0.15<0.2"),
         ["RHS gap above 1.5(1-beta) b0"] = (() => Two(Rhs200, D.Rhs(120, 120, 6), D.Rhs(120, 120, 6), 140), "TREAT_AS_TWO_SEPARATE_T_OR_Y_JOINTS"),
         ["RHS overlap above 80%"] = (() => Overlap(Rhs200, D.Rhs(120, 120, 6), D.Rhs(120, 120, 8), .85, -300000, 300000, true),
@@ -150,6 +157,26 @@ public class TubularJointValidityTests
         D.Complete(TubularJoint.Verify(Single(Chs168, D.Chs(114.3, 2.78), -40000)));
         // The same compressed chord of Class 3 is admitted in tension (Table7.1 tension row).
         D.Complete(TubularJoint.Verify(Single(D.Chs(168.3, 4.5, 460, 460, 540), D.Chs(114.3, 6), 50000, chordN: 300000)));
+    }
+
+    [TestMethod]
+    public void TraceNamesAreUniqueInEveryEvaluatedJointType()
+    {
+        var inputs = new[] {
+            Single(Chs168, D.Chs(114.3, 6)), Single(Chs168, D.Chs(88.9, 5), 120000, 60, 200000, mip: 1e6),
+            Single(D.Chs(139.7, 5), D.Chs(76.1, 4), -60000, type: TubularJointType.X),
+            Two(Chs168, D.Chs(88.9, 5), D.Chs(88.9, 5), 20), Overlap(Chs168, D.Chs(88.9, 5), D.Chs(88.9, 6.3), .5),
+            Single(Rhs200, D.Rhs(120, 120, 6)), Single(D.Rhs(160, 160, 8), D.Rhs(140, 140, 6), -250000, 60, -200000),
+            Single(D.Rhs(200, 150, 8), D.Rhs(100, 150, 6), 200000, 45, 100000, TubularJointType.X),
+            Two(Rhs200, D.Rhs(120, 120, 6), D.Rhs(120, 120, 6), 60), Overlap(Rhs200, D.Rhs(120, 120, 6), D.Rhs(120, 120, 8), .6, -300000, 300000, true) };
+        foreach (var input in inputs)
+        {
+            var r = TubularJoint.Verify(input);
+            Assert.AreEqual(0, r.Diagnostics.Count, input.Type + ": " + string.Join(";", r.Diagnostics));
+            var duplicated = r.Trace.GroupBy(v => v.Name).Where(g => g.Count() > 1).Select(g => g.Key).ToArray();
+            Assert.AreEqual(0, duplicated.Length, input.Type + ": " + string.Join(",", duplicated));
+            Assert.AreEqual(r.Checks.Count, r.Checks.Select(c => c.Id).Distinct().Count());
+        }
     }
 
     [TestMethod]

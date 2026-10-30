@@ -204,7 +204,7 @@ namespace GPC.Checkers.Steel.Connections
                     }
                     double bi = s.Width, hi = s.Depth, ti2 = s.Thickness, ratio = bi / b0;
                     Between(table, k + ".hi/bi", hi / bi, .5, 2);
-                    AtMost("Table7.11/7.12", k + ".bi/b0", ratio, 1);
+                    AtMost("Table7.11/7.12", k + ".bi/b0", ratio, 1, false);
                     if (gap) { AtLeast(table, k + ".bi/b0", ratio, .35); AtLeast(table, k + ".bi/b0(0.1+0.01b0/t0)", ratio, .1 + .01 * b0 / t0); }
                     else AtLeast(table, k + ".bi/b0", ratio, .25);
                     bool slender = bi / ti2 <= 35 && hi / ti2 <= 35; int braceClass = RectangularClass(s);
@@ -220,7 +220,7 @@ namespace GPC.Checkers.Steel.Connections
                 if (gap)
                 {
                     double beta = KBeta(), g = p.Gap, t12 = p.BraceA.Section.Thickness + p.BraceB.Section.Thickness;
-                    Value("Joint.Beta", beta, "1"); Value("Joint.g/b0", g / b0, "1");
+                    Value("Joint.Beta", beta, "1");
                     AtLeast(table, "Joint.g/b0", g / b0, .5 * (1 - beta));
                     if (ConnectionValidation.BelowMinimumWithRoundoff(1.5 * (1 - beta), g / b0))
                         issues.Add(g > t12 ? Outside(table, "Joint.g/b0", g / b0, 1.5 * (1 - beta)) + ":TREAT_AS_TWO_SEPARATE_T_OR_Y_JOINTS (Table7.8 note1)"
@@ -541,6 +541,7 @@ namespace GPC.Checkers.Steel.Connections
                 if (p.Code.IsNtc)
                     list.Add("NTC route: NTC2018 4.2.8 and Circolare 2019 C4.2 contain no hollow section lattice joint rules; UNI EN1993-1-8 applied through NTC2018 chapter12 with the Italian National Annex (gammaM5 = 1.0).");
                 if (p.Type == TubularJointType.X) list.Add("X joint: the brace on the opposite chord face is identical, coaxial and carries the same force.");
+                if (!twoBraces) list.Add("Single-brace joint: the brace axis meets the chord axis (no eccentricity); brace moments, if any, are the declared ones.");
                 return list;
             }
 
@@ -604,9 +605,9 @@ namespace GPC.Checkers.Steel.Connections
                 Value(name, value, unit);
                 if (ConnectionValidation.BelowMinimumWithRoundoff(value, limit)) issues.Add(Outside(clause, name, value, limit));
             }
-            private void AtMost(string clause, string name, double value, double limit)
+            private void AtMost(string clause, string name, double value, double limit, bool record = true)
             {
-                Value(name, value, "1");
+                if (record) Value(name, value, "1");
                 if (ConnectionValidation.BelowMinimumWithRoundoff(limit, value)) issues.Add(Outside(clause, name, value, limit));
             }
             private void Between(string clause, string name, double value, double min, double max)

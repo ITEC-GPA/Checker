@@ -162,5 +162,5 @@ gola dei cordoni; n e np alla lettera con gammaM5; kp, kn non negativi; classi R
 c = b-3t (raggio EN10210 1.5t); campo di forza nulla.
 
 PROVE (Steel.Members.Tests)
-TubularJointChsTests (16), TubularJointRhsTests (8), TubularJointValidityTests (58 casi
-di rifiuto + 2 metodi di controcasi): valori a mano nei commenti dei test.
+TubularJointChsTests (16), TubularJointRhsTests (8), TubularJointValidityTests (62 casi
+di rifiuto, controcasi, unicita' di traccia e controlli): valori a mano nei commenti.
