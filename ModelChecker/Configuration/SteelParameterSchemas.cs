@@ -211,7 +211,7 @@ namespace GPC.Model.Checker.Configuration
             foreach(var key in new[]{"Cm1","Cm2","CmLT"}) Add(key,EngineParameterKind.Number,"1",min:.4,max:1,modes:new[]{"BeamColumn"});
             foreach(var key in new[]{"MomentFactorSource","StabilityModelSource","LateralTorsionalExclusionSource","ShearBucklingExclusionSource"})
                 Add(key,modes:new[]{"BeamColumn"},description:key!="ShearBucklingExclusionSource"?null
-                    :"Explicit shear-buckling exclusion; it wins. Without it exact H are screened like the section engine (web EC3 6.2.6(6)/NTC 4.2.27, flanges c/t<=14eps GPC criterion) and RHS with horizontal axis 1 (walls parallel to each shear as webs, same web criteria), CHS by the GPC wall screen d/t<=2(0.0693E/fy)^(2/3) (EN 1993-1-6 D.1.4); CHS beyond that limit and rotated hollow sections require it.");
+                    :"Explicit shear-buckling exclusion; it wins. Without it exact H are screened like the section engine (web EC3 6.2.6(6)/NTC 4.2.27, flanges c/t<=14eps GPC criterion) and RHS with horizontal axis 1 (walls parallel to each shear as webs, same web criteria), CHS by the wall screen r/t<=0.16(E/fy)^0.67 with r=d/2 (EN 1993-1-6 D.1.4.2(3) eq. D.40); CHS beyond that limit and rotated hollow sections require it.");
             // LTB method: General is the default; the rolled method uses the code object's *Mod beta/lambdaLT0 and f from kc.
             var ltbModes=new[]{"Bending","BeamColumn"};var ltbMoment=new[]{"LtbMomentDistribution","LtbPsi","LtbMomentSource"};
             Add("LtbMethod",EngineParameterKind.Choice,choices:new[]{"General","RolledOrEquivalentWelded"},modes:ltbModes,

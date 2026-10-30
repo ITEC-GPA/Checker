@@ -90,7 +90,7 @@ namespace GPC.Checkers.Steel.Pipeline
             if(a.V1!=0||a.V2!=0)
             {
                 // Automatic screens exist for the exact H and the RHS with principal axis 1 horizontal (walls parallel to each
-                // shear as webs), and for the CHS within the GPC wall screen (EvaluateChsWall, EN 1993-1-6 D.1.4): beyond its
+                // shear as webs), and for the CHS within the wall screen (EvaluateChsWall, EN 1993-1-6 eq. D.40): beyond its
                 // limit the CHS keeps the explicit assessment, as rotated hollow sections do.
                 bool rhs=SteelSectionFamilies.Is(shape,SteelSectionKind.RectangularTube)&&Math.Abs(shape.AngleX1)<=1e-10;
                 bool chs=SteelShearBucklingAssessment.ChsWallExcludesBuckling(i);

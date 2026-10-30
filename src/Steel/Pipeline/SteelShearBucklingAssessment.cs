@@ -115,20 +115,18 @@ namespace GPC.Checkers.Steel.Pipeline
             return EvaluateRhsWebs(input, axis, 1, source, true);
         }
 
-        /// <summary>GPC screen of a circular hollow section under V1 or V2 (axisymmetric wall), EC3 and NTC alike: shear
-        /// buckling has no effect when d/t &lt;= 2 (0.04 sqrt3 E/fy)^(2/3), 0.04 sqrt3 = 0.0693, d the outer diameter and t
-        /// the wall. Derivation from EN 1993-1-6:2007 Annex D.1.4 (unstiffened cylinder, BC1/BC2 edges, D.1.4.1(1)):
+        /// <summary>Screen of a circular hollow section under V1 or V2 (axisymmetric wall), EC3 and NTC alike: no shear
+        /// buckling check is needed when r/t &lt;= 0.16 (E/fy)^0.67, EN 1993-1-6:2007 Annex D.1.4.2(3) eq. (D.40), taken with
+        /// r = d/2, d the outer diameter and t the wall: r = d/2 overstates the mid-surface radius (d - t)/2, so
+        /// d/t &lt;= 0.32 (E/fy)^0.67 is conservative. S235: 30.37, S355: 23.03 (E = 210000).
+        /// Consistency with the rest of D.1.4 (unstiffened cylinder, BC1/BC2 edges, D.1.4.1(1)):
         /// - D.32: tau_cr = 0.75 E C_tau sqrt(1/omega) t/r, omega = l/sqrt(r t) (D.31). Long cylinders, omega &gt; 8.7 r/t:
-        ///   C_tau = (1/3) sqrt(omega t/r), so tau_cr = 0.25 E (t/r)^1.5 whatever the length. Medium ones (C_tau = 1,
-        ///   omega &lt;= 8.7 r/t) give at least 0.75/sqrt(8.7) = 0.254 E (t/r)^1.5, short ones (C_tau &gt;= 1, omega &lt; 10) at
-        ///   least 0.237 E t/r: the long value is a lower bound for any length between the boundaries.
+        ///   C_tau = (1/3) sqrt(omega t/r), so tau_cr = 0.25 E (t/r)^1.5 whatever the length; medium and short ones give more.
         /// - D.39: plastic plateau lambda_tau0 = 0.40, lambda_tau = sqrt((fy/sqrt3)/tau_cr): chi = 1 when
-        ///   tau_cr &gt;= fy/(sqrt3 0.16) = 3.61 fy, whatever the fabrication quality class (alpha_tau acts beyond the plateau).
-        /// - So 0.25 E (t/r)^1.5 &gt;= fy/(0.16 sqrt3): (r/t)^1.5 &lt;= 0.04 sqrt3 E/fy = E/(14.43 fy), r/t &lt;= (0.0693 E/fy)^(2/3).
-        /// - r = d/2 overstates the mid-surface radius (d - t)/2, so d/t &lt;= 2 (0.0693 E/fy)^(2/3) is conservative.
+        ///   (r/t)^1.5 &lt;= 0.04 sqrt3 E/fy, i.e. r/t &lt;= 0.169 (E/fy)^(2/3); (D.40) is that bound rounded to the safe side
+        ///   (about 3% lower for usual grades), and the screen uses the clause itself (user decision of 30/10/2026).
         /// - D.1.4 is the uniform shear of torsion; transverse shear buckles at higher peak stresses (da verificare in the text).
-        /// S235: 31.3, S355: 23.8 (E = 210000). EN 1993-1-6 D.1.4.2(3) eq. D.40 also states a rounded no-check limit,
-        /// r/t &lt;= 0.16 (E/fy)^0.67, about 3% lower (S235 30.4, S355 23.0 with r = d/2): this screen keeps the derived bound.
+        ///   The A1:2017 amendment changes D.1.4.2 (da verificare).
         /// NTC 2018 has no rule for tube shear buckling (4.2.4.1.2.4 addresses webs): EN 1993-1-6 applies as a CEN Eurocode
         /// under NTC chapter 12 (Italian National Annex, DM 31/07/2012: Annex D values). Beyond the limit the assessment is
         /// negative; no shell buckling resistance is provided.</summary>
@@ -144,26 +142,21 @@ namespace GPC.Checkers.Steel.Pipeline
             double slenderness = d / t, limit = ChsWallLimit(e, fy);
             if (!(slenderness > 0) || double.IsInfinity(slenderness) || !(limit > 0) || double.IsInfinity(limit) || !(d > 2 * t))
                 throw new ArithmeticException("Shear-buckling assessment is outside the finite positive numerical range.");
-            // Long-cylinder lower bound with r = d/2 and its slenderness, for the trace (lambda_tau <= 0.40 iff d/t <= limit).
-            double tauCr = .25 * e * Math.Pow(2 * t / d, 1.5), lambda = Math.Sqrt(fy / Math.Sqrt(3) / tauCr);
             bool ntc = input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018;
             return new SteelShearBucklingAssessment(input, axis, slenderness <= limit, source,
-                "GPC screen d/t <= 2(0.04 sqrt3 E/fy)^(2/3) from EN 1993-1-6:2007 Annex D.1.4 (D.32 long cylinder, D.39 lambda_tau0 = 0.40; r = d/2)"
+                "EN 1993-1-6:2007 Annex D.1.4.2(3) eq. (D.40) r/t <= 0.16 (E/fy)^0.67 with r = d/2, i.e. d/t <= 0.32 (E/fy)^0.67"
                 + (ntc ? "; NTC 2018 chapter 12, EN 1993-1-6 as a CEN Eurocode with the Italian National Annex" : "")
-                + "; length independent, uniform-shear (torsion) values for V" + axis, new[] {
+                + "; uniform-shear (torsion) values for V" + axis, new[] {
                     new SectionResistanceValue("Diameter", d, "mm"),
                     new SectionResistanceValue("WallThickness", t, "mm"),
                     new SectionResistanceValue("Fy", fy, "MPa"),
                     new SectionResistanceValue("E", e, "MPa"),
-                    new SectionResistanceValue("LongCylinderTauCr", tauCr, "MPa"),
-                    new SectionResistanceValue("ShearSlenderness", lambda, "1"),
-                    new SectionResistanceValue("ShearSlendernessPlateau", .4, "1"),
                     new SectionResistanceValue("DiameterToThickness", slenderness, "1"),
                     new SectionResistanceValue("DiameterToThicknessLimit", limit, "1") });
         }
 
-        /// <summary>d/t limit of EvaluateChsWall: 2 (0.04 sqrt3 E/fy)^(2/3).</summary>
-        internal static double ChsWallLimit(double e, double fy) => 2 * Math.Pow(.04 * Math.Sqrt(3) * e / fy, 2.0 / 3);
+        /// <summary>d/t limit of EvaluateChsWall: (D.40) r/t &lt;= 0.16 (E/fy)^0.67 with r = d/2.</summary>
+        internal static double ChsWallLimit(double e, double fy) => 2 * .16 * Math.Pow(e / fy, .67);
 
         /// <summary>True when the qualified CHS of this input passes the EvaluateChsWall screen.</summary>
         internal static bool ChsWallExcludesBuckling(SteelVerificationInput input)
