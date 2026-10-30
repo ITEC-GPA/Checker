@@ -126,7 +126,7 @@ public static class ThermalActions
         Kinematics(Case(r,"Appoggi/giunti · contrazione","Maggiorazione raccomandata "+allowance+" °C; lunghezza efficace dal punto fisso."),-contraction-allowance,0,alpha,x.LengthM,x.DepthM,"EN §6.1.3.3 nota 2");
         var horizontal=Case(r,"Gradiente orizzontale ±","Applicare entrambi i versi quando una faccia è più esposta al sole.");
         horizontal.Values.Add(V("|ΔTM,y|","Differenza trasversale",x.HorizontalDifferenceC,"°C","assegnata (raccomandato 5 °C)","EN §6.1.4.3"));horizontal.Values.Add(V("|κy|","Curvatura trasversale libera",alpha*x.HorizontalDifferenceC/x.WidthM,"1/m","α · |ΔTM,y| / b","Cinematica termica"));
-        r.Notes.Add("NTC §§3.5 e 5.1.3.9: dati climatici italiani; metodo degli impalcati EN come documento integrativo. Non è l’Approccio 2 non lineare; verificare scelta del metodo e parametri dell’appendice nazionale applicabile.");
+        r.Notes.Add((x.Site.Standard==ClimateStandard.Ntc2018?"NTC §§3.5 e 5.1.3.9: dati climatici italiani; metodo degli impalcati EN come documento integrativo. ":"EN 1991-1-5:2003+AC:2009: dati climatici assegnati secondo la fonte nazionale dichiarata. ")+"Approccio 1 lineare; verificare scelta del metodo e parametri dell’appendice nazionale applicabile.");
         r.Notes.Add("Per cassoni e pile considerare inoltre differenze fra facce interne/esterne e fra elementi (EN §§6.1.4.4, 6.1.6, 6.2). Non sono inclusi interazione binario–ponte, attrito o rigidezza dei vincoli.");
         return r;
     }
