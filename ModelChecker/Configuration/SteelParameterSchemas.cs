@@ -20,6 +20,7 @@ namespace GPC.Model.Checker.Configuration
             EngineParameterCondition Has(string key)=>new EngineParameterCondition(key);
             EngineParameterCondition Is(string key,string value)=>new EngineParameterCondition(key,value);
             EngineParameterCondition IsNot(string key,string value)=>new EngineParameterCondition(key,value,true);
+            EngineParameterCondition Lacks(string key)=>new EngineParameterCondition(key,null,true);
             void Require(string code,string description,string[] keys,params EngineParameterCondition[] when)
                 =>rules.Add(new EngineParameterRule(code,description,when,new[]{keys}));
             void Together(string code,params string[] keys) {
@@ -45,8 +46,15 @@ namespace GPC.Model.Checker.Configuration
                 description:"Reference length of a cantilever limit as a multiple of the cantilever length (2 where the applicable rule refers the limit of a cantilever to twice its length); declared, never assumed.");
             Add("Deflection.CantileverLengthSource",description:"Source of the cantilever reference length.");
             Together("CantileverReferencePair","Deflection.CantileverLengthFactor","Deflection.CantileverLengthSource");
+            // NTC 2018 4.2.4.2.1 (GU n. 42 of 20/02/2018, S.O. n. 8, p. 106), verified on the published text: L of the Tab. 4.2.XII limits
+            // is, for cantilevers, twice the cantilever length. A declared option, NTC 2018 engines only (refused by the engine otherwise).
+            Add("Deflection.CantileverReference",EngineParameterKind.Choice,choices:new[]{"Ntc2018"},
+                description:"Ntc2018: the reference length of every cantilever without its own declared factor is twice the cantilever length, NTC 2018 4.2.4.2.1 (with the limits of Tab. 4.2.XII L is, for cantilevers, twice the cantilever length), cited as the source. NTC 2018 engines only; declared, never assumed: without it and without a factor a cantilever is a missing input.");
+            rules.Add(new EngineParameterRule("CantileverReferenceConflict","Choose the NTC 2018 cantilever reference or a declared factor.",new[]{Has("Deflection.CantileverReference")},null,
+                new[]{"Deflection.CantileverLengthFactor","Deflection.CantileverLengthSource"}));
             foreach(var cantilever in new[]{"CantileverAtStart","CantileverAtEnd"})
-                Require("CantileverReferenceRequired","A cantilever needs its declared reference length.",new[]{"Deflection.CantileverLengthFactor","Deflection.CantileverLengthSource"},Is("Deflection.Scheme",cantilever));
+                Require("CantileverReferenceRequired","A cantilever needs its declared reference length.",new[]{"Deflection.CantileverLengthFactor","Deflection.CantileverLengthSource"},
+                    Is("Deflection.Scheme",cantilever),Lacks("Deflection.CantileverReference"));
             rules.Add(new EngineParameterRule("CantileverReferenceOnSupportedSpan","A span supported at both ends uses L = span.",new[]{Is("Deflection.Scheme","SupportedEnds")},null,
                 new[]{"Deflection.CantileverLengthFactor","Deflection.CantileverLengthSource"}));
             foreach(var limit in new[]{"Deflection.MaxRatio","Deflection.VariableRatio"})
@@ -81,7 +89,8 @@ namespace GPC.Model.Checker.Configuration
                 "The plan declares each task: Mechanism Serviceability, a serviceability Category, criterion, member axis and the variable-action basis (MemberCheckSpecification.Category/Deformation); the category is never deduced from case names.",
                 "Member-node displacements of one confirmed concomitant state per task (N,mm,rad datasets), rotated into the member axes; only exported nodes are covered.",
                 "No limit is built in: the values of NTC Tab. 4.2.XII/XIII and of the EC3 national annexes are not in the repository and are always declared with their source.",
-                "Supports, cantilever reference length, precamber, mass state and node coverage are declarations checked only for presence and type: their engineering truth stays with the designer."});
+                "Supports, cantilever reference length, precamber, mass state and node coverage are declarations checked only for presence and type: their engineering truth stays with the designer.",
+                "A physical member may declare its own scheme, cantilever factor, limits and precamber (PhysicalMemberDefinition.ServiceabilityLimits, each value with its source): they take precedence and the parameters are the fallback for the values it leaves out. This preflight sees the parameters only."});
         }
         private static EngineParameterSchema Build(bool member)
         {

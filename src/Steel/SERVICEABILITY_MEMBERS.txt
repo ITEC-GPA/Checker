@@ -1,5 +1,7 @@
 VERIFICHE DI ESERCIZIO DELLE ASTE (SLE) - 29 OTTOBRE 2026
 Branch claude/steel-sle-aste (Checker) e claude/model-sle-aste (Model).
+30/10/2026, claude/steel-sle-limiti-asta e claude/model-sle-limiti-asta:
+dichiarazioni proprie dell'asta (sezione 6b) e riferimento NTC degli sbalzi.
 Unita: N, mm, rad, Hz. Motore ModelChecker: Steel.Serviceability.Member.
 
 SCOPO
@@ -59,8 +61,15 @@ Riferimento dichiarato con Deflection.Scheme:
 Per gli sbalzi la lunghezza di riferimento del limite e dichiarata:
 Deflection.CantileverLengthFactor x lunghezza dello sbalzo (per esempio 2
 dove la regola applicata riferisce il limite al doppio dello sbalzo) con la
-fonte; la pratica "L = 2 Lc" non e verificabile dal repository e quindi non
-e mai assunta.
+fonte, oppure (30/10/2026) Deflection.CantileverReference = Ntc2018: L = 2 Lc
+con la citazione di NTC 2018 4.2.4.2.1 come fonte. Verificato sul testo
+pubblicato (DM 17/01/2018, GU n. 42 del 20/02/2018, S.O. n. 8, p. 106): per
+i limiti della Tab. 4.2.XII "L e la luce dell'elemento o, nel caso di
+mensole, il doppio dello sbalzo". Solo per motori NTC 2018 (rifiutato con
+EN 1993-1-1: EN 1990 A1.4 non contiene la regola; un annesso nazionale va
+dichiarato come fattore con la sua fonte); esclude un fattore del motore.
+Mai assunto: senza fattore e senza opzione uno sbalzo e
+MissingCantileverReference come prima (non esiste un default L = Lc).
 delta_max = |delta_tot(x*) + precontrofreccia|, x* nodo della massima
 freccia totale (EN 1990 A1.4.3, Fig. A1.1 w_max = w_tot - w_c; NTC
 delta_max = delta_tot - delta_C). Deflection.Precamber e firmato lungo l'asse
@@ -124,14 +133,48 @@ MissingMemberDisplacementBoundary, VariableDifferenceRequiresLinearStates).
 6 PARAMETRI (SteelParameterSchemas.MemberServiceability)
 Deformation.CoverageSource; Deflection.Scheme, .SchemeSource, .MaxRatio,
 .MaxSource, .VariableRatio, .VariableSource, .Precamber, .PrecamberSource,
-.CantileverLengthFactor, .CantileverLengthSource; Drift.Ratio, .Source;
+.CantileverLengthFactor, .CantileverLengthSource, .CantileverReference
+(Ntc2018, dal 30/10/2026); Drift.Ratio, .Source;
 Vibration.MinimumFrequency, .Source, .Scheme, .SchemeSource, .Coefficient,
 .CoefficientSource, .MassStateSource, .Deflection. Le regole dello schema
-segnalano coppie incomplete e chiavi incompatibili prima dell'esecuzione;
-il costruttore rifiuta chiavi ignote e valori fuori tipo o campo.
+segnalano coppie incomplete e chiavi incompatibili prima dell'esecuzione
+(CantileverReferenceConflict: opzione NTC con un fattore; con l'opzione uno
+schema a sbalzo del motore non richiede il fattore); il costruttore rifiuta
+chiavi ignote, valori fuori tipo o campo e l'opzione NTC su un motore non
+NTC 2018 (CantileverReferenceIsNtc2018).
 Un motore serve tutti i task SLE delle aste a cui e instradato (rotta
-Mechanisms = Serviceability): limiti diversi per piani o membrature diverse
-si danno con motori e lavori distinti.
+Mechanisms = Serviceability); limiti diversi per membrature diverse si danno
+sulle aste (sezione 6b) nello stesso lavoro.
+
+6b DICHIARAZIONI DELL'ASTA (30/10/2026)
+PhysicalMemberDefinition.ServiceabilityLimits (Model, MemberServiceability-
+Limits): schema dell'asta con la fonte (DeflectionScheme, Deflection-
+SchemeSource), fattore di riferimento dello sbalzo, n di L/n per delta_max e
+per i variabili, controfreccia, n di h/n, frequenza minima; ogni valore e un
+MemberDeclaredValue (valore e fonte). Il motore li legge da
+MemberDeformationSnapshot.ServiceabilityLimits:
+- valore dichiarato sull'asta: vince (la metrica riporta la sua fonte);
+- valore assente sull'asta: parametro del motore, con le stesse regole e gli
+  stessi MissingInput di prima;
+- copertura, modello di vibrazione (schema, K, stato delle masse, base della
+  freccia) restano solo parametri del motore;
+- per lo sbalzo: fattore dell'asta, altrimenti fattore del motore, altrimenti
+  opzione Ntc2018, altrimenti MissingCantileverReference;
+- incoerenze dell'asta rifiutate (InvalidOrMissingInput): fattore con schema
+  in vigore SupportedEnds, controfreccia senza alcun limite di delta_max;
+  le regole del motore restano (fattore del motore con schema del motore
+  SupportedEnds rifiutato come prima).
+Per un'asta con dichiarazioni la traccia aggiunge "<chiave>.Origin" = Member
+o Engine per ogni valore usato (Deflection.Scheme, .CantileverLengthFactor,
+.Precamber, .MaxRatio, .VariableRatio, Drift.Ratio,
+Vibration.MinimumFrequency); per le altre aste le righe sono identiche a
+prima (digest congelati da master bc2b3435). Le dichiarazioni entrano nello
+snapshot e nello scopo dei soli task deformativi: modificarle rende
+NotEvaluated il resoconto SLE e non tocca snapshot e MemberFingerprint dei
+task di stabilita. Lo schema dei parametri vede solo i parametri: un motore
+i cui limiti stanno tutti sulle aste resta segnalato dalle regole che
+chiedono un limite del motore (ServiceabilityCriterionRequired,
+DeflectionLimitRequired), che si soddisfano con un limite di ripiego.
 
 7 TEST
 Model.Core.Tests/MemberDeformationPreparationTest (24): assi dell'asta,
@@ -149,6 +192,16 @@ CurrentOutcome. MemberServiceabilityLegacyArchiveTest: archivio di modello,
 configurazione e resoconto scritto da master (Fixtures/member-legacy-
 5.23.0.2): stesse impronte di scopo, identita dei task, MemberFingerprint
 dello snapshot e sigilli.
+30/10/2026 (28 in SteelMemberServiceabilityTest): EngineOnlyDeclarations-
+KeepTheRowsOfMaster (14 righe dei casi sopra, digest di dettagli, contesto
+di norma, utilizzo, stati e diagnostiche congelati da master bc2b3435);
+MemberValuesOverrideTheEngineAndRecordTheirOrigin (EC3 e NTC: L/500
+dell'asta, delta_2 dal motore, archivio e CurrentOutcome, controfreccia e
+schema dell'asta, ritorno alla riga del motore); MissingEngineValuesCome-
+FromTheMemberOrStayMissing; MixedMembersShareOneEngineAndOneJob (trave di
+solaio, copertura L/200, sbalzo con riferimento NTC, due colonne h/300 e
+h/500 in un lavoro); CantileverReferenceOptionCitesNtc2018AndIsNeverAssumed
+(sbalzo ai due estremi); MemberFrequencyLimitOverridesTheEngine.
 
 LIMITI
 Solo nodi esportati (StationResultDisplacement non e usato: nessun

@@ -263,6 +263,12 @@ Verifiche di esercizio delle aste (29 ottobre 2026, branch steel-sle-aste):
   copertura dei nodi sono parametri dichiarati con fonte: nessun preset delle
   Tab. 4.2.XII/XIII (testi assenti dal repository); una dichiarazione mancante
   e un MissingInput preciso. Solo nodi esportati, nessuna interpolazione.
+  Dal 30/10/2026 (steel-sle-limiti-asta) l'asta puo portare schema, fattore
+  dello sbalzo, limiti e controfreccia propri (PhysicalMemberDefinition.
+  ServiceabilityLimits, con fonte): prevalgono sui parametri, che fanno da
+  ripiego, e la traccia ne riporta l'origine; membrature diverse in un solo
+  lavoro. Opzione Deflection.CantileverReference = Ntc2018 (L = 2 Lc, NTC
+  2018 4.2.4.2.1 verificato sulla GU), mai assunta.
   Dettagli in SERVICEABILITY_MEMBERS.txt.
 
 Coprigiunti bullonati di travi composte saldate a I:
