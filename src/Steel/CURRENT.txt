@@ -159,8 +159,9 @@ Stabilita delle aste senza compressione (28 ottobre 2026, branch steel-aste-rout
   SteelMember.BiaxialBendingRequiresBeamColumn. Un esito d'asta con
   tutti i meccanismi NotRequired diventa nel resoconto di Model una riga non
   applicabile (CheckApplicability.NotApplicable, motivo = codici e messaggi):
-  conta come risolta, mai come verificata. I tagli di sezione nulli restano
-  NotEvaluated (nessuna conclusione sull'asta).
+  conta come risolta, mai come verificata. I tagli di sezione nulli delle
+  verifiche SLU restano NotEvaluated (nessuna conclusione sull'asta); quelli delle
+  tensioni di esercizio sono non applicabili (30/10/2026, vedi sotto).
 
 Svergolamento di profili laminati o saldati equivalenti (28/10/2026):
   il default resta il caso generale (EC3 6.3.2.2, Tab. 6.4; NTC 4.2.4.1.3.2
@@ -329,7 +330,14 @@ Tensioni di esercizio delle sezioni (29 ottobre 2026, branch steel-sle-tensioni)
   ingobbamento), altre famiglie, H monosimmetriche, profili aperti formati a
   freddo, fori non dichiarati o presenti, rettangolo con due tagli o troppo largo,
   classe 4 non qualificata (CHS), base mancante (BasisRequired). Azioni tutte
-  nulle: NotRequired, come la pipeline. Esclusi: shear lag ed effetti secondari
+  nulle: NotRequired (ServiceStress.NoActions), come la pipeline; dal 30/10/2026
+  in ModelChecker la riga e' non applicabile (CheckApplicability.NotApplicable,
+  motivo = codice e messaggio, piu' le componenti trascurabili azzerate; Outcome
+  NotEvaluated, Execution NotExecuted, nessun utilizzo): il resoconto la conta
+  come risolta, mai come verificata. Solo il taglio con tutte le azioni efficaci
+  nulle; ogni azione non nulla si valuta come prima (test
+  SteelServiceStressTest.UnloadedCutIsANotApplicableRowAndTheReportResolves).
+  Esclusi: shear lag ed effetti secondari
   (EN 1993-2 7.3(1): nelle azioni o coperti dalla fonte), tensioni trasversali,
   carichi concentrati, respiro d'anima, fatica, collegamenti.
   ModelChecker: compito Serviceability/StressLimits/Characteristic del motore

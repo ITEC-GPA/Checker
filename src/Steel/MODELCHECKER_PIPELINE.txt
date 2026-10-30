@@ -95,6 +95,11 @@ lordo, frame SectionGeometryCentroidal); traccia con azioni, proprieta', fonti,
 classe, modello di taglio, posizioni e azioni trascurate. Utilizzo della riga =
 massimo dei tre rapporti, che hanno la stessa definizione. Una riga non
 valutata conserva stato, codice SteelPipeline.ServiceStress.* e traccia.
+Dal 30/10/2026 il taglio scarico (tutte le azioni efficaci nulle,
+ServiceStress.NoActions) e' una riga non applicabile: ApplicabilityReason con
+codice, messaggio e componenti trascurabili azzerate, Outcome NotEvaluated,
+Execution NotExecuted, Data Ready, nessun utilizzo ne' diagnostica di errore;
+CheckSummary la conta fra le NotApplicable (risolta, mai verificata).
 Il compito resta nel passo sequenziale (il calcolo anticipato in parallelo
 riguarda solo i compiti senza specifica). Il testo Limitations dei risultati
 SLU e' invariato; il catalogo aggiunge la portata SLE.
