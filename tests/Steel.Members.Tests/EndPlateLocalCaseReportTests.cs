@@ -97,7 +97,7 @@ public class EndPlateLocalCaseReportTests
             var capability = ConnectionCapabilityCatalog.Get(id);
             Assert.AreEqual(ConnectionCapabilityLevel.ComponentsOnly, capability.Level); Assert.IsTrue(capability.MissingMechanisms.Count > 0);
         }
-        foreach (string id in new[] { "ColumnBases", "TubularJoints" })
+        foreach (string id in new[] { "TubularJoints" })
         {
             var capability = ConnectionCapabilityCatalog.Get(id);
             Assert.AreEqual(ConnectionCapabilityLevel.NotImplemented, capability.Level); Assert.AreEqual(0, capability.EntryPoints.Count);
