@@ -122,8 +122,8 @@ public class MemberStabilityWithoutCompressionTests
         var screened = SteelVerificationPipeline.Execute(shearedPlan, new[] { walls }).Checks.Single();
         // V2 = 10 kN <= .5 Vpl leaves the interaction unchanged: .9 m1 with Wel1 = (200*300^3 - 180*280^3)/12/150 = 804800 mm3.
         Assert.IsTrue(screened.IsEvaluated, screened.Message); Assert.AreEqual(.9 * 5e7 * g / (804800 * 355d), screened.Utilization!.Value, 1e-12);
-        // CHS 200x10: was MissingInput (BeamColumn.ShearBucklingExclusionSource). d/t = 20 <= 2(0.0693 E/fy)^(2/3) = 23.774,
-        // the GPC wall screen (EvaluateChsWall, EN 1993-1-6 D.1.4): it now waits for that assessment, as the RHS does.
+        // CHS 200x10: was MissingInput (BeamColumn.ShearBucklingExclusionSource). d/t = 20 <= 0.32 (E/fy)^0.67 = 23.035,
+        // the wall screen (EvaluateChsWall, EN 1993-1-6 eq. D.40): it now waits for that assessment, as the RHS does.
         // Beyond the screen (CHS 300x8, d/t = 37.5) the explicit source stays required, as before.
         var tube = Run(BeamColumn(Input(CommonSectionCoverageTests.Shape("CHS"), ntc, m1: 2e7, v2: 1e4), false));
         Assert.AreEqual(SteelExecutionStatus.RequiresPreparation, tube.Status); Assert.AreEqual("ShearBuckling.AssessmentRequired", tube.DiagnosticCode);

@@ -23,8 +23,8 @@ namespace ModelChecker.Tests;
 /// 5.1(2) with the code object's eta (1.2 for S355), NTC eq. 4.2.27 with eta = 1. S355: eps = 0.81362, limits
 /// 72 eps/1.2 = 48.82 and 72 eps = 58.58. hw = clear distance between the inner faces of the walls normal to the shear.
 /// Before this screen every row below with shear and no explicit assessment was NotEvaluated.
-/// CHS (30/10/2026): GPC wall screen d/t &lt;= 2 (0.0693 E/fy)^(2/3) from EN 1993-1-6 D.1.4, S355 23.774, S235 31.300;
-/// beyond it the explicit assessment stays required.</summary>
+/// CHS (30/10/2026): wall screen EN 1993-1-6 D.1.4.2(3) eq. (D.40), r/t &lt;= 0.16 (E/fy)^0.67 with r = d/2, i.e.
+/// d/t &lt;= 0.32 (E/fy)^0.67: S355 23.035, S235 30.368; beyond it the explicit assessment stays required.</summary>
 [TestClass]
 public class HollowShearBucklingPipelineTest
 {
@@ -123,7 +123,7 @@ public class HollowShearBucklingPipelineTest
     [DataTestMethod] [DataRow(false)] [DataRow(true)]
     public void CircularAndRotatedHollowSectionsKeepTheExplicitAssessment(bool ntc)
     {
-        // CHS beyond the GPC wall screen: 300x8, d/t = 37.5 > 2(0.0693 E/fy)^(2/3) = 23.774 (S355). Nothing is supplied, the row
+        // CHS beyond the wall screen: 300x8, d/t = 37.5 > 0.32 (E/fy)^0.67 = 23.035 (S355). Nothing is supplied, the row
         // waits for the explicit assessment as before the screen. (Was CHS 200x10, d/t = 20: now screened, see below.)
         var tube = Input(new SectionCHS(300, 8, "CHS300x8")); tube.Forces.V2 = 1e4;
         var waiting = Run(tube, ntc);
@@ -143,8 +143,8 @@ public class HollowShearBucklingPipelineTest
     [DataTestMethod] [DataRow(false)] [DataRow(true)]
     public void SectionEngineScreensTheChsWallOnBothAxes(bool ntc)
     {
-        // CHS 200x10 S355: d/t = 20 <= 23.774 (GPC screen from EN 1993-1-6 D.1.4: long cylinder tau_cr = 0.25 E (2t/d)^1.5
-        // = 1660.2 MPa, lambda_tau = sqrt((355/sqrt3)/1660.2) = 0.351 <= 0.40). Was NotEvaluated (AssessmentRequired).
+        // CHS 200x10 S355: d/t = 20 <= 0.32 (210000/355)^0.67 = 23.035 (EN 1993-1-6 eq. D.40 with r = d/2).
+        // Was NotEvaluated (AssessmentRequired).
         // V1 = 50 kN, V2 = 100 kN: shear sum on Av = 2A/pi = 3800 for both axes (A = 1900 pi), Vpl = Av fy/(sqrt3 gM0).
         var input = Input(new SectionCHS(200, 10, "CHS200x10"));
         input.Forces.M1 = 1e7; input.Forces.V1 = 5e4; input.Forces.V2 = 1e5;
@@ -156,12 +156,11 @@ public class HollowShearBucklingPipelineTest
             foreach (int axis in new[] { 1, 2 })
             {
                 Assert.AreEqual(20, Value(r, prefix + ".ShearAssessment" + axis + ".DiameterToThickness"), 1e-12);
-                Assert.AreEqual(23.774, Value(r, prefix + ".ShearAssessment" + axis + ".DiameterToThicknessLimit"), 5e-4);
-                Assert.AreEqual(.35136, Value(r, prefix + ".ShearAssessment" + axis + ".ShearSlenderness"), 1e-5);
+                Assert.AreEqual(23.035, Value(r, prefix + ".ShearAssessment" + axis + ".DiameterToThicknessLimit"), 5e-4);
             }
         var excluded = r.Details.Trace.First(t => t.Key == "Shear2.ShearAssessment2.Excluded");
         Assert.AreEqual(1, excluded.Value);
-        StringAssert.Contains(excluded.Expression, "GPC automatic CHS wall screen");
+        StringAssert.Contains(excluded.Expression, "Automatic CHS wall screen");
         // The explicit declaration still wins: a negative one leaves the stocky tube not evaluated.
         var options = Options(); options["SectionFingerprint"] = ModelValues.Fingerprint(new object[] { input.Property });
         options["ShearBucklingExcluded1"] = "false"; options["ShearBucklingSource1"] = "Independent shell assessment: not excluded";
@@ -170,11 +169,11 @@ public class HollowShearBucklingPipelineTest
         Assert.AreEqual(EngineeringOutcome.NotEvaluated, declined.Outcome);
         Assert.IsTrue(declined.Diagnostics.Any(d => d.Code.EndsWith("ShearBuckling.ResistanceMethodRequired")), Diagnostics(declined));
         Assert.IsFalse(declined.Details.Trace.Any(t => t.Key.EndsWith(".DiameterToThickness")));
-        // S235, CHS 300x10: d/t = 30 <= 31.300, screened; the same tube in S355 (limit 23.774) waits for the explicit assessment.
+        // S235, CHS 300x10: d/t = 30 <= 30.368, screened; the same tube in S355 (limit 23.035) waits for the explicit assessment.
         var s235 = Input(new SectionCHS(300, 10, "CHS300x10"), SteelMaterialEN1993Data.S235); s235.Forces.V2 = 1e4;
         var screened235 = Run(s235, ntc);
         Assert.AreEqual(EngineeringOutcome.Satisfied, screened235.Outcome, Diagnostics(screened235));
-        Assert.AreEqual(31.300, Value(screened235, "Shear2.ShearAssessment2.DiameterToThicknessLimit"), 5e-4);
+        Assert.AreEqual(30.368, Value(screened235, "Shear2.ShearAssessment2.DiameterToThicknessLimit"), 5e-4);
         var s355 = Input(new SectionCHS(300, 10, "CHS300x10")); s355.Forces.V2 = 1e4;
         Assert.AreEqual(EngineeringOutcome.NotEvaluated, Run(s355, ntc).Outcome);
     }
@@ -238,7 +237,7 @@ public class HollowShearBucklingPipelineTest
     public void BeamColumnScreensTheChsWallAndKeepsTheSourceBeyondTheLimit(bool ntc)
     {
         // Was NotEvaluated (BeamColumn.ShearBucklingExclusionSource). CHS 200x10 S355, V1 = 2 kN, V2 = 5 kN (<= .5 Vpl):
-        // d/t = 20 <= 23.774, both axes excluded by the GPC wall screen. The shear does not enter the interaction: same
+        // d/t = 20 <= 23.035, both axes excluded by the wall screen. The shear does not enter the interaction: same
         // utilization as with an explicit source and as without shear.
         static Section Stocky() => new SectionCHS(200, 10, "CHS200x10");
         var r = BeamColumn(Stocky, ntc, 2e3, 5e3);
@@ -247,14 +246,14 @@ public class HollowShearBucklingPipelineTest
         {
             Assert.AreEqual(1, Value(r, "MemberStability.ShearAssessment" + axis + ".Excluded"));
             Assert.AreEqual(20, Value(r, "MemberStability.ShearAssessment" + axis + ".DiameterToThickness"), 1e-12);
-            Assert.AreEqual(23.774, Value(r, "MemberStability.ShearAssessment" + axis + ".DiameterToThicknessLimit"), 5e-4);
+            Assert.AreEqual(23.035, Value(r, "MemberStability.ShearAssessment" + axis + ".DiameterToThicknessLimit"), 5e-4);
         }
         var explicitSource = BeamColumn(Stocky, ntc, 2e3, 5e3, "Independent shell assessment, rev 1");
         Assert.AreEqual(EngineeringOutcome.Satisfied, explicitSource.Outcome);
         Assert.AreEqual(r.Utilization, explicitSource.Utilization);
         Assert.IsFalse(explicitSource.Details.Trace.Any(t => t.Key.StartsWith("MemberStability.ShearAssessment")));
         Assert.AreEqual(BeamColumn(Stocky, ntc, 0, 0).Utilization, r.Utilization);
-        // CHS 300x8, d/t = 37.5 > 23.774: as before the screen the member needs ShearBucklingExclusionSource.
+        // CHS 300x8, d/t = 37.5 > 23.035: as before the screen the member needs ShearBucklingExclusionSource.
         static Section Slender() => new SectionCHS(300, 8, "CHS300x8");
         var waiting = BeamColumn(Slender, ntc, 0, 5e3);
         Assert.AreEqual(EngineeringOutcome.NotEvaluated, waiting.Outcome); Assert.IsNull(waiting.Utilization);
