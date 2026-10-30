@@ -40,6 +40,10 @@ Non puo' essere riutilizzata su un'altra istanza, anche numericamente uguale.
   parallele al taglio sono anime; hw e' la distanza fra le facce interne delle
   pareti ortogonali (raggi trascurati), t la parete piu' sottile. NTC eta=1.
   Stessa traccia dell'anima H. Nessuna regola per CHS o assi ruotati.
+- EvaluateChsWall(input, axis, source), 30/10/2026: CHS qualificata, V1 o V2, EC3
+  e NTC. Filtro GPC d/t <= 2 (0,04 rad3 E/fy)^(2/3) da EN 1993-1-6 D.1.4 (cilindro
+  lungo, plateau 0,40, r = d/2; derivazione in CURRENT.txt). Negativa oltre il
+  limite: nessuna resistenza a instabilita' del guscio.
 - FromExternal(input, axis, isBucklingExcluded, source) riceve una valutazione
   ingegneristica esplicita secondo la norma dell'input. La fonte rende
   tracciabile la dichiarazione del chiamante, non ne certifica la correttezza.

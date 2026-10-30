@@ -73,6 +73,7 @@ AGGIORNAMENTO 28/10/2026 (aste senza compressione, vedi CURRENT.txt):
 - BeamColumn: anche N>=0 (interazione a n=0, trazione trascurata e tracciata);
   N>=0 senza momenti NotRequired Member.NoActiveDemand. Classe dagli N-M
   dell'inviluppo. Taglio su H esatte e RHS con asse 1 orizzontale (dal
-  29/10/2026) senza fonte esplicita: RequiresPreparation
+  29/10/2026), CHS entro il filtro EvaluateChsWall (dal 30/10/2026) senza fonte
+  esplicita: RequiresPreparation
   con le valutazioni SteelShearBucklingAssessment per ogni taglio attivo, passate
   a SteelVerificationPipeline.Execute e riportate in ShearAssessments del controllo.

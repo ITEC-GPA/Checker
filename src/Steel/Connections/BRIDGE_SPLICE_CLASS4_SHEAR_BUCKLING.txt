@@ -49,8 +49,16 @@ NTC2018
 La libreria applica gia' EN1993-1-5 5.2/5.3 come metodo integrativo dichiarato
 per NTC 4.2.4.1.2.4 (EvaluateNonRigidHWeb, EvaluateTransverselyStiffenedHWeb) e
 7.1(1) nel metodo a taglio basso. Stesso percorso con coefficienti NTC
-(gammaM0=1.05, gammaM1 della politica, eta=1). Il testo NTC non e' nel
-repository: il rinvio e' verificato dalle fonti e dai riferimenti del codice.
+(gammaM0=1.05, gammaM1 della politica, eta=1). Rinvii riscontrati il 30/10/2026
+sui testi GU: NTC 4.2.4.1.1 (caratteristiche efficaci di classe 4 "seguendo il
+procedimento indicato in UNI EN 1993-1-5"), 4.2.4.1.2.4 eq. 4.2.27 (anime oltre
+72 eps/eta, eta=1,00 cautelativo, verso il 4.2.4.1.3.4), 4.2.4.1.3.4 (elementi
+di classe 4: "normative di comprovata validita'"); Circolare 2019 C4.2.4.1.3.4
+(cita UNI EN 1993-1-5:2007 4.6 e da' procedure proprie nei C4.2.4.1.3.4.1-9).
+Le procedure della Circolare non sono state confrontate numericamente (formule
+in immagine nel PDF GU: da verificare); la [C4.2.43] sembra porre eta=1,20 nella
+soglia d'anima (simboli rimappati nell'estratto: da verificare), la libreria resta
+su eta=1 della NTC eq. 4.2.27 (a favore di sicurezza).
 
 FONTI
 EN1993-1-5:2006 4.6, 5.1(2), 5.2(1), 5.3, Tabella5.1, AnnexA.3, 7.1(1),(5);

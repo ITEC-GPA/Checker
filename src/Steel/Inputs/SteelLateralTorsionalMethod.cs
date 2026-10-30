@@ -8,7 +8,7 @@ namespace GPC.Checkers.Steel.Inputs
     /// EN 1993-1-1:2005 6.3.2.3 / NTC 2018 4.2.4.1.3.2 for rolled or welded doubly symmetric I/H, chosen explicitly.</summary>
     public enum SteelLateralTorsionalMethodKind { General, RolledOrEquivalentWelded }
 
-    /// <summary>Moment distribution between the lateral restraints, EN 1993-1-1:2005 Table 6.6 (NTC 2018 kc table,
+    /// <summary>Moment distribution between the lateral restraints, EN 1993-1-1:2005 Table 6.6 (NTC 2018 Tab. 4.2.X,
     /// same rows). Fixed/one-end-fixed name the in-plane diagram shape (hogging end moments), not lateral restraints.
     /// NotEstablished keeps kc=1 (f=1): no favourable shape is assumed.</summary>
     public enum SteelLtbMomentDistribution { NotEstablished, Uniform, Linear, SimplySupportedUniformLoad, FixedEndsUniformLoad,
@@ -53,8 +53,9 @@ namespace GPC.Checkers.Steel.Inputs
     /// rolled or welded I/H (Section.SectionTypes); choosing it for a welded section declares that it is an equivalent
     /// welded section. Beta/LambdaLT0 are the national values of that method: 0.75 &lt;= beta &lt;= 1 (NTC: never below
     /// 0.75), 0.2 &lt;= lambdaLT0 &lt;= 0.4 (EC3 recommended maximum, NTC never above 0.4).
-    /// Two EN 1993-1-1 options, both opt-in and refused under NTC 2018 by the routes: WithDeclaredCurve (national curve
-    /// assignment) and WithLowMomentExemption (6.3.2.2(4), prismatic bending only).</summary>
+    /// Three EN 1993-1-1 options, all opt-in and refused under NTC 2018 by the routes: WithDeclaredCurve (national curve
+    /// assignment), WithDeclaredImperfectionFactors (national alphaLT) and WithLowMomentExemption (6.3.2.2(4), prismatic
+    /// bending only).</summary>
     public sealed class SteelLateralTorsionalMethod
     {
         public SteelLateralTorsionalMethodKind Kind { get; }
@@ -68,6 +69,14 @@ namespace GPC.Checkers.Steel.Inputs
         public SteelBucklingCurve? DeclaredCurve { get; private set; }
         /// <summary>National Annex clause of DeclaredCurve; null without a declaration.</summary>
         public string DeclaredCurveSource { get; private set; }
+        // alphaLT of curves a-d (index 0-3) declared by the National Annex; null keeps EN 1993-1-1:2005 Table 6.3.
+        private double[] declaredAlphaLT;
+        /// <summary>National Annex clause of the declared alphaLT (EN 1993-1-1:2005 6.3.2.2(2) NOTE, an NDP); null without one.</summary>
+        public string DeclaredImperfectionFactorsSource { get; private set; }
+        /// <summary>National alphaLT of an LTB curve (a-d), or null when Table 6.3 applies.</summary>
+        public double? DeclaredImperfectionFactor(SteelBucklingCurve curve)
+            => declaredAlphaLT == null || curve == SteelBucklingCurve.A0 || !Enum.IsDefined(typeof(SteelBucklingCurve), curve)
+                ? (double?)null : declaredAlphaLT[(int)curve - (int)SteelBucklingCurve.A];
         /// <summary>Design-basis source adopting EN 1993-1-1:2005 6.3.2.2(4), second criterion: for MEd/Mcr &lt;= lambdaLT0^2
         /// LTB effects are ignored and only section checks apply. lambdaLT0 is LambdaLT0 of the method in use (0.2 of
         /// equation (6.56) for the general case, the national value of the rolled method). Null: not adopted.</summary>
@@ -84,6 +93,28 @@ namespace GPC.Checkers.Steel.Inputs
                 throw new ArgumentOutOfRangeException(nameof(curve), "EN 1993-1-1:2005 Table 6.3 defines the LTB curves a, b, c and d.");
             if (string.IsNullOrWhiteSpace(nationalAnnexSource)) throw new ArgumentException("National Annex provenance of the LTB curve required.", nameof(nationalAnnexSource));
             var copy = (SteelLateralTorsionalMethod)MemberwiseClone(); copy.DeclaredCurve = curve; copy.DeclaredCurveSource = nationalAnnexSource; return copy;
+        }
+
+        /// <summary>Same method with the National Annex's imperfection factors of the LTB curves a-d, in place of the
+        /// recommended values of EN 1993-1-1:2005 Table 6.3 (0.21, 0.34, 0.49, 0.76): the NOTE of 6.3.2.2(2) leaves alphaLT
+        /// to the National Annex and 6.3.2.2(2) is in the NDP list of the foreword. They apply to the curve in use (table
+        /// or declared) of both methods, also for the beam-column chiLT. Plausible range: finite, 0 &lt; alpha &lt;= 1 and
+        /// a &lt;= b &lt;= c &lt;= d (curves in order of increasing imperfection). EN 1993-1-1 only: NTC 2018 fixes alphaLT
+        /// (Tab. 4.2.IX) and the routes refuse the declaration.</summary>
+        public SteelLateralTorsionalMethod WithDeclaredImperfectionFactors(double alphaA, double alphaB, double alphaC, double alphaD,
+            string nationalAnnexSource)
+        {
+            var alphas = new[] { alphaA, alphaB, alphaC, alphaD };
+            for (int k = 0; k < alphas.Length; k++)
+            {
+                SteelInputValidation.Finite(alphas[k], "alphaLT" + "abcd"[k]);
+                if (!(alphas[k] > 0) || alphas[k] > 1) throw new ArgumentOutOfRangeException("alphaLT" + "abcd"[k], "A national alphaLT must lie in 0 < alpha <= 1.");
+                if (k > 0 && alphas[k] < alphas[k - 1])
+                    throw new ArgumentOutOfRangeException("alphaLT" + "abcd"[k], "National alphaLT must not decrease from curve a to curve d.");
+            }
+            if (string.IsNullOrWhiteSpace(nationalAnnexSource)) throw new ArgumentException("National Annex provenance of alphaLT required.", nameof(nationalAnnexSource));
+            var copy = (SteelLateralTorsionalMethod)MemberwiseClone(); copy.declaredAlphaLT = alphas; copy.DeclaredImperfectionFactorsSource = nationalAnnexSource;
+            return copy;
         }
 
         /// <summary>Same method adopting EN 1993-1-1:2005 6.3.2.2(4), MEd/Mcr &lt;= lambdaLT0^2. Prismatic bending only (a beam-column

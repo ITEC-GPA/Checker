@@ -5,8 +5,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Steel.Members.Tests;
 
-/// <summary>EN 1993-1-1:2005 Annex B Table B.3 note: Cm=0.9 in the plane of a sway buckling mode. The Circolare 2019
-/// Table C4.2.VI is not among the library sources: the NTC reference states the assumption explicitly.</summary>
+/// <summary>EN 1993-1-1:2005 Annex B Table B.3 note: Cm=0.9 in the plane of a sway buckling mode. NTC: Circolare 2019
+/// C4.2.4.1.3.3.2, text after Table C4.2.V, alpha_my or alpha_mz = 0.9 (checked on the GU text, 30/10/2026).</summary>
 [TestClass]
 public class SwayMomentFactorTests
 {
@@ -35,11 +35,12 @@ public class SwayMomentFactorTests
     }
 
     [TestMethod]
-    public void ReferencesNameTheClauseAndTheNtcAssumption()
+    public void ReferencesNameTheClauseOfEachCode()
     {
         StringAssert.Contains(SteelSwayMomentFactor.Reference(SectionResistanceStandard.Eurocode3_2005), "TableB.3 note");
         string ntc = SteelSwayMomentFactor.Reference(SectionResistanceStandard.Ntc2018);
-        StringAssert.Contains(ntc, "TableC4.2.VI"); StringAssert.Contains(ntc, "GPC assumption");
+        StringAssert.Contains(ntc, "TableC4.2.VI"); StringAssert.Contains(ntc, "C4.2.4.1.3.3.2"); StringAssert.Contains(ntc, "text after TableC4.2.V");
+        Assert.IsFalse(ntc.Contains("GPC assumption")); // verified on the Circolare text, no longer an assumption
     }
 
     [DataTestMethod] [DataRow(false)] [DataRow(true)]

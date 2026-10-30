@@ -19,6 +19,9 @@ namespace GPC.Checkers.Steel.Pipeline
             internal SteelBucklingCurve Curve { get; set; }
             /// <summary>Curve of the method's table (6.4 general, 6.5 rolled); differs from Curve only by a national declaration.</summary>
             internal SteelBucklingCurve TableCurve { get; set; }
+            /// <summary>alphaLT of Curve: Table 6.3, or the National Annex value when the method declares one.</summary>
+            internal double Alpha { get; set; }
+            internal bool AlphaDeclared => Method.DeclaredImperfectionFactorsSource != null;
             internal double Chi { get; set; }
             internal RolledLateralTorsionalBuckling.Result Rolled { get; set; }
             internal bool IsRolled => Rolled != null;
@@ -27,9 +30,10 @@ namespace GPC.Checkers.Steel.Pipeline
             internal double F => IsRolled ? Rolled.F : 1;
         }
 
-        /// <summary>Null when the selected method is applicable. NotSupported: under NTC 2018 a national curve or the
-        /// EC3 6.3.2.2(4) exemption; the rolled method outside exact doubly symmetric rolled/welded I/H with horizontal
-        /// major axis (no fallback to another method); a declared curve on a beam-column without LTB reduction.</summary>
+        /// <summary>Null when the selected method is applicable. NotSupported: under NTC 2018 a national curve, national
+        /// alphaLT or the EC3 6.3.2.2(4) exemption; the rolled method outside exact doubly symmetric rolled/welded I/H with
+        /// horizontal major axis (no fallback to another method); a declared curve or alphaLT on a beam-column without LTB
+        /// reduction.</summary>
         internal static SteelMethodDecision Qualify(SteelMemberAnalysis analysis)
         {
             var method = analysis.LateralTorsionalMethod;
@@ -37,6 +41,8 @@ namespace GPC.Checkers.Steel.Pipeline
             {
                 if (method.DeclaredCurve.HasValue) return Unsupported("Member.LtbCurveFixedByNtc",
                     "NTC 2018 4.2.4.1.3.2 fixes the LTB curves (Tab. 4.2.IX) for the general and the rolled/welded cases: a national curve declaration is an EN 1993-1-1 NDP (Tables 6.4/6.5) only.");
+                if (method.DeclaredImperfectionFactorsSource != null) return Unsupported("Member.LtbImperfectionFactorsFixedByNtc",
+                    "NTC 2018 4.2.4.1.3.2 fixes alphaLT (Tab. 4.2.IX(a): 0.21, 0.34, 0.49, 0.76): national imperfection factors are an EN 1993-1-1 NDP (6.3.2.2(2)) only.");
                 if (method.LowMomentExemption) return Unsupported("Member.LtbLowMomentExemptionNotInNtc",
                     "The EN 1993-1-1:2005 6.3.2.2(4) criterion MEd/Mcr <= lambdaLT,0^2 has no verified NTC 2018 4.2.4.1.3.2 / Circolare 2019 counterpart: NTC keeps the LTB check (chiLT = 1 for lambdaLT <= lambdaLT,0).");
             }
@@ -46,6 +52,9 @@ namespace GPC.Checkers.Steel.Pipeline
             if (method.DeclaredCurve.HasValue && analysis.BeamColumnParameters?.TorsionSusceptible == false)
                 return Unsupported("Member.LtbCurveWithoutLtbReduction",
                     "The beam-column is declared not susceptible to lateral-torsional buckling (chiLT = 1): a declared LTB curve would not be used.");
+            if (method.DeclaredImperfectionFactorsSource != null && analysis.BeamColumnParameters?.TorsionSusceptible == false)
+                return Unsupported("Member.LtbImperfectionFactorsWithoutLtbReduction",
+                    "The beam-column is declared not susceptible to lateral-torsional buckling (chiLT = 1): declared alphaLT would not be used.");
             return null;
         }
 
@@ -55,12 +64,14 @@ namespace GPC.Checkers.Steel.Pipeline
             if (method.Kind == SteelLateralTorsionalMethodKind.General)
             {
                 var table = BucklingCurves.LateralTorsional(section, ntc); var general = method.DeclaredCurve ?? table;
-                return new Reduction { Method = method, Curve = general, TableCurve = table, Chi = BucklingCurves.Reduction(slenderness, general) };
+                double generalAlpha = method.DeclaredImperfectionFactor(general) ?? BucklingCurves.Alpha(general);
+                return new Reduction { Method = method, Curve = general, TableCurve = table, Alpha = generalAlpha, Chi = BucklingCurves.Reduction(slenderness, generalAlpha) };
             }
             var rolledTable = RolledLateralTorsionalBuckling.Curve(section) ?? throw new NotSupportedException("Rolled-section LTB curve not qualified for this section.");
             var curve = method.DeclaredCurve ?? rolledTable;
-            var rolled = RolledLateralTorsionalBuckling.Reduce(slenderness, BucklingCurves.Alpha(curve), method.Beta, method.LambdaLT0, method.MomentFactor.Kc, ntc);
-            return new Reduction { Method = method, Curve = curve, TableCurve = rolledTable, Chi = rolled.Chi, Rolled = rolled };
+            double alpha = method.DeclaredImperfectionFactor(curve) ?? BucklingCurves.Alpha(curve);
+            var rolled = RolledLateralTorsionalBuckling.Reduce(slenderness, alpha, method.Beta, method.LambdaLT0, method.MomentFactor.Kc, ntc);
+            return new Reduction { Method = method, Curve = curve, TableCurve = rolledTable, Alpha = alpha, Chi = rolled.Chi, Rolled = rolled };
         }
 
         /// <summary>EN 1993-1-1:2005 6.3.2.2(4), second criterion, only when the method adopts it: true for MEd/Mcr &lt;=
@@ -82,16 +93,23 @@ namespace GPC.Checkers.Steel.Pipeline
             + (method.Kind == SteelLateralTorsionalMethodKind.General ? " of the general case (equation 6.56)" : " of the rolled or equivalent welded method (6.3.2.3; " + method.ParameterSource + ")")
             + "; adopted by: " + method.LowMomentExemptionSource;
 
-        /// <summary>National curve declaration only: flag and the alphaLT the table of the method would give.</summary>
+        /// <summary>National declarations only. Curve: flag and the alphaLT the table of the method would give. alphaLT:
+        /// flag and the recommended Table 6.3 value of the curve in use.</summary>
         internal static void AddCurveTrace(List<SectionResistanceValue> trace, Reduction r)
         {
-            if (!r.Method.DeclaredCurve.HasValue) return;
-            Add(trace, "LtbCurveDeclared", 1, "1"); Add(trace, "AlphaLTTableCurve", BucklingCurves.Alpha(r.TableCurve), "1");
+            if (r.Method.DeclaredCurve.HasValue) { Add(trace, "LtbCurveDeclared", 1, "1"); Add(trace, "AlphaLTTableCurve", BucklingCurves.Alpha(r.TableCurve), "1"); }
+            if (r.AlphaDeclared) { Add(trace, "AlphaLTDeclared", 1, "1"); Add(trace, "AlphaLTRecommended", BucklingCurves.Alpha(r.Curve), "1"); }
         }
 
-        internal static string CurveReference(Reduction r) => !r.Method.DeclaredCurve.HasValue ? ""
-            : "; LTB curve " + r.Curve.ToString().ToLowerInvariant() + " declared by the National Annex (" + r.Method.DeclaredCurveSource + ") in place of curve "
-                + r.TableCurve.ToString().ToLowerInvariant() + " of " + (r.IsRolled ? "Table 6.5" : "Table 6.4") + " (EN 1993-1-1:2005 6.3.2.2(2)/6.3.2.3(1)); alphaLT from Table 6.3";
+        internal static string CurveReference(Reduction r)
+            => (!r.Method.DeclaredCurve.HasValue ? ""
+                : "; LTB curve " + r.Curve.ToString().ToLowerInvariant() + " declared by the National Annex (" + r.Method.DeclaredCurveSource + ") in place of curve "
+                    + r.TableCurve.ToString().ToLowerInvariant() + " of " + (r.IsRolled ? "Table 6.5" : "Table 6.4") + " (EN 1993-1-1:2005 6.3.2.2(2)/6.3.2.3(1))"
+                    + (r.AlphaDeclared ? "" : "; alphaLT from Table 6.3"))
+            + (!r.AlphaDeclared ? ""
+                : "; alphaLT = " + r.Alpha.ToString("R", System.Globalization.CultureInfo.InvariantCulture) + " of curve " + r.Curve.ToString().ToLowerInvariant()
+                    + " declared by the National Annex (" + r.Method.DeclaredImperfectionFactorsSource + ") in place of the recommended "
+                    + BucklingCurves.Alpha(r.Curve).ToString("R", System.Globalization.CultureInfo.InvariantCulture) + " of Table 6.3 (EN 1993-1-1:2005 6.3.2.2(2) NOTE, NDP)");
 
         /// <summary>Rolled method only, never on the general route. curveParameters adds BetaLT, LambdaLT0 and
         /// MomentCorrectionF for the routes that do not trace them already.</summary>

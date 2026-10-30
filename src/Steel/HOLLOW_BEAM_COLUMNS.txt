@@ -16,6 +16,9 @@ taglio richiede ancora ShearBucklingExclusionSource: nessun filtro cave qualific
 Aggiornamento 29/10/2026: senza la fonte le RHS con asse 1 orizzontale attendono
 i filtri delle pareti parallele a ogni taglio attivo (EvaluateEc3RhsWebs/
 EvaluateNtcRhsWebs, vedi CURRENT.txt); CHS e cave ruotate la richiedono ancora.
+Aggiornamento 30/10/2026: le CHS entro il filtro GPC EvaluateChsWall
+(d/t <= 2 (0,0693 E/fy)^(2/3), EN 1993-1-6 D.1.4, vedi CURRENT.txt) attendono la
+sua valutazione per ogni taglio attivo; oltre il limite resta la fonte esplicita.
 
 Meccanica e numeri EC3/NTC passano attraverso gli stessi contratti; restano
 distinti gamma e riferimenti. EN1993-1-1:2005 6.3.3 / AnnexB TableB.1 p79

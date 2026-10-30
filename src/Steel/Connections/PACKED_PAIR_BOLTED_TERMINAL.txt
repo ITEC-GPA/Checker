@@ -59,6 +59,18 @@ CONTROLLI
   con min(fy/gammaM0,0.9fu/gammaM2) del fazzoletto e del collettore. Momento fuori piano
   dovuto al trasferimento differenziale: correnti N/2+Q e N/2-Q sulle linee baricentriche,
   quindi Q per la distanza fra i baricentri. Con N>=Ncr fallimento esplicito.
+  Derivazione (30/10/2026; EN1993-1-1:2005 6.4.4(1)-(2): asta integrale, le connessioni
+  portano lo scorrimento Q). Corpo libero: fazzoletto, imbottiture, bulloni e le estremita'
+  dei due correnti, tagliati oltre il giunto dove ogni corrente porta solo la sua forza
+  assiale sulla linea baricentrica. Piano medio del fazzoletto z=0, s=distanza fra i
+  baricentri=distacco+2e_n; F1=N/2+Q a z=+s/2, F2=N/2-Q a z=-s/2. Equilibrio alla rotazione
+  attorno all'asse del fazzoletto: M=F1 s/2-F2 s/2=Q s, costante dal giunto alla radice.
+  Scomposto ai piani di taglio z=+-distacco/2: (F1-F2)distacco/2+(F1-F2)e_n=Q(distacco+2e_n)
+  =Q s. Trazione dei bulloni, contatto alla fila0 e rifollamento delle imbottiture
+  ridistribuiscono il momento solo dentro il giunto, non lo cambiano. Il terminale saldato
+  (SteelPackedPairTerminal) ha lo stesso corpo libero e conserva l'inviluppo 2Q(s+2e_n)=
+  (2+4e_n/s)Q s, almeno il doppio della statica: e' cautelativo e non e' stato modificato;
+  il bullonato resta Q s, corretto per la sua geometria. Prova: PackedTerminalGussetMomentTests.
   GussetLapCompression (SCI P358 8.5) NON si applica: e' un giunto a semplice sovrapposizione
   con eccentricita' intrinseca, qui il fazzoletto e' centrale e simmetrico.
 Prescrizioni (fuori campo => NotSupported, nessun controllo favorevole): contesto di calcolo

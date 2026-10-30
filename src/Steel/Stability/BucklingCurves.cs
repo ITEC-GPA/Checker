@@ -30,10 +30,13 @@ namespace GPC.Checkers.Steel.Members
 
         /// <summary>Member-route reduction: finite positive slenderness, plateau 0.2 and bound 1.0
         /// (prismatic compression, conservative LTB general case, beam-column).</summary>
-        internal static double Reduction(double slenderness, SteelBucklingCurve curve)
+        internal static double Reduction(double slenderness, SteelBucklingCurve curve) => Reduction(slenderness, Alpha(curve));
+
+        /// <summary>Same reduction with an explicit imperfection factor (a national alphaLT of the general LTB case).</summary>
+        internal static double Reduction(double slenderness, double alpha)
         {
             Positive(slenderness, "Slenderness"); if (slenderness <= .2) return 1;
-            double chi = PerryRobertson(Alpha(curve), slenderness); Positive(chi, "Reduction"); return Math.Min(1, chi);
+            double chi = PerryRobertson(alpha, slenderness); Positive(chi, "Reduction"); return Math.Min(1, chi);
         }
 
         /// <summary>LTB curve of the conservative general case: EN 1993-1-1:2005 Table 6.4 (recommended),

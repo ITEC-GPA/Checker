@@ -14,8 +14,11 @@ namespace GPC.Checkers.Steel.Serviceability
     /// <summary>Declared basis of the serviceability stress limits sigma &lt;= fy/gammaM,ser, tau &lt;= fy/(sqrt3 gammaM,ser)
     /// and sqrt(sigma^2+3tau^2) &lt;= fy/gammaM,ser (EN 1993-2:2006 7.3(1), eq. 7.1-7.3). gammaM,ser is a nationally
     /// determined parameter (recommended 1.00) and has no default here. EN 1993-1-1 does not require the check for
-    /// buildings and no NTC 2018/Circolare 2019 text for it is verified in this repository: the applicability (bridge,
-    /// project requirement) is a caller declaration, recorded and never inferred. Sources are provenance, not certification.</summary>
+    /// buildings. NTC 2018 lists the "stato limite di plasticizzazioni locali" among the steel SLS (4.2.2.1) and treats it
+    /// in 4.2.4.2.4 without any stress limit (the Circolare 2019 has no C4.2.4.2); under NTC the limits are those of
+    /// EN 1993-2:2006 7.3, a CEN Eurocode admitted by NTC chapter 12 for what the NTC does not specify (checked on the GU
+    /// texts, 30/10/2026). The applicability (bridge, project requirement) is a caller declaration, recorded and never
+    /// inferred. Sources are provenance, not certification.</summary>
     public sealed class SteelServiceStressBasis
     {
         public double GammaMSer { get; }
@@ -138,7 +141,7 @@ namespace GPC.Checkers.Steel.Serviceability
             {
                 this.input = input; this.basis = basis;
                 reference = input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018
-                    ? "Declared limits in the form of EN 1993-2:2006 7.3(1) eq. (7.1)-(7.3) (no NTC 2018/Circolare 2019 clause verified in the repository); tau = V S/(I t)"
+                    ? "EN 1993-2:2006 7.3(1) eq. (7.1)-(7.3) under NTC 2018 chapter 12 (NTC 4.2.2.1 and 4.2.4.2.4 name the local-yielding SLS without a stress limit), declared characteristic combination; tau = V S/(I t)"
                     : "EN 1993-2:2006 7.3(1) eq. (7.1)-(7.3), characteristic combination; tau EN 1993-1-1:2005 6.2.6(4) eq. (6.20)";
             }
 

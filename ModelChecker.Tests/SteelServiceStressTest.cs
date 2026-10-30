@@ -83,7 +83,7 @@ public class SteelServiceStressTest
         Assert.AreEqual(132, Math.Abs(point.Y), 1e-9); Assert.AreEqual(6, Math.Abs(point.X), 1e-9); Assert.AreEqual("SectionGeometryCentroidal", point.Frame);
         Assert.IsTrue(details.Trace.Any(t => t.Key == "ServiceStress.GammaMSerSource" && t.Expression == Options(ntc)["ServiceStress.GammaMSerSource"]));
         Assert.IsTrue(details.Trace.Any(t => t.Key == "ServiceStress.ApplicabilitySource" && t.Expression == Options(ntc)["ServiceStress.ApplicabilitySource"]));
-        Assert.IsTrue(details.Trace.Any(t => t.Key == "ServiceStress.Reference" && t.Expression!.Contains(ntc ? "no NTC 2018/Circolare 2019 clause verified" : "EN 1993-2:2006 7.3(1)")));
+        Assert.IsTrue(details.Trace.Any(t => t.Key == "ServiceStress.Reference" && t.Expression!.Contains(ntc ? "under NTC 2018 chapter 12 (NTC 4.2.2.1 and 4.2.4.2.4" : "EN 1993-2:2006 7.3(1)")));
         Assert.AreEqual(details.Trace.Count, details.Trace.Select(t => t.Key).Distinct().Count());
         Assert.IsTrue(details.Trace.All(t => !t.Value.HasValue || double.IsFinite(t.Value.Value)));
     }
@@ -153,6 +153,35 @@ public class SteelServiceStressTest
         Assert.AreEqual(EngineeringOutcome.NotEvaluated, result.Outcome); Assert.AreEqual(data, result.Data); Assert.IsNull(result.Utilization);
         if (code != null) Assert.IsTrue(result.Diagnostics.Any(d => d.Code == code), string.Join(";", result.Diagnostics.Select(d => d.Code)));
         else Assert.IsTrue(result.Details!.Trace.Any(t => t.Key == "ServiceStress.Status" && t.Expression == "NotRequired"));
+    }
+
+    [TestMethod]
+    public void UnloadedCutIsANotApplicableRowAndTheReportResolves()
+    {
+        // All six actions zero: ServiceStress.NoActions. Was Required + NotEvaluated, so the report kept it outstanding.
+        var zero = Run(Input());
+        Assert.AreEqual(CheckApplicability.NotApplicable, zero.Applicability);
+        StringAssert.Contains(zero.ApplicabilityReason, "ServiceStress.NoActions");
+        Assert.AreEqual(EngineeringOutcome.NotEvaluated, zero.Outcome); Assert.AreEqual(ExecutionStatus.NotExecuted, zero.Execution);
+        Assert.AreEqual(DataStatus.Ready, zero.Data); Assert.IsNull(zero.Utilization); Assert.AreEqual(0, zero.Diagnostics.Count);
+        Assert.IsTrue(zero.Details!.Trace.Any(t => t.Key == "ServiceStress.Status" && t.Expression == "NotRequired"));
+        var summary = new CheckSummary(1, new[] { zero });
+        Assert.AreEqual(1, summary.NotApplicable); Assert.AreEqual(0, summary.Outstanding); Assert.AreEqual(0, summary.Invalid);
+        Assert.AreEqual(EngineeringOutcome.NotEvaluated, summary.Outcome); // resolved, never satisfied
+        // Only negligible components (default relative limit 1e-6 Mel, Mel = Wel fy = 355 Ixx/150 = 2.98e8 Nmm, limit 298 Nmm):
+        // M1 = 100 Nmm counts as zero, the reason names it.
+        var negligible = Input(); negligible.Forces.M1 = 100;
+        var tiny = Run(negligible);
+        Assert.AreEqual(CheckApplicability.NotApplicable, tiny.Applicability);
+        StringAssert.Contains(tiny.ApplicabilityReason, "Negligible components counted as zero: M1=100 Nmm <= ");
+        // Any non-zero action is evaluated as before: M1 = 1000 Nmm, sigma = M y/Ixx at y = 150, u = sigma/(fy/1.0).
+        var loaded = Input(); loaded.Forces.M1 = 1000;
+        var small = Run(loaded);
+        Assert.AreEqual(CheckApplicability.Required, small.Applicability); Assert.AreEqual(EngineeringOutcome.Satisfied, small.Outcome);
+        Assert.AreEqual(1000 * 150 / (Ixx * 355), small.Utilization!.Value, 1e-15);
+        var both = new CheckSummary(2, new[] { zero, small });
+        Assert.AreEqual(1, both.NotApplicable); Assert.AreEqual(1, both.Completed); Assert.AreEqual(0, both.Outstanding);
+        Assert.AreEqual(EngineeringOutcome.Satisfied, both.Outcome);
     }
 
     private static (GPC.Model.Models.Model Model, VerificationConfiguration Config) Workflow(CombinationCategory category, double gamma = 1.0)

@@ -138,7 +138,7 @@ namespace GPC.Model.Checker.Configuration
                 Add("ServiceStress.GammaMSer",EngineParameterKind.Number,"1",min:1,
                     description:"gammaM,ser of the service stress limits fy/gammaM,ser, fy/(sqrt3 gammaM,ser), sqrt(sigma^2+3tau^2)<=fy/gammaM,ser (EN 1993-2:2006 7.3(1), NDP, recommended 1.00); no default.");
                 Add("ServiceStress.GammaMSerSource",description:"Provenance of gammaM,ser: national annex or project document.");
-                Add("ServiceStress.ApplicabilitySource",description:"Why stress limitation applies (EN 1993-2 7.3 bridge, project requirement): EN 1993-1-1 does not require it for buildings and no NTC 2018/Circolare text is assumed. It also covers shear lag and secondary effects, which are not computed.");
+                Add("ServiceStress.ApplicabilitySource",description:"Why stress limitation applies (EN 1993-2 7.3 bridge, project requirement): EN 1993-1-1 does not require it for buildings and NTC 2018 4.2.4.2.4 names local yielding without a stress limit (EN 1993-2 7.3 under NTC chapter 12). It also covers shear lag and secondary effects, which are not computed.");
                 Together("ServiceStressBasis","ServiceStress.GammaMSer","ServiceStress.GammaMSerSource","ServiceStress.ApplicabilitySource");
                 Require("NetAreaDeclarationRequired","Net area requires an explicit perforated declaration.",new[]{"Unperforated"},Has("NetArea"));
                 rules.Add(new EngineParameterRule("NetAreaRequiresPerforated","Net area cannot accompany an unperforated declaration.",new[]{Is("Unperforated","true")},null,new[]{"NetArea"}));
@@ -192,10 +192,10 @@ namespace GPC.Model.Checker.Configuration
             Add("MomentFactorPreparation",EngineParameterKind.Choice,choices:new[]{"LinearDiagrams","ConservativeEnvelope"},description:"Explicit nonsway case (a plane in SwayBucklingPlanes takes Cm=0.9 instead); same full braced span for both bending planes and LTB; validates all exported moments.",modes:new[]{"BeamColumn"});
             rules.Add(new EngineParameterRule("AutomaticMomentFactorsConflict","Choose computed or explicit Cm.",new[]{Has("MomentFactorPreparation")},null,new[]{"Cm1","Cm2","CmLT"}));
             Require("ExplicitMomentFactors","Provide Cm or select declared linear-diagram preparation.",new[]{"Cm1","Cm2","CmLT"},Is("AnalysisMode","BeamColumn"),IsNot("MomentFactorPreparation","LinearDiagrams"),IsNot("MomentFactorPreparation","ConservativeEnvelope"),Lacks("SwayBucklingPlanes"));
-            // Sway buckling planes (EN1993-1-1 Table B.3 note; Circolare Table C4.2.VI): Cm=0.9 in the declared plane, the
+            // Sway buckling planes (EN1993-1-1 Table B.3 note; Circolare C4.2.4.1.3.3.2): Cm=0.9 in the declared plane, the
             // other plane and CmLT keep their preparation or explicit value; never inferred, its Ncr must be a sway value.
             Add("SwayBucklingPlanes",EngineParameterKind.Choice,choices:new[]{"1","2","1,2"},modes:new[]{"BeamColumn"},
-                description:"Principal bending planes whose relevant flexural buckling mode is a sway mode (1: M1 with Ncr1, 2: M2 with Ncr2): Cm=0.9 there whatever the diagram (EN1993-1-1 Table B.3 note; NTC: Circolare Table C4.2.VI, same note assumed). Explicit declaration, never inferred; the plane's Ncr must be an explicit sway value or a declared sway effective length.");
+                description:"Principal bending planes whose relevant flexural buckling mode is a sway mode (1: M1 with Ncr1, 2: M2 with Ncr2): Cm=0.9 there whatever the diagram (EN1993-1-1 Table B.3 note; NTC: Circolare 2019 C4.2.4.1.3.3.2, alpha_my or alpha_mz = 0.9 for a sway mode). Explicit declaration, never inferred; the plane's Ncr must be an explicit sway value or a declared sway effective length.");
             Add("SwayModeSource",modes:new[]{"BeamColumn"},description:"Provenance of the sway classification of the declared planes (global buckling mode, bracing assessment, analysis method).");
             Together("SwayDeclarationPair","SwayBucklingPlanes","SwayModeSource");
             foreach(var planes in new[]{"1","2","1,2"}) {
@@ -211,7 +211,7 @@ namespace GPC.Model.Checker.Configuration
             foreach(var key in new[]{"Cm1","Cm2","CmLT"}) Add(key,EngineParameterKind.Number,"1",min:.4,max:1,modes:new[]{"BeamColumn"});
             foreach(var key in new[]{"MomentFactorSource","StabilityModelSource","LateralTorsionalExclusionSource","ShearBucklingExclusionSource"})
                 Add(key,modes:new[]{"BeamColumn"},description:key!="ShearBucklingExclusionSource"?null
-                    :"Explicit shear-buckling exclusion; it wins. Without it exact H are screened like the section engine (web EC3 6.2.6(6)/NTC 4.2.27, flanges c/t<=14eps GPC criterion) and RHS with horizontal axis 1 (walls parallel to each shear as webs, same web criteria); CHS and rotated hollow sections require it.");
+                    :"Explicit shear-buckling exclusion; it wins. Without it exact H are screened like the section engine (web EC3 6.2.6(6)/NTC 4.2.27, flanges c/t<=14eps GPC criterion) and RHS with horizontal axis 1 (walls parallel to each shear as webs, same web criteria), CHS by the GPC wall screen d/t<=2(0.0693E/fy)^(2/3) (EN 1993-1-6 D.1.4); CHS beyond that limit and rotated hollow sections require it.");
             // LTB method: General is the default; the rolled method uses the code object's *Mod beta/lambdaLT0 and f from kc.
             var ltbModes=new[]{"Bending","BeamColumn"};var ltbMoment=new[]{"LtbMomentDistribution","LtbPsi","LtbMomentSource"};
             Add("LtbMethod",EngineParameterKind.Choice,choices:new[]{"General","RolledOrEquivalentWelded"},modes:ltbModes,
@@ -233,6 +233,8 @@ namespace GPC.Model.Checker.Configuration
                 description:"EN 1993-1-1 only: LTB curve that the National Annex assigns to this member's section, in place of the recommended Table 6.4 (General) or Table 6.5 (RolledOrEquivalentWelded) assignment, NDPs of 6.3.2.2(2)/6.3.2.3(1); also for the beam-column chiLT. alphaLT stays the Table 6.3 value of the curve. Refused under NTC 2018 (curves fixed by Tab. 4.2.IX).");
             Add("LtbCurveSource",modes:ltbModes,description:"National Annex and clause assigning the declared LTB curve to this section family, h/b range and fabrication.");
             Together("LtbCurvePair","LtbCurve","LtbCurveSource");
+            Add("LtbImperfectionFactorsSource",modes:ltbModes,
+                description:"EN 1993-1-1 only: National Annex clause giving alphaLT per LTB curve (6.3.2.2(2) NOTE, an NDP). With it the code object's AlphaLTImperfectionFactorForCurveA..D replace the recommended Table 6.3 values (0 < alpha <= 1, non-decreasing a to d) for the curve in use, also in the beam-column chiLT; without it they must equal Table 6.3. Refused under NTC 2018 (Tab. 4.2.IX(a)).");
             Add("LtbLowMomentExemption",EngineParameterKind.Boolean,modes:new[]{"Bending"},
                 description:"EN 1993-1-1:2005 6.3.2.2(4), adopted with true: for MEd/Mcr <= lambdaLT,0^2 (0.2 General, LambdaLT0ForLateralTorsionalBucklingMod with RolledOrEquivalentWelded) the LTB check is not required; section checks still apply. Bending only (not the beam-column interaction); refused under NTC 2018.");
             Add("LtbLowMomentExemptionSource",modes:new[]{"Bending"},description:"Design-basis decision adopting the EN 1993-1-1:2005 6.3.2.2(4) low-moment criterion for this member.");

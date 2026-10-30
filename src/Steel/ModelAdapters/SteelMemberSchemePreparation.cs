@@ -39,8 +39,9 @@ namespace GPC.Checkers.Steel.ModelAdapters
 
     /// <summary>Equivalent uniform moment factor of a principal bending plane whose relevant flexural buckling
     /// mode is a sway mode: EN 1993-1-1:2005 Annex B Table B.3 note, Cmy=0.9 or Cmz=0.9 respectively, whatever
-    /// the moment diagram. NTC 2018: the Circolare 2019 Method B (C4.2.4.1.3.3.2, Table C4.2.VI) follows Annex B;
-    /// the Circolare text is not among the library sources, so the same note is a stated GPC assumption.
+    /// the moment diagram. NTC 2018: Circolare 2019 C4.2.4.1.3.3.2 (Method B), in the text after Table C4.2.V, takes
+    /// alpha_my = 0.9 or alpha_mz = 0.9 for a sway buckling mode (alpha_m of Table C4.2.VI otherwise); checked on the
+    /// public GU text (S.O. n. 5, GU n. 35 of 11/02/2019, printed page 107) on 30/10/2026.
     /// CmLT belongs to the lateral-torsional segment and is not affected. The factor is consistent only with a
     /// sway Ncr of the same plane; the sway mode is a caller declaration, never inferred from a mesh.</summary>
     public static class SteelSwayMomentFactor
@@ -52,8 +53,8 @@ namespace GPC.Checkers.Steel.ModelAdapters
             if (standard == SectionResistanceStandard.Eurocode3_2005)
                 return "EN1993-1-1:2005 AnnexB TableB.3 note: sway buckling mode, Cm=0.9 whatever the diagram";
             if (standard == SectionResistanceStandard.Ntc2018)
-                return "Circolare2019 C4.2.4.1.3.3.2 Method B TableC4.2.VI: sway buckling mode, Cm=0.9 as the EN1993-1-1:2005 TableB.3 note"
-                    + " (GPC assumption: Method B follows Annex B, Circolare text not among the library sources)";
+                return "Circolare2019 C4.2.4.1.3.3.2 Method B, text after TableC4.2.V: sway buckling mode, alpha_my=0.9 or alpha_mz=0.9"
+                    + " whatever the diagram (alpha_m of TableC4.2.VI otherwise), as the EN1993-1-1:2005 TableB.3 note";
             throw new ArgumentOutOfRangeException(nameof(standard));
         }
 
