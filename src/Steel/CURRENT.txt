@@ -337,6 +337,24 @@ Taglio ordinario:
   Vedi Connections/DOUBLE_ANGLE_COLUMN_WEB.txt (aggiornamento 29/10).
   Le API di componente hanno un campo limitato anche quando Status=Passed.
 
+Basi di colonna (30/10/2026, branch claude/conn-basi-colonne):
+  ColumnBase.Verify(ColumnBaseInput) -> StandardConnectionCaseReport.Create(r)
+  -> SteelAssessmentSummary.From(report). Percorso opt-in, catalogo ColumnBases
+  (StandardStaticVerification). Pilastro I/H h<=600 saldato a piastra rettangolare
+  non irrigidita su malta e calcestruzzo; quattro tirafondi esterni alle ali con
+  T-stub della fila esterna (Tab.6.6, Lb*, piastra senza leveraggio per 6.2.6.11(2))
+  oppure tirafondi fra le ali solo senza trazione. N, M1, V1, V2 concomitanti; M2, T,
+  piastre irrigidite, colonne annegate, cavi, sisma e fatica rifiutati con codice.
+  fjd=2/3 FRdu/Ac0 con FRdu di EN1992-1-1 6.7 sull'impronta e Ac1 dichiarata;
+  Tab.6.7 come equilibrio dei due lati (zC baricentro compresso, zT fila di tirafondi),
+  6.2.8.2 a tre T-stub per M1=0 compresso; taglio Cf,d N piu' tirafondi a fori normali
+  non tesi (6.2.2(5)-(8)); cordoni con FilletWeldGroup alle azioni e a N/u, M1/u
+  (6.2.3(4)). La rottura del calcestruzzo dei tirafondi (EN1992-4) e' un dato
+  dichiarato con fonte; senza di esso trazione/taglio dei tirafondi non sono contati.
+  NTC: nessuna regola specifica nelle NTC 2018; ammesso come modello EC integrativo
+  (Cap.12) con fattori NTC e fcd 4.1.2.1.1.1; Circolare 2019 da verificare.
+  Vedi Connections/COLUMN_BASE_USAGE.txt; ColumnBaseTests (52 casi, calcoli a mano).
+
 Superficie pubblica delle connessioni (28/10/2026):
   pubblici solo gli ingressi sopra, DoubleCoverSplice.Verify,
   GussetTwinFlatTension.Verify, ConnectionCapabilityCatalog, i preparati e
