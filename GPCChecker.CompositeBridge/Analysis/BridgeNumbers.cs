@@ -25,6 +25,20 @@ namespace GPC.Checkers.CompositeBridge
         public bool Equals(BridgePhase? x, BridgePhase? y) => ReferenceEquals(x, y);
         public int GetHashCode(BridgePhase obj) => RuntimeHelpers.GetHashCode(obj);
     }
+    /// <summary>The same effective state, by reference</summary>
+    internal sealed class BridgeStateIdentity : IEqualityComparer<BridgeEffective>
+    {
+        public bool Equals(BridgeEffective? x, BridgeEffective? y) => ReferenceEquals(x, y);
+        public int GetHashCode(BridgeEffective obj) => RuntimeHelpers.GetHashCode(obj);
+    }
+    /// <summary>The same effective state, phase and solver of a solution, by reference</summary>
+    internal sealed class BridgeSolutionIdentity : IEqualityComparer<(BridgeEffective State, BridgePhase Phase, bool Native)>
+    {
+        public bool Equals((BridgeEffective State, BridgePhase Phase, bool Native) x, (BridgeEffective State, BridgePhase Phase, bool Native) y) =>
+            ReferenceEquals(x.State, y.State) && ReferenceEquals(x.Phase, y.Phase) && x.Native == y.Native;
+        public int GetHashCode((BridgeEffective State, BridgePhase Phase, bool Native) key) =>
+            (RuntimeHelpers.GetHashCode(key.State) * 397 ^ RuntimeHelpers.GetHashCode(key.Phase)) * 2 + (key.Native ? 1 : 0);
+    }
     /// <summary>
     /// Former construction gate of the concrete solver. Not needed: the section meshes are created once under the section lock (Model) and
     /// independent engines on the same section are thread-safe (architecture review R7; ConcurrencyTests of Concrete and CompositeBridge).

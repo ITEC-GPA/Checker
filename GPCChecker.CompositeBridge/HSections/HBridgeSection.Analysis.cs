@@ -9,6 +9,9 @@ namespace GPC.Checkers.CompositeBridge;
 // H-specific geometry and result assembly; reusable cumulative iteration and native solver live in Analysis/.
 public static partial class HBridgeSection
 {
+    /// <summary>False: every solution of <see cref="Calculate"/> is computed again, as before the reuse (tests compare the two paths)</summary>
+    internal static bool SolutionReuse { get; set; } = true;
+
     public static HBridgeAnalysisResult Calculate(HBridgeInput data, CancellationToken cancellation = default)
     {
         data = data.Snapshot(); var g = Geometry(data); var mat = Materials(data);
@@ -39,12 +42,34 @@ public static partial class HBridgeSection
             _ => null
         }, new BridgePhaseIdentity());
         var stages = new List<BridgeStage>();
+        // Solve depends only on its arguments, and the analysis passes the same objects again: with the warm start each situation evaluates
+        // first the converged state of the previous one, on which the previous phases were already solved, and when it converges there the
+        // final solutions of those phases are the previous ones too. Each (state, phase, solver) is solved once; the callers get copies, as
+        // separate solutions were, with the same numbers (the same calculation on the same objects).
+        var solutions = new Dictionary<(BridgeEffective, BridgePhase, bool), BridgeContribution>(new BridgeSolutionIdentity());
+        // The steel pieces of a state and the native section on them are functions of the input and of the state only, and the solutions only
+        // read them: built once per state for all its phases (before, once per phase).
+        var sections = new Dictionary<BridgeEffective, BridgeStateSection>(new BridgeStateIdentity());
+        BridgeContribution Solution(BridgeEffective effective, BridgePhase phase, bool nativeSolver)
+        {
+            if (!SolutionReuse) return Solve(data, g, effective, phase, applicationPoints[phase], nativeSolver);
+            if (!solutions.TryGetValue((effective, phase, nativeSolver), out var solution))
+            {
+                if (!sections.TryGetValue(effective, out var section)) sections.Add(effective, section = new(SteelPieces(g, effective, mat.Steel)));
+                solutions.Add((effective, phase, nativeSolver), solution = Solve(data, g, effective, phase, applicationPoints[phase], nativeSolver, section));
+            }
+            return solution with { };
+        }
+        // The gross properties of a phase do not depend on the situation: computed once per phase (before, once per situation including it).
+        var grossProperties = new Dictionary<BridgePhase, BridgeSectionProperties>(new BridgePhaseIdentity());
+        BridgeSectionProperties GrossProperties(BridgePhase phase) =>
+            grossProperties.TryGetValue(phase, out var properties) ? properties : grossProperties[phase] = GrossPhaseProperties(data, phase);
         // The effective-width iterations use the transformed-section field with the Checker integration inertia, which is the Checker linear
         // field to machine precision (relative differences 1e-15); the converged situation is solved again with the Checker solver, which
         // gives the reported stresses and the equilibrium audit. Before, every iteration built a Checker solver for every composite phase
         // (about 2 ms each: 63 solutions and 115 ms for three phases, now 3 solutions).
         var situations = CumulativePhaseAnalysis.Analyze(phases, () => BridgeEffective.Full(g),
-            (effective, phase) => Solve(data, g, effective, phase, applicationPoints[phase], nativeSolver: !data.Options.Class4),
+            (effective, phase) => Solution(effective, phase, nativeSolver: !data.Options.Class4),
             contributions => data.Options.Class4 ? EffectiveWidths(g, y => contributions.Sum(c => c.SteelStress(y)), mat.Steel.Fyk, data.Options) : BridgeEffective.Full(g),
             (current, next) => current.Distance(next, g), (current, next, factor) => current.Relax(next, factor),
             phase => phase.Name, cancellation,
@@ -56,7 +81,7 @@ public static partial class HBridgeSection
             var included = phases.Take(end + 1).ToArray();
             var effective = situation.State;
             // gross section: the only iteration already used the Checker solver
-            var contributions = data.Options.Class4 ? included.Select(p => Solve(data, g, effective, p, applicationPoints[p])).ToList() : situation.Contributions.ToList();
+            var contributions = data.Options.Class4 ? included.Select(p => Solution(effective, p, nativeSolver: true)).ToList() : situation.Contributions.ToList();
             // Keep properties and stresses on the same converged geometry. Diagnostic plate data are recomputed on those stresses.
             var diagnostics = data.Options.Class4 ? EffectiveWidths(g, y => contributions.Sum(c => c.SteelStress(y)), mat.Steel.Fyk, data.Options) : BridgeEffective.Full(g);
             // all the plates, including the outstands of the bottom flange of the box (before, BottomOutstand kept the gross plate: results, report
@@ -83,7 +108,7 @@ public static partial class HBridgeSection
             if (g.Bottom2Thickness > 0) warnings.Add("Due piastre inferiori modellate con la geometria reale. Instabilità locale: ciascuna piastra come sbalzo dall'anima con il proprio spessore, senza il beneficio dell'accoppiamento (a favore di sicurezza).");
             var materialValues = new BridgeMaterialValues(mat.Concrete.Name, Math.Abs(mat.Concrete.Fck), mat.Concrete.ElasticModulusCompression,
                 mat.Steel.Name, mat.Steel.Fyk, mat.Steel.ElasticModulusTension, mat.Rebar.Name, mat.Rebar.Fyk, mat.Rebar.ElasticModulusTension);
-            var accessory = CalculateShear(data, g, materialValues, effective, contributions, included, warnings, TorsionFlows(data, g, materialValues, included));
+            var accessory = CalculateShear(data, g, materialValues, effective, contributions, included, warnings, GrossProperties, TorsionFlows(data, g, materialValues, included));
             stages.Add(new(phases[end].Name, iter, error, effective, new(effectiveArea, effectiveCentroid, effectiveInertia), contributions, points, warnings,
                 accessory.Shear, accessory.Studs, accessory.Torsion));
         }
@@ -112,18 +137,25 @@ public static partial class HBridgeSection
     /// <param name="applicationPoint">y of the axial force; null: the effective centroid</param>
     /// <param name="nativeSolver">False: the transformed-section field with the Checker integration inertia instead of the Checker solver
     /// (the same field to machine precision, used for the effective-width iterations)</param>
-    private static BridgeContribution Solve(HBridgeInput d, BridgeGeometry g, BridgeEffective e, BridgePhase p, double? applicationPoint, bool nativeSolver = true)
+    /// <param name="shared">The steel pieces of e and the native section on them, shared by the phases of the state (null: built here)</param>
+    private static BridgeContribution Solve(HBridgeInput d, BridgeGeometry g, BridgeEffective e, BridgePhase p, double? applicationPoint, bool nativeSolver = true,
+        BridgeStateSection? shared = null)
     {
-        if (p.KindName == ShrinkageKind) return SolveShrinkage(d, g, e, p, nativeSolver);
+        if (p.KindName == ShrinkageKind) return SolveShrinkage(d, g, e, p, nativeSolver, shared);
         var mat = Materials(d); string kind = p.KindName;
         var homo = kind == "Composta" ? Homogenization(d, p) : (0d, 0d, 0d, 0d);
         double n = homo.Item2, area, cy, inertia;
         ReinforcedConcreteSection? composite = null;
-        var steel = SteelPieces(g, e, mat.Steel);
+        var steel = shared?.Steel ?? SteelPieces(g, e, mat.Steel);
         if (kind == "Composta")
         {
-            var section = composite = NativeSection(d, g); section.SteelSections.Clear();
-            foreach (var part in steel) section.AddSteelSection(part);
+            var section = composite = shared?.Composite;
+            if (section is null)
+            {
+                section = composite = NativeSection(d, g); section.SteelSections.Clear();
+                foreach (var part in steel) section.AddSteelSection(part);
+                if (shared is not null) shared.Composite = section;
+            }
             // Native Model transforms into concrete; divide by n to report in structural steel.
             var props = section.GetHomogeneizedMechanicalProperties(homo.Item3);
             area = props.areaH / n; cy = props.centroidH.Y; inertia = props.JxxH / n;
@@ -184,7 +216,8 @@ public static partial class HBridgeSection
             kind == "Solo acciaio" ? 0 : g.Bars.Sum(b => b.Area), inertia / Math.Abs(-g.Height - cy), Math.Abs(cy) < 1e-9 ? null : inertia / Math.Abs(cy), solverInertia, equilibrium, yref, LoadReference(p), Number(p, "V"),
             ConnectionFlowExtra: kind != "Solo acciaio" ? Number(p, "q_conn") : 0);
     }
-    private static BridgeContribution SolveShrinkage(HBridgeInput d, BridgeGeometry g, BridgeEffective effective, BridgePhase phase, bool nativeSolver = true)
+    private static BridgeContribution SolveShrinkage(HBridgeInput d, BridgeGeometry g, BridgeEffective effective, BridgePhase phase, bool nativeSolver = true,
+        BridgeStateSection? shared = null)
     {
         // Input in microstrain: contraction is negative. Bars do not receive an eigenstrain.
         double strain = Number(phase, "epsilon_cs") * 1e-6;
@@ -193,12 +226,19 @@ public static partial class HBridgeSection
         double yc = (g.Width * g.SlabHeight * g.SlabHeight / 2 - g.Bars.Sum(b => b.Area * b.Y)) / ac;
         double equivalentForce = ec * ac * strain;
         var fictitious = phase with { Kind = BridgePhaseKind.Composite, ForceKN = equivalentForce / 1000, MomentKNm = 0, ShearKN = 0 };
-        var response = Solve(d, g, effective, fictitious, yc, nativeSolver);
+        var response = Solve(d, g, effective, fictitious, yc, nativeSolver, shared);
         // The equivalent force solves compatibility. Removing the free-strain stress in
         // concrete restores zero external N and M; omitting this term is NOT shrinkage.
         return response with { Kind = ShrinkageKind, N = 0, Mx = 0, V = 0, ShrinkageStrain = strain,
             ConcreteStressOffset = -ec * strain, EquivalentN = equivalentForce / 1000,
             EquivalentMomentAtInterface = -equivalentForce * yc / 1e6, LoadReference = "Ritiro · CLS netto", LoadY = yc };
+    }
+    /// <summary>The steel pieces of an effective state and the native composite section on them (built by the first composite phase)</summary>
+    private sealed class BridgeStateSection
+    {
+        internal BridgeStateSection(List<SteelSectionPosition> steel) { Steel = steel; }
+        internal List<SteelSectionPosition> Steel { get; }
+        internal ReinforcedConcreteSection? Composite { get; set; }
     }
     private static List<SteelSectionPosition> SteelPieces(BridgeGeometry g, BridgeEffective e, SteelMaterial material)
     {

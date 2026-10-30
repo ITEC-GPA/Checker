@@ -1151,7 +1151,8 @@ namespace GPC.Checkers.Concrete.SectionSolvers
 
         protected virtual GaussIntegration.GlobalCoordinateGaussPoint[][] GetMeshGlobalCoordinateGaussPointsLinearShapeFunction()
         {
-            return GaussIntegration.GetGlobalCoordinateGaussPointsLinearShapeFunction(_constructionMesh ?? ConcreteSection.Mesh, _gaussIntegrationQuadPoints, _gaussIntegrationTriPoints);
+            // equal meshes give equal points: computed once for the solvers of the process, which only read them
+            return MeshGaussPointCache.Get(_constructionMesh ?? ConcreteSection.Mesh, _gaussIntegrationQuadPoints, _gaussIntegrationTriPoints);
         }
 
         protected virtual GaussIntegration.GlobalCoordinateGaussPoint[][][] GetThinWallsGlobalCoordinateGaussPointsLinearShapeFunction()
