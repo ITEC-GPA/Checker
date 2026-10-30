@@ -83,7 +83,7 @@ public class SteelServiceStressTest
         Assert.AreEqual(132, Math.Abs(point.Y), 1e-9); Assert.AreEqual(6, Math.Abs(point.X), 1e-9); Assert.AreEqual("SectionGeometryCentroidal", point.Frame);
         Assert.IsTrue(details.Trace.Any(t => t.Key == "ServiceStress.GammaMSerSource" && t.Expression == Options(ntc)["ServiceStress.GammaMSerSource"]));
         Assert.IsTrue(details.Trace.Any(t => t.Key == "ServiceStress.ApplicabilitySource" && t.Expression == Options(ntc)["ServiceStress.ApplicabilitySource"]));
-        Assert.IsTrue(details.Trace.Any(t => t.Key == "ServiceStress.Reference" && t.Expression!.Contains(ntc ? "no NTC 2018/Circolare 2019 clause verified" : "EN 1993-2:2006 7.3(1)")));
+        Assert.IsTrue(details.Trace.Any(t => t.Key == "ServiceStress.Reference" && t.Expression!.Contains(ntc ? "under NTC 2018 chapter 12 (NTC 4.2.2.1 and 4.2.4.2.4" : "EN 1993-2:2006 7.3(1)")));
         Assert.AreEqual(details.Trace.Count, details.Trace.Select(t => t.Key).Distinct().Count());
         Assert.IsTrue(details.Trace.All(t => !t.Value.HasValue || double.IsFinite(t.Value.Value)));
     }

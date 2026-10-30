@@ -12,6 +12,19 @@ complementari EN1993-1-5:2006 sono espliciti e conservano i fattori NTC.
 Il campo di una sezione/asta non si trasferisce automaticamente a un nodo.
 Le condizioni reali vengono sempre controllate durante l'esecuzione.
 
+Citazioni NTC riscontrate sui testi GU (30/10/2026; NTC 2018 S.O. n. 8 alla GU
+n. 42 del 20/02/2018, Circolare 2019 S.O. n. 5 alla GU n. 35 dell'11/02/2019):
+- Cm sway: Circolare C4.2.4.1.3.3.2 (Metodo B), testo dopo la Tab. C4.2.V,
+  alpha_my o alpha_mz = 0,9; alpha_m della Tab. C4.2.VI (p. 108) negli altri casi.
+- Tensioni di esercizio: NTC 4.2.2.1 e 4.2.4.2.4 (plasticizzazioni locali, senza
+  limiti di tensione); limiti di EN 1993-2:2006 7.3 tramite il cap. 12.
+- kc dello svergolamento dei laminati: Tab. 4.2.X (numero corretto; valori in
+  immagine, da verificare), curve Tab. 4.2.IX(b), alphaLT Tab. 4.2.IX(a).
+- Classe 4 e EN 1993-1-5: NTC 4.2.4.1.1 (caratteristiche efficaci secondo UNI EN
+  1993-1-5), 4.2.4.1.3.4 (comprovata validita'), Circolare C4.2.4.1.3.4.
+- Cap. 12: gli Eurocodici CEN con le Appendici Nazionali valgono "per quanto non
+  diversamente specificato" dalla norma.
+
 COME INTEGRARE LA LIBRERIA
 
 Sezioni e aste:
@@ -167,7 +180,10 @@ Svergolamento di profili laminati o saldati equivalenti (28/10/2026):
   NTC: chiLT=(1/f)/(PhiLT+rad(PhiLT^2-beta lambda^2))<=1 e <=1/(f lambda^2),
   Mcr sempre a momento uniforme. f=1-0.5(1-kc)[1-2(lambda-0.8)^2]<=1; kc da
   Tab. 6.6 (NTC Tab. 4.2.X): 1.0, 1/(1.33-0.33psi), 0.94/0.90/0.91/0.86/0.77/
-  0.82. kc solo da un diagramma accertato: ForkDiagram EndMoments, Uniform-
+  0.82 (30/10/2026: numero della Tab. 4.2.X, eq. [4.2.52] di f e caso generale
+  f=beta=kchi=1, lambdaLT0=0,2 riscontrati sul testo GU; i valori di kc sono
+  un'immagine nel PDF GU: da verificare).
+  kc solo da un diagramma accertato: ForkDiagram EndMoments, Uniform-
   TransverseLoad o CentralPointLoad, CriticalValues=UniformFork, Moment-
   FactorPreparation=LinearDiagrams, oppure LtbMomentDistribution (LtbPsi se
   Linear) con LtbMomentSource; altrimenti kc=1 (f=1), traccia KcNotEstablished.
@@ -263,8 +279,11 @@ Modi sway nella trave-colonna (29 ottobre 2026, branch claude/steel-cm-sway):
   dichiarazione esplicita e facoltativa SwayBucklingPlanes=1|2|1,2 con
   SwayModeSource (solo BeamColumn, mai dedotta dalla mesh). Nel piano
   dichiarato Cm=0.9 qualunque sia il diagramma (EC3 Tab. B.3, nota; NTC:
-  Circolare Tab. C4.2.VI, ipotesi GPC dichiarata perche' il testo della
-  Circolare non e' nel repository). L'altro piano resta LinearDiagrams,
+  Circolare 2019 C4.2.4.1.3.3.2, Metodo B, testo dopo la Tab. C4.2.V: "si deve
+  assumere" alpha_my=0,9 o alpha_mz=0,9 per modo instabile per traslazione dei
+  piani; alpha_m della Tab. C4.2.VI negli altri casi. Verificato il 30/10/2026
+  sul testo GU, S.O. n. 5 alla GU n. 35 dell'11/02/2019, p. 107: non e' piu'
+  un'ipotesi GPC). L'altro piano resta LinearDiagrams,
   ConservativeEnvelope o esplicito; CmLT non cambia. Un Cm esplicito sul piano
   sway e' un conflitto. L'Ncr del piano sway e' esplicito o viene da una
   EffectiveLength dichiarata; i valori automatici dei segmenti a forcella sono
@@ -282,9 +301,14 @@ Tensioni di esercizio delle sezioni (29 ottobre 2026, branch steel-sle-tensioni)
   caratteristica, dichiarata dal chiamante. gM,ser e' un parametro nazionale
   (raccomandato 1,00): nessun default, valore >= 1 con la sua fonte. Serve anche
   la fonte di applicabilita' (ponte, requisito di progetto): EN 1993-1-1 non
-  richiede la verifica per gli edifici e nel repository non c'e' un testo NTC
-  2018/Circolare 2019 verificato per le tensioni di esercizio dell'acciaio; con
-  NTC i limiti sono quelli dichiarati, nella stessa forma, e il riferimento lo dice.
+  richiede la verifica per gli edifici. NTC 2018 (testo GU riscontrato il
+  30/10/2026): 4.2.2.1 elenca fra gli SLE lo "stato limite di plasticizzazioni
+  locali" e 4.2.4.2.4 lo tratta in modo descrittivo (tensioni residue,
+  plasticizzazioni localizzate, fatica a basso numero di cicli) senza limiti di
+  tensione; la Circolare 2019 non ha un C4.2.4.2, e i ponti (cap. 5, C5) non danno
+  limiti di tensione di esercizio per l'acciaio. Con NTC si usano quindi i limiti
+  di EN 1993-2:2006 7.3, Eurocodice CEN ammesso dal cap. 12 per quanto la norma
+  non specifica; il riferimento lo dice.
   sigma = N/A + Mx y/Ixx - My x/Iyy sulla sezione lorda di Model (classi 1-3, o
   nessuna fibra compressa: classificazione non richiesta). Classe 4 dalla
   classificazione concomitante del taglio: sezione efficace di

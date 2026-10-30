@@ -23,7 +23,11 @@ NON una nuova formula normativa della resistenza a taglio di una piastra classe4
 Restano il controllo elastico NVM sulla sezione efficace netta (con fattore0.9
 sulla resistenza ultima normale), compressione, instabilita tra bulloni e tutti
 i controlli del dettaglio. Sotto NTC la regola EC e dichiarata complementare,
-conservando i coefficienti NTC. Nessuna estensione automatica al taglio elevato.
+conservando i coefficienti NTC (NTC 4.2.4.1.1: caratteristiche efficaci di classe 4
+secondo UNI EN 1993-1-5; 4.2.4.1.3.4 e Circolare C4.2.4.1.3.4, che cita UNI EN
+1993-1-5; riscontro sui testi GU del 30/10/2026, vedi
+BRIDGE_SPLICE_CLASS4_SHEAR_BUCKLING.txt). Nessuna estensione automatica al taglio
+elevato.
 
 Prove: BridgeSpliceClass4LowShearTests, EC/NTC, +/-V, area efficace netta
 calcolata indipendentemente, soglia R/2 dai due lati, larghezza sensibile al

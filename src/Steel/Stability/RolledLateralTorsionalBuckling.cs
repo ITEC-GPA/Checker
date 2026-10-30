@@ -6,8 +6,10 @@ using GPC.Model.Sections.Steel;
 namespace GPC.Checkers.Steel.Members
 {
     // LTB of rolled or equivalent welded doubly symmetric I/H: EN 1993-1-1:2005 6.3.2.3, equations (6.57)-(6.58),
-    // Table 6.5 curves and Table 6.6 kc; NTC 2018 4.2.4.1.3.2 with Tab. 4.2.IX curves and the same kc rows (Tab. 4.2.X).
-    // alphaLT comes from the one table of BucklingCurves (EC3 Table 6.3). Field and input checks stay with the caller.
+    // Table 6.5 curves and Table 6.6 kc; NTC 2018 4.2.4.1.3.2 with Tab. 4.2.IX curves and the same kc rows (Tab. 4.2.X;
+    // number and f equation [4.2.52] checked on the GU text 30/10/2026, the kc values are an image there: da verificare).
+    // alphaLT is passed in: the one table of BucklingCurves (EC3 Table 6.3) or a declared national value. Field and input
+    // checks stay with the caller.
     internal static class RolledLateralTorsionalBuckling
     {
         internal sealed class Result

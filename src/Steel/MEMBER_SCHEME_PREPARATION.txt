@@ -117,9 +117,11 @@ Ncr o lunghezza sway con sollecitazioni del primo ordine (metodo dell'asta
 equivalente). Se l'analisi globale contiene gia' effetti del secondo ordine e
 imperfezioni sway, l'asta si verifica con lunghezze nonsway: niente sway.
 NTC2018: il Metodo B della Circolare 2019 (C4.2.4.1.3.3.2, Tab. C4.2.VI)
-segue l'Annesso B dell'EC3. Il testo della Circolare non e' fra le fonti del
-repository: la stessa nota (Cm=0.9 per il modo sway) e' un'ipotesi GPC,
-dichiarata nel riferimento della traccia, da riscontrare sul testo ufficiale.
+segue l'Annesso B dell'EC3. Riscontrato il 30/10/2026 sul testo ufficiale (GU
+n. 35 dell'11/02/2019, S.O. n. 5, p. 107, testo dopo la Tab. C4.2.V): "per
+elementi con modo instabile per traslazione dei piani" si assume alpha_my=0,9
+o alpha_mz=0,9, come la nota della Tab. B.3. Non e' piu' un'ipotesi GPC; il
+riferimento della traccia cita il paragrafo.
 
 FONTI E PROVE
 https://www.steelconstruction.info/images/0/0f/SN003b.pdf (pagine2-6).

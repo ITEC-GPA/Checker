@@ -81,8 +81,9 @@ Parametri, tutti e tre o nessuno (regola ServiceStressBasis):
 - ServiceStress.GammaMSerSource: provenienza (appendice nazionale, progetto).
 - ServiceStress.ApplicabilitySource: perche' la limitazione si applica (ponte
   EN 1993-2 7.3, requisito di progetto); EN 1993-1-1 non la richiede per gli
-  edifici e non si assume un testo NTC. Copre anche shear lag ed effetti
-  secondari, che non sono calcolati.
+  edifici e NTC 2018 4.2.2.1/4.2.4.2.4 nominano le plasticizzazioni locali senza
+  limiti di tensione (EN 1993-2 7.3 tramite il cap. 12, vedi CURRENT.txt). Copre
+  anche shear lag ed effetti secondari, che non sono calcolati.
 Senza parametri il compito e' dato mancante (SteelPipeline.ServiceStress.
 BasisRequired). Valgono Unperforated, SectionFingerprint,
 UniformCompressionClass/ClassificationSource e le soglie Negligible.*.

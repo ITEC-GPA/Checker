@@ -8,7 +8,7 @@ namespace GPC.Checkers.Steel.Inputs
     /// EN 1993-1-1:2005 6.3.2.3 / NTC 2018 4.2.4.1.3.2 for rolled or welded doubly symmetric I/H, chosen explicitly.</summary>
     public enum SteelLateralTorsionalMethodKind { General, RolledOrEquivalentWelded }
 
-    /// <summary>Moment distribution between the lateral restraints, EN 1993-1-1:2005 Table 6.6 (NTC 2018 kc table,
+    /// <summary>Moment distribution between the lateral restraints, EN 1993-1-1:2005 Table 6.6 (NTC 2018 Tab. 4.2.X,
     /// same rows). Fixed/one-end-fixed name the in-plane diagram shape (hogging end moments), not lateral restraints.
     /// NotEstablished keeps kc=1 (f=1): no favourable shape is assumed.</summary>
     public enum SteelLtbMomentDistribution { NotEstablished, Uniform, Linear, SimplySupportedUniformLoad, FixedEndsUniformLoad,

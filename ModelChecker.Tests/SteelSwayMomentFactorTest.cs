@@ -16,7 +16,7 @@ using Service = GPC.Model.Checker.ModelChecker;
 namespace ModelChecker.Tests;
 
 /// <summary>Declared sway buckling planes in the beam-column: EN 1993-1-1:2005 Annex B Table B.3 note (Circolare 2019
-/// Table C4.2.VI, same note assumed): Cm=0.9 in the declared plane whatever the diagram, the other plane and CmLT keep
+/// C4.2.4.1.3.3.2, text after Table C4.2.V): Cm=0.9 in the declared plane whatever the diagram, the other plane and CmLT keep
 /// their own preparation; the Ncr of a sway plane is an explicit value or a declared effective length, automatic
 /// nonsway fork-segment values are refused. Columns: H300x150x12/18 S355 (R=0), class 1 under these actions.</summary>
 [TestClass]
@@ -103,7 +103,7 @@ public class SteelSwayMomentFactorTest
         StringAssert.Contains(Expression(r, "Member.Sway.Plane1.Ncr"), "Sway buckling analysis");
         Assert.IsFalse(r.Details.Trace.Any(t => t.Key.StartsWith("Member.Sway.Plane2")));
         StringAssert.Contains(Expression(r, "Member.MomentFactorSource"), "Cm1=0.9 (");
-        if (ntc) StringAssert.Contains(Expression(r, "Member.MomentFactorSource"), "GPC assumption");
+        if (ntc) StringAssert.Contains(Expression(r, "Member.MomentFactorSource"), "C4.2.4.1.3.3.2 Method B, text after TableC4.2.V");
         // Without the declaration the same configuration keeps the nonsway linear Cm1=.6 and no sway rows.
         p.Remove("SwayBucklingPlanes"); p.Remove("SwayModeSource");
         var nonsway = Frame(model, "ULS-A", p, ntc, context); var expected = Restrained(ntc, ncr1, ncr2, .6, .6, 2e4, 10e6, 8e6);
