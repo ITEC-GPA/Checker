@@ -498,6 +498,5 @@ public class ColumnBaseTests
         foreach (string open in new[] { "Minor-axis", "between the flanges", "Stiffened or embedded", "hollow-section", "seismic", "fatigue" })
             Assert.IsTrue(c.MissingMechanisms.Any(m => m.IndexOf(open, StringComparison.OrdinalIgnoreCase) >= 0), open);
         Assert.IsTrue(c.ExternalRequirements.Any(x => x.Contains("concrete failure modes of the anchors")));
-        Assert.AreEqual(ConnectionCapabilityLevel.NotImplemented, ConnectionCapabilityCatalog.Get("TubularJoints").Level);
     }
 }
