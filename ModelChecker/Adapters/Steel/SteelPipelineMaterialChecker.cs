@@ -232,11 +232,22 @@ namespace GPC.Model.Checker
                         continue;
                     }
                     // RHS with horizontal principal axis 1: the walls parallel to the shear are the webs (both axes).
-                    // CHS and rotated axes keep the explicit ShearBucklingExcluded1/2; a negative screen stays not evaluated.
-                    if (ExactRhs(input)) yield return RhsWebs(input, axis, _owner.Code);
+                    // Rotated axes keep the explicit ShearBucklingExcluded1/2; a negative screen stays not evaluated.
+                    if (ExactRhs(input)) { yield return RhsWebs(input, axis, _owner.Code); continue; }
+                    // CHS: the GPC wall screen (EN 1993-1-6 D.1.4, EC3 and NTC alike), both axes. Beyond its limit nothing is
+                    // supplied: the row keeps waiting for ShearBucklingExcluded1/2 (AssessmentRequired), as before the screen.
+                    if (ExactChs(input)) { var wall = ChsWall(input, axis); if (wall.IsBucklingExcluded) yield return wall; }
                 }
             }
         }
+
+        /// <summary>The qualified circular hollow section (exact SectionCHS type): axisymmetric, no axis condition.</summary>
+        internal static bool ExactChs(SteelVerificationInput input) => input.Section.GeometryType == typeof(SectionCHS);
+
+        /// <summary>GPC CHS wall screen d/t &lt;= 2 (0.04 sqrt3 E/fy)^(2/3), from EN 1993-1-6 D.1.4 under EC3 and NTC.</summary>
+        internal static SteelShearBucklingAssessment ChsWall(SteelVerificationInput input, int axis)
+            => SteelShearBucklingAssessment.EvaluateChsWall(input, axis,
+                "GPC automatic CHS wall screen d/t<=2(0.0693E/fy)^(2/3) from EN 1993-1-6 D.1.4 (not a code clause)");
 
         /// <summary>Exact RHS types with principal axis 1 horizontal, the alignment the H screens also require.
         /// A SectionRHS with R > 0 is no qualified family: its shear rows are rejected before any preparation.</summary>

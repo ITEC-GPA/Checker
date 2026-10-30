@@ -47,7 +47,8 @@ namespace GPC.Model.Checker
         }
 
         // Mirrors the section engine (SteelPipelineMaterialChecker.Assessments) when the beam-column waits for shear
-        // assessments, i.e. exact H or RHS without an explicit ShearBucklingExclusionSource. A negative one leaves it unevaluated.
+        // assessments, i.e. exact H, RHS or CHS (within its wall screen) without an explicit ShearBucklingExclusionSource.
+        // A negative one leaves it unevaluated.
         private IEnumerable<SteelShearBucklingAssessment> BeamColumnShearAssessments(SteelSelectionPlan plan)
         {
             var input=plan.Input;
@@ -57,6 +58,13 @@ namespace GPC.Model.Checker
                 // RHS walls parallel to each active shear as webs, as on the section route.
                 for(int axis=1;axis<=2;axis++)
                     if((axis==1?input.EffectiveActions.V1:input.EffectiveActions.V2)!=0)yield return SteelPipelineMaterialChecker.RhsWebs(input,axis,Code);
+                yield break;
+            }
+            if(SteelPipelineMaterialChecker.ExactChs(input))
+            {
+                // CHS wall screen for each active shear; the selector waits for it only when the screen passes.
+                for(int axis=1;axis<=2;axis++)
+                    if((axis==1?input.EffectiveActions.V1:input.EffectiveActions.V2)!=0)yield return SteelPipelineMaterialChecker.ChsWall(input,axis);
                 yield break;
             }
             if(input.Section.GeometryType!=typeof(SectionH)||Math.Abs(input.Section.PrincipalAxisAngle)>1e-10)yield break;
