@@ -27,6 +27,15 @@ namespace GPC.Model.Checker
         public ModelChecker(Func<ModelCheckJob, IConcreteSectionVerifier> sectionFactory, Func<ModelCheckJob, IPhysicalMemberVerifier> memberFactory) : this(sectionFactory)
         { _memberFactory = memberFactory ?? throw new ArgumentNullException(nameof(memberFactory)); }
 
+        /// <summary>Whether a progress report may run code of the caller on this thread before it returns, code that may change the model:
+        /// any report but those of <see cref="Progress{T}"/> itself, which posts its handler to its synchronization context and returns.
+        /// A handler running elsewhere during the run is a concurrent write: seen or not depending on the timing, as before.</summary>
+        internal static bool ReportsOnThisThread(IProgress<VerificationProgress> progress)
+            => progress != null && progress.GetType() != typeof(Progress<VerificationProgress>);
+        /// <summary>False: every concrete section check reads the model again (SectionCheckExecution.Run, ShellCheckInput.IsCurrent), the
+        /// reference of the reads shared by the rows of a job (tests).</summary>
+        internal bool SharedSectionReads { get; set; } = true;
+
         private IConcreteSectionVerifier ResolveSectionEngine(ModelCheckJob job, Dictionary<string, IConcreteSectionVerifier> engines)
         {
             var verifier = _factory(job);
@@ -52,6 +61,7 @@ namespace GPC.Model.Checker
             var beamPlans = jobs.Select(j => j.BeamPlan == null ? null : BeamCheckPlan.Prepare(model, j.BeamPlan, cancellationToken)).ToArray();
             int total = plans.Sum(p => p == null ? 0 : p.Samples.Count * p.Request.Mechanisms.Length) + beamPlans.Sum(p => p?.WorkItems.Count ?? 0), completed = 0;
             var reports = new List<CheckReport>(); var engines = new Dictionary<string, IConcreteSectionVerifier>(StringComparer.Ordinal);
+            bool progressOnThisThread = ReportsOnThisThread(progress);
             for (int i = 0; i < jobs.Length; i++)
             {
                 var job = jobs[i]; var plan = plans[i]; var results = new List<CheckResult>();
@@ -59,7 +69,7 @@ namespace GPC.Model.Checker
                 {
                     reports.Add(PlannedBeamChecking.Run(model, job, beamPlans[i], j => ResolveSectionEngine(j, engines), _memberFactory, cancellationToken, item => {
                         completed++; progress?.Report(new VerificationProgress { Completed = completed, Total = total, Job = job.Name,
-                            Family = EntityFamily.Beam, ElementId = item.Target.BeamId ?? default(int), Target = item.Target }); }));
+                            Family = EntityFamily.Beam, ElementId = item.Target.BeamId ?? default(int), Target = item.Target }); }, progressOnThisThread, SharedSectionReads));
                     continue;
                 }
                 IConcreteSectionVerifier verifier = null; Exception factoryError = null;
@@ -71,6 +81,10 @@ namespace GPC.Model.Checker
                     }
                     catch (Exception ex) { factoryError = ex; }
                 }
+                // The rows of the job read the model through one run, created after the factory: the model is read again after the code
+                // that may change it (SectionCheckRun), that is every call of a verifier that may read more than its input and every
+                // progress report run on this thread. The concrete adapter with the built-in engine reads only the detached copies of its input.
+                var run = new SectionCheckRun(model); bool ownEngine = (verifier as ConcreteSectionVerifier)?.ReadsOnlyItsInput == true;
                 foreach (var row in plan.Samples)
                 {
                     foreach (var mechanism in plan.Request.Mechanisms)
@@ -80,7 +94,8 @@ namespace GPC.Model.Checker
                             result = new CheckResult { Execution = ExecutionStatus.Cancelled, Data = DataStatus.Insufficient };
                         else if (row.Beam != null)
                         {
-                            result = SectionCheckExecution.Run(row.Beam, mechanism, verifier, cancellationToken);
+                            result = SharedSectionReads ? run.Run(row.Beam, mechanism, verifier, ownEngine, cancellationToken)
+                                : SectionCheckExecution.Run(row.Beam, mechanism, verifier, cancellationToken);
                             if (factoryError != null && row.Beam.Status == DataStatus.Ready)
                             { result.Execution = ExecutionStatus.Error; result.Diagnostics.Add(ModelDiagnostic.Error("CheckerCreationFailed", message: factoryError.Message)); }
                         }
@@ -90,7 +105,7 @@ namespace GPC.Model.Checker
                             result.Diagnostics.AddRange(row.Shell.Diagnostics);
                             if (row.Shell.Input != null)
                             {
-                                result.Data = row.Shell.Input.IsCurrent ? DataStatus.NotSupported : DataStatus.Stale;
+                                result.Data = (SharedSectionReads ? run.IsCurrent(row.Shell.Input) : row.Shell.Input.IsCurrent) ? DataStatus.NotSupported : DataStatus.Stale;
                                 result.Diagnostics.Add(ModelDiagnostic.Error(result.Data == DataStatus.Stale ? "StaleShellPreparation" : "ShellCheckerUnavailable", row.Shell.Input.Element,
                                     "The installed Checker has no executable plate verifier. A validated shell design method and concrete adapter are required."));
                                 result.VerificationRevision = row.Shell.Input.VerificationRevision; result.SampleRevision = row.Shell.Input.SampleRevision;
@@ -115,6 +130,7 @@ namespace GPC.Model.Checker
                         result.SealEvidence();
                         results.Add(result); completed++;
                         progress?.Report(new VerificationProgress { Completed = completed, Total = total, Job = job.Name, Family = row.Element.Family, ElementId = row.Element.Id });
+                        if (progressOnThisThread) run.ModelMayHaveChanged();
                     }
                 }
                 reports.Add(CheckReport.ForPreparedResults(job.Name, plan, results));
