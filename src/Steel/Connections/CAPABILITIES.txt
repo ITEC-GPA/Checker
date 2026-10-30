@@ -53,7 +53,7 @@ GenericSpliceComponents: IBeamSpliceComponents/WeldedIBeamSpliceEnvelope restano
   componenti; il nuovo Standard non modifica il significato delle vecchie API.
 
 NON IMPLEMENTATI NEL NUOVO MODULO STANDARD
-ColumnBases; TubularJoints. Le eventuali primitive legacy non costituiscono
+ColumnBases (TubularJoints: vedi 30/10/2026 in fondo). Le eventuali primitive legacy non costituiscono
 un percorso standard completo e non sono promosse implicitamente dal catalogo.
 
 LIMITI TRASVERSALI
@@ -89,3 +89,12 @@ ChannelWebOnlyTensionEnd (soli componenti): estremita' tesa di C/2C collegate
 (blocchi misti fuori gerarchia, BRIDGE_SPLICE_MIXED_BLOCKS.txt) e
 EffectiveCompressionWithShearBuckling (classe4 con taglio elevato e lastre
 sensibili a instabilita a taglio, BRIDGE_SPLICE_CLASS4_SHEAR_BUCKLING.txt).
+
+30/10/2026 - TubularJoints (StandardStaticVerification, opt-in): TubularJoint.Verify,
+nodo saldato piano non rinforzato di travatura reticolare in profili cavi, EN1993-1-8:2005
+(AC:2009) cap.7. CHS su CHS: T, Y, X, K e N a gap o sovrapposti (Tab.7.1, 7.2; momenti
+delle aste su T, Y, X con Tab.7.5 ed eq.7.3). RHS o CHS su RHS: T, Y, X e K/N a gap
+(Tab.7.8, 7.11, 7.12) e K/N sovrapposti (Tab.7.10), solo forze assiali. Ogni nodo fuori
+campo e' rifiutato; saldature a piena resistenza; NTC tramite cap.12 e Appendice nazionale
+(gammaM5=1.0). Multiplanari, rinforzati, correnti I/H, fatica ed EN1993-1-8:2024 esclusi.
+TUBULAR_JOINTS_USAGE.txt.

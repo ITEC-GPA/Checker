@@ -1,0 +1,166 @@
+NODI SALDATI DI TRAVATURE RETICOLARI IN PROFILI CAVI - TubularJoint.Verify
+30/10/2026 - catalogo TubularJoints (StandardStaticVerification), percorso opt-in.
+
+NORMA
+EN 1993-1-8:2005 con AC:2009, capitolo7: e' l'edizione in uso in Italia. Nessuna
+formula di prEN/EN 1993-1-8:2024 (capitolo9, metodo FMM/ISO 14346) e' usata.
+Tutte le resistenze, i campi di validita' e le definizioni sono stati riletti sulla
+copia pubblica (Public.Resource.Org) della BS EN 1993-1-8:2005 che riporta i corrigenda
+(marcatori AC1/AC2): 1.5, 2.2 Tab.2.1, 5.1.5, 7.1-7.3, Tab.7.1, 7.2, 7.5, 7.6, 7.8-7.12.
+Da verificare sul testo UNI EN 1993-1-8 italiano i punti segnati piu' sotto.
+
+INGRESSO (N, mm, MPa, Nmm; N>0 trazione)
+TubularJointInput(code, tipo, corrente, taglio lato A, taglio lato B, asta A, asta B,
+gap, ActionSource, GlobalAnalysisSource, asta sovrapponente, saldatura del lembo
+nascosto, ThroughThicknessSource, multiplanar, reinforced, fatigueLoading).
+- code: TubularJointCode.Eurocode3(ConnectionDesignCode, gammaM5, fonte) oppure
+  TubularJointCode.Ntc2018() (gammaM5=1.0, gammaM0=1.05, gammaM2=1.25).
+- Sezioni: TubularJointSection.Circular(d,t,grado,fy,fu,fabbricazione) calcola area e
+  modulo dell'anello; Rectangular(h,b,t,A,Wel,piano,Wel,fuori,grado,fy,fu,fabbr.) con
+  h nel piano della travatura e b normale (b0 = faccia che riceve le aste), A e W reali
+  del prodotto (spigoli arrotondati), non oltre i valori a spigoli vivi. Grado nominale
+  del prodotto finito (7.1.1(4)); fy, fu per prodotto e spessore. HotFinished = EN10210,
+  ColdFormed = EN10219 (7.1.1(3)).
+- Aste: TubularBrace(sezione, angolo in gradi (0,90], N, saldatura, Mip, Mop). I momenti
+  sono al punto in cui l'asse dell'asta incontra la faccia del corrente (7.4.2(3)).
+- Tagli del corrente ai due lati del nodo: TubularChordActions(N, Vpiano, Mpiano, Mfuori),
+  stessa combinazione delle aste; i momenti comprendono quelli di eccentricita' assegnati
+  al corrente (5.1.5(6),(8)).
+- Convenzione geometrica: l'asta A si inclina verso il lato A, l'asta B (K, N) verso il
+  lato B (aste divergenti dalla faccia, Fig.1.3). X: l'asta A e' quella sulla faccia
+  caricata, l'asta coassiale opposta e' identica e porta la stessa forza.
+- Gap: g della Fig.1.3(a) lungo la faccia del corrente fra le punte delle aste; valore
+  negativo = sovrapposizione q (Fig.1.3(b), 7.4.2(6)); zero per T, Y, X.
+- Equilibrio: N_B - N_A = N_A,asta cos(thetaA) - N_B,asta cos(thetaB) (X: N_B = N_A),
+  tolleranza 0.1% della somma dei moduli + 1 N; altrimenti rifiuto
+  CHORD_AND_BRACE_AXIAL_FORCES_NOT_IN_EQUILIBRIUM (protegge segni e convenzione).
+Risultato: ConnectionVerification<TubularJointInput> (contratto comune dei componenti):
+Passed/Failed/NotSupported, Checks con id "BraceA.ChordFace" ecc., Trace con gamma,
+beta, kp/kn, kg, e, lambda_ov, Diagnostics, Assumptions (condizioni esterne).
+SteelAssessmentSummary.From(result) ne da' la proiezione comune.
+
+TENSIONI NEL CORRENTE (7.2.1(3), 1.5(5))
+sigma0,Ed = massima compressione al nodo sui due tagli, -N/A0 + flessione; con flessione
+biaxiale fibra estrema esatta: CHS sqrt(Mip^2+Mop^2)/W, RHS spigolo |Mip|/Wip+|Mop|/Wop.
+sigmap,Ed: Np,Ed = N0,Ed - somma Ni cos(theta_i) (7.2). I due tagli differiscono
+esattamente delle componenti delle aste: Np,Ed e' la forza del taglio MENO compresso;
+si tiene la maggiore tensione di flessione dei due tagli (lettura GPC, mai sotto il
+valore di uno dei tagli). n = (sigma0,Ed/fy0)/gammaM5 e np = (sigmap,Ed/fy0)/gammaM5
+alla lettera di 1.5(5) (coincide con sigma/(fy/gammaM5) solo per gammaM5=1).
+
+CHS SU CHS (7.4, Tab.7.1, 7.2, 7.5)
+Campo Tab.7.1: 0.2<=di/d0<=1.0; 10<=d0/t0<=50, X 40 (*); corrente compresso (sigma0>0)
+classe 1-2; aste tese di/ti<=50, compresse classe 1-2 (forza nulla: basta uno dei due);
+gap g>=t1+t2; sovrapposizione 25%<=lambda_ov<=lambda_ov,lim = 60% (lembo nascosto non
+saldato) o 80% (saldato), oltre serve la verifica a taglio aste-corrente: rifiuto.
+Resistenze: corrente (chord face) T/Y gamma^0.2 kp fy0 t0^2/sin(2.8+14.2 beta^2)/gammaM5;
+X kp fy0 t0^2/sin 5.2/(1-0.81 beta)/gammaM5; K e N (gap e overlap) kg kp fy0 t0^2/sin1
+(1.8+10.2 d1/d0)/gammaM5 sull'asta compressa i=1 (1.5(4)), N2,Rd = sin1/sin2 N1,Rd,
+kg con g negativo per la sovrapposizione (7.4.2(6)). Punzonamento per T, Y, X e K/N a
+gap se di<=d0-2t0: fy0/sqrt3 t0 pi di (1+sin)/(2 sin^2)/gammaM5; nessun punzonamento
+nei nodi sovrapposti (Tab.7.2). kp = 1-0.3np(1+np) per np>0 (non sotto zero), 1 per np<=0.
+Momenti delle aste solo T, Y, X (Tab.7.5 da' Mip solo per T, X, Y): corrente e
+punzonamento nel piano e fuori piano, interazione (7.3)
+N/NRd + (Mip/Mip,Rd)^2 + |Mop|/Mop,Rd <= 1 con le resistenze minime.
+(*) La stampa AC:2009 della Tab.7.1 riporta "(generally), but:" senza prosecuzione;
+si applica il limite 40 dei nodi X del testo 2005 (a favore di sicurezza, da verificare
+sul testo UNI).
+
+RHS O CHS SU RHS (7.5, Tab.7.8, 7.10, 7.11, 7.12)
+Si usano le Tab.7.11 e 7.12, valide per ogni RHS nel campo della Tab.7.8 (7.5.2.1(4));
+la Tab.7.10 serve solo per i nodi sovrapposti (rinvio della Tab.7.12). Tab.7.9/7.10
+semplificate per SHS non sono necessarie.
+Campo Tab.7.8: h0/b0 e hi/bi in [0.5,2.0]; b0/t0 e h0/t0 <=35 (T,Y,X e gap) e corrente di
+classe 1-2 sempre; aste: T,Y,X bi/b0>=0.25, gap bi/b0>=0.35 e >=0.1+0.01 b0/t0, overlap
+bi/b0>=0.25; tese bi/ti, hi/ti<=35; compresse <=35 e classe 1-2, overlap classe 1; aste
+circolari 0.4<=di/b0<=0.8, tese di/ti<=50, compresse classe 1; bi<=b0. Gap
+0.5(1-beta)<=g/b0<=1.5(1-beta) e g>=t1+t2; oltre il limite superiore la nota1 chiede di
+trattare il nodo come due T/Y: rifiuto TREAT_AS_TWO_SEPARATE_T_OR_Y_JOINTS (si
+richiama TubularJoint.Verify per ogni asta come Y). Overlap 25%<=lambda_ov<=lim,
+0.75<=bi/bj (**) e aste rettangolari con hi>=bi, hj>=bj (altrimenti verifica a taglio
+richiesta: rifiuto).
+T, Y, X (Tab.7.11): beta<=0.85 corrente kn fy0 t0^2/((1-beta)sin)(2eta/sin+4sqrt(1-beta));
+beta=1 parete laterale kn fb t0/sin(2h1/sin+10t0) con fb=fy0 (asta tesa), chi fy0 (T,Y),
+0.8 chi fy0 sin (X), chi da EN1993-1-1 6.3.1.2 con lambda=3.46(h0/t0-2)sqrt(1/sin)/
+(pi sqrt(E/fy0)) e la curva della sezione cava di Tab.6.2 / NTC Tab.4.2.VIII (a, a0 per
+S460 laminato a caldo; c formato a freddo: lettura GPC di "relevant buckling curve");
+X con cos(theta)>h1/h0: minimo con il taglio delle pareti Av=2h0t0 (nota1, alpha=0,
+senza pi/4); 0.85<beta<1 interpolazione lineare fra corrente a 0.85 (kn a 0.85) e parete
+a 1.0 (kn a 1.0) (nota2); beta>=0.85 rottura dell'asta fyi ti(2h1-4t1+2beff); punzonamento
+0.85<=beta<=1-1/gamma fy0 t0/(sqrt3 sin)(2h1/sin+2be,p).
+K e N a gap (Tab.7.12): corrente 8.9 kn fy0 t0^2 sqrt(gamma)/sin (b1+b2+h1+h2)/(4b0);
+taglio fy0 Av/(sqrt3 sin) con Av=(2h0+alpha b0)t0, alpha=1/sqrt(1+4g^2/(3t0^2)) (0 per
+aste circolari); rottura dell'asta fyi ti(2hi-4ti+bi+beff); punzonamento se
+beta<=1-1/gamma (anche se lo e' il bi/b0 della singola asta: lettura cautelativa);
+sezione del corrente nel gap N0,Rd=[(A0-Av)fy0+Av fy0 sqrt(1-(VEd/Vpl,Rd)^2)]/gammaM5
+con Vpl,Rd=fy0 Av/(sqrt3 gammaM5) e VEd = minimo fra |V| di un taglio piu' la
+componente trasversale dell'asta di quel lato (limite superiore del taglio nel gap):
+la tabella non definisce VEd/Vpl,Rd (lettura GPC). N0,Ed nel gap = N_A+N_A,asta cos(thetaA)
+(= N_B+N_B,asta cos(thetaB)), il maggiore dei due.
+K e N sovrapposti (Tab.7.10): solo l'asta sovrapponente i: rottura con beff e be,ov
+per 25-50%, 50-80%, >=80%; l'asta sovrapposta j con la stessa efficienza
+Nj,Rd = Ni,Rd Aj fyj/(Ai fyi) (gammaM0 si elide).
+Aste circolari: x pi/4 con b, h sostituiti da d, salvo il taglio del corrente.
+kn = 1.3-0.4n/beta per n>0, non oltre 1 e non sotto zero; 1 per n<=0.
+(**) Tab.7.8 stampata (AC2) "bi/bj <= 0.75": refuso segnalato da SCI AD 434 (2019); con
+7.1.2(8) (l'asta piu' stretta sovrappone) il campo ammesso e' 0.75 <= bi/bj <= 1.
+
+CAMPO DI APPLICAZIONE COMUNE (7.1.1, 7.1.2, 5.1.5, 7.3)
+Grado nominale S235-S460 e fy non oltre il grado (7.1.1(4)); grado >355 => tutte le
+resistenze x0.9 se una delle membrature lo supera (lettura cautelativa); spessori >=2.5
+mm (7.1.1(5)); corrente oltre 25 mm solo con ThroughThicknessSource (7.1.1(6));
+angoli >=30 gradi con il corrente e fra aste adiacenti (7.1.2(3)); T a 90, Y inclinata,
+K due aste inclinate, N una a 90; K/N con un'asta compressa e una tesa (Tab.7.2, 7.10;
+le altre combinazioni sono i tipi speciali della Tab.7.6, non implementati); 7.1.2(7)
+sovrappone l'asta con ti fyi minore, 7.1.2(8) la piu' stretta; eccentricita' di K/N
+calcolata dal gap e limitata a -0.55 <= e/d0 (e/h0) <= 0.25 (5.1.5(5)): entro i limiti i
+momenti di eccentricita' si trascurano nel progetto del nodo (restano nel corrente
+compresso, condizione esterna); e da derivazione GPC scritta nel codice:
+e = (g + h1/(2 sin1) + h2/(2 sin2)) sin1 sin2/sin(theta1+theta2) - h0/2.
+Lembo nascosto non saldato solo se le componenti normali al corrente differiscono al
+massimo del 20% della maggiore (7.3.1(2)).
+SALDATURE (7.3): saldature a piena resistenza richieste (7.3.1(4)). Testa a testa a piena
+penetrazione: dichiarate con ExecutionSource (consumabili adeguati 4.2, tutto il
+perimetro). Cordoni d'angolo: condizione sufficiente
+a >= sqrt3 betaw gammaM2 fy t/(fu gammaM0), metodo semplificato 4.5.3.3 / NTC [4.2.83]
+valido in ogni direzione, contro la parete dell'asta t fy/gammaM0 per unita' di
+lunghezza (limite superiore di A fy/gammaM0 per unita' di perimetro); fu e betaw della
+parte piu' debole. Un cordone piu' sottile non e' un fallimento ma un requisito mancante
+(giustificazione 7.3.1(6) fuori dal metodo). S355 t=6: 8.138 mm EC, 7.751 mm NTC.
+
+PERCORSO NTC
+NTC 2018 4.2.8 (unioni: bulloni, perni, saldature, fatica) e la Circolare 2019 C4.2
+non contengono regole per i nodi di profili cavi (testo verificato; i tubolari compaiono
+solo nella protezione dalla corrosione). Il capitolo12 delle NTC ammette gli Eurocodici
+CEN con le Appendici Nazionali "per quanto non diversamente specificato": l'Appendice
+nazionale alla UNI EN 1993-1-8 (DM 31/07/2012, approvata dal CSLP il 24/09/2010) al
+punto 2.2(2) adotta i valori raccomandati della Tab.2.1, quindi gammaM5=1.0. Per la
+saldatura NTC 4.2.8.2.3 ammette modelli di normative di comprovata validita'.
+TubularJointCode.Ntc2018() usa gammaM5=1.0, gammaM0=1.05 e gammaM2=1.25 delle NTC.
+
+RIFIUTI (NotSupported, nessun controllo valutato)
+Multiplanare (7.4.3, 7.5.3), rinforzato (7.5.2.2), fatica (7.1.1(7), EN1993-1-9),
+aste RHS/I su corrente CHS (Tab.7.4), aste miste CHS/RHS in un K, momenti delle aste
+su correnti RHS (Tab.7.14) e sui K/N, nodi fuori campo (7.4.1(3)/7.5.1(3) chiederebbero
+tutti i modi di 7.2.2 e i momenti secondari). Correnti I/H, piastre, KT/DK/KK e nodi a
+ginocchio non sono rappresentabili nell'ingresso. Fonti mancanti (azioni stesso caso,
+analisi della travatura 5.1.5, esecuzione delle saldature) sono requisiti mancanti: i
+controlli soddisfatti non vengono mostrati, quelli falliti si'.
+
+CONDIZIONI ESTERNE (Assumptions)
+Verifica delle aste e del corrente (7.2.1(1)P) con i momenti di eccentricita' 5.1.5(6);
+analisi della travatura secondo 5.1.5 (momenti secondari trascurabili solo nel campo e con
+rapporto lunghezza/altezza non inferiore al minimo, 6 negli edifici); estremita' non
+schiacciate ne' tagliate (7.1.2(4)); carichi prevalentemente statici.
+
+LETTURE GPC DA CONFERMARE
+Np,Ed dal taglio meno compresso; X d0/t0<=40; bi/bj>=0.75 (AD 434); VEd/Vpl,Rd del gap;
+Av=2h0t0 per la nota1 delle X; kn alle beta di ancoraggio dell'interpolazione; curva di
+instabilita' delle pareti; punzonamento K/N anche per bi/b0 della singola asta; fattore
+0.9 se una membratura supera S355; regola del 20% sulla maggiore componente; limite di
+gola dei cordoni; n e np alla lettera con gammaM5; kp, kn non negativi; classi RHS con
+c = b-3t (raggio EN10210 1.5t); campo di forza nulla.
+
+PROVE (Steel.Members.Tests)
+TubularJointChsTests (16), TubularJointRhsTests (8), TubularJointValidityTests (58 casi
+di rifiuto + 2 metodi di controcasi): valori a mano nei commenti dei test.
