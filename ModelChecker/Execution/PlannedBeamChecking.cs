@@ -16,9 +16,12 @@ namespace GPC.Model.Checker
 {
     internal static class PlannedBeamChecking
     {
+        /// <param name="progressOnThisThread">Whether <paramref name="progress"/> may run code of the caller that may change the model
+        /// (ModelChecker.ReportsOnThisThread): the next task then reads the model again.</param>
+        /// <param name="sharedReads">False: every section task reads the model again (ModelChecker.SharedSectionReads).</param>
         internal static CheckReport Run(Models.Model model, ModelCheckJob job, BeamCheckPlan plan,
             Func<ModelCheckJob, IConcreteSectionVerifier> sectionFactory, Func<ModelCheckJob, IPhysicalMemberVerifier> memberFactory,
-            CancellationToken token, Action<CheckWorkItem> progress)
+            CancellationToken token, Action<CheckWorkItem> progress, bool progressOnThisThread, bool sharedReads)
         {
             IConcreteSectionVerifier sectionEngine = null; IPhysicalMemberVerifier memberEngine = null;
             Exception sectionError = null, memberError = null;
@@ -33,6 +36,12 @@ namespace GPC.Model.Checker
             // Whole-plan revalidation once (see OwnedCheckInputs), not before every task.
             bool planCurrent = !token.IsCancellationRequested && plan.IsCurrent;
             string revision = model.VerificationFingerprint(plan.Request.Settings);
+            // The section tasks read the model through one run, created after the factories (see ModelChecker.Verify): read again after
+            // every call of an engine that may read more than its input and every progress report run on this thread. The concrete adapter
+            // with the built-in engine reads only the detached copies of its inputs, also as the member engine.
+            var run = new SectionCheckRun(model);
+            bool ownSectionEngine = (sectionEngine as ConcreteSectionVerifier)?.ReadsOnlyItsInput == true;
+            bool ownMemberEngine = memberEngine == null || (memberEngine as ConcreteSectionVerifier)?.ReadsOnlyItsInput == true;
             foreach (var item in plan.WorkItems)
             {
                 CheckResult result;
@@ -41,9 +50,15 @@ namespace GPC.Model.Checker
                 else
                 {
                     string owned = OwnedCheckInputs.Of(item);
-                    result = item.Scope == CheckScope.PhysicalMember ? MemberChecking.Run(item, memberEngine, token)
-                        : item.Check == null ? SectionCheckExecution.Run(item.Section, item.Mechanism, sectionEngine, token)
+                    if (item.Scope == CheckScope.PhysicalMember)
+                    {
+                        result = MemberChecking.Run(item, memberEngine, token);
+                        if (!ownMemberEngine) run.ModelMayHaveChanged();
+                    }
+                    else if (!sharedReads) result = item.Check == null ? SectionCheckExecution.Run(item.Section, item.Mechanism, sectionEngine, token)
                         : SectionCheckExecution.Run(item.Section, item.Check, sectionEngine, token);
+                    else result = item.Check == null ? run.Run(item.Section, item.Mechanism, sectionEngine, ownSectionEngine, token)
+                        : run.Run(item.Section, item.Check, sectionEngine, ownSectionEngine, token);
                     if (!token.IsCancellationRequested && OwnedCheckInputs.Of(item) != owned)
                         result = new CheckResult { Data = DataStatus.Stale, Diagnostics = new List<ModelDiagnostic> { ModelDiagnostic.Error("StaleBeamPlan") } };
                 }
@@ -71,6 +86,7 @@ namespace GPC.Model.Checker
                     result.GroupNames = item.Member.Snapshot.Definition.Parts.SelectMany(p => model.BeamElements[p.BeamId].Groups.Keys).Distinct(StringComparer.Ordinal).OrderBy(k => k, StringComparer.Ordinal).ToArray();
                 }
                 result.SealEvidence(); results.Add(result); progress?.Invoke(item);
+                if (progressOnThisThread) run.ModelMayHaveChanged();
             }
             if (!token.IsCancellationRequested && !plan.IsCurrent)
                 foreach (var result in results.Where(r => r.Outcome != EngineeringOutcome.NotEvaluated))

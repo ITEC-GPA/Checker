@@ -27,18 +27,29 @@ namespace GPC.Model.Checker
             GPC.Model.Checker.Configuration.ConcreteCalculationCatalog.ValidateSelection(options, calculationFactory);
         }
         internal ConcreteSectionVerifier CreateVerifier() => Options.CreateVerifier(_calculationFactory);
+        /// <summary>The verifiers of this checker read only their input (ConcreteSectionVerifier.ReadsOnlyItsInput), and so do its members: the
+        /// built-in numerical engine and a standard of GPCModel.</summary>
+        internal bool ReadsOnlyItsInput => GPC.Model.Checker.Configuration.ConcreteCalculationCatalog.IsBuiltIn(_calculationFactory)
+            && Options.Standard?.GetType().Assembly == typeof(GPC.Model.Standards.StandardModelCode2010).Assembly;
         public bool Accepts(BeamElement element) => element.BeamProperty is ReinforcedConcreteSection rc && rc.SteelSections.Count == 0;
         public IMaterialCheckSession CreateSession() => new Session(CreateVerifier());
-        private sealed class Session : ISectionCheckSession
+        internal sealed class Session : ISectionCheckSession
         {
             private readonly ConcreteSectionVerifier _verifier;
             internal Session(ConcreteSectionVerifier verifier) { _verifier = verifier; }
+            /// <summary>The reads of the run of the orchestrator (ModelChecker.VerifyMaterialPlans), which ends them after any code that may change
+            /// the model; null (a session used on its own): every task prepares its cut and reads the model again.</summary>
+            internal SectionCheckRun Reads;
             public int CreatedCheckers => _verifier.CreatedCheckers;
             public CheckResult Verify(BeamActionInput input, CheckMechanism mechanism, CancellationToken token)
-                => SectionCheckExecution.Run(BeamCheckPreparation.Prepare(input.Model, input.Element.Id, input.Sample, input.Settings), mechanism, _verifier, token);
+                => Reads != null && ReferenceEquals(Reads.Model, input.Model)
+                    ? Reads.Run(Reads.Prepare(input.Element.Id, input.Sample, input.Settings), mechanism, _verifier, _verifier.ReadsOnlyItsInput, token)
+                    : SectionCheckExecution.Run(BeamCheckPreparation.Prepare(input.Model, input.Element.Id, input.Sample, input.Settings), mechanism, _verifier, token);
             public bool Supports(SectionCheckSpecification check) => _verifier.Supports(check);
             public CheckResult Verify(BeamActionInput input, SectionCheckSpecification check, CancellationToken token)
-                => SectionCheckExecution.Run(BeamCheckPreparation.Prepare(input.Model, input.Element.Id, input.Sample, input.Settings), check, _verifier, token);
+                => Reads != null && ReferenceEquals(Reads.Model, input.Model)
+                    ? Reads.Run(Reads.Prepare(input.Element.Id, input.Sample, input.Settings), check, _verifier, _verifier.ReadsOnlyItsInput, token)
+                    : SectionCheckExecution.Run(BeamCheckPreparation.Prepare(input.Model, input.Element.Id, input.Sample, input.Settings), check, _verifier, token);
         }
     }
 }

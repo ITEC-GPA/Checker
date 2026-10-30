@@ -38,6 +38,11 @@ namespace GPC.Model.Checker
         private readonly Dictionary<string, Tuple<ReinforcedConcreteSection, ConcreteCalculationSession>> _checkers = new Dictionary<string, Tuple<ReinforcedConcreteSection, ConcreteCalculationSession>>();
         private int _createdCheckers;
         public int CreatedCheckers { get { lock (Sync) return _createdCheckers; } }
+        /// <summary>True when a call of this verifier runs only code of these libraries on the detached copies of its input (the built-in
+        /// numerical engine, a standard of GPCModel): it reads nothing else of the model and changes nothing, so the orchestrators read the
+        /// model once for its rows (SectionCheckRun). A registered numerical engine or a derived standard is code of the caller: false.</summary>
+        internal bool ReadsOnlyItsInput => global::GPC.Model.Checker.Configuration.ConcreteCalculationCatalog.IsBuiltIn(_calculationFactory)
+            && _standard.GetType().Assembly == typeof(StandardModelCode2010).Assembly;
         public string Version => typeof(SectionCheckerModelCode2010).Assembly.GetName().Version.ToString();
         public IReadOnlyCollection<CheckMechanism> Capabilities { get; } = Array.AsReadOnly(new[] {CheckMechanism.UlsBiaxialSection});
         public ConcreteSectionVerifier(StandardModelCode2010 standard, SectionSolver.FailureAnalysisTypes criterion, bool considerTension,
