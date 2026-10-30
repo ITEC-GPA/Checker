@@ -171,3 +171,6 @@ public sealed record BridgeStage(string Name, int Iterations, double Residual, B
     }
 }
 public sealed record HBridgeAnalysisResult(string Method, string Scope, HBridgeInput Input, BridgeGeometry Geometry, BridgeMaterialValues Materials, List<BridgeStage> Stages);
+/// <summary>One input of <see cref="HBridgeSection.Calculate(IReadOnlyList{HBridgeInput}, CancellationToken)"/>: its analysis, or the exception that
+/// <see cref="HBridgeSection.Calculate(HBridgeInput, CancellationToken)"/> throws for it</summary>
+public sealed record HBridgeBatchResult(HBridgeAnalysisResult? Analysis, Exception? Error);

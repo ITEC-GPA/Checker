@@ -27,7 +27,7 @@ namespace GPC.Model.Checker
             return planes == "1,2" || planes == (plane == 1 ? "1" : "2");
         }
 
-        /// <summary>EN 1993-1-1:2005 Table B.3 note (Circolare 2019 Table C4.2.VI, see SteelSwayMomentFactor): a declared
+        /// <summary>EN 1993-1-1:2005 Table B.3 note (Circolare 2019 C4.2.4.1.3.3.2, text after Table C4.2.V, see SteelSwayMomentFactor): a declared
         /// sway plane takes Cm=0.9 whatever its diagram. The other plane keeps LinearDiagrams, ConservativeEnvelope or its
         /// explicit factor; CmLT belongs to the lateral-torsional segment and keeps its own preparation. An explicit Cm of a
         /// sway plane conflicts with the computed value. Each factor and its basis are traced per plane.</summary>

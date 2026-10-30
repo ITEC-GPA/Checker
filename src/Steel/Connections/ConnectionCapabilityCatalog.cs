@@ -137,10 +137,34 @@ namespace GPC.Checkers.Steel.Connections
                 "Identical hot-finished C/L in constant centred compression; one line of category-A through bolts in filled normal holes through both backs, optional identical packings and a central gusset filling the gap. Connected-leg eccentricities transported explicitly: in-plane couple to the elastic bolt line, out-of-plane couple to bolt tension with contact at the node-side row and a rigid-flange prying bound; betaLf/betaP shear, shear-tension interaction, punching, ply bearing, wall bending; gusset as a bow-imperfect cantilever band to a coplanar full-penetration collector with restrained root. Declared pin-ended member end.",
                 new[] { "Actual root restraint, aligned mid-surfaces, complete penetration/inspection, filled normal holes and bolted intermediate packings of the same demand", "Independently excluded global T/FT modes" },
                 new[] { "T attachment to column flange, several bolt lines, slotted/oversize holes or slip-resistant design, perforated terminal with welded intermediate packings, end fixity credited to the member, member stability and fatigue" }, "PACKED_PAIR_BOLTED_TERMINAL.txt", "SteelPackedPairBoltedTerminal.Verify"),
-            Item("ColumnBases", ConnectionCapabilityLevel.NotImplemented, new string[0], "No new standard base-plate/anchor/foundation workflow in this module.",
-                new string[0], new[] { "Standard base typology and its complete mechanisms" }, "PLAN_PHASES_1_4.txt"),
-            Item("TubularJoints", ConnectionCapabilityLevel.NotImplemented, new string[0], "No new standard CHS/RHS node workflow in this module.",
-                new string[0], new[] { "Tubular wall and joint mechanisms" }, "PLAN_PHASES_1_4.txt")
+            Item("ColumnBases", ConnectionCapabilityLevel.StandardStaticVerification,
+                new[] { "ColumnBase.Verify", "StandardConnectionCaseReport.Create" },
+                "One rolled (or r=0 welded) doubly symmetric I/H column, h<=600 mm, fillet-welded all round to a concentric rectangular unstiffened plate on grout "
+                + "(beta_j=2/3 conditions of 6.2.5(7)) and concrete; four anchors in one row beyond each flange (Table6.6 outer-row T-stub, Lb* prying condition, "
+                + "plate without prying per 6.2.6.11(2)) or anchors between the flanges in states without anchor tension; concomitant N, M1, V1, V2 with M2=T=0. "
+                + "fjd from EN1992-1-1 6.7 FRdu on the plate footprint with declared Ac1; Table6.7 two-side equilibrium with zC at the bearing centroid and zT at the "
+                + "anchor row, 6.2.8.2 three T-stubs at M1=0 in compression; friction Cf,d plus anchors with normal holes that carry no tension; elastic fillet-weld "
+                + "group at the actions and at the joint resistance (6.2.3(4)). Concrete failure of the anchors is a declared input.",
+                new[] { "Declared design resistances of the concrete failure modes of the anchors (EN1992-4 or product assessment), foundation design with splitting reinforcement and the Ac1 derivation",
+                    "Column section and member verification at the base cut; execution of grout, plate flatness and anchor tolerances; material evidence" },
+                new[] { "Minor-axis or biaxial bending and torsion",
+                    "Anchor tension between the flanges (internal-row T-stub, column web in tension 6.2.6.3), several rows per side, other anchor patterns, eccentric plates, columns deeper than 600 mm",
+                    "Stiffened or embedded bases, hollow-section columns, shear keys and shear resistance of the surrounding foundation (6.2.8.1(5))",
+                    "Tension-shear interaction of tensioned anchors, oversized holes in shear, direct bearing of the column end on the plate",
+                    "Rotational stiffness (6.3.4), seismic capacity design (NTC2018 7.5.4.5), fatigue and fire" },
+                "COLUMN_BASE_USAGE.txt", "ColumnBase.Verify"),
+            Item("TubularJoints", ConnectionCapabilityLevel.StandardStaticVerification, new[] { "TubularJoint.Verify" },
+                "EN1993-1-8:2005 (AC:2009) section7: one uniplanar unreinforced welded lattice joint between hollow sections, predominantly static ULS, one concomitant case. "
+                + "CHS braces on CHS chords: T, Y, X, K and N gap or overlap joints (Tables 7.1, 7.2; brace moments on T, Y and X joints by Table7.5 and eq.7.3). "
+                + "RHS or CHS braces on RHS chords: T, Y, X and K/N gap joints (Tables 7.8, 7.11, 7.12) and K/N overlap joints (Table7.10), axial forces only. "
+                + "n/np from both chord cuts; every joint outside Table7.1/7.8, 7.1.1/7.1.2, 7.3.1(2) or the eccentricity limits of 5.1.5(5) is refused; full-strength welds (7.3.1(4)). "
+                + "NTC route through NTC2018 chapter12 with the Italian National Annex (gammaM5 = 1.0).",
+                new[] { "Chord and brace member resistance and stability (7.2.1(1)P), with the eccentricity moments of 5.1.5(6) in compression chords",
+                    "Lattice analysis per 5.1.5 and same-case chord and brace forces", "All-round welds with matching consumables, full strength as declared or shown" },
+                new[] { "Multiplanar joints (7.4.3, 7.5.3)", "Reinforced joints (7.5.2.2)", "I/H section and channel chords (7.6, 7.7), gusset plates and I/H/RHS branches on CHS chords (Tables 7.3, 7.4, 7.13)",
+                    "Special and knee joints (Tables 7.6, 7.15, 7.16)", "Brace moments on RHS chords (Table7.14) and on K/N joints", "Fatigue (EN1993-1-9)",
+                    "EN1993-1-8:2024 (prEN) rules", "Joints outside the range of validity (all failure modes of 7.2.2 and secondary moments)" },
+                "TUBULAR_JOINTS_USAGE.txt", "TubularJoint.Verify")
         });
 
         public static ConnectionCapability Get(string id)

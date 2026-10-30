@@ -14,7 +14,8 @@ namespace GPC.Model.Checker
     /// <summary>Serviceability stress result in the existing report contracts: ServiceabilityCheckDetails with one
     /// metric per criterion (NormalStress, ShearStress, EquivalentStress; stress/limit with the same definition, so
     /// the row utilization is their maximum), the governing points and the full trace with sources and locations.
-    /// An unavailable result keeps status, code and trace; the reason is an error diagnostic, except NotRequired.</summary>
+    /// An unavailable result keeps status, code and trace; the reason is an error diagnostic, except NotRequired (an
+    /// unloaded cut), which is a not applicable row with the diagnostic as its ApplicabilityReason.</summary>
     internal static class SteelServiceStressResults
     {
         /// <summary>Points are in the section geometry axes X/Y through the gross centroid.</summary>
@@ -62,8 +63,18 @@ namespace GPC.Model.Checker
                 return result;
             }
             result.Outcome = EngineeringOutcome.NotEvaluated;
-            if (native.Status != SteelExecutionStatus.NotRequired)
-                result.Diagnostics.Add(ModelDiagnostic.Error("SteelPipeline." + native.DiagnosticCode, message: native.Message));
+            // An unloaded cut (every effective action zero, ServiceStress.NoActions) has no stress to limit: the row is not
+            // applicable, which Model's report counts as resolved and never as satisfied. Any non-zero action is evaluated.
+            if (native.Status == SteelExecutionStatus.NotRequired)
+            {
+                result.Applicability = CheckApplicability.NotApplicable; result.Execution = ExecutionStatus.NotExecuted;
+                var neglected = native.Input.NeglectedActions;
+                result.ApplicabilityReason = native.DiagnosticCode + ": " + native.Message + (neglected.Count == 0 ? ""
+                    : " Negligible components counted as zero: " + string.Join(", ", neglected.Select(n => n.Component + "="
+                        + n.Value.ToString("R", c) + " " + n.Unit + " <= " + n.Limit.ToString("R", c))) + ".");
+                return result;
+            }
+            result.Diagnostics.Add(ModelDiagnostic.Error("SteelPipeline." + native.DiagnosticCode, message: native.Message));
             if (native.Status == SteelExecutionStatus.CalculationError) result.Execution = ExecutionStatus.Error;
             else if (native.Status == SteelExecutionStatus.MissingInput || native.Status == SteelExecutionStatus.InvalidInput) result.Data = DataStatus.Insufficient;
             else if (native.Status == SteelExecutionStatus.NotSupported) result.Data = DataStatus.NotSupported;

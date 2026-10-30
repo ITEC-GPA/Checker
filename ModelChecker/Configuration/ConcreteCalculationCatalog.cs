@@ -45,9 +45,13 @@ namespace GPC.Model.Checker.Configuration
             if (options.CalculationEngineId == null && (options.CalculationEngineVersion != null || options.CalculationEngineConfiguration != null))
                 throw new ArgumentException("NumericalEngineIdRequired");
         }
+        /// <summary>Whether <paramref name="factory"/> is the numerical engine of this library, directly or as registered in a catalog.</summary>
+        internal static bool IsBuiltIn(IConcreteCalculationFactory factory)
+            => factory is LegacyConcreteCalculationFactory || factory is BoundFactory bound && bound.Source is LegacyConcreteCalculationFactory;
         private sealed class BoundFactory : IConcreteCalculationFactory
         {
             private readonly IConcreteCalculationFactory _source;
+            internal IConcreteCalculationFactory Source => _source;
             public string Id { get; }
             public string Version { get; }
             public string Configuration { get; }

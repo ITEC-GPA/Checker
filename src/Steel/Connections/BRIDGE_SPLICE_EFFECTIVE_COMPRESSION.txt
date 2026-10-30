@@ -40,7 +40,9 @@ massima compressione efficace con fy/gammaM0 e chi*fy/gammaM1.
 Ncr usa l'inerzia debole lorda; la snellezza classe4 usa Aeff.
 Il criterio elastico netto supplementare mantiene min(fy/gammaM0,
 0.9fu/gammaM2), e non viene presentato come legge plastica di rottura.
-NTC2018: stesso modello EC complementare con coefficienti della policy NTC.
+NTC2018: stesso modello EC complementare con coefficienti della policy NTC
+(NTC 4.2.4.1.1: Aeff/Weff di classe 4 secondo UNI EN 1993-1-5; Circolare 2019
+C4.2.4.1.3.4 cita UNI EN 1993-1-5; riscontro sui testi GU del 30/10/2026).
 
 Non e' il modello di una lastra libera forata: assenti tagli vuoti, vincoli
 continui inventati tra bulloni, interazione generale classe4+taglio e

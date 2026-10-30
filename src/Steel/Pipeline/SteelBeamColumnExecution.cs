@@ -90,9 +90,11 @@ namespace GPC.Checkers.Steel.Pipeline
             if(a.V1!=0||a.V2!=0)
             {
                 // Automatic screens exist for the exact H and the RHS with principal axis 1 horizontal (walls parallel to each
-                // shear as webs); CHS and rotated hollow sections keep the explicit assessment.
+                // shear as webs), and for the CHS within the GPC wall screen (EvaluateChsWall, EN 1993-1-6 D.1.4): beyond its
+                // limit the CHS keeps the explicit assessment, as rotated hollow sections do.
                 bool rhs=SteelSectionFamilies.Is(shape,SteelSectionKind.RectangularTube)&&Math.Abs(shape.AngleX1)<=1e-10;
-                if(p.ShearBucklingExclusionSource==null&&hollow&&!rhs)return Missing("BeamColumn.ShearBucklingExclusionSource");
+                bool chs=SteelShearBucklingAssessment.ChsWallExcludesBuckling(i);
+                if(p.ShearBucklingExclusionSource==null&&hollow&&!rhs&&!chs)return Missing("BeamColumn.ShearBucklingExclusionSource");
                 // Plastic shear areas follow the geometry axes: with rotated principal axes (e.g. a wide RHS, axis 1
                 // vertical) they would not belong to V1/V2 and could overestimate VplRd. Same rule as the section route.
                 if(!SteelSectionFamilies.HasQualifiedShearAreas(section))return Unsupported("Member.BeamColumnShearAreasNotQualified",
@@ -101,10 +103,11 @@ namespace GPC.Checkers.Steel.Pipeline
                 double ratio2=Math.Abs(a.V2)/SteelPlasticShear.Resistance(i,2);
                 if(ratio1>.5||ratio2>.5)return Unsupported("Member.BeamColumnHighShear","High shear needs reduced interaction resistances; this member route requires each shear <= 0.5 VplRd, with shear buckling excluded.");
                 // Without an explicit source: one assessment per active shear, as on the section route (H web
-                // EvaluateEc3HWeb/EvaluateNtcHWeb, flanges EvaluateHFlanges; RHS EvaluateEc3RhsWebs/EvaluateNtcRhsWebs).
-                // A negative one stops the route; no reduced resistance.
+                // EvaluateEc3HWeb/EvaluateNtcHWeb, flanges EvaluateHFlanges; RHS EvaluateEc3RhsWebs/EvaluateNtcRhsWebs;
+                // CHS EvaluateChsWall). A negative one stops the route; no reduced resistance.
                 if(p.ShearBucklingExclusionSource==null)return new SteelMethodDecision(SteelCheckTarget.MemberStability,SteelSelectionStatus.RequiresPreparation,
                     SteelMethod.HBeamColumn,"ShearBuckling.AssessmentRequired",rhs?"Without BeamColumn.ShearBucklingExclusionSource every active shear of the rectangular hollow section needs a shear-buckling assessment of the walls parallel to it (EvaluateEc3RhsWebs/EvaluateNtcRhsWebs)."
+                        :chs?"Without BeamColumn.ShearBucklingExclusionSource every active shear of the circular hollow section needs the wall screen assessment (EvaluateChsWall)."
                         :"Without BeamColumn.ShearBucklingExclusionSource every active shear of the exact H needs a shear-buckling assessment (web: EvaluateEc3HWeb/EvaluateNtcHWeb; flanges: EvaluateHFlanges).",
                     compression.SectionClass,compression.ClassificationSource,new[]{SteelPreparationRequirement.ShearBucklingAssessment});
             }
@@ -130,9 +133,9 @@ namespace GPC.Checkers.Steel.Pipeline
             if(p.TorsionSusceptible&&i.EffectiveActions.M1!=0)
             {
                 double mcr=analysis.Values.Single(v=>v.Quantity==SteelStabilityQuantity.Mcr).Value;
-                double lambdaLT=Math.Sqrt(m1rk)/Math.Sqrt(mcr);ltb=SteelLateralTorsionalExecution.Reduce(analysis,section,lambdaLT,ntc);var curve=ltb.Curve;
+                double lambdaLT=Math.Sqrt(m1rk)/Math.Sqrt(mcr);ltb=SteelLateralTorsionalExecution.Reduce(analysis,section,lambdaLT,ntc);
                 chiLT=ltb.Chi;
-                Add(trace,"Mcr",mcr,"Nmm");Add(trace,"LambdaLT",lambdaLT,"1");Add(trace,"AlphaLT",BucklingCurves.Alpha(curve),"1");
+                Add(trace,"Mcr",mcr,"Nmm");Add(trace,"LambdaLT",lambdaLT,"1");Add(trace,"AlphaLT",ltb.Alpha,"1");
                 SteelLateralTorsionalExecution.AddTrace(trace,ltb,curveParameters:true);SteelLateralTorsionalExecution.AddCurveTrace(trace,ltb);
             }
             double nb1=chi1*nrk/gamma,nb2=chi2*nrk/gamma,mb=chiLT*m1rk/gamma,mz=m2rk/gamma;

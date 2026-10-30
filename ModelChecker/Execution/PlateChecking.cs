@@ -47,14 +47,16 @@ namespace GPC.Model.Checker
             }
             var selected = job.Preparation.Selection.Resolve(model).Cast<AreaElement>().ToArray();
             if (selected.Length == 0) throw new ArgumentException("EmptyPlateScope");
-            var assignments = job.Assignments.Select(a => new { Value = a, Elements = a.Selection?.Resolve(model).Select(e => e.Id).ToArray() }).ToArray();
+            // The plates of each selection and its check ids in sets: one lookup per plate and check instead of a scan of each list.
+            var assignments = job.Assignments.Select(a => new { Value = a, Elements = a.Selection == null ? null : new HashSet<int>(a.Selection.Resolve(model).Select(e => e.Id)),
+                CheckIds = a.CheckIds == null ? null : new HashSet<string>(a.CheckIds, StringComparer.Ordinal) }).ToArray();
             var routes = new Dictionary<string, IPlateChecker>(StringComparer.Ordinal);
             foreach (var element in selected)
             foreach (var check in job.Checks)
             {
                 var matches = assignments.Where(a => (a.Elements == null || a.Elements.Contains(element.Id))
                     && (a.Value.Mechanisms == null || a.Value.Mechanisms.Contains(check.Mechanism))
-                    && (a.Value.CheckIds == null || a.Value.CheckIds.Contains(check.Id))
+                    && (a.CheckIds == null || a.CheckIds.Contains(check.Id))
                     && (a.Value.Checker == null || a.Value.Checker.Accepts(element))).Select(a => a.Value)
                     .GroupBy(a => PlateEngineKey(a.Checker) ?? "unavailable:" + a.EngineId, StringComparer.Ordinal).Select(g => g.First()).ToArray();
                 if (matches.Length > 1) throw new ArgumentException("ConflictingPlateAssignments: " + PlateRouteKey(element.Id, check.Id));

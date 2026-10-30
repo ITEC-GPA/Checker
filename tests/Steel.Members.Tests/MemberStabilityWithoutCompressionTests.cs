@@ -122,10 +122,14 @@ public class MemberStabilityWithoutCompressionTests
         var screened = SteelVerificationPipeline.Execute(shearedPlan, new[] { walls }).Checks.Single();
         // V2 = 10 kN <= .5 Vpl leaves the interaction unchanged: .9 m1 with Wel1 = (200*300^3 - 180*280^3)/12/150 = 804800 mm3.
         Assert.IsTrue(screened.IsEvaluated, screened.Message); Assert.AreEqual(.9 * 5e7 * g / (804800 * 355d), screened.Utilization!.Value, 1e-12);
-        // CHS: no qualified automatic screen (EN 1993-1-5 does not cover circular tubes): the explicit source stays required.
+        // CHS 200x10: was MissingInput (BeamColumn.ShearBucklingExclusionSource). d/t = 20 <= 2(0.0693 E/fy)^(2/3) = 23.774,
+        // the GPC wall screen (EvaluateChsWall, EN 1993-1-6 D.1.4): it now waits for that assessment, as the RHS does.
+        // Beyond the screen (CHS 300x8, d/t = 37.5) the explicit source stays required, as before.
         var tube = Run(BeamColumn(Input(CommonSectionCoverageTests.Shape("CHS"), ntc, m1: 2e7, v2: 1e4), false));
-        Assert.AreEqual(SteelExecutionStatus.MissingInput, tube.Status);
-        CollectionAssert.Contains(tube.Decision.MissingInputs.ToList(), "BeamColumn.ShearBucklingExclusionSource");
+        Assert.AreEqual(SteelExecutionStatus.RequiresPreparation, tube.Status); Assert.AreEqual("ShearBuckling.AssessmentRequired", tube.DiagnosticCode);
+        var slenderTube = Run(BeamColumn(Input(new SectionCHS(300, 8, "CHS300x8"), ntc, m1: 2e7, v2: 1e4), false));
+        Assert.AreEqual(SteelExecutionStatus.MissingInput, slenderTube.Status);
+        CollectionAssert.Contains(slenderTube.Decision.MissingInputs.ToList(), "BeamColumn.ShearBucklingExclusionSource");
         // Wide RHS 200x300x10: principal axis 1 is vertical, the geometry shear areas would belong to the other axis
         // (A b/(b+h) for V2): refused with shear even with the explicit source, evaluated without shear.
         var wide = new SectionRHS(200, 300, 10, 10, 10, 10, "wide");

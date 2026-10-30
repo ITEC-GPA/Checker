@@ -12,6 +12,19 @@ complementari EN1993-1-5:2006 sono espliciti e conservano i fattori NTC.
 Il campo di una sezione/asta non si trasferisce automaticamente a un nodo.
 Le condizioni reali vengono sempre controllate durante l'esecuzione.
 
+Citazioni NTC riscontrate sui testi GU (30/10/2026; NTC 2018 S.O. n. 8 alla GU
+n. 42 del 20/02/2018, Circolare 2019 S.O. n. 5 alla GU n. 35 dell'11/02/2019):
+- Cm sway: Circolare C4.2.4.1.3.3.2 (Metodo B), testo dopo la Tab. C4.2.V,
+  alpha_my o alpha_mz = 0,9; alpha_m della Tab. C4.2.VI (p. 108) negli altri casi.
+- Tensioni di esercizio: NTC 4.2.2.1 e 4.2.4.2.4 (plasticizzazioni locali, senza
+  limiti di tensione); limiti di EN 1993-2:2006 7.3 tramite il cap. 12.
+- kc dello svergolamento dei laminati: Tab. 4.2.X (numero corretto; valori in
+  immagine, da verificare), curve Tab. 4.2.IX(b), alphaLT Tab. 4.2.IX(a).
+- Classe 4 e EN 1993-1-5: NTC 4.2.4.1.1 (caratteristiche efficaci secondo UNI EN
+  1993-1-5), 4.2.4.1.3.4 (comprovata validita'), Circolare C4.2.4.1.3.4.
+- Cap. 12: gli Eurocodici CEN con le Appendici Nazionali valgono "per quanto non
+  diversamente specificato" dalla norma.
+
 COME INTEGRARE LA LIBRERIA
 
 Sezioni e aste:
@@ -63,9 +76,52 @@ Stato reale del taglio (28 ottobre 2026):
   di sicurezza); t e la parete piu sottile. ModelChecker li applica come per le
   H, nel motore di sezione e nella trave-colonna, con l'eta del profilo
   normativo per grado; la valutazione esplicita prevale e il filtro negativo
-  lascia la riga non valutata. CHS e assi ruotati: nessun filtro, resta la
-  valutazione esplicita (EN 1993-1-5 non copre i tubi circolari; i gusci di
-  EN 1993-1-6 richiedono lunghezza fra vincoli e qualita di fabbricazione).
+  lascia la riga non valutata. Assi ruotati: nessun filtro, resta la
+  valutazione esplicita.
+  Cave circolari (30 ottobre 2026, branch claude/steel-decisioni): filtro GPC
+  SteelShearBucklingAssessment.EvaluateChsWall, EC3 e NTC, V1 e V2 (parete
+  assialsimmetrica): l'instabilita a taglio non ha effetto se
+  d/t <= 2 (0,04 rad3 E/fy)^(2/3) = 2 (0,0693 E/fy)^(2/3), d diametro esterno,
+  t spessore. S235: 31,30; S355: 23,77 (E = 210000). Derivazione da EN 1993-1-6:2007
+  Annesso D.1.4 (cilindro non irrigidito, bordi BC1/BC2):
+  - (D.32) tau_cr = 0,75 E C_tau rad(1/omega) t/r, omega = l/rad(r t) (D.31);
+    cilindri lunghi (omega > 8,7 r/t) C_tau = (1/3) rad(omega t/r), quindi
+    tau_cr = 0,25 E (t/r)^1,5, indipendente dalla lunghezza. Medi (C_tau = 1):
+    tau_cr >= 0,75/rad(8,7) E (t/r)^1,5 = 0,254 E (t/r)^1,5; corti (C_tau >= 1,
+    omega < 10): tau_cr >= 0,237 E t/r. Il valore lungo e un minorante per ogni
+    lunghezza fra i vincoli, che quindi non serve.
+  - (D.39) plateau lambda_tau0 = 0,40 con lambda_tau = rad((fy/rad3)/tau_cr):
+    chi = 1 se tau_cr >= fy/(rad3 0,16) = 3,61 fy; la classe di qualita di
+    fabbricazione entra solo in alpha_tau, oltre il plateau, quindi non serve.
+  - (r/t)^1,5 <= 0,04 rad3 E/fy = E/(14,43 fy): r/t <= (0,0693 E/fy)^(2/3).
+  - r = d/2 al posto del raggio medio (d - t)/2 sovrastima r/t: a favore di
+    sicurezza.
+  - D.1.4 tratta il taglio uniforme della torsione; il taglio trasversale da
+    tensioni critiche di picco maggiori, quindi il filtro e conservativo (da
+    verificare nel testo: non trovato nella D.1.4).
+  Verifiche dei testi (30/10/2026, copia BS EN 1993-1-6:2007 con corrigendum 2009
+  e Dowswell, AISC Eng. J. 2024): D.31, D.32, C_tau medio e lungo, D.39 e la
+  classe A/B/C verificati; C_tau corto solo in parte (formula illeggibile).
+  La D.1.4.2(3) eq. (D.40) da anche un proprio limite arrotondato "non serve la
+  verifica", r/t <= 0,16 (E/fy)^0,67, circa 3% piu basso (con r = d/2: S235
+  30,37, S355 23,03). Il filtro mantiene il limite derivato approvato; scegliere
+  la (D.40) e una decisione aperta. L'emendamento A1:2017 modifica la D.1.4.2:
+  contenuto da verificare.
+  NTC 2018: nessuna regola per l'instabilita a taglio dei tubi (4.2.4.1.2.4
+  riguarda le anime). Cap. 12: "per quanto non diversamente specificato" valgono
+  gli Eurocodici CEN con le precisazioni delle Appendici Nazionali; l'Appendice
+  nazionale a UNI EN 1993-1-6 (DM 31/07/2012) adotta i valori dell'Annesso D
+  (8.5.2(4)). Il riferimento NTC lo dichiara.
+  ModelChecker: motore di sezione e trave-colonna come per le RHS; la valutazione
+  esplicita (ShearBucklingExcluded1/2, ShearBucklingExclusionSource) prevale.
+  Oltre il limite nulla cambia: la sezione resta AssessmentRequired e la
+  trave-colonna MissingInput BeamColumn.ShearBucklingExclusionSource (nella
+  libreria SelectMember attende la valutazione solo se il filtro passa).
+  Traccia: Diameter, WallThickness, Fy, E, LongCylinderTauCr, ShearSlenderness,
+  ShearSlendernessPlateau, DiameterToThickness, DiameterToThicknessLimit.
+  Test: ChsShearBucklingTests (10, libreria) e HollowShearBucklingPipelineTest
+  (ModelChecker, 4 casi nuovi). Asserzioni esistenti cambiate per effetto della
+  decisione: vedi il messaggio del commit.
 
 Stabilita delle aste senza compressione (28 ottobre 2026, branch steel-aste-routing):
   Flessione M2 sola (con o senza trazione, V1): lo svergolamento non e richiesto
@@ -96,13 +152,16 @@ Stabilita delle aste senza compressione (28 ottobre 2026, branch steel-aste-rout
   sezione (eta del profilo normativo). Negativa: ShearBuckling.ResistanceMethodRequired,
   nessuna resistenza ridotta. La fonte esplicita prevale; senza di essa le RHS
   con asse 1 orizzontale attendono EvaluateEc3RhsWebs/EvaluateNtcRhsWebs per ogni
-  taglio attivo, le CHS e le cave ruotate la richiedono ancora. Resta V<=0,5 Vpl.
+  taglio attivo, le CHS entro il filtro EvaluateChsWall (dal 30/10/2026) la sua
+  valutazione; le CHS oltre il filtro e le cave ruotate richiedono ancora la fonte.
+  Resta V<=0,5 Vpl.
   In ModelChecker la modalita Bending con M1 e M2/V1 risponde
   SteelMember.BiaxialBendingRequiresBeamColumn. Un esito d'asta con
   tutti i meccanismi NotRequired diventa nel resoconto di Model una riga non
   applicabile (CheckApplicability.NotApplicable, motivo = codici e messaggi):
-  conta come risolta, mai come verificata. I tagli di sezione nulli restano
-  NotEvaluated (nessuna conclusione sull'asta).
+  conta come risolta, mai come verificata. I tagli di sezione nulli delle
+  verifiche SLU restano NotEvaluated (nessuna conclusione sull'asta); quelli delle
+  tensioni di esercizio sono non applicabili (30/10/2026, vedi sotto).
 
 Svergolamento di profili laminati o saldati equivalenti (28/10/2026):
   il default resta il caso generale (EC3 6.3.2.2, Tab. 6.4; NTC 4.2.4.1.3.2
@@ -122,7 +181,10 @@ Svergolamento di profili laminati o saldati equivalenti (28/10/2026):
   NTC: chiLT=(1/f)/(PhiLT+rad(PhiLT^2-beta lambda^2))<=1 e <=1/(f lambda^2),
   Mcr sempre a momento uniforme. f=1-0.5(1-kc)[1-2(lambda-0.8)^2]<=1; kc da
   Tab. 6.6 (NTC Tab. 4.2.X): 1.0, 1/(1.33-0.33psi), 0.94/0.90/0.91/0.86/0.77/
-  0.82. kc solo da un diagramma accertato: ForkDiagram EndMoments, Uniform-
+  0.82 (30/10/2026: numero della Tab. 4.2.X, eq. [4.2.52] di f e caso generale
+  f=beta=kchi=1, lambdaLT0=0,2 riscontrati sul testo GU; i valori di kc sono
+  un'immagine nel PDF GU: da verificare).
+  kc solo da un diagramma accertato: ForkDiagram EndMoments, Uniform-
   TransverseLoad o CentralPointLoad, CriticalValues=UniformFork, Moment-
   FactorPreparation=LinearDiagrams, oppure LtbMomentDistribution (LtbPsi se
   Linear) con LtbMomentSource; altrimenti kc=1 (f=1), traccia KcNotEstablished.
@@ -171,15 +233,35 @@ Opzioni EC3 dello svergolamento (29/10/2026, branch steel-ltb-esenzione):
   trave-colonna senza chiLT (TorsionSusceptible=false, cave)
   Member.LtbCurveWithoutLtbReduction.
   Oggetto norma: alphaLT per curva diversi da 0,21/0,34/0,49/0,76 restano
-  rifiutati (LtbImperfectionFactorsNotQualified), cosi beta/lambdaLT0 del caso
-  generale diversi da 1/0,2 (LtbGeneralParametersNotQualified: la 6.56 li fissa,
-  quelli nazionali sono della 6.3.2.3 e dei campi *Mod). Nota: la NOTA della
-  6.3.2.2(2) lascia all'Annesso Nazionale anche alphaLT (la Tab. 6.3 e intitolata
-  "valori raccomandati"); un alphaLT nazionale richiederebbe un percorso
-  proprio, oggi assente.
+  rifiutati (LtbImperfectionFactorsNotQualified) senza la dichiarazione qui sotto,
+  cosi beta/lambdaLT0 del caso generale diversi da 1/0,2
+  (LtbGeneralParametersNotQualified: la 6.56 li fissa, quelli nazionali sono della
+  6.3.2.3 e dei campi *Mod).
   Test: LtbLowMomentAndNationalCurveTests (20 casi, valori a mano nei commenti)
   e SteelLtbNationalOptionsPipelineTest (14 casi). Nessun atteso esistente
   modificato.
+  alphaLT nazionali (30/10/2026, branch claude/steel-decisioni): EN 1993-1-1:2005
+  6.3.2.2(2) e nell'elenco NDP della premessa e la sua NOTA rinvia all'Annesso
+  Nazionale anche il fattore di imperfezione alphaLT della curva; la Tab. 6.3 da
+  i valori raccomandati (verificato sul testo pubblico, 30/10/2026). L'Appendice
+  nazionale italiana (DM 31/07/2012) adotta i valori raccomandati della Tab. 6.3;
+  la UK NA, secondo SCI/NSC gennaio 2009, li conferma (testo della NA da
+  verificare). Nessun Annesso consultato da valori diversi.
+  Libreria: SteelLateralTorsionalMethod.WithDeclaredImperfectionFactors(a, b, c, d,
+  fonte), solo EC3 e opt-in come WithDeclaredCurve. Campo plausibile: finiti,
+  0 < alpha <= 1 e a <= b <= c <= d (curve in ordine di imperfezione crescente).
+  Vale per la curva in uso (di tabella o dichiarata) in entrambi i metodi e nel
+  chiLT della trave-colonna. ModelChecker: LtbImperfectionFactorsSource (modi
+  Bending e BeamColumn) ammette i campi AlphaLTImperfectionFactorForCurveA..D
+  dell'oggetto norma; senza la fonte devono valere quelli della Tab. 6.3 come
+  prima. Rifiuti: NTC Member.LtbImperfectionFactorsFixedByNtc (Tab. 4.2.IX(a));
+  trave-colonna senza chiLT Member.LtbImperfectionFactorsWithoutLtbReduction.
+  Traccia AlphaLT (valore usato), AlphaLTDeclared, AlphaLTRecommended (Tab. 6.3);
+  riferimento con valore, curva, fonte e valore raccomandato; riga
+  Member.LtbImperfectionFactors. Senza dichiarazione nessun risultato cambia.
+  Test: LtbNationalImperfectionFactorsTests (9) e
+  SteelLtbNationalAlphaPipelineTest (6), tabella nazionale ipotetica
+  0,25/0,40/0,55/0,80.
 
 Valori critici automatici (28 ottobre 2026):
   Senza valore ne' esclusione, NcrT/NcrFT si risolvono in automatico solo per le H
@@ -198,8 +280,11 @@ Modi sway nella trave-colonna (29 ottobre 2026, branch claude/steel-cm-sway):
   dichiarazione esplicita e facoltativa SwayBucklingPlanes=1|2|1,2 con
   SwayModeSource (solo BeamColumn, mai dedotta dalla mesh). Nel piano
   dichiarato Cm=0.9 qualunque sia il diagramma (EC3 Tab. B.3, nota; NTC:
-  Circolare Tab. C4.2.VI, ipotesi GPC dichiarata perche' il testo della
-  Circolare non e' nel repository). L'altro piano resta LinearDiagrams,
+  Circolare 2019 C4.2.4.1.3.3.2, Metodo B, testo dopo la Tab. C4.2.V: "si deve
+  assumere" alpha_my=0,9 o alpha_mz=0,9 per modo instabile per traslazione dei
+  piani; alpha_m della Tab. C4.2.VI negli altri casi. Verificato il 30/10/2026
+  sul testo GU, S.O. n. 5 alla GU n. 35 dell'11/02/2019, p. 107: non e' piu'
+  un'ipotesi GPC). L'altro piano resta LinearDiagrams,
   ConservativeEnvelope o esplicito; CmLT non cambia. Un Cm esplicito sul piano
   sway e' un conflitto. L'Ncr del piano sway e' esplicito o viene da una
   EffectiveLength dichiarata; i valori automatici dei segmenti a forcella sono
@@ -217,9 +302,14 @@ Tensioni di esercizio delle sezioni (29 ottobre 2026, branch steel-sle-tensioni)
   caratteristica, dichiarata dal chiamante. gM,ser e' un parametro nazionale
   (raccomandato 1,00): nessun default, valore >= 1 con la sua fonte. Serve anche
   la fonte di applicabilita' (ponte, requisito di progetto): EN 1993-1-1 non
-  richiede la verifica per gli edifici e nel repository non c'e' un testo NTC
-  2018/Circolare 2019 verificato per le tensioni di esercizio dell'acciaio; con
-  NTC i limiti sono quelli dichiarati, nella stessa forma, e il riferimento lo dice.
+  richiede la verifica per gli edifici. NTC 2018 (testo GU riscontrato il
+  30/10/2026): 4.2.2.1 elenca fra gli SLE lo "stato limite di plasticizzazioni
+  locali" e 4.2.4.2.4 lo tratta in modo descrittivo (tensioni residue,
+  plasticizzazioni localizzate, fatica a basso numero di cicli) senza limiti di
+  tensione; la Circolare 2019 non ha un C4.2.4.2, e i ponti (cap. 5, C5) non danno
+  limiti di tensione di esercizio per l'acciaio. Con NTC si usano quindi i limiti
+  di EN 1993-2:2006 7.3, Eurocodice CEN ammesso dal cap. 12 per quanto la norma
+  non specifica; il riferimento lo dice.
   sigma = N/A + Mx y/Ixx - My x/Iyy sulla sezione lorda di Model (classi 1-3, o
   nessuna fibra compressa: classificazione non richiesta). Classe 4 dalla
   classificazione concomitante del taglio: sezione efficace di
@@ -240,7 +330,14 @@ Tensioni di esercizio delle sezioni (29 ottobre 2026, branch steel-sle-tensioni)
   ingobbamento), altre famiglie, H monosimmetriche, profili aperti formati a
   freddo, fori non dichiarati o presenti, rettangolo con due tagli o troppo largo,
   classe 4 non qualificata (CHS), base mancante (BasisRequired). Azioni tutte
-  nulle: NotRequired, come la pipeline. Esclusi: shear lag ed effetti secondari
+  nulle: NotRequired (ServiceStress.NoActions), come la pipeline; dal 30/10/2026
+  in ModelChecker la riga e' non applicabile (CheckApplicability.NotApplicable,
+  motivo = codice e messaggio, piu' le componenti trascurabili azzerate; Outcome
+  NotEvaluated, Execution NotExecuted, nessun utilizzo): il resoconto la conta
+  come risolta, mai come verificata. Solo il taglio con tutte le azioni efficaci
+  nulle; ogni azione non nulla si valuta come prima (test
+  SteelServiceStressTest.UnloadedCutIsANotApplicableRowAndTheReportResolves).
+  Esclusi: shear lag ed effetti secondari
   (EN 1993-2 7.3(1): nelle azioni o coperti dalla fonte), tensioni trasversali,
   carichi concentrati, respiro d'anima, fatica, collegamenti.
   ModelChecker: compito Serviceability/StressLimits/Characteristic del motore
@@ -263,6 +360,12 @@ Verifiche di esercizio delle aste (29 ottobre 2026, branch steel-sle-aste):
   copertura dei nodi sono parametri dichiarati con fonte: nessun preset delle
   Tab. 4.2.XII/XIII (testi assenti dal repository); una dichiarazione mancante
   e un MissingInput preciso. Solo nodi esportati, nessuna interpolazione.
+  Dal 30/10/2026 (steel-sle-limiti-asta) l'asta puo portare schema, fattore
+  dello sbalzo, limiti e controfreccia propri (PhysicalMemberDefinition.
+  ServiceabilityLimits, con fonte): prevalgono sui parametri, che fanno da
+  ripiego, e la traccia ne riporta l'origine; membrature diverse in un solo
+  lavoro. Opzione Deflection.CantileverReference = Ntc2018 (L = 2 Lc, NTC
+  2018 4.2.4.2.1 verificato sulla GU), mai assunta.
   Dettagli in SERVICEABILITY_MEMBERS.txt.
 
 Coprigiunti bullonati di travi composte saldate a I:
@@ -316,6 +419,11 @@ Controventi e profili accoppiati:
   imbottiture intermedie bullonate sullo stesso modello di domanda; vincolo
   d'estremita' DICHIARATO dal terminale (traslazioni trattenute, rotazioni
   flessionali libere). Vedi Connections/PACKED_PAIR_BOLTED_TERMINAL.txt.
+  Momento fuori piano del fazzoletto (riscontro 30/10/2026): dallo stesso corpo libero
+  (correnti N/2+-Q sulle linee baricentriche, EN1993-1-1 6.4.4) vale Q s, s distanza
+  fra i baricentri: il bullonato usa Q s, corretto per la sua geometria; il saldato
+  conserva 2Q(s+2e_n) = (2+4e_n/s) Q s, inviluppo cautelativo invariato. Nessun
+  risultato cambia (PackedTerminalGussetMomentTests).
   C/2C collegate solo d'anima in trazione: ChannelWebTension.Verify con scelta
   esplicita ConnectedWebOnly (limite inferiore, striscia d'anima) o
   AiscShearLagAlternative dichiarata; solo l'estremita' del canale, vedi
@@ -330,6 +438,34 @@ Taglio ordinario:
   dettaglio SBE-MS5; il tying resta una situazione distinta e dichiarata.
   Vedi Connections/DOUBLE_ANGLE_COLUMN_WEB.txt (aggiornamento 29/10).
   Le API di componente hanno un campo limitato anche quando Status=Passed.
+
+Basi di colonna (30/10/2026, branch claude/conn-basi-colonne):
+  ColumnBase.Verify(ColumnBaseInput) -> StandardConnectionCaseReport.Create(r)
+  -> SteelAssessmentSummary.From(report). Percorso opt-in, catalogo ColumnBases
+  (StandardStaticVerification). Pilastro I/H h<=600 saldato a piastra rettangolare
+  non irrigidita su malta e calcestruzzo; quattro tirafondi esterni alle ali con
+  T-stub della fila esterna (Tab.6.6, Lb*, piastra senza leveraggio per 6.2.6.11(2))
+  oppure tirafondi fra le ali solo senza trazione. N, M1, V1, V2 concomitanti; M2, T,
+  piastre irrigidite, colonne annegate, cavi, sisma e fatica rifiutati con codice.
+  fjd=2/3 FRdu/Ac0 con FRdu di EN1992-1-1 6.7 sull'impronta e Ac1 dichiarata;
+  Tab.6.7 come equilibrio dei due lati (zC baricentro compresso, zT fila di tirafondi),
+  6.2.8.2 a tre T-stub per M1=0 compresso; taglio Cf,d N piu' tirafondi a fori normali
+  non tesi (6.2.2(5)-(8)); cordoni con FilletWeldGroup alle azioni e a N/u, M1/u
+  (6.2.3(4)). La rottura del calcestruzzo dei tirafondi (EN1992-4) e' un dato
+  dichiarato con fonte; senza di esso trazione/taglio dei tirafondi non sono contati.
+  NTC: nessuna regola specifica nelle NTC 2018; ammesso come modello EC integrativo
+  (Cap.12) con fattori NTC e fcd 4.1.2.1.1.1; Circolare 2019 da verificare.
+  Vedi Connections/COLUMN_BASE_USAGE.txt; ColumnBaseTests (52 casi, calcoli a mano).
+
+Nodi di travature reticolari in profili cavi (30/10/2026, branch claude/conn-nodi-tubolari):
+  TubularJoint.Verify(TubularJointInput) -> ConnectionVerification -> SteelAssessmentSummary.
+  EN1993-1-8:2005 (AC:2009) cap.7, nodo piano saldato non rinforzato, un caso concomitante:
+  CHS su CHS T/Y/X/K/N a gap o sovrapposti (Tab.7.1, 7.2, 7.5 ed eq.7.3 su T/Y/X), RHS o
+  CHS su RHS T/Y/X/K/N a gap e sovrapposti (Tab.7.8, 7.10-7.12, solo assiali). n/np dai
+  due tagli del corrente; rifiuto di ogni nodo fuori dalle Tab.7.1/7.8, da 7.1.1/7.1.2,
+  5.1.5(5) e 7.3.1(2); saldature a piena resistenza (7.3.1(4)). NTC via cap.12 e
+  Appendice nazionale (gammaM5=1.0). Letture da confermare in
+  Connections/TUBULAR_JOINTS_USAGE.txt. Nessun risultato esistente cambia.
 
 Superficie pubblica delle connessioni (28/10/2026):
   pubblici solo gli ingressi sopra, DoubleCoverSplice.Verify,

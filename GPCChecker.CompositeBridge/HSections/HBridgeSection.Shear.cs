@@ -23,7 +23,7 @@ public static partial class HBridgeSection
 
     private static (BridgeShearResult Shear, BridgeStudResult Studs, BridgeTorsionResult? Torsion) CalculateShear(HBridgeInput source, BridgeGeometry g,
         BridgeMaterialValues m, BridgeEffective effective, List<BridgeContribution> contributions, BridgePhase[] phases, List<string> warnings,
-        BridgeTorsionResult? torsion = null)
+        Func<BridgePhase, BridgeSectionProperties> grossProperties, BridgeTorsionResult? torsion = null)
     {
         var d = source;
         double fy = m.Fy, ea = m.Ea, gm0 = BridgeNumbers.Require(d.Options.GammaM0, "gamma_m0", strict: true), gm1 = BridgeNumbers.Require(d.Options.GammaM1, "gamma_m1", strict: true);
@@ -62,7 +62,7 @@ public static partial class HBridgeSection
             var c = contributions[i]; var phase = phases[i];
             if (!c.IsShrinkage)
             {
-                var p = GrossPhaseProperties(d, phase); double n = c.HasConcrete ? c.HomogenizationN : 0;
+                var p = grossProperties(phase); double n = c.HasConcrete ? c.HomogenizationN : 0;
                 shearData.Add((c, p, n));
             }
             double q = 0, s = 0, inertia = 0; string basis = "Nessuno scorrimento da V";

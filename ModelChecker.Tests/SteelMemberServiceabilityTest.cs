@@ -383,6 +383,338 @@ public class SteelMemberServiceabilityTest
         Assert.AreEqual(8, insufficient.CoverageAssessment.AvailableLocations);
     }
 
+    /// <summary>Rows of engine-only declarations (no member limits, no cantilever reference option): the scenarios of the tests
+    /// above. Digest of details (metrics, trace, points), standard context, utilization, statuses and diagnostic codes.</summary>
+    private static IEnumerable<(string Name, CheckResult Row)> EngineOnlyRows()
+    {
+        var supported = SimplySupported(6000, 8, -10, -6);
+        var difference = Plan(Task(MemberDeformationCriterion.VerticalDeflection, MemberDeformationDirection.Axis2, CombinationCategory.Characteristic,
+            MemberVariableDeflectionBasis.Difference, "G"), State("SLE-R", CombinationCategory.Characteristic));
+        yield return ("supported-ec3", Run(supported, Configure(difference, DeflectionParameters(), false)).Row);
+        yield return ("supported-ntc", Run(supported, Configure(difference, DeflectionParameters(), true)).Row);
+        var single = Plan(Task(MemberDeformationCriterion.VerticalDeflection, MemberDeformationDirection.Axis2, CombinationCategory.Characteristic), State("SLE-R", CombinationCategory.Characteristic));
+        var parameters = DeflectionParameters(); parameters.Remove("Deflection.VariableRatio"); parameters.Remove("Deflection.VariableSource");
+        parameters["Deflection.Precamber"] = "5"; parameters["Deflection.PrecamberSource"] = "Test: fabrication camber 5 mm at mid-span";
+        yield return ("settled-precamber", Run(SimplySupported(6000, 8, -10, -6, -4, -10), Configure(single, parameters, false)).Row);
+        foreach (bool atStart in new[] { true, false })
+        {
+            var fe = PlaneBeamFe.Solve(Stations(2000, 4), E * I1, -5, new Dictionary<int, double> { [atStart ? 0 : 4] = -3 }, new Dictionary<int, double> { [atStart ? 0 : 4] = 0 });
+            var cantilever = Frame(2000, 4, new Vector3d(1, 0, 0), new Vector3d(0, 1, 0), new Dictionary<string, double[][]> { ["SLE-R"] = Horizontal(fe) }, reverseSecond: true);
+            parameters = DeflectionParameters(atStart ? "CantileverAtStart" : "CantileverAtEnd"); parameters.Remove("Deflection.VariableRatio"); parameters.Remove("Deflection.VariableSource");
+            if (atStart) yield return ("cantilever-missing", Run(cantilever, Configure(single, parameters, true)).Row);
+            parameters["Deflection.CantileverLengthFactor"] = "2"; parameters["Deflection.CantileverLengthSource"] = "Declared: limit of a cantilever referred to twice its length";
+            yield return (atStart ? "cantilever-start" : "cantilever-end", Run(cantilever, Configure(single, parameters, true)).Row);
+        }
+        double h = 3500; var x = Stations(h, 2); var clamp = new Dictionary<int, double> { [0] = 0 };
+        var u1 = PlaneBeamFe.Solve(x, E * I1, 0, new Dictionary<int, double> { [0] = 2 }, clamp, new Dictionary<int, double> { [2] = 1e4 });
+        var u2 = PlaneBeamFe.Solve(x, E * I2, 0, new Dictionary<int, double> { [0] = 1 }, clamp, new Dictionary<int, double> { [2] = 1e3 });
+        var column = Frame(h, 2, new Vector3d(0, 0, 1), new Vector3d(1, 0, 0), new Dictionary<string, double[][]> {
+            ["SLE-R"] = Enumerable.Range(0, 3).Select(i => new[] { u1.V[i], u2.V[i], 0, -u2.Theta[i], u1.Theta[i], 0 }).ToArray() });
+        var drift = new Dictionary<string, string> { ["Drift.Ratio"] = "300", ["Drift.Source"] = "Declared storey drift h/300" };
+        foreach (var direction in new[] { MemberDeformationDirection.Axis1, MemberDeformationDirection.Axis2, MemberDeformationDirection.Transverse })
+            yield return ("drift-" + direction, Run(column, Configure(Plan(Task(MemberDeformationCriterion.HorizontalDisplacement, direction, CombinationCategory.Characteristic),
+                State("SLE-R", CombinationCategory.Characteristic)), drift, direction == MemberDeformationDirection.Axis2)).Row);
+        var mass = Frame(6000, 8, new Vector3d(1, 0, 0), new Vector3d(0, 1, 0), new Dictionary<string, double[][]> {
+            ["MASS"] = Horizontal(PlaneBeamFe.Solve(Stations(6000, 8), E * I1, -4, new Dictionary<int, double> { [0] = -1, [8] = -1 }, None)) });
+        var vibration = new Dictionary<string, string> { ["Vibration.MinimumFrequency"] = "3", ["Vibration.Source"] = "Project agreement: floors 3 Hz",
+            ["Vibration.Scheme"] = "SimplySupported", ["Vibration.SchemeSource"] = "Test: pinned ends, uniform mass", ["Vibration.MassStateSource"] = "Test: MASS = G1 + G2 + psi2 Q as gravity loads",
+            ["Vibration.Deflection"] = "RelativeToChord", ["Deformation.CoverageSource"] = "Test: node at mid-span" };
+        var frequency = Plan(Task(MemberDeformationCriterion.Vibration, MemberDeformationDirection.Axis2, CombinationCategory.QuasiPermanent), State("MASS", CombinationCategory.QuasiPermanent));
+        yield return ("vibration-chord-ntc", Run(mass, Configure(frequency, vibration, true)).Row);
+        vibration["Vibration.Deflection"] = "Total";
+        yield return ("vibration-total", Run(mass, Configure(frequency, vibration, false)).Row);
+        vibration["Vibration.Scheme"] = "DeclaredCoefficient"; vibration["Vibration.Coefficient"] = "18"; vibration["Vibration.CoefficientSource"] = "Test: qualified K for the declared scheme";
+        yield return ("vibration-coefficient", Run(mass, Configure(frequency, vibration, false)).Row);
+        parameters = DeflectionParameters(); parameters.Remove("Deflection.Scheme"); parameters.Remove("Deflection.SchemeSource");
+        yield return ("missing-scheme", Run(supported, Configure(difference, parameters, false)).Row);
+        parameters = DeflectionParameters(); parameters.Remove("Deflection.Precamber");
+        yield return ("missing-precamber", Run(supported, Configure(difference, parameters, false)).Row);
+    }
+    private static string Digest(CheckResult r) => ModelValues.Fingerprint(new object?[] { r.Details, r.Standard, r.Utilization, r.Outcome, r.Data, r.Execution,
+        r.Diagnostics.Select(d => d.Code + ":" + d.Message).ToArray() });
+
+    /// <summary>Digests captured on master bc2b3435 (Model 9f40d98a) before the member limits and the cantilever reference option:
+    /// without them the rows are bit-identical.</summary>
+    [TestMethod]
+    public void EngineOnlyDeclarationsKeepTheRowsOfMaster()
+    {
+        var master = new Dictionary<string, string> {
+            ["supported-ec3"] = "599B14F9BCA28B6503FE262B3CB207FDE09A0C87B9AE1E775D9B9CFCC842EE6C",
+            ["supported-ntc"] = "ADCA3CFB09A251F7986BB35AF61EC79DB2E331CF581C4BF7BBDF83374AC30710",
+            ["settled-precamber"] = "42B35D524F4BD936E19CA561FAC6D850EB82CF032631FC22F4F2899DCE62038F",
+            ["cantilever-missing"] = "F598EB4F8E56621A8A45ECCBA14C15BFBC703484E4DAC12C6706220DC93EEB78",
+            ["cantilever-start"] = "71EF96482B6BDE8B93F645C9180D6E2C54E6184A3BA8DAFDF483EC4B96387373",
+            ["cantilever-end"] = "F4E829FE8306BC5BDCD2C5A0A05E45DB8999CE49F00BD58286FB1CAE75D59E9D",
+            ["drift-Axis1"] = "8179A99DD9FE12B97A2E74A0BBAD530CE22E26EA57005066DD92A565EB8CD242",
+            ["drift-Axis2"] = "AB0DF75CAE30EBBDD0F8722D16AB2A80EA424C9DDE91011675D4BE3A53F7C927",
+            ["drift-Transverse"] = "BA0AA83CD8E90D23E8E37591870EDA6A9E7BB8CA6A161AEC03E9DAA6C0F9A40A",
+            ["vibration-chord-ntc"] = "330A997FE9AFFDDC73CEB2055B41A0BE270D46021AC93152615E3642DC9AD570",
+            ["vibration-total"] = "0303E67B9C6AA03C9862EBE35276464538AFCADC7FAFC8B1E9EA1970DC45903C",
+            ["vibration-coefficient"] = "5346586AF15566A9B01D663C41516859F62ABE6A53E5CA185B3771B8C394176E",
+            ["missing-scheme"] = "6BF17DC731156590EE1BFBF4D24781AEF31CFEF6CA8F56B6CB46EC526B1CFF98",
+            ["missing-precamber"] = "07D07AAA33CD1C4E0F78FC51D73CE3E7C15991FD6B9F68BB1954A3DBB5258452" };
+        var rows = EngineOnlyRows().ToArray();
+        Assert.AreEqual(master.Count, rows.Length);
+        foreach (var (name, row) in rows) Assert.AreEqual(master[name], Digest(row), name + " " + Codes(row));
+    }
+
+    /// <summary>Several straight members in one model, one case SLE-R with the given global nodal displacements (dx, dy, dz, rx, ry,
+    /// rz per node, referred to the node). Node and element numbers run over the members.</summary>
+    private static GPC.Model.Models.Model Members(params (string Id, Point3d Origin, Vector3d Along, Vector3d Axis1, double Length, int Elements, double[][] Displacements, bool ReverseSecond)[] members)
+    {
+        var model = new GPC.Model.Models.Model("Steel serviceability: several members, one job");
+        var section = new SteelSection(new SectionH(300, 7.1, 150, 10.7, 150, 10.7, "IPE300", 15), SteelMaterialEN1993Data.S355);
+        model.AddProperty(section);
+        var nodes = new List<(NodeElement Node, double[] D)>(); int id = 1, element = 100;
+        foreach (var m in members)
+        {
+            int first = id;
+            for (int k = 0; k <= m.Elements; k++, id++)
+            {
+                double s = m.Length * k / m.Elements;
+                var node = new NodeElement(new Point3d(m.Origin.X + m.Along.X * s, m.Origin.Y + m.Along.Y * s, m.Origin.Z + m.Along.Z * s), id: id);
+                model.NodesElements.Add(node); nodes.Add((node, m.Displacements[k]));
+            }
+            var parts = new List<BeamMemberPart>();
+            for (int e = 0; e < m.Elements; e++, element++)
+            {
+                bool alongIJ = !(m.ReverseSecond && e == 1);
+                var beam = new BeamElement(null, null, section, id: element); model.BeamElements.Add(beam);
+                model.ConnectBeam(beam.Id, alongIJ ? first + e : first + e + 1, alongIJ ? first + e + 1 : first + e);
+                beam.Assignments.Formulation = BeamFormulation.StraightTwoNode; beam.Assignments.StationDomain = "NodeToNode";
+                beam.Assignments.SectionAxes = Axes.Beam(beam.StartPoint, beam.EndPoint, m.Axis1);
+                beam.Assignments.SectionGeometryAxes = beam.Assignments.SectionAxes; beam.Assignments.ActionsAtSectionCentroidConfirmed = true;
+                beam.Assignments.Sections.Add(new BeamSectionAssignment { Start = 0, End = 1, Property = section });
+                parts.Add(new BeamMemberPart(beam.Id, alongIJ));
+            }
+            model.PhysicalMembers.Add(m.Id, new PhysicalMemberDefinition(m.Id, parts, "NodeToNode", source: "Test: explicit straight member " + m.Id));
+        }
+        model.LoadCases.Add(new LoadCaseBase("SLE-R")); var lc = model.LoadCases.Values.Single();
+        model.CaptureAnalysis(ReinforcementAnalysisRole.ExcludedFromAnalysis, "Plane Euler-Bernoulli FE solutions of the test.");
+        string fp = model.AnalysisFingerprint();
+        model.Datasets.Add("fe", new AnalysisDataset { Id = "fe", Program = "PlaneBeamFe (test)", ModelRevision = "r1", InputFingerprint = fp, NormalizedUnits = "N,mm,rad", IsSynthetic = true, Semantics = AnalysisSemantics.LinearStatic });
+        foreach (var (node, d) in nodes)
+            node.AddResult(new NodeResult(new List<INodeResultLocation> { new NodeResultDisplacement(lc,
+                new ResultDisplacement(ActionTransformations.AtPoint(CoordinateSystem.Global, node.Position), d[0], d[1], d[2], d[3], d[4], d[5])) {
+                State = new ResultState { DatasetId = "fe", ModelRevision = "r1", InputFingerprint = fp, Components = Enumerable.Repeat(ComponentAvailability.Available, 6).ToArray(),
+                    Semantics = AnalysisSemantics.LinearStatic, ConcomitantStateId = lc.Name, IsCumulative = true, IsSynthetic = true } } }));
+        return model;
+    }
+    private static MemberCheckSpecification MemberTask(string id, MemberDeformationCriterion criterion, MemberDeformationDirection direction)
+    { var task = Task(criterion, direction, CombinationCategory.Characteristic); task.MemberId = id; return task; }
+    private static void Declare(GPC.Model.Models.Model model, string id, MemberServiceabilityLimits? limits) => model.PhysicalMembers[id] = model.PhysicalMembers[id].WithServiceabilityLimits(limits);
+    private static string? Origin(CheckResult row, string key) => row.Details.Trace.SingleOrDefault(t => t.Key == key + ".Origin")?.Expression;
+    private static MemberDeclaredValue Value(double value, string source) => new(value, source);
+
+    [DataTestMethod] [DataRow(false)] [DataRow(true)]
+    public void MemberValuesOverrideTheEngineAndRecordTheirOrigin(bool ntc)
+    {
+        // Beam of the first test: delta = 9.61670 mm, delta_2 = 0.4 delta = 3.84668 mm, L = 6000. The member declares L/500 for
+        // delta_max: 12 mm, u = 0.801392; delta_2 falls back to the engine L/300: 20 mm, u = 0.192334; scheme and precamber from the engine.
+        double l = 6000, delta = 5 * 10 * Math.Pow(l, 4) / (384 * E * I1);
+        Assert.AreEqual(.801392, delta / 12, 5e-7);
+        var model = SimplySupported(l, 8, -10, -6);
+        var plan = Plan(Task(MemberDeformationCriterion.VerticalDeflection, MemberDeformationDirection.Axis2, CombinationCategory.Characteristic,
+            MemberVariableDeflectionBasis.Difference, "G"), State("SLE-R", CombinationCategory.Characteristic));
+        var config = Configure(plan, DeflectionParameters(), ntc);
+        Declare(model, "M", new MemberServiceabilityLimits(maxDeflectionRatio: Value(500, "Project agreement: floors under brittle partitions L/500")));
+        var (report, row, request) = Run(model, config);
+        Assert.AreEqual(EngineeringOutcome.Satisfied, row.Outcome, Codes(row));
+        var max = Metric(row, "Deflection.Max");
+        Assert.AreEqual(delta, max.Demand!.Value, 1e-10); Assert.AreEqual(12, max.Capacity!.Value, 1e-12); Assert.AreEqual(delta / 12, row.Utilization!.Value, 1e-11);
+        StringAssert.Contains(max.Reference, "limit: Project agreement: floors under brittle partitions L/500");
+        var variable = Metric(row, "Deflection.Variable");
+        Assert.AreEqual(.4 * delta, variable.Demand!.Value, 1e-10); Assert.AreEqual(20, variable.Capacity!.Value, 1e-12);
+        StringAssert.Contains(variable.Reference, "limit: Project agreement: variable actions L/300");
+        Assert.AreEqual(500, row.Details.Trace.Single(t => t.Key == "Deflection.MaxRatio").Value!.Value);
+        Assert.AreEqual("Member", Origin(row, "Deflection.MaxRatio")); Assert.AreEqual("Engine", Origin(row, "Deflection.VariableRatio"));
+        Assert.AreEqual("Engine", Origin(row, "Deflection.Scheme")); Assert.AreEqual("Engine", Origin(row, "Deflection.Precamber"));
+        Assert.AreEqual(500, row.MemberInput.Deformation.ServiceabilityLimits.MaxDeflectionRatio.Value);
+        Assert.IsNull(row.MemberInput.Definition.ServiceabilityLimits);
+        // Archive and currency: the declaration is evidence of the row; a new value on the member makes the stored outcome NotEvaluated.
+        using var stream = new MemoryStream(); CheckReportArchive.Save(report.Jobs, stream); stream.Position = 0;
+        var loaded = CheckReportArchive.Load(stream);
+        Assert.IsTrue(loaded.Single().Results.Single().HasUnchangedEvidence);
+        Assert.AreEqual(500, loaded.Single().Results.Single().MemberInput.Deformation.ServiceabilityLimits.MaxDeflectionRatio.Value);
+        Assert.AreEqual(EngineeringOutcome.Satisfied, Service.CurrentOutcome(loaded, model, request));
+        Declare(model, "M", new MemberServiceabilityLimits(maxDeflectionRatio: Value(1000, "Test: L/1000")));
+        Assert.AreEqual(EngineeringOutcome.NotEvaluated, Service.CurrentOutcome(loaded, model, request));
+        // L/1000 = 6 mm: u = 1.602783, not satisfied.
+        var stricter = Run(model, config).Row;
+        Assert.AreEqual(EngineeringOutcome.NotSatisfied, stricter.Outcome); Assert.AreEqual(delta / 6, stricter.Utilization!.Value, 1e-11);
+        // Own scheme and precamber: delta_max = |-9.61670 + 5| = 4.61670 mm against L/500.
+        Declare(model, "M", new MemberServiceabilityLimits(MemberDeflectionScheme.SupportedEnds, "Test: pinned to the girders",
+            maxDeflectionRatio: Value(500, "Test: L/500"), precamber: Value(5, "Test: camber 5 mm at mid-span")));
+        var cambered = Run(model, config).Row;
+        Assert.AreEqual(delta - 5, Metric(cambered, "Deflection.Max").Demand!.Value, 1e-9);
+        Assert.AreEqual("Member", Origin(cambered, "Deflection.Scheme")); Assert.AreEqual("Member", Origin(cambered, "Deflection.Precamber"));
+        Assert.AreEqual("SupportedEnds: Test: pinned to the girders", cambered.Details.Trace.Single(t => t.Key == "Deflection.Scheme").Expression);
+        Assert.AreEqual("Test: camber 5 mm at mid-span", cambered.Details.Trace.Single(t => t.Key == "Deflection.PrecamberSource").Expression);
+        // Without the member declarations the row is the engine-only row again: no origin entries.
+        Declare(model, "M", null);
+        var engine = Run(model, config).Row;
+        Assert.AreEqual(24, Metric(engine, "Deflection.Max").Capacity!.Value, 1e-12); Assert.IsFalse(engine.Details.Trace.Any(t => t.Key.EndsWith(".Origin")));
+        Assert.AreEqual(Digest(EngineOnlyRows().Single(r => r.Name == (ntc ? "supported-ntc" : "supported-ec3")).Row), Digest(engine));
+    }
+
+    [TestMethod]
+    public void MissingEngineValuesComeFromTheMemberOrStayMissing()
+    {
+        // The engine declares scheme and coverage only: without member values the limit is a missing input (as before); the member
+        // supplies L/250 with an explicit zero precamber: delta = 9.61670 mm, 24 mm, u = 0.400696.
+        double delta = 5 * 10 * Math.Pow(6000, 4) / (384 * E * I1);
+        var model = SimplySupported(6000, 8, -10, -6);
+        var parameters = DeflectionParameters();
+        foreach (var k in new[] { "Deflection.MaxRatio", "Deflection.MaxSource", "Deflection.VariableRatio", "Deflection.VariableSource", "Deflection.Precamber" }) parameters.Remove(k);
+        var config = Configure(Plan(Task(MemberDeformationCriterion.VerticalDeflection, MemberDeformationDirection.Axis2, CombinationCategory.Characteristic),
+            State("SLE-R", CombinationCategory.Characteristic)), parameters, true);
+        Assert.IsTrue(Run(model, config).Row.Diagnostics.Any(d => d.Code == "SteelServiceability.MissingDeflectionLimit"));
+        Declare(model, "M", new MemberServiceabilityLimits(maxDeflectionRatio: Value(250, "NTC 2018 Tab. 4.2.XII, solai in generale (declared)")));
+        Assert.IsTrue(Run(model, config).Row.Diagnostics.Any(d => d.Code == "SteelServiceability.MissingPrecamber"), "the engine has no precamber either");
+        Declare(model, "M", new MemberServiceabilityLimits(maxDeflectionRatio: Value(250, "NTC 2018 Tab. 4.2.XII, solai in generale (declared)"), precamber: Value(0, "Test: no camber")));
+        var row = Run(model, config).Row;
+        Assert.AreEqual(EngineeringOutcome.Satisfied, row.Outcome, Codes(row));
+        Assert.AreEqual(delta / 24, row.Utilization!.Value, 1e-11); Assert.AreEqual(1, row.Details.Metrics.Count);
+        Assert.AreEqual("Member", Origin(row, "Deflection.MaxRatio")); Assert.AreEqual("Member", Origin(row, "Deflection.Precamber")); Assert.AreEqual("Engine", Origin(row, "Deflection.Scheme"));
+        // Incoherent member values are refused, not ignored.
+        Declare(model, "M", new MemberServiceabilityLimits(cantileverLengthFactor: Value(2, "Test"), maxDeflectionRatio: Value(250, "Test"), precamber: Value(0, "Test")));
+        var supported = Run(model, config).Row;
+        Assert.IsTrue(supported.Diagnostics.Any(d => d.Code == "SteelServiceability.InputDetail" && d.Message == "CantileverReferenceOnSupportedSpan: MemberServiceabilityLimits.CantileverLengthFactor"), Codes(supported));
+        var variableOnly = new Dictionary<string, string>(parameters) { ["Deflection.VariableRatio"] = "300", ["Deflection.VariableSource"] = "Test: L/300" };
+        Declare(model, "M", new MemberServiceabilityLimits(precamber: Value(5, "Test: camber")));
+        var precamber = Run(model, Configure(Plan(Task(MemberDeformationCriterion.VerticalDeflection, MemberDeformationDirection.Axis2, CombinationCategory.Characteristic,
+            MemberVariableDeflectionBasis.Difference, "G"), State("SLE-R", CombinationCategory.Characteristic)), variableOnly, true)).Row;
+        Assert.IsTrue(precamber.Diagnostics.Any(d => d.Code == "SteelServiceability.InputDetail" && d.Message == "PrecamberWithoutMaximumDeflection: MemberServiceabilityLimits.Precamber"), Codes(precamber));
+    }
+
+    [TestMethod]
+    public void MixedMembersShareOneEngineAndOneJob()
+    {
+        // NTC 2018, one engine: SupportedEnds with L/250 and zero precamber, the NTC cantilever reference, drift h/300.
+        // F floor beam, no declarations: delta = 9.61670 mm, L/250 = 24, u = 0.400696.
+        // R roof beam, member L/200: 30 mm, u = 0.320557.
+        // C cantilever clamped at its end (member scheme), Lc = 2000, q = 5 N/mm: tip = q Lc^4/(8 EI) = 0.5698785 mm relative to the
+        //   settled clamp; NTC reference 2 Lc = 4000, /250 = 16 mm, u = 0.0356174.
+        // P1 column, no declarations: H = 3500, 10 kN at the top: Delta1 = P H^3/(3 E I1) = 8.14451 mm, h/300 = 11.66667, u = 0.698101.
+        // P2 column, member h/500 = 7 mm: u = 8.14451/7 = 1.163502, not satisfied.
+        double l = 6000, delta = 5 * 10 * Math.Pow(l, 4) / (384 * E * I1), tip = 5 * Math.Pow(2000, 4) / (8 * E * I1), h = 3500, d1 = 1e4 * Math.Pow(h, 3) / (3 * E * I1);
+        Assert.AreEqual(.320557, delta / 30, 5e-7); Assert.AreEqual(.0356174, tip / 16, 5e-8); Assert.AreEqual(1.163502, d1 / 7, 5e-7);
+        var span = Horizontal(PlaneBeamFe.Solve(Stations(l, 8), E * I1, -10, new Dictionary<int, double> { [0] = 0, [8] = 0 }, None));
+        var cantilever = Horizontal(PlaneBeamFe.Solve(Stations(2000, 4), E * I1, -5, new Dictionary<int, double> { [4] = -3 }, new Dictionary<int, double> { [4] = 0 }));
+        var u1 = PlaneBeamFe.Solve(Stations(h, 2), E * I1, 0, new Dictionary<int, double> { [0] = 2 }, new Dictionary<int, double> { [0] = 0 }, new Dictionary<int, double> { [2] = 1e4 });
+        var column = Enumerable.Range(0, 3).Select(i => new[] { u1.V[i], 0, 0, 0, u1.Theta[i], 0 }).ToArray();
+        Vector3d x = new(1, 0, 0), y = new(0, 1, 0), z = new(0, 0, 1);
+        var model = Members(("F", new Point3d(0, 0, 0), x, y, l, 8, span, false), ("R", new Point3d(0, 5000, 0), x, y, l, 8, span, true),
+            ("C", new Point3d(0, 10000, 0), x, y, 2000, 4, cantilever, true), ("P1", new Point3d(0, 20000, 0), z, x, h, 2, column, false),
+            ("P2", new Point3d(5000, 20000, 0), z, x, h, 2, column, false));
+        Declare(model, "R", new MemberServiceabilityLimits(maxDeflectionRatio: Value(200, "NTC 2018 Tab. 4.2.XII, coperture in generale (declared)")));
+        Declare(model, "C", new MemberServiceabilityLimits(MemberDeflectionScheme.CantileverAtEnd, "Test: clamped at the column, free at the span start"));
+        Declare(model, "P2", new MemberServiceabilityLimits(driftRatio: Value(500, "Project agreement: storeys with brittle partitions h/500")));
+        var parameters = DeflectionParameters(); parameters.Remove("Deflection.VariableRatio"); parameters.Remove("Deflection.VariableSource");
+        parameters["Deflection.CantileverReference"] = "Ntc2018"; parameters["Drift.Ratio"] = "300"; parameters["Drift.Source"] = "Project agreement: storeys h/300";
+        Assert.AreEqual(0, SteelParameterSchemas.MemberServiceability.Validate(parameters).Count);
+        var plan = new BeamCheckPlanRequest { MemberIds = new[] { "F", "R", "C", "P1", "P2" }, SectionMechanisms = Array.Empty<CheckMechanism>(),
+            Results = new[] { State("SLE-R", CombinationCategory.Characteristic) },
+            MemberChecks = new[] { "F", "R", "C" }.Select(m => MemberTask(m, MemberDeformationCriterion.VerticalDeflection, MemberDeformationDirection.Axis2))
+                .Concat(new[] { "P1", "P2" }.Select(m => MemberTask(m, MemberDeformationCriterion.HorizontalDisplacement, MemberDeformationDirection.Axis1))).ToArray() };
+        var request = EngineCatalog.BuiltIn().Compile(Configure(plan, parameters, true));
+        var report = new Service().Verify(model, request);
+        var rows = report.Jobs.Single().Results.ToDictionary(r => r.Target.MemberId);
+        Assert.AreEqual(5, rows.Count);
+        foreach (var (member, metric, demand, capacity) in new[] { ("F", "Deflection.Max", delta, 24d), ("R", "Deflection.Max", delta, 30d), ("C", "Deflection.Max", tip, 16d),
+            ("P1", "Drift", d1, h / 300), ("P2", "Drift", d1, 7d) })
+        {
+            var row = rows[member];
+            Assert.AreEqual(demand / capacity > 1 ? EngineeringOutcome.NotSatisfied : EngineeringOutcome.Satisfied, row.Outcome, member + " " + Codes(row));
+            Assert.AreEqual(demand, Metric(row, metric).Demand!.Value, 1e-9, member); Assert.AreEqual(capacity, Metric(row, metric).Capacity!.Value, 1e-9, member);
+            Assert.AreEqual(demand / capacity, row.Utilization!.Value, 1e-9, member);
+        }
+        Assert.AreEqual(EngineeringOutcome.NotSatisfied, rows["P2"].Outcome);
+        // Origins: none for the members without declarations, member or engine value by value for the others.
+        Assert.IsFalse(rows["F"].Details.Trace.Concat(rows["P1"].Details.Trace).Any(t => t.Key.EndsWith(".Origin")));
+        Assert.AreEqual("Member", Origin(rows["R"], "Deflection.MaxRatio")); Assert.AreEqual("Engine", Origin(rows["R"], "Deflection.Scheme"));
+        Assert.AreEqual("Member", Origin(rows["C"], "Deflection.Scheme")); Assert.AreEqual("Engine", Origin(rows["C"], "Deflection.CantileverLengthFactor"));
+        Assert.AreEqual("Engine", Origin(rows["C"], "Deflection.MaxRatio"));
+        var factor = rows["C"].Details.Trace.Single(t => t.Key == "Deflection.CantileverLengthFactor");
+        Assert.AreEqual(2, factor.Value!.Value); StringAssert.Contains(factor.Expression, "NTC 2018 4.2.4.2.1"); StringAssert.Contains(factor.Expression, "il doppio dello sbalzo");
+        Assert.AreEqual(4000, rows["C"].Details.Trace.Single(t => t.Key == "Deflection.ReferenceLength").Value!.Value, 1e-12);
+        Assert.AreEqual(0, rows["C"].Details.Points.Single().Z, 1e-12);
+        Assert.AreEqual("Member", Origin(rows["P2"], "Drift.Ratio")); StringAssert.Contains(Metric(rows["P2"], "Drift").Reference, "limit: Project agreement: storeys with brittle partitions h/500");
+        StringAssert.Contains(Metric(rows["P1"], "Drift").Reference, "limit: Project agreement: storeys h/300");
+        Assert.IsFalse(rows["R"].Details.Trace.Any(t => t.Key == "Deflection.CantileverLengthFactor"));
+        // Editing the declarations of one member makes the stored job NotEvaluated; the values it was checked with restore its outcome.
+        Declare(model, "R", new MemberServiceabilityLimits(maxDeflectionRatio: Value(250, "Test: L/250")));
+        Assert.AreEqual(EngineeringOutcome.NotEvaluated, Service.CurrentOutcome(report.Jobs, model, request));
+        Declare(model, "R", new MemberServiceabilityLimits(maxDeflectionRatio: Value(200, "NTC 2018 Tab. 4.2.XII, coperture in generale (declared)")));
+        Assert.AreEqual(EngineeringOutcome.NotSatisfied, Service.CurrentOutcome(report.Jobs, model, request));
+    }
+
+    [DataTestMethod] [DataRow(true)] [DataRow(false)]
+    public void CantileverReferenceOptionCitesNtc2018AndIsNeverAssumed(bool supportAtStart)
+    {
+        // Cantilever of CantileverTipIsCheckedAgainstTheDeclaredReferenceLength: tip = 0.5698785 mm. Deflection.CantileverReference =
+        // Ntc2018: L = 2 Lc = 4000, L/250 = 16 mm, u = 0.0356174 (NTC 2018 4.2.4.2.1, "nel caso di mensole, il doppio dello sbalzo").
+        // A member factor 1 wins: L = Lc = 2000, 8 mm, u = 0.0712348.
+        double l = 2000, tip = 5 * Math.Pow(l, 4) / (8 * E * I1);
+        Assert.AreEqual(.0712348, tip / 8, 5e-8);
+        int support = supportAtStart ? 0 : 4;
+        var fe = PlaneBeamFe.Solve(Stations(l, 4), E * I1, -5, new Dictionary<int, double> { [support] = -3 }, new Dictionary<int, double> { [support] = 0 });
+        var model = Frame(l, 4, new Vector3d(1, 0, 0), new Vector3d(0, 1, 0), new Dictionary<string, double[][]> { ["SLE-R"] = Horizontal(fe) }, reverseSecond: true);
+        var parameters = DeflectionParameters(supportAtStart ? "CantileverAtStart" : "CantileverAtEnd");
+        parameters.Remove("Deflection.VariableRatio"); parameters.Remove("Deflection.VariableSource");
+        var plan = Plan(Task(MemberDeformationCriterion.VerticalDeflection, MemberDeformationDirection.Axis2, CombinationCategory.Characteristic), State("SLE-R", CombinationCategory.Characteristic));
+        // Not declared: the cantilever stays a missing input, as before.
+        Assert.IsTrue(Run(model, Configure(plan, parameters, true)).Row.Diagnostics.Any(d => d.Code == "SteelServiceability.MissingCantileverReference"));
+        parameters["Deflection.CantileverReference"] = "Ntc2018";
+        var schema = SteelParameterSchemas.MemberServiceability;
+        Assert.AreEqual(0, schema.Validate(parameters).Count, string.Join(";", schema.Validate(parameters).Select(i => i.Code)));
+        var row = Run(model, Configure(plan, parameters, true)).Row;
+        Assert.AreEqual(EngineeringOutcome.Satisfied, row.Outcome, Codes(row));
+        Assert.AreEqual(tip, Metric(row, "Deflection.Max").Demand!.Value, 1e-11); Assert.AreEqual(16, Metric(row, "Deflection.Max").Capacity!.Value, 1e-12);
+        Assert.AreEqual(4000, row.Details.Trace.Single(t => t.Key == "Deflection.ReferenceLength").Value!.Value, 1e-12);
+        var factor = row.Details.Trace.Single(t => t.Key == "Deflection.CantileverLengthFactor");
+        Assert.AreEqual(2, factor.Value!.Value); StringAssert.StartsWith(factor.Expression, "NTC 2018 4.2.4.2.1"); StringAssert.Contains(factor.Expression, "S.O. n. 8");
+        Assert.IsFalse(row.Details.Trace.Any(t => t.Key.EndsWith(".Origin")));
+        // A factor declared on the member wins over the option.
+        Declare(model, "M", new MemberServiceabilityLimits(cantileverLengthFactor: Value(1, "Test: limit referred to the cantilever length")));
+        var own = Run(model, Configure(plan, parameters, true)).Row;
+        Assert.AreEqual(8, Metric(own, "Deflection.Max").Capacity!.Value, 1e-12); Assert.AreEqual(tip / 8, own.Utilization!.Value, 1e-11);
+        Assert.AreEqual("Member", Origin(own, "Deflection.CantileverLengthFactor"));
+        Declare(model, "M", null);
+        // The option cites NTC 2018: refused for EN 1993-1-1 engines; it excludes an engine factor.
+        StringAssert.StartsWith(Assert.ThrowsException<ArgumentException>(() => EngineCatalog.BuiltIn().Compile(Configure(plan, parameters, false))).Message, "CantileverReferenceIsNtc2018");
+        parameters["Deflection.CantileverLengthFactor"] = "2"; parameters["Deflection.CantileverLengthSource"] = "Test";
+        Assert.IsTrue(schema.Validate(parameters).Any(i => i.Code == "CantileverReferenceConflict"));
+        var conflict = Run(model, Configure(plan, parameters, true)).Row;
+        Assert.IsTrue(conflict.Diagnostics.Any(d => d.Code == "SteelServiceability.InputDetail" && d.Message!.StartsWith("CantileverReferenceConflict")), Codes(conflict));
+        Assert.ThrowsException<ArgumentException>(() => new SteelMemberServiceabilityChecker(new StandardNTC2018Steel(), "2018", parameters: new Dictionary<string, string> { ["Deflection.CantileverReference"] = "2" }));
+    }
+
+    [TestMethod]
+    public void MemberFrequencyLimitOverridesTheEngine()
+    {
+        // Mass state of the frequency test: f = 17.75/sqrt(3.84668) = 9.05014 Hz. The member declares 10 Hz: u = 10/9.05014 = 1.104955.
+        double delta = 5 * 4 * Math.Pow(6000, 4) / (384 * E * I1), f = 17.75 / Math.Sqrt(delta);
+        Assert.AreEqual(1.104955, 10 / f, 5e-7);
+        var model = Frame(6000, 8, new Vector3d(1, 0, 0), new Vector3d(0, 1, 0), new Dictionary<string, double[][]> {
+            ["MASS"] = Horizontal(PlaneBeamFe.Solve(Stations(6000, 8), E * I1, -4, new Dictionary<int, double> { [0] = 0, [8] = 0 }, None)) });
+        var parameters = new Dictionary<string, string> { ["Vibration.MinimumFrequency"] = "3", ["Vibration.Source"] = "Project agreement: floors 3 Hz",
+            ["Vibration.Scheme"] = "SimplySupported", ["Vibration.SchemeSource"] = "Test: pinned ends, uniform mass", ["Vibration.MassStateSource"] = "Test: MASS = G1 + G2 + psi2 Q as gravity loads",
+            ["Vibration.Deflection"] = "RelativeToChord", ["Deformation.CoverageSource"] = "Test: node at mid-span" };
+        var config = Configure(Plan(Task(MemberDeformationCriterion.Vibration, MemberDeformationDirection.Axis2, CombinationCategory.QuasiPermanent),
+            State("MASS", CombinationCategory.QuasiPermanent)), parameters, true);
+        // Deflection and drift declarations of the member do not concern a frequency task.
+        Declare(model, "M", new MemberServiceabilityLimits(maxDeflectionRatio: Value(500, "Test"), driftRatio: Value(500, "Test")));
+        var engine = Run(model, config).Row;
+        Assert.AreEqual(3 / f, engine.Utilization!.Value, 1e-11); Assert.AreEqual("Engine", Origin(engine, "Vibration.MinimumFrequency"));
+        Declare(model, "M", new MemberServiceabilityLimits(minimumFrequency: Value(10, "Project agreement: gymnasium floor 10 Hz")));
+        var row = Run(model, config).Row;
+        Assert.AreEqual(EngineeringOutcome.NotSatisfied, row.Outcome, Codes(row));
+        var metric = Metric(row, "Vibration.Frequency");
+        Assert.AreEqual(10, metric.Demand!.Value); Assert.AreEqual(f, metric.Capacity!.Value, 1e-9); Assert.AreEqual(10 / f, row.Utilization!.Value, 1e-11);
+        StringAssert.Contains(metric.Reference, "Project agreement: gymnasium floor 10 Hz"); Assert.AreEqual("Member", Origin(row, "Vibration.MinimumFrequency"));
+    }
+
     [TestMethod]
     public void ParameterSchemaDescribesTheDeclaredVocabulary()
     {

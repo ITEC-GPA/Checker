@@ -89,7 +89,7 @@ public class SteelServiceStressTests
         double tauJ = 4e5 * 778500 / (WIxxShear * 10), sigmaJ = sigmaN - k * 180;
         var e = r.Value(Criterion.Equivalent); Close(Math.Sqrt(sigmaJ * sigmaJ + 3 * tauJ * tauJ), e.Stress); Close(-180, e.Y);
         Assert.AreEqual(243.07, e.Stress, 1e-2); Assert.AreEqual("Web.Left", e.Location); Close(e.Stress / limit, r.Utilization!.Value);
-        StringAssert.Contains(r.Reference, ntc ? "no NTC 2018/Circolare 2019 clause verified" : "EN 1993-2:2006 7.3(1)");
+        StringAssert.Contains(r.Reference, ntc ? "under NTC 2018 chapter 12 (NTC 4.2.2.1 and 4.2.4.2.4" : "EN 1993-2:2006 7.3(1)");
         StringAssert.Contains(r.ClassificationSource, ntc ? "NTC 2018" : "EN 1993-1-1");
     }
 

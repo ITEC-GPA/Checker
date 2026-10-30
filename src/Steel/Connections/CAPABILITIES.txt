@@ -53,8 +53,9 @@ GenericSpliceComponents: IBeamSpliceComponents/WeldedIBeamSpliceEnvelope restano
   componenti; il nuovo Standard non modifica il significato delle vecchie API.
 
 NON IMPLEMENTATI NEL NUOVO MODULO STANDARD
-ColumnBases; TubularJoints. Le eventuali primitive legacy non costituiscono
-un percorso standard completo e non sono promosse implicitamente dal catalogo.
+Nessuna tipologia: ColumnBases e TubularJoints erano qui fino al 29/10/2026 (vedi le voci
+del 30/10/2026 in fondo). Le eventuali primitive legacy non costituiscono un percorso
+standard completo e non sono promosse implicitamente dal catalogo.
 
 LIMITI TRASVERSALI
 Stabilita' delle aste, fatica, incendio, sisma, certificazione dell'esecuzione
@@ -85,7 +86,26 @@ DoubleAngleCleatColumnWebShear: squadrette SBE-MS5 su anima di pilastro, taglio
 ChannelWebOnlyTensionEnd (soli componenti): estremita' tesa di C/2C collegate
   d'anima, metodo scelto esplicitamente. PHASE_3C_3E_CHANNEL_TENSION_REVIEW.txt.
 
+30/10/2026 - ColumnBases: StandardStaticVerification, ColumnBase.Verify.
+  Pilastro I/H (h<=600) saldato a piastra rettangolare non irrigidita su malta e
+  calcestruzzo; quattro tirafondi esterni alle ali (T-stub della fila esterna, Lb*,
+  6.2.6.11(2)) o tirafondi fra le ali solo senza trazione; N, M1, V1, V2. fjd con FRdu
+  di EN1992-1-1 6.7 e Ac1 dichiarata, Tab.6.7 come equilibrio dei due lati, 6.2.8.2
+  per M1=0 compresso, attrito piu' tirafondi a fori normali non tesi, cordoni elastici
+  alle azioni e alla resistenza del nodo (6.2.3(4)). Rottura del calcestruzzo dei
+  tirafondi solo DICHIARATA (EN1992-4), mai supposta. NTC ammesso come modello EC
+  integrativo (Cap.12). Rifiuti e aperture in COLUMN_BASE_USAGE.txt.
+
 29/10/2026 - WeldedIBeamDoubleCover: opt-in ActualForcesWithMixedBlockInteraction
 (blocchi misti fuori gerarchia, BRIDGE_SPLICE_MIXED_BLOCKS.txt) e
 EffectiveCompressionWithShearBuckling (classe4 con taglio elevato e lastre
 sensibili a instabilita a taglio, BRIDGE_SPLICE_CLASS4_SHEAR_BUCKLING.txt).
+
+30/10/2026 - TubularJoints (StandardStaticVerification, opt-in): TubularJoint.Verify,
+nodo saldato piano non rinforzato di travatura reticolare in profili cavi, EN1993-1-8:2005
+(AC:2009) cap.7. CHS su CHS: T, Y, X, K e N a gap o sovrapposti (Tab.7.1, 7.2; momenti
+delle aste su T, Y, X con Tab.7.5 ed eq.7.3). RHS o CHS su RHS: T, Y, X e K/N a gap
+(Tab.7.8, 7.11, 7.12) e K/N sovrapposti (Tab.7.10), solo forze assiali. Ogni nodo fuori
+campo e' rifiutato; saldature a piena resistenza; NTC tramite cap.12 e Appendice nazionale
+(gammaM5=1.0). Multiplanari, rinforzati, correnti I/H, fatica ed EN1993-1-8:2024 esclusi.
+TUBULAR_JOINTS_USAGE.txt.
