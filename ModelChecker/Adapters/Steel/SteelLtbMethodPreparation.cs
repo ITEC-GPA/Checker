@@ -11,6 +11,7 @@ namespace GPC.Model.Checker
         private static readonly string[] LtbMomentKeys = { "LtbMomentDistribution", "LtbPsi", "LtbMomentSource" };
         private static readonly string[] LtbCurveKeys = { "LtbCurve", "LtbCurveSource" };
         private static readonly string[] LtbExemptionKeys = { "LtbLowMomentExemption", "LtbLowMomentExemptionSource" };
+        private static readonly string[] LtbAlphaKeys = { "LtbImperfectionFactorsSource" };
 
         // LtbMethod=RolledOrEquivalentWelded: EN 1993-1-1:2005 6.3.2.3 / NTC 2018 4.2.4.1.3.2 with the code object's
         // BetaForLateralTorsionalBucklingMod/LambdaLT0ForLateralTorsionalBucklingMod; alphaLT remain the Table 6.3
@@ -19,7 +20,7 @@ namespace GPC.Model.Checker
         /// <param name="segments">Fork segments of the member: with more than one, physical is the segment view.</param>
         private SteelMemberAnalysis WithLtbMethod(SteelMemberAnalysis analysis, string mode, SteelPhysicalMemberPreparation physical, int segments = 1)
         {
-            bool options = LtbCurveKeys.Concat(LtbExemptionKeys).Any(_parameters.ContainsKey);
+            bool options = LtbCurveKeys.Concat(LtbExemptionKeys).Concat(LtbAlphaKeys).Any(_parameters.ContainsKey);
             if (!_parameters.TryGetValue("LtbMethod", out var method) && !options)
             {
                 if (LtbMomentKeys.Any(_parameters.ContainsKey)) throw new ArgumentException("LtbMomentWithoutRolledMethod");
@@ -48,7 +49,9 @@ namespace GPC.Model.Checker
 
         // EN 1993-1-1 options of either method, both explicit: LtbCurve replaces the Table 6.4/6.5 assignment (an NDP of
         // 6.3.2.2(2)/6.3.2.3(1)) with the National Annex's curve, also for the beam-column chiLT; LtbLowMomentExemption=true
-        // adopts 6.3.2.2(4), MEd/Mcr <= lambdaLT0^2, on the Bending route only. The library refuses both under NTC 2018.
+        // adopts 6.3.2.2(4), MEd/Mcr <= lambdaLT0^2, on the Bending route only; LtbImperfectionFactorsSource names the
+        // National Annex clause of the code object's AlphaLTImperfectionFactorForCurveA..D (6.3.2.2(2) NOTE, an NDP), used
+        // in place of Table 6.3 for the curve in use. The library refuses all three under NTC 2018.
         private SteelLateralTorsionalMethod WithLtbOptions(SteelLateralTorsionalMethod method, string mode)
         {
             if (LtbCurveKeys.Any(_parameters.ContainsKey))
@@ -58,6 +61,11 @@ namespace GPC.Model.Checker
                 method = method.WithDeclaredCurve(curve, Required("LtbCurveSource") + " (" + Code.Name + ", " + Edition
                     + (NationalAnnex == null ? "" : ", " + NationalAnnex) + ")");
             }
+            if (LtbAlphaKeys.Any(_parameters.ContainsKey))
+                method = method.WithDeclaredImperfectionFactors(Code.AlphaLTImperfectionFactorForCurveA, Code.AlphaLTImperfectionFactorForCurveB,
+                    Code.AlphaLTImperfectionFactorForCurveC, Code.AlphaLTImperfectionFactorForCurveD,
+                    Required("LtbImperfectionFactorsSource") + " (" + Code.Name + ", " + Edition + (NationalAnnex == null ? "" : ", " + NationalAnnex)
+                    + ": AlphaLTImperfectionFactorForCurveA..D)");
             if (LtbExemptionKeys.Any(_parameters.ContainsKey))
             {
                 if (mode != "Bending") throw new ArgumentException("LtbLowMomentExemptionOnAnotherRoute");

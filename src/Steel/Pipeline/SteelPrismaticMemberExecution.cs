@@ -192,10 +192,10 @@ namespace GPC.Checkers.Steel.Pipeline
                 double w = effective ? MemoizedEffectiveProperties.BendingModulus(i, 1) : elastic ? section.Wel1 : section.Wpl1; Positive(w, "Section modulus");
                 double characteristic = w * fy; Positive(characteristic, "Characteristic moment resistance");
                 double slenderness = Math.Sqrt(characteristic) / Math.Sqrt(mcr);
-                var ltb = SteelLateralTorsionalExecution.Reduce(analysis, section, slenderness, ntc); var curve = ltb.Curve; double chi = ltb.Chi;
+                var ltb = SteelLateralTorsionalExecution.Reduce(analysis, section, slenderness, ntc); double chi = ltb.Chi;
                 resistance = Math.Min(chi * characteristic / gamma, characteristic / i.Code.SectionCode.GammaM0);
                 Add(trace, effective ? "Weff1Min" : elastic ? "Wel1Min" : "Wpl1", w, "mm3"); Add(trace, "Mcr", mcr, "Nmm");
-                Add(trace, "AlphaLT", BucklingCurves.Alpha(curve), "1"); Add(trace, "SlendernessLT", slenderness, "1"); Add(trace, "ChiLT", chi, "1");
+                Add(trace, "AlphaLT", ltb.Alpha, "1"); Add(trace, "SlendernessLT", slenderness, "1"); Add(trace, "ChiLT", chi, "1");
                 Add(trace, "BetaLT", ltb.Beta, "1"); Add(trace, "LambdaLT0", ltb.LambdaLT0, "1"); Add(trace, "MomentCorrectionF", ltb.F, "1");
                 SteelLateralTorsionalExecution.AddTrace(trace, ltb); SteelLateralTorsionalExecution.AddCurveTrace(trace, ltb);
                 if (i.EffectiveActions.N > 0) Add(trace, "TensionNeglectedAsFavourable", i.EffectiveActions.N, "N");

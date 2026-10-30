@@ -133,9 +133,9 @@ namespace GPC.Checkers.Steel.Pipeline
             if(p.TorsionSusceptible&&i.EffectiveActions.M1!=0)
             {
                 double mcr=analysis.Values.Single(v=>v.Quantity==SteelStabilityQuantity.Mcr).Value;
-                double lambdaLT=Math.Sqrt(m1rk)/Math.Sqrt(mcr);ltb=SteelLateralTorsionalExecution.Reduce(analysis,section,lambdaLT,ntc);var curve=ltb.Curve;
+                double lambdaLT=Math.Sqrt(m1rk)/Math.Sqrt(mcr);ltb=SteelLateralTorsionalExecution.Reduce(analysis,section,lambdaLT,ntc);
                 chiLT=ltb.Chi;
-                Add(trace,"Mcr",mcr,"Nmm");Add(trace,"LambdaLT",lambdaLT,"1");Add(trace,"AlphaLT",BucklingCurves.Alpha(curve),"1");
+                Add(trace,"Mcr",mcr,"Nmm");Add(trace,"LambdaLT",lambdaLT,"1");Add(trace,"AlphaLT",ltb.Alpha,"1");
                 SteelLateralTorsionalExecution.AddTrace(trace,ltb,curveParameters:true);SteelLateralTorsionalExecution.AddCurveTrace(trace,ltb);
             }
             double nb1=chi1*nrk/gamma,nb2=chi2*nrk/gamma,mb=chiLT*m1rk/gamma,mz=m2rk/gamma;

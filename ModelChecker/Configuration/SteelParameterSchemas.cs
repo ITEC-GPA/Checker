@@ -224,6 +224,8 @@ namespace GPC.Model.Checker.Configuration
                 description:"EN 1993-1-1 only: LTB curve that the National Annex assigns to this member's section, in place of the recommended Table 6.4 (General) or Table 6.5 (RolledOrEquivalentWelded) assignment, NDPs of 6.3.2.2(2)/6.3.2.3(1); also for the beam-column chiLT. alphaLT stays the Table 6.3 value of the curve. Refused under NTC 2018 (curves fixed by Tab. 4.2.IX).");
             Add("LtbCurveSource",modes:ltbModes,description:"National Annex and clause assigning the declared LTB curve to this section family, h/b range and fabrication.");
             Together("LtbCurvePair","LtbCurve","LtbCurveSource");
+            Add("LtbImperfectionFactorsSource",modes:ltbModes,
+                description:"EN 1993-1-1 only: National Annex clause giving alphaLT per LTB curve (6.3.2.2(2) NOTE, an NDP). With it the code object's AlphaLTImperfectionFactorForCurveA..D replace the recommended Table 6.3 values (0 < alpha <= 1, non-decreasing a to d) for the curve in use, also in the beam-column chiLT; without it they must equal Table 6.3. Refused under NTC 2018 (Tab. 4.2.IX(a)).");
             Add("LtbLowMomentExemption",EngineParameterKind.Boolean,modes:new[]{"Bending"},
                 description:"EN 1993-1-1:2005 6.3.2.2(4), adopted with true: for MEd/Mcr <= lambdaLT,0^2 (0.2 General, LambdaLT0ForLateralTorsionalBucklingMod with RolledOrEquivalentWelded) the LTB check is not required; section checks still apply. Bending only (not the beam-column interaction); refused under NTC 2018.");
             Add("LtbLowMomentExemptionSource",modes:new[]{"Bending"},description:"Design-basis decision adopting the EN 1993-1-1:2005 6.3.2.2(4) low-moment criterion for this member.");

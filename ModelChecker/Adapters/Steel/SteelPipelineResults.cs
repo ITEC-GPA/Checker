@@ -87,6 +87,11 @@ namespace GPC.Model.Checker
                 // EN 1993-1-1 options, rows only when declared.
                 if (ltb.DeclaredCurve.HasValue)
                     trace.Add(new CheckCalculationValue("Member.LtbCurve", null, null, ltb.DeclaredCurve.Value + "; " + ltb.DeclaredCurveSource));
+                if (ltb.DeclaredImperfectionFactorsSource != null)
+                    trace.Add(new CheckCalculationValue("Member.LtbImperfectionFactors", null, null, "alphaLT a/b/c/d = "
+                        + string.Join("/", new[] { GPC.Checkers.Steel.Inputs.SteelBucklingCurve.A, GPC.Checkers.Steel.Inputs.SteelBucklingCurve.B, GPC.Checkers.Steel.Inputs.SteelBucklingCurve.C, GPC.Checkers.Steel.Inputs.SteelBucklingCurve.D }
+                            .Select(c => ltb.DeclaredImperfectionFactor(c).Value.ToString("R", System.Globalization.CultureInfo.InvariantCulture)))
+                        + "; " + ltb.DeclaredImperfectionFactorsSource));
                 if (ltb.LowMomentExemption)
                     trace.Add(new CheckCalculationValue("Member.LtbLowMomentExemption", ltb.LambdaLT0 * ltb.LambdaLT0, "1",
                         "EN 1993-1-1:2005 6.3.2.2(4), limit lambdaLT,0^2 of MEd/Mcr; " + ltb.LowMomentExemptionSource));

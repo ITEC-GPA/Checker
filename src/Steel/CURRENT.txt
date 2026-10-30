@@ -216,15 +216,35 @@ Opzioni EC3 dello svergolamento (29/10/2026, branch steel-ltb-esenzione):
   trave-colonna senza chiLT (TorsionSusceptible=false, cave)
   Member.LtbCurveWithoutLtbReduction.
   Oggetto norma: alphaLT per curva diversi da 0,21/0,34/0,49/0,76 restano
-  rifiutati (LtbImperfectionFactorsNotQualified), cosi beta/lambdaLT0 del caso
-  generale diversi da 1/0,2 (LtbGeneralParametersNotQualified: la 6.56 li fissa,
-  quelli nazionali sono della 6.3.2.3 e dei campi *Mod). Nota: la NOTA della
-  6.3.2.2(2) lascia all'Annesso Nazionale anche alphaLT (la Tab. 6.3 e intitolata
-  "valori raccomandati"); un alphaLT nazionale richiederebbe un percorso
-  proprio, oggi assente.
+  rifiutati (LtbImperfectionFactorsNotQualified) senza la dichiarazione qui sotto,
+  cosi beta/lambdaLT0 del caso generale diversi da 1/0,2
+  (LtbGeneralParametersNotQualified: la 6.56 li fissa, quelli nazionali sono della
+  6.3.2.3 e dei campi *Mod).
   Test: LtbLowMomentAndNationalCurveTests (20 casi, valori a mano nei commenti)
   e SteelLtbNationalOptionsPipelineTest (14 casi). Nessun atteso esistente
   modificato.
+  alphaLT nazionali (30/10/2026, branch claude/steel-decisioni): EN 1993-1-1:2005
+  6.3.2.2(2) e nell'elenco NDP della premessa e la sua NOTA rinvia all'Annesso
+  Nazionale anche il fattore di imperfezione alphaLT della curva; la Tab. 6.3 da
+  i valori raccomandati (verificato sul testo pubblico, 30/10/2026). L'Appendice
+  nazionale italiana (DM 31/07/2012) adotta i valori raccomandati della Tab. 6.3;
+  la UK NA, secondo SCI/NSC gennaio 2009, li conferma (testo della NA da
+  verificare). Nessun Annesso consultato da valori diversi.
+  Libreria: SteelLateralTorsionalMethod.WithDeclaredImperfectionFactors(a, b, c, d,
+  fonte), solo EC3 e opt-in come WithDeclaredCurve. Campo plausibile: finiti,
+  0 < alpha <= 1 e a <= b <= c <= d (curve in ordine di imperfezione crescente).
+  Vale per la curva in uso (di tabella o dichiarata) in entrambi i metodi e nel
+  chiLT della trave-colonna. ModelChecker: LtbImperfectionFactorsSource (modi
+  Bending e BeamColumn) ammette i campi AlphaLTImperfectionFactorForCurveA..D
+  dell'oggetto norma; senza la fonte devono valere quelli della Tab. 6.3 come
+  prima. Rifiuti: NTC Member.LtbImperfectionFactorsFixedByNtc (Tab. 4.2.IX(a));
+  trave-colonna senza chiLT Member.LtbImperfectionFactorsWithoutLtbReduction.
+  Traccia AlphaLT (valore usato), AlphaLTDeclared, AlphaLTRecommended (Tab. 6.3);
+  riferimento con valore, curva, fonte e valore raccomandato; riga
+  Member.LtbImperfectionFactors. Senza dichiarazione nessun risultato cambia.
+  Test: LtbNationalImperfectionFactorsTests (9) e
+  SteelLtbNationalAlphaPipelineTest (6), tabella nazionale ipotetica
+  0,25/0,40/0,55/0,80.
 
 Valori critici automatici (28 ottobre 2026):
   Senza valore ne' esclusione, NcrT/NcrFT si risolvono in automatico solo per le H
