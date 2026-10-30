@@ -61,6 +61,7 @@ namespace GPC.Model.Checker
             private readonly IProgress<VerificationProgress> _target;
             private readonly int _offset, _total;
             internal CombinedProgress(IProgress<VerificationProgress> target, int offset, int total) { _target = target; _offset = offset; _total = total; }
+            internal IProgress<VerificationProgress> Target => _target;
             public void Report(VerificationProgress value) => _target?.Report(new VerificationProgress {
                 Completed = _offset + value.Completed, Total = _total, Job = value.Job, Family = value.Family, ElementId = value.ElementId, Target = value.Target });
         }

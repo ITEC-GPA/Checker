@@ -134,6 +134,10 @@ namespace GPC.Model.Checker
             var sessions = new Dictionary<string, IMaterialCheckSession>(StringComparer.Ordinal);
             var sessionErrors = new Dictionary<string, Exception>(StringComparer.Ordinal);
             var reports = new List<CheckReport>();
+            // The concrete tasks read the model through one run of the request (SectionCheckRun): read again after the code that may change
+            // it, that is every task of another engine or of a member, every block of tasks computed ahead and every progress report run on
+            // this thread. The concrete adapter with the built-in engine reads only the detached copies of its inputs.
+            var reads = new SectionCheckRun(model); bool progressOnThisThread = ReportsOnThisThread(progress);
             foreach (var plan in plans)
             {
                 var results = new List<CheckResult>();
@@ -144,7 +148,11 @@ namespace GPC.Model.Checker
                 {
                     var item = items[index];
                     if (index % PrecomputedSection.Block == 0)
-                    { aheadStart = index; ahead = ConcurrentSectionRows && planCurrent && !token.IsCancellationRequested ? Precompute(plan, items, index, sessions, sessionErrors, token) : null; }
+                    {
+                        aheadStart = index; ahead = ConcurrentSectionRows && planCurrent && !token.IsCancellationRequested ? Precompute(plan, items, index, sessions, sessionErrors, token) : null;
+                        // The steel pipeline engines computed ahead ran: the concrete tasks of the block read the model again.
+                        if (ahead != null && ahead.Any(s => s != null)) reads.ModelMayHaveChanged();
+                    }
                     var route = item.Scope == CheckScope.PhysicalMember ? MemberRouteId(item.Target.MemberId, item.Mechanism, item.MethodId)
                         : item.Target.BeamId.HasValue ? RouteId(item.Target.BeamId.Value, item.Mechanism, item.Check) : null;
                     var engine = route != null && plan.Routes.TryGetValue(route, out var routed) ? routed : null;
@@ -167,7 +175,11 @@ namespace GPC.Model.Checker
                         else if (item.Data == DataStatus.Ready && item.Actions?.Input != null)
                         {
                             if (!sessions.ContainsKey(key) && !sessionErrors.ContainsKey(key))
-                                try { sessions[key] = engine.CreateSession() ?? throw new InvalidOperationException("NullCheckerSession"); }
+                                try
+                                {
+                                    sessions[key] = engine.CreateSession() ?? throw new InvalidOperationException("NullCheckerSession");
+                                    if (SharedSectionReads && sessions[key] is ConcreteMaterialChecker.Session concrete) concrete.Reads = reads;
+                                }
                                 catch (Exception ex) { sessionErrors[key] = ex; }
                             if (sessionErrors.TryGetValue(key, out var error)) throw new InvalidOperationException("CheckerCreationFailed", error);
                             var session = sessions[key];
@@ -220,8 +232,11 @@ namespace GPC.Model.Checker
                         result.Execution = ExecutionStatus.Error; result.Data = DataStatus.Insufficient; result.Outcome = EngineeringOutcome.NotEvaluated;
                         result.Utilization = null; result.Applicability = CheckApplicability.Required; result.Diagnostics.Add(ModelDiagnostic.Error("InvalidMaterialCheckerOutcome")); result.SealEvidence();
                     }
+                    // The task ran code that may change the model: a member engine, or an engine other than the concrete adapter with the built-in engine.
+                    if (item.Scope == CheckScope.PhysicalMember || engine != null && (engine as ConcreteMaterialChecker)?.ReadsOnlyItsInput != true) reads.ModelMayHaveChanged();
                     results.Add(result); completed++;
                     progress?.Report(new VerificationProgress { Completed = completed, Total = total, Job = plan.Job.Name, Family = EntityFamily.Beam, ElementId = result.ElementId, Target = item.Target });
+                    if (progressOnThisThread) reads.ModelMayHaveChanged();
                 }
                 reports.Add(CheckReport.ForPlan(plan.Job.Name, plan.Plan, results));
             }

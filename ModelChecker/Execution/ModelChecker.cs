@@ -28,12 +28,14 @@ namespace GPC.Model.Checker
         { _memberFactory = memberFactory ?? throw new ArgumentNullException(nameof(memberFactory)); }
 
         /// <summary>Whether a progress report may run code of the caller on this thread before it returns, code that may change the model:
-        /// any report but those of <see cref="Progress{T}"/> itself, which posts its handler to its synchronization context and returns.
-        /// A handler running elsewhere during the run is a concurrent write: seen or not depending on the timing, as before.</summary>
+        /// any report but those of <see cref="Progress{T}"/> itself, which posts its handler to its synchronization context and returns
+        /// (the combined progress of a configured run forwards to its target). A handler running elsewhere during the run is a concurrent
+        /// write: seen or not depending on the timing, as before.</summary>
         internal static bool ReportsOnThisThread(IProgress<VerificationProgress> progress)
-            => progress != null && progress.GetType() != typeof(Progress<VerificationProgress>);
-        /// <summary>False: every concrete section check reads the model again (SectionCheckExecution.Run, ShellCheckInput.IsCurrent), the
-        /// reference of the reads shared by the rows of a job (tests).</summary>
+            => progress is CombinedProgress combined ? ReportsOnThisThread(combined.Target)
+                : progress != null && progress.GetType() != typeof(Progress<VerificationProgress>);
+        /// <summary>False: every concrete section check reads the model again (SectionCheckExecution.Run, ShellCheckInput.IsCurrent, the
+        /// sessions of ConcreteMaterialChecker on their own), the reference of the reads shared by the rows of a run (tests).</summary>
         internal bool SharedSectionReads { get; set; } = true;
 
         private IConcreteSectionVerifier ResolveSectionEngine(ModelCheckJob job, Dictionary<string, IConcreteSectionVerifier> engines)

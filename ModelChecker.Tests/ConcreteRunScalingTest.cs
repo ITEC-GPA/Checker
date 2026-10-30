@@ -362,6 +362,110 @@ public class ConcreteRunScalingTest
         Assert.AreEqual(5, report.Executed);
     }
 
+    /// <summary>An engine of another assembly for the Shear tasks that moves a bar of the section shared by all columns during its
+    /// n-th task and moves it back during its m-th.</summary>
+    private sealed class BarMovingEngine : IMaterialChecker
+    {
+        private readonly ReinforcedConcreteSection _section;
+        private readonly int _move, _back;
+        private int _calls;
+        internal BarMovingEngine(ReinforcedConcreteSection section, int move, int back) { _section = section; _move = move; _back = back; }
+        private sealed class Session : IMaterialCheckSession
+        {
+            private readonly BarMovingEngine _owner;
+            internal Session(BarMovingEngine owner) => _owner = owner;
+            public int CreatedCheckers => 0;
+            public CheckResult Verify(BeamActionInput input, CheckMechanism mechanism, CancellationToken token)
+            {
+                int n = ++_owner._calls;
+                if (n == _owner._move) _owner._section.Rebars.First().Position.Y += 2;
+                if (n == _owner._back) _owner._section.Rebars.First().Position.Y -= 2;
+                return new CheckResult { Execution = ExecutionStatus.Completed, Data = DataStatus.Ready, Outcome = EngineeringOutcome.Satisfied, Utilization = .1 };
+            }
+        }
+        public string Id => "Fixture.BarMoving";
+        public string Version => "fixture-1";
+        public string Configuration => "moves a bar";
+        public CheckStandardContext Standard => new("Fixture", "1", null, Id, Configuration);
+        public bool Accepts(BeamElement element) => true;
+        public IMaterialCheckSession CreateSession() => new Session(this);
+    }
+
+    /// <summary>Material runs (MultiMaterialCheckRequest) on two copies of the same fixture, reference and shared reads, same scripted changes.</summary>
+    private static ModelCheckReport SameAsReference(ConcreteColumns origin, Func<ConcreteColumns, MultiMaterialCheckRequest> request, Action<ConcreteColumns, int>? change = null)
+    {
+        ModelCheckReport Run(bool shared)
+        {
+            var f = origin.Copy(); var checker = shared ? new Service() : Reference(new Service());
+            return checker.Verify(f.Model, request(f), progress: change == null ? null : new Progress(p => change(f, p.Completed)));
+        }
+        var reference = Run(false); var report = Run(true);
+        CollectionAssert.AreEqual(Rows(reference), Rows(report));
+        Assert.AreEqual(reference.Outcome, report.Outcome); Assert.AreEqual(reference.CreatedCheckers, report.CreatedCheckers);
+        return report;
+    }
+
+    /// <summary>The columns as one configured job of the concrete adapter (VerificationConfiguration, built-in EngineCatalog).</summary>
+    private static GPC.Model.Checker.Configuration.VerificationConfiguration Configured(ConcreteColumns f) => new() {
+        Contexts = new[] { new GPC.Model.Checker.Configuration.DesignContextDefinition { Id = "rc", Edition = "2018", Code = ConcreteColumns.Options().Standard } },
+        Engines = new[] { new GPC.Model.Checker.Configuration.EngineDefinition { Id = "rc", Kind = "Concrete.Section", ContextId = "rc", Concrete = ConcreteColumns.Options() } },
+        Jobs = new[] { new GPC.Model.Checker.Configuration.ConfiguredCheckJob { Name = "Concrete", Plan = MaterialRequest(f).Jobs[0].Plan,
+            Routes = new[] { new GPC.Model.Checker.Configuration.CheckRouteDefinition { EngineId = "rc" } } } } };
+
+    [TestMethod]
+    public void TheConcreteTasksOfMaterialAndConfiguredRunsReadTheWholeModelAFixedNumberOfTimes()
+    {
+        foreach (bool configured in new[] { false, true })
+        {
+            int[] Reads(int cases, bool shared)
+            {
+                var f = ConcreteColumns.Build(10, cases); ModelCheckReport report = null!;
+                var service = shared ? new Service() : Reference(new Service());
+                var reads = WholeModelReads(() => report = configured ? service.Verify(f.Model, Configured(f), GPC.Model.Checker.Configuration.EngineCatalog.BuiltIn())
+                    : service.Verify(f.Model, MaterialRequest(f)));
+                Assert.AreEqual(10 * cases, report.Executed); Assert.AreEqual(EngineeringOutcome.Satisfied, report.Outcome);
+                Console.WriteLine($"{(configured ? "configured" : "material")}, {10 * cases} rows, {(shared ? "shared" : "reference")}: {string.Join(" ", reads)}");
+                return reads;
+            }
+            CollectionAssert.AreEqual(Reads(1, true), Reads(8, true));
+            // Reference (as before): every task prepares its cut and checks it in new read scopes.
+            var few = Reads(1, false); var many = Reads(8, false);
+            Assert.IsTrue(many.Zip(few, (m, f) => m - f).All(d => d >= 70), string.Join(" ", many.Zip(few, (m, f) => m - f)));
+        }
+    }
+
+    [TestMethod]
+    public void ChangesDuringAMaterialRunAreSeenWhereTheReferenceSeesThem()
+    {
+        // A synchronous progress report moves a node after task 4: the following concrete tasks are stale, the run historical.
+        var report = SameAsReference(ConcreteColumns.Build(10, 2), MaterialRequest, (f, completed) => { if (completed == 5) f.Model.NodesElements[11].Position.Z += 1; });
+        var rows = report.Jobs[0].Results;
+        // Every task prepares its cut: after the move the preparation finds that the analysis must be run again (RequiresReanalysis), nothing is executed.
+        Assert.IsTrue(rows.Take(5).All(r => r.Execution == ExecutionStatus.Completed) && rows.Skip(5).All(r => r.Execution == ExecutionStatus.NotExecuted && r.Diagnostics.Any(d => d.Code == "RequiresReanalysis")),
+            string.Join(" | ", rows.Select(r => r.Execution + ":" + string.Join(",", r.Diagnostics.Select(d => d.Code)))));
+        Assert.IsTrue(rows.All(r => r.Data == DataStatus.Stale && r.Diagnostics.Any(d => d.Code == "ScenarioChangedDuringVerification")));
+
+        // A bar of the shared section moved by a progress report after task 3 and back after task 8. Every concrete task prepares its cut
+        // from the model as it is: tasks 4-8 check the moved bar, the others the original one, and the run is current.
+        report = SameAsReference(ConcreteColumns.Build(10, 2), MaterialRequest, (f, completed) => {
+            if (completed == 4) f.Section.Rebars.First().Position.Y += 2;
+            if (completed == 9) f.Section.Rebars.First().Position.Y -= 2; });
+        rows = report.Jobs[0].Results;
+        Assert.IsTrue(rows.All(r => r.Data == DataStatus.Ready && r.Outcome == EngineeringOutcome.Satisfied));
+        CollectionAssert.AreEqual(Enumerable.Range(0, 20).Select(i => i >= 4 && i <= 8).ToArray(), rows.Select(r => r.Input!.SectionFingerprint != rows[0].Input!.SectionFingerprint).ToArray());
+
+        // An engine of another assembly checks the Shear task before the concrete task of every cut, and moves the bar during its 3rd
+        // task and back during its 6th: the concrete tasks of cuts 2-4 check the moved bar, which the reads of the earlier tasks did not hold.
+        report = SameAsReference(ConcreteColumns.Build(10, 2), f => {
+            var request = MaterialRequest(f); var job = request.Jobs[0];
+            job.Plan.SectionMechanisms = new[] { CheckMechanism.Shear, CheckMechanism.UlsBiaxialSection };
+            job.Assignments = new[] { new MaterialCheckerAssignment { Checker = new BarMovingEngine(f.Section, 3, 6), Mechanisms = new[] { CheckMechanism.Shear } },
+                new MaterialCheckerAssignment { Checker = job.Assignments[0].Checker, Mechanisms = new[] { CheckMechanism.UlsBiaxialSection } } };
+            return request; });
+        var concrete = report.Jobs[0].Results.Where(r => r.Mechanism == CheckMechanism.UlsBiaxialSection).ToArray();
+        Assert.AreEqual(20, concrete.Length); Assert.IsTrue(concrete.All(r => r.Data == DataStatus.Ready && r.Outcome == EngineeringOutcome.Satisfied));
+        CollectionAssert.AreEqual(Enumerable.Range(0, 20).Select(i => i >= 2 && i <= 4).ToArray(), concrete.Select(r => r.Input!.SectionFingerprint != concrete[0].Input!.SectionFingerprint).ToArray());
+    }
     /// <summary>The cases of the columns as one multi-material job routed to the concrete adapter.</summary>
     private static MultiMaterialCheckRequest MaterialRequest(ConcreteColumns f)
     {
