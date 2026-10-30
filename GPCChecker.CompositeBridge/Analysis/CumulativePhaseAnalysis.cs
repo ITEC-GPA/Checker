@@ -51,16 +51,45 @@ public static class CumulativePhaseAnalysis
         {
             cancellation.ThrowIfCancellationRequested();
             var state = warmStart && hasPrevious ? previous! : grossState();
-            GPC.Checkers.Steel.EffectiveSections.EffectiveIterationResult<TState,TContribution[]> result;
-            try {
-                result=GPC.Checkers.Steel.EffectiveSections.EffectiveSectionIteration.Solve(state,
-                    trial=>snapshot.Take(end+1).Select(p=>solve(trial,p)).ToArray(),
-                    contributions=>reduce(contributions),distance,relax,maximumIterations,tolerance,relaxation,coordinates,cancellation);
-            } catch(GPC.Checkers.Steel.EffectiveSections.EffectiveSectionConvergenceException ex) {
-                throw new InvalidOperationException($"{phaseName(snapshot[end])}: sezione efficace non convergente dopo {ex.Iterations} iterazioni. Nessun esito utilizzabile.",ex);
-            }
-            previous=result.State;hasPrevious=true;
-            yield return new(end,result.State,Array.AsReadOnly(result.Response),result.Iterations,result.Residual);
+            var situation = AnalyzeSituation(new ArraySegment<TPhase>(snapshot, 0, end + 1), state, solve, reduce, distance, relax, phaseName, cancellation,
+                maximumIterations, tolerance, relaxation, coordinates);
+            previous=situation.State;hasPrevious=true;
+            yield return situation;
         }
+    }
+
+    /// <summary>
+    /// One situation of <see cref="Analyze"/>: the included increments, the last one being the new one, iterated from the start geometry (the
+    /// gross one or, with warm start, the converged geometry of the previous situation). Analyses with the same leading increments can share
+    /// their situations (<see cref="HBridgeSection.Calculate(IReadOnlyList{HBridgeInput}, CancellationToken)"/>). The other arguments are those
+    /// of <see cref="Analyze"/>
+    /// </summary>
+    /// <returns>The situation, with <see cref="CumulativeSituation{TState, TContribution}.PhaseIndex"/> the index of the last increment</returns>
+    public static CumulativeSituation<TState, TContribution> AnalyzeSituation<TPhase, TState, TContribution>(
+        IReadOnlyList<TPhase> included, TState start,
+        Func<TState, TPhase, TContribution> solve,
+        Func<IReadOnlyList<TContribution>, TState> reduce,
+        Func<TState, TState, double> distance,
+        Func<TState, TState, double, TState> relax,
+        Func<TPhase, string> phaseName,
+        CancellationToken cancellation = default,
+        int maximumIterations = 120, double tolerance = 1e-7, double relaxation = .55,
+        Func<TState, double[]>? coordinates = null)
+    {
+        if (maximumIterations < 1) throw new ArgumentOutOfRangeException(nameof(maximumIterations));
+        BridgeNumbers.Require(tolerance, nameof(tolerance), strict: true);
+        if (!BridgeNumbers.IsFinite(relaxation) || relaxation <= 0 || relaxation > 1) throw new ArgumentOutOfRangeException(nameof(relaxation));
+        if (included.Count == 0) throw new ArgumentException("Almeno un incremento richiesto.", nameof(included));
+        var snapshot = included.ToArray();
+        cancellation.ThrowIfCancellationRequested();
+        GPC.Checkers.Steel.EffectiveSections.EffectiveIterationResult<TState,TContribution[]> result;
+        try {
+            result=GPC.Checkers.Steel.EffectiveSections.EffectiveSectionIteration.Solve(start,
+                trial=>snapshot.Select(p=>solve(trial,p)).ToArray(),
+                contributions=>reduce(contributions),distance,relax,maximumIterations,tolerance,relaxation,coordinates,cancellation);
+        } catch(GPC.Checkers.Steel.EffectiveSections.EffectiveSectionConvergenceException ex) {
+            throw new InvalidOperationException($"{phaseName(snapshot[snapshot.Length-1])}: sezione efficace non convergente dopo {ex.Iterations} iterazioni. Nessun esito utilizzabile.",ex);
+        }
+        return new(snapshot.Length-1,result.State,Array.AsReadOnly(result.Response),result.Iterations,result.Residual);
     }
 }
