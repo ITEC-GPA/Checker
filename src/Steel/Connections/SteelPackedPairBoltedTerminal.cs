@@ -264,6 +264,14 @@ namespace GPC.Checkers.Steel.Connections
             // Differential chord transfer: chord forces N/2+Q and N/2-Q on the two centroid lines
             // leave Q times the centroid spacing on the gusset mid-surface (their own couples
             // F*e_n are closed by the bolt tension above, enveloped with N/2+Q on both chords).
+            // Free body (EN 1993-1-1:2005 6.4.4(1)-(2): integral member, the interconnections carry the
+            // longitudinal shear Q): gusset, packings, bolts and both chord ends, cut through the chords
+            // beyond the joint, where each chord carries only its axial force on its centroid line. With
+            // the gusset mid-surface at z=0, s=CentroidSpacing=gap+2e_n, F1=N/2+Q at z=+s/2, F2=N/2-Q at
+            // z=-s/2: M=F1 s/2-F2 s/2=Q s about the gusset axis, constant from the joint to the root.
+            // Split at the shear planes z=+-gap/2 it is (F1-F2)gap/2+(F1-F2)e_n=Q(gap+2e_n)=Q s: bolt
+            // tension, row-0 contact and packing bearing only redistribute it inside the joint. The welded
+            // terminal has the same free body; its 2Q(s+2e_n)=(2+4e_n/s)Q s is a conservative envelope.
             double moment=transfer*g.CentroidSpacing;
             double fy=Math.Min(d.Gusset.Fy,d.Collector.Fy),fu=Math.Min(d.Gusset.Fu,d.Collector.Fu);
             double limit=Math.Min(fy/code.Plates.GammaM0,.9*fu/code.Plates.GammaM2);

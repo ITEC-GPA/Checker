@@ -80,6 +80,10 @@ namespace GPC.Checkers.Steel.Connections
                 // Differential chord transfer may not be cancelled at the collector.
                 // Equal centroidal N parts cancel their opposed eccentric couples; the
                 // end transfer is enveloped in either direction with both centroid arms.
+                // Free body as in SteelPackedPairBoltedTerminal (EN 1993-1-1:2005 6.4.4(1)-(2)): chord forces
+                // N/2+Q and N/2-Q on the centroid lines z=+-s/2, s=CentroidSpacing=gap+2 NormalOffset, give
+                // exactly Q s at the gusset root. This envelope, 2Q(s+2e_n)=(2+4e_n/s)Q s, is at least twice
+                // that statics: kept unchanged as a conservative bound (30/10/2026 review).
                 double moment=2*transfer*(r.CentroidSpacing+2*r.NormalOffset);
                 double fy=Math.Min(lap.Fy,d.Collector.Fy),fu=Math.Min(lap.Fu,d.Collector.Fu);
                 double limit=Math.Min(fy/lap.Code.Plates.GammaM0,.9*fu/lap.Code.Plates.GammaM2);

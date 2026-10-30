@@ -50,6 +50,10 @@ nessuna diffusione Whitmore. Con Lf tratto libero prima del lap:
   Ncr=pi^2*E*Imin/Lk^2; Nt=2*F; e0=Lk/150
 Il momento terminale inviluppa il trasferimento differenziale dei correnti.
   sigma = Nt/A + (Mterm+Nt*e0)/(Wmin*(1-Nt/Ncr))
+  Mterm = 2Q(s+2e_n), s distanza fra i baricentri, e_n dorso-baricentro. Il corpo
+  libero di fazzoletto e correnti (forze N/2+-Q sulle linee baricentriche, EN1993-1-1
+  6.4.4) da' esattamente Q s; Mterm = (2+4e_n/s) Q s e' un inviluppo cautelativo,
+  invariato (riscontro 30/10/2026, vedi PACKED_PAIR_BOLTED_TERMINAL.txt).
 La formula e' valutata solo sotto Euler; Nt>=Ncr produce fallimento esplicito.
 Il limite nominale usa il piu' debole dei materiali di fazzoletto/collettore.
 La resistenza locale riportata e' condizionata al rapporto delle forze e alla

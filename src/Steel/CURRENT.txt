@@ -413,6 +413,11 @@ Controventi e profili accoppiati:
   imbottiture intermedie bullonate sullo stesso modello di domanda; vincolo
   d'estremita' DICHIARATO dal terminale (traslazioni trattenute, rotazioni
   flessionali libere). Vedi Connections/PACKED_PAIR_BOLTED_TERMINAL.txt.
+  Momento fuori piano del fazzoletto (riscontro 30/10/2026): dallo stesso corpo libero
+  (correnti N/2+-Q sulle linee baricentriche, EN1993-1-1 6.4.4) vale Q s, s distanza
+  fra i baricentri: il bullonato usa Q s, corretto per la sua geometria; il saldato
+  conserva 2Q(s+2e_n) = (2+4e_n/s) Q s, inviluppo cautelativo invariato. Nessun
+  risultato cambia (PackedTerminalGussetMomentTests).
   C/2C collegate solo d'anima in trazione: ChannelWebTension.Verify con scelta
   esplicita ConnectedWebOnly (limite inferiore, striscia d'anima) o
   AiscShearLagAlternative dichiarata; solo l'estremita' del canale, vedi
