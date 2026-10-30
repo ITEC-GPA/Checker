@@ -53,8 +53,9 @@ GenericSpliceComponents: IBeamSpliceComponents/WeldedIBeamSpliceEnvelope restano
   componenti; il nuovo Standard non modifica il significato delle vecchie API.
 
 NON IMPLEMENTATI NEL NUOVO MODULO STANDARD
-ColumnBases; TubularJoints. Le eventuali primitive legacy non costituiscono
-un percorso standard completo e non sono promosse implicitamente dal catalogo.
+TubularJoints. Le eventuali primitive legacy non costituiscono un percorso
+standard completo e non sono promosse implicitamente dal catalogo.
+(ColumnBases era qui fino al 29/10/2026: vedi la voce del 30/10/2026 sotto.)
 
 LIMITI TRASVERSALI
 Stabilita' delle aste, fatica, incendio, sisma, certificazione dell'esecuzione
@@ -84,6 +85,16 @@ DoubleAngleCleatColumnWebShear: squadrette SBE-MS5 su anima di pilastro, taglio
   ordinario completo nel dettaglio fisso; tying distinto. DOUBLE_ANGLE_COLUMN_WEB.txt.
 ChannelWebOnlyTensionEnd (soli componenti): estremita' tesa di C/2C collegate
   d'anima, metodo scelto esplicitamente. PHASE_3C_3E_CHANNEL_TENSION_REVIEW.txt.
+
+30/10/2026 - ColumnBases: StandardStaticVerification, ColumnBase.Verify.
+  Pilastro I/H (h<=600) saldato a piastra rettangolare non irrigidita su malta e
+  calcestruzzo; quattro tirafondi esterni alle ali (T-stub della fila esterna, Lb*,
+  6.2.6.11(2)) o tirafondi fra le ali solo senza trazione; N, M1, V1, V2. fjd con FRdu
+  di EN1992-1-1 6.7 e Ac1 dichiarata, Tab.6.7 come equilibrio dei due lati, 6.2.8.2
+  per M1=0 compresso, attrito piu' tirafondi a fori normali non tesi, cordoni elastici
+  alle azioni e alla resistenza del nodo (6.2.3(4)). Rottura del calcestruzzo dei
+  tirafondi solo DICHIARATA (EN1992-4), mai supposta. NTC ammesso come modello EC
+  integrativo (Cap.12). Rifiuti e aperture in COLUMN_BASE_USAGE.txt.
 
 29/10/2026 - WeldedIBeamDoubleCover: opt-in ActualForcesWithMixedBlockInteraction
 (blocchi misti fuori gerarchia, BRIDGE_SPLICE_MIXED_BLOCKS.txt) e

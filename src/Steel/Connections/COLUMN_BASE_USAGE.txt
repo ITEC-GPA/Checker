@@ -1,0 +1,160 @@
+BASI DI COLONNA - PERCORSO STANDARD STATICO
+30/10/2026 - ColumnBase.Verify (MethodId Steel.Connection.ColumnBase.Standard)
+
+Catalogo: voce ColumnBases, ora StandardStaticVerification (prima NotImplemented),
+ingresso consigliato ColumnBase.Verify, rapporto StandardConnectionCaseReport.Create.
+Percorso opt-in: nessun calcolo esistente cambia; riusa senza modificarli la geometria
+T-stub della fila esterna (TStubEffectiveGeometry.ExtendedEndPlateOuterRow, Tab.6.6),
+l'aritmetica dei modi (TStubMechanismArithmetic), le formule dei bulloni
+(BoltResistance, BoltPunching) e il gruppo elastico di cordoni (FilletWeldGroup).
+
+CAMPO
+- Pilastro I/H doppiamente simmetrico laminato (o saldato con RootRadius=0), h<=600 mm,
+  saldato tutto attorno con cordoni d'angolo a una piastra rettangolare NON irrigidita,
+  concentrica, su malta di allettamento e fondazione in calcestruzzo.
+- Tirafondi tutti uguali, schema doppiamente simmetrico:
+  OutsideFlanges: una fila di due tirafondi oltre ciascuna ala (quattro), con T-stub teso;
+  BetweenFlanges: tirafondi fra le ali, uno per lato dell'anima, due file a +/-RowDistance
+  o una fila sull'asse forte (RowDistance=0); ammesso SOLO negli stati senza trazione nei
+  tirafondi (compressione su entrambe le ali o compressione pura).
+- Azioni concomitanti N, M1 (asse forte), V1, V2 di un caso SLU statico; M2=T=0.
+- Rifiuti con codice (MissingRequirements, mai esito favorevole): piastra irrigidita,
+  colonna annegata, profilo cavo, progetto sismico in capacita', fatica, M2 o biassiale,
+  torsione, trazione fra le ali, fonti o dichiarazioni mancanti (vedi sotto).
+
+ASSI E CONVENZIONI (N, mm, Nmm, MPa)
+X lungo le ali (larghezza bp = Plate.Width), Y lungo l'anima (lunghezza hp = PlateLength),
+Z verso l'alto lungo il pilastro; origine sull'asse del pilastro, sulla faccia superiore
+della piastra. Azioni del pilastro al taglio di base con la convenzione SteelActions:
+N>0 trazione; M1>0 tende l'ala +Y (lato A), lato B = ala -Y; V2 lungo Y, V1 lungo X.
+
+DICHIARAZIONI RICHIESTE (nessun valore viene supposto)
+- ActionCombinationSource, DetailSource dello schema, MaterialSource dei tirafondi.
+- ColumnBaseFoundation: fck, alpha_cc, gamma_c, Ac1 dell'IMPRONTA INTERA della piastra
+  secondo EN1992-1-1 6.7(2)-(3) (forma simile, concentrica, bordi e altezza del plinto;
+  Ac1=Ac0 se non si conta diffusione) con ConcentratedResistanceSource, spessore e fck
+  della malta, tipo di malta (sabbia-cemento Cf,d=0.20; altra: coefficiente e prova
+  EN1990 Annesso D).
+- ColumnBaseAnchorConcreteResistance: resistenze di progetto PER TIRAFONDO dei modi di
+  rottura del calcestruzzo (EN1992-4 o valutazione di prodotto: sfilamento, cono,
+  splitting, bordo, pry-out, aderenza) con la fonte. Non sono grandezze EC3: se la
+  trazione e' richiesta e il valore manca -> ANCHOR_CONCRETE_TENSION_RESISTANCE_REQUIRED;
+  senza valore a taglio i tirafondi non sono contati a taglio.
+- ColumnBaseColumnMomentResistance: Mc,Rd della sezione del pilastro ridotto per V2
+  concomitante (e per N se la politica di sezione lo richiede), stesso codice e stesso
+  oggetto pilastro; serve solo per Fc,fc,Rd.
+- ColumnBaseWelds: lati dei cordoni ala/anima, estremita', gradi, consumabile ed
+  eccentricita' locale (le stesse fonti richieste da FilletWeldGroup).
+
+METODO
+1. Calcestruzzo: fcd=alpha_cc fck/gamma_c; FRdu=Ac0 fcd sqrt(Ac1/Ac0)<=3 fcd Ac0 con Ac0 =
+   impronta bp*hp; fjd=beta_j FRdu/Ac0, beta_j=2/3 solo con fck,malta>=0.2 fck, spessore
+   malta<=0.2 min(bp,hp) e, oltre 50 mm, fck,malta>=fck.
+   SCELTA GPC: EN1993-1-8 6.2.5(7) prende Ac0=beff*leff. L'impronta intera da' un limite
+   inferiore: per un T-stub interno all'impronta restano ammissibili le stesse estensioni
+   concentriche (fattore lambda dell'impronta, estensioni (lambda-1)a'/2<=(lambda-1)a/2,
+   altezza h>=(lambda-1)a'), quindi Ac1/Ac0 del T-stub non e' minore; FC cresce con fjd
+   (FC=f(t0+2k/sqrt f)(b+2k/sqrt f) crescente in f). Due T-stub compressi insieme non
+   superano FRdu dell'impronta perche' le loro aree sono disgiunte dentro la piastra.
+2. Larghezza aggiuntiva c=tp sqrt(fy/(3 fjd gammaM0)) (6.5). T-stub compresso sotto ogni
+   ala: rettangolo ala+c su ogni lato, limitato dai bordi della piastra e, verso
+   l'interno, da meta' della luce netta fra le ali (i due T-stub non si sovrappongono).
+   SCELTA GPC cautelativa: ogni foro di tirafondo che entra nel rettangolo e' dedotto per
+   intero al proprio centro (esatto per fori interni, a favore per fori tagliati).
+   Fc,pl,Rd=fjd*A (6.2.6.9-10); Fc,fc,Rd=Mc,Rd/(h-tf) (6.2.6.7, (6.21)); FC=min.
+   zC = baricentro dell'area compressa efficace (senza fori e troncamenti coincide con
+   il medio dell'ala); zT = distanza della fila di tirafondi. Cosi' il braccio non supera
+   la distanza fra baricentro dell'area compressa e baricentro del gruppo teso
+   (6.2.6.12(2)). La Figura6.18 non e' leggibile nella copia consultata: da verificare.
+3. Lato teso (OutsideFlanges): T-stub della fila esterna Tab.6.6 (mx=x-0.8 lato cordone
+   d'ala, e=(bp-w)/2, ex=hp/2-RowDistance); n=min(ex,1.25mx); Mpl=0.25 leff tp^2 fy/gammaM0.
+   Per tirafondo: Ft,Rd=0.9 fub As/gammaM2 (x0.85 con filettature tagliate non conformi a
+   EN1090, 3.6.1(3)), punzonamento della piastra 0.6 pi dm tp fu/gammaM2, resistenza
+   dichiarata del calcestruzzo: si usa il minimo (6.2.6.12(3)); somma su due tirafondi.
+   Lb=8d+malta+tp+rondella+dado/2 (nota della Tab.6.2); Lb*=8.8 mx^3 As nb/(leff1 tp^3),
+   nb=1 fila. Lettura di 6.2.6.11(2) (DA CONFERMARE dall'utente): il leveraggio non si
+   usa per la piastra, che resta al modo senza leveraggio 2Mpl,1/m; con Lb<=Lb* i
+   tirafondi si verificano anche nel Modo 2 con leveraggio; Modo 3=somma Ft.
+   FT=min(2Mpl,1/m, Modo2 se Lb<=Lb*, Modo3). Poiche' il Modo 2 e' una media pesata di
+   2Mpl,2/m e della somma Ft, con leff2>=leff1 non governa mai: FT coincide con la regola
+   senza leveraggio. La lettura letterale della Tab.6.2 (Modo1=4Mpl,1/m con leveraggio)
+   darebbe una resistenza maggiore: nell'esempio 2 FT=144.8 kN invece di 116.9 kN.
+   Anima del pilastro in trazione (6.2.8.3(2), 6.2.6.3): non applicata alla fila esterna,
+   come la fila estesa delle piastre di estremita' del modulo (la forza entra dall'ala).
+4. N-M1: Tab.6.7 riprodotta come equilibrio di una forza per lato al proprio braccio:
+   FA=(N zB+M)/(zA+zB), FB=(N zA-M)/(zA+zB) (trazione positiva); si sceglie lo stato
+   (A teso/B compresso, entrambi tesi, A compresso/B teso, entrambi compressi) con i
+   segni coerenti; u=max |F|/R. Mj,Rd=M1/u e N/u sono il punto resistente sullo stesso
+   raggio, uguale alle formule delle quattro righe della Tab.6.7 (test dedicato).
+   M1 esattamente nullo con N<0: 6.2.8.2, tre T-stub non sovrapposti (anche quello
+   d'anima, con i fori dedotti), senza Fc,fc,Rd; con M1 diverso da zero il T-stub
+   d'anima e' omesso (6.2.8.3(1)): discontinuita' propria della norma.
+5. Taglio: Ff,Rd=Cf,d Nc,Ed con Nc,Ed=max(0,-N) (6.2.2(6)); tirafondi contati solo con
+   fori non maggiorati (6.2.2(5)), 235<=fyb<=640 MPa, resistenza a taglio del calcestruzzo
+   dichiarata e, con NTC, gioco entro 1/1.5 mm o evidenza SLE. Fvb=min(F1, F2, rifollamento,
+   calcestruzzo) con F1=0.5 fub As/gammaM2 (valore minore della Tab.3.4; F2 governa sempre
+   perche' alpha_bc<0.37), F2=alpha_bc fub As/gammaM2, alpha_bc=0.44-0.0003 fyb (6.2);
+   rifollamento della piastra verificato separatamente nelle due direzioni (nota Tab.3.4),
+   il minore applicato alla risultante. Fv,Rd=Ff,Rd+n Fvb,Rd (6.3).
+   SCELTA GPC: un tirafondo teso nello stato considerato non e' contato a taglio (nessun
+   modello di interazione trazione-taglio per i tirafondi). Taglio oltre Ff,Rd senza
+   tirafondi ammissibili, o con tirafondi esclusi perche' tesi -> requisito mancante
+   (chiave di taglio fuori campo); con tutti i tirafondi contati e taglio eccessivo ->
+   fallimento.
+6. Cordoni pilastro-piastra: FilletWeldGroup elastico (EN1993-1-8 4.5.3, NTC 4.2.8.2.4)
+   su ali (esterni, interni fino al raccordo) e anima (luce netta), con N, M1, V1, V2;
+   NESSUNA trasmissione per contatto della testa del pilastro (cautelativo).
+   6.2.3(4): i cordoni non devono limitare Mj,Rd: seconda verifica con N/u e M1/u e gli
+   stessi tagli, ruolo Detailing (Welds.NotLimitingJointMomentResistance).
+
+VERIFICA DELLE FONTI (30/10/2026)
+- EN1993-1-8:2005 con correzioni, copia gia' usata dal modulo
+  (https://www.phd.eng.br/wp-content/uploads/2015/12/en.1993.1.8.2005-1.pdf), testo
+  estratto e letto: 3.3(1) p21, 3.6.1(3)-(4) p24-25, Tab.3.4 e nota p27, 6.2.2(5)-(9)
+  p65-66, 6.2.3(4) p66, Tab.6.2 e nota su Lb dei tirafondi p68, 6.2.5 p70-71,
+  6.2.6.7-6.2.6.12 p82-84, 6.2.8 e Tab.6.7 p89-91. Figura6.18 (bracci) non leggibile:
+  la posizione di zC/zT e' DA VERIFICARE sulla figura; la scelta resta entro 6.2.6.12(2).
+- EN1992-1-1:2004, copia https://www.phd.eng.br/wp-content/uploads/2015/12/en.1992.1.1.2004.pdf:
+  3.1.6(1)P e nota (alpha_cc fra 0.8 e 1.0), 6.7(1)-(3) eq.(6.63) p111.
+- NTC2018 (S.O. n.8 G.U. n.42 del 20/02/2018): nessuna regola specifica per piastre di
+  base in 4.2; 7.5.4.5 riguarda solo il progetto sismico (escluso); 4.1.2.1.1.1 eq.(4.1.3)
+  fcd=alpha_cc fck/gamma_c con alpha_cc=0.85, gamma_c=1.5 (1.4 per produzione controllata);
+  4.1.8.1.4 rinvia a UNI EN1992-1-1 6.7 per le compressioni localizzate; introduzione al
+  Cap.4 e Cap.12: gli Eurocodici con le Appendici Nazionali sono indicazioni di comprovata
+  validita'. PERCORSO NTC AMMESSO come modello di componenti EC integrativo con i fattori
+  NTC (gammaM0=1.05, gammaM2=1.25; fcd NTC imposto), come per gli altri nodi del modulo.
+- Circolare 21/01/2019 n.7: non letta (PDF oltre il limite dello strumento): DA VERIFICARE
+  che non contenga indicazioni specifiche per le piastre di base.
+
+ESITI
+Status Failed se un controllo di carico o di dettaglio non e' soddisfatto; NotSupported
+con MissingRequirements se manca un prerequisito; con requisiti mancanti restano solo i
+controlli falliti e le resistenze tipizzate sono null (la traccia conserva i valori).
+Utilization = massimo dei soli controlli di carico. Identificativi: SideA/SideB.TStub.*,
+SideA/SideB.ConcreteAndPlate, .ColumnFlangeAndWeb, Axial.ThreeTStubs,
+Shear.FrictionAndAnchors, Welds.ActualActions, Welds.NotLimitingJointMomentResistance.
+
+ESEMPIO DI CHIAMATA
+var r = ColumnBase.Verify(new ColumnBaseInput(code, ColumnBaseDetail.UnstiffenedExposedPlate,
+    ColumnBaseDesignSituation.OrdinaryStatic, column, flangeFu, new ConnectionPlate(bp, tp, fy, fu), hp,
+    anchor, pattern, foundation, anchorConcrete, welds, columnMc, new SteelActions(N, V1, V2, 0, M1, 0), source));
+var report = StandardConnectionCaseReport.Create(r); var summary = SteelAssessmentSummary.From(report);
+I test ColumnBaseTests sono gli esempi eseguibili, con i calcoli a mano nei commenti.
+
+PROVE (ColumnBaseTests, 52 casi)
+Esempio 1 EC compressione+momento (HEB240, piastra 400x440x30, 4 M24 5.6 esterni, N=-600 kN,
+M1=120 kNm, V2=150 kN: u=0.873575 per il Modo3 dei tirafondi, Mj,Rd=137.37 kNm, taglio con
+attrito e due tirafondi compressi). Esempio 2 NTC trazione+momento con leveraggio (piastra
+15 mm, 4 M20 8.8, N=+50 kN, M1=25 kNm: Lb=217<=Lb*=408.9, u=0.897083, Modo2 verificato).
+Esempio 3 base a cerniera con tirafondi fra le ali (6.2.8.2, Nj,Rd=814.29 kN). Tab.6.7
+riga per riga, trazione pura, compressione dominante, sovraccarico, cordoni che limitano
+Mj,Rd, rami del taglio, ogni rifiuto, validazione degli ingressi, riuso dei componenti,
+rapporto e catalogo.
+
+APERTI (MissingMechanisms del catalogo)
+Flessione M2/biassiale e torsione; trazione fra le ali (T-stub di fila interna, anima del
+pilastro in trazione 6.2.6.3), piu' file per lato, altri schemi, piastre eccentriche,
+pilastri oltre 600 mm; piastre irrigidite, colonne annegate, profili cavi, chiavi di
+taglio e resistenza a taglio della fondazione; interazione trazione-taglio dei tirafondi
+tesi, fori maggiorati a taglio, contatto della testa del pilastro; rigidezza (6.3.4),
+sisma (NTC 7.5.4.5), fatica, incendio.
