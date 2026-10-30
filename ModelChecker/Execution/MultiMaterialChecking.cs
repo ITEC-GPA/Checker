@@ -51,7 +51,9 @@ namespace GPC.Model.Checker
             var planRequest = job.Plan.Copy();
             var ids = BeamCheckPlan.ResolveBeamIds(model, planRequest);
             var routes = new Dictionary<string, IMaterialChecker>(StringComparer.Ordinal);
-            var resolved = job.Assignments.Select(a => new { Assignment = a, a.Checker, Ids = a.Selection?.Resolve(model).OfType<BeamElement>().Select(b => b.Id).ToArray() }).ToArray();
+            // The beams of each selection in a set: one lookup per beam, check and member part instead of a scan of the selection.
+            var resolved = job.Assignments.Select(a => new { Assignment = a, a.Checker, Ids = a.Selection == null ? null
+                : new HashSet<int>(a.Selection.Resolve(model).OfType<BeamElement>().Select(b => b.Id)) }).ToArray();
             var checks = planRequest.SectionMechanisms.Select(m => new { Mechanism = m, Check = (SectionCheckSpecification)null })
                 .Concat((planRequest.SectionChecks ?? new SectionCheckSpecification[0]).Select(c => new { c.Mechanism, Check = c })).ToArray();
             foreach (int id in ids)
