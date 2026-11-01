@@ -111,6 +111,11 @@ namespace ConcreteTests
             // §10 of ca.momento-curvatura: M'yd = My,1 = 147.535 kNm (the bottom bars yield first, εc = 0.98 ‰ < εc2), MRd = 154.688 kNm
             AssertCase(PageExample(), 0, MomentCurvatureFirstYield.TensionSteel, 147.535471630657, 6.506881897750773e-06, 154.6877288014168, 154.68772880757925,
                 6.822323955163116e-06, 5.119063729573926e-05, MomentCurvatureUltimate.LimitPoint, 7.503401719438774);
+            // values of the curve printed in the table of §10 of the page (library column)
+            var curve = Curve(PageExample(), 0);
+            var yielded = curve.Points.First(v => v.Yielded);
+            Console.WriteLine($"page §10: Mr {curve.LimitMoment:R} chi_u {curve.UltimateCurvature:R} eps_s limit {curve.Points.Last().SteelStrain:R} " +
+                $"My1 {curve.YieldRefinement.Moment:R} chi_y1 {curve.YieldCurvature:R} eps_c yield {yielded.ConcreteCompressionStrain:R} N limit {curve.LimitAxialForce:R} points {curve.Points.Count}");
         }
 
         [TestMethod]
