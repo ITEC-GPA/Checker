@@ -22,6 +22,17 @@ namespace GPC.Checkers.Steel.Inputs
         public string LateralTorsionalExclusionSource { get; }
         public string ShearBucklingExclusionSource { get; }
         public SteelCriticalMomentBasis CriticalMomentBasis { get; }
+        /// <summary>Opt-in conservative reduction of all normal-force/bending resistances
+        /// for one active principal shear, classes 1-3, with shear buckling excluded.
+        /// The original parameter object and the default method remain unchanged.</summary>
+        public bool ConservativeHighShear { get; private set; }
+
+        public SteelBeamColumnParameters WithConservativeHighShear()
+            => new SteelBeamColumnParameters(Curve1, Curve2, TorsionSusceptible, Cm1, Cm2, CmLT,
+                MomentFactorSource, StabilityModelSource, TorsionalExclusionSource,
+                FlexuralTorsionalExclusionSource, CriticalMomentBasis,
+                LateralTorsionalExclusionSource, ShearBucklingExclusionSource)
+                { ConservativeHighShear = true };
 
         public SteelBeamColumnParameters(SteelBucklingCurve curve1, SteelBucklingCurve curve2,
             bool torsionSusceptible, double cm1, double cm2, double cmLT, string momentFactorSource,

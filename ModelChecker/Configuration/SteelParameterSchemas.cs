@@ -189,6 +189,8 @@ namespace GPC.Model.Checker.Configuration
                 Add(key,description:"Reasoned exclusion of this critical mode; missing critical data is not an exclusion.",modes:new[]{"Compression","BeamColumn"});
             Add("McrBasis",EngineParameterKind.Choice,choices:new[]{"ActualMomentDiagram","UniformMoment"},modes:new[]{"Bending","BeamColumn"});
             Add("TorsionSusceptible",EngineParameterKind.Boolean,modes:new[]{"BeamColumn"});
+            Add("HighShearMethod",EngineParameterKind.Choice,choices:new[]{"ConservativeUniformReduction"},modes:new[]{"BeamColumn"},
+                description:"Opt-in: one active principal shear, classes1-3, shear buckling excluded. Reduces all N-M resistances by 1-rho, keeps conservative original chi and bounds interaction factors. Separate section checks are mandatory.");
             Add("AxialForcePreparation",EngineParameterKind.Choice,choices:new[]{"UniformCompressionEnvelope"},modes:new[]{"BeamColumn"},
                 description:"Explicit conservative variable-N model: most compressive same-case force applied uniformly; nonsway doubly symmetric I/H, uniform compression class1-3, Cm=1 and uniform-moment Mcr. Ncr comes from the uniform Euler model, never an external variable-load eigenvalue.");
             Add("AxialForceCoverageSource",modes:new[]{"BeamColumn"},description:"Evidence that all axial extrema and both faces of discontinuities are exported for this design state; uniform maximum-compression envelope accepted for this prismatic nonsway member.");

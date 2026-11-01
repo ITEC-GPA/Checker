@@ -101,7 +101,12 @@ namespace GPC.Checkers.Steel.Pipeline
                     "Each shear <= 0.5 VplRd needs code shear areas on principal axes aligned with the section geometry; rotated principal axes are not supported with shear.");
                 double ratio1=Math.Abs(a.V1)/SteelPlasticShear.Resistance(i,1);
                 double ratio2=Math.Abs(a.V2)/SteelPlasticShear.Resistance(i,2);
-                if(ratio1>.5||ratio2>.5)return Unsupported("Member.BeamColumnHighShear","High shear needs reduced interaction resistances; this member route requires each shear <= 0.5 VplRd, with shear buckling excluded.");
+                if(ratio1>.5||ratio2>.5)
+                {
+                    if(!p.ConservativeHighShear)return Unsupported("Member.BeamColumnHighShear","High shear needs reduced interaction resistances; select WithConservativeHighShear explicitly for the bounded conservative route.");
+                    if(cl.Class>3)return Unsupported("Member.BeamColumnHighShearClass4","High shear with effective class4 properties needs a coupled plate-buckling model.");
+                    if(a.V1!=0&&a.V2!=0)return Unsupported("Member.BeamColumnHighShearBiaxial","The conservative high-shear route requires exactly one active principal shear.");
+                }
                 // Without an explicit source: one assessment per active shear, as on the section route (H web
                 // EvaluateEc3HWeb/EvaluateNtcHWeb, flanges EvaluateHFlanges; RHS EvaluateEc3RhsWebs/EvaluateNtcRhsWebs;
                 // CHS EvaluateChsWall). A negative one stops the route; no reduced resistance.
@@ -142,17 +147,47 @@ namespace GPC.Checkers.Steel.Pipeline
             // N>=0: n1=n2=0, so k11=Cm1, k22=Cm2, k12/k21 from Tables B.1-B.2 (C4.2.IV-V) at n=0; CmLT-.25>=.15.
             double compressive=-Math.Min(0,i.EffectiveActions.N);
             if(i.EffectiveActions.N>0)Add(trace,"TensionNeglectedAsFavourable",i.EffectiveActions.N,"N");
+            double shearRatio=Math.Max(i.EffectiveActions.V1==0?0:Math.Abs(i.EffectiveActions.V1)/SteelPlasticShear.Resistance(i,1),
+                i.EffectiveActions.V2==0?0:Math.Abs(i.EffectiveActions.V2)/SteelPlasticShear.Resistance(i,2));
+            double rho=p.ConservativeHighShear&&shearRatio>.5?Math.Pow(2*shearRatio-1,2):0;
+            if(rho>0)
+            {
+                Add(trace,"HighShear.VEdOverVplRd",shearRatio,"1");
+                Add(trace,"HighShear.Rho",rho,"1");Add(trace,"HighShear.NormalResistanceFactor",Math.Max(0,1-rho),"1");
+                if(rho>=1)
+                    return new SteelCheckExecution(decision,SteelExecutionStatus.Failed,
+                        "Member.HighShearNormalCapacityExhausted","The conservative whole-section normal resistance is zero; active compression/bending cannot be carried.",
+                        reference:"EN1993-1-1:2005 6.2.10(3); conservative whole-section reduction",scope:"High shear with active normal actions; section and shear checks remain separate.",trace:trace);
+                nb1*=1-rho;nb2*=1-rho;mb*=1-rho;mz*=1-rho;
+                Add(trace,"HighShear.Nb1Rd",nb1,"N");Add(trace,"HighShear.Nb2Rd",nb2,"N");
+                Add(trace,"HighShear.MbRd",mb,"Nmm");Add(trace,"HighShear.M2Rd",mz,"Nmm");
+            }
             var result=BeamColumnInteraction.Evaluate(compressive/nb1,compressive/nb2,Math.Abs(i.EffectiveActions.M1)/mb,Math.Abs(i.EffectiveActions.M2)/mz,
                 lambda1,lambda2,elastic?3:decision.SectionClass.Value,p.TorsionSusceptible,p.Cm1,p.Cm2,p.CmLT,ntc);
+            if(rho>0)
+            {
+                // Reduce fy on the WHOLE section, not just Av (a lower bound of
+                // 6.2.10). Original chi is no larger than with the reduced fy.
+                // Keep original lambda in increasing-k branches; remove favourable
+                // decreasing branches, bounding the weaker uniform-material member.
+                result.K11=Math.Max(p.Cm1,result.K11);result.K22=Math.Max(p.Cm2,result.K22);
+                result.K12=(elastic?1:.6)*result.K22;
+                result.K21=p.TorsionSusceptible?1:(elastic?.8:.6)*result.K11;
+                result.Utilization1=compressive/nb1+result.K11*Math.Abs(i.EffectiveActions.M1)/mb+result.K12*Math.Abs(i.EffectiveActions.M2)/mz;
+                result.Utilization2=compressive/nb2+result.K21*Math.Abs(i.EffectiveActions.M1)/mb+result.K22*Math.Abs(i.EffectiveActions.M2)/mz;
+                result.Utilization=Math.Max(Math.Max(compressive/nb1,compressive/nb2),Math.Max(result.Utilization1,result.Utilization2));
+            }
             Add(trace,"ElasticInteraction",elastic?1:0,"1");
             Add(trace,"NRk",nrk,"N");Add(trace,"M1Rk",m1rk,"Nmm");Add(trace,"M2Rk",m2rk,"Nmm");Add(trace,"ChiLT",chiLT,"1");
             Add(trace,"Cm1",p.Cm1,"1");Add(trace,"Cm2",p.Cm2,"1");Add(trace,"CmLT",p.CmLT,"1");
             Add(trace,"K11",result.K11,"1");Add(trace,"K12",result.K12,"1");Add(trace,"K21",result.K21,"1");Add(trace,"K22",result.K22,"1");
             Add(trace,"Interaction1",result.Utilization1,"1");Add(trace,"Interaction2",result.Utilization2,"1");
-            double utilization=Math.Max(result.Utilization,compression.Utilization.Value);
+            double utilization=Math.Max(result.Utilization,compression.Utilization.Value/(1-rho));
             Add(trace,"Utilization",utilization,"1");
             return new SteelCheckExecution(decision,utilization<=1?SteelExecutionStatus.Passed:SteelExecutionStatus.Failed,
-                reference:result.Reference+(effective?"; EN1993-1-5:2006 4.3(3)/(4), class4 Aeff/Weff at fy; gross critical values":"")
+                reference:result.Reference+(rho>0?(ntc?"; NTC2018 4.2.4.1.2.9 eq4.2.40":"; EN1993-1-1:2005 6.2.10(3)")
+                    +", conservative whole-section yield-strength reduction and upper-bound interaction coefficients":"")
+                    +(effective?"; EN1993-1-5:2006 4.3(3)/(4), class4 Aeff/Weff at fy; gross critical values":"")
                     +(ltb?.IsRolled==true?"; chiLT: "+SteelLateralTorsionalExecution.Reference(ntc):"")+(ltb!=null?SteelLateralTorsionalExecution.CurveReference(ltb):""),scope:"Doubly symmetric prismatic H/RHS/SHS/CHS classes1-3, qualified H/RHS class4 with zero uniform-compression centroid shift; hollow sections use conservative elastic moduli and elastic interaction coefficients; N constant, M1/M2 maxima from one design state; explicit Cm, global-analysis and mode assessments. Section/shear verification is separate."
                     +(i.EffectiveActions.N>=0?" N>=0: interaction at NEd=0, tension neglected as favourable to flexural and lateral-torsional buckling; N-M resistance is a section check.":""),
                 utilization:utilization,trace:trace);

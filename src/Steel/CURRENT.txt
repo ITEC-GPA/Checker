@@ -1,5 +1,5 @@
 CHECKER.STEEL - STATO CORRENTE E INGRESSI CONSIGLIATI
-Aggiornamento: 1 novembre 2026. Unita: N, mm, MPa, Nmm.
+Aggiornamento: 2 novembre 2026. Unita: N, mm, MPa, Nmm.
 
 Questo e l'indice corrente della libreria. I piani datati, le note PHASE_*
 e STEEL_REVIEW_2026_10_27.txt conservano decisioni ed evidenze storiche;
@@ -162,7 +162,10 @@ Stabilita delle aste senza compressione (28 ottobre 2026, branch steel-aste-rout
   con asse 1 orizzontale attendono EvaluateEc3RhsWebs/EvaluateNtcRhsWebs per ogni
   taglio attivo, le CHS entro il filtro EvaluateChsWall (dal 30/10/2026) la sua
   valutazione; le CHS oltre il filtro e le cave ruotate richiedono ancora la fonte.
-  Resta V<=0,5 Vpl.
+  Default V<=0,5 Vpl. Opt-in WithConservativeHighShear / ModelChecker
+  HighShearMethod=ConservativeUniformReduction: classi1-3, un taglio attivo,
+  instabilita a taglio esclusa; riduzione uniforme conservativa di N-M,
+  controllo separato della sezione. Vedi BEAM_COLUMN_HIGH_SHEAR.txt.
   In ModelChecker la modalita Bending con M1 e M2/V1 risponde
   SteelMember.BiaxialBendingRequiresBeamColumn. Un esito d'asta con
   tutti i meccanismi NotRequired diventa nel resoconto di Model una riga non

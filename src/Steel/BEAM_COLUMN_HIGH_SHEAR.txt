@@ -1,0 +1,50 @@
+TAGLIO ELEVATO NELLA TRAVE-COLONNA - 02/11/2026
+
+Ingresso: SteelBeamColumnParameters.WithConservativeHighShear(); restituisce
+una copia. In ModelChecker: HighShearMethod=ConservativeUniformReduction.
+Il percorso precedente resta il default. Nessun cambio a fixture storiche.
+
+Campo: famiglie gia' qualificate H doppiamente simmetriche, RHS/CHS;
+classi1-3, un solo taglio principale attivo, torsione applicata nulla,
+instabilita a taglio esclusa. Restano necessari i controlli di sezione
+con le azioni concomitanti; questo esito riguarda l'instabilita dell'asta.
+N e momenti seguono il normale contratto dell'asta e i suoi vincoli.
+La preparazione FEM conserva i massimi assoluti della stessa combinazione.
+
+Fonti verificate: EN1993-1-1:2005 6.2.10(3), eq6.45, p56; 6.3.3,
+AnnexB tabelleB.1/B.2. NTC2018 4.2.4.1.2.9 eq4.2.40, e Circolare2019
+MetodoB C4.2.4.1.3.3.2. La riduzione e' prescritta sull'area a taglio.
+https://www.phd.eng.br/wp-content/uploads/2015/12/en.1993.1.1.2005.pdf
+NTC: testo GU S.O.n8 del20/02/2018, pagina105 del PDF locale.
+
+SCELTA CONSERVATIVA DELLA LIBRERIA, NON NUOVA FORMULA DI NORMA
+v=|VEd|/Vpl,Rd; rho=(2v-1)^2 quando v>0.5, altrimenti zero.
+Si riduce TUTTA la resistenza normale con q=1-rho, non solo Av:
+q*NRk, q*M1Rk, q*M2Rk. E e le inerzie elastiche non sono ridotti.
+Questo definisce una sezione uniformemente piu' debole di quella con la
+sola area a taglio ridotta; evita di attribuire una distribuzione plastica
+non verificata alle singole pareti.
+
+Si mantengono i chi calcolati con fy originale (non maggiori di quelli
+del materiale uniformemente ridotto). Nei coefficienti d'interazione
+si usano i rapporti N/(q*Nb,Rd), la snellezza originale nei termini
+crescenti e non si sfruttano i termini favorevoli:
+k11>=Cm1, k22>=Cm2, k21=1 quando suscettibile a svergolamento.
+Senza svergolamento k21=(0.6 plastico / 0.8 elastico)*k11;
+k12=(0.6 plastico / 1 elastico)*k22. Per NTC si conserva anche
+l'inviluppo degli indici stampati di C4.2.IV gia' adottato dalla libreria.
+Anche il controllo separato di compressione (inclusi modi T/FT) divide
+la resistenza per lo stesso fattore q. Il risultato e' sufficiente e
+puo' risultare molto conservativo, soprattutto vicino a Vpl,Rd.
+
+A v>=1 il modello non conserva resistenza normale: Failed con motivo
+Member.HighShearNormalCapacityExhausted e utilizzo nullo, non infinito.
+Due tagli attivi o classe4 ad alto taglio restano NotSupported, non Failed.
+Un'esclusione dell'instabilita a taglio mancante resta RequiresPreparation.
+Non si usa questa opzione per aggirare un pannello snello o un modo
+critico non qualificato. A v<=0.5 il risultato precedente e' identico.
+
+Verifica eseguita: 45 nuovi casi Steel (36 sostituzioni indipendenti per
+H/RHS/CHS, segni, EC/NTC; LTB; soglie; capacita esaurita; campi rifiutati
+e immutabilita), 3 casi del flusso ModelChecker. Collaudo mirato:
+152 Steel + 52 ModelChecker passati, zero fallimenti.

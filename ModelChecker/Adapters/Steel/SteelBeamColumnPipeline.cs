@@ -16,7 +16,7 @@ namespace GPC.Model.Checker
     {
         private static readonly string[] BeamColumnKeys={"TorsionSusceptible","Cm1","Cm2","CmLT","MomentFactorSource",
             "StabilityModelSource","LateralTorsionalExclusionSource","ShearBucklingExclusionSource","MomentFactorPreparation",
-            "SwayBucklingPlanes","SwayModeSource","AxialForcePreparation","AxialForceCoverageSource"};
+            "SwayBucklingPlanes","SwayModeSource","AxialForcePreparation","AxialForceCoverageSource","HighShearMethod"};
 
         private SteelMemberAnalysis BeamColumn(PhysicalMemberCheckInput input,SteelVerificationInput common,SteelPhysicalMemberPreparation physical)
         {
@@ -33,6 +33,11 @@ namespace GPC.Model.Checker
                 Optional("TorsionalExclusionSource"),Optional("FlexuralTorsionalExclusionSource"),EnumValue<SteelCriticalMomentBasis>("McrBasis"),
                 _parameters.TryGetValue("LateralTorsionalExclusionSource",out var excludeLT)?excludeLT:null,
                 _parameters.TryGetValue("ShearBucklingExclusionSource",out var excludeV)?excludeV:null);
+            if(_parameters.TryGetValue("HighShearMethod",out var highShear))
+            {
+                if(highShear!="ConservativeUniformReduction")throw new ArgumentException("UnsupportedHighShearMethod");
+                data=data.WithConservativeHighShear();
+            }
             int? memberClass=axialClass;
             if(_parameters.ContainsKey("MemberClass")) {
                 if(!int.TryParse(Required("MemberClass"),NumberStyles.None,CultureInfo.InvariantCulture,out int value))throw new ArgumentException("InvalidMemberClass");
