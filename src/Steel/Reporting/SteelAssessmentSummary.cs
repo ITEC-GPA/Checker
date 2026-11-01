@@ -61,6 +61,26 @@ namespace GPC.Checkers.Steel.Reporting
                 result.HasFailedLinkedMember);
         }
 
+        public static SteelAssessmentSummary From(GussetTwinFlatTransverseCollectorResult result)
+        {
+            if(result==null)throw new ArgumentNullException(nameof(result));
+            var a=result.Attachment.Verification;var c=result.Collector;
+            return new SteelAssessmentSummary(result.Scope,result.IsStaticResistanceComplete,
+                result.Status==ConnectionStatus.Failed,
+                a.Diagnostics.Select(x=>"Attachment:"+x).Concat(c.Diagnostics.Select(x=>"Collector:"+x)),
+                a.Assumptions.Concat(c.Assumptions));
+        }
+
+        public static SteelAssessmentSummary From(GussetTwinFlatCollectorResult result)
+        {
+            if(result==null)throw new ArgumentNullException(nameof(result));
+            var t=result.Transfer;var c=result.CollectorAndWeld;
+            return new SteelAssessmentSummary(result.Scope,result.IsStaticResistanceComplete,
+                result.Status==ConnectionStatus.Failed,
+                t.Diagnostics.Select(x=>"Transfer:"+x).Concat(c.Diagnostics.Select(x=>"Collector:"+x)),
+                t.Assumptions.Concat(c.Assumptions));
+        }
+
         public static SteelAssessmentSummary From(BridgeSpliceReport report)
         {
             if (report == null) throw new ArgumentNullException(nameof(report));

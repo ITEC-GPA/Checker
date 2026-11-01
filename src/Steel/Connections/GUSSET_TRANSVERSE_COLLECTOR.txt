@@ -50,3 +50,25 @@ certificato del nodo.
 18 nuovi casi: integrali indipendenti EC/NTC, reazioni, segni, coordinate,
 compatibilita materiale/geometria, campo lineare, forza nulla, aumento
 della campata, fallimenti conservati. Suite mirata:51 passati,0 falliti.
+
+ESTENSIONE 2C E PRESENTAZIONE COMUNE
+ChannelPairTransverseCollector.Verify porta il medesimo percorso a due C
+identiche dorso-dorso in trazione, con l'opzione ConnectedWebOnly. Vale
+lo stesso campo staticamente ammissibile della continuazione complanare:
+ciascuna striscia d'anima h*tw porta N/2, le ali restano scariche nel modello.
+I canali sono a contatto sulle facce opposte del fazzoletto, senza spessori
+di compensazione, con due linee di bulloni passanti. Nessuna eccentricita'
+di una C singola viene cancellata mediante una ripartizione convenzionale.
+
+ChannelPairGussetBinding raccoglie una sola volta i controlli fisici comuni
+alle continuazioni complanare e trasversale: orientamento, distanza dorsi,
+materiali, strisce, norma, bullone, quote e N/2. I calcoli esistenti restano
+nei rispettivi kernel. Gli input non coincidenti non mescolano verifiche
+di due nodi diversi. Un fallimento noto sopravvive a un supporto incompleto.
+
+Gli ingressi sono nel ConnectionCapabilityCatalog. SteelAssessmentSummary
+accetta anche i risultati dei due collettori a piatti; il 2C usa direttamente
+ConnectionVerification e quindi la stessa proiezione generica.
+17 casi nuovi sul 2C e4 sulla presentazione, con sezioni nette e sollecitazioni
+elastiche calcolate a mano. Regressione di integrazione83/83, compresi i27
+casi preesistenti del collettore complanare e i contratti comuni.

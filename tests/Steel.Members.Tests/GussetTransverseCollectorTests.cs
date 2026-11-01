@@ -1,4 +1,6 @@
 using GPC.Checkers.Steel.Connections;
+using GPC.Checkers.Steel.Reporting;
+using GPC.Model.Checking.Contracts;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Steel.Members.Tests;
@@ -98,5 +100,18 @@ public class GussetTransverseCollectorTests
         var r=GussetTwinFlatTransverseCollector.Verify(Input(force:0));
         Assert.IsTrue(r.IsStaticResistanceComplete);Assert.AreEqual(0,r.Utilization);
         Assert.AreEqual(0,Value(r,"Collector.MaximumMoment"));
+    }
+
+    [DataTestMethod][DataRow(50000d,"")][DataRow(100000d,"")][DataRow(50000d,"source")][DataRow(700000d,"source")]
+    public void CommonPresentationPreservesFailureCompletenessAndBoundary(double force,string change)
+    {
+        var r=GussetTwinFlatTransverseCollector.Verify(Input(force:force,change:change));
+        var s=SteelAssessmentSummary.From(r);
+        Assert.AreEqual(r.IsStaticResistanceComplete,s.IsComplete);Assert.AreEqual(r.Scope,s.Scope);
+        Assert.AreEqual(r.Status==ConnectionStatus.Failed,s.HasKnownFailure);
+        Assert.AreEqual(r.Status==ConnectionStatus.Failed?EngineeringOutcome.NotSatisfied:
+            r.IsStaticResistanceComplete?EngineeringOutcome.Satisfied:EngineeringOutcome.NotEvaluated,s.Outcome);
+        Assert.IsTrue(s.ExternalConditions.Count>0);
+        if(change!="")Assert.IsTrue(s.MissingRequirements.Any(x=>x.Contains("EVIDENCE_REQUIRED")));
     }
 }

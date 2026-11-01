@@ -422,6 +422,9 @@ Controventi e profili accoppiati:
   saldato a collettore trasversale rettangolare, fino a due linee di appoggio
   semplici reali; reazioni della stessa combinazione. Non e' un'ala di
   pilastro generica. Connections/GUSSET_TRANSVERSE_COLLECTOR.txt.
+  ChannelPairTransverseCollector.Verify aggiunge il medesimo percorso ai
+  2C tesi dorso-dorso ConnectedWebOnly, con controllo fisico degli input
+  condiviso con ChannelPairCoplanarCollector.
   SteelPackedPairTerminal.Verify + SteelWeldedPacking.Verify oppure
   SteelBoltedPacking.Verify -> SteelPackedPairAssessment.FromWeldedPacking
   oppure FromBoltedPacking -> pipeline dell'asta con la stessa valutazione.
@@ -578,6 +581,8 @@ STATO DEGLI OTTO PUNTI RICHIESTI IN QUESTO BLOCCO
   di due piatti tesi fino alle due linee d'appoggio del collettore trasversale,
   con resistenza elastica e campo di piccole deformazioni. Restano esterni
   gli attacchi oltre tali linee e i supporti a T di geometria differente.
+  ChannelPairTransverseCollector estende il percorso ai 2C tesi collegati
+  d'anima; C singola eccentrica e tying delle squadrette restano aperti.
 5 Documentazione corrente: COMPLETATO. Questo indice prevale sui checkpoint.
 6 Preparazioni ripetute: COMPLETATO nel workflow dei coprigiunti. Ogni caso
   riusa risultati immutabili, senza cache globale o scambio di azioni fra casi.
