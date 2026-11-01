@@ -189,6 +189,16 @@ namespace GPC.Model.Checker.Configuration
                 Add(key,description:"Reasoned exclusion of this critical mode; missing critical data is not an exclusion.",modes:new[]{"Compression","BeamColumn"});
             Add("McrBasis",EngineParameterKind.Choice,choices:new[]{"ActualMomentDiagram","UniformMoment"},modes:new[]{"Bending","BeamColumn"});
             Add("TorsionSusceptible",EngineParameterKind.Boolean,modes:new[]{"BeamColumn"});
+            Add("AxialForcePreparation",EngineParameterKind.Choice,choices:new[]{"UniformCompressionEnvelope"},modes:new[]{"BeamColumn"},
+                description:"Explicit conservative variable-N model: most compressive same-case force applied uniformly; nonsway doubly symmetric I/H, uniform compression class1-3, Cm=1 and uniform-moment Mcr. Ncr comes from the uniform Euler model, never an external variable-load eigenvalue.");
+            Add("AxialForceCoverageSource",modes:new[]{"BeamColumn"},description:"Evidence that all axial extrema and both faces of discontinuities are exported for this design state; uniform maximum-compression envelope accepted for this prismatic nonsway member.");
+            Together("AxialEnvelopeDeclarationPair","AxialForcePreparation","AxialForceCoverageSource");
+            rules.Add(new EngineParameterRule("AxialEnvelopeMomentFactors","The axial envelope requires Cm=1 from ConservativeEnvelope.",
+                new[]{Has("AxialForcePreparation"),IsNot("MomentFactorPreparation","ConservativeEnvelope")},null,new[]{"AxialForcePreparation"}));
+            rules.Add(new EngineParameterRule("AxialEnvelopeMomentBasis","The axial envelope requires the uniform-moment critical basis.",
+                new[]{Has("AxialForcePreparation"),IsNot("McrBasis","UniformMoment")},null,new[]{"AxialForcePreparation"}));
+            rules.Add(new EngineParameterRule("AxialEnvelopeConflictingModel","The axial envelope computes its uniform class and Euler forces; sway and external axial critical loads are outside this field.",
+                new[]{Has("AxialForcePreparation")},null,new[]{"MemberClass","ClassificationSource","SwayBucklingPlanes","Ncr1.Value","Ncr2.Value","NcrT.Value","NcrFT.Value"}));
             Add("MomentFactorPreparation",EngineParameterKind.Choice,choices:new[]{"LinearDiagrams","ConservativeEnvelope"},description:"Explicit nonsway case (a plane in SwayBucklingPlanes takes Cm=0.9 instead); same full braced span for both bending planes and LTB; validates all exported moments.",modes:new[]{"BeamColumn"});
             rules.Add(new EngineParameterRule("AutomaticMomentFactorsConflict","Choose computed or explicit Cm.",new[]{Has("MomentFactorPreparation")},null,new[]{"Cm1","Cm2","CmLT"}));
             Require("ExplicitMomentFactors","Provide Cm or select declared linear-diagram preparation.",new[]{"Cm1","Cm2","CmLT"},Is("AnalysisMode","BeamColumn"),IsNot("MomentFactorPreparation","LinearDiagrams"),IsNot("MomentFactorPreparation","ConservativeEnvelope"),Lacks("SwayBucklingPlanes"));

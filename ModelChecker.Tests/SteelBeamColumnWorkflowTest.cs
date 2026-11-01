@@ -16,7 +16,7 @@ using Service=GPC.Model.Checker.ModelChecker;
 namespace ModelChecker.Tests;
 
 [TestClass]
-public class SteelBeamColumnWorkflowTest
+public partial class SteelBeamColumnWorkflowTest
 {
     private static string Diagnostics(IEnumerable<CheckResult> results)=>string.Join(";",results.SelectMany(r=>r.Diagnostics).Select(d=>d.Message??d.Code));
     private static double Value(CheckResult r,string key)=>r.Details.Trace.Single(t=>t.Key==key).Value!.Value;

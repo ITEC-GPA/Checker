@@ -153,8 +153,11 @@ analisi della travatura secondo 5.1.5 (momenti secondari trascurabili solo nel c
 rapporto lunghezza/altezza non inferiore al minimo, 6 negli edifici); estremita' non
 schiacciate ne' tagliate (7.1.2(4)); carichi prevalentemente statici.
 
-LETTURE GPC DA CONFERMARE
-Np,Ed dal taglio meno compresso; X d0/t0<=40; bi/bj>=0.75 (AD 434); VEd/Vpl,Rd del gap;
+RISCONTRI E LETTURE GPC DA CONFERMARE
+01/11/2026: lettura visiva SCI AD434 p31 del Technical Digest2019 conferma
+bi/bj>=0.75. Sette confronti delle resistenze CHS/RHS con Corus, cap.6,
+superati: TUBULAR_PUBLISHED_VALIDATION_2026_11_01.txt. Restano da qualificare:
+Np,Ed dal taglio meno compresso; X d0/t0<=40; VEd/Vpl,Rd del gap;
 Av=2h0t0 per la nota1 delle X; kn alle beta di ancoraggio dell'interpolazione; curva di
 instabilita' delle pareti; punzonamento K/N anche per bi/b0 della singola asta; fattore
 0.9 se una membratura supera S355; regola del 20% sulla maggiore componente; limite di
@@ -164,3 +167,4 @@ c = b-3t (raggio EN10210 1.5t); campo di forza nulla.
 PROVE (Steel.Members.Tests)
 TubularJointChsTests (16), TubularJointRhsTests (8), TubularJointValidityTests (62 casi
 di rifiuto, controcasi, unicita' di traccia e controlli): valori a mano nei commenti.
+TubularJointPublishedExamplesTests: sette casi dalle tabelle Corus.

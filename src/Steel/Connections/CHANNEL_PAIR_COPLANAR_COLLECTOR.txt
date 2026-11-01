@@ -1,0 +1,46 @@
+TERMINALE 2C TESO CON FAZZOLETTO E COLLETTORE COMPLANARE
+01/11/2026 - N, mm, MPa, Nmm - EC3:2005 / NTC2018, statica ordinaria
+
+Ingresso: ChannelPairCoplanarCollector.Verify(ChannelPairCoplanarCollectorInput).
+Due C identiche a flange parallele, formate a caldo, schiena contro schiena;
+il fazzoletto riempie esattamente la distanza fra le schiene, senza imbotiture.
+Due linee longitudinali di bulloni, simmetriche rispetto alla mezzeria
+dell'altezza, almeno due bulloni per linea. Quote, materiali e bulloni
+devono coincidere nei due sottocontratti, pena rifiuto esplicito.
+
+Preparazione raccomandata:
+1. Un solo oggetto ConnectionDesignCode e un solo ConnectionBolt condivisi.
+2. ChannelWebTensionInput con la sezione Model 2C, forza N/2 per canale e
+   metodo ConnectedWebOnly. Il modello e' il campo a limite inferiore gia'
+   documentato in PHASE_3C_3E_CHANNEL_TENSION_REVIEW.txt: la sola striscia
+   h*tw porta la forza per tutta l'asta; nessuna diffusione nelle ali.
+3. GussetTwinFlatTensionInput: EachBrace = ConnectionPlate(h,tw,fy,fu)
+   della stessa anima, Actions.Fx=N totale; Rows=BoltsPerLine,
+   Gauge=LineSpacing, stesso Pitch e BraceEnd=EndDistance. Gusset descrive
+   il fazzoletto fisico. GussetEnd e' il bordo opposto al bordo dei canali.
+4. GussetTwinFlatCollectorInput con quel trasferimento e il collettore
+   rettangolare di uguali larghezza/spessore, piano medio comune, saldatura
+   testa a testa a piena penetrazione e sezione reale del collettore.
+5. ChannelPairCoplanarCollectorInput(channelEnd, collector); Verify e,
+   per presentazione uniforme, SteelAssessmentSummary.From(risultato).
+
+Verifiche riusate senza nuove formule empiriche: snervamento/rottura netta
+delle anime e del fazzoletto, percorsi di blocco, bulloni in doppio taglio,
+rifollamento di ogni parte; prosecuzione e saldatura CJP a piena resistenza.
+Riferimenti: EN1993-1-1 6.2.3, EN1993-1-8 3.10.2, Tabelle3.2-3.4 e 4.7.1;
+NTC2018 4.2.4.1.2.1, 4.2.8.1 e 4.2.8.2.1. Il blocco conserva il modello
+complementare EN con i coefficienti NTC. Nessun coefficiente di shear lag.
+
+Il risultato completo termina ALLA SEZIONE DEL COLLETTORE fornita: forze
+interne positive in trazione, N uguale alla forza totale dei due canali,
+V/T/M esattamente nulli. Non qualifica l'attacco a T a una trave/pilastro,
+la stabilita' dell'asta, la struttura successiva o le deformazioni.
+Le resistenze fallite restano visibili anche quando un altro componente
+e' fuori campo; con geometrie discordanti non si sommano verifiche di
+nodi diversi. Identificatori e tracce hanno prefissi Channel/Transfer/Collector.
+
+Test indipendenti: ChannelPairCoplanarCollectorTests, 27 casi EC/NTC,
+sezioni lorde/nette, blocco U, equilibrio e doppio taglio, collettore/CJP,
+sovraccarico, azione nulla e 22 casi di incongruenza/fuori campo.
+Restano esclusi: C singola, AISC alternativo, UPN, formati a freddo, parti
+diverse, spessori/larghezze variabili, imbotiture, compressione e taglio.

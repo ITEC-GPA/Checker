@@ -1,0 +1,42 @@
+RISCONTRO BASI - AREA COMPRESSA E FORI AL BORDO
+
+EN1993-1-8:2005 + AC:2009, lettura visiva 01/11/2026:
+6.2.6.11(2), p.83: leveraggio escluso per lo spessore della piastra e incluso
+per i tirafondi; confermata la distinzione implementata.
+6.2.6.12(2), p.83 e Figura6.18 p.90: braccio fra baricentro dell'area in
+compressione e baricentro dei tirafondi tesi. Figura finalmente leggibile.
+Copia: https://www.phd.eng.br/wp-content/uploads/2015/12/en.1993.1.8.2005-1.pdf
+
+BUG GEOMETRICO
+Il modello sottraeva il disco intero al centro del foro anche se intersecava
+solo parzialmente il rettangolo di impronta efficace. Una deduzione d'area
+maggiore non garantisce un baricentro corretto ne' un braccio conservativo.
+Ora si sottrae l'intersezione cerchio-rettangolo, con il suo momento statico.
+Integrazione analitica per strisce; nessun cambiamento delle resistenze normative.
+
+ORACOLO INDIPENDENTE, geometria di Example1 in ColumnBaseTests
+c=30 sqrt(275/(3*200/9)); rettangolo x=+/-(120+c), y=103-c .. 120+c.
+Due fori r=13, y=170. La quota del bordo sul centro e' a=120+c-170 < r:
+il foro NON e' interamente interno, contrariamente al commento storico.
+Segmento fuori dal bordo: Acap=r^2 acos(a/r)-a sqrt(r^2-a^2).
+Foro interno: Ah=pi r^2-Acap; Sh=170 Ah-(2/3)(r^2-a^2)^(3/2).
+Area netta=Agross-2Ah; zC=(111.5 Agross-2Sh)/Anet.
+Anet=49225.81608833827 mm2 (prima 49186.30973295829 mm2).
+Le risultanti si ricavano da N=-600kN, M=120kNm e zT=170mm per equilibrio.
+Non sono valori estratti dal verificatore.
+
+REGRESSIONI
+Baseline prima del fix: 151/151 su ColumnBaseTests, ChsShearBucklingTests,
+TubularJoint*. Dopo il fix: 59/63 sui test basi (11 nuovi casi inclusi).
+Quattro attesi storici dipendono dalla sottrazione errata:
+- Example1CompressionAndMomentMatchesTheHandCalculation
+- MomentResistanceReproducesEveryRowOfTable67
+- SmallMomentUnderHighCompressionKeepsBothFlangesCompressed
+- UndersizedWeldsThatWouldLimitMjRdFailTheDetailingRule
+Aggiornamento dei quattro attesi autorizzato dall'utente il 01/11/2026.
+Geometrie, materiali, azioni e tolleranze invariati. Aggiornati area, baricentro,
+equilibrio, resistenza a eccentricita' costante e saldature a tale resistenza.
+Il calcolo delle saldature conserva V2 e scala solo N,M per 1/u: sezioni dei
+cordoni e tensioni ricostruite direttamente dalle lunghezze e dalle gole.
+Verifica finale: Steel.Members.Tests 7001/7001 superati, 0 ignorati,
+steel-bearing-final.trx (Release net8.0). I quattro test non sono disabilitati.

@@ -1,5 +1,5 @@
 CHECKER.STEEL - STATO CORRENTE E INGRESSI CONSIGLIATI
-Aggiornamento: 27 ottobre 2026. Unita: N, mm, MPa, Nmm.
+Aggiornamento: 1 novembre 2026. Unita: N, mm, MPa, Nmm.
 
 Questo e l'indice corrente della libreria. I piani datati, le note PHASE_*
 e STEEL_REVIEW_2026_10_27.txt conservano decisioni ed evidenze storiche;
@@ -138,7 +138,12 @@ Stabilita delle aste senza compressione (28 ottobre 2026, branch steel-aste-rout
   kyy=Cmy, kzz=Cmz, kyz/kzy dalle tabelle a n=0 (CmLT-0,25>=0,15, nessuna divisione
   per zero); le snellezze restano ingressi (kzy=0,6+lambda_z sotto 0,4 per classi
   1-2 sensibili alla torsione). Una trazione variabile nell'asta e ammessa in
-  ModelChecker (Member.Envelope.N, minimo); la compressione resta costante.
+  ModelChecker (Member.Envelope.N, minimo); la compressione resta costante
+  per default. Dal 01/11 il modo esplicito AxialForcePreparation=
+  UniformCompressionEnvelope ammette N variabile nelle I/H doppiamente
+  simmetriche, classi1-3 a compressione uniforme: massimo di compressione
+  esteso alla luce, Cm=1, Ncr dal modello uniforme, estremi FEM dichiarati.
+  Vedi VARIABLE_COMPRESSION_ENVELOPE.txt per ingressi, ipotesi e limiti.
   Classe della trave-colonna: N-M concomitanti dell'inviluppo (EC3 Tab. 6.7,
   NTC 4.2.4.1.3.3) con ModelStressClassification; con M1 e M2 entrambi presenti si
   classificano (N,M1,M2), (N,M1,0) e (N,0,M2) e vale la classe peggiore, perche i
@@ -457,7 +462,11 @@ Basi di colonna (30/10/2026, branch claude/conn-basi-colonne):
   (6.2.3(4)). La rottura del calcestruzzo dei tirafondi (EN1992-4) e' un dato
   dichiarato con fonte; senza di esso trazione/taglio dei tirafondi non sono contati.
   NTC: nessuna regola specifica nelle NTC 2018; ammesso come modello EC integrativo
-  (Cap.12) con fattori NTC e fcd 4.1.2.1.1.1; Circolare 2019 da verificare.
+  (Cap.12) con fattori NTC e fcd 4.1.2.1.1.1; C4.2 della Circolare riscontrato
+  il 01/11/2026, senza regole aggiuntive delle basi ordinarie. Figura6.18 e
+  6.2.6.11(2) riletti visivamente. Corretto il baricentro per i fori sul bordo
+  dell'impronta efficace: intersezione esatta, non sottrazione del foro intero.
+  Vedi Connections/COLUMN_BASE_BEARING_AUDIT_2026_11_01.txt per test e attesi.
   Vedi Connections/COLUMN_BASE_USAGE.txt; ColumnBaseTests (52 casi, calcoli a mano).
 
 Nodi di travature reticolari in profili cavi (30/10/2026, branch claude/conn-nodi-tubolari):
@@ -548,6 +557,13 @@ STATO DEGLI OTTO PUNTI RICHIESTI IN QUESTO BLOCCO
   pilastri, piu' file/fori asolati, tying di squadrette e anima (P358 Check14
   per lo schema delle squadrette), fazzoletto/collettore e supporto dei C/2C,
   C/2C compressi collegati d'anima con altri dettagli, supporti generici.
+  Estensione 01/11: ChannelPairCoplanarCollector.Verify chiude il terminale
+  2C teso ConnectedWebOnly, fazzoletto centrale a contatto e collettore
+  complanare CJP di sezione costante, fino al taglio effettivo del collettore.
+  Connessione con due linee longitudinali, ripartizione N/2, geometrie e
+  azioni dei sottocontratti vincolate; 27 test indipendenti/limite/invalidi.
+  Il vuoto fazzoletto/collettore resta per C singola e gli altri schemi.
+  Connections/CHANNEL_PAIR_COPLANAR_COLLECTOR.txt.
 5 Documentazione corrente: COMPLETATO. Questo indice prevale sui checkpoint.
 6 Preparazioni ripetute: COMPLETATO nel workflow dei coprigiunti. Ogni caso
   riusa risultati immutabili, senza cache globale o scambio di azioni fra casi.

@@ -1,0 +1,30 @@
+NODI TUBOLARI - RISCONTRI INDIPENDENTI DEL 01/11/2026
+
+Corus Tubes, Design of SHS welded joints, cap.6 pp35-42:
+https://usermanual.wiki/Document/DesignofStructualHollowSectionsWeldedJoints.1925965821.pdf
+Fonte del produttore, antecedente alla EN1993-1-8:2005. Usata per confrontare
+le formule dei componenti rimaste identiche, non per sostituire il campo
+di applicazione EC3/NTC con quello della guida.
+
+TubularJointPublishedExamplesTests: sette confronti pubblicati superati.
+CHS: quattro geometrie di K a gap, parete del corrente e punzonamento;
+RHS: tre geometrie di K a gap, parete, taglio del corrente, punzonamento
+e larghezza efficace dell'asta. S275, angoli 55 gradi. Le resistenze sono
+le cifre stampate, non valori rigenerati dal verificatore.
+Tolleranza 0.11kN per stampa a 0.1kN e geometrie arrotondate. I test analitici
+esistenti conservano le tolleranze strette e coprono altri stati del corrente.
+Questi test isolano componenti: azioni di corrente in trazione ricostruite
+per equilibrio esatto delle forze arrotondate delle aste, kn=kp=1. Non si
+dichiara riprodotta la verifica dell'intera travatura. La riga CHS del nodo8,
+incoerente con i diametri assegnati nel testo, non viene usata come oracolo.
+
+SCI AD434, Validity rules for hollow section joints, Technical Digest2019 p31:
+https://www.steelconstruction.info/images/4/4c/NSC_Technical_Digest_2019.pdf
+Lettura visiva della pagina: confermato bi/bj >= 0.75 per K/N sovrapposti.
+Il <= stampato nella Tab.7.8 e' un refuso; il codice gia' applica >=.
+Non e' stato necessario alterare tale algoritmo o gli attesi storici.
+
+Letture ancora da qualificare oltre questi riscontri: condizioni indicate
+in TUBULAR_JOINTS_USAGE.txt, in particolare curve delle pareti, applicazione
+contemporanea delle regole cautelative ed eventuali geometrie fuori campo.
+Un esempio corretto non qualifica automaticamente tutte le combinazioni.

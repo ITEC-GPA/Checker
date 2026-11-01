@@ -1,0 +1,87 @@
+CHIUSURA STEEL - LAVORO AUTORIZZATO IL 01/11/2026
+
+Branch: codex/steel-closure-20261101, base origin/master eb16e72c.
+Solo Checker; un agente; nessuna modifica ANTHEA. EC3 prima generazione /
+NTC2018, statica ordinaria e nodi tipologici analitici.
+
+Ordine e criteri di chiusura
+1. Riscontri normativi CHS, basi e nodi tubolari: leggere formule/figure,
+   distinguere prescrizioni e scelte di modello, correggere eventuali errori,
+   aggiungere riscontri indipendenti e casi limite. Non trasformare una
+   lettura incerta in un esito completo; registrare eventuali fonti mancanti.
+2. Coprigiunti: lastra interamente compressa con taglio elevato, percorso
+   EN1993-1-5 sezione 10 compatibile con le condizioni fisiche del dettaglio.
+3. Terminali/supporti standard: completare trasferimento al collettore per
+   C/2C tesi collegati d'anima, tying delle squadrette e supporti tipologici
+   compatibili con i componenti gia' disponibili. Geometrie speciali escluse.
+4. Aste: compressione variabile, interazione con taglio alto nei campi
+   qualificabili, automazione dei modi critici e ritegni entro schemi analitici;
+   mantenere espliciti i dati e i controlli esterni necessari.
+
+Per ogni blocco: test numerici indipendenti, limiti/invalidi, suite pertinenti,
+documentazione CURRENT/catalogo e commit coerente. Fixture e attesi storici
+non si rigenerano per far passare i test. Versione in commit dedicato.
+Integrazione master/push solo dopo tutte le suite previste da AGENTS.md sul
+risultato integrato. Nessun nuovo rilascio o installazione ANTHEA in questa task.
+
+Avanzamento
+1 IN CORSO - chiusi i riscontri delle basi su leveraggio, bracci e Circolare C4.2.
+  Trovato e corretto il calcolo geometrico dei fori parzialmente interni all'impronta.
+  11 nuovi test superati, 4 attesi storici aggiornati dopo autorizzazione utente,
+  nessuna geometria cambiata. Suite Steel 7001/7001 superati (Release net8.0).
+  Vedi Connections/COLUMN_BASE_BEARING_AUDIT_2026_11_01.txt.
+  Tubolari: sette confronti pubblicati Corus superati (CHS/RHS), confermata
+  visivamente AD434 sul rapporto minimo delle aste sovrapposte. Restano le
+  letture di modello elencate nel documento tecnico; non e' una qualificazione
+  indiscriminata. CHS: A1:2017 completa e giustificazione diretta del taglio
+  trasversale ancora da reperire, nessuna nuova conclusione automatica.
+2 APERTO - letta visivamente la sezione10 EN1993-1-5; la snellezza deve
+  usare il campo combinato dello stesso pannello. I due modelli attuali
+  (compressione fra bulloni, taglio a tutta larghezza) non consentono una
+  sostituzione automatica dimostrata. Rifiuto mantenuto, requisiti tecnici
+  in Connections/SECTION10_MODEL_REVIEW_2026_11_01.txt.
+3 PARZIALE - implementato terminale 2C teso con fazzoletto e collettore
+  complanare CJP, vincolando i sottocontratti alla stessa geometria/azione.
+  27 nuovi test superati; ChannelPairCoplanarCollector.Verify.
+  Restano C singola con eccentricita', T-supporti e tying delle squadrette.
+4 PARZIALE - implementato opt-in UniformCompressionEnvelope in ModelChecker,
+  I/H doppiamente simmetriche classe1-3 a compressione uniforme, Cm=1,
+  Ncr del modello uniforme, estremi FEM dichiarati. 84 test mirati superati;
+  regressione ModelChecker 669 superati, 1 ignorato preesistente, 0 falliti.
+  Restano taglio elevato, generalizzazioni oltre il campo e ulteriori schemi
+  automatici di vincolo. Vedi VARIABLE_COMPRESSION_ENVELOPE.txt.
+
+COLLAUDO DEL BLOCCO EFFETTIVAMENTE IMPLEMENTATO
+build/Verify.ps1 -Suites all: completato il 01/11/2026, 10096 superati,
+0 falliti, nessuna allowlist usata/modificata. Un caso non eseguito:
+ModelChecker.TimingOfTheConcreteRun, benchmark opzionale che richiede
+GPC_MODELCHECKER_TIMING=1; nessun test di correttezza disattivato.
+
+Suite                              Superati  Falliti
+Concrete net472                         962        0
+Steel net472                            122        0
+Steel.Members net8                     7035        0
+ModelChecker net6                       669        0
+CompositeBridge                         420        0
+Geotechnics                             202        0
+Calculation                             175        0
+ShallowFoundation                        29        0
+EmbeddedWalls                            99        0
+Design net8                             192        0
+Design net472                           191        0
+Compatibilita' API: GPCModelChecker, Concrete, Design, Masonry superata.
+Risultati locali: ../tmp/steel-closure-20261101/verify-final/summary.json
+rispetto al worktree steel-closure (non una cartella di rilascio).
+
+59 nuovi casi: 11 geometria basi, 7 Corus, 27 terminale2C, 14 N variabile.
+Quattro attesi basi corretti con autorizzazione espressa, geometrie conservate.
+
+Commit di calcolo/test e versioni:
+0111ba89 basi, 550833ff Steel2.127.0.9;
+80fc598b confronti Corus;
+a5394471 terminale2C, f1197940 Steel2.128.0.0;
+891b59d2 N variabile e riscontro sezione10, 8162d735 GPCModelChecker2.36.0.0.
+Base origin/master eb16e72c ricontrollata dopo il collaudo: nessun nuovo commit
+remoto da integrare. Il blocco verificato puo' essere unito con fast-forward.
+Questo NON chiude tutti i quattro ambiti: restano i punti indicati come
+aperti/parziali sopra. Nessuna modifica ANTHEA, nessun set di rilascio prodotto.

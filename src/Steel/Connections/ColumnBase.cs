@@ -389,19 +389,7 @@ namespace GPC.Checkers.Steel.Connections
                 return k1 * alphaB * plate.Fu * a.Diameter * plate.Thickness / gM2;
             }
             ColumnBaseBearingArea Bearing(double halfX, double yLow, double yHigh)
-            {
-                // Rectangle |x|<=halfX, yLow<=y<=yHigh minus every anchor hole whose circle reaches inside it
-                // (the whole hole is deducted at its centre: conservative for a hole cut by the boundary).
-                double area = 2 * halfX * (yHigh - yLow), moment = area * (yLow + yHigh) / 2; int holes = 0;
-                double holeArea = Math.PI * d0 * d0 / 4;
-                foreach (var y in pattern.AnchorCount == 4 ? new[] { row, -row } : new[] { 0.0 })
-                    foreach (var x in new[] { gauge / 2, -gauge / 2 })
-                    {
-                        double dx = Math.Max(0, Math.Abs(x) - halfX), dy = Math.Max(0, Math.Max(yLow - y, y - yHigh));
-                        if (dx * dx + dy * dy < half * half) { area -= holeArea; moment -= holeArea * y; holes++; }
-                    }
-                return new ColumnBaseBearingArea(area, moment / area, holes);
-            }
+                => ColumnBaseBearingArea.ForAnchorPattern(halfX, yLow, yHigh, half, gauge, row, pattern.AnchorCount);
             FilletWeldGroupResult WeldGroup(double axial, double moment, double v1, double v2)
             {
                 double h2 = hc / 2, inner = h2 - tf, b2 = col.Width / 2, tw2 = col.WebThickness / 2, rr = col.RootRadius;
@@ -467,5 +455,21 @@ namespace GPC.Checkers.Steel.Connections
         internal double Centroid { get; }
         internal int Holes { get; }
         internal ColumnBaseBearingArea(double area, double centroid, int holes) { Area = area; Centroid = centroid; Holes = holes; }
+        internal static ColumnBaseBearingArea ForAnchorPattern(double halfX, double yLow, double yHigh,
+            double radius, double gauge, double row, int anchorCount)
+        {
+            double area = 2 * halfX * (yHigh - yLow), moment = area * (yLow + yHigh) / 2;
+            int holes = 0;
+            // The validated anchor spacing keeps disks disjoint; no intersection is deducted twice.
+            foreach (double y in anchorCount == 4 ? new[] { row, -row } : new[] { 0.0 })
+                foreach (double x in new[] { gauge / 2, -gauge / 2 })
+                {
+                    ColumnBaseBearingGeometry.CircleIntersection(-halfX, halfX, yLow, yHigh, x, y, radius,
+                        out double removed, out double removedMoment);
+                    if (removed <= 0) continue;
+                    area -= removed; moment -= removedMoment; holes++;
+                }
+            return new ColumnBaseBearingArea(area, moment / area, holes);
+        }
     }
 }
