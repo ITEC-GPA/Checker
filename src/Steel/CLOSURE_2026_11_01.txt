@@ -50,3 +50,38 @@ Avanzamento
   regressione ModelChecker 669 superati, 1 ignorato preesistente, 0 falliti.
   Restano taglio elevato, generalizzazioni oltre il campo e ulteriori schemi
   automatici di vincolo. Vedi VARIABLE_COMPRESSION_ENVELOPE.txt.
+
+COLLAUDO DEL BLOCCO EFFETTIVAMENTE IMPLEMENTATO
+build/Verify.ps1 -Suites all: completato il 01/11/2026, 10096 superati,
+0 falliti, nessuna allowlist usata/modificata. Un caso non eseguito:
+ModelChecker.TimingOfTheConcreteRun, benchmark opzionale che richiede
+GPC_MODELCHECKER_TIMING=1; nessun test di correttezza disattivato.
+
+Suite                              Superati  Falliti
+Concrete net472                         962        0
+Steel net472                            122        0
+Steel.Members net8                     7035        0
+ModelChecker net6                       669        0
+CompositeBridge                         420        0
+Geotechnics                             202        0
+Calculation                             175        0
+ShallowFoundation                        29        0
+EmbeddedWalls                            99        0
+Design net8                             192        0
+Design net472                           191        0
+Compatibilita' API: GPCModelChecker, Concrete, Design, Masonry superata.
+Risultati locali: ../tmp/steel-closure-20261101/verify-final/summary.json
+rispetto al worktree steel-closure (non una cartella di rilascio).
+
+59 nuovi casi: 11 geometria basi, 7 Corus, 27 terminale2C, 14 N variabile.
+Quattro attesi basi corretti con autorizzazione espressa, geometrie conservate.
+
+Commit di calcolo/test e versioni:
+0111ba89 basi, 550833ff Steel2.127.0.9;
+80fc598b confronti Corus;
+a5394471 terminale2C, f1197940 Steel2.128.0.0;
+891b59d2 N variabile e riscontro sezione10, 8162d735 GPCModelChecker2.36.0.0.
+Base origin/master eb16e72c ricontrollata dopo il collaudo: nessun nuovo commit
+remoto da integrare. Il blocco verificato puo' essere unito con fast-forward.
+Questo NON chiude tutti i quattro ambiti: restano i punti indicati come
+aperti/parziali sopra. Nessuna modifica ANTHEA, nessun set di rilascio prodotto.

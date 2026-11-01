@@ -1,5 +1,5 @@
 CHECKER.STEEL - STATO CORRENTE E INGRESSI CONSIGLIATI
-Aggiornamento: 27 ottobre 2026. Unita: N, mm, MPa, Nmm.
+Aggiornamento: 1 novembre 2026. Unita: N, mm, MPa, Nmm.
 
 Questo e l'indice corrente della libreria. I piani datati, le note PHASE_*
 e STEEL_REVIEW_2026_10_27.txt conservano decisioni ed evidenze storiche;
