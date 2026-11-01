@@ -418,6 +418,10 @@ Controventi e profili accoppiati:
   BraceAnglePairStandardTension.Verify: terminale2L teso nel modello
   convenzionale, profili identici, lato collegato esplicito, collettore CJP.
   GussetTwinFlatCollector.Verify: due piatti tesi, collettore complanare.
+  GussetTwinFlatTransverseCollector.Verify: due piatti tesi e fazzoletto
+  saldato a collettore trasversale rettangolare, fino a due linee di appoggio
+  semplici reali; reazioni della stessa combinazione. Non e' un'ala di
+  pilastro generica. Connections/GUSSET_TRANSVERSE_COLLECTOR.txt.
   SteelPackedPairTerminal.Verify + SteelWeldedPacking.Verify oppure
   SteelBoltedPacking.Verify -> SteelPackedPairAssessment.FromWeldedPacking
   oppure FromBoltedPacking -> pipeline dell'asta con la stessa valutazione.
@@ -567,6 +571,10 @@ STATO DEGLI OTTO PUNTI RICHIESTI IN QUESTO BLOCCO
   azioni dei sottocontratti vincolate; 27 test indipendenti/limite/invalidi.
   Il vuoto fazzoletto/collettore resta per C singola e gli altri schemi.
   Connections/CHANNEL_PAIR_COPLANAR_COLLECTOR.txt.
+  Estensione 02/11: GussetTwinFlatTransverseCollector chiude il percorso
+  di due piatti tesi fino alle due linee d'appoggio del collettore trasversale,
+  con resistenza elastica e campo di piccole deformazioni. Restano esterni
+  gli attacchi oltre tali linee e i supporti a T di geometria differente.
 5 Documentazione corrente: COMPLETATO. Questo indice prevale sui checkpoint.
 6 Preparazioni ripetute: COMPLETATO nel workflow dei coprigiunti. Ogni caso
   riusa risultati immutabili, senza cache globale o scambio di azioni fra casi.

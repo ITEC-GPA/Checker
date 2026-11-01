@@ -1,0 +1,52 @@
+TERMINALE CON COLLETTORE TRASVERSALE - 02/11/2026
+
+GussetTwinFlatTransverseCollector.Verify verifica il percorso statico:
+due piatti tesi -> bulloni passanti -> fazzoletto -> due cordoni continui
+simmetrici -> collettore rettangolare trasversale -> due linee di appoggio.
+La verifica termina a queste linee; non qualifica i relativi attacchi alla
+struttura, il telaio o una colonna generica. Un'ala a sbalzo non e' questo
+collettore semplicemente appoggiato.
+
+Assi del fazzoletto: X lungo il tiro, Y lungo la larghezza, Z normale al
+piano. Collettore di larghezza B in Y e spessore t in X, esteso lungo Z.
+Appoggi continui su tutta B in Z=+-L/2, rotazioni libere, centro Z=0.
+Reazioni effettive sulla piastra, dalla stessa combinazione, entrambe
+Fx=P/2, altri componenti nulli. Le coordinate e l'equilibrio sono verificati.
+Non vengono accettati altri carichi, momenti di estremita', fori o offset.
+Materiale/spessore devono coincidere con quelli del genitore delle saldature.
+Il fazzoletto e il collettore hanno esattamente la stessa larghezza:
+nessuna larghezza efficace aggiuntiva o diffusione presunta.
+
+Modello fisico: strisce rettangolari indipendenti tra due appoggi semplici,
+carico uniforme lungo Y. Le due linee di carico dei cordoni vengono
+concentrate al centro della campata: inviluppo sfavorevole di M e freccia.
+Mmax=P L/4; Vmax=P/2; I=B t^3/12; sigma=Mmax t/(2I);
+tau=1.5 Vmax/(B t); sqrt(sigma^2+3tau^2)<=fy/gammaM0.
+Si combinano cautelativamente i massimi che non coesistono nella stessa
+fibra. Nessuna resistenza plastica, irrigidimento del fazzoletto o azione
+di membrana viene aggiunta. Instabilita fuori piano delle strutture oltre
+gli appoggi ed eventuali carichi locali ulteriori non sono inclusi.
+
+Fonte per il modello elastico indipendente:
+Hilti, Modular Support Systems Technical Guide, Edition1, tabella della
+trave su due appoggi con carico centrale: R=P/2, M=PL/4, delta=PL^3/(48EI).
+https://www.hilti.com/medias/sys_master/documents/ha0/h9a/9914240860190/Technical-information-ASSET-DOC-LOC-19090172.pdf
+Resistenza: EN1993-1-1:2005 6.2.1(4),(5); NTC2018 4.2.4.1.2.
+Cordoni: kernel esistente EN1993-1-8 4.5.3 / NTC2018 4.2.8.2.3,
+gia' confrontato con SCI P358 G.36/G.37 (T-144).
+
+La traccia riporta anche delta (con cedevolezza a taglio rettangolare,
+kappa=5/6 e nu=.3) e rotazione agli appoggi. I limiti delta<=L/200 e
+rotazione<=0.01rad delimitano il modello geometrico lineare della libreria:
+non sono limiti SLE prescritti dalla norma. Oltre tali soglie il modello
+resta non qualificato, conservando gli eventuali fallimenti gia' calcolati.
+
+GussetTwinFlatWeldedSupport e i suoi contratti sono ora pubblici: il loro
+esito resta esplicitamente COMPONENTE, CanQualifyWholeJoint=false.
+Solo il nuovo aggregato aggiunge la verifica del collettore, entro i
+confini indicati. Nessuna conversione di un componente passato in un
+certificato del nodo.
+
+18 nuovi casi: integrali indipendenti EC/NTC, reazioni, segni, coordinate,
+compatibilita materiale/geometria, campo lineare, forza nulla, aumento
+della campata, fallimenti conservati. Suite mirata:51 passati,0 falliti.
