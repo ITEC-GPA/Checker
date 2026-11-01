@@ -9,15 +9,18 @@ classi:
   - GPC.Checkers.Concrete.Response.MomentCurvaturePoint
   - GPC.Checkers.Concrete.Response.MomentCurvatureLimit
   - GPC.Checkers.Concrete.Response.MomentCurvatureStrains
+  - GPC.Checkers.Concrete.Response.MomentCurvatureDuctilityRequest
+  - GPC.Checkers.Concrete.Response.MomentCurvatureDuctility
   - GPC.Checkers.Concrete.Checkers.SectionCheckerModelCode2010
   - GPC.Checkers.Concrete.SectionSolvers.SectionSolver
-versione: 0.0.17.0
+versione: 0.33.0.0
 norme:
   - ntc2018-4.1.2.1.2.1
   - ntc2018-4.1.2.1.2.2
   - ntc2018-4.1.2.3.4.1
   - ntc2018-4.1.2.3.4.2
   - circ2019-C4.1.2.3.4.2
+  - en1992-1-1-3.1.5
   - en1992-1-1-3.1.7
   - en1992-1-1-3.2.7
   - en1992-1-1-6.1
@@ -33,10 +36,12 @@ direzione assegnata del piano della sezione. La curva comprende:
 
 - il ramo a momento crescente, da zero fino al punto limite del dominio di rottura a N costante;
 - il primo snervamento, raffinato per bisezione;
-- per ogni punto, le deformazioni del calcestruzzo e delle barre.
+- per ogni punto, le deformazioni del calcestruzzo e delle barre;
+- a richiesta (dalla 0.33.0.0), la duttilità in curvatura μφ della NTC 2018 §4.1.2.3.4.2 con la bilineare della Circolare
+  2019 (Fig. C4.1.12), calcolata su un ramo a curvatura controllata che segue il momento anche dopo il picco (§6.4).
 
-È una risposta numerica della sezione, non una verifica: il metodo non produce esiti e non confronta la curvatura con
-una domanda.
+È una risposta numerica della sezione, non una verifica: il metodo non produce esiti e non confronta la curvatura, né
+μφ, con una domanda.
 
 ## 2. Campo di applicazione
 
@@ -47,12 +52,14 @@ una domanda.
 | Norme europee del verificatore sezionale (NTC 2018, EN 1992-1-1 e annessi, Model Code 2010, CNR-DT 200, CNR-DT 204, CS-TR34) | supportato | leggi dei materiali e coefficienti della classe di norma |
 | Verificatore ACI 318 | non supportato in forma diretta | disponibile solo la variante generica, con funzioni di punto limite e di risposta fornite dal chiamante |
 | Analisi tensionale lineare | non supportato | `ArgumentException`: serve l'analisi non lineare |
-| Ramo di softening dopo il punto limite | non supportato | la curva termina al punto limite |
+| Ramo dopo il picco del momento, prima del punto limite | supportato nella duttilità | la curva a momento controllato non lo segue; lo segue il ramo a curvatura controllata della duttilità (§6.4) |
+| Ramo dopo il punto limite (εcu o εud superate) | non supportato | la curva e il ramo della duttilità terminano al punto limite |
 | Carico ciclico, scarico, storia di carico | non supportato | ogni punto è un'analisi indipendente da stato vergine |
-| Tension stiffening (opzione `StressAnalysisConcreteTension` del verificatore) | supportato su richiesta, solo nelle risposte | legge di Model di Collins e Mitchell con Ecm e fctm; punto limite invariato (riquadro M-3) |
+| Calcestruzzo teso nelle risposte (opzione `StressAnalysisConcreteTension` del verificatore) | supportato su richiesta, solo nelle risposte | `TensionStiffening`: legge di Model di Collins e Mitchell con Ecm e fctm (riquadro M-3); `TensionChord`: modello del tirante sulle barre, β = 0,4 (riquadro M-4); punto limite invariato; con l'opzione la duttilità non è calcolata |
 | Calcestruzzo confinato (NTC [4.1.8]-[4.1.12]) | non supportato | calcestruzzo teso nullo, salvo le opzioni del verificatore; nessun incremento di resistenza o di deformazione per confinamento |
 | Leggi medie (fcm, Ecm) per l'analisi non lineare della struttura | non supportato direttamente | le leggi sono quelle di progetto della norma; i coefficienti si possono modificare sulla classe di norma (per esempio γc = γs = 1) |
-| Bilinearizzazione, fattore di duttilità μφ (NTC §4.1.2.3.4.2), lunghezza di cerniera | non supportato | il metodo restituisce la curvatura al primo snervamento e al punto limite (riquadro M-1) |
+| Bilineare e duttilità in curvatura μφ (NTC §4.1.2.3.4.2, Circolare Fig. C4.1.12) | supportato su richiesta (0.33.0.0) | overload con `MomentCurvatureDuctilityRequest`, solo sul verificatore nativo e con il calcestruzzo teso delle risposte trascurato (§6.4, riquadro M-1) |
+| Lunghezza di cerniera plastica, rotazioni | non supportato | — |
 | Sezioni precompresse | non verificato | il solutore tiene conto della predeformazione, ma il primo snervamento è valutato sulle deformazioni del piano senza predeformazione |
 
 ## 3. Riferimenti normativi
@@ -64,6 +71,7 @@ una domanda.
 | Ipotesi della flessione: sezioni piane, aderenza perfetta, resistenza a trazione del calcestruzzo nulla | NTC | 2018 | 4.1.2.3.4.1 | — | testo |
 | MRd(NEd) e duttilità di curvatura μφ(NEd) come capacità della sezione; μφ = φu/φyd, φyd = (MRd/M'yd) φ'yd, φ'yd minore fra la curvatura allo snervamento dell'armatura tesa e quella alla deformazione di picco del calcestruzzo | NTC | 2018 | 4.1.2.3.4.2 | [4.1.18a], [4.1.18b] | testo (riquadro M-1) |
 | Relazione momento-curvatura e fattore di duttilità di curvatura | Circolare | 2019 | C4.1.2.3.4.2 | Fig. C4.1.12 | testo |
+| Legge non lineare (3.14), k = 1,05 Ecm εc1/fcm, εc1 ed εcu1 del prospetto 3.1 (legge `NonLinear` del materiale, usata nella validazione della duttilità) | EN 1992-1-1 | 2004 + AC:2010 | 3.1.5 | (3.14) | testo (il materiale mette fck al posto di fcm al picco, poi αcc/γc) |
 | Parabola-rettangolo per il progetto delle sezioni | EN 1992-1-1 | 2004 + AC:2010 | 3.1.7 | (3.17), (3.18) | testo |
 | Diagramma di progetto dell'acciaio; εud = 0,9 εuk raccomandato | EN 1992-1-1 | 2004 + AC:2010 | 3.2.7 | Fig. 3.8 | testo (riquadro M-2) |
 | εud = 0,9 εuk; αcc = 0,85 | UNI EN 1992-1-1 | DM 31/07/2012 | 3.2.7(2), 3.1.6(1)P | — | testo |
@@ -83,15 +91,21 @@ una domanda.
   - acciaio: curva caratteristica nel campo elastico; oltre lo snervamento di progetto la curva caratteristica
     traslata lungo la retta elastica e abbassata di fyk − fyd (riquadro M-2); deformazione ultima di progetto
     εud = k · εuk (k = 0,9 nelle norme europee del modello).
-- Nelle tabelle dei materiali europei il ramo parabolico è descritto da 9 punti fra 0 e εc2, con interpolazione
-  lineare. Rispetto alla parabola esatta l'area del ramo diminuisce di 1/384 dell'area del rettangolo fcd · εc2
-  (−0,39% dell'area del ramo). Sul risultante della zona compressa a εcu l'effetto è −0,18%.
+- Parabola-rettangolo dei materiali europei: legge analitica (n = 2) per impostazione predefinita
+  (`ConcreteParabolaRectangleMethod.Analytic` di Model, integrata dal solutore con `ParabolaRectangleLaw`). Fino alla
+  0.0.17.0 il ramo parabolico era una tabella di 9 punti fra 0 e εc2 con interpolazione lineare (area del ramo −0,39%,
+  risultante a εcu −0,18%), oggi solo con il metodo storico `TabulatedLegacy`. La legge `NonLinear` resta una tabella di
+  14 punti (8 fino a εc1, 4 fino a εcu1) con interpolazione lineare.
 - Sezione netta: nelle barre interne al calcestruzzo il solutore sottrae la tensione del calcestruzzo (σs − σc)·As.
   L'integrale del calcestruzzo è valutato su una mesh triangolare della sezione con punti di Gauss.
 - Il punto limite è il punto del dominio di rottura plastico a N costante nella direzione del momento: rottura del
   calcestruzzo (εcu, εc2 in compressione uniforme) oppure dell'acciaio (εud).
-- Primo snervamento: primo stato in cui il massimo modulo della deformazione delle barre raggiunge εy, dato del
-  chiamante (di norma fyd/Es). Valgono anche le barre compresse.
+- Primo snervamento della curva: primo stato in cui il massimo modulo della deformazione delle barre raggiunge εy, dato
+  del chiamante (di norma fyd/Es). Valgono anche le barre compresse.
+- Primo snervamento convenzionale della duttilità (NTC §4.1.2.3.4.2): primo stato in cui la barra più tesa raggiunge εy
+  oppure il vertice più compresso del contorno raggiunge la deformazione di picco del calcestruzzo εc,pk, quella della
+  compressione centrata del materiale (εc2 della parabola-rettangolo, anche per lo stress block; εc3 della bilineare; εc1
+  della legge non lineare).
 - I punti sono analisi tensionali non lineari indipendenti a N costante: nessuna memoria di carico.
 
 ## 5. Notazione, unità e convenzioni
@@ -121,6 +135,17 @@ compressione e quella delle barre come massimo modulo.
 | εc | modulo della massima compressione del calcestruzzo ai vertici del contorno | — | `ConcreteCompressionStrain` |
 | εs | massimo modulo della deformazione delle barre | — | `SteelStrain` |
 | χy,1, χu | curvatura al primo snervamento e al punto limite | 1/mm | `YieldCurvature`, `UltimateCurvature` |
+| ψ | direzione del vettore curvatura nel ramo a curvatura controllata, (χx; χy) = χ (cos ψ; sin ψ) | rad | interna |
+| M⊥ | momento nella direzione ortogonale a θ | Nmm | interno |
+| εc,pk | deformazione di picco del calcestruzzo (modulo) | — | `MomentCurvatureDuctility.ConcretePeakStrain` |
+| εs,t | massima deformazione di trazione delle barre | — | interna |
+| M'yd, φ'yd | momento e curvatura del primo snervamento convenzionale | Nmm, 1/mm | `FirstYieldMoment`, `FirstYieldCurvature` |
+| MRd | momento resistente: momento limite Mr della curva | Nmm | `ResistingMoment` |
+| φyd | curvatura convenzionale di prima plasticizzazione | 1/mm | `MomentCurvatureDuctility.YieldCurvature` |
+| Mmax, χ(Mmax) | massimo momento del ramo a curvatura controllata e sua curvatura | Nmm, 1/mm | `MaximumMoment`, `MaximumMomentCurvature` |
+| φu | curvatura ultima della duttilità | 1/mm | `MomentCurvatureDuctility.UltimateCurvature` |
+| μφ | duttilità in curvatura | — | `CurvatureDuctility` |
+| K, kb | passi uniformi in curvatura (10-500) e bisezioni (0-60) | — | `CurvatureSteps`, `Bisections` |
 
 ## 6. Formulazione
 
@@ -201,21 +226,64 @@ M_m = \frac{M_a + M_b}{2}; \qquad \text{se } \varepsilon_s(M_m) \ge \varepsilon_
 
 Il punto Mb raffinato è inserito nella curva. La curvatura ultima è quella del punto limite, χu = χ(Mr).
 
-> **Scostamento dichiarato — M-1 (R14) Curvature convenzionali**
+### 6.4 Duttilità in curvatura (a richiesta, dalla 0.33.0.0)
+
+Con l'overload che riceve un `MomentCurvatureDuctilityRequest` il metodo calcola la curva dei §6.2-6.3, identica, e poi
+un ramo a curvatura controllata alla stessa N, da 0 alla curvatura χu del punto limite. Per ogni curvatura χ la
+direzione ψ del vettore curvatura e la deformazione ε0 nell'origine degli assi delle forze risolvono
+
+```math
+N\left(\varepsilon_0, \psi; \chi\right) = N, \qquad M_\perp = -M_x\sin\theta + M_y\cos\theta = 0, \qquad M = M_x\cos\theta + M_y\sin\theta \qquad \text{(M.7)}
+```
+
+con le leggi delle analisi tensionali, cioè quelle delle risposte con il calcestruzzo teso trascurato: ε0 per regula
+falsi (variante di Illinois) da N, ψ con il metodo delle secanti da M⊥, partendo dalla direzione del piano limite. I
+campioni sono χi = χu i/K (i = 1…K − 1); l'ultimo è il punto limite stesso, con il suo piano e il momento Mr, perché a
+quella curvatura un piano in equilibrio alla N esatta può superare εcu, oltre cui la legge del materiale non dà tensione.
+
+Primo snervamento convenzionale (NTC §4.1.2.3.4.2), raffinato con kb bisezioni sulla curvatura fra il primo campione che
+lo raggiunge e il precedente (si tiene lo stato snervato):
+
+```math
+\varphi'_{yd} = \min\left\{\chi:\ \max\left(\frac{\varepsilon_{s,t}}{\varepsilon_{yd}};\ \frac{\varepsilon_c}{\varepsilon_{c,pk}}\right) \ge 1\right\}, \qquad M'_{yd} = M\left(\varphi'_{yd}\right) \qquad \text{(M.8)}
+```
+
+Bilineare della Fig. C4.1.12 per i punti (0; 0), (φyd; MRd) e (φu; MRd), con MRd = Mr, momento limite della curva:
+
+```math
+\varphi_{yd} = \frac{M_{Rd}}{M'_{yd}}\,\varphi'_{yd} \qquad \text{(M.9)}
+```
+
+Picco: il campione di momento massimo, raffinato con kb passi di sezione aurea fra i due campioni vicini. Curvatura
+ultima e duttilità:
+
+```math
+\varphi_u = \min\left(\chi_{0{,}85};\ \chi_u\right), \quad \chi_{0{,}85} = \min\left\{\chi > \chi(M_{max}):\ M(\chi) < 0{,}85\,M_{max}\right\}; \qquad \mu_\varphi = \frac{\varphi_u}{\varphi_{yd}} \qquad \text{(M.10)}
+```
+
+χ0,85 è cercata con kb bisezioni fra i due campioni che la racchiudono; se il momento non scende sotto 0,85 Mmax prima
+del punto limite, φu = χu. Con la parabola-rettangolo e l'acciaio senza incrudimento il momento a N costante cresce di
+norma fino al punto limite (casi del §11: φu = χu e Mmax = Mr); con una legge con ramo decrescente (`NonLinear`, EN
+3.1.5) il picco può precedere il punto limite e governare φu.
+
+> **Scostamento corretto in parte — M-1 (R14) Curvature convenzionali e duttilità**
 >
 > - Norma: NTC 2018 §4.1.2.3.4.2 definisce la duttilità di curvatura come rapporto fra la curvatura a cui corrisponde
 >   una riduzione del 15% della massima resistenza a flessione, oppure il raggiungimento della deformazione ultima del
 >   calcestruzzo o dell'acciaio, e la curvatura convenzionale di prima plasticizzazione φyd = (MRd/M'yd) φ'yd, con
 >   φ'yd minore fra la curvatura allo snervamento dell'armatura tesa e quella alla deformazione di picco del
 >   calcestruzzo (εc2 per la parabola-rettangolo); la Circolare 2019 la rappresenta nella Fig. C4.1.12.
-> - Programma: non calcola il ramo dopo il picco; χu è la curvatura del punto limite del dominio (εcu oppure εud) e
->   χy,1 è la curvatura al primo snervamento di una barra, anche compressa, senza il confronto con εc2 e senza
->   bilinearizzazione.
-> - Effetto: χu non tiene conto della parte di curva dopo il picco fino a 0,85 Mmax; il rapporto χu/χy,1 non coincide
->   con μφ e non va usato in sua vece senza la bilinearizzazione.
-> - Stato: dichiarato (voce R14 del registro delle differenze, 1.16.0): le grandezze restituite sono quelle definite
->   sopra, con i loro nomi; la duttilità μφ della NTC con il ramo dopo il picco e la bilinearizzazione della Fig. C4.1.12
->   non sono calcolate (opzione possibile in una versione successiva).
+> - Programma: la curva a momento controllato resta com'era: χu è la curvatura del punto limite del dominio (εcu oppure
+>   εud) e χy,1 la curvatura al primo snervamento di una barra, anche compressa, senza il confronto con εc2; il rapporto
+>   χu/χy,1 non è μφ. Dalla 0.33.0.0, a richiesta, il ramo a curvatura controllata dà M'yd, φ'yd, φyd, φu e μφ
+>   secondo (M.7)-(M.10).
+> - Scelte che il testo lascia aperte, dichiarate: MRd è il momento limite Mr del dominio a N, non Mmax del ramo; la
+>   deformazione di picco è quella della compressione centrata del materiale; la riduzione del 15% si cerca solo prima
+>   del punto limite. Con la legge `NonLinear` a N = −1500 kN (§11) Mr = 116,98 kNm < Mmax = 138,50 kNm e μφ = 1,980;
+>   con MRd = Mmax sarebbe 1,672.
+> - Stato: corretto in 0.33.0.0 (voce R14 del registro delle differenze); la scelta di MRd è da discutere. I testi di
+>   NTC 2018 e Circolare 2019 non sono nella raccolta dell'ufficio (1/11/2026): definizioni da riscontrare di nuovo
+>   sull'edizione ufficiale.
 
 > **Scostamento dichiarato — M-3 Tension stiffening opzionale nelle risposte (16/10/2026)**
 >
@@ -239,6 +307,20 @@ Il punto Mb raffinato è inserito nella curva. La curvatura ultima è quella del
 > - Stato: opzione su richiesta dell'utente per la convergenza; da decidere l'area di applicazione e la verifica della
 >   fessura.
 
+> **Scostamento dichiarato — M-4 Tirante sulle barre nelle risposte (BUG-TS-2, 26-27/10/2026)**
+>
+> - Norma: come M-3; il modello del tirante è quello del fib Model Code 2010 §7.6.4.4 (EN 1992-1-1 7.3.4(2) e 7.4.3(3)
+>   per la deformazione media).
+> - Programma: con `StressAnalysisConcreteTension = TensionChord` le risposte considerano la sezione interamente
+>   reagente finché nessuna fibra supera εcr = fctm/Ecm; dopo la fessurazione il calcestruzzo teso non lavora e le barre
+>   tese dell'area efficace hc,eff seguono la legge dell'acciaio alla deformazione nella fessura (β = 0,4, valori medi Ecm
+>   e fctm), le altre restano nude. Il primo snervamento e |εs| dei punti sono quelli della barra nella fessura
+>   (`StressAnalysisResult.GetRebarSteelStrain`). Il punto limite viene dal dominio, che non legge l'opzione. È l'opzione
+>   «Tension stiffening» della scheda Momento–curvatura di ANTHEA.
+> - Effetto: risposte più rigide prima dello snervamento; la barra nella fessura è più deformata della media, quindi lo
+>   snervamento arriva prima che con la legge del riquadro M-3. La duttilità non è calcolata con l'opzione.
+> - Stato: dichiarato (decisioni dell'utente del 26-27/10/2026).
+
 ## 7. Coefficienti e valori predefiniti
 
 | Simbolo | Valore | Fonte | Modificabile | Dove nel codice |
@@ -248,6 +330,10 @@ Il punto Mb raffinato è inserito nella curva. La curvatura ultima è quella del
 | campionamento | quadratico | scelta del metodo | sì (`QuadraticSampling`) | `MomentCurvatureRequest` |
 | tolN | 1000 N | scelta del metodo | sì (`AxialTolerance`) | `MomentCurvatureRequest` |
 | ky | 12 bisezioni (0-30) | scelta del metodo | sì (`YieldRefinementSteps`) | `MomentCurvatureRequest` |
+| K (duttilità) | 50 passi in curvatura (10-500) | scelta del metodo | sì (`CurvatureSteps`) | `MomentCurvatureDuctilityRequest` |
+| kb (duttilità) | 40 bisezioni o passi di sezione aurea (0-60) | scelta del metodo | sì (`Bisections`) | `MomentCurvatureDuctilityRequest` |
+| riduzione dopo il picco | 0,85 Mmax | NTC §4.1.2.3.4.2 | no | `MomentCurvatureDuctilityAnalysis.PostPeakFraction` |
+| εc,pk | del materiale, compressione centrata (0,002 fino a C50/60 con la parabola-rettangolo) | NTC §4.1.2.3.4.2; EN prospetto 3.1 | sì, sul materiale | `SectionSolver.PeakConcreteStrain` |
 | εy | dato, di norma fyd/Es | NTC §4.1.2.1.2.2; EN 3.2.7 | sì (argomento) | `MomentCurvatureAnalysis.Calculate` |
 | αcc, γc, γs, εud/εuk | della classe di norma (NTC: αcc 0,85, γc 1,5, γs 1,15, 0,9) | NTC §4.1.2.1.1, §4.1.2.1.2.2; EN 3.1.6, 2.4.2.4, 3.2.7 | sì, sulla classe di norma | `StandardModelCode2010` e derivate |
 | εc2, εcu | del materiale (0,002 e 0,0035 fino a C50/60) | NTC §4.1.2.1.2.1; EN prospetto 3.1 | sì, sul materiale | `ConcreteMaterialEuropeanCommon` |
@@ -260,30 +346,44 @@ Il punto Mb raffinato è inserito nella curva. La curvatura ultima è quella del
 Percorsi relativi alla radice del repository Checker (namespace `GPC.Checkers.Concrete.Response`, file
 `GPCChecker.Concrete/Response/MomentCurvatureAnalysis.cs`), salvo i materiali del repository Model.
 
-- `MomentCurvatureRequest` (righe 19-34), `MomentCurvatureStrains` (righe 37-55; `From` ricava εs e εc da un piano
-  di deformazione, righe 48-54, ed ε0 nel punto di riferimento del piano oppure, con il terzo argomento, nel punto
+- `MomentCurvatureRequest` (righe 22-37), `MomentCurvatureStrains` (righe 44-81; `From` ricava εs e εc da un piano
+  di deformazione, righe 59-80, ed ε0 nel punto di riferimento del piano oppure, con il terzo argomento, nel punto
   dato: la variante sul verificatore passa l'origine degli assi delle forze per il punto limite e per le risposte),
-  `MomentCurvatureLimit` (righe 58-66), `MomentCurvaturePoint` (righe 69-82),
-  `MomentCurvatureResult` (righe 88-99).
-- `MomentCurvatureAnalysis.Calculate`, variante generica (righe 108-168), che riceve le funzioni del punto limite e
-  della risposta:
-  1. controlla i dati (righe 111-116); calcola la direzione (riga 117);
-  2. ricava il punto limite e controlla il residuo su N e Mr > 0, (M.3) (righe 119-123);
-  3. costruisce i punti, (M.5) (righe 125-132), con il campionamento (M.4) (righe 134-147); un errore di una risposta
-     interrompe la curva e registra il passo (riga 146);
-  4. raffina il primo snervamento per bisezione, (M.6) (righe 148-164); se la bisezione fallisce resta il primo
-     campione snervato (riga 163);
-  5. compone il risultato con N al punto limite, residuo e stato (righe 165-167).
-- `MomentCurvatureAnalysis.Calculate` sul verificatore `SectionCheckerModelCode2010` (righe 174-197):
-  - richiede l'analisi tensionale non lineare (righe 178-179);
-  - imposta il dominio a N costante (righe 180-181);
-  - punto limite dal dominio, con le componenti di direzione passate come momenti unitari (righe 182-188);
-  - risposte dalle analisi tensionali, rifiutando i piani non finiti (righe 189-195).
+  `MomentCurvatureLimit` (righe 88-117, con lo stato del punto limite valutato in modo pigro dalla 0.0.18.0),
+  `MomentCurvatureUnits` (righe 120-128), `MomentCurvatureRejection` ed `MomentCurvatureException` (righe 131-180),
+  `MomentCurvatureYieldRefinement` (righe 183-198), `MomentCurvaturePoint` (righe 204-217),
+  `MomentCurvatureResult` (righe 223-251, con `Ductility` e `DuctilityMessage` dalla 0.33.0.0).
+- `MomentCurvatureAnalysis.Calculate`, varianti generiche (righe 265-279: senza unità, in N e Nmm; con
+  `MomentCurvatureUnits`, nelle unità coerenti del chiamante), che ricevono le funzioni del punto limite e della risposta
+  ed eseguono `Run` (righe 287-360):
+  1. controlla i dati (righe 290-296); calcola la direzione (riga 297);
+  2. ricava il punto limite e controlla il residuo su N e Mr > 0, (M.3) (righe 299-307);
+  3. costruisce i punti, (M.5) (righe 309-317), con il campionamento (M.4) (righe 319-333); un errore di una risposta
+     interrompe la curva e registra il passo e il messaggio (righe 331-332);
+  4. raffina il primo snervamento per bisezione, (M.6) (righe 334-355); se la bisezione fallisce resta il primo
+     campione snervato e `YieldRefinement` lo dice;
+  5. compone il risultato con N al punto limite, residuo e stato (righe 356-359).
+- `MomentCurvatureAnalysis.Calculate` sul verificatore `SectionCheckerModelCode2010` (riga 372, e `Native`, righe
+  416-455):
+  - richiede l'analisi tensionale non lineare (righe 420-421);
+  - imposta il dominio a N costante (riga 423);
+  - punto limite dal dominio, con le componenti di direzione passate come momenti unitari (righe 428-435);
+  - risposte dalle analisi tensionali, rifiutando i piani non finiti; con `TensionChord` la deformazione delle barre è
+    quella nella fessura (righe 436-448, riquadro M-4).
+- Duttilità (0.33.0.0): overload con `MomentCurvatureDuctilityRequest` (righe 386-414): controlla K e kb, calcola la curva
+  con `Native` tenendo il punto limite, rifiuta le opzioni del calcestruzzo teso e chiama
+  `MomentCurvatureDuctilityAnalysis` (file `GPCChecker.Concrete/Response/MomentCurvatureDuctility.cs`):
+  - tipi pubblici `MomentCurvatureDuctilityRequest` (righe 19-25), `MomentCurvatureFirstYield` e
+    `MomentCurvatureUltimate` (righe 28-43), `MomentCurvatureDuctility` (righe 56-85);
+  - forze di un piano negli assi delle forze, (M.7) (righe 126-132); ε0 da N con regula falsi (righe 135-164); stato a
+    curvatura assegnata con le secanti su ψ (righe 168-191);
+  - campioni, primo snervamento (M.8), picco, χ0,85 e (M.9)-(M.10) (righe 211-278).
 - Solutore sezionale (`GPCChecker.Concrete/SectionSolvers/SectionSolver.cs`): integrazione del calcestruzzo sulla
-  mesh con punti di Gauss (`IntegrateSectionStress`, righe 1048-1077); contributo delle barre con la sezione netta
-  (σs − σc) (`IntegrateRebarStress`, righe 1119-1142). Leggi dei materiali europei in
-  `GPCChecker.Concrete/SectionSolvers/SectionSolverModelCode2010.cs` (`CalculateSigmaC`, righe 110-123;
-  `CalculateStressRebar`, righe 126-129).
+  mesh con punti di Gauss (`IntegrateSectionStress`, righe 1426-1477); contributo delle barre con la sezione netta
+  (σs − σc) (`IntegrateRebarStress`, righe 1754-1781); risultanti di un piano per la duttilità
+  (`CalculateStressAnalysisForces`, righe 1256-1263) e deformazione di picco (`PeakConcreteStrain`, riga 1268). Leggi dei
+  materiali europei in `GPCChecker.Concrete/SectionSolvers/SectionSolverModelCode2010.cs` (`CalculateSigmaC`, righe
+  110-124; `CalculateStressRebar`, righe 127-130) e parabola analitica in `SectionSolvers/ParabolaRectangleLaw.cs`.
 - Materiali (repository Model, progetto GPCModel):
   - `Model/Materials/Concrete/ConcreteMaterialEuropeanCommon.cs`: tabelle del calcestruzzo (righe 756-783) e tensione
     di progetto αcc/γc (righe 734-740);
@@ -297,7 +397,13 @@ curva.
 
 ## 9. Limiti e casi non supportati
 
-- Nessun ramo dopo il picco, nessuna bilinearizzazione, nessun μφ (riquadro M-1).
+- La curva a momento controllato non segue il ramo dopo il picco: se il momento massimo precede il punto limite, la
+  curva salta dall'ultimo campione al punto limite. Il ramo dopo il picco, fino al punto limite, lo segue a richiesta il
+  ramo a curvatura controllata della duttilità (§6.4); oltre il punto limite non c'è ramo.
+- La duttilità si calcola solo sul verificatore nativo (non con le funzioni del chiamante della variante generica) e con
+  il calcestruzzo teso delle risposte trascurato (`DuctilityMessage` lo dice). Nella flessione deviata la direzione ψ è
+  cercata finché |M⊥| ≤ 10⁻⁸ Mr; oltre 10⁻⁵ Mr dopo 50 secanti la duttilità non è calcolata. Se nessuno stato
+  raggiunge il primo snervamento convenzionale prima del punto limite, μφ non è definita (messaggio).
 - La curva usa le leggi di progetto: per una curva con valori medi o caratteristici occorre modificare i coefficienti
   della classe di norma.
 - Con il campionamento quadratico i punti si addensano a momenti bassi; l'ultimo campione prima del limite è a
@@ -317,7 +423,7 @@ curva.
   snervare per prima. Se nessuna barra raggiunge εy prima del punto limite, χy,1 non è definita; se la curva si
   interrompe, χu non è definita.
 - Calcestruzzo confinato ed effetti viscosi non sono considerati; il tension stiffening è un'opzione delle risposte
-  (riquadro M-3).
+  (riquadri M-3 e M-4).
 
 ## 10. Esempio numerico verificato
 
@@ -360,21 +466,34 @@ Calcolo a mano del primo snervamento (εs1 = εyd, calcestruzzo nel ramo parabol
 4. My,1 = 317 565 · (452 − 52,914) + 51 231 · 406 = 147 535 472 Nmm.
 5. χy,1 = εyd/(d − x) = 0,0019565/300,685 = 6,5069 · 10⁻⁶ 1/mm.
 
-Valori della libreria (GPCChecker.Concrete 0.0.17.0, eseguita):
+Valori della libreria (GPCChecker.Concrete 0.33.0.0, eseguita; acciaio B450C del banco dei test con εuk = 7,5%, senza
+effetto qui perché εs1 < εud):
 
 | Grandezza | A mano | Libreria | Scarto |
 | --- | --- | --- | --- |
-| Mr [Nmm] | 154 687 729 | 154 674 877,6 | −0,008% |
-| χu [1/mm] | 5,11906 · 10⁻⁵ | 5,10771 · 10⁻⁵ | −0,22% |
-| εs1 al punto limite | 0,019638 | 0,019587 | −0,26% |
-| My,1 (dopo 12 bisezioni) [Nmm] | 147 535 472 | 147 539 361 | +0,003% |
-| χy,1 [1/mm] | 6,50688 · 10⁻⁶ | 6,51527 · 10⁻⁶ | +0,13% |
-| εc al primo snervamento | 0,00098459 | 0,00098837 | +0,38% |
-| N al punto limite [N] | 0 | −51,8 (residuo entro tolN = 1000 N) | — |
+| Mr [Nmm] | 154 687 729 | 154 687 726,9 | −0,000001% |
+| χu [1/mm] | 5,11906 · 10⁻⁵ | 5,11906 · 10⁻⁵ | 0,000% |
+| εs1 al punto limite | 0,019638 | 0,019638 | 0,000% |
+| My,1 (dopo 12 bisezioni) [Nmm] | 147 535 472 | 147 536 700 | +0,0008% |
+| χy,1 [1/mm] | 6,50688 · 10⁻⁶ | 6,50693 · 10⁻⁶ | +0,0007% |
+| εc al primo snervamento | 0,00098459 | 0,00098460 | +0,001% |
+| N al punto limite [N] | 0 | +0,01 (residuo entro tolN = 1000 N) | — |
 | numero di punti | 41 campioni + 1 raffinato | 42 | 0 |
 
-Gli scarti residui hanno tre cause: il ramo parabolico tabellato a 8 tratti (−0,18% sul risultante a εcu),
-l'integrazione sulla mesh e il residuo su N del punto limite.
+Con la parabola analitica gli scarti residui vengono solo dalle 12 bisezioni sul momento del primo snervamento e dal
+residuo su N del punto limite. Con la 0.0.17.0, che usava il ramo parabolico tabellato a 8 tratti, gli scarti erano
+−0,008% su Mr, −0,22% su χu, −0,26% su εs1, +0,003% su My,1, +0,13% su χy,1 e +0,38% su εc.
+
+Duttilità in curvatura (§6.4) dello stesso caso:
+
+1. Primo snervamento convenzionale: con εs1 = εyd il calcestruzzo è a εc = 0,98459‰ < εc2 = 2‰, quindi governano le
+   barre tese: M'yd = 147 535 472 Nmm e φ'yd = 6,50688 · 10⁻⁶ 1/mm (i valori del primo snervamento sopra).
+2. MRd = Mr = 154 687 729 Nmm; (M.9): φyd = 154 687 729/147 535 472 · 6,50688 · 10⁻⁶ = 6,8223 · 10⁻⁶ 1/mm.
+3. A N = 0 il momento cresce fino al punto limite (Mmax = Mr, nessuna riduzione a 0,85 Mmax): φu = χu = 5,11906 · 10⁻⁵.
+4. (M.10): μφ = 5,11906 · 10⁻⁵/6,8223 · 10⁻⁶ = 7,503.
+
+Libreria 0.33.0.0 (K = 50, kb = 40): φ'yd = 6,506882 · 10⁻⁶, φyd = 6,822324 · 10⁻⁶, φu = 5,119064 · 10⁻⁵, μφ = 7,50340,
+primo snervamento `TensionSteel`, φu `LimitPoint`; scarti dal calcolo a mano sotto 10⁻⁶.
 
 Senza la sezione netta (calcestruzzo integrato anche al posto delle barre compresse) il calcolo a mano darebbe
 x = 67,566 mm e χu = 5,1801 · 10⁻⁵ 1/mm (+1,4%). La sottrazione σc As delle barre interne fa quindi parte del modello.
@@ -397,8 +516,27 @@ punto limite al passo 40.
   restano identici bit per bit. Con l'approvazione dell'utente le due catture sono state rigenerate solo in queste 5
   righe (in `curvature-legacy.csv` ε0 in ‰, con una riga di commento che lo dichiara). Prova indipendente:
   `MomentCurvatureReferenceStrainTests` (modello a fibre: −0,5032‰ a N = −1000 kN, +15,559‰ a N = 0).
-- **Esempio di questa pagina**: eseguito con la libreria 0.0.17.0 e ricalcolato in modo indipendente (integrazione
-  numerica della zona compressa con la parabola esatta), scarti nella tabella.
+- **Esempio di questa pagina**: eseguito con la libreria 0.33.0.0 (`MomentCurvatureDuctilityTests.ExampleOfThePage`) e
+  ricalcolato in modo indipendente (integrazione numerica della zona compressa con la parabola esatta), scarti nella
+  tabella; in ANTHEA lo ricontrolla `tests/ConcreteLibraryAdapter.Checks/attesi/pagine_metodi.py`, anche per φyd e μφ.
+- **Duttilità in curvatura** (`MomentCurvatureDuctilityTests`, 5 test): attesi indipendenti di
+  `tools/attesi/duttilita_curvatura.py` (sezione rettangolare integrata in forma chiusa sulle leggi esatte, asse neutro per
+  bisezione a ogni curvatura, 2000 passi di curvatura, picco per sezione aurea). Sezione 300 × 500 C25/30 4Ø16 (B450C
+  senza incrudimento, εuk 7,5%, NTC 2018; valori attesi salvo l'ultima colonna):
+
+  | Legge, N [kN] | Primo snervamento | M'yd [kNm] | MRd [kNm] | Mmax [kNm] | φu | μφ atteso | μφ libreria |
+  | --- | --- | --- | --- | --- | --- | --- | --- |
+  | parabola-rettangolo, 0 | barre tese | 65,291 | 68,449 | 68,449 | punto limite | 12,7994 | 12,7994 |
+  | parabola-rettangolo, −500 | barre tese | 148,509 | 158,543 | 158,543 | punto limite | 2,75382 | 2,75382 |
+  | parabola-rettangolo, −1000 | calcestruzzo a εc2 | 157,711 | 191,934 | 191,934 | punto limite | 1,61502 | 1,61502 |
+  | parabola-rettangolo, −1500 | calcestruzzo a εc2 | 122,970 | 152,678 | 152,678 | punto limite | 1,67254 | 1,67254 |
+  | non lineare EN 3.1.5, −1000 | calcestruzzo a εc1 | 159,485 | 169,573 | 176,829 | punto limite | 1,67585 | 1,67623 |
+  | non lineare EN 3.1.5, −1500 | calcestruzzo a εc1 | 124,820 | 117,062 | 138,503 | 0,85 Mmax | 1,97861 | 1,97991 |
+
+  Tolleranze: 10⁻⁵ con la parabola-rettangolo (scarti misurati fino a 4 · 10⁻⁷: la legge analitica è integrata
+  esattamente sulla mesh del rettangolo); 2 · 10⁻³ con la legge non lineare, una tabella di 14 punti integrata con i
+  punti di Gauss attraverso i suoi spigoli (scarti fino a 7 · 10⁻⁴). Gli altri test controllano che la curva sia identica
+  bit per bit con e senza la duttilità, i rifiuti di K e kb e il messaggio con il calcestruzzo teso nelle risposte.
 - **Benchmark indipendenti pubblicati**: nessuno, per ora.
 
 ## 12. Bibliografia
@@ -406,7 +544,9 @@ punto limite al passo 40.
 - DM 17 gennaio 2018, *Aggiornamento delle «Norme tecniche per le costruzioni»*, §4.1.2.1.2, §4.1.2.3.4.
 - Circolare 21 gennaio 2019 n. 7 C.S.LL.PP., §C4.1.2.3.4.2, Fig. C4.1.12.
 - EN 1992-1-1:2004 + AC:2010, *Eurocode 2: Design of concrete structures — Part 1-1: General rules and rules for
-  buildings*, §3.1.7, §3.2.7, §6.1.
+  buildings*, §3.1.5, §3.1.7, §3.2.7, §6.1 (testo inglese ufficiale in UNI EN 1992-1-1:2015).
+- fib, *fib Model Code for Concrete Structures 2010*, Ernst & Sohn, Berlin 2013, §7.6.4.4 (modello del tirante,
+  riquadro M-4).
 - UNI EN 1992-1-1, appendice nazionale: DM 31 luglio 2012.
 - M. P. Collins, D. Mitchell, *Prestressed Concrete Structures*, Prentice Hall, Englewood Cliffs 1991: tensione media
   del calcestruzzo teso fessurato f1 = fcr/(1 + √(500 ε1)) (riquadro M-3).

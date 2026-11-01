@@ -87,7 +87,8 @@ block il punto è meno preciso. La pagina riporterà questi riquadri (prefisso P
   in esercizio, F fessurazione, A ancoraggi, D dettagli, C durabilità e copriferri, M momento-curvatura) e con la
   fonte accanto. Ogni simbolo è definito nella tabella della notazione.
 - **Riferimenti al codice** (`file:riga`): solo nella sezione Implementazione, relativi alla radice del repository
-  Checker (o del repository Model per le classi di Model e per il verificatore di modello).
+  Checker (o del repository Model per le classi di Model; il verificatore di modello, GPCModelChecker, sta in Checker
+  nella cartella `ModelChecker`).
 - **Esclusi dal testo**: comandi d'interfaccia, cronaca di sviluppo, percorsi di repository fuori dalla sezione
   Implementazione, riferimenti a programmi di terzi, testi di terzi. Sono ammesse le citazioni normative e la
   bibliografia tecnica dei metodi implementati.

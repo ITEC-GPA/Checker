@@ -5,12 +5,16 @@ libreria: GPCChecker.Concrete
 classi:
   - GPC.Checkers.Concrete.Detailing.MemberDetailingCalculator
   - GPC.Checkers.Concrete.Detailing.MemberDetailingInput
+  - GPC.Checkers.Concrete.Detailing.MemberDetailingOptions
+  - GPC.Checkers.Concrete.Detailing.PlateDetailingData
+  - GPC.Checkers.Concrete.Detailing.PlateDetailingRules
+  - GPC.Checkers.Concrete.Detailing.DetailingProfile
   - GPC.Checkers.Concrete.Detailing.MemberDetailingResult
   - GPC.Checkers.Concrete.Detailing.DetailingCheck
   - GPC.Checkers.Concrete.Detailing.MemberDetailingKind
   - GPC.Checkers.Concrete.Detailing.DetailingProfiles
   - GPC.Checkers.Concrete.Cracking.CrackSectionGeometry
-versione: 0.0.17.0
+versione: 0.33.0.0
 norme:
   - ntc2018-4.1.6.1.1
   - ntc2018-4.1.6.1.2
@@ -64,7 +68,8 @@ sospeso se nessun controllo fallisce ma almeno uno è in sospeso, soddisfatto ne
 | Sezioni precompresse, sezioni composte acciaio-calcestruzzo | non supportato | la geometria considera solo le barre ordinarie; il verificatore del modello restituisce «non supportato» |
 | Regole per zone sismiche (NTC cap. 7, EN 1998-1) | non supportato | valgono solo le regole del capitolo 4 NTC e delle sezioni 8-9 EN |
 | Ancoraggio delle barre inferiori agli appoggi e regola della traslazione | conferma | controllo in sospeso finché il chiamante non conferma le zone di estremità |
-| Trattenimento delle barre compresse (travi) | NTC: calcolato; Eurocodice: conferma | NTC: passo ≤ 15Ø; famiglia Eurocodice: controllo in sospeso senza conferma (riquadro D-1) |
+| Trattenimento delle barre compresse (travi) | calcolato | NTC ed Eurocodice: passo ≤ 15 Ømin (`CompressionBarRestraint`); DS anche la conferma `BarsHeldByLinks` della 9.5.3(6), che il DK NA 9.2.1.2(3) estende alle travi (riquadri D-1 e D-5) |
+| Solette e pareti con profili diversi da NTC 2018 e CNR-DT 200 | non supportato | `NotSupportedException`; soletta che non è una striscia rettangolare senza fori: `ArgumentException` |
 | Quota minima di staffe nell'armatura a taglio (NTC 50%, EN β3 = 0,5) | non supportato | non verificata: richiede la ripartizione fra staffe e sagomati |
 | Staffe inclinate | non supportato | α = 90° in tutte le espressioni |
 | Una barra in ogni spigolo dei pilastri poligonali (EN 9.5.2(4)) | non supportato | è verificato solo il numero minimo di 4 barre nei pilastri circolari |
@@ -89,7 +94,7 @@ sospeso se nessun controllo fallisce ma almeno uno è in sospeso, soddisfatto ne
 | cnom = cmin + Δcdev; cmin = max(cmin,b; cmin,dur; 10 mm); cmin,b = Ø (+5 mm con dg > 32 mm); superfici irregolari (+5 mm), abrasione (k1, k2, k3), getti contro terreno (40 e 75 mm) | EN 1992-1-1 | 2004 + AC:2010 | 4.4.1.1-4.4.1.3 | (4.1), (4.2), prospetto 4.2 | testo |
 | Interferro ≥ max(k1 Ø; dg + k2; 20 mm), k1 = 1 e k2 = 5 mm | EN 1992-1-1 | 2004 + AC:2010 | 8.2(2) | — | testo |
 | As,min e As,max (0,04 Ac) delle travi | EN 1992-1-1 | 2004 + AC:2010 | 9.2.1.1(1), (3) | (9.1N) | testo |
-| Barre compresse trattenute con passo ≤ 15Ø | EN 1992-1-1 | 2004 + AC:2010 | 9.2.1.2(3) | — | testo |
+| Barre compresse trattenute con passo ≤ 15Ø | EN 1992-1-1 | 2004 + AC:2010 | 9.2.1.2(3) | — | testo (UNI EN 1992-1-1:2015, riscontrato il 1/11/2026, voce R14) |
 | Ancoraggio dell'armatura inferiore agli appoggi di estremità | EN 1992-1-1 | 2004 + AC:2010 | 9.2.1.4 | — | testo |
 | ρw,min = 0,08 √fck/fyk; sl,max = 0,75 d (1 + cot α); st,max = 0,75 d ≤ 600 mm | EN 1992-1-1 | 2004 + AC:2010 | 9.2.2(5), (6), (8) | (9.4), (9.5N), (9.6N), (9.8N) | testo |
 | Pilastri: Ømin = 8 mm; As,min = max(0,10 NEd/fyd; 0,002 Ac); As,max = 0,04 Ac (0,08 Ac nelle sovrapposizioni); almeno 4 barre nei pilastri circolari | EN 1992-1-1 | 2004 + AC:2010 | 9.5.2(1)-(4) | (9.12N) | testo |
@@ -109,10 +114,12 @@ sospeso se nessun controllo fallisce ma almeno uno è in sospeso, soddisfatto ne
   superiore e quelle della metà inferiore l'armatura della zona inferiore. Entrambe le zone sono considerate
   potenzialmente tese (inversione del momento); l'altezza utile d di ciascuna è misurata dal lembo opposto al
   baricentro delle sue barre.
-- Pilastro: NEd è il modulo della massima compressione di progetto fra gli stati verificati.
+- Pilastro: NEd è il modulo della massima compressione di progetto dello stato verificato (il verificatore del modello
+  fa una verifica per asta e stato).
 - Il copriferro di durabilità cmin,dur viene dal progetto di durabilità (pagina
   [ca.durabilita-copriferri](ca.durabilita-copriferri.md)) insieme alle maggiorazioni per superficie irregolare e
-  abrasione e al minimo dei getti contro terreno. Senza cmin,dur i controlli del copriferro restano in sospeso.
+  abrasione e al minimo dei getti contro terreno. Senza cmin,dur `NominalCover` è in sospeso e `BarCoverMargin` non è
+  prodotto.
 - Le staffe sono a 90°, con diametro, passo e numero di braccia dati. Le braccia sono equidistanti sull'anima.
 - Le conferme sono dati del chiamante: barre compresse trattenute; zone di estremità (ancoraggio agli appoggi e
   regola della traslazione; per i pilastri Eurocodice, passo ridotto vicino a travi e solette).
@@ -162,8 +169,9 @@ Copriferro richiesto per un diametro di aderenza Øb (EN (4.1)-(4.2), 4.4.1.2(3)
 c_{req}(\varnothing_b) = \max\left\{\max\left[10\ \text{mm};\ c_{min,dur};\ \varnothing_b + 5\ \text{mm}\cdot[d_g>32\ \text{mm}]\right] + \Delta c_{add} + \Delta c_{dev};\ c_{ground}\right\} \qquad \text{(D.2)}
 ```
 
-Verifiche del copriferro: nominale con Øb = Øw (o Ømax senza staffe), chiave `NominalCover`; margine di ogni barra con
-il suo diametro, chiave `BarCoverMargin`:
+Il minimo dei getti contro terreno cground vale per tutte le facce della sezione, sia in cnom sia per ogni barra (a
+favore di sicurezza sulle facce non gettate contro terreno). Verifiche del copriferro: nominale con Øb = Øw (o Ømax
+senza staffe), chiave `NominalCover`; margine di ogni barra con il suo diametro, chiave `BarCoverMargin`:
 
 ```math
 c_{nom} \ge c_{req}(\varnothing_w), \qquad \Delta c = \min_i\left[c_i - c_{req}(\varnothing_i)\right] \ge 0 \qquad \text{(D.3)}
@@ -261,7 +269,7 @@ Famiglia Eurocodice (EN 9.5.2, 9.5.3; DM 31/07/2012), chiavi `LongitudinalDiamet
 | Ølim | 8 mm | 12 mm |
 | kA | 0,002 | 0,003 |
 | scl,tmax | min(20 Ømin; b; 400 mm) | min(12 Ømin; b; 250 mm) |
-| β | 0,6 nelle zone di sovrapposizione, altrimenti 1 | come EN |
+| β | 0,6 nelle zone di sovrapposizione (con `LapLinkReductionAboveFourteen` solo se Ømax > 14 mm), altrimenti 1 | come EN |
 
 > **Scostamento dichiarato — D-3 (R13) Riduzione del passo delle staffe nelle sovrapposizioni dei pilastri**
 >
@@ -274,7 +282,9 @@ Famiglia Eurocodice (EN 9.5.2, 9.5.3; DM 31/07/2012), chiavi `LongitudinalDiamet
 >   dall'utente il 25/10/2026 (F5.15); predefinito invariato, la regola di 0.0.17.0, per il contratto (voce R13 del registro
 >   delle differenze).
 
-Per tutti i profili, nelle zone di sovrapposizione dei pilastri (EN 9.5.2(3)), chiave `MaximumAtLap`:
+Per tutti i profili, nelle zone di sovrapposizione dei pilastri (EN 9.5.2(3)) e delle pareti (riferimento «EC2 §§9.5.2 /
+9.6.2»), chiave `MaximumAtLap`, sull'armatura della sezione data, che deve contenere entrambe le barre di ogni giunzione
+(riquadro D-6):
 
 ```math
 A_s \le 0{,}08\,A_c \qquad \text{(D.10)}
@@ -289,11 +299,23 @@ A_s \le 0{,}08\,A_c \qquad \text{(D.10)}
 >   sezione di giunzione.
 > - Stato: dichiarato (voce R13 del registro delle differenze).
 
+> **Scostamento dichiarato — D-6 Armatura nella sezione di giunzione**
+>
+> - Norma: EN 9.5.2(3), nota: As,max = 0,04 Ac fuori dalle sovrapposizioni, 0,08 Ac nelle sovrapposizioni, dove le
+>   barre giuntate sono contate due volte.
+> - Programma: confronta con 0,08 Ac l'armatura della sezione così come il chiamante la descrive e nella zona di
+>   sovrapposizione non controlla 0,04 Ac. Il verificatore del modello passa la sezione corrente dell'asta, che di norma
+>   non raddoppia le barre giuntate.
+> - Effetto: a sfavore di sicurezza se la sezione data non contiene le barre sovrapposte: con il 100% di barre giuntate
+>   il limite effettivo raddoppia (per esempio As = 0,06 Ac accettato nella giunzione).
+> - Stato: dichiarato; la descrizione della sezione di giunzione è del chiamante.
+
 ### 6.4 Conferme ed esito
 
 Controlli in sospeso per conferma mancante:
 
-- `BarsHeldByLinks`: NTC con staffe; EN 9.2.1.2 e 9.5.3(6);
+- `BarsHeldByLinks`: NTC con staffe (ogni membratura); pilastri della famiglia Eurocodice, EN 9.5.3(6); travi DS, DK NA
+  9.2.1.2(3) che estende alle travi la 9.5.3(6);
 - `EndSupportAnchorage`: travi, NTC §4.1.6.1.1 (anche per le travi senza armatura a taglio, Circolare C4.1.6.1.1)
   ed EN 9.2.1.4;
 - `LinkSpacingNearBeams`: pilastri Eurocodice, EN 9.5.3(4)(i).
@@ -315,7 +337,8 @@ L'esito complessivo è:
 > - Effetto: l'esito complessivo DS delle travi resta in sospeso per As,min, salvo quando un controllo calcolato non è
 >   soddisfatto (per esempio staffe sotto ρw,min): allora è «non soddisfatto». Nessun esito errato.
 > - Stato: ρw,min corretto (voce R20 del registro delle differenze, decisione dell'utente del 28/10/2026); As,min e
->   9.5.3(6) dichiarati.
+>   9.5.3(6) dichiarati. Il DK NA:2024 non è nella raccolta dell'ufficio (1/11/2026): 0,063 √fck/fyk non è stato
+>   riscontrato di nuovo sull'edizione ufficiale; il valore raccomandato EN (9.5N) 0,08 √fck/fyk sì (9.2.2(5)).
 
 ### 6.5 Solette e pareti: interasse delle barre
 
@@ -348,43 +371,52 @@ restituisce i valori di ANTHEA. La regola dei pilastri (riquadro D-2) non cambia
 | pilastri NTC | Ø ≥ 12; 300 mm; 0,10 NEd/fyd; 0,003 Ac; 6 mm; Ømax/4; 12 Ømin; 250 mm | NTC §4.1.6.1.2 | no | `Column` |
 | pilastri EN | Ø ≥ 8; 0,002 Ac; 20 Ømin; b; 400 mm; 4 barre (circolari) | EN 9.5.2, 9.5.3 | no | `Column` |
 | pilastri UNI | Ø ≥ 12; 0,003 Ac; 12 Ømin; b; 250 mm | DM 31/07/2012 | no | `Column` |
-| riduzione del passo | 0,6 | EN 9.5.3(4) (riquadro D-3) | no | `Column` |
+| riduzione del passo | 0,6 | EN 9.5.3(4) (riquadro D-3) | solo la condizione Ømax > 14 mm (`LapLinkReductionAboveFourteen`) | `Column` |
 | cmin,dur, Δcdev, Δcadd, cground | dati | progetto di durabilità; EN 4.4.1 | sì | `MemberDetailingInput` |
 
 ## 8. Implementazione
 
 Percorsi relativi alla radice del repository Checker (namespace `GPC.Checkers.Concrete.Detailing`, salvo indicazione).
 
-- `MemberDetailingInput` (`GPCChecker.Concrete/Detailing/MemberDetailingCalculator.cs:14-64`), `DetailingCheck`
-  (righe 67-81), `MemberDetailingResult` (righe 83-91, esito aggregato (D.11) alla riga 89).
-- `MemberDetailingCalculator.Calculate` (righe 103-142):
-  1. controlla i dati: valori non finiti o negativi danno `ArgumentException` (righe 106-109);
-  2. calcola Ømin, Ømax e As (riga 119) e l'interferro su tutte le coppie, (D.1) (righe 120-124);
-  3. calcola il copriferro richiesto, (D.2) (riga 128), e i controlli (D.3) (righe 125-134); senza cmin,dur il
-     controllo è in sospeso (riga 135);
-  4. smista a `Column` o `Beam` (righe 137-138);
-  5. aggiunge le conferme NTC sulle barre trattenute (riga 139) e il massimo nelle sovrapposizioni dei pilastri,
-     (D.10) (riga 140).
-- `MemberDetailingCalculator.Column` (righe 144-174):
-  - profilo NTC: righe 149-159, (D.8), con l'interasse da `CrackSectionGeometry.MaximumSpacing` (righe 152-154);
-  - famiglia Eurocodice: righe 161-173, (D.9), con la riduzione 0,6 nelle sovrapposizioni alla riga 169;
-  - conferme: righe 171-173.
-- `MemberDetailingCalculator.Beam` (righe 179-222):
-  - divisione in zone (righe 183, 190), ρmin (riga 184), Ast/s (riga 185);
-  - zona senza barre (righe 191-196), d (riga 198);
-  - armatura minima e massima, (D.5) (righe 199-201);
-  - staffe NTC, (D.6) (righe 202-206); staffe Eurocodice, (D.7) (righe 207-217);
-  - trattenimento delle barre compresse (righe 219-220) e ancoraggio di estremità (riga 221).
-- `MemberDetailingCalculator.National` (righe 176-177): controlli DS non implementati (`NotImplemented` = true).
+- `MemberDetailingInput` (`GPCChecker.Concrete/Detailing/MemberDetailingCalculator.cs:79-149`), con le opzioni
+  `MemberDetailingOptions` (righe 30-73) e i dati di soletta e parete `PlateDetailingData` (righe 20-27); `DetailingCheck`
+  (righe 152-166), `MemberDetailingResult` (righe 168-176, esito aggregato (D.11) alla riga 174).
+- `MemberDetailingCalculator.Calculate` (righe 191-247):
+  1. controlla i dati: valori non finiti o negativi danno `ArgumentException` (righe 193-204, costruttore righe
+     139-143);
+  2. calcola Ømin, Ømax e As (riga 216) e l'interferro su tutte le coppie, (D.1) (righe 217-221);
+  3. calcola il copriferro richiesto, (D.2) (riga 225), e i controlli (D.3) (righe 222-231); senza cmin,dur
+     `NominalCover` è in sospeso (riga 232);
+  4. smista a `Column`, `Beam`, `Slab` o `Wall` (righe 235-241);
+  5. aggiunge le conferme NTC sulle barre trattenute (riga 242) e il massimo nelle sovrapposizioni di pilastri e
+     pareti, (D.10) (righe 243-245).
+- `MemberDetailingCalculator.Column` (righe 319-354):
+  - profilo NTC: righe 324-337, (D.8), con l'interasse da `CrackSectionGeometry.MaximumSpacing` (righe 327-331) o,
+    con l'opzione, lungo il perimetro (`MemberDetailingCalculator.Perimeter.cs:44-96`);
+  - famiglia Eurocodice: righe 338-350, (D.9), con la riduzione 0,6 nelle sovrapposizioni alle righe 346-348;
+  - conferme: righe 351-353.
+- `MemberDetailingCalculator.Beam` (righe 360-408):
+  - divisione in zone (righe 364, 371), ρmin (riga 365), Ast/s (riga 366);
+  - zona senza barre (righe 372-377), d (riga 379);
+  - armatura minima e massima, (D.5) (righe 380-382);
+  - staffe NTC, (D.6) (righe 384-388); staffe Eurocodice, (D.7) (righe 389-400);
+  - trattenimento delle barre compresse (righe 405-406) e ancoraggio di estremità (riga 407).
+- `MemberDetailingCalculator.National` (righe 356-357): controlli DS non implementati (`NotImplemented` = true).
+- Solette e pareti: `IsRectangularStrip` (righe 250-265), `Slab` (righe 274-292), `Wall` (righe 299-317); limiti in
+  `PlateDetailingRules` (`PlateDetailingRules.cs`, interferro alla riga 11) e in `LongitudinalReinforcementLimits`
+  (`LongitudinalReinforcementLimits.cs`: 0,04 Ac alla riga 9, ρmin alla riga 11). `CalculateColumnOnPerimeter`
+  (`MemberDetailingCalculator.Perimeter.cs:16-38`) misura l'interasse dei pilastri NTC lungo un percorso chiuso dato
+  dal chiamante.
 - `DetailingProfiles` (`GPCChecker.Concrete/Detailing/DetailingProfiles.cs`): risoluzione della norma per tipo esatto
   (righe 17-29, 45-52) e motivi (righe 31-43).
 - `GPC.Checkers.Concrete.Cracking.CrackSectionGeometry` (`GPCChecker.Concrete/Cracking/CrackSectionGeometry.cs`):
-  `From`, geometria di una sezione del modello (righe 63-76); `BarCover`, copriferro geometrico con segno rispetto a
-  contorno e fori (righe 107-119); `MaximumSpacing`, interasse automatico per allineamenti o anelli (righe 124-164).
-- Uso nel verificatore del modello (repository Model, `ModelChecker/ConcreteSectionVerifier.Detailing.cs`): una
-  attività per asta e stato; NEd è la compressione massima dei campioni (riga 43); cmin,dur viene dal progetto di
-  durabilità, prendendo il maggiore fra il valore calcolato e quello eventualmente assegnato (righe 66-77); i
-  controlli in sospeso danno «dati insufficienti», le regole non implementate «non supportato» (righe 88-114).
+  `From`, geometria di una sezione del modello (righe 74-87); `BarCover`, copriferro geometrico con segno rispetto a
+  contorno e fori (righe 164-176); `MaximumSpacing`, interasse automatico per allineamenti o anelli (righe 273 e
+  282-324).
+- Uso nel verificatore del modello (repository Checker, `ModelChecker/Adapters/Concrete/ConcreteSectionVerifier.Detailing.cs`):
+  una attività per asta e stato; NEd è la compressione massima dei campioni dello stato (riga 48); cmin,dur viene dal
+  progetto di durabilità, prendendo il maggiore fra il valore calcolato e quello eventualmente assegnato (righe 73-84);
+  i controlli in sospeso danno «dati insufficienti», le regole non implementate «non supportato» (righe 95-121).
 
 ## 9. Limiti e casi non supportati
 
@@ -401,7 +433,14 @@ Percorsi relativi alla radice del repository Checker (namespace `GPC.Checkers.Co
   interne al contorno delle barre conservano la misura per allineamenti.
 - Il passo delle staffe nelle sovrapposizioni dei pilastri Eurocodice è ridotto anche con Ømax ≤ 14 mm
   (riquadro D-3).
-- Il trattenimento delle barre compresse nelle travi Eurocodice è una conferma, non un calcolo (riquadro D-1).
+- Pilastri della famiglia Eurocodice: non sono controllati il campo di 9.5.1 (h ≤ 4b), le tre staffe nella lunghezza
+  di sovrapposizione di 9.5.3(4)(ii) e, per la «dimensione minore» del pilastro di 9.5.3(3), il rettangolo d'ingombro
+  sostituisce la sezione (sovrastima nelle sezioni a L o ruotate).
+- Solette con il profilo NTC: interasse massimo con i valori raccomandati EN 9.3.1.1(3), min(3h; 400 mm) per
+  l'armatura principale e min(3,5h; 450 mm) per la secondaria; l'appendice italiana di UNI EN 1992-1-1 (DM 31/07/2012)
+  dà 2h ≤ 350 mm e 3h ≤ 400 mm (2h ≤ 250 mm nelle zone di carichi concentrati o di momento massimo; 9.3.1.1(3), GU
+  27/3/2013 p. 87), più restrittivi. Il rinvio dell'NTC 2018 per le solette non è stato riscontrato (testo non nella
+  raccolta dell'ufficio): domanda aperta.
 - La quota minima di staffe nell'armatura a taglio, la presenza di una barra in ogni spigolo dei pilastri
   poligonali, le staffe inclinate e le regole sismiche non sono verificate.
 - Con DS, As,min delle travi resta in sospeso (riquadro D-5).
@@ -451,7 +490,8 @@ barre superiori 2Ø14 in y = 200 mm (x = ±100). Staffe a passo 200 mm; bt = bw 
    zona di sovrapposizione (Ømax = 16 > 14 mm): 0,6 · 320 = 192 mm, non soddisfatto; As ≤ 0,08 Ac = 12800 mm².
 4. UNI: As,min = 511,11 mm²; passo ≤ min(192; 400; 250) = 192 mm: non soddisfatto.
 
-Valori della libreria (GPCChecker.Concrete 0.0.17.0, eseguita):
+Valori della libreria (GPCChecker.Concrete 0.0.17.0, eseguita; i valori restano quelli della 0.33.0.0, verifica sul
+codice del 1/11/2026, e `pagine_metodi.py` di ANTHEA ricontrolla il profilo NTC):
 
 | Controllo | A mano | Libreria | Scarto |
 | --- | --- | --- | --- |
