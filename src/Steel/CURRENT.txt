@@ -103,8 +103,10 @@ Stato reale del taglio (28 ottobre 2026):
   - r = d/2 al posto del raggio medio (d - t)/2 sovrastima r/t: a favore di
     sicurezza.
   - D.1.4 tratta il taglio uniforme della torsione; il taglio trasversale da
-    tensioni critiche di picco maggiori, quindi il filtro e conservativo (da
-    verificare nel testo: non trovato nella D.1.4).
+    tensioni critiche di picco maggiori nel modello analogo di Commentary
+    AISC360-16 G5 p16.1-355, riscontrato il02/11. Non e' una clausola EN:
+    la libreria non accredita l'incremento1.3 indicato da quella fonte.
+    Vedi CHS_SHEAR_SOURCE_REVIEW_2026_11_02.txt; nessun fattore AISC e' usato.
   Verifiche dei testi (30/10/2026, copia BS EN 1993-1-6:2007 con corrigendum 2009
   e Dowswell, AISC Eng. J. 2024): D.31, D.32, C_tau medio e lungo, D.39 e la
   classe A/B/C verificati; C_tau corto solo in parte (formula illeggibile).
@@ -557,7 +559,7 @@ STATO DEGLI OTTO PUNTI RICHIESTI IN QUESTO BLOCCO
   o larghezza diverse, offset, rastremazioni, classe4 efficace, taglio alto nei
   coprigiunti (anche EffectiveCompressionWithShearBuckling). Vedi
   Connections/BRIDGE_SPLICE_TRANSITIONS.txt.
-3 Classe4 compressa+taglio: COMPLETATO (29/10) salvo un sottocaso. Taglio basso
+3 Classe4 compressa+taglio: PARZIALE. Implementati dal29/10 taglio basso
   e alto, lastre sensibili a instabilita: EffectiveCompressionWithShearBuckling.
   Rifiutato con codice: eta3>0.5 su taglio interamente compresso (sezione10).
 4 Terminali/supporti: PARZIALE (29/10/2026). Chiusi nel campo dichiarato:

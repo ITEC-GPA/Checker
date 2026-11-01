@@ -1,0 +1,35 @@
+CHS - FONTE DELL'ANALOGIA TAGLIO/TORSIONE E LIMITE DI EDIZIONE
+02/11/2026
+
+Il filtro EvaluateChsWall resta invariato: r/t<=0.16(E/fy)^0.67 con r=D/2,
+EN1993-1-6:2007 D.1.4.2(3), eq.(D.40), come scelto dall'utente il30/10.
+Non si cambia il coefficiente ne' alcun atteso della regressione.
+
+Riscontro indipendente primario dell'analogia meccanica:
+ANSI/AISC360-16, Commentary G5 ROUND HSS, p16.1-355, versione June2018:
+https://www.aisc.org/globalassets/aisc/publications/standards/a360-16-spec-and-commentary_june-2018.pdf
+Il commentario ricava il modello di taglio trasversale da quello di torsione
+dei cilindri, indicando un incremento1.3 della tensione critica per il
+gradiente usuale del taglio. La fonte e' stata verificata nel testo
+indicizzato del documento ufficiale; il download diretto restituisce403.
+
+Conferma e precisazione sulla lunghezza: AISC/NSBA, Steel Bridge Design
+Handbook, Chapter4, Structural Behavior of Steel,6.5.4, eq.6.5.4-8:
+https://www.aisc.org/media/hf4jbmik/b904_sbdh_chapter4.pdf
+Adotta il medesimo confronto; se il taglio non si annulla nell'asta usa
+l'intera lunghezza. Il criterio GPC usa il minorante dei cilindri lunghi
+e non accredita l'incremento1.3 ne' una riduzione della lunghezza.
+
+Interpretazione: questo riscontro sostiene l'analogia fisica cautelativa,
+NON e' una clausola aggiuntiva dell'EC3 e non trasferisce fattori AISC
+nel percorso EC/NTC. Il filtro conserva la sua derivazione EN e la propria
+esplicita ipotesi di parete cilindrica non irrigidita, vincoli BC1/BC2.
+Non qualifica aperture, bordi liberi, azioni locali o cilindri irrigiditi.
+
+Lettura dell'A1:2017: NON CHIUSA. Il testo finale completo dell'emendamento
+non era accessibile nelle fonti consultate; le anteprime non mostrano la
+clausola e prA1:2016 e' solo una bozza. Non si deduce dalla bozza che il
+testo finale lasci invariata la D.40. Il riferimento implementato resta
+2007 con corrigendum2009, senza dichiarare una verifica della A1:2017.
+Per chiudere questo controllo editoriale serve la pagina finale pubblicata
+che modifica D.1.4.2. Nessuna nuova formula ricavata per analogia e' introdotta.
