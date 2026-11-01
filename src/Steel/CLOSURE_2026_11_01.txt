@@ -35,9 +35,18 @@ Avanzamento
   letture di modello elencate nel documento tecnico; non e' una qualificazione
   indiscriminata. CHS: A1:2017 completa e giustificazione diretta del taglio
   trasversale ancora da reperire, nessuna nuova conclusione automatica.
-2 DA FARE
+2 APERTO - letta visivamente la sezione10 EN1993-1-5; la snellezza deve
+  usare il campo combinato dello stesso pannello. I due modelli attuali
+  (compressione fra bulloni, taglio a tutta larghezza) non consentono una
+  sostituzione automatica dimostrata. Rifiuto mantenuto, requisiti tecnici
+  in Connections/SECTION10_MODEL_REVIEW_2026_11_01.txt.
 3 PARZIALE - implementato terminale 2C teso con fazzoletto e collettore
   complanare CJP, vincolando i sottocontratti alla stessa geometria/azione.
   27 nuovi test superati; ChannelPairCoplanarCollector.Verify.
   Restano C singola con eccentricita', T-supporti e tying delle squadrette.
-4 DA FARE
+4 PARZIALE - implementato opt-in UniformCompressionEnvelope in ModelChecker,
+  I/H doppiamente simmetriche classe1-3 a compressione uniforme, Cm=1,
+  Ncr del modello uniforme, estremi FEM dichiarati. 84 test mirati superati;
+  regressione ModelChecker 669 superati, 1 ignorato preesistente, 0 falliti.
+  Restano taglio elevato, generalizzazioni oltre il campo e ulteriori schemi
+  automatici di vincolo. Vedi VARIABLE_COMPRESSION_ENVELOPE.txt.

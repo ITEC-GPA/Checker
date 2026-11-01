@@ -118,7 +118,7 @@ namespace GPC.Model.Checker
             trace.Add(new CheckCalculationValue("Member.Geometry.CutCount",cuts.Count,"1","Exported concomitant cuts; no assertion of continuous coverage"));
             return new SteelPhysicalMemberPreparation{Cuts=cuts.OrderBy(c=>c.Distance).ToArray(),Trace=trace,Frame=frame};
         }
-        internal SteelActions BeamColumnEnvelope()
+        internal SteelActions BeamColumnEnvelope(bool uniformCompressionEnvelope = false, string axialSource = null)
         {
             double n=Cuts[0].Actions.N;
             // The member route neglects tension (favourable to flexural/LTB buckling): only compression must be constant.
@@ -126,13 +126,16 @@ namespace GPC.Model.Checker
             foreach(var cut in Cuts)
             {
                 if(cut.Actions.T!=0)throw new NotSupportedException("Applied torque is outside the beam-column route.");
-                if(!tension&&Math.Abs(cut.Actions.N-n)>1e-10*Math.Max(1,Math.Abs(n)))throw new NotSupportedException("Beam-column compression must be constant over the selected span.");
+                if(!tension&&!uniformCompressionEnvelope&&Math.Abs(cut.Actions.N-n)>1e-10*Math.Max(1,Math.Abs(n)))throw new NotSupportedException("Beam-column compression must be constant over the selected span.");
             }
             var evidence=new List<CheckCalculationValue>(Trace);
-            if(tension&&Cuts.Any(c=>c.Actions.N!=n)) {
+            if(uniformCompressionEnvelope||tension&&Cuts.Any(c=>c.Actions.N!=n)) {
                 var least=Cuts.OrderBy(c=>c.Actions.N).First();n=least.Actions.N;
-                evidence.Add(new CheckCalculationValue("Member.Envelope.N",n,"N","Varying tension: smallest value of this ONE design state; neglected as favourable by the member stability route"));
-                evidence.Add(new CheckCalculationValue("Member.Envelope.N.Distance",least.Distance,"mm","Physical-member coordinate of controlling exported cut"));
+                evidence.Add(new CheckCalculationValue("Member.Envelope.N",n,"N",uniformCompressionEnvelope
+                    ? "Most compressive exported force of this ONE state extended uniformly over the selected span; no tension benefit. Coverage: "+axialSource
+                    : "Varying tension: smallest value of this ONE design state; neglected as favourable by the member stability route"));
+                evidence.Add(new CheckCalculationValue("Member.Envelope.N.Distance",least.Distance+(Segment?.Start??0),"mm","Physical-member coordinate of controlling exported cut"));
+                evidence.Add(new CheckCalculationValue("Member.Envelope.N.BeamId",least.Source.Element.Id,"1","Original FE element of the controlling axial-force cut"));
             }
             double Maximum(string name,Func<SteelActions,double> component)
             {

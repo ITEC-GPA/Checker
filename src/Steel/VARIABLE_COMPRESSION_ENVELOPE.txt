@@ -1,0 +1,48 @@
+COMPRESSIONE VARIABILE - INVILUPPO UNIFORME ESPLICITO (01/11/2026)
+
+ModelChecker, AnalysisMode=BeamColumn:
+  AxialForcePreparation=UniformCompressionEnvelope
+  AxialForceCoverageSource=<copertura degli estremi e delle discontinuita' di N>
+  MomentFactorPreparation=ConservativeEnvelope
+  MomentDiagramCoverageSource=<copertura degli estremi di M>
+  McrBasis=UniformMoment
+Restano richieste le usuali fonti di modello, carico, lunghezze critiche,
+curve e qualificazione dei modi torsionali. Non fornire Cm1/Cm2/CmLT:
+la preparazione li imposta a 1. Senza opt-in la compressione deve restare
+costante, come prima; non cambia il percorso della sola trazione variabile.
+
+Ipotesi: asta I/H doppiamente simmetrica, retta, prismatica, non-sway,
+classe1-3 in COMPRESSIONE UNIFORME. N positivo a trazione. Si prende il
+minimo N fra i tagli dello STESSO stato e lo si estende alla luce pertinente;
+i massimi di M/V restano quelli esportati. Non si inferiscono picchi fra
+campioni: la fonte deve attestare tutti gli estremi e le due facce dei salti.
+I tagli concomitanti originari e i controlli di sezione non vengono modificati.
+
+Motivazione del limite inferiore di stabilita': per qualsiasi spostamento
+flessionale ammissibile v, integrale Nc(x)*(v')^2 dx <=
+Nmax*integrale (v')^2 dx, dove Nc=max(0,-N) e Nmax=max Nc.
+La compressione uniforme sovrastima il contributo destabilizzante della
+distribuzione reale. Non si attribuisce beneficio ai tratti tesi. Questa e'
+una scelta di modello cautelativa, non una nuova equazione normativa per N(x).
+Le resistenze e le interazioni rimangono quelle EC3 6.3.3/AnnessoB o NTC2018
+4.2.4.1.3.3 con Circolare MetodoB, alle azioni inviluppate.
+
+Qualificazioni imposte:
+- classe ricalcolata a compressione uniforme; nessuna classe imposta o
+  alleggerita da un rapporto M/N locale, nessuna estensione alla classe4;
+- Cm1=Cm2=CmLT=1, Mcr a momento uniforme; nessun diagramma favorevole;
+- Ncr flessionali dall'Eulero sulle lunghezze critiche del modello uniforme;
+  rifiutati Ncr1/Ncr2/NcrT/NcrFT esterni che potrebbero riferirsi a un diverso
+  diagramma di carico; modi torsionali da dati geometrici/vincoli qualificati
+  o esclusioni gia' previste e motivate, mai da assenza di dati;
+- tutti i limiti preesistenti, incluso V<=0.5Vpl e instabilita' a taglio
+  esclusa, rimangono attivi. Non risolve il taglio elevato trave-colonna.
+
+Traccia Member.Envelope.N, .Distance (ascissa sull'asta fisica anche nei
+segmenti) e .BeamId identifica il punto di origine. Il parametro e la sua
+fonte fanno parte del dizionario Parameters gia' incluso nell'impronta
+di configurazione; nessun nuovo campo persistito e nessuna migrazione.
+
+Test: confronto con asta indipendente caricata a Nmax uniforme e calcolo
+manuale delle due interazioni (EC/NTC, compressione e cambio di segno);
+13 casi di calcolo/invalidita' e un test dello schema di configurazione.

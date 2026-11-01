@@ -1,0 +1,36 @@
+COPRIGIUNTO INTERAMENTE COMPRESSO CON TAGLIO ELEVATO - RISCONTRO
+01/11/2026, EN1993-1-5:2006 sezione10, pp36-37 lette visivamente.
+Fonte: https://www.phd.eng.br/wp-content/uploads/2015/12/en.1993.1.5.2006.pdf
+Commento originale JRC/ECCS EUR22898EN, cap.10:
+https://eurocodes.jrc.ec.europa.eu/sites/default/files/2021-12/EUR22898EN.pdf
+
+La formula non e' il dato mancante. (10.1) richiede rho*alpha_ult,k/gammaM1
+>=1, con snellezza comune sqrt(alpha_ult,k/alpha_cr), dove alpha_cr si
+riferisce all'INTERO CAMPO TENSIONALE della STESSA LASTRA. Il minimo delle
+riduzioni previsto dal punto(5)a usa questa snellezza comune, e la riduzione
+longitudinale deve includere il comportamento da colonna ove pertinente.
+
+Il modello corrente usa per la compressione gli sbalzi e le strisce fra
+file di bulloni, mentre per il taglio considera l'intera larghezza.
+Inserire i due valori critici in (10.6) non dimostra che appartengano allo
+stesso problema di instabilita': l'equazione combina stati di carico di
+un unico pannello con gli stessi vincoli. I bulloni sono vincoli discreti;
+non diventano automaticamente appoggi continui dell'intera lastra.
+
+Pertanto il codice HIGH_SHEAR_WHOLE_PLATE_COMPRESSED_REQUIRES_EN1993_1_5_SECTION10
+resta attivo. Nessun test di rifiuto e' trasformato in Passed e nessun dato
+critico esterno generico e' aggiunto per aggirare la qualifica fisica.
+
+Per chiudere il percorso automatico servono:
+1. una famiglia di pannello/contatto esplicita, con file, sporgenze, tratto
+   libero fra le testate, appoggi e possibile distacco definiti;
+2. valori critici longitudinali, a taglio e da colonna della stessa famiglia,
+   oppure il moltiplicatore combinato, da un modello analitico documentato;
+3. benchmark indipendenti con compressione pura, taglio puro, combinazione,
+   variazione di passo/sporgenza e prossimita' ai limiti;
+4. applicazione della sezione10 insieme ai controlli netti, bulloni, blocchi,
+   genitori e trasferimenti gia' esistenti. Il punto(4) non e' un'autorizzazione
+   a riutilizzare la sezione7 al posto del controllo richiesto.
+
+Questo sottocaso resta APERTO per qualifica del modello, non risolto dalla
+sola trascrizione di una formula. Nessuna estensione a FEM locale in questa task.

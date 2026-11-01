@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using GPC.Checkers.Steel.Inputs;
+using GPC.Checkers.Steel.ModelAdapters;
 using GPC.Checkers.Steel.Pipeline;
 using GPC.Checkers.Steel.Sections;
 using GPC.Checkers.Steel.Selection;
@@ -15,7 +16,7 @@ namespace GPC.Model.Checker
     {
         private static readonly string[] BeamColumnKeys={"TorsionSusceptible","Cm1","Cm2","CmLT","MomentFactorSource",
             "StabilityModelSource","LateralTorsionalExclusionSource","ShearBucklingExclusionSource","MomentFactorPreparation",
-            "SwayBucklingPlanes","SwayModeSource"};
+            "SwayBucklingPlanes","SwayModeSource","AxialForcePreparation","AxialForceCoverageSource"};
 
         private SteelMemberAnalysis BeamColumn(PhysicalMemberCheckInput input,SteelVerificationInput common,SteelPhysicalMemberPreparation physical)
         {
@@ -23,7 +24,8 @@ namespace GPC.Model.Checker
             if(new[]{"InPlaneCurve","LateralCurve","LateralTorsionalCurve","TorsionalCurve"}.Any(_parameters.ContainsKey))
                 throw new ArgumentException("CurveParametersForAnotherMemberMethod");
             if(!bool.TryParse(Required("TorsionSusceptible"),out bool susceptible))throw new ArgumentException("InvalidTorsionalSusceptibility");
-            var actions=physical.BeamColumnEnvelope();
+            bool axialEnvelope=ValidateAxialForceEnvelope(common,out int? axialClass);
+            var actions=physical.BeamColumnEnvelope(axialEnvelope,Optional("AxialForceCoverageSource"));
             common=new SteelVerificationInput(common.Section,actions,common.Code,common.Member);
             var cm=PrepareMomentFactors(input,common,physical,out var momentSource);
             var data=new SteelBeamColumnParameters(CompressionCurve(common,"CompressionCurve1"),CompressionCurve(common,"CompressionCurve2"),
@@ -31,7 +33,7 @@ namespace GPC.Model.Checker
                 Optional("TorsionalExclusionSource"),Optional("FlexuralTorsionalExclusionSource"),EnumValue<SteelCriticalMomentBasis>("McrBasis"),
                 _parameters.TryGetValue("LateralTorsionalExclusionSource",out var excludeLT)?excludeLT:null,
                 _parameters.TryGetValue("ShearBucklingExclusionSource",out var excludeV)?excludeV:null);
-            int? memberClass=null;
+            int? memberClass=axialClass;
             if(_parameters.ContainsKey("MemberClass")) {
                 if(!int.TryParse(Required("MemberClass"),NumberStyles.None,CultureInfo.InvariantCulture,out int value))throw new ArgumentException("InvalidMemberClass");
                 memberClass=value;
@@ -43,7 +45,43 @@ namespace GPC.Model.Checker
             values=PrepareBeamColumnCriticalValues(input,common,physical,susceptible,values).ToList();
             if(SwayPlane(1)||SwayPlane(2))TraceSwayCriticalForces(input,common,values,physical);
             return SteelMemberAnalysis.BeamColumn(common,Required("LoadPatternReference"),PreparedParameterSet(common),data,values,memberClass,
-                _parameters.TryGetValue("ClassificationSource",out var source)?source:null);
+                axialEnvelope?"Uniform-compression class of the actual I/H section; no N-M relief in the conservative variable-N envelope"
+                    :_parameters.TryGetValue("ClassificationSource",out var source)?source:null);
+        }
+
+        // A model envelope, not a new Annex-B formula: Nmax is no smaller than the
+        // compression at any cut. Constant-section geometric stiffness is therefore
+        // bounded by the uniform-N model. Require the exported extrema, conservative
+        // moments and Euler critical forces of that model; never reuse an eigenvalue
+        // normalized to a different variable-N load pattern.
+        private bool ValidateAxialForceEnvelope(SteelVerificationInput input,out int? memberClass)
+        {
+            memberClass=null;
+            if(!_parameters.TryGetValue("AxialForcePreparation",out var method)) {
+                if(_parameters.ContainsKey("AxialForceCoverageSource"))throw new ArgumentException("AxialForceSourceWithoutPreparation");
+                return false;
+            }
+            if(method!="UniformCompressionEnvelope")throw new ArgumentException("UnsupportedAxialForcePreparation");
+            if(string.IsNullOrWhiteSpace(Required("AxialForceCoverageSource")))throw new ArgumentException("AxialForceExtremaCoverageRequired");
+            if(Optional("MomentFactorPreparation")!="ConservativeEnvelope"||Optional("McrBasis")!="UniformMoment"
+                ||_parameters.ContainsKey("SwayBucklingPlanes")||new[]{"Cm1","Cm2","CmLT"}.Any(_parameters.ContainsKey))
+                throw new NotSupportedException("UniformCompressionEnvelopeRequiresNonswayCmOneAndUniformMcr");
+            if(_parameters.ContainsKey("MemberClass")||_parameters.ContainsKey("ClassificationSource"))
+                throw new ArgumentException("UniformCompressionEnvelopeComputesItsOwnUniformClass");
+            if(new[]{"Ncr1","Ncr2","NcrT","NcrFT"}.Any(q=>new[]{".Value",".Unit",".Source"}.Any(s=>_parameters.ContainsKey(q+s)))
+                ||_parameters.TryGetValue("CriticalValues",out var critical)&&critical!="UniformFork")
+                throw new NotSupportedException("UniformCompressionEnvelopeRequiresUniformEulerCriticalForces");
+            var section=input.Section.CreateSectionCopy();var h=section.SectionShape as SectionH;
+            if(h is null||h.GetType()!=typeof(SectionH)||h.LenghtTopFlange!=h.LenghtBottomFlange||h.ThicknessTopFlange!=h.ThicknessBottomFlange)
+                throw new NotSupportedException("UniformCompressionEnvelopeRequiresDoublySymmetricIH");
+            var geometry=ModelCompressionGeometry.Create(section);
+            var classification=input.Code.SectionCode.Standard==SectionResistanceStandard.Ntc2018
+                ?Ntc2018CompressionClassification.Evaluate(geometry,input.Section.YieldStrength)
+                :Ec3UniformCompressionClassification.Evaluate(geometry,input.Section.YieldStrength);
+            if(!classification.IsEvaluated||classification.NominalClass>3)
+                throw new NotSupportedException("UniformCompressionEnvelopeRequiresUniformClass1To3");
+            memberClass=classification.NominalClass;
+            return true;
         }
 
         // Mirrors the section engine (SteelPipelineMaterialChecker.Assessments) when the beam-column waits for shear
