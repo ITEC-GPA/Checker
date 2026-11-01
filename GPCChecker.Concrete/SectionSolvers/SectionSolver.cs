@@ -1247,6 +1247,26 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
         }
 
+        /// <summary>
+        /// The resultants of the laws of the stress analyses for a strain plane, as the nonlinear stress analysis compares them with the forces:
+        /// N, Mx, My in the <see cref="SolverAxes"/>, about the origin of the force reference system (curvature control of the moment-curvature
+        /// ductility, 1/11/2026). NaN for a curved plane whose integration failed: <see cref="CalculateForceResultantForTension(StrainPlane)"/>
+        /// then returns exactly zero, which a root search could take for a solution (a curved plane never has three zero resultants).
+        /// </summary>
+        internal ForceTuple CalculateStressAnalysisForces(StrainPlane strainPlane)
+        {
+            ForceTuple local = CalculateForceResultantForTension(strainPlane);
+            if (local.N == 0 && local.Mx == 0 && local.My == 0 && (strainPlane.ChiX != 0 || strainPlane.ChiY != 0))
+                return new ForceTuple(double.NaN, double.NaN, double.NaN);
+            return GetExternalForces(local, _sectionOption.ForceReferenceCoordinateSystem);
+        }
+
+        /// <summary>
+        /// The peak strain of the concrete in compression (negative), the one of pure compression: εc2 of the parabola-rectangle (also for the
+        /// stress block), εc3 of the bilinear diagram, εc1 of the nonlinear one; the ultimate strain for ACI 318
+        /// </summary>
+        internal double PeakConcreteStrain => GetYieldingStrainPureCompression();
+
         internal ForceTuple CalculateForceResultantForDomain(StrainPlane strainPlane)
         {
             return CalculateForceResultantForDomain(strainPlane, ConcreteSection.GetRebarIsInsideAssociation());
