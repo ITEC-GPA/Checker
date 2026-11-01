@@ -993,13 +993,22 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             }
         }
 
+        /// <summary>The stream of the construction digests of a thread, emptied for each one (before, a new stream that grew for every solver:
+        /// most of the memory of the digest); not kept after a large section</summary>
+        [ThreadStatic]
+        private static System.IO.MemoryStream t_constructionDigestStream;
+
+        /// <summary>The encoding of the writers of the digests (the default of <see cref="System.IO.BinaryWriter"/>; they write no text)</summary>
+        private static readonly System.Text.Encoding DigestEncoding = new System.Text.UTF8Encoding(false, true);
+
         /// <summary>The digest of the constructor state (see <see cref="_constructionDigest"/>); null if it cannot be computed</summary>
         private byte[] ConstructionDigest()
         {
             try
             {
-                using (var memory = new System.IO.MemoryStream())
-                using (var writer = new System.IO.BinaryWriter(memory))
+                var memory = t_constructionDigestStream ?? (t_constructionDigestStream = new System.IO.MemoryStream());
+                memory.SetLength(0);
+                using (var writer = new System.IO.BinaryWriter(memory, DigestEncoding, true))
                 {
                     WriteMesh(writer, _constructionMesh);
                     writer.Write(_steelSectionsThinWallsBreaked.Length);
@@ -1029,8 +1038,12 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                             }
                     }
                     writer.Flush();
+                    byte[] digest;
                     using (var sha = System.Security.Cryptography.SHA256.Create())
-                        return sha.ComputeHash(memory.GetBuffer(), 0, (int)memory.Length);
+                        digest = sha.ComputeHash(memory.GetBuffer(), 0, (int)memory.Length);
+                    if (memory.Capacity > 1 << 20)
+                        t_constructionDigestStream = null;
+                    return digest;
                 }
             }
             catch (Exception)
@@ -1057,13 +1070,17 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                     writer.Write(point.X); writer.Write(point.Y); writer.Write(point.Z);
                 }
             }
+            void WriteVertex(int id)
+            {
+                writer.Write(mesh.Vertices[id].Point.X); writer.Write(mesh.Vertices[id].Point.Y);
+            }
             foreach (var face in mesh.Faces)
             {
                 writer.Write(face.IsTriangle);
-                foreach (int id in face.IsTriangle ? new[] { face.A, face.B, face.C } : new[] { face.A, face.B, face.C, face.D })
-                {
-                    writer.Write(mesh.Vertices[id].Point.X); writer.Write(mesh.Vertices[id].Point.Y);
-                }
+                // the vertices A, B, C and, for a quadrangle, D (before, through an array for every face)
+                WriteVertex(face.A); WriteVertex(face.B); WriteVertex(face.C);
+                if (!face.IsTriangle)
+                    WriteVertex(face.D);
             }
         }
 
@@ -1817,24 +1834,34 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double[] deltaMxArray = new double[rebars.Length];
             double[] deltaMyArray = new double[rebars.Length];
 
-            Parallel.For(0, rebars.Length, (i) =>
+            // In sequence: the bars of a section are few, the solver evaluates the resultants many times and the checks run their sections in
+            // parallel (before, a parallel loop for every resultant). Each bar is computed on its own and the sums keep the order of the bars;
+            // an error is thrown as the loop threw it, in an AggregateException (the callers log its message and the inner one)
+            try
             {
-                ReinforcedConcreteRebar rebar = rebars[i];
-                double strain = strainPlane.GetStrain(rebar.Position);
-                double sigmaS;
-                if (rebar.EpsilonP > 0)
-                    sigmaS = CalculateElasticSigmaS(psiTendon.Value, rebar, strain);
-                else
-                    sigmaS = CalculateElasticSigmaS(psi, rebar, strain);
+                for (int i = 0; i < rebars.Length; i++)
+                {
+                    ReinforcedConcreteRebar rebar = rebars[i];
+                    double strain = strainPlane.GetStrain(rebar.Position);
+                    double sigmaS;
+                    if (rebar.EpsilonP > 0)
+                        sigmaS = CalculateElasticSigmaS(psiTendon.Value, rebar, strain);
+                    else
+                        sigmaS = CalculateElasticSigmaS(psi, rebar, strain);
 
-                double sigmaC = 0;
-                if (rebarIsInsideAssociation[i])
-                    sigmaC = CalculateElasticSigmaC(strain);
+                    double sigmaC = 0;
+                    if (rebarIsInsideAssociation[i])
+                        sigmaC = CalculateElasticSigmaC(strain);
 
-                deltaNArray[i] = (sigmaS - sigmaC) * rebar.Area;
-                deltaMxArray[i] = (sigmaS - sigmaC) * rebar.Area * (rebar.Position.Y - _integrationReferencePoint.Y);
-                deltaMyArray[i] = (sigmaS - sigmaC) * rebar.Area * (rebar.Position.X - _integrationReferencePoint.X);
-            });
+                    deltaNArray[i] = (sigmaS - sigmaC) * rebar.Area;
+                    deltaMxArray[i] = (sigmaS - sigmaC) * rebar.Area * (rebar.Position.Y - _integrationReferencePoint.Y);
+                    deltaMyArray[i] = (sigmaS - sigmaC) * rebar.Area * (rebar.Position.X - _integrationReferencePoint.X);
+                }
+            }
+            catch (Exception e)
+            {
+                throw new AggregateException(e);
+            }
 
             return new ForceTuple(deltaNArray.Sum(), -deltaMxArray.Sum(), deltaMyArray.Sum());
         }
@@ -1934,28 +1961,32 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             double quadratureMx = 0;
             double quadratureMy = 0;
 
-            for (int i = 0; i < ConcreteSection.SteelSections.Count; i++)
+            // The functions of the stress of the current thin wall, made once for all the walls (before, a closure and three delegates for
+            // every wall at every evaluation of the resultants): the integrations call them in sequence
+            int i = 0, j = 0;
+            SteelSectionPosition steelSection = null;
+            double stressFunctionN(double x, double y)
             {
-                SteelSectionPosition steelSection = ConcreteSection.SteelSections[i];
+                var strain = strainPlane.GetStrain(x, y);
+                // the displaced concrete with the linear stress, as for the rebars (before, the design stress of the nonlinear diagram)
+                double sigmaC = _steelSectionsThinWallsBreaked[i][j].IsInsideConcrete ? CalculateElasticSigmaC(strain) : 0.0;
+                return CalculateElasticSigmaS(psi, steelSection.Section, strain) - sigmaC;
+            }
+            double stressFunctionMx(double x, double y) => stressFunctionN(x, y) * (y - _integrationReferencePoint.Y);
+            double stressFunctionMy(double x, double y) => stressFunctionN(x, y) * (x - _integrationReferencePoint.X);
+            Func<double, double, double> functionN = stressFunctionN, functionMx = stressFunctionMx, functionMy = stressFunctionMy;
 
-                for (int j = 0; j < _steelSectionsThinWallsBreaked[i].Length; j++)
+            for (i = 0; i < ConcreteSection.SteelSections.Count; i++)
+            {
+                steelSection = ConcreteSection.SteelSections[i];
+
+                for (j = 0; j < _steelSectionsThinWallsBreaked[i].Length; j++)
                 {
-                    // Make functions for stress.
-                    double stressFunctionN(double x, double y)
-                    {
-                        var strain = strainPlane.GetStrain(x, y);
-                        // the displaced concrete with the linear stress, as for the rebars (before, the design stress of the nonlinear diagram)
-                        double sigmaC = _steelSectionsThinWallsBreaked[i][j].IsInsideConcrete ? CalculateElasticSigmaC(strain) : 0.0;
-                        return CalculateElasticSigmaS(psi, steelSection.Section, strain) - sigmaC;
-                    }
-                    double stressFunctionMx(double x, double y) => stressFunctionN(x, y) * (y - _integrationReferencePoint.Y);
-                    double stressFunctionMy(double x, double y) => stressFunctionN(x, y) * (x - _integrationReferencePoint.X);
-
                     var thickness = _steelSectionsThinWallsBreaked[i][j].T;
                     // Integrate functions.
-                    quadratureN += GaussIntegration.IntegrationLinearShapeFunction(stressFunctionN, _globalCoordinateGaussPointsThinWalls[i][j]) * thickness;
-                    quadratureMx += GaussIntegration.IntegrationLinearShapeFunction(stressFunctionMx, _globalCoordinateGaussPointsThinWalls[i][j]) * thickness;
-                    quadratureMy += GaussIntegration.IntegrationLinearShapeFunction(stressFunctionMy, _globalCoordinateGaussPointsThinWalls[i][j]) * thickness;
+                    quadratureN += GaussIntegration.IntegrationLinearShapeFunction(functionN, _globalCoordinateGaussPointsThinWalls[i][j]) * thickness;
+                    quadratureMx += GaussIntegration.IntegrationLinearShapeFunction(functionMx, _globalCoordinateGaussPointsThinWalls[i][j]) * thickness;
+                    quadratureMy += GaussIntegration.IntegrationLinearShapeFunction(functionMy, _globalCoordinateGaussPointsThinWalls[i][j]) * thickness;
                 }
             }
             return new ForceTuple(quadratureN, -quadratureMx, quadratureMy);
