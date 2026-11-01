@@ -33,6 +33,49 @@ public static partial class HBridgeSection
     public static IReadOnlyList<HBridgeBatchResult> Calculate(IReadOnlyList<HBridgeInput> inputs, CancellationToken cancellation = default)
     {
         if (inputs is null) throw new ArgumentNullException(nameof(inputs));
+        return Analyze(inputs, null, cancellation);
+    }
+
+    /// <summary>
+    /// The analysis of an input that differs from the input of an earlier analysis only in data that the phase analysis does not read: studs,
+    /// stiffeners, transverse reinforcement, fatigue, limit state, and the common load elevation when no phase refers to it (for example the
+    /// details and the ultimate limit state added to the result of a check). The converged situations of the earlier analysis are kept and only
+    /// the stress points, shear, studs, torsion and details are computed again: the result is the one of
+    /// <see cref="Calculate(HBridgeInput, CancellationToken)"/>, with the same numbers. Any other input, or an earlier analysis not computed by
+    /// this library in this process, is calculated in full. The Model materials are compared as objects, as in a batch: they must not change
+    /// in between.
+    /// </summary>
+    /// <param name="earlier">The earlier analysis of the section (null: none)</param>
+    /// <param name="data">The input</param>
+    /// <param name="cancellation">The cancellation</param>
+    /// <returns>The analysis</returns>
+    public static HBridgeAnalysisResult Recalculate(HBridgeAnalysisResult? earlier, HBridgeInput data, CancellationToken cancellation = default)
+    {
+        var result = Recalculate(new[] { earlier }, new[] { data }, cancellation)[0];
+        if (result.Error is not null) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(result.Error).Throw();
+        return result.Analysis!;
+    }
+
+    /// <summary>
+    /// <see cref="Recalculate(HBridgeAnalysisResult?, HBridgeInput, CancellationToken)"/> of several inputs, shared as in
+    /// <see cref="Calculate(IReadOnlyList{HBridgeInput}, CancellationToken)"/>
+    /// </summary>
+    /// <param name="earlier">For each input, its earlier analysis (null: none)</param>
+    /// <param name="inputs">The inputs</param>
+    /// <param name="cancellation">The cancellation</param>
+    /// <returns>For each input, in order, its analysis or its error</returns>
+    public static IReadOnlyList<HBridgeBatchResult> Recalculate(IReadOnlyList<HBridgeAnalysisResult?> earlier, IReadOnlyList<HBridgeInput> inputs,
+        CancellationToken cancellation = default)
+    {
+        if (earlier is null) throw new ArgumentNullException(nameof(earlier));
+        if (inputs is null) throw new ArgumentNullException(nameof(inputs));
+        if (earlier.Count != inputs.Count) throw new ArgumentException("Un'analisi precedente (anche nulla) per ogni ingresso.", nameof(earlier));
+        return Analyze(inputs, earlier, cancellation);
+    }
+
+    private static IReadOnlyList<HBridgeBatchResult> Analyze(IReadOnlyList<HBridgeInput> inputs, IReadOnlyList<HBridgeAnalysisResult?>? earlier,
+        CancellationToken cancellation)
+    {
         var results = new HBridgeBatchResult[inputs.Count];
         var keys = new BridgeBitwise();
         var groups = new Dictionary<string, BridgeBatchGroup>(StringComparer.Ordinal);
@@ -44,9 +87,57 @@ public static partial class HBridgeSection
             // without the reuse every input is computed on its own, as before
             string key = SolutionReuse ? keys.Key(prepared.Data, nameof(HBridgeInput.Phases)) : "#" + i;
             if (!groups.TryGetValue(key, out var group)) groups.Add(key, group = new(prepared, keys));
-            results[i] = group.Calculate(prepared, cancellation);
+            if (SolutionReuse && earlier?[i] is { } analysis && Computed.TryGetValue(analysis, out var situations) && situations.Accepts(prepared, keys))
+            {
+                Interlocked.Increment(ref recalculations);
+                results[i] = group.Recalculate(prepared, situations, cancellation);
+            }
+            else results[i] = group.Calculate(prepared, cancellation);
         }
         return results;
+    }
+
+    private static long recalculations;
+    /// <summary>The inputs calculated from the situations of an earlier analysis since the start of the process (tests)</summary>
+    internal static long Recalculations => Interlocked.Read(ref recalculations);
+
+    /// <summary>What the converged situation of a stage gives to the stage: the stage is computed again from it by
+    /// <see cref="Recalculate(HBridgeAnalysisResult?, HBridgeInput, CancellationToken)"/></summary>
+    private sealed record BridgeSituationStage(int PhaseIndex, int Iterations, double Residual, BridgeEffective Effective, BridgeSteelProperties EffectiveSteel,
+        BridgeContribution[] Contributions);
+
+    /// <summary>The situations of an analysis computed here, with its input (its own copy of the phases)</summary>
+    private sealed class BridgeComputedSituations
+    {
+        internal BridgeComputedSituations(HBridgeInput input, BridgeSituationStage[] stages) { Input = input with { Phases = input.Phases.ToArray() }; Stages = stages; }
+        internal HBridgeInput Input { get; }
+        internal BridgeSituationStage[] Stages { get; }
+
+        /// <summary>True: the input differs from the one of these situations only in data that the phase analysis does not read (those of the
+        /// stress points, shear, studs, torsion and details)</summary>
+        internal bool Accepts(BridgePreparedInput input, BridgeBitwise keys)
+        {
+            var d = input.Data; var e = Input;
+            if (Stages.Length != input.Phases.Length) return false;
+            // the common elevation is the application point of the phases that refer to it
+            bool common = d.Phases.Any(p => p.Reference == BridgeLoadReference.CommonElevation);
+            var same = d with { Studs = e.Studs, Intermediate = e.Intermediate, Support = e.Support, Transverse = e.Transverse, Fatigue = e.Fatigue,
+                Options = d.Options with { LimitState = e.Options.LimitState, CommonLoadY = common ? d.Options.CommonLoadY : e.Options.CommonLoadY } };
+            return keys.Key(same) == keys.Key(e);
+        }
+    }
+
+    /// <summary>The situations of the analyses computed here, for as long as the analyses live</summary>
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<HBridgeAnalysisResult, BridgeComputedSituations> Computed = new();
+
+    /// <summary>The analysis of an input with its stages, kept with their situations</summary>
+    private static HBridgeBatchResult Result(HBridgeInput data, BridgeGeometry g, BridgeMaterialSet mat, List<BridgeStage> stages, BridgeSituationStage[] situations)
+    {
+        var analysis = new HBridgeAnalysisResult(Method, Scope, data, g,
+            new(mat.Concrete.Name, Math.Abs(mat.Concrete.Fck), mat.Concrete.ElasticModulusCompression, mat.Steel.Name, mat.Steel.Fyk, mat.Steel.ElasticModulusTension,
+                mat.Rebar.Name, mat.Rebar.Fyk, mat.Rebar.ElasticModulusTension), stages);
+        Computed.Add(analysis, new(data, situations));
+        return new(analysis, null);
     }
 
     /// <summary>An input checked as by <see cref="Calculate(HBridgeInput, CancellationToken)"/>: its copy, geometry, materials, active phases
@@ -156,14 +247,9 @@ public static partial class HBridgeSection
         internal HBridgeBatchResult Calculate(BridgePreparedInput input, CancellationToken cancellation)
         {
             var data = input.Data; var g = input.Geometry; var mat = input.Materials; var phases = input.Phases;
-            var shared = new Dictionary<BridgePhase, BridgePhase>(new BridgePhaseIdentity());
-            foreach (var p in phases)
-            {
-                string key = keys.Key(p);
-                if (!canonical.TryGetValue(key, out var c)) { canonical.Add(key, c = p); applicationPoints.Add(c, input.ApplicationPoints[p]); }
-                shared[p] = c;
-            }
+            var shared = Shared(input);
             var stages = new List<BridgeStage>();
+            var situations = new BridgeSituationStage[phases.Length];
             var node = root;
             try
             {
@@ -172,18 +258,54 @@ public static partial class HBridgeSection
                     cancellation.ThrowIfCancellationRequested();
                     node = Situation(node, shared[phases[end]], cancellation);
                     if (node.Error is not null) return new(null, node.Error);
-                    stages.Add(Stage(data, g, mat, phases.Take(end + 1).ToArray(), node.Situation!, shared));
+                    situations[end] = Converged(data, g, mat, phases.Take(end + 1).ToArray(), node.Situation!, shared);
+                    stages.Add(Stage(data, g, mat, phases.Take(end + 1).ToArray(), situations[end], shared));
                 }
             }
             catch (OperationCanceledException) { throw; }
             catch (Exception e) { return new(null, e); }
-            return new(new(Method, Scope, data, g,
-                new(mat.Concrete.Name, Math.Abs(mat.Concrete.Fck), mat.Concrete.ElasticModulusCompression, mat.Steel.Name, mat.Steel.Fyk, mat.Steel.ElasticModulusTension,
-                    mat.Rebar.Name, mat.Rebar.Fyk, mat.Rebar.ElasticModulusTension), stages), null);
+            return Result(data, g, mat, stages, situations);
         }
 
-        /// <summary>The stage of a situation of an input</summary>
-        private BridgeStage Stage(HBridgeInput data, BridgeGeometry g, BridgeMaterialSet mat, BridgePhase[] included,
+        /// <summary>The analysis of an input of the group from the converged situations of an earlier analysis of the same section
+        /// (<see cref="BridgeComputedSituations.Accepts"/>): its stages, computed again from them, are the ones of <see cref="Calculate"/></summary>
+        internal HBridgeBatchResult Recalculate(BridgePreparedInput input, BridgeComputedSituations earlier, CancellationToken cancellation)
+        {
+            var data = input.Data; var g = input.Geometry; var mat = input.Materials; var phases = input.Phases;
+            var shared = Shared(input);
+            var stages = new List<BridgeStage>();
+            // copies, as the stages of a new analysis
+            var situations = earlier.Stages.Select(s => s with { Effective = s.Effective with { }, EffectiveSteel = s.EffectiveSteel with { },
+                Contributions = s.Contributions.Select(c => c with { }).ToArray() }).ToArray();
+            try
+            {
+                for (int end = 0; end < phases.Length; end++)
+                {
+                    cancellation.ThrowIfCancellationRequested();
+                    stages.Add(Stage(data, g, mat, phases.Take(end + 1).ToArray(), situations[end], shared));
+                }
+            }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception e) { return new(null, e); }
+            return Result(data, g, mat, stages, situations);
+        }
+
+        /// <summary>The canonical phase of each phase of an input</summary>
+        private Dictionary<BridgePhase, BridgePhase> Shared(BridgePreparedInput input)
+        {
+            var shared = new Dictionary<BridgePhase, BridgePhase>(new BridgePhaseIdentity());
+            foreach (var p in input.Phases)
+            {
+                string key = keys.Key(p);
+                if (!canonical.TryGetValue(key, out var c)) { canonical.Add(key, c = p); applicationPoints.Add(c, input.ApplicationPoints[p]); }
+                shared[p] = c;
+            }
+            return shared;
+        }
+
+        /// <summary>What the converged situation of an input gives to its stage: the contributions and the effective steel on the converged
+        /// geometry</summary>
+        private BridgeSituationStage Converged(HBridgeInput data, BridgeGeometry g, BridgeMaterialSet mat, BridgePhase[] included,
             CumulativeSituation<BridgeEffective, BridgeContribution> situation, Dictionary<BridgePhase, BridgePhase> shared)
         {
             int end = situation.PhaseIndex, iter = situation.Iterations;
@@ -203,6 +325,19 @@ public static partial class HBridgeSection
             double effectiveCentroid = effectiveParts.Sum(p => p.Section.Area * p.PositionToGlobal(p.Section.Centroid).Y) / effectiveArea;
             double effectiveInertia = effectiveParts.Sum(p => p.Section.Jxx * Math.Pow(Math.Cos(p.Rotation), 2) + p.Section.Jyy * Math.Pow(Math.Sin(p.Rotation), 2)
                 + p.Section.Area * Math.Pow(p.PositionToGlobal(p.Section.Centroid).Y - effectiveCentroid, 2));
+            return new(end, iter, error, effective, new(effectiveArea, effectiveCentroid, effectiveInertia), contributions.ToArray());
+        }
+
+        /// <summary>The stage of an input from what its converged situation gives (<see cref="Converged"/>): the stress points, shear, studs,
+        /// torsion and details. Only these read the studs, stiffeners, transverse reinforcement, fatigue and limit state of the input</summary>
+        private BridgeStage Stage(HBridgeInput data, BridgeGeometry g, BridgeMaterialSet mat, BridgePhase[] included, BridgeSituationStage situation,
+            Dictionary<BridgePhase, BridgePhase> shared)
+        {
+            int end = situation.PhaseIndex, iter = situation.Iterations;
+            double error = situation.Residual;
+            var effective = situation.Effective;
+            var contributions = situation.Contributions.ToList();
+            double effectiveArea = situation.EffectiveSteel.Area, effectiveInertia = situation.EffectiveSteel.Inertia;
             // the cracked section of the «Soletta esclusa» contributions: all are solved on the same effective geometry of the situation
             var cracked = contributions.FirstOrDefault(c => c.Kind == ConcreteExcludedKind);
             var stiffening = TensionStiffeningApplies(data.Options.LimitState, contributions, g)
@@ -220,7 +355,7 @@ public static partial class HBridgeSection
                 mat.Steel.Name, mat.Steel.Fyk, mat.Steel.ElasticModulusTension, mat.Rebar.Name, mat.Rebar.Fyk, mat.Rebar.ElasticModulusTension);
             var accessory = CalculateShear(data, g, materialValues, effective, contributions, included, warnings, p => GrossProperties(shared[p]),
                 TorsionFlows(data, g, materialValues, included));
-            return new(included[end].Name, iter, error, effective, new(effectiveArea, effectiveCentroid, effectiveInertia), contributions, points, warnings,
+            return new(included[end].Name, iter, error, effective, situation.EffectiveSteel, contributions, points, warnings,
                 accessory.Shear, accessory.Studs, accessory.Torsion);
         }
     }
