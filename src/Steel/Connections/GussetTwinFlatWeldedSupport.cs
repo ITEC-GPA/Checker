@@ -134,6 +134,16 @@ namespace GPC.Checkers.Steel.Connections
                             checks.Add(k.WithId("SupportWeld.Segment" + point.SegmentIndex + (point.AtStart ? ".Start." : ".End.") + k.Id));
                 }
             }
+            // An unqualified continuation must not erase an already evaluated failure
+            // of the same bolted detail or weld. Favourable partial checks stay hidden.
+            if(issues.Count!=0)
+            {
+                checks.AddRange(bolts.Checks.Where(k=>!k.Passed).Select(k=>k.WithId("Transfer."+k.Id)));
+                if(weld!=null)
+                    foreach(var point in weld.Points)
+                        foreach(var k in point.Verification.Checks.Where(k=>!k.Passed))
+                            checks.Add(k.WithId("SupportWeld.Segment"+point.SegmentIndex+(point.AtStart?".Start.":".End.")+k.Id));
+            }
             var assessment = new ConnectionVerification<GussetTwinFlatWeldedSupportInput>(p, t.Code,
                 "Steel.Connection.Gusset.TwinFlatTension.WeldedSupportAttachment",
                 "Bolted twin-flat/gusset ULS load transfer plus two symmetric straight fillet welds attaching the constant-width gusset to a flat support face. "

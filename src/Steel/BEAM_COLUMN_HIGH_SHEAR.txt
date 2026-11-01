@@ -33,8 +33,8 @@ k11>=Cm1, k22>=Cm2, k21=1 quando suscettibile a svergolamento.
 Senza svergolamento k21=(0.6 plastico / 0.8 elastico)*k11;
 k12=(0.6 plastico / 1 elastico)*k22. Per NTC si conserva anche
 l'inviluppo degli indici stampati di C4.2.IV gia' adottato dalla libreria.
-Anche il controllo separato di compressione (inclusi modi T/FT) divide
-la resistenza per lo stesso fattore q. Il risultato e' sufficiente e
+Anche il controllo separato di compressione (inclusi modi T/FT) moltiplica
+la resistenza per q, quindi divide l'utilizzo per q. Il risultato e' sufficiente e
 puo' risultare molto conservativo, soprattutto vicino a Vpl,Rd.
 
 A v>=1 il modello non conserva resistenza normale: Failed con motivo

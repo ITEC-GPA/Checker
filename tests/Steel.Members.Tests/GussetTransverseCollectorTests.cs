@@ -16,7 +16,7 @@ public class GussetTransverseCollectorTests
             new(20,21,245,ConnectionBoltGrade.Class8_8,true),new(force,0,0,0,0,0),2,60,80,40,50);
         var support=new GussetTwinFlatWeldedSupportInput(transfer,120,200,span,throat,FilletWeldSteelGrade.S275,
             new(FilletWeldSteelGrade.S275,430,thickness),FilletWeldMethod.Directional,FilletWeldEndCondition.FullSize,
-            "Matching consumable","Uniform line load, same width strips; symmetric centre displacement and zero rotation","Continuous double-sided fillets");
+            "Matching consumable",change=="distribution"?null!:"Uniform line load, same width strips; symmetric centre displacement and zero rotation","Continuous double-sided fillets");
         return new(support,new(change=="width"?210:200,change=="thickness"?thickness+1:thickness,change=="grade"?355:275,change=="fu"?510:430),
             change=="span"?span+10:span,210000,
             new(force/2,0,0,0,0,0,120,0,-span/2),
@@ -113,5 +113,16 @@ public class GussetTransverseCollectorTests
             r.IsStaticResistanceComplete?EngineeringOutcome.Satisfied:EngineeringOutcome.NotEvaluated,s.Outcome);
         Assert.IsTrue(s.ExternalConditions.Count>0);
         if(change!="")Assert.IsTrue(s.MissingRequirements.Any(x=>x.Contains("EVIDENCE_REQUIRED")));
+    }
+
+    [DataTestMethod][DataRow(50000d,false)][DataRow(700000d,true)]
+    public void UnknownWeldDistributionCannotEraseAnEvaluatedBoltFailure(double force,bool failed)
+    {
+        var r=GussetTwinFlatTransverseCollector.Verify(Input(force:force,change:"distribution"));
+        Assert.IsFalse(r.Attachment.IsComplete);Assert.IsFalse(r.IsStaticResistanceComplete);
+        Assert.AreEqual(failed,r.Attachment.Verification.Checks.Any(c=>!c.Passed));
+        Assert.IsTrue(r.Attachment.Verification.Checks.All(c=>!c.Passed),"No favourable partial checks may leak.");
+        Assert.AreEqual(failed?ConnectionStatus.Failed:ConnectionStatus.NotSupported,r.Status);
+        Assert.AreEqual(failed,SteelAssessmentSummary.From(r).HasKnownFailure);
     }
 }

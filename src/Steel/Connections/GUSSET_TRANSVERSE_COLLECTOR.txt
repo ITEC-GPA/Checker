@@ -72,3 +72,9 @@ ConnectionVerification e quindi la stessa proiezione generica.
 17 casi nuovi sul 2C e4 sulla presentazione, con sezioni nette e sollecitazioni
 elastiche calcolate a mano. Regressione di integrazione83/83, compresi i27
 casi preesistenti del collettore complanare e i contratti comuni.
+
+Revisione finale: il componente GussetTwinFlatWeldedSupport conservava
+i controlli dei bulloni soltanto quando la saldatura era qualificata.
+Ora, se la continuazione e' incompleta, conserva gli eventuali fallimenti
+gia' valutati dello stesso dettaglio, nascondendo i controlli favorevoli.
+Due nuove regressioni;226 test Gusset/ChannelPair/catalogo superati.
