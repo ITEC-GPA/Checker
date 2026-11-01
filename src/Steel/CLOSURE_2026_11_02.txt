@@ -1,0 +1,123 @@
+CHECKER STEEL - BLOCCO DEL2 NOVEMBRE2026
+
+Richiesta: chiudere i punti aperti. Questo blocco completa le estensioni
+elencate sotto, MA NON CHIUDE TUTTI I MODELLI ANCORA MANCANTI.
+Un solo agente; nessuna modifica ad ANTHEA, nessun FEM locale, nessuna
+migrazione di attesi o fixture storiche e nessun cambio all'allowlist.
+Edizioni selezionate EC3 prima generazione e NTC2018, statica ordinaria.
+
+COMPLETATO E CAMPO EFFETTIVO
+
+1. Trave-colonna con taglio elevato: opzione WithConservativeHighShear,
+   collegata al FEM da HighShearMethod=ConservativeUniformReduction.
+   H/RHS/CHS gia' qualificate, classi1-3, un solo taglio principale attivo,
+   instabilita a taglio esclusa. Riduzione uniforme cautelativa della
+   resistenza normale; le verifiche di sezione restano concomitanti.
+   Nessuna estensione automatica a classe4 o due tagli elevati.
+   Modello e fonte: BEAM_COLUMN_HIGH_SHEAR.txt.
+
+2. Terminale con due piatti tesi e collettore trasversale: GussetTwinFlat-
+   TransverseCollector.Verify, doppia saldatura simmetrica, collettore
+   rettangolare fra due linee di appoggio semplici a tutta larghezza.
+   Resistenza elastica, dominio di piccole deformazioni, reazioni reali
+   dello stesso caso. Verifica fino agli appoggi, non del telaio oltre.
+
+3. Medesimo terminale per2C: ChannelPairTransverseCollector.Verify,
+   profili identici dorso-dorso, d'anima, N/2 e ConnectedWebOnly. Il
+   binding geometrico/materiale dei due contratti e' unico e condiviso
+   con il percorso complanare, che conserva gli stessi risultati.
+   Non si qualifica una C singola eccentrica.
+   Modello e fonte dei punti2-3: Connections/GUSSET_TRANSVERSE_COLLECTOR.txt.
+
+4. Tubolari: VerifyEquilibrated aggiunge equilibrio trasversale firmato
+   e taglio effettivo nel gap da entrambi i corpi liberi. Introduce anche
+   l'inviluppo cautelativo esplicito delle definizioni n/np, distinguendo
+   la scelta ingegneristica dal testo della norma. Il percorso storico
+   resta invariato. Riscontri editoriali Np e limite X documentati.
+   Connections/TUBULAR_JOINTS_USAGE.txt contiene convenzioni e limiti.
+
+5. Integrazione/esiti: nuovi ingressi nel catalogo, proiezione comune
+   SteelAssessmentSummary anche per i collettori a piatti, nessuna
+   cache globale o duplicazione del calcolo del collettore. Corretto
+   il bug che nascondeva un fallimento noto dei bulloni quando il
+   trasferimento alla saldatura non era completamente qualificato.
+
+6. CHS: trovata fonte primaria indipendente per l'analogia meccanica
+   taglio/torsione. Nessuna formula o fattore AISC importato nel motore
+   EC/NTC. Emendamento A1:2017 ancora non verificato sul testo finale.
+   CHS_SHEAR_SOURCE_REVIEW_2026_11_02.txt.
+
+RESTA APERTO - NON PROMOSSO A VERIFICATO
+
+A. Coprigiunto interamente compresso, classe4/instabilita di lastra e
+   taglio elevato: serve il modello unico di pannello, contatti e vincoli
+   discreti per alpha_cr della sezione10. I valori critici di strisce
+   compresse e lastra intera a taglio non sono automaticamente compatibili.
+   Connections/SECTION10_MODEL_REVIEW_2026_11_01.txt precisa il problema,
+   le fonti lette e i benchmark necessari. Il rifiuto resta operativo.
+
+B. Tying accidentale delle squadrette e del supporto: i componenti
+   disponibili non dimostrano la compatibilita fra prying, contatto,
+   flessione fuori piano dell'anima e forze effettive nei bulloni.
+   Un T-stub isolato o una dichiarazione di supporto rigido non completa
+   quel modello. Connections/PHASE_2C_SUPPORT_TENSION_REVIEW.txt.
+   Il nodo standard a taglio ordinario gia' implementato resta utilizzabile.
+
+C. C singola collegata d'anima con fazzoletto e supporto: manca il modello
+   dell'eccentricita fuori piano e della risposta bulloni/contatto. Il
+   percorso2C simmetrico elimina l'eccentricita globale per geometria e
+   non costituisce una prova applicabile alla C singola.
+
+D. Transizioni generiche: il campo completato resta quello a pari altezza,
+   larghezze e facce esterne comuni con compensatori paralleli. Altezza
+   o larghezza diverse, offset, rastremazioni e percorsi transitori con
+   classe4/taglio alto richiedono ancora un modello di ridistribuzione.
+   Connections/BRIDGE_SPLICE_TRANSITIONS.txt. Nessuna estensione in questo blocco.
+
+E. Fonti: pagina finale A1:2017 della D.1.4.2 non reperita; non e' stata
+   sostituita con una bozza. Le ulteriori letture cautelative dei tubolari
+   rimangono dichiarate in TUBULAR_JOINTS_USAGE.txt. I sette confronti
+   Corus gia' presenti e i nuovi equilibri non equivalgono al collaudo
+   indipendente di ogni ramo di tutte le tabelle.
+
+Restano inoltre i limiti espliciti dei metodi d'asta: due tagli concomitanti
+e classe4 ad alto taglio non coperti dall'opzione del punto1; schemi critici
+non appartenenti alle famiglie analitiche automatiche richiedono i valori
+esterni qualificati previsti dal contratto. Nessuna famiglia aggiunta per
+il solo fatto che l'input geometrico possa rappresentarla.
+
+TEST E COMMITS
+100 casi nuovi:45 trave-colonna Steel,3 ModelChecker,18 collettore a piatti,
+11 tubolari,17 collettore2C,4 proiezione esiti e2 regressioni del bug finale.
+Valori a mano da formule/fonti indipendenti e casi limite/invalidi; nessun
+numero atteso ricavato semplicemente dall'output del nuovo codice.
+Mirati:152 Steel aste,52 ModelChecker,107 tubolari,83 integrazione collettori;
+ultima regressione dopo il fix:226 Gusset/ChannelPair/catalogo.
+Questi insiemi si sovrappongono: NON sommarli al conteggio della suite completa.
+
+Collaudo finale post-fix: build/Verify.ps1 -Suites all,10361 superati,
+0 falliti,1 NotExecuted preesistente (ModelChecker TimingOfTheConcreteRun).
+net472 Concrete962 e Steel122; CompositeBridge420; Geotechnics202;
+Calculation175; ShallowFoundation29; EmbeddedWalls99; Steel.Members7132;
+Design net8 274 e net472 273; ModelChecker673.
+API richieste dal repository: GPCModelChecker622 firme, Concrete2633,
+Design3431, Masonry9, nessuna rimozione inattesa. Avvisi nullable preesistenti
+nei test ModelChecker, nessun errore di compilazione.
+Risultati locali:
+C:\Users\g.pacini\Documents\ChatGPT\Checker\tmp\steel-open-items-20261102\verify-post-fix\summary.json
+Il primo collaudo completo, prima dell'ultimo fix, aveva10359 superati;
+quello sopra e' il risultato sul codice finale con le due nuove regressioni.
+
+a5418235  Trave-colonna ad alto taglio e adattatore FEM.
+dc66dc8d  Collettore trasversale per due piatti.
+93464afa  Equilibrio dei tubolari e rapporti conservativi.
+cc349ed2  Terminale2C, binding unico ed esiti comuni.
+ba1eb42c  Fonti CHS e limiti documentati.
+a4584378  Versioni di funzionalita Steel2.129 / ModelChecker2.38.
+3818291b  Conservazione dei fallimenti con saldatura incompleta.
+93861ea5  Steel2.129.0.1 per il fix.
+
+Set di sorgenti: base Checker origin/master c2ee6cf0; Model master1a51dad5
+(GPCModel5.36.0.0) gia' pubblicato da un altro lavoro, solo riallineato e
+compilato. Versioni finali Steel2.129.0.1, ModelChecker2.38.0.0.
+Nessun pacchetto di rilascio o installazione ANTHEA creato.

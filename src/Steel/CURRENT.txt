@@ -6,6 +6,8 @@ e STEEL_REVIEW_2026_10_27.txt conservano decisioni ed evidenze storiche;
 non sono un elenco aggiornato delle funzionalita mancanti. Le specifiche
 tecniche dei metodi restano valide per il rispettivo contratto.
 La versione numerica si legge in GPCChecker.Steel.csproj/AssemblyInfo.cs.
+Ultimo blocco verificato e limiti ancora aperti: CLOSURE_2026_11_02.txt
+(Steel2.129.0.1, ModelChecker2.38.0.0,10361 test superati).
 
 Campo: EC3 edizione2005 e NTC2018; statica ordinaria. Gli eventuali modelli
 complementari EN1993-1-5:2006 sono espliciti e conservano i fattori NTC.
