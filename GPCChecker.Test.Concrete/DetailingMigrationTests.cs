@@ -75,9 +75,23 @@ namespace ConcreteTests
             var anchorage = AnchorageCalculator.Calculate(DetailingProfile.EN1992p11, new AnchorageInput(20, 391.3, 2.0, 1.5, true, 700));
             Assert.AreEqual(3.0, anchorage.Fbd, 1e-12); Assert.AreEqual(lb, anchorage.RequiredLength, 1e-9); Assert.IsTrue(anchorage.Passed);
             Assert.AreEqual(Math.Max(.3 * lb, 200), anchorage.MinimumLength, 1e-9, "lb,min = max(0.3 lb,rqd; 10Ø; 100 mm)");
-            // Lap with 100% of the bars lapped: α6 = 1.5, l0 = 978.3 mm; a clear distance of 70 mm exceeds min(4Ø; 50) = 50 mm by 20 mm.
+            // Lap with 100% of the bars lapped: α6 = 1.5, l0 = 978.3 mm; a clear distance of 70 mm exceeds min(4Ø; 50) = 50 mm, so the lap is
+            // increased by the whole clear space (EN 8.7.2(3), literal reading, user decision of 1/11/2026): 978.3 + 70 = 1048.3 mm.
             var lap = AnchorageCalculator.Calculate(DetailingProfile.EN1992p11, new AnchorageInput(20, 391.3, 2.0, 1.5, true, 990, true, 100, 70));
-            Assert.AreEqual(1.5, lap.Alpha6); Assert.AreEqual(1.5 * lb + 20, lap.RequiredLength, 1e-9); Assert.IsFalse(lap.Passed);
+            Assert.AreEqual(1.5, lap.Alpha6); Assert.AreEqual(1.5 * lb + 70, lap.RequiredLength, 1e-9); Assert.IsFalse(lap.Passed);
+            Assert.AreEqual(50, lap.MaximumLapClearDistance); Assert.IsTrue(lap.LapClearDistancePassed);
+            // Named legacy reading of 0.33.0.0: only the excess over the threshold, 978.3 + 20 mm.
+            var excess = AnchorageCalculator.Calculate(DetailingProfile.EN1992p11, new AnchorageInput(20, 391.3, 2.0, 1.5, true, 990, true, 100, 70, true, 1,
+                EurocodeLapLengthening.ExcessOnly));
+            Assert.AreEqual(1.5 * lb + 20, excess.RequiredLength, 1e-9); Assert.IsFalse(excess.LengthPassed, "998.3 mm > 990 mm");
+            // At the threshold (s = 50 mm) the lap is not increased in either reading; just above it the whole 50.1 mm is added.
+            Assert.AreEqual(1.5 * lb, AnchorageCalculator.Calculate(DetailingProfile.EN1992p11, new AnchorageInput(20, 391.3, 2.0, 1.5, true, 990, true, 100, 50)).RequiredLength, 1e-9);
+            Assert.AreEqual(1.5 * lb + 50.1, AnchorageCalculator.Calculate(DetailingProfile.UniEN1992p11, new AnchorageInput(20, 391.3, 2.0, 1.5, true, 990, true, 100, 50.1)).RequiredLength, 1e-9);
+            // Page ca.ancoraggi §10, case C (Ø16 B450C, C25/30, fctk,0.05 = 0.7 · 0.30 · 25^(2/3) = 1.79547 MPa, good bond, 100% lapped, s = 70 mm,
+            // 900 mm available): fbd = 2.25 · 1.79547/1.5 = 2.69321 MPa, lb,rqd = 16 · 391.30/(4 fbd) = 581.17 mm, l0 = 1.5 · 581.17 + 70 = 941.76 mm > 900 mm.
+            double fctkC = 0.7 * 0.30 * Math.Pow(25, 2.0 / 3), fbdC = 2.25 * fctkC / 1.5, lbC = 16 * (450 / 1.15) / (4 * fbdC);
+            var caseC = AnchorageCalculator.Calculate(DetailingProfile.EN1992p11, new AnchorageInput(16, 450 / 1.15, fctkC, 1.5, true, 900, true, 100, 70));
+            Assert.AreEqual(1.5 * lbC + 70, caseC.RequiredLength, 1e-9); Assert.AreEqual(941.76, caseC.RequiredLength, 0.005); Assert.IsFalse(caseC.Passed);
             // NTC keeps its floors (20Ø, 150 mm) and fails the lap with a clear distance beyond 4Ø.
             var ntc = AnchorageCalculator.Calculate(DetailingProfile.Ntc2018, new AnchorageInput(8, 100, 2.0, 1.5, true, 150));
             Assert.AreEqual(160, ntc.RequiredLength, 1e-12, "20Ø governs");
