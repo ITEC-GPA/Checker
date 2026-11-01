@@ -45,7 +45,7 @@ namespace ConcreteTests
     ///   Accepted change (ANTHEA 1.16.0, R14, EN 9.2.1.2(3)): 246 beam cases of EN, UNI and DS get CompressionBarRestraint (link spacing ≤ 15 Ømin, the
     ///   limit of the NTC case of the same section); BarsHeldByLinks leaves EN and UNI (36 pending confirmations) and stays for DS on §9.5.3(6) (18); every
     ///   other check is unchanged except its index; 2 overall outcomes follow the new check. Verified case by case by a script.
-    ///   Accepted change (Concrete 0.34.0.0, user decisions of 1/11/2026 on the questions 3 and 4 of the method pages, «Approvati se spiegati»), verified line
+    ///   Accepted change (Concrete 0.35.0.0, user decisions of 1/11/2026 on the questions 3 and 4 of the method pages, «Approvati se spiegati»), verified line
     ///   by line by tools/attesi/classifica_contratto_dettagli_20261101.py: (a) EN 1992-1-1 8.7.2(3), literal reading: 714 anchorage rows of the Eurocode
     ///   family with a lap get the expression «clear distance when it exceeds min(4Ø; 50 mm)»; in 459 of them the clear distance exceeds the threshold and
     ///   RequiredLength grows by the threshold (l0 + s instead of l0 + s − slim), 6 of them no longer pass on the length; (b) EN 8.7.2(4): 66 member cases

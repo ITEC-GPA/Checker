@@ -80,7 +80,7 @@ namespace ConcreteTests
             var lap = AnchorageCalculator.Calculate(DetailingProfile.EN1992p11, new AnchorageInput(20, 391.3, 2.0, 1.5, true, 990, true, 100, 70));
             Assert.AreEqual(1.5, lap.Alpha6); Assert.AreEqual(1.5 * lb + 70, lap.RequiredLength, 1e-9); Assert.IsFalse(lap.Passed);
             Assert.AreEqual(50, lap.MaximumLapClearDistance); Assert.IsTrue(lap.LapClearDistancePassed);
-            // Named legacy reading of 0.33.0.0: only the excess over the threshold, 978.3 + 20 mm.
+            // Named legacy reading up to 0.34.0.0: only the excess over the threshold, 978.3 + 20 mm.
             var excess = AnchorageCalculator.Calculate(DetailingProfile.EN1992p11, new AnchorageInput(20, 391.3, 2.0, 1.5, true, 990, true, 100, 70, true, 1,
                 EurocodeLapLengthening.ExcessOnly));
             Assert.AreEqual(1.5 * lb + 20, excess.RequiredLength, 1e-9); Assert.IsFalse(excess.LengthPassed, "998.3 mm > 990 mm");

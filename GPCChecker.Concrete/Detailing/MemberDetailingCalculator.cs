@@ -27,7 +27,7 @@ namespace GPC.Checkers.Concrete.Detailing
     }
 
     /// <summary>
-    /// Arrangement of the laps of a lap section (<see cref="MemberDetailingInput.LapZone"/>) for EN 1992-1-1 8.7.2(4) (0.34.0.0): percentage of the
+    /// Arrangement of the laps of a lap section (<see cref="MemberDetailingInput.LapZone"/>) for EN 1992-1-1 8.7.2(4) (0.35.0.0): percentage of the
     /// tension bars lapped in the section, in (0; 100], and number of layers of the lapped bars, at least 1. Optional
     /// (<see cref="MemberDetailingOptions.Laps"/>): without it the check of the Eurocode family stays pending, as the section does not give them.
     /// </summary>
@@ -71,7 +71,7 @@ namespace GPC.Checkers.Concrete.Detailing
         /// 9.5.3(4)(ii)). False (default): for every diameter, the rule of 0.0.17.0 kept for the contract. ANTHEA F5.15, R13 (26/10/2026).
         /// </summary>
         public bool LapLinkReductionAboveFourteen { get; }
-        /// <summary>Arrangement of the laps for EN 1992-1-1 8.7.2(4) (0.34.0.0); null = not given, the check stays pending at lap sections.</summary>
+        /// <summary>Arrangement of the laps for EN 1992-1-1 8.7.2(4) (0.35.0.0); null = not given, the check stays pending at lap sections.</summary>
         public LapArrangementData Laps { get; }
         public MemberDetailingOptions(PlateDetailingData plate, bool legacyNegativeLinkLegs) : this(plate, legacyNegativeLinkLegs, false) { }
         /// <summary>Options with <see cref="LegacyPlateSpacingAcrossLayers"/>.</summary>
@@ -81,7 +81,7 @@ namespace GPC.Checkers.Concrete.Detailing
         public MemberDetailingOptions(PlateDetailingData plate, bool legacyNegativeLinkLegs, bool legacyPlateSpacingAcrossLayers, bool columnSpacingAlongPerimeter,
             bool lapLinkReductionAboveFourteen)
             : this(plate, legacyNegativeLinkLegs, legacyPlateSpacingAcrossLayers, columnSpacingAlongPerimeter, lapLinkReductionAboveFourteen, null) { }
-        /// <summary>Options with <see cref="Laps"/> (0.34.0.0).</summary>
+        /// <summary>Options with <see cref="Laps"/> (0.35.0.0).</summary>
         public MemberDetailingOptions(PlateDetailingData plate, bool legacyNegativeLinkLegs, bool legacyPlateSpacingAcrossLayers, bool columnSpacingAlongPerimeter,
             bool lapLinkReductionAboveFourteen, LapArrangementData laps)
         {
@@ -200,7 +200,7 @@ namespace GPC.Checkers.Concrete.Detailing
     /// unchanged except the beam As,min 9.2.1.1(1), pending, and ρw,min = 0.063 √fck / fyk of 9.2.2(5)).
     /// Solid slab strips and walls (0.0.18.0): NTC 2018 profile with EC2 §§9.3 and 9.6 as in ANTHEA (ConcreteDetailing.cs at ANTHEA 98a21d4; fixtures
     /// detailing-plate-legacy.csv): the slab needs a rectangular strip without holes (b = width, h = thickness), the other profiles are not implemented.
-    /// Eurocode family (0.34.0.0, user decision of 1/11/2026): at lap sections the lapped percentage of 8.7.2(4) and, with bars larger than
+    /// Eurocode family (0.35.0.0, user decision of 1/11/2026): at lap sections the lapped percentage of 8.7.2(4) and, with bars larger than
     /// phi_large = 32 mm, the rules of 8.8, appended after the other checks; pending when the section does not give the data.
     /// </summary>
     public static partial class MemberDetailingCalculator
@@ -382,7 +382,7 @@ namespace GPC.Checkers.Concrete.Detailing
         }
 
         /// <summary>
-        /// Eurocode family (0.34.0.0), after every other check, so that the existing checks keep their order: EN 1992-1-1 8.7.2(4) at lap sections,
+        /// Eurocode family (0.35.0.0), after every other check, so that the existing checks keep their order: EN 1992-1-1 8.7.2(4) at lap sections,
         /// lapped tension bars ≤ 100% in one layer and ≤ 50% in several layers (pending without <see cref="MemberDetailingOptions.Laps"/>); with bars
         /// larger than φlarge = 32 mm, 8.8(3) and (5)-(7) anchorage and 8.8(2) and (8) crack control as confirmations, and 8.8(4) at lap sections:
         /// satisfied when the minimum dimension of a section without holes is at least 1.0 m (for beams also the web width), pending otherwise

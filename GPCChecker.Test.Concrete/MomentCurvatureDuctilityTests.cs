@@ -139,7 +139,7 @@ namespace ConcreteTests
         }
 
         /// <summary>
-        /// The generic variant (0.34.0.0, as ANTHEA uses it) in kN and kNm, with the functions of the native overload and the section of
+        /// The generic variant (0.35.0.0, as ANTHEA uses it) in kN and kNm, with the functions of the native overload and the section of
         /// <see cref="MomentCurvatureDuctilitySection.From"/>: the same ductility as the native overload, up to the stopping tests of the searches,
         /// which are relative to the moments and to N in the units of the caller (1e-5).
         /// </summary>

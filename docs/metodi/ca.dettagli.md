@@ -14,7 +14,7 @@ classi:
   - GPC.Checkers.Concrete.Detailing.MemberDetailingKind
   - GPC.Checkers.Concrete.Detailing.DetailingProfiles
   - GPC.Checkers.Concrete.Cracking.CrackSectionGeometry
-versione: 0.34.0.0
+versione: 0.35.0.0
 norme:
   - ntc2018-4.1.6.1.1
   - ntc2018-4.1.6.1.2
@@ -362,7 +362,7 @@ c = 30, 6Ø16 per faccia: 424 mm invece di 184,8 mm). L'opzione con nome
 `detailing-plate-legacy.csv` è stata rigenerata con la misura nuova e il test la confronta anche con l'opzione, che
 restituisce i valori di ANTHEA. La regola dei pilastri (riquadro D-2) non cambia.
 
-### 6.6 Sovrapposizioni e barre di grande diametro (famiglia Eurocodice, dalla 0.34.0.0)
+### 6.6 Sovrapposizioni e barre di grande diametro (famiglia Eurocodice, dalla 0.35.0.0)
 
 Nei profili EN, UNI e DS, dopo tutti gli altri controlli (che conservano l'ordine), le regole di EN 8.7.2(4) e 8.8
 (decisione dell'utente del 1/11/2026). Nella sezione di sovrapposizione (`LapZone`), con la percentuale ρl di barre
@@ -592,13 +592,13 @@ codice del 1/11/2026, e `pagine_metodi.py` di ANTHEA ricontrolla il profilo NTC)
     dell'interasse; con l'approvazione dell'utente le 60 righe in cui ANTHEA misurava l'interasse anche fra gli strati
     sono state rigenerate (S1000x200D 102 → 69,38, W250x1200N 164 → 159,14, W1000x200D 92 → 68,62 mm), con gli
     stessi esiti; con l'opzione legacy gli altri controlli sono identici e tornano i 60 valori precedenti.
-- **Test** `EurocodeLapAndLargeBarTests` (0.34.0.0, attesi dal testo di EN 8.7.2(4) e 8.8): `LapPercentage` in
+- **Test** `EurocodeLapAndLargeBarTests` (0.35.0.0, attesi dal testo di EN 8.7.2(4) e 8.8): `LapPercentage` in
   sospeso senza dati, 100% in un solo strato soddisfatto, 60% in due strati non soddisfatto (limite 50%), 50% in due
   strati soddisfatto, per EN, UNI e DS; nessun controllo nuovo fuori dalla sovrapposizione con Ø ≤ 32 mm né con NTC;
   Ø36 in una trave 400 × 600: ancoraggio e fessurazione in sospeso, sovrapposizione in sospeso (400 mm); pilastro
   1200 × 1200 con Ø40: sovrapposizione soddisfatta (1200 ≥ 1000 mm); trave 1200 × 1200 con anima di 300 mm: in sospeso;
   dati non validi rifiutati.
-- **Contratto dei dettagli** (`detailing-contract-0.0.17.csv`): dalla 0.34.0.0 i 66 casi della famiglia Eurocodice
+- **Contratto dei dettagli** (`detailing-contract-0.0.17.csv`): dalla 0.35.0.0 i 66 casi della famiglia Eurocodice
   nella zona di sovrapposizione hanno `LapPercentage` in sospeso in coda, con gli altri controlli invariati e 2 esiti
   complessivi da soddisfatto a in sospeso, verificati riga per riga da
   `tools/attesi/classifica_contratto_dettagli_20261101.py`.

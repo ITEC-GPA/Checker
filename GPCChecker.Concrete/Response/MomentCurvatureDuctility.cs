@@ -84,7 +84,7 @@ namespace GPC.Checkers.Concrete.Response
         public IReadOnlyList<MomentCurvaturePoint> Points { get; internal set; }
     }
 
-    /// <summary>Forces of a strain plane: N and the moment components Mx, My, in the units and axes of the moments of the curve (0.34.0.0).</summary>
+    /// <summary>Forces of a strain plane: N and the moment components Mx, My, in the units and axes of the moments of the curve (0.35.0.0).</summary>
     public sealed class MomentCurvatureForces
     {
         public double N { get; }
@@ -94,7 +94,7 @@ namespace GPC.Checkers.Concrete.Response
     }
 
     /// <summary>
-    /// What the curvature-controlled branch of the curvature ductility needs from the caller of the generic variant of the curve (0.34.0.0):
+    /// What the curvature-controlled branch of the curvature ductility needs from the caller of the generic variant of the curve (0.35.0.0):
     /// <list type="bullet">
     /// <item><see cref="Forces"/>: the forces of the plane with gradient (χx, χy) and strain ε0 at <see cref="ReferencePoint"/>, in the units and
     /// axes of the moments of the curve (those of the limit function and of the responses);</item>

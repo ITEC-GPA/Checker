@@ -37,7 +37,7 @@ namespace GPC.Checkers.Concrete.Detailing
         {
         }
 
-        /// <summary>Input with the reading of EN 1992-1-1 8.7.2(3) (0.34.0.0); every argument is required.</summary>
+        /// <summary>Input with the reading of EN 1992-1-1 8.7.2(3) (0.35.0.0); every argument is required.</summary>
         public AnchorageInput(double diameter, double stress, double fctk05, double gammaC, bool goodBond, double availableLength, bool lap,
             double lapPercent, double lapClearDistance, bool ribbedBars, double alphaCt, EurocodeLapLengthening lapLengthening)
         {
@@ -53,10 +53,10 @@ namespace GPC.Checkers.Concrete.Detailing
     public enum EurocodeLapLengthening
     {
         /// <summary>
-        /// The whole clear distance s is added when s exceeds the threshold (literal reading; user decision of 1/11/2026, default since Concrete 0.34.0.0).
+        /// The whole clear distance s is added when s exceeds the threshold (literal reading; user decision of 1/11/2026, default since Concrete 0.35.0.0).
         /// </summary>
         WholeClearDistance,
-        /// <summary>Only the excess s − min(4Ø; 50 mm) is added, as up to Concrete 0.33.0.0.</summary>
+        /// <summary>Only the excess s − min(4Ø; 50 mm) is added, as up to Concrete 0.34.0.0.</summary>
         ExcessOnly
     }
 
@@ -105,7 +105,7 @@ namespace GPC.Checkers.Concrete.Detailing
     /// NTC 2018: lbd = max(lb,rqd; 20Ø; 150 mm), l0 = max(α6 lb,rqd; 0.3 α6 lb,rqd; 20Ø; 200 mm), clear distance of lapped bars ≤ 4Ø.
     /// Eurocode family (EN, UNI, DS; ribbed bars only, DK NA 8.4.2(2)): lbd = max(lb,rqd; lb,min), lb,min = max(0.3 lb,rqd; 10Ø; 100 mm) (8.6);
     /// l0 = max(α6 lb,rqd; l0,min), l0,min = max(0.3 α6 lb,rqd; 15Ø; 200 mm) (8.11), lengthened by the whole clear distance when it exceeds min(4Ø; 50 mm)
-    /// (8.7.2(3); up to 0.33.0.0 by the excess only, <see cref="EurocodeLapLengthening.ExcessOnly"/>).
+    /// (8.7.2(3); up to 0.34.0.0 by the excess only, <see cref="EurocodeLapLengthening.ExcessOnly"/>).
     /// α6 = (ρ1/25)^0.5 in [1; 1.5]. Fixtures: GPCChecker.Test.Concrete/Fixtures/anchorage-legacy.csv.
     /// </summary>
     public static class AnchorageCalculator
@@ -180,7 +180,7 @@ namespace GPC.Checkers.Concrete.Detailing
                 required = p.Lap ? Math.Max(alpha6 * basic, minimum) : Math.Max(basic, minimum);
                 clearLimit = Math.Min(4 * p.Diameter, 50); clearPassed = true;
                 // 8.7.2(3): «increased by a length equal to the clear space where it exceeds 4Ø or 50 mm», the whole clear distance (literal reading,
-                // user decision of 1/11/2026); up to 0.33.0.0 only the excess over the threshold.
+                // user decision of 1/11/2026); up to 0.34.0.0 only the excess over the threshold.
                 bool excess = p.LapLengthening == EurocodeLapLengthening.ExcessOnly;
                 if (p.Lap && p.LapClearDistance > clearLimit) required += excess ? p.LapClearDistance - clearLimit : p.LapClearDistance;
                 expression = p.Lap ? (excess ? "l0 = max[α6 lb,rqd; max(0.3 α6 lb,rqd; 15Ø; 200 mm)] + clear distance beyond min(4Ø; 50 mm)"

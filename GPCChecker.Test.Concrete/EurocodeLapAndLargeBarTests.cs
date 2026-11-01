@@ -8,7 +8,7 @@ using System.Linq;
 namespace ConcreteTests
 {
     /// <summary>
-    /// EN 1992-1-1 8.7.2(4) and 8.8 in the member detailing of the Eurocode family (Concrete 0.34.0.0, user decision of 1/11/2026: checks added,
+    /// EN 1992-1-1 8.7.2(4) and 8.8 in the member detailing of the Eurocode family (Concrete 0.35.0.0, user decision of 1/11/2026: checks added,
     /// pending when the data are missing). Expected values from the text of the standard (UNI EN 1992-1-1:2015, 8.7.2(4) and 8.8(1)-(8)):
     /// lapped tension bars ≤ 100% in one layer, ≤ 50% in several layers; φlarge = 32 mm; large bars lapped only with a minimum dimension of
     /// 1.0 m (or σ ≤ 0.8 fyd, not known to the section). The checks come after every other check; NTC is unchanged.

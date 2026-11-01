@@ -242,7 +242,7 @@ namespace GPC.Checkers.Concrete.Response
         public MomentCurvatureYieldRefinement YieldRefinement { get; internal set; }
         public string Status { get; internal set; }
         /// <summary>
-        /// Curvature ductility (0.33.0.0), only with an overload with a <see cref="MomentCurvatureDuctilityRequest"/> (native checker, or generic variant from 0.34.0.0); null when not
+        /// Curvature ductility (0.33.0.0), only with an overload with a <see cref="MomentCurvatureDuctilityRequest"/> (native checker, or generic variant from 0.35.0.0); null when not
         /// requested or not computed (<see cref="DuctilityMessage"/> says why).
         /// </summary>
         public MomentCurvatureDuctility Ductility { get; internal set; }
@@ -280,7 +280,7 @@ namespace GPC.Checkers.Concrete.Response
 
         /// <summary>
         /// The curve of the overload with units, identical, and the curvature ductility μφ of NTC 2018 §4.1.2.3.4.2 with the bilinear of the Circolare
-        /// 2019 Fig. C4.1.12 on the generic variant (<see cref="MomentCurvatureResult.Ductility"/>, 0.34.0.0), in the units of the caller: the same
+        /// 2019 Fig. C4.1.12 on the generic variant (<see cref="MomentCurvatureResult.Ductility"/>, 0.35.0.0), in the units of the caller: the same
         /// curvature-controlled branch as the overload on a native checker, with the forces of its planes from <paramref name="section"/> (for a native
         /// checker <see cref="MomentCurvatureDuctilitySection.From"/>). The limit point is the last point of the curve: its gradient and its strain at
         /// <see cref="MomentCurvatureDuctilitySection.ReferencePoint"/>, which must be the reference point of the strains returned by the functions, and

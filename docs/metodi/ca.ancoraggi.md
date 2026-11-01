@@ -9,7 +9,7 @@ classi:
   - GPC.Checkers.Concrete.Detailing.BondResult
   - GPC.Checkers.Concrete.Detailing.DetailingProfiles
   - GPC.Checkers.Concrete.Detailing.DetailingProfile
-versione: 0.34.0.0
+versione: 0.35.0.0
 norme:
   - ntc2018-4.1.2.1.1.4
   - ntc2018-4.1.2.3.10
@@ -202,14 +202,14 @@ l_{0,min} = \max\left(0{,}3\,\alpha_6\,l_{b,rqd};\ 15\,\varnothing;\ 200\ \text{
 > - Norma: EN 8.7.2(3) indica un interferro non maggiore di «4Ø o 50 mm» senza dire quale dei due valori prevalga;
 >   altrimenti la sovrapposizione va allungata «di una lunghezza uguale all'interferro, dove supera 4Ø o 50 mm»
 >   (testo di UNI EN 1992-1-1:2015).
-> - Programma: soglia slim = min(4Ø; 50 mm), il minore dei due valori; dalla 0.34.0.0 la sovrapposizione si allunga
->   dell'intero interferro s quando s > slim, la lettura letterale scelta dall'utente il 1/11/2026; fino alla 0.33.0.0
+> - Programma: soglia slim = min(4Ø; 50 mm), il minore dei due valori; dalla 0.35.0.0 la sovrapposizione si allunga
+>   dell'intero interferro s quando s > slim, la lettura letterale scelta dall'utente il 1/11/2026; fino alla 0.34.0.0
 >   si allungava della sola eccedenza s − slim, lettura che resta come opzione storica
 >   `EurocodeLapLengthening.ExcessOnly` (`AnchorageCalculator.cs:181-187`).
 > - Effetto: la soglia è a favore di sicurezza, solo per Ø > 12,5 mm e interferro compreso fra 50 mm e 4Ø. La lettura
 >   dell'eccedenza era a sfavore di slim (50 mm per Ø ≥ 12,5 mm): nel caso C dell'esempio l0 passa da 891,76 mm a
 >   941,76 mm e la sovrapposizione di 900 mm non è più sufficiente.
-> - Stato: allungamento corretto in 0.34.0.0 (voce CA-METODI-01 del registro delle differenze); soglia dichiarata.
+> - Stato: allungamento corretto in 0.35.0.0 (voce CA-METODI-01 del registro delle differenze); soglia dichiarata.
 
 ### 6.4 Esito
 
@@ -248,7 +248,7 @@ per l'interferro è già sommato a l0.
 | lb,min Eurocodice | 0,3 lb,rqd; 10Ø; 100 mm | EN (8.6) | no | `Calculate` |
 | l0,min Eurocodice | 0,3 α6 lb,rqd; 15Ø; 200 mm | EN (8.11) | no | `Calculate` |
 | soglia dell'interferro Eurocodice | min(4Ø; 50 mm) | EN 8.7.2(3) (riquadro A-2) | no | `Calculate` |
-| allungamento oltre la soglia | intero interferro s | EN 8.7.2(3) (riquadro A-2) | sì (`EurocodeLapLengthening`; `ExcessOnly` = s − slim, fino alla 0.33.0.0) | `AnchorageInput` |
+| allungamento oltre la soglia | intero interferro s | EN 8.7.2(3) (riquadro A-2) | sì (`EurocodeLapLengthening`; `ExcessOnly` = s − slim, fino alla 0.34.0.0) | `AnchorageInput` |
 | percentuale sovrapposta predefinita | 100% | assunzione del metodo | sì (`LapPercent`) | `AnchorageInput` |
 
 ## 8. Implementazione
@@ -285,10 +285,10 @@ Il metodo non ha stato e non alloca risorse condivise: può essere chiamato in p
 - Barre con Ø > 32 mm: le «particolari cautele» di NTC §4.1.6.1.4 non sono valutate; vale solo η2. Nella famiglia
   Eurocodice le regole di EN 8.8 (ancoraggio meccanico o confinamento, sovrapposizione solo con dimensione minima
   ≥ 1 m o tensione ≤ 80% di quella di progetto, armatura trasversale aggiuntiva (8.12)-(8.13), armatura di pelle)
-  non sono valutate da questo metodo, che dà solo la lunghezza: dalla 0.34.0.0 sono controlli dei dettagli della
+  non sono valutate da questo metodo, che dà solo la lunghezza: dalla 0.35.0.0 sono controlli dei dettagli della
   membratura (pagina ca.dettagli, riquadro D-8), in sospeso dove servono dati che la sezione non dà.
 - Percentuale di barre sovrapposte in trazione: EN 8.7.2(4) ammette il 100% solo con le barre in un solo strato,
-  altrimenti il 50%; questo metodo accetta ogni ρ1 ≤ 100% perché non conosce gli strati. Dalla 0.34.0.0 la regola è
+  altrimenti il 50%; questo metodo accetta ogni ρ1 ≤ 100% perché non conosce gli strati. Dalla 0.35.0.0 la regola è
   il controllo `LapPercentage` dei dettagli della membratura (pagina ca.dettagli, riquadro D-8), in sospeso senza la
   disposizione delle sovrapposizioni.
 - La percentuale di barre sovrapposte e le condizioni di aderenza sono dati: il metodo non conosce la
@@ -317,7 +317,7 @@ Calcolo a mano:
 5. Caso C, come B con s = 70 mm:
    - NTC: 70 mm > 64 mm, interferro non soddisfatto;
    - EN: slim = min(64; 50) = 50 mm; s = 70 mm > 50 mm, quindi l0 = 871,76 + 70 = 941,76 mm > 900 mm, non soddisfatto
-     (fino alla 0.33.0.0, con la sola eccedenza: 871,76 + 20 = 891,76 mm, soddisfatto; riquadro A-2).
+     (fino alla 0.34.0.0, con la sola eccedenza: 871,76 + 20 = 891,76 mm, soddisfatto; riquadro A-2).
 6. Caso D, aderenza non buona: fbd = 0,7 · 2,6932 = 1,8852 MPa; lb,rqd = 830,24 mm > 600 mm, non
    soddisfatto.
 7. Caso E, sovrapposizione del 50%: α6 = √2 = 1,4142; l0 = 821,90 mm.
@@ -327,8 +327,8 @@ Calcolo a mano:
    - EN: l0 = max(111,39; max(33,42; 120; 200)) = 200 mm.
 9. Caso G, Ø40 con EN: η2 = 0,92; fbd = 2,4778 MPa; lb,rqd = 1579,27 mm.
 
-Valori della libreria (GPCChecker.Concrete 0.0.17.0, eseguita; il calcolo non è cambiato fino alla 0.33.0.0, verifica
-sul codice del 1/11/2026, salvo il caso C con l'Eurocodice, eseguito con la 0.34.0.0; `pagine_metodi.py` di ANTHEA
+Valori della libreria (GPCChecker.Concrete 0.0.17.0, eseguita; il calcolo non è cambiato fino alla 0.34.0.0, verifica
+sul codice del 1/11/2026, salvo il caso C con l'Eurocodice, eseguito con la 0.35.0.0; `pagine_metodi.py` di ANTHEA
 ricontrolla il ramo NTC):
 
 | Caso | Grandezza | A mano | Libreria | Scarto |
@@ -360,9 +360,9 @@ Gli scarti sono al livello dell'arrotondamento in doppia precisione.
     con Ø8, η1 = 0,7 con DS, η2 = 0,92 con UNI e il rifiuto delle barre lisce;
   - `ProfilesAreResolvedByExactTypeWithoutFallback` (risoluzione per tipo esatto e motivi di non supporto).
 - **Contratto dei dettagli** (`detailing-contract-0.0.17.csv`, `DetailingContractTests`): tutte le righe di ancoraggio
-  di ogni profilo; dalla 0.34.0.0 le 714 righe con sovrapposizione della famiglia Eurocodice hanno l'espressione nuova e
+  di ogni profilo; dalla 0.35.0.0 le 714 righe con sovrapposizione della famiglia Eurocodice hanno l'espressione nuova e
   459 di esse la lunghezza l0 + s, verificate riga per riga da `tools/attesi/classifica_contratto_dettagli_20261101.py`.
-- **Esempio di questa pagina**: eseguito con la libreria 0.0.17.0 (caso C con l'Eurocodice: 0.34.0.0) e ricalcolato in
+- **Esempio di questa pagina**: eseguito con la libreria 0.0.17.0 (caso C con l'Eurocodice: 0.35.0.0) e ricalcolato in
   modo indipendente, scarto inferiore a 10⁻¹².
 - **Benchmark indipendenti pubblicati**: nessuno, per ora.
 
