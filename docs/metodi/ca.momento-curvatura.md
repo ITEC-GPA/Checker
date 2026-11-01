@@ -11,9 +11,11 @@ classi:
   - GPC.Checkers.Concrete.Response.MomentCurvatureStrains
   - GPC.Checkers.Concrete.Response.MomentCurvatureDuctilityRequest
   - GPC.Checkers.Concrete.Response.MomentCurvatureDuctility
+  - GPC.Checkers.Concrete.Response.MomentCurvatureDuctilitySection
+  - GPC.Checkers.Concrete.Response.MomentCurvatureForces
   - GPC.Checkers.Concrete.Checkers.SectionCheckerModelCode2010
   - GPC.Checkers.Concrete.SectionSolvers.SectionSolver
-versione: 0.33.0.0
+versione: 0.34.0.0
 norme:
   - ntc2018-4.1.2.1.2.1
   - ntc2018-4.1.2.1.2.2
@@ -58,7 +60,7 @@ direzione assegnata del piano della sezione. La curva comprende:
 | Calcestruzzo teso nelle risposte (opzione `StressAnalysisConcreteTension` del verificatore) | supportato su richiesta, solo nelle risposte | `TensionStiffening`: legge di Model di Collins e Mitchell con Ecm e fctm (riquadro M-3); `TensionChord`: modello del tirante sulle barre, β = 0,4 (riquadro M-4); punto limite invariato; con l'opzione la duttilità non è calcolata |
 | Calcestruzzo confinato (NTC [4.1.8]-[4.1.12]) | non supportato | calcestruzzo teso nullo, salvo le opzioni del verificatore; nessun incremento di resistenza o di deformazione per confinamento |
 | Leggi medie (fcm, Ecm) per l'analisi non lineare della struttura | non supportato direttamente | le leggi sono quelle di progetto della norma; i coefficienti si possono modificare sulla classe di norma (per esempio γc = γs = 1) |
-| Bilineare e duttilità in curvatura μφ (NTC §4.1.2.3.4.2, Circolare Fig. C4.1.12) | supportato su richiesta (0.33.0.0) | overload con `MomentCurvatureDuctilityRequest`, solo sul verificatore nativo e con il calcestruzzo teso delle risposte trascurato (§6.4, riquadro M-1) |
+| Bilineare e duttilità in curvatura μφ (NTC §4.1.2.3.4.2, Circolare Fig. C4.1.12) | supportato su richiesta (0.33.0.0; variante generica dalla 0.34.0.0) | overload con `MomentCurvatureDuctilityRequest` sul verificatore nativo o, con `MomentCurvatureDuctilitySection`, sulla variante generica (ANTHEA); con il calcestruzzo teso delle risposte trascurato (§6.4, riquadro M-1) |
 | Lunghezza di cerniera plastica, rotazioni | non supportato | — |
 | Sezioni precompresse | non verificato | il solutore tiene conto della predeformazione, ma il primo snervamento è valutato sulle deformazioni del piano senza predeformazione |
 
@@ -229,7 +231,12 @@ Il punto Mb raffinato è inserito nella curva. La curvatura ultima è quella del
 ### 6.4 Duttilità in curvatura (a richiesta, dalla 0.33.0.0)
 
 Con l'overload che riceve un `MomentCurvatureDuctilityRequest` il metodo calcola la curva dei §6.2-6.3, identica, e poi
-un ramo a curvatura controllata alla stessa N, da 0 alla curvatura χu del punto limite. Per ogni curvatura χ la
+un ramo a curvatura controllata alla stessa N, da 0 alla curvatura χu del punto limite. Dalla 0.34.0.0 lo stesso ramo è
+disponibile sulla variante generica, nelle unità del chiamante: `MomentCurvatureDuctilitySection` dà le forze di un piano
+(gradiente ed ε0 nel punto di riferimento delle deformazioni della curva) negli assi e nelle unità dei momenti della
+curva, le barre, il contorno e la deformazione di picco; `MomentCurvatureDuctilitySection.From(verificatore, sezione,
+unità delle forze, unità dei momenti)` la ricava da un verificatore nativo (ANTHEA: kN e kNm negli assi locali). Il punto
+limite è l'ultimo punto della curva, con il suo gradiente e la sua ε0. Per ogni curvatura χ la
 direzione ψ del vettore curvatura e la deformazione ε0 nell'origine degli assi delle forze risolvono
 
 ```math
@@ -355,29 +362,37 @@ Percorsi relativi alla radice del repository Checker (namespace `GPC.Checkers.Co
   `MomentCurvatureResult` (righe 223-251, con `Ductility` e `DuctilityMessage` dalla 0.33.0.0).
 - `MomentCurvatureAnalysis.Calculate`, varianti generiche (righe 265-279: senza unità, in N e Nmm; con
   `MomentCurvatureUnits`, nelle unità coerenti del chiamante), che ricevono le funzioni del punto limite e della risposta
-  ed eseguono `Run` (righe 287-360):
-  1. controlla i dati (righe 290-296); calcola la direzione (riga 297);
-  2. ricava il punto limite e controlla il residuo su N e Mr > 0, (M.3) (righe 299-307);
-  3. costruisce i punti, (M.5) (righe 309-317), con il campionamento (M.4) (righe 319-333); un errore di una risposta
-     interrompe la curva e registra il passo e il messaggio (righe 331-332);
-  4. raffina il primo snervamento per bisezione, (M.6) (righe 334-355); se la bisezione fallisce resta il primo
+  ed eseguono `Run` (righe 336-409):
+  1. controlla i dati (righe 339-345); calcola la direzione (riga 346);
+  2. ricava il punto limite e controlla il residuo su N e Mr > 0, (M.3) (righe 348-356);
+  3. costruisce i punti, (M.5) (righe 358-366), con il campionamento (M.4) (righe 368-382); un errore di una risposta
+     interrompe la curva e registra il passo e il messaggio (righe 380-381);
+  4. raffina il primo snervamento per bisezione, (M.6) (righe 383-404); se la bisezione fallisce resta il primo
      campione snervato e `YieldRefinement` lo dice;
-  5. compone il risultato con N al punto limite, residuo e stato (righe 356-359).
-- `MomentCurvatureAnalysis.Calculate` sul verificatore `SectionCheckerModelCode2010` (riga 372, e `Native`, righe
-  416-455):
-  - richiede l'analisi tensionale non lineare (righe 420-421);
-  - imposta il dominio a N costante (riga 423);
-  - punto limite dal dominio, con le componenti di direzione passate come momenti unitari (righe 428-435);
+  5. compone il risultato con N al punto limite, residuo e stato (righe 405-408).
+- Duttilità sulla variante generica (0.34.0.0): overload con `MomentCurvatureDuctilitySection` e
+  `MomentCurvatureDuctilityRequest` (righe 291-313): controlla K e kb (`ValidateDuctility`, righe 315-320), calcola la
+  curva con `Run`, prende il punto limite dall'ultimo punto della curva (senza punto limite, per frazione finale minore
+  di 1 o curva interrotta, `DuctilityMessage` lo dice) e chiama `MomentCurvatureDuctilityAnalysis`; la frase dello stato
+  (`DuctilityStatus`, righe 322-328) usa le unità del chiamante.
+- `MomentCurvatureAnalysis.Calculate` sul verificatore `SectionCheckerModelCode2010` (riga 421, e `Native`, righe
+  460-499):
+  - richiede l'analisi tensionale non lineare (righe 464-465);
+  - imposta il dominio a N costante (riga 467);
+  - punto limite dal dominio, con le componenti di direzione passate come momenti unitari (righe 472-479);
   - risposte dalle analisi tensionali, rifiutando i piani non finiti; con `TensionChord` la deformazione delle barre è
-    quella nella fessura (righe 436-448, riquadro M-4).
-- Duttilità (0.33.0.0): overload con `MomentCurvatureDuctilityRequest` (righe 386-414): controlla K e kb, calcola la curva
-  con `Native` tenendo il punto limite, rifiuta le opzioni del calcestruzzo teso e chiama
-  `MomentCurvatureDuctilityAnalysis` (file `GPCChecker.Concrete/Response/MomentCurvatureDuctility.cs`):
+    quella nella fessura (righe 480-492, riquadro M-4).
+- Duttilità sul verificatore (0.33.0.0): overload con `MomentCurvatureDuctilityRequest` (righe 435-458): controlla K e
+  kb, calcola la curva con `Native` tenendo il punto limite, rifiuta le opzioni del calcestruzzo teso e chiama
+  `MomentCurvatureDuctilityAnalysis` con `MomentCurvatureDuctilitySection.From(checker, section)` in N e Nmm (dalla
+  0.34.0.0: stesse operazioni di prima, risultati invariati). File `GPCChecker.Concrete/Response/MomentCurvatureDuctility.cs`:
   - tipi pubblici `MomentCurvatureDuctilityRequest` (righe 19-25), `MomentCurvatureFirstYield` e
-    `MomentCurvatureUltimate` (righe 28-43), `MomentCurvatureDuctility` (righe 56-85);
-  - forze di un piano negli assi delle forze, (M.7) (righe 126-132); ε0 da N con regula falsi (righe 135-164); stato a
-    curvatura assegnata con le secanti su ψ (righe 168-191);
-  - campioni, primo snervamento (M.8), picco, χ0,85 e (M.9)-(M.10) (righe 211-278).
+    `MomentCurvatureUltimate` (righe 28-43), `MomentCurvatureDuctility` (righe 56-85), `MomentCurvatureForces` (righe
+    86-94) e `MomentCurvatureDuctilitySection` (righe 96-154; `From`, righe 134-153: forze del solutore negli assi
+    delle forze del verificatore, divise per le unità del chiamante, rifiutate con il calcestruzzo teso delle risposte);
+  - forze di un piano negli assi dei momenti della curva, (M.7) (righe 195-200); ε0 da N con regula falsi (righe
+    203-232); stato a curvatura assegnata con le secanti su ψ (righe 236-259);
+  - campioni, primo snervamento (M.8), picco, χ0,85 e (M.9)-(M.10) (righe 279-345).
 - Solutore sezionale (`GPCChecker.Concrete/SectionSolvers/SectionSolver.cs`): integrazione del calcestruzzo sulla
   mesh con punti di Gauss (`IntegrateSectionStress`, righe 1426-1477); contributo delle barre con la sezione netta
   (σs − σc) (`IntegrateRebarStress`, righe 1754-1781); risultanti di un piano per la duttilità
@@ -400,8 +415,12 @@ curva.
 - La curva a momento controllato non segue il ramo dopo il picco: se il momento massimo precede il punto limite, la
   curva salta dall'ultimo campione al punto limite. Il ramo dopo il picco, fino al punto limite, lo segue a richiesta il
   ramo a curvatura controllata della duttilità (§6.4); oltre il punto limite non c'è ramo.
-- La duttilità si calcola solo sul verificatore nativo (non con le funzioni del chiamante della variante generica) e con
-  il calcestruzzo teso delle risposte trascurato (`DuctilityMessage` lo dice). Nella flessione deviata la direzione ψ è
+- La duttilità si calcola sul verificatore nativo o, dalla 0.34.0.0, sulla variante generica con le forze dei piani date
+  da `MomentCurvatureDuctilitySection`, che devono stare negli assi e nelle unità dei momenti della curva e riferirsi al
+  punto delle ε0 della curva; sempre con il calcestruzzo teso delle risposte trascurato (`DuctilityMessage` lo dice;
+  `From` rifiuta un verificatore con l'opzione). Nella variante generica le prove di arresto delle ricerche sono
+  relative a N e ai momenti nelle unità del chiamante: in kN e kNm i valori differiscono da quelli in N e Nmm entro
+  10⁻⁵ (test). Nella flessione deviata la direzione ψ è
   cercata finché |M⊥| ≤ 10⁻⁸ Mr; oltre 10⁻⁵ Mr dopo 50 secanti la duttilità non è calcolata. Se nessuno stato
   raggiunge il primo snervamento convenzionale prima del punto limite, μφ non è definita (messaggio).
 - La curva usa le leggi di progetto: per una curva con valori medi o caratteristici occorre modificare i coefficienti
@@ -519,7 +538,12 @@ punto limite al passo 40.
 - **Esempio di questa pagina**: eseguito con la libreria 0.33.0.0 (`MomentCurvatureDuctilityTests.ExampleOfThePage`) e
   ricalcolato in modo indipendente (integrazione numerica della zona compressa con la parabola esatta), scarti nella
   tabella; in ANTHEA lo ricontrolla `tests/ConcreteLibraryAdapter.Checks/attesi/pagine_metodi.py`, anche per φyd e μφ.
-- **Duttilità in curvatura** (`MomentCurvatureDuctilityTests`, 5 test): attesi indipendenti di
+- **Variante generica** (`MomentCurvatureDuctilityTests.GenericVariantGivesTheNativeDuctility`, 0.34.0.0): l'esempio
+  di questa pagina a N = 0 e −500 kN con le funzioni della variante nativa in kN e kNm e
+  `MomentCurvatureDuctilitySection.From(..., 1000, 1e6)` dà la duttilità della variante nativa (scarti ≤ 10⁻⁵, MRd e φu
+  ≤ 10⁻⁹); senza il punto limite (frazione finale 0,9) la duttilità non è calcolata; un verificatore con il tirante
+  nelle risposte è rifiutato.
+- **Duttilità in curvatura** (`MomentCurvatureDuctilityTests`, 5 dei 6 test): attesi indipendenti di
   `tools/attesi/duttilita_curvatura.py` (sezione rettangolare integrata in forma chiusa sulle leggi esatte, asse neutro per
   bisezione a ogni curvatura, 2000 passi di curvatura, picco per sezione aurea). Sezione 300 × 500 C25/30 4Ø16 (B450C
   senza incrudimento, εuk 7,5%, NTC 2018; valori attesi salvo l'ultima colonna):

@@ -9,7 +9,7 @@ classi:
   - GPC.Checkers.Concrete.Detailing.BondResult
   - GPC.Checkers.Concrete.Detailing.DetailingProfiles
   - GPC.Checkers.Concrete.Detailing.DetailingProfile
-versione: 0.33.0.0
+versione: 0.34.0.0
 norme:
   - ntc2018-4.1.2.1.1.4
   - ntc2018-4.1.2.3.10
@@ -51,7 +51,7 @@ perché il modello non li descrive.
 | --- | --- | --- |
 | Barra rettilinea ad aderenza migliorata, tesa | supportato | calcolo di fbd, lb,rqd, lbd e dell'esito sulla lunghezza disponibile |
 | Barra rettilinea compressa | supportato | stessa formula delle barre tese; con α1…α5 = 1 il minimo di compressione di EN (8.7) non governa mai, quindi il risultato coincide con la regola corretta (6.3) |
-| Sovrapposizione rettilinea in trazione | supportato | α6 dalla percentuale ρ1 di barre sovrapposte; NTC: interferro ≤ 4Ø come verifica; Eurocodice: allungamento della sovrapposizione oltre min(4Ø; 50 mm) |
+| Sovrapposizione rettilinea in trazione | supportato | α6 dalla percentuale ρ1 di barre sovrapposte; NTC: interferro ≤ 4Ø come verifica; Eurocodice: sovrapposizione allungata dell'intero interferro quando supera min(4Ø; 50 mm) |
 | Condizioni di aderenza non buone | supportato | η1 = 0,7 su indicazione del chiamante |
 | Barre di diametro superiore a 32 mm | supportato in parte | η2 = (132 − Ø)/100; Ø ≥ 132 mm è rifiutato (`ArgumentException`); le regole aggiuntive per le barre grandi (NTC §4.1.6.1.4; EN 8.8, φlarge = 32 mm anche nell'appendice italiana) non sono verificate (§9) |
 | Barre lisce | non supportato | errore (`NotSupportedException`) |
@@ -80,7 +80,7 @@ perché il modello non li descrive.
 | fbd = 2,25 η1 η2 fctd; limite di fctk,0,05 a C60/75 | EN 1992-1-1 | 2004 + AC:2010 | 8.4.2(2) | (8.2) | testo |
 | lb,rqd = (Ø/4)(σsd/fbd) | EN 1992-1-1 | 2004 + AC:2010 | 8.4.3(2) | (8.3) | testo |
 | lbd = α1…α5 lb,rqd ≥ lb,min; lb,min in trazione e in compressione | EN 1992-1-1 | 2004 + AC:2010 | 8.4.4 | (8.4), (8.6), (8.7) | testo |
-| Interferro delle barre sovrapposte oltre 4Ø o 50 mm: sovrapposizione allungata della differenza | EN 1992-1-1 | 2004 + AC:2010 | 8.7.2(3) | — | testo; interpretazione (riquadro A-2) |
+| Interferro delle barre sovrapposte oltre 4Ø o 50 mm: sovrapposizione allungata di una lunghezza uguale all'interferro | EN 1992-1-1 | 2004 + AC:2010 | 8.7.2(3) | — | testo (UNI EN 1992-1-1:2015); soglia e lettura nel riquadro A-2 |
 | l0 = α1 α2 α3 α5 α6 lb,rqd ≥ l0,min; α6 = (ρ1/25)^0,5 fra 1 e 1,5 | EN 1992-1-1 | 2004 + AC:2010 | 8.7.3 | (8.10), (8.11), prospetto 8.3 | testo |
 | αct = 1,0; sezione 8 con i valori raccomandati (anche φlarge = 32 mm, 8.8(1)) | UNI EN 1992-1-1 | DM 31/07/2012 | 3.1.6(2)P, 8.2(2), 8.3(2), 8.6(2), 8.8(1) | — | testo |
 | Regole di aderenza non applicabili alle barre lisce | DS/EN 1992-1-1 | DK NA:2024 | 8.4.2(2) | — | testo |
@@ -194,20 +194,22 @@ lbd = max(lb,rqd; 10Ø; 100 mm) in entrambi i casi, perciò la distinzione non �
 Sovrapposizione (EN (8.10), (8.11) e 8.7.2(3)):
 
 ```math
-l_{0,min} = \max\left(0{,}3\,\alpha_6\,l_{b,rqd};\ 15\,\varnothing;\ 200\ \text{mm}\right), \qquad l_0 = \max\left(\alpha_6\,l_{b,rqd};\ l_{0,min}\right) + \max\left(0;\ s - s_{lim}\right), \qquad s_{lim} = \min\left(4\,\varnothing;\ 50\ \text{mm}\right) \qquad \text{(A.8)}
+l_{0,min} = \max\left(0{,}3\,\alpha_6\,l_{b,rqd};\ 15\,\varnothing;\ 200\ \text{mm}\right), \qquad l_0 = \max\left(\alpha_6\,l_{b,rqd};\ l_{0,min}\right) + \begin{cases} s & s > s_{lim} \\ 0 & s \le s_{lim} \end{cases}, \qquad s_{lim} = \min\left(4\,\varnothing;\ 50\ \text{mm}\right) \qquad \text{(A.8)}
 ```
 
-> **Scostamento dichiarato — A-2 Soglia dell'interferro nella famiglia Eurocodice**
+> **Scostamento corretto in parte — A-2 Interferro delle sovrapposizioni nella famiglia Eurocodice**
 >
 > - Norma: EN 8.7.2(3) indica un interferro non maggiore di «4Ø o 50 mm» senza dire quale dei due valori prevalga;
->   altrimenti la sovrapposizione va allungata «di una lunghezza uguale all'interferro, dove supera 4Ø o 50 mm», frase
->   che si può leggere come l'eccedenza s − slim oppure come l'intero interferro s.
-> - Programma: usa il minore, min(4Ø; 50 mm), e allunga della sola eccedenza s − slim
->   (`AnchorageCalculator.cs:154-155`).
-> - Effetto: la soglia è a favore di sicurezza, solo per Ø > 12,5 mm e interferro compreso fra 50 mm e 4Ø (con Ø20 e
->   s = 70 mm, +20 mm). L'allungamento della sola eccedenza è a sfavore rispetto alla lettura letterale dell'intero
->   interferro, di slim (50 mm per Ø ≥ 12,5 mm): nel caso C dell'esempio l0 sarebbe 941,76 mm invece di 891,76 mm.
-> - Stato: dichiarato; la lettura dell'allungamento è da discutere (domanda del 1/11/2026).
+>   altrimenti la sovrapposizione va allungata «di una lunghezza uguale all'interferro, dove supera 4Ø o 50 mm»
+>   (testo di UNI EN 1992-1-1:2015).
+> - Programma: soglia slim = min(4Ø; 50 mm), il minore dei due valori; dalla 0.34.0.0 la sovrapposizione si allunga
+>   dell'intero interferro s quando s > slim, la lettura letterale scelta dall'utente il 1/11/2026; fino alla 0.33.0.0
+>   si allungava della sola eccedenza s − slim, lettura che resta come opzione storica
+>   `EurocodeLapLengthening.ExcessOnly` (`AnchorageCalculator.cs:181-187`).
+> - Effetto: la soglia è a favore di sicurezza, solo per Ø > 12,5 mm e interferro compreso fra 50 mm e 4Ø. La lettura
+>   dell'eccedenza era a sfavore di slim (50 mm per Ø ≥ 12,5 mm): nel caso C dell'esempio l0 passa da 891,76 mm a
+>   941,76 mm e la sovrapposizione di 900 mm non è più sufficiente.
+> - Stato: allungamento corretto in 0.34.0.0 (voce CA-METODI-01 del registro delle differenze); soglia dichiarata.
 
 ### 6.4 Esito
 
@@ -215,8 +217,8 @@ l_{0,min} = \max\left(0{,}3\,\alpha_6\,l_{b,rqd};\ 15\,\varnothing;\ 200\ \text{
 \text{LengthPassed} = \left(l_{disp} \ge l_{req}\right), \qquad \text{Passed} = \text{LengthPassed} \wedge \left(s \le s_{lim}\right)_{\text{solo NTC, solo sovrapposizioni}} \qquad \text{(A.9)}
 ```
 
-Qui lreq è lbd o l0. Nel ramo Eurocodice il controllo dell'interferro è sempre soddisfatto, perché l'interferro
-eccedente è già sommato a l0.
+Qui lreq è lbd o l0. Nel ramo Eurocodice il controllo dell'interferro è sempre soddisfatto, perché l'allungamento
+per l'interferro è già sommato a l0.
 
 > **Scostamento dichiarato — A-3 (R10) Limite di fctk,0,05 a C60/75 non applicato dal metodo**
 >
@@ -246,6 +248,7 @@ eccedente è già sommato a l0.
 | lb,min Eurocodice | 0,3 lb,rqd; 10Ø; 100 mm | EN (8.6) | no | `Calculate` |
 | l0,min Eurocodice | 0,3 α6 lb,rqd; 15Ø; 200 mm | EN (8.11) | no | `Calculate` |
 | soglia dell'interferro Eurocodice | min(4Ø; 50 mm) | EN 8.7.2(3) (riquadro A-2) | no | `Calculate` |
+| allungamento oltre la soglia | intero interferro s | EN 8.7.2(3) (riquadro A-2) | sì (`EurocodeLapLengthening`; `ExcessOnly` = s − slim, fino alla 0.33.0.0) | `AnchorageInput` |
 | percentuale sovrapposta predefinita | 100% | assunzione del metodo | sì (`LapPercent`) | `AnchorageInput` |
 
 ## 8. Implementazione
@@ -256,19 +259,20 @@ Percorsi relativi alla radice del repository Checker (namespace `GPC.Checkers.Co
   (`TryResolve`, righe 17-29; `Resolve`, righe 45-52); motivi di non applicabilità (righe 31-32) e di non supporto
   (righe 34-43); `IsNtc` (riga 54) raggruppa NTC 2018 e CNR-DT 200; `Reference` (righe 56-67) restituisce il testo di
   riferimento del risultato.
-- `AnchorageInput` (`GPCChecker.Concrete/Detailing/AnchorageCalculator.cs:11-35`), `AnchorageResult` (righe 37-59) e
-  `BondResult` (righe 62-75).
-- Aderenza da fck: `BondStrengthClassLimit` (riga 87), `BondFctk05` (righe 94-96), `Bond` (righe 104-115).
-- `AnchorageCalculator.BondStrength` (righe 117-123): (A.1)-(A.2) per qualsiasi η1 e αct; rifiuta valori non finiti o
+- `AnchorageInput` (`GPCChecker.Concrete/Detailing/AnchorageCalculator.cs:11-47`, con il costruttore che riceve la lettura
+  di 8.7.2(3), righe 41-46), `EurocodeLapLengthening` (righe 53-61), `AnchorageResult` (righe 63-85) e `BondResult`
+  (righe 88-101).
+- Aderenza da fck: `BondStrengthClassLimit` (riga 114), `BondFctk05` (righe 121-123), `Bond` (righe 131-142).
+- `AnchorageCalculator.BondStrength` (righe 144-150): (A.1)-(A.2) per qualsiasi η1 e αct; rifiuta valori non finiti o
   non positivi e Ø ≥ 132 mm.
-- `AnchorageCalculator.Calculate` (righe 125-165):
-  1. controlla i dati (righe 127-132) e η2 (righe 133-134);
-  2. rifiuta le barre lisce (riga 136);
-  3. calcola η1 (riga 137) e fbd con αct = 1 nel ramo NTC (riga 138);
-  4. calcola lb,rqd (riga 139) e α6 (riga 140);
-  5. applica il ramo NTC (righe 143-149) o il ramo Eurocodice (righe 150-158), compreso l'allungamento per
-     l'interferro (righe 154-155);
-  6. compone il risultato con l'espressione applicata e il riferimento normativo (righe 159-164).
+- `AnchorageCalculator.Calculate` (righe 152-196):
+  1. controlla i dati (righe 154-159) e η2 (righe 160-161);
+  2. rifiuta le barre lisce (riga 163);
+  3. calcola η1 (riga 164) e fbd con αct = 1 nel ramo NTC (riga 165);
+  4. calcola lb,rqd (riga 166) e α6 (riga 167);
+  5. applica il ramo NTC (righe 170-176) o il ramo Eurocodice (righe 177-189), compreso l'allungamento per
+     l'interferro secondo la lettura richiesta (righe 181-187);
+  6. compone il risultato con l'espressione applicata e il riferimento normativo (righe 190-195).
 
 Il metodo non ha stato e non alloca risorse condivise: può essere chiamato in parallelo.
 
@@ -279,11 +283,14 @@ Il metodo non ha stato e non alloca risorse condivise: può essere chiamato in p
 - Nessuna verifica dell'armatura trasversale lungo le sovrapposizioni (EN 8.7.4), dello sfalsamento
   longitudinale (0,3 l0) o dell'interferro fra sovrapposizioni adiacenti (2Ø o 20 mm, EN 8.7.2(3)).
 - Barre con Ø > 32 mm: le «particolari cautele» di NTC §4.1.6.1.4 non sono valutate; vale solo η2. Nella famiglia
-  Eurocodice non sono verificate le regole di EN 8.8 (ancoraggio meccanico o confinamento, nessuna sovrapposizione
-  salvo dimensione minima ≥ 1 m o tensione ≤ 80% di quella di progetto, armatura trasversale aggiuntiva (8.12)-(8.13)):
-  l'esito può essere «soddisfatto» anche dove la norma chiede altro (domanda del 1/11/2026).
+  Eurocodice le regole di EN 8.8 (ancoraggio meccanico o confinamento, sovrapposizione solo con dimensione minima
+  ≥ 1 m o tensione ≤ 80% di quella di progetto, armatura trasversale aggiuntiva (8.12)-(8.13), armatura di pelle)
+  non sono valutate da questo metodo, che dà solo la lunghezza: dalla 0.34.0.0 sono controlli dei dettagli della
+  membratura (pagina ca.dettagli, riquadro D-8), in sospeso dove servono dati che la sezione non dà.
 - Percentuale di barre sovrapposte in trazione: EN 8.7.2(4) ammette il 100% solo con le barre in un solo strato,
-  altrimenti il 50%; il metodo accetta ogni ρ1 ≤ 100% perché non conosce gli strati.
+  altrimenti il 50%; questo metodo accetta ogni ρ1 ≤ 100% perché non conosce gli strati. Dalla 0.34.0.0 la regola è
+  il controllo `LapPercentage` dei dettagli della membratura (pagina ca.dettagli, riquadro D-8), in sospeso senza la
+  disposizione delle sovrapposizioni.
 - La percentuale di barre sovrapposte e le condizioni di aderenza sono dati: il metodo non conosce la
   disposizione delle giunzioni né la posizione della barra nel getto.
 - In `Calculate` il limite di fctk,0,05 a C60/75 è a carico del chiamante; `Bond` lo applica (riquadro A-3).
@@ -309,7 +316,8 @@ Calcolo a mano:
    - NTC: l0 = max(871,76; 261,53; 320; 200) = 871,76 mm ≤ 900 mm; s = 30 mm ≤ 4Ø = 64 mm, soddisfatto.
 5. Caso C, come B con s = 70 mm:
    - NTC: 70 mm > 64 mm, interferro non soddisfatto;
-   - EN: slim = min(64; 50) = 50 mm, l0 = 871,76 + 20 = 891,76 mm ≤ 900 mm, soddisfatto.
+   - EN: slim = min(64; 50) = 50 mm; s = 70 mm > 50 mm, quindi l0 = 871,76 + 70 = 941,76 mm > 900 mm, non soddisfatto
+     (fino alla 0.33.0.0, con la sola eccedenza: 871,76 + 20 = 891,76 mm, soddisfatto; riquadro A-2).
 6. Caso D, aderenza non buona: fbd = 0,7 · 2,6932 = 1,8852 MPa; lb,rqd = 830,24 mm > 600 mm, non
    soddisfatto.
 7. Caso E, sovrapposizione del 50%: α6 = √2 = 1,4142; l0 = 821,90 mm.
@@ -320,7 +328,8 @@ Calcolo a mano:
 9. Caso G, Ø40 con EN: η2 = 0,92; fbd = 2,4778 MPa; lb,rqd = 1579,27 mm.
 
 Valori della libreria (GPCChecker.Concrete 0.0.17.0, eseguita; il calcolo non è cambiato fino alla 0.33.0.0, verifica
-sul codice del 1/11/2026, e `pagine_metodi.py` di ANTHEA ricontrolla il ramo NTC):
+sul codice del 1/11/2026, salvo il caso C con l'Eurocodice, eseguito con la 0.34.0.0; `pagine_metodi.py` di ANTHEA
+ricontrolla il ramo NTC):
 
 | Caso | Grandezza | A mano | Libreria | Scarto |
 | --- | --- | --- | --- | --- |
@@ -329,7 +338,7 @@ sul codice del 1/11/2026, e `pagine_metodi.py` di ANTHEA ricontrolla il ramo NTC
 | A (EN) | lb,min [mm] | 174,351 | 174,35136824126414 | < 10⁻¹² |
 | B (NTC) | α6; l0 [mm] | 1,5; 871,757 | 1,5; 871,7568412063207 | < 10⁻¹² |
 | C (NTC) | esito dell'interferro | non soddisfatto (70 > 64) | `LapClearDistancePassed` = false | — |
-| C (EN) | l0 [mm] | 891,757 | 891,7568412063207 | < 10⁻¹² |
+| C (EN) | l0 [mm]; esito | 941,757; non soddisfatto | 941,7568412063207; `Passed` = false | < 10⁻¹² |
 | D | fbd [MPa]; lb,rqd [mm] | 1,88525; 830,245 | 1,8852484812110581; 830,2446106726862 | < 10⁻¹² |
 | E | α6; l0 [mm] | 1,41421; 821,900 | 1,4142135623730951; 821,9002319503383 | < 10⁻¹² |
 | F (NTC ed EN) | l0 [mm] | 200 | 200 | 0 |
@@ -346,11 +355,15 @@ Gli scarti sono al livello dell'arrotondamento in doppia precisione.
 - **Test** di `DetailingMigrationTests`:
   - `LegacyAnchorageAndBondAreReproduced` (i casi congelati);
   - `EurocodeAnchorageAndLapMatchHandCalculation`: calcoli a mano con EN, Ø20, σsd = 391,3 MPa, fctk,0,05 = 2,0 MPa,
-    quindi fbd = 3,0 MPa, lb,rqd = 652,2 mm, l0 = 1,5 lb,rqd + 20 mm; anche il minimo NTC di 20Ø con Ø8, η1 = 0,7
-    con DS, η2 = 0,92 con UNI e il rifiuto delle barre lisce;
+    quindi fbd = 3,0 MPa, lb,rqd = 652,2 mm, l0 = 1,5 lb,rqd + 70 mm con s = 70 mm (lettura storica: + 20 mm), nessun
+    allungamento con s = 50 mm e + 50,1 mm con s = 50,1 mm (UNI), il caso C di questa pagina; anche il minimo NTC di 20Ø
+    con Ø8, η1 = 0,7 con DS, η2 = 0,92 con UNI e il rifiuto delle barre lisce;
   - `ProfilesAreResolvedByExactTypeWithoutFallback` (risoluzione per tipo esatto e motivi di non supporto).
-- **Esempio di questa pagina**: eseguito con la libreria 0.0.17.0 e ricalcolato in modo indipendente, scarto
-  inferiore a 10⁻¹².
+- **Contratto dei dettagli** (`detailing-contract-0.0.17.csv`, `DetailingContractTests`): tutte le righe di ancoraggio
+  di ogni profilo; dalla 0.34.0.0 le 714 righe con sovrapposizione della famiglia Eurocodice hanno l'espressione nuova e
+  459 di esse la lunghezza l0 + s, verificate riga per riga da `tools/attesi/classifica_contratto_dettagli_20261101.py`.
+- **Esempio di questa pagina**: eseguito con la libreria 0.0.17.0 (caso C con l'Eurocodice: 0.34.0.0) e ricalcolato in
+  modo indipendente, scarto inferiore a 10⁻¹².
 - **Benchmark indipendenti pubblicati**: nessuno, per ora.
 
 ## 12. Bibliografia

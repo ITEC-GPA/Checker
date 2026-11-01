@@ -14,7 +14,7 @@ classi:
   - GPC.Checkers.Concrete.Detailing.MemberDetailingKind
   - GPC.Checkers.Concrete.Detailing.DetailingProfiles
   - GPC.Checkers.Concrete.Cracking.CrackSectionGeometry
-versione: 0.33.0.0
+versione: 0.34.0.0
 norme:
   - ntc2018-4.1.6.1.1
   - ntc2018-4.1.6.1.2
@@ -74,6 +74,8 @@ sospeso se nessun controllo fallisce ma almeno uno è in sospeso, soddisfatto ne
 | Staffe inclinate | non supportato | α = 90° in tutte le espressioni |
 | Una barra in ogni spigolo dei pilastri poligonali (EN 9.5.2(4)) | non supportato | è verificato solo il numero minimo di 4 barre nei pilastri circolari |
 | Disposizione delle barre non riconosciuta per l'interasse automatico | in sospeso | controllo `LongitudinalSpacing` in sospeso |
+| Percentuale di barre giuntate nella sezione di sovrapposizione, famiglia Eurocodice (EN 8.7.2(4)) | calcolato con i dati, altrimenti in sospeso | `LapPercentage` con la disposizione delle sovrapposizioni (`LapArrangementData`); senza, in sospeso (riquadro D-8) |
+| Barre di diametro maggiore di 32 mm, famiglia Eurocodice (EN 8.8) | in sospeso; calcolato in parte | ancoraggio e controllo della fessurazione come conferme; sovrapposizione soddisfatta con dimensione minima ≥ 1 m, altrimenti in sospeso (riquadro D-8) |
 | NTC 2018; CNR-DT 200 R1/2013 (membratura in c.a. secondo NTC) | supportato | profilo NTC |
 | EN 1992-1-1, valori raccomandati | supportato | profilo EN |
 | UNI EN 1992-1-1 con DM 31/07/2012 | supportato | valori nazionali di 9.2.2(8), 9.5.2(1)-(2), 9.5.3(3) |
@@ -102,6 +104,10 @@ sospeso se nessun controllo fallisce ma almeno uno è in sospeso, soddisfatto ne
 | k1 = 1, k2 = 5 mm; Δcdev = 10 mm; k1/k2/k3 = 5/10/15 mm; getti contro terreno 40/75 mm | UNI EN 1992-1-1 | DM 31/07/2012 | 8.2(2), 4.4.1.2(13), 4.4.1.3(2)-(4) | — | testo |
 | st,max = 0,75 d ≤ 300 mm; Ømin = 12 mm; As,min = max(0,10 NEd/fyd; 0,003 Ac); As,max 0,04 Ac (0,08 Ac nelle sovrapposizioni); scl,tmax = min(12 Ømin; b; 250 mm) | UNI EN 1992-1-1 | DM 31/07/2012 | 9.2.2(8), 9.5.2(1)-(3), 9.5.3(3) | — | testo |
 | Capitolo 9 invariato salvo 9.2.1.1(1) e 9.2.2(5) (scelte nazionali) e 9.2.1.2(3) (vale anche 9.5.3(6)) | DS/EN 1992-1-1 | DK NA:2024 | capitolo 9 | (9.5N NA) | testo (riquadro D-5) |
+| Barre tese giuntate nella stessa sezione: 100% con le barre in un solo strato, 50% con più strati; barre compresse e di ripartizione tutte nella stessa sezione | EN 1992-1-1 | 2004 + AC:2010 | 8.7.2(4) | — | testo (UNI EN 1992-1-1:2015, letto il 1/11/2026) |
+| Barre con Ø > φlarge: fessurazione con armatura di pelle o con il calcolo; ancoraggio con dispositivi meccanici o rettilineo con staffe di confinamento; niente sovrapposizioni salvo dimensione minima 1,0 m o tensione ≤ 80% di quella di progetto; armatura trasversale aggiuntiva ΣAsh ≥ 0,25 As n1, ΣAsv ≥ 0,25 As n2, passo ≤ 5Ø; armatura di pelle ≥ 0,01 Act,ext e 0,02 Act,ext | EN 1992-1-1 | 2004 + AC:2010 | 8.8(1)-(8) | (8.12), (8.13) | testo (UNI EN 1992-1-1:2015, letto il 1/11/2026) |
+| φlarge = 32 mm | UNI EN 1992-1-1 | DM 31/07/2012 | 8.8(1) | — | testo |
+| φlarge | DS/EN 1992-1-1 | DK NA:2024 | 8.8(1) | — | da riscontrare (usato il valore raccomandato, dichiarato nel controllo) |
 | Membratura in c.a. secondo NTC | CNR-DT 200 | R1/2013 | — | — | da riscontrare |
 
 ## 4. Ipotesi
@@ -318,7 +324,9 @@ Controlli in sospeso per conferma mancante:
   9.2.1.2(3) che estende alle travi la 9.5.3(6);
 - `EndSupportAnchorage`: travi, NTC §4.1.6.1.1 (anche per le travi senza armatura a taglio, Circolare C4.1.6.1.1)
   ed EN 9.2.1.4;
-- `LinkSpacingNearBeams`: pilastri Eurocodice, EN 9.5.3(4)(i).
+- `LinkSpacingNearBeams`: pilastri Eurocodice, EN 9.5.3(4)(i);
+- `LapPercentage` (senza la disposizione delle sovrapposizioni), `LargeBarAnchorage`, `LargeBarCrackControl` e, con
+  dimensione minima sotto 1 m o sezione cava, `LargeBarLap`: famiglia Eurocodice, EN 8.7.2(4) e 8.8 (6.6).
 
 L'esito complessivo è:
 
@@ -354,6 +362,41 @@ c = 30, 6Ø16 per faccia: 424 mm invece di 184,8 mm). L'opzione con nome
 `detailing-plate-legacy.csv` è stata rigenerata con la misura nuova e il test la confronta anche con l'opzione, che
 restituisce i valori di ANTHEA. La regola dei pilastri (riquadro D-2) non cambia.
 
+### 6.6 Sovrapposizioni e barre di grande diametro (famiglia Eurocodice, dalla 0.34.0.0)
+
+Nei profili EN, UNI e DS, dopo tutti gli altri controlli (che conservano l'ordine), le regole di EN 8.7.2(4) e 8.8
+(decisione dell'utente del 1/11/2026). Nella sezione di sovrapposizione (`LapZone`), con la percentuale ρl di barre
+tese giuntate e il numero nl di strati delle barre giuntate dati dal chiamante (`LapArrangementData`):
+
+```math
+\rho_l \le \begin{cases} 100\% & n_l = 1 \\ 50\% & n_l \ge 2 \end{cases} \qquad \text{(D.12)}
+```
+
+Con barre di diametro maggiore di φlarge = 32 mm, in ogni sezione `LargeBarAnchorage` (8.8(3), (5)-(7)) e
+`LargeBarCrackControl` (8.8(2), (8)) come conferme; nella sezione di sovrapposizione, con bmin il lato minore del
+rettangolo d'ingombro (per le travi anche bw):
+
+```math
+\text{LargeBarLap: soddisfatto se}\ b_{min} \ge 1000\ \text{mm e la sezione non ha fori; altrimenti in sospeso} \qquad \text{(D.13)}
+```
+
+> **Scostamento dichiarato — D-8 Regole di EN 8.7.2(4) e 8.8 in sospeso senza i dati**
+>
+> - Norma: EN 8.7.2(4) ammette il 100% di barre tese giuntate nella stessa sezione solo con le barre in un solo
+>   strato, altrimenti il 50%; EN 8.8 chiede per le barre oltre φlarge (32 mm, valore raccomandato e dell'appendice
+>   italiana) ancoraggio meccanico o con staffe di confinamento, armatura trasversale aggiuntiva (8.12)-(8.13),
+>   controllo della fessurazione con armatura di pelle o con il calcolo, e nessuna sovrapposizione salvo sezioni con
+>   dimensione minima di 1,0 m o tensione delle barre non maggiore dell'80% di quella di progetto.
+> - Programma: la sezione non dà la disposizione delle sovrapposizioni, gli strati giuntati, le zone di ancoraggio né
+>   la tensione delle barre giuntate; senza `MemberDetailingOptions.Laps` `LapPercentage` è in sospeso; le regole di
+>   8.8 sono conferme in sospeso, salvo `LargeBarLap` soddisfatto con bmin ≥ 1 m. Con DS φlarge è il valore
+>   raccomandato, dichiarato nella spiegazione (DK NA non riscontrato). Il profilo NTC e le solette e pareti non
+>   cambiano.
+> - Effetto: nessun esito inventato; un caso della famiglia Eurocodice nella zona di sovrapposizione o con barre oltre
+>   32 mm non è più «soddisfatto» senza le conferme (nel contratto dei dettagli 2 casi passano da soddisfatto a in
+>   sospeso).
+> - Stato: dichiarato (voce CA-METODI-02 del registro delle differenze).
+
 ## 7. Coefficienti e valori predefiniti
 
 | Simbolo | Valore | Fonte | Modificabile | Dove nel codice |
@@ -373,36 +416,42 @@ restituisce i valori di ANTHEA. La regola dei pilastri (riquadro D-2) non cambia
 | pilastri UNI | Ø ≥ 12; 0,003 Ac; 12 Ømin; b; 250 mm | DM 31/07/2012 | no | `Column` |
 | riduzione del passo | 0,6 | EN 9.5.3(4) (riquadro D-3) | solo la condizione Ømax > 14 mm (`LapLinkReductionAboveFourteen`) | `Column` |
 | cmin,dur, Δcdev, Δcadd, cground | dati | progetto di durabilità; EN 4.4.1 | sì | `MemberDetailingInput` |
+| percentuale giuntata ammessa | 100% in un solo strato, 50% con più strati | EN 8.7.2(4) | dati ρl e nl (`LapArrangementData`) | `LapsAndLargeBars` |
+| φlarge | 32 mm | EN 8.8(1); DM 31/07/2012 | no (`LargeBarDiameter`) | `MemberDetailingCalculator` |
+| dimensione minima per sovrapporre barre grandi | 1000 mm | EN 8.8(4) | no (`LargeBarLapMinimumDimension`) | `MemberDetailingCalculator` |
 
 ## 8. Implementazione
 
 Percorsi relativi alla radice del repository Checker (namespace `GPC.Checkers.Concrete.Detailing`, salvo indicazione).
 
-- `MemberDetailingInput` (`GPCChecker.Concrete/Detailing/MemberDetailingCalculator.cs:79-149`), con le opzioni
-  `MemberDetailingOptions` (righe 30-73) e i dati di soletta e parete `PlateDetailingData` (righe 20-27); `DetailingCheck`
-  (righe 152-166), `MemberDetailingResult` (righe 168-176, esito aggregato (D.11) alla riga 174).
-- `MemberDetailingCalculator.Calculate` (righe 191-247):
-  1. controlla i dati: valori non finiti o negativi danno `ArgumentException` (righe 193-204, costruttore righe
-     139-143);
-  2. calcola Ømin, Ømax e As (riga 216) e l'interferro su tutte le coppie, (D.1) (righe 217-221);
-  3. calcola il copriferro richiesto, (D.2) (riga 225), e i controlli (D.3) (righe 222-231); senza cmin,dur
-     `NominalCover` è in sospeso (riga 232);
-  4. smista a `Column`, `Beam`, `Slab` o `Wall` (righe 235-241);
-  5. aggiunge le conferme NTC sulle barre trattenute (riga 242) e il massimo nelle sovrapposizioni di pilastri e
-     pareti, (D.10) (righe 243-245).
-- `MemberDetailingCalculator.Column` (righe 319-354):
-  - profilo NTC: righe 324-337, (D.8), con l'interasse da `CrackSectionGeometry.MaximumSpacing` (righe 327-331) o,
+- `MemberDetailingInput` (`GPCChecker.Concrete/Detailing/MemberDetailingCalculator.cs:97-167`), con le opzioni
+  `MemberDetailingOptions` (righe 42-91), i dati di soletta e parete `PlateDetailingData` (righe 20-27) e la disposizione
+  delle sovrapposizioni `LapArrangementData` (righe 34-39); `DetailingCheck` (righe 170-184), `MemberDetailingResult`
+  (righe 186-194, esito aggregato (D.11) alla riga 192).
+- `MemberDetailingCalculator.Calculate` (righe 215-275):
+  1. controlla i dati: valori non finiti o negativi danno `ArgumentException` (righe 217-231, con la disposizione delle
+     sovrapposizioni alle righe 229-231; costruttore righe 157-161);
+  2. calcola Ømin, Ømax e As (riga 243) e l'interferro su tutte le coppie, (D.1) (righe 244-248);
+  3. calcola il copriferro richiesto, (D.2) (riga 252), e i controlli (D.3) (righe 249-258); senza cmin,dur
+     `NominalCover` è in sospeso (riga 259);
+  4. smista a `Column`, `Beam`, `Slab` o `Wall` (righe 262-268);
+  5. aggiunge le conferme NTC sulle barre trattenute (riga 269), il massimo nelle sovrapposizioni di pilastri e
+     pareti, (D.10) (righe 270-272), e per la famiglia Eurocodice le regole di 6.6 (riga 273).
+- `MemberDetailingCalculator.Column` (righe 347-382):
+  - profilo NTC: righe 352-365, (D.8), con l'interasse da `CrackSectionGeometry.MaximumSpacing` (righe 355-359) o,
     con l'opzione, lungo il perimetro (`MemberDetailingCalculator.Perimeter.cs:44-96`);
-  - famiglia Eurocodice: righe 338-350, (D.9), con la riduzione 0,6 nelle sovrapposizioni alle righe 346-348;
-  - conferme: righe 351-353.
-- `MemberDetailingCalculator.Beam` (righe 360-408):
-  - divisione in zone (righe 364, 371), ρmin (riga 365), Ast/s (riga 366);
-  - zona senza barre (righe 372-377), d (riga 379);
-  - armatura minima e massima, (D.5) (righe 380-382);
-  - staffe NTC, (D.6) (righe 384-388); staffe Eurocodice, (D.7) (righe 389-400);
-  - trattenimento delle barre compresse (righe 405-406) e ancoraggio di estremità (riga 407).
-- `MemberDetailingCalculator.National` (righe 356-357): controlli DS non implementati (`NotImplemented` = true).
-- Solette e pareti: `IsRectangularStrip` (righe 250-265), `Slab` (righe 274-292), `Wall` (righe 299-317); limiti in
+  - famiglia Eurocodice: righe 366-378, (D.9), con la riduzione 0,6 nelle sovrapposizioni alle righe 374-376;
+  - conferme: righe 379-381.
+- `MemberDetailingCalculator.LapsAndLargeBars` (righe 391-417): (D.12) (righe 394-400), conferme di 8.8 (righe
+  401-407) e (D.13) (righe 408-416); costanti `LargeBarDiameter` e `LargeBarLapMinimumDimension` (righe 210-213).
+- `MemberDetailingCalculator.Beam` (righe 423-471):
+  - divisione in zone (righe 427, 434), ρmin (riga 428), Ast/s (riga 429);
+  - zona senza barre (righe 435-440), d (riga 442);
+  - armatura minima e massima, (D.5) (righe 443-445);
+  - staffe NTC, (D.6) (righe 447-451); staffe Eurocodice, (D.7) (righe 452-463);
+  - trattenimento delle barre compresse (righe 468-469) e ancoraggio di estremità (riga 470).
+- `MemberDetailingCalculator.National` (righe 419-420): controlli DS non implementati (`NotImplemented` = true).
+- Solette e pareti: `IsRectangularStrip` (righe 278-293), `Slab` (righe 302-320), `Wall` (righe 327-345); limiti in
   `PlateDetailingRules` (`PlateDetailingRules.cs`, interferro alla riga 11) e in `LongitudinalReinforcementLimits`
   (`LongitudinalReinforcementLimits.cs`: 0,04 Ac alla riga 9, ρmin alla riga 11). `CalculateColumnOnPerimeter`
   (`MemberDetailingCalculator.Perimeter.cs:16-38`) misura l'interasse dei pilastri NTC lungo un percorso chiuso dato
@@ -444,6 +493,10 @@ Percorsi relativi alla radice del repository Checker (namespace `GPC.Checkers.Co
 - La quota minima di staffe nell'armatura a taglio, la presenza di una barra in ogni spigolo dei pilastri
   poligonali, le staffe inclinate e le regole sismiche non sono verificate.
 - Con DS, As,min delle travi resta in sospeso (riquadro D-5).
+- Famiglia Eurocodice: la percentuale di barre giuntate (EN 8.7.2(4)) richiede la disposizione delle sovrapposizioni
+  dal chiamante; le regole di EN 8.8 sono conferme, salvo la sovrapposizione delle barre grandi con dimensione minima
+  ≥ 1 m (riquadro D-8). La distanza longitudinale fra sovrapposizioni adiacenti (0,3 l0) e l'interferro fra
+  sovrapposizioni adiacenti (2Ø o 20 mm) di EN 8.7.2(3) non sono controllati.
 - Testo dei riferimenti (R14), corretto nella 1.16.0 di ANTHEA (Concrete 0.28): nel profilo NTC il riferimento di
   `MinimumTension:<faccia>` delle travi cita EC2 §9.2.1.1 (prima §9.3.1.1, delle solette, che resta per le solette), i
   riferimenti NTC non hanno più lo spazio prima del numero del sottoparagrafo («§4.1.6.1.3», prima «§4.1.6.1 .3») e
@@ -539,6 +592,16 @@ codice del 1/11/2026, e `pagine_metodi.py` di ANTHEA ricontrolla il profilo NTC)
     dell'interasse; con l'approvazione dell'utente le 60 righe in cui ANTHEA misurava l'interasse anche fra gli strati
     sono state rigenerate (S1000x200D 102 → 69,38, W250x1200N 164 → 159,14, W1000x200D 92 → 68,62 mm), con gli
     stessi esiti; con l'opzione legacy gli altri controlli sono identici e tornano i 60 valori precedenti.
+- **Test** `EurocodeLapAndLargeBarTests` (0.34.0.0, attesi dal testo di EN 8.7.2(4) e 8.8): `LapPercentage` in
+  sospeso senza dati, 100% in un solo strato soddisfatto, 60% in due strati non soddisfatto (limite 50%), 50% in due
+  strati soddisfatto, per EN, UNI e DS; nessun controllo nuovo fuori dalla sovrapposizione con Ø ≤ 32 mm né con NTC;
+  Ø36 in una trave 400 × 600: ancoraggio e fessurazione in sospeso, sovrapposizione in sospeso (400 mm); pilastro
+  1200 × 1200 con Ø40: sovrapposizione soddisfatta (1200 ≥ 1000 mm); trave 1200 × 1200 con anima di 300 mm: in sospeso;
+  dati non validi rifiutati.
+- **Contratto dei dettagli** (`detailing-contract-0.0.17.csv`): dalla 0.34.0.0 i 66 casi della famiglia Eurocodice
+  nella zona di sovrapposizione hanno `LapPercentage` in sospeso in coda, con gli altri controlli invariati e 2 esiti
+  complessivi da soddisfatto a in sospeso, verificati riga per riga da
+  `tools/attesi/classifica_contratto_dettagli_20261101.py`.
 - Nel repository Model, `MemberDetailingTest` verifica il collegamento come attività d'asta (trave NTC soddisfatta,
   pilastro NTC non soddisfatto sul passo delle staffe, EN, DS, dati mancanti, conferme).
 - **Esempio di questa pagina**: eseguito con la libreria 0.0.17.0 e ricalcolato in modo indipendente, scarto
