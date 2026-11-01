@@ -36,5 +36,8 @@ Avanzamento
   indiscriminata. CHS: A1:2017 completa e giustificazione diretta del taglio
   trasversale ancora da reperire, nessuna nuova conclusione automatica.
 2 DA FARE
-3 DA FARE
+3 PARZIALE - implementato terminale 2C teso con fazzoletto e collettore
+  complanare CJP, vincolando i sottocontratti alla stessa geometria/azione.
+  27 nuovi test superati; ChannelPairCoplanarCollector.Verify.
+  Restano C singola con eccentricita', T-supporti e tying delle squadrette.
 4 DA FARE

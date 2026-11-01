@@ -552,6 +552,13 @@ STATO DEGLI OTTO PUNTI RICHIESTI IN QUESTO BLOCCO
   pilastri, piu' file/fori asolati, tying di squadrette e anima (P358 Check14
   per lo schema delle squadrette), fazzoletto/collettore e supporto dei C/2C,
   C/2C compressi collegati d'anima con altri dettagli, supporti generici.
+  Estensione 01/11: ChannelPairCoplanarCollector.Verify chiude il terminale
+  2C teso ConnectedWebOnly, fazzoletto centrale a contatto e collettore
+  complanare CJP di sezione costante, fino al taglio effettivo del collettore.
+  Connessione con due linee longitudinali, ripartizione N/2, geometrie e
+  azioni dei sottocontratti vincolate; 27 test indipendenti/limite/invalidi.
+  Il vuoto fazzoletto/collettore resta per C singola e gli altri schemi.
+  Connections/CHANNEL_PAIR_COPLANAR_COLLECTOR.txt.
 5 Documentazione corrente: COMPLETATO. Questo indice prevale sui checkpoint.
 6 Preparazioni ripetute: COMPLETATO nel workflow dei coprigiunti. Ogni caso
   riusa risultati immutabili, senza cache globale o scambio di azioni fra casi.
