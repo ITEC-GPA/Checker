@@ -84,15 +84,82 @@ namespace GPC.Checkers.Concrete.Response
         public IReadOnlyList<MomentCurvaturePoint> Points { get; internal set; }
     }
 
-    /// <summary>Curvature-controlled states at constant N on a native checker and the curvature ductility from them.</summary>
+    /// <summary>Forces of a strain plane: N and the moment components Mx, My, in the units and axes of the moments of the curve (0.34.0.0).</summary>
+    public sealed class MomentCurvatureForces
+    {
+        public double N { get; }
+        public double Mx { get; }
+        public double My { get; }
+        public MomentCurvatureForces(double n, double mx, double my) { N = n; Mx = mx; My = my; }
+    }
+
+    /// <summary>
+    /// What the curvature-controlled branch of the curvature ductility needs from the caller of the generic variant of the curve (0.34.0.0):
+    /// <list type="bullet">
+    /// <item><see cref="Forces"/>: the forces of the plane with gradient (χx, χy) and strain ε0 at <see cref="ReferencePoint"/>, in the units and
+    /// axes of the moments of the curve (those of the limit function and of the responses);</item>
+    /// <item><see cref="ReferencePoint"/>: the point of the strains ε0 of the curve, where <see cref="MomentCurvatureStrains.ReferenceStrain"/> of the
+    /// limit point is given, in the coordinates of the section of the gradients;</item>
+    /// <item>the bars and the outline vertices, for the largest tensile bar strain and the largest compression of the concrete of a plane;</item>
+    /// <item>the peak strain of the concrete (εc2 of the parabola-rectangle, εc1 of the nonlinear law), positive.</item>
+    /// </list>
+    /// <see cref="From"/> builds it on a native checker.
+    /// </summary>
+    public sealed class MomentCurvatureDuctilitySection
+    {
+        public Func<double, double, double, MomentCurvatureForces> Forces { get; }
+        public Point2d ReferencePoint { get; }
+        public IReadOnlyList<Point2d> Bars { get; }
+        public IReadOnlyList<Point2d> Outline { get; }
+        public double PeakConcreteStrain { get; }
+        public MomentCurvatureDuctilitySection(Func<double, double, double, MomentCurvatureForces> forces, Point2d referencePoint, IEnumerable<Point2d> bars,
+            IEnumerable<Point2d> outline, double peakConcreteStrain)
+        {
+            Forces = forces ?? throw new ArgumentNullException(nameof(forces));
+            ReferencePoint = referencePoint ?? throw new ArgumentNullException(nameof(referencePoint));
+            Bars = (bars ?? throw new ArgumentNullException(nameof(bars))).ToList().AsReadOnly();
+            Outline = (outline ?? throw new ArgumentNullException(nameof(outline))).ToList().AsReadOnly();
+            if (Outline.Count < 3) throw new ArgumentException("Curvature ductility: the outline needs at least three vertices.");
+            PeakConcreteStrain = peakConcreteStrain;
+        }
+
+        /// <summary>
+        /// The section of a native checker whose responses neglect the concrete in tension (<see cref="SectionChecker.SectionOptions.StressAnalysisConcreteTension"/>
+        /// at its default, <see cref="ArgumentException"/> otherwise): forces of the nonlinear integration of the solver, as the stress analyses, in the
+        /// force reference axes of the checker, divided by <paramref name="forceUnit"/> and <paramref name="momentUnit"/>
+        /// (N and Nmm per unit of the caller: 1 and 1 for N and Nmm, 1000 and 1e6 for kN and kNm); reference point at the origin of those axes, bars
+        /// and outline of the section, peak strain of the concrete of the solver. The moments of the curve must be in the same axes, as with the
+        /// native overload and with ANTHEA (local axes). The curvatures stay in 1/mm.
+        /// </summary>
+        public static MomentCurvatureDuctilitySection From(SectionCheckerModelCode2010 checker, ReinforcedConcreteSection section, double forceUnit = 1, double momentUnit = 1)
+        {
+            if (checker == null || section == null) throw new ArgumentNullException();
+            if (!(forceUnit > 0) || !(momentUnit > 0) || double.IsInfinity(forceUnit) || double.IsInfinity(momentUnit))
+                throw new ArgumentException("Curvature ductility: units of forces and moments positive and finite.");
+            if (checker.SectionCheckerOptions.StressAnalysisConcreteTension != GPC.Model.Materials.ConcreteMaterial.TensionResponseDiagrams.Default)
+                throw new ArgumentException("Curvature ductility: only with the concrete in tension of the responses neglected.");
+            var solver = checker.SectionSolver;
+            var solverAxes = solver.SolverAxes;
+            var forceAxes = checker.SectionCheckerOptions.ForceReferenceCoordinateSystem;
+            var origin = forceAxes.Origin;
+            MomentCurvatureForces Forces(double chiX, double chiY, double referenceStrain)
+            {
+                ForceTuple local = solver.CalculateStressAnalysisForces(new StrainPlane(chiX, chiY, origin, referenceStrain));
+                var forces = new ResultBeamForces(local.N, 0, 0, 0, local.Mx, local.My, solverAxes).ToCoordinateSystem(forceAxes);
+                return new MomentCurvatureForces(forces.N / forceUnit, forces.M1 / momentUnit, forces.M2 / momentUnit);
+            }
+            return new MomentCurvatureDuctilitySection(Forces, origin, section.Rebars.Select(b => b.Position), section.ConcreteShape.Fill2d.Points,
+                Math.Abs(solver.PeakConcreteStrain));
+        }
+    }
+
+    /// <summary>Curvature-controlled states at constant N and the curvature ductility from them (native checker or generic variant).</summary>
     internal sealed class MomentCurvatureDuctilityAnalysis
     {
         private const double PostPeakFraction = 0.85;
-        private readonly SectionSolver solver;
-        private readonly ReinforcedConcreteSection section;
-        private readonly CoordinateSystem solverAxes, forceAxes;
+        private readonly Func<double, double, double, MomentCurvatureForces> planeForces;
         private readonly Point2d origin;
-        private readonly double axialForce, c, s, momentScale;
+        private readonly double axialForce, c, s, momentScale, peak;
         private readonly Point2d[] bars, outline;
         private readonly StrainPlane limitPlane;
         private double psi;     // direction of the curvature vector of the last state, start of the next search
@@ -103,32 +170,33 @@ namespace GPC.Checkers.Concrete.Response
             internal double Curvature, Moment, Mx, My, ReferenceStrain, ChiX, ChiY, TensileBarStrain, BarStrain, ConcreteCompression;
         }
 
-        internal MomentCurvatureDuctilityAnalysis(SectionCheckerModelCode2010 checker, ReinforcedConcreteSection section, double axialForce,
-            double directionDegrees, StrainPlane limitPlane, double limitMoment)
+        /// <summary>
+        /// The branch of <paramref name="section"/> at <paramref name="axialForce"/> with the moment along <paramref name="directionDegrees"/>, up to
+        /// the limit point of plane <paramref name="limitPlane"/> and moment <paramref name="limitMoment"/>, in the units of the caller.
+        /// </summary>
+        internal MomentCurvatureDuctilityAnalysis(MomentCurvatureDuctilitySection section, double axialForce, double directionDegrees, StrainPlane limitPlane,
+            double limitMoment)
         {
-            solver = checker.SectionSolver;
-            this.section = section;
-            solverAxes = solver.SolverAxes;
-            forceAxes = checker.SectionCheckerOptions.ForceReferenceCoordinateSystem;
-            origin = forceAxes.Origin;
+            planeForces = section.Forces;
+            origin = section.ReferencePoint;
+            peak = section.PeakConcreteStrain;
             this.axialForce = axialForce;
             double angle = directionDegrees * Math.PI / 180;
             c = Math.Cos(angle); s = Math.Sin(angle);
             momentScale = Math.Abs(limitMoment);
-            bars = section.Rebars.Select(b => b.Position).ToArray();
-            outline = section.ConcreteShape.Fill2d.Points.ToArray();
+            bars = section.Bars.ToArray();
+            outline = section.Outline.ToArray();
             this.limitPlane = limitPlane;
             psi = Math.Atan2(limitPlane.ChiY, limitPlane.ChiX);
             strain = limitPlane.GetStrain(origin);
         }
 
-        /// <summary>Forces of a plane in the force reference axes: N, moment along the direction and across it.</summary>
+        /// <summary>Forces of a plane in the axes of the moments of the curve: N, moment along the direction and across it.</summary>
         private (double N, double M, double Across, double Mx, double My) Forces(double chi, double angle, double referenceStrain)
         {
-            var plane = new StrainPlane(chi * Math.Cos(angle), chi * Math.Sin(angle), origin, referenceStrain);
-            ForceTuple local = solver.CalculateStressAnalysisForces(plane);
-            var forces = new ResultBeamForces(local.N, 0, 0, 0, local.Mx, local.My, solverAxes).ToCoordinateSystem(forceAxes);
-            return (forces.N, forces.M1 * c + forces.M2 * s, -forces.M1 * s + forces.M2 * c, forces.M1, forces.M2);
+            var forces = planeForces(chi * Math.Cos(angle), chi * Math.Sin(angle), referenceStrain)
+                ?? throw new ArgumentException("Curvature control: forces of the plane not available.");
+            return (forces.N, forces.Mx * c + forces.My * s, -forces.Mx * s + forces.My * c, forces.Mx, forces.My);
         }
 
         /// <summary>ε0 at the origin with N of the plane = the requested N, for the curvature vector (chi; angle): bracket and Illinois.</summary>
@@ -211,8 +279,7 @@ namespace GPC.Checkers.Concrete.Response
         internal MomentCurvatureDuctility Calculate(double chiU, double limitMoment, double steelYieldStrain, MomentCurvatureDuctilityRequest r,
             CancellationToken token)
         {
-            double peak = Math.Abs(solver.PeakConcreteStrain);
-            if (!(peak > 0)) throw new ArgumentException("Curvature ductility: peak strain of the concrete not available.");
+            if (!(peak > 0) || double.IsInfinity(peak)) throw new ArgumentException("Curvature ductility: peak strain of the concrete not available.");
             double YieldRatio(State v) => Math.Max(v.TensileBarStrain / steelYieldStrain, v.ConcreteCompression / peak);
             var states = new List<State>(r.CurvatureSteps);
             for (int i = 1; i < r.CurvatureSteps; i++) states.Add(At(chiU * i / r.CurvatureSteps, token));

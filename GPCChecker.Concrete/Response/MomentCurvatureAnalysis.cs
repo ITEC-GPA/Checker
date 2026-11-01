@@ -278,6 +278,55 @@ namespace GPC.Checkers.Concrete.Response
             Func<double, double, double, MomentCurvatureStrains> response, double steelYieldStrain, MomentCurvatureUnits units, CancellationToken token = default(CancellationToken))
             => Run(p, limit, response, steelYieldStrain, units ?? throw new ArgumentNullException(nameof(units)), true, token);
 
+        /// <summary>
+        /// The curve of the overload with units, identical, and the curvature ductility μφ of NTC 2018 §4.1.2.3.4.2 with the bilinear of the Circolare
+        /// 2019 Fig. C4.1.12 on the generic variant (<see cref="MomentCurvatureResult.Ductility"/>, 0.34.0.0), in the units of the caller: the same
+        /// curvature-controlled branch as the overload on a native checker, with the forces of its planes from <paramref name="section"/> (for a native
+        /// checker <see cref="MomentCurvatureDuctilitySection.From"/>). The limit point is the last point of the curve: its gradient and its strain at
+        /// <see cref="MomentCurvatureDuctilitySection.ReferencePoint"/>, which must be the reference point of the strains returned by the functions, and
+        /// MRd its moment. Without the limit point (end fraction below 1 or curve interrupted), or when the branch cannot be followed,
+        /// <see cref="MomentCurvatureResult.DuctilityMessage"/> says why and the curve is returned without it. The branch neglects the concrete in
+        /// tension of the responses (tension stiffening or tension chord), as the native overload: a caller whose responses use it does not request it.
+        /// </summary>
+        public static MomentCurvatureResult Calculate(MomentCurvatureRequest p, Func<double, double, double, MomentCurvatureLimit> limit,
+            Func<double, double, double, MomentCurvatureStrains> response, double steelYieldStrain, MomentCurvatureUnits units, MomentCurvatureDuctilitySection section,
+            MomentCurvatureDuctilityRequest ductility, CancellationToken token = default(CancellationToken))
+        {
+            if (section == null) throw new ArgumentNullException(nameof(section));
+            ValidateDuctility(ductility);
+            var result = Run(p, limit, response, steelYieldStrain, units ?? throw new ArgumentNullException(nameof(units)), true, token);
+            var last = result.Points.Count > 0 ? result.Points[result.Points.Count - 1] : null;
+            if (last == null || !last.Limit) result.DuctilityMessage = "Curvature ductility: the curve did not reach the limit point.";
+            else
+            {
+                var plane = new StrainPlane(last.GradientX, last.GradientY, section.ReferencePoint, last.ReferenceStrain);
+                double chiU = Math.Sqrt(plane.ChiX * plane.ChiX + plane.ChiY * plane.ChiY);
+                try
+                {
+                    result.Ductility = new MomentCurvatureDuctilityAnalysis(section, p.AxialForce, p.DirectionDegrees, plane, result.LimitMoment)
+                        .Calculate(chiU, result.LimitMoment, steelYieldStrain, ductility, token);
+                }
+                catch (ArgumentException ex) { result.DuctilityMessage = ex.Message; }
+            }
+            result.Status += DuctilityStatus(result, units.Moment, "1/(length of the gradients)");
+            return result;
+        }
+
+        private static void ValidateDuctility(MomentCurvatureDuctilityRequest ductility)
+        {
+            if (ductility == null) throw new ArgumentNullException(nameof(ductility));
+            if (ductility.CurvatureSteps < 10 || ductility.CurvatureSteps > 500 || ductility.Bisections < 0 || ductility.Bisections > 60)
+                throw new ArgumentException("Curvature ductility: 10-500 curvature steps and 0-60 bisections.");
+        }
+
+        private static string DuctilityStatus(MomentCurvatureResult result, string moment, string curvature)
+        {
+            var d = result.Ductility;
+            return d != null
+                ? $" Curvature ductility (NTC 2018 §4.1.2.3.4.2): M'yd = {d.FirstYieldMoment:G7} {moment} at {d.FirstYieldCurvature:G6} {curvature} ({d.FirstYield}), MRd = {d.ResistingMoment:G7} {moment}, phi_yd = {d.YieldCurvature:G6} {curvature}, phi_u = {d.UltimateCurvature:G6} {curvature} ({d.Ultimate}), mu_phi = {d.CurvatureDuctility:G5}."
+                : " " + result.DuctilityMessage;
+        }
+
         private static Exception Rejection(bool typed, string message, MomentCurvatureRejection reason, double axialForce, double limitAxialForce, double tolerance, double limitMoment)
         {
             if (typed) return new MomentCurvatureException(message, reason, axialForce, limitAxialForce, tolerance, limitMoment);
@@ -386,9 +435,7 @@ namespace GPC.Checkers.Concrete.Response
         public static MomentCurvatureResult Calculate(MomentCurvatureRequest p, SectionCheckerModelCode2010 checker, ReinforcedConcreteSection section,
             CoordinateSystem axes, double steelYieldStrain, MomentCurvatureDuctilityRequest ductility, CancellationToken token = default(CancellationToken))
         {
-            if (ductility == null) throw new ArgumentNullException(nameof(ductility));
-            if (ductility.CurvatureSteps < 10 || ductility.CurvatureSteps > 500 || ductility.Bisections < 0 || ductility.Bisections > 60)
-                throw new ArgumentException("Curvature ductility: 10-500 curvature steps and 0-60 bisections.");
+            ValidateDuctility(ductility);
             FailureDomain.FailureDomainPoint limitPoint = null;
             var result = Native(p, checker, section, axes, steelYieldStrain, point => limitPoint = point, token);
             if (checker.SectionCheckerOptions.StressAnalysisConcreteTension != GPC.Model.Materials.ConcreteMaterial.TensionResponseDiagrams.Default)
@@ -401,15 +448,12 @@ namespace GPC.Checkers.Concrete.Response
                 double chiU = Math.Sqrt(plane.ChiX * plane.ChiX + plane.ChiY * plane.ChiY);
                 try
                 {
-                    result.Ductility = new MomentCurvatureDuctilityAnalysis(checker, section, p.AxialForce, p.DirectionDegrees, plane, result.LimitMoment)
-                        .Calculate(chiU, result.LimitMoment, steelYieldStrain, ductility, token);
+                    result.Ductility = new MomentCurvatureDuctilityAnalysis(MomentCurvatureDuctilitySection.From(checker, section), p.AxialForce, p.DirectionDegrees,
+                        plane, result.LimitMoment).Calculate(chiU, result.LimitMoment, steelYieldStrain, ductility, token);
                 }
                 catch (ArgumentException ex) { result.DuctilityMessage = ex.Message; }
             }
-            var d = result.Ductility;
-            result.Status += d != null
-                ? $" Curvature ductility (NTC 2018 §4.1.2.3.4.2): M'yd = {d.FirstYieldMoment:G7} Nmm at {d.FirstYieldCurvature:G6} 1/mm ({d.FirstYield}), MRd = {d.ResistingMoment:G7} Nmm, phi_yd = {d.YieldCurvature:G6} 1/mm, phi_u = {d.UltimateCurvature:G6} 1/mm ({d.Ultimate}), mu_phi = {d.CurvatureDuctility:G5}."
-                : " " + result.DuctilityMessage;
+            result.Status += DuctilityStatus(result, "Nmm", "1/mm");
             return result;
         }
 

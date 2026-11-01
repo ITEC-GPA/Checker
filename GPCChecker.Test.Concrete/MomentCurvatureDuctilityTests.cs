@@ -138,6 +138,55 @@ namespace ConcreteTests
             Assert.IsTrue(withDuctility.Status.StartsWith(plain.Status));
         }
 
+        /// <summary>
+        /// The generic variant (0.34.0.0, as ANTHEA uses it) in kN and kNm, with the functions of the native overload and the section of
+        /// <see cref="MomentCurvatureDuctilitySection.From"/>: the same ductility as the native overload, up to the stopping tests of the searches,
+        /// which are relative to the moments and to N in the units of the caller (1e-5).
+        /// </summary>
+        [TestMethod]
+        public void GenericVariantGivesTheNativeDuctility()
+        {
+            var section = PageExample();
+            foreach (double nKn in new[] { 0.0, -500 })
+            {
+                var native = Curve(section, nKn * 1e3, new MomentCurvatureDuctilityRequest());
+                var checker = UltimateSections.Checker(section, SectionSolver.FailureAnalysisTypes.ConstantN);
+                var axes = DomainPointContractTests.LocalAxes(section);
+                var domain = checker.GetFailureDomainResult();
+                domain.FailureAnalysisType = SectionSolver.FailureAnalysisTypes.ConstantN;
+                var origin = checker.SectionCheckerOptions.ForceReferenceCoordinateSystem.Origin;
+                MomentCurvatureLimit Limit(double n, double cx, double sy)
+                {
+                    var point = domain.CalculatePoint(new GPC.Model.Results.ResultBeamForces(n * 1e3, 0, 0, 0, cx * 1e6, sy * 1e6, axes));
+                    return point?.StrainPlane == null ? null
+                        : new MomentCurvatureLimit(point.NRd / 1e3, point.MxRd / 1e6, point.MyRd / 1e6, MomentCurvatureStrains.From(point.StrainPlane, section, origin));
+                }
+                MomentCurvatureStrains Response(double n, double mx, double my) => MomentCurvatureStrains.From(
+                    checker.GetTensionAnalysisResult(new GPC.Model.Results.ResultBeamForces(n * 1e3, 0, 0, 0, mx * 1e6, my * 1e6, axes)).StrainPlane, section, origin);
+                var generic = MomentCurvatureAnalysis.Calculate(new MomentCurvatureRequest(nKn, 0, 40, axialTolerance: 1), Limit, Response, 450 / 1.15 / 200000,
+                    new MomentCurvatureUnits("kN", "kNm"), MomentCurvatureDuctilitySection.From(checker, section, 1e3, 1e6), new MomentCurvatureDuctilityRequest());
+                MomentCurvatureDuctility a = native.Ductility, b = generic.Ductility;
+                Assert.IsNotNull(b, generic.DuctilityMessage);
+                Relative(a.FirstYieldMoment / 1e6, b.FirstYieldMoment, 1e-5, nKn + " M'yd");
+                Relative(a.FirstYieldCurvature, b.FirstYieldCurvature, 1e-5, nKn + " φ'yd");
+                Relative(a.ResistingMoment / 1e6, b.ResistingMoment, 1e-9, nKn + " MRd");
+                Relative(a.MaximumMoment / 1e6, b.MaximumMoment, 1e-5, nKn + " Mmax");
+                Relative(a.YieldCurvature, b.YieldCurvature, 1e-5, nKn + " φyd");
+                Relative(a.UltimateCurvature, b.UltimateCurvature, 1e-9, nKn + " φu");
+                Relative(a.CurvatureDuctility, b.CurvatureDuctility, 1e-5, nKn + " μφ");
+                Assert.AreEqual(a.FirstYield, b.FirstYield); Assert.AreEqual(a.Ultimate, b.Ultimate); Assert.AreEqual(a.Points.Count, b.Points.Count);
+                StringAssert.Contains(generic.Status, "kNm");
+                // Without the limit point (end fraction below 1) the ductility is not computed and the message says why.
+                var partial = MomentCurvatureAnalysis.Calculate(new MomentCurvatureRequest(nKn, 0, 40, 0.9, axialTolerance: 1), Limit, Response, 450 / 1.15 / 200000,
+                    new MomentCurvatureUnits("kN", "kNm"), MomentCurvatureDuctilitySection.From(checker, section, 1e3, 1e6), new MomentCurvatureDuctilityRequest());
+                Assert.IsNull(partial.Ductility); StringAssert.Contains(partial.DuctilityMessage, "limit point");
+            }
+            // The section of a checker whose responses use the concrete in tension is refused.
+            var stiff = UltimateSections.Checker(section, SectionSolver.FailureAnalysisTypes.ConstantN);
+            stiff.SectionCheckerOptions.StressAnalysisConcreteTension = ConcreteMaterial.TensionResponseDiagrams.TensionChord;
+            Assert.ThrowsException<ArgumentException>(() => MomentCurvatureDuctilitySection.From(stiff, section));
+        }
+
         [TestMethod]
         public void RejectionsAndOptionsNotSupported()
         {
