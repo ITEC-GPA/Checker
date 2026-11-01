@@ -242,7 +242,7 @@ namespace GPC.Checkers.Concrete.Response
         public MomentCurvatureYieldRefinement YieldRefinement { get; internal set; }
         public string Status { get; internal set; }
         /// <summary>
-        /// Curvature ductility (0.33.0.0), only with the overload on a native checker with a <see cref="MomentCurvatureDuctilityRequest"/>; null when not
+        /// Curvature ductility (0.33.0.0), only with an overload with a <see cref="MomentCurvatureDuctilityRequest"/> (native checker, or generic variant from 0.34.0.0); null when not
         /// requested or not computed (<see cref="DuctilityMessage"/> says why).
         /// </summary>
         public MomentCurvatureDuctility Ductility { get; internal set; }
