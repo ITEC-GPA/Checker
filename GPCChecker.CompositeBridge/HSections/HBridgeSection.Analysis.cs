@@ -79,13 +79,24 @@ public static partial class HBridgeSection
         var results = new HBridgeBatchResult[inputs.Count];
         var keys = new BridgeBitwise();
         var groups = new Dictionary<string, BridgeBatchGroup>(StringComparer.Ordinal);
+        // The gross centroid of a phase depends only on the data apart from the phases and on the kind and homogenization of the phase:
+        // computed once for the inputs of a group (before, for every input: a geometry, a native section and its homogenized properties for
+        // each phase)
+        var grossCentroids = new Dictionary<string, double>(StringComparer.Ordinal);
         for (int i = 0; i < inputs.Count; i++)
         {
             BridgePreparedInput prepared;
-            try { prepared = Prepare(inputs[i]); }
+            string? dataKey = null;
+            double GrossCentroid(HBridgeInput data, BridgePhase phase)
+            {
+                string centroidKey = (dataKey ??= keys.Key(data, nameof(HBridgeInput.Phases))) + "\n" + GrossCentroidKey(phase);
+                if (!grossCentroids.TryGetValue(centroidKey, out double y)) grossCentroids.Add(centroidKey, y = GrossPhaseCentroid(data, phase));
+                return y;
+            }
+            try { prepared = Prepare(inputs[i], SolutionReuse ? GrossCentroid : null); }
             catch (Exception e) { results[i] = new(null, e); continue; }
             // without the reuse every input is computed on its own, as before
-            string key = SolutionReuse ? keys.Key(prepared.Data, nameof(HBridgeInput.Phases)) : "#" + i;
+            string key = SolutionReuse ? dataKey ?? keys.Key(prepared.Data, nameof(HBridgeInput.Phases)) : "#" + i;
             if (!groups.TryGetValue(key, out var group)) groups.Add(key, group = new(prepared, keys));
             if (SolutionReuse && earlier?[i]?.Situations is { } situations && situations.Accepts(prepared, keys))
             {
@@ -140,7 +151,9 @@ public static partial class HBridgeSection
         Dictionary<BridgePhase, double?> ApplicationPoints);
 
     /// <summary>The checks of an input, in the order of <see cref="Calculate(HBridgeInput, CancellationToken)"/></summary>
-    private static BridgePreparedInput Prepare(HBridgeInput data)
+    /// <param name="data">The input</param>
+    /// <param name="grossCentroid">The gross centroid of a phase of the copy of the input (null: <see cref="GrossPhaseCentroid"/>)</param>
+    private static BridgePreparedInput Prepare(HBridgeInput data, Func<HBridgeInput, BridgePhase, double>? grossCentroid = null)
     {
         data = data.Snapshot(); var g = Geometry(data); var mat = Materials(data);
         if (!Standards.Contains(data.Options.StandardName)) throw new ArgumentException("Normativa non supportata.");
@@ -166,7 +179,7 @@ public static partial class HBridgeSection
         var applicationPoints = phases.ToDictionary(p => p, p => p.KindName == ShrinkageKind ? null : LoadReference(p) switch
         {
             CommonLoadReference => (double?)BridgeNumbers.Require(data.Options.CommonLoadY, "y_ref", double.NegativeInfinity),
-            GrossLoadReference => GrossPhaseCentroid(data, p),
+            GrossLoadReference => grossCentroid is null ? GrossPhaseCentroid(data, p) : grossCentroid(data, p),
             _ => null
         }, new BridgePhaseIdentity());
         return new(data, g, mat, phases, applicationPoints);
@@ -400,7 +413,7 @@ public static partial class HBridgeSection
             var section = composite = shared?.Composite;
             if (section is null)
             {
-                section = composite = NativeSection(d, g); section.SteelSections.Clear();
+                section = composite = NativeSection(d, g, steel: false);
                 foreach (var part in steel) section.AddSteelSection(part);
                 if (shared is not null) shared.Composite = section;
             }

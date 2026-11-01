@@ -29,6 +29,14 @@ public static partial class HBridgeSection
         var m = Materials(data); double ratio = m.Rebar.ElasticModulusTension / m.Steel.ElasticModulusTension;
         return (g.SteelArea * g.SteelCentroid + g.Bars.Sum(b => b.Area * ratio * b.Y)) / (g.SteelArea + g.Bars.Sum(b => b.Area * ratio));
     }
+    /// <summary>The data of a phase that <see cref="GrossPhaseCentroid"/> reads, bit for bit: the kind and the homogenization (to keep in step
+    /// with it). The phases of the combinations of a station differ in their forces, not in these</summary>
+    internal static string GrossCentroidKey(BridgePhase phase)
+    {
+        static string Bits(double value) => BitConverter.DoubleToInt64Bits(value).ToString("X16", System.Globalization.CultureInfo.InvariantCulture);
+        return ((int)phase.Kind).ToString(System.Globalization.CultureInfo.InvariantCulture) + "|" +
+            ((int)phase.HomogenizationSource).ToString(System.Globalization.CultureInfo.InvariantCulture) + "|" + Bits(phase.Phi) + "|" + Bits(phase.PsiL) + "|" + Bits(phase.N);
+    }
     /// <summary>The hypotheses of the inclined web and of the box girder, for the warnings of the results</summary>
     /// <param name="g">The geometry</param>
     /// <returns>The warnings (none for the H)</returns>
@@ -119,13 +127,17 @@ public static partial class HBridgeSection
     }
     public static ReinforcedConcreteSection NativeSection(HBridgeInput d) => NativeSection(d, Geometry(d));
     /// <summary>The native section on an already calculated geometry (avoids building the geometry twice)</summary>
-    private static ReinforcedConcreteSection NativeSection(HBridgeInput d, BridgeGeometry g)
+    /// <param name="d">The input</param>
+    /// <param name="g">Its geometry</param>
+    /// <param name="steel">False: without the steel H, for a caller that adds its own steel sections (before, the H was built and removed)</param>
+    private static ReinforcedConcreteSection NativeSection(HBridgeInput d, BridgeGeometry g, bool steel = true)
     {
         var m = Materials(d);
         return ReinforcedConcreteSection.CreateBridgeSection(g.Width, g.SlabHeight, m.Concrete,
             d.TopRebars.Enabled ? new RebarSectionCircular(d.TopRebars.Diameter, m.Rebar) : null!, d.TopRebars.Pitch, d.TopRebars.AxisDistance,
             d.BottomRebars.Enabled ? new RebarSectionCircular(d.BottomRebars.Diameter, m.Rebar) : null!, d.BottomRebars.Pitch,
-            SteelShape(g.Height, g.WebThickness, g.TopWidth, g.TopThickness, g.Bottom1Width, g.Bottom1Thickness, g.Bottom2Width, g.Bottom2Thickness), m.Steel, d.BottomRebars.AxisDistance);
+            steel ? SteelShape(g.Height, g.WebThickness, g.TopWidth, g.TopThickness, g.Bottom1Width, g.Bottom1Thickness, g.Bottom2Width, g.Bottom2Thickness) : null!,
+            m.Steel, d.BottomRebars.AxisDistance);
     }
     /// <summary>The welded steel section: an H with one bottom plate, or with two (<see cref="SectionHDoubleBottomFlange"/>)</summary>
     private static Section SteelShape(double h, double tw, double bt, double tt, double b1, double t1, double b2, double t2) =>
