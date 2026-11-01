@@ -89,7 +89,10 @@ public class RecalculateTests
         var earlier = HBridgeSection.Calculate(check);
         var details = Details(check);
         AssertAsCalculated(null, details, false, "no earlier analysis");
-        AssertAsCalculated(earlier with { }, details, false, "a copy of the earlier analysis");
+        AssertAsCalculated(earlier with { }, details, true, "a copy of the earlier analysis, with its situations");
+        AssertAsCalculated(earlier with { Input = details }, details, true, "a copy with another input, compared with the input of its situations");
+        AssertAsCalculated(new HBridgeAnalysisResult(earlier.Method, earlier.Scope, earlier.Input, earlier.Geometry, earlier.Materials, earlier.Stages), details,
+            false, "an analysis built from its parts");
         AssertAsCalculated(earlier, details with { Phases = details.Phases.Select((p, i) => i == 2 ? p with { MomentKNm = p.MomentKNm + 1e-9 } : p).ToArray() },
             false, "another moment");
         AssertAsCalculated(earlier, details with { Phases = details.Phases.Take(5).ToArray() }, false, "fewer phases");

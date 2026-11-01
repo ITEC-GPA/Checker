@@ -42,8 +42,8 @@ public static partial class HBridgeSection
     /// details and the ultimate limit state added to the result of a check). The converged situations of the earlier analysis are kept and only
     /// the stress points, shear, studs, torsion and details are computed again: the result is the one of
     /// <see cref="Calculate(HBridgeInput, CancellationToken)"/>, with the same numbers. Any other input, or an earlier analysis not computed by
-    /// this library in this process, is calculated in full. The Model materials are compared as objects, as in a batch: they must not change
-    /// in between.
+    /// this library in this process (for example built from its parts or read from a file), is calculated in full. The Model materials are
+    /// compared as objects, as in a batch: they must not change in between.
     /// </summary>
     /// <param name="earlier">The earlier analysis of the section (null: none)</param>
     /// <param name="data">The input</param>
@@ -87,7 +87,7 @@ public static partial class HBridgeSection
             // without the reuse every input is computed on its own, as before
             string key = SolutionReuse ? keys.Key(prepared.Data, nameof(HBridgeInput.Phases)) : "#" + i;
             if (!groups.TryGetValue(key, out var group)) groups.Add(key, group = new(prepared, keys));
-            if (SolutionReuse && earlier?[i] is { } analysis && Computed.TryGetValue(analysis, out var situations) && situations.Accepts(prepared, keys))
+            if (SolutionReuse && earlier?[i]?.Situations is { } situations && situations.Accepts(prepared, keys))
             {
                 Interlocked.Increment(ref recalculations);
                 results[i] = group.Recalculate(prepared, situations, cancellation);
@@ -103,11 +103,11 @@ public static partial class HBridgeSection
 
     /// <summary>What the converged situation of a stage gives to the stage: the stage is computed again from it by
     /// <see cref="Recalculate(HBridgeAnalysisResult?, HBridgeInput, CancellationToken)"/></summary>
-    private sealed record BridgeSituationStage(int PhaseIndex, int Iterations, double Residual, BridgeEffective Effective, BridgeSteelProperties EffectiveSteel,
+    internal sealed record BridgeSituationStage(int PhaseIndex, int Iterations, double Residual, BridgeEffective Effective, BridgeSteelProperties EffectiveSteel,
         BridgeContribution[] Contributions);
 
     /// <summary>The situations of an analysis computed here, with its input (its own copy of the phases)</summary>
-    private sealed class BridgeComputedSituations
+    internal sealed class BridgeComputedSituations
     {
         internal BridgeComputedSituations(HBridgeInput input, BridgeSituationStage[] stages) { Input = input with { Phases = input.Phases.ToArray() }; Stages = stages; }
         internal HBridgeInput Input { get; }
@@ -127,22 +127,16 @@ public static partial class HBridgeSection
         }
     }
 
-    /// <summary>The situations of the analyses computed here, for as long as the analyses live</summary>
-    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<HBridgeAnalysisResult, BridgeComputedSituations> Computed = new();
-
-    /// <summary>The analysis of an input with its stages, kept with their situations</summary>
-    private static HBridgeBatchResult Result(HBridgeInput data, BridgeGeometry g, BridgeMaterialSet mat, List<BridgeStage> stages, BridgeSituationStage[] situations)
-    {
-        var analysis = new HBridgeAnalysisResult(Method, Scope, data, g,
+    /// <summary>The analysis of an input with its stages, kept with their situations (a field of the analysis: a table of the analyses, with a
+    /// GC handle for each, made the checks of example 50 7 % slower)</summary>
+    private static HBridgeBatchResult Result(HBridgeInput data, BridgeGeometry g, BridgeMaterialSet mat, List<BridgeStage> stages, BridgeSituationStage[] situations) =>
+        new(new HBridgeAnalysisResult(Method, Scope, data, g,
             new(mat.Concrete.Name, Math.Abs(mat.Concrete.Fck), mat.Concrete.ElasticModulusCompression, mat.Steel.Name, mat.Steel.Fyk, mat.Steel.ElasticModulusTension,
-                mat.Rebar.Name, mat.Rebar.Fyk, mat.Rebar.ElasticModulusTension), stages);
-        Computed.Add(analysis, new(data, situations));
-        return new(analysis, null);
-    }
+                mat.Rebar.Name, mat.Rebar.Fyk, mat.Rebar.ElasticModulusTension), stages) { Situations = new(data, situations) }, null);
 
     /// <summary>An input checked as by <see cref="Calculate(HBridgeInput, CancellationToken)"/>: its copy, geometry, materials, active phases
     /// and the application points of their axial forces</summary>
-    private sealed record BridgePreparedInput(HBridgeInput Data, BridgeGeometry Geometry, BridgeMaterialSet Materials, BridgePhase[] Phases,
+    internal sealed record BridgePreparedInput(HBridgeInput Data, BridgeGeometry Geometry, BridgeMaterialSet Materials, BridgePhase[] Phases,
         Dictionary<BridgePhase, double?> ApplicationPoints);
 
     /// <summary>The checks of an input, in the order of <see cref="Calculate(HBridgeInput, CancellationToken)"/></summary>

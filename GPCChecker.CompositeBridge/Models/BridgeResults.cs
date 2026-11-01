@@ -170,7 +170,12 @@ public sealed record BridgeStage(string Name, int Iterations, double Residual, B
         get { if (HistoryView is not null) return null; double slope = Contributions.Sum(c => c.StressSlope); return Math.Abs(slope) < 1e-15 ? null : -Contributions.Sum(c => c.SteelStress(0)) / slope; }
     }
 }
-public sealed record HBridgeAnalysisResult(string Method, string Scope, HBridgeInput Input, BridgeGeometry Geometry, BridgeMaterialValues Materials, List<BridgeStage> Stages);
+public sealed record HBridgeAnalysisResult(string Method, string Scope, HBridgeInput Input, BridgeGeometry Geometry, BridgeMaterialValues Materials, List<BridgeStage> Stages)
+{
+    // The converged situations of an analysis computed by HBridgeSection, from which Recalculate computes the details again (null: built
+    // elsewhere). A field, not a property: the result keeps the shape of its serialization
+    internal HBridgeSection.BridgeComputedSituations? Situations;
+}
 /// <summary>One input of <see cref="HBridgeSection.Calculate(IReadOnlyList{HBridgeInput}, CancellationToken)"/>: its analysis, or the exception that
 /// <see cref="HBridgeSection.Calculate(HBridgeInput, CancellationToken)"/> throws for it</summary>
 public sealed record HBridgeBatchResult(HBridgeAnalysisResult? Analysis, Exception? Error);
