@@ -9,7 +9,7 @@ using GPC.Checkers.Steel.Sections;
 namespace GPC.Checkers.Steel.Connections
 {
     /// <summary>Static ULS resistance of one uniplanar unreinforced welded lattice joint between
-    /// hollow sections, EN1993-1-8:2005 (with AC:2009) section7, the edition in force in Italy.
+    /// hollow sections, EN1993-1-8:2005 (with AC:2009) section7, the selected first-generation edition.
     /// CHS braces on CHS chords: Table7.1 validity, Table7.2 axial resistances, Table7.5 moments and
     /// eq.(7.3) on T, Y and X joints. RHS or CHS braces on RHS chords: Table7.8 validity, Tables 7.11
     /// and 7.12 (axial), Table7.10 for K and N overlap joints. Every joint outside the range of
@@ -33,6 +33,18 @@ namespace GPC.Checkers.Steel.Connections
             return new Evaluation(p).Run();
         }
 
+        /// <summary>Recommended signed-cut route. Chord X goes from side A to B; Y
+        /// points toward the braces. Both internal shears act on the +X cut face.
+        /// Enforces VB-VA+sum(Ni sin theta_i)=0 (X: coaxial braces cancel) and uses
+        /// the actual gap shear. Also envelopes the printed n/np definition with
+        /// sigma/fy, a conservative policy informed by CEN comments GB2/DE36 (2014),
+        /// not a claim that a later correction has amended the selected 2005 text.</summary>
+        public static ConnectionVerification<TubularJointInput> VerifyEquilibrated(TubularJointInput p)
+        {
+            if(p==null)throw new ArgumentNullException(nameof(p));
+            return new Evaluation(p,true).Run();
+        }
+
         private sealed class Evaluation
         {
             private readonly TubularJointInput p;
@@ -40,11 +52,13 @@ namespace GPC.Checkers.Steel.Connections
             private readonly List<ConnectionCheck> checks = new List<ConnectionCheck>();
             private readonly List<SectionResistanceValue> trace = new List<SectionResistanceValue>();
             private readonly bool circularChord, twoBraces;
+            private readonly bool equilibrated;
             private readonly double gm5;
             private double sigma0, sigmaP, n, np, reduction = 1;
 
-            internal Evaluation(TubularJointInput input)
+            internal Evaluation(TubularJointInput input,bool equilibrated=false)
             {
+                this.equilibrated=equilibrated;
                 p = input; gm5 = p.Code.GammaM5; circularChord = p.Chord.Shape == TubularSectionShape.Circular;
                 twoBraces = p.Type == TubularJointType.K || p.Type == TubularJointType.N;
             }
@@ -59,7 +73,8 @@ namespace GPC.Checkers.Steel.Connections
                 if (issues.Count == 0) { if (circularChord) ChsResistances(); else RhsResistances(); }
                 Welds();
                 Sources();
-                return new ConnectionVerification<TubularJointInput>(p, p.Code.Connection, MethodId, Scope, checks, trace, issues.Distinct(),
+                return new ConnectionVerification<TubularJointInput>(p, p.Code.Connection, MethodId+(equilibrated?".EquilibratedConservative":""), Scope
+                    +(equilibrated?" Signed same-face chord shear equilibrium; actual gap shear; conservative envelope of printed and sigma/fy chord stress ratios.":""), checks, trace, issues.Distinct(),
                     Conditions());
             }
 
@@ -135,6 +150,12 @@ namespace GPC.Checkers.Steel.Connections
                 sigmaP = -np0 / a0 + Math.Max(bendA, bendB);
                 // 1.5(5) literally: n = (sigma0,Ed/fy0)/gammaM5 and np = (sigmap,Ed/fy0)/gammaM5.
                 n = sigma0 / c.Fy / gm5; np = sigmaP / c.Fy / gm5;
+                if(equilibrated)
+                {
+                    Value("Chord.PrintedStressRatio",circularChord?np:n,"1");
+                    n=Math.Max(n,sigma0/c.Fy);np=Math.Max(np,sigmaP/c.Fy);
+                    Value("Chord.ConservativeStressRatioEnvelope",1,"1");
+                }
                 Value("Chord.Sigma0Ed", sigma0, "MPa"); Value("Chord.NpEd", np0, "N"); Value("Chord.SigmapEd", sigmaP, "MPa");
                 Value(circularChord ? "Chord.np" : "Chord.n", circularChord ? np : n, "1");
                 Value("Joint.HighGradeFactor", reduction, "1");
@@ -148,6 +169,16 @@ namespace GPC.Checkers.Steel.Connections
                 Value("Chord.AxialEquilibriumResidual", residual, "N");
                 Require(Math.Abs(residual) <= 1e-3 * scale + 1,
                     "CHORD_AND_BRACE_AXIAL_FORCES_NOT_IN_EQUILIBRIUM:same-case forces with the side A/B lean convention are required");
+                if(equilibrated)
+                {
+                    double transverse=p.Type==TubularJointType.X?0:p.BraceA.AxialForce*Sin(p.BraceA)
+                        +(twoBraces?p.BraceB.AxialForce*Sin(p.BraceB):0);
+                    double residualV=p.ChordSideB.InPlaneShear-p.ChordSideA.InPlaneShear+transverse;
+                    double scaleV=Math.Abs(p.ChordSideA.InPlaneShear)+Math.Abs(p.ChordSideB.InPlaneShear)
+                        +Math.Abs(p.BraceA.AxialForce*Sin(p.BraceA))+(twoBraces?Math.Abs(p.BraceB.AxialForce*Sin(p.BraceB)):0);
+                    Value("Chord.TransverseEquilibriumResidual",residualV,"N");
+                    Require(Math.Abs(residualV)<=1e-3*scaleV+1,"CHORD_AND_BRACE_TRANSVERSE_FORCES_NOT_IN_EQUILIBRIUM");
+                }
             }
 
             // ---- range of validity: Table7.1 (CHS) ----
@@ -400,12 +431,20 @@ namespace GPC.Checkers.Steel.Connections
                 double vpl = fy0 * av / Math.Sqrt(3) * scale;
                 double vEd = Math.Min(Math.Abs(p.ChordSideA.InPlaneShear) + Math.Abs(p.BraceA.AxialForce * Sin(p.BraceA)),
                     Math.Abs(p.ChordSideB.InPlaneShear) + Math.Abs(p.BraceB.AxialForce * Sin(p.BraceB)));
+                if(equilibrated)
+                {
+                    double gapA=p.ChordSideA.InPlaneShear-p.BraceA.AxialForce*Sin(p.BraceA);
+                    double gapB=p.ChordSideB.InPlaneShear+p.BraceB.AxialForce*Sin(p.BraceB);
+                    Value("ChordGap.SignedShearFromA",gapA,"N");Value("ChordGap.SignedShearFromB",gapB,"N");
+                    vEd=Math.Max(Math.Abs(gapA),Math.Abs(gapB)); // retain the larger side within the force-rounding tolerance
+                }
                 double nGap = Math.Max(Math.Abs(p.ChordSideA.N + p.BraceA.AxialForce * Cos(p.BraceA)),
                     Math.Abs(p.ChordSideB.N + p.BraceB.AxialForce * Cos(p.BraceB)));
                 double ratio = Math.Min(1, vEd / vpl);
                 double n0 = ((c.Area - av) * fy0 + av * fy0 * Math.Sqrt(1 - ratio * ratio)) * scale;
                 Value("ChordGap.VEd", vEd, "N"); Value("ChordGap.N0Ed", nGap, "N");
-                Check("ChordGap.Shear", vEd, vpl, Ref("Table7.12 chord shear, Vpl,Rd = fy0 Av/(sqrt3 gammaM5) (GPC reading of VEd/Vpl,Rd)"));
+                Check("ChordGap.Shear", vEd, vpl, Ref("Table7.12 chord shear, Vpl,Rd = fy0 Av/(sqrt3 gammaM5); "
+                    +(equilibrated?"signed same-case gap shear from equilibrium":"upper-bound gap shear from cut magnitudes")));
                 Check("ChordGap.Axial", nGap, n0, Ref("Table7.12 chord shear, N0,Rd in the gap"));
             }
 
@@ -542,6 +581,11 @@ namespace GPC.Checkers.Steel.Connections
                     list.Add("NTC route: NTC2018 4.2.8 and Circolare 2019 C4.2 contain no hollow section lattice joint rules; UNI EN1993-1-8 applied through NTC2018 chapter12 with the Italian National Annex (gammaM5 = 1.0).");
                 if (p.Type == TubularJointType.X) list.Add("X joint: the brace on the opposite chord face is identical, coaxial and carries the same force.");
                 if (!twoBraces) list.Add("Single-brace joint: the brace axis meets the chord axis (no eccentricity); brace moments, if any, are the declared ones.");
+                if(equilibrated)
+                {
+                    list.Add("Both chord shears use the same +X cut face, X from A to B, Y towards the braces: VB-VA+sum(Ni sin(theta_i))=0. Opposite coaxial X braces cancel. Gap shear is the larger absolute value from the two signed free bodies within rounding tolerance.");
+                    list.Add("Explicit conservative n/np envelope: max(printed sigma/(fy gammaM5), sigma/fy), informed by CEN collated comments 2014-10-22 GB2/DE36. Those comments are not an enacted amendment to the selected 2005 edition.");
+                }
                 return list;
             }
 

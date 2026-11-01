@@ -158,7 +158,9 @@ namespace GPC.Checkers.Steel.Connections
 
     /// <summary>Chord actions in the cut on one side of the joint, from the same combination as the
     /// brace forces; N, Nmm. N &gt; 0 is tension. InPlaneShear and InPlaneMoment act in the plane of the
-    /// lattice, OutOfPlaneMoment normal to it; their signs are not used. The moments include the
+    /// lattice, OutOfPlaneMoment normal to it. Verify uses shear magnitudes; VerifyEquilibrated
+    /// uses signed internal shears on the same +X face, X from side A to B and Y towards the braces.
+    /// Moment signs are enveloped in both routes. The moments include the
     /// eccentricity moments assigned to the chord (5.1.5(6) and (8)).</summary>
     public sealed class TubularChordActions
     {

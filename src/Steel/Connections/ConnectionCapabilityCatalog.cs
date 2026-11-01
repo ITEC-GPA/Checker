@@ -159,12 +159,12 @@ namespace GPC.Checkers.Steel.Connections
                     "Tension-shear interaction of tensioned anchors, oversized holes in shear, direct bearing of the column end on the plate",
                     "Rotational stiffness (6.3.4), seismic capacity design (NTC2018 7.5.4.5), fatigue and fire" },
                 "COLUMN_BASE_USAGE.txt", "ColumnBase.Verify"),
-            Item("TubularJoints", ConnectionCapabilityLevel.StandardStaticVerification, new[] { "TubularJoint.Verify" },
+            Item("TubularJoints", ConnectionCapabilityLevel.StandardStaticVerification, new[] { "TubularJoint.Verify", "TubularJoint.VerifyEquilibrated" },
                 "EN1993-1-8:2005 (AC:2009) section7: one uniplanar unreinforced welded lattice joint between hollow sections, predominantly static ULS, one concomitant case. "
                 + "CHS braces on CHS chords: T, Y, X, K and N gap or overlap joints (Tables 7.1, 7.2; brace moments on T, Y and X joints by Table7.5 and eq.7.3). "
                 + "RHS or CHS braces on RHS chords: T, Y, X and K/N gap joints (Tables 7.8, 7.11, 7.12) and K/N overlap joints (Table7.10), axial forces only. "
                 + "n/np from both chord cuts; every joint outside Table7.1/7.8, 7.1.1/7.1.2, 7.3.1(2) or the eccentricity limits of 5.1.5(5) is refused; full-strength welds (7.3.1(4)). "
-                + "NTC route through NTC2018 chapter12 with the Italian National Annex (gammaM5 = 1.0).",
+                + "NTC route through NTC2018 chapter12 with the Italian National Annex (gammaM5 = 1.0). VerifyEquilibrated additionally checks signed same-face chord shear equilibrium, actual gap shear and a conservative n/np envelope.",
                 new[] { "Chord and brace member resistance and stability (7.2.1(1)P), with the eccentricity moments of 5.1.5(6) in compression chords",
                     "Lattice analysis per 5.1.5 and same-case chord and brace forces", "All-round welds with matching consumables, full strength as declared or shown" },
                 new[] { "Multiplanar joints (7.4.3, 7.5.3)", "Reinforced joints (7.5.2.2)", "I/H section and channel chords (7.6, 7.7), gusset plates and I/H/RHS branches on CHS chords (Tables 7.3, 7.4, 7.13)",

@@ -478,6 +478,9 @@ Basi di colonna (30/10/2026, branch claude/conn-basi-colonne):
 
 Nodi di travature reticolari in profili cavi (30/10/2026, branch claude/conn-nodi-tubolari):
   TubularJoint.Verify(TubularJointInput) -> ConnectionVerification -> SteelAssessmentSummary.
+  Dal02/11 e' disponibile VerifyEquilibrated con gli stessi contratti:
+  equilibrio del taglio firmato, taglio effettivo nel gap e inviluppo
+  cautelativo n/np; convenzione delle due facce in TUBULAR_JOINTS_USAGE.txt.
   EN1993-1-8:2005 (AC:2009) cap.7, nodo piano saldato non rinforzato, un caso concomitante:
   CHS su CHS T/Y/X/K/N a gap o sovrapposti (Tab.7.1, 7.2, 7.5 ed eq.7.3 su T/Y/X), RHS o
   CHS su RHS T/Y/X/K/N a gap e sovrapposti (Tab.7.8, 7.10-7.12, solo assiali). n/np dai

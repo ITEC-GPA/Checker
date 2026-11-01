@@ -2,7 +2,7 @@ NODI SALDATI DI TRAVATURE RETICOLARI IN PROFILI CAVI - TubularJoint.Verify
 30/10/2026 - catalogo TubularJoints (StandardStaticVerification), percorso opt-in.
 
 NORMA
-EN 1993-1-8:2005 con AC:2009, capitolo7: e' l'edizione in uso in Italia. Nessuna
+EN 1993-1-8:2005 con AC:2009, capitolo7: edizione scelta dal progetto. Nessuna
 formula di prEN/EN 1993-1-8:2024 (capitolo9, metodo FMM/ISO 14346) e' usata.
 Tutte le resistenze, i campi di validita' e le definizioni sono stati riletti sulla
 copia pubblica (Public.Resource.Org) della BS EN 1993-1-8:2005 che riporta i corrigenda
@@ -38,6 +38,32 @@ Risultato: ConnectionVerification<TubularJointInput> (contratto comune dei compo
 Passed/Failed/NotSupported, Checks con id "BraceA.ChordFace" ecc., Trace con gamma,
 beta, kp/kn, kg, e, lambda_ov, Diagnostics, Assumptions (condizioni esterne).
 SteelAssessmentSummary.From(result) ne da' la proiezione comune.
+
+PERCORSO CON TAGLI FIRMATI - 02/11/2026
+TubularJoint.VerifyEquilibrated accetta gli stessi contratti. InPlaneShear
+e' la forza interna riferita alla faccia +X di ENTRAMBI i tagli: X da A a B,
+Y verso le aste (K/N sulla stessa faccia). Non inserire i segni delle due
+normali uscenti del corpo libero. Le forze delle aste sono positive in tiro.
+Richiede VB-VA+sum(Ni sin(theta_i))=0, con la stessa tolleranza dell'assiale.
+Le due aste coassiali opposte di una X si cancellano. Per K/N a gap:
+  Vgap,A=VA-NA,asta sin(thetaA); Vgap,B=VB+NB,asta sin(thetaB).
+I due valori coincidono per equilibrio. Si conserva il maggiore modulo
+entro la tolleranza di arrotondamento; entrambi sono riportati in Trace.
+Non si ricava l'equilibrio dei momenti da distanze non presenti nel contratto:
+i momenti concomitanti reali e quelli di eccentricita' restano obblighi
+dell'analisi della travatura. Nessun vincolo o azione viene inventato.
+
+Il nuovo percorso usa n=max(sigma0/(fy gammaM5),sigma0/fy), analogamente np:
+inviluppo conservativo esplicito delle definizioni, con rapporti e scelta
+tracciati. Non e' una modifica tacita della norma selezionata.
+Verify conserva risultati e convenzione storici (limite superiore del
+taglio del gap dai moduli). MethodId distingue EquilibratedConservative.
+
+Riscontro editoriale: commenti CEN del22/10/2014, GB2 p6 e DE36 p124,
+propongono di togliere gammaM5 da n/np; GB13 p11 distingue N0 piu' compresso
+da Np meno compresso; GB14 p11 segnala d0/t0<=40 per X nella stampa BS.
+E' un documento di revisione, non un emendamento entrato in vigore.
+https://skm.prz.edu.pl/wp-content/uploads/2015/05/collated-comments-on-EN-1993-1-8_Final_Version_U.pdf
 
 TENSIONI NEL CORRENTE (7.2.1(3), 1.5(5))
 sigma0,Ed = massima compressione al nodo sui due tagli, -N/A0 + flessione; con flessione
@@ -156,15 +182,20 @@ schiacciate ne' tagliate (7.1.2(4)); carichi prevalentemente statici.
 RISCONTRI E LETTURE GPC DA CONFERMARE
 01/11/2026: lettura visiva SCI AD434 p31 del Technical Digest2019 conferma
 bi/bj>=0.75. Sette confronti delle resistenze CHS/RHS con Corus, cap.6,
-superati: TUBULAR_PUBLISHED_VALIDATION_2026_11_01.txt. Restano da qualificare:
-Np,Ed dal taglio meno compresso; X d0/t0<=40; VEd/Vpl,Rd del gap;
+superati: TUBULAR_PUBLISHED_VALIDATION_2026_11_01.txt.
+02/11: Np meno compresso e limite X hanno il riscontro editoriale sopra;
+VerifyEquilibrated risolve il taglio nel gap per statica e offre l'inviluppo
+conservativo n/np. Restano da qualificare nel dettaglio:
 Av=2h0t0 per la nota1 delle X; kn alle beta di ancoraggio dell'interpolazione; curva di
 instabilita' delle pareti; punzonamento K/N anche per bi/b0 della singola asta; fattore
 0.9 se una membratura supera S355; regola del 20% sulla maggiore componente; limite di
-gola dei cordoni; n e np alla lettera con gammaM5; kp, kn non negativi; classi RHS con
+gola dei cordoni; kp, kn non negativi; classi RHS con
 c = b-3t (raggio EN10210 1.5t); campo di forza nulla.
 
 PROVE (Steel.Members.Tests)
 TubularJointChsTests (16), TubularJointRhsTests (8), TubularJointValidityTests (62 casi
 di rifiuto, controcasi, unicita' di traccia e controlli): valori a mano nei commenti.
 TubularJointPublishedExamplesTests: sette casi dalle tabelle Corus.
+TubularJointEquilibriumTests:11 casi nuovi, tagli firmati T/Y/X/K, reazioni
+sbilanciate, domanda nel gap da due corpi liberi, EC/NTC, gammaM5 e tolleranze.
+Regressione tubolari eseguita:107 passati,0 falliti, nessun atteso modificato.
