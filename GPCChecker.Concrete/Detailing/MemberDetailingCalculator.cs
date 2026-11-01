@@ -26,6 +26,18 @@ namespace GPC.Checkers.Concrete.Detailing
         { SecondarySteelPerMetre = secondarySteelPerMetre; SecondarySpacing = secondarySpacing; CriticalRegion = criticalRegion; }
     }
 
+    /// <summary>
+    /// Arrangement of the laps of a lap section (<see cref="MemberDetailingInput.LapZone"/>) for EN 1992-1-1 8.7.2(4) (0.34.0.0): percentage of the
+    /// tension bars lapped in the section, in (0; 100], and number of layers of the lapped bars, at least 1. Optional
+    /// (<see cref="MemberDetailingOptions.Laps"/>): without it the check of the Eurocode family stays pending, as the section does not give them.
+    /// </summary>
+    public sealed class LapArrangementData
+    {
+        public double LappedPercent { get; }
+        public int Layers { get; }
+        public LapArrangementData(double lappedPercent, int layers) { LappedPercent = lappedPercent; Layers = layers; }
+    }
+
     /// <summary>Immutable options of the member detailing; <see cref="Default"/> gives the behaviour of 0.0.17.0.</summary>
     public sealed class MemberDetailingOptions
     {
@@ -59,6 +71,8 @@ namespace GPC.Checkers.Concrete.Detailing
         /// 9.5.3(4)(ii)). False (default): for every diameter, the rule of 0.0.17.0 kept for the contract. ANTHEA F5.15, R13 (26/10/2026).
         /// </summary>
         public bool LapLinkReductionAboveFourteen { get; }
+        /// <summary>Arrangement of the laps for EN 1992-1-1 8.7.2(4) (0.34.0.0); null = not given, the check stays pending at lap sections.</summary>
+        public LapArrangementData Laps { get; }
         public MemberDetailingOptions(PlateDetailingData plate, bool legacyNegativeLinkLegs) : this(plate, legacyNegativeLinkLegs, false) { }
         /// <summary>Options with <see cref="LegacyPlateSpacingAcrossLayers"/>.</summary>
         public MemberDetailingOptions(PlateDetailingData plate, bool legacyNegativeLinkLegs, bool legacyPlateSpacingAcrossLayers)
@@ -66,9 +80,13 @@ namespace GPC.Checkers.Concrete.Detailing
         /// <summary>Options with <see cref="ColumnSpacingAlongPerimeter"/> and <see cref="LapLinkReductionAboveFourteen"/>.</summary>
         public MemberDetailingOptions(PlateDetailingData plate, bool legacyNegativeLinkLegs, bool legacyPlateSpacingAcrossLayers, bool columnSpacingAlongPerimeter,
             bool lapLinkReductionAboveFourteen)
+            : this(plate, legacyNegativeLinkLegs, legacyPlateSpacingAcrossLayers, columnSpacingAlongPerimeter, lapLinkReductionAboveFourteen, null) { }
+        /// <summary>Options with <see cref="Laps"/> (0.34.0.0).</summary>
+        public MemberDetailingOptions(PlateDetailingData plate, bool legacyNegativeLinkLegs, bool legacyPlateSpacingAcrossLayers, bool columnSpacingAlongPerimeter,
+            bool lapLinkReductionAboveFourteen, LapArrangementData laps)
         {
             Plate = plate; LegacyNegativeLinkLegs = legacyNegativeLinkLegs; LegacyPlateSpacingAcrossLayers = legacyPlateSpacingAcrossLayers;
-            ColumnSpacingAlongPerimeter = columnSpacingAlongPerimeter; LapLinkReductionAboveFourteen = lapLinkReductionAboveFourteen;
+            ColumnSpacingAlongPerimeter = columnSpacingAlongPerimeter; LapLinkReductionAboveFourteen = lapLinkReductionAboveFourteen; Laps = laps;
         }
     }
 
@@ -182,11 +200,17 @@ namespace GPC.Checkers.Concrete.Detailing
     /// unchanged except the beam As,min 9.2.1.1(1), pending, and ρw,min = 0.063 √fck / fyk of 9.2.2(5)).
     /// Solid slab strips and walls (0.0.18.0): NTC 2018 profile with EC2 §§9.3 and 9.6 as in ANTHEA (ConcreteDetailing.cs at ANTHEA 98a21d4; fixtures
     /// detailing-plate-legacy.csv): the slab needs a rectangular strip without holes (b = width, h = thickness), the other profiles are not implemented.
+    /// Eurocode family (0.34.0.0, user decision of 1/11/2026): at lap sections the lapped percentage of 8.7.2(4) and, with bars larger than
+    /// phi_large = 32 mm, the rules of 8.8, appended after the other checks; pending when the section does not give the data.
     /// </summary>
     public static partial class MemberDetailingCalculator
     {
         public const string MethodId = "Concrete.MemberDetailing";
         private const double NtcColumnMaximumSpacing = 300;
+        /// <summary>φlarge of EN 1992-1-1 8.8(1), mm: recommended value, also in DM 31/07/2012; used for DS too (DK NA not verified).</summary>
+        public const double LargeBarDiameter = 32;
+        /// <summary>Minimum dimension of the section above which large bars may be lapped, mm (EN 1992-1-1 8.8(4)).</summary>
+        public const double LargeBarLapMinimumDimension = 1000;
 
         public static MemberDetailingResult Calculate(DetailingProfile profile, MemberDetailingInput p)
         {
@@ -202,6 +226,9 @@ namespace GPC.Checkers.Concrete.Detailing
                 || (p.LinkLegs < 0 && !p.Options.LegacyNegativeLinkLegs) || double.IsNaN(p.NominalCover) || p.NominalCover < 0
                 || (plate != null && new[] { plate.SecondarySteelPerMetre, plate.SecondarySpacing }.Any(v => double.IsNaN(v) || double.IsInfinity(v) || v < 0)))
                 throw new ArgumentException("Detailing: numerical data must be finite and non negative.");
+            var laps = p.Options.Laps;
+            if (laps != null && (double.IsNaN(laps.LappedPercent) || laps.LappedPercent <= 0 || laps.LappedPercent > 100 || laps.Layers < 1))
+                throw new ArgumentException("Detailing: lapped percentage in (0; 100] and at least one layer of lapped bars.");
             var g = p.Geometry; var bars = g.Bars; var r = new List<DetailingCheck>();
             bool ntc = DetailingProfiles.IsNtc(profile), uni = profile == DetailingProfile.UniEN1992p11, ds = profile == DetailingProfile.DsEN1992p11;
             string reference = ntc ? "NTC 2018 §4.1.6.1" : profile == DetailingProfile.EN1992p11 ? "EN 1992-1-1" : uni ? "UNI EN 1992-1-1 + DM 31/07/2012" : "DS/EN 1992-1-1 + DK NA";
@@ -243,6 +270,7 @@ namespace GPC.Checkers.Concrete.Detailing
             if (p.LapZone && (p.Kind == MemberDetailingKind.Column || p.Kind == MemberDetailingKind.Wall))
                 Max("MaximumAtLap", steel, .08 * p.ConcreteArea, "mm2", p.Kind == MemberDetailingKind.Wall ? "EC2 §§9.5.2 / 9.6.2" : ntc ? "EC2 §9.5.2(3)" : "§9.5.2(3)",
                     "As ≤ 0.08 Ac at laps, all lapped bars in the section");
+            if (!ntc && !plateKind) LapsAndLargeBars(p, Min, Max, Pending, maxPhi, ds);
             return new MemberDetailingResult { Profile = profile, Kind = p.Kind, Checks = r.AsReadOnly(), Reference = DetailingProfiles.Reference(profile) };
         }
 
@@ -351,6 +379,41 @@ namespace GPC.Checkers.Concrete.Detailing
             if (!p.CompressionBarsRestrained)
                 Pending("BarsHeldByLinks", "§9.5.3(6)", "Confirm that every corner bar is held by links and no compression bar is farther than 150 mm from a restrained bar.");
             if (!p.EndZonesConfirmed) Pending("LinkSpacingNearBeams", "§9.5.3(4)", "Within max(b; h) of beams and slabs the link spacing is reduced by 0.6: confirm the end zones of the member.");
+        }
+
+        /// <summary>
+        /// Eurocode family (0.34.0.0), after every other check, so that the existing checks keep their order: EN 1992-1-1 8.7.2(4) at lap sections,
+        /// lapped tension bars ≤ 100% in one layer and ≤ 50% in several layers (pending without <see cref="MemberDetailingOptions.Laps"/>); with bars
+        /// larger than φlarge = 32 mm, 8.8(3) and (5)-(7) anchorage and 8.8(2) and (8) crack control as confirmations, and 8.8(4) at lap sections:
+        /// satisfied when the minimum dimension of a section without holes is at least 1.0 m (for beams also the web width), pending otherwise
+        /// (the alternative, a stress of the lapped bars not greater than 80% of the design strength, is not known to the section).
+        /// </summary>
+        private static void LapsAndLargeBars(MemberDetailingInput p, Action<string, double, double, string, string, string> Min,
+            Action<string, double, double, string, string, string> Max, Action<string, string, string> Pending, double maxPhi, bool ds)
+        {
+            var laps = p.Options.Laps;
+            if (p.LapZone)
+            {
+                if (laps == null) Pending("LapPercentage", "§8.7.2(4)", "Lapped tension bars: 100% in one section only when they are all in one layer, otherwise 50% "
+                    + "(bars in compression and distribution bars may all be lapped in one section): give the lapped percentage and the number of layers.");
+                else Max("LapPercentage", laps.LappedPercent, laps.Layers == 1 ? 100 : 50, "%", "§8.7.2(4)",
+                    "lapped tension bars ≤ 100% with all bars in one layer, ≤ 50% in several layers (" + laps.Layers + (laps.Layers == 1 ? " layer)" : " layers)"));
+            }
+            if (!(maxPhi > LargeBarDiameter)) return;
+            string large = "Bars larger than φlarge = 32 mm" + (ds ? " (recommended value; DK NA not verified)" : "");
+            Pending("LargeBarAnchorage", "§8.8(3), (5)-(7)", large + ": anchor them with mechanical devices, or as straight bars with links as confining reinforcement; "
+                + "where there is no transverse compression, additional transverse reinforcement ΣAsh ≥ 0.25 As n1 and ΣAsv ≥ 0.25 As n2 (8.12)-(8.13), "
+                + "uniformly distributed, spacing ≤ 5 Ø.");
+            Pending("LargeBarCrackControl", "§8.8(2), (8)", large + ": crack control by surface reinforcement (9.2.4, at least 0.01 Act,ext across and 0.02 Act,ext "
+                + "along the large bars) or by calculation (7.3.4).");
+            if (!p.LapZone) return;
+            var g = p.Geometry;
+            double minimum = Math.Min(Math.Min(g.Width, g.Height), p.Kind == MemberDetailingKind.Column ? double.PositiveInfinity : p.WebWidth);
+            if (g.Holes.Count == 0 && minimum >= LargeBarLapMinimumDimension)
+                Min("LargeBarLap", minimum, LargeBarLapMinimumDimension, "mm", "§8.8(4)", "large bars lapped: minimum dimension of the section ≥ 1.0 m");
+            else Pending("LargeBarLap", "§8.8(4)", large + " should not be lapped: allowed in sections with a minimum dimension of 1.0 m or with a stress of the "
+                + "lapped bars not greater than 80% of the design strength; confirm the stress or avoid the lap"
+                + (g.Holes.Count == 0 ? " (minimum dimension " + minimum.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + " mm)." : " (hollow section)."));
         }
 
         private static DetailingCheck National(string key, string clause, string explanation)
