@@ -82,13 +82,18 @@ namespace GPC.Model.Checker
                         addition = (section.DurabilityData.RoughSurface ? 5 : 0) + section.DurabilityData.Abrasion; ground = section.DurabilityData.Ground;
                     }
                 }
+                // EN 1992-1-1 8.7.2(4) (GPCModel 5.36.0.0): the arrangement of the laps of the detailing data, when given, at the lap sections of the
+                // Eurocode family; otherwise the default options, as before (the check stays pending at lap sections, insufficient data).
+                var laps = data.LapZone && Eurocode(profile) && data.LappedPercent.HasValue && data.LapLayers.HasValue
+                    ? new LapArrangementData(data.LappedPercent.Value, data.LapLayers.Value) : null;
+                var options = laps == null ? MemberDetailingOptions.Default : new MemberDetailingOptions(null, false, false, false, false, laps);
                 MemberDetailingResult r;
                 try
                 {
                     r = MemberDetailingCalculator.Calculate(profile, new MemberDetailingInput(kind, geometry, section.Area, Math.Abs(concrete.Fck),
                         Math.Abs(concrete.Fctm), Math.Abs(bar.Fyk), Math.Abs(bar.CalculateFyd(_standard)), data.TopWidth, data.BottomWidth, data.WebWidth, compression, links != null,
                         links?.Diameter ?? 0, links?.Spacing ?? 0, legs, data.Aggregate, data.NominalCover, cdur, data.CoverDeviation, data.LapZone,
-                        data.CompressionBarsRestrained, data.EndZonesConfirmed, addition, ground));
+                        data.CompressionBarsRestrained, data.EndZonesConfirmed, addition, ground, options));
                 }
                 catch (ArgumentException ex) { return Unavailable(DataStatus.Insufficient, "DetailingOutsideMethodRange", ex.Message); }
                 catch (NotSupportedException ex) { return Unavailable(DataStatus.NotSupported, "DetailingMethodNotImplemented", ex.Message); }
@@ -121,6 +126,10 @@ namespace GPC.Model.Checker
             else { result.Execution = ExecutionStatus.Completed; result.Data = DataStatus.Ready; result.Outcome = EngineeringOutcome.Satisfied; }
             return WithEdition(result);
         }
+
+        /// <summary>Eurocode family of the member detailing (EN, UNI and DS profiles), the one with the rule of EN 1992-1-1 8.7.2(4).</summary>
+        private static bool Eurocode(DetailingProfile profile)
+            => profile == DetailingProfile.EN1992p11 || profile == DetailingProfile.UniEN1992p11 || profile == DetailingProfile.DsEN1992p11;
 
         /// <summary>
         /// Durability of a section (GPCChecker.Concrete Durability): cmin,dur from the exposure classes, design life and modifiers with the bond

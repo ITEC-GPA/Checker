@@ -27,9 +27,9 @@ namespace GPC.Checkers.Concrete.Detailing
     }
 
     /// <summary>
-    /// Arrangement of the laps of a lap section (<see cref="MemberDetailingInput.LapZone"/>) for EN 1992-1-1 8.7.2(4) (0.35.0.0): percentage of the
-    /// tension bars lapped in the section, in (0; 100], and number of layers of the lapped bars, at least 1. Optional
-    /// (<see cref="MemberDetailingOptions.Laps"/>): without it the check of the Eurocode family stays pending, as the section does not give them.
+    /// Arrangement of the laps of a lap section (<see cref="MemberDetailingInput.LapZone"/>) for EN 1992-1-1 8.7.2(4) (0.35.0.0): percentage of the tension bars
+    /// lapped in the section, in [0; 100] (0 accepted from 0.35.0.2), and number of layers of the lapped bars, at least 1. Optional (<see cref="MemberDetailingOptions.Laps"/>):
+    /// without it the check of the Eurocode family stays pending, as the section does not give them; the model checker reads them from the detailing data (GPCModel 5.36).
     /// </summary>
     public sealed class LapArrangementData
     {
@@ -227,8 +227,8 @@ namespace GPC.Checkers.Concrete.Detailing
                 || (plate != null && new[] { plate.SecondarySteelPerMetre, plate.SecondarySpacing }.Any(v => double.IsNaN(v) || double.IsInfinity(v) || v < 0)))
                 throw new ArgumentException("Detailing: numerical data must be finite and non negative.");
             var laps = p.Options.Laps;
-            if (laps != null && (double.IsNaN(laps.LappedPercent) || laps.LappedPercent <= 0 || laps.LappedPercent > 100 || laps.Layers < 1))
-                throw new ArgumentException("Detailing: lapped percentage in (0; 100] and at least one layer of lapped bars.");
+            if (laps != null && (double.IsNaN(laps.LappedPercent) || laps.LappedPercent < 0 || laps.LappedPercent > 100 || laps.Layers < 1))
+                throw new ArgumentException("Detailing: lapped percentage in [0; 100] and at least one layer of lapped bars.");
             var g = p.Geometry; var bars = g.Bars; var r = new List<DetailingCheck>();
             bool ntc = DetailingProfiles.IsNtc(profile), uni = profile == DetailingProfile.UniEN1992p11, ds = profile == DetailingProfile.DsEN1992p11;
             string reference = ntc ? "NTC 2018 §4.1.6.1" : profile == DetailingProfile.EN1992p11 ? "EN 1992-1-1" : uni ? "UNI EN 1992-1-1 + DM 31/07/2012" : "DS/EN 1992-1-1 + DK NA";

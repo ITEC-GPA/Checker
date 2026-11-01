@@ -58,8 +58,11 @@ namespace ConcreteTests
             }
             // NTC 2018: no new check, also at laps with large bars.
             Assert.IsFalse(Run(DetailingProfile.Ntc2018, MemberDetailingKind.Beam, 300, 500, 40, true).Checks.Any(c => NewKeys.Contains(c.Key)));
-            // The arrangement is validated.
-            Assert.ThrowsException<ArgumentException>(() => Run(DetailingProfile.EN1992p11, MemberDetailingKind.Beam, 300, 500, 20, true, new LapArrangementData(0, 1)));
+            // The arrangement is validated: percentage in [0; 100] (0.35.0.2: 0 accepted, no tension bar lapped in the section), at least one layer.
+            var none = Run(DetailingProfile.EN1992p11, MemberDetailingKind.Beam, 300, 500, 20, true, new LapArrangementData(0, 2)).Checks.Last();
+            Assert.AreEqual("LapPercentage", none.Key); Assert.AreEqual(true, none.Passed); Assert.AreEqual(0.0, none.Actual); Assert.AreEqual(50.0, none.Limit);
+            Assert.ThrowsException<ArgumentException>(() => Run(DetailingProfile.EN1992p11, MemberDetailingKind.Beam, 300, 500, 20, true, new LapArrangementData(-0.5, 1)));
+            Assert.ThrowsException<ArgumentException>(() => Run(DetailingProfile.EN1992p11, MemberDetailingKind.Beam, 300, 500, 20, true, new LapArrangementData(double.NaN, 1)));
             Assert.ThrowsException<ArgumentException>(() => Run(DetailingProfile.EN1992p11, MemberDetailingKind.Beam, 300, 500, 20, true, new LapArrangementData(100.5, 1)));
             Assert.ThrowsException<ArgumentException>(() => Run(DetailingProfile.EN1992p11, MemberDetailingKind.Beam, 300, 500, 20, true, new LapArrangementData(50, 0)));
         }

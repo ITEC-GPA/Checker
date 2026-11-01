@@ -123,4 +123,54 @@ public class MemberDetailingTest
         using var stream = new MemoryStream(); ModelArchive.Save(m, stream); stream.Position = 0;
         Assert.AreEqual(section.DetailingData, ModelArchive.Load(stream).BeamElements[250].Assignments.Sections[0].Section.DetailingData);
     }
+
+    /// <summary>Detailing data of the fixture section in a lap zone, with the arrangement of the laps when given (GPCModel 5.36.0.0).</summary>
+    private static GPC.Model.Models.Model LapModel(double? lappedPercent, int? lapLayers, bool lapZone = true)
+    {
+        var m = Model();
+        m.BeamElements[250].Assignments.Sections[0].Section.DetailingData = new ConcreteDetailingData(34, 25, 5, 300, 300, 300, 20, "fixture drawings", lapZone,
+            true, true, lappedPercent, lapLayers);
+        return m;
+    }
+    private static string Metrics(CheckResult r, string? except = null) => string.Join("; ", r.Details!.Metrics.Where(x => x.Key != except).Select(x => x.Key + " "
+        + x.Demand?.ToString("R") + "/" + x.Capacity?.ToString("R") + " " + x.Unit + " " + x.Passed + " " + x.Reference));
+    private static string Rows(CheckResult r) => r.Data + " " + r.Outcome + " | " + Metrics(r) + " | " + string.Join("; ", r.Diagnostics.Select(d => d.Code + ":" + d.Message));
+
+    [TestMethod]
+    public void EurocodeLapSectionsReadTheLapArrangementOfTheDetailingData()
+    {
+        var en = new StandardEN1992p11();
+        // EN 1992-1-1 8.7.2(4), by hand: tension bars lapped in one section ≤ 100% with all of them in one layer, ≤ 50% in several layers.
+        // 100% in one layer: 100 ≤ 100, satisfied.
+        var one = Run(LapModel(100, 1), ConcreteSectionVerifier.BeamDetailingMethod, en);
+        Assert.AreEqual(EngineeringOutcome.Satisfied, one.Outcome, Describe(one)); Assert.AreEqual(DataStatus.Ready, one.Data);
+        var metric = one.Details!.Metrics.Single(x => x.Key == "LapPercentage");
+        Assert.AreEqual(100, metric.Demand!.Value, 0); Assert.AreEqual(100, metric.Capacity!.Value, 0); Assert.AreEqual("%", metric.Unit); Assert.AreEqual(true, metric.Passed);
+        StringAssert.Contains(metric.Reference, "8.7.2(4)");
+        // 100% in two layers: 100 > 50, not satisfied.
+        var two = Run(LapModel(100, 2), ConcreteSectionVerifier.BeamDetailingMethod, en);
+        Assert.AreEqual(EngineeringOutcome.NotSatisfied, two.Outcome, Describe(two));
+        metric = two.Details!.Metrics.Single(x => x.Key == "LapPercentage");
+        Assert.AreEqual(100, metric.Demand!.Value, 0); Assert.AreEqual(50, metric.Capacity!.Value, 0); Assert.AreEqual(false, metric.Passed);
+        Assert.IsTrue(two.Details.Metrics.Where(x => x.Key != "LapPercentage").All(x => x.Passed == true), Describe(two));
+        // 50% in three layers: 50 ≤ 50, satisfied.
+        var three = Run(LapModel(50, 3), ConcreteSectionVerifier.BeamDetailingMethod, en);
+        Assert.AreEqual(EngineeringOutcome.Satisfied, three.Outcome, Describe(three));
+        metric = three.Details!.Metrics.Single(x => x.Key == "LapPercentage");
+        Assert.AreEqual(50, metric.Demand!.Value, 0); Assert.AreEqual(50, metric.Capacity!.Value, 0); Assert.AreEqual(true, metric.Passed);
+        // Without the fields: insufficient data, the rule pending with its reason, as before the fields.
+        var missing = Run(LapModel(null, null), ConcreteSectionVerifier.BeamDetailingMethod, en);
+        Assert.AreEqual(DataStatus.Insufficient, missing.Data, Describe(missing)); Assert.AreEqual(EngineeringOutcome.NotEvaluated, missing.Outcome);
+        StringAssert.Contains(missing.Diagnostics.Single(d => d.Code == "DetailingPending").Message, "LapPercentage");
+        Assert.IsFalse(missing.Details!.Metrics.Any(x => x.Key == "LapPercentage"));
+        // The other checks of the lap section are the same with and without the fields.
+        Assert.AreEqual(Metrics(missing), Metrics(one, "LapPercentage"), Rows(one));
+        // NTC 2018 and sections outside the lap zone: the fields are not read, the results are those without them.
+        foreach (var (standard, zone) in new (StandardModelCode2010?, bool)[] { (null, true), (null, false), (en, false), (new StandardUNIEN1992p11(), false) })
+        {
+            string expected = Rows(Run(LapModel(null, null, zone), ConcreteSectionVerifier.BeamDetailingMethod, standard));
+            foreach (var model in new[] { LapModel(100, 2, zone), LapModel(0, 1, zone) })
+                Assert.AreEqual(expected, Rows(Run(model, ConcreteSectionVerifier.BeamDetailingMethod, standard)), (standard?.GetType().Name ?? "NTC") + " " + zone);
+        }
+    }
 }

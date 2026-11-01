@@ -14,7 +14,7 @@ classi:
   - GPC.Checkers.Concrete.Detailing.MemberDetailingKind
   - GPC.Checkers.Concrete.Detailing.DetailingProfiles
   - GPC.Checkers.Concrete.Cracking.CrackSectionGeometry
-versione: 0.35.0.0
+versione: 0.35.0.2
 norme:
   - ntc2018-4.1.6.1.1
   - ntc2018-4.1.6.1.2
@@ -372,6 +372,11 @@ tese giuntate e il numero nl di strati delle barre giuntate dati dal chiamante (
 \rho_l \le \begin{cases} 100\% & n_l = 1 \\ 50\% & n_l \ge 2 \end{cases} \qquad \text{(D.12)}
 ```
 
+con ρl in [0; 100] (0, nessuna barra tesa giuntata nella sezione, accettato dalla 0.35.0.2; prima rifiutato) e nl ≥ 1.
+Il verificatore del modello prende ρl e nl dai dati dei dettagli della sezione (`ConcreteDetailingData.LappedPercent`
+e `LapLayers` di Model, campi facoltativi dalla GPCModel 5.36.0.0, decisione dell'utente del 1/11/2026) nelle sezioni
+di sovrapposizione della famiglia Eurocodice; senza i due dati (D.12) resta in sospeso.
+
 Con barre di diametro maggiore di φlarge = 32 mm, in ogni sezione `LargeBarAnchorage` (8.8(3), (5)-(7)) e
 `LargeBarCrackControl` (8.8(2), (8)) come conferme; nella sezione di sovrapposizione, con bmin il lato minore del
 rettangolo d'ingombro (per le travi anche bw):
@@ -388,7 +393,8 @@ rettangolo d'ingombro (per le travi anche bw):
 >   controllo della fessurazione con armatura di pelle o con il calcolo, e nessuna sovrapposizione salvo sezioni con
 >   dimensione minima di 1,0 m o tensione delle barre non maggiore dell'80% di quella di progetto.
 > - Programma: la sezione non dà la disposizione delle sovrapposizioni, gli strati giuntati, le zone di ancoraggio né
->   la tensione delle barre giuntate; senza `MemberDetailingOptions.Laps` `LapPercentage` è in sospeso; le regole di
+>   la tensione delle barre giuntate; senza `MemberDetailingOptions.Laps` `LapPercentage` è in sospeso (il verificatore
+>   del modello la passa quando i dati dei dettagli di Model danno percentuale e strati, 6.6); le regole di
 >   8.8 sono conferme in sospeso, salvo `LargeBarLap` soddisfatto con bmin ≥ 1 m. Con DS φlarge è il valore
 >   raccomandato, dichiarato nella spiegazione (DK NA non riscontrato). Il profilo NTC e le solette e pareti non
 >   cambiano.
@@ -465,7 +471,10 @@ Percorsi relativi alla radice del repository Checker (namespace `GPC.Checkers.Co
 - Uso nel verificatore del modello (repository Checker, `ModelChecker/Adapters/Concrete/ConcreteSectionVerifier.Detailing.cs`):
   una attività per asta e stato; NEd è la compressione massima dei campioni dello stato (riga 48); cmin,dur viene dal
   progetto di durabilità, prendendo il maggiore fra il valore calcolato e quello eventualmente assegnato (righe 73-84);
-  i controlli in sospeso danno «dati insufficienti», le regole non implementate «non supportato» (righe 95-121).
+  la disposizione delle sovrapposizioni (`LapArrangementData`) viene da `ConcreteDetailingData.LappedPercent` e
+  `LapLayers` solo nelle sezioni di sovrapposizione della famiglia Eurocodice, quando sono dati, altrimenti le opzioni
+  predefinite (righe 85-89; famiglia `Eurocode`, righe 130-132); i controlli in sospeso danno «dati insufficienti», le
+  regole non implementate «non supportato» (righe 100-126).
 
 ## 9. Limiti e casi non supportati
 
@@ -494,7 +503,7 @@ Percorsi relativi alla radice del repository Checker (namespace `GPC.Checkers.Co
   poligonali, le staffe inclinate e le regole sismiche non sono verificate.
 - Con DS, As,min delle travi resta in sospeso (riquadro D-5).
 - Famiglia Eurocodice: la percentuale di barre giuntate (EN 8.7.2(4)) richiede la disposizione delle sovrapposizioni
-  dal chiamante; le regole di EN 8.8 sono conferme, salvo la sovrapposizione delle barre grandi con dimensione minima
+  dal chiamante (nel verificatore del modello, dai dati dei dettagli della sezione); le regole di EN 8.8 sono conferme, salvo la sovrapposizione delle barre grandi con dimensione minima
   ≥ 1 m (riquadro D-8). La distanza longitudinale fra sovrapposizioni adiacenti (0,3 l0) e l'interferro fra
   sovrapposizioni adiacenti (2Ø o 20 mm) di EN 8.7.2(3) non sono controllati.
 - Testo dei riferimenti (R14), corretto nella 1.16.0 di ANTHEA (Concrete 0.28): nel profilo NTC il riferimento di
@@ -597,13 +606,17 @@ codice del 1/11/2026, e `pagine_metodi.py` di ANTHEA ricontrolla il profilo NTC)
   strati soddisfatto, per EN, UNI e DS; nessun controllo nuovo fuori dalla sovrapposizione con Ø ≤ 32 mm né con NTC;
   Ø36 in una trave 400 × 600: ancoraggio e fessurazione in sospeso, sovrapposizione in sospeso (400 mm); pilastro
   1200 × 1200 con Ø40: sovrapposizione soddisfatta (1200 ≥ 1000 mm); trave 1200 × 1200 con anima di 300 mm: in sospeso;
-  dati non validi rifiutati.
+  dati non validi rifiutati; dalla 0.35.0.2 0% in due strati soddisfatto (limite 50%).
 - **Contratto dei dettagli** (`detailing-contract-0.0.17.csv`): dalla 0.35.0.0 i 66 casi della famiglia Eurocodice
   nella zona di sovrapposizione hanno `LapPercentage` in sospeso in coda, con gli altri controlli invariati e 2 esiti
   complessivi da soddisfatto a in sospeso, verificati riga per riga da
   `tools/attesi/classifica_contratto_dettagli_20261101.py`.
-- Nel repository Model, `MemberDetailingTest` verifica il collegamento come attività d'asta (trave NTC soddisfatta,
-  pilastro NTC non soddisfatto sul passo delle staffe, EN, DS, dati mancanti, conferme).
+- Nel verificatore del modello, `MemberDetailingTest` verifica il collegamento come attività d'asta (trave NTC
+  soddisfatta, pilastro NTC non soddisfatto sul passo delle staffe, EN, DS, dati mancanti, conferme) e, dalla GPCModel
+  5.36.0.0 e GPCModelChecker 2.37.0.0, la disposizione delle sovrapposizioni dai dati dei dettagli: trave EN nella zona
+  di sovrapposizione con 100% in un solo strato soddisfatta, 100% in due strati non soddisfatta (limite 50%), 50% in tre
+  strati soddisfatta, senza i dati «dati insufficienti» con `LapPercentage` in sospeso; gli altri controlli invariati;
+  con NTC e fuori dalla zona di sovrapposizione i risultati coincidono con quelli senza i dati.
 - **Esempio di questa pagina**: eseguito con la libreria 0.0.17.0 e ricalcolato in modo indipendente, scarto
   inferiore a 10⁻¹².
 - **Benchmark indipendenti pubblicati**: nessuno, per ora.
