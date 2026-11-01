@@ -59,20 +59,21 @@ METODO
 2. Larghezza aggiuntiva c=tp sqrt(fy/(3 fjd gammaM0)) (6.5). T-stub compresso sotto ogni
    ala: rettangolo ala+c su ogni lato, limitato dai bordi della piastra e, verso
    l'interno, da meta' della luce netta fra le ali (i due T-stub non si sovrappongono).
-   SCELTA GPC cautelativa: ogni foro di tirafondo che entra nel rettangolo e' dedotto per
-   intero al proprio centro (esatto per fori interni, a favore per fori tagliati).
+   Ogni foro e' dedotto per la sola intersezione con il rettangolo, con il suo momento
+   statico esatto. Correzione 01/11/2026: sottrarre il foro intero quando e' tagliato dal
+   bordo alterava il baricentro; la minore area non garantiva da sola un braccio sicuro.
    Fc,pl,Rd=fjd*A (6.2.6.9-10); Fc,fc,Rd=Mc,Rd/(h-tf) (6.2.6.7, (6.21)); FC=min.
    zC = baricentro dell'area compressa efficace (senza fori e troncamenti coincide con
    il medio dell'ala); zT = distanza della fila di tirafondi. Cosi' il braccio non supera
    la distanza fra baricentro dell'area compressa e baricentro del gruppo teso
-   (6.2.6.12(2)). La Figura6.18 non e' leggibile nella copia consultata: da verificare.
+   (6.2.6.12(2)). Confermato con lettura visiva della Figura6.18, p.90, il 01/11/2026.
 3. Lato teso (OutsideFlanges): T-stub della fila esterna Tab.6.6 (mx=x-0.8 lato cordone
    d'ala, e=(bp-w)/2, ex=hp/2-RowDistance); n=min(ex,1.25mx); Mpl=0.25 leff tp^2 fy/gammaM0.
    Per tirafondo: Ft,Rd=0.9 fub As/gammaM2 (x0.85 con filettature tagliate non conformi a
    EN1090, 3.6.1(3)), punzonamento della piastra 0.6 pi dm tp fu/gammaM2, resistenza
    dichiarata del calcestruzzo: si usa il minimo (6.2.6.12(3)); somma su due tirafondi.
    Lb=8d+malta+tp+rondella+dado/2 (nota della Tab.6.2); Lb*=8.8 mx^3 As nb/(leff1 tp^3),
-   nb=1 fila. Lettura di 6.2.6.11(2) (DA CONFERMARE dall'utente): il leveraggio non si
+   nb=1 fila. Lettura visiva di 6.2.6.11(2), p.83, confermata il 01/11/2026: il leveraggio non si
    usa per la piastra, che resta al modo senza leveraggio 2Mpl,1/m; con Lb<=Lb* i
    tirafondi si verificano anche nel Modo 2 con leveraggio; Modo 3=somma Ft.
    FT=min(2Mpl,1/m, Modo2 se Lb<=Lb*, Modo3). Poiche' il Modo 2 e' una media pesata di
@@ -107,13 +108,14 @@ METODO
    6.2.3(4): i cordoni non devono limitare Mj,Rd: seconda verifica con N/u e M1/u e gli
    stessi tagli, ruolo Detailing (Welds.NotLimitingJointMomentResistance).
 
-VERIFICA DELLE FONTI (30/10/2026)
+VERIFICA DELLE FONTI (30/10/2026, riscontri aggiuntivi 01/11/2026)
 - EN1993-1-8:2005 con correzioni, copia gia' usata dal modulo
   (https://www.phd.eng.br/wp-content/uploads/2015/12/en.1993.1.8.2005-1.pdf), testo
   estratto e letto: 3.3(1) p21, 3.6.1(3)-(4) p24-25, Tab.3.4 e nota p27, 6.2.2(5)-(9)
   p65-66, 6.2.3(4) p66, Tab.6.2 e nota su Lb dei tirafondi p68, 6.2.5 p70-71,
-  6.2.6.7-6.2.6.12 p82-84, 6.2.8 e Tab.6.7 p89-91. Figura6.18 (bracci) non leggibile:
-  la posizione di zC/zT e' DA VERIFICARE sulla figura; la scelta resta entro 6.2.6.12(2).
+  6.2.6.7-6.2.6.12 p82-84, 6.2.8 e Tab.6.7 p89-91. Figura6.18 e paragrafi
+  6.2.6.11(2)/6.2.6.12(2) riletti visivamente il 01/11: zT riferito ai tirafondi,
+  zC alla risultante dell'impronta compressa. Vedi COLUMN_BASE_BEARING_AUDIT_2026_11_01.txt.
 - EN1992-1-1:2004, copia https://www.phd.eng.br/wp-content/uploads/2015/12/en.1992.1.1.2004.pdf:
   3.1.6(1)P e nota (alpha_cc fra 0.8 e 1.0), 6.7(1)-(3) eq.(6.63) p111.
 - NTC2018 (S.O. n.8 G.U. n.42 del 20/02/2018): nessuna regola specifica per piastre di
@@ -123,8 +125,10 @@ VERIFICA DELLE FONTI (30/10/2026)
   Cap.4 e Cap.12: gli Eurocodici con le Appendici Nazionali sono indicazioni di comprovata
   validita'. PERCORSO NTC AMMESSO come modello di componenti EC integrativo con i fattori
   NTC (gammaM0=1.05, gammaM2=1.25; fcd NTC imposto), come per gli altri nodi del modulo.
-- Circolare 21/01/2019 n.7: non letta (PDF oltre il limite dello strumento): DA VERIFICARE
-  che non contenga indicazioni specifiche per le piastre di base.
+- Circolare 21/01/2019 n.7, S.O.5 GU35 11/02/2019: riscontro 01/11/2026 sull'indice
+  e sul capitolo C4.2 della copia GU locale. Nessun paragrafo C4.2.8 per le unioni o
+  procedura aggiuntiva delle basi ordinarie: dopo C4.2.4 si passa a C4.2.9. Il capitolo
+  sismico C7 non e' utilizzato per questo campo statico ordinario.
 
 ESITI
 Status Failed se un controllo di carico o di dettaglio non e' soddisfatto; NotSupported

@@ -10,7 +10,7 @@ namespace Steel.Members.Tests;
 /// the comments (EN1993-1-8:2005 6.2.2, 6.2.5, 6.2.6.11-12, Table6.2, Table6.6 outer row, Table6.7;
 /// EN1992-1-1:2004 6.7), never values read back from the engine.</summary>
 [TestClass]
-public class ColumnBaseTests
+public partial class ColumnBaseTests
 {
     // HEB240 (h240 b240 tw10 tf17 r21), S275 with EN1993-1-1 Table3.1 values for t<=40 mm: fy=275, fu=430.
     // Wpl,y=1053 cm3 (catalogue). Mc,Rd=Wpl fy/gammaM0, class 1, V2<0.5Vpl (Av=3324 mm2, Vpl=527.7 kN).
@@ -121,9 +121,12 @@ public class ColumnBaseTests
         // sqrt(Ac1/Ac0)=2<=3, FRdu=176000*16.6667*2=5866666.7 N (EN1992-1-1 (6.63)); fjd=2/3*FRdu/Ac0=22.2222 MPa (6.6),
         // grout 30 mm <= 0.2*400 and 35 >= 0.2*25 MPa. c=30*sqrt(275/(3*22.2222*1.0))=60.93029 mm (6.5).
         // Flange T-stub: outwards min(c,(440-240)/2=100)=60.930, inwards min(c,(240-34)/2=103)=60.930, along X min(120+c,200)=180.930:
-        // y from 103-60.930=42.070 to 120+60.930=180.930, area 361.861*138.861=50248.17 mm2; the two holes d0=26 at y=170 lie inside
-        // and are deducted: 2*pi*13^2=1061.86 -> 49186.31 mm2, centroid (50248.17*111.5-1061.86*170)/49186.31=110.23707 mm = zC.
-        // Fc,pl,Rd=22.2222*49186.31=1093029.1 N; Fc,fc,Rd=289.575e6/(240-17)=1298542.6 N; FC=1093029.1 N.
+        // y from 103-c to 120+c, gross area Ag=2*(120+c)*(17+2*c)=50248.17 mm2, gross centroid 111.5 mm.
+        // Each hole r=13, y=170 crosses the upper boundary: a=120+c-170; the OUTSIDE circular cap is
+        // Acap=r^2*acos(a/r)-a*sqrt(r^2-a^2)=19.75317769 mm2. Deduct Ah=pi*r^2-Acap, not the entire circle.
+        // Its first moment is Sh=170*Ah-2/3*(r^2-a^2)^(3/2). A=Ag-2*Ah=49225.81608834 mm2;
+        // zC=(111.5*Ag-2*Sh)/A=110.29447741 mm. See COLUMN_BASE_BEARING_AUDIT_2026_11_01.txt (approved correction).
+        // Fc,pl,Rd=22.2222*A=1093907.024 N; Fc,fc,Rd=289.575e6/(240-17)=1298542.6 N; FC=1093907.024 N.
         // Tension T-stub (Table6.6 outer row): mx=50-0.8*12=40.4, e=(400-160)/2=120, ex=220-170=50, w=160.
         // Circular min(2pi mx=253.84, pi mx+w=286.92, pi mx+2e=366.92)=253.84; non-circular min(4mx+1.25ex=224.10,
         // e+2mx+0.625ex=232.05, bp/2=200, w/2+2mx+0.625ex=192.05)=192.05 -> leff1=leff2=192.05; n=min(ex,1.25mx)=50.
@@ -131,26 +134,26 @@ public class ColumnBaseTests
         // Anchor M24 5.6: Ft,Rd=0.9*500*353/1.25=127080 N; Bp,Rd=0.6*pi*37.7*30*430/1.25=733368.4 N; declared concrete 110000 N
         // -> 110000 N per anchor, sum Ft=220000 N. Lb=8*24+30+30+4+21.5/2=266.75 mm; Lb*=8.8*40.4^3*353*1/(192.05*30^3)=39.502 mm:
         // Lb>Lb*, no prying: FT=min(588271.97, 220000)=220000 N. zT=170 mm.
-        // Equilibrium, side A (+Y) in tension, side B in compression, z=170+110.23707=280.23707:
-        // TA=(N zC+M)/z=(-600000*110.23707+120e6)/z=192186.41 N; CB=(M-N zT)/z=(120e6+600000*170)/z=792186.41 N.
-        // u=max(192186.41/220000=0.873575, 792186.41/1093029.1=0.724762); Mj,Rd=M/u=137366635 Nmm, the Table6.7 row-1 value
+        // Equilibrium, side A (+Y) in tension, side B in compression, z=170+110.29447741=280.29447741:
+        // TA=(N*zC+M)/z=192024.167 N; CB=(M-N*zT)/z=792024.167 N.
+        // u=max(TA/220000, CB/1093907.024); Mj,Rd=M/u=137482695.048 Nmm, the Table6.7 row-1 value
         // min(FT z/(zC/e+1), -FC z/(zT/e-1)) with e=M/N=-200 mm.
         var r = ColumnBase.Verify(Example1().Build());
         Assert.AreEqual(ConnectionStatus.Passed, r.Status, string.Join(";", r.MissingRequirements));
         Assert.IsTrue(r.IsStaticResistanceComplete && r.CanQualifyWholeJoint);
         Assert.AreEqual(ColumnBaseEquilibriumState.SideATensionSideBCompression, r.State);
         Close(22.222222222222222, r.BearingStrength!.Value, "fjd"); Close(60.9302880347697, r.AdditionalBearingWidth!.Value, "c");
-        Close(49186.30973295829, Trace(r, "Compression.FlangeTStub.EffectiveArea"), "Aeff"); Assert.AreEqual(2, Trace(r, "Compression.FlangeTStub.DeductedHoles"));
-        Close(110.23707314338716, r.CompressionLeverArm!.Value, "zC"); Close(170, r.TensionLeverArm!.Value, "zT");
-        Close(1093029.105176851, r.SideCompressionResistance!.Value, "FC"); Close(1298542.600896861, Trace(r, "Compression.FcFcRd"), "Fc,fc");
+        Close(49225.81608833826, Trace(r, "Compression.FlangeTStub.EffectiveArea"), "Aeff"); Assert.AreEqual(2, Trace(r, "Compression.FlangeTStub.DeductedHoles"));
+        Close(110.29447741154388, r.CompressionLeverArm!.Value, "zC"); Close(170, r.TensionLeverArm!.Value, "zT");
+        Close(1093907.0241852945, r.SideCompressionResistance!.Value, "FC"); Close(1298542.600896861, Trace(r, "Compression.FcFcRd"), "Fc,fc");
         Close(11883093.75, Trace(r, "Tension.TStub.Mpl1"), "Mpl1"); Close(39.50239225695469, Trace(r, "Tension.Anchor.PryingLengthLimit"), "Lb*");
         Close(266.75, Trace(r, "Tension.Anchor.AnchorElongationLength"), "Lb"); Assert.IsFalse(r.PryingDevelops!.Value);
         Close(220000, r.SideTensionResistance!.Value, "FT");
         Assert.IsFalse(r.Checks.Any(c => c.Id.EndsWith(".Mode2")), "No Mode2 without prying");
         Close(588271.9678217822, Check(r, "SideA.TStub.PlateWithoutPrying").Resistance, "plate");
-        Close(192186.40670861787, Check(r, "SideA.TStub.Mode3").Demand, "TA"); Close(220000, Check(r, "SideA.TStub.Mode3").Resistance, "Mode3");
-        Close(792186.4067086178, Check(r, "SideB.ConcreteAndPlate").Demand, "CB");
-        Close(137366635.0920759, r.MomentResistance!.Value, "Mj,Rd"); Close(-686833.1754603796, r.AxialResistance!.Value, "Nj,Rd");
+        Close(192024.16704788408, Check(r, "SideA.TStub.Mode3").Demand, "TA"); Close(220000, Check(r, "SideA.TStub.Mode3").Resistance, "Mode3");
+        Close(792024.1670478841, Check(r, "SideB.ConcreteAndPlate").Demand, "CB");
+        Close(137482695.04752892, r.MomentResistance!.Value, "Mj,Rd"); Close(-687413.4752376446, r.AxialResistance!.Value, "Nj,Rd");
         // Shear: Ff=0.2*600000=120000 N < 150000 N, so the two compression-side anchors are credited (normal 2 mm holes, fyb=300).
         // F1=0.5*500*353/1.25=70600; alpha_bc=0.44-0.0003*300=0.35, F2=0.35*500*353/1.25=49420 N (6.2); bearing X: alpha_d=min(120/78,
         // 160/78-0.25)=1.538, alpha_b=1, k1=min(2.5, 2.8*50/26-1.7, 1.4*340/26-1.7)=2.5 -> 619200 N; bearing Y: alpha_d=min(50/78,
@@ -161,11 +164,13 @@ public class ColumnBaseTests
         // Welds: throats 12/sqrt2 (flanges) and 8/sqrt2 (web); runs 2x240 outer, 4x94 inner, 2x164 web: A=9118.849 mm2,
         // Ix=2*240*a_f*120^2+4*94*a_f*103^2+2*a_w*164^3/12=96656594 mm4. Outer -Y fillet: sz=-600000/A-120e6*120/Ix=-214.779 MPa,
         // V2 gives 150000/A=16.449 MPa towards the member face: sigma=(16.449-214.779)/sqrt2=-140.240, tau_perp=(-16.449-214.779)/sqrt2=-163.503,
-        // sqrt(sigma^2+3tau^2)=316.017 <= 430/(0.85*1.25)=404.706 MPa: 0.780857. At N/u, M/u (6.2.3(4)) the same point gives 0.889281.
+        // sqrt(sigma^2+3tau^2)=316.017 <= 430/(0.85*1.25)=404.706 MPa: 0.780857.
+        // At N/u, M/u (6.2.3(4)), retain V2 unchanged: sz'=sz/u, sv=150000/A;
+        // sigma'=(sv+sz')/sqrt2, tau'=(-sv+sz')/sqrt2 -> utilization 0.8900057445.
         Close(0.7808570922658625, Check(r, "Welds.ActualActions").Demand, "welds");
         var atResistance = Check(r, "Welds.NotLimitingJointMomentResistance");
-        Assert.AreEqual(ConnectionCheckRole.Detailing, atResistance.Role); Close(0.8892809963335758, atResistance.Demand, "welds at Mj,Rd");
-        Close(192186.40670861787 / 220000, r.Utilization!.Value, "governing");
+        Assert.AreEqual(ConnectionCheckRole.Detailing, atResistance.Role); Close(0.8900057445043901, atResistance.Demand, "welds at Mj,Rd");
+        Close(192024.16704788408 / 220000, r.Utilization!.Value, "governing");
     }
 
     [TestMethod]
@@ -230,11 +235,12 @@ public class ColumnBaseTests
     [TestMethod]
     public void MomentResistanceReproducesEveryRowOfTable67()
     {
-        // Example 1 geometry: FT=220000, FC=1093029.1, zT=170, zC=110.23707. Table6.7 (MEd>0 tensions the left side A, NEd>0 tension):
+        // Example 1 geometry (clipped holes, independent circular-cap calculation above): FT=220000, FC=1093907.024, zT=170, zC=110.29447741.
+        // Table6.7 (MEd>0 tensions the left side A, NEd>0 tension):
         // row1 LT/RC z=zT+zC: N>0,e>zT or N<=0,e<=-zC: min(FT z/(zC/e+1), -FC z/(zT/e-1)); row2 LT/RT z=2zT: N>0, -zT<e<zT:
         // min(FT z/(zT/e+1), FT z/(zT/e-1)); row3 LC/RT z=zC+zT: N>0,e<=-zT or N<=0,e>zC: min(-FC z/(zT/e+1), FT z/(zC/e-1));
         // row4 LC/RC z=2zC: N<=0, -zC<e<zC: min(-FC z/(zC/e+1), -FC z/(zC/e-1)); "min" by magnitude.
-        const double ft = 220000, zt = 170; double fc = 1093029.105176851, zc = 110.23707314338716;
+        const double ft = 220000, zt = 170; double fc = 1093907.0241852945, zc = 110.29447741154388;
         foreach (double n in new[] { 200e3, -200e3, -900e3 })
             foreach (double e in new[] { -2000, -400, -150, -100, -40, 40, 100, 150, 400, 2000 })
             {
@@ -270,11 +276,11 @@ public class ColumnBaseTests
     [TestMethod]
     public void SmallMomentUnderHighCompressionKeepsBothFlangesCompressed()
     {
-        // N=-1000 kN, M1=20 kNm: e=-20 mm, |e|<zC. Row 4, z=2zC=220.47415: CA=-(N zC+M)/z=409284.55, CB=(M-N zC)/z=590715.45 N;
-        // FC=1093029.1 -> u=590715.45/1093029.1=0.540439. All four anchors are free of tension: Fv,Rd=200000+4*49420=397680 N.
+        // N=-1000 kN, M1=20 kNm: e=-20 mm, |e|<zC. Row 4, z=2zC=220.58895482: CA=409333.629, CB=590666.371 N;
+        // FC=1093907.024 -> u=0.5399603055. All four anchors are free of tension: Fv,Rd=200000+4*49420=397680 N.
         var r = ColumnBase.Verify((Example1() with { N = -1000e3, M1 = 20e6 }).Build());
         Assert.AreEqual(ColumnBaseEquilibriumState.BothSidesInCompression, r.State, string.Join(";", r.MissingRequirements));
-        double z = 2 * 110.23707314338716, ca = -(-1000e3 * 110.23707314338716 + 20e6) / z, cb = (20e6 + 1000e3 * 110.23707314338716) / z;
+        double z = 2 * 110.29447741154388, ca = -(-1000e3 * 110.29447741154388 + 20e6) / z, cb = (20e6 + 1000e3 * 110.29447741154388) / z;
         Close(ca, Check(r, "SideA.ConcreteAndPlate").Demand, "CA"); Close(cb, Check(r, "SideB.ConcreteAndPlate").Demand, "CB");
         Assert.AreEqual(4, Trace(r, "Shear.CreditedAnchors")); Close(397680, r.ShearResistance!.Value, "Fv");
         Assert.IsFalse(r.Checks.Any(c => c.Id.Contains("TStub")));
@@ -292,11 +298,12 @@ public class ColumnBaseTests
     [TestMethod]
     public void UndersizedWeldsThatWouldLimitMjRdFailTheDetailingRule()
     {
-        // Flange leg 10 mm: at the actions 0.919448 (passes); at N/u, M1/u 1.047238 > 1, contrary to EN1993-1-8 6.2.3(4).
+        // Flange leg 10 mm: at the actions 0.919448 (passes). Recompute A,I with af=10/sqrt2;
+        // the same directional-weld calculation above at N/u, M1/u gives 1.0480920154 > 1 (EN1993-1-8 6.2.3(4)).
         var r = ColumnBase.Verify((Example1() with { FlangeLeg = 10 }).Build());
         Close(0.9194483311237192, Check(r, "Welds.ActualActions").Demand, "actual"); Assert.IsTrue(Check(r, "Welds.ActualActions").Passed);
         var rule = Check(r, "Welds.NotLimitingJointMomentResistance");
-        Close(1.0472378275226526, rule.Demand, "at resistance"); Assert.IsFalse(rule.Passed); Assert.AreEqual(ConnectionStatus.Failed, r.Status);
+        Close(1.0480920153638649, rule.Demand, "at resistance"); Assert.IsFalse(rule.Passed); Assert.AreEqual(ConnectionStatus.Failed, r.Status);
     }
 
     [TestMethod]

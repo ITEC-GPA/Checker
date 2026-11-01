@@ -1,0 +1,36 @@
+CHIUSURA STEEL - LAVORO AUTORIZZATO IL 01/11/2026
+
+Branch: codex/steel-closure-20261101, base origin/master eb16e72c.
+Solo Checker; un agente; nessuna modifica ANTHEA. EC3 prima generazione /
+NTC2018, statica ordinaria e nodi tipologici analitici.
+
+Ordine e criteri di chiusura
+1. Riscontri normativi CHS, basi e nodi tubolari: leggere formule/figure,
+   distinguere prescrizioni e scelte di modello, correggere eventuali errori,
+   aggiungere riscontri indipendenti e casi limite. Non trasformare una
+   lettura incerta in un esito completo; registrare eventuali fonti mancanti.
+2. Coprigiunti: lastra interamente compressa con taglio elevato, percorso
+   EN1993-1-5 sezione 10 compatibile con le condizioni fisiche del dettaglio.
+3. Terminali/supporti standard: completare trasferimento al collettore per
+   C/2C tesi collegati d'anima, tying delle squadrette e supporti tipologici
+   compatibili con i componenti gia' disponibili. Geometrie speciali escluse.
+4. Aste: compressione variabile, interazione con taglio alto nei campi
+   qualificabili, automazione dei modi critici e ritegni entro schemi analitici;
+   mantenere espliciti i dati e i controlli esterni necessari.
+
+Per ogni blocco: test numerici indipendenti, limiti/invalidi, suite pertinenti,
+documentazione CURRENT/catalogo e commit coerente. Fixture e attesi storici
+non si rigenerano per far passare i test. Versione in commit dedicato.
+Integrazione master/push solo dopo tutte le suite previste da AGENTS.md sul
+risultato integrato. Nessun nuovo rilascio o installazione ANTHEA in questa task.
+
+Avanzamento
+1 IN CORSO - chiusi i riscontri delle basi su leveraggio, bracci e Circolare C4.2.
+  Trovato e corretto il calcolo geometrico dei fori parzialmente interni all'impronta.
+  11 nuovi test superati, 4 attesi storici aggiornati dopo autorizzazione utente,
+  nessuna geometria cambiata. Suite Steel 7001/7001 superati (Release net8.0).
+  Vedi Connections/COLUMN_BASE_BEARING_AUDIT_2026_11_01.txt.
+  CHS e tubolari: confronto testi in corso; A1:2017 completa non ancora disponibile.
+2 DA FARE
+3 DA FARE
+4 DA FARE
