@@ -30,7 +30,11 @@ Avanzamento
   11 nuovi test superati, 4 attesi storici aggiornati dopo autorizzazione utente,
   nessuna geometria cambiata. Suite Steel 7001/7001 superati (Release net8.0).
   Vedi Connections/COLUMN_BASE_BEARING_AUDIT_2026_11_01.txt.
-  CHS e tubolari: confronto testi in corso; A1:2017 completa non ancora disponibile.
+  Tubolari: sette confronti pubblicati Corus superati (CHS/RHS), confermata
+  visivamente AD434 sul rapporto minimo delle aste sovrapposte. Restano le
+  letture di modello elencate nel documento tecnico; non e' una qualificazione
+  indiscriminata. CHS: A1:2017 completa e giustificazione diretta del taglio
+  trasversale ancora da reperire, nessuna nuova conclusione automatica.
 2 DA FARE
 3 DA FARE
 4 DA FARE
