@@ -19,7 +19,7 @@ classi:
   - GPC.Checkers.Concrete.Cracking.CrackBarLayout
   - GPC.Checkers.Concrete.Cracking.CrackProfiles
   - GPC.Checkers.Concrete.Cracking.CrackProfile
-versione: 0.0.17.0
+versione: 0.33.0.0
 norme:
   - ntc2018-4.1.2.2.4
   - circ2019-C4.1.2.2.4.5
@@ -74,7 +74,8 @@ non fessurata), l'esito, tutte le regioni esaminate e la traccia dei valori inte
 | Sezione con trefoli (c.a.p.) | non supportato | esito incompleto (`PrestressNotSupported`) |
 | Sezione interamente compressa | supportato | wk = 0; k2 non si applica (`K2` nullo, nessuna voce k2 nella traccia) |
 | Asse neutro nel copriferro del lembo teso armato | supportato | wk = 0 (riquadro F-3) |
-| Lembo teso senza armatura | non valutabile | esito incompleto (`NoTensileReinforcement`) |
+| Lembo teso senza armatura | non valutabile | esito incompleto (`NoTensileReinforcement`); con l'opzione `UnreinforcedTensileZoneFails` non soddisfatta, come la faccia della sezione interamente tesa con calcestruzzo ma senza barre nella fascia (`FaceWithoutAreaOrSteel`) e la superficie interna tesa senza armatura |
+| Classe di esposizione sconosciuta | dati non validi | errore (`ArgumentException`) |
 | Barre tese tutte fuori da Ac,eff | supportato | limite superiore con sr,max da (h − x) (riquadro F-4) |
 | Interasse automatico non determinato (meno di due barre efficaci, barre non allineate, anelli non confermati) | dati insufficienti | esito incompleto (`SpacingUndetermined`); l'interasse si assegna |
 | Piano di deformazione senza gradiente con sezione parzializzata | non valutabile | esito incompleto (`NeutralAxisUndetermined`) |
@@ -99,8 +100,8 @@ non fessurata), l'esito, tutte le regioni esaminate e la traccia dei valori inte
 | Barre distanziate: Δsm = 0,75 (h − x) nella parte rimanente (riquadro F-1) | Circolare | 2019 | C4.1.2.2.4.5 | [C4.1.10], Fig. C4.1.11 | testo |
 | Requisiti con le condizioni ambientali NTC | UNI EN 1992-1-1 | DM 31/07/2012 | 7.3.1(5) | — | testo |
 | k3 = 3,4, k4 = 0,425 | UNI EN 1992-1-1 | DM 31/07/2012 | 7.3.4(3) | — | testo |
-| wmax per classe di esposizione; XD3, che il prospetto non elenca, con XD1, XD2 e XS1-XS3 (0,3 mm), come fanno altri programmi | EN 1992-1-1 | 2004 + AC:2010 | 7.3.1(5) | Prospetto 7.1N | testo; XD3 interpretazione dichiarata da fonte secondaria (voce R8) |
-| hc,eff, Ac,eff | EN 1992-1-1 | 2004 + AC:2010 | 7.3.2(3) | Fig. 7.1 | da riscontrare |
+| wmax per classe di esposizione; XD3 con XD1, XD2 e XS1-XS3 (0,3 mm per il c.a.) | EN 1992-1-1 | 2004 + AC:2010 | 7.3.1(5) | Prospetto 7.1N | testo (XD3 aggiunto nel prospetto dall'errata AC:2010, modifica 98; voce R8) |
+| hc,eff = min[2,5 (h − d); (h − x)/3; h/2], Ac,eff; aree Act,eff e Acb,eff distinte nell'elemento teso | EN 1992-1-1 | 2004 + AC:2010 | 7.3.2(3) | Fig. 7.1 a)-c) | testo (sezione interamente tesa: §6.9) |
 | wk, εsm − εcm, sr,max, Øeq, k2, barre distanziate e assenza di armatura aderente | EN 1992-1-1 | 2004 + AC:2010 | 7.3.4(1)-(3) | (7.8), (7.9), (7.11)-(7.14) | testo |
 | Prospetto 7.1DE (X0, XC1 0,4; altre 0,3) | DIN EN 1992-1-1 | NA | 7.3.1(5) | Tab. 7.1DE | fonte secondaria |
 | hc,ef con coefficiente funzione di h/(h − d) e (h − x)/3 se ≥ c + 20 mm | DIN EN 1992-1-1 | NA | 7.3.2(3) | Bild 7.1DE | fonte secondaria (riquadro F-7) |
@@ -271,7 +272,8 @@ w_k = s_{r,max}\, (\varepsilon_{sm} - \varepsilon_{cm}) \qquad \text{(F.10)}
 βmin = 0,6; k1 = 0,8 per barre ad aderenza migliorata, 1,6 per barre lisce; k3 = 3,4; k4 = 0,425. Varianti:
 
 - **DS**: k3 = 3,4 (25/c)^(2/3) (DK NA 7.3.4(3)), per c > 0.
-- **DIN**: kt = 0,4 sempre (riquadro F-8); sr,max = min[Ø/(3,6 ρ) oppure 1,3 (h − x) per barre distanziate;
+- **DIN**: kt = 0,4 sempre, salvo l'opzione `DinKtByDuration` (riquadro F-8); sr,max = min[Ø/(3,6 ρ) oppure 1,3 (h − x)
+  per barre distanziate;
   σs Ø/(3,6 fct,eff)] (DIN NA 7.3.4(3)); solo barre ad aderenza migliorata.
 - **Model Code 2010**: sr = 2 [c + Ø/(4 (τbm/fctm) ρ)] con τbm/fctm = 1,8 per carichi di breve durata e 1,35 di lunga
   durata; βmin = 1 − kt; solo barre ad aderenza migliorata; la regola delle barre distanziate non si applica
@@ -387,8 +389,10 @@ Quando il lembo teso è armato dipende dall'opzione `UnreinforcedTensileZoneFail
   a(d) = Q_{max} - \max_{P \in A_d} Q(P), \qquad a(d) = d \text{ (gradiente normale a una faccia)}, \qquad a(d) = d\,(|q_x| + |q_y|) \text{ (spigolo di un rettangolo)}
   ```
 
-  una barra b del lembo teso soddisfa una delle due condizioni, con d = c + Ø_b/2 e c il copriferro della formula
-  (`CoverOverride` o copriferro nominale) e una tolleranza di 10⁻⁶ h:
+  una barra b del lembo teso soddisfa una delle due condizioni, con d = c + Ø_b/2, c il copriferro reale della barra
+  (BUG-FES-1b/1c, decisione dell'utente del 26/10/2026: il copriferro libero verso la faccia tesa se la barra non dista
+  da essa più di un diametro oltre la sua distanza libera dal contorno, altrimenti quella distanza; `CoverOverride` e il
+  copriferro nominale non entrano) e una tolleranza di 10⁻⁶ h:
 
   ```math
   Q_{max} - Q_b \le a(c + \varnothing_b/2) + s_b \qquad \text{oppure} \qquad h - x \le a(c + \varnothing_b/2) \;\text{e}\; \operatorname{dist}(b, \text{superficie tesa}) \le c + \varnothing_b/2 \qquad \text{(F.14a)}
@@ -448,8 +452,10 @@ con σs e Øeq delle barre tese.
 
 ### 6.9 Sezione interamente tesa
 
-Per ogni faccia, con versore q uguale a ±x e ±y (rettangoli e poligoni) oppure radiale verso ogni barra e lungo il
-gradiente (cerchi):
+Per ogni faccia, con versore q uguale a ±x e ±y (rettangoli e poligoni) oppure radiale verso ogni barra, lungo il
+gradiente e in verso opposto (cerchi). Nella sezione interamente tesa l'asse neutro non esiste: hc,eff =
+min[2,5 (h − d); h/2], senza il termine (h − x)/3 (EN Fig. 7.1 c), elemento teso), mentre nella (7.14) delle barre
+distanziate si usa h − x = h:
 
 - barre della faccia: quelle entro il diametro massimo dalla barra più esterna; h − d dal loro baricentro;
 - hc,eff = min[2,5 (h − d); h/2] (DIN: (F.5) senza il termine (h − x)/3; DS: fascia baricentrica cercata in
@@ -546,14 +552,20 @@ Con meno di due barre efficaci, o se la disposizione non è riconosciuta, l'inte
 >   ls,max = k c + (1/4) (fctm/τbms) (Ø/ρs,ef) con k = 1 (7.6-4); Tab. 7.6-2: nella fessurazione stabilizzata
 >   τbms = 1,8 fctm a ogni durata (β = 0,6 a breve, 0,4 a lunga durata); nella formazione della singola fessura
 >   β = 0,6, τbms = 1,8 fctm a breve e 1,35 fctm a lunga durata.
-> - Programma: τbm/fctm = 1,8 a breve e 1,35 a lunga durata in ogni stadio; minimo (1 − kt) σs/Es; εcs = 0; senza
->   barre aderenti il limite 1,3 (h − x) della EN 1992-1-1, che il Model Code non prevede.
+> - Programma: per impostazione predefinita τbm/fctm = 1,8 a breve e 1,35 a lunga durata in ogni stadio; minimo
+>   (1 − kt) σs/Es; εcs = 0; senza barre aderenti il limite 1,3 (h − x) della EN 1992-1-1, che il Model Code non
+>   prevede. Con l'opzione `SectionCrackOptions.ModelCode2010BondStages` lo stadio si sceglie con
+>   σsr = fctm/ρ (1 + αe ρ): fessurazione stabilizzata (σs ≥ σsr) con τbms = 1,8 fctm, β = 0,6 a breve e 0,4 a lunga
+>   durata ed εsm − εcm = (σs − β σsr)/Es; formazione della singola fessura con β = 0,6, τbms = 1,8 fctm a breve e
+>   1,35 fctm a lunga durata ed εsm − εcm = (1 − β) σs/Es (`CrackWidthCalculator.cs:122-133`).
 > - Effetto: a lunga durata, nella fessurazione stabilizzata, il termine dell'aderenza è 1,8/1,35 = 1,33 volte quello
 >   della norma (trave 400 × 600 con 2Ø20, c = 40 mm, C30/37, σs = 250 MPa: 0,505 mm invece di 0,394 mm, +28%, a
 >   favore); nella formazione della singola fessura il minimo usa β = 0,4 invece di 0,6 (soletta di 200 mm con
 >   Ø12/200, c = 30 mm, σs = 250 MPa: 0,350 mm invece di 0,233 mm, +50%, a favore). Il ritiro trascurato è a sfavore
 >   dove è significativo.
-> - Stato: τbms e β da correggere dopo il riscontro della Tab. 7.6-2 (voce R1). Ritiro (voce R8, ANTHEA 1.16.0,
+> - Stato: τbms e β della Tab. 7.6-2 disponibili con l'opzione `ModelCode2010BondStages` (voce R1); il predefinito resta
+>   quello di 0.0.17.0. Testo del fib Model Code 2010 non presente nella raccolta dell'ufficio (1/11/2026): Tab. 7.6-2
+>   e (7.6-3) restano da riscontrare. Ritiro (voce R8, ANTHEA 1.16.0,
 >   decisione dell'utente del 28/10/2026 «Fonti secondarie»): opzione `SectionCrackOptions.ModelCode2010ShrinkageStrain`
 >   con il ritiro libero εcs ≤ 0 dato dal chiamante nella (7.6-3), wd = 2 ls,max (εsm − εcm − εcs); il predefinito
 >   εcs = 0 resta quello di 0.0.17.0 per le fixture congelate e il contratto K0. Il coefficiente ηr della forma
@@ -574,10 +586,12 @@ Con meno di due barre efficaci, o se la disposizione non è riconosciuta, l'inte
 >
 > - Norma: secondo le fonti consultate l'annesso tedesco conserva kt = 0,6 per carichi di breve durata e 0,4 di lunga
 >   durata (7.3.4(2)); il valore fisso 0,4 è della DIN 1045-1.
-> - Programma: kt = 0,4 per ogni durata nel profilo DIN.
+> - Programma: kt = 0,4 per ogni durata nel profilo DIN; con l'opzione `SectionCrackOptions.DinKtByDuration` kt = 0,6 a
+>   breve e 0,4 a lunga durata (`CrackWidthCalculator.cs:117`).
 > - Effetto: a favore di sicurezza e piccolo, perché a breve durata governa spesso il minimo 0,6 σs/Es: +0,5% sulla
 >   trave del riquadro F-6 a breve durata, nessun effetto sulla soletta.
-> - Stato: da correggere dopo il riscontro del testo finale dell'annesso (voce R2).
+> - Stato: opzione disponibile, predefinito invariato; da decidere dopo il riscontro del testo finale dell'annesso, che
+>   non è nella raccolta dell'ufficio (voce R2).
 
 ## 7. Coefficienti e valori predefiniti
 
@@ -586,7 +600,7 @@ Con meno di due barre efficaci, o se la disposizione non è riconosciuta, l'inte
 | w1, w2, w3 | 0,2; 0,3; 0,4 mm | NTC, UNI, CNR-DT 200 | NTC 4.1.2.2.4, Tab. 4.1.IV | no | `CrackRequirements.Ntc` |
 | wlim da tabella | 6.1 | EN, DIN, DS, NS | Prospetti 7.1N, 7.1DE, 7.1 NA, NA.7.1N | sì (wlim di progetto) | `CrackRequirements.For` |
 | σct,lim | 0; fctm/1,2 | NTC, UNI, CNR-DT 200 | NTC 4.1.2.2.4, [4.1.13] | no | `SectionCrackCheck.Evaluate` |
-| kt | 0,6 breve; 0,4 lunga durata (DIN 0,4, riquadro F-8) | tutti | EN 7.3.4(2); Circolare [C4.1.6] | durata sì | `CrackWidthCalculator.Width` |
+| kt | 0,6 breve; 0,4 lunga durata (DIN 0,4 salvo `DinKtByDuration`, riquadro F-8) | tutti | EN 7.3.4(2); Circolare [C4.1.6] | durata sì | `CrackWidthCalculator.Width` |
 | βmin | 0,6; Model Code 2010 1 − kt | tutti | EN (7.9); Circolare [C4.1.6] | no | idem |
 | k1 | 0,8 aderenza migliorata; 1,6 liscia | NTC, EN, UNI, DS, NS | EN 7.3.4(3); Circolare C4.1.2.2.4.5 | aderenza sì | idem |
 | k2 | 0,5 con asse neutro interno; (F.13) per le sezioni tese; superfici interne: (F.18) sulla fascia tesa, anche con asse neutro interno, 1 in trazione uniforme | tutti | EN 7.3.4(3), (7.13); Circolare [C4.1.9] | solo opzione legacy NTC/CNR (`NtcK2FromCompressedBars`) | `SectionCrackCheck.Evaluate`, `FullyTensioned`, `Inner` |
@@ -609,35 +623,39 @@ Con meno di due barre efficaci, o se la disposizione non è riconosciuta, l'inte
 
 Percorsi relativi alla radice del repository Checker.
 
-- Profili: `CrackProfiles.TryResolve` per tipo esatto (`GPCChecker.Concrete/Cracking/CrackProfiles.cs:16-31`),
-  CS-TR34 e CNR-DT 204 (righe 33-45), `Resolve` (righe 47-54), `IsNtc` per NTC e CNR-DT 200 (riga 57), riferimenti
-  (righe 59-73).
-- Requisito: `CrackRequirements.For` (`GPCChecker.Concrete/Cracking/CrackRequirements.cs:49-89`), elenco delle classi
-  nell'ordine dei gruppi NTC (riga 44), Tab. 4.1.IV (righe 91-102).
-- Ampiezza: `CrackWidthCalculator.Width` (`GPCChecker.Concrete/Cracking/CrackWidthCalculator.cs:43-92`): ramo NTC
-  (righe 51-70), famiglia Eurocodice (righe 71-91) con DS (riga 76), Model Code 2010 (riga 79), DIN (righe 80-85),
-  barre distanziate (riga 86). Limite superiore senza barre aderenti `UnbondedUpperBound` (righe 99-114), k2 dalle
-  tensioni delle barre `K2` (righe 121-126; validazione delle tensioni e regola legacy).
-- Geometria: `CrackSectionGeometry.From` (`GPCChecker.Concrete/Cracking/CrackSectionGeometry.cs:63-76`), ritaglio
-  del poligono `Clip` (righe 83-94), regione efficace `Region` (righe 99-104), copriferro di una barra `BarCover`
-  (righe 107-119), interasse `MaximumSpacing` (righe 124-164), hc,eff `EffectiveDepth` (righe 192-220; DIN righe
-  196-201, DS con bisezione di 65 iterazioni righe 202-218).
-- Verifica: `SectionCrackCheck.Evaluate` (`GPCChecker.Concrete/Cracking/SectionCrackCheck.cs:160-269`):
-  - requisito e casi senza verifica (righe 166-175); decompressione e formazione (righe 177-187);
-  - c.a.p. e analisi richiesta (righe 188-189); validazione delle tensioni delle barre (righe 190-192);
-  - classificazione (righe 193-202), con la sezione interamente compressa senza k2 (righe 196-201);
-  - k2 = 0,5 con asse neutro interno, regola legacy NTC/CNR con l'opzione (righe 203-209);
-  - gradiente, h e h − x (righe 210-216); asse neutro nel copriferro (righe 217-228);
-  - h − d, hc,eff, regione efficace (righe 229-238); limite superiore senza barre aderenti (righe 239-250);
-  - ampiezza ed esito (righe 251-268), con la formula che non ripete k2 nella traccia (righe 260-263).
-- Sezione interamente tesa: `FullyTensioned` (righe 274-350), k2 (righe 279-282), facce (righe 284-295 e 300-325),
-  sistema grossolano DS (righe 326-341), governante (righe 342-349).
-- Superfici interne: `Inner` (righe 353-475): soglia della trazione uniforme (`UniformTensionTolerance`, righe
-  156-158, e righe 378-381), parte tesa della fascia (righe 382-383), k2 e h − x della fascia con le voci della
-  traccia (righe 407-416), anello (righe 427-436), foro rettangolare (righe 437-459), fori non supportati (righe
-  460-461), inviluppo ed esito incompleto (righe 462-474).
-- Dati: `SectionCrackInput` (righe 20-89) con l'opzione `NtcK2FromCompressedBars` (righe 47-59) e
-  `OrdinaryBarStresses` (righe 81-88); `SectionCrackResult` (righe 104-137).
+- Profili: `CrackProfiles.TryResolve` per tipo esatto (`GPCChecker.Concrete/Cracking/CrackProfiles.cs:29-44`),
+  CS-TR34 e CNR-DT 204 (righe 46-58), `Resolve` (righe 60-67), `IsNtc` per NTC e CNR-DT 200 (riga 70), riferimenti
+  (righe 119-133).
+- Requisito: `CrackRequirements.For` (`GPCChecker.Concrete/Cracking/CrackRequirements.cs:64-65` e 72-117), elenco
+  delle classi nell'ordine dei gruppi NTC (riga 47), Tab. 4.1.IV (righe 125-136).
+- Ampiezza: `CrackWidthCalculator.Width` (`GPCChecker.Concrete/Cracking/CrackWidthCalculator.cs:45-49` e 55-169): ramo
+  NTC (righe 65-114), famiglia Eurocodice (righe 115-168) con DS (riga 138), Model Code 2010 (riga 141; stadi
+  dell'aderenza righe 122-133, ritiro righe 135-136), DIN (righe 117 e 142-147), barre distanziate (riga 148). Limite
+  superiore senza barre aderenti `UnbondedUpperBound` (righe 176-214), k2 dalle tensioni delle barre `K2` (righe
+  221-226; validazione delle tensioni e regola legacy).
+- Geometria: `CrackSectionGeometry.From` (`GPCChecker.Concrete/Cracking/CrackSectionGeometry.cs:74-87`) e `FromCurves`
+  (righe 94-110: campionamento delle curve, centro analitico), ritaglio del poligono `Clip` (righe 140-151), regione
+  efficace `Region` (righe 156-161), copriferro di una barra `BarCover` (righe 164-176), interasse `MaximumSpacing`
+  (righe 273 e 282-324), hc,eff `EffectiveDepth` (righe 372-400; DIN righe 376-381, DS con bisezione righe 382-398).
+- Verifica: `SectionCrackCheck.Evaluate` (`GPCChecker.Concrete/Cracking/SectionCrackCheck.cs:257-265` e 267-504):
+  - requisito e casi senza verifica (righe 273-282); decompressione e formazione (righe 284-304);
+  - c.a.p. e analisi richiesta (righe 305-306); tensioni delle barre (righe 307-314 e 341-342);
+  - classificazione (righe 326-350), con la sezione interamente compressa senza k2 (righe 334-340);
+  - k2 = 0,5 con asse neutro interno, regola legacy NTC/CNR con l'opzione (righe 351-362);
+  - gradiente, h e h − x (righe 363-380); asse neutro nel copriferro (righe 381-401, `EdgeBarWithinCover` righe
+    525-545);
+  - h − d, hc,eff, regione efficace (righe 402-435); limite superiore senza barre aderenti (righe 436-454);
+  - ampiezza ed esito (righe 455-503), con la formula che non ripete k2 nella traccia (righe 492-496).
+- Sezione interamente tesa: `FullyTensioned` (righe 550-680), k2 (righe 558-561), facce (righe 570-585 e 591-637),
+  sistema grossolano DS (righe 638-662), governante (righe 663-679).
+- Superfici interne: `Inner` (righe 683-851): soglia della trazione uniforme (`UniformTensionTolerance`, righe
+  253-255, e righe 708-711), parte tesa della fascia (righe 712-713), k2 e h − x della fascia con le voci della
+  traccia (righe 743-767), anello (righe 780-791), foro rettangolare (righe 792-814), fori non supportati (righe
+  815-820), inviluppo ed esito incompleto (righe 821-850).
+- Dati: `SectionCrackInput` (righe 20-163) con l'opzione `NtcK2FromCompressedBars` (righe 47-59) e
+  `OrdinaryBarStresses` (righe 155-162); `SectionCrackResult` (righe 178-234). Opzioni in `SectionCrackOptions.cs`
+  (validazione all'uso, traccia, copriferro dalle barre, stadi del Model Code 2010, ritiro, kt DIN, zona tesa non
+  armata), codici di rifiuto in `CrackRejection.cs` (`Exception.Data`), traccia con codici stabili in `CrackTrace.cs`.
 
 Iterazioni: solo la fascia baricentrica DS (bisezione di 65 passi sull'altezza della fascia, precisione relativa
 2⁻⁶⁵). Le aree efficaci si ottengono per ritaglio esatto dei poligoni.
@@ -653,7 +671,12 @@ Iterazioni: solo la fascia baricentrica DS (bisezione di 65 passi sull'altezza d
   diretto (EN 1992-1-1 7.3.3; Circolare 2019 C4.1.2.2.4.5, Tabelle C4.1.II e C4.1.III): non implementate.
 - Fessure con armature in due direzioni ortogonali inclinate sulle tensioni principali (EN 1992-1-1 7.3.4(4),
   (7.15)): non implementate.
-- Deformazioni impresse e ritiro (anche nel Model Code 2010, riquadro F-6).
+- Deformazioni impresse e ritiro (nel Model Code 2010 il ritiro libero solo se assegnato con
+  `ModelCode2010ShrinkageStrain`, riquadro F-6).
+- Sezioni circolari cave da `CrackSectionGeometry.From` (o dal costruttore pubblico): il foro è sempre trattato come
+  anello concentrico di raggio uguale alla massima distanza dei suoi vertici dall'origine, ed è considerato solo il
+  primo foro; un foro eccentrico o non circolare in un cerchio non è riconosciuto. Solo `FromCurves` controlla la
+  concentricità.
 - DS: sistema grossolano solo per le sezioni interamente tese.
 - Barre lisce con Model Code 2010 e DIN.
 - Interasse automatico solo per file allineate o anelli; negli altri casi va assegnato.
@@ -666,7 +689,8 @@ barre superiori 2Ø16 a y = +200 mm (x = ±100). Piano di deformazione con asse 
 barre tese, −134,6 MPa in quelle superiori. Es = 200 000 MPa, Ecm = 33 000 MPa, fctm = 2,9 MPa, carico di lunga
 durata, barre ad aderenza migliorata, c = 40 mm. Combinazione quasi permanente, classe XC3, armature poco
 sensibili: wlim = 0,3 mm per NTC 2018 e per EN 1992-1-1. Libreria GPCChecker.Concrete 0.0.17.0,
-`SectionCrackCheck.Evaluate`.
+`SectionCrackCheck.Evaluate`; con le opzioni predefinite il calcolo non è cambiato fino alla 0.33.0.0 (le catture
+congelate di `CrackMigrationTests` sono riprodotte).
 
 **C1. 3Ø20 tese e 2Ø16 compresse, EN 1992-1-1 e NTC 2018.**
 
@@ -726,7 +750,7 @@ nella quasi permanente); XC3 quasi permanente, NTC e EN 0,3 mm; XD1 quasi perman
 
 ## 11. Validazione
 
-- **Casi congelati del motore precedente** (`CrackMigrationTests`, 18 test):
+- **Casi congelati del motore precedente** (`CrackMigrationTests`, 44 test nella 0.33.0.0):
   - 936 stati di esercizio su 6 sezioni archiviate (rettangolare, a T, circolare, rettangolare cava, circolare cava
     con due anelli, quadrata con barre di lato), 7 norme, 13 azioni (anche trazione e sezioni interamente tese),
     combinazioni caratteristica, frequente e quasi permanente, con esposizione, sensibilità, durata, aderenza,
