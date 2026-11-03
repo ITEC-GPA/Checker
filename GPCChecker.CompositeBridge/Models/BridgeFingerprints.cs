@@ -14,6 +14,10 @@ internal sealed class BridgeFingerprints : IFingerprintVocabulary
 {
     public void Declare(FingerprintVocabulary v)
     {
+        v.Record(typeof(BridgeWorkflowDefinition), "GPC.Checkers.CompositeBridge.BridgeWorkflowDefinition", Properties("ModelGuid", "AnalysisFingerprint", "Method", "Phases").Concat(new FingerprintMember[]{new FingerprintMember("schema")}).ToArray());
+        v.Record(typeof(BridgeWorkflowPhaseDefinition), "GPC.Checkers.CompositeBridge.BridgeWorkflowPhaseDefinition", Properties("Id", "Order", "Name", "State", "Day", "Actions"));
+        v.Record(typeof(BridgeWorkflowActionDefinition), "GPC.Checkers.CompositeBridge.BridgeWorkflowActionDefinition", Properties("Key", "SourceModelGuid", "SourceAnalysisFingerprint", "SourceCaseGuid", "SourceName", "Behavior", "ForceCaseGuid", "StrainCaseGuid", "Strain", "BeamGuids", "PrimaryOnly", "ConcreteExcludedBeamGuids", "SectionStates"));
+        v.Record(typeof(BridgeBeamSectionState), "GPC.Checkers.CompositeBridge.BridgeBeamSectionState", Properties("BeamGuid", "Behavior", "ConcreteExcluded", "ModularRatio", "ClassificationCaseGuid", "PhysicalPropertyFingerprint"));
         v.Record(typeof(HBridgeInput), "GPC.Checkers.CompositeBridge.HBridgeInput", Properties("BottomRebars", "Box", "Fatigue", "Geometry",
             "Intermediate", "Materials", "Options", "Phases", "Studs", "Support", "TopRebars", "Transverse"));
         v.Record(typeof(BridgeMaterialSet), "GPC.Checkers.CompositeBridge.BridgeMaterialSet", Properties("Concrete", "Rebar", "Steel"));
