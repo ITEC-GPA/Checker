@@ -52,9 +52,14 @@ public class BridgeWorkflowExecutionTests
     [DataTestMethod][DataRow(BridgeWorkflowMethod.Compatible)][DataRow(BridgeWorkflowMethod.LinearHistory)]
     public void TypedWorkflowProducesTheSameSectionResultAsExplicitManualPhases(BridgeWorkflowMethod method)
     {
-        var (m,w,e)=Sample();w.Method=method;var compiled=Compile(m,w,e);
-        var manual=CompositeBridgeApiTests.Input();manual=manual with {Phases=manual.Phases.Select(p=>p with {PsiL=1}).ToArray()};
-        for(int i=0;i<3;i++){Assert.AreEqual(manual.Phases[i].MomentKNm,compiled.Phases[i].MomentKNm);Assert.AreEqual(manual.Phases[i].Phi,compiled.Phases[i].Phi);}
+        // The manual phases keep their own ψL (G2 permanent: 1.1); the workflow carries it per action.
+        var (m,w,e)=Sample();w.Method=method;w.Phases[1].Actions[0].PsiL=1.1;var compiled=Compile(m,w,e);
+        var manual=CompositeBridgeApiTests.Input();
+        for(int i=0;i<3;i++)
+        {
+            Assert.AreEqual(manual.Phases[i].MomentKNm,compiled.Phases[i].MomentKNm);Assert.AreEqual(manual.Phases[i].Phi,compiled.Phases[i].Phi);
+            Assert.AreEqual(manual.Phases[i].PsiL,compiled.Phases[i].PsiL);
+        }
         var expected=method==BridgeWorkflowMethod.Compatible?HBridgeSection.Calculate(manual):HBridgeHistoryResults.Calculate(manual);
         var actual=BridgeWorkflowExecutor.Calculate(w,m,new[]{m},e);
         Assert.AreEqual(expected.Stages.Count,actual.Stages.Count);
@@ -89,21 +94,63 @@ public class BridgeWorkflowExecutionTests
         state.Components[0]=ComponentAvailability.Available;e.Results.First().Value.Case="wrong";
         StringAssert.Contains(Assert.ThrowsException<ArgumentException>(()=>Compile(m,w,e)).Message,"BridgeResultCaseBindingMismatch");
     }
-    [TestMethod]public void NonlinearTotalsAndUnsupportedOutOfPlaneActionsAreRejected()
+    [TestMethod]public void NonlinearTotalsAndStrictOutOfPlaneActionsAreRejected()
     {
         var (m,w,e)=Sample();var sample=First(m);sample.State.Semantics=AnalysisSemantics.NonlinearStatic;
         Assert.ThrowsException<NotSupportedException>(()=>Compile(m,w,e));
-        sample.State.Semantics=AnalysisSemantics.LinearStatic;sample.ResultBeamForces.V1=10;
+        sample.State.Semantics=AnalysisSemantics.LinearStatic;sample.ResultBeamForces.V1=10;e.StrictOutOfPlaneActions=true;
         StringAssert.Contains(Assert.ThrowsException<NotSupportedException>(()=>Compile(m,w,e)).Message,"OutOfPlane");
+    }
+    [TestMethod]public void OutOfPlaneActionsAreNeglectedByDefaultWithTheBridgheAssumption()
+    {
+        // A real 3D grillage: V1, M2 and T on an H section. BridGHe's adapter neglects them (ignoreSecondaryActions = true) and warns.
+        var (m,w,e)=Sample();var forces=First(m).ResultBeamForces;forces.V1=10e3;forces.M2=40e6;forces.T=25e6;
+        var phases=BridgeWorkflowExecutor.BuildInput(w,m,new[]{m},e,out var warnings).Phases;
+        Assert.AreEqual(1500,phases[0].MomentKNm);Assert.AreEqual(0,phases[0].TorsionKNm);
+        Assert.AreEqual(BridgeWorkflowExecutor.PlanarAssumption,warnings[0]);
+        StringAssert.Contains(warnings[1],"1 incrementi");StringAssert.Contains(warnings[1],"|M2| fino a 4E+07 N mm");
+        var result=BridgeWorkflowExecutor.Calculate(w,m,new[]{m},e);
+        Assert.IsTrue(result.Stages.All(s=>s.Warnings.Contains(BridgeWorkflowExecutor.PlanarAssumption)));
+        forces.V1=0;forces.M2=0;forces.T=0;
+        var clean=BridgeWorkflowExecutor.Calculate(w,m,new[]{m},e).Stages;
+        for(int i=0;i<clean.Count;i++)for(int j=0;j<clean[i].Points.Count;j++)Assert.AreEqual(clean[i].Points[j].Stress,result.Stages[i].Points[j].Stress);
+    }
+    [TestMethod]public void PermanentAndImposedDeformationCreepMultipliersCoexist()
+    {
+        var (m,w,e)=Sample();w.Phases[1].Actions[0].PsiL=1.1;w.Phases[2].Actions[0].PsiL=1.5;w.Phases[2].Actions[0].Behavior=BridgeActionBehavior.LongTerm;
+        var phases=Compile(m,w.Copy(),e).Phases;
+        Assert.AreEqual(1,phases[0].PsiL);Assert.AreEqual(1.1,phases[1].PsiL);Assert.AreEqual(1.5,phases[2].PsiL);
+        Assert.AreEqual(2,phases[1].Phi);Assert.AreEqual(2,phases[2].Phi);
+        w.Phases[2].Actions[0].PsiL=0;
+        StringAssert.Contains(Assert.ThrowsException<ArgumentException>(()=>Compile(m,w,e)).Message,"InvalidBridgeCreepMultiplier");
+        // Recipes without ψL keep the bytes of schema 1 (and their fingerprints: the member is omitted when null).
+        foreach(var a in w.Phases.SelectMany(p=>p.Actions))a.PsiL=null;Assert.IsFalse(System.Text.Encoding.UTF8.GetString(w.Save()).Contains("PsiL"));
     }
     [TestMethod]public void LocalSectionStateAndPrimaryShrinkageSurviveWorkflowRoundTrip()
     {
         var (m,w,e)=Sample();var action=w.Phases[1].Actions[0];
         action.SectionStates=new[]{new BridgeBeamSectionState {BeamGuid=e.BeamGuid,Behavior=action.Behavior,ModularRatio=18,PhysicalPropertyFingerprint=e.PhysicalPropertyFingerprint}};
-        w.Phases[1].Actions=w.Phases[1].Actions.Concat(new[]{new BridgeWorkflowActionDefinition {Key="shrinkage",Behavior=BridgeActionBehavior.Shrinkage,PrimaryOnly=true,Strain=-.0002}}).ToArray();
+        w.Phases[1].Actions=w.Phases[1].Actions.Concat(new[]{new BridgeWorkflowActionDefinition {Key="shrinkage",Behavior=BridgeActionBehavior.Shrinkage,PrimaryOnly=true,
+            Strain=-.0002,StrainCaseGuid=action.ForceCaseGuid,PsiL=.55}}).ToArray();
         var phases=Compile(m,w.Copy(),e).Phases;
         Assert.AreEqual(4,phases.Length);Assert.AreEqual(BridgeHomogenizationSource.ModularRatio,phases[1].HomogenizationSource);Assert.AreEqual(18,phases[1].N);
-        Assert.AreEqual(BridgePhaseKind.Shrinkage,phases[2].Kind);Assert.AreEqual(-200,phases[2].ShrinkageMicrostrain,1e-12);
+        Assert.AreEqual(BridgePhaseKind.Shrinkage,phases[2].Kind);Assert.AreEqual(-200,phases[2].ShrinkageMicrostrain,1e-12);Assert.AreEqual(.55,phases[2].PsiL);
+    }
+    [TestMethod]public void PrimaryShrinkageWithoutStrainCaseHasCoefficientZero()
+    {
+        // Contract of BridgeWorkflowEvaluation.Factors: an absent case has coefficient zero, also for a primary strain.
+        var (m,w,e)=Sample();
+        w.Phases[1].Actions=w.Phases[1].Actions.Concat(new[]{new BridgeWorkflowActionDefinition {Key="shrinkage",Behavior=BridgeActionBehavior.Shrinkage,PrimaryOnly=true,Strain=-.0002}}).ToArray();
+        var phases=BridgeWorkflowExecutor.BuildInput(w,m,new[]{m},e,out var warnings).Phases;
+        Assert.AreEqual(3,phases.Length);Assert.IsFalse(phases.Any(p=>p.Kind==BridgePhaseKind.Shrinkage));
+        Assert.IsTrue(warnings.Any(n=>n.Contains("coefficiente nullo: shrinkage")));
+    }
+    [TestMethod]public void ForceCaseMustBeTheDeclaredSourceCase()
+    {
+        // Same source model: the G2 increment cannot declare Q as its source.
+        var (m,w,e)=Sample();var q=m.LoadCases.Values.Single(c=>c.Name=="Q");
+        w.Phases[2].Actions[0].SourceCaseGuid=w.Phases[1].Actions[0].ForceCaseGuid;w.Phases[1].Actions[0].SourceCaseGuid=q.Guid;
+        StringAssert.Contains(Assert.ThrowsException<ArgumentException>(()=>Compile(m,w,e)).Message,"BridgeForceCaseNotFromSourceCase: G2");
     }
     [TestMethod]public void ZeroCoefficientsKeepConstructionActivationAndCoupledStrainMustAgree()
     {
