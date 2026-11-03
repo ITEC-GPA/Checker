@@ -64,6 +64,34 @@ public class BridgeWorkflowDefinitionTests
         StringAssert.Contains(Assert.ThrowsException<ArgumentException>(()=>w.ValidateSources(new[]{source})).Message,"MissingOrStaleBridgeSourceModel");
         StringAssert.Contains(Assert.ThrowsException<ArgumentException>(()=>w.ValidateSources(Array.Empty<Model>())).Message,"MissingOrStaleBridgeSourceModel");
     }
+    [TestMethod] public void ForceCaseIsTiedToItsSourceCase()
+    {
+        var (model,w)=Sample(); var action=w.Phases[0].Actions[0]; var force=model.LoadCases.Values.Single();
+        // Another source model: the force case is the source case by GUID or by name (the identity of the result selectors).
+        var (source,_)=Sample(); var sourceCase=source.LoadCases.Values.Single();
+        action.SourceModelGuid=source.Guid; action.SourceAnalysisFingerprint=source.AnalysisFingerprint(); action.SourceCaseGuid=sourceCase.Guid;
+        w.ValidateSources(model,new[]{source});
+        var other=new LoadCaseBase("live"); source.AddLoadCase(other); action.SourceAnalysisFingerprint=source.AnalysisFingerprint(); action.SourceCaseGuid=other.Guid;
+        StringAssert.Contains(Assert.ThrowsException<ArgumentException>(()=>w.ValidateSources(model,new[]{source})).Message,"BridgeForceCaseNotFromSourceCase");
+        // The model itself as source: only the same persistent case.
+        var live=new LoadCaseBase("live"); model.AddLoadCase(live); w.AnalysisFingerprint=model.AnalysisFingerprint();
+        action.SourceModelGuid=model.Guid; action.SourceAnalysisFingerprint=w.AnalysisFingerprint; action.SourceCaseGuid=live.Guid;
+        StringAssert.Contains(Assert.ThrowsException<ArgumentException>(()=>w.ValidateSources(model,new[]{model})).Message,"BridgeForceCaseNotFromSourceCase");
+        action.SourceCaseGuid=force.Guid; w.ValidateSources(model,new[]{model});
+    }
+    [TestMethod] public void SectionStatesOfManyBeamsAreValidatedInLinearTime()
+    {
+        // One state per beam on 20 000 beams: a Single() per state scanned all beams for each one (4·10⁸ comparisons).
+        var beams=Enumerable.Range(0,20000).Select(i=>{var a=new NodeElement(new Point3d(1000*i,0,0)); var b=new NodeElement(new Point3d(1000*i+1000,0,0));
+            var beam=new BeamElement(a.Position,b.Position,null); beam.ConnectNodes(a,b); beam.Assignments.Formulation=BeamFormulation.StraightTwoNode; return beam;}).ToArray();
+        var model=ModelAssembly.Assemble(beams,Guid.NewGuid()); var load=new LoadCaseBase("dead"); model.AddLoadCase(load);
+        string property=BridgeWorkflowDefinition.PropertyFingerprint(model.BeamElements.Values.First());
+        var action=new BridgeWorkflowActionDefinition {Key="slab",Behavior=BridgeActionBehavior.ShortTerm,ForceCaseGuid=load.Guid,SourceCaseGuid=load.Guid,SourceModelGuid=model.Guid,SourceAnalysisFingerprint="r",
+            SectionStates=model.BeamElements.Values.Select(b=>new BridgeBeamSectionState {BeamGuid=b.Guid,Behavior=BridgeActionBehavior.ShortTerm,ModularRatio=7,PhysicalPropertyFingerprint=property}).ToArray()};
+        var w=new BridgeWorkflowDefinition {ModelGuid=model.Guid,AnalysisFingerprint=model.AnalysisFingerprint(),Phases=new[]{new BridgeWorkflowPhaseDefinition {Id=Guid.NewGuid(),Order=0,Name="Slab",State=BridgeWorkflowSectionState.Composite,Actions=new[]{action}}}};
+        var watch=System.Diagnostics.Stopwatch.StartNew(); w.Validate(model); watch.Stop();
+        Assert.IsTrue(watch.Elapsed.TotalSeconds<1.5,"Validate took "+watch.Elapsed.TotalSeconds+" s");
+    }
     [TestMethod] public void PrimaryShrinkageHasExplicitSignAndNoRecursiveSourceModel()
     {
         var (model,w)=Sample(); var primary=new BridgeWorkflowActionDefinition {Key="shrink",Behavior=BridgeActionBehavior.Shrinkage,PrimaryOnly=true,Strain=-0.0002};

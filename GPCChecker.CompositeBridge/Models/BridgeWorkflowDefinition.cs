@@ -25,7 +25,9 @@ public sealed class BridgeWorkflowDefinition
         if(model==null) throw new ArgumentNullException(nameof(model));
         ValidateShape();
         if(ModelGuid!=model.Guid || AnalysisFingerprint!=model.AnalysisFingerprint()) throw new ArgumentException("StaleBridgeWorkflowModel");
-        var beams=new HashSet<Guid>(model.BeamElements.Values.Select(b=>b.Guid));
+        // One lookup per model: the section states are checked in O(states), not O(beams × states).
+        var byGuid=model.BeamElements.Values.ToDictionary(b=>b.Guid);
+        var beams=new HashSet<Guid>(byGuid.Keys);
         var cases=new HashSet<Guid>(model.LoadCases.Values.Select(c=>c.Guid));
         var used=new Dictionary<Guid,HashSet<Guid>>();
         var sourceUsed=new Dictionary<(Guid Model,string Revision,Guid Case),HashSet<Guid>>();
@@ -50,24 +52,44 @@ public sealed class BridgeWorkflowDefinition
                     if(!selected.Contains(state.BeamGuid)) throw new ArgumentException("BridgeSectionStateOutsideAction");
                     if(state.Behavior!=a.Behavior) throw new ArgumentException("BridgeSectionBehaviorMismatch");
                     if(state.ClassificationCaseGuid.HasValue && !cases.Contains(state.ClassificationCaseGuid.Value)) throw new ArgumentException("UnknownClassificationCase");
-                    var beam=model.BeamElements.Values.Single(b=>b.Guid==state.BeamGuid);
-                    if(state.PhysicalPropertyFingerprint!=PropertyFingerprint(beam)) throw new ArgumentException("StaleBridgeSectionState");
+                    if(state.PhysicalPropertyFingerprint!=PropertyFingerprint(byGuid[state.BeamGuid])) throw new ArgumentException("StaleBridgeSectionState");
                 }
             }
     }
     /// <summary>Checks provenance against the supplied analysis models without retaining them in the recipe.</summary>
-    public void ValidateSources(IEnumerable<GPC.Model.Models.Model> sources)
+    public void ValidateSources(IEnumerable<GPC.Model.Models.Model> sources) => SourceCases(sources);
+
+    /// <summary>Checks provenance and ties every force case of <paramref name="model"/> to its declared source case: the same persistent
+    /// case when the source is this model (any revision), otherwise the same case GUID or name, the identity the result selectors use.
+    /// A force case cannot silently carry the results of another source case.</summary>
+    public void ValidateSources(GPC.Model.Models.Model model,IEnumerable<GPC.Model.Models.Model> sources)
+    {
+        if(model==null) throw new ArgumentNullException(nameof(model));
+        var cases=model.LoadCases.Values.ToDictionary(c=>c.Guid);
+        foreach(var (a,source) in SourceCases(sources))
+        {
+            if(!cases.TryGetValue(a.ForceCaseGuid!.Value,out var force)) throw new ArgumentException("UnknownBridgeWorkflowCase");
+            bool tied=force.Guid==source.Guid || a.SourceModelGuid!=model.Guid && string.Equals(force.Name,source.Name,StringComparison.Ordinal);
+            if(!tied) throw new ArgumentException("BridgeForceCaseNotFromSourceCase: "+a.Key);
+        }
+    }
+    private List<(BridgeWorkflowActionDefinition Action,GPC.Model.LoadCases.LoadCaseBase Source)> SourceCases(IEnumerable<GPC.Model.Models.Model> sources)
     {
         ValidateShape();
         if(sources==null) throw new ArgumentNullException(nameof(sources));
         var available=sources.ToArray();
         if(available.Any(m=>m==null)) throw new ArgumentException("NullBridgeSourceModel");
         var byRevision=available.GroupBy(m=>(m.Guid,Revision:m.AnalysisFingerprint())).ToDictionary(g=>g.Key,g=>g.First());
+        var caseIndex=new Dictionary<GPC.Model.Models.Model,Dictionary<Guid,GPC.Model.LoadCases.LoadCaseBase>>();
+        var result=new List<(BridgeWorkflowActionDefinition,GPC.Model.LoadCases.LoadCaseBase)>();
         foreach(var a in Phases.SelectMany(p=>p.Actions).Where(a=>a.ForceCaseGuid.HasValue))
         {
             if(!byRevision.TryGetValue((a.SourceModelGuid,a.SourceAnalysisFingerprint),out var source)) throw new ArgumentException("MissingOrStaleBridgeSourceModel");
-            if(!source.LoadCases.Values.Any(c=>c.Guid==a.SourceCaseGuid)) throw new ArgumentException("UnknownBridgeSourceCase");
+            if(!caseIndex.TryGetValue(source,out var sourceCases)) caseIndex.Add(source,sourceCases=source.LoadCases.Values.GroupBy(c=>c.Guid).ToDictionary(g=>g.Key,g=>g.First()));
+            if(!sourceCases.TryGetValue(a.SourceCaseGuid!.Value,out var sourceCase)) throw new ArgumentException("UnknownBridgeSourceCase");
+            result.Add((a,sourceCase));
         }
+        return result;
     }
     private void ValidateShape()
     {
@@ -90,6 +112,7 @@ public sealed class BridgeWorkflowDefinition
                 if((p.State==BridgeWorkflowSectionState.Steel)!=(a.Behavior==BridgeActionBehavior.Steel)) throw new ArgumentException("BridgeActionSectionMismatch");
                 if(a.Strain.HasValue) { Finite(a.Strain.Value); if(a.Strain>0 || p.State!=BridgeWorkflowSectionState.Composite || a.Behavior==BridgeActionBehavior.Steel || a.Behavior==BridgeActionBehavior.LongTerm) throw new ArgumentException("InvalidBridgeShrinkageIncrement"); }
                 if(a.Behavior==BridgeActionBehavior.Shrinkage && !a.Strain.HasValue) throw new ArgumentException("MissingShrinkageIncrement");
+                if(a.PsiL.HasValue) { Finite(a.PsiL.Value); if(a.PsiL<=0) throw new ArgumentException("InvalidBridgeCreepMultiplier"); }
                 if(a.ForceCaseGuid==Guid.Empty || a.StrainCaseGuid==Guid.Empty || a.SourceCaseGuid==Guid.Empty) throw new ArgumentException("EmptyBridgeCaseGuid");
                 if(!a.ForceCaseGuid.HasValue && (!a.PrimaryOnly||!a.Strain.HasValue)) throw new ArgumentException("MissingBridgeForceCase");
                 if(a.ForceCaseGuid.HasValue && (a.PrimaryOnly || !a.SourceCaseGuid.HasValue || a.SourceModelGuid==Guid.Empty || string.IsNullOrWhiteSpace(a.SourceAnalysisFingerprint))) throw new ArgumentException("MissingBridgeSourceProvenance");
@@ -156,6 +179,9 @@ public sealed class BridgeWorkflowActionDefinition
     [field:DataMember(Order=10)] public bool PrimaryOnly { get; set; }
     [field:DataMember(Order=11)] public Guid[] ConcreteExcludedBeamGuids { get; set; } = Array.Empty<Guid>();
     [field:DataMember(Order=12)] public BridgeBeamSectionState[] SectionStates { get; set; } = Array.Empty<BridgeBeamSectionState>();
+    /// <summary>Creep multiplier ψL of this action (EN 1994-2 5.4.2.2(2): 1.1 permanent loads, 0.55 shrinkage, 1.5 imposed
+    /// deformations), so different actions of one workflow keep their own value. Null: 1, the value of recipes saved before it.</summary>
+    [field:DataMember(Order=13,EmitDefaultValue=false)] public double? PsiL { get; set; }
 }
 
 [DataContract]
