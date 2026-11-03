@@ -3,7 +3,7 @@ Regole del 10/10/2026 (revisione di architettura, punto R3, e decisioni dell'ute
 
 PERIMETRO E DIREZIONE DELLE DIPENDENZE
 Utilities <- Geometry (GPCGeometry, DelaunayMesh) <- Model (GPCModel, GPCModelData,
-GPC.Model.Persistence, GPC Converter) <- Checker (Concrete, Steel, CompositeBridge,
+GPC.Model.Persistence, GPC.Archive, GPC Converter) <- Checker (Concrete, Steel, CompositeBridge,
 Geotechnics, GPCModelChecker, Masonry) <- GPC.Design <- ANTHEA. Nessuna dipendenza all'indietro: Model fissa
 solo Geometry e Utilities; ModelChecker sta in Checker.
 
@@ -19,7 +19,7 @@ REGOLE
    quel Model.
 3. Il set lo produce build/Release-Set.ps1 da checkout puliti: controlla che Model fissi
    i binari committati di Geometry e Utilities del set, esegue tutte le suite, copia le
-   dodici DLL e scrive release-set.json (versioni, SHA-256, commit, esiti delle suite).
+   DLL del set e scrive release-set.json (versioni, SHA-256, commit, esiti delle suite).
 4. Nessun rilascio senza tutte le suite verdi: Model (Core, UnitTest, API), Checker
    (Concrete e Steel net472, CompositeBridge, Geotechnics, Calculation, ModelChecker,
    API), Design.Checks su net8.0 e net472 e API Design/Masonry. Sono ammessi solo i fallimenti elencati per nome in build/known-failures.json.
@@ -55,3 +55,6 @@ SET CANDIDATO
 Release-Set.ps1 -Candidate ammette branch e commit non pushati e salta il controllo
 delle versioni: il set e' marcato candidate. ANTHEA lo installa solo con -AllowCandidate,
 per prove su branch, mai come rilascio.
+
+F3 migrazione comune (3/11/2026): GPC.Archive e' il contenitore a blocchi netstandard2.0 senza dipendenze
+di dominio. GPC.Model.Persistence lo referenzia; distribuirli insieme. Nessun riferimento inverso da GPCModel.

@@ -2,7 +2,7 @@
 Coherent release set of the GPC libraries (build/RILASCIO.txt): from clean sibling checkouts of Utilities, Geometry, Model
 and Checker it checks that Model pins the committed Geometry and Utilities binaries of the set, runs every suite of Model
 (build/Verify.ps1: Core, UnitTest, API) and of Checker (build/Verify.ps1: Concrete and Steel net472, CompositeBridge,
-Geotechnics, Calculation, ModelChecker, API), then copies the twelve DLLs and writes release-set.json (versions, SHA-256,
+Geotechnics, Calculation, ModelChecker, API), then copies the libraries and writes release-set.json (versions, SHA-256,
 commits, suite results). The builds are deterministic (Directory.Build.props), so the same commits give the same SHA-256
 on any machine and in any folder.
 
@@ -93,6 +93,7 @@ $libraries = @(
     @('Model', 'Model\bin\Release\netstandard2.0\GPCModel.dll'),
     @('Model', 'ModelData\bin\Release\netstandard2.0\GPCModelData.dll'),
     @('Model', 'GPC.Model.Persistence\bin\Release\netstandard2.0\GPC.Model.Persistence.dll'),
+    @('Model', 'GPC.Archive\bin\Release\netstandard2.0\GPC.Archive.dll'),
     @('Model', 'GPC Converter\bin\Release\netstandard2.0\GPC.Converter.dll'),
     @('Checker', 'GPCChecker.Concrete\bin\Release\netstandard2.0\GPCChecker.Concrete.dll'),
     @('Checker', 'GPCChecker.Steel\bin\Release\netstandard2.0\GPCChecker.Steel.dll'),
