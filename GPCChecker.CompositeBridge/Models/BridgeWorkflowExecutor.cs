@@ -93,6 +93,8 @@ public static class BridgeWorkflowExecutor
         foreach(var phase in workflow.Phases.OrderBy(p=>p.Order))
         {
             int before=phases.Count;
+            // The state of the last unloaded increment of a local state in this phase (see below).
+            (BridgePhaseKind Kind,double Phi,BridgeHomogenizationSource Source,double N)? unloaded=null;
             var baseKind=phase.State==BridgeWorkflowSectionState.Steel?BridgePhaseKind.SteelOnly:
                 phase.State==BridgeWorkflowSectionState.Composite?BridgePhaseKind.Composite:BridgePhaseKind.ConcreteExcluded;
             foreach(var action in phase.Actions.Where(a=>a.BeamGuids.Length==0||a.BeamGuids.Contains(beam.Guid)))
@@ -114,7 +116,13 @@ public static class BridgeWorkflowExecutor
                 var increment=new BridgePhase {Name=phase.Order+" / "+phase.Name+" / "+action.Key,Kind=kind,Reference=e.LoadReference,
                     Phi=phi,PsiL=action.PsiL??1,HomogenizationSource=local==null?BridgeHomogenizationSource.Phi:BridgeHomogenizationSource.ModularRatio,
                     N=local?.ModularRatio??double.NaN};
-                if(action.ForceCaseGuid.HasValue&&(forceFactor!=0||local!=null||excluded))
+                // An unloaded increment of a local state (coefficient zero: an alternative moving position, for example) only activates
+                // its stiffness: one per run of identical states, as BridGHe's checks, or the 31 positions of example 50 would exceed the
+                // 20 phases of the section engine on the concrete-excluded beams. Changes of state and loaded increments are kept.
+                var state=(kind,phi,increment.HomogenizationSource,increment.N);
+                bool repeated=forceFactor==0&&unloaded.HasValue&&unloaded.Value.Equals(state);
+                if(action.ForceCaseGuid.HasValue)unloaded=forceFactor==0&&(local!=null||excluded)?state:null;
+                if(action.ForceCaseGuid.HasValue&&(forceFactor!=0||(local!=null||excluded)&&!repeated))
                 {
                     var force=forceFactor==0?new ResultBeamForces(0,0,0,0,0,0,e.SectionAxes):Read(action.ForceCaseGuid.Value);
                     // Only roundoff from orthonormal rotations counts as in-plane (N / Nmm).
@@ -134,6 +142,7 @@ public static class BridgeWorkflowExecutor
                     if(kind!=BridgePhaseKind.Composite)throw new NotSupportedException("ShrinkageRequiresActiveConcrete");
                     phases.Add(increment with {Name=increment.Name+" / strain",Kind=BridgePhaseKind.Shrinkage,
                         ShrinkageMicrostrain=action.Strain.Value*strainFactor*1e6});
+                    unloaded=null;
                 }
             }
             // Activation remains a construction event even when all action coefficients vanish.
