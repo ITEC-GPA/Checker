@@ -136,14 +136,29 @@ public class BridgeWorkflowExecutionTests
         Assert.AreEqual(4,phases.Length);Assert.AreEqual(BridgeHomogenizationSource.ModularRatio,phases[1].HomogenizationSource);Assert.AreEqual(18,phases[1].N);
         Assert.AreEqual(BridgePhaseKind.Shrinkage,phases[2].Kind);Assert.AreEqual(-200,phases[2].ShrinkageMicrostrain,1e-12);Assert.AreEqual(.55,phases[2].PsiL);
     }
-    [TestMethod]public void PrimaryShrinkageWithoutStrainCaseHasCoefficientZero()
+    [TestMethod]public void PrimaryShrinkageWithoutStrainCaseIsRejected()
     {
-        // Contract of BridgeWorkflowEvaluation.Factors: an absent case has coefficient zero, also for a primary strain.
+        // Review L4: a primary strain without its strain case was applied with 1 before 3/11, then with 0 (L3): its coefficient is undetermined.
+        // BridGHe always gives it a strain case ("<key> [strain]"), so the recipe is rejected with the reason instead of changing the result.
         var (m,w,e)=Sample();
         w.Phases[1].Actions=w.Phases[1].Actions.Concat(new[]{new BridgeWorkflowActionDefinition {Key="shrinkage",Behavior=BridgeActionBehavior.Shrinkage,PrimaryOnly=true,Strain=-.0002}}).ToArray();
-        var phases=BridgeWorkflowExecutor.BuildInput(w,m,new[]{m},e,out var warnings).Phases;
-        Assert.AreEqual(3,phases.Length);Assert.IsFalse(phases.Any(p=>p.Kind==BridgePhaseKind.Shrinkage));
-        Assert.IsTrue(warnings.Any(n=>n.Contains("coefficiente nullo: shrinkage")));
+        StringAssert.Contains(Assert.ThrowsException<ArgumentException>(()=>BridgeWorkflowExecutor.BuildInput(w,m,new[]{m},e,out _)).Message,
+            "BridgePrimaryStrainRequiresStrainCase: shrinkage");
+        Assert.ThrowsException<ArgumentException>(()=>BridgeWorkflowExecutor.Calculate(w,m,new[]{m},e));
+        // A saved recipe in that state still opens, so that it can be completed.
+        var copy=BridgeWorkflowDefinition.Read(w.Save()); Assert.AreEqual(-.0002,copy.Phases[1].Actions[1].Strain);
+    }
+    [TestMethod]public void TheOverloadWithoutWarningsNeverNeglectsActions()
+    {
+        // Review L4: BuildInput without warnings dropped V1, M2 and T in silence after the planar assumption became the default (L3).
+        var (m,w,e)=Sample();var forces=First(m).ResultBeamForces;forces.V1=10e3;forces.M2=40e6;
+        StringAssert.Contains(Assert.ThrowsException<NotSupportedException>(()=>Compile(m,w,e)).Message,"BridgeSectionCannotDiscardOutOfPlaneActions");
+        Assert.IsFalse(e.StrictOutOfPlaneActions);
+        // The overload with warnings keeps BridGHe's planar assumption and says so.
+        BridgeWorkflowExecutor.BuildInput(w,m,new[]{m},e,out var warnings);Assert.AreEqual(BridgeWorkflowExecutor.PlanarAssumption,warnings[0]);
+        // Without out-of-plane actions both overloads give the same phases.
+        forces.V1=0;forces.M2=0;
+        CollectionAssert.AreEqual(BridgeWorkflowExecutor.BuildInput(w,m,new[]{m},e,out _).Phases.Select(p=>p.MomentKNm).ToArray(),Compile(m,w,e).Phases.Select(p=>p.MomentKNm).ToArray());
     }
     [TestMethod]public void ForceCaseMustBeTheDeclaredSourceCase()
     {

@@ -79,22 +79,36 @@ public class BridgeWorkflowDefinitionTests
         StringAssert.Contains(Assert.ThrowsException<ArgumentException>(()=>w.ValidateSources(model,new[]{model})).Message,"BridgeForceCaseNotFromSourceCase");
         action.SourceCaseGuid=force.Guid; w.ValidateSources(model,new[]{model});
     }
-    [TestMethod] public void SectionStatesOfManyBeamsAreValidatedInLinearTime()
+    /// <summary>A model of <paramref name="count"/> beams and a workflow with one section state per beam.</summary>
+    private static (Model Model,BridgeWorkflowDefinition Workflow) ManyStates(int count)
     {
-        // One state per beam on 20 000 beams: a Single() per state scanned all beams for each one (4·10⁸ comparisons).
-        var beams=Enumerable.Range(0,20000).Select(i=>{var a=new NodeElement(new Point3d(1000*i,0,0)); var b=new NodeElement(new Point3d(1000*i+1000,0,0));
+        var beams=Enumerable.Range(0,count).Select(i=>{var a=new NodeElement(new Point3d(1000*i,0,0)); var b=new NodeElement(new Point3d(1000*i+1000,0,0));
             var beam=new BeamElement(a.Position,b.Position,null); beam.ConnectNodes(a,b); beam.Assignments.Formulation=BeamFormulation.StraightTwoNode; return beam;}).ToArray();
         var model=ModelAssembly.Assemble(beams,Guid.NewGuid()); var load=new LoadCaseBase("dead"); model.AddLoadCase(load);
         string property=BridgeWorkflowDefinition.PropertyFingerprint(model.BeamElements.Values.First());
         var action=new BridgeWorkflowActionDefinition {Key="slab",Behavior=BridgeActionBehavior.ShortTerm,ForceCaseGuid=load.Guid,SourceCaseGuid=load.Guid,SourceModelGuid=model.Guid,SourceAnalysisFingerprint="r",
             SectionStates=model.BeamElements.Values.Select(b=>new BridgeBeamSectionState {BeamGuid=b.Guid,Behavior=BridgeActionBehavior.ShortTerm,ModularRatio=7,PhysicalPropertyFingerprint=property}).ToArray()};
-        var w=new BridgeWorkflowDefinition {ModelGuid=model.Guid,AnalysisFingerprint=model.AnalysisFingerprint(),Phases=new[]{new BridgeWorkflowPhaseDefinition {Id=Guid.NewGuid(),Order=0,Name="Slab",State=BridgeWorkflowSectionState.Composite,Actions=new[]{action}}}};
-        var watch=System.Diagnostics.Stopwatch.StartNew(); w.Validate(model); watch.Stop();
-        Assert.IsTrue(watch.Elapsed.TotalSeconds<1.5,"Validate took "+watch.Elapsed.TotalSeconds+" s");
+        return(model,new BridgeWorkflowDefinition {ModelGuid=model.Guid,AnalysisFingerprint=model.AnalysisFingerprint(),Phases=new[]{new BridgeWorkflowPhaseDefinition {Id=Guid.NewGuid(),Order=0,Name="Slab",State=BridgeWorkflowSectionState.Composite,Actions=new[]{action}}}});
+    }
+    [TestMethod] public void SectionStatesOfManyBeamsAreValidatedInLinearTime()
+    {
+        // One state per beam: a Single() per state scanned all beams for each one (4·10⁸ comparisons on 20 000 beams). Review L4: no wall-clock
+        // limit (it depends on the machine and its load); the time of 4n states against n states, the best of three runs each, is about 4 for
+        // a linear validation and 16 for a quadratic one.
+        static double Best((Model Model,BridgeWorkflowDefinition Workflow) s)
+        {
+            s.Workflow.Validate(s.Model); double best=double.MaxValue; // the first run warms up the fingerprints of the model
+            for(int i=0;i<3;i++){var watch=System.Diagnostics.Stopwatch.StartNew(); s.Workflow.Validate(s.Model); best=Math.Min(best,watch.Elapsed.TotalSeconds);}
+            return best;
+        }
+        double small=Best(ManyStates(4000)),large=Best(ManyStates(16000));
+        Assert.IsTrue(large/small<8,$"Validate: {small:F3} s for 4000 states, {large:F3} s for 16000 (ratio {large/small:F1}; linear ≈ 4, quadratic ≈ 16)");
     }
     [TestMethod] public void PrimaryShrinkageHasExplicitSignAndNoRecursiveSourceModel()
     {
-        var (model,w)=Sample(); var primary=new BridgeWorkflowActionDefinition {Key="shrink",Behavior=BridgeActionBehavior.Shrinkage,PrimaryOnly=true,Strain=-0.0002};
+        // Review L4: a primary strain carries its strain case (the case of its coefficient, as in BridGHe).
+        var (model,w)=Sample(); var strain=new LoadCaseBase("shrink [strain]"); model.AddLoadCase(strain); w.AnalysisFingerprint=model.AnalysisFingerprint();
+        var primary=new BridgeWorkflowActionDefinition {Key="shrink",Behavior=BridgeActionBehavior.Shrinkage,PrimaryOnly=true,Strain=-0.0002,StrainCaseGuid=strain.Guid};
         w.Phases=w.Phases.Concat(new[]{new BridgeWorkflowPhaseDefinition {Id=Guid.NewGuid(),Order=2,Name="Slab",State=BridgeWorkflowSectionState.Composite,Day=28,Actions=new[]{primary}}}).ToArray();
         w.Validate(model); var bytes=w.Save(); Assert.IsTrue(bytes.Length<10000); w.Copy().Validate(model);
         primary.Strain=0.0002; Assert.ThrowsException<ArgumentException>(()=>w.Validate(model));

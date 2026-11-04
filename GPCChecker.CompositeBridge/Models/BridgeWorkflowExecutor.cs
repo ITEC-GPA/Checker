@@ -31,7 +31,7 @@ public sealed class BridgeWorkflowEvaluation
     public double ShrinkagePhi { get; set; }
     /// <summary>False (default), as BridGHe's production adapter: the section engines cover N–Mx–Vy (plus T for a box with torsion checks),
     /// so V1, M2 and the other torques are neglected and the results carry <see cref="BridgeWorkflowExecutor.PlanarAssumption"/>.
-    /// True: any such action above roundoff is rejected.</summary>
+    /// True: any such action above roundoff is rejected, as always by the BuildInput overload without warnings.</summary>
     public bool StrictOutOfPlaneActions { get; set; }
 }
 
@@ -54,15 +54,24 @@ public static class BridgeWorkflowExecutor
         return result;
     }
 
+    /// <summary>Strict compilation, for a caller that cannot receive warnings (review L4): an out-of-plane action above roundoff is rejected
+    /// (BridgeSectionCannotDiscardOutOfPlaneActions) whatever <see cref="BridgeWorkflowEvaluation.StrictOutOfPlaneActions"/> says, as before
+    /// the planar assumption existed, so no action is neglected without a trace. BridGHe's planar assumption needs the overload with warnings.</summary>
     public static HBridgeInput BuildInput(BridgeWorkflowDefinition workflow,GPC.Model.Models.Model model,
-        IEnumerable<GPC.Model.Models.Model> sources,BridgeWorkflowEvaluation evaluation) => BuildInput(workflow,model,sources,evaluation,out _);
+        IEnumerable<GPC.Model.Models.Model> sources,BridgeWorkflowEvaluation evaluation) => Compile(workflow,model,sources,evaluation,true,out _);
 
-    /// <param name="warnings">The assumptions of the compiled input, for every stage of its results.</param>
+    /// <param name="warnings">The assumptions of the compiled input, for every stage of its results: the planar assumption and the neglected
+    /// out-of-plane actions unless <see cref="BridgeWorkflowEvaluation.StrictOutOfPlaneActions"/>.</param>
     public static HBridgeInput BuildInput(BridgeWorkflowDefinition workflow,GPC.Model.Models.Model model,
         IEnumerable<GPC.Model.Models.Model> sources,BridgeWorkflowEvaluation evaluation,out IReadOnlyList<string> warnings)
+        => Compile(workflow,model,sources,evaluation,null,out warnings);
+
+    private static HBridgeInput Compile(BridgeWorkflowDefinition workflow,GPC.Model.Models.Model model,
+        IEnumerable<GPC.Model.Models.Model> sources,BridgeWorkflowEvaluation evaluation,bool? strictOverride,out IReadOnlyList<string> warnings)
     {
         if(workflow==null||model==null||evaluation==null) throw new ArgumentNullException();
         workflow.Validate(model);workflow.ValidateSources(model,sources);
+        bool strict=strictOverride??evaluation.StrictOutOfPlaneActions;
         var notes=new List<string>();warnings=notes;
         var e=evaluation;var beam=model.BeamElements.Values.SingleOrDefault(b=>b.Guid==e.BeamGuid)
             ?? throw new ArgumentException("UnknownBridgeEvaluationBeam");
@@ -88,7 +97,6 @@ public static class BridgeWorkflowExecutor
         // The H engines verify uniaxial bending/shear; a box with its torsion checks also verifies torque.
         bool torsion=e.SectionInput.Geometry.SectionType==BridgeSteelSectionType.Box&&e.SectionInput.Box.Enabled;
         int neglected=0;double maxV1=0,maxM2=0,maxT=0;
-        var unbound=new List<string>();
         var phases=new List<BridgePhase>();
         foreach(var phase in workflow.Phases.OrderBy(p=>p.Order))
         {
@@ -98,9 +106,9 @@ public static class BridgeWorkflowExecutor
             foreach(var action in phase.Actions.Where(a=>a.BeamGuids.Length==0||a.BeamGuids.Contains(beam.Guid)))
             {
                 double forceFactor=Factor(action.ForceCaseGuid);
-                // Coefficients come only from cases (contract of Factors): a primary strain without a strain case has coefficient zero.
-                double strainFactor=action.StrainCaseGuid.HasValue?Factor(action.StrainCaseGuid):action.PrimaryOnly?0:forceFactor;
-                if(action.PrimaryOnly&&!action.StrainCaseGuid.HasValue&&action.Strain.HasValue&&action.Strain.Value!=0)unbound.Add(action.Key);
+                // Coefficients come only from cases (contract of Factors). A primary strain has its strain case: Validate rejects one without it
+                // (review L4, BridgePrimaryStrainRequiresStrainCase), so a coupled strain takes the coefficient of its force case.
+                double strainFactor=action.StrainCaseGuid.HasValue?Factor(action.StrainCaseGuid):forceFactor;
                 if(action.ForceCaseGuid.HasValue&&action.StrainCaseGuid.HasValue&&forceFactor!=strainFactor)
                     throw new ArgumentException("BridgeForceAndStrainFactorsDiffer: "+action.Key);
                 var local=action.SectionStates.SingleOrDefault(s=>s.BeamGuid==beam.Guid);
@@ -122,7 +130,7 @@ public static class BridgeWorkflowExecutor
                     double v1=Math.Abs(force.V1*forceFactor),m2=Math.Abs(force.M2*forceFactor),t=torsion?0:Math.Abs(force.T*forceFactor);
                     if(Math.Abs(force.V1)>forceTolerance||Math.Abs(force.M2)>momentTolerance||(!torsion&&Math.Abs(force.T)>momentTolerance))
                     {
-                        if(e.StrictOutOfPlaneActions)throw new NotSupportedException("BridgeSectionCannotDiscardOutOfPlaneActions: "+action.Key);
+                        if(strict)throw new NotSupportedException("BridgeSectionCannotDiscardOutOfPlaneActions: "+action.Key);
                         neglected++;maxV1=Math.Max(maxV1,v1);maxM2=Math.Max(maxM2,m2);maxT=Math.Max(maxT,t);
                     }
                     phases.Add(increment with {ForceKN=force.N*forceFactor/1000,MomentKNm=force.M1*forceFactor/1e6,
@@ -140,14 +148,13 @@ public static class BridgeWorkflowExecutor
                 Reference=e.LoadReference,Phi=baseKind==BridgePhaseKind.SteelOnly?0:e.ShortTermPhi});
         }
         foreach(var p in phases)foreach(double value in new[]{p.ForceKN,p.MomentKNm,p.ShearKN,p.TorsionKNm,p.ShrinkageMicrostrain})Finite(value);
-        if(!e.StrictOutOfPlaneActions)
+        if(!strict)
         {
             notes.Add(torsion?PlanarTorsionAssumption:PlanarAssumption);
             var invariant=System.Globalization.CultureInfo.InvariantCulture;
             if(neglected!=0)notes.Add(string.Format(invariant,"Azioni fuori dal piano trascurate in {0} incrementi: |V1| fino a {1:G6} N, |M2| fino a {2:G6} N mm, |T| fino a {3:G6} N mm.",
                 neglected,maxV1,maxM2,maxT));
         }
-        if(unbound.Count!=0)notes.Add("Ritiro primario senza caso di deformazione, coefficiente nullo: "+string.Join(", ",unbound)+".");
         return e.SectionInput with {Phases=phases.ToArray()};
 
         ResultBeamForces Read(Guid id)

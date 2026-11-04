@@ -68,6 +68,18 @@ public class AnalysisScenarioWorkflowTest
         result.Provenance = null; Assert.IsFalse(result.HasUnchangedEvidence);
     }
     [TestMethod]
+    public void AModelWithDomainErrorsIsBlockedBeforeAnyEngine()
+    {
+        // Review L4: ModelPreflight.RequireExportable had no caller, here as in the exporters; an invalid elastic property that no element uses
+        // went through. Every entry of the checker passes the shared analysis gate.
+        var model = MixedModelFactory.Create();
+        model.AddProperty(new GPC.Model.ElementProperties.ElasticPlateProperty("invalid deck", new GPC.Model.Materials.Material("E210", 210000, .3, 0, 0), 200, 200) { BendingThickness = -1 });
+        int factories = 0; var report = new Service(_ => { factories++; return new Verifier(); }).Verify(model, Request());
+        Assert.AreEqual(0, factories); Assert.AreEqual(EngineeringOutcome.NotEvaluated, report.Outcome);
+        var diagnostic = report.Jobs[0].Results[0].Diagnostics[0];
+        Assert.AreEqual("InvalidModelForVerification", diagnostic.Code); StringAssert.Contains(diagnostic.Message, "InvalidElasticProperty");
+    }
+    [TestMethod]
     public void UnknownOrPhysicalChangesDoNotCreateConcreteCheckers()
     {
         foreach (bool physical in new[] { false, true })
