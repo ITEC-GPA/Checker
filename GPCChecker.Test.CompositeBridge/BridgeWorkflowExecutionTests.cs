@@ -229,4 +229,160 @@ public class BridgeWorkflowExecutionTests
         e.Factors=new Dictionary<Guid,double>{{action.ForceCaseGuid!.Value,1}};
         StringAssert.Contains(Assert.ThrowsException<ArgumentException>(()=>Compile(m,w,e)).Message,"BridgeForceAndStrainFactorsDiffer");
     }
+
+    // ----- User decision 9 of 4/11 («falli»): a plan prepared once (review L10) -----
+
+    /// <summary>The variants of the sample that compile differently: ψL, concrete excluded, local state and primary shrinkage, out-of-plane
+    /// actions (neglected with warnings), zero coefficients.</summary>
+    private static IEnumerable<(string Name,Model Model,BridgeWorkflowDefinition Workflow,BridgeWorkflowEvaluation Evaluation)> Variants()
+    {
+        foreach(var method in new[]{BridgeWorkflowMethod.Compatible,BridgeWorkflowMethod.LinearHistory})
+        {
+            var (m,w,e)=Sample();w.Method=method;w.Phases[1].Actions[0].PsiL=1.1;yield return ("psiL "+method,m,w,e);
+            (m,w,e)=Sample();w.Method=method;w.Phases[2].Actions[0].ConcreteExcludedBeamGuids=new[]{e.BeamGuid};yield return ("excluded "+method,m,w,e);
+            (m,w,e)=Sample();w.Method=method;var action=w.Phases[1].Actions[0];
+            action.SectionStates=new[]{new BridgeBeamSectionState {BeamGuid=e.BeamGuid,Behavior=action.Behavior,ModularRatio=18,PhysicalPropertyFingerprint=e.PhysicalPropertyFingerprint}};
+            w.Phases[1].Actions=w.Phases[1].Actions.Concat(new[]{new BridgeWorkflowActionDefinition {Key="shrinkage",Behavior=BridgeActionBehavior.Shrinkage,PrimaryOnly=true,
+                Strain=-.0002,StrainCaseGuid=action.ForceCaseGuid,PsiL=.55}}).ToArray();
+            yield return ("local state and shrinkage "+method,m,w,e);
+            (m,w,e)=Sample();w.Method=method;var forces=First(m).ResultBeamForces;forces.V1=10e3;forces.M2=40e6;forces.T=25e6;yield return ("out of plane "+method,m,w,e);
+            (m,w,e)=Sample();w.Method=method;e.Factors=e.Factors.ToDictionary(p=>p.Key,p=>0d);e.Results=new Dictionary<Guid,ResultSelection>();yield return ("zero coefficients "+method,m,w,e);
+        }
+    }
+
+    [TestMethod]public void APreparedPlanCompilesTheSameInputsAndResultsBitForBit()
+    {
+        foreach(var (name,m,w,e) in Variants())
+        {
+            var plan=BridgeWorkflowExecutor.Prepare(w,m,new[]{m});Assert.AreEqual(w.Method,plan.Method,name);
+            var once=BridgeWorkflowExecutor.BuildInput(w,m,new[]{m},e,out var onceWarnings);var prepared=plan.BuildInput(e,out var preparedWarnings);
+            Assert.AreEqual(once.Phases.Length,prepared.Phases.Length,name);
+            // Records: every member, doubles by value (NaN equal to NaN), the same names and kinds.
+            for(int i=0;i<once.Phases.Length;i++)Assert.AreEqual(once.Phases[i],prepared.Phases[i],name+" phase "+i);
+            Assert.AreEqual(once with {Phases=Array.Empty<BridgePhase>()},prepared with {Phases=Array.Empty<BridgePhase>()},name);
+            CollectionAssert.AreEqual(onceWarnings.ToArray(),preparedWarnings.ToArray(),name);
+            var expected=BridgeWorkflowExecutor.Calculate(w,m,new[]{m},e);var actual=plan.Calculate(e);
+            Assert.AreEqual(expected.Stages.Count,actual.Stages.Count,name);
+            for(int i=0;i<actual.Stages.Count;i++)
+            {
+                CollectionAssert.AreEqual(expected.Stages[i].Warnings,actual.Stages[i].Warnings,name);
+                Assert.AreEqual(expected.Stages[i].Points.Count,actual.Stages[i].Points.Count,name);
+                for(int j=0;j<actual.Stages[i].Points.Count;j++)Assert.AreEqual(expected.Stages[i].Points[j].Stress,actual.Stages[i].Points[j].Stress,name);
+            }
+            // The strict overload: the same rejection of the out-of-plane actions, or the same phases.
+            if(name.StartsWith("out of plane",StringComparison.Ordinal))
+                Assert.AreEqual(Assert.ThrowsException<NotSupportedException>(()=>Compile(m,w,e)).Message,Assert.ThrowsException<NotSupportedException>(()=>plan.BuildInput(e)).Message,name);
+            else CollectionAssert.AreEqual(Compile(m,w,e).Phases,plan.BuildInput(e).Phases,name);
+        }
+    }
+
+    [TestMethod]public void APreparedPlanFailsAtPreparationWithTheDiagnosticsOfTheOneShotCalls()
+    {
+        // Every rejection of Validate and ValidateSources: the same exception, type and message, at Prepare instead of at each evaluation.
+        var scenarios=new List<(string Name,Func<(Model,BridgeWorkflowDefinition,BridgeWorkflowEvaluation,IEnumerable<Model>?)> Make)>
+        {
+            ("stale model",()=>{var (m,w,e)=Sample();w.AnalysisFingerprint="stale";return (m,w,e,new[]{m});}),
+            ("other model",()=>{var (m,w,e)=Sample();w.ModelGuid=Guid.NewGuid();return (m,w,e,new[]{m});}),
+            ("primary strain without its case",()=>{var (m,w,e)=Sample();w.Phases[1].Actions=w.Phases[1].Actions.Concat(new[]{new BridgeWorkflowActionDefinition {Key="shrinkage",
+                Behavior=BridgeActionBehavior.Shrinkage,PrimaryOnly=true,Strain=-.0002}}).ToArray();return (m,w,e,new[]{m});}),
+            ("force case not from its source case",()=>{var (m,w,e)=Sample();var q=m.LoadCases.Values.Single(c=>c.Name=="Q");
+                w.Phases[2].Actions[0].SourceCaseGuid=w.Phases[1].Actions[0].ForceCaseGuid;w.Phases[1].Actions[0].SourceCaseGuid=q.Guid;return (m,w,e,new[]{m});}),
+            ("missing source model",()=>{var (m,w,e)=Sample();return (m,w,e,Array.Empty<Model>());}),
+            ("null sources",()=>{var (m,w,e)=Sample();return (m,w,e,null);}),
+            ("invalid creep multiplier",()=>{var (m,w,e)=Sample();w.Phases[2].Actions[0].PsiL=0;return (m,w,e,new[]{m});}),
+            ("unknown beam of an action",()=>{var (m,w,e)=Sample();w.Phases[0].Actions[0].BeamGuids=new[]{Guid.NewGuid()};return (m,w,e,new[]{m});}),
+            ("stale section state",()=>{var (m,w,e)=Sample();var a=w.Phases[1].Actions[0];
+                a.SectionStates=new[]{new BridgeBeamSectionState {BeamGuid=e.BeamGuid,Behavior=a.Behavior,ModularRatio=18,PhysicalPropertyFingerprint="stale"}};return (m,w,e,new[]{m});}),
+            ("concrete exclusion of a whole phase with Compatible",()=>{var (m,w,e)=Sample();w.Phases[2].State=BridgeWorkflowSectionState.ConcreteExcluded;return (m,w,e,new[]{m});}),
+        };
+        foreach(var (name,make) in scenarios)
+        {
+            var (m1,w1,e1,s1)=make();var once=Capture(()=>BridgeWorkflowExecutor.BuildInput(w1,m1,s1!,e1,out _));
+            var (m2,w2,_,s2)=make();var prepared=Capture(()=>BridgeWorkflowExecutor.Prepare(w2,m2,s2!));
+            Assert.IsNotNull(once,name+": the one-shot call rejects");Assert.IsNotNull(prepared,name+": Prepare rejects");
+            Assert.AreEqual(once!.GetType(),prepared!.GetType(),name);Assert.AreEqual(once.Message,prepared.Message,name);
+        }
+        var (m,w,e)=Sample();
+        Assert.ThrowsException<ArgumentNullException>(()=>BridgeWorkflowExecutor.Prepare(null!,m,new[]{m}));
+        Assert.ThrowsException<ArgumentNullException>(()=>BridgeWorkflowExecutor.Prepare(w,null!,new[]{m}));
+        Assert.ThrowsException<ArgumentNullException>(()=>BridgeWorkflowExecutor.Prepare(w,m,new[]{m}).BuildInput(null!));
+        static Exception? Capture(Action action){try{action();return null;}catch(Exception error){return error;}}
+    }
+
+    [TestMethod]public void APreparedPlanValidatesOnceKeepsItsWorkflowAndStillChecksEachEvaluation()
+    {
+        var (m,w,e)=Sample();var plan=BridgeWorkflowExecutor.Prepare(w,m,new[]{m});var expected=plan.BuildInput(e).Phases;
+        // A copy of the workflow: a later change to it does not reach the plan (the one-shot call sees it).
+        w.Phases[1].Actions[0].PsiL=1.1;
+        CollectionAssert.AreEqual(expected,plan.BuildInput(e).Phases);Assert.AreEqual(1.1,Compile(m,w,e).Phases[1].PsiL);
+        // Validated once: the model changed after Prepare (a new case changes its analysis fingerprint) is rejected by the one-shot calls,
+        // while the plan reads the model of its preparation (the documented contract: prepare again after a change).
+        m.AddLoadCase(new LoadCaseBase("later"));
+        StringAssert.Contains(Assert.ThrowsException<ArgumentException>(()=>Compile(m,w,e)).Message,"StaleBridgeWorkflowModel");
+        CollectionAssert.AreEqual(expected,plan.BuildInput(e).Phases);
+        StringAssert.Contains(Assert.ThrowsException<ArgumentException>(()=>BridgeWorkflowExecutor.Prepare(w,m,new[]{m})).Message,"StaleBridgeWorkflowModel");
+        // Each evaluation is still checked: beam, section, station, case bindings, result state.
+        var (m2,w2,e2)=Sample();var plan2=BridgeWorkflowExecutor.Prepare(w2,m2,new[]{m2});
+        var other=new BridgeWorkflowEvaluation {BeamGuid=Guid.NewGuid(),PhysicalPropertyFingerprint=e2.PhysicalPropertyFingerprint,SectionInput=e2.SectionInput,Station=e2.Station,
+            Side=e2.Side,SectionAxes=e2.SectionAxes,Factors=e2.Factors,Results=e2.Results};
+        StringAssert.Contains(Assert.ThrowsException<ArgumentException>(()=>plan2.BuildInput(other)).Message,"UnknownBridgeEvaluationBeam");
+        other.BeamGuid=e2.BeamGuid;other.PhysicalPropertyFingerprint="stale";
+        StringAssert.Contains(Assert.ThrowsException<ArgumentException>(()=>plan2.BuildInput(other)).Message,"StaleBridgeEvaluationSection");
+        e2.Station=.25;e2.SectionAxes.Origin.X=250;
+        StringAssert.Contains(Assert.ThrowsException<ArgumentException>(()=>plan2.BuildInput(e2)).Message,"MissingBridgeResultStation");
+        e2.Station=.5;e2.SectionAxes.Origin.X=500;First(m2).State.InputFingerprint="stale";
+        StringAssert.Contains(Assert.ThrowsException<ArgumentException>(()=>plan2.BuildInput(e2)).Message,"StaleBridgeResultState");
+        First(m2).State.InputFingerprint=w2.AnalysisFingerprint;e2.Results.First().Value.Case="wrong";
+        StringAssert.Contains(Assert.ThrowsException<ArgumentException>(()=>plan2.BuildInput(e2)).Message,"BridgeResultCaseBindingMismatch");
+    }
+
+    /// <summary>A girder of many beams with three cases each, as a bridge model: every beam evaluated at its middle.</summary>
+    private static (Model Model,BridgeWorkflowDefinition Workflow,BridgeWorkflowEvaluation[] Evaluations) ManyBeams(int count)
+    {
+        var nodes=Enumerable.Range(0,count+1).Select(k=>new NodeElement(new Point3d(1000*k,0,0))).ToArray();var elements=new List<BeamElement>();
+        for(int k=0;k<count;k++)
+        {
+            var beam=new BeamElement(nodes[k].Position,nodes[k+1].Position,null);beam.ConnectNodes(nodes[k],nodes[k+1]);
+            beam.Assignments.Formulation=GPC.Model.Structure.Assignments.BeamFormulation.StraightTwoNode;elements.Add(beam);
+        }
+        var model=ModelAssembly.Assemble(elements,Guid.NewGuid());
+        var loads=new[]{new LoadCaseBase("G1"),new LoadCaseBase("G2"),new LoadCaseBase("Q")};foreach(var load in loads)model.AddLoadCase(load);
+        string fp=model.AnalysisFingerprint();
+        model.Datasets.Add("analysis",new AnalysisDataset {Id="analysis",InputFingerprint=fp,NormalizedUnits="N,mm,rad",Semantics=AnalysisSemantics.LinearStatic});
+        var evaluations=new List<BridgeWorkflowEvaluation>();var input=CompositeBridgeApiTests.Input() with {Phases=Array.Empty<BridgePhase>()};
+        foreach(var beam in model.BeamElements.Values.OrderBy(b=>b.Id))
+        {
+            var axes=new CoordinateSystem(beam.StartPoint+(beam.EndPoint-beam.StartPoint)*.5,new Vector3d(0,1,0),new Vector3d(0,0,1));
+            for(int i=0;i<loads.Length;i++)
+            {
+                var sample=new StationResultBeamForces(loads[i],new ResultBeamForces(1e3*(i+1),0,2e3*i,0,(1500+500*i+beam.Id)*1e6,0,axes),.5)
+                {Side=SectionSide.Left,Body=ActionBody.PositiveSectionFace,State=new ResultState {DatasetId="analysis",InputFingerprint=fp,
+                    Semantics=AnalysisSemantics.LinearStatic,IsCombined=false,IsCumulative=true,ConcomitantStateId=loads[i].Name,
+                    Components=Enumerable.Repeat(ComponentAvailability.Available,6).ToArray()}};
+                beam.Results.Add(new BeamResult(new[]{sample}));
+            }
+            evaluations.Add(new BridgeWorkflowEvaluation {BeamGuid=beam.Guid,PhysicalPropertyFingerprint=BridgeWorkflowDefinition.PropertyFingerprint(beam),SectionInput=input,
+                Station=.5,Side=SectionSide.Left,SectionAxes=axes,LongTermPhi=2,Factors=loads.ToDictionary(l=>l.Guid,l=>1.35),
+                Results=loads.ToDictionary(l=>l.Guid,l=>new ResultSelection {Dataset="analysis",Case=l.Name})});
+        }
+        var workflow=new BridgeWorkflowDefinition {ModelGuid=model.Guid,AnalysisFingerprint=fp,
+            Phases=loads.Select((load,i)=>new BridgeWorkflowPhaseDefinition {Id=Guid.NewGuid(),Order=i,Name=load.Name,
+                State=i==0?BridgeWorkflowSectionState.Steel:BridgeWorkflowSectionState.Composite,
+                Actions=new[]{new BridgeWorkflowActionDefinition {Key=load.Name,ForceCaseGuid=load.Guid,SourceCaseGuid=load.Guid,
+                    SourceModelGuid=model.Guid,SourceAnalysisFingerprint=fp,PsiL=i==1?1.1:null,
+                    Behavior=i==0?BridgeActionBehavior.Steel:i==1?BridgeActionBehavior.LongTerm:BridgeActionBehavior.ShortTerm}}}).ToArray()};
+        return (model,workflow,evaluations.ToArray());
+    }
+
+    [TestMethod]public void APreparedPlanOfManyBeamsGivesTheOneShotInputsWithoutTheirValidation()
+    {
+        // 300 beams: one evaluation per beam, every input identical; the plan does not compute the analysis fingerprints at each evaluation.
+        var (m,w,evaluations)=ManyBeams(300);
+        var watch=System.Diagnostics.Stopwatch.StartNew();var once=evaluations.Select(e=>BridgeWorkflowExecutor.BuildInput(w,m,new[]{m},e,out _)).ToArray();double oneShot=watch.Elapsed.TotalSeconds;
+        watch.Restart();var plan=BridgeWorkflowExecutor.Prepare(w,m,new[]{m});double preparation=watch.Elapsed.TotalSeconds;
+        watch.Restart();var prepared=evaluations.Select(e=>plan.BuildInput(e,out _)).ToArray();double planned=watch.Elapsed.TotalSeconds;
+        for(int k=0;k<evaluations.Length;k++)CollectionAssert.AreEqual(once[k].Phases,prepared[k].Phases,"beam "+k);
+        Console.WriteLine($"D3 plan, {evaluations.Length} evaluations of a girder of {m.BeamElements.Count} beams: one-shot {oneShot:F3} s ({1e3*oneShot/evaluations.Length:F2} ms each); " +
+            $"Prepare {preparation:F3} s, then {planned:F3} s ({1e3*planned/evaluations.Length:F3} ms each)");
+    }
 }

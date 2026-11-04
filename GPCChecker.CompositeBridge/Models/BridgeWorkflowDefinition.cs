@@ -142,6 +142,17 @@ public sealed class BridgeWorkflowDefinition
         ValidateShape(); using(var stream=new MemoryStream()) { Serializer().WriteObject(stream,this); return stream.ToArray(); }
     }
     public BridgeWorkflowDefinition Copy() => Read(Save());
+    /// <summary>A deep copy for a prepared plan (<see cref="BridgeWorkflowPlan"/>): the serializer of <see cref="Save"/> and <see cref="Read"/>,
+    /// without the size limit of a stored recipe (the plan copies a recipe in memory, it does not read one).</summary>
+    internal BridgeWorkflowDefinition Detach()
+    {
+        using(var stream=new MemoryStream())
+        {
+            Serializer().WriteObject(stream,this); stream.Position=0;
+            using(var reader=XmlReader.Create(stream,new XmlReaderSettings {DtdProcessing=DtdProcessing.Prohibit,XmlResolver=null}))
+                return (BridgeWorkflowDefinition)(Serializer().ReadObject(reader) ?? throw new SerializationException("MissingBridgeWorkflow"));
+        }
+    }
     public static BridgeWorkflowDefinition Read(byte[] bytes)
     {
         if(bytes==null) throw new ArgumentNullException(nameof(bytes));
