@@ -47,6 +47,11 @@ public sealed class BridgeWorkflowDefinition
                     if(previousSource.Overlaps(selected)) throw new ArgumentException("RepeatedBridgeSourceIncrement"); previousSource.UnionWith(selected);
                 }
                 if(a.StrainCaseGuid.HasValue && !cases.Contains(a.StrainCaseGuid.Value)) throw new ArgumentException("UnknownBridgeWorkflowCase");
+                // Review L4: BridGHe gives every primary shrinkage its strain case ("<key> [strain]"), whose combination coefficient applies it.
+                // Without one the coefficient is undetermined (before 3/11 it was applied with 1, then with 0): rejected, never guessed. Checked
+                // here and not when a recipe is read, so a saved recipe still opens and can be completed.
+                if(a.PrimaryOnly && !a.StrainCaseGuid.HasValue && a.Strain.HasValue && a.Strain.Value!=0)
+                    throw new ArgumentException("BridgePrimaryStrainRequiresStrainCase: "+a.Key+" (assign the load case that carries the coefficient of the shrinkage, as BridGHe does)");
                 foreach(var state in a.SectionStates)
                 {
                     if(!selected.Contains(state.BeamGuid)) throw new ArgumentException("BridgeSectionStateOutsideAction");
