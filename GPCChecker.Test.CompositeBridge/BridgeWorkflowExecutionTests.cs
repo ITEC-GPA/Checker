@@ -70,6 +70,60 @@ public class BridgeWorkflowExecutionTests
         }
         Assert.AreEqual(0,e.SectionInput.Phases.Length);Assert.AreEqual(1500e6,First(m).ResultBeamForces.M1);
     }
+    [DataTestMethod][DataRow(BridgeWorkflowMethod.Compatible)][DataRow(BridgeWorkflowMethod.LinearHistory)]
+    public void ConcreteExcludedBeamOfAnActionUsesTheConcreteExcludedSectionWithBothMethods(BridgeWorkflowMethod method)
+    {
+        // BridGHe's local FEM states: the beams near the supports have their concrete excluded in the long- and short-term actions,
+        // and its checks (Compatible) calculate those increments on the concrete-excluded section.
+        var (m,w,e)=Sample();w.Method=method;w.Phases[1].Actions[0].PsiL=1.1;w.Phases[2].Actions[0].ConcreteExcludedBeamGuids=new[]{e.BeamGuid};
+        var compiled=Compile(m,w,e);
+        Assert.AreEqual(BridgePhaseKind.ConcreteExcluded,compiled.Phases[2].Kind);Assert.AreEqual(3000,compiled.Phases[2].MomentKNm);
+        Assert.AreEqual(BridgePhaseKind.Composite,compiled.Phases[1].Kind);
+        var manual=CompositeBridgeApiTests.Input();manual=manual with {Phases=manual.Phases.Select((p,i)=>i==2?p with {Kind=BridgePhaseKind.ConcreteExcluded}:p).ToArray()};
+        var expected=method==BridgeWorkflowMethod.Compatible?HBridgeSection.Calculate(manual):HBridgeHistoryResults.Calculate(manual);
+        var actual=BridgeWorkflowExecutor.Calculate(w,m,new[]{m},e);
+        Assert.AreEqual(expected.Stages.Count,actual.Stages.Count);
+        for(int i=0;i<actual.Stages.Count;i++)
+            for(int j=0;j<actual.Stages[i].Points.Count;j++)Assert.AreEqual(expected.Stages[i].Points[j].Stress,actual.Stages[i].Points[j].Stress,1e-9);
+        // Different from the composite increment: the exclusion is not ignored.
+        var plain=w.Copy();plain.Phases[2].Actions[0].ConcreteExcludedBeamGuids=Array.Empty<Guid>();
+        var composite=BridgeWorkflowExecutor.Calculate(plain,m,new[]{m},e);
+        Assert.IsTrue(composite.Stages.Last().Points.Zip(actual.Stages.Last().Points).Any(p=>Math.Abs(p.First.Stress-p.Second.Stress)>1e-3));
+    }
+
+    [TestMethod]
+    public void UnloadedIncrementsOfALocalStateActivateItOncePerRun()
+    {
+        // Example 50: the short-term phase has the 31 positions of a moving load, one loaded per combination; on a concrete-excluded
+        // beam each unloaded position would be a phase of its own and the section engine accepts at most 20.
+        var (m,w,e)=Sample();var beam=m.BeamElements.Values.Single();var q=w.Phases[2];var axes=e.SectionAxes;string fp=m.AnalysisFingerprint();
+        var positions=Enumerable.Range(1,25).Select(i=>new LoadCaseBase("Q"+i.ToString("00"))).ToArray();
+        foreach(var load in positions)
+        {
+            m.AddLoadCase(load);
+            beam.Results.Add(new BeamResult(new[]{new StationResultBeamForces(load,new ResultBeamForces(0,0,0,0,100e6,0,axes),.5)
+            {Side=SectionSide.Left,Body=ActionBody.PositiveSectionFace,State=new ResultState {DatasetId="analysis",Semantics=AnalysisSemantics.LinearStatic,
+                IsCombined=false,IsCumulative=true,ConcomitantStateId=load.Name,Components=Enumerable.Repeat(ComponentAvailability.Available,6).ToArray()}}}));
+        }
+        fp=m.AnalysisFingerprint();m.Datasets["analysis"].InputFingerprint=fp;
+        foreach(var r in beam.Results.SelectMany(r=>r.Results))r.State.InputFingerprint=fp;
+        w.AnalysisFingerprint=fp;foreach(var a in w.Phases.SelectMany(p=>p.Actions))a.SourceAnalysisFingerprint=fp;
+        q.Actions=q.Actions.Concat(positions.Select(l=>new BridgeWorkflowActionDefinition {Key=l.Name,ForceCaseGuid=l.Guid,SourceCaseGuid=l.Guid,
+            SourceModelGuid=m.Guid,SourceAnalysisFingerprint=fp,Behavior=BridgeActionBehavior.ShortTerm})).ToArray();
+        foreach(var a in q.Actions)a.ConcreteExcludedBeamGuids=new[]{e.BeamGuid};
+        var factors=e.Factors.ToDictionary(p=>p.Key,p=>p.Value);foreach(var l in positions)factors[l.Guid]=l.Name=="Q05"?1:0;
+        var results=e.Results.ToDictionary(p=>p.Key,p=>p.Value);foreach(var l in positions)results[l.Guid]=new ResultSelection {Dataset="analysis",Case=l.Name};
+        e.Factors=factors;e.Results=results;
+        var compiled=Compile(m,w,e);
+        // Q, Q01 (first unloaded, activation), Q02-Q04 (same state: none), Q05 (loaded), Q06 (activation), Q07-Q25 (none).
+        CollectionAssert.AreEqual(new[]{"Q","Q01","Q05","Q06"},compiled.Phases.Skip(2).Select(p=>p.Name.Split(" / ").Last()).ToArray());
+        var actual=BridgeWorkflowExecutor.Calculate(w,m,new[]{m},e);
+        // The same stresses as the loaded increments alone: the activations carry no action.
+        var loaded=w.Copy();loaded.Phases[2].Actions=loaded.Phases[2].Actions.Where(a=>a.Key is "Q" or "Q05").ToArray();
+        var expected=BridgeWorkflowExecutor.Calculate(loaded,m,new[]{m},e);
+        for(int j=0;j<actual.Stages.Last().Points.Count;j++)Assert.AreEqual(expected.Stages.Last().Points[j].Stress,actual.Stages.Last().Points[j].Stress,1e-9);
+    }
+
     [TestMethod]public void ReferencePointTransportAndNmmConversionAreExplicit()
     {
         var (m,w,e)=Sample();var f=First(m).ResultBeamForces;
