@@ -70,6 +70,27 @@ public class BridgeWorkflowExecutionTests
         }
         Assert.AreEqual(0,e.SectionInput.Phases.Length);Assert.AreEqual(1500e6,First(m).ResultBeamForces.M1);
     }
+    [DataTestMethod][DataRow(BridgeWorkflowMethod.Compatible)][DataRow(BridgeWorkflowMethod.LinearHistory)]
+    public void ConcreteExcludedBeamOfAnActionUsesTheConcreteExcludedSectionWithBothMethods(BridgeWorkflowMethod method)
+    {
+        // BridGHe's local FEM states: the beams near the supports have their concrete excluded in the long- and short-term actions,
+        // and its checks (Compatible) calculate those increments on the concrete-excluded section.
+        var (m,w,e)=Sample();w.Method=method;w.Phases[1].Actions[0].PsiL=1.1;w.Phases[2].Actions[0].ConcreteExcludedBeamGuids=new[]{e.BeamGuid};
+        var compiled=Compile(m,w,e);
+        Assert.AreEqual(BridgePhaseKind.ConcreteExcluded,compiled.Phases[2].Kind);Assert.AreEqual(3000,compiled.Phases[2].MomentKNm);
+        Assert.AreEqual(BridgePhaseKind.Composite,compiled.Phases[1].Kind);
+        var manual=CompositeBridgeApiTests.Input();manual=manual with {Phases=manual.Phases.Select((p,i)=>i==2?p with {Kind=BridgePhaseKind.ConcreteExcluded}:p).ToArray()};
+        var expected=method==BridgeWorkflowMethod.Compatible?HBridgeSection.Calculate(manual):HBridgeHistoryResults.Calculate(manual);
+        var actual=BridgeWorkflowExecutor.Calculate(w,m,new[]{m},e);
+        Assert.AreEqual(expected.Stages.Count,actual.Stages.Count);
+        for(int i=0;i<actual.Stages.Count;i++)
+            for(int j=0;j<actual.Stages[i].Points.Count;j++)Assert.AreEqual(expected.Stages[i].Points[j].Stress,actual.Stages[i].Points[j].Stress,1e-9);
+        // Different from the composite increment: the exclusion is not ignored.
+        var plain=w.Copy();plain.Phases[2].Actions[0].ConcreteExcludedBeamGuids=Array.Empty<Guid>();
+        var composite=BridgeWorkflowExecutor.Calculate(plain,m,new[]{m},e);
+        Assert.IsTrue(composite.Stages.Last().Points.Zip(actual.Stages.Last().Points).Any(p=>Math.Abs(p.First.Stress-p.Second.Stress)>1e-3));
+    }
+
     [TestMethod]public void ReferencePointTransportAndNmmConversionAreExplicit()
     {
         var (m,w,e)=Sample();var f=First(m).ResultBeamForces;
