@@ -113,9 +113,10 @@ public static class BridgeWorkflowExecutor
                     throw new ArgumentException("BridgeForceAndStrainFactorsDiffer: "+action.Key);
                 var local=action.SectionStates.SingleOrDefault(s=>s.BeamGuid==beam.Guid);
                 bool excluded=action.ConcreteExcludedBeamGuids.Contains(beam.Guid);
+                // A beam whose concrete is excluded in this action (the cracked region of a local FEM state): its increment on the
+                // concrete-excluded section, with both methods. Compatible sums it with the others, as BridGHe's checks (examples 50:
+                // 48 beams near the supports in the long- and short-term actions). A whole phase excluded still needs LinearHistory (Validate).
                 var kind=excluded?BridgePhaseKind.ConcreteExcluded:baseKind;
-                if(kind==BridgePhaseKind.ConcreteExcluded&&workflow.Method!=BridgeWorkflowMethod.LinearHistory)
-                    throw new NotSupportedException("ConcreteExclusionRequiresLinearHistory");
                 double phi=action.Behavior==BridgeActionBehavior.LongTerm?e.LongTermPhi:
                     action.Behavior==BridgeActionBehavior.ShortTerm?e.ShortTermPhi:action.Behavior==BridgeActionBehavior.Shrinkage?e.ShrinkagePhi:0;
                 var increment=new BridgePhase {Name=phase.Order+" / "+phase.Name+" / "+action.Key,Kind=kind,Reference=e.LoadReference,
