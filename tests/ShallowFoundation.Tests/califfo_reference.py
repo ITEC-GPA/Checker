@@ -21,10 +21,13 @@ Conventions:
 - Brinch Hansen on a circle with an inclined load: H aligned with B' (H_B = |H|, H_L = 0), since a circle has no
   preferred axis (the manual gives no rule for the circle; the literal reading here splits H along x and y).
 Brinch Hansen with an inclined load, read literally from the manual: drained (3.23)-(3.25) and undrained (3.27),
-(3.27'), (3.27''); with H > 0 the bearing capacity is computed for a failure in the direction of B' and in the
-direction of L' (also when the component along L' is zero) and the smaller value is adopted (section 3.4.1); a strip
-has only the direction of B'. B'L' in (3.23) and (3.27) is the effective area (pi B^2 / 4 for the circle). With H = 0
-the normal-load expressions (3.19), (3.20), (3.28) apply: neither direction tends to them as H -> 0 in general.
+(3.27'), (3.27''); with H > 0 the bearing capacity is computed for a failure in the direction of B' and, when the
+component along L' is present (H_L > 0), in the direction of L', and the smaller value is adopted (section 3.4.1;
+section 3.4.2 distinguishes the two cases "riferiti alla presenza delle 2 possibili componenti HB ed HL"; reading
+confirmed by the user on 5/11/2026); a strip has only the direction of B'. B'L' in (3.23) and (3.27) is the effective
+area (pi B^2 / 4 for the circle). With H = 0 the normal-load expressions (3.19), (3.20), (3.28) apply: with H_L = 0
+the drained direction of B' tends to them as H -> 0, the undrained one does not (s'c = 0.2 i'c B'/L', kept as in the
+manual), and the direction of L' does not tend to the value with H_L = 0 as H_L -> 0.
 Actions beyond the domain (section 3.4.1: no inclination factor may be negative) give a null bearing capacity.
 """
 import json, math, os, sys
@@ -112,10 +115,11 @@ def hansen_components(cs, g, conv, out):
     return hb, hl
 
 
-def hansen_directions(cs, g, direction):
-    """Section 3.4.1: failure in the direction of B' and of L' (not for a strip); the smaller value is adopted."""
+def hansen_directions(cs, g, hl, direction):
+    """Section 3.4.1: failure in the direction of B' and of L' (not for a strip); the smaller value is adopted.
+    Section 3.4.2 ties the two cases to the components present: the direction of L' only when H_L > 0."""
     rows = [direction('B', g['r'], g['Bdepth'])]
-    if cs['shape'] != 'strip':
+    if cs['shape'] != 'strip' and hl > 0:
         rows.append(direction('L', g['Lp'] / g['Bp'], g['Lp']))  # (3.24'), (3.25'): L'/B' and D/L'
     return min(rows, key=lambda row: row[0])
 
@@ -143,7 +147,7 @@ def hansen_drained_inclined(cs, g, conv, phi, c, q, gm, out):  # (3.23)-(3.25), 
         qult = c * nc * sc * dc * ic[d] + q * nq * sq * dq * iq[d] + 0.5 * gm * g['Bp'] * ng * sg * ig[d]
         return qult, term(nc, sc, dc, ic[d]), term(nq, sq, dq, iq[d]), term(ng, sg, 1.0, ig[d])
 
-    qult, fc, fq, fg = hansen_directions(cs, g, direction)
+    qult, fc, fq, fg = hansen_directions(cs, g, hl, direction)
     out.update(qult=qult, c=fc, q_=fq, g_=fg)
     return out
 
@@ -161,7 +165,7 @@ def hansen_undrained_inclined(cs, g, conv, q, out):  # (3.26), (3.27), (3.27'), 
         dc = 0.4 * depth_k(cs['D'], side) if cs.get('depth', True) else 0.0
         return nc * cu * (1 + sc + dc - i[d]) + q, term(nc, additive=[sc, dc, i[d]])
 
-    qult, fc = hansen_directions(cs, g, direction)
+    qult, fc = hansen_directions(cs, g, hl, direction)
     out.update(qult=qult, c=fc, q_=term(1.0), g_=term(0.0))
     return out
 

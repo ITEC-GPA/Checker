@@ -34,7 +34,7 @@ Fonti tecniche:
 
 Terzaghi Nγ: lacuna della pagina 6 sostituita con interpolazione lineare della tabella USACE 4-1, dichiarata come tale. Nessuna formula interpolante attribuita a Terzaghi senza fonte. Le dimensioni efficaci mancanti a §2.2 sono quelle della EN1997-1, con segni assoluti e controllo di positività. §§3.7–3.8: nessun automatismo per scegliere resistenza di picco/critica e nessuna assunzione generale che Nγ sia trascurabile. Il capitolo sismico incompleto non è stato riempito inventando un'estensione del modello statico.
 
-Hansen: il fattore di forma non drenato inclinato riportato a §3.27 del manuale sembra discontinuo rispetto alla specializzazione a carico normale. Non è stato possibile accertare una correzione sulla pubblicazione originale; questa rimane una questione aperta, non un bug accertato di Checker. Dalla 1.16.0 il ramo inclinato segue il manuale alla lettera, con la discontinuità dichiarata (sezione «Hansen con carico inclinato»). Il ramo normale è additivo. Le correlazioni sc/sq e dc/dq dell'appendice sono verificate algebricamente per una correzione per volta: non provano equivalenza dei prodotti di più fattori. Il nuovo codice dichiara la variante correlata, non modifica formule altrui come se l'equivalenza fosse universale.
+Hansen: il fattore di forma non drenato inclinato riportato a §3.27 del manuale sembra discontinuo rispetto alla specializzazione a carico normale. Non è stato possibile accertare una correzione sulla pubblicazione originale; questa rimane una questione aperta, non un bug accertato di Checker. Dalla 1.16.0 il ramo inclinato segue il manuale alla lettera, con la discontinuità dichiarata (sezione «Hansen con carico inclinato»); il 5/11/2026 l'utente ha confermato questa forma. Il ramo normale è additivo. Le correlazioni sc/sq e dc/dq dell'appendice sono verificate algebricamente per una correzione per volta: non provano equivalenza dei prodotti di più fattori. Il nuovo codice dichiara la variante correlata, non modifica formule altrui come se l'equivalenza fosse universale.
 
 Meyerhof 0°–10°: interpolazione degli incrementi di forma/profondità q e γ prevista nella tabella USACE 4-3. Carichi inclinati ammessi solo per striscia per evitare combinazioni non riscontrate con fattori di forma. Meyerhof non drenato con carico inclinato: ic = iq = (1 − θ/90°)² anche sul termine del sovraccarico, qlim = cu Nc sc dc ic + q iq (Meyerhof 1963; USACE tab. 4-3, «ic = iq» per ogni φ; con φ = 0 valgono solo Nq = sq = dq = 1). Hansen/Vesić: k passa da D/B ad atan(D/B) oltre uno, come nella formulazione prescelta; il salto empirico non è nascosto con un raccordo numerico.
 
@@ -102,22 +102,42 @@ Non drenato, (3.26), (3.27), (3.27′), (3.27″), correzioni additive (`Foundat
 
 Regole comuni:
 
-- con H > 0 la capacità si calcola per rottura nella direzione di B′ e in quella di L′ e si adotta la minore (§3.4.1: «il calcolo … dovrà in tal caso essere effettuato 2 volte»). La direzione di L′ si calcola anche con HL = 0, lettura letterale e più cautelativa; la nastriforme ha solo la direzione di B′. HB e HL sono le componenti parallele a B′ e L′ dopo l'eventuale scambio degli assi; sul cerchio H è allineata a B′ (convenzione sopra);
+- con H > 0 la capacità si calcola per rottura nella direzione di B′ e, se HL > 0, in quella di L′ e si adotta la minore (§3.4.1: «il calcolo … dovrà in tal caso essere effettuato 2 volte»; §3.4.2 distingue i due casi «riferiti alla presenza delle 2 possibili componenti HB ed HL»). Con HL = 0 resta la sola direzione di B′ (decisione dell'utente del 5/11/2026, sotto); la nastriforme ha solo la direzione di B′. HB e HL sono le componenti parallele a B′ e L′ dopo l'eventuale scambio degli assi; sul cerchio H è allineata a B′ (convenzione sopra), quindi HL = 0 e vale la sola direzione di B′;
 - dominio: un fattore di inclinazione negativo (drenato) oppure HB o HL oltre A′cu (non drenato) danno capacità nulla, `DomainExhausted` (§3.4.1). Nel drenato decide il segno dei fattori, senza il limite H ≥ N + A′c′ cot φ′ di EC7 e Vesić: con c′ = 0 e φ′ = 30° ic diventa negativo per H > 0,88 N circa;
-- gli avvisi del risultato riportano qlim nelle due direzioni, la direzione che governa, qlim con H = 0 e la discontinuità. Nessun campo nuovo nel risultato: documenti salvati e impronte di ANTHEA cambiano solo per la versione della libreria. Con H = 0 risultati e `Reference` restano quelli di prima.
+- con HL > 0 gli avvisi del risultato riportano qlim nelle due direzioni, la direzione che governa, qlim con H = 0 e la discontinuità, e `Reference` termina con «direzioni di B′ e di L′, la minore»; con HL = 0 gli avvisi dicono che vale la sola direzione di B′ e riportano qlim con H = 0 (nel drenato la direzione di B′ vi tende, nel non drenato segue la discontinuità di forma) e `Reference` termina con «direzione di B′ (HL = 0)». Nessun campo nuovo nel risultato: documenti salvati e impronte di ANTHEA cambiano solo per la versione della libreria. Con H = 0 risultati e `Reference` restano quelli di prima.
 
 Discontinuità con il carico normale (dichiarate, a favore di sicurezza, non risolte):
 
-1. **Forma non drenata.** Il manuale scrive s′cB = 0,2 i′cB B′/L′ con l'i′c additivo, nullo per H = 0, e nota che con il carico normale vale invece (3.28) s′c = 0,2 B′/L′. Per H → 0 la correzione di forma passa da 0,2 B′/L′ a zero. USACE tab. 4-5 dà s′c = 0,2 B′/W′ senza fattori di inclinazione, ma esclude l'uso congiunto dei fattori di forma e di inclinazione: con H > 0 la forma vale «unity», cioè s′c = 0, valore ancora più basso del manuale. Una variante continua (s′c = 0,2 B′/L′ anche con H > 0) non ha fonte che la sostenga ed è a sfavore di sicurezza rispetto al manuale (fino al +17% nell'esempio sotto): non adottata, resta una domanda per l'utente.
-2. **Direzione di L′ con HL = 0.** Senza inclinazione, con forma L′/B′ (sγL limitato a 0,6) e profondità D/L′, non tende a (3.19)–(3.20) per H → 0. Governa nel non drenato appena H > 0 (1 + d′cL < 1 + d′cB) e nel drenato quando prevale il termine di peso (fondazione superficiale su sabbia). Limitarla ai casi con HL > 0 sarebbe meno cautelativo e non è adottato.
+1. **Forma non drenata.** Il manuale scrive s′cB = 0,2 i′cB B′/L′ con l'i′c additivo, nullo per H = 0, e nota che con il carico normale vale invece (3.28) s′c = 0,2 B′/L′. Per H → 0 la correzione di forma passa da 0,2 B′/L′ a zero. USACE tab. 4-5 dà s′c = 0,2 B′/W′ senza fattori di inclinazione, ma esclude l'uso congiunto dei fattori di forma e di inclinazione: con H > 0 la forma vale «unity», cioè s′c = 0, valore ancora più basso del manuale. Una variante continua (s′c = 0,2 B′/L′ anche con H > 0) non ha fonte che la sostenga ed è a sfavore di sicurezza rispetto al manuale (fino al +17% nell'esempio sotto). Con quella variante, inoltre, s′cL = 0,2 L′/B′ diventa grande e una componente lungo L′ non ridurrebbe più la portanza. Non adottata: il 5/11/2026 l'utente ha confermato la forma del manuale.
+2. **Direzione di L′ per HL → 0.** Fino alla 0.27 la direzione di L′ si calcolava anche con HL = 0 (lettura letterale di §3.4.1) e governava già con un carico minimo lungo B. Dalla 0.28.0.0 si calcola solo con HL > 0, e con HL = 0 il drenato tende con continuità a (3.19)–(3.20) per H → 0. Resta un salto per HL → 0⁺. Senza inclinazione, con forma L′/B′ (sγL limitato a 0,6) e profondità D/L′, la direzione di L′ non tende al valore con HL = 0. Governa nel non drenato appena HL > 0 (1 + d′cL < 1 + d′cB) e nel drenato quando prevale il termine di peso (fondazione superficiale su sabbia). Ora però il salto dipende da un'azione effettiva lungo L′.
 
 Esempi (rettangolo B = 2 m, L = 3 m, D = 1 m, N = 600 kN, γ = 18 kN/m³, confronto caratteristico):
 
-| Caso | H = 0 | H lungo B | Direzione di B′ | Direzione di L′ | Adottato |
-|---|---|---|---|---|---|
-| drenato, φ′ = 30°, c′ = 0 | 704,29 kPa | 60 kN | 522,63 | 798,16 | 522,63 |
-| drenato, D = 0 | 198,92 kPa | 6 kN | 194,47 | 162,75 | 162,75 (−18,2%) |
-| non drenato, cu = 75 kPa | 532,16 kPa | 1 N | 480,74 | 455,04 | 455,04 (−14,5%) |
-| non drenato, cu = 75 kPa | 532,16 kPa | 60 kN | 469,20 | 455,04 | 455,04 |
+| Caso | H = 0 | H lungo B | Direzione di B′ | Direzione di L′ con HL → 0⁺ | Adottato fino alla 0.27 | Adottato dalla 0.28 (HL = 0) |
+|---|---|---|---|---|---|---|
+| drenato, φ′ = 30°, c′ = 0 | 704,29 kPa | 60 kN | 522,63 | 798,16 | 522,63 | 522,63 |
+| drenato, D = 0 | 198,92 kPa | 6 kN | 194,47 | 162,75 | 162,75 (−18,2%) | 194,47 (−2,2%) |
+| non drenato, cu = 75 kPa | 532,16 kPa | 1 N | 480,74 | 455,04 | 455,04 (−14,5%) | 480,74 (−9,7%) |
+| non drenato, cu = 75 kPa | 532,16 kPa | 60 kN | 469,20 | 455,04 | 455,04 | 469,20 |
 
-Prove: `CaliffoReferenceTests` con 45 casi nuovi (426–470) calcolati da `califfo_reference.py` senza importare il motore; i 426 casi esistenti sono invariati. `BearingTests.HansenWithAnInclinedLoad`: striscia e H → 0, simmetria di quadrato e cerchio, scambio degli assi, le due discontinuità, dominio.
+Con una componente anche minima lungo L (HL > 0) si adotta ancora la minore delle due direzioni, cioè i valori della colonna «fino alla 0.27».
+
+Prove: `CaliffoReferenceTests` con 45 casi nuovi (426–470) calcolati da `califfo_reference.py` senza importare il motore; i 426 casi esistenti sono invariati. `BearingTests.HansenWithAnInclinedLoad`: striscia e H → 0, simmetria di quadrato e cerchio, scambio degli assi, HL = 0 con la sola direzione di B′, le due discontinuità (con HL > 0 per la direzione di L′), dominio.
+
+### Decisione del 5 novembre 2026 (Geotechnics 0.28.0.0)
+
+Le domande del 29/10 sono state riprese il 4/11 con i numeri. Il 5/11 l'utente ha risposto «per i 3 punti segui le raccomandazioni»:
+
+1. **Direzione di L′ solo con HL > 0: adottata.** Con HL = 0 la rottura lungo L′ non è indotta dal carico, e il manuale non la verifica con H = 0. §3.4.2 lega i due casi alla presenza delle componenti HB e HL. È l'unica modifica del codice. Cambiano tre casi Califfo, tutti con HL = 0 e con la direzione di L′ che governava:
+   - 456, drenato, D = 0, Hx = 6 kN: da 162,75 a 194,47 kPa;
+   - 459, non drenato, Hx = 60 kN: da 455,04 a 469,20 kPa;
+   - 462, non drenato, Hx = 6 kN: da 455,04 a 479,63 kPa.
+
+   Quadrato, cerchio, D = 3 m e i casi oltre il dominio restano invariati: lì governava già la direzione di B′.
+2. **Forma non drenata con H > 0: resta quella del manuale**, 0,2 i′c B′/L′ (discontinuità 1).
+3. **Larghezza nel termine di peso della direzione di L′: resta B′.** La lunghezza di USACE §4-3d(3) viene da uno schema che vieta forma × inclinazione: non se ne prende un pezzo. Sarebbe inoltre a sfavore di sicurezza, fino al +48% (D = 0, Hy = 60 kN: 113,23 → 167,28 kPa).
+
+Senza modifiche anche gli altri punti rivisti, come raccomandato:
+- **esponente 5 di iq e iγ**, del manuale e di Hansen 1970 (USACE tab. 4-5). Bowles ammette 2–5, USACE usa 2 per i muri. Con 2 la portanza sale fino al +91% (D = 1 m, Hx = 200 kN);
+- **nessun limite di dominio aggiuntivo** del tipo x ≥ 1 di EC7 e Vesić: decide il segno dei fattori, come nel manuale;
+- **nessuna adesione ca** al posto di c′ nel denominatore, che richiederebbe un dato nuovo.
