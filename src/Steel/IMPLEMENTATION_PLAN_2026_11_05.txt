@@ -48,7 +48,9 @@ o progetto sismico esteso in questo ciclo.
    Catalogo tubolari allineato all'ingresso VerifyEquilibrated.
    Contratti e prove in WORKFLOW_VALIDATION_2026_11_05.txt.
 
-3. COPRIGIUNTO CLASSE4 INTERAMENTE COMPRESSO CON TAGLIO - da qualificare
+3. COPRIGIUNTO CLASSE4 INTERAMENTE COMPRESSO CON TAGLIO - PARZIALE
+   Rettifica5/11: 7.1(4) rinvia a7.1(5), non alla sezione10. Esaminare prima
+   pannello e sottopannelli secondo7.1(5); sezione10 come alternativa.
 3a Definire una tipologia limitata con pannello, contatti, passo, sbalzi,
    tratto libero e vincoli reali. I bulloni non sono appoggi continui.
 3b Ricavare i valori critici combinati per lo STESSO pannello e vincoli;
@@ -58,6 +60,11 @@ o progetto sismico esteso in questo ciclo.
 3d Benchmark indipendenti: compressione, taglio, interazione, variazione
    di passo/sbalzi e limiti. Nessun ampliamento del campo senza prova.
    Prerequisito: SECTION10_MODEL_REVIEW_2026_11_01.txt in Connections.
+   Esito: corretto il rinvio normativo, il catalogo e il limite della fibra
+   neutra;20 nuovi casi di dominio e2 benchmark JRC dei sottopannelli.
+   Il nodo interamente compresso resta non qualificato: mancano i vincoli
+   analitici e l'oracolo indipendente della famiglia a bulloni discreti.
+   Audit: Connections/COMPRESSED_COVER_MODEL_AUDIT_2026_11_05.txt.
 
 4. COMPLETARE I SOTTOCASI D'ASTA - da qualificare
 4a Due tagli attivi nelle classi1-3: resistenze concomitanti e riduzioni

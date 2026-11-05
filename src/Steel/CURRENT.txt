@@ -541,7 +541,9 @@ in Connections/BRIDGE_SPLICE_CLASS4_LOW_SHEAR.txt. Taglio elevato e lastre
 sensibili a instabilita a taglio restano fuori da quel metodo e sono coperte
 dal metodo esplicito EffectiveCompressionWithShearBuckling
 (Connections/BRIDGE_SPLICE_CLASS4_SHEAR_BUCKLING.txt), salvo un taglio con
-eta3>0.5 senza fibre tese, che EN1993-1-5 7.1(5) rinvia alla sezione10.
+eta3>0.5 senza fibre tese: modello di pannelli/sottopannelli non qualificato.
+Correzione5/11: EN1993-1-5 7.1(4) rinvia a7.1(5); la sezione10 e' alternativa,
+non obbligatoria. Connections/COMPRESSED_COVER_MODEL_AUDIT_2026_11_05.txt.
 Blocchi: FastenerHierarchy (default), ActualCollinearForcesWithHierarchyFallback,
 oppure ActualForcesWithMixedBlockInteraction: nei gruppi misti ogni percorso
 fuori gerarchia e verificato con le azioni reali (Connections/BRIDGE_SPLICE_MIXED_BLOCKS.txt).
@@ -570,7 +572,8 @@ STATO DEGLI OTTO PUNTI RICHIESTI IN QUESTO BLOCCO
   Connections/BRIDGE_SPLICE_TRANSITIONS.txt.
 3 Classe4 compressa+taglio: PARZIALE. Implementati dal29/10 taglio basso
   e alto, lastre sensibili a instabilita: EffectiveCompressionWithShearBuckling.
-  Rifiutato con codice: eta3>0.5 su taglio interamente compresso (sezione10).
+  Rifiutato: eta3>0.5 su taglio interamente compresso per mancata qualifica
+  del pannello/sottopannelli; il vecchio codice SECTION10 resta per compatibilita'.
 4 Terminali/supporti: PARZIALE (29/10/2026). Chiusi nel campo dichiarato:
   terminale BULLONATO di 2C/2L compressi (StandardBoltedPackedTerminal, vincolo
   d'asta dichiarato), doppio angolare su anima di pilastro a taglio ordinario

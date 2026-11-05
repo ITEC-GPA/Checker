@@ -130,7 +130,8 @@ public class BridgeSpliceClass4ShearBucklingTests
     [DataTestMethod][DataRow(false)][DataRow(true)]
     public void WhollyCompressedCutAtHighShearRequiresSectionTen(bool ntc)
     {
-        // Compressed cover: the butt cut has M=0 and N<0. Above eta3=0.5, 7.1(5) refers to section10.
+        // Compressed cover: the butt cut has M=0 and N<0. The model is not qualified for
+        // 7.1(4)-(5) panel/subpanel checks or the alternative section10; retain the historical diagnostic.
         var high = WeldedIBeamSpliceEffectiveCompression.VerifyWithShearBuckling(Four(ntc, 200000, -10000));
         Assert.AreNotEqual(ConnectionStatus.Passed, high.Status);
         Assert.IsTrue(high.Diagnostics.Contains("WebNegative.HIGH_SHEAR_WHOLE_PLATE_COMPRESSED_REQUIRES_EN1993_1_5_SECTION10"));

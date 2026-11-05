@@ -27,7 +27,8 @@ namespace GPC.Checkers.Steel.Connections
         EffectiveCompressionWithLowShear,
         /// <summary>Effective compression plus concomitant shear of any magnitude: whole-width EN1993-1-5
         /// section5 shear-buckling resistance (k_tau=5.34, non-rigid end post, eta=1, no reserve beyond
-        /// tau_cr) and the 7.1 interaction. A wholly compressed cut at high shear stays unsupported (section10).</summary>
+        /// tau_cr) and the 7.1 interaction. A wholly compressed cut at high shear stays unsupported:
+        /// the 7.1(4)-(5) panel/subpanel model or its section10 alternative is not qualified.</summary>
         EffectiveCompressionWithShearBuckling
     }
 

@@ -5,6 +5,15 @@
   "note": "Complete source PDFs are kept outside Git. Citation-only records are not necessarily downloaded or validated; previews and unverified references are explicitly distinguished. Do not delete these copies with temporary build files.",
   "localDocuments": [
     {
+      "file": "SCI_P356.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\SCI_P356.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\SCI_P356.pdf",
+      "sha256": "0966da1985a0011401c8aacb4fa52cf115db397597cb57766abae7728bc2814e",
+      "bytes": 3860310,
+      "provenance": "Downloaded from https://steelconstruction.info/images/c/c8/SCI_P356.pdf on2026-11-05",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
       "file": "ArcelorMittal_UPN.pdf",
       "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\ArcelorMittal_UPN.pdf",
       "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\ArcelorMittal_UPN.pdf",
@@ -309,9 +318,9 @@
     {
       "id": "URL-006",
       "url": "https://eurocodes.jrc.ec.europa.eu/sites/default/files/2021-12/EUR22898EN.pdf",
-      "title": "",
-      "editionAndPages": "",
-      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "title": "JRC/ECCS EUR22898EN, Commentary and worked examples to EN1993-1-5",
+      "editionAndPages": "2007; chapter10 pp123-124; example16 pp189-191",
+      "status": "Pages visually checked; two subpanel benchmarks implemented. Does not qualify the bolted-cover model.",
       "citedBy": [
         "src/Steel/CLASS4_AUDIT.txt:3",
         "src/Steel/CLASS4_SECTION_WORKFLOW.txt:51",
@@ -319,7 +328,9 @@
         "src/Steel/WEB_DETAILS_AUTOMATION.txt:55",
         "src/Steel/WEB_PANEL_AND_PATCH_LOADING.txt:64",
         "src/Steel/Connections/BRIDGE_SPLICE_CLASS4_LOW_SHEAR.txt:11",
-        "src/Steel/Connections/SECTION10_MODEL_REVIEW_2026_11_01.txt:5",
+        "src/Steel/Connections/COMPRESSED_COVER_MODEL_AUDIT_2026_11_05.txt:26",
+        "src/Steel/Connections/SECTION10_MODEL_REVIEW_2026_11_01.txt:9",
+        "tests/Steel.Members.Tests/PlateSubpanelJrcTests.cs:8",
         "tests/Steel.Members.Tests/TEE_CLASSIFICATION.txt:23"
       ]
     },
@@ -341,6 +352,26 @@
       "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
       "citedBy": [
         "src/Steel/Connections/PHASE_3C_3_PAIR_BOLTED_TRANSFER_SPEC.txt:99"
+      ]
+    },
+    {
+      "id": "URL-072",
+      "url": "https://fgg-web.fgg.uni-lj.si/~/pmoze/ESDEP/master/wg11/l0800.htm",
+      "title": "ESDEP Lecture11.8, Splices in buildings",
+      "editionAndPages": "Historical educational material; web page",
+      "status": "Context only; not a new normative qualification.",
+      "citedBy": [
+        "src/Steel/Connections/COMPRESSED_COVER_MODEL_AUDIT_2026_11_05.txt:50"
+      ]
+    },
+    {
+      "id": "URL-073",
+      "url": "https://fgg-web.fgg.uni-lj.si/~/pmoze/ESDEP/master/wg15b/l1100.htm",
+      "title": "ESDEP Lecture15B.11, Splices and other connections in bridges",
+      "editionAndPages": "Historical educational material; web page",
+      "status": "Context only; not a new normative qualification.",
+      "citedBy": [
+        "src/Steel/Connections/COMPRESSED_COVER_MODEL_AUDIT_2026_11_05.txt:51"
       ]
     },
     {
@@ -529,6 +560,16 @@
       "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
       "citedBy": [
         "tests/Steel.Members.Tests/SCI_SECTION_BENCHMARKS.txt:6"
+      ]
+    },
+    {
+      "id": "URL-074",
+      "url": "https://steelconstruction.info/images/c/c8/SCI_P356.pdf",
+      "title": "SCI P356, Composite highway bridge design",
+      "editionAndPages": "2010, corrigendum March2014; 8.4.3 pp93-95",
+      "status": "Consulted for bridge splice force paths; complete PDF archived. No combined class4 bolted-cover benchmark found in this section.",
+      "citedBy": [
+        "src/Steel/Connections/COMPRESSED_COVER_MODEL_AUDIT_2026_11_05.txt:48"
       ]
     },
     {
@@ -791,12 +832,13 @@
     {
       "id": "URL-050",
       "url": "https://www.phd.eng.br/wp-content/uploads/2015/12/en.1993.1.5.2006.pdf",
-      "title": "",
-      "editionAndPages": "",
-      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "title": "EN1993-1-5:2006+AC2009",
+      "editionAndPages": "7.1(4)-(5), pp28-29; section10, pp36-37",
+      "status": "Visually checked 2026-11-05: 7.1(4) refers to 7.1(5), not obligatorily to section10. See compressed-cover model audit.",
       "citedBy": [
         "src/Steel/CLASS4_SECTION_WORKFLOW.txt:52",
-        "src/Steel/Connections/SECTION10_MODEL_REVIEW_2026_11_01.txt:3"
+        "src/Steel/Connections/COMPRESSED_COVER_MODEL_AUDIT_2026_11_05.txt:10",
+        "src/Steel/Connections/SECTION10_MODEL_REVIEW_2026_11_01.txt:7"
       ]
     },
     {

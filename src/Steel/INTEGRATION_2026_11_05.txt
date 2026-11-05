@@ -84,3 +84,14 @@ branch remoti sarebbe insufficiente: F6/P2H e F7b sono ancora locali.
 Questo blocco chiude la preparazione Git. Non promuove a completi i
 meccanismi di calcolo ancora aperti in CLOSURE_2026_11_02.txt.
 Ordine di implementazione e criteri di chiusura: IMPLEMENTATION_PLAN_2026_11_05.txt.
+
+CONTROLLO SUCCESSIVO5/11 ORE20 CIRCA - F7c
+Trovato nuovo ramo claude/f7c-set 92f9362c (sole versioni rispetto al codice
+gia' integrato). Merge9e64c2f0: risolti esplicitamente9 file in conflitto,
+recepito F7c e conservata Geotechnics0.28.0.0 con Hansen. Guardia22 progetti OK.
+Model isolato allineato a2133a2db0d575f4d0cb09095360229aae506c288:
+GPCModel5.50.0.1, Persistence3.15.0.1, ModelData0.3.0.29; solo versioni e
+documenti rispetto a7a06643b. Nessun checkout altrui modificato.
+Gli altri12 riferimenti monitorati e origin/master sono rimasti invariati.
+I numeri e i collaudi del blocco precedente restano storici: il risultato
+F7c piu' modifiche Steel richiede il proprio collaudo finale.

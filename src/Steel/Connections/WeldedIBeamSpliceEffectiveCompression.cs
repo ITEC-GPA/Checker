@@ -185,13 +185,30 @@ namespace GPC.Checkers.Steel.Connections
                     {
                         string id = name + ".Cut" + j++;
                         double eta3 = Math.Abs(cut.V) / vbw;
+                        double axialStress = cut.N / a, bendingStress = Math.Abs(cut.M) / w;
+                        // Numerical comparison only, in MPa. Do not turn cancellation at a
+                        // neutral edge into a tensile zone, or zero normal actions into compression.
+                        double stressTolerance = 1e-12 * Math.Max(plate.Fy, Math.Max(Math.Abs(axialStress), bendingStress));
+                        bool noTensileFibre = axialStress < -stressTolerance && axialStress + bendingStress <= stressTolerance;
+                        Value(id + ".ShearRatio", eta3, "1");
+                        Value(id + ".MaximumGrossNormalStress", axialStress + bendingStress, "MPa");
+                        Value(id + ".NormalStressComparisonTolerance", stressTolerance, "MPa");
+                        Value(id + ".CompressedWithoutTensileFibre", noTensileFibre ? 1 : 0, "1");
                         Check(id + ".ShearBuckling", Math.Abs(cut.V), vbw,
                             "EN1993-1-5:2006 5.2(1),5.3, Table5.1 non-rigid end post, eta=1, chi_w<=1/lambda_w^2; whole-width panel, k_tau=5.34", "N");
                         if (!(eta3 > .5)) continue; // 7.1(1): no reduction of the normal resistance
-                        // 7.1(5) refers a wholly compressed plate to the reduced stress method of section10.
-                        if (cut.N / a + Math.Abs(cut.M) / w < 0)
+                        // 7.1(4) refers wholly compressed webs to 7.1(5), including subpanel
+                        // shear checks. Section10 is an alternative, not a mandatory referral.
+                        // Neither route currently qualifies this discrete-fastener cover model.
+                        if (noTensileFibre)
                         {
-                            if (reduced || chiW < 1) issues.Add(name + ".HIGH_SHEAR_WHOLE_PLATE_COMPRESSED_REQUIRES_EN1993_1_5_SECTION10");
+                            if (reduced || chiW < 1)
+                            {
+                                issues.Add(name + ".HIGH_SHEAR_COMPRESSED_COVER_PANEL_AND_SUBPANELS_NOT_QUALIFIED");
+                                // Retained diagnostic identifier for existing consumers; its section10
+                                // wording is historical, not the literal requirement of 7.1(5).
+                                issues.Add(name + ".HIGH_SHEAR_WHOLE_PLATE_COMPRESSED_REQUIRES_EN1993_1_5_SECTION10");
+                            }
                             continue;
                         }
                         // eta1 from the effective elastic section (4.6) bounds the 7.1 ratio M/MN,Rd; Mf,Rd=0.
@@ -209,7 +226,7 @@ namespace GPC.Checkers.Steel.Connections
                 "Steel.Connection.WeldedIBeamSplice.EffectiveCompression",
                 "Effective outstand/internal widths and inter-fastener compression of normal-hole bolted covers. "
                 + (allowLowShear ? "Locally class4 compression admits shear <= half a conservative resistance on the effective net area, only with whole-width shear-buckling exclusion (EN1993-1-5 7.1(1)). "
-                    : mode == ShearMode.ShearBuckling ? "Concomitant shear of any magnitude is verified with the EN1993-1-5 section5 resistance of the whole-width panel and, above half of it, the 7.1 interaction; a wholly compressed cut at high shear needs section10 and is unsupported. "
+                    : mode == ShearMode.ShearBuckling ? "Concomitant shear is verified with the EN1993-1-5 section5 resistance of the whole-width panel and, above half of it, the 7.1 interaction. Wholly compressed class4/buckling-reduced covers at high shear remain unsupported: the panel and subpanel model required by 7.1(4)-(5), or the alternative section10 model, is not qualified. "
                     : "Locally class4 compression is admitted only at exactly zero shear in every cut. ")
                 + "The separate shear-buckling screen, detailing, bolts, blocks and parent checks remain mandatory.",
                 checks, trace, issues.Distinct(), Assumptions(mode == ShearMode.ShearBuckling), reported);
@@ -235,7 +252,7 @@ namespace GPC.Checkers.Steel.Connections
             "EffectiveCompressionWithShearBuckling: each sheared cover is one EN1993-1-5 section5 panel of depth hw=b and thickness t, restrained by its outer fastener rows (at least two, Table3.3 gaps); interior fasteners are not credited as stiffeners, so k_tau=5.34. "
             + "The cover ends are free edges (non-rigid end post, Table5.1) and there are no flanges (Vbf,Rd=0). eta=1. The elastic group bolt forces provide no tension-field anchorage: chi_w is also limited to 1/lambda_w^2 (tau_cr).",
             "Every cut checks |V|<=Vbw,Rd. Above eta3=0.5 the 7.1(1) interaction eta1+(2 eta3-1)^2<=1 is checked with Mf,Rd=0 and eta1 from the effective elastic section, an upper bound of M/MN,Rd. "
-            + "A cut without any tensile fibre at eta3>0.5 is referred by 7.1(5) to section10 and remains unsupported for class4 or buckling-reduced covers. Under NTC2018 the same EN1993-1-5 route is applied as the library's declared supplementary method, with NTC factors (eta=1 of NTC 4.2.4.1.2.4 eq4.2.27, which sends webs beyond 72eps/eta to 4.2.4.1.3.4; 4.2.4.1.3.4 refers class4 plate buckling to documents of proven validity; Circolare2019 C4.2.4.1.3.4 cites UNI EN1993-1-5)." }).ToArray();
+            + "EN1993-1-5 7.1(4) refers wholly compressed webs to 7.1(5), including subpanel shear checks. Section10 is an alternative, not a mandatory referral. The discrete-fastener model of class4 or buckling-reduced compressed covers at eta3>0.5 is not qualified for either route. The older SECTION10 diagnostic identifier is retained for compatibility only. Under NTC2018 the same EN1993-1-5 route is applied as the library's declared supplementary method, retaining NTC factors (eta=1 of NTC2018 4.2.4.1.2.4 eq4.2.27; class4 references: 4.2.4.1.1, 4.2.4.1.3.4 and Circolare2019 C4.2.4.1.3.4)." }).ToArray();
         private readonly struct Band
         {
             internal double Start { get; } internal double End { get; }

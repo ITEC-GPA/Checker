@@ -1,0 +1,77 @@
+COPRIGIUNTO CLASSE4 INTERAMENTE COMPRESSO CON TAGLIO - FASE3
+5 novembre2026. Stato: PARZIALE; nessuna nuova qualifica del nodo.
+
+RETTIFICA NORMATIVA
+Il testo EN1993-1-5:2006+AC2009, 7.1(4)-(5), pp28-29/PDF30-31, letto
+visivamente, NON impone la sezione10 per l'anima interamente compressa:
+7.1(4) rinvia a7.1(5). Questo prescrive l'interazione con Mf,Rd=0, eta1
+secondo4.6(1), taglio medio almeno pari alla meta' del massimo e controllo
+aggiuntivo dei sottopannelli. La sezione10, pp36-37/PDF38-39, e' alternativa.
+Fonte: https://www.phd.eng.br/wp-content/uploads/2015/12/en.1993.1.5.2006.pdf
+Corrette descrizioni correnti, catalogo, Scope/Assumptions e commenti del codice.
+Il codice storico HIGH_SHEAR_WHOLE_PLATE_COMPRESSED_REQUIRES_EN1993_1_5_SECTION10
+e' conservato per compatibilita', insieme alla diagnostica esplicita
+HIGH_SHEAR_COMPRESSED_COVER_PANEL_AND_SUBPANELS_NOT_QUALIFIED.
+
+RISCONTRO INDIPENDENTE
+JRC/ECCS EUR22898EN (2007), cap10 pp123-124 e esempio16, 16.3.2/16.4,
+pp189-191 (PDF203-205), letti visivamente. Nell'esempio la piastra irrigidita
+compressa e' verificata con7.1(5): eta1=0.709, eta3=0.544, utilizzo0.717;
+seguono i sottopannelli. Non e' un coprigiunto con bulloni discreti.
+Due benchmark aggiunti al nucleo comune Ec3WebPanelShear: b=450/300mm,
+t=12mm, a=4000mm, S355, E=210000MPa, gammaM1=1.1, eta=1.2;
+k_tau=5.391/5.363, lambda=0.531/0.355, tauRd=223.6MPa.
+Tolleranze riferite agli arrotondamenti della pubblicazione; nessun coefficiente
+UK trasferito automaticamente al percorso NTC dei coprigiunti (che usa eta=1).
+Fonte: https://eurocodes.jrc.ec.europa.eu/sites/default/files/2021-12/EUR22898EN.pdf
+
+QUALIFICA FISICA ANCORA MANCANTE
+La tipologia attuale ha otto coprigiunti, piastre piane, file discrete,
+sbordi e tratto libero tra testate. La compressione e' trattata per strisce,
+il taglio per larghezza intera. Il passo conforme alla Tabella3.3 non e'
+una prova di appoggio continuo o di contatto bilaterale.
+Alternative esaminate:
+- Lastra su bordi continui: modello analitico disponibile, ma quei vincoli
+  non coincidono con quelli del coprigiunto bullonato.
+- Bulloni come punti e contatto unilaterale col genitore: occorrono rigidezza,
+  distacco, imperfezione e resistenza delle reazioni stabilizzanti; l'attuale
+  ingresso non li descrive. Il precarico non dimostra da solo tale vincolo.
+- Criterio7.1(5): percorso normativo preferibile da approfondire, ma richiede
+  un modello di taglio dei sottopannelli e degli sbordi compatibile col dettaglio.
+- Sezione10: richiede critici dello stesso pannello e vincoli; non e' lecito
+  combinare critici di strisce compresse e lastra intera non equivalenti.
+Non e' stato trovato nelle fonti consultate un benchmark applicabile alla
+combinazione richiesta con questi vincoli discreti. Nessun FEM introdotto,
+nessun alpha_cr esterno generico o flag 'vincolo verificato' per aggirarla.
+SCI P356, 8.4.3 pp93-95, riscontra il percorso delle forze del giunto di ponte,
+ma non fornisce la qualifica combinata del presente dettaglio di classe4.
+https://steelconstruction.info/images/c/c8/SCI_P356.pdf
+Contesto costruttivo storico, non nuova regola normativa:
+https://fgg-web.fgg.uni-lj.si/~/pmoze/ESDEP/master/wg11/l0800.htm
+https://fgg-web.fgg.uni-lj.si/~/pmoze/ESDEP/master/wg15b/l1100.htm
+
+CORREZIONE NUMERICA E PROVE
+Il confronto N/A+|M|/W<0 ammetteva una zona tesa creata dal solo roundoff.
+Ora una fibra neutra e' inclusa nel limite compresso entro1e-12 volte il
+massimo fra fy, |N/A| e |M/W|, in MPa; una compressione significativa deve
+essere presente. Il taglio puro non diventa una compressione fittizia.
+Traccia per taglio: ShearRatio, MaximumGrossNormalStress,
+NormalStressComparisonTolerance, CompressedWithoutTensileFibre.
+Oracolo statico: nella zona interna fra le colonne dei bulloni,
+Ncover=N*Aw/(2*A), Vcover=V/2, |Mcover(x)|=|V*x|/2.
+Nuove prove:20 casi di bordo/dominio EC3 eNTC, inclusi limite neutro,
+roundoff, piccola zona tesa reale, taglio puro, eta3 attorno0.5 e tre
+disposizioni di passo/spessore/numero file;2 confronti JRC dei sottopannelli.
+Il confronto di roundoff falliva in2 nuovi casi prima della correzione.
+Nessun atteso storico modificato. Tutti i casi precedenti di rifiuto restano.
+Collaudo mirato:61/61 superati,0 falliti. TRX in
+tmp/steel-consolidation-20261105/phase3-tests/phase3-domain-and-sources-final.trx.
+
+PROSSIMA DECISIONE TECNICA
+3a: analisi dei vincoli e rettifica completate; famiglia fisica non qualificata.
+3b-3c: percorso automatico del nodo ancora aperto. Prima approfondire7.1(5)
+per una famiglia limitata, poi considerare la sezione10 se necessaria.
+3d: benchmark del nucleo e casi limite aggiunti; manca l'oracolo indipendente
+del giunto interamente compresso con taglio, contatto e bulloni discreti.
+Riferimenti e copie persistenti: ../REFERENCE_REGISTER.json, archivio
+ChatGPT/Checker/references/steel. Conservare anche dopo pulizia dei temporanei.

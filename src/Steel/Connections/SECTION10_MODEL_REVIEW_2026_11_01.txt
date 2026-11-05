@@ -1,4 +1,8 @@
 COPRIGIUNTO INTERAMENTE COMPRESSO CON TAGLIO ELEVATO - RISCONTRO
+RETTIFICA5/11: questa nota valuta il solo percorso alternativo sezione10.
+Non dimostra che sia obbligatorio: 7.1(4) rinvia a7.1(5), comprensivo dei
+sottopannelli. Il modello discreto resta non qualificato per entrambi i
+percorsi. Riscontro aggiornato: COMPRESSED_COVER_MODEL_AUDIT_2026_11_05.txt.
 01/11/2026, EN1993-1-5:2006 sezione10, pp36-37 lette visivamente.
 Fonte: https://www.phd.eng.br/wp-content/uploads/2015/12/en.1993.1.5.2006.pdf
 Commento originale JRC/ECCS EUR22898EN, cap.10:

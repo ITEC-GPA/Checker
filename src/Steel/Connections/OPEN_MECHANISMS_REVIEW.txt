@@ -75,7 +75,9 @@ modello della lastra instabile; non si assumono appoggi continui ai bulloni.
 29/10/2026 IMPLEMENTATO: EffectiveCompressionWithShearBuckling, pannello
 EN1993-1-5 sez.5 sull'intera larghezza vincolato dalle file esterne (Tab.3.3),
 montante non rigido, eta=1, nessuna riserva oltre tau_cr, interazione 7.1.
-Rifiutato con codice il taglio con eta3>0.5 senza fibre tese (7.1(5): sezione10).
+Rifiutato il taglio con eta3>0.5 senza fibre tese: pannello/sottopannelli non
+qualificati. Correzione5/11: 7.1(4) rinvia a7.1(5), non alla sezione10;
+quest'ultima e' alternativa. Vedi COMPRESSED_COVER_MODEL_AUDIT_2026_11_05.txt.
 BRIDGE_SPLICE_CLASS4_SHEAR_BUCKLING.txt.
 
 Questi punti non sono bloccati da autorizzazioni, test legacy o indisponibilita
