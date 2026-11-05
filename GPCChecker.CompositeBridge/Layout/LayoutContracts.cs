@@ -5,11 +5,11 @@ using GPC.Model.Core;
 namespace GPC.Checkers.CompositeBridge.Layout;
 
 /// <summary>
-/// The XML of the data contracts of the bridge layout and of the bridge data (lane L12), as <see cref="BridgeWorkflowDefinition"/> and
-/// <see cref="BridgeCompositeSectionDefinition"/> save: the closed vocabulary of GPCModel for its values (points, curves, frames,
-/// properties, sections, materials) and the declared contracts of CompositeBridge for the rest, shared references preserved, DTDs
-/// prohibited, a size limit on reading. GPCModel's own value archives (ModelValueArchive, ModelValues.CopyValue) do not know these
-/// types: they left its vocabulary with the bridge vocabulary.
+/// The XML of the data contracts of the bridge data (lane L12: <see cref="BridgeModelData"/> with the member metadata, and
+/// <see cref="CompositeSectionDefinition"/>), as <see cref="BridgeWorkflowDefinition"/> and <see cref="BridgeCompositeSectionDefinition"/>
+/// save: the closed vocabulary of GPCModel for its values (points, vectors, sections, materials) and the declared contracts of
+/// CompositeBridge for the rest, shared references preserved, DTDs prohibited, a size limit on reading. GPCModel's own value archives
+/// (ModelValueArchive, ModelValues.CopyValue) do not know these types: they left its vocabulary with the bridge vocabulary.
 /// </summary>
 internal static class LayoutContracts
 {

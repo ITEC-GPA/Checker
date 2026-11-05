@@ -34,7 +34,6 @@ internal sealed class BridgeFingerprints : IFingerprintVocabulary
         v.Record(typeof(Layout.BridgeMemberMetadata), "GPC.Checkers.CompositeBridge.Layout.BridgeMemberMetadata",
             Properties("PhysicalId", "Family", "Group", "Segment", "Span", "StationFromMm", "StationToMm").Concat(new FingerprintMember[]{new FingerprintMember("sectionUp")})
             .Concat(Properties("GeometryId")).ToArray());
-        DeclareLayout(v);
         v.Record(typeof(HBridgeInput), "GPC.Checkers.CompositeBridge.HBridgeInput", Properties("BottomRebars", "Box", "Fatigue", "Geometry",
             "Intermediate", "Materials", "Options", "Phases", "Studs", "Support", "TopRebars", "Transverse"));
         v.Record(typeof(BridgeMaterialSet), "GPC.Checkers.CompositeBridge.BridgeMaterialSet", Properties("Concrete", "Rebar", "Steel"));
@@ -63,32 +62,6 @@ internal sealed class BridgeFingerprints : IFingerprintVocabulary
             "DistributedTorque", "Enabled", "SpanLength", "SupportDiaphragmThickness", "SupportTorqueKNm"));
         v.Record(typeof(BridgeFatigueOptions), "GPC.Checkers.CompositeBridge.BridgeFatigueOptions", Properties("DynamicFactor", "Enabled",
             "EquivalenceFactor", "FlangeStressRange", "GammaFf", "GammaMfFlange", "GammaMfStud", "MaximumFlow", "MinimumFlow", "TensileFlange"));
-    }
-
-    /// <summary>The inputs of the bridge generator (F5), moved from GPCModel by lane L12, in the order of their former contracts.</summary>
-    private static void DeclareLayout(FingerprintVocabulary v)
-    {
-        const string ns = "GPC.Checkers.CompositeBridge.Layout.";
-        v.Record(typeof(Layout.BridgeLayoutGeometry), ns + "BridgeLayoutGeometry", new FingerprintMember[]{new FingerprintMember("schema")}.Concat(Properties("Id", "Nodes",
-            "Members", "Supports", "Joints", "Segments", "Frames", "Stations", "Deck", "DeckThickness", "LeftEdge", "RightEdge")).ToArray());
-        v.Record(typeof(Layout.BridgeAxisMember), ns + "BridgeAxisMember", Properties("Guid", "Id", "Family", "Group", "Segment", "Span", "NodeFrom", "NodeTo", "StationFrom", "StationTo"));
-        v.Record(typeof(Layout.BridgeSupportPoint), ns + "BridgeSupportPoint", Properties("Support", "Girder", "Station", "Point"));
-        v.Record(typeof(Layout.BridgeJointPoint), ns + "BridgeJointPoint", Properties("Girder", "Joint", "Station", "Point"));
-        v.Record(typeof(Layout.BridgeDeckMesh), ns + "BridgeDeckMesh", Properties("Vertices", "Faces"));
-        v.Record(typeof(Layout.BridgeSectionRule), ns + "BridgeSectionRule", Properties("Family", "Group", "Segment", "Start", "End", "Property", "ScaleFrom", "ScaleTo"));
-        v.Record(typeof(Layout.BridgeFamilyProperty), ns + "BridgeFamilyProperty", Properties("Family", "Property"));
-        v.Record(typeof(Layout.BridgeDefinition), ns + "BridgeDefinition", new FingerprintMember[]{new FingerprintMember("schema")}.Concat(Properties("Id", "Alignment",
-            "Supports", "Girders", "Deck", "Fabrication", "Diaphragms", "Mesh")).Concat(new[]{FingerprintMember.AutoProperty("AlignmentTable", omitWhenNull: true)}).ToArray());
-        v.Record(typeof(Layout.BridgeAlignmentTable), ns + "BridgeAlignmentTable", Properties("Stations", "Points", "Tangents"));
-        v.Record(typeof(Layout.BridgeSupportLayout), ns + "BridgeSupportLayout", Properties("Stations", "SkewRadians"));
-        v.Record(typeof(Layout.BridgeGirderLayout), ns + "BridgeGirderLayout", Properties("Offsets", "Levels"));
-        v.Record(typeof(Layout.BridgeDeckLayout), ns + "BridgeDeckLayout", Properties("Widths", "Thickness", "SlopeStations", "Slopes", "BeamLevel"));
-        v.Record(typeof(Layout.BridgeMeshSettings), ns + "BridgeMeshSettings", Properties("MaximumLength", "ChordTolerance", "SlabSpacing", "SlabStations"));
-        v.Record(typeof(Layout.BridgeDiaphragmLayout), ns + "BridgeDiaphragmLayout", Properties("MaximumSpacing", "Stations", "AtSupports", "TrussHeight", "PanelsPerBay",
-            "Pattern", "ConnectCrossings", "Truss"));
-        v.Record(typeof(Layout.BridgeSegmentSettings), ns + "BridgeSegmentSettings", Properties("MaximumLength", "Joints"));
-        v.Record(typeof(Layout.BridgeSegmentRange), ns + "BridgeSegmentRange", Properties("Girder", "Segment", "Start", "End"));
-        v.Record(typeof(Layout.BridgeFabricationPlan), ns + "BridgeFabricationPlan", Properties("Length", "GirderCount", "Settings", "Ranges"));
     }
 
     /// <summary>The members of the base stiffener, after those of the derived record.</summary>
