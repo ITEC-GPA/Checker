@@ -5,6 +5,15 @@
   "note": "Complete source PDFs are kept outside Git. Citation-only records are not necessarily downloaded or validated; previews and unverified references are explicitly distinguished. Do not delete these copies with temporary build files.",
   "localDocuments": [
     {
+      "file": "BS_EN_1993-1-6_2007_A1_2017_PREVIEW_3_PAGES.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\BS_EN_1993-1-6_2007_A1_2017_PREVIEW_3_PAGES.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\BS_EN_1993-1-6_2007_A1_2017_PREVIEW_3_PAGES.pdf",
+      "sha256": "4a21ae36f78ce96c7470ee465d18ca2f3b88d3f929cd023b7e9908c2a8c38752",
+      "bytes": 328595,
+      "provenance": "Downloaded 2026-11-05 from img.antpedia.com; exact URL in webReferences",
+      "status": "PREVIEW ONLY: three pages, cover and national foreword. No text of D.1.4.2 or D.40."
+    },
+    {
       "file": "SCI_P356.pdf",
       "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\SCI_P356.pdf",
       "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\SCI_P356.pdf",
@@ -218,7 +227,7 @@
       "sha256": "7e3db9ed942b5ff99d2ac77eaa157246bcfebb3ee32b343afea94b7fd19f1e0b",
       "bytes": 1257549,
       "provenance": "Previously downloaded working reference",
-      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+      "status": "Original paper ce/papers8(2025), no6, pp614-619, DOI10.1002/cepa.70116; TU Eindhoven publisher PDF. p618 eq15 visually checked. Filename download year is not publication year."
     },
     {
       "file": "SX034a-EN-EU.pdf",
@@ -325,6 +334,7 @@
         "src/Steel/CLASS4_AUDIT.txt:3",
         "src/Steel/CLASS4_SECTION_WORKFLOW.txt:51",
         "src/Steel/CLASSIFICATION_REFACTOR_VERIFICATION.json:138",
+        "src/Steel/MEMBER_COMPLETION_2026_11_05.txt:109",
         "src/Steel/WEB_DETAILS_AUTOMATION.txt:55",
         "src/Steel/WEB_PANEL_AND_PATCH_LOADING.txt:64",
         "src/Steel/Connections/BRIDGE_SPLICE_CLASS4_LOW_SHEAR.txt:11",
@@ -382,6 +392,24 @@
       "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
       "citedBy": [
         "src/Steel/COUPLED_MEMBERS_VERIFICATION.txt:97"
+      ]
+    },
+    {
+      "id": "URL-075",
+      "url": "https://img.antpedia.com/standard/files/pdfs_ora/20200926/BS%20EN%201993-1-6-2007%2BA1-2017.pdf",
+      "title": "BS EN1993-1-6:2007+A1:2017 - three-page preview",
+      "editionAndPages": "2017; cover and national foreword only",
+      "status": "Downloaded 2026-11-05; three pages, no D.1.4.2 or D.40. Does not close final-amendment editorial verification. Stored with PREVIEW_3_PAGES suffix.",
+      "citedBy": []
+    },
+    {
+      "id": "URL-076",
+      "url": "https://onlinelibrary.wiley.com/doi/10.1002/cepa.70116",
+      "title": "Snijder, Stroetmann, Balaz: Eurocode3 Technical Report on Elastic Critical Buckling of Members",
+      "editionAndPages": "ce/papers8(2025), no6, pp614-619; p618 eq15, PDF page6",
+      "status": "Original paper archived through TU Eindhoven; p618 visually checked 2026-11-05. Elastic Vlasov equation only; no second-generation resistance rule imported into EC2005/NTC2018.",
+      "citedBy": [
+        "src/Steel/MEMBER_COMPLETION_2026_11_05.txt:113"
       ]
     },
     {
@@ -837,6 +865,7 @@
       "status": "Visually checked 2026-11-05: 7.1(4) refers to 7.1(5), not obligatorily to section10. See compressed-cover model audit.",
       "citedBy": [
         "src/Steel/CLASS4_SECTION_WORKFLOW.txt:52",
+        "src/Steel/MEMBER_COMPLETION_2026_11_05.txt:107",
         "src/Steel/Connections/COMPRESSED_COVER_MODEL_AUDIT_2026_11_05.txt:10",
         "src/Steel/Connections/SECTION10_MODEL_REVIEW_2026_11_01.txt:7"
       ]
@@ -871,10 +900,11 @@
     {
       "id": "URL-053",
       "url": "https://www.steelconstruction.info/images/0/0f/SN003b.pdf",
-      "title": "",
-      "editionAndPages": "",
-      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "title": "Access Steel SN003b-EN-EU, Elastic critical moment for lateral torsional buckling",
+      "editionAndPages": "pp2-5, sections2/3.1",
+      "status": "Restraint conventions visually checked 2026-11-05. Used for full-span fork Mcr lower bound; no claim of exact eigenvalue with additional restraints.",
       "citedBy": [
+        "src/Steel/MEMBER_COMPLETION_2026_11_05.txt:111",
         "src/Steel/MEMBER_SCHEME_PREPARATION.txt:127"
       ]
     },

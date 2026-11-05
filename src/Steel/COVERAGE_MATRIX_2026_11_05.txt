@@ -20,14 +20,14 @@ SteelMemberAnalysis -> SteelMethodSelector -> SteelVerificationPipeline.
 FEM: SteelPipelineMaterialChecker / SteelMemberPipelineChecker.
 
 Famiglia | Campo qualificato | Evidenza indipendente e test | Limiti residui
-H/I | N-M e taglio nel dominio del metodo; sezione efficace; compressione/LTB/trave-colonna doppia simmetria | P SCI/Caffe: PublishedBucklingBenchmarks, CaffeReferenceTests; A CommonSectionCoverageTests, CommonShearCoverageTests, EffectiveSectionSolverTests | alto taglio classe4 solo puro M1-V2 nel percorso esistente; due tagli alti e trave-colonna classe4 ad alto taglio non qualificati
+H/I | N-M e taglio nel dominio del metodo; efficace; compressione/LTB/trave-colonna doppia simmetria; superposizione di due tagli classi1-3; H classe4 N-M1-V2 con anima continua qualificata | P SCI/Caffe/JRC: PublishedBucklingBenchmarks, CaffeReferenceTests, Class4WebNormalInteractionTests; A CommonSectionCoverageTests, CommonShearCoverageTests, EffectiveSectionSolverTests, BeamColumnShearSuperpositionTests, RestrainedMemberPreparationTests | nuovo percorso classe4 limitato alla doppia simmetria e a un piano; non qualifica automaticamente piastre bullonate, carichi concentrati o irrigidimenti longitudinali
 C | N-M elastico; sezione efficace; Ncr/T/FT e LTB nei rispettivi schemi; metodo generale esterno | P SCI P363/Caffe A1.1: SciSectionReferenceTests, CaffeReferenceTests; A FamilyBucklingReferenceTests | punta raccordata non rimossa dal kernel efficace; N-M d'asta tramite dati esterni qualificati, non AnnexB automatico
 T | N-M elastico; efficace; modi critici qualificati e metodo generale esterno | P SCI P363: SciSectionReferenceTests; A FamilyBucklingReferenceTests, TeeTorsionReferenceTests | nessun percorso automatico generale per tutti i vincoli o per pressoflessione con alto taglio
 L uguali | N-M su assi principali; efficace; metodo generale esterno | P SCI P363 per geometria; A FamilyBucklingReferenceTests, EffectiveSectionSolverTests | connessione di un solo lato ed eccentricita' non si deducono dalla sola resistenza della sezione
 L disuguali | N-M elastico/effectivo nel dominio geometrico; coppie con lato collegato esplicito | A CodeVerificationTests, EffectiveSectionSolverTests, PackedChordResistanceTests | nessun LTB/metodo generale monosimmetrico automatico per l'asta isolata asimmetrica; spessori diversi richiedono classificazione esterna
-RHS/SHS | N-M; efficace; compressione/LTB/N-M doppiamente simmetrici; filtro taglio sulle pareti | A CodeVerificationTests, EffectiveSectionSolverTests, HollowBeamColumnTests; P dati SCI in SciSectionReferenceTests | due tagli alti e alto taglio classe4 d'asta non qualificati; assi ruotati richiedono qualifiche esplicite
+RHS/SHS | N-M; efficace; compressione/LTB/N-M doppiamente simmetrici; filtro taglio sulle pareti; superposizione dei due tagli classi1-3 | A CodeVerificationTests, EffectiveSectionSolverTests, HollowBeamColumnTests, BeamColumnShearSuperpositionTests; P dati SCI in SciSectionReferenceTests | alto taglio classe4 d'asta non qualificato; assi ruotati richiedono qualifiche esplicite
 RHS raccordati | N-M elastico conservativo; efficace con raggi uniformi concentrici; asta come cave nel dominio | A CodeVerificationTests, EffectiveGeometryTests, HollowBeamColumnTests | nessun riuso della geometria a spigoli vivi senza controllo di raggi/assi
-CHS | N-M; compressione/LTB/N-M nel campo del selettore; filtro D.40 dichiarato | P SCI P363; A ChsShearBucklingTests, HollowBeamColumnTests | gusci classe4 esclusi; D.40 riferita a2007+AC2009, A1:2017 non riscontrato sul testo finale
+CHS | N-M; compressione/LTB/N-M nel campo del selettore; filtro D.40 dichiarato; superposizione dei due tagli classi1-3 | P SCI P363; A ChsShearBucklingTests, HollowBeamColumnTests, BeamColumnShearSuperpositionTests | gusci classe4 esclusi; D.40 riferita a2007+AC2009, A1:2017 non riscontrato sul testo finale
 2C/2L identici | resistenza e assi della coppia; efficace di sezione; compressione con imbotiture qualificate | A PackedChordResistanceTests, EffectivePairTests, PackedPairCompressionTests, BuiltUpColumnReferenceTests | no profili diversi, calastrelli/tralicci, compressione globale classe4 o pressoflessione generica della coppia
 Rettangolo/circolo pieni | N-M elastico conservativo, resistenze scalari nel campo EC/NTC selezionato | A CodeVerificationTests, CommonSectionCoverageTests; FamilyBucklingReferenceTests solo NTC per i pieni | no attribuzione di curva EC3 automatica dove non qualificata; torsione fuori dal selettore comune
 
@@ -37,6 +37,11 @@ aperti formati a freddo non sono qualificati dal solo input geometrico.
 Le classi sono quelle delle azioni effettive quando il metodo le supporta.
 Le azioni trascurabili, l'inviluppo di N variabile e l'alto taglio conservativo
 sono politiche esplicite, non sostituti delle azioni concomitanti di sezione.
+Estensioni5/11 e loro fonti/ipotesi: MEMBER_COMPLETION_2026_11_05.txt.
+FEM: ModelChecker.Tests/SteelCombinedShearWorkflowTest,
+SteelClass4WebWorkflowTest e SteelGenericShearWorkflowTest; quest'ultimo
+copre entrambi i codici, elementi invertiti e due casi distinti, con archivio
+e invalidazione dopo modifica delle azioni.
 
 CONNESSIONI - TUTTI I25 ID DEL CATALOGO CORRENTE
 Per API consigliata, requisiti esterni e meccanismi mancanti interrogare

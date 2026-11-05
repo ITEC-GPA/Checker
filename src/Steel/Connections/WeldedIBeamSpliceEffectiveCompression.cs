@@ -215,7 +215,7 @@ namespace GPC.Checkers.Steel.Connections
                         double ce = Math.Max(Math.Abs(lo - effective.Centroid), Math.Abs(hi - effective.Centroid));
                         double eta1 = (Math.Abs(cut.N) / effective.Area + Math.Abs(cut.M + effective.Centroid * cut.N) * ce / effective.Inertia)
                             / (plate.Fy / code.Plates.GammaM0);
-                        Check(id + ".ShearNormalInteraction", eta1 + Math.Pow(2 * eta3 - 1, 2), 1,
+                        Check(id + ".ShearNormalInteraction", Ec3WebPanelShear.ConservativeNormalInteraction(eta1,eta3), 1,
                             "EN1993-1-5:2006 7.1(1),(5) with Mf,Rd=0; eta1 of the effective elastic section (4.6), conservative for MN,Rd", "1");
                     }
                 }

@@ -15,6 +15,15 @@ Esito del blocco1-2-3 e collaudo completo: CONSOLIDATION_RESULT_2026_11_05.txt
 (contratto del catalogo approvato e verificato; fase3 ancora parziale).
 Collaudo integrato su27c06b09:10513 superati,0 falliti,1 timing non eseguito;
 API compatibili. Prosecuzione autorizzata: completamento dei punti1-4.
+Estensione aste5/11: MEMBER_COMPLETION_2026_11_05.txt. Due tagli concomitanti
+su H/RHS/CHS classi1-3; interazione efficace e d'asta H classe4 N-M1-V2;
+tre vincoli ideali di ingobbamento per NcrT e limite inferiore Mcr della
+campata trattenuta; flusso FEM generico collaudato sui nuovi percorsi.
+Metodi espliciti, non attivati automaticamente dai vecchi contratti.
+Restano fuori RHS/asimmetriche e doppio taglio/flessione minore classe4;
+il coprigiunto interamente compresso ad alto taglio resta non qualificato.
+I risultati completi sopra precedono queste estensioni; il nuovo collaudo
+completo e' registrato nel rapporto MEMBER_COMPLETION al suo termine.
 Fonti persistenti per il successivo download: REFERENCE_REGISTER.json;
 copie fuori Git in ChatGPT/Checker/references/steel/documents (non temporanee).
 Ultimo blocco verificato e limiti ancora aperti: CLOSURE_2026_11_02.txt
@@ -50,6 +59,14 @@ Sezioni e aste:
   SteelMemberPipelineChecker, con combinazioni e aste fisiche del modello.
   Riferimenti: COMMON_INPUT.txt, METHOD_SELECTION.txt,
   VERIFICATION_PIPELINE.txt, MEMBER_ANALYSIS_PIPELINE.txt, COVERAGE_CLASS4.txt.
+  Estensioni5/11: WithConservativeShearSuperposition per l'asta classi1-3;
+  WithConservativeInPlaneNormalInteraction sulla resistenza d'anima H
+  calcolata e WithConservativeClass4WebInteraction sui parametri d'asta.
+  ModelChecker: HighShearMethod=ConservativeShearSuperposition oppure
+  ConservativeClass4WebInteraction; sezione HWebNormalInteraction=
+  ConservativeInPlane. Il caso classe4 richiede le evidenze del supporto.
+  NcrT/Mcr: SteelMemberSchemePreparation.TorsionalMode e
+  EndRestrainedBendingLowerBound; condizioni reali esplicite, senza FEM locale.
 
 Stato reale del taglio (28 ottobre 2026):
   Azioni trascurabili: SteelDesignContext.NegligibleActions. Una componente

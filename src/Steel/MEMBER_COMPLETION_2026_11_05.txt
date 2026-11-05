@@ -37,6 +37,88 @@ Prima esecuzione:221/221 test Steel mirati,0 fallimenti.
 Fonti gia' archiviate: EN1993-1-1-2005.pdf, NTC2018.pdf, Circolare2019.pdf;
 registro persistente REFERENCE_REGISTER.json. Nessun atteso storico modificato.
 
-4b CLASSE4 + ALTO TAGLIO - in sviluppo, non qualificato da4a.
-4c NUOVI SCHEMI Ncr/Mcr - in sviluppo.
-4d FLUSSO FEM - estensione del percorso esistente, in verifica.
+ModelChecker:54/54 nel collaudo4a, con inviluppo dello stesso caso e
+conservazione delle azioni concomitanti originali di ogni taglio.
+
+4b CLASSE4 + ALTO TAGLIO - implementato per H doppiamente simmetriche
+Famiglia: anima non irrigidita longitudinalmente, bordi continui collegati
+alle ali, N-M1-V2, nessun carico trasversale concentrato o torsione applicata.
+L'anima intera e' anche l'unico sottopannello longitudinale. Il taglio medio
+e' almeno meta' del massimo della distribuzione ordinaria di trave (limite
+massimo/medio1.5); non e' un'ipotesi per introduzioni concentrate di forze.
+EN1993-1-5:2006+AC2009,7.1(4)-(5),pp28-29, riletta visivamente il5/11.
+WithConservativeInPlaneNormalInteraction() abilita l'estensione sulla
+resistenza CALCOLATA della stessa anima; una dichiarazione generica di
+esclusione dell'instabilita' non e' sufficiente. Valgono i supporti verificati
+nel dettaglio o le evidenze esterne gia' richieste dal relativo ingresso.
+Sezione: eta1+(2eta3-1)^2<=1 per eta3>0.5, eta1 dalla sezione efficace
+concomitante (4.6), MfRd=0. Anche anima interamente compressa, con verifica
+separata eta3<=1; normali, eccentricita' efficaci e fallimenti conservati.
+Asta: WithConservativeClass4WebInteraction() usa q=1-|V2|/VbwRd su tutte
+le resistenze normali, piu' severo della penalita'7.1 nell'intervallo0..1.
+Aeff/Weff sono quelli a fy originale, chi originali e k superiormente
+limitati; Ncr/Mcr rimangono elastici sulle proprieta' lorde. Sezioni dei
+tagli FEM da verificare separatamente con lo stesso modello7.1.
+Fattori NTC mantenuti e gammaM1 del pannello coerente con quello dell'asta.
+ModelChecker: HWebNormalInteraction=ConservativeInPlane per la sezione;
+HighShearMethod=ConservativeClass4WebInteraction e HWebSupportSource per l'asta.
+Nucleo comune Ec3WebPanelShear.ConservativeNormalInteraction riusato anche
+da CompositeBridge.BridgeBendingShear.ElasticInteraction. Nessuna modifica
+del modello fisico dei coprigiunti: i bulloni discreti non sono questi bordi.
+Prove: JRC/ECCS EUR22898EN esempio16,pp189-190, .709+.088^2=.716744
+(pubblicato .717); integrazione indipendente Aeff di H840x300x6x20;
+chi e Ncr da dati elastici, limiti0.5/1, compressione, segni, N-M-V,
+evidenze mancanti e input differenti.261/261 Steel,88/88 ModelChecker.
+Restano fuori dal nuovo percorso RHS, profili aperti asimmetrici, due
+tagli e flessione minore in classe4: non sono promossi a copertura implicita.
+
+4c NUOVI SCHEMI Ncr/Mcr - implementato a livello libreria
+SteelMemberSchemePreparation.TorsionalMode: H doppiamente simmetrica,
+torsione impedita alle estremita', ingobbamento libero/libero, fisso/libero
+o fisso/fisso. Problema di Vlasov EIomega theta''''+(N i0^2-GIt)theta''=0:
+fattori di lunghezza1,pi/4.493409457909064 e0.5 rispettivamente.
+Fonte elastica: Snijder/Balaz/Stroetmann,ce/papers8(2025),p618,eq15;
+le condizioni al contorno sono esplicitate e verificate mediante quoziente
+di Rayleigh integrato indipendentemente sulle autofunzioni. Le proprieta'
+It/Iw sono dati di Model (dichiarati approssimati), non geometrie reinventate.
+EndRestrainedBendingLowerBound: estremita' con traslazioni laterali e
+torsione esplicitamente impedite; rilascia le altre rotazioni e l'ingobbamento
+e usa Mcr della forcella a momento uniforme massimo. Carico nel centro di
+taglio, nessun effetto destabilizzante di quota omesso. E' un LIMITE INFERIORE,
+non l'autovalore esatto del sistema piu' vincolato: flag/traccia/riferimento
+e base UniformMoment lo dichiarano, con binding allo stesso input.
+Fonte: SN003b-EN-EU,pp2-5, sezioni2/3.1. I valori critici esterni restano
+disponibili per vincoli diversi, molle, sistemi accoppiati o geometrie diverse.
+Prove schemi/nuovi vincoli/interazione classe4:77/77.
+
+4d FLUSSO FEM - implementato e collaudato
+Percorsi4a/4b collegati ai motori correnti e ai report. Otto nuovi scenari
+EC/NTC, classe4/superposizione, elementi diretti/invertiti; diagramma
+parabolico M1 con V2 lineare, M2 lineare con V1 costante. Estremi e mezzeria
+realmente esportati comprendono gli estremi analitici di ciascun caso.
+ULS-A e ULS-B separati: nessuno scambio di tagli o resistenze fra casi.
+Cm=1 sul diagramma generico; riduzione dei normali verificata a mano;
+salvataggio/lettura del report e invalidazione dopo modifica di V2.
+36/36 con i precedenti test dei diagrammi. Nessuna interpolazione dei
+massimi mancanti o somma fra casi diversi.
+
+FONTI DEL NUOVO BLOCCO (copie persistenti, con SHA256 nel registro)
+EN1993-1-5:2006+AC2009,7.1(4)-(5),pp28-29:
+https://www.phd.eng.br/wp-content/uploads/2015/12/en.1993.1.5.2006.pdf
+JRC/ECCS EUR22898EN, esempio16,pp189-191:
+https://eurocodes.jrc.ec.europa.eu/sites/default/files/2021-12/EUR22898EN.pdf
+SN003b-EN-EU,pp2-5, sezioni2/3.1:
+https://www.steelconstruction.info/images/0/0f/SN003b.pdf
+Snijder/Balaz/Stroetmann,ce/papers8(2025),p618,eq15:
+https://onlinelibrary.wiley.com/doi/10.1002/cepa.70116
+Quest'ultima fonte documenta l'equazione elastica di Vlasov; non trasferisce
+regole di resistenza della seconda generazione al profilo EC3:2005/NTC2018.
+
+LIMITI DI CHIUSURA
+4a,4c,4d implementati nei campi sopra dichiarati.4b implementato per H
+N-M1-V2; non chiude gli altri sottocasi di classe4 indicati sopra.
+Il punto3 resta parziale: il nucleo aritmetico7.1 e' ora comune a Steel,
+CompositeBridge e coprigiunti gia' qualificati; questo riuso non aggiunge
+i vincoli fisici mancanti del coprigiunto interamente compresso.
+Il collaudo completo successivo ai commit funzionali/versioni sara'
+registrato in questo rapporto dopo la sua effettiva esecuzione.

@@ -75,3 +75,10 @@ per una famiglia limitata, poi considerare la sezione10 se necessaria.
 del giunto interamente compresso con taglio, contatto e bulloni discreti.
 Riferimenti e copie persistenti: ../REFERENCE_REGISTER.json, archivio
 ChatGPT/Checker/references/steel. Conservare anche dopo pulizia dei temporanei.
+
+RIUSO ARITMETICO NEL PUNTO4
+Ec3WebPanelShear.ConservativeNormalInteraction centralizza eta1 e eta3
+per il ramo gia' qualificato dei coprigiunti, per l'anima H continua e per
+CompositeBridge.BridgeBendingShear.ElasticInteraction. La condivisione
+della formula non condivide l'applicabilita': il rifiuto dei coprigiunti
+interamente compressi sopra0.5 VbwRd e' mantenuto con gli stessi controlli.
