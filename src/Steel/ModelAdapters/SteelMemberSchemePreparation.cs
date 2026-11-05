@@ -169,9 +169,10 @@ namespace GPC.Checkers.Steel.ModelAdapters
         public SteelStabilityValue ActualDiagram { get; }
         public SteelStabilityValue UniformMoment { get; }
         public IReadOnlyList<SectionResistanceValue> Trace { get; }
+        public bool IsConservativeLowerBound { get; }
         internal SteelPreparedCriticalMoment(SteelSectionInput section, SteelMemberInput member, SteelForkMomentDiagram diagram,
-            SteelStabilityValue actual, SteelStabilityValue uniform, IEnumerable<SectionResistanceValue> trace)
-        { Section = section; Member = member; Diagram = diagram; ActualDiagram = actual; UniformMoment = uniform; Trace = Array.AsReadOnly(trace.ToArray()); }
+            SteelStabilityValue actual, SteelStabilityValue uniform, IEnumerable<SectionResistanceValue> trace,bool conservativeLowerBound=false)
+        { Section = section; Member = member; Diagram = diagram; ActualDiagram = actual; UniformMoment = uniform; Trace = Array.AsReadOnly(trace.ToArray()); IsConservativeLowerBound=conservativeLowerBound; }
 
         /// <summary>The NTC conservative LTB path requires uniform Mcr. A nonzero load
         /// height cannot be discarded to manufacture that basis; use a separately
@@ -197,12 +198,12 @@ namespace GPC.Checkers.Steel.ModelAdapters
                 throw new ArgumentException("Pure major-axis member maximum from this diagram is required; actual section/shear cuts are separate.");
             bool ntc = input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018;
             return SteelMemberAnalysis.Bending(input, Diagram.Source, parameterSet,
-                ntc || Diagram.Shape == SteelForkMomentShape.GenericEnvelope ? SteelCriticalMomentBasis.UniformMoment : SteelCriticalMomentBasis.ActualMomentDiagram,
+                ntc || IsConservativeLowerBound || Diagram.Shape == SteelForkMomentShape.GenericEnvelope ? SteelCriticalMomentBasis.UniformMoment : SteelCriticalMomentBasis.ActualMomentDiagram,
                 ForCode(input.Code.SectionCode.Standard), memberClass, classificationSource);
         }
     }
 
-    public static class SteelMemberSchemePreparation
+    public static partial class SteelMemberSchemePreparation
     {
         public static IReadOnlyList<SteelStabilityValue> FlexuralModes(SteelSectionInput section,
             SteelIdealFlexuralSpan aboutAxis1, SteelIdealFlexuralSpan aboutAxis2)
