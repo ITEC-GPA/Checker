@@ -1,0 +1,102 @@
+STEEL - PIANO ORDINATO DI CONSOLIDAMENTO E COMPLETAMENTO
+5 novembre2026. Piano approvato in chat; un solo agente, nessuna ANTHEA.
+EC3 prima generazione e NTC2018, statica ordinaria, metodi analitici per
+tipologie normali. Unita' degli ingressi: N, mm, MPa, Nmm; convenzioni di
+segno e assi dichiarate nei singoli contratti. Nessun FEM locale, fatica
+o progetto sismico esteso in questo ciclo.
+
+0. BASE COERENTE - completata, monitoraggio attivo
+0a Integrare i branch attivi sul branch dedicato: completato, vedi
+   INTEGRATION_2026_11_05.txt. Conservare storia e checkout degli altri.
+0b Tutte le suite Checker sul risultato unito:10415 superati,0 falliti,
+  1 test di timing gia' escluso; API compatibili. Model5.50 isolato.
+0c Controllare ogni2 ore e prima dei commit conclusivi le nuove divergenze.
+   Duplicazioni silenziose delle versioni risolte e guardia di build aggiunta.
+
+1. CONSOLIDARE I CALCOLI ESISTENTI - da completare
+1a Matrice per famiglie di sezioni/aste e nodi: ingresso consigliato,
+   metodo, edizione, combinazioni ammesse, ipotesi/vincoli, fonte
+   indipendente, test disponibili e sottocasi non qualificati.
+1b Riscontri editoriali CHS e tubolari: distinguere regola normativa,
+   interpretazione cautelativa e ipotesi fisica; registrare testo, pagina
+   e calcolo riproducibile. Non assumere verificato A1:2017 da una bozza.
+1c Correggere discrepanze riprodotte con regressioni e casi limite;
+   nessuna rigenerazione di fixture storiche senza autorizzazione.
+1d Aggiornare indice CURRENT e stato reale delle coperture. Una matrice
+   descrittiva da sola non qualifica i meccanismi ancora mancanti.
+
+2. CHIUDERE IL FLUSSO MODEL -> CHECKER -> REPORT - da completare
+2a Casi completi minimi per sezioni, aste FEM e connessioni standard.
+2b Verificare assi locali, segni e inversione degli elementi; le azioni
+   concomitanti appartengono allo stesso caso, non a inviluppi separati.
+2c Verificare identita' geometrica/materiale, binding dei risultati,
+   invalidazione dei dati superati e conservazione dei fallimenti noti.
+2d Riutilizzare ingressi, preparazioni e proiezioni esistenti; un solo
+   percorso documentato per ogni uso, senza nuovi strati non necessari.
+   Esiti distinguono Failed, requisiti mancanti, fuori campo e Passed.
+
+3. COPRIGIUNTO CLASSE4 INTERAMENTE COMPRESSO CON TAGLIO - da qualificare
+3a Definire una tipologia limitata con pannello, contatti, passo, sbalzi,
+   tratto libero e vincoli reali. I bulloni non sono appoggi continui.
+3b Ricavare i valori critici combinati per lo STESSO pannello e vincoli;
+   non combinare la striscia compressa con la lastra intera a taglio.
+3c Applicare EN1993-1-5 sezione10 con i controlli gia' disponibili di
+   bulloni, sezioni nette, blocchi, genitori e trasferimenti.
+3d Benchmark indipendenti: compressione, taglio, interazione, variazione
+   di passo/sbalzi e limiti. Nessun ampliamento del campo senza prova.
+   Prerequisito: SECTION10_MODEL_REVIEW_2026_11_01.txt in Connections.
+
+4. COMPLETARE I SOTTOCASI D'ASTA - da qualificare
+4a Due tagli attivi nelle classi1-3: resistenze concomitanti e riduzioni
+   cautelative motivate, senza attribuire due volte la stessa area.
+4b Classe4 con alto taglio: compatibilita' fra sezione efficace,
+   interazione di lastra e instabilita' dell'asta, campo esplicito.
+4c Altri schemi analitici di Ncr/Mcr solo con vincoli e carichi coerenti;
+   mantenere l'ingresso di valori esterni qualificati per gli altri schemi.
+4d Verifiche FEM con andamento generico dei momenti, assi e casi reali,
+   collegate allo stesso modello fisico delle resistenze di sezione.
+
+5. TRANSIZIONI FRA SEZIONI - da qualificare
+5a Prima larghezze diverse, con distribuzione ed eccentricita' esplicite.
+5b Poi altezze diverse e offset nel piano: percorso delle forze e coppie
+   aggiuntive, controllo dei genitori e dei componenti del giunto.
+5c Classe4/alto taglio solo dopo qualifica della famiglia specifica.
+   Il campo attuale con facce comuni e compensatori paralleli resta
+   distinto dalle transizioni nuove. Nessuna interpolazione geometrica
+   considerata automaticamente prova del trasferimento resistente.
+
+6. TERMINALE CON C SINGOLA ECCENTRICA - da qualificare
+6a Equilibrio fuori piano della C collegata d'anima con fazzoletto.
+6b Contatto, flessione, eventuale prying e forze effettive nei bulloni;
+   includere il supporto fino alla frontiera dichiarata.
+6c Benchmarks e sensibilita' a eccentricita'/rigidezza. Il modello2C
+   simmetrico non prova questo sottocaso e rimane una tipologia distinta.
+
+7. TYING DELLE SQUADRETTE E DEL SUPPORTO - da qualificare
+7a Percorso accidentale distinto dalla verifica ordinaria a taglio.
+7b Compatibilita' fra T-stub, contatto, bulloni, punzonamento, prying,
+   flessione dell'anima e reale risposta del supporto.
+7c Applicare il sistema normativo coerente al caso accidentale, senza
+   trasferire indiscriminatamente coefficienti o resistenze fra modelli.
+7d Oracoli indipendenti e casi limite; nessun nodo qualificato sulla
+   sola base di un componente isolato o di supporto dichiarato rigido.
+
+8. CONSOLIDAMENTO FINALE - successivo alle qualifiche
+8a Unificare documentazione corrente, esempi ed esiti; i rapporti storici
+   restano evidenza, non liste concorrenti delle funzionalita' disponibili.
+8b Riesaminare API e flusso; eliminare preparazioni ripetute ove misurate
+   o dimostrate, senza cache globali dei risultati dipendenti dai dati.
+8c Aggiornare versioni con commit dedicato; verificare il set di sorgenti
+   e dipendenze finale con tutte le suite, comprese Concrete/Steel net472.
+8d Registrare completati, parziali e rinvii tecnici reali. Integrare il
+   nuovo master prima della chiusura secondo AGENTS.md; nessun rilascio
+   anticipato dei candidati di altri lavori o intervento ad ANTHEA.
+
+CRITERIO TRASVERSALE DI CHIUSURA
+Fonte/edizione verificata + modello fisico delimitato + implementazione
+tracciabile + benchmark indipendente + limiti/invalidi + integrazione.
+Un test verde del solo componente non rende completo il nodo. Se manca
+una fonte determinante o un modello analitico valido, registrare il limite
+e avanzare sugli altri blocchi; conservare il rifiuto esplicito del caso.
+Ogni blocco ha commit coerenti, risultati effettivi e revisione delle
+divergenze Git. Non modificare gli attesi per nascondere una regressione.

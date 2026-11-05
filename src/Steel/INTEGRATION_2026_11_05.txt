@@ -1,0 +1,86 @@
+CHECKER STEEL - BASE DI INTEGRAZIONE DEL 5 NOVEMBRE 2026
+
+Richiesta: partire da master aggiornato e incorporare nel nostro branch
+anche i branch in lavorazione, preservando i checkout degli altri lavori.
+Branch: codex/steel-consolidation-20261105.
+Worktree: C:\Users\g.pacini\Documents\ChatGPT\Checker\steel-consolidation-20261105\Checker
+
+BASE E MERGE EFFETTIVI
+origin/master 6156e4ce00975b0774d172ea681e24377bfb3c9f.
+be2d83d1 integra e90e91625092593d4777a1583546e70864cf7f9a:
+  codex/gpc-unification-20261102 e claude/f6-bridghe-checker, stesso tip;
+  include per ascendenza F6-L1/L3/L4/L7/L10/L11/L12 e P2H catena E passi1-2.
+c0265e56 integra ef50a2126a926fee340200f9d3469a966fa50654:
+  claude/f7b-set, versioni del candidato F7b con Model5.50.
+f394e47e integra d06ac0432aec790aa6b9e652779c8ea536e5006f:
+  claude/hansen-direzione-l, codice f424383b e Geotechnics0.28.0.0.
+
+Il vecchio claude/f7-set (F7a) e' superato da F7b e differisce per le
+precedenti versioni candidate: non reintroduciamo quelle versioni.
+Gli altri worktree non sono stati modificati. Le modifiche non committate
+degli altri lavori non possono essere incluse da un merge e restano loro.
+Questa e' una base di lavoro integrata, non il rilascio del candidato F7b.
+Nessuna modifica ad ANTHEA, nessun push o merge in master in questo blocco.
+
+RISOLUZIONE DEI CONFLITTI
+Il merge Hansen ha conflitti espliciti nelle AssemblyInfo di Steel e
+Concrete, risolti mantenendo le versioni piu' recenti di F7b. Geotechnics
+conserva invece la sua nuova versione funzionale0.28.0.0.
+La regola *.csproj merge=union ha inoltre introdotto proprieta' di versione
+duplicate senza dichiarare conflitto, anche tre proprieta' sulla stessa
+riga nei progetti Design e Masonry. Sono state rimosse tutte le duplicazioni.
+5fa79381 usa merge=text per i csproj e aggiunge Check-ProjectVersions.ps1,
+richiamato all'inizio di Verify.ps1. Il controllo rifiuta proprieta' Version,
+AssemblyVersion e FileVersion ripetute senza condizioni; non confonde le
+proprieta' condizionate per configurazione/framework con quelle duplicate.
+Verificato su22 progetti reali, un caso duplicato rifiutato e un progetto
+con namespace XML e proprieta' condizionata accettato. Nessun algoritmo
+numerico o API modificato da questa correzione, nessun incremento di versione.
+
+DIPENDENZE ISOLATE
+Model: 7a06643b777e81fb4d931189894719b56b3a89c4, candidato F7b.
+  GPCModel5.50.0.0, Persistence3.15.0.0, ModelData0.3.0.28.
+  Comprende il codice di bc5a7a07. Il successivo a2a96154 aggiunge documenti
+  sul ramo di unificazione; non contiene nuovo codice necessario al collaudo.
+Geometry: 6734eee; Utilities: e57b440; stessi snapshot usati dal candidato.
+Le tre DLL fissate da Model/build/dependencies.props sono state validate
+per SHA256 e AssemblyVersion da Prepare-Dependencies.ps1.
+GMsh.Net.dll: copia locale del solo riferimento ai test dal candidato F7b,
+SHA256 7C992AE563B935A2D11EF246F1D63449E3A0051355694D27D9A5D10F93EBC1E3.
+Le librerie di produzione non ricevono una dipendenza Gmsh.
+
+Versioni ricomposte: Steel2.129.0.7, ModelChecker2.39.0.1,
+CompositeBridge1.28.0.0, Concrete0.35.0.8, Geotechnics0.28.0.0,
+Design0.45.0.7, Masonry0.10.0.33. Sono versioni di lavoro: l'eventuale
+nuovo rilascio richiede il proprio commit di versione e il set coordinato.
+
+COLLAUDO DEL RISULTATO UNITO
+Comando: build/Verify.ps1 -ModelRoot ../Model -Suites all -Results <nuova cartella>.
+Risultati: C:\Users\g.pacini\Documents\ChatGPT\Checker\tmp\steel-consolidation-20261105\verify-integrated-01
+Eseguito il5/11/2026, concluso alle17:12:51 Europe/Rome su5fa79381:
+10415 superati,0 falliti,1 NotExecuted preesistente in ModelChecker
+(TimingOfTheConcreteRun). Concrete net472962; Steel net472122;
+CompositeBridge473; Geotechnics202; Calculation175; ShallowFoundation29;
+EmbeddedWalls99; Steel.Members7132; Design net8 274 e net472273;
+ModelChecker674. Nessun fallimento ammesso usato.
+API: ModelChecker622 firme, Concrete2633, Design3431, Masonry9;
+nessuna rimozione inattesa. Avvisi nullable dei test e architettura del
+riferimento GMsh.Net nei test Concrete; esecuzione net472 in x64 riuscita.
+Il collaudo ricompila Model come dipendenza ma NON esegue tutte le suite
+del repository Model: non costituisce un nuovo rilascio qualificato del set.
+Nessun atteso o allowlist modificato per far passare il collaudo. I test e
+la fixture Hansen presenti nel ramo sorgente sono conservati come committati.
+
+CONTROLLI PERIODICI
+Automazione: controllare-divergenze-dei-branch-checker-steel, ogni2 ore.
+Controlla origin/master dopo fetch, i tip LOCALI attivi, ascendenza, file
+sovrapposti e versioni. Non effettua merge concorrenti con test/sviluppo.
+Registro locale: C:\Users\g.pacini\Documents\ChatGPT\Checker\tmp\steel-consolidation-20261105\branch-monitor.json
+Controllo iniziale: tutti i12 riferimenti censiti sono antenati del nostro
+HEAD; origin/master e i tip attivi sono invariati al secondo controllo.
+Ripetere anche prima di integrare altri blocchi. Il confronto dei soli
+branch remoti sarebbe insufficiente: F6/P2H e F7b sono ancora locali.
+
+Questo blocco chiude la preparazione Git. Non promuove a completi i
+meccanismi di calcolo ancora aperti in CLOSURE_2026_11_02.txt.
+Ordine di implementazione e criteri di chiusura: IMPLEMENTATION_PLAN_2026_11_05.txt.

@@ -6,6 +6,9 @@ e STEEL_REVIEW_2026_10_27.txt conservano decisioni ed evidenze storiche;
 non sono un elenco aggiornato delle funzionalita mancanti. Le specifiche
 tecniche dei metodi restano valide per il rispettivo contratto.
 La versione numerica si legge in GPCChecker.Steel.csproj/AssemblyInfo.cs.
+Consolidamento avviato il5 novembre: IMPLEMENTATION_PLAN_2026_11_05.txt;
+base dei branch e collaudo con Model aggiornato: INTEGRATION_2026_11_05.txt.
+Le nuove fasi non sono coperture gia' implementate.
 Ultimo blocco verificato e limiti ancora aperti: CLOSURE_2026_11_02.txt
 (Steel2.129.0.1, ModelChecker2.38.0.0,10361 test superati).
 
