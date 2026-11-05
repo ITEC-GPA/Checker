@@ -21,6 +21,8 @@ public static class BridgeHistoryAnalysis
             throw new ArgumentException("Componenti assenti o identificativi duplicati.");
         var indices = components.Select((c, i) => (c.Id, i)).ToDictionary(p => p.Id, p => p.i);
         var points = components.SelectMany((c, i) => c.Fibers.Select(f => new Point(c.Id, i, f, c.Material))).ToArray();
+        var effectiveResponse = section.EffectiveAreaModel as IHistoryEffectiveResponseModel;
+        if (effectiveResponse is not null && !effectiveResponse.Matches(components)) effectiveResponse = null;
         if (points.Length == 0 || points.Select(p => p.Fiber.Id).Distinct().Count() != points.Length) throw new ArgumentException("Fibre assenti o identificativi duplicati.");
         foreach (var p in points)
         {
@@ -106,8 +108,8 @@ public static class BridgeHistoryAnalysis
                     { throw new HistoryConvergenceException(index, phase.Name, substep, failure.Message, last); }
                     plane = final.Plane;
                     if (section.EffectiveAreaModel is null) { accepted = true; break; }
-                    var trial = FiberResults(points, active, weights, references, imposed, factors, final, states);
-                    var reduction = section.EffectiveAreaModel.Evaluate(trial);
+                    var reduction = effectiveResponse is not null ? effectiveResponse.EvaluateResponses(final.Responses)
+                        : section.EffectiveAreaModel.Evaluate(FiberResults(points, active, weights, references, imposed, factors, final, states));
                     if (reduction.Factors.Count != points.Length) throw new ArgumentException("Numero di fattori efficaci diverso dal numero di fibre.");
                     effectiveError = 0;
                     for (int j = 0; j < weights.Length; j++)
@@ -224,28 +226,29 @@ public static class BridgeHistoryAnalysis
         double momentScale = o.MomentTolerance + o.RelativeTolerance * Math.Max(Math.Abs(targetM), Math.Abs(targetN) * length);
         double k00 = 0, k01 = 0, k11 = 0;
         var moduli = new double[points.Length];
-        for (int j = 0; j < points.Length; j++) {
-            var p = points[j]; if (!active[p.ComponentIndex]) continue;
-            moduli[j] = p.Law.InitialModulus * factors[p.ComponentIndex];
-            double a = p.Fiber.Area * weights[j] * p.Law.InitialModulus * factors[p.ComponentIndex];
-            double b = -(p.Fiber.Y - origin) / length;
-            k00 += a; k01 += a * b; k11 += a * b * b;
-        }
+        var mechanicalStrains = new double[points.Length]; var stresses = new double[points.Length];
         double Norm((double N, double M) force) => Math.Max(Math.Abs(force.N - targetN) / forceScale, Math.Abs(force.M - targetM) / momentScale);
-        (double N, double M) Resultants(HistoryStrainPlane trial) {
+        (double N, double M) Resultants(HistoryStrainPlane trial, bool assemble = false) {
             double n = 0, m = 0;
             for (int j = 0; j < points.Length; j++) {
                 if ((j & 127) == 0) cancellation.ThrowIfCancellationRequested();
                 var p = points[j]; if (!active[p.ComponentIndex]) continue;
+                if (assemble) {
+                    moduli[j] = p.Law.InitialModulus * factors[p.ComponentIndex];
+                    double rigidity = p.Fiber.Area * weights[j] * p.Law.InitialModulus * factors[p.ComponentIndex];
+                    double b = -(p.Fiber.Y - origin) / length;
+                    k00 += rigidity; k01 += rigidity * b; k11 += rigidity * b * b;
+                }
                 double mechanical = trial.At(p.Fiber.Y) - references[j] - imposed[j];
                 double stress = states[j].Stress + moduli[j] * (mechanical - states[j].MechanicalStrain);
+                mechanicalStrains[j] = mechanical; stresses[j] = stress;
                 if (!BridgeNumbers.IsFinite(stress) || !BridgeNumbers.IsFinite(mechanical)) throw new HistorySolveFailure("Risposta costitutiva non finita");
                 double a = p.Fiber.Area * weights[j];
                 n += stress * a; m -= stress * a * p.Fiber.Y;
             }
             return (n, m);
         }
-        var plane = guess; var current = Resultants(plane);
+        var plane = guess; var current = Resultants(plane, assemble: true);
         for (iterations = 0; iterations <= o.MaximumNewtonIterations; iterations++) {
             cancellation.ThrowIfCancellationRequested();
             double norm = Norm(current);
@@ -254,7 +257,7 @@ public static class BridgeHistoryAnalysis
                 for (int j = 0; j < points.Length; j++) {
                     var p = points[j];
                     responses[j] = active[p.ComponentIndex]
-                        ? p.Law.Evaluate(plane.At(p.Fiber.Y) - references[j] - imposed[j], states[j], factors[p.ComponentIndex])
+                        ? new(stresses[j], moduli[j], new HistoryMaterialState(mechanicalStrains[j], stresses[j]))
                         : new(states[j].Stress, 0, states[j]);
                 }
                 return new(plane, current.N, current.M, k00, k01, k11, responses);

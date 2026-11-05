@@ -11,6 +11,28 @@ string Arg(string name, string fallback) {
     int i = Array.IndexOf(args, "--" + name);
     return i < 0 ? fallback : i + 1 < args.Length ? args[i + 1] : throw new ArgumentException("Missing " + name);
 }
+if (args.Contains("--profile-history")) {
+    foreach (bool reduced in new[] { false, true }) {
+        var cases = BridgePerformanceCases.Station(0, reduced);
+        _ = HBridgeHistoryResults.Calculate(cases[0]);
+        for (int repeat = 0; repeat < 3; repeat++) {
+            foreach (bool full in new[] { false, true }) {
+                GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+                long before = GC.GetTotalAllocatedBytes(true); double checksum = 0;
+                var watch = Stopwatch.StartNew();
+                foreach (var d in cases) {
+                    var h = full ? HBridgeHistoryResults.Calculate(d).Stages.Last().GetHistory()!.State
+                        : HBridgeHistoryAnalysis.Calculate(d).Stages.Last();
+                    checksum += h.TotalPlane.AxialStrain + h.TotalPlane.Curvature;
+                }
+                watch.Stop();
+                Console.WriteLine(JsonSerializer.Serialize(new { Class4 = reduced, FullResult = full, Repeat = repeat,
+                    WallMs = watch.Elapsed.TotalMilliseconds, AllocatedBytes = GC.GetTotalAllocatedBytes(true) - before, Checksum = checksum }));
+            }
+        }
+    }
+    return;
+}
 string method = Arg("method", "cumulative"), execution = Arg("execution", "serial");
 bool class4 = bool.Parse(Arg("class4", "true"));
 int stations = int.Parse(Arg("stations", "1")), repetitions = int.Parse(Arg("repetitions", "3"));

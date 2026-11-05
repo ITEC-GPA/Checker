@@ -217,7 +217,7 @@ public static partial class HBridgeSection
             if (!SolutionReuse) return Solve(data, g, effective, phase, applicationPoints[phase], nativeSolver);
             if (!solutions.TryGetValue((effective, phase, nativeSolver), out var solution))
             {
-                if (!sections.TryGetValue(effective, out var section)) sections.Add(effective, section = new(SteelPieces(g, effective, mat.Steel)));
+                if (!sections.TryGetValue(effective, out var section)) sections.Add(effective, section = new(g, effective, mat));
                 solutions.Add((effective, phase, nativeSolver), solution = Solve(data, g, effective, phase, applicationPoints[phase], nativeSolver, section));
             }
             return solution with { };
@@ -403,16 +403,22 @@ public static partial class HBridgeSection
         if (p.KindName == ShrinkageKind) return SolveShrinkage(d, g, e, p, nativeSolver, shared);
         var mat = Materials(d); string kind = p.KindName;
         var homo = kind == "Composta" ? Homogenization(d, p) : (0d, 0d, 0d, 0d);
-        double n = homo.Item2, area, cy, inertia;
+        double n = homo.Item2, area, cy, inertia, preparedInertia = double.NaN;
         ReinforcedConcreteSection? composite = null;
-        var steel = shared?.Steel ?? SteelPieces(g, e, mat.Steel);
-        if (kind == "Composta")
+        bool prepared = BridgeElasticSection.Supports(mat);
+        var steel = prepared ? null : shared?.Steel ?? SteelPieces(g, e, mat.Steel);
+        if (prepared)
+        {
+            var properties = (shared?.Elastic ?? new BridgeElasticSection(g, e, mat)).Properties(p.Kind, n, homo.Item3);
+            area = properties.Area; cy = properties.Y; inertia = properties.Inertia; preparedInertia = properties.IntegrationInertia;
+        }
+        else if (kind == "Composta")
         {
             var section = composite = shared?.Composite;
             if (section is null)
             {
                 section = composite = NativeSection(d, g, steel: false);
-                foreach (var part in steel) section.AddSteelSection(part);
+                foreach (var part in steel!) section.AddSteelSection(part);
                 if (shared is not null) shared.Composite = section;
             }
             // Native Model transforms into concrete; divide by n to report in structural steel.
@@ -421,7 +427,7 @@ public static partial class HBridgeSection
         }
         else
         {
-            var parts = steel.Select(s => (A: s.Section.Area, Y: s.PositionToGlobal(s.Section.Centroid).Y,
+            var parts = steel!.Select(s => (A: s.Section.Area, Y: s.PositionToGlobal(s.Section.Centroid).Y,
                 I: s.Section.Jxx * Math.Pow(Math.Cos(s.Rotation), 2) + s.Section.Jyy * Math.Pow(Math.Sin(s.Rotation), 2))).ToList();
             if (kind == "Soletta esclusa")
                 parts.AddRange(g.Bars.Select(b => (b.Area * mat.Rebar.ElasticModulusTension / mat.Steel.ElasticModulusTension, b.Y,
@@ -433,7 +439,8 @@ public static partial class HBridgeSection
         double yref = applicationPoint ?? cy;
         double force = Number(p, "N") * 1000, moment = Number(p, "Mx") * 1e6;
         double mg = moment + force * (cy - yref), uniform = force / area, slope = -mg / inertia;
-        double solverInertia = inertia;
+        double solverInertia = prepared ? preparedInertia : inertia;
+        if (prepared && kind == "Composta") slope = -mg / solverInertia;
         if (composite is not null)
         {
             // Independent equilibrium audit of Checker's line-wall / point-rebar integration. The integration inertia is a property of the
@@ -446,10 +453,7 @@ public static partial class HBridgeSection
             // moduli the final field is the same closed-form field as in the effective-width iterations; constructing a general Concrete
             // checker and its numerical 3x3 Jacobian for every final load is redundant. Keep the line-wall/point-bar integration inertia,
             // not the geometric inertia. The separate native solver and independent analytical oracles test this path.
-            bool direct = mat.Steel.ElasticModulusTension == mat.Steel.ElasticModulusCompression
-                && mat.Rebar.ElasticModulusTension == mat.Rebar.ElasticModulusCompression
-                && mat.Concrete.ElasticModulusTension == mat.Concrete.ElasticModulusCompression;
-            if (!nativeSolver || direct) slope = -mg / solverInertia;
+            if (!nativeSolver) slope = -mg / solverInertia;
             else if (force != 0 || moment != 0)
             {
                 var field = CompositeLinearStressSolver.Solve(composite, force, moment, g.Width / 2, yref, homo.Item3, d.Options.Standard);
@@ -502,8 +506,14 @@ public static partial class HBridgeSection
     /// <summary>The steel pieces of an effective state and the native composite section on them (built by the first composite phase)</summary>
     private sealed class BridgeStateSection
     {
-        internal BridgeStateSection(List<SteelSectionPosition> steel) { Steel = steel; }
-        internal List<SteelSectionPosition> Steel { get; }
+        private readonly BridgeGeometry geometry;
+        private readonly BridgeEffective effective;
+        private readonly BridgeMaterialSet materials;
+        private List<SteelSectionPosition>? steel;
+        private BridgeElasticSection? elastic;
+        internal BridgeStateSection(BridgeGeometry g, BridgeEffective e, BridgeMaterialSet m) { geometry = g; effective = e; materials = m; }
+        internal List<SteelSectionPosition> Steel => steel ??= SteelPieces(geometry, effective, materials.Steel);
+        internal BridgeElasticSection Elastic => elastic ??= new(geometry, effective, materials);
         internal ReinforcedConcreteSection? Composite { get; set; }
     }
     private static List<SteelSectionPosition> SteelPieces(BridgeGeometry g, BridgeEffective e, SteelMaterial material)

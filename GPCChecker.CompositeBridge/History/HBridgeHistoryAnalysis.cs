@@ -73,7 +73,7 @@ public static class HBridgeHistoryAnalysis
             components.Add(new(Rebars, rebar, Array.AsReadOnly(g.Bars.SelectMany(b => new[] {
                 new HistoryFiber(b.Id + ".0", b.X, b.Y - b.Diameter / 4, b.Area / 2),
                 new HistoryFiber(b.Id + ".1", b.X, b.Y + b.Diameter / 4, b.Area / 2) }).ToArray())));
-        return new(Array.AsReadOnly(components.ToArray()), input.Options.Class4 ? new HEffectiveModel(g, m.Steel.Fyk, input.Options) : null);
+        return new(Array.AsReadOnly(components.ToArray()), input.Options.Class4 ? new HEffectiveModel(g, m.Steel.Fyk, input.Options, components) : null);
     }
 
     /// <summary>Maps any length phase sequence. Each shrinkage is a new increment, with its own phi/n.</summary>
@@ -160,20 +160,44 @@ public static class HBridgeHistoryAnalysis
         return Array.AsReadOnly(rows.ToArray());
     }
 
-    private sealed class HEffectiveModel : IHistoryEffectiveAreaModel
+    private sealed class HEffectiveModel : IHistoryEffectiveAreaModel, IHistoryEffectiveResponseModel
     {
         private readonly BridgeGeometry g; private readonly double fy; private readonly BridgeAnalysisOptions options;
-        internal HEffectiveModel(BridgeGeometry geometry, double yield, BridgeAnalysisOptions analysisOptions) { g = geometry; fy = yield; options = analysisOptions; }
+        private readonly (string ComponentId, HistoryFiber Fiber)[] rows;
+        private readonly int lowWeb, highWeb;
+        internal HEffectiveModel(BridgeGeometry geometry, double yield, BridgeAnalysisOptions analysisOptions, IReadOnlyList<HistoryComponent> components)
+        {
+            g = geometry; fy = yield; options = analysisOptions;
+            rows = components.SelectMany(c => c.Fibers.Select(f => (c.Id, f))).ToArray();
+            var web = Enumerable.Range(0, rows.Length).Where(i => rows[i].ComponentId == Web).OrderBy(i => rows[i].Fiber.Y).ToArray();
+            lowWeb = web.First(); highWeb = web.Last();
+        }
+        public bool Matches(IReadOnlyList<HistoryComponent> components)
+        {
+            int index = 0;
+            foreach (var c in components) foreach (var f in c.Fibers) {
+                if (index >= rows.Length || rows[index].ComponentId != c.Id || !ReferenceEquals(rows[index].Fiber, f)) return false;
+                index++;
+            }
+            return index == rows.Length;
+        }
+        public HistoryEffectiveAreaResponse EvaluateResponses(IReadOnlyList<HistoryMaterialResponse> responses) =>
+            EvaluateCore(responses[lowWeb].Stress, rows[lowWeb].Fiber.Y, responses[highWeb].Stress, rows[highWeb].Fiber.Y, rows);
         public HistoryEffectiveAreaResponse Evaluate(IReadOnlyList<HistoryFiberResult> trial)
         {
             var steel = trial.Where(p => p.ComponentId == Web).OrderBy(p => p.Fiber.Y).ToArray();
             var low = steel.First(); var high = steel.Last();
-            double slope = (high.Stress - low.Stress) / (high.Fiber.Y - low.Fiber.Y);
-            double Sigma(double y) => low.Stress + slope * (y - low.Fiber.Y);
+            return EvaluateCore(low.Stress, low.Fiber.Y, high.Stress, high.Fiber.Y, trial.Select(p => (p.ComponentId, p.Fiber)).ToArray());
+        }
+        private HistoryEffectiveAreaResponse EvaluateCore(double lowStress, double lowY, double highStress, double highY,
+            IReadOnlyList<(string ComponentId, HistoryFiber Fiber)> fibers)
+        {
+            double slope = (highStress - lowStress) / (highY - lowY);
+            double Sigma(double y) => lowStress + slope * (y - lowY);
             // the same reductions and options of the cumulative method, on the linear steel stress field of the web
             var e = HBridgeSection.EffectiveWidths(g, Sigma, fy, options);
             double top = -g.TopThickness, bottom = top - g.WebHeight;
-            double Factor(HistoryFiberResult p)
+            double Factor((string ComponentId, HistoryFiber Fiber) p)
             {
                 if (p.ComponentId == Top) return e.TopWidth / g.TopWidth;
                 if (p.ComponentId == Bottom) return e.BottomWidth / (g.Bottom2Thickness > 0 ? g.Bottom1Width : g.BottomEquivalentWidth);
@@ -186,7 +210,7 @@ public static class HBridgeHistoryAnalysis
             var panels = new List<HistoryPanelResult> { new(Web, e.Web), new(Top, e.Top), new(Bottom, e.Bottom) };
             if (e.SecondBottom is not null) panels.Add(new(Bottom2, e.SecondBottom));
             if (e.BottomOutstand is not null) panels.Add(new(BottomOutstand, e.BottomOutstand));
-            return new(Array.AsReadOnly(trial.Select(Factor).ToArray()), Array.AsReadOnly(panels.ToArray()));
+            return new(Array.AsReadOnly(fibers.Select(Factor).ToArray()), Array.AsReadOnly(panels.ToArray()));
         }
     }
 }

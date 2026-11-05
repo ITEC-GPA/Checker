@@ -70,3 +70,21 @@ cumulativi (non memoria residente). Tempi CPU corrispondenti: 7.469, 28.000,
 Artefatti esterni: audit-results/bridge-performance-20261105/baseline-v1.
 Le quattro proiezioni 1x100 sono versionate in Validation/linear-performance-*,
 con SHA-256 e formato in linear-performance-baseline.json.
+
+ITERAZIONE 1 - CAMPO DIRETTO E SOLUTORE ELASTICO INCREMENTALE
+Commit 1092c29f. Suite CompositeBridge: 463/463 prima e dopo.
+Cumulativo: campo diretto anche a convergenza, stessi momenti di integrazione;
+fallback nativo per moduli diversi in trazione/compressione.
+Storico: matrice elastica costante, risultanti trial senza oggetti di stato,
+commit solo dopo il controllo del residuo; legami custom/non lineari invariati.
+                          1 sezione x 100     100 sezioni x 100
+Cumulativo lordo                0.02044                  2.35810
+Cumulativo classe 4             0.08767                 13.86551
+Storico lineare lordo           0.17515                 22.23244
+Storico lineare classe 4        0.61403                 68.07600
+Scarto massimo cumulativo rispetto all'originale: 7.11e-13 MPa/mm; storico
+identico bit per bit. Lo storico lordo NON migliora a 100x100 (+6.25% wall):
+l'allocazione scende ma il lavoro di presentazione resta dominante rispetto
+alla piccola soluzione; la successiva iterazione rimuove passaggi sulle fibre
+e prepara le riduzioni. Allocazioni storico classe 4: 147016 MiB (-18.3%).
+Artefatti: audit-results/bridge-performance-20261105/iteration1.

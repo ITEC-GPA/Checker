@@ -63,6 +63,14 @@ public interface IHistoryEffectiveAreaModel
 {
     HistoryEffectiveAreaResponse Evaluate(IReadOnlyList<HistoryFiberResult> trial);
 }
+
+// Optional internal path for the built-in H adapter: its reductions need stresses and fixed fiber geometry, not full trial result rows.
+// Matching the source fibers prevents using prepared geometry after a caller replaces components in a HistorySection copy.
+internal interface IHistoryEffectiveResponseModel
+{
+    bool Matches(IReadOnlyList<HistoryComponent> components);
+    HistoryEffectiveAreaResponse EvaluateResponses(IReadOnlyList<HistoryMaterialResponse> responses);
+}
 public sealed record HistoryEffectiveAreaResponse(IReadOnlyList<double> Factors, IReadOnlyList<HistoryPanelResult> Panels);
 
 public sealed class HistoryConvergenceException : InvalidOperationException
