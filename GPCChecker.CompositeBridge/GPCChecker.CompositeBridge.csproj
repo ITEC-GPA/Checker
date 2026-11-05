@@ -22,6 +22,8 @@
     <ProjectReference Include="../GPCChecker.Concrete/GPCChecker.Concrete.csproj" />
     <ProjectReference Include="../GPCChecker.Steel/GPCChecker.Steel.csproj" />
     <Reference Include="GPCModel"><HintPath>../../Model/Model/bin/Release/netstandard2.0/GPCModel.dll</HintPath></Reference>
+    <!-- Lane L12: the BridgeModel package saves the model with ModelArchive. -->
+    <Reference Include="GPC.Model.Persistence"><HintPath>../../Model/GPC.Model.Persistence/bin/Release/netstandard2.0/GPC.Model.Persistence.dll</HintPath></Reference>
     <Reference Include="GPCGeometry"><HintPath>../../Geometry/GPCGeometry/bin/Release/netstandard2.0/GPCGeometry.dll</HintPath></Reference>
     <Reference Include="GPCUtilities"><HintPath>../../Utilities/GPCUtilities/bin/Release/netstandard2.0/GPCUtilities.dll</HintPath></Reference>
   </ItemGroup>
@@ -30,6 +32,7 @@
     <Reference Include="GPCChecker.Concrete"><HintPath>$(BridgeLibraryDir)/GPCChecker.Concrete.dll</HintPath></Reference>
     <Reference Include="GPCChecker.Steel"><HintPath>$(BridgeLibraryDir)/GPCChecker.Steel.dll</HintPath></Reference>
     <Reference Include="GPCModel"><HintPath>$(BridgeLibraryDir)/GPCModel.dll</HintPath></Reference>
+    <Reference Include="GPC.Model.Persistence"><HintPath>$(BridgeLibraryDir)/GPC.Model.Persistence.dll</HintPath></Reference>
     <Reference Include="GPCGeometry"><HintPath>$(BridgeLibraryDir)/GPCGeometry.dll</HintPath></Reference>
     <Reference Include="GPCUtilities"><HintPath>$(BridgeLibraryDir)/GPCUtilities.dll</HintPath></Reference>
     <Reference Include="DelaunayMesh"><HintPath>$(BridgeLibraryDir)/DelaunayMesh.dll</HintPath></Reference>

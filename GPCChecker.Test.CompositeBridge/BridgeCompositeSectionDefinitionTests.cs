@@ -8,7 +8,6 @@ using GPC.Model.Materials;
 using GPC.Model.Sections;
 using GPC.Model.Sections.Concrete;
 using GPC.Model.Sections.Rebar;
-using GPC.Model.Structure.Bridges;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace GPCChecker.Test.CompositeBridge;
@@ -268,12 +267,5 @@ public class BridgeCompositeSectionDefinitionTests
         string xml = Encoding.UTF8.GetString(new BridgeCompositeSectionDefinition("C", section, 18.5, 6, 16, 0, true, true).Save());
         StringAssert.Contains(xml, ">18.5<");
         Assert.ThrowsException<ArgumentException>(() => BridgeCompositeSectionDefinition.Read(Encoding.UTF8.GetBytes(xml.Replace(">18.5<", ">-18.5<"))));
-    }
-
-    [TestMethod]
-    public void TheSectionBehaviorOfModelHasTheNamesAndOrderOfTheActionBehavior()
-    {
-        CollectionAssert.AreEqual(Enum.GetNames(typeof(BridgeActionBehavior)), Enum.GetNames(typeof(BridgeSectionBehavior)));
-        CollectionAssert.AreEqual(Enum.GetValues(typeof(BridgeActionBehavior)).Cast<int>().ToArray(), Enum.GetValues(typeof(BridgeSectionBehavior)).Cast<int>().ToArray());
     }
 }

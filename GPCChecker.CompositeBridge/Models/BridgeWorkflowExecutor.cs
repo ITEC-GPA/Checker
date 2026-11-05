@@ -71,6 +71,19 @@ public static class BridgeWorkflowExecutor
     public static BridgeWorkflowPlan Prepare(BridgeWorkflowDefinition workflow,GPC.Model.Models.Model model,IEnumerable<GPC.Model.Models.Model> sources)
         => BridgeWorkflowPlan.Prepare(workflow,model,sources);
 
+    /// <summary>The plan of the recipe of a bridge model (lane L12): <see cref="Prepare(BridgeWorkflowDefinition, GPC.Model.Models.Model, IEnumerable{GPC.Model.Models.Model})"/>
+    /// with <see cref="BridgeModel.Model"/> and <see cref="BridgeModelData.Workflow"/> (ArgumentException MissingBridgeWorkflow without one).</summary>
+    public static BridgeWorkflowPlan Prepare(BridgeModel bridge,IEnumerable<GPC.Model.Models.Model> sources)
+        => BridgeWorkflowPlan.Prepare(Recipe(bridge),bridge.Model,sources);
+
+    /// <summary><see cref="Calculate(BridgeWorkflowDefinition, GPC.Model.Models.Model, IEnumerable{GPC.Model.Models.Model}, BridgeWorkflowEvaluation, CancellationToken)"/>
+    /// with the model and the recipe of a bridge model (lane L12).</summary>
+    public static HBridgeAnalysisResult Calculate(BridgeModel bridge,IEnumerable<GPC.Model.Models.Model> sources,BridgeWorkflowEvaluation evaluation,CancellationToken cancellation=default)
+        => Calculate(Recipe(bridge),bridge.Model,sources,evaluation,cancellation);
+
+    private static BridgeWorkflowDefinition Recipe(BridgeModel bridge)
+        => (bridge ?? throw new ArgumentNullException(nameof(bridge))).Data.Workflow ?? throw new ArgumentException("MissingBridgeWorkflow: the bridge model has no verification recipe",nameof(bridge));
+
     // One-shot calls: the plan prepared at every call (Validate, ValidateSources), then the same compilation.
     private static HBridgeInput Compile(BridgeWorkflowDefinition workflow,GPC.Model.Models.Model model,
         IEnumerable<GPC.Model.Models.Model> sources,BridgeWorkflowEvaluation evaluation,bool? strictOverride,out IReadOnlyList<string> warnings)

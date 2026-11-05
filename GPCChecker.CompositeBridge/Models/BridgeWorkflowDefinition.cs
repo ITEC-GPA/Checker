@@ -96,6 +96,8 @@ public sealed class BridgeWorkflowDefinition
         }
         return result;
     }
+    /// <summary>The checks of the recipe alone, without the model (for <see cref="BridgeModelData.ValidateShape"/>).</summary>
+    internal void ValidateShapeOnly() => ValidateShape();
     private void ValidateShape()
     {
         if(schema!=1) throw new SerializationException("UnsupportedBridgeWorkflowSchema");
