@@ -144,21 +144,32 @@ public sealed class BearingTests
             (x.Width,x.Length)=(x.Length,x.Width);(x.HorizontalX,x.HorizontalY)=(x.HorizontalY,x.HorizontalX);
             Close(r.UltimatePressure,ShallowFoundationBearing.Calculate(x).UltimatePressure);
         }
-        // Drained rectangle, D = 1 m: the direction of B′ governs and tends to the normal load.
+        // Drained rectangle, D = 1 m, H_L = 0: only the direction of B′ (§3.4.2), which tends to the normal load.
         var d=Input(FoundationBearingMethod.Hansen);double q0=ShallowFoundationBearing.Calculate(d).UltimatePressure;
         d.HorizontalX=1;var small=ShallowFoundationBearing.Calculate(d);
         Close(q0,small.UltimatePressure,1e-5);Assert.IsTrue(small.UltimatePressure<q0);
-        Assert.IsTrue(small.Warnings.Any(w=>w.Contains("si adotta la minore (B′)")));
-        // Surface footing on sand: the direction of L′ (no inclination, sγ = 0.6) governs also with H_L = 0 (declared discontinuity, safe side).
+        Assert.IsTrue(small.Reference.EndsWith("direzione di B′ (HL = 0)") && small.Warnings.Any(w=>w.Contains("HL = 0, rottura nella sola direzione di B′")));
+        Assert.IsTrue(small.Warnings.Any(w=>w.StartsWith("Con H = 0") && w.Contains("tende a questo valore")));
+        // Surface footing on sand: with H_L = 0 the direction of B′ tends to the normal load also here (user decision of 5/11/2026) ...
         d.Depth=0;d.HorizontalX=0;q0=ShallowFoundationBearing.Calculate(d).UltimatePressure;
         d.HorizontalX=1;var surface=ShallowFoundationBearing.Calculate(d);
-        Close(.6,surface.Weight.Shape);Close(1,surface.Weight.Inclination);Close(.5*18e-6*2000*surface.Weight.N*.6,surface.UltimatePressure);
-        Assert.IsTrue(surface.UltimatePressure<q0 && surface.Warnings.Any(w=>w.Contains("si adotta la minore (L′)")));
-        // Undrained: s′c = 0.2 i′c B′/L′ vanishes as H → 0 and the direction of L′ (d′c with D/L′) governs: (π+2) cu (1 + 0.4 D/L′) + q.
+        Close(q0,surface.UltimatePressure,1e-5);Assert.IsTrue(surface.UltimatePressure<q0);
+        // ... while any H_L > 0 brings in the direction of L′ (no inclination, sγ = 0.6), which governs: declared discontinuity, safe side.
+        d.HorizontalY=1e-3;surface=ShallowFoundationBearing.Calculate(d);
+        Close(.6,surface.Weight.Shape);Close(1,surface.Weight.Inclination,1e-7);Close(.5*18e-6*2000*surface.Weight.N*.6,surface.UltimatePressure,1e-7);
+        Assert.IsTrue(surface.UltimatePressure<.9*q0 && surface.Warnings.Any(w=>w.Contains("si adotta la minore (L′)")));
+        // Undrained, H_L = 0: s′c = 0.2 i′c B′/L′ vanishes as H → 0 (kept as in the manual) and only the direction of B′ counts:
+        // (π+2) cu (1 + 0.4 D/B′) + q.
         var u=Input(FoundationBearingMethod.Hansen);u.Condition=FoundationSoilCondition.Undrained;u.HorizontalX=1;
         var undrained=ShallowFoundationBearing.Calculate(u);
-        Close((Math.PI+2)*.075*(1+.4/3)+.018,undrained.UltimatePressure,1e-6);
+        Close((Math.PI+2)*.075*(1+.4*.5)+.018,undrained.UltimatePressure,1e-6);
         Assert.IsTrue(undrained.Cohesion.Additive && undrained.Cohesion.AdditiveShape<1e-6 && undrained.Warnings.Any(w=>w.Contains("0,2 i′c B′/L′")));
+        Assert.IsTrue(undrained.Reference.EndsWith("direzione di B′ (HL = 0)"));
+        // With H_L > 0 the direction of L′ (d′c with D/L′) governs: (π+2) cu (1 + 0.4 D/L′) + q.
+        u.HorizontalY=1;undrained=ShallowFoundationBearing.Calculate(u);
+        Close((Math.PI+2)*.075*(1+.4/3)+.018,undrained.UltimatePressure,1e-6);
+        Assert.IsTrue(undrained.Warnings.Any(w=>w.Contains("si adotta la minore (L′)")));
+        u.HorizontalY=0;
         // Beyond the domain: null capacity, never an exception.
         u.HorizontalX=u.Width*u.Length*u.UndrainedStrength+1;Exhausted(ShallowFoundationBearing.Calculate(u));
         d=Input(FoundationBearingMethod.Hansen);d.HorizontalX=.9*d.Normal;Exhausted(ShallowFoundationBearing.Calculate(d));
