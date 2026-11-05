@@ -7,6 +7,7 @@ using GPC.Model.Checking.Contracts;
 using GPC.Model.Checking.Preparation;
 using GPC.Model.Checking.Reports;
 using GPC.Model.Core.Diagnostics;
+using GPC.Model.Models;
 
 namespace GPC.Model.Checker
 {
@@ -34,6 +35,10 @@ namespace GPC.Model.Checker
         {
             model.Analysis?.OpenModel();
             provenance = VerificationPreparation.CurrentProvenance(model);
+            // The domain preflight of GPCModel, shared with the exporters (review L4): dangling stage or moving-load references, invalid
+            // elastic properties or form finding block every job before an engine is created.
+            try { model.RequireExportable(); }
+            catch (InvalidOperationException error) { return Blocked(jobs, provenance, "InvalidModelForVerification", error.Message); }
             var compatibility = AnalysisCompatibilityValidator.Validate(model);
             if (compatibility.Status != AnalysisCompatibility.Compatible) return Blocked(jobs, provenance, compatibility.Code, compatibility.Message);
             if (!provenance.IsCurrent(model)) return Blocked(jobs, provenance, "StalePreparedScenario", "The materialized scenario changed after preparation.");

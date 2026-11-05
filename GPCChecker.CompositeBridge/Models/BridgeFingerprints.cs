@@ -14,6 +14,32 @@ internal sealed class BridgeFingerprints : IFingerprintVocabulary
 {
     public void Declare(FingerprintVocabulary v)
     {
+        v.Record(typeof(BridgeWorkflowDefinition), "GPC.Checkers.CompositeBridge.BridgeWorkflowDefinition", Properties("ModelGuid", "AnalysisFingerprint", "Method", "Phases").Concat(new FingerprintMember[]{new FingerprintMember("schema")}).ToArray());
+        v.Record(typeof(BridgeWorkflowPhaseDefinition), "GPC.Checkers.CompositeBridge.BridgeWorkflowPhaseDefinition", Properties("Id", "Order", "Name", "State", "Day", "Actions"));
+        v.Record(typeof(BridgeWorkflowActionDefinition), "GPC.Checkers.CompositeBridge.BridgeWorkflowActionDefinition", Properties("Key", "SourceModelGuid", "SourceAnalysisFingerprint", "SourceCaseGuid", "SourceName", "Behavior", "ForceCaseGuid", "StrainCaseGuid", "Strain", "BeamGuids", "PrimaryOnly", "ConcreteExcludedBeamGuids", "SectionStates")
+            .Concat(new[]{FingerprintMember.AutoProperty("PsiL", omitWhenNull: true)}).ToArray());
+        v.Record(typeof(BridgeBeamSectionState), "GPC.Checkers.CompositeBridge.BridgeBeamSectionState", Properties("BeamGuid", "Behavior", "ConcreteExcluded", "ModularRatio", "ClassificationCaseGuid", "PhysicalPropertyFingerprint"));
+        v.Record(typeof(BridgeCompositeSectionDefinition), "GPC.Checkers.CompositeBridge.BridgeCompositeSectionDefinition", Properties("Section", "NLongTerm", "NShortTerm",
+            "NShrinkage", "VerticalOffsetMm", "ConsiderConcrete", "ConsiderRebar", "Name").Concat(new FingerprintMember[]{new FingerprintMember("schema"),
+            // P2H (5/11): the rows of bars as given, omitted when absent (the fingerprint of a definition without them does not change).
+            FingerprintMember.AutoProperty("RebarRows", omitWhenNull: true),
+            // P2H (5/11): the steel of the analysis properties, omitted when absent.
+            FingerprintMember.AutoProperty("AnalysisSteel", omitWhenNull: true)}).ToArray());
+        v.Record(typeof(BridgeCompositeRebarRows), "GPC.Checkers.CompositeBridge.BridgeCompositeRebarRows",
+            Properties("TopAreaMm2", "TopCoverMm", "BottomAreaMm2", "BottomCoverMm", "BarsPerRow"));
+        // Lane L12: the bridge data of a model (BridgeModel) and the bridge vocabulary that left GPCModel. New contracts: their names are
+        // those of the CLR types in CompositeBridge (nothing was released or stored with the names they had in GPCModel).
+        v.Record(typeof(BridgeModelData), "GPC.Checkers.CompositeBridge.BridgeModelData",
+            new FingerprintMember("schema"), new FingerprintMember("beams"), FingerprintMember.AutoProperty("Workflow", omitWhenNull: true));
+        v.Record(typeof(BridgeBeamData), "GPC.Checkers.CompositeBridge.BridgeBeamData", Properties("BeamGuid", "Member", "SuperElement", "SectionState", "CompositeSection"));
+        v.Record(typeof(BridgeLocalSectionState), "GPC.Checkers.CompositeBridge.BridgeLocalSectionState",
+            Properties("Behavior", "ConcreteExcluded", "ModularRatio", "ClassificationCase", "PropertyFingerprint"));
+        v.Record(typeof(BridgeBeamCompositeSection), "GPC.Checkers.CompositeBridge.BridgeBeamCompositeSection", Properties("Start", "End"));
+        v.Record(typeof(CompositeSectionDefinition), "GPC.Checkers.CompositeBridge.CompositeSectionDefinition", new FingerprintMember[]{new FingerprintMember("schema")}
+            .Concat(Properties("Id", "PhysicalSection", "LongTermRatio", "ShortTermRatio", "ShrinkageRatio", "IncludeConcrete", "IncludeReinforcement")).ToArray());
+        v.Record(typeof(Layout.BridgeMemberMetadata), "GPC.Checkers.CompositeBridge.Layout.BridgeMemberMetadata",
+            Properties("PhysicalId", "Family", "Group", "Segment", "Span", "StationFromMm", "StationToMm").Concat(new FingerprintMember[]{new FingerprintMember("sectionUp")})
+            .Concat(Properties("GeometryId")).ToArray());
         v.Record(typeof(HBridgeInput), "GPC.Checkers.CompositeBridge.HBridgeInput", Properties("BottomRebars", "Box", "Fatigue", "Geometry",
             "Intermediate", "Materials", "Options", "Phases", "Studs", "Support", "TopRebars", "Transverse"));
         v.Record(typeof(BridgeMaterialSet), "GPC.Checkers.CompositeBridge.BridgeMaterialSet", Properties("Concrete", "Rebar", "Steel"));

@@ -17,12 +17,14 @@
   <ItemGroup Condition="'$(BridgeLibraryDir)' == ''">
     <Reference Include="GPCModel"><HintPath>../../Model/Model/bin/Release/netstandard2.0/GPCModel.dll</HintPath></Reference>
     <Reference Include="GPCModelData"><HintPath>../../Model/ModelData/bin/Release/netstandard2.0/GPCModelData.dll</HintPath></Reference>
+    <Reference Include="GPC.Model.Persistence"><HintPath>../../Model/GPC.Model.Persistence/bin/Release/netstandard2.0/GPC.Model.Persistence.dll</HintPath></Reference>
     <Reference Include="GPCGeometry"><HintPath>../../Geometry/GPCGeometry/bin/Release/netstandard2.0/GPCGeometry.dll</HintPath></Reference>
     <Reference Include="GPCUtilities"><HintPath>../../Utilities/GPCUtilities/bin/Release/netstandard2.0/GPCUtilities.dll</HintPath></Reference>
   </ItemGroup>
   <ItemGroup Condition="'$(BridgeLibraryDir)' != ''">
     <Reference Include="GPCModel"><HintPath>$(BridgeLibraryDir)/GPCModel.dll</HintPath></Reference>
     <Reference Include="GPCModelData"><HintPath>$(BridgeLibraryDir)/GPCModelData.dll</HintPath></Reference>
+    <Reference Include="GPC.Model.Persistence"><HintPath>$(BridgeLibraryDir)/GPC.Model.Persistence.dll</HintPath></Reference>
     <Reference Include="GPCGeometry"><HintPath>$(BridgeLibraryDir)/GPCGeometry.dll</HintPath></Reference>
     <Reference Include="GPCUtilities"><HintPath>$(BridgeLibraryDir)/GPCUtilities.dll</HintPath></Reference>
   </ItemGroup>
