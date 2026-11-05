@@ -333,7 +333,7 @@ public class TubularJointChsTests
     {
         var c = ConnectionCapabilityCatalog.Get("TubularJoints");
         Assert.AreEqual(ConnectionCapabilityLevel.StandardStaticVerification, c.Level);
-        Assert.AreEqual("TubularJoint.Verify", c.RecommendedEntryPoint);
+        Assert.AreEqual("TubularJoint.VerifyEquilibrated", c.RecommendedEntryPoint);
         Assert.AreEqual("TUBULAR_JOINTS_USAGE.txt", c.Documentation);
         foreach (string missing in new[] { "Multiplanar", "Reinforced", "I/H", "Fatigue", "EN1993-1-8:2024" })
             Assert.IsTrue(c.MissingMechanisms.Any(x => x.Contains(missing)), missing);
