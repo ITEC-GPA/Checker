@@ -1,0 +1,59 @@
+CHECKER STEEL - RISULTATO DEL BLOCCO1-2-3, 5 NOVEMBRE2026
+Branch codex/steel-consolidation-20261105. Un agente. ANTHEA non modificata.
+Non e' un rilascio; nessun merge su master o push in questo blocco.
+
+1 CONSOLIDAMENTO: completato il blocco operativo.
+  Matrice10 famiglie e25 nodi,12 nuovi casi tubolari, registro delle fonti.
+  Rimane esplicito il riscontro editoriale A1:2017 non ancora disponibile.
+  Commit f58519be; COVERAGE_MATRIX e TUBULAR_SOURCE_AUDIT_2026_11_05.txt.
+2 FLUSSO: implementato e collaudato con101 test Steel e57 ModelChecker.
+  Riuso limitato allo stesso snapshot e stato, da4 a2 preparazioni per2 casi;
+  catalogo tubolari orientato a VerifyEquilibrated; assi, concomitanza,
+  archivi e incompletezza verificati. Commit06bda7d5.
+  Il collaudo completo ha rilevato1 atteso storico di catalogo ancora
+  Verify: richiesto all'utente il consenso per aggiornare solo quella
+  stringa. Non e' stata modificata in attesa della risposta (AGENTS.md).
+3 COPRIGIUNTO COMPRESSO CLASSE4+TAGLIO: PARZIALE.
+  Corretto il falso rinvio normativo:7.1(4)->7.1(5), sezione10 alternativa.
+  Stabilizzato il limite numerico della fibra neutra, diagnostica corretta
+  e traccia per taglio.20 nuovi casi limite/dominio e2 benchmark JRC.
+  Collaudo mirato61/61; commit dfb664ce. Modello del giunto a vincoli
+  discreti ancora non qualificato: nessuna nuova autorizzazione del nodo.
+  Dettagli: Connections/COMPRESSED_COVER_MODEL_AUDIT_2026_11_05.txt.
+
+INTEGRAZIONE E VERSIONI
+F7c92f9362c rilevato nel controllo periodico e integrato con9e64c2f0;
+conservata Geotechnics0.28.0.0/Hansen. Model isolato2133a2db, GPCModel5.50.0.1.
+Versioni di lavoro con commit dedicato7bee39e0: Steel2.130.0.0,
+CompositeBridge1.29.0.1, ModelChecker2.39.0.3. Gli ultimi due sono rebuild
+contro la nuova Steel; nessuna modifica dei loro algoritmi da questo blocco.
+
+COLLAUDO COMPLETO SUL COMMIT7bee39e0, CONCLUSO ALLE20:22:50 EUROPE/ROME
+build/Verify.ps1 -ModelRoot ../Model -Suites all -Results <cartella nuova>
+10457 superati,1 fallito,1 NotExecuted preesistente (TimingOfTheConcreteRun).
+Unico fallimento: Steel.Members.Tests/CatalogPromotesTheTubularJointWorkflow,
+atteso TubularJoint.Verify, effettivo TubularJoint.VerifyEquilibrated.
+Non riguarda formule o numeri ma impedisce di dichiarare tutte le suite verdi.
+API: compatibili; ModelChecker622, Concrete2633, Design3431, Masonry9 firme.
+Concrete net472962/962; Steel net472122/122; CompositeBridge473/473;
+Geotechnics202/202; Calculation175/175; Shallow29/29; Embedded99/99;
+Steel.Members7174 pass+1 fail; Design net8 274/274 e net472273/273;
+ModelChecker674 pass+1 timing non eseguito.
+File: ChatGPT/Checker/tmp/steel-consolidation-20261105/verify-final-01/summary.json.
+Tutti i processi di test di questo collaudo sono terminati.
+Il build ricompila Model come dipendenza; NON equivale a eseguirne tutte le suite.
+Nessun atteso numerico, fixture o allowlist storico modificato.
+
+FONTI PERSISTENTI E DOWNLOAD
+ChatGPT/Checker/references/steel:29 PDF,74 riferimenti web, provenienza,
+edizioni/pagine dove riscontrate e SHA256;29/29 file controllati dopo l'archiviazione.
+ZIP pronto: ChatGPT/Checker/references/steel-fonti-2026-11-05.zip (197459407 byte),
+con README e REFERENCE_REGISTER.json. Impronta accanto al file (.sha256.txt).
+I riferimenti solo web o in anteprima non sono dichiarati PDF completi disponibili.
+Non eliminare questi file con i temporanei; aggiornare il registro ad ogni nuova fonte.
+
+PROSSIMO PASSAGGIO
+Acquisire la decisione sul solo contratto del catalogo; verificare il test
+coerentemente con quella decisione e aggiornare il collaudo finale.
+Per3 proseguire dalla qualifica fisica secondo7.1(5), non dalla sola
+implementazione di una formula di sezione10. Restano fuori da questo blocco4-8.

@@ -33,7 +33,8 @@ o progetto sismico esteso in questo ciclo.
    Il limite editoriale di1b non modifica il metodo2007+AC2009 gia' esplicito
    e non blocca2-3, che non dipendono dall'emendamento dei gusci.
 
-2. CHIUDERE IL FLUSSO MODEL -> CHECKER -> REPORT - completato
+2. CHIUDERE IL FLUSSO MODEL -> CHECKER -> REPORT - implementato e verificato
+   nei test mirati; resta il consenso sul contratto storico del catalogo.
 2a Casi completi minimi per sezioni, aste FEM e connessioni standard.
 2b Verificare assi locali, segni e inversione degli elementi; le azioni
    concomitanti appartengono allo stesso caso, non a inviluppi separati.
