@@ -8,7 +8,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../tests/CompositeBridge.Checks/SlabRebarLayoutTests.cs" Link="SlabRebarLayoutTests.cs" />
+    <Compile Include="../tests/CompositeBridge.Checks/BridgePerformanceCases.cs" Link="BridgePerformanceCases.cs" />
     <None Update="Validation/*.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Validation/linear-performance-*.bin" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="../GPCChecker.CompositeBridge/GPCChecker.CompositeBridge.csproj" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.6.4" />

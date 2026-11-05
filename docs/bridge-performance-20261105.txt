@@ -1,0 +1,72 @@
+OTTIMIZZAZIONE SEZIONI COMPOSTE DA PONTE - 05/11/2026
+
+Campo: metodo cumulativo e storico lineare; storico non lineare escluso dalle
+ottimizzazioni. Le regressioni esistenti del non lineare restano un controllo
+delle parti di codice condivise. Nessuna modifica di prescrizioni o coefficienti.
+
+BASE DI PARTENZA
+Checker 6156e4ce; Model 2f934f9f; Geometry 6734eee; Utilities e57b440.
+Worktree e dipendenze di build separati dal lavoro Steel in corso.
+
+ORDINE DEL LAVORO
+0. Test indipendenti + regressioni congelate + tempi del codice originale.
+1. Riduzione del costo del solver elastico e delle allocazioni del lineare.
+2. Preparazione riutilizzabile e prefisso G1/G2/ritiro, con Q indipendenti.
+3. Parallelizzazione limitata per stazioni e per rami Q, senza doppia
+   parallelizzazione; ordine risultati deterministico e cancellazione propagata.
+4. Verifiche complete, versionamento e integrazione secondo AGENTS.md.
+
+CONTRATTO NUMERICO PRIMA DELLE MODIFICHE
+- Oracolo elastico N-M e ritiro da area/baricentro/inerzia integrati a mano:
+  entrambi i segni, N puro, M puro, zero, phi diversi, tre riferimenti di N,
+  con/senza armature. MPa: 1e-8 assoluto + 1e-9 relativo.
+- La rappresentazione da conservare nel cumulativo integra le piastre sulle
+  linee medie e le barre con la sottrazione del CLS al punto. Non si sottrae
+  l'inerzia propria di un foro circolare: quello e' un modello diverso. Lo
+  storico integra invece le inerzie proprie con fibre a momenti esatti.
+- Storico lineare: oracolo incrementale indipendente in assi baricentrici,
+  attivazione, cambi di modulo, ritiro, Q +/- e piccolo. Controlli delle tensioni,
+  del piano deformativo, delle risultanti e della compatibilita' per ogni fase.
+- 100 Q: singolo/batch, ordine inverso e esecuzioni indipendenti concorrenti;
+  stessa uscita serializzata bit per bit, nessuna contaminazione fra rami.
+- Classe 4: partenza lorda contro warm start, residuo <= 1e-7; confronto delle
+  tensioni entro 1e-5 relativo, coerente con la diversa traiettoria iterativa.
+- Suite preesistenti: carichi minimi, omogeneizzazione phi/n, ritiro, scala e
+  mesh, due piastre inferiori, H inclinata/cassone, errori e cancellazione,
+  indipendenza dei risultati e invalidazione del riuso.
+- Regressione benchmark: tensioni nelle prime 8 posizioni fisiche e 4 larghezze
+  efficaci in ciascuna delle 4 fasi. Soglia fissata prima delle ottimizzazioni:
+  1e-7 assoluto + 2e-8 relativo (MPa/mm). Equilibrio controllato separatamente.
+  Iterazioni e tempi non sono grandezze meccaniche da congelare.
+
+PROTOCOLLO TEMPI
+tools/CompositeBridge.Benchmark: stesso dataset deterministico per test e tempi.
+G1 + G2 (phi=2, psiL=1.1) + ritiro (-200 microstrain, phi=2, psiL=.55) + Q.
+Q: 100 valori distinti da -2500 a +3000 kNm, N e V variabili. Le 100 stazioni
+hanno geometrie e carichi permanenti distinti. Acciaio S355, CLS C35/45, B450C.
+Quattro scenari: cumulativo/storico lineare, ciascuno lordo/classe 4.
+Due dimensioni: 1 x 100 e 100 x 100. Output completo delle quattro fasi.
+Release net8, DOTNET_TieredCompilation=0; processo nuovo per ogni scenario.
+Prima esecuzione separata, poi tre ripetizioni a caldo; mediana e intervallo.
+Tempi wall e CPU, byte allocati, raccolte GC. Preparazione input misurata a
+parte; proiezione numerica inclusa, confronto e scrittura file esclusi.
+Non eseguire build o suite in parallelo ai tempi. MaxDegreeOfParallelism
+esplicito per i confronti concorrenti. Nessuna stima 100x dal caso 1x: tutte
+le 10.000 combinazioni sono effettivamente elaborate.
+Gli output non vengono sovrascritti. Ogni iterazione confronta i propri valori
+con quelli originali, non soltanto con l'iterazione precedente.
+
+ITERAZIONE 0 - BASELINE (nessuna modifica al solver)
+.NET 8.0.33, Windows 10.0.26300, 24 processori logici, GC workstation.
+Tempi in secondi: mediana delle tre ripetizioni a caldo.
+                          1 sezione x 100     100 sezioni x 100
+Cumulativo lordo                0.04784                  7.74785
+Cumulativo classe 4             0.22688                 29.65429
+Storico lineare lordo           0.22998                 20.92485
+Storico lineare classe 4        0.69139                 73.73991
+Allocazioni per 100x100: rispettivamente 3633, 10170, 20387, 179905 MiB
+cumulativi (non memoria residente). Tempi CPU corrispondenti: 7.469, 28.000,
+20.453, 71.703 s. Ripetizioni numericamente identiche bit per bit.
+Artefatti esterni: audit-results/bridge-performance-20261105/baseline-v1.
+Le quattro proiezioni 1x100 sono versionate in Validation/linear-performance-*,
+con SHA-256 e formato in linear-performance-baseline.json.

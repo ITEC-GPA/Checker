@@ -1,0 +1,40 @@
+{
+  "checkerCommit": "6156e4ce",
+  "modelCommit": "2f934f9fe48ebfff0b06a98de5ccff7bdea43ea4",
+  "dataset": "G1-G2-Ritiro-Q-v1",
+  "definition": "tests/CompositeBridge.Checks/BridgePerformanceCases.cs",
+  "layout": "int32 count; then little-endian doubles: combo, stage, first 8 stress points [MPa], TopWidth/BottomWidth/WebTop/WebBottom [mm]",
+  "absoluteTolerance": 1E-07,
+  "relativeTolerance": 2E-08,
+  "note": "Created before solver changes. Do not regenerate to accommodate a regression.",
+  "files": [
+    {
+      "file": "linear-performance-cumulative-false.bin",
+      "sha256": "BBAB276B78B8ED40485253B586C748083B2C45A8ADF5195A2361EEED89767953",
+      "method": "cumulative",
+      "class4": false,
+      "values": 4800
+    },
+    {
+      "file": "linear-performance-cumulative-true.bin",
+      "sha256": "98C7002120C1B1A077D37F61606A5E6014DF5B4D66A5E3444689045F45CB1392",
+      "method": "cumulative",
+      "class4": true,
+      "values": 4800
+    },
+    {
+      "file": "linear-performance-history-false.bin",
+      "sha256": "B93BA9E92A4EA3BD364FA616D34A24210690AED2AA080477E38EFE10CE283387",
+      "method": "history",
+      "class4": false,
+      "values": 4800
+    },
+    {
+      "file": "linear-performance-history-true.bin",
+      "sha256": "9FE159DC7DD320B3391F852EC4374F281508FA88469ABC12CF595014EB099B33",
+      "method": "history",
+      "class4": true,
+      "values": 4800
+    }
+  ]
+}
