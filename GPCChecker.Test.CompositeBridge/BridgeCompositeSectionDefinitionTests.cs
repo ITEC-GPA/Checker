@@ -243,6 +243,193 @@ public class BridgeCompositeSectionDefinitionTests
         }
     }
 
+    /// <summary>
+    /// Reference: BridGHe.Common.Models.CompositeBeamPropertyModel.GetReinforcedConcreteSection (the section of the homogenised analysis
+    /// properties of Composite Beam Property and Bridge State Override), copied verbatim from gpc-f6-claude/P2B/BridGHe
+    /// src/BridGHe.Common/Models/CompositeBeamPropertyModel.cs (commit e33822f), lines 203-241, with the fields of the property as
+    /// parameters (the steel H B1/B2/D/T1/T2/T3, the slab, the rows, the material values, the name) and CompositeSectionFactory.Create
+    /// (vertical offset 0) inlined.
+    /// </summary>
+    private static ReinforcedConcreteSection ReferenceAnalysisSection(double bfw, double tfw, double h, double bft, double tft, double wt,
+        double hh, double b, double topRebarsAreaTot, double topRebarsCover, double bottomRebarArea, double bottomCover,
+        string concreteName, double fck, string steelName, double steelE, double steelFy, double steelFu, double rebarE, double rebarFy, double rebarFu,
+        double? rebarUltimateStrain, string sectionHName, string name)
+    {
+        SectionH sectionH = new SectionH(h, wt, tfw, tft, bfw, bft, sectionHName);
+        ConcreteMaterialEN1992 concreteMaterialEN1992 = new ConcreteMaterialEN1992(concreteName, fck, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle);
+        SteelMaterialEN1992 steelMaterialEN1992 = new SteelMaterialEN1992(steelName, steelE, steelFy, steelFu, 0.1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Structural);
+        SteelMaterialEN1992 rebarMaterial = new SteelMaterialEN1992("B450C", rebarE, rebarFy, rebarFu, rebarUltimateStrain ?? 0.1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
+        double rebarDiameterTop = Math.Sqrt(topRebarsAreaTot * 4 / Math.PI);
+        RebarSectionCircular? rebarTop = rebarDiameterTop != 0 ? new RebarSectionCircular("", rebarDiameterTop, rebarMaterial) : null;
+        double rebarDiameterBottom = Math.Sqrt(bottomRebarArea * 4 / Math.PI);
+        RebarSectionCircular? rebarBottom = rebarDiameterBottom != 0 ? new RebarSectionCircular("", rebarDiameterBottom, rebarMaterial) : null;
+        return ReinforcedConcreteSection.CreateBridgeSection(b, hh, concreteMaterialEN1992, rebarTop, b / 1.0, topRebarsCover, rebarBottom, b / 1.0, sectionH, steelMaterialEN1992,
+            bottomCover, 0, name);
+    }
+
+    /// <summary>The girders of the examples and variants of the rows: (label, slab width, slab height, rows, steel d, tw, top width,
+    /// top thickness, bottom width, bottom thickness, concrete, steel names, name).</summary>
+    private static IEnumerable<(string Label, double W, double H, BridgeCompositeRebarRows Rows, double D, double Tw, double Bt, double Tt, double Bb, double Tb, string Concrete, string Steel, string Name)> AnalysisCases()
+    {
+        yield return ("50 G1-C1", 3000, 300, new BridgeCompositeRebarRows(3500, 50, 3500, 50, 3), 2500, 16, 600, 30, 600, 30, "Calcestruzzo soletta", "Acciaio carpenteria", "G1-C1");
+        yield return ("99", 2500, 300, new BridgeCompositeRebarRows(1600 * Math.PI, 50, 1600 * Math.PI, 50, 3), 1800, 15, 600, 30, 800, 40, "6", "2", "Composite");
+        yield return ("top row only", 3000, 300, new BridgeCompositeRebarRows(3500, 45, 0, 50, 3), 2500, 16, 600, 30, 600, 30, "C", "S", "top");
+        yield return ("bottom row only", 3000, 250, new BridgeCompositeRebarRows(0, 50, 2711.3, 62.5, 3), 2500, 16, 600, 30, 700, 35, "C", "S", "bottom");
+        yield return ("bottom cover 0 (the top one)", 2800, 280, new BridgeCompositeRebarRows(4021.24, 47.5, 1884.96, 0, 3), 2200, 14, 500, 25, 650, 40, "C", "S", "cover0");
+        yield return ("different covers, two bars per row", 3100, 320, new BridgeCompositeRebarRows(3141.59, 40, 2513.27, 70, 2), 2400, 18, 620, 32, 760, 44, "C", "S", "two");
+        yield return ("no bars", 3000, 300, new BridgeCompositeRebarRows(0, 50, 0, 50, 3), 2500, 16, 600, 30, 600, 30, "C", "S", "bare");
+    }
+
+    /// <summary>The section of the checks of a case: <paramref name="bars"/> bars per row of a third (bars = 3) of the area of the row, as
+    /// Super Element Check builds it (<see cref="Girder"/> with the bars of the rows).</summary>
+    private static ReinforcedConcreteSection ChecksSection((string Label, double W, double H, BridgeCompositeRebarRows Rows, double D, double Tw, double Bt, double Tt, double Bb, double Tb, string Concrete, string Steel, string Name) c)
+    {
+        var concrete = new ConcreteMaterialEN1992(c.Concrete, 32, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle);
+        var steel = new SteelMaterialEN1992(c.Steel, 210000, 355, 510, 0.1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Structural);
+        var rebar = new SteelMaterialEN1992("B450C", 200000, 450, 540, 0.1, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
+        int n = c.Rows.BarsPerRow;
+        double top = Math.Sqrt(c.Rows.TopAreaMm2 / n * 4 / Math.PI), bottom = Math.Sqrt(c.Rows.BottomAreaMm2 / n * 4 / Math.PI);
+        return ReinforcedConcreteSection.CreateBridgeSection(c.W, c.H, concrete, top != 0 ? new RebarSectionCircular("", top, rebar) : null, c.W / n, c.Rows.TopCoverMm,
+            bottom != 0 ? new RebarSectionCircular("", bottom, rebar) : null, c.W / n, new SectionH(c.D, c.Tw, c.Bt, c.Tt, c.Bb, c.Tb, "1"), steel, c.Rows.BottomCoverMm, 0, c.Name);
+    }
+
+    /// <summary>Every bar (position and diameter bits, material values) and the homogenised properties at several creep coefficients with
+    /// and without the bars and the steel, as bits: equal texts are the same section for the analysis properties.</summary>
+    private static string AnalysisDump(Func<ReinforcedConcreteSection> create)
+    {
+        var text = new StringBuilder();
+        var section = create();
+        foreach (var bar in section.Rebars)
+            text.Append("bar ").Append(Bits(bar.Position.X).ToString("X16")).Append(' ').Append(Bits(bar.Position.Y).ToString("X16")).Append(' ')
+                .Append(Bits(bar.RebarSection.Diameter).ToString("X16")).Append(' ').Append(Bits(bar.RebarSection.RebarMaterial.ElasticModulusTension).ToString("X16")).Append('\n');
+        text.Append("width ").Append(Bits(section.Width).ToString("X16")).Append(" height ").Append(Bits(section.Height).ToString("X16")).Append(" bars ").Append(section.Rebars.Count()).Append('\n');
+        foreach (double phi in new[] { 0.0, 1.0, 18.41 * 33345.7645 / 210000 - 1, 6.18 * 33345.7645 / 210000 - 1, -0.25 })
+            foreach (var (rebars, steel) in new[] { (true, true), (false, true), (true, false) })
+            {
+                var s = create();
+                if (!rebars) s.ClearRebars();
+                if (!steel) s.SteelSections.Clear();
+                var p = s.GetHomogeneizedMechanicalProperties(phi);
+                text.Append("phi ").Append(Bits(phi).ToString("X16")).Append(rebars ? " rebars" : "").Append(steel ? " steel" : "").Append(':');
+                foreach (double v in new[] { p.areaH, p.SxH, p.SyH, p.centroidH.X, p.centroidH.Y, p.JxxH, p.JyyH, p.JxyH, p.JpH, p.J11H, p.J22H, p.angleX })
+                    text.Append(' ').Append(Bits(v).ToString("X16"));
+                text.Append('\n');
+            }
+        return text.ToString();
+    }
+
+    [TestMethod]
+    public void AnalysisSectionIsTheSectionOfTheHomogenisedPropertiesOfBridGHe()
+    {
+        foreach (var c in AnalysisCases())
+        {
+            var checks = ChecksSection(c);
+            var definition = new BridgeCompositeSectionDefinition(c.Name, checks, c.Rows, 18.41, 6.18, 16.9, 0, true, true);
+            Func<ReinforcedConcreteSection> reference = () => ReferenceAnalysisSection(c.Bb, c.Bt, c.D, c.Tb, c.Tt, c.Tw, c.H, c.W, c.Rows.TopAreaMm2, c.Rows.TopCoverMm,
+                c.Rows.BottomAreaMm2, c.Rows.BottomCoverMm, c.Concrete, 32, c.Steel, 210000, 355, 510, 200000, 450, 540, null, "1", c.Name);
+            Assert.AreEqual(AnalysisDump(reference), AnalysisDump(definition.AnalysisSection), c.Label);
+            // The same section as a value (materials, shapes, bars, name): the fingerprint of GPCModel.
+            Assert.AreEqual(ModelValues.Fingerprint(new object[] { reference() }), ModelValues.Fingerprint(new object[] { definition.AnalysisSection() }), c.Label);
+            // One bar per row of non-zero area, at the middle of the slab; a new section at every call, with the materials and the steel of the definition.
+            var analysis = definition.AnalysisSection();
+            int rows = (c.Rows.TopAreaMm2 > 0 ? 1 : 0) + (c.Rows.BottomAreaMm2 > 0 ? 1 : 0);
+            Assert.AreEqual(rows, analysis.Rebars.Count(), c.Label);
+            Assert.IsTrue(analysis.Rebars.All(b => b.Position.X == c.W / 2), c.Label);
+            Assert.AreNotSame(analysis, definition.AnalysisSection());
+            Assert.AreNotSame(definition.Section, analysis);
+            Assert.AreSame(checks.ConcreteMaterial, analysis.ConcreteMaterial);
+            Assert.AreSame(checks.SteelSections[0].Section.SteelMaterial, analysis.SteelSections[0].Section.SteelMaterial);
+            Assert.AreSame(checks.SteelSections[0].Section.SectionShape, analysis.SteelSections[0].Section.SectionShape);
+            // The section of the checks is not changed.
+            Assert.AreEqual(rows * c.Rows.BarsPerRow, definition.Section.Rebars.Count(), c.Label);
+            // The section input of the checks is the one of the same definition without the rows.
+            Assert.AreEqual(Dump(new BridgeCompositeSectionDefinition(c.Name, checks, 18.41, 6.18, 16.9, 0, true, true).SectionInput(true)), Dump(definition.SectionInput(true)), c.Label);
+        }
+        // The ultimate strain of the bars of the analysis section of BridGHe (ReinforcementUltimateStrain ?? 0.1) does not enter the
+        // homogenised properties: a rebar material with another ultimate strain gives the same values.
+        var g = AnalysisCases().First();
+        Func<ReinforcedConcreteSection> other = () => ReferenceAnalysisSection(g.Bb, g.Bt, g.D, g.Tb, g.Tt, g.Tw, g.H, g.W, g.Rows.TopAreaMm2, g.Rows.TopCoverMm,
+            g.Rows.BottomAreaMm2, g.Rows.BottomCoverMm, g.Concrete, 32, g.Steel, 210000, 355, 510, 200000, 450, 540, 0.0675, "1", g.Name);
+        Assert.AreEqual(AnalysisDump(other), AnalysisDump(new BridgeCompositeSectionDefinition(g.Name, ChecksSection(g), g.Rows, 18.41, 6.18, 16.9, 0, true, true).AnalysisSection));
+        // Without the rows there is no analysis section.
+        Assert.ThrowsException<InvalidOperationException>(() => Definition(Example50()).AnalysisSection());
+    }
+
+    [TestMethod]
+    public void RebarRowsRoundTripAndEnterTheFingerprintOnlyWhenGiven()
+    {
+        // A definition without the rows keeps the fingerprint of the Checker before the rows (d018ff28, measured with that build) and its document.
+        Assert.AreEqual("72E292C0F336A3074BD6CB1D156EDCA111C92B7F43B03F874017FF029F37ACE1", Definition(Example50()).Fingerprint());
+        Assert.AreEqual("FDFA7A8AFEC347E0D50C079473F7C0FD4D2D816FFB82C42689F8A1215686A56E", Definition(Example99()).Fingerprint());
+        Assert.AreEqual("53E8924DC8B85C2CEE4B3E2936CFE72C72F130432F4060A4628307155846C0C8",
+            new BridgeCompositeSectionDefinition("G1-C1 composite", Example50(), 18.41, 6.18, 16.9, 0, false, true).Fingerprint());
+        StringAssert.DoesNotMatch(Encoding.UTF8.GetString(Definition(Example50()).Save()), new System.Text.RegularExpressions.Regex("RebarRows"));
+        foreach (var c in AnalysisCases())
+        {
+            var section = ChecksSection(c);
+            var definition = new BridgeCompositeSectionDefinition(c.Name, section, c.Rows, 18.41, 6.18, 16.9, 0, true, true);
+            string fingerprint = definition.Fingerprint();
+            Assert.AreNotEqual(new BridgeCompositeSectionDefinition(c.Name, section, 18.41, 6.18, 16.9, 0, true, true).Fingerprint(), fingerprint, c.Label);
+            byte[] saved = definition.Save();
+            foreach (var other in new[] { BridgeCompositeSectionDefinition.Read(saved), definition.Copy() })
+            {
+                var rows = other.RebarRows!;
+                Assert.AreNotSame(definition.RebarRows, rows);
+                CollectionAssert.AreEqual(new[] { c.Rows.TopAreaMm2, c.Rows.TopCoverMm, c.Rows.BottomAreaMm2, c.Rows.BottomCoverMm }.Select(Bits).ToArray(),
+                    new[] { rows.TopAreaMm2, rows.TopCoverMm, rows.BottomAreaMm2, rows.BottomCoverMm }.Select(Bits).ToArray(), c.Label);
+                Assert.AreEqual(c.Rows.BarsPerRow, rows.BarsPerRow);
+                Assert.AreEqual(fingerprint, other.Fingerprint(), c.Label);
+                Assert.AreEqual(AnalysisDump(definition.AnalysisSection), AnalysisDump(other.AnalysisSection), c.Label);
+                Assert.AreEqual(Document(saved), Document(other.Save()));
+            }
+            // Every value of the rows enters the fingerprint (a cover alone changes no bar of the section of the checks).
+            var r = c.Rows;
+            foreach (var changed in new[] { new BridgeCompositeRebarRows(r.TopAreaMm2, r.TopCoverMm + 1, r.BottomAreaMm2, r.BottomCoverMm, r.BarsPerRow),
+                new BridgeCompositeRebarRows(r.TopAreaMm2, r.TopCoverMm, r.BottomAreaMm2, r.BottomCoverMm + 1, r.BarsPerRow) })
+                Assert.AreNotEqual(fingerprint, new BridgeCompositeSectionDefinition(c.Name, section, changed, 18.41, 6.18, 16.9, 0, true, true).Fingerprint(), c.Label);
+        }
+        var g = AnalysisCases().First();
+        var more = (g.Label, g.W, g.H, Rows: new BridgeCompositeRebarRows(3600, 50, 3500, 50, 3), g.D, g.Tw, g.Bt, g.Tt, g.Bb, g.Tb, g.Concrete, g.Steel, g.Name);
+        Assert.AreNotEqual(new BridgeCompositeSectionDefinition(g.Name, ChecksSection(g), g.Rows, 18.41, 6.18, 16.9, 0, true, true).Fingerprint(),
+            new BridgeCompositeSectionDefinition(g.Name, ChecksSection(more), more.Rows, 18.41, 6.18, 16.9, 0, true, true).Fingerprint());
+        // The rows travel inside the bridge data of a model.
+        var data = new BridgeModelData(); var beam = Guid.NewGuid();
+        data.SetCompositeSection(beam, new BridgeBeamCompositeSection(new BridgeCompositeSectionDefinition(g.Name, ChecksSection(g), g.Rows, 18.41, 6.18, 16.9, 0, true, true)));
+        var read = BridgeModelData.Read(data.Save());
+        Assert.AreEqual(data.Fingerprint(), read.Fingerprint());
+        Assert.AreEqual(AnalysisDump(data.CompositeSection(beam)!.Start.AnalysisSection), AnalysisDump(read.CompositeSection(beam)!.Start.AnalysisSection));
+    }
+
+    [TestMethod]
+    public void InvalidRebarRowsAreRejected()
+    {
+        foreach (double area in new[] { -1, -1e-300, double.NaN, double.PositiveInfinity, double.NegativeInfinity })
+        {
+            Assert.ThrowsException<ArgumentException>(() => new BridgeCompositeRebarRows(area, 50, 0, 50, 3), "top area " + area);
+            Assert.ThrowsException<ArgumentException>(() => new BridgeCompositeRebarRows(0, 50, area, 50, 3), "bottom area " + area);
+        }
+        foreach (double cover in new[] { double.NaN, double.PositiveInfinity, double.NegativeInfinity })
+        {
+            Assert.ThrowsException<ArgumentException>(() => new BridgeCompositeRebarRows(3500, cover, 3500, 50, 3), "top cover " + cover);
+            Assert.ThrowsException<ArgumentException>(() => new BridgeCompositeRebarRows(3500, 50, 3500, cover, 3), "bottom cover " + cover);
+        }
+        foreach (int bars in new[] { 0, -1, int.MinValue })
+            Assert.ThrowsException<ArgumentException>(() => new BridgeCompositeRebarRows(3500, 50, 3500, 50, bars), "bars " + bars);
+        var section = Example50();
+        Assert.ThrowsException<ArgumentException>(() => new BridgeCompositeSectionDefinition("C", section, null!, 18, 6, 16, 0, true, true));
+        // Rows that do not describe the bars of the section: another area, another number of bars, a row the section has not, rows without bars.
+        foreach (var rows in new[] { new BridgeCompositeRebarRows(3600, 50, 3500, 50, 3), new BridgeCompositeRebarRows(3500, 50, 3500, 50, 2),
+            new BridgeCompositeRebarRows(3500, 50, 0, 50, 3), new BridgeCompositeRebarRows(0, 50, 0, 50, 3) })
+            Assert.ThrowsException<ArgumentException>(() => new BridgeCompositeSectionDefinition("C", section, rows, 18, 6, 16, 0, true, true),
+                $"{rows.TopAreaMm2} {rows.BottomAreaMm2} {rows.BarsPerRow}");
+        // Archived rows are checked when read.
+        string xml = Encoding.UTF8.GetString(new BridgeCompositeSectionDefinition("C", section, new BridgeCompositeRebarRows(3500, 50, 3500, 50, 3), 18, 6, 16, 0, true, true).Save());
+        var barsElement = new System.Text.RegularExpressions.Regex("(BarsPerRow[^<>]*>)3<");
+        Assert.AreEqual(1, barsElement.Matches(xml).Count);
+        Assert.ThrowsException<ArgumentException>(() => BridgeCompositeSectionDefinition.Read(Encoding.UTF8.GetBytes(barsElement.Replace(xml, "${1}0<"))));
+        Assert.ThrowsException<ArgumentException>(() => BridgeCompositeSectionDefinition.Read(Encoding.UTF8.GetBytes(barsElement.Replace(xml, "${1}2<"))));
+    }
+
     [TestMethod]
     public void InvalidDefinitionsAreRejected()
     {
