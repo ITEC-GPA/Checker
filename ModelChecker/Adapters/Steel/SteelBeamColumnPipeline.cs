@@ -35,8 +35,9 @@ namespace GPC.Model.Checker
                 _parameters.TryGetValue("ShearBucklingExclusionSource",out var excludeV)?excludeV:null);
             if(_parameters.TryGetValue("HighShearMethod",out var highShear))
             {
-                if(highShear!="ConservativeUniformReduction")throw new ArgumentException("UnsupportedHighShearMethod");
-                data=data.WithConservativeHighShear();
+                if(highShear=="ConservativeUniformReduction")data=data.WithConservativeHighShear();
+                else if(highShear=="ConservativeShearSuperposition")data=data.WithConservativeShearSuperposition();
+                else throw new ArgumentException("UnsupportedHighShearMethod");
             }
             int? memberClass=axialClass;
             if(_parameters.ContainsKey("MemberClass")) {

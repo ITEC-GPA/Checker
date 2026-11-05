@@ -101,7 +101,9 @@ namespace GPC.Checkers.Steel.Pipeline
                     "Each shear <= 0.5 VplRd needs code shear areas on principal axes aligned with the section geometry; rotated principal axes are not supported with shear.");
                 double ratio1=Math.Abs(a.V1)/SteelPlasticShear.Resistance(i,1);
                 double ratio2=Math.Abs(a.V2)/SteelPlasticShear.Resistance(i,2);
-                if(ratio1>.5||ratio2>.5)
+                if(p.ConservativeShearSuperposition && cl.Class>3)
+                    return Unsupported("Member.ShearSuperpositionClass4NotQualified","Class4 needs a separately qualified plate-buckling interaction; shear superposition alone cannot qualify it.");
+                if(!p.ConservativeShearSuperposition && (ratio1>.5||ratio2>.5))
                 {
                     if(!p.ConservativeHighShear)return Unsupported("Member.BeamColumnHighShear","High shear needs reduced interaction resistances; select WithConservativeHighShear explicitly for the bounded conservative route.");
                     if(cl.Class>3)return Unsupported("Member.BeamColumnHighShearClass4","High shear with effective class4 properties needs a coupled plate-buckling model.");
@@ -129,7 +131,7 @@ namespace GPC.Checkers.Steel.Pipeline
             // Typed compression intermediates: the class4 Aeff exists exactly when the compression route used it.
             double gamma=i.Code.GammaM1.Value,fy=i.Section.YieldStrength,nrk=(effective?flexural.EffectiveArea.Value:section.Area)*fy;
             double lambda1=flexural.Slenderness1,lambda2=flexural.Slenderness2,chi1=flexural.Chi1,chi2=flexural.Chi2;
-            bool elastic=decision.SectionClass>=3||Hollow(section.SectionShape),ntc=i.Code.SectionCode.Standard==SectionResistanceStandard.Ntc2018;
+            bool elastic=p.ConservativeShearSuperposition||decision.SectionClass>=3||Hollow(section.SectionShape),ntc=i.Code.SectionCode.Standard==SectionResistanceStandard.Ntc2018;
             double w1=effective?MemoizedEffectiveProperties.BendingModulus(i,1):(elastic?section.Wel1:section.Wpl1);
             double w2=effective?MemoizedEffectiveProperties.BendingModulus(i,2):(elastic?section.Wel2:section.Wpl2);
             double m1rk=w1*fy,m2rk=w2*fy,chiLT=1;
@@ -147,20 +149,34 @@ namespace GPC.Checkers.Steel.Pipeline
             // N>=0: n1=n2=0, so k11=Cm1, k22=Cm2, k12/k21 from Tables B.1-B.2 (C4.2.IV-V) at n=0; CmLT-.25>=.15.
             double compressive=-Math.Min(0,i.EffectiveActions.N);
             if(i.EffectiveActions.N>0)Add(trace,"TensionNeglectedAsFavourable",i.EffectiveActions.N,"N");
-            double shearRatio=Math.Max(i.EffectiveActions.V1==0?0:Math.Abs(i.EffectiveActions.V1)/SteelPlasticShear.Resistance(i,1),
-                i.EffectiveActions.V2==0?0:Math.Abs(i.EffectiveActions.V2)/SteelPlasticShear.Resistance(i,2));
-            double rho=p.ConservativeHighShear&&shearRatio>.5?Math.Pow(2*shearRatio-1,2):0;
+            double ratio1=i.EffectiveActions.V1==0?0:Math.Abs(i.EffectiveActions.V1)/SteelPlasticShear.Resistance(i,1);
+            double ratio2=i.EffectiveActions.V2==0?0:Math.Abs(i.EffectiveActions.V2)/SteelPlasticShear.Resistance(i,2);
+            double shearRatio=Math.Max(ratio1,ratio2);
+            double rho=p.ConservativeShearSuperposition ? ratio1+ratio2
+                : p.ConservativeHighShear&&shearRatio>.5?Math.Pow(2*shearRatio-1,2):0;
+            SteelInputValidation.Finite(rho,"normal resistance reduction");
+            string shearTrace=p.ConservativeShearSuperposition?"ShearSuperposition":"HighShear";
+            if(p.ConservativeShearSuperposition)
+            {
+                Add(trace,"ShearSuperposition.ShearRatio1",ratio1,"1");
+                Add(trace,"ShearSuperposition.ShearRatio2",ratio2,"1");
+                Add(trace,"ShearSuperposition.Sum",rho,"1");
+            }
             if(rho>0)
             {
-                Add(trace,"HighShear.VEdOverVplRd",shearRatio,"1");
-                Add(trace,"HighShear.Rho",rho,"1");Add(trace,"HighShear.NormalResistanceFactor",Math.Max(0,1-rho),"1");
+                if(!p.ConservativeShearSuperposition) {
+                    Add(trace,"HighShear.VEdOverVplRd",shearRatio,"1");
+                    Add(trace,"HighShear.Rho",rho,"1");
+                }
+                Add(trace,shearTrace+".NormalResistanceFactor",Math.Max(0,1-rho),"1");
                 if(rho>=1)
                     return new SteelCheckExecution(decision,SteelExecutionStatus.Failed,
-                        "Member.HighShearNormalCapacityExhausted","The conservative whole-section normal resistance is zero; active compression/bending cannot be carried.",
-                        reference:"EN1993-1-1:2005 6.2.10(3); conservative whole-section reduction",scope:"High shear with active normal actions; section and shear checks remain separate.",trace:trace);
+                        p.ConservativeShearSuperposition?"Member.ShearSuperpositionNormalCapacityExhausted":"Member.HighShearNormalCapacityExhausted",
+                        "The conservative whole-section normal resistance is zero; active compression/bending cannot be carried.",
+                        reference:p.ConservativeShearSuperposition?"Conservative pure-action resistance superposition; no double allocation of shear areas":"EN1993-1-1:2005 6.2.10(3); conservative whole-section reduction",scope:"High shear with active normal actions; section and shear checks remain separate.",trace:trace);
                 nb1*=1-rho;nb2*=1-rho;mb*=1-rho;mz*=1-rho;
-                Add(trace,"HighShear.Nb1Rd",nb1,"N");Add(trace,"HighShear.Nb2Rd",nb2,"N");
-                Add(trace,"HighShear.MbRd",mb,"Nmm");Add(trace,"HighShear.M2Rd",mz,"Nmm");
+                Add(trace,shearTrace+".Nb1Rd",nb1,"N");Add(trace,shearTrace+".Nb2Rd",nb2,"N");
+                Add(trace,shearTrace+".MbRd",mb,"Nmm");Add(trace,shearTrace+".M2Rd",mz,"Nmm");
             }
             var result=BeamColumnInteraction.Evaluate(compressive/nb1,compressive/nb2,Math.Abs(i.EffectiveActions.M1)/mb,Math.Abs(i.EffectiveActions.M2)/mz,
                 lambda1,lambda2,elastic?3:decision.SectionClass.Value,p.TorsionSusceptible,p.Cm1,p.Cm2,p.CmLT,ntc);
@@ -185,7 +201,8 @@ namespace GPC.Checkers.Steel.Pipeline
             double utilization=Math.Max(result.Utilization,compression.Utilization.Value/(1-rho));
             Add(trace,"Utilization",utilization,"1");
             return new SteelCheckExecution(decision,utilization<=1?SteelExecutionStatus.Passed:SteelExecutionStatus.Failed,
-                reference:result.Reference+(rho>0?(ntc?"; NTC2018 4.2.4.1.2.9 eq4.2.40":"; EN1993-1-1:2005 6.2.10(3)")
+                reference:result.Reference+(p.ConservativeShearSuperposition?"; conservative pure-action resistance superposition q=1-|V1|/Vpl1Rd-|V2|/Vpl2Rd; elastic bending; original chi and upper-bound k, not a normative biaxial-shear equation"
+                    :rho>0?(ntc?"; NTC2018 4.2.4.1.2.9 eq4.2.40":"; EN1993-1-1:2005 6.2.10(3)")
                     +", conservative whole-section yield-strength reduction and upper-bound interaction coefficients":"")
                     +(effective?"; EN1993-1-5:2006 4.3(3)/(4), class4 Aeff/Weff at fy; gross critical values":"")
                     +(ltb?.IsRolled==true?"; chiLT: "+SteelLateralTorsionalExecution.Reference(ntc):"")+(ltb!=null?SteelLateralTorsionalExecution.CurveReference(ltb):""),scope:"Doubly symmetric prismatic H/RHS/SHS/CHS classes1-3, qualified H/RHS class4 with zero uniform-compression centroid shift; hollow sections use conservative elastic moduli and elastic interaction coefficients; N constant, M1/M2 maxima from one design state; explicit Cm, global-analysis and mode assessments. Section/shear verification is separate."

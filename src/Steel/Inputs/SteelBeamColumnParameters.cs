@@ -27,6 +27,21 @@ namespace GPC.Checkers.Steel.Inputs
         /// The original parameter object and the default method remain unchanged.</summary>
         public bool ConservativeHighShear { get; private set; }
 
+        /// <summary>Conservative resistance superposition for one or two principal
+        /// shears: q=max(0,1-|V1|/Vpl1Rd-|V2|/Vpl2Rd) on ALL normal resistances.
+        /// Elastic bending moduli, original buckling reductions and upper-bound
+        /// interaction coefficients are retained. Both shear-buckling exclusions
+        /// are required. This is a sufficient bound, not a new EC3 interaction formula.</summary>
+        public bool ConservativeShearSuperposition { get; private set; }
+
+        public SteelBeamColumnParameters WithConservativeShearSuperposition()
+        {
+            var copy = (SteelBeamColumnParameters)MemberwiseClone();
+            copy.ConservativeHighShear = false;
+            copy.ConservativeShearSuperposition = true;
+            return copy;
+        }
+
         public SteelBeamColumnParameters WithConservativeHighShear()
             => new SteelBeamColumnParameters(Curve1, Curve2, TorsionSusceptible, Cm1, Cm2, CmLT,
                 MomentFactorSource, StabilityModelSource, TorsionalExclusionSource,

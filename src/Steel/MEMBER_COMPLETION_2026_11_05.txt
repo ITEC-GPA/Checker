@@ -1,0 +1,42 @@
+COMPLETAMENTO ASTE - PUNTO4 DEL PIANO
+5 novembre2026. EC3:2005 / NTC2018, statica ordinaria. N,mm,MPa,Nmm.
+
+4a DUE TAGLI CONCOMITANTI - implementazione
+Sezioni classi1-3: gia' disponibile LinearResistanceInteraction, con somma
+delle utilizzazioni pure di N, Mel1, Mel2, Vpl1, Vpl2; nessuna duplicazione
+di aree per considerare le due resistenze a taglio indipendenti.
+Aste H/RHS/CHS doppiamente simmetriche: nuovo opt-in immutabile
+SteelBeamColumnParameters.WithConservativeShearSuperposition().
+ModelChecker: HighShearMethod=ConservativeShearSuperposition.
+Si pone r1=|V1|/Vpl1Rd,r2=|V2|/Vpl2Rd e q=max(0,1-r1-r2).
+TUTTE le resistenze normali dell'asta sono moltiplicate per q. Moduli
+elastici anche in classe1/2. Chi e lambda del materiale originale;
+coefficienti k superiormente limitati nello stesso modo del precedente
+percorso cautelativo ad alto taglio (eliminate le riduzioni favorevoli).
+
+Fondamento: combinazione convessa degli stati resistenti di azione pura,
+lo stesso limite sufficiente del percorso di sezione. La somma r1+r2
+non assume aree a taglio disgiunte. Ridurre fy ovunque conserva a favore
+di sicurezza le chi originali: la snellezza del materiale ridotto diminuisce.
+Non e' una nuova equazione normativa per due tagli ne' un campo puntuale
+di tensioni di von Mises. Si distinguono riferimenti delle resistenze pure
+(EN1993-1-1 6.2.6, NTC4.2.4.1.2.4) e dell'interazione d'asta (AnnexB,
+Circolare MetodoB) dalla composizione cautelativa propria della libreria.
+Entrambe le esclusioni di instabilita' a taglio sono obbligatorie.
+Un'esclusione fornita dal chiamante resta una valutazione dichiarata,
+non una certificazione automatica; le sezioni di ogni taglio restano da verificare.
+Classe4 non e' abilitata da questa sola superposizione.
+Il percorso precedente WithConservativeHighShear/ConservativeUniformReduction
+mantiene il suo contratto a una componente e i suoi attesi storici.
+
+Prove indipendenti: geometrie di section-oracles.json, aree a taglio dalle
+formule della norma, sostituzione manuale nelle righe elastiche AnnexB/MetodoB.
+Segni, classi1-3, H/RHS/CHS, entrambi i codici, basso/alto taglio e somma>=1;
+assenza/negativita' di una delle esclusioni e immutabilita' dei parametri.
+Prima esecuzione:221/221 test Steel mirati,0 fallimenti.
+Fonti gia' archiviate: EN1993-1-1-2005.pdf, NTC2018.pdf, Circolare2019.pdf;
+registro persistente REFERENCE_REGISTER.json. Nessun atteso storico modificato.
+
+4b CLASSE4 + ALTO TAGLIO - in sviluppo, non qualificato da4a.
+4c NUOVI SCHEMI Ncr/Mcr - in sviluppo.
+4d FLUSSO FEM - estensione del percorso esistente, in verifica.
