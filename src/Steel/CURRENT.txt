@@ -1,5 +1,5 @@
 CHECKER.STEEL - STATO CORRENTE E INGRESSI CONSIGLIATI
-Aggiornamento: 2 novembre 2026. Unita: N, mm, MPa, Nmm.
+Aggiornamento: 5 novembre 2026. Unita: N, mm, MPa, Nmm.
 
 Questo e l'indice corrente della libreria. I piani datati, le note PHASE_*
 e STEEL_REVIEW_2026_10_27.txt conservano decisioni ed evidenze storiche;
@@ -9,6 +9,9 @@ La versione numerica si legge in GPCChecker.Steel.csproj/AssemblyInfo.cs.
 Consolidamento avviato il5 novembre: IMPLEMENTATION_PLAN_2026_11_05.txt;
 base dei branch e collaudo con Model aggiornato: INTEGRATION_2026_11_05.txt.
 Le nuove fasi non sono coperture gia' implementate.
+Matrice famiglie/nodi ed evidenze: COVERAGE_MATRIX_2026_11_05.txt.
+Fonti persistenti per il successivo download: REFERENCE_REGISTER.json;
+copie fuori Git in ChatGPT/Checker/references/steel/documents (non temporanee).
 Ultimo blocco verificato e limiti ancora aperti: CLOSURE_2026_11_02.txt
 (Steel2.129.0.1, ModelChecker2.38.0.0,10361 test superati).
 

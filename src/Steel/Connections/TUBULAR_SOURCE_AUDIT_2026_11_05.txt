@@ -1,0 +1,42 @@
+TUBOLARI - RISCONTRI E PROVE DELLA FASE1
+5 novembre2026. Nessuna formula numerica o fixture storica modificata.
+
+Fonte primaria indipendente: Tata Steel, Design of welded joints,
+Celsius355/Hybox355,2013, pp41-43,5.3.2.3/5.3.2.5/5.3.3.
+https://www.tatasteeluk.com/sites/default/files/tata-steel-design-of-structural-hollow-sections-welded-joints-en.pdf
+Testo indicizzato consultato; download diretto403 anche dal sito Nederland.
+EN1993-1-8:2005+AC2009 Tab7.11, p119 (PDF121), letta VISIVAMENTE nella
+copia locale conservata nell'archivio references/steel/documents.
+
+Riscontri: curve a/c rispettivamente per il prodotto a caldo/freddo S355;
+alpha=0 nell'area a taglio delle X; interpolazione fra resistenze calcolate
+ai due beta di ancoraggio. I12 nuovi casi sono calcoli a mano dalle formule,
+non esempi numerici pubblicati: EC/NTC, caldo/freddo, n=.8 e beta=.875,
+X a30gradi. La stessa geometria X con asta circolare beta=1 e' FUORI CAMPO
+(Tab7.8 di/b0<=.8): due casi verificano il rifiuto, non una resistenza.
+Primo giro117/119: quei due input erano erroneamente dichiarati ammissibili
+nel nuovo test. Corretto solo il NUOVO test secondo il campo, senza toccare
+il codice o attesi preesistenti. Secondo giro:119/119 tubolari,0 fallimenti.
+
+Rimangono scelte cautelative dichiarate, non nuove clausole normative:
+punzonamento K/N anche quando solo bi/b0 individuale soddisfa il limite;
+fattore0.9 se una qualsiasi membratura supera S355; controllo del20% sulla
+componente maggiore; limite inferiore zero per kn/kp; gola sufficiente
+in tutte le direzioni; classificazione RHS con c=b-3t. La guida S355 non
+prova la scelta a0 per S460: resta il rinvio alla curva del prodotto della
+EN1993-1-1 Tab6.2, distinto dalla prova Tata a/c.
+Le resistenze nel gap sono verificate con il taglio firmato del corpo
+libero nel percorso VerifyEquilibrated. Nessun numero tratto da un esempio
+con V0 esterno nullo sostituisce quel taglio in un caso diverso.
+
+CHS D.40: testo implementato2007+AC2009 invariato. Ricerca aggiornata del
+testo finale A1:2017: l'anteprima SIST autentica elenca la modifica29 a
+D.1.4.2 p16, ma non mostra quella pagina. La bozza prA1 non chiude il punto.
+https://cdn.standards.iteh.ai/samples/62445/836bf15b4eee4737b544067f11f81900/SIST-EN-1993-1-6-2007-A1-2017.pdf
+Non si dichiara conformita' all'emendamento non letto. Resta un riscontro
+editoriale aperto; non impedisce gli altri lavori sulla versione esplicita.
+
+Risultati riproducibili: tests/Steel.Members.Tests/TubularJointSourceAuditTests.cs.
+TRX: tmp/steel-consolidation-20261105/phase1-tests/phase1-tubular-correct-domain.trx
+rispetto alla cartella di lavoro ChatGPT/Checker. Fonti persistenti:
+../REFERENCE_REGISTER.json e ../COVERAGE_MATRIX_2026_11_05.txt.

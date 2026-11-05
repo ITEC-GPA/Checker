@@ -13,7 +13,9 @@ o progetto sismico esteso in questo ciclo.
 0c Controllare ogni2 ore e prima dei commit conclusivi le nuove divergenze.
    Duplicazioni silenziose delle versioni risolte e guardia di build aggiunta.
 
-1. CONSOLIDARE I CALCOLI ESISTENTI - da completare
+1. CONSOLIDARE I CALCOLI ESISTENTI - completato il blocco operativo;
+   resta aperto il solo riscontro editoriale A1:2017 e restano esplicite
+   le interpretazioni cautelative non promosse a clausole normative.
 1a Matrice per famiglie di sezioni/aste e nodi: ingresso consigliato,
    metodo, edizione, combinazioni ammesse, ipotesi/vincoli, fonte
    indipendente, test disponibili e sottocasi non qualificati.
@@ -24,6 +26,12 @@ o progetto sismico esteso in questo ciclo.
    nessuna rigenerazione di fixture storiche senza autorizzazione.
 1d Aggiornare indice CURRENT e stato reale delle coperture. Una matrice
    descrittiva da sola non qualifica i meccanismi ancora mancanti.
+   Esito5/11: matrice delle10 famiglie e dei25 ID del catalogo;
+   12 nuovi casi tubolari,119/119 nel collaudo mirato; nessun errore numerico
+   riprodotto nelle formule oggetto dei nuovi confronti. Fonti e copie
+   persistenti in REFERENCE_REGISTER.json, audit dedicato in Connections.
+   Il limite editoriale di1b non modifica il metodo2007+AC2009 gia' esplicito
+   e non blocca2-3, che non dipendono dall'emendamento dei gusci.
 
 2. CHIUDERE IL FLUSSO MODEL -> CHECKER -> REPORT - da completare
 2a Casi completi minimi per sezioni, aste FEM e connessioni standard.

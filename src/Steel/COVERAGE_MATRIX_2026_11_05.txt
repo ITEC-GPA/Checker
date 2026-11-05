@@ -1,0 +1,80 @@
+STEEL - MATRICE DI COPERTURA E DI EVIDENZA
+5 novembre2026, fase1. Edizioni selezionate: EN1993-1-1/1-8:2005 con AC2009,
+EN1993-1-5:2006; NTC2018 e Circolare2019. Nessun cambio implicito di edizione.
+N,mm,MPa,Nmm; N positivo a trazione. Assi/segni delle connessioni sono propri
+del relativo ingresso e vanno trasformati, non dedotti dal nome M1/M2.
+
+LEGENDA E CRITERIO
+P = confronto con numeri pubblicati; A = calcolo analitico indipendente
+dall'implementazione (formula/integrale/script separato); R = regressione
+del contratto o del dominio. P su un componente non certifica tutto il nodo.
+Le famiglie sotto comprendono entrambi i codici solo dove il selettore
+accetta quella geometria e quelle azioni. CURRENT.txt e i metodi restano
+autorita' sul campo; questa matrice non sostituisce le verifiche runtime.
+Test citati in tests/Steel.Members.Tests salvo prefisso ModelChecker.Tests.
+Fonti, URL, copie locali e provenienza: REFERENCE_REGISTER.json.
+
+SEZIONI E ASTE
+Ingresso comune: SteelSectionInput -> SteelVerificationInput oppure
+SteelMemberAnalysis -> SteelMethodSelector -> SteelVerificationPipeline.
+FEM: SteelPipelineMaterialChecker / SteelMemberPipelineChecker.
+
+Famiglia | Campo qualificato | Evidenza indipendente e test | Limiti residui
+H/I | N-M e taglio nel dominio del metodo; sezione efficace; compressione/LTB/trave-colonna doppia simmetria | P SCI/Caffe: PublishedBucklingBenchmarks, CaffeReferenceTests; A CommonSectionCoverageTests, CommonShearCoverageTests, EffectiveSectionSolverTests | alto taglio classe4 solo puro M1-V2 nel percorso esistente; due tagli alti e trave-colonna classe4 ad alto taglio non qualificati
+C | N-M elastico; sezione efficace; Ncr/T/FT e LTB nei rispettivi schemi; metodo generale esterno | P SCI P363/Caffe A1.1: SciSectionReferenceTests, CaffeReferenceTests; A FamilyBucklingReferenceTests | punta raccordata non rimossa dal kernel efficace; N-M d'asta tramite dati esterni qualificati, non AnnexB automatico
+T | N-M elastico; efficace; modi critici qualificati e metodo generale esterno | P SCI P363: SciSectionReferenceTests; A FamilyBucklingReferenceTests, TeeTorsionReferenceTests | nessun percorso automatico generale per tutti i vincoli o per pressoflessione con alto taglio
+L uguali | N-M su assi principali; efficace; metodo generale esterno | P SCI P363 per geometria; A FamilyBucklingReferenceTests, EffectiveSectionSolverTests | connessione di un solo lato ed eccentricita' non si deducono dalla sola resistenza della sezione
+L disuguali | N-M elastico/effectivo nel dominio geometrico; coppie con lato collegato esplicito | A CodeVerificationTests, EffectiveSectionSolverTests, PackedChordResistanceTests | nessun LTB/metodo generale monosimmetrico automatico per l'asta isolata asimmetrica; spessori diversi richiedono classificazione esterna
+RHS/SHS | N-M; efficace; compressione/LTB/N-M doppiamente simmetrici; filtro taglio sulle pareti | A CodeVerificationTests, EffectiveSectionSolverTests, HollowBeamColumnTests; P dati SCI in SciSectionReferenceTests | due tagli alti e alto taglio classe4 d'asta non qualificati; assi ruotati richiedono qualifiche esplicite
+RHS raccordati | N-M elastico conservativo; efficace con raggi uniformi concentrici; asta come cave nel dominio | A CodeVerificationTests, EffectiveGeometryTests, HollowBeamColumnTests | nessun riuso della geometria a spigoli vivi senza controllo di raggi/assi
+CHS | N-M; compressione/LTB/N-M nel campo del selettore; filtro D.40 dichiarato | P SCI P363; A ChsShearBucklingTests, HollowBeamColumnTests | gusci classe4 esclusi; D.40 riferita a2007+AC2009, A1:2017 non riscontrato sul testo finale
+2C/2L identici | resistenza e assi della coppia; efficace di sezione; compressione con imbotiture qualificate | A PackedChordResistanceTests, EffectivePairTests, PackedPairCompressionTests, BuiltUpColumnReferenceTests | no profili diversi, calastrelli/tralicci, compressione globale classe4 o pressoflessione generica della coppia
+Rettangolo/circolo pieni | N-M elastico conservativo, resistenze scalari nel campo EC/NTC selezionato | A CodeVerificationTests, CommonSectionCoverageTests; FamilyBucklingReferenceTests solo NTC per i pieni | no attribuzione di curva EC3 automatica dove non qualificata; torsione fuori dal selettore comune
+
+Il campo non equivale a "tutte le verifiche per tutte le sezioni": torsione
+e interazioni con T hanno componenti separati; geometrie arbitrarie e profili
+aperti formati a freddo non sono qualificati dal solo input geometrico.
+Le classi sono quelle delle azioni effettive quando il metodo le supporta.
+Le azioni trascurabili, l'inviluppo di N variabile e l'alto taglio conservativo
+sono politiche esplicite, non sostituti delle azioni concomitanti di sezione.
+
+CONNESSIONI - TUTTI I25 ID DEL CATALOGO CORRENTE
+Per API consigliata, requisiti esterni e meccanismi mancanti interrogare
+ConnectionCapabilityCatalog.Get(Id); la matrice aggiunge l'evidenza e il confine.
+"Standard" significa verifica della tipologia nel campo, fino alla frontiera
+fisica dichiarata. Membrature e struttura oltre tale frontiera restano esterne.
+
+RectangularDoubleCover | standard, sola trazione centrata | A EN1-8 bulloni/piastre: DoubleCoverSpliceTests | niente compressione o giunto trave generale
+ShortFinPlate | standard SCI a taglio, dettaglio ristretto | P/A SCI P358, AD422: FinPlateTests | altre geometrie/supporti, N ordinario e rotazione non qualificati
+FlexibleEndPlateShear | standard parziale a taglio, anche coppia opposta | P/A SCI P358: FlexibleEndPlateTests, FlexibleEndPlatePairAssessmentTests | il tying ha proprie qualifiche, non deriva dal pass a taglio
+WeldedIBeamDoubleCover | standard N-V-M, coprigiunti e compensatori nel campo | P SCI P357: BridgeSpliceIndependentBenchmarksTests; A script ReferenceCalculations/derive_standard_bridge_splice.py e test dedicati | classe4 tutta compressa ad alto taglio (fase3), transizioni generiche, contatto/prying
+WeldedIBeamButt | standard CJP, sezioni identiche allineate | A equilibrio e resistenza sezione: WeldedIBeamButtSpliceTests | penetrazione/esecuzione esterne, discontinuita' e disallineamenti esclusi
+DoubleAngleCleat | componenti ordinari e tying | P/A SBE-MS5: DoubleAngleCleatComponentTests, DoubleAngleCleatTyingComponentsTests | nessun nodo completo dal solo T-stub o dai fattori nominali
+DoubleAngleCleatColumnWebShear | standard ordinario a taglio, supporto reale | P/A SBE-MS5 cap4/SCI P358 check10: DoubleAngleCleatColumnWebStandardTests | tying e risposta fuori piano fuori dalla gerarchia sufficiente aperti
+BraceConnections | componenti di terminale teso | A EN1-8 e statica: GussetTwinFlatTensionTests, BraceAngleTensionTests | supporto e stabilita' generale non impliciti
+ChannelWebOnlyTensionEnd | componente C/2C collegato solo d'anima | A campo resistente limitato all'anima: ChannelWebTensionTests | C singola eccentrica, supporto e compressione non qualificati
+ChannelPairCoplanarCollector | standard 2C tese, anima/fazzoletto/collettore CJP | A equilibrio e sezioni nette: ChannelPairCoplanarCollectorTests | niente C singola, N ripartito diversamente o transizioni
+TwinFlatCoplanarCollector | standard piatti gemelli e collettore CJP | A equilibrio e sezioni: GussetTwinFlatCollectorTests | supporti aT e compressione esclusi
+TwinFlatTransverseCollector | standard fino a due linee d'appoggio continue reali | A trave elastica: GussetTransverseCollectorTests | non equivale a una generica ala/anima di colonna
+ChannelPairTransverseCollector | standard2C e collettore trasversale | A statica e binding: ChannelPairTransverseCollectorTests | niente C singola, distacco o vincoli diversi
+AnglePairCoplanarCollector | standard2L tese, lato collegato reale | A EN1-8/equilibrio: BraceAnglePairStandardTensionTests | prying esplicito/supporto aT/compressione esclusi
+PackedPairConnections | componenti generici delle imbotiture | A statica sei azioni: PackingFaceActionAdapterTests, PackingWeldedStationTests | usare i percorsi standard per domanda automatica e nodo completo
+MomentEndPlate | componenti N=0 | P JRC/P398 per componenti; A EndPlateIndependentJointTests per equilibrio NMV separato | il componente da solo non e' verifica del nodo o della rotazione
+GenericSpliceComponents | componenti/inviluppi di giunto | A IBeamSplice component tests e statica dei gruppi | usare il percorso standard per il giunto completo
+StandardMomentEndPlate | standard N=0 con tagli di colonna reali | P JRC/SCI P398 componenti; A test EndPlateStandardJoint | nessuna capacita' rotazionale disponibile o qualifica globale automatica
+StandardMomentEndPlateNMV | standard elastico componenti N-M-V e contatto | A quadratura indipendente: EndPlateIndependentJointTests, ReferenceCalculations/end_plate_reference.py | non e' prova sperimentale dell'intero nodo; niente legge nonlineare/rotazione disponibile/classe4
+StandardBoltedPacking | standard imbotitura bullonata, compressione centrata | A EN1-1/EN1-8 e statica: BoltedPackingTests | terminale e modi T/FT da completare separatamente
+StandardWeldedPacking | standard imbotitura saldata, compressione centrata | A statica e saldature: WeldedPackingStandardTests | niente trasferimento generico3D o calastrelli
+StandardWeldedPackedTerminal | standard terminale saldato di coppia compressa | A statica e instabilita' locale: PackedPairTerminalTests | non qualifica da solo tutta l'asta
+StandardBoltedPackedTerminal | standard terminale bullonato di coppia compressa | A statica/gruppo/piastre: PackedPairBoltedTerminalTests | nessun prying/apertura generalizzati
+ColumnBases | standard campo esplicito di base, calcestruzzo e tirafondi | P/A SCI/EN1-8: ColumnBaseTests; A integrazione cerchio-rettangolo: ColumnBaseBearingGeometryTests | verifiche EN1992-4, contatto/esecuzione e frontiere reali richieste dal contratto
+TubularJoints | standard nodi uniplanari CHS/RHS nel campo tabellare | P Corus7 confronti; A Tata/EN1-8: TubularJointSourceAuditTests; R TubularJointValidityTests | fonti/interpretazioni residue elencate in TUBULAR_SOURCE_AUDIT_2026_11_05.txt; non tutte le tabelle sono collaudate da esempi pubblicati
+
+EVIDENZA MANCANTE / NON TRASFERIBILE
+- Nessun benchmark sperimentale dell'intero dominio NMV della piastra.
+- Nessun benchmark pubblicato di ogni ramo di ogni tabella tubolare.
+- Per classi/famiglie senza esempio numerico pubblicato usare gli oracoli
+  analitici dichiarati A, senza presentarli come dati di un libro.
+- Il supporto continuo del collettore e' un ingresso fisico della sua
+  tipologia; non prova l'appoggio continuo di una piastra bullonata.
+- I casi rifiutati restano test di rifiuto finche' manca la qualifica fisica.

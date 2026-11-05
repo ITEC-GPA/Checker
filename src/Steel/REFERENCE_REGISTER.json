@@ -1,0 +1,1070 @@
+{
+  "updated": "2026-11-05",
+  "scope": "Checker Steel documents and source references; may include shared Concrete/bridge dependencies cited by the workflow.",
+  "archiveDirectory": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel",
+  "note": "Complete source PDFs are kept outside Git. Citation-only records are not necessarily downloaded or validated; previews and unverified references are explicitly distinguished. Do not delete these copies with temporary build files.",
+  "localDocuments": [
+    {
+      "file": "ArcelorMittal_UPN.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\ArcelorMittal_UPN.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\ArcelorMittal_UPN.pdf",
+      "sha256": "733fd744359742b5f06d8437a979792949b9de781331fb096ba0de7e29e9748e",
+      "bytes": 144746,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "Chalmers_Channel_Beams_2017.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\Chalmers_Channel_Beams_2017.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\Chalmers_Channel_Beams_2017.pdf",
+      "sha256": "9654a63ec763a692a7486c0ea545c027e0395ff3bdce0f8ca743ebece696aa27",
+      "bytes": 30732938,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "CIC_EC3_guide.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\CIC_EC3_guide.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\CIC_EC3_guide.pdf",
+      "sha256": "3a1de492397cb8a1eb20072b41650293ce28af90358a03616be3c1ca2f6d5979",
+      "bytes": 3707946,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "Circolare2019.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\Circolare2019.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\Circolare2019.pdf",
+      "sha256": "f7c3b8d1f443aadb6b3e020b6b6c19813683492ecaadd2c15bf6bf1939aaed7c",
+      "bytes": 50658045,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "CISC_torsion_2002.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\CISC_torsion_2002.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\CISC_torsion_2002.pdf",
+      "sha256": "d9242832df192917e3537ab2681f5ff4d980d4abaaa00f60eb2809ab941607ab",
+      "bytes": 256918,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "DTU_Jonsson_2015_BlockFailure.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\DTU_Jonsson_2015_BlockFailure.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\DTU_Jonsson_2015_BlockFailure.pdf",
+      "sha256": "af6f415edff7a54feab396f44a896d561c074fcc76ddb4ff16e52d570d6d289d",
+      "bytes": 595166,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "EN1993-1-1-2005.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\EN1993-1-1-2005.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\EN1993-1-1-2005.pdf",
+      "sha256": "96f11739d8b0a83a3b8cce590d98412393c9da00ff3e72a6267cdab148634673",
+      "bytes": 2868873,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "EN1993-1-8-2005.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\EN1993-1-8-2005.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\EN1993-1-8-2005.pdf",
+      "sha256": "3a59968f6933d50411d2f5087b734ba1f441b3f016a07b94068903d7c1982704",
+      "bytes": 4118298,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "JRC_BRIDGES_2012.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\JRC_BRIDGES_2012.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\JRC_BRIDGES_2012.pdf",
+      "sha256": "8c1c5e96613e69351270436a789627de171df1bf37469513412b0588662d8609",
+      "bytes": 16200334,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "JRC_EC2_2014.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\JRC_EC2_2014.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\JRC_EC2_2014.pdf",
+      "sha256": "4a46d52b56a0fd3ab0bb3ba4a7971ead6ac2284a6fdefcb6ce678695dbcdec03",
+      "bytes": 8906791,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "JRC_EN1993-1-5.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\JRC_EN1993-1-5.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\JRC_EN1993-1-5.pdf",
+      "sha256": "2c9f63cbdaad67b8f5e74932e5cf0790a8fc5169d2efc300785f41ff192b02ab",
+      "bytes": 4487803,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "NSC_Technical_Digest_2019.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\NSC_Technical_Digest_2019.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\NSC_Technical_Digest_2019.pdf",
+      "sha256": "355047c883bda481d97c1f93e4e2c890bfcbb8ebe6dccbd49ee7d8ee3d36da70",
+      "bytes": 7562072,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "NTC2018.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\NTC2018.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\NTC2018.pdf",
+      "sha256": "dda1e397d56d71aa0f5bc457c3ba9b77064a468699dfc37bd056ac6c47105a46",
+      "bytes": 9888288,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "SBE_MS5.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\SBE_MS5.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\SBE_MS5.pdf",
+      "sha256": "6a97053b31118398c21f0fa02318fbe2f3b5a0aa3125890a3998124f902297bc",
+      "bytes": 884479,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "SBE_SS5.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\SBE_SS5.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\SBE_SS5.pdf",
+      "sha256": "f04b4d838e796ccd230c4e386a06f3bc28a1af27df9b3b16b7fd9a197d7fba0f",
+      "bytes": 1778094,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "SCI_P357.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\SCI_P357.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\SCI_P357.pdf",
+      "sha256": "bcd8608c7b0f10d895e09eeeb37ad1bc77abd1ce39a3ad23cc23addf1b117d82",
+      "bytes": 3409750,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "SCI_P358.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\SCI_P358.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\SCI_P358.pdf",
+      "sha256": "bb59e55b28592710f77fb1071ffcc78463b5e0fb4731e393ab760b4010c95050",
+      "bytes": 5026264,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "SCI_P363.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\SCI_P363.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\SCI_P363.pdf",
+      "sha256": "2884cb58919e5d6d809963deced4d20c71d3e4ce32d917a3c0d0bb5df8161381",
+      "bytes": 5934100,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "SCI_P364.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\SCI_P364.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\SCI_P364.pdf",
+      "sha256": "d3ff4cd54776aba074f2456e72f282945253aa2c5f29e98f32b1dddd07e0020d",
+      "bytes": 3226515,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "SCI_P374.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\SCI_P374.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\SCI_P374.pdf",
+      "sha256": "3d67f52869045136d5a706068a5aba99e01f64c9ca29ed6fcb1107e548263530",
+      "bytes": 2210804,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "SCI_P398.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\SCI_P398.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\SCI_P398.pdf",
+      "sha256": "c0907f1fce3bf282947be5fe9e329a139760cff3774a6b744b626dedd8dd4a74",
+      "bytes": 1453878,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "SN003b.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\SN003b.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\SN003b.pdf",
+      "sha256": "61518e500a54087bca181577cbc379966266d6e0d0055af053986a29092da6c6",
+      "bytes": 254877,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "Snijder_Elastic_Buckling_2026.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\Snijder_Elastic_Buckling_2026.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\Snijder_Elastic_Buckling_2026.pdf",
+      "sha256": "7e3db9ed942b5ff99d2ac77eaa157246bcfebb3ee32b343afea94b7fd19f1e0b",
+      "bytes": 1257549,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "SX034a-EN-EU.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\SX034a-EN-EU.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\SX034a-EN-EU.pdf",
+      "sha256": "31572813be5963d345ceec5cfb0a76ba6ad0063a4f2ff41c02d68c54ef6494cd",
+      "bytes": 193581,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "EN1993-1-5-2006.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\steel-closure-20261101\\EN1993-1-5-2006.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\EN1993-1-5-2006.pdf",
+      "sha256": "91e91d5a8f7cb3a6e28549f29118eb3c6306c80977b22305a52e63be08f4d47a",
+      "bytes": 1953926,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "EN1993-1-6-2007.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\steel-closure-20261101\\EN1993-1-6-2007.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\EN1993-1-6-2007.pdf",
+      "sha256": "29707dc40cf35ada52e57b36613aa074af3d256438b549ebb9e2a759fcf961c3",
+      "bytes": 2930062,
+      "provenance": "Previously downloaded working reference",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "Nunziata-Teoria-e-Pratica-Delle-Strutture-in-Acciaio.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Downloads\\Nunziata-Teoria-e-Pratica-Delle-Strutture-in-Acciaio.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\Nunziata-Teoria-e-Pratica-Delle-Strutture-in-Acciaio.pdf",
+      "sha256": "9d1ba0b9512781b26b174cc5dd10345047f3d82016be527eb1f1e3a8389cd21f",
+      "bytes": 15734815,
+      "provenance": "User-provided book",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    },
+    {
+      "file": "S.Caffè - Acciaio.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Downloads\\S.Caffè - Acciaio.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\S.Caffè - Acciaio.pdf",
+      "sha256": "76bee92a7a0966fd51c773b058e3bab3f8806e7c375d009008d88aaeb8f5825b",
+      "bytes": 18081711,
+      "provenance": "User-provided book",
+      "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
+    }
+  ],
+  "webReferences": [
+    {
+      "id": "URL-001",
+      "url": "https://cdn.standards.iteh.ai/samples/62445/836bf15b4eee4737b544067f11f81900/SIST-EN-1993-1-6-2007-A1-2017.pdf",
+      "title": "EN1993-1-6:2007/A1:2017, SIST preview",
+      "editionAndPages": "2017; final amendment, preview only",
+      "status": "Preview does not show amendment29/p16; D.1.4.2 editorial verification remains open. Not used to change the calculation.",
+      "citedBy": [
+        "src/Steel/Connections/TUBULAR_SOURCE_AUDIT_2026_11_05.txt:35"
+      ]
+    },
+    {
+      "id": "URL-002",
+      "url": "https://cms.sia.ch/en/api/getMedia/516",
+      "title": "EN1993-1-8:2005/AC:2009, corrigendum",
+      "editionAndPages": "July2009",
+      "status": "Normative corrigendum hosted by SIA, consulted for section7 references.",
+      "citedBy": []
+    },
+    {
+      "id": "URL-003",
+      "url": "https://constructalia.arcelormittal.com/files/MSB05%20Joint%20Design--d460a9e9be3edf97e91edc8b292f16e9.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/PHASE_2E_ULTIMATE_ENVELOPE_SPEC.txt:31"
+      ]
+    },
+    {
+      "id": "URL-004",
+      "url": "https://eurocodes.jrc.ec.europa.eu/publications/eurocodes-background-applications-design-steel-buildings-worked-examples",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/PHASE_3C_3E_CHANNEL_TENSION_REVIEW.txt:99"
+      ]
+    },
+    {
+      "id": "URL-005",
+      "url": "https://eurocodes.jrc.ec.europa.eu/publications/joints-steel-construction-simple-joints-eurocode-3-publication-p358",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/PHASE_3A_TWIN_FLAT.txt:68"
+      ]
+    },
+    {
+      "id": "URL-006",
+      "url": "https://eurocodes.jrc.ec.europa.eu/sites/default/files/2021-12/EUR22898EN.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/CLASS4_AUDIT.txt:3",
+        "src/Steel/CLASS4_SECTION_WORKFLOW.txt:51",
+        "src/Steel/CLASSIFICATION_REFACTOR_VERIFICATION.json:138",
+        "src/Steel/WEB_DETAILS_AUTOMATION.txt:55",
+        "src/Steel/WEB_PANEL_AND_PATCH_LOADING.txt:64",
+        "src/Steel/Connections/BRIDGE_SPLICE_CLASS4_LOW_SHEAR.txt:11",
+        "src/Steel/Connections/SECTION10_MODEL_REVIEW_2026_11_01.txt:5",
+        "tests/Steel.Members.Tests/TEE_CLASSIFICATION.txt:23"
+      ]
+    },
+    {
+      "id": "URL-007",
+      "url": "https://eurocodes.jrc.ec.europa.eu/sites/default/files/2022-06/06_Eurocodes_Steel_Workshop_WALD.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/BRACE_2L_STANDARD_TENSION.txt:58"
+      ]
+    },
+    {
+      "id": "URL-008",
+      "url": "https://eurocodes.jrc.ec.europa.eu/sites/default/files/2022-06/SX034a-EN-EU.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/PHASE_3C_3_PAIR_BOLTED_TRANSFER_SPEC.txt:99"
+      ]
+    },
+    {
+      "id": "URL-009",
+      "url": "https://fgg-web.fgg.uni-lj.si/~/pmoze/esdep/master/wg07/l0600.htm",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/COUPLED_MEMBERS_VERIFICATION.txt:97"
+      ]
+    },
+    {
+      "id": "URL-010",
+      "url": "https://orbi.uliege.be/bitstream/2268/126293/1/Paper_Weynand_et_al.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/CONNECTIONS_PHASES_4_8.txt:19"
+      ]
+    },
+    {
+      "id": "URL-011",
+      "url": "https://orbi.uliege.be/bitstream/2268/132751/1/RECENT%20STUDIES%20CONDUCTED%20AT%20LIEGE%20UNIVERSITY%20IN%20THE%20FIELD%20OF%20COMPOSITE%20CONSTRUCTIONS.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/END_PLATE_NMV_PLAN.txt:13",
+        "src/Steel/Connections/END_PLATE_NMV_USAGE.txt:158"
+      ]
+    },
+    {
+      "id": "URL-012",
+      "url": "https://orbi.uliege.be/bitstream/2268/236765/1/PaperMN_JCSR-final_V3.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/END_PLATE_INDEPENDENT_VALIDATION.txt:45"
+      ]
+    },
+    {
+      "id": "URL-013",
+      "url": "https://orbi.uliege.be/bitstream/2268/2867/1/Paper%20Jaspart%20JCSR%20SSDS%20Special%20Issue.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/PHASE_2C_SUPPORT_TENSION_REVIEW.txt:56"
+      ]
+    },
+    {
+      "id": "URL-014",
+      "url": "https://orbi.uliege.be/handle/2268/19647",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/PHASE_2C_SUPPORT_TENSION_REVIEW.txt:60"
+      ]
+    },
+    {
+      "id": "URL-015",
+      "url": "https://products.tatasteelnederland.com/sites/producttsn/files/Design%20of%20Structural%20Hollow%20Sections%20Welded%20Joints.pdf",
+      "title": "Tata Steel, Design of welded joints - alternate official URL",
+      "editionAndPages": "2013",
+      "status": "Direct PDF download returned403; retained for later download.",
+      "citedBy": []
+    },
+    {
+      "id": "URL-016",
+      "url": "https://publications.jrc.ec.europa.eu/repository/bitstream/JRC96658/jrc_steel_report_2015_07_22.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/END_PLATE_NMV_PLAN.txt:10",
+        "src/Steel/Connections/END_PLATE_NMV_USAGE.txt:155",
+        "src/Steel/Connections/PHASE_4F_CLASSIFICATION_ROTATION_IMPLEMENTATION.txt:118",
+        "src/Steel/Connections/PHASE_4F_CLASSIFICATION_ROTATION_REVIEW.txt:28",
+        "src/Steel/Connections/PHASE_4F_JRC_STIFFNESS_REVIEW.txt:10",
+        "src/Steel/Connections/PHASE_4_NEXT_COMPONENT_RESEARCH_SPEC.txt:53"
+      ]
+    },
+    {
+      "id": "URL-017",
+      "url": "https://publications.jrc.ec.europa.eu/repository/handle/JRC96658",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/PHASE_3C_3E_CHANNEL_TENSION_REVIEW.txt:98"
+      ]
+    },
+    {
+      "id": "URL-018",
+      "url": "https://pure.tue.nl/ws/files/378731248/20260123-ce_papers_-_2026_-_Snijder_-_Eurocode_3_Technical_Report_on_Elastic_Critical_Buckling_of_Members-as_published.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/MONOSYMMETRIC_VERIFICATION.txt:76"
+      ]
+    },
+    {
+      "id": "URL-019",
+      "url": "https://regione.lazio.it/sites/default/files/documentazione/INF-DM-17-01-2018-aggiornamento-norme-costruzione.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "tests/Steel.Members.Tests/SCI_SECTION_BENCHMARKS.txt:86"
+      ]
+    },
+    {
+      "id": "URL-020",
+      "url": "https://sections.arcelormittal.com/repo/Sections/Steel%20Research%20Reports/5_COMBRI_Part_I_EN.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/BRIDGE_SPLICE_CLASS4_LOW_SHEAR.txt:12"
+      ]
+    },
+    {
+      "id": "URL-021",
+      "url": "https://sections.arcelormittal.com/repository2/Sections/EN/5_15_SSB05%20Detailed%20Design%20of%20Trusses.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/PHASE_3C_3_PAIR_BOLTED_TRANSFER_SPEC.txt:112"
+      ]
+    },
+    {
+      "id": "URL-022",
+      "url": "https://skm.prz.edu.pl/wp-content/uploads/2015/05/collated-comments-on-EN-1993-1-8_Final_Version_U.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/TUBULAR_JOINTS_USAGE.txt:66"
+      ]
+    },
+    {
+      "id": "URL-023",
+      "url": "https://steelconstruction.info/images/2/20/SCI_P357.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/BRIDGE_SPLICE_STANDARD_BOLTED_COVERS.txt:51"
+      ]
+    },
+    {
+      "id": "URL-024",
+      "url": "https://steelconstruction.info/images/4/47/GN_2-02.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/OPEN_MECHANISMS_REVIEW.txt:35"
+      ]
+    },
+    {
+      "id": "URL-025",
+      "url": "https://steelconstruction.info/images/5/53/SBE_MS5.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/DOUBLE_ANGLE_COLUMN_WEB.txt:112",
+        "src/Steel/Connections/PHASE_2CD_ORDINARY_AXIAL_SCOPE.txt:77",
+        "src/Steel/Connections/PHASE_2C_SPEC.txt:34",
+        "src/Steel/Connections/PHASE_2C_SUPPORT_TENSION_REVIEW.txt:27",
+        "tests/Steel.Members.Tests/Fixtures/double-angle-independent.json:11"
+      ]
+    },
+    {
+      "id": "URL-026",
+      "url": "https://steelconstruction.info/images/b/b7/SCI_P363.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "tests/Steel.Members.Tests/SCI_SECTION_BENCHMARKS.txt:6"
+      ]
+    },
+    {
+      "id": "URL-027",
+      "url": "https://steelconstruction.info/topics/design/moment-resisting-connections/",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/OPEN_MECHANISMS_REVIEW.txt:36"
+      ]
+    },
+    {
+      "id": "URL-028",
+      "url": "https://steelconstruction.info/topics/design/simple-connections",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/PHASE_2B_SPEC.txt:337"
+      ]
+    },
+    {
+      "id": "URL-029",
+      "url": "https://techsupport.sds2.com/main/Resources/Images/EngineeringVerification/Euro/SDS2-Partial_depth_end_plate-tying-cube-report.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/PHASE_2D_TYING_WELD_SUPPORT_SPEC.txt:26"
+      ]
+    },
+    {
+      "id": "URL-030",
+      "url": "https://unaribas.com/wp-content/uploads/2021/04/eurocode-3.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/CLASSIFICATION_REFACTOR_VERIFICATION.json:9",
+        "src/Steel/CLASSIFICATION_REFACTOR_VERIFICATION.json:137",
+        "src/Steel/COUPLED_MEMBERS_VERIFICATION.txt:27",
+        "src/Steel/COVERAGE_EXTENSION.txt:111",
+        "src/Steel/EXTERNAL_GENERAL_METHOD.txt:42",
+        "src/Steel/MONOSYMMETRIC_VERIFICATION.txt:19",
+        "src/Steel/NV_PACKED_PAIRS.txt:32",
+        "src/Steel/PACKED_BOLTED_STANDARD.txt:89",
+        "src/Steel/PACKED_PAIR_LAYOUT.txt:18",
+        "src/Steel/PHYSICAL_MEMBER_WORKFLOW.txt:107",
+        "src/Steel/REFACTORING_PLAN.txt:47",
+        "tests/Steel.Members.Tests/BUCKLING_BENCHMARKS.txt:27",
+        "tests/Steel.Members.Tests/CompressionPartClassificationTests.cs:20",
+        "tests/Steel.Members.Tests/COVERAGE.txt:9",
+        "tests/Steel.Members.Tests/EC3_STRESS_CLASSIFICATION.txt:11",
+        "tests/Steel.Members.Tests/PlateClassificationTests.cs:21",
+        "tests/Steel.Members.Tests/TEE_CLASSIFICATION.txt:16",
+        "tests/Steel.Members.Tests/WeldedBucklingCurveTests.cs:10"
+      ]
+    },
+    {
+      "id": "URL-031",
+      "url": "https://usermanual.wiki/Document/DesignofStructualHollowSectionsWeldedJoints.1925965821.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/TUBULAR_PUBLISHED_VALIDATION_2026_11_01.txt:4",
+        "tests/Steel.Members.Tests/TubularJointPublishedExamplesTests.cs:10"
+      ]
+    },
+    {
+      "id": "URL-032",
+      "url": "https://web.tecgraf.puc-rio.br/~lfm/papers/DelSavioICASS2007.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/END_PLATE_INDEPENDENT_VALIDATION.txt:41"
+      ]
+    },
+    {
+      "id": "URL-033",
+      "url": "https://www.aisc.org/globalassets/aisc/publications/standards/a360-16-spec-and-commentary_june-2018.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/CHS_SHEAR_SOURCE_REVIEW_2026_11_02.txt:10"
+      ]
+    },
+    {
+      "id": "URL-034",
+      "url": "https://www.aisc.org/media/hf4jbmik/b904_sbdh_chapter4.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/CHS_SHEAR_SOURCE_REVIEW_2026_11_02.txt:18"
+      ]
+    },
+    {
+      "id": "URL-035",
+      "url": "https://www.ascjournal.com/down/vol6no2/vol6no2_2.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/PHASE_3B_GUSSET_COMPRESSION.txt:93"
+      ]
+    },
+    {
+      "id": "URL-036",
+      "url": "https://www.cic.hk/content/dam/cic-data/cic/publications/media/reports/2025/funded-projects/cop/completed-projects/technical-guide-en1993-prof.kf-chung.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "tests/Steel.Members.Tests/BUCKLING_BENCHMARKS.txt:24"
+      ]
+    },
+    {
+      "id": "URL-037",
+      "url": "https://www.gazzettaufficiale.it/do/atto/serie_generale/caricaPdf?art.codiceRedazionale=18A00716&art.dataPubblicazioneGazzetta=2018-02-20&art.num=1&art.tiposerie=SG&cdimg=18A0071600100010110005&dgu=2018-02-20",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/REFACTORING_PLAN.txt:139"
+      ]
+    },
+    {
+      "id": "URL-038",
+      "url": "https://www.gazzettaufficiale.it/eli/gu/2019/02/11/35/so/5/sg/pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/MEMBER_SCHEME_PREPARATION.txt:129",
+        "src/Steel/NV_PACKED_PAIRS.txt:37",
+        "src/Steel/PACKED_PAIR_LAYOUT.txt:19",
+        "src/Steel/PHYSICAL_MEMBER_WORKFLOW.txt:106"
+      ]
+    },
+    {
+      "id": "URL-039",
+      "url": "https://www.gazzettaufficiale.it/eli/id/2018/02/20/18A00716/sg",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/COVERAGE_EXTENSION.txt:108",
+        "src/Steel/Connections/README.txt:226",
+        "tests/Steel.Members.Tests/COVERAGE.txt:12",
+        "tests/Steel.Members.Tests/SCI_SECTION_BENCHMARKS.txt:88"
+      ]
+    },
+    {
+      "id": "URL-040",
+      "url": "https://www.gazzettaufficiale.it/eli/id/2019/02/11/19A00855/sg",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/COVERAGE_EXTENSION.txt:109",
+        "tests/Steel.Members.Tests/COVERAGE.txt:15"
+      ]
+    },
+    {
+      "id": "URL-041",
+      "url": "https://www.hilti.com/medias/sys_master/documents/ha0/h9a/9914240860190/Technical-information-ASSET-DOC-LOC-19090172.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/GUSSET_TRANSVERSE_COLLECTOR.txt:33"
+      ]
+    },
+    {
+      "id": "URL-042",
+      "url": "https://www.maxwell.vrac.puc-rio.br/4165/4165_4.PDF",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/END_PLATE_INDEPENDENT_VALIDATION.txt:33"
+      ]
+    },
+    {
+      "id": "URL-043",
+      "url": "https://www.newsteelconstruction.com/wp/ad-395-nominally-pinned-connections-and-axial-forces/",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/PHASE_2CD_ORDINARY_AXIAL_SCOPE.txt:21"
+      ]
+    },
+    {
+      "id": "URL-044",
+      "url": "https://www.newsteelconstruction.com/wp/ad-396-tying-resistance-of-flexible-end-plates-in-one-sided-connections/",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/PHASE_2CD_ORDINARY_AXIAL_SCOPE.txt:34",
+        "src/Steel/Connections/PHASE_2D_TYING_WELD_SUPPORT_SPEC.txt:21"
+      ]
+    },
+    {
+      "id": "URL-045",
+      "url": "https://www.newsteelconstruction.com/wp/ad-422-punching-shear-check-for-fin-plates-in-p358/",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/PHASE_2B_SPEC.txt:324",
+        "tests/Steel.Members.Tests/Fixtures/fin-plate-independent.json:27"
+      ]
+    },
+    {
+      "id": "URL-046",
+      "url": "https://www.newsteelconstruction.com/wp/wp-content/uploads/TechPaper/1401NSCTech.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/PHASE_3B_GUSSET_COMPRESSION.txt:38"
+      ]
+    },
+    {
+      "id": "URL-047",
+      "url": "https://www.newsteelconstruction.com/wp/wp-content/uploads/digi/2016pdf/NSCTechnicalDigest2016.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/PHASE_2CD_ORDINARY_AXIAL_SCOPE.txt:22"
+      ]
+    },
+    {
+      "id": "URL-048",
+      "url": "https://www.phd.eng.br/wp-content/uploads/2015/12/en.1992.1.1.2004.pdf:",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/COLUMN_BASE_USAGE.txt:119"
+      ]
+    },
+    {
+      "id": "URL-049",
+      "url": "https://www.phd.eng.br/wp-content/uploads/2015/12/en.1993.1.1.2005.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/BEAM_COLUMN_HIGH_SHEAR.txt:17"
+      ]
+    },
+    {
+      "id": "URL-050",
+      "url": "https://www.phd.eng.br/wp-content/uploads/2015/12/en.1993.1.5.2006.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/CLASS4_SECTION_WORKFLOW.txt:52",
+        "src/Steel/Connections/SECTION10_MODEL_REVIEW_2026_11_01.txt:3"
+      ]
+    },
+    {
+      "id": "URL-051",
+      "url": "https://www.phd.eng.br/wp-content/uploads/2015/12/en.1993.1.8.2005-1.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/AUDIT.txt:40",
+        "src/Steel/Connections/COLUMN_BASE_BEARING_AUDIT_2026_11_01.txt:8",
+        "src/Steel/Connections/COLUMN_BASE_USAGE.txt:113",
+        "src/Steel/Connections/PHASE_1B.txt:24",
+        "src/Steel/Connections/PHASE_1D.txt:96",
+        "src/Steel/Connections/PHASE_2B_SPEC.txt:329",
+        "src/Steel/Connections/README.txt:223",
+        "tests/Steel.Members.Tests/Fixtures/double-angle-independent.json:20"
+      ]
+    },
+    {
+      "id": "URL-052",
+      "url": "https://www.steel.byg.dtu.dk/-/media/subsites/steel/bolted-connections/jonsson-paper.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/OPEN_MECHANISMS_REVIEW.txt:9"
+      ]
+    },
+    {
+      "id": "URL-053",
+      "url": "https://www.steelconstruction.info/images/0/0f/SN003b.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/MEMBER_SCHEME_PREPARATION.txt:127"
+      ]
+    },
+    {
+      "id": "URL-054",
+      "url": "https://www.steelconstruction.info/images/1/10/SCI_P185.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/PHASE_2E_BRIDGE_DOUBLE_COVER.txt:74"
+      ]
+    },
+    {
+      "id": "URL-055",
+      "url": "https://www.steelconstruction.info/images/2/20/SCI_P357.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/BRIDGE_SPLICE_UNEQUAL_WIDTHS.txt:40",
+        "src/Steel/Connections/PHASE_2E_STANDARD_COMPLETION.txt:31",
+        "src/Steel/Connections/STANDARD_SPLICE_USAGE.txt:88"
+      ]
+    },
+    {
+      "id": "URL-056",
+      "url": "https://www.steelconstruction.info/images/3/36/AD-396.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/PHASE_2CD_TYING_SPEC_REVIEW.txt:233"
+      ]
+    },
+    {
+      "id": "URL-057",
+      "url": "https://www.steelconstruction.info/images/3/3e/GN-2-06.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/BRIDGE_SPLICE_PACKING.txt:62"
+      ]
+    },
+    {
+      "id": "URL-058",
+      "url": "https://www.steelconstruction.info/images/4/40/SBE_SS6.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/COUPLED_MEMBERS_VERIFICATION.txt:30"
+      ]
+    },
+    {
+      "id": "URL-059",
+      "url": "https://www.steelconstruction.info/images/4/4c/NSC_Technical_Digest_2019.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/CLASSIFICATION_REFACTOR_VERIFICATION.json:139",
+        "src/Steel/Connections/TUBULAR_PUBLISHED_VALIDATION_2026_11_01.txt:22",
+        "tests/Steel.Members.Tests/TEE_CLASSIFICATION.txt:27"
+      ]
+    },
+    {
+      "id": "URL-060",
+      "url": "https://www.steelconstruction.info/images/5/50/Sci_p364.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/PHYSICAL_MEMBER_WORKFLOW.txt:108",
+        "tests/Steel.Members.Tests/BUCKLING_BENCHMARKS.txt:13"
+      ]
+    },
+    {
+      "id": "URL-061",
+      "url": "https://www.steelconstruction.info/images/5/54/NSC_Technical_Digest_2021.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/COUPLED_MEMBERS_VERIFICATION.txt:92"
+      ]
+    },
+    {
+      "id": "URL-062",
+      "url": "https://www.steelconstruction.info/images/5/5d/SCI_P398.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/BRIDGE_SPLICE_STANDARD_BOLTED_COVERS.txt:47",
+        "src/Steel/Connections/BRIDGE_SPLICE_UNEQUAL_WIDTHS.txt:41",
+        "src/Steel/Connections/END_PLATE_NMV_USAGE.txt:160",
+        "src/Steel/Connections/END_PLATE_STANDARD_123.txt:10",
+        "src/Steel/Connections/END_PLATE_STANDARD_CHECKPOINT.txt:38",
+        "src/Steel/Connections/PHASE_1B_SLIP.txt:66",
+        "src/Steel/Connections/PHASE_2E_P2_PLATES.txt:30",
+        "src/Steel/Connections/PHASE_2E_SPEC.txt:29",
+        "src/Steel/Connections/PHASE_2E_SPEC.txt:187",
+        "src/Steel/Connections/PHASE_2E_ULTIMATE_ENVELOPE_SPEC.txt:27",
+        "src/Steel/Connections/PHASE_2E_WEB_LONGITUDINAL.txt:123",
+        "src/Steel/Connections/PHASE_4A_GEOMETRY.txt:63",
+        "src/Steel/Connections/PHASE_4A_INTERNAL_END_PLATE.txt:76",
+        "src/Steel/Connections/PHASE_4A_TSTUB.txt:72",
+        "src/Steel/Connections/PHASE_4B_COLUMN_WEB.txt:75",
+        "src/Steel/Connections/PHASE_4CDE_BOLT_COMPONENTS.txt:23",
+        "src/Steel/Connections/PHASE_4CDE_MOMENT_COMPONENTS.txt:20",
+        "src/Steel/Connections/PHASE_4CDE_WELD_COMPONENTS.txt:87",
+        "src/Steel/Connections/PHASE_4_NEXT_COMPONENT_RESEARCH_SPEC.txt:51",
+        "src/Steel/Connections/STANDARD_END_PLATE_USAGE.txt:99",
+        "src/Steel/Connections/STANDARD_NEXT_PLAN.txt:33",
+        "tests/Steel.Members.Tests/Fixtures/ibeam-splice-independent.json:3"
+      ]
+    },
+    {
+      "id": "URL-063",
+      "url": "https://www.steelconstruction.info/images/6/6a/SCI_P362.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/NV_PACKED_PAIRS.txt:34",
+        "src/Steel/PACKED_BOLTED_STANDARD.txt:90"
+      ]
+    },
+    {
+      "id": "URL-064",
+      "url": "https://www.steelconstruction.info/images/6/6b/SCI_P374.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "tests/Steel.Members.Tests/BUCKLING_BENCHMARKS.txt:18"
+      ]
+    },
+    {
+      "id": "URL-065",
+      "url": "https://www.steelconstruction.info/images/6/6f/AD-368.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/CLASS4_SHEAR_WORKFLOW.txt:32",
+        "src/Steel/REFACTORING_PLAN.txt:229",
+        "tests/Steel.Members.Tests/SOURCE_COVERAGE_MATRIX.txt:219",
+        "tests/Steel.Members.Tests/WebShearBucklingTests.cs:19"
+      ]
+    },
+    {
+      "id": "URL-066",
+      "url": "https://www.steelconstruction.info/images/9/92/NSC_Technical_Digest_2020.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/PHASE_4F_JRC_STIFFNESS_REVIEW.txt:153"
+      ]
+    },
+    {
+      "id": "URL-067",
+      "url": "https://www.steelconstruction.info/images/a/a9/SCI_P358.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/AUDIT.txt:46",
+        "src/Steel/Connections/DOUBLE_ANGLE_COLUMN_WEB.txt:114",
+        "src/Steel/Connections/PHASE_1B.txt:30",
+        "src/Steel/Connections/PHASE_1B_SLIP.txt:65",
+        "src/Steel/Connections/PHASE_1D.txt:119",
+        "src/Steel/Connections/PHASE_2B_SPEC.txt:319",
+        "src/Steel/Connections/PHASE_2CD_ORDINARY_AXIAL_SCOPE.txt:76",
+        "src/Steel/Connections/PHASE_2D_SPEC.txt:203",
+        "src/Steel/Connections/PHASE_2D_TYING_WELD_SUPPORT_SPEC.txt:9",
+        "src/Steel/Connections/PHASE_2E_ULTIMATE_ENVELOPE_SPEC.txt:29",
+        "src/Steel/Connections/PHASE_3A_ANGLE_NET.txt:28",
+        "src/Steel/Connections/PHASE_3A_TWIN_FLAT.txt:66",
+        "src/Steel/Connections/PHASE_3A_WELDED_SUPPORT.txt:81",
+        "src/Steel/Connections/PHASE_3B_GUSSET_COMPRESSION.txt:34",
+        "src/Steel/Connections/PHASE_3C_3E_CHANNEL_TENSION_REVIEW.txt:81",
+        "src/Steel/Connections/PHASE_3C_3_PAIR_BOLTED_TRANSFER_SPEC.txt:90",
+        "src/Steel/Connections/PHASE_4_NEXT_COMPONENT_RESEARCH_SPEC.txt:52",
+        "src/Steel/Connections/README.txt:229",
+        "tests/Steel.Members.Tests/Fixtures/bolt-slip-independent.json:3",
+        "tests/Steel.Members.Tests/Fixtures/fin-plate-independent.json:16",
+        "tests/Steel.Members.Tests/Fixtures/flexible-end-plate-independent.json:7"
+      ]
+    },
+    {
+      "id": "URL-068",
+      "url": "https://www.steelconstruction.info/images/b/b7/SCI_P363.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/CLASS4_SECTION_WORKFLOW.txt:50"
+      ]
+    },
+    {
+      "id": "URL-069",
+      "url": "https://www.steelconstruction.info/images/e/e5/SCI_P416.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/PHASE_2CD_ORDINARY_AXIAL_SCOPE.txt:121"
+      ]
+    },
+    {
+      "id": "URL-070",
+      "url": "https://www.steelconstruction.info/images/f/f0/SBE_SS5.pdf",
+      "title": "",
+      "editionAndPages": "",
+      "status": "Historical citation inventoried; consult the listed source notes for its actual validation status.",
+      "citedBy": [
+        "src/Steel/Connections/PHASE_3C_3_PAIR_BOLTED_TRANSFER_SPEC.txt:113"
+      ]
+    },
+    {
+      "id": "URL-071",
+      "url": "https://www.tatasteeluk.com/sites/default/files/tata-steel-design-of-structural-hollow-sections-welded-joints-en.pdf",
+      "title": "Tata Steel, Design of welded joints",
+      "editionAndPages": "2013; pp41-43, sections5.3.2.3/5.3.2.5/5.3.3",
+      "status": "Text consulted through web index; direct PDF download returned403. Formulae also visually checked on EN1993-1-8 Table7.11.",
+      "citedBy": [
+        "src/Steel/Connections/TUBULAR_SOURCE_AUDIT_2026_11_05.txt:6"
+      ]
+    }
+  ]
+}
