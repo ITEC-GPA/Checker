@@ -140,6 +140,11 @@ public static class BridgeHistoryAnalysis
         double[] imposed, double[] factors, double[] weights, HistoryStrainPlane guess,
         double targetN, double targetM, double origin, double length, HistorySolverOptions o, CancellationToken cancellation, out int iterations)
     {
+        // Only the built-in incremental elastic law has this explicit affine contract. Custom IsLinear laws may carry additional state,
+        // restrictions or offsets: retain their original trial/commit path, as for every nonlinear law.
+        if (points.All(p => p.Law is HistoryElasticLaw))
+            return SolveElastic(points, states, active, references, imposed, factors, weights, guess,
+                targetN, targetM, origin, length, o, cancellation, out iterations);
         double forceScale = o.ForceTolerance + o.RelativeTolerance * Math.Max(Math.Abs(targetN), Math.Abs(targetM) / length);
         double momentScale = o.MomentTolerance + o.RelativeTolerance * Math.Max(Math.Abs(targetM), Math.Abs(targetN) * length);
         double Norm(Evaluation e) => Math.Max(Math.Abs(e.N - targetN) / forceScale, Math.Abs(e.M - targetM) / momentScale);
@@ -206,6 +211,69 @@ public static class BridgeHistoryAnalysis
             // the reason of a constitutive rejection, when there is one (before, always "verify capacity")
             if (!improved) throw new HistorySolveFailure($"Newton non riduce il residuo (N={current.N - targetN:E4} N, M={current.M - targetM:E4} Nmm, norma={norm:E4}, Δε={change.AxialStrain:E4}, Δκ={change.Curvature:E4}); "
                 + (rejected is null ? "verificare capacità, diagrammi e sottopassi" : "tentativi respinti dal legame costitutivo: " + rejected.TrimEnd('.') + "; verificare capacità e sottopassi"));
+        }
+        throw new HistorySolveFailure("Numero massimo di iterazioni Newton raggiunto");
+    }
+
+    /// <summary>Constant elastic tangent; scalar trial resultants, material-state objects only for the accepted plane.</summary>
+    private static Evaluation SolveElastic(Point[] points, HistoryMaterialState[] states, bool[] active, double[] references,
+        double[] imposed, double[] factors, double[] weights, HistoryStrainPlane guess,
+        double targetN, double targetM, double origin, double length, HistorySolverOptions o, CancellationToken cancellation, out int iterations)
+    {
+        double forceScale = o.ForceTolerance + o.RelativeTolerance * Math.Max(Math.Abs(targetN), Math.Abs(targetM) / length);
+        double momentScale = o.MomentTolerance + o.RelativeTolerance * Math.Max(Math.Abs(targetM), Math.Abs(targetN) * length);
+        double k00 = 0, k01 = 0, k11 = 0;
+        var moduli = new double[points.Length];
+        for (int j = 0; j < points.Length; j++) {
+            var p = points[j]; if (!active[p.ComponentIndex]) continue;
+            moduli[j] = p.Law.InitialModulus * factors[p.ComponentIndex];
+            double a = p.Fiber.Area * weights[j] * p.Law.InitialModulus * factors[p.ComponentIndex];
+            double b = -(p.Fiber.Y - origin) / length;
+            k00 += a; k01 += a * b; k11 += a * b * b;
+        }
+        double Norm((double N, double M) force) => Math.Max(Math.Abs(force.N - targetN) / forceScale, Math.Abs(force.M - targetM) / momentScale);
+        (double N, double M) Resultants(HistoryStrainPlane trial) {
+            double n = 0, m = 0;
+            for (int j = 0; j < points.Length; j++) {
+                if ((j & 127) == 0) cancellation.ThrowIfCancellationRequested();
+                var p = points[j]; if (!active[p.ComponentIndex]) continue;
+                double mechanical = trial.At(p.Fiber.Y) - references[j] - imposed[j];
+                double stress = states[j].Stress + moduli[j] * (mechanical - states[j].MechanicalStrain);
+                if (!BridgeNumbers.IsFinite(stress) || !BridgeNumbers.IsFinite(mechanical)) throw new HistorySolveFailure("Risposta costitutiva non finita");
+                double a = p.Fiber.Area * weights[j];
+                n += stress * a; m -= stress * a * p.Fiber.Y;
+            }
+            return (n, m);
+        }
+        var plane = guess; var current = Resultants(plane);
+        for (iterations = 0; iterations <= o.MaximumNewtonIterations; iterations++) {
+            cancellation.ThrowIfCancellationRequested();
+            double norm = Norm(current);
+            if (norm <= 1) {
+                var responses = new HistoryMaterialResponse[points.Length];
+                for (int j = 0; j < points.Length; j++) {
+                    var p = points[j];
+                    responses[j] = active[p.ComponentIndex]
+                        ? p.Law.Evaluate(plane.At(p.Fiber.Y) - references[j] - imposed[j], states[j], factors[p.ComponentIndex])
+                        : new(states[j].Stress, 0, states[j]);
+                }
+                return new(plane, current.N, current.M, k00, k01, k11, responses);
+            }
+            if (iterations == o.MaximumNewtonIterations) break;
+            double determinant = k00 * k11 - k01 * k01;
+            if (!BridgeNumbers.IsFinite(determinant) || Math.Abs(determinant) <= 1e-14 * Math.Max(1, Math.Abs(k00 * k11)))
+                throw new HistorySolveFailure("Rigidezza tangente singolare; carico oltre capacità o sezione priva di rigidezza N–Mx");
+            double r0 = targetN - current.N, r1 = (targetM - current.M + r0 * origin) / length;
+            double de = (k11 * r0 - k01 * r1) / determinant;
+            double dk = (k00 * r1 - k01 * r0) / determinant / length;
+            var change = new HistoryStrainPlane(de + dk * origin, dk);
+            bool improved = false; double alpha = 1;
+            // Normally one full elastic correction. Retain bounded refinement/line search for roundoff near cancellation.
+            for (int search = 0; search < o.MaximumLineSearchIterations; search++, alpha *= .5) {
+                var nextPlane = plane + change.Scale(alpha); var next = Resultants(nextPlane);
+                if (Norm(next) < norm || Norm(next) <= 1) { plane = nextPlane; current = next; improved = true; break; }
+            }
+            if (!improved) throw new HistorySolveFailure("La correzione elastica non riduce il residuo; verificare condizionamento e tolleranze");
         }
         throw new HistorySolveFailure("Numero massimo di iterazioni Newton raggiunto");
     }

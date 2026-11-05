@@ -233,10 +233,8 @@ public static partial class HBridgeSection
             node = new(parent.Included.Append(phase).ToArray());
             try
             {
-                // The effective-width iterations use the transformed-section field with the Checker integration inertia, which is the Checker
-                // linear field to machine precision (relative differences 1e-15); the converged situation is solved again with the Checker
-                // solver, which gives the reported stresses and the equilibrium audit. Before, every iteration built a Checker solver for every
-                // composite phase (about 2 ms each: 63 solutions and 115 ms for three phases, now 3 solutions).
+                // Both the iterations and the final linear solution use the transformed field with Checker's integration inertia.
+                // The native solver remains the fallback for unequal tension/compression moduli and a failed equilibrium audit.
                 bool warmStart = data.Options.AcceleratedIteration;
                 node.Situation = CumulativePhaseAnalysis.AnalyzeSituation(node.Included, warmStart && parent != root ? parent.Situation!.State : BridgeEffective.Full(g),
                     (effective, p) => Solution(effective, p, nativeSolver: !data.Options.Class4),
@@ -318,7 +316,7 @@ public static partial class HBridgeSection
             int end = situation.PhaseIndex, iter = situation.Iterations;
             double error = situation.Residual;
             var effective = situation.State;
-            // gross section: the only iteration already used the Checker solver (copies: the situation may belong to other inputs too)
+            // Gross section: the only iteration already computed the final field (copies: situations can belong to other inputs).
             var contributions = data.Options.Class4 ? included.Select(p => Solution(effective, shared[p], nativeSolver: true)).ToList()
                 : situation.Contributions.Select(c => c with { }).ToList();
             // Keep properties and stresses on the same converged geometry. Diagnostic plate data are recomputed on those stresses.
@@ -444,7 +442,14 @@ public static partial class HBridgeSection
                 + (g.Bottom2Thickness > 0 ? e.BottomWidth * Math.Pow(g.Bottom1Thickness, 3) / 12 + e.SecondBottomWidth * Math.Pow(g.Bottom2Thickness, 3) / 12
                     : e.BottomWidth * Math.Pow(g.BottomEquivalentThickness, 3) / 12)
                 + g.Bars.Sum(b => Math.PI * Math.Pow(b.Diameter, 4) / 64) * (mat.Rebar.ElasticModulusTension / mat.Steel.ElasticModulusTension - 1 / n);
-            if (!nativeSolver) slope = -mg / solverInertia;
+            // The bridge's symmetric, perfectly bonded N-Mx section has two elastic degrees of freedom. For identical tensile/compressive
+            // moduli the final field is the same closed-form field as in the effective-width iterations; constructing a general Concrete
+            // checker and its numerical 3x3 Jacobian for every final load is redundant. Keep the line-wall/point-bar integration inertia,
+            // not the geometric inertia. The separate native solver and independent analytical oracles test this path.
+            bool direct = mat.Steel.ElasticModulusTension == mat.Steel.ElasticModulusCompression
+                && mat.Rebar.ElasticModulusTension == mat.Rebar.ElasticModulusCompression
+                && mat.Concrete.ElasticModulusTension == mat.Concrete.ElasticModulusCompression;
+            if (!nativeSolver || direct) slope = -mg / solverInertia;
             else if (force != 0 || moment != 0)
             {
                 var field = CompositeLinearStressSolver.Solve(composite, force, moment, g.Width / 2, yref, homo.Item3, d.Options.Standard);
