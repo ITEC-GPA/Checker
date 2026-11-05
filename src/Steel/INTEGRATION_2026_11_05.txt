@@ -95,3 +95,13 @@ documenti rispetto a7a06643b. Nessun checkout altrui modificato.
 Gli altri12 riferimenti monitorati e origin/master sono rimasti invariati.
 I numeri e i collaudi del blocco precedente restano storici: il risultato
 F7c piu' modifiche Steel richiede il proprio collaudo finale.
+
+CONTROLLO SUCCESSIVO5/11 ORE22 - PRESTAZIONI PONTI
+Integrato origin/master d6e8049e conbc4cd0b9: sei commit sulle prestazioni
+CompositeBridge, benchmark e API batch. Conflitto nel solo numero di
+versione CompositeBridge; progetto di test unito automaticamente.
+Versioni dedicate27c06b09: CompositeBridge1.30.0.0, ModelChecker2.39.0.4;
+Steel2.130.0.0,Model isolato2133a2db invariati. Guardia23 progetti OK.
+Collaudo completo su27c06b09:10513 passati,0 falliti,1 timing non eseguito;
+API compatibili. Dettaglio in CONSOLIDATION_RESULT_2026_11_05.txt.
+Nessun worktree altrui modificato e nessun push/rilascio anticipato.

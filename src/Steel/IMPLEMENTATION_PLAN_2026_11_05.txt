@@ -33,8 +33,10 @@ o progetto sismico esteso in questo ciclo.
    Il limite editoriale di1b non modifica il metodo2007+AC2009 gia' esplicito
    e non blocca2-3, che non dipendono dall'emendamento dei gusci.
 
-2. CHIUDERE IL FLUSSO MODEL -> CHECKER -> REPORT - implementato e verificato
-   nei test mirati; resta il consenso sul contratto storico del catalogo.
+2. CHIUDERE IL FLUSSO MODEL -> CHECKER -> REPORT - completato e verificato.
+   Contratto storico del catalogo aggiornato con consenso esplicito:
+   commit90209e96,23/23 test mirati; tutte le suite sul risultato integrato
+   27c06b09:10513 passati,0 falliti,1 timing non eseguito,API compatibili.
 2a Casi completi minimi per sezioni, aste FEM e connessioni standard.
 2b Verificare assi locali, segni e inversione degli elementi; le azioni
    concomitanti appartengono allo stesso caso, non a inviluppi separati.
@@ -67,7 +69,7 @@ o progetto sismico esteso in questo ciclo.
    analitici e l'oracolo indipendente della famiglia a bulloni discreti.
    Audit: Connections/COMPRESSED_COVER_MODEL_AUDIT_2026_11_05.txt.
 
-4. COMPLETARE I SOTTOCASI D'ASTA - da qualificare
+4. COMPLETARE I SOTTOCASI D'ASTA - autorizzato, in sviluppo
 4a Due tagli attivi nelle classi1-3: resistenze concomitanti e riduzioni
    cautelative motivate, senza attribuire due volte la stessa area.
 4b Classe4 con alto taglio: compatibilita' fra sezione efficace,
