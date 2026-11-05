@@ -203,3 +203,19 @@ Il parametro -GarbageCollector Workstation|Server controlla il processo di misur
 non modifica la configurazione dell'applicazione o delle librerie. I JSON riportano
 ServerGC effettivo, macchina/runtime, prima esecuzione, tre ripetizioni wall/CPU,
 allocazioni, GC e confronto con i vettori originali. Nessun file viene sovrascritto.
+
+VERIFICA COMPLETA E VERSIONE
+build/Verify.ps1 -Suites all eseguito sul codice finale 1.24.0.0:
+Concrete net472 962, Steel net472 122, CompositeBridge 475, Geotechnics 202,
+Calculation 175, ShallowFoundation 29, EmbeddedWalls 99, Steel.Members 7132,
+Design net8 274, Design net472 273, ModelChecker net6 673.
+Totale 10.416 superati, zero fallimenti. Il test opzionale di timing
+TimingOfTheConcreteRun di ModelChecker resta non eseguito nella configurazione
+ordinaria; nessuna esclusione aggiunta da questo lavoro.
+Compatibilita' API pubbliche: GPCModelChecker, Concrete, Design e Masonry,
+nessuna rimozione inattesa. Log/TRX e summary.json in
+audit-results/bridge-performance-20261105/verify-final.
+Le 72 misure complete, con ripetizioni e metadati, sono archiviate anche nel
+file versionato docs/bridge-performance-20261105.json.
+Incremento funzionale a 1.24.0.0 per le nuove API batch; nessun campo di ingresso
+persistito aggiunto o rinominato, nessuna modifica dei contratti di impronta.
