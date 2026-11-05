@@ -1,5 +1,5 @@
-COMPLETAMENTO ASTE - PUNTO4 DEL PIANO
-5 novembre2026. EC3:2005 / NTC2018, statica ordinaria. N,mm,MPa,Nmm.
+COMPLETAMENTO ASTE - PUNTO 4 DEL PIANO
+5 novembre 2026. EC3:2005 / NTC2018, statica ordinaria. N, mm, MPa, Nmm.
 
 4a DUE TAGLI CONCOMITANTI - implementazione
 Sezioni classi1-3: gia' disponibile LinearResistanceInteraction, con somma
@@ -77,7 +77,7 @@ SteelMemberSchemePreparation.TorsionalMode: H doppiamente simmetrica,
 torsione impedita alle estremita', ingobbamento libero/libero, fisso/libero
 o fisso/fisso. Problema di Vlasov EIomega theta''''+(N i0^2-GIt)theta''=0:
 fattori di lunghezza1,pi/4.493409457909064 e0.5 rispettivamente.
-Fonte elastica: Snijder/Balaz/Stroetmann,ce/papers8(2025),p618,eq15;
+Fonte elastica: Snijder/Stroetmann/Balaz, ce/papers 8(2025), p.618, eq.15;
 le condizioni al contorno sono esplicitate e verificate mediante quoziente
 di Rayleigh integrato indipendentemente sulle autofunzioni. Le proprieta'
 It/Iw sono dati di Model (dichiarati approssimati), non geometrie reinventate.
@@ -109,7 +109,7 @@ JRC/ECCS EUR22898EN, esempio16,pp189-191:
 https://eurocodes.jrc.ec.europa.eu/sites/default/files/2021-12/EUR22898EN.pdf
 SN003b-EN-EU,pp2-5, sezioni2/3.1:
 https://www.steelconstruction.info/images/0/0f/SN003b.pdf
-Snijder/Balaz/Stroetmann,ce/papers8(2025),p618,eq15:
+Snijder/Stroetmann/Balaz, ce/papers 8(2025), p.618, eq.15:
 https://onlinelibrary.wiley.com/doi/10.1002/cepa.70116
 Quest'ultima fonte documenta l'equazione elastica di Vlasov; non trasferisce
 regole di resistenza della seconda generazione al profilo EC3:2005/NTC2018.
@@ -120,5 +120,62 @@ N-M1-V2; non chiude gli altri sottocasi di classe4 indicati sopra.
 Il punto3 resta parziale: il nucleo aritmetico7.1 e' ora comune a Steel,
 CompositeBridge e coprigiunti gia' qualificati; questo riuso non aggiunge
 i vincoli fisici mancanti del coprigiunto interamente compresso.
-Il collaudo completo successivo ai commit funzionali/versioni sara'
-registrato in questo rapporto dopo la sua effettiva esecuzione.
+COLLAUDO COMPLETO ESEGUITO - 5/11/2026, 23:10 Europe/Rome
+Commit verificato 778e1a7b, checkout Model 2133a2db (GPCModel 5.50.0.1).
+Comando: build/Verify.ps1 -ModelRoot ../Model -Suites all -Results
+C:/Users/g.pacini/Documents/ChatGPT/Checker/tmp/steel-consolidation-20261105/verify-phase4-01
+Riepilogo machine-readable: summary.json nella cartella risultati;
+log esterno verify-phase4-01.log. Tutti gli 11 gruppi eseguiti:
+Suite                         | Superati | Falliti
+Concrete net472               |      962 |       0
+Steel net472                  |      122 |       0
+CompositeBridge               |      528 |       0
+Geotechnics                   |      202 |       0
+Calculation                   |      175 |       0
+ShallowFoundation             |       29 |       0
+EmbeddedWalls                 |       99 |       0
+Steel.Members                 |     7334 |       0
+Design net8                   |      274 |       0
+Design net472                 |      273 |       0
+ModelChecker                  |      688 |       0
+Totale 10686 SUPERATI, 0 FALLITI; 1 NotExecuted preesistente, il solo test
+TimingOfTheConcreteRun. Nessuna allowlist modificata; nessun fallimento ammesso.
+173 casi eseguiti in piu' rispetto al collaudo integrato10513.
+API compatibili: ModelChecker 622, Concrete 2633, Design 3431, Masonry 9 firme;
+nessuna rimozione inattesa. Check-ProjectVersions: 23 progetti, 0 duplicazioni.
+Attesi storici invariati in questo blocco; il contratto del catalogo era
+gia' stato aggiornato con il consenso esplicito dell'utente nel90209e96.
+
+COMMIT DEL BLOCCO4
+2cf39f5e superposizione tagli classi1-3 e relativo flusso ModelChecker.
+91d33007 H classe4, interazione normale/taglio e stabilita' d'asta.
+c38c1e54 NcrT con ingobbamento vincolato e limite inferiore Mcr.
+d525f5cd collaudo FEM generico, nucleo7.1 condiviso, documentazione/fonti.
+778e1a7b versioni dedicate: Steel2.131.0.0, CompositeBridge1.31.0.0,
+ModelChecker2.40.0.0. Nessun cambiamento di versione di Model.
+
+STATO FINALE DEI PRIMI QUATTRO PUNTI
+1: operativo completato; riscontro editoriale A1:2017 ancora aperto.
+2: completato, collaudo integrale e nuovi percorsi FEM verdi.
+3: PARZIALE. Rettifiche e prove completate; modello compresso a bulloni
+   discreti con alto taglio non qualificato e non abilitato dal punto4.
+4a: completato H/RHS/CHS classi1-3, entrambe le componenti di taglio.
+4b: completato per H doppiamente simmetriche N-M1-V2; PARZIALE rispetto
+    a tutta la classe4 (RHS/asimmetriche, due tagli e flessione minore).
+4c: completato per i tre vincoli torsionali e per Mcr inferiore dichiarato;
+    gli altri schemi mantengono l'ingresso di critici esterni qualificati.
+4d: completato con diagrammi generici concomitanti, assi e archivi.
+Non e' quindi chiusa senza riserve l'intera richiesta dei punti1-4.
+Il risultato verde prova il dominio implementato e i rifiuti espliciti,
+non i meccanismi rimasti fuori campo.
+
+CONTROLLO INTEGRAZIONE E FONTI
+Nuovo fetch dopo le suite: origin/master d6e8049e invariato, tutti i14
+riferimenti monitorati gia' antenati del branch di consolidamento.
+Nessun merge concorrente, push, rilascio o modifica ad ANTHEA.
+Le modifiche dei candidati F6/F7 restano integrate sul solo branch di lavoro.
+Registro persistente:30 PDF,76 URL; include una nuova anteprima BSI di3
+pagine, priva del D.1.4.2 (non considerata testo completo).
+ZIP references/steel-fonti-2026-11-05.zip:185764989 byte, SHA256
+7c51f7eaac08736892c24a1268b7ff20881a371fd0fb49d2a9c4af7fc0a476aa.
+Le copie e il registro sono fuori dalle cartelle temporanee.

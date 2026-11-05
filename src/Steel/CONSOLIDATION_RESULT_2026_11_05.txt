@@ -64,5 +64,18 @@ Collaudo completo di27c06b09:10513 passati,0 falliti,1 timing preesistente
 non eseguito; API compatibili. CompositeBridge528, Steel.Members7175;
 altre suite come sopra. Fonte: verify-integrated-approved-01/summary.json.
 Punto2 chiuso. L'utente ha ora autorizzato il completamento dei punti1-4.
+
+PROSECUZIONE1-4 - COLLAUDO SUCCESSIVO,5/11/2026 ORE23:10
+Implementazioni aste e flusso FEM: MEMBER_COMPLETION_2026_11_05.txt,
+che riporta il dettaglio corrente dei completati e dei limiti residui.
+Commit verificato778e1a7b:10686 superati,0 falliti,1 timing preesistente
+non eseguito, tutte le11 suite e API compatibili. Risultati in
+tmp/steel-consolidation-20261105/verify-phase4-01/summary.json.
+Steel2.131.0.0,CompositeBridge1.31.0.0,ModelChecker2.40.0.0.
+Il punto3 resta parziale;4b copre H doppiamente simmetriche N-M1-V2,
+non tutte le famiglie e gli stati di classe4.1b editoriale ancora aperto.
+Registro fonti aggiornato:30 PDF,76 URL. ZIP aggiornato 185764989 byte;
+hash e inventario nel rapporto e nell'archivio persistente.
+Ultimo fetch:master d6e8049e invariato;14 riferimenti gia' integrati.
 Per3 proseguire dalla qualifica fisica secondo7.1(5), non dalla sola
 implementazione di una formula. I punti5-8 non sono anticipati.

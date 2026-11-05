@@ -13,8 +13,9 @@ Matrice famiglie/nodi ed evidenze: COVERAGE_MATRIX_2026_11_05.txt.
 Flusso, assi, riuso e collaudi: WORKFLOW_VALIDATION_2026_11_05.txt.
 Esito del blocco1-2-3 e collaudo completo: CONSOLIDATION_RESULT_2026_11_05.txt
 (contratto del catalogo approvato e verificato; fase3 ancora parziale).
-Collaudo integrato su27c06b09:10513 superati,0 falliti,1 timing non eseguito;
-API compatibili. Prosecuzione autorizzata: completamento dei punti1-4.
+Collaudo integrato del blocco aste su778e1a7b:10686 superati,0 falliti,
+1 timing preesistente non eseguito; API compatibili. Steel2.131.0.0,
+CompositeBridge1.31.0.0,ModelChecker2.40.0.0; Model isolato2133a2db.
 Estensione aste5/11: MEMBER_COMPLETION_2026_11_05.txt. Due tagli concomitanti
 su H/RHS/CHS classi1-3; interazione efficace e d'asta H classe4 N-M1-V2;
 tre vincoli ideali di ingobbamento per NcrT e limite inferiore Mcr della
@@ -22,11 +23,10 @@ campata trattenuta; flusso FEM generico collaudato sui nuovi percorsi.
 Metodi espliciti, non attivati automaticamente dai vecchi contratti.
 Restano fuori RHS/asimmetriche e doppio taglio/flessione minore classe4;
 il coprigiunto interamente compresso ad alto taglio resta non qualificato.
-I risultati completi sopra precedono queste estensioni; il nuovo collaudo
-completo e' registrato nel rapporto MEMBER_COMPLETION al suo termine.
+Risultati, commit e limiti del collaudo nel rapporto MEMBER_COMPLETION.
 Fonti persistenti per il successivo download: REFERENCE_REGISTER.json;
 copie fuori Git in ChatGPT/Checker/references/steel/documents (non temporanee).
-Ultimo blocco verificato e limiti ancora aperti: CLOSURE_2026_11_02.txt
+Precedente blocco verificato del2/11: CLOSURE_2026_11_02.txt
 (Steel2.129.0.1, ModelChecker2.38.0.0,10361 test superati).
 
 Campo: EC3 edizione2005 e NTC2018; statica ordinaria. Gli eventuali modelli
