@@ -400,6 +400,61 @@ public class BridgeCompositeSectionDefinitionTests
         Assert.AreEqual(AnalysisDump(data.CompositeSection(beam)!.Start.AnalysisSection), AnalysisDump(read.CompositeSection(beam)!.Start.AnalysisSection));
     }
 
+    /// <summary>The steel of the analysis properties as BridGHe gives it (GpcMaterials.Elastic of the steel GH_Material: E, ν, density, α and,
+    /// with an explicit G or damping, the analysis data).</summary>
+    private static Material AnalysisSteel(double e = 210000, double density = 7.85e-9) =>
+        new("Acciaio carpenteria", e, 0.3, density, 1.2e-5) { AnalysisData = new MaterialAnalysisData { BeamShearModulus = 80769.23, ViscousDampingDensity = 0.01 } };
+
+    [TestMethod]
+    public void AnalysisSteelRoundTripsAndEntersTheFingerprintOnlyWhenGiven()
+    {
+        // A definition with the rows and without the steel keeps the fingerprint of 28d8b967 (measured with that build on fresh sections).
+        var rows50 = new BridgeCompositeRebarRows(3500, 50, 3500, 50, 3); var rows99 = new BridgeCompositeRebarRows(1600 * Math.PI, 50, 1600 * Math.PI, 50, 3);
+        Assert.AreEqual("E8D8CA2CF09D75F1AAF1B1EDD6D78DBBDF3313AA3DA0B454EB98824E13D9DE65", new BridgeCompositeSectionDefinition("Composite", Example50(), rows50, 18.41, 6.18, 16.9, 0, true, true).Fingerprint());
+        Assert.AreEqual("9F9A0D30C74C973698625CCCD10B9605D61CD837FE5EEC9C3ACC8F1A825BE77E", new BridgeCompositeSectionDefinition("Composite", Example99(), rows99, 18.41, 6.18, 16.9, 0, true, true).Fingerprint());
+        StringAssert.DoesNotMatch(Encoding.UTF8.GetString(new BridgeCompositeSectionDefinition("Composite", Example50(), rows50, 18.41, 6.18, 16.9, 0, true, true).Save()),
+            new System.Text.RegularExpressions.Regex("AnalysisSteel"));
+        foreach (var (section, rows) in new[] { (Example50(), rows50), (Example99(), rows99) })
+            foreach (Material steel in new Material[] { AnalysisSteel(), new SteelMaterialEN1992("S355", 210000, 355, 510, 0.075, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Structural) })
+            {
+                var definition = new BridgeCompositeSectionDefinition("Composite", section, rows, steel, 18.41, 6.18, 16.9, 0, true, true);
+                Assert.AreSame(steel, definition.AnalysisSteel);
+                string fingerprint = definition.Fingerprint();
+                Assert.AreNotEqual(new BridgeCompositeSectionDefinition("Composite", section, rows, 18.41, 6.18, 16.9, 0, true, true).Fingerprint(), fingerprint);
+                byte[] saved = definition.Save();
+                foreach (var other in new[] { BridgeCompositeSectionDefinition.Read(saved), definition.Copy() })
+                {
+                    Assert.AreNotSame(steel, other.AnalysisSteel);
+                    Assert.AreEqual(steel.GetType(), other.AnalysisSteel!.GetType());
+                    Assert.AreEqual(ModelValues.Fingerprint(new object[] { steel }), ModelValues.Fingerprint(new object[] { other.AnalysisSteel }));
+                    Assert.AreEqual(fingerprint, other.Fingerprint());
+                    Assert.AreEqual(Document(saved), Document(other.Save()));
+                    Assert.AreEqual(AnalysisDump(definition.AnalysisSection), AnalysisDump(other.AnalysisSection), "the analysis section does not depend on the steel");
+                }
+                // The steel enters the fingerprint (a density other than that of the steel of the section).
+                Assert.AreNotEqual(fingerprint, new BridgeCompositeSectionDefinition("Composite", section, rows, AnalysisSteel(density: 7.9e-9), 18.41, 6.18, 16.9, 0, true, true).Fingerprint());
+                // The rows travel with it inside the bridge data of a model.
+                var data = new BridgeModelData(); var beam = Guid.NewGuid();
+                data.SetCompositeSection(beam, new BridgeBeamCompositeSection(definition));
+                var read = BridgeModelData.Read(data.Save());
+                Assert.AreEqual(data.Fingerprint(), read.Fingerprint());
+                Assert.AreEqual(ModelValues.Fingerprint(new object[] { steel }), ModelValues.Fingerprint(new object[] { read.CompositeSection(beam)!.Start.AnalysisSteel! }));
+            }
+        // One input: an analysis steel of another E is refused with a clear message; a missing steel too.
+        var mismatch = Assert.ThrowsException<ArgumentException>(() => new BridgeCompositeSectionDefinition("Composite", Example50(), rows50, AnalysisSteel(205000), 18.41, 6.18, 16.9, 0, true, true));
+        StringAssert.StartsWith(mismatch.Message, "BridgeCompositeAnalysisSteelModulusMismatch: the elastic modulus of the analysis steel 'Acciaio carpenteria' (205000 MPa) differs from that of the steel of the section 'Acciaio carpenteria' (210000 MPa)");
+        Assert.ThrowsException<ArgumentException>(() => new BridgeCompositeSectionDefinition("Composite", Example50(), rows50, null!, 18.41, 6.18, 16.9, 0, true, true));
+        // A difference in the last bits of E (below 1e-12) is the same E.
+        new BridgeCompositeSectionDefinition("Composite", Example50(), rows50, AnalysisSteel(210000 * (1 + 4e-16)), 18.41, 6.18, 16.9, 0, true, true);
+        // Archived steels are checked when read: the E of the analysis steel changed in the document.
+        string xml = Encoding.UTF8.GetString(new BridgeCompositeSectionDefinition("Composite", Example50(), rows50, AnalysisSteel(), 18.41, 6.18, 16.9, 0, true, true).Save());
+        int at = xml.IndexOf("AnalysisSteel", StringComparison.Ordinal); Assert.IsTrue(at > 0);
+        var modulus = new System.Text.RegularExpressions.Regex("(ElasticModulusTension[^<>]*>)210000<");
+        var match = modulus.Match(xml, at); Assert.IsTrue(match.Success);
+        string tampered = xml.Substring(0, match.Index) + match.Groups[1].Value + "205000<" + xml.Substring(match.Index + match.Length);
+        Assert.ThrowsException<ArgumentException>(() => BridgeCompositeSectionDefinition.Read(Encoding.UTF8.GetBytes(tampered)));
+    }
+
     [TestMethod]
     public void InvalidRebarRowsAreRejected()
     {

@@ -42,6 +42,10 @@ public sealed class BridgeCompositeSectionDefinition
     /// <summary>The rows of bars as the application gave them (total area and cover of each row, bars per row of <see cref="Section"/>), from
     /// which <see cref="AnalysisSection"/> builds the section of the analysis properties; null for a definition created without them.</summary>
     [field:DataMember(Order=9,EmitDefaultValue=false)] public BridgeCompositeRebarRows? RebarRows { get; private set; }
+    /// <summary>The steel of the analysis properties as the application gave it (BridGHe: the steel material of Composite Beam Property, with
+    /// E, ν or G, density, thermal expansion, damping…): the material of the homogenised analysis properties and the steel of the shrinkage
+    /// actions; null for a definition created without it. Its E is the E of the steel of <see cref="Section"/> (one input).</summary>
+    [field:DataMember(Order=10,EmitDefaultValue=false)] public Material? AnalysisSteel { get; private set; }
 
     public BridgeCompositeSectionDefinition(string name, ReinforcedConcreteSection section, double nLongTerm, double nShortTerm, double nShrinkage,
         double verticalOffsetMm, bool considerConcrete, bool considerRebar)
@@ -60,6 +64,19 @@ public sealed class BridgeCompositeSectionDefinition
         Name = name; Section = section; NLongTerm = nLongTerm; NShortTerm = nShortTerm; NShrinkage = nShrinkage;
         VerticalOffsetMm = verticalOffsetMm; ConsiderConcrete = considerConcrete; ConsiderRebar = considerRebar;
         RebarRows = rebarRows ?? throw new ArgumentException("MissingBridgeCompositeRebarRows");
+        Validate();
+    }
+
+    /// <summary>A definition with the rows of bars (as the constructor with <paramref name="rebarRows"/>) and the steel of the analysis
+    /// properties <paramref name="analysisSteel"/> (not null, held: the callers do not change it), whose E must be that of the steel of
+    /// <paramref name="section"/>.</summary>
+    public BridgeCompositeSectionDefinition(string name, ReinforcedConcreteSection section, BridgeCompositeRebarRows rebarRows, Material analysisSteel,
+        double nLongTerm, double nShortTerm, double nShrinkage, double verticalOffsetMm, bool considerConcrete, bool considerRebar)
+    {
+        Name = name; Section = section; NLongTerm = nLongTerm; NShortTerm = nShortTerm; NShrinkage = nShrinkage;
+        VerticalOffsetMm = verticalOffsetMm; ConsiderConcrete = considerConcrete; ConsiderRebar = considerRebar;
+        RebarRows = rebarRows ?? throw new ArgumentException("MissingBridgeCompositeRebarRows");
+        AnalysisSteel = analysisSteel ?? throw new ArgumentException("MissingBridgeCompositeAnalysisSteel");
         Validate();
     }
 
@@ -89,6 +106,15 @@ public sealed class BridgeCompositeSectionDefinition
             double given=RebarRows.TopAreaMm2+RebarRows.BottomAreaMm2, bars=Section.AreaRebars;
             int count=RebarRows.BarsPerRow*((RebarRows.TopAreaMm2>0 ? 1 : 0)+(RebarRows.BottomAreaMm2>0 ? 1 : 0));
             if(Section.Rebars.Count()!=count || Math.Abs(bars-given)>1e-9*Math.Max(1,given)) throw new ArgumentException("BridgeCompositeRebarRowsDoNotMatchSection");
+        }
+        if(AnalysisSteel!=null)
+        {
+            // One input: the steel of the section (E, fy, fu for the checks) and the steel of the analysis come from the same material.
+            double analysis=AnalysisSteel.ElasticModulusTension, steel=positioned.Section.SteelMaterial.ElasticModulusTension;
+            if(!(analysis==steel || Math.Abs(analysis-steel)<=1e-12*Math.Max(Math.Abs(analysis),Math.Abs(steel))))
+                throw new ArgumentException(string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                    "BridgeCompositeAnalysisSteelModulusMismatch: the elastic modulus of the analysis steel '{0}' ({1:R} MPa) differs from that of the steel of the section '{2}' ({3:R} MPa); both come from the steel material of the composite section",
+                    AnalysisSteel.Name, analysis, positioned.Section.SteelMaterial.Name, steel));
         }
     }
 

@@ -22,7 +22,9 @@ internal sealed class BridgeFingerprints : IFingerprintVocabulary
         v.Record(typeof(BridgeCompositeSectionDefinition), "GPC.Checkers.CompositeBridge.BridgeCompositeSectionDefinition", Properties("Section", "NLongTerm", "NShortTerm",
             "NShrinkage", "VerticalOffsetMm", "ConsiderConcrete", "ConsiderRebar", "Name").Concat(new FingerprintMember[]{new FingerprintMember("schema"),
             // P2H (5/11): the rows of bars as given, omitted when absent (the fingerprint of a definition without them does not change).
-            FingerprintMember.AutoProperty("RebarRows", omitWhenNull: true)}).ToArray());
+            FingerprintMember.AutoProperty("RebarRows", omitWhenNull: true),
+            // P2H (5/11): the steel of the analysis properties, omitted when absent.
+            FingerprintMember.AutoProperty("AnalysisSteel", omitWhenNull: true)}).ToArray());
         v.Record(typeof(BridgeCompositeRebarRows), "GPC.Checkers.CompositeBridge.BridgeCompositeRebarRows",
             Properties("TopAreaMm2", "TopCoverMm", "BottomAreaMm2", "BottomCoverMm", "BarsPerRow"));
         // Lane L12: the bridge data of a model (BridgeModel) and the bridge vocabulary that left GPCModel. New contracts: their names are
