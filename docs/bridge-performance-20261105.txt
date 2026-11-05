@@ -88,3 +88,118 @@ l'allocazione scende ma il lavoro di presentazione resta dominante rispetto
 alla piccola soluzione; la successiva iterazione rimuove passaggi sulle fibre
 e prepara le riduzioni. Allocazioni storico classe 4: 147016 MiB (-18.3%).
 Artefatti: audit-results/bridge-performance-20261105/iteration1.
+
+ITERAZIONE 2 - MOMENTI PREPARATI E RIDUZIONI SENZA RIGHE TRIAL
+Commit 7b726fc8. Suite CompositeBridge: 463/463.
+Cumulativo: momenti delle parti efficaci preparati una volta per stato, senza
+costruire sezioni Model ad ogni trial. Inerzia geometrica distinta da quella
+di integrazione; conservata la conversione phi/n anche vicino a n0.
+Storico: il modello efficace H legge direttamente le risposte materiali sulle
+fibre preparate. Eliminate le righe complete dei risultati ad ogni tentativo.
+                          1 sezione x 100     100 sezioni x 100
+Cumulativo lordo                0.02022                  2.52207
+Cumulativo classe 4             0.02430                  4.02327
+Storico lineare lordo           0.17041                 19.81212
+Storico lineare classe 4        0.39044                 43.86112
+Scarto massimo cumulativo 9.10e-13 MPa/mm; storico identico bit per bit.
+Allocazioni 100x100: 2475, 2977, 19398, 75453 MiB cumulativi.
+Profilazione separata 100 storici della stazione 0, mediana di tre passaggi:
+- lordo: solo motore 21.9 ms, risultato completo 166.1 ms;
+- classe 4: solo motore 224.1 ms, risultato completo 373.3 ms.
+Questo giustifica il riuso anche dei profili dei risultati del prefisso comune.
+Artefatti: audit-results/bridge-performance-20261105/iteration2.
+
+ITERAZIONE 3 - PREFISSI COMUNI E BATCH PARALLELO
+Suite CompositeBridge: 475/475 (12 nuovi casi di regressione del batch).
+Storico: checkpoint dopo il piu' lungo prefisso comune G1/G2/ritiro; attivazioni,
+moduli, tensioni, riferimenti deformativi e aree efficaci sono conservati.
+Ogni Q riprende da copie degli array mutabili, con gli stessi indici/subpassi.
+I profili immutabili delle fasi comuni sono condivisi; liste, array dei contributi
+ai punti e barre geometriche sono propri di ciascun risultato.
+Cumulativo: cache delle proprieta' lorde per tipo e omogeneizzazione; fork delle
+cache per worker, con dizionari, key builder e sezioni native lazy indipendenti.
+In classe 4 ogni Q mantiene la propria geometria efficace: non si sommano campi
+G1/G2/ritiro congelati su geometrie diverse da quella del Q corrente.
+
+GC workstation, mediana wall in secondi (stessa configurazione della baseline):
+                          1 x 100: seriale / Q8       100 x 100: seriale / stazioni8 / Q8
+Cumulativo lordo                0.00971 / 0.00623          1.40410 / 1.61615 / 0.74183
+Cumulativo classe 4             0.01475 / 0.01629          2.67111 / 2.15069 / 1.00013
+Storico lineare lordo           0.06835 / 0.03311          9.63936 / 5.04004 / 5.50863
+Storico lineare classe 4        0.12817 / 0.06350         15.35119 / 6.88330 / 7.61562
+Una sola stazione non offre parallelismo per stazioni; i corrispondenti passaggi
+di controllo 1x100 sono 0.01014, 0.02020, 0.07769, 0.12551 s.
+CPU mediana 100x100, seriale / stazioni8 / Q8 (secondi):
+Cumulativo lordo                1.375 / 2.672 / 1.141
+Cumulativo classe 4             2.594 / 3.594 / 1.469
+Storico lineare lordo           9.094 / 10.281 / 8.984
+Storico lineare classe 4       14.375 / 18.672 / 17.828
+CPU e wall sono misure diverse; la CPU dei casi da pochi ms ha risoluzione
+insufficiente e puo' risultare zero. I confronti principali usano il wall.
+
+Nessuna differenza numerica aggiunta da riuso/parallelismo rispetto all'iterazione
+2; storico sempre identico bit per bit alla baseline, scarto cumulativo massimo
+9.10e-13 MPa/mm. Ogni ripetizione controlla residui N-M e convergenza efficace.
+Test batch: 100 Q, gradi 1/2/8, ordine inverso, stazioni miste, prefissi diversi,
+input duplicati, rami errati, subpassi, attivazione/disattivazione, secondo ritiro,
+warning di torsione, cancellazione e indipendenza delle collezioni pubbliche.
+Le fixture preesistenti e le tolleranze iniziali non sono state aggiornate.
+
+API E IMPIEGO
+HBridgeSection.CalculateBatch(inputs, maximumDegreeOfParallelism, cancellation)
+HBridgeHistoryResults.CalculateBatch(inputs, options, maximumDegreeOfParallelism, cancellation)
+Entrambe restituiscono HBridgeBatchResult in ordine (Analysis oppure Error).
+Grado predefinito 1, annullamento globale. Lo storico batch richiede modo lineare
+e legami lineari; il percorso storico non lineare ordinario resta separato.
+Le cache vivono entro la chiamata. Materiali Model e legami custom devono restare
+immutati durante il batch. I gruppi richiedono stessa geometria/materiali/opzioni
+e gli altri dati, escluse le fasi; i materiali sono confrontati per identita'.
+Il benchmark tratta ciascuna stazione con un batch di 100 combinazioni: parallelizza
+il ciclo esterno (stazioni) oppure i rami interni (Q), mai entrambi. L'API consente
+anche gruppi di stazioni in un unico batch; la memoria dei risultati cresce con
+il numero di ingressi mantenuti contemporaneamente.
+L'adozione delle API batch nei chiamanti applicativi e' esplicita; le API singole
+beneficiano delle ottimizzazioni del solver ma non condividono cache fra chiamate.
+
+CONFIGURAZIONE DEL RUNTIME - SERVER GC
+Stesso codice dell'iterazione 3, Server GC esplicito, otto worker:
+                          1 x 100: Q8      100 x 100: stazioni8 / Q8
+Cumulativo lordo                0.00630                  0.19609 / 0.65741
+Cumulativo classe 4             0.00691                  0.28443 / 0.75607
+Storico lineare lordo           0.01340                  0.99839 / 1.58331
+Storico lineare classe 4        0.02529                  2.21347 / 2.73812
+I controlli 1x100 in modalita' stazioni sono 0.01033, 0.01418, 0.05383,
+0.11332 s; con una stazione il lavoro resta seriale.
+CPU mediana 100x100 con stazioni8: 1.234, 2.297, 6.656, 15.719 s.
+Allocazioni cumulative: 1493, 1994, 5916, 19723 MiB (non memoria residente).
+
+Per isolare l'effetto del codice e' stato ricompilato il commit 0befce71,
+ancora privo di ottimizzazioni, nelle stesse dipendenze. Baseline con Server GC
+e otto stazioni concorrenti, mediana wall in secondi:
+                          1 x 100              100 x 100       originale / ottimizzato 100x100
+Cumulativo lordo                0.04394                  0.82649         4.21x
+Cumulativo classe 4             0.15156                  2.90741        10.22x
+Storico lineare lordo           0.18888                  3.44658         3.45x
+Storico lineare classe 4        0.67076                 13.56551         6.13x
+Non attribuire all'algoritmo da solo il rapporto fra baseline seriale workstation
+e risultato parallelo Server GC: comprende modifiche del solver, riuso, scheduling
+e runtime. In questo dataset, Server GC favorisce nettamente le stazioni concorrenti;
+con una stazione conviene distribuire i Q. Sono scelte del processo ospitante,
+non modifiche globali introdotte dalla libreria. Verificarle sul carico reale.
+Il grado 1 resta il default conservativo delle API.
+
+Artefatti delle misure aggiuntive: iteration3-serial, iteration3-stations,
+iteration3-variables, iteration3-stations-servergc, iteration3-variables-servergc,
+baseline-stations-servergc, sotto audit-results/bridge-performance-20261105.
+Tutte le misure usano il dataset e i vettori della prima baseline. I benchmark
+delle modifiche riportano ancora assembly 1.23.0.7: il successivo incremento a
+1.24.0.0 e' il solo versionamento, senza modifica del calcolo misurato.
+
+RIPRODUZIONE
+Compilare in Release tools/CompositeBridge.Benchmark/CompositeBridge.Benchmark.csproj.
+Eseguire tools/CompositeBridge.Benchmark/Run.ps1 con -Out <cartella nuova>,
+-Reference <baseline-v1>, -Execution serial|stations|variables, -Degree 8.
+Il parametro -GarbageCollector Workstation|Server controlla il processo di misura;
+non modifica la configurazione dell'applicazione o delle librerie. I JSON riportano
+ServerGC effettivo, macchina/runtime, prima esecuzione, tre ripetizioni wall/CPU,
+allocazioni, GC e confronto con i vettori originali. Nessun file viene sovrascritto.

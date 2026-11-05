@@ -39,7 +39,7 @@ public sealed class HistoryStressProfile
 public sealed record HistoryStageView(HistoryStageResult State, bool Nonlinear, HistoryStressProfile Profile,
     double TransformedArea, double ElasticCentroid, double TransformedInertia);
 
-public static class HBridgeHistoryResults
+public static partial class HBridgeHistoryResults
 {
     public const string LinearMethod = "Storico lineare · deformazioni e ritiro incrementali";
     public const string NonlinearMethod = "Storico non lineare · fibre e plasticità dell’acciaio";
@@ -58,27 +58,54 @@ public static class HBridgeHistoryResults
     public static HBridgeAnalysisResult Calculate(HBridgeInput input, HBridgeHistoryOptions? options = null, CancellationToken cancellation = default)
     {
         var o = options ?? new();
+        var data = PrepareInput(input);
+        var section = HBridgeHistoryAnalysis.CreateSection(data, o);
+        var history = BridgeHistoryAnalysis.Calculate(section, HBridgeHistoryAnalysis.ConvertPhases(data, data.Phases, o), o.Solver, cancellation);
+        return Present(data, o, section, history, cancellation);
+    }
+
+    private static HBridgeInput PrepareInput(HBridgeInput input)
+    {
         var data = input.Snapshot();
         BridgeNumbers.Require(data.Options.GammaM0, "gamma_m0", strict: true);
         BridgeNumbers.Require(data.Options.GammaC, "gamma_c", strict: true);
         BridgeNumbers.Require(data.Options.GammaS, "gamma_s", strict: true);
         BridgeNumbers.Require(data.Options.AlphaCC, "alpha_cc", strict: true);
         if (!Enum.IsDefined(typeof(BridgeLimitState), data.Options.LimitState)) throw new ArgumentException("Stato limite sconosciuto.");
-        var section = HBridgeHistoryAnalysis.CreateSection(data, o);
+        return data;
+    }
+
+    private static HBridgeAnalysisResult Present(HBridgeInput data, HBridgeHistoryOptions o, HistorySection section,
+        HistoryAnalysisResult history, CancellationToken cancellation, BridgeGeometry? preparedGeometry = null,
+        HBridgeAnalysisResult? preparedPrefix = null)
+    {
         bool nonlinear = section.Components.Any(c => !c.Material.IsLinear);
         var concreteLaw = section.Components.FirstOrDefault(c => c.Id == HBridgeHistoryAnalysis.Concrete)?.Material;
         bool noTension = concreteLaw is HistoryModelEnvelopeLaw { NeglectsTension: true };
         var tensionStiffening = concreteLaw as HistoryTensionStiffeningConcreteLaw;
-        var history = BridgeHistoryAnalysis.Calculate(section, HBridgeHistoryAnalysis.ConvertPhases(data, data.Phases, o), o.Solver, cancellation);
         if (history.Stages.Count == 0) throw new ArgumentException("Attivare almeno una fase.");
-        var g = HBridgeSection.Geometry(data with { Phases = new[] { new BridgePhase() } });
+        var g = preparedGeometry is null ? HBridgeSection.Geometry(data with { Phases = new[] { new BridgePhase() } })
+            : preparedGeometry with { Bars = preparedGeometry.Bars.ToArray() };
         var m = data.Materials;
         var values = new BridgeMaterialValues(m.Concrete.Name, Math.Abs(m.Concrete.Fck), m.Concrete.ElasticModulusCompression,
             m.Steel.Name, m.Steel.Fyk, m.Steel.ElasticModulusTension, m.Rebar.Name, m.Rebar.Fyk, m.Rebar.ElasticModulusTension);
         var phases = data.Phases.Where(p => p.Active).ToArray();
         var stages = new List<BridgeStage>(); var contributions = new List<BridgeContribution>();
         Dictionary<string, double> previous = new();
-        foreach (var s in history.Stages)
+        int completed = preparedPrefix?.Stages.Count ?? 0;
+        if (preparedPrefix is not null)
+        {
+            // Profiles and history states are immutable; each public mutable collection belongs to this result.
+            foreach (var stage in preparedPrefix.Stages)
+                stages.Add(stage with {
+                    Contributions = stage.Contributions.Select(c => c with { }).ToList(),
+                    Points = stage.Points.Select(p => p with { Contributions = p.Contributions.ToArray() }).ToList(),
+                    Warnings = stage.Warnings.ToList()
+                });
+            contributions.AddRange(stages[completed - 1].Contributions);
+            previous = history.Stages[completed - 1].Fibers.ToDictionary(f => f.Fiber.Id, f => f.Active ? f.Stress : 0);
+        }
+        foreach (var s in history.Stages.Skip(completed))
         {
             cancellation.ThrowIfCancellationRequested();
             var p = phases[s.Index]; var active = s.Fibers.Where(f => f.Active).ToArray();

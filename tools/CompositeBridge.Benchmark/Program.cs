@@ -77,13 +77,12 @@ double[][][] Run() {
     var result = new double[stations][][];
     void Station(int s) {
         var list = inputs[s]; var rows = new double[list.Length][];
-        if (method == "cumulative" && execution != "variables") {
-            var batch = HBridgeSection.Calculate(list);
+        if (method == "cumulative") {
+            var batch = HBridgeSection.CalculateBatch(list, execution == "variables" ? degree : 1);
             for (int i = 0; i < list.Length; i++) rows[i] = Values(batch[i].Analysis ?? throw batch[i].Error!);
         } else {
-            void Combo(int i) => rows[i] = Values(method == "cumulative" ? HBridgeSection.Calculate(list[i]) : HBridgeHistoryResults.Calculate(list[i], settings));
-            if (execution == "variables") Parallel.For(0, list.Length, parallel, Combo);
-            else for (int i = 0; i < list.Length; i++) Combo(i);
+            var batch = HBridgeHistoryResults.CalculateBatch(list, settings, execution == "variables" ? degree : 1);
+            for (int i = 0; i < list.Length; i++) rows[i] = Values(batch[i].Analysis ?? throw batch[i].Error!);
         }
         result[s] = rows;
     }

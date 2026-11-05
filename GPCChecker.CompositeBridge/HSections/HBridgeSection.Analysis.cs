@@ -204,13 +204,26 @@ public static partial class HBridgeSection
         // The steel pieces of a state and the native section on them are functions of the input and of the state only, and the solutions only
         // read them: built once per state for all its phases (before, once per phase).
         private readonly Dictionary<BridgeEffective, BridgeStateSection> sections = new(new BridgeStateIdentity());
-        // The gross properties of a phase do not depend on the situation: computed once per phase (before, once per situation including it).
-        private readonly Dictionary<BridgePhase, BridgeSectionProperties> grossProperties = new(new BridgePhaseIdentity());
+        // Gross properties depend on phase kind and homogenization, not on the forces of each Q.
+        private readonly Dictionary<string, BridgeSectionProperties> grossProperties = new(StringComparer.Ordinal);
 
         internal BridgeBatchGroup(BridgePreparedInput first, BridgeBitwise keys)
         {
             data = first.Data; g = first.Geometry; mat = first.Materials; this.keys = keys;
         }
+
+        private BridgeBatchGroup(BridgeBatchGroup source)
+        {
+            data = source.data; g = source.g; mat = source.mat; keys = new BridgeBitwise();
+            foreach (var pair in source.canonical) canonical.Add(pair.Key, pair.Value);
+            foreach (var pair in source.applicationPoints) applicationPoints.Add(pair.Key, pair.Value);
+            foreach (var pair in source.solutions) solutions.Add(pair.Key, pair.Value);
+            foreach (var pair in source.sections) sections.Add(pair.Key, pair.Value.CopyForWorker());
+            foreach (var pair in source.grossProperties) grossProperties.Add(pair.Key, pair.Value);
+            root = source.root.CopyForWorker();
+        }
+
+        internal BridgeBatchGroup Fork() => new(this);
 
         private BridgeContribution Solution(BridgeEffective effective, BridgePhase phase, bool nativeSolver)
         {
@@ -223,8 +236,11 @@ public static partial class HBridgeSection
             return solution with { };
         }
 
-        private BridgeSectionProperties GrossProperties(BridgePhase phase) =>
-            grossProperties.TryGetValue(phase, out var properties) ? properties : grossProperties[phase] = GrossPhaseProperties(data, phase);
+        private BridgeSectionProperties GrossProperties(BridgePhase phase)
+        {
+            string key = GrossCentroidKey(phase);
+            return grossProperties.TryGetValue(key, out var properties) ? properties : grossProperties[key] = GrossPhaseProperties(data, phase);
+        }
 
         /// <summary>The situation of the leading phases of the node followed by the phase, iterated once (an error is kept with it)</summary>
         private BridgeSituationNode Situation(BridgeSituationNode parent, BridgePhase phase, CancellationToken cancellation)
@@ -234,7 +250,7 @@ public static partial class HBridgeSection
             try
             {
                 // Both the iterations and the final linear solution use the transformed field with Checker's integration inertia.
-                // The native solver remains the fallback for unequal tension/compression moduli and a failed equilibrium audit.
+                // The native solver remains the fallback for unequal tension/compression moduli; every field must pass the equilibrium audit.
                 bool warmStart = data.Options.AcceleratedIteration;
                 node.Situation = CumulativePhaseAnalysis.AnalyzeSituation(node.Included, warmStart && parent != root ? parent.Situation!.State : BridgeEffective.Full(g),
                     (effective, p) => Solution(effective, p, nativeSolver: !data.Options.Class4),
@@ -373,6 +389,12 @@ public static partial class HBridgeSection
         internal Dictionary<BridgePhase, BridgeSituationNode> Children { get; } = new(new BridgePhaseIdentity());
         internal CumulativeSituation<BridgeEffective, BridgeContribution>? Situation { get; set; }
         internal Exception? Error { get; set; }
+        internal BridgeSituationNode CopyForWorker()
+        {
+            var copy = new BridgeSituationNode(Included) { Situation = Situation, Error = Error };
+            foreach (var child in Children) copy.Children.Add(child.Key, child.Value.CopyForWorker());
+            return copy;
+        }
     }
 
     /// <summary>The warnings for the parts whose local buckling is excluded by the options</summary>
@@ -515,6 +537,8 @@ public static partial class HBridgeSection
         internal List<SteelSectionPosition> Steel => steel ??= SteelPieces(geometry, effective, materials.Steel);
         internal BridgeElasticSection Elastic => elastic ??= new(geometry, effective, materials);
         internal ReinforcedConcreteSection? Composite { get; set; }
+        // Native Model sections/lazy mutable caches are never shared between workers. The prepared elastic moments are immutable.
+        internal BridgeStateSection CopyForWorker() => new(geometry, effective, materials) { elastic = elastic };
     }
     private static List<SteelSectionPosition> SteelPieces(BridgeGeometry g, BridgeEffective e, SteelMaterial material)
     {

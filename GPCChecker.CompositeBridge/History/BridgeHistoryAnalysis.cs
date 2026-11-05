@@ -13,6 +13,27 @@ public static class BridgeHistoryAnalysis
     /// <summary>Streaming alternative: retains only the current material state and the last completed stage.</summary>
     public static IEnumerable<HistoryStageResult> Enumerate(HistorySection section, IEnumerable<HistoryPhase> phases,
         HistorySolverOptions? options = null, CancellationToken cancellation = default)
+        => EnumerateCore(section, phases, options, cancellation, null, null);
+
+    // Owned by a completed prefix. Every continuation copies the mutable arrays; material states/results obey the immutable history contract.
+    internal sealed record Checkpoint(HistorySection Section, bool[] Active, bool[] Born, double[] Factors,
+        HistoryMaterialState[] States, double[] References, double[] Imposed, double[] Weights, HistoryStrainPlane Plane,
+        double N, double M, double V, int Index, HistoryStageResult? Last);
+
+    internal static (IReadOnlyList<HistoryStageResult> Stages, Checkpoint State) PreparePrefix(HistorySection section,
+        IEnumerable<HistoryPhase> phases, HistorySolverOptions options, CancellationToken cancellation)
+    {
+        Checkpoint? state = null;
+        var stages = EnumerateCore(section, phases, options, cancellation, null, s => state = s).ToArray();
+        return (Array.AsReadOnly(stages), state!);
+    }
+
+    internal static IReadOnlyList<HistoryStageResult> Continue(Checkpoint state, IEnumerable<HistoryPhase> phases,
+        HistorySolverOptions options, CancellationToken cancellation) =>
+        Array.AsReadOnly(EnumerateCore(state.Section, phases, options, cancellation, state, null).ToArray());
+
+    private static IEnumerable<HistoryStageResult> EnumerateCore(HistorySection section, IEnumerable<HistoryPhase> phases,
+        HistorySolverOptions? options, CancellationToken cancellation, Checkpoint? initial, Action<Checkpoint>? completed)
     {
         var o = options ?? new(); ValidateOptions(o);
         if (section is null || phases is null) throw new ArgumentNullException(section is null ? nameof(section) : nameof(phases));
@@ -32,14 +53,16 @@ public static class BridgeHistoryAnalysis
         }
         double area = points.Sum(p => p.Fiber.Area), origin = points.Sum(p => p.Fiber.Area * p.Fiber.Y) / area;
         double length = Math.Max(1, points.Max(p => p.Fiber.Y) - points.Min(p => p.Fiber.Y));
-        var active = components.Select(c => c.InitiallyActive).ToArray(); var born = active.ToArray();
-        var factors = Enumerable.Repeat(1d, components.Length).ToArray();
-        var states = points.Select(p => p.Law.InitialState()).ToArray();
-        var references = new double[points.Length]; var imposed = new double[points.Length];
-        var weights = Enumerable.Repeat(1d, points.Length).ToArray();
-        var plane = new HistoryStrainPlane();
-        double n = 0, m = 0, v = 0; int index = 0;
-        HistoryStageResult? last = null;
+        var active = initial?.Active.ToArray() ?? components.Select(c => c.InitiallyActive).ToArray();
+        var born = initial?.Born.ToArray() ?? active.ToArray();
+        var factors = initial?.Factors.ToArray() ?? Enumerable.Repeat(1d, components.Length).ToArray();
+        var states = initial?.States.ToArray() ?? points.Select(p => p.Law.InitialState()).ToArray();
+        var references = initial?.References.ToArray() ?? new double[points.Length];
+        var imposed = initial?.Imposed.ToArray() ?? new double[points.Length];
+        var weights = initial?.Weights.ToArray() ?? Enumerable.Repeat(1d, points.Length).ToArray();
+        var plane = initial?.Plane ?? new HistoryStrainPlane();
+        double n = initial?.N ?? 0, m = initial?.M ?? 0, v = initial?.V ?? 0; int index = initial?.Index ?? 0;
+        HistoryStageResult? last = initial?.Last;
         foreach (var source in phases)
         {
             cancellation.ThrowIfCancellationRequested();
@@ -132,6 +155,7 @@ public static class BridgeHistoryAnalysis
                 FiberResults(points, active, weights, references, imposed, factors, final, startStates), panels, phase);
             yield return last;
         }
+        completed?.Invoke(new(section, active, born, factors, states, references, imposed, weights, plane, n, m, v, index, last));
     }
 
     private sealed record Point(string Component, int ComponentIndex, HistoryFiber Fiber, IHistoryMaterialLaw Law);
