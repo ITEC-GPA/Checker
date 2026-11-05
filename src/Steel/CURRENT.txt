@@ -10,6 +10,7 @@ Consolidamento avviato il5 novembre: IMPLEMENTATION_PLAN_2026_11_05.txt;
 base dei branch e collaudo con Model aggiornato: INTEGRATION_2026_11_05.txt.
 Le nuove fasi non sono coperture gia' implementate.
 Matrice famiglie/nodi ed evidenze: COVERAGE_MATRIX_2026_11_05.txt.
+Flusso, assi, riuso e collaudi: WORKFLOW_VALIDATION_2026_11_05.txt.
 Fonti persistenti per il successivo download: REFERENCE_REGISTER.json;
 copie fuori Git in ChatGPT/Checker/references/steel/documents (non temporanee).
 Ultimo blocco verificato e limiti ancora aperti: CLOSURE_2026_11_02.txt

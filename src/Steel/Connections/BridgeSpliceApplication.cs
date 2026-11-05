@@ -55,6 +55,16 @@ namespace GPC.Checkers.Steel.Connections
             return SteelVerificationPipeline.Execute(SteelMethodSelector.Select(input), preparation);
         }
 
+        // Preparation is a function of the immutable verification input. Sharing is confined
+        // to the identical snapshot and actions of this case, never across states or transitions.
+        private static (SteelVerificationResult Left, SteelVerificationResult Right) EvaluatePair(
+            SteelSectionInput left, SteelSectionInput right, PlanarConnectionActions actions,
+            ConnectionDesignCode code, Func<SteelVerificationInput, IEnumerable<SteelShearBucklingAssessment>> preparation)
+        {
+            var l = EvaluateSection(left, actions, code, preparation);
+            return (l, ReferenceEquals(left, right) ? l : EvaluateSection(right, actions, code, preparation));
+        }
+
         public static WeldedIBeamSpliceStandardInput CreateBolted(WeldedIBeamSpliceDetailInput template,
             SteelSectionInput left, SteelSectionInput right, IEnumerable<SpliceActionCase> ultimateCases,
             SpliceLongitudinalFillets welds, string continuityAndSecondOrderSource, SpliceBoltCategory category,
@@ -93,9 +103,9 @@ namespace GPC.Checkers.Steel.Connections
             var cases = u.Select(c =>
             {
                 var detail = Detail(c);
+                var sections = EvaluatePair(left, right, c.Actions, original.Code, shearPreparation);
                 return new WeldedSpliceStandardCase(c.Id, new WeldedIBeamSpliceParentInput(detail,
-                    EvaluateSection(left, c.Actions, original.Code, shearPreparation),
-                    EvaluateSection(right, c.Actions, original.Code, shearPreparation), welds, continuityAndSecondOrderSource));
+                    sections.Left, sections.Right, welds, continuityAndSecondOrderSource));
             }).ToArray();
             var slips = new List<WeldedSpliceSlipCase>();
             if (slipTemplate != null)
@@ -172,10 +182,12 @@ namespace GPC.Checkers.Steel.Connections
             Func<SteelVerificationInput, IEnumerable<SteelShearBucklingAssessment>> shearPreparation = null)
         {
             var cases = Snapshot(ultimateCases);
-            return Array.AsReadOnly(cases.Select(c => new WeldedSpliceButtCaseResult(c,
-                WeldedIBeamButtSplice.Verify(new WeldedIBeamButtSpliceInput(code,
-                    EvaluateSection(left, c.Actions, code, shearPreparation), EvaluateSection(right, c.Actions, code, shearPreparation),
-                    top, web, bottom, c.Source, alignmentAndContinuitySource)))).ToArray());
+            return Array.AsReadOnly(cases.Select(c =>
+            {
+                var sections = EvaluatePair(left, right, c.Actions, code, shearPreparation);
+                return new WeldedSpliceButtCaseResult(c, WeldedIBeamButtSplice.Verify(new WeldedIBeamButtSpliceInput(code,
+                    sections.Left, sections.Right, top, web, bottom, c.Source, alignmentAndContinuitySource)));
+            }).ToArray());
         }
         private static SpliceActionCase[] Snapshot(IEnumerable<SpliceActionCase> cases, bool nonempty = true)
         {

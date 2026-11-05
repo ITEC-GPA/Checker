@@ -180,7 +180,7 @@ namespace GPC.Checkers.Steel.Connections
                 new[] { "Multiplanar joints (7.4.3, 7.5.3)", "Reinforced joints (7.5.2.2)", "I/H section and channel chords (7.6, 7.7), gusset plates and I/H/RHS branches on CHS chords (Tables 7.3, 7.4, 7.13)",
                     "Special and knee joints (Tables 7.6, 7.15, 7.16)", "Brace moments on RHS chords (Table7.14) and on K/N joints", "Fatigue (EN1993-1-9)",
                     "EN1993-1-8:2024 (prEN) rules", "Joints outside the range of validity (all failure modes of 7.2.2 and secondary moments)" },
-                "TUBULAR_JOINTS_USAGE.txt", "TubularJoint.Verify")
+                "TUBULAR_JOINTS_USAGE.txt", "TubularJoint.VerifyEquilibrated")
         });
 
         public static ConnectionCapability Get(string id)

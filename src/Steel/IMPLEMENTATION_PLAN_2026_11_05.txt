@@ -33,7 +33,7 @@ o progetto sismico esteso in questo ciclo.
    Il limite editoriale di1b non modifica il metodo2007+AC2009 gia' esplicito
    e non blocca2-3, che non dipendono dall'emendamento dei gusci.
 
-2. CHIUDERE IL FLUSSO MODEL -> CHECKER -> REPORT - da completare
+2. CHIUDERE IL FLUSSO MODEL -> CHECKER -> REPORT - completato
 2a Casi completi minimi per sezioni, aste FEM e connessioni standard.
 2b Verificare assi locali, segni e inversione degli elementi; le azioni
    concomitanti appartengono allo stesso caso, non a inviluppi separati.
@@ -42,6 +42,11 @@ o progetto sismico esteso in questo ciclo.
 2d Riutilizzare ingressi, preparazioni e proiezioni esistenti; un solo
    percorso documentato per ogni uso, senza nuovi strati non necessari.
    Esiti distinguono Failed, requisiti mancanti, fuori campo e Passed.
+   Esito5/11: 101/101 test mirati Steel e57/57 flussi ModelChecker.
+   Preparazioni identiche nello stesso caso: da4 a2 su due stati; nessun
+   riuso fra stati, snapshot distinti o baricentri delle transizioni.
+   Catalogo tubolari allineato all'ingresso VerifyEquilibrated.
+   Contratti e prove in WORKFLOW_VALIDATION_2026_11_05.txt.
 
 3. COPRIGIUNTO CLASSE4 INTERAMENTE COMPRESSO CON TAGLIO - da qualificare
 3a Definire una tipologia limitata con pannello, contatti, passo, sbalzi,

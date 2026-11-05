@@ -27,6 +27,7 @@ public class ConnectionRecommendedEntryTests
     [DataRow("WeldedIBeamButt","BridgeSpliceApplication.VerifyWelded")]
     [DataRow("StandardMomentEndPlateNMV","StandardEndPlate.Verify")]
     [DataRow("AnglePairCoplanarCollector","BraceAnglePairStandardTension.Verify")]
+    [DataRow("TubularJoints","TubularJoint.VerifyEquilibrated")]
     public void RecommendedApplicationEntrancesRemainExplicit(string id,string api)
         =>Assert.AreEqual(api,ConnectionCapabilityCatalog.Get(id).RecommendedEntryPoint);
 

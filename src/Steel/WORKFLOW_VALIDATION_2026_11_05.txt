@@ -1,0 +1,62 @@
+MODEL -> CHECKER -> REPORT: CONSOLIDAMENTO DEL FLUSSO
+5 novembre 2026. Fase 2 del piano IMPLEMENTATION_PLAN_2026_11_05.txt.
+Nessuna modifica ad ANTHEA, ai coefficienti o agli attesi storici.
+
+INGRESSI
+Sezioni: SteelSectionInput (snapshot posseduto e immutabile) ->
+SteelVerificationInput -> SteelMethodSelector.Select ->
+SteelVerificationPipeline.Execute. Le preparazioni richieste dal piano
+devono corrispondere all'ingresso; una preparazione mancante resta visibile.
+Aste FEM: SteelMemberAnalysis -> SelectMember -> Execute, tramite
+SteelMemberPipelineChecker in ModelChecker. I tagli concomitanti e la
+provenienza dei risultati vengono mantenuti nel percorso esistente.
+Coprigiunti: BridgeSpliceApplication.CreateBolted ->
+WeldedIBeamSpliceStandard.Verify -> BridgeSpliceReport.FromBolted.
+Giunti di testa saldati: BridgeSpliceApplication.VerifyWelded ->
+BridgeSpliceReport.FromWelded.
+Altri nodi: ConnectionCapabilityCatalog.Get(id).RecommendedEntryPoint.
+Tubolari: raccomandazione corretta in TubularJoint.VerifyEquilibrated,
+coerente con il contratto firmato e con TUBULAR_JOINTS_USAGE.txt.
+
+ASSI, STATI E IDENTITA'
+Il sistema fisico del coprigiunto usa X longitudinale, Y verso l'alto,
+Z trasversale. Prima si trasporta il momento al baricentro, poi
+N=Fx, V2=Fy, M1=-(Mz+x*Fy-y*Fx). Sono rifiutate le componenti fuori piano.
+Le transizioni trasportano inoltre il polo al baricentro destro; mantengono
+due distribuzioni del coprigiunto ma valutano una volta ciascun genitore.
+Ogni stato ULS/SLS conserva Id e Source: nessun inviluppo separato di N,V,M.
+I due tagli dei genitori seguono la stessa faccia positiva, non forze di
+estremita' I/J mescolate senza conversione.
+Esempi FEM completi esistenti: Examples/SteelReferenceFrame.cs,
+SteelBeamColumnFrame.cs e SteelClass4Frame.cs; i relativi test provano
+inversione I/J, mesh suddivisa, stati concomitanti, archivio e staleness.
+
+RIUSO MISURATO, LIMITATO AL CASO
+CreateBolted senza transizione e VerifyWelded ora valutano una sola volta
+la coppia se i due SteelSectionInput sono lo STESSO oggetto immutabile.
+Il callback shearPreparation e' funzione dell'ingresso, senza significati
+impliciti legati all'ordine delle chiamate o al lato del giunto.
+Snapshot distinti, anche se numericamente uguali, restano valutati entrambi.
+Stati diversi restano distinti. Nessuna cache globale o per uguaglianza
+approssimata; nessun riuso di azioni trasportate fra baricentri diversi.
+Misura: due casi x due lati = 4 preparazioni prima, 2 dopo se lo snapshot e'
+condiviso; 4 se distinto. Le verifiche e gli utilizzi sono invariati.
+
+ESITI
+Conservare risultato originale e SteelAssessmentSummary.From(result/report).
+Il riepilogo conserva fallimenti noti anche in presenza di requisiti mancanti;
+non trasforma un componente isolato o un risultato parziale in nodo verificato.
+Un archivio valido all'epoca non e' un esito corrente se modello, azioni o
+configurazione non coincidono piu': usare CurrentOutcome di ModelChecker.
+
+COLLAUDI EFFETTIVI
+- BridgeSplicePreparationReuseTests: 8 casi EC3/NTC, bullonato/saldato,
+  snapshot condivisi/distinti. Prima del fix 4 errori 4-vs-2; dopo 8/8.
+- Flusso coprigiunti/transizioni, riepiloghi e ingressi consigliati: 101/101
+  (comprende gli 8 casi e una nuova raccomandazione del catalogo).
+- SteelReferenceFrameTest, SteelBeamColumnWorkflowTest, SteelClass4FrameTest:
+  57/57. Nessun atteso storico modificato.
+TRX: tmp/steel-consolidation-20261105/phase2-tests/phase2-workflow.trx
+e phase2-model-workflows.trx, fuori dal worktree Git.
+Questi collaudi consolidano il flusso esistente; non estendono il campo
+ingegneristico dei metodi ancora incompleti elencati nella matrice di copertura.
