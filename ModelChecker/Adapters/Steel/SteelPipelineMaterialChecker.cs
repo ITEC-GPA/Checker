@@ -199,7 +199,8 @@ namespace GPC.Model.Checker
                     {
                         double eta = input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018 ? 1
                             : input.Section.YieldStrength <= 460 ? _owner.Code.NShearBucklingLowGradeOfSteel : _owner.Code.NShearBucklingHighGradeOfSteel;
-                        yield return SteelShearBucklingAssessment.EvaluateNonRigidHWeb(input, _owner.Code.GammaM1, eta, options.HWebSupportSource);
+                        var web=SteelShearBucklingAssessment.EvaluateNonRigidHWeb(input, _owner.Code.GammaM1, eta, options.HWebSupportSource);
+                        yield return options.HWebNormalInteraction?web.WithConservativeInPlaneNormalInteraction():web;
                         continue;
                     }
                     bool? excluded = axis == 1 ? options.ShearExcluded1 : options.ShearExcluded2;

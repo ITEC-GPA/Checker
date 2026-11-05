@@ -15,6 +15,7 @@ namespace GPC.Model.Checker
         internal readonly Dictionary<string, string> Values;
         internal string HWebResistance { get; }
         internal string HWebSupportSource { get; }
+        internal bool HWebNormalInteraction { get; }
         internal bool? Unperforated { get; }
         internal double? NetArea { get; }
         internal int? UniformCompressionClass { get; }
@@ -51,6 +52,10 @@ namespace GPC.Model.Checker
             ShearSource1 = Text("ShearBucklingSource1"); ShearSource2 = Text("ShearBucklingSource2");
             HWebResistance = Text("HWebResistance"); HWebSupportSource = Text("HWebSupportSource");
             Pair(HWebResistance != null, HWebSupportSource, "HWebSupport");
+            var webInteraction=Text("HWebNormalInteraction");
+            if(webInteraction!=null && (webInteraction!="ConservativeInPlane" || HWebResistance==null))
+                throw new ArgumentException("HWebNormalInteractionRequiresComputedWebResistance");
+            HWebNormalInteraction=webInteraction!=null;
             if (HWebResistance != null && (HWebResistance != "NonRigidEndPost" || ShearExcluded2.HasValue || ShearSource2 != null))
                 throw new ArgumentException("InvalidOrConflictingHWebResistance");
             Pair(UniformCompressionClass.HasValue, ClassificationSource, "Classification");

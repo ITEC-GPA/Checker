@@ -121,6 +121,9 @@ namespace GPC.Model.Checker.Configuration
                 Add("HWebResistance",EngineParameterKind.Choice,choices:new[]{"NonRigidEndPost"},description:"Web-only H shear buckling resistance; support stiffeners and attachments verified separately.");
                 Add("HWebSupportSource",description:"Evidence for support stiffeners, attachments and end force transfer, same section and load state.");
                 Together("HWebSupportPair","HWebResistance","HWebSupportSource");
+                Add("HWebNormalInteraction",EngineParameterKind.Choice,choices:new[]{"ConservativeInPlane"},
+                    description:"Opt-in N-M1-V2 interaction, including wholly compressed class4 H web: continuous flange edges, no longitudinal stiffeners or patch load; EN1993-1-5 7.1(4)-(5).");
+                Require("HWebNormalInteractionNeedsResistance","The interaction needs computed resistance of the same web.",new[]{"HWebResistance","HWebSupportSource"},Has("HWebNormalInteraction"));
                 Require("HWebFingerprintRequired","Web support assessment must bind to the section.",new[]{"SectionFingerprint"},Has("HWebResistance"));
                 rules.Add(new EngineParameterRule("HWebAssessmentConflict","Choose exclusion or computed web resistance.",new[]{Has("HWebResistance")},null,new[]{"ShearBucklingExcluded2","ShearBucklingSource2"}));
                 Add("NetArea",EngineParameterKind.Number,"mm²",min:0,exclusive:true);
@@ -189,8 +192,12 @@ namespace GPC.Model.Checker.Configuration
                 Add(key,description:"Reasoned exclusion of this critical mode; missing critical data is not an exclusion.",modes:new[]{"Compression","BeamColumn"});
             Add("McrBasis",EngineParameterKind.Choice,choices:new[]{"ActualMomentDiagram","UniformMoment"},modes:new[]{"Bending","BeamColumn"});
             Add("TorsionSusceptible",EngineParameterKind.Boolean,modes:new[]{"BeamColumn"});
-            Add("HighShearMethod",EngineParameterKind.Choice,choices:new[]{"ConservativeUniformReduction","ConservativeShearSuperposition"},modes:new[]{"BeamColumn"},
-                description:"Opt-in: one active principal shear, classes1-3, shear buckling excluded. Reduces all N-M resistances by 1-rho, keeps conservative original chi and bounds interaction factors. Separate section checks are mandatory.");
+            Add("HighShearMethod",EngineParameterKind.Choice,choices:new[]{"ConservativeUniformReduction","ConservativeShearSuperposition","ConservativeClass4WebInteraction"},modes:new[]{"BeamColumn"},
+                description:"Explicit conservative normal-resistance reduction: one shear classes1-3, summed shears classes1-3, or computed class4 H-web N-M1-V2 interaction. Original chi and bounded interaction factors retained; separate section checks mandatory.");
+            Add("HWebSupportSource",modes:new[]{"BeamColumn"},description:"Same-case verification of H-web supports, stiffeners, attachments and force transfer for class4 web interaction.");
+            Require("Class4WebSupportRequired","Computed member web interaction needs the support verification.",new[]{"HWebSupportSource"},Is("HighShearMethod","ConservativeClass4WebInteraction"));
+            rules.Add(new EngineParameterRule("Class4WebSupportScope","Web-support evidence belongs to the computed class4 web interaction.",
+                new[]{IsNot("HighShearMethod","ConservativeClass4WebInteraction")},null,new[]{"HWebSupportSource"}));
             Add("AxialForcePreparation",EngineParameterKind.Choice,choices:new[]{"UniformCompressionEnvelope"},modes:new[]{"BeamColumn"},
                 description:"Explicit conservative variable-N model: most compressive same-case force applied uniformly; nonsway doubly symmetric I/H, uniform compression class1-3, Cm=1 and uniform-moment Mcr. Ncr comes from the uniform Euler model, never an external variable-load eigenvalue.");
             Add("AxialForceCoverageSource",modes:new[]{"BeamColumn"},description:"Evidence that all axial extrema and both faces of discontinuities are exported for this design state; uniform maximum-compression envelope accepted for this prismatic nonsway member.");

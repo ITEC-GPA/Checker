@@ -89,6 +89,8 @@ namespace GPC.Checkers.Steel.Pipeline
             var ltb=SteelLateralTorsionalExecution.Qualify(analysis);if(ltb!=null)return ltb;
             if(a.V1!=0||a.V2!=0)
             {
+                if(p.ConservativeClass4WebInteraction && (cl.Class!=4 || hollow || a.V1!=0 || a.M2!=0))
+                    return Unsupported("Member.Class4WebInteractionDomain","The explicit class4 web interaction requires doubly symmetric H, class4, N-M1-V2 and no other shear/bending plane.");
                 // Automatic screens exist for the exact H and the RHS with principal axis 1 horizontal (walls parallel to each
                 // shear as webs), and for the CHS within the wall screen (EvaluateChsWall, EN 1993-1-6 eq. D.40): beyond its
                 // limit the CHS keeps the explicit assessment, as rotated hollow sections do.
@@ -103,7 +105,7 @@ namespace GPC.Checkers.Steel.Pipeline
                 double ratio2=Math.Abs(a.V2)/SteelPlasticShear.Resistance(i,2);
                 if(p.ConservativeShearSuperposition && cl.Class>3)
                     return Unsupported("Member.ShearSuperpositionClass4NotQualified","Class4 needs a separately qualified plate-buckling interaction; shear superposition alone cannot qualify it.");
-                if(!p.ConservativeShearSuperposition && (ratio1>.5||ratio2>.5))
+                if(!p.ConservativeClass4WebInteraction && !p.ConservativeShearSuperposition && (ratio1>.5||ratio2>.5))
                 {
                     if(!p.ConservativeHighShear)return Unsupported("Member.BeamColumnHighShear","High shear needs reduced interaction resistances; select WithConservativeHighShear explicitly for the bounded conservative route.");
                     if(cl.Class>3)return Unsupported("Member.BeamColumnHighShearClass4","High shear with effective class4 properties needs a coupled plate-buckling model.");
@@ -112,6 +114,9 @@ namespace GPC.Checkers.Steel.Pipeline
                 // Without an explicit source: one assessment per active shear, as on the section route (H web
                 // EvaluateEc3HWeb/EvaluateNtcHWeb, flanges EvaluateHFlanges; RHS EvaluateEc3RhsWebs/EvaluateNtcRhsWebs;
                 // CHS EvaluateChsWall). A negative one stops the route; no reduced resistance.
+                if(p.ConservativeClass4WebInteraction)return new SteelMethodDecision(SteelCheckTarget.MemberStability,SteelSelectionStatus.RequiresPreparation,
+                    SteelMethod.HBeamColumn,"Member.Class4WebInteractionAssessmentRequired","Computed same-input web resistance with WithConservativeInPlaneNormalInteraction is required; external exclusion cannot substitute for it.",
+                    compression.SectionClass,compression.ClassificationSource,new[]{SteelPreparationRequirement.ShearBucklingAssessment});
                 if(p.ShearBucklingExclusionSource==null)return new SteelMethodDecision(SteelCheckTarget.MemberStability,SteelSelectionStatus.RequiresPreparation,
                     SteelMethod.HBeamColumn,"ShearBuckling.AssessmentRequired",rhs?"Without BeamColumn.ShearBucklingExclusionSource every active shear of the rectangular hollow section needs a shear-buckling assessment of the walls parallel to it (EvaluateEc3RhsWebs/EvaluateNtcRhsWebs)."
                         :chs?"Without BeamColumn.ShearBucklingExclusionSource every active shear of the circular hollow section needs the wall screen assessment (EvaluateChsWall)."
@@ -121,7 +126,8 @@ namespace GPC.Checkers.Steel.Pipeline
             return new SteelMethodDecision(SteelCheckTarget.MemberStability,SteelSelectionStatus.Ready,SteelMethod.HBeamColumn,
                 null,null,compression.SectionClass,compression.ClassificationSource);
         }
-        internal static SteelCheckExecution Execute(SteelMemberAnalysis analysis,SteelMethodDecision decision)
+        internal static SteelCheckExecution Execute(SteelMemberAnalysis analysis,SteelMethodDecision decision,
+            IReadOnlyList<SteelShearBucklingAssessment> shearAssessments=null)
         {
             var i=analysis.Input;var p=analysis.BeamColumnParameters;var section=i.Section.ReadOnlySection;
             var comp=Compression(analysis,decision.SectionClass.Value,decision.ClassificationSource);
@@ -150,12 +156,18 @@ namespace GPC.Checkers.Steel.Pipeline
             double compressive=-Math.Min(0,i.EffectiveActions.N);
             if(i.EffectiveActions.N>0)Add(trace,"TensionNeglectedAsFavourable",i.EffectiveActions.N,"N");
             double ratio1=i.EffectiveActions.V1==0?0:Math.Abs(i.EffectiveActions.V1)/SteelPlasticShear.Resistance(i,1);
-            double ratio2=i.EffectiveActions.V2==0?0:Math.Abs(i.EffectiveActions.V2)/SteelPlasticShear.Resistance(i,2);
+            double shear2Resistance=p.ConservativeClass4WebInteraction && i.EffectiveActions.V2!=0
+                ? shearAssessments.Single(x=>x.Axis==2).BucklingResistance.Value : SteelPlasticShear.Resistance(i,2);
+            double ratio2=i.EffectiveActions.V2==0?0:Math.Abs(i.EffectiveActions.V2)/shear2Resistance;
             double shearRatio=Math.Max(ratio1,ratio2);
-            double rho=p.ConservativeShearSuperposition ? ratio1+ratio2
+            double rho=p.ConservativeShearSuperposition || p.ConservativeClass4WebInteraction ? ratio1+ratio2
                 : p.ConservativeHighShear&&shearRatio>.5?Math.Pow(2*shearRatio-1,2):0;
             SteelInputValidation.Finite(rho,"normal resistance reduction");
-            string shearTrace=p.ConservativeShearSuperposition?"ShearSuperposition":"HighShear";
+            string shearTrace=p.ConservativeClass4WebInteraction?"Class4WebInteraction":p.ConservativeShearSuperposition?"ShearSuperposition":"HighShear";
+            if(p.ConservativeClass4WebInteraction) {
+                Add(trace,"Class4WebInteraction.VbwRd",shear2Resistance,"N");
+                Add(trace,"Class4WebInteraction.ShearRatio",ratio2,"1");
+            }
             if(p.ConservativeShearSuperposition)
             {
                 Add(trace,"ShearSuperposition.ShearRatio1",ratio1,"1");
@@ -164,16 +176,16 @@ namespace GPC.Checkers.Steel.Pipeline
             }
             if(rho>0)
             {
-                if(!p.ConservativeShearSuperposition) {
+                if(!p.ConservativeShearSuperposition && !p.ConservativeClass4WebInteraction) {
                     Add(trace,"HighShear.VEdOverVplRd",shearRatio,"1");
                     Add(trace,"HighShear.Rho",rho,"1");
                 }
                 Add(trace,shearTrace+".NormalResistanceFactor",Math.Max(0,1-rho),"1");
                 if(rho>=1)
                     return new SteelCheckExecution(decision,SteelExecutionStatus.Failed,
-                        p.ConservativeShearSuperposition?"Member.ShearSuperpositionNormalCapacityExhausted":"Member.HighShearNormalCapacityExhausted",
+                        p.ConservativeClass4WebInteraction?"Member.Class4WebNormalCapacityExhausted":p.ConservativeShearSuperposition?"Member.ShearSuperpositionNormalCapacityExhausted":"Member.HighShearNormalCapacityExhausted",
                         "The conservative whole-section normal resistance is zero; active compression/bending cannot be carried.",
-                        reference:p.ConservativeShearSuperposition?"Conservative pure-action resistance superposition; no double allocation of shear areas":"EN1993-1-1:2005 6.2.10(3); conservative whole-section reduction",scope:"High shear with active normal actions; section and shear checks remain separate.",trace:trace);
+                        reference:p.ConservativeClass4WebInteraction?"Conservative q=1-|V2|/VbwRd with EN1993-1-5 7.1(4)-(5) web assessment":p.ConservativeShearSuperposition?"Conservative pure-action resistance superposition; no double allocation of shear areas":"EN1993-1-1:2005 6.2.10(3); conservative whole-section reduction",scope:"High shear with active normal actions; section and shear checks remain separate.",trace:trace);
                 nb1*=1-rho;nb2*=1-rho;mb*=1-rho;mz*=1-rho;
                 Add(trace,shearTrace+".Nb1Rd",nb1,"N");Add(trace,shearTrace+".Nb2Rd",nb2,"N");
                 Add(trace,shearTrace+".MbRd",mb,"Nmm");Add(trace,shearTrace+".M2Rd",mz,"Nmm");
@@ -201,7 +213,8 @@ namespace GPC.Checkers.Steel.Pipeline
             double utilization=Math.Max(result.Utilization,compression.Utilization.Value/(1-rho));
             Add(trace,"Utilization",utilization,"1");
             return new SteelCheckExecution(decision,utilization<=1?SteelExecutionStatus.Passed:SteelExecutionStatus.Failed,
-                reference:result.Reference+(p.ConservativeShearSuperposition?"; conservative pure-action resistance superposition q=1-|V1|/Vpl1Rd-|V2|/Vpl2Rd; elastic bending; original chi and upper-bound k, not a normative biaxial-shear equation"
+                reference:result.Reference+(p.ConservativeClass4WebInteraction?"; conservative q=1-|V2|/VbwRd: stronger than 7.1 penalty; effective properties at original fy, gross eigenvalues, original chi and upper-bound k; same-web panel and subpanel assessment"
+                    :p.ConservativeShearSuperposition?"; conservative pure-action resistance superposition q=1-|V1|/Vpl1Rd-|V2|/Vpl2Rd; elastic bending; original chi and upper-bound k, not a normative biaxial-shear equation"
                     :rho>0?(ntc?"; NTC2018 4.2.4.1.2.9 eq4.2.40":"; EN1993-1-1:2005 6.2.10(3)")
                     +", conservative whole-section yield-strength reduction and upper-bound interaction coefficients":"")
                     +(effective?"; EN1993-1-5:2006 4.3(3)/(4), class4 Aeff/Weff at fy; gross critical values":"")

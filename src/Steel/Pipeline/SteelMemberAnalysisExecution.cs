@@ -62,9 +62,10 @@ namespace GPC.Checkers.Steel.Pipeline
         private static SteelMethodDecision Decision(SteelSelectionStatus status, string code, string message, IEnumerable<string> missing = null)
             => new SteelMethodDecision(SteelCheckTarget.MemberStability, status, null, code, message, missing: missing);
 
-        internal static SteelCheckExecution Execute(SteelMemberAnalysis analysis, SteelMethodDecision decision)
+        internal static SteelCheckExecution Execute(SteelMemberAnalysis analysis, SteelMethodDecision decision,
+            IReadOnlyList<SteelShearBucklingAssessment> shearAssessments=null)
         {
-            if (analysis.BeamColumnParameters != null) return SteelBeamColumnExecution.Execute(analysis, decision);
+            if (analysis.BeamColumnParameters != null) return SteelBeamColumnExecution.Execute(analysis, decision,shearAssessments);
             if (analysis.Prismatic != null) return SteelPrismaticMemberExecution.Execute(analysis, decision);
             var i = analysis.Input; var trace = new List<SectionResistanceValue>();
             Ec3GeneralMethodResult result; double utilization;

@@ -102,7 +102,7 @@ namespace GPC.Checkers.CompositeBridge
             if (!Finite(elasticNormalUtilization) || elasticNormalUtilization < 0 || !Finite(shear) || !Finite(webResistance) || webResistance <= 0)
                 throw new ArgumentException("Invalid elastic interaction inputs.");
             double eta = Math.Abs(shear) / webResistance;
-            return elasticNormalUtilization + (eta <= .5 ? 0 : Math.Pow(2 * eta - 1, 2));
+            return GPC.Checkers.Steel.Sections.Ec3WebPanelShear.ConservativeNormalInteraction(elasticNormalUtilization,eta);
         }
     }
     public sealed class AxialMomentBounds

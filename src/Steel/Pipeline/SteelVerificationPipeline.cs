@@ -94,7 +94,9 @@ namespace GPC.Checkers.Steel.Pipeline
                         shearAssessments:used);
                 if (decision.SlenderWebAlternative != null && used.Any(v => !v.IsBucklingExcluded && v.BucklingResistance.HasValue))
                     decision = decision.SlenderWebAlternative;
-                bool acceptsWebResistance = decision.Method == SteelMethod.EffectiveNormalResistance || decision.Method == SteelMethod.SectionShear2;
+                bool class4Member=decision.Target==SteelCheckTarget.MemberStability
+                    && memberAnalysis?.BeamColumnParameters?.ConservativeClass4WebInteraction==true;
+                bool acceptsWebResistance = decision.Method == SteelMethod.EffectiveNormalResistance || decision.Method == SteelMethod.SectionShear2 || class4Member;
                 if (used.Any(a => !a.IsBucklingExcluded && (!acceptsWebResistance || !a.BucklingResistance.HasValue)))
                     return new SteelCheckExecution(decision, SteelExecutionStatus.NotSupported,
                         "ShearBuckling.ResistanceMethodRequired",
@@ -104,6 +106,9 @@ namespace GPC.Checkers.Steel.Pipeline
                     return new SteelCheckExecution(decision, SteelExecutionStatus.RequiresPreparation,
                         "ShearBuckling.AssessmentRequired", "Supply a shear-buckling assessment for every active shear direction of this check.",
                         shearAssessments: used);
+                if(class4Member && used.Any(x=>!x.ConservativeInPlaneNormalInteraction))
+                    return new SteelCheckExecution(decision,SteelExecutionStatus.NotSupported,"Member.Class4WebInteractionAssessmentRequired",
+                        "The same web resistance and its explicit in-plane panel/subpanel interaction are required.",shearAssessments:used);
             }
 
             try
@@ -111,7 +116,7 @@ namespace GPC.Checkers.Steel.Pipeline
                 if (!decision.Method.HasValue) throw new InvalidOperationException("A ready decision must name a method.");
                 if (decision.Target == SteelCheckTarget.MemberStability)
                 {
-                    var member = SteelMemberAnalysisExecution.Execute(memberAnalysis, decision);
+                    var member = SteelMemberAnalysisExecution.Execute(memberAnalysis, decision,used);
                     return used.Count == 0 ? member : new SteelCheckExecution(member.Decision, member.Status, member.DiagnosticCode, member.Message,
                         member.Reference, member.Scope, member.Resistance, member.ResistanceUnit, member.Utilization, member.Trace, used);
                 }

@@ -24,6 +24,19 @@ namespace GPC.Checkers.Steel.Sections
     /// must be separately qualified; geometry alone does not establish rigidity.</summary>
     public static class Ec3WebPanelShear
     {
+        /// <summary>EN1993-1-5:2006 7.1(1),(4),(5), conservative MfRd=0 and
+        /// eta1 from the effective normal-stress check (4.6). Dimensionless.
+        /// This arithmetic does not qualify panel boundaries, shear distribution,
+        /// subpanels, fasteners, or member stability. Check shearRatio separately.</summary>
+        public static double ConservativeNormalInteraction(double normalUtilization,double shearRatio)
+        {
+            foreach(double v in new[]{normalUtilization,shearRatio})
+                if(double.IsNaN(v)||double.IsInfinity(v)||v<0)throw new ArgumentOutOfRangeException("interaction ratio");
+            double result=normalUtilization+(shearRatio<=.5?0:Math.Pow(2*shearRatio-1,2));
+            if(double.IsInfinity(result))throw new ArithmeticException("Plate interaction exceeds finite range.");
+            return result;
+        }
+
         public static WebPanelShearResistance Calculate(double height, double thickness, double fy, double young,
             double gammaM0, double gammaM1, double eta, double panelLength=0,
             bool rigidEndPost=false, bool etaInShearArea=false)

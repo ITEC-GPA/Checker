@@ -34,11 +34,26 @@ namespace GPC.Checkers.Steel.Inputs
         /// are required. This is a sufficient bound, not a new EC3 interaction formula.</summary>
         public bool ConservativeShearSuperposition { get; private set; }
 
+        /// <summary>In-plane class4 H member with a computed web resistance carrying
+        /// WithConservativeInPlaneNormalInteraction. Uses q=1-|V2|/VbwRd on all
+        /// member normal resistances; effective properties at original fy and gross
+        /// critical values retained. Every concomitant section also needs its 7.1 check.</summary>
+        public bool ConservativeClass4WebInteraction { get; private set; }
+
+        public SteelBeamColumnParameters WithConservativeClass4WebInteraction()
+        {
+            var copy=(SteelBeamColumnParameters)MemberwiseClone();
+            copy.ConservativeHighShear=false;copy.ConservativeShearSuperposition=false;
+            copy.ConservativeClass4WebInteraction=true;
+            return copy;
+        }
+
         public SteelBeamColumnParameters WithConservativeShearSuperposition()
         {
             var copy = (SteelBeamColumnParameters)MemberwiseClone();
             copy.ConservativeHighShear = false;
             copy.ConservativeShearSuperposition = true;
+            copy.ConservativeClass4WebInteraction = false;
             return copy;
         }
 
