@@ -3,8 +3,9 @@
 Libreria `netstandard2.0`, namespace `GPC.Checkers.CompositeBridge`. Contiene il
 calcolo trasferito da ANTHEA e i controlli prima in `GPCChecker.Steel/CompositeBridges`.
 Non dipende da ANTHEA, JSON, WPF o CheckerUI. Geometrie e materiali nativi restano
-quelli di Model; nel metodo cumulativo le tensioni composte usano il solutore
-lineare di Checker.Concrete.
+quelli di Model. Il cumulativo usa il campo elastico diretto N–Mx quando i moduli
+in trazione e compressione coincidono, conservando i momenti di integrazione di
+Checker.Concrete. Per moduli differenti resta il solutore nativo.
 
 È disponibile anche il **nuovo metodo separato con storico delle deformazioni**:
 [`History/HBridgeHistoryAnalysis`](History/README.md). Usa attivazioni dei materiali,
@@ -61,12 +62,51 @@ var input = new HBridgeInput {
 var result = HBridgeSection.Calculate(input, cancellationToken);
 ```
 
+## Molte combinazioni con fasi comuni (1.24)
+
+Ogni ingresso contiene la sequenza completa G1 + G2 + ritiro + un Q. I Q sono
+rami alternativi: non aggiungerli tutti alla stessa sequenza di fasi.
+
+```csharp
+var combinations = variableLoads.Select(q => input with {
+    Phases = input.Phases.Append(new BridgePhase {
+        Name = q.Name, ForceKN = q.N, MomentKNm = q.M, ShearKN = q.V
+    }).ToArray()
+}).ToArray();
+var cumulative = HBridgeSection.CalculateBatch(combinations,
+    maximumDegreeOfParallelism: 8, cancellation: cancellationToken);
+var linearHistory = History.HBridgeHistoryResults.CalculateBatch(combinations,
+    new History.HBridgeHistoryOptions { MaterialMode = History.HistoryMaterialMode.Linear },
+    maximumDegreeOfParallelism: 8, cancellation: cancellationToken);
+// Per ogni posizione: Analysis oppure Error. La cancellazione interrompe il batch.
+```
+
+Entrambe le API preservano l'ordine degli ingressi e le collezioni modificabili
+dei singoli risultati. Il grado predefinito è 1. Dati uguali, escluse le fasi,
+formano un gruppo; i materiali Model sono confrontati per identità. Non modificarli
+durante il calcolo. Le cache appartengono alla chiamata, senza stato globale.
+
+Il cumulativo condivide prefissi e soluzioni per geometria efficace/fase; le
+proprietà lorde sono riusate per tipo di fase e omogeneizzazione. In classe 4
+non basta sommare tensioni G1/G2/ritiro calcolate su un'altra geometria efficace:
+ogni Q mantiene la propria iterazione e ricalcola i contributi quando necessario.
+Lo storico lineare calcola una volta il prefisso comune, conserva attivazioni,
+deformazioni imposte e tensioni accettate, poi continua ciascun Q da una copia
+indipendente. Condivide anche i profili immutabili delle fasi comuni.
+
+Il batch può ricevere più stazioni e distribuisce gruppi o rami Q con un unico
+limite di concorrenza. Se il chiamante parallelizza già le stazioni, usare grado 1
+all'interno. Il grado ottimale dipende da carico e GC dell'applicazione: misurarlo,
+senza assumere che più thread siano sempre più veloci. Protocollo, test numerici
+e misure riproducibili: [resoconto delle ottimizzazioni](../docs/bridge-performance-20261105.txt).
+
 ## Separazione per sezioni future
 
 - `Analysis/CumulativePhaseAnalysis`: algoritmo generico su stato e contributi
   forniti dall'adattatore. Nessun numero fisso di piastre o anime. Ogni situazione
-  riparte dalla sezione lorda e ricalcola tutti gli incrementi sulla medesima
-  geometria efficace; restituisce lo stato effettivamente usato per le tensioni.
+  itera dalla sezione lorda oppure, con accelerazione, dallo stato precedente;
+  ricalcola tutti gli incrementi sulla medesima geometria efficace e restituisce
+  lo stato effettivamente usato per le tensioni.
 - `CompositeLinearStressSolver`: accetta una `ReinforcedConcreteSection` Model
   con più parti di acciaio. Restituisce un campo lineare di tensione e deformazione
   fisica dell'acciaio. Campo attuale: N–Mx, assi principali paralleli a x/y,

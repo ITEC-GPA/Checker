@@ -13,6 +13,27 @@ public static class BridgeHistoryAnalysis
     /// <summary>Streaming alternative: retains only the current material state and the last completed stage.</summary>
     public static IEnumerable<HistoryStageResult> Enumerate(HistorySection section, IEnumerable<HistoryPhase> phases,
         HistorySolverOptions? options = null, CancellationToken cancellation = default)
+        => EnumerateCore(section, phases, options, cancellation, null, null);
+
+    // Owned by a completed prefix. Every continuation copies the mutable arrays; material states/results obey the immutable history contract.
+    internal sealed record Checkpoint(HistorySection Section, bool[] Active, bool[] Born, double[] Factors,
+        HistoryMaterialState[] States, double[] References, double[] Imposed, double[] Weights, HistoryStrainPlane Plane,
+        double N, double M, double V, int Index, HistoryStageResult? Last);
+
+    internal static (IReadOnlyList<HistoryStageResult> Stages, Checkpoint State) PreparePrefix(HistorySection section,
+        IEnumerable<HistoryPhase> phases, HistorySolverOptions options, CancellationToken cancellation)
+    {
+        Checkpoint? state = null;
+        var stages = EnumerateCore(section, phases, options, cancellation, null, s => state = s).ToArray();
+        return (Array.AsReadOnly(stages), state!);
+    }
+
+    internal static IReadOnlyList<HistoryStageResult> Continue(Checkpoint state, IEnumerable<HistoryPhase> phases,
+        HistorySolverOptions options, CancellationToken cancellation) =>
+        Array.AsReadOnly(EnumerateCore(state.Section, phases, options, cancellation, state, null).ToArray());
+
+    private static IEnumerable<HistoryStageResult> EnumerateCore(HistorySection section, IEnumerable<HistoryPhase> phases,
+        HistorySolverOptions? options, CancellationToken cancellation, Checkpoint? initial, Action<Checkpoint>? completed)
     {
         var o = options ?? new(); ValidateOptions(o);
         if (section is null || phases is null) throw new ArgumentNullException(section is null ? nameof(section) : nameof(phases));
@@ -21,6 +42,8 @@ public static class BridgeHistoryAnalysis
             throw new ArgumentException("Componenti assenti o identificativi duplicati.");
         var indices = components.Select((c, i) => (c.Id, i)).ToDictionary(p => p.Id, p => p.i);
         var points = components.SelectMany((c, i) => c.Fibers.Select(f => new Point(c.Id, i, f, c.Material))).ToArray();
+        var effectiveResponse = section.EffectiveAreaModel as IHistoryEffectiveResponseModel;
+        if (effectiveResponse is not null && !effectiveResponse.Matches(components)) effectiveResponse = null;
         if (points.Length == 0 || points.Select(p => p.Fiber.Id).Distinct().Count() != points.Length) throw new ArgumentException("Fibre assenti o identificativi duplicati.");
         foreach (var p in points)
         {
@@ -30,14 +53,16 @@ public static class BridgeHistoryAnalysis
         }
         double area = points.Sum(p => p.Fiber.Area), origin = points.Sum(p => p.Fiber.Area * p.Fiber.Y) / area;
         double length = Math.Max(1, points.Max(p => p.Fiber.Y) - points.Min(p => p.Fiber.Y));
-        var active = components.Select(c => c.InitiallyActive).ToArray(); var born = active.ToArray();
-        var factors = Enumerable.Repeat(1d, components.Length).ToArray();
-        var states = points.Select(p => p.Law.InitialState()).ToArray();
-        var references = new double[points.Length]; var imposed = new double[points.Length];
-        var weights = Enumerable.Repeat(1d, points.Length).ToArray();
-        var plane = new HistoryStrainPlane();
-        double n = 0, m = 0, v = 0; int index = 0;
-        HistoryStageResult? last = null;
+        var active = initial?.Active.ToArray() ?? components.Select(c => c.InitiallyActive).ToArray();
+        var born = initial?.Born.ToArray() ?? active.ToArray();
+        var factors = initial?.Factors.ToArray() ?? Enumerable.Repeat(1d, components.Length).ToArray();
+        var states = initial?.States.ToArray() ?? points.Select(p => p.Law.InitialState()).ToArray();
+        var references = initial?.References.ToArray() ?? new double[points.Length];
+        var imposed = initial?.Imposed.ToArray() ?? new double[points.Length];
+        var weights = initial?.Weights.ToArray() ?? Enumerable.Repeat(1d, points.Length).ToArray();
+        var plane = initial?.Plane ?? new HistoryStrainPlane();
+        double n = initial?.N ?? 0, m = initial?.M ?? 0, v = initial?.V ?? 0; int index = initial?.Index ?? 0;
+        HistoryStageResult? last = initial?.Last;
         foreach (var source in phases)
         {
             cancellation.ThrowIfCancellationRequested();
@@ -106,8 +131,8 @@ public static class BridgeHistoryAnalysis
                     { throw new HistoryConvergenceException(index, phase.Name, substep, failure.Message, last); }
                     plane = final.Plane;
                     if (section.EffectiveAreaModel is null) { accepted = true; break; }
-                    var trial = FiberResults(points, active, weights, references, imposed, factors, final, states);
-                    var reduction = section.EffectiveAreaModel.Evaluate(trial);
+                    var reduction = effectiveResponse is not null ? effectiveResponse.EvaluateResponses(final.Responses)
+                        : section.EffectiveAreaModel.Evaluate(FiberResults(points, active, weights, references, imposed, factors, final, states));
                     if (reduction.Factors.Count != points.Length) throw new ArgumentException("Numero di fattori efficaci diverso dal numero di fibre.");
                     effectiveError = 0;
                     for (int j = 0; j < weights.Length; j++)
@@ -130,6 +155,7 @@ public static class BridgeHistoryAnalysis
                 FiberResults(points, active, weights, references, imposed, factors, final, startStates), panels, phase);
             yield return last;
         }
+        completed?.Invoke(new(section, active, born, factors, states, references, imposed, weights, plane, n, m, v, index, last));
     }
 
     private sealed record Point(string Component, int ComponentIndex, HistoryFiber Fiber, IHistoryMaterialLaw Law);
@@ -140,6 +166,11 @@ public static class BridgeHistoryAnalysis
         double[] imposed, double[] factors, double[] weights, HistoryStrainPlane guess,
         double targetN, double targetM, double origin, double length, HistorySolverOptions o, CancellationToken cancellation, out int iterations)
     {
+        // Only the built-in incremental elastic law has this explicit affine contract. Custom IsLinear laws may carry additional state,
+        // restrictions or offsets: retain their original trial/commit path, as for every nonlinear law.
+        if (points.All(p => p.Law is HistoryElasticLaw))
+            return SolveElastic(points, states, active, references, imposed, factors, weights, guess,
+                targetN, targetM, origin, length, o, cancellation, out iterations);
         double forceScale = o.ForceTolerance + o.RelativeTolerance * Math.Max(Math.Abs(targetN), Math.Abs(targetM) / length);
         double momentScale = o.MomentTolerance + o.RelativeTolerance * Math.Max(Math.Abs(targetM), Math.Abs(targetN) * length);
         double Norm(Evaluation e) => Math.Max(Math.Abs(e.N - targetN) / forceScale, Math.Abs(e.M - targetM) / momentScale);
@@ -206,6 +237,70 @@ public static class BridgeHistoryAnalysis
             // the reason of a constitutive rejection, when there is one (before, always "verify capacity")
             if (!improved) throw new HistorySolveFailure($"Newton non riduce il residuo (N={current.N - targetN:E4} N, M={current.M - targetM:E4} Nmm, norma={norm:E4}, Δε={change.AxialStrain:E4}, Δκ={change.Curvature:E4}); "
                 + (rejected is null ? "verificare capacità, diagrammi e sottopassi" : "tentativi respinti dal legame costitutivo: " + rejected.TrimEnd('.') + "; verificare capacità e sottopassi"));
+        }
+        throw new HistorySolveFailure("Numero massimo di iterazioni Newton raggiunto");
+    }
+
+    /// <summary>Constant elastic tangent; scalar trial resultants, material-state objects only for the accepted plane.</summary>
+    private static Evaluation SolveElastic(Point[] points, HistoryMaterialState[] states, bool[] active, double[] references,
+        double[] imposed, double[] factors, double[] weights, HistoryStrainPlane guess,
+        double targetN, double targetM, double origin, double length, HistorySolverOptions o, CancellationToken cancellation, out int iterations)
+    {
+        double forceScale = o.ForceTolerance + o.RelativeTolerance * Math.Max(Math.Abs(targetN), Math.Abs(targetM) / length);
+        double momentScale = o.MomentTolerance + o.RelativeTolerance * Math.Max(Math.Abs(targetM), Math.Abs(targetN) * length);
+        double k00 = 0, k01 = 0, k11 = 0;
+        var moduli = new double[points.Length];
+        var mechanicalStrains = new double[points.Length]; var stresses = new double[points.Length];
+        double Norm((double N, double M) force) => Math.Max(Math.Abs(force.N - targetN) / forceScale, Math.Abs(force.M - targetM) / momentScale);
+        (double N, double M) Resultants(HistoryStrainPlane trial, bool assemble = false) {
+            double n = 0, m = 0;
+            for (int j = 0; j < points.Length; j++) {
+                if ((j & 127) == 0) cancellation.ThrowIfCancellationRequested();
+                var p = points[j]; if (!active[p.ComponentIndex]) continue;
+                if (assemble) {
+                    moduli[j] = p.Law.InitialModulus * factors[p.ComponentIndex];
+                    double rigidity = p.Fiber.Area * weights[j] * p.Law.InitialModulus * factors[p.ComponentIndex];
+                    double b = -(p.Fiber.Y - origin) / length;
+                    k00 += rigidity; k01 += rigidity * b; k11 += rigidity * b * b;
+                }
+                double mechanical = trial.At(p.Fiber.Y) - references[j] - imposed[j];
+                double stress = states[j].Stress + moduli[j] * (mechanical - states[j].MechanicalStrain);
+                mechanicalStrains[j] = mechanical; stresses[j] = stress;
+                if (!BridgeNumbers.IsFinite(stress) || !BridgeNumbers.IsFinite(mechanical)) throw new HistorySolveFailure("Risposta costitutiva non finita");
+                double a = p.Fiber.Area * weights[j];
+                n += stress * a; m -= stress * a * p.Fiber.Y;
+            }
+            return (n, m);
+        }
+        var plane = guess; var current = Resultants(plane, assemble: true);
+        for (iterations = 0; iterations <= o.MaximumNewtonIterations; iterations++) {
+            cancellation.ThrowIfCancellationRequested();
+            double norm = Norm(current);
+            if (norm <= 1) {
+                var responses = new HistoryMaterialResponse[points.Length];
+                for (int j = 0; j < points.Length; j++) {
+                    var p = points[j];
+                    responses[j] = active[p.ComponentIndex]
+                        ? new(stresses[j], moduli[j], new HistoryMaterialState(mechanicalStrains[j], stresses[j]))
+                        : new(states[j].Stress, 0, states[j]);
+                }
+                return new(plane, current.N, current.M, k00, k01, k11, responses);
+            }
+            if (iterations == o.MaximumNewtonIterations) break;
+            double determinant = k00 * k11 - k01 * k01;
+            if (!BridgeNumbers.IsFinite(determinant) || Math.Abs(determinant) <= 1e-14 * Math.Max(1, Math.Abs(k00 * k11)))
+                throw new HistorySolveFailure("Rigidezza tangente singolare; carico oltre capacità o sezione priva di rigidezza N–Mx");
+            double r0 = targetN - current.N, r1 = (targetM - current.M + r0 * origin) / length;
+            double de = (k11 * r0 - k01 * r1) / determinant;
+            double dk = (k00 * r1 - k01 * r0) / determinant / length;
+            var change = new HistoryStrainPlane(de + dk * origin, dk);
+            bool improved = false; double alpha = 1;
+            // Normally one full elastic correction. Retain bounded refinement/line search for roundoff near cancellation.
+            for (int search = 0; search < o.MaximumLineSearchIterations; search++, alpha *= .5) {
+                var nextPlane = plane + change.Scale(alpha); var next = Resultants(nextPlane);
+                if (Norm(next) < norm || Norm(next) <= 1) { plane = nextPlane; current = next; improved = true; break; }
+            }
+            if (!improved) throw new HistorySolveFailure("La correzione elastica non riduce il residuo; verificare condizionamento e tolleranze");
         }
         throw new HistorySolveFailure("Numero massimo di iterazioni Newton raggiunto");
     }

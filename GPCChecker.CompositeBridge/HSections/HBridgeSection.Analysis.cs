@@ -204,27 +204,43 @@ public static partial class HBridgeSection
         // The steel pieces of a state and the native section on them are functions of the input and of the state only, and the solutions only
         // read them: built once per state for all its phases (before, once per phase).
         private readonly Dictionary<BridgeEffective, BridgeStateSection> sections = new(new BridgeStateIdentity());
-        // The gross properties of a phase do not depend on the situation: computed once per phase (before, once per situation including it).
-        private readonly Dictionary<BridgePhase, BridgeSectionProperties> grossProperties = new(new BridgePhaseIdentity());
+        // Gross properties depend on phase kind and homogenization, not on the forces of each Q.
+        private readonly Dictionary<string, BridgeSectionProperties> grossProperties = new(StringComparer.Ordinal);
 
         internal BridgeBatchGroup(BridgePreparedInput first, BridgeBitwise keys)
         {
             data = first.Data; g = first.Geometry; mat = first.Materials; this.keys = keys;
         }
 
+        private BridgeBatchGroup(BridgeBatchGroup source)
+        {
+            data = source.data; g = source.g; mat = source.mat; keys = new BridgeBitwise();
+            foreach (var pair in source.canonical) canonical.Add(pair.Key, pair.Value);
+            foreach (var pair in source.applicationPoints) applicationPoints.Add(pair.Key, pair.Value);
+            foreach (var pair in source.solutions) solutions.Add(pair.Key, pair.Value);
+            foreach (var pair in source.sections) sections.Add(pair.Key, pair.Value.CopyForWorker());
+            foreach (var pair in source.grossProperties) grossProperties.Add(pair.Key, pair.Value);
+            root = source.root.CopyForWorker();
+        }
+
+        internal BridgeBatchGroup Fork() => new(this);
+
         private BridgeContribution Solution(BridgeEffective effective, BridgePhase phase, bool nativeSolver)
         {
             if (!SolutionReuse) return Solve(data, g, effective, phase, applicationPoints[phase], nativeSolver);
             if (!solutions.TryGetValue((effective, phase, nativeSolver), out var solution))
             {
-                if (!sections.TryGetValue(effective, out var section)) sections.Add(effective, section = new(SteelPieces(g, effective, mat.Steel)));
+                if (!sections.TryGetValue(effective, out var section)) sections.Add(effective, section = new(g, effective, mat));
                 solutions.Add((effective, phase, nativeSolver), solution = Solve(data, g, effective, phase, applicationPoints[phase], nativeSolver, section));
             }
             return solution with { };
         }
 
-        private BridgeSectionProperties GrossProperties(BridgePhase phase) =>
-            grossProperties.TryGetValue(phase, out var properties) ? properties : grossProperties[phase] = GrossPhaseProperties(data, phase);
+        private BridgeSectionProperties GrossProperties(BridgePhase phase)
+        {
+            string key = GrossCentroidKey(phase);
+            return grossProperties.TryGetValue(key, out var properties) ? properties : grossProperties[key] = GrossPhaseProperties(data, phase);
+        }
 
         /// <summary>The situation of the leading phases of the node followed by the phase, iterated once (an error is kept with it)</summary>
         private BridgeSituationNode Situation(BridgeSituationNode parent, BridgePhase phase, CancellationToken cancellation)
@@ -233,10 +249,8 @@ public static partial class HBridgeSection
             node = new(parent.Included.Append(phase).ToArray());
             try
             {
-                // The effective-width iterations use the transformed-section field with the Checker integration inertia, which is the Checker
-                // linear field to machine precision (relative differences 1e-15); the converged situation is solved again with the Checker
-                // solver, which gives the reported stresses and the equilibrium audit. Before, every iteration built a Checker solver for every
-                // composite phase (about 2 ms each: 63 solutions and 115 ms for three phases, now 3 solutions).
+                // Both the iterations and the final linear solution use the transformed field with Checker's integration inertia.
+                // The native solver remains the fallback for unequal tension/compression moduli; every field must pass the equilibrium audit.
                 bool warmStart = data.Options.AcceleratedIteration;
                 node.Situation = CumulativePhaseAnalysis.AnalyzeSituation(node.Included, warmStart && parent != root ? parent.Situation!.State : BridgeEffective.Full(g),
                     (effective, p) => Solution(effective, p, nativeSolver: !data.Options.Class4),
@@ -318,7 +332,7 @@ public static partial class HBridgeSection
             int end = situation.PhaseIndex, iter = situation.Iterations;
             double error = situation.Residual;
             var effective = situation.State;
-            // gross section: the only iteration already used the Checker solver (copies: the situation may belong to other inputs too)
+            // Gross section: the only iteration already computed the final field (copies: situations can belong to other inputs).
             var contributions = data.Options.Class4 ? included.Select(p => Solution(effective, shared[p], nativeSolver: true)).ToList()
                 : situation.Contributions.Select(c => c with { }).ToList();
             // Keep properties and stresses on the same converged geometry. Diagnostic plate data are recomputed on those stresses.
@@ -375,6 +389,12 @@ public static partial class HBridgeSection
         internal Dictionary<BridgePhase, BridgeSituationNode> Children { get; } = new(new BridgePhaseIdentity());
         internal CumulativeSituation<BridgeEffective, BridgeContribution>? Situation { get; set; }
         internal Exception? Error { get; set; }
+        internal BridgeSituationNode CopyForWorker()
+        {
+            var copy = new BridgeSituationNode(Included) { Situation = Situation, Error = Error };
+            foreach (var child in Children) copy.Children.Add(child.Key, child.Value.CopyForWorker());
+            return copy;
+        }
     }
 
     /// <summary>The warnings for the parts whose local buckling is excluded by the options</summary>
@@ -405,16 +425,22 @@ public static partial class HBridgeSection
         if (p.KindName == ShrinkageKind) return SolveShrinkage(d, g, e, p, nativeSolver, shared);
         var mat = Materials(d); string kind = p.KindName;
         var homo = kind == "Composta" ? Homogenization(d, p) : (0d, 0d, 0d, 0d);
-        double n = homo.Item2, area, cy, inertia;
+        double n = homo.Item2, area, cy, inertia, preparedInertia = double.NaN;
         ReinforcedConcreteSection? composite = null;
-        var steel = shared?.Steel ?? SteelPieces(g, e, mat.Steel);
-        if (kind == "Composta")
+        bool prepared = BridgeElasticSection.Supports(mat);
+        var steel = prepared ? null : shared?.Steel ?? SteelPieces(g, e, mat.Steel);
+        if (prepared)
+        {
+            var properties = (shared?.Elastic ?? new BridgeElasticSection(g, e, mat)).Properties(p.Kind, n, homo.Item3);
+            area = properties.Area; cy = properties.Y; inertia = properties.Inertia; preparedInertia = properties.IntegrationInertia;
+        }
+        else if (kind == "Composta")
         {
             var section = composite = shared?.Composite;
             if (section is null)
             {
                 section = composite = NativeSection(d, g, steel: false);
-                foreach (var part in steel) section.AddSteelSection(part);
+                foreach (var part in steel!) section.AddSteelSection(part);
                 if (shared is not null) shared.Composite = section;
             }
             // Native Model transforms into concrete; divide by n to report in structural steel.
@@ -423,7 +449,7 @@ public static partial class HBridgeSection
         }
         else
         {
-            var parts = steel.Select(s => (A: s.Section.Area, Y: s.PositionToGlobal(s.Section.Centroid).Y,
+            var parts = steel!.Select(s => (A: s.Section.Area, Y: s.PositionToGlobal(s.Section.Centroid).Y,
                 I: s.Section.Jxx * Math.Pow(Math.Cos(s.Rotation), 2) + s.Section.Jyy * Math.Pow(Math.Sin(s.Rotation), 2))).ToList();
             if (kind == "Soletta esclusa")
                 parts.AddRange(g.Bars.Select(b => (b.Area * mat.Rebar.ElasticModulusTension / mat.Steel.ElasticModulusTension, b.Y,
@@ -435,7 +461,8 @@ public static partial class HBridgeSection
         double yref = applicationPoint ?? cy;
         double force = Number(p, "N") * 1000, moment = Number(p, "Mx") * 1e6;
         double mg = moment + force * (cy - yref), uniform = force / area, slope = -mg / inertia;
-        double solverInertia = inertia;
+        double solverInertia = prepared ? preparedInertia : inertia;
+        if (prepared && kind == "Composta") slope = -mg / solverInertia;
         if (composite is not null)
         {
             // Independent equilibrium audit of Checker's line-wall / point-rebar integration. The integration inertia is a property of the
@@ -444,6 +471,10 @@ public static partial class HBridgeSection
                 + (g.Bottom2Thickness > 0 ? e.BottomWidth * Math.Pow(g.Bottom1Thickness, 3) / 12 + e.SecondBottomWidth * Math.Pow(g.Bottom2Thickness, 3) / 12
                     : e.BottomWidth * Math.Pow(g.BottomEquivalentThickness, 3) / 12)
                 + g.Bars.Sum(b => Math.PI * Math.Pow(b.Diameter, 4) / 64) * (mat.Rebar.ElasticModulusTension / mat.Steel.ElasticModulusTension - 1 / n);
+            // The bridge's symmetric, perfectly bonded N-Mx section has two elastic degrees of freedom. For identical tensile/compressive
+            // moduli the final field is the same closed-form field as in the effective-width iterations; constructing a general Concrete
+            // checker and its numerical 3x3 Jacobian for every final load is redundant. Keep the line-wall/point-bar integration inertia,
+            // not the geometric inertia. The separate native solver and independent analytical oracles test this path.
             if (!nativeSolver) slope = -mg / solverInertia;
             else if (force != 0 || moment != 0)
             {
@@ -497,9 +528,17 @@ public static partial class HBridgeSection
     /// <summary>The steel pieces of an effective state and the native composite section on them (built by the first composite phase)</summary>
     private sealed class BridgeStateSection
     {
-        internal BridgeStateSection(List<SteelSectionPosition> steel) { Steel = steel; }
-        internal List<SteelSectionPosition> Steel { get; }
+        private readonly BridgeGeometry geometry;
+        private readonly BridgeEffective effective;
+        private readonly BridgeMaterialSet materials;
+        private List<SteelSectionPosition>? steel;
+        private BridgeElasticSection? elastic;
+        internal BridgeStateSection(BridgeGeometry g, BridgeEffective e, BridgeMaterialSet m) { geometry = g; effective = e; materials = m; }
+        internal List<SteelSectionPosition> Steel => steel ??= SteelPieces(geometry, effective, materials.Steel);
+        internal BridgeElasticSection Elastic => elastic ??= new(geometry, effective, materials);
         internal ReinforcedConcreteSection? Composite { get; set; }
+        // Native Model sections/lazy mutable caches are never shared between workers. The prepared elastic moments are immutable.
+        internal BridgeStateSection CopyForWorker() => new(geometry, effective, materials) { elastic = elastic };
     }
     private static List<SteelSectionPosition> SteelPieces(BridgeGeometry g, BridgeEffective e, SteelMaterial material)
     {

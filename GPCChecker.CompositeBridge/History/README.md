@@ -36,6 +36,15 @@ solo i risultati necessari, usare `BridgeHistoryAnalysis.Enumerate(...)`: restit
 le situazioni progressivamente e non legge le fasi successive in anticipo. Resta
 il normale limite di memoria se si raccolgono tutte le istantanee.
 
+Per molte combinazioni G1 + G2 + ritiro + Q alternativo usare
+`HBridgeHistoryResults.CalculateBatch(inputs, options, maximumDegreeOfParallelism, cancellation)`.
+Il batch è disponibile per il modo lineare: prepara la sezione, calcola una volta
+il più lungo prefisso comune e riprende i rami da stati indipendenti. Anche i
+profili dei risultati comuni sono riusati; le collezioni pubbliche modificabili
+restano proprie di ogni risultato. Errori locali e ordine corrispondono agli
+ingressi; la cancellazione interrompe tutto il batch. Nessuna cache persiste fra
+chiamate. Usare grado 1 se le stazioni sono già distribuite dal chiamante.
+
 ## Convenzioni e algoritmo
 
 L'API generale usa **N, Nmm, mm, MPa**, deformazioni adimensionali, curvature in
@@ -67,6 +76,10 @@ M_int,0 = -somma(sigma_i * Aeff_i * y_i)
    fibre attive. Le due incognite sono condizionate con una lunghezza e una quota
    di riferimento interne. La ricerca del passo dimezza gli incrementi se il
    residuo cresce o il tentativo esce dal dominio costitutivo.
+   Con soli `HistoryElasticLaw` la matrice 2×2 viene assemblata una volta per
+   soluzione; i tentativi calcolano risultanti scalari senza allocare stati per
+   fibra. Gli stati vengono costruiti dopo l'accettazione. Tolleranze, ricerca
+   del passo e criterio di convergenza restano gli stessi.
 6. L'eventuale iterazione esterna aggiorna le aree efficaci e riequilibra anche
    le tensioni già presenti. Tutti i tentativi del sottopasso partono dallo stesso
    stato materiale accettato: le deformazioni plastiche non vengono accumulate
