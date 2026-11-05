@@ -86,4 +86,5 @@
 *.cshtml   text diff=html
 *.csx      text diff=csharp
 *.sln      text eol=crlf merge=union
-*.csproj   text merge=union
+# Project XML must expose conflicting properties rather than retain both values.
+*.csproj   text merge=text

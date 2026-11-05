@@ -11,6 +11,7 @@ A failure is admitted only by suite and exact test name from build/known-failure
 param([string]$ModelRoot, [ValidateSet('all', 'modelchecker')][string]$Suites = 'all', [string]$Results)
 $ErrorActionPreference = 'Stop'
 $repository = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+& (Join-Path $PSScriptRoot 'Check-ProjectVersions.ps1')
 if (!$ModelRoot) { $ModelRoot = Join-Path $repository '..\Model' }
 $ModelRoot = [IO.Path]::GetFullPath($ModelRoot)
 if (!$Results) { $Results = Join-Path $repository 'TestResults\Verify' }
