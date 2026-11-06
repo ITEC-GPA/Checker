@@ -130,3 +130,10 @@ Verify completo sul risultato unito86904bf0, concluso6/11 alle13:06:48:
 10793 superati,0 falliti,1 timing non eseguito; API compatibili.
 Evidenze: tmp/steel-consolidation-20261106/verify-all-02/summary.json.
 Nessun atteso storico, fixture o allowlist modificato per questo blocco.
+
+CONTROLLO DOPO BLOCCO RHS6/11
+Fetch: origin/master b4080622 invariato, nessun nuovo commit nei tip
+locali monitorati;18 worktree Checker puliti. Nessun merge concorrente.
+Funzione d3d90d95 e versioni fdd70d1a; collaudo completo su quest'ultimo:
+10822 superati,0 falliti,1 timing preesistente non eseguito, API compatibili.
+Guardia24 progetti superata. Evidenze verify-all-03 e rapporto consolidamento.

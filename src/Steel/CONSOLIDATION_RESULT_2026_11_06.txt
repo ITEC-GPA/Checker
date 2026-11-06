@@ -1,5 +1,7 @@
-CONSOLIDAMENTO STEEL - BLOCCO VERIFICATO6 NOVEMBRE2026
+CONSOLIDAMENTO STEEL - BLOCCHI VERIFICATI6 NOVEMBRE2026
 Branch codex/steel-consolidation-20261105. Nessun intervento ANTHEA.
+Ultimo risultato: fdd70d1a,10822 superati,0 falliti,1 timing non eseguito;
+API compatibili. I blocchi precedenti sotto conservano i propri commit/dati.
 
 IMPLEMENTAZIONE E COMMIT
 fb97e3d8 integra37619bda: fix F6 validazione quote armatura soletta.
@@ -31,7 +33,8 @@ STATO DEI PRIMI QUATTRO PUNTI
 piastre compresse/tagliate con bulloni discreti.3d ha benchmark dei nuclei
 e prove di dominio, non un oracolo dell'intero giunto richiesto.
 4a/4c/4d completati nel campo dichiarato.4b ampliato alle H/RHS del nuovo
-contratto; restano ali H snelle, RHS curvi/pareti opposte diverse e famiglie
+contratto e al singolo taglio RHS curvo; restano ali H snelle, interazione
+generale N-M-V nei RHS curvi, pareti opposte diverse e famiglie
 aperte asimmetriche con taglio eccentrico. Non dichiarato universalmente chiuso.
 
 La formula7.1 non e' il dato mancante del punto3: occorre dimostrare i
@@ -60,3 +63,27 @@ ShallowFoundation29; EmbeddedWalls99; Steel.Members7405; Design274+273; ModelChe
 API compatibili: ModelChecker622,Concrete2746,Design3431,Masonry9 firme.
 Guardia24 progetti superata. Nessun atteso storico/fixture/allowlist cambiato.
 Evidenza: C:\Users\g.pacini\Documents\ChatGPT\Checker\tmp\steel-consolidation-20261106\verify-all-02\summary.json
+
+BLOCCO RHS E ULTIMO COLLAUDO SU fdd70d1a
+d3d90d95: resistenza delle pareti RHS in una direzione, comprese quelle
+raccordate concentriche HotFinished/Rolled, con supporti verificati a parte.
+29 nuovi test:24 Steel e5 ModelChecker. Due benchmark SSAB S420/S355,
+codici/assi/segni, area delle pareti saldate, limiti e flusso archivio.
+Non abilita N-M-V generale, due tagli, instabilita' d'asta o nuovi coprigiunti.
+fdd70d1a: versione Steel2.134.0.0 e ModelChecker2.43.0.0, dedicate alla funzione.
+Verify concluso6/11 alle13:28:00:10822 superati,0 falliti;
+unico NotExecuted TimingOfTheConcreteRun. Nessuna allowlist applicata.
+Steel.Members7429,ModelChecker702; le altre suite conservano i numeri sopra.
+API compatibili;24 progetti senza duplicati; Model2133a2db invariato.
+Evidenza: C:\Users\g.pacini\Documents\ChatGPT\Checker\tmp\steel-consolidation-20261106\verify-all-03\summary.json
+Dettagli: RHS_WEB_RESISTANCE_2026_11_06.txt. Rami locali/remoto ricontrollati:
+origin/master b4080622 gia' integrato; nessuna nuova divergenza da integrare.
+
+ARCHIVIO FONTI AGGIORNATO
+33 PDF e83 URL; nuovo manuale ufficiale SSAB completo, edizione2016.
+Censimento UNI:8870 file,457 documenti/archivi; nessun A1:2017 finale trovato.
+Il punto1b resta editoriale aperto, il punto3 resta fisicamente non qualificato.
+ZIP per download: C:\Users\g.pacini\Documents\ChatGPT\Checker\references\steel-fonti-2026-11-06.zip
+193368290 byte; contenuti verificati contro gli SHA256 dei33 documenti;
+integrita ZIP verificata. SHA256 dello ZIP nel file .zip.sha256.txt adiacente.
+Il vecchio archivio5/11 e i libri dell'utente sono conservati.

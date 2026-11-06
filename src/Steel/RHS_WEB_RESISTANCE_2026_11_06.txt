@@ -71,3 +71,10 @@ distorsione, patch loading o coprigiunti con bulloni discreti (punto3).
 
 Collaudi mirati finali:104/104 Steel e42/42 ModelChecker,0 fallimenti.
 TRX in tmp/steel-consolidation-20261106/rhs-tests (file *-final.trx).
+
+Commit funzionale d3d90d95; versioni dedicate fdd70d1a:
+Steel2.134.0.0,ModelChecker2.43.0.0. Model2133a2db invariato.
+Verify completo su fdd70d1a, concluso6/11 alle13:28:00 Europe/Rome:
+10822 superati,0 falliti,1 TimingOfTheConcreteRun NotExecuted preesistente.
+API compatibili. Nessun atteso storico, fixture o allowlist modificato.
+Evidenza: tmp/steel-consolidation-20261106/verify-all-03/summary.json.

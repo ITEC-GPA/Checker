@@ -7,8 +7,8 @@ non sono un elenco aggiornato delle funzionalita mancanti. Le specifiche
 tecniche dei metodi restano valide per il rispettivo contratto.
 La versione numerica si legge in GPCChecker.Steel.csproj/AssemblyInfo.cs.
 Ultimo blocco collaudato6/11: CONSOLIDATION_RESULT_2026_11_06.txt,
-10793 superati,0 falliti,1 timing non eseguito; API compatibili su86904bf0.
-Steel2.133.0.0,ModelChecker2.42.0.0,CompositeBridge1.31.0.1,Concrete0.37.0.1.
+10822 superati,0 falliti,1 timing non eseguito; API compatibili sufdd70d1a.
+Steel2.134.0.0,ModelChecker2.43.0.0,CompositeBridge1.31.0.1,Concrete0.37.0.1.
 Consolidamento avviato il5 novembre: IMPLEMENTATION_PLAN_2026_11_05.txt;
 base dei branch e collaudo con Model aggiornato: INTEGRATION_2026_11_05.txt.
 Le nuove fasi non sono coperture gia' implementate.
