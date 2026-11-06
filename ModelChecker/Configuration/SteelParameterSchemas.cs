@@ -125,6 +125,13 @@ namespace GPC.Model.Checker.Configuration
                     description:"Opt-in N-M1-V2 interaction, including wholly compressed class4 H web: continuous flange edges, no longitudinal stiffeners or patch load; EN1993-1-5 7.1(4)-(5).");
                 Require("HWebNormalInteractionNeedsResistance","The interaction needs computed resistance of the same web.",new[]{"HWebResistance","HWebSupportSource"},Has("HWebNormalInteraction"));
                 Require("HWebFingerprintRequired","Web support assessment must bind to the section.",new[]{"SectionFingerprint"},Has("HWebResistance"));
+                Add("Class4ShearInteraction",EngineParameterKind.Choice,choices:new[]{"ConservativePlateSuperposition"},
+                    description:"Conservative effective normal stress plus qualified shear-field ratios; H with compact flange outstands or uniform sharp RHS, continuous plate edges and no patch load/torsion.");
+                Add("PlateSupportSource",description:"Verified supports, diaphragms, continuous attachments and end force transfer for this plate model.");
+                Together("Class4PlateSupportPair","Class4ShearInteraction","PlateSupportSource");
+                Require("Class4PlateFingerprint","Plate support assessment binds to the complete section.",new[]{"SectionFingerprint"},Has("Class4ShearInteraction"));
+                rules.Add(new EngineParameterRule("Class4PlateConflict","The computed plate model replaces external shear exclusions and the single-web option.",
+                    new[]{Has("Class4ShearInteraction")},null,new[]{"HWebResistance","HWebNormalInteraction","ShearBucklingExcluded1","ShearBucklingExcluded2"}));
                 rules.Add(new EngineParameterRule("HWebAssessmentConflict","Choose exclusion or computed web resistance.",new[]{Has("HWebResistance")},null,new[]{"ShearBucklingExcluded2","ShearBucklingSource2"}));
                 Add("NetArea",EngineParameterKind.Number,"mm²",min:0,exclusive:true);
                 Add("UniformCompressionClass",EngineParameterKind.Integer,min:1,max:4);
@@ -192,9 +199,13 @@ namespace GPC.Model.Checker.Configuration
                 Add(key,description:"Reasoned exclusion of this critical mode; missing critical data is not an exclusion.",modes:new[]{"Compression","BeamColumn"});
             Add("McrBasis",EngineParameterKind.Choice,choices:new[]{"ActualMomentDiagram","UniformMoment"},modes:new[]{"Bending","BeamColumn"});
             Add("TorsionSusceptible",EngineParameterKind.Boolean,modes:new[]{"BeamColumn"});
-            Add("HighShearMethod",EngineParameterKind.Choice,choices:new[]{"ConservativeUniformReduction","ConservativeShearSuperposition","ConservativeClass4WebInteraction"},modes:new[]{"BeamColumn"},
-                description:"Explicit conservative normal-resistance reduction: one shear classes1-3, summed shears classes1-3, or computed class4 H-web N-M1-V2 interaction. Original chi and bounded interaction factors retained; separate section checks mandatory.");
+            Add("HighShearMethod",EngineParameterKind.Choice,choices:new[]{"ConservativeUniformReduction","ConservativeShearSuperposition","ConservativeClass4WebInteraction","ConservativeClass4ShearSuperposition"},modes:new[]{"BeamColumn"},
+                description:"Explicit conservative normal-resistance reduction: one or summed shears classes1-3; class4 single H web; or class4 all-plate H/sharp RHS superposition. Original chi and bounded interaction factors retained; separate section checks mandatory.");
             Add("HWebSupportSource",modes:new[]{"BeamColumn"},description:"Same-case verification of H-web supports, stiffeners, attachments and force transfer for class4 web interaction.");
+            Add("PlateSupportSource",modes:new[]{"BeamColumn"},description:"Same-case supports, continuous plate attachments and end force transfer for H/RHS class4 shear superposition.");
+            Require("Class4PlateSupportRequired","Computed all-plate interaction needs the support verification.",new[]{"PlateSupportSource"},Is("HighShearMethod","ConservativeClass4ShearSuperposition"));
+            rules.Add(new EngineParameterRule("Class4PlateSupportScope","Plate-support evidence belongs to the all-plate class4 method.",
+                new[]{IsNot("HighShearMethod","ConservativeClass4ShearSuperposition")},null,new[]{"PlateSupportSource"}));
             Require("Class4WebSupportRequired","Computed member web interaction needs the support verification.",new[]{"HWebSupportSource"},Is("HighShearMethod","ConservativeClass4WebInteraction"));
             rules.Add(new EngineParameterRule("Class4WebSupportScope","Web-support evidence belongs to the computed class4 web interaction.",
                 new[]{IsNot("HighShearMethod","ConservativeClass4WebInteraction")},null,new[]{"HWebSupportSource"}));

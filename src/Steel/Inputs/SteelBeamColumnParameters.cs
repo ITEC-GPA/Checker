@@ -40,11 +40,25 @@ namespace GPC.Checkers.Steel.Inputs
         /// critical values retained. Every concomitant section also needs its 7.1 check.</summary>
         public bool ConservativeClass4WebInteraction { get; private set; }
 
+        /// <summary>Class4 symmetric H/RHS, q=1-sum(|Vi|/VRdi). Requires
+        /// typed all-plate shear assessments, effective properties at original fy,
+        /// gross critical values and separate concomitant section verification.</summary>
+        public bool ConservativeClass4ShearSuperposition { get; private set; }
+
+        public SteelBeamColumnParameters WithConservativeClass4ShearSuperposition()
+        {
+            var copy=(SteelBeamColumnParameters)MemberwiseClone();
+            copy.ConservativeHighShear=false;copy.ConservativeShearSuperposition=false;
+            copy.ConservativeClass4WebInteraction=false;copy.ConservativeClass4ShearSuperposition=true;
+            return copy;
+        }
+
         public SteelBeamColumnParameters WithConservativeClass4WebInteraction()
         {
             var copy=(SteelBeamColumnParameters)MemberwiseClone();
             copy.ConservativeHighShear=false;copy.ConservativeShearSuperposition=false;
             copy.ConservativeClass4WebInteraction=true;
+            copy.ConservativeClass4ShearSuperposition=false;
             return copy;
         }
 
@@ -54,6 +68,7 @@ namespace GPC.Checkers.Steel.Inputs
             copy.ConservativeHighShear = false;
             copy.ConservativeShearSuperposition = true;
             copy.ConservativeClass4WebInteraction = false;
+            copy.ConservativeClass4ShearSuperposition = false;
             return copy;
         }
 

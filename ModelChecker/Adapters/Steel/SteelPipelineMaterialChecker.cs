@@ -120,6 +120,8 @@ namespace GPC.Model.Checker
                 {
                     var options = _owner._parameters;
                     var context = _owner.Context();
+                    if(options.Class4PlateShear)context=new SteelDesignContext(context.SectionCode,
+                        _owner.Code.GammaM1,context.NegligibleActions).WithConservativeClass4ShearInteraction();
                     string propertyKey = ModelValues.Fingerprint(new object[] { input.Property });
                     if (options.SectionFingerprint != null && options.SectionFingerprint != propertyKey)
                         return NativeResults.Missing("SteelPipeline.AssessmentSectionMismatch");
@@ -195,6 +197,10 @@ namespace GPC.Model.Checker
                 for (int axis = 1; axis <= 2; axis++)
                 {
                     if ((axis == 1 ? input.EffectiveActions.V1 : input.EffectiveActions.V2) == 0) continue;
+                    if(options.Class4PlateShear) {
+                        yield return SteelShearBucklingAssessment.EvaluateClass4PlateShear(input,axis,_owner.Code.GammaM1,options.PlateSupportSource);
+                        continue;
+                    }
                     if (axis == 2 && options.HWebResistance != null)
                     {
                         double eta = input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018 ? 1

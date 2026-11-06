@@ -16,6 +16,8 @@ namespace GPC.Model.Checker
         internal string HWebResistance { get; }
         internal string HWebSupportSource { get; }
         internal bool HWebNormalInteraction { get; }
+        internal bool Class4PlateShear { get; }
+        internal string PlateSupportSource { get; }
         internal bool? Unperforated { get; }
         internal double? NetArea { get; }
         internal int? UniformCompressionClass { get; }
@@ -56,12 +58,18 @@ namespace GPC.Model.Checker
             if(webInteraction!=null && (webInteraction!="ConservativeInPlane" || HWebResistance==null))
                 throw new ArgumentException("HWebNormalInteractionRequiresComputedWebResistance");
             HWebNormalInteraction=webInteraction!=null;
+            var plateInteraction=Text("Class4ShearInteraction");PlateSupportSource=Text("PlateSupportSource");
+            Class4PlateShear=plateInteraction!=null;
+            Pair(Class4PlateShear,PlateSupportSource,"Class4PlateSupport");
+            if(Class4PlateShear && (plateInteraction!="ConservativePlateSuperposition" || HWebResistance!=null
+                || ShearExcluded1.HasValue || ShearExcluded2.HasValue))
+                throw new ArgumentException("InvalidOrConflictingClass4PlateInteraction");
             if (HWebResistance != null && (HWebResistance != "NonRigidEndPost" || ShearExcluded2.HasValue || ShearSource2 != null))
                 throw new ArgumentException("InvalidOrConflictingHWebResistance");
             Pair(UniformCompressionClass.HasValue, ClassificationSource, "Classification");
             Pair(ShearExcluded1.HasValue, ShearSource1, "ShearBuckling1");
             Pair(ShearExcluded2.HasValue, ShearSource2, "ShearBuckling2");
-            if ((NetArea.HasValue || UniformCompressionClass.HasValue || ShearExcluded1.HasValue || ShearExcluded2.HasValue || HWebResistance != null)
+            if ((NetArea.HasValue || UniformCompressionClass.HasValue || ShearExcluded1.HasValue || ShearExcluded2.HasValue || HWebResistance != null || Class4PlateShear)
                 && SectionFingerprint == null) throw new ArgumentException("SectionFingerprintRequiredForSteelAssessment");
             // gammaM,ser is a nationally determined parameter: value, its source and the applicability of the
             // stress limitation come together or not at all; nothing is defaulted.

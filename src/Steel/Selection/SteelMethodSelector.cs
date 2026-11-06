@@ -108,9 +108,11 @@ namespace GPC.Checkers.Steel.Selection
             var classInfo = Classification(input, section, suppliedClass, true);
             if (classInfo.Failure != null) return classInfo.Failure;
             int cl = classInfo.Class.Value;
-            if (cl == 4)
+            if (cl == 4 || input.Code.ConservativeClass4ShearInteraction && shear)
             {
-                if (shear && (!SteelSectionFamilies.Is(shape, SteelSectionKind.IOrH) || a.V1!=0 || Math.Abs(shape.AngleX1)>1e-10))
+                bool allPlates=input.Code.ConservativeClass4ShearInteraction
+                    && (shape.GetType()==typeof(SectionH)||shape.GetType()==typeof(SectionRHS)) && Math.Abs(shape.AngleX1)<=1e-10;
+                if (shear && !allPlates && (!SteelSectionFamilies.Is(shape, SteelSectionKind.IOrH) || a.V1!=0 || Math.Abs(shape.AngleX1)>1e-10))
                     return Unsupported(target, "Class4.ShearInteractionNotQualified", "Class4 shear interaction currently requires H web-direction shear only.");
                 try { SteelEffectiveSectionSolver.Qualify(s); }
                 catch (NotSupportedException ex) { return new SteelMethodDecision(target, SteelSelectionStatus.NotSupported, null,

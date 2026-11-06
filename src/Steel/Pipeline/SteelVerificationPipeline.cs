@@ -96,7 +96,10 @@ namespace GPC.Checkers.Steel.Pipeline
                     decision = decision.SlenderWebAlternative;
                 bool class4Member=decision.Target==SteelCheckTarget.MemberStability
                     && memberAnalysis?.BeamColumnParameters?.ConservativeClass4WebInteraction==true;
-                bool acceptsWebResistance = decision.Method == SteelMethod.EffectiveNormalResistance || decision.Method == SteelMethod.SectionShear2 || class4Member;
+                bool plateMember=decision.Target==SteelCheckTarget.MemberStability
+                    && memberAnalysis?.BeamColumnParameters?.ConservativeClass4ShearSuperposition==true;
+                bool plateSection=input.Code.ConservativeClass4ShearInteraction && decision.Target!=SteelCheckTarget.MemberStability;
+                bool acceptsWebResistance = decision.Method == SteelMethod.EffectiveNormalResistance || decision.Method == SteelMethod.SectionShear2 || class4Member || plateMember || plateSection;
                 if (used.Any(a => !a.IsBucklingExcluded && (!acceptsWebResistance || !a.BucklingResistance.HasValue)))
                     return new SteelCheckExecution(decision, SteelExecutionStatus.NotSupported,
                         "ShearBuckling.ResistanceMethodRequired",
@@ -109,6 +112,9 @@ namespace GPC.Checkers.Steel.Pipeline
                 if(class4Member && used.Any(x=>!x.ConservativeInPlaneNormalInteraction))
                     return new SteelCheckExecution(decision,SteelExecutionStatus.NotSupported,"Member.Class4WebInteractionAssessmentRequired",
                         "The same web resistance and its explicit in-plane panel/subpanel interaction are required.",shearAssessments:used);
+                if((plateMember || plateSection) && used.Any(x=>!x.ConservativePlateNormalInteraction))
+                    return new SteelCheckExecution(decision,SteelExecutionStatus.NotSupported,"Class4.PlateInteractionAssessmentRequired",
+                        "Each active shear needs its typed same-input plate-field assessment; external exclusions cannot substitute for it.",shearAssessments:used);
             }
 
             try
@@ -122,6 +128,15 @@ namespace GPC.Checkers.Steel.Pipeline
                 }
                 var section = input.Section.ReadOnlySection;
                 var a = input.EffectiveActions; var s = input.Section; var code = input.Code.SectionCode;
+                if(input.Code.ConservativeClass4ShearInteraction && (decision.Target==SteelCheckTarget.Shear1||decision.Target==SteelCheckTarget.Shear2)) {
+                    double ratio=used.Sum(x=>Math.Abs(x.Axis==1?a.V1:a.V2)/(x.BucklingResistance??SteelPlasticShear.Resistance(input,x.Axis)));
+                    SteelInputValidation.Finite(ratio,"combined plate shear utilization");
+                    var trace=used.SelectMany(x=>x.Trace.Select(v=>new SectionResistanceValue("Axis"+x.Axis+"."+v.Name,v.Value,v.Unit))).ToArray();
+                    return new SteelCheckExecution(decision,ratio<=1?SteelExecutionStatus.Passed:SteelExecutionStatus.Failed,
+                        reference:"Conservative superposition of qualified plate shear fields; EN1993-1-5:2006 5.3/7.1(5)",
+                        scope:"Same-case shear directions; each pure shear field bounded on all affected walls. Boundary/force-transfer source remains external.",
+                        utilization:ratio,trace:trace,shearAssessments:used);
+                }
                 SectionResistanceResult result;
                 switch (decision.Method.Value)
                 {

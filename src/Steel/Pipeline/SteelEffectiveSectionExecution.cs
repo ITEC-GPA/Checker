@@ -19,7 +19,19 @@ namespace GPC.Checkers.Steel.Pipeline
             var normal=new SteelVerificationInput(input.Section,new SteelActions(a.N,0,0,0,a.M1,a.M2),input.Code);
             var r=SteelEffectiveSectionSolver.Solve(normal,cancellation:cancellation);var s=r.State;
             double utilization=r.Utilization,shearRatio=0,interaction=0;
-            if(a.V2!=0) {
+            bool allPlates=input.Code.ConservativeClass4ShearInteraction && (a.V1!=0||a.V2!=0);
+            double sum=0;
+            if(allPlates) {
+                if(assessments.Any(x=>!x.ConservativePlateNormalInteraction))
+                    return new SteelCheckExecution(decision,SteelExecutionStatus.NotSupported,"Class4.PlateInteractionAssessmentRequired",
+                        "Each active shear requires a computed same-input plate-field assessment.",shearAssessments:assessments);
+                sum=assessments.Sum(x=>Math.Abs(x.Axis==1?a.V1:a.V2)/(x.BucklingResistance??SteelPlasticShear.Resistance(input,x.Axis)));
+                // r >= (2r-1)^2 on [0.5,1]; the linear bound also reserves
+                // normal resistance below0.5 and bounds both shear fields together.
+                utilization=r.Utilization+sum;interaction=sum;shearRatio=sum;
+                SteelInputValidation.Finite(utilization,"class4 conservative shear superposition");
+            }
+            else if(a.V2!=0) {
                 var section=input.Section.ReadOnlySection;
                 double resistance=assessments.Single().BucklingResistance ?? SteelPlasticShear.Resistance(input,2);
                 shearRatio=Math.Abs(a.V2)/resistance;
@@ -42,8 +54,18 @@ namespace GPC.Checkers.Steel.Pipeline
             Add("EffectiveIxx",s.Ixx,"mm4");Add("EffectiveIyy",s.Iyy,"mm4");Add("EffectiveIxy",s.Ixy,"mm4");
             Add("EffectiveModulus1",s.Modulus1,"mm3");Add("EffectiveModulus2",s.Modulus2,"mm3");
             Add("Fy",input.Section.YieldStrength,"MPa");Add("GammaM0",input.Code.SectionCode.GammaM0,"1");
-            Add("MaximumAbsoluteStressBound",r.MaximumAbsoluteStress,"MPa");Add("NormalUtilization",r.Utilization,"1");Add("ShearRatio2",shearRatio,"1");Add("ShearInteractionPenalty",interaction,"1");Add("Utilization",utilization,"1");
+            Add("MaximumAbsoluteStressBound",r.MaximumAbsoluteStress,"MPa");Add("NormalUtilization",r.Utilization,"1");
+            if(!allPlates)Add("ShearRatio2",shearRatio,"1");
+            Add("ShearInteractionPenalty",interaction,"1");Add("Utilization",utilization,"1");
             Add("EffectiveIterations",r.Iterations,"1");Add("EffectiveResidual",r.Residual,"1");
+            if(allPlates) {
+                Add("PlateShearInteraction.Sum",sum,"1");
+                foreach(var assessment in assessments) {
+                    double resistance=assessment.BucklingResistance??SteelPlasticShear.Resistance(input,assessment.Axis);
+                    Add("PlateShearInteraction.Resistance"+assessment.Axis,resistance,"N");
+                    Add("PlateShearInteraction.Ratio"+assessment.Axis,Math.Abs(assessment.Axis==1?a.V1:a.V2)/resistance,"1");
+                }
+            }
             bool extended=assessments.Any(x=>x.ConservativeInPlaneNormalInteraction);
             if(extended) {
                 Add("WebNormalInteraction.WholeWebIsSubpanel",1,"1");
@@ -59,12 +81,15 @@ namespace GPC.Checkers.Steel.Pipeline
             }
             string reference=(input.Code.SectionCode.Standard==SectionResistanceStandard.Ntc2018
                 ?"NTC 2018 4.2.4.1.2.2-3, 4.2.4.1.2.8; ":"EN1993-1-1:2005 6.2.2.5, 6.2.9.3; ")
-                +"EN1993-1-5:2006 4.3(4) note, 4.4 Tables4.1/4.2; simultaneous effective section"+(extended
+                +"EN1993-1-5:2006 4.3(4) note, 4.4 Tables4.1/4.2; simultaneous effective section"+(allPlates
+                    ?"; sufficient bound etaNormal+sum(|Vi|/VRdi)<=1; each field assessed on all affected plates; bounds 7.1 interaction"
+                    :extended
                     ?"; 7.1(4)-(5), MfRd=0; eta1 from 4.6 effective-section stress; same unstiffened web is the subpanel"
                     :a.V2!=0?"; 7.1(1), conservative MfRd=0 and MplRd=effective elastic MRd":"");
             return new SteelCheckExecution(decision,utilization<=1?SteelExecutionStatus.Passed:SteelExecutionStatus.Failed,
                 reference:reference,scope:"Class4 unperforated unstiffened plates under concomitant N-M1-M2; iterative effective widths at fy, centroid eccentricity included. Conservative gross bounding-rectangle stress. "
-                    +(extended?"Explicit in-plane H web N-M1-V2 interaction, including whole-web compression; continuous flange edges, no longitudinal stiffeners, ordinary beam shear distribution. "
+                    +(allPlates?"Explicit conservative N-M1-M2-V1-V2 plate interaction; H with compact flange outstands or uniform sharp RHS with all four continuous walls checked. "
+                        :extended?"Explicit in-plane H web N-M1-V2 interaction, including whole-web compression; continuous flange edges, no longitudinal stiffeners, ordinary beam shear distribution. "
                         :"H web shear: no reduction below 0.5 resistance; conservative pure-major-bending interaction above. ")
                     +"Shear lag, transverse patch loads, torsion and member stability excluded.",
                 utilization:utilization,trace:trace,shearAssessments:assessments);

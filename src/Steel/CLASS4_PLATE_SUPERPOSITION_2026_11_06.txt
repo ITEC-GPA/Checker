@@ -1,0 +1,101 @@
+CLASSE4: DUE TAGLI E FLESSIONE BIASSIALE - ESTENSIONE DEL PUNTO4b
+6 novembre2026. N, mm, MPa, Nmm. Compressione N<0; assi principali1/2.
+Implementazione esplicita e cautelativa, distinta dalla formula normativa7.1.
+Il vecchio percorso H N-M1-V2 resta disponibile e non cambia risultati.
+
+CAMPO
+- Sezione H composta con spigoli vivi, anima continua e ali con sbalzi
+  entro il criterio c/t<=14epsilon gia' presente nella libreria: N,M1,M2,V2.
+  Con V1 occorrono anche ali uguali: nelle H monosimmetriche lo scostamento
+  del centro di taglio introduce torsione, non coperta da questo metodo.
+- Sezione RHS con spigoli vivi, quattro pareti dello stesso spessore,
+  assi principali allineati: N,M1,M2,V1,V2. Si controllano TUTTE le pareti,
+  anche quelle ortogonali alla direzione del taglio.
+- Asta: H doppiamente simmetrica oppure RHS uniforme, prisma, classe4,
+  stessi limiti geometrici, combinazioni e vincoli del metodo d'asta esistente.
+  N costante; estremi dei momenti e tagli riferiti allo stesso caso FEM.
+- Piastre non irrigidite longitudinalmente, senza fori, carichi trasversali
+  localizzati, torsione applicata, shear lag o distorsione della sezione.
+  Appoggi, diaframmi, collegamenti continui e introduzione delle forze sono
+  verifiche esterne nominate nella fonte: il testo della fonte non le calcola.
+  Per i pannelli k_tau=5.34, limite di lunghezza infinita, estremita' non rigide,
+  eta=1, nessun contributo resistente delle ali o ancoraggio postcritico assunto.
+
+FONTI E DISTINZIONI
+EN1993-1-5:2006+AC2009,4.4/4.6,5.3,7.1(4)-(5),AnnexA.3:
+https://www.phd.eng.br/wp-content/uploads/2015/12/en.1993.1.5.2006.pdf
+JRC/ECCS EUR22898EN(2007),esempio16,16.4,p191: l'interazione riguarda
+anche l'ala del cassone; taglio medio almeno meta' del massimo e sottopannelli.
+https://eurocodes.jrc.ec.europa.eu/sites/default/files/2021-12/EUR22898EN.pdf
+L'uso del MASSIMO di taglio su tutta la parete e del minimo fra le resistenze
+delle quattro pareti e' una scelta cautelativa di questo modello, non una
+formula esplicita EC3 per RHS. Il flusso di trave sottile e' un modello
+meccanico classico, verificato separatamente mediante integrazione del circuito.
+Non e' un autovalore dell'assemblaggio bullonato e non qualifica il punto3.
+
+RHS: LIMITE DEL CAMPO DI TAGLIO
+b_m,h_m: dimensioni del rettangolo medio, t: spessore; I_x della linea media.
+Per V2, I_x=t*(b_m*h_m^2/2+h_m^3/6).
+Il massimo q e' V2*t*(b_m*h_m/4+h_m^2/8)/I_x.
+Rapporto rispetto a V2/(2*h_m):
+ (b_m/2+h_m/4)/(b_m/2+h_m/6) <= 1.5.
+Il taglio sulle pareti orizzontali ha massimo agli angoli e non supera tale
+massimo. Scambiando b_m,h_m si ottiene la seconda direzione. Usare le quote
+LIBERE b_c,h_c, piu' piccole delle mediane, aumenta ulteriormente il limite.
+La sovrapposizione dei valori assoluti limita entrambi i campi in ogni punto.
+Per ogni parete, tau_cr=5.34*pi^2*E/[12*(1-nu^2)]*(t/c)^2, nu=.3.
+tau_Rd e' il minimo fra resistenza EN5.3/area e tau_cr/gammaM1; si prende
+poi il minimo delle pareti orizzontali e verticali.
+VRd1 <= tau_Rd*2*b_c*t/1.5; VRd2 <= tau_Rd*2*h_c*t/1.5.
+Entrambe sono anche limitate dalla resistenza plastica della direzione.
+
+H: PICCHI, NON SOLO TAGLIO MEDIO
+Per V2 si calcola Q massimo nell'anima con rettangoli esatti e baricentro
+lordo; tau_web=V2*Q/(I11*tw). La resistenza d'anima EN5.3 e' limitata
+anche da tau_cr e dallo snervamento, poi divisa per max(1,hw*Q/I11).
+Si limita inoltre il picco nelle due ali: tau_flange/V2=b_f*|y_f-yG|/(2*I11).
+Per V1 nelle sole H simmetriche, tau_flange/V1=b_f^2/(8*I22).
+La verifica degli sbalzi compatti resta obbligatoria. Questo non estende
+EN5.3 alle piastre con bordo libero snello; tali ali restano rifiutate.
+
+INTERAZIONE
+r_i=|Vi|/VRdi; R=r1+r2. Sezione: eta_normale+R<=1.
+eta_normale proviene dalla sezione efficace concomitante N-M1-M2 a fy
+originale, con spostamento del baricentro e limite tensionale del rettangolo
+circostante. Per .5<=r<=1, r >= (2r-1)^2: la retta limita l'interazione7.1
+con Mf,Rd=0; sotto .5 continua a riservare capacita' al taglio.
+La disuguaglianza triangolare sui campi rende la somma sufficiente anche
+per due direzioni. R>1 fallisce; non si ricava una resistenza negativa.
+Asta: q=1-R su tutte le resistenze normali. Si mantengono le caratteristiche
+efficaci a fy originale, i critici lordi, chi originale e i limiti superiori
+dei coefficienti d'interazione gia' usati dal percorso cautelativo del5/11.
+Il controllo dell'asta non sostituisce le verifiche concomitanti delle sezioni.
+
+INGRESSI
+Sezione: context.WithConservativeClass4ShearInteraction(); poi per ciascun
+taglio attivo SteelShearBucklingAssessment.EvaluateClass4PlateShear(input,
+axis,gammaM1,supportDetailSource). Ogni assessment appartiene allo stesso input.
+Asta: parameters.WithConservativeClass4ShearSuperposition(), stessi assessment.
+ModelChecker sezione: Class4ShearInteraction=ConservativePlateSuperposition,
+PlateSupportSource e SectionFingerprint. Nessun flag esterno puo' sostituire
+gli assessment calcolati. ModelChecker asta: HighShearMethod=
+ConservativeClass4ShearSuperposition e PlateSupportSource.
+GammaM1 coerente con il codice; NTC1.05 oppure1.10 per ponti. GammaM0 NTC1.05.
+Le opzioni sono nella mappa parametri gia' inclusa nelle impronte, senza nuovi
+campi persistiti. Esiti e tracce seguono i contratti esistenti.
+
+VERIFICHE E LIMITI
+Class4PlateShearSuperpositionTests:50 nuovi casi, inclusi calcoli indipendenti
+di Aeff, tau_cr, resistenze, Ncr/chi/q e picco di taglio della H; integrazione
+indipendente di dq/ds sul circuito chiuso e recupero di entrambe le risultanti;
+segni, flessione biassiale, gammaM1 ponti, budget esaurito e campo rifiutato.
+SteelClass4PlateWorkflowTest:7 nuovi casi, EC3/NTC e gammaM1 ponti,
+schemi parametri, report/persistenza/invalidation e due momenti/tagli nell'asta.
+Collaudi mirati:90/90 Steel (50 nuovi+40 preesistenti),11/11 ModelChecker
+(7 nuovi+4 preesistenti). I test nuovi non modificano fixture/attesi storici.
+Il collaudo completo del set integrato va registrato a conclusione del blocco.
+
+Restano esclusi: RHS curvi o a spessori diversi, ali H snelle a taglio,
+V1 nelle H monosimmetriche, instabilita' generale d'asta asimmetrica senza
+valori/modelli esterni qualificati, famiglie aperte C/T/L con alto taglio.
+Il punto4b e' esteso sostanzialmente, NON equivale a tutte le geometrie classe4.

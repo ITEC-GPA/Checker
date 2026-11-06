@@ -9,8 +9,9 @@ namespace GPC.Checkers.Steel.Pipeline
 {
     public sealed partial class SteelShearBucklingAssessment
     {
-        /// <summary>Qualified web-only design resistance, N; null for an exclusion-only
-        /// assessment. A resistance never sets IsBucklingExcluded to true.</summary>
+        /// <summary>Computed design shear resistance for this direction, N; null for
+        /// an exclusion-only assessment. The factory/reference defines web-only or
+        /// all-plate scope. A resistance never sets IsBucklingExcluded to true.</summary>
         public double? BucklingResistance { get; private set; }
 
         /// <summary>H web, support stiffeners only, conservative non-rigid end post,

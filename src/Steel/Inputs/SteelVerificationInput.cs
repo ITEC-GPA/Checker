@@ -40,6 +40,17 @@ namespace GPC.Checkers.Steel.Inputs
         public double? GammaM1 { get; }
         /// <summary>Limits below which an action component counts as zero; default 1e-6 of its resistance.</summary>
         public SteelNegligibleActionPolicy NegligibleActions { get; }
+        /// <summary>Explicit sufficient class4 N-M1-M2-V1-V2 interaction. Requires
+        /// computed, same-input plate assessments for every active shear. It does
+        /// not qualify unsupported geometry, external exclusion flags or torsion.</summary>
+        public bool ConservativeClass4ShearInteraction { get; private set; }
+
+        public SteelDesignContext WithConservativeClass4ShearInteraction()
+        {
+            var copy=(SteelDesignContext)MemberwiseClone();
+            copy.ConservativeClass4ShearInteraction=true;
+            return copy;
+        }
 
         public SteelDesignContext(SectionResistanceCode sectionCode, double? gammaM1 = null)
             : this(sectionCode, gammaM1, null) { }
@@ -56,7 +67,8 @@ namespace GPC.Checkers.Steel.Inputs
         }
 
         public SteelDesignContext WithNegligibleActions(SteelNegligibleActionPolicy negligibleActions)
-            => new SteelDesignContext(SectionCode, GammaM1, negligibleActions ?? throw new ArgumentNullException(nameof(negligibleActions)));
+            => new SteelDesignContext(SectionCode, GammaM1, negligibleActions ?? throw new ArgumentNullException(nameof(negligibleActions)))
+                {ConservativeClass4ShearInteraction=ConservativeClass4ShearInteraction};
 
         public static SteelDesignContext Ntc2018()
             => new SteelDesignContext(SectionResistanceCode.Ntc2018(), Ntc2018DesignPolicy.GammaM1);

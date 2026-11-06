@@ -16,7 +16,7 @@ namespace GPC.Model.Checker
     {
         private static readonly string[] BeamColumnKeys={"TorsionSusceptible","Cm1","Cm2","CmLT","MomentFactorSource",
             "StabilityModelSource","LateralTorsionalExclusionSource","ShearBucklingExclusionSource","MomentFactorPreparation",
-            "SwayBucklingPlanes","SwayModeSource","AxialForcePreparation","AxialForceCoverageSource","HighShearMethod","HWebSupportSource"};
+            "SwayBucklingPlanes","SwayModeSource","AxialForcePreparation","AxialForceCoverageSource","HighShearMethod","HWebSupportSource","PlateSupportSource"};
 
         private SteelMemberAnalysis BeamColumn(PhysicalMemberCheckInput input,SteelVerificationInput common,SteelPhysicalMemberPreparation physical)
         {
@@ -38,6 +38,7 @@ namespace GPC.Model.Checker
                 if(highShear=="ConservativeUniformReduction")data=data.WithConservativeHighShear();
                 else if(highShear=="ConservativeShearSuperposition")data=data.WithConservativeShearSuperposition();
                 else if(highShear=="ConservativeClass4WebInteraction")data=data.WithConservativeClass4WebInteraction();
+                else if(highShear=="ConservativeClass4ShearSuperposition")data=data.WithConservativeClass4ShearSuperposition();
                 else throw new ArgumentException("UnsupportedHighShearMethod");
             }
             int? memberClass=axialClass;
@@ -98,6 +99,12 @@ namespace GPC.Model.Checker
         {
             var input=plan.Input;
             if(!plan.Decisions.Any(d=>d.Status==SteelSelectionStatus.RequiresPreparation))yield break;
+            if(plan.MemberAnalysis?.BeamColumnParameters?.ConservativeClass4ShearSuperposition==true) {
+                for(int axis=1;axis<=2;axis++)
+                    if((axis==1?input.EffectiveActions.V1:input.EffectiveActions.V2)!=0)
+                        yield return SteelShearBucklingAssessment.EvaluateClass4PlateShear(input,axis,Code.GammaM1,Required("PlateSupportSource"));
+                yield break;
+            }
             if(plan.MemberAnalysis?.BeamColumnParameters?.ConservativeClass4WebInteraction==true)
             {
                 double eta=input.Code.SectionCode.Standard==SectionResistanceStandard.Ntc2018 ? 1 : input.Section.YieldStrength<=460
