@@ -11,7 +11,7 @@ i fix del consolidamento, risolti soltanto i due conflitti di versione.
 0be0190e: commit dedicato delle versioni Steel2.132.0.0, ModelChecker2.41.0.0,
 CompositeBridge1.31.0.1,Concrete0.36.0.1. Model isolato2133a2db invariato.
 
-COLLAUDO COMPLETO ESEGUITO SU0be0190e
+COLLAUDO COMPLETO PRECEDENTE ESEGUITO SU0be0190e
 build/Verify.ps1 -ModelRoot ../Model -Suites all -Results <cartella nuova>
 Concluso6/11/2026 alle08:14:18 Europe/Rome:10761 superati,0 falliti,
 1 NotExecuted preesistente (TimingOfTheConcreteRun). Nessuna allowlist usata.
@@ -31,7 +31,7 @@ STATO DEI PRIMI QUATTRO PUNTI
 piastre compresse/tagliate con bulloni discreti.3d ha benchmark dei nuclei
 e prove di dominio, non un oracolo dell'intero giunto richiesto.
 4a/4c/4d completati nel campo dichiarato.4b ampliato alle H/RHS del nuovo
-contratto; restano ali H snelle, RHS curvi/spessori diversi e famiglie
+contratto; restano ali H snelle, RHS curvi/pareti opposte diverse e famiglie
 aperte asimmetriche con taglio eccentrico. Non dichiarato universalmente chiuso.
 
 La formula7.1 non e' il dato mancante del punto3: occorre dimostrare i
@@ -46,5 +46,17 @@ FONTI
 Registro persistente aggiornato:32 PDF e81 URL, incluse due nuove anteprime
 A1 che NON contengono D.1.4.2. Nessuna bozza promossa a testo finale.
 L'utente ha chiesto un promemoria alle09:45 del6/11 per la copia finale;
-automazione singola richiedere-testo-finale-ec3-a1 impostata in questa chat.
+promemoria consegnato e automazione singola eliminata. Il censimento UNI
+non ha trovato il testo finale richiesto; indice in references/UNI_CATALOG.txt.
 Il lavoro sugli altri punti prosegue su richiesta esplicita dell'utente.
+
+COLLAUDO AGGIORNATO SU86904bf0
+605496e4: cassoni con tf!=tw e pareti opposte uguali,21 test Steel+2 ModelChecker.
+076960bd: merge origin/master b4080622, batch Concrete e9 test; risolte solo versioni.
+86904bf0: versioni dedicate Steel2.133.0.0,ModelChecker2.42.0.0,Concrete0.37.0.1.
+Concluso6/11 alle13:06:48:10793 superati,0 falliti,1 timing NotExecuted preesistente.
+Concrete988; Steel net472122; CompositeBridge529; Geotechnics202; Calculation175;
+ShallowFoundation29; EmbeddedWalls99; Steel.Members7405; Design274+273; ModelChecker697.
+API compatibili: ModelChecker622,Concrete2746,Design3431,Masonry9 firme.
+Guardia24 progetti superata. Nessun atteso storico/fixture/allowlist cambiato.
+Evidenza: C:\Users\g.pacini\Documents\ChatGPT\Checker\tmp\steel-consolidation-20261106\verify-all-02\summary.json

@@ -118,3 +118,15 @@ per nuova funzione; CompositeBridge1.31.0.1 per il fix F6;
 Concrete0.36.0.1 distingue il risultato unito e conserva i fix gia' presenti.
 Model isolato2133a2db invariato. Guardia23 progetti, nessun duplicato.
 Collaudo completo avviato sul risultato unito0be0190e; esito nel rapporto6/11.
+
+INTEGRAZIONE6/11 - BATCH CONCRETE E CASSONI SALDATI
+605496e4: interazione classe4 estesa ai cassoni con tf!=tw, pareti opposte
+uguali;21 nuovi test Steel e2 ModelChecker. Merge076960bd di origin/master
+b4080622 (batch Concrete): risolti solo i due conflitti delle versioni,
+conservati il nuovo codice e i fix precedenti. Nessun checkout altrui modificato.
+Versioni dedicate86904bf0: Steel2.133.0.0,ModelChecker2.42.0.0,Concrete0.37.0.1.
+CompositeBridge1.31.0.1 e Model2133a2db invariati. Guardia24 progetti superata.
+Verify completo sul risultato unito86904bf0, concluso6/11 alle13:06:48:
+10793 superati,0 falliti,1 timing non eseguito; API compatibili.
+Evidenze: tmp/steel-consolidation-20261106/verify-all-02/summary.json.
+Nessun atteso storico, fixture o allowlist modificato per questo blocco.

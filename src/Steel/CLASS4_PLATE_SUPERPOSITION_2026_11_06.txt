@@ -100,7 +100,7 @@ V1 nelle H monosimmetriche, instabilita' generale d'asta asimmetrica senza
 valori/modelli esterni qualificati, famiglie aperte C/T/L con alto taglio.
 Il punto4b e' esteso sostanzialmente, NON equivale a tutte le geometrie classe4.
 
-SECONDO BLOCCO6/11: CASS0NI SALDATI CON tf DIVERSO DA tw
+SECONDO BLOCCO6/11: CASSONI SALDATI CON tf DIVERSO DA tw
 Il caso uniforme sopra e' generalizzato senza cambiare il suo criterio:
 tf vale per entrambe le pareti orizzontali, tw per entrambe le verticali.
 Se tf!=tw e' obbligatorio SectionType.Welded; nessuna sezione laminata
@@ -120,3 +120,5 @@ due modi d'asta, curve e q, segni, prodotto non coerente, integrazione
 indipendente con compatibilita' integrale(q/t ds)=0 per spessori variabili.
 2 nuovi flussi ModelChecker EC/NTC, incluse tracce e archivio del rapporto.
 Mirati:71/71 Steel (21 nuovi+50 precedenti),9/9 ModelChecker(2 nuovi+7 precedenti).
+Collaudo completo su86904bf0:10793 superati,0 falliti,1 timing preesistente
+non eseguito; API compatibili. Comprende il merge Concrete076960bd.
