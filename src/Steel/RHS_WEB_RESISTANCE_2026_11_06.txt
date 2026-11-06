@@ -1,0 +1,73 @@
+RHS - RESISTENZA A INSTABILITA' PER TAGLIO IN UNA DIREZIONE
+6 novembre2026. N,mm,MPa; V1 lungo la base, V2 lungo l'altezza.
+
+FONTE INDIPENDENTE
+SSAB Europe Oy, Ongelin/Valkonen, SSAB Domex Tube - Structural hollow
+sections EN1993 handbook,2016, ISBN978-952-93-7450-2.
+https://www.ssab.com/-/media/files/en/infra/news-and-articles/ssab-domex-tube-structural-hollow-sections-en-1993-handbook.pdf
+Paragrafo2.7.1.2, pp104-105, eq2.79/2.80, Tabella2.20;
+esempio2.12 p108: RHS400x200x6, A=6963mm2, fy420/355MPa,
+gammaM1=1, VbRd=948.5/871.9kN. Queste pagine sono state lette in immagine.
+Copia completa conservata fuori Git: references/steel/documents/
+SSAB_Domex_Tube_Handbook_2016.pdf; provenienza/hash nel REFERENCE_REGISTER.
+
+MODELLO
+RHS uniforme, pareti continue, irrigidimenti trasversali agli appoggi,
+categoria non rigida, contributo delle ali nullo, eta=1. Il richiamo
+normativo e' EN1993-1-5:2006 5.3/Tabella5.1; in NTC si conservano gammaM0
+e gammaM1 italiani (1.05 oppure1.10 per ponti), cap12 per il metodo EC.
+E=210000MPa e nu=.3: nessun cambio implicito del coefficiente86.4.
+
+Per profondita d parallela al taglio e spessore t:
+- RHS raccordato concentrico: c=max(d-3t,d-2ro), dove ro e' il raggio
+  esterno reale. Il secondo termine evita di sottostimare la parete piana
+  quando ro<1.5t. Nei raggi standard il primo termine e' quello SSAB.
+- RHS vivo: c=d-2t. Per cassoni saldati si usa solo l'area2ct delle due
+  pareti libere, comunque non superiore all'area plastica a taglio.
+- epsilon=sqrt(235/fy), lambda=c/(86.4t epsilon), chi=min(1,.83/lambda).
+- VbwRd=Av chi fy/(sqrt3 gammaM1), VRd=min(VbwRd,VplRd).
+Il nucleo Ec3WebShearBuckling e' riusato; nessuna formula di riduzione duplicata.
+
+Il manuale usa un prodotto formato a freddo. Il suo esempio controlla
+indipendentemente l'aritmetica e la geometria, NON modifica il contratto
+del mapping comune: i RHS raccordati nella pipeline restano HotFinished
+e Rolled. Il prodotto freddo non viene promosso a verifica completa.
+Sono richiesti raggi concentrici, spessore uniforme, assi allineati,
+assenza di fori dichiarata e assenza di torsione. Il generico SectionRHS
+con R>0 resta rifiutato: i suoi raggi non sono inclusi nelle proprieta Model.
+
+INGRESSO E TRACCE
+SteelShearBucklingAssessment.EvaluateNonRigidRhsWebs(input,axis,gammaM1,
+  supportDetailSource), poi SteelVerificationPipeline.Execute(plan,...).
+RhsWebsOnly=true distingue la resistenza delle sole pareti: non imposta
+IsBucklingExcluded e non qualifica ConservativePlateNormalInteraction.
+Traccia: asse, profondita, larghezza piana/di calcolo, spessore, Av, lambda,
+gammaM1, VbwRd, VplRd e resistenza governante. Input/assessment devono essere
+lo stesso snapshot. Il supportDetailSource identifica la verifica separata
+di appoggi, irrigidimenti, attacchi e introduzione delle forze: non la esegue.
+ModelChecker: RhsWebResistance=NonRigidEndPost, RhsWebSupportSource,
+SectionFingerprint; dichiarazione Unperforated. Parametri e sorgenti fanno
+parte della mappa gia' inclusa nelle impronte. Esclusivi rispetto ai modelli
+H, all-plate e alle esclusioni esterne a taglio.
+
+PROVE
+24 nuovi test Steel: esempio SSAB S420/S355, entrambi gli assi, segni,
+EC/NTC ponti, pareti vive/raccordate, casi sotto/sopra la resistenza,
+area delle sole pareti del cassone saldato, limite plastico, raggi piccoli,
+materiali/geometrie non ammessi, supporto mancante e snapshot diverso.
+La S420 stampata passa per lambda=.9851 e chi=.8426: la differenza rispetto
+al calcolo non arrotondato e' propagata esplicitamente, senza tolleranza
+percentuale arbitraria e senza cambiare gli attesi storici.
+5 nuovi test ModelChecker: i quattro flussi codice/asse, archivio,
+invalidazione per modifica azioni, ritorno NotEvaluated con N concomitante,
+schema e rifiuto di modelli incompatibili completi dei propri parametri.
+
+STATO DEL PUNTO4b
+Chiusa questa estensione del TAGLIO IN UNA DIREZIONE. Restano aperti
+l'interazione generale N-M1-M2-V1-V2 per RHS raccordati, le ali H snelle,
+le pareti opposte disuguali e i casi eccentrici delle sezioni aperte.
+Questo modello non qualifica instabilita' d'asta, due tagli concomitanti,
+distorsione, patch loading o coprigiunti con bulloni discreti (punto3).
+
+Collaudi mirati finali:104/104 Steel e42/42 ModelChecker,0 fallimenti.
+TRX in tmp/steel-consolidation-20261106/rhs-tests (file *-final.trx).

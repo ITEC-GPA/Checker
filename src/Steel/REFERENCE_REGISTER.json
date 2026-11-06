@@ -41,6 +41,15 @@
       "status": "Local PDF preserved; detailed edition/pages/use in source notes; preservation is not a new validation."
     },
     {
+      "file": "SSAB_Domex_Tube_Handbook_2016.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\SSAB_Domex_Tube_Handbook_2016.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\SSAB_Domex_Tube_Handbook_2016.pdf",
+      "sha256": "b2fe913b32d142a95ec86148511923c9c591ad3c229b250a713c2ce361c6b08b",
+      "bytes": 5798818,
+      "provenance": "Downloaded2026-11-06 from official SSAB website; exact URL in webReferences",
+      "status": "Complete2016 handbook. pp104-105/108/130 visually checked; Example2.12 implemented with explicit propagation of printed intermediate rounding."
+    },
+    {
       "file": "ArcelorMittal_UPN.pdf",
       "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\tmp\\pdfs\\ArcelorMittal_UPN.pdf",
       "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\ArcelorMittal_UPN.pdf",
@@ -294,6 +303,14 @@
     }
   ],
   "webReferences": [
+    {
+      "id": "URL-082",
+      "url": "https://ascjournal.com/down/vol4no3/vol4no3_6.pdf",
+      "title": "Ma, Butterworth, Clifton: Practical analysis procedure for compressive local buckling of skin sheets in composite panels",
+      "editionAndPages": "Advanced Steel Construction4(3),2008,pp230-242",
+      "status": "Consulted2026-11-06: infinite plate, continuous clamped edges and tensionless filler foundation. Not a discrete-bolt splice benchmark; no resistance implemented from this paper.",
+      "citedBy": []
+    },
     {
       "id": "URL-001",
       "url": "https://cdn.standards.iteh.ai/samples/62445/836bf15b4eee4737b544067f11f81900/SIST-EN-1993-1-6-2007-A1-2017.pdf",
@@ -955,6 +972,17 @@
       "status": "Publisher abstract consulted2026-11-06; full article unavailable403. No numerical benchmark claimed.",
       "citedBy": [
         "src/Steel/Connections/COMPRESSED_COVER_MODEL_AUDIT_2026_11_05.txt:97"
+      ]
+    },
+    {
+      "id": "URL-083",
+      "url": "https://www.ssab.com/-/media/files/en/infra/news-and-articles/ssab-domex-tube-structural-hollow-sections-en-1993-handbook.pdf",
+      "title": "SSAB Domex Tube - Structural hollow sections EN1993 handbook, Ongelin/Valkonen",
+      "editionAndPages": "2016, ISBN978-952-93-7450-2; 2.7.1.2 pp104-105, Example2.12 p108; 2.9.1.6.2 p130",
+      "status": "Complete official PDF archived2026-11-06; cited pages visually checked. S420/S355 independent RHS web benchmarks implemented. Does not qualify combined class4 normal/shear interaction or a bolted splice.",
+      "citedBy": [
+        "src/Steel/RHS_WEB_RESISTANCE_2026_11_06.txt:7",
+        "tests/Steel.Members.Tests/RhsWebResistanceTests.cs:30"
       ]
     },
     {

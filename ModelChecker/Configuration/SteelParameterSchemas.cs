@@ -125,6 +125,13 @@ namespace GPC.Model.Checker.Configuration
                     description:"Opt-in N-M1-V2 interaction, including wholly compressed class4 H web: continuous flange edges, no longitudinal stiffeners or patch load; EN1993-1-5 7.1(4)-(5).");
                 Require("HWebNormalInteractionNeedsResistance","The interaction needs computed resistance of the same web.",new[]{"HWebResistance","HWebSupportSource"},Has("HWebNormalInteraction"));
                 Require("HWebFingerprintRequired","Web support assessment must bind to the section.",new[]{"SectionFingerprint"},Has("HWebResistance"));
+                Add("RhsWebResistance",EngineParameterKind.Choice,choices:new[]{"NonRigidEndPost"},
+                    description:"Uniform RHS web contribution in one shear direction, eta=1; concentric rounded walls use the existing hot-finished shear mapping. No normal/combined-shear interaction.");
+                Add("RhsWebSupportSource",description:"Separate verification of RHS support stiffeners, attachments and force introduction for this state.");
+                Together("RhsWebSupportPair","RhsWebResistance","RhsWebSupportSource");
+                Require("RhsWebFingerprintRequired","RHS support assessment binds to the complete section.",new[]{"SectionFingerprint"},Has("RhsWebResistance"));
+                rules.Add(new EngineParameterRule("RhsWebAssessmentConflict","Choose the RHS web model or another shear assessment.",
+                    new[]{Has("RhsWebResistance")},null,new[]{"HWebResistance","HWebNormalInteraction","Class4ShearInteraction","ShearBucklingExcluded1","ShearBucklingExcluded2"}));
                 Add("Class4ShearInteraction",EngineParameterKind.Choice,choices:new[]{"ConservativePlateSuperposition"},
                     description:"Conservative effective normal stress plus qualified shear-field ratios; H with compact flange outstands or sharp RHS with equal opposite walls, continuous plate edges and no patch load/torsion.");
                 Add("PlateSupportSource",description:"Verified supports, diaphragms, continuous attachments and end force transfer for this plate model.");

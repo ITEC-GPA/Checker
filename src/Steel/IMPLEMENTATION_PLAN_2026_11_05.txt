@@ -102,6 +102,11 @@ o progetto sismico esteso in questo ciclo.
    Secondo blocco6/11: cassoni saldati con tf!=tw e pareti opposte uguali,
    resistenza minima in flusso qRd,21 nuovi test Steel+2 ModelChecker.
    Restano escluse pareti opposte disuguali e raggi, non tutti gli spessori diversi.
+   Terzo blocco6/11: RHS uniformi, anche raccordati concentrici nel mapping
+   HotFinished, resistenza delle pareti a un taglio per volta; esempio
+   indipendente SSAB2.12,24 test Steel+5 ModelChecker, flusso e archivio.
+   RHS_WEB_RESISTANCE_2026_11_06.txt. Non chiude l'interazione generale
+   N-M-V dei RHS curvi e non qualifica i coprigiunti del punto3.
 
 5. TRANSIZIONI FRA SEZIONI - da qualificare
 5a Prima larghezze diverse, con distribuzione ed eccentricita' esplicite.

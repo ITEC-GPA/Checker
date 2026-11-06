@@ -99,8 +99,12 @@ namespace GPC.Checkers.Steel.Pipeline
                 bool plateMember=decision.Target==SteelCheckTarget.MemberStability
                     && memberAnalysis?.BeamColumnParameters?.ConservativeClass4ShearSuperposition==true;
                 bool plateSection=input.Code.ConservativeClass4ShearInteraction && decision.Target!=SteelCheckTarget.MemberStability;
-                bool acceptsWebResistance = decision.Method == SteelMethod.EffectiveNormalResistance || decision.Method == SteelMethod.SectionShear2 || class4Member || plateMember || plateSection;
-                if (used.Any(a => !a.IsBucklingExcluded && (!acceptsWebResistance || !a.BucklingResistance.HasValue)))
+                bool acceptsWebResistance = decision.Method == SteelMethod.EffectiveNormalResistance
+                    || decision.Method == SteelMethod.SectionShear2
+                    || decision.Method == SteelMethod.SectionShear1 && used.All(x=>x.RhsWebsOnly)
+                    || class4Member || plateMember || plateSection;
+                if (used.Any(a => a.RhsWebsOnly && decision.Method!=SteelMethod.SectionShear1 && decision.Method!=SteelMethod.SectionShear2
+                    || !a.IsBucklingExcluded && (!acceptsWebResistance || !a.BucklingResistance.HasValue)))
                     return new SteelCheckExecution(decision, SteelExecutionStatus.NotSupported,
                         "ShearBuckling.ResistanceMethodRequired",
                         "Shear buckling is not excluded. A qualified resistance/interaction method is required; plastic resistance cannot be used.",
@@ -154,17 +158,18 @@ namespace GPC.Checkers.Steel.Pipeline
                     case SteelMethod.SectionBending2:
                         result = SectionResistanceVerifier.Bending(code, a.M2, section.Wpl2, section.Wel2, s.YieldStrength, decision.SectionClass); break;
                     case SteelMethod.SectionShear1:
-                        result = Shear(input, section, 1); break;
                     case SteelMethod.SectionShear2:
                         if (used.Any(v => v.BucklingResistance.HasValue)) {
                             var web = used.Single(v => v.BucklingResistance.HasValue);
-                            double utilization = Math.Abs(a.V2) / web.BucklingResistance.Value;
+                            double utilization = Math.Abs(web.Axis==1?a.V1:a.V2) / web.BucklingResistance.Value;
                             SteelInputValidation.Finite(utilization, "web utilization");
                             return new SteelCheckExecution(decision, utilization <= 1 ? SteelExecutionStatus.Passed : SteelExecutionStatus.Failed,
-                                reference: web.Reference, scope: web.PanelDetails==null?"H web-only shear resistance; boundary detailing assessed externally; no flange contribution or normal interaction.":"H web-only shear resistance with computed actual boundary detailing; no flange contribution or normal interaction.",
+                                reference: web.Reference, scope: web.RhsWebsOnly
+                                    ?"RHS web-only resistance in one shear direction; support stiffeners and load introduction assessed externally; no normal/combined-shear interaction or member stability."
+                                    :web.PanelDetails==null?"H web-only shear resistance; boundary detailing assessed externally; no flange contribution or normal interaction.":"H web-only shear resistance with computed actual boundary detailing; no flange contribution or normal interaction.",
                                 resistance: web.BucklingResistance, resistanceUnit: "N", utilization: utilization, trace: web.Trace, shearAssessments: used);
                         }
-                        result = Shear(input, section, 2); break;
+                        result = Shear(input, section, decision.Method==SteelMethod.SectionShear1?1:2); break;
                     case SteelMethod.Ec3PlasticHInteraction:
                         return PlasticH(input, decision, section, used);
                     case SteelMethod.IHPlasticInteractionFormulas:

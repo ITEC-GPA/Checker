@@ -32,6 +32,10 @@ Secondo blocco6/11: ammessi anche cassoni saldati con tf!=tw, pareti opposte
 uguali; qRd minimo dei flussi resistenti delle pareti. RHS curvi/pareti
 opposte disuguali e ali H snelle restano fuori dal nuovo metodo.
 Il coprigiunto interamente compresso ad alto taglio resta non qualificato.
+Terzo blocco6/11: RHS_WEB_RESISTANCE_2026_11_06.txt. Resistenza a instabilita'
+a taglio di RHS uniformi, anche raccordati concentrici HotFinished, in una
+direzione per volta. Fonte SSAB, esempio2.12;24 test Steel+5 ModelChecker.
+Non estende ai RHS curvi l'interazione normale/all-plate del secondo blocco.
 Risultati, commit e limiti del collaudo nel rapporto MEMBER_COMPLETION.
 Fonti persistenti per il successivo download: REFERENCE_REGISTER.json;
 copie fuori Git in ChatGPT/Checker/references/steel/documents (non temporanee).
@@ -80,6 +84,8 @@ Sezioni e aste:
   Class4ShearInteraction=ConservativePlateSuperposition,PlateSupportSource,
   SectionFingerprint; asta: HighShearMethod=ConservativeClass4ShearSuperposition
   e PlateSupportSource. I vecchi ingressi conservano il loro comportamento.
+  Taglio RHS snello in una direzione: EvaluateNonRigidRhsWebs; ModelChecker:
+  RhsWebResistance=NonRigidEndPost, RhsWebSupportSource, SectionFingerprint.
   NcrT/Mcr: SteelMemberSchemePreparation.TorsionalMode e
   EndRestrainedBendingLowerBound; condizioni reali esplicite, senza FEM locale.
 

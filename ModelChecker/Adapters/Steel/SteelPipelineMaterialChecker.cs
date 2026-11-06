@@ -201,6 +201,10 @@ namespace GPC.Model.Checker
                         yield return SteelShearBucklingAssessment.EvaluateClass4PlateShear(input,axis,_owner.Code.GammaM1,options.PlateSupportSource);
                         continue;
                     }
+                    if(options.RhsWebResistance!=null) {
+                        yield return SteelShearBucklingAssessment.EvaluateNonRigidRhsWebs(input,axis,_owner.Code.GammaM1,options.RhsWebSupportSource);
+                        continue;
+                    }
                     if (axis == 2 && options.HWebResistance != null)
                     {
                         double eta = input.Code.SectionCode.Standard == SectionResistanceStandard.Ntc2018 ? 1
