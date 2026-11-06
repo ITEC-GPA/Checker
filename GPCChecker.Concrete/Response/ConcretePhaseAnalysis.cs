@@ -14,7 +14,7 @@ namespace GPC.Checkers.Concrete.Response
     /// Geometry and materials are fixed throughout. The checker must not be mutated or used concurrently during a call.
     /// Previous states are numerical predictors only. Neither plastic strains nor damage/crack history are accumulated.
     /// Nonlinear softening may admit multiple equilibria: this is continuation, not a proof of global uniqueness/stability.</summary>
-    public static class ConcretePhaseAnalysis
+    public static partial class ConcretePhaseAnalysis
     {
         public static ConcretePhaseAnalysisResult Calculate(SectionChecker checker, IEnumerable<ConcretePhase> phases,
             ConcretePhaseOptions options = null, CancellationToken cancellationToken = default)
@@ -116,11 +116,11 @@ namespace GPC.Checkers.Concrete.Response
             // N and M tolerances have compatible relative scales even when one target component vanishes.
             private double Merit(ForceTuple value, ForceTuple requested)
             {
-                var f = section.External(value); var t = section.External(requested);
-                double scale = Math.Max(Math.Abs(t.N), Math.Max(Math.Abs(t.M1), Math.Abs(t.M2)) / section.Length);
+                var f = section.OutputForces(value); var t = section.OutputForces(requested);
+                double scale = Math.Max(Math.Abs(t.N), Math.Max(Math.Abs(t.Mx), Math.Abs(t.My)) / section.Length);
                 double nt = options.ForceTolerance + options.RelativeTolerance * scale;
                 double mt = options.MomentTolerance + options.RelativeTolerance * scale * section.Length;
-                return Math.Max(Math.Abs(f.N - t.N) / nt, Math.Max(Math.Abs(f.M1 - t.M1), Math.Abs(f.M2 - t.M2)) / mt);
+                return Math.Max(Math.Abs(f.N - t.N) / nt, Math.Max(Math.Abs(f.Mx - t.Mx), Math.Abs(f.My - t.My)) / mt);
             }
 
             private bool Solve(ForceTuple requested, double imposed, double[] guess, out double[] solution, out ForceTuple integrated)

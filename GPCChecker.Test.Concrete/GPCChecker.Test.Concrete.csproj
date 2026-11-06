@@ -91,6 +91,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConcretePhaseAnalysisTests.cs" />
+    <Compile Include="ConcretePhaseBatchTests.cs" />
     <Compile Include="ConcreteTestBase.cs" />
     <Compile Include="ConcreteControlTests.cs" />
     <Compile Include="CriticalBranchReferenceTests.cs" />
