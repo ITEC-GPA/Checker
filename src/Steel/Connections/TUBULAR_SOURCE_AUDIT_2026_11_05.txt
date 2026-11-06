@@ -36,6 +36,14 @@ https://cdn.standards.iteh.ai/samples/62445/836bf15b4eee4737b544067f11f81900/SIS
 Non si dichiara conformita' all'emendamento non letto. Resta un riscontro
 editoriale aperto; non impedisce gli altri lavori sulla versione esplicita.
 
+Ricerca6/11: archiviate altre due anteprime BS della versione finale.
+La prima ha11 pagine (copertine/indice/preambolo e pp5-7 della norma),
+la seconda ha11 pagine (pp50-60,AnnexA/B). Nessuna contiene D.1.4.2.
+https://www.normsplash.com/Samples/BSI/115841314/BS-EN-1993-1-6-2007-A1-2017-en.pdf
+https://www.normsplash.com/Samples/BSI/115841314/BS-EN-1993-1-6-2007-A1-2017-en-2.pdf
+File locali con suffisso PREVIEW; chiesto all'utente l'eventuale percorso
+di una copia finale completa. Nessuna equivalenza fra indice e testo normativo.
+
 Risultati riproducibili: tests/Steel.Members.Tests/TubularJointSourceAuditTests.cs.
 TRX: tmp/steel-consolidation-20261105/phase1-tests/phase1-tubular-correct-domain.trx
 rispetto alla cartella di lavoro ChatGPT/Checker. Fonti persistenti:

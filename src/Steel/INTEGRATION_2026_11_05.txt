@@ -105,3 +105,16 @@ Steel2.130.0.0,Model isolato2133a2db invariati. Guardia23 progetti OK.
 Collaudo completo su27c06b09:10513 passati,0 falliti,1 timing non eseguito;
 API compatibili. Dettaglio in CONSOLIDATION_RESULT_2026_11_05.txt.
 Nessun worktree altrui modificato e nessun push/rilascio anticipato.
+
+CONTROLLO E INTEGRAZIONE6/11 - F6 E NUOVO MASTER CONCRETE
+Mergefb97e3d8: integrato37619bda, fix quote di armatura della soletta da
+F6/unificazione, senza conflitti. Gli altri worktree sono stati solo letti.
+Durante il completamento Steel e' arrivato origin/master f44a1b0c, quattro
+commit con fasi N-M-M/ritiro Concrete e relative prove. Integrato42a660aa
+dopo avere salvato il blocco Steel5cb6da89. Conflitti nei soli due file
+di versione Concrete, conservato il codice di entrambi i rami.
+Versioni in commit dedicato0be0190e: Steel2.132.0.0 e ModelChecker2.41.0.0
+per nuova funzione; CompositeBridge1.31.0.1 per il fix F6;
+Concrete0.36.0.1 distingue il risultato unito e conserva i fix gia' presenti.
+Model isolato2133a2db invariato. Guardia23 progetti, nessun duplicato.
+Collaudo completo avviato sul risultato unito0be0190e; esito nel rapporto6/11.

@@ -82,3 +82,26 @@ per il ramo gia' qualificato dei coprigiunti, per l'anima H continua e per
 CompositeBridge.BridgeBendingShear.ElasticInteraction. La condivisione
 della formula non condivide l'applicabilita': il rifiuto dei coprigiunti
 interamente compressi sopra0.5 VbwRd e' mantenuto con gli stessi controlli.
+
+ULTERIORE RICERCA6/11 - NESSUNA QUALIFICA IMPLICITA
+Consultati ulteriori riferimenti originali tramite abstract/record degli
+editori, senza attribuire loro benchmark numerici non letti:
+- Smith,Bradford,Oehlers(2001), Structures and Buildings146(2),115-127,
+  DOI10.1680/stbu.2001.146.2.115. Prove di piastre trattenute in punti discreti
+  contro un supporto di calcestruzzo e modello Rayleigh-Ritz con contatto
+  unilaterale; il supporto e il tratto libero differiscono dal giunto richiesto.
+  https://digital.library.adelaide.edu.au/items/52c0fe3d-99f9-4b86-886c-02efcb4e7c6e
+- Local buckling of bolted steel plates with different stiffener configuration
+  (Engineering Structures,2016): variano passo, spessore e irrigidimenti di
+  piastre applicate a travi; il solo abstract non fornisce un oracolo trasferibile.
+  https://www.sciencedirect.com/science/article/abs/pii/S0141029616300888
+- Shear Testing of Topologically Optimised Web Cover Plates in Splice
+  Connections,Materials16(22),7077(2023): prove a taglio di coprigiunti con
+  topologia specifica, non qualifica di compressione/taglio delle otto piastre.
+  https://www.mdpi.com/1996-1944/16/22/7077
+Le verifiche nuove di H/RHS usano bordi di piastra CONTINUI e il campo di
+trave: copiarle sul coprigiunto cambierebbe il problema fisico. Nessun
+flag di esclusione, moltiplicatore esterno senza modello o test modificato
+e' stato introdotto per trasformare il rifiuto attuale in Passed.
+Restano necessari un dettaglio con rigidezze/vincoli verificabili e un
+riscontro indipendente del medesimo schema. Il punto3 non e' chiuso.

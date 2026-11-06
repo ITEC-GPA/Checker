@@ -1,11 +1,14 @@
 CHECKER.STEEL - STATO CORRENTE E INGRESSI CONSIGLIATI
-Aggiornamento: 5 novembre 2026. Unita: N, mm, MPa, Nmm.
+Aggiornamento: 6 novembre 2026. Unita: N, mm, MPa, Nmm.
 
 Questo e l'indice corrente della libreria. I piani datati, le note PHASE_*
 e STEEL_REVIEW_2026_10_27.txt conservano decisioni ed evidenze storiche;
 non sono un elenco aggiornato delle funzionalita mancanti. Le specifiche
 tecniche dei metodi restano valide per il rispettivo contratto.
 La versione numerica si legge in GPCChecker.Steel.csproj/AssemblyInfo.cs.
+Ultimo blocco collaudato6/11: CONSOLIDATION_RESULT_2026_11_06.txt,
+10761 superati,0 falliti,1 timing non eseguito; API compatibili su0be0190e.
+Steel2.132.0.0,ModelChecker2.41.0.0,CompositeBridge1.31.0.1,Concrete0.36.0.1.
 Consolidamento avviato il5 novembre: IMPLEMENTATION_PLAN_2026_11_05.txt;
 base dei branch e collaudo con Model aggiornato: INTEGRATION_2026_11_05.txt.
 Le nuove fasi non sono coperture gia' implementate.
@@ -21,8 +24,12 @@ su H/RHS/CHS classi1-3; interazione efficace e d'asta H classe4 N-M1-V2;
 tre vincoli ideali di ingobbamento per NcrT e limite inferiore Mcr della
 campata trattenuta; flusso FEM generico collaudato sui nuovi percorsi.
 Metodi espliciti, non attivati automaticamente dai vecchi contratti.
-Restano fuori RHS/asimmetriche e doppio taglio/flessione minore classe4;
-il coprigiunto interamente compresso ad alto taglio resta non qualificato.
+Estensione6/11: CLASS4_PLATE_SUPERPOSITION_2026_11_06.txt. N-M1-M2-V1-V2
+su H composte con ali compatte e RHS a spigoli vivi/spessore uniforme;
+controllo di tutte le pareti, picchi di taglio e limite critico elastico.
+H con ali diverse: ammesso V2, rifiutato V1 per il centro di taglio eccentrico.
+RHS curvi/spessori diversi e ali H snelle restano fuori dal nuovo metodo.
+Il coprigiunto interamente compresso ad alto taglio resta non qualificato.
 Risultati, commit e limiti del collaudo nel rapporto MEMBER_COMPLETION.
 Fonti persistenti per il successivo download: REFERENCE_REGISTER.json;
 copie fuori Git in ChatGPT/Checker/references/steel/documents (non temporanee).
@@ -65,6 +72,12 @@ Sezioni e aste:
   ModelChecker: HighShearMethod=ConservativeShearSuperposition oppure
   ConservativeClass4WebInteraction; sezione HWebNormalInteraction=
   ConservativeInPlane. Il caso classe4 richiede le evidenze del supporto.
+  Estensione6/11: context.WithConservativeClass4ShearInteraction e
+  EvaluateClass4PlateShear per ciascun taglio attivo; sull'asta
+  WithConservativeClass4ShearSuperposition. ModelChecker sezione:
+  Class4ShearInteraction=ConservativePlateSuperposition,PlateSupportSource,
+  SectionFingerprint; asta: HighShearMethod=ConservativeClass4ShearSuperposition
+  e PlateSupportSource. I vecchi ingressi conservano il loro comportamento.
   NcrT/Mcr: SteelMemberSchemePreparation.TorsionalMode e
   EndRestrainedBendingLowerBound; condizioni reali esplicite, senza FEM locale.
 

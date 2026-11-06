@@ -58,8 +58,9 @@ o progetto sismico esteso in questo ciclo.
    tratto libero e vincoli reali. I bulloni non sono appoggi continui.
 3b Ricavare i valori critici combinati per lo STESSO pannello e vincoli;
    non combinare la striscia compressa con la lastra intera a taglio.
-3c Applicare EN1993-1-5 sezione10 con i controlli gia' disponibili di
-   bulloni, sezioni nette, blocchi, genitori e trasferimenti.
+3c Applicare EN1993-1-5 7.1(4)-(5), oppure sezione10 se appropriata al
+   modello qualificato, insieme ai controlli di bulloni, sezioni nette,
+   blocchi, genitori e trasferimenti. Nessuna scorciatoia fra modelli diversi.
 3d Benchmark indipendenti: compressione, taglio, interazione, variazione
    di passo/sbalzi e limiti. Nessun ampliamento del campo senza prova.
    Prerequisito: SECTION10_MODEL_REVIEW_2026_11_01.txt in Connections.
@@ -69,7 +70,7 @@ o progetto sismico esteso in questo ciclo.
    analitici e l'oracolo indipendente della famiglia a bulloni discreti.
    Audit: Connections/COMPRESSED_COVER_MODEL_AUDIT_2026_11_05.txt.
 
-4. COMPLETARE I SOTTOCASI D'ASTA -4a/4c/4d completati;4b circoscritto alle H
+4. COMPLETARE I SOTTOCASI D'ASTA -4a/4c/4d completati;4b H/RHS nel campo6/11
 4a Due tagli attivi nelle classi1-3: resistenze concomitanti e riduzioni
    cautelative motivate, senza attribuire due volte la stessa area.
 4b Classe4 con alto taglio: compatibilita' fra sezione efficace,
@@ -90,6 +91,14 @@ o progetto sismico esteso in questo ciclo.
    preesistente non eseguito; API compatibili. Punto4 non esteso implicitamente
    a tutti i profili classe4, ne' al modello fisico dei coprigiunti del3.
    Dettagli, fonti, ipotesi e risultati: MEMBER_COMPLETION_2026_11_05.txt.
+   Estensione6/11, commit5cb6da89: controllo di tutte le pareti con due
+   tagli e due momenti per H composte ad ali compatte e RHS uniformi vivi;
+   sezioni H asimmetriche con solo V2, aste H/RHS simmetriche. Metodo
+   cautelativo esplicito, picchi di taglio/limite elastico, q=1-r1-r2.
+   50 nuovi test Steel e7 nuovi flussi ModelChecker. Dettagli e limiti in
+   CLASS4_PLATE_SUPERPOSITION_2026_11_06.txt. Non comprende ali H snelle,
+   RHS curvi/spessori diversi o taglio eccentrico nelle sezioni aperte.
+   Il punto4b resta parziale rispetto alla richiesta senza limiti di famiglia.
 
 5. TRANSIZIONI FRA SEZIONI - da qualificare
 5a Prima larghezze diverse, con distribuzione ed eccentricita' esplicite.

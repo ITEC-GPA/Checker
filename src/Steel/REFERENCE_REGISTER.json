@@ -1,9 +1,27 @@
 {
-  "updated": "2026-11-05",
+  "updated": "2026-11-06",
   "scope": "Checker Steel documents and source references; may include shared Concrete/bridge dependencies cited by the workflow.",
   "archiveDirectory": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel",
   "note": "Complete source PDFs are kept outside Git. Citation-only records are not necessarily downloaded or validated; previews and unverified references are explicitly distinguished. Do not delete these copies with temporary build files.",
   "localDocuments": [
+    {
+      "file": "BS_EN1993-1-6_A1_2017_ANNEX_A_B_PREVIEW.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\BS_EN1993-1-6_A1_2017_ANNEX_A_B_PREVIEW.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\BS_EN1993-1-6_A1_2017_ANNEX_A_B_PREVIEW.pdf",
+      "sha256": "7cf3a974257bfc26b867acaba7d854dde08354df299159763d624d65a40fb151",
+      "bytes": 1118296,
+      "provenance": "Downloaded2026-11-06 from Normsplash; exact URLs in webReferences",
+      "status": "PREVIEW ONLY: 11 pages; no D.1.4.2/D.40. Does not close final-amendment verification."
+    },
+    {
+      "file": "BS_EN1993-1-6_A1_2017_NORMSPLASH_PREVIEW.pdf",
+      "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\BS_EN1993-1-6_A1_2017_NORMSPLASH_PREVIEW.pdf",
+      "storedPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\BS_EN1993-1-6_A1_2017_NORMSPLASH_PREVIEW.pdf",
+      "sha256": "60f8a1c3449e40a9e4adf563be1cbaf57f7dad6032a95739ea67fbbaf26048c4",
+      "bytes": 494010,
+      "provenance": "Downloaded2026-11-06 from Normsplash; exact URLs in webReferences",
+      "status": "PREVIEW ONLY: 11 pages; no D.1.4.2/D.40. Does not close final-amendment verification."
+    },
     {
       "file": "BS_EN_1993-1-6_2007_A1_2017_PREVIEW_3_PAGES.pdf",
       "originalPath": "C:\\Users\\g.pacini\\Documents\\ChatGPT\\Checker\\references\\steel\\documents\\BS_EN_1993-1-6_2007_A1_2017_PREVIEW_3_PAGES.pdf",
@@ -305,6 +323,16 @@
       ]
     },
     {
+      "id": "URL-077",
+      "url": "https://digital.library.adelaide.edu.au/items/52c0fe3d-99f9-4b86-886c-02efcb4e7c6e",
+      "title": "Smith, Bradford, Oehlers: Buckling tests on steel plates restrained at discrete points in the retrofit of reinforced concrete beams",
+      "editionAndPages": "Structures and Buildings146(2),2001,pp115-127; DOI10.1680/stbu.2001.146.2.115",
+      "status": "Original repository abstract consulted2026-11-06. Discrete supports/unilateral concrete backing differ from the splice; full benchmark not obtained or implemented.",
+      "citedBy": [
+        "src/Steel/Connections/COMPRESSED_COVER_MODEL_AUDIT_2026_11_05.txt:93"
+      ]
+    },
+    {
       "id": "URL-004",
       "url": "https://eurocodes.jrc.ec.europa.eu/publications/eurocodes-background-applications-design-steel-buildings-worked-examples",
       "title": "",
@@ -332,6 +360,7 @@
       "status": "Pages visually checked; two subpanel benchmarks implemented. Does not qualify the bolted-cover model.",
       "citedBy": [
         "src/Steel/CLASS4_AUDIT.txt:3",
+        "src/Steel/CLASS4_PLATE_SUPERPOSITION_2026_11_06.txt:29",
         "src/Steel/CLASS4_SECTION_WORKFLOW.txt:51",
         "src/Steel/CLASSIFICATION_REFACTOR_VERIFICATION.json:138",
         "src/Steel/MEMBER_COMPLETION_2026_11_05.txt:109",
@@ -786,6 +815,16 @@
       ]
     },
     {
+      "id": "URL-078",
+      "url": "https://www.mdpi.com/1996-1944/16/22/7077",
+      "title": "Shear Testing of Topologically Optimised Web Cover Plates in Splice Connections",
+      "editionAndPages": "Materials16(22),7077,2023",
+      "status": "Original abstract consulted2026-11-06; full retrieval429. Pure shear/topology-specific tests do not qualify fully compressed standard bolted covers.",
+      "citedBy": [
+        "src/Steel/Connections/COMPRESSED_COVER_MODEL_AUDIT_2026_11_05.txt:101"
+      ]
+    },
+    {
       "id": "URL-043",
       "url": "https://www.newsteelconstruction.com/wp/ad-395-nominally-pinned-connections-and-axial-forces/",
       "title": "",
@@ -838,6 +877,26 @@
       ]
     },
     {
+      "id": "URL-079",
+      "url": "https://www.normsplash.com/Samples/BSI/115841314/BS-EN-1993-1-6-2007-A1-2017-en-2.pdf",
+      "title": "BS EN1993-1-6:2007+A1:2017 AnnexA/B preview",
+      "editionAndPages": "11 PDF pages: printed pp50-60",
+      "status": "Archived2026-11-06. PREVIEW: no D.1.4.2; does not close A1 editorial audit.",
+      "citedBy": [
+        "src/Steel/Connections/TUBULAR_SOURCE_AUDIT_2026_11_05.txt:43"
+      ]
+    },
+    {
+      "id": "URL-080",
+      "url": "https://www.normsplash.com/Samples/BSI/115841314/BS-EN-1993-1-6-2007-A1-2017-en.pdf",
+      "title": "BS EN1993-1-6:2007+A1:2017 preview",
+      "editionAndPages": "11 PDF pages: cover/contents/foreword and clauses1.1-1.3, printed pp5-7",
+      "status": "Archived2026-11-06. PREVIEW: no D.1.4.2; does not close A1 editorial audit.",
+      "citedBy": [
+        "src/Steel/Connections/TUBULAR_SOURCE_AUDIT_2026_11_05.txt:42"
+      ]
+    },
+    {
       "id": "URL-048",
       "url": "https://www.phd.eng.br/wp-content/uploads/2015/12/en.1992.1.1.2004.pdf:",
       "title": "",
@@ -864,6 +923,7 @@
       "editionAndPages": "7.1(4)-(5), pp28-29; section10, pp36-37",
       "status": "Visually checked 2026-11-05: 7.1(4) refers to 7.1(5), not obligatorily to section10. See compressed-cover model audit.",
       "citedBy": [
+        "src/Steel/CLASS4_PLATE_SUPERPOSITION_2026_11_06.txt:26",
         "src/Steel/CLASS4_SECTION_WORKFLOW.txt:52",
         "src/Steel/MEMBER_COMPLETION_2026_11_05.txt:107",
         "src/Steel/Connections/COMPRESSED_COVER_MODEL_AUDIT_2026_11_05.txt:10",
@@ -885,6 +945,16 @@
         "src/Steel/Connections/PHASE_2B_SPEC.txt:329",
         "src/Steel/Connections/README.txt:223",
         "tests/Steel.Members.Tests/Fixtures/double-angle-independent.json:20"
+      ]
+    },
+    {
+      "id": "URL-081",
+      "url": "https://www.sciencedirect.com/science/article/abs/pii/S0141029616300888",
+      "title": "Local buckling of bolted steel plates with different stiffener configuration",
+      "editionAndPages": "Engineering Structures,2016",
+      "status": "Publisher abstract consulted2026-11-06; full article unavailable403. No numerical benchmark claimed.",
+      "citedBy": [
+        "src/Steel/Connections/COMPRESSED_COVER_MODEL_AUDIT_2026_11_05.txt:97"
       ]
     },
     {
