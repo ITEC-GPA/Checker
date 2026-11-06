@@ -55,8 +55,10 @@ StressAnalysisType determina analisi Linear o NonLinear. Le leggi dei materiali
 e i coefficienti di progetto sono quelli del checker esistente. FailureDomainType
 e FailureAnalysisType non trasformano questo calcolo in una verifica di resistenza.
 Il calcolo lineare resta lineare, senza un arresto automatico ai limiti SLU.
-Il non lineare rifiuta deformazioni oltre i limiti ultimi dei materiali, per non
-interpretare come equilibrio lo zero restituito da alcune tabelle fuori dominio.
+Il non lineare rifiuta deformazioni oltre il limite ultimo di compressione del
+calcestruzzo e i limiti ultimi degli acciai, per non interpretare come equilibrio
+lo zero restituito da alcune tabelle fuori dominio. La trazione del calcestruzzo
+puo' invece proseguire nel ramo fessurato previsto dalla legge scelta.
 Il limite di compressione del calcestruzzo viene controllato sui vertici; quello
 delle barre sulla loro posizione; per i profili si controllano i bordi delle pareti.
 L'integrazione dei profili usa la quadratura delle pareti sottili del solver.

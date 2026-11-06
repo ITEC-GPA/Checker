@@ -26,8 +26,8 @@ namespace GPC.Checkers.Concrete.Response
         private ConcretePhase(string name, SectionAnalysisInput load, double shrinkage, int substeps)
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("A phase name is required.", nameof(name));
-            if (!Finite(shrinkage)) throw new ArgumentOutOfRangeException(nameof(shrinkage));
-            if (substeps < 1 || substeps > 4096) throw new ArgumentOutOfRangeException(nameof(substeps));
+            if (!Finite(shrinkage)) throw new ArgumentOutOfRangeException(nameof(shrinkage), "The imposed strain increment must be finite.");
+            if (substeps < 1 || substeps > 4096) throw new ArgumentOutOfRangeException(nameof(substeps), "The number of initial substeps must be between 1 and 4096.");
             Name = name; this.load = load; ShrinkageIncrement = shrinkage; Substeps = substeps;
             Kind = load == null ? ConcretePhaseKind.Shrinkage : ConcretePhaseKind.Load;
         }
