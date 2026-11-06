@@ -82,6 +82,9 @@ public sealed class BridgeCompositeSectionDefinition
 
     /// <summary>Checks the values and the shape of the section: <see cref="ArgumentException"/> for an invalid value, <see cref="NotSupportedException"/>
     /// for a section the H bridge engine does not check (the limits of the section input).</summary>
+    /// <summary>The message of rows of bars whose covers are outside the slab or overlap (the message of the slab component of BridGHe).</summary>
+    public const string InvalidRebarCoversMessage = "Use finite positive dimensions and nonnegative areas. Active row axes must lie inside the slab; the top row must be above the bottom row.";
+
     public void Validate()
     {
         if(schema!=1) throw new SerializationException("UnsupportedBridgeCompositeSectionSchema");
@@ -102,6 +105,14 @@ public sealed class BridgeCompositeSectionDefinition
         if(RebarRows!=null)
         {
             RebarRows.Validate();
+            // The covers of the rows with bars inside the slab and the top row above the bottom one, the rule of the slab of the application
+            // (BridGHe SectionConcreteSlabModel.IsValid) with the message of its component; a bottom cover of 0 is the top one
+            // (ReinforcedConcreteSection.CreateBridgeSection).
+            double height=((SectionRectangular)Section.SectionShape).Height, topCover=RebarRows.TopCoverMm;
+            double bottomCover=RebarRows.BottomCoverMm==0 ? topCover : RebarRows.BottomCoverMm;
+            bool top=RebarRows.TopAreaMm2>0, bottom=RebarRows.BottomAreaMm2>0;
+            if(top && !(topCover>0 && topCover<height) || bottom && !(bottomCover>0 && bottomCover<height) || top && bottom && !(topCover+bottomCover<height))
+                throw new ArgumentException(InvalidRebarCoversMessage);
             // The rows given describe the bars of the section: BarsPerRow bars in each row of non-zero area, the total area of the rows.
             double given=RebarRows.TopAreaMm2+RebarRows.BottomAreaMm2, bars=Section.AreaRebars;
             int count=RebarRows.BarsPerRow*((RebarRows.TopAreaMm2>0 ? 1 : 0)+(RebarRows.BottomAreaMm2>0 ? 1 : 0));

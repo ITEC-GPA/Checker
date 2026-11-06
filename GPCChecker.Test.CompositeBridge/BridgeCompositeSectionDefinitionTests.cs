@@ -355,6 +355,29 @@ public class BridgeCompositeSectionDefinitionTests
         Assert.ThrowsException<InvalidOperationException>(() => Definition(Example50()).AnalysisSection());
     }
 
+    /// <summary>The covers of the rows (the rule of the slab of BridGHe, SectionConcreteSlabModel.IsValid, the cases of its SlabReinforcementTests):
+    /// a cover equal to the depth of the slab and two covers that overlap are refused with the message of the slab component; the neighbours pass.</summary>
+    [TestMethod]
+    public void DefinitionRefusesRebarCoversOutsideTheSlabOrOverlapping()
+    {
+        (string Label, double W, double H, BridgeCompositeRebarRows Rows, double D, double Tw, double Bt, double Tt, double Bb, double Tb, string Concrete, string Steel, string Name) Case(string label, BridgeCompositeRebarRows rows) =>
+            (label, 3000, 250, rows, 2500, 16, 600, 30, 600, 30, "C", "S", label);
+        BridgeCompositeSectionDefinition Create((string Label, double W, double H, BridgeCompositeRebarRows Rows, double D, double Tw, double Bt, double Tt, double Bb, double Tb, string Concrete, string Steel, string Name) c) =>
+            new BridgeCompositeSectionDefinition(c.Name, ChecksSection(c), c.Rows, 18.41, 6.18, 16.9, 0, true, true);
+        foreach (var rows in new[] { new BridgeCompositeRebarRows(2000, 40, 1500, 250, 3), new BridgeCompositeRebarRows(2000, 200, 1500, 60, 3), new BridgeCompositeRebarRows(2000, 250, 0, 50, 3),
+            new BridgeCompositeRebarRows(0, 50, 1500, 250, 3), new BridgeCompositeRebarRows(2000, 0, 0, 50, 3), new BridgeCompositeRebarRows(2000, 130, 1500, 0, 3) })
+        {
+            var c = Case($"{rows.TopAreaMm2}/{rows.TopCoverMm}/{rows.BottomAreaMm2}/{rows.BottomCoverMm}", rows);
+            var e = Assert.ThrowsException<ArgumentException>(() => Create(c), c.Label);
+            Assert.AreEqual(BridgeCompositeSectionDefinition.InvalidRebarCoversMessage, e.Message, c.Label);
+        }
+        Assert.AreEqual("Use finite positive dimensions and nonnegative areas. Active row axes must lie inside the slab; the top row must be above the bottom row.",
+            BridgeCompositeSectionDefinition.InvalidRebarCoversMessage);
+        foreach (var rows in new[] { new BridgeCompositeRebarRows(2000, 40, 1500, 55, 3), new BridgeCompositeRebarRows(2000, 40, 1500, 209.5, 3), new BridgeCompositeRebarRows(2000, 249.5, 0, 50, 3),
+            new BridgeCompositeRebarRows(0, 250, 1500, 60, 3), new BridgeCompositeRebarRows(2000, 120, 1500, 0, 3), new BridgeCompositeRebarRows(0, 250, 0, 250, 3) })
+            Assert.AreEqual(rows.TopCoverMm, Create(Case("valid " + rows.TopCoverMm + "/" + rows.BottomCoverMm, rows)).RebarRows!.TopCoverMm);
+    }
+
     [TestMethod]
     public void RebarRowsRoundTripAndEnterTheFingerprintOnlyWhenGiven()
     {
