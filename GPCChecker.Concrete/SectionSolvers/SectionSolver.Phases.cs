@@ -24,8 +24,20 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             private readonly Point2d[] vertices;
             private readonly StressAnalysisTension tension;
             private readonly CoordinateSystem outputAxes, axes;
+            private readonly bool analyticParabola;
+            private readonly ParabolaRectangleLaw parabola;
+            private readonly StressBlockIntegration analyticIntegration;
+            private readonly Sample[] concreteSamples;
+            private readonly ForceTuple outputN, outputMx, outputMy;
+            private readonly struct Sample
+            {
+                internal readonly string Id;
+                internal readonly double X, Y, Weight;
+                internal Sample(string id, double x, double y, double weight) { Id = id; X = x; Y = y; Weight = weight; }
+            }
             internal double Length { get; }
             internal int Evaluations { get; private set; }
+            internal void ResetEvaluations() => Evaluations = 0;
 
             internal PhaseSection(SectionSolver solver)
             {
@@ -50,6 +62,16 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 axes = (CoordinateSystem)solver.SolverAxes.Clone();
                 var reference = solver.IntegrationReferencePoint;
                 Length = Math.Max(1, vertices.Max(p => Math.Max(Math.Abs(p.X - reference.X), Math.Abs(p.Y - reference.Y))));
+                // Material/mesh configuration is fixed for the call (or for this batch worker).
+                // Recognizing the parabola at every sampled point cloned two material arrays each time.
+                analyticParabola = !linear && solver.TryGetParabolaLaw(out parabola);
+                if (analyticParabola && tension == null) analyticIntegration = solver.GetStressBlockIntegration();
+                var samples = new List<Sample>();
+                foreach (var element in solver._globalCoordinateGaussPointsMesh)
+                    foreach (var p in element)
+                        samples.Add(new Sample("G" + samples.Count, p.GpX, p.GpY, p.EvaluateFunction((x, y) => 1.0)));
+                concreteSamples = samples.ToArray();
+                outputN = Project(new ForceTuple(1, 0, 0)); outputMx = Project(new ForceTuple(0, 1, 0)); outputMy = Project(new ForceTuple(0, 0, 1));
             }
 
             internal StrainPlane Plane(double[] q, double shrinkage = 0)
@@ -66,14 +88,22 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 return result;
             }
 
-            internal ResultBeamForces External(ForceTuple f)
+            private ForceTuple Project(ForceTuple f)
             {
                 f = solver.GetExternalForces(f, axes);
-                return new ResultBeamForces(f.N, 0, 0, 0, f.Mx, f.My, axes).ToCoordinateSystem(outputAxes);
+                var output = new ResultBeamForces(f.N, 0, 0, 0, f.Mx, f.My, axes).ToCoordinateSystem(outputAxes);
+                return new ForceTuple(output.N, output.M1, output.M2);
+            }
+
+            internal ForceTuple OutputForces(ForceTuple f) => outputN * f.N + outputMx * f.Mx + outputMy * f.My;
+            internal ResultBeamForces External(ForceTuple f)
+            {
+                f = OutputForces(f);
+                return new ResultBeamForces(f.N, 0, 0, 0, f.Mx, f.My, outputAxes);
             }
 
             private double ConcreteStress(double e) => linear ? solver.CalculateElasticSigmaC(e)
-                : e > 0 && tension != null ? tension.GetConcreteStress(e) : solver.CalculateSigmaC(e);
+                : e > 0 && tension != null ? tension.GetConcreteStress(e) : analyticParabola ? parabola.At(e) : solver.CalculateSigmaC(e);
 
             private double BarStress(ReinforcedConcreteRebar bar, double e)
             {
@@ -87,13 +117,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             {
                 Evaluations++;
                 force = default;
-                if (q.Any(v => !ConcretePhase.Finite(v)) || !ConcretePhase.Finite(shrinkage)) return false;
+                if (!ConcretePhase.Finite(q[0]) || !ConcretePhase.Finite(q[1]) || !ConcretePhase.Finite(q[2]) || !ConcretePhase.Finite(shrinkage)) return false;
                 var total = Plane(q);
                 var mechanical = Plane(q, shrinkage);
                 if (!linear)
                 {
                     // Check the actual fibres before calling tables that return zero outside their ultimate interval.
-                    if (vertices.Any(p => mechanical.GetStrain(p) < solver.GetUltimateStrainConcreteCompression())) return false;
+                    double ultimate = solver.GetUltimateStrainConcreteCompression();
+                    foreach (var p in vertices) if (mechanical.GetStrain(p) < ultimate) return false;
                     foreach (var bar in bars)
                     {
                         double e = total.GetStrain(bar.Position) + bar.EpsilonP;
@@ -105,15 +136,14 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 var r = solver.IntegrationReferencePoint;
                 void Add(double x, double y, double value)
                 { n += value; mx -= value * (y - r.Y); my += value * (x - r.X); }
-                if (!linear && tension == null && solver.TryGetParabolaLaw(out var parabola))
+                if (analyticIntegration != null)
                 {
-                    var concrete = solver.GetStressBlockIntegration().Integrate(mechanical, parabola);
+                    var concrete = analyticIntegration.Integrate(mechanical, parabola);
                     n = concrete.N; mx = concrete.Mx; my = concrete.My;
                 }
                 else
-                    foreach (var element in solver._globalCoordinateGaussPointsMesh)
-                        foreach (var p in element)
-                            Add(p.GpX, p.GpY, p.EvaluateFunction((x, y) => ConcreteStress(mechanical.GetStrain(x, y))));
+                    foreach (var p in concreteSamples)
+                        Add(p.X, p.Y, p.Weight * ConcreteStress(mechanical.GetStrain(p.X, p.Y)));
                 for (int i = 0; i < bars.Length; i++)
                 {
                     var b = bars[i];
@@ -156,7 +186,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
             internal ConcretePhaseState State(double[] q, double shrinkage, ForceTuple target, ForceTuple force, double[,] scaledTangent, bool integrationPoints, double normalizedResidual)
             {
                 var total = Plane(q);
-                var points = new List<ConcretePhasePoint>();
+                var points = new List<ConcretePhasePoint>(vertices.Length + bars.Length + (integrationPoints ? concreteSamples.Length : 0));
                 void AddConcrete(string id, ConcretePhasePointKind kind, double x, double y)
                 {
                     double e = total.GetStrain(x, y);
@@ -165,9 +195,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
                 for (int i = 0; i < vertices.Length; i++) AddConcrete("C" + i, ConcretePhasePointKind.ConcreteVertex, vertices[i].X, vertices[i].Y);
                 if (integrationPoints)
                 {
-                    int i = 0;
-                    foreach (var element in solver._globalCoordinateGaussPointsMesh)
-                        foreach (var p in element) AddConcrete("G" + i++, ConcretePhasePointKind.ConcreteIntegrationPoint, p.GpX, p.GpY);
+                    foreach (var p in concreteSamples) AddConcrete(p.Id, ConcretePhasePointKind.ConcreteIntegrationPoint, p.X, p.Y);
                 }
                 for (int i = 0; i < bars.Length; i++)
                 {

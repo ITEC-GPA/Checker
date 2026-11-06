@@ -1,0 +1,112 @@
+PRESTAZIONI DEL SOLVER A FASI E DEL BATCH - 6 NOVEMBRE 2026
+
+Metodo
+240 storie, 80 da 4 fasi, 80 da 5 e 80 da 6: 1200 stati di fase per esecuzione.
+Sezione rettangolare 400x600 mm, 8 barre diametro 20 mm, C35, parabola-rettangolo
+analitica, N-M1-M2 e ritiro alternati. Il dettaglio del carico varia tra le storie.
+Il caso 'sezioni diverse' crea checker/sezioni indipendenti della stessa geometria,
+per separare il costo di costruzione da quello del riuso; non e' un campione di
+tutte le geometrie di progetto. Output completi, con 3962 punti per stato.
+Due esecuzioni di riscaldamento, poi 7 ripetizioni; stesso programma e stessi input.
+.NET 8.0.33, macchina con 24 processori logici. La libreria resta .NET Standard 2.0;
+la compatibilita' funzionale e' verificata anche con i test .NET Framework 4.7.2.
+
+Il tempo batch comprende creazione degli output e, quando prevista, dei checker.
+Il tempo di verifica dei risultati non entra nella misura. Le letture dei campioni
+non nascondono calcolo differito: tutti gli output sono gia' materializzati.
+Raccolta memoria esplicita fuori misura prima di ogni ripetizione.
+I tempi sono misure locali, non una promessa di accelerazione su ogni runtime.
+Non viene dichiarato che il solver abbia raggiunto un massimo teorico di efficienza.
+
+Tempi batch, millisecondi (tutte le 240 storie)
+Modalita'                       Mediana       P95
+0.36, seriale checker pronto    3079.401    3610.649
+0.37, seriale checker pronto     843.570    1092.982
+0.37, stessa sezione, 1 worker    383.160     424.095
+0.37, stessa sezione, 2 worker    344.571     406.047
+0.37, stessa sezione, 4 worker    330.880     373.525
+0.37, stessa sezione, 8 worker    336.252     373.554
+
+0.36, seriale checker nuovo     2915.114    3436.005
+0.37, seriale checker nuovo     1021.693    1087.178
+0.37, sezioni diverse, 1 worker   977.042    1170.936
+0.37, sezioni diverse, 2 worker   975.371    1143.270
+0.37, sezioni diverse, 4 worker   988.504    1161.809
+0.37, sezioni diverse, 8 worker  1111.351    1125.168
+
+P95 batch e' nearest-rank su soli 7 campioni e coincide quindi con il massimo:
+e' un dato esplorativo, non una stima robusta della coda della distribuzione.
+Tutte le storie completano in tutte le modalita': nessuna selezione dei soli
+successi che alteri il campione del confronto.
+
+Tempi per storia, millisecondi (1680 osservazioni per modalita')
+Modalita'                       Mediana       P95
+0.36, seriale checker pronto       6.127      38.069
+0.37, seriale checker pronto       0.606      19.055
+0.37, stessa sezione, 1 worker      0.418       8.656
+0.37, stessa sezione, 2 worker      0.493      15.291
+0.37, stessa sezione, 4 worker      0.691      17.903
+0.37, stessa sezione, 8 worker      9.097      24.723
+0.36, seriale checker nuovo        6.747      31.900
+0.37, seriale checker nuovo        0.674      22.429
+0.37, sezioni diverse, 1 worker     0.653      23.250
+0.37, sezioni diverse, 2 worker     0.771      33.099
+0.37, sezioni diverse, 4 worker    11.963      51.413
+0.37, sezioni diverse, 8 worker    23.785      87.959
+
+La latenza per storia esclude l'attesa in coda. Nel batch con riuso il primo
+input di ogni worker include la preparazione. Le latenze possono aumentare
+con piu' worker anche quando il tempo totale diminuisce, per la contesa delle
+risorse. Non si deve sommare la durata di lavori sovrapposti per stimare il tempo
+totale. Mediana per storia e tempo medio totale/240 sono statistiche diverse.
+
+Contributi al guadagno
+- Solver singolo con checker pronto: 3079 -> 844 ms, 3.65x, tempo -72.6%.
+- Riuso della preparazione, ancora con un solo worker: 844 -> 383 ms.
+- Parallelismo a 4 worker sul contesto riusato: 383 -> 331 ms, tempo -13.6%.
+- Guadagno complessivo della modalita' stessa sezione rispetto alla 0.36:
+  3079 -> 331 ms, 9.31x, tempo -89.3%. Non e' un'accelerazione dovuta ai soli core.
+- Per sezioni costruite separatamente, 2/4 worker non mostrano un beneficio
+  consistente rispetto a 1; 8 worker peggiorano la mediana. Non si presume una
+  scalabilita' lineare. Il limite automatico e' prudenzialmente 4, configurabile.
+
+Allocazioni gestite cumulative per batch (mediana, MB decimali; NON picco RAM)
+0.36 seriale pronto: 2194.382 MB.
+0.37 seriale pronto:  681.374 MB, -69.0%.
+0.37 riuso, 4 worker: 530.802 MB, -75.8% rispetto alla 0.36.
+La modalita' con checker nuovi alloca circa 715 MB con qualunque limite di worker.
+Il mantenimento di tutti i campioni di tutte le fasi resta un costo rilevante.
+IncludeIntegrationPoints=false riduce il dettaglio salvato, non l'integrazione;
+questa opzione NON e' stata usata per migliorare artificiosamente il confronto.
+
+Individuazione del costo principale
+Misure isolate con 10000 chiamate hanno evidenziato la preparazione degli output:
+uno stato con 3962 punti passava da 1453096 a 352344 byte allocati per chiamata.
+Nella stessa misura, da circa 3632 a 465 ms per 10000 stati (circa 7.8x).
+Le copie ripetute della tabella del calcestruzzo, il riconoscimento della parabola
+e la ricreazione degli identificatori dei campioni sono stati spostati fuori dai
+cicli ripetuti. Il costo della valutazione integrata e' sceso da circa 2568 a
+496 byte per chiamata. Queste misure isolate non sostituiscono i tempi batch sopra.
+
+Precisione e iterazioni
+13 correzioni Newton medie per storia, in ogni modalita', prima e dopo.
+Massimo residuo normalizzato registrato: 0.9587703986975229, sempre <=1.
+Confrontati prima/dopo tutti i 1200 stati sulle 8 grandezze registrate:
+epsilon_ref, ChiX, ChiY, N, M1, M2 integrati, tensione minima e massima campionata.
+Massima differenza assoluta di ciascuna grandezza: 0,0,0,0,0,0,0,0.
+I test mirati confrontano inoltre tutte le tensioni puntuali, il ritiro cumulativo,
+le iterazioni e i contatori iniziali tra batch e singolo calcolo.
+Tolleranze, modello fisico e risultati attesi delle regressioni non sono cambiati.
+
+Riproduzione
+tools/Concrete.PhaseBenchmark/Concrete.PhaseBenchmark.csproj
+  dotnet run --project tools/Concrete.PhaseBenchmark/Concrete.PhaseBenchmark.csproj
+    -c Release -- docs/concrete-phase-batch-20261106/after.json 240
+Per la baseline usare un checkout del commit f44a1b0c di Checker, con le stesse
+dipendenze compilate, e passare anche:
+  -p:Baseline=true -p:CheckerProject=<percorso-assoluto-del-csproj-Concrete-0.36>
+La baseline esegue solo i due percorsi seriali, disponibili prima del batch.
+L'argomento 'profile' attiva le misure isolate dei costi interni.
+before.json e after.json contengono statistiche complete e i valori confrontati.
+La misura preliminare con piu' fasi e' stata sostituita: i dati pubblicati qui
+riguardano esclusivamente storie di 4, 5 e 6 fasi, come richiesto.

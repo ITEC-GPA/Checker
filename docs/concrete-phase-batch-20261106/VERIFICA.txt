@@ -1,0 +1,58 @@
+VERIFICA FINALE - GPCChecker.Concrete 0.37.0.0 - 6 novembre 2026
+
+Codice verificato: 7fe93749 (funzionalita' 5b82a7bf, versione in commit separato).
+Base Checker: f44a1b0c, origin/master aggiornato prima dell'integrazione.
+Model: 2f934f9fe48ebfff0b06a98de5ccff7bdea43ea4, senza modifiche.
+Dipendenza .NET Standard 2.0 mantenuta; nessuna modifica a interfaccia o ANTHEA.
+
+Comando completato con exit code 0:
+  powershell -NoProfile -ExecutionPolicy Bypass -File build/Verify.ps1
+    -Results TestResults/Verify-PhaseBatch-20261106
+
+Suite                          Superati   Falliti   Ignorati
+Concrete (.NET Framework 4.7.2)      988         0          0
+Steel (.NET Framework 4.7.2)         122         0          0
+CompositeBridge                     475         0          0
+Geotechnics                         202         0          0
+Calculation                         175         0          0
+ShallowFoundation                    29         0          0
+EmbeddedWalls                        99         0          0
+Steel.Members                      7132         0          0
+Design.Checks (.NET 8)              274         0          0
+Design.Checks (.NET Framework)      273         0          0
+ModelChecker                        673         0          1
+TOTALE                            10442         0          1
+
+Il test ignorato e' TimingOfTheConcreteRun, benchmark gia' escluso dalla suite
+ordinaria. Nessun fallimento ammesso, nessuna nuova esclusione, nessuna fixture
+o risultato numerico atteso esistente rigenerato.
+Compatibilita' API: nessuna rimozione inattesa in Concrete (2746 firme),
+GPCModelChecker, GPC.Design e GPCChecker.Masonry.
+La libreria Concrete compila senza errori o avvisi. Restano avvisi preesistenti
+negli altri progetti e nel progetto di test (nullable, architettura Gmsh).
+
+Nuovi test: 9 casi aggiuntivi, tutti con al massimo 6 fasi.
+- Stessa sezione: 4, 5 e 6 fasi, 1/2/4 worker, modelli lineare e non lineare.
+- Equivalenza con il calcolo singolo di piani, tensioni puntuali, ritiro,
+  iterazioni e contatori iniziali; ordine degli output e riuso dei checker.
+- Sezioni diverse: API async, configurazioni diverse per richiesta.
+- Concorrenza effettiva delle factory e rispetto del limite di worker.
+- Errori di factory, checker nulli, non convergenza e prosecuzione degli altri input.
+- Snapshot degli input prima dell'async e cancellazione distinta dagli errori item.
+- Batch vuoto, input invalidi, assi fuori piano e parallelismo automatico.
+
+Eseguiti prima anche i test mirati: 17 casi originari dell'analisi a fasi,
+9 nuovi casi batch e il contratto K0 storico, 27/27 superati.
+La suite completa finale include anche l'ultimo controllo sugli assi e sul
+limite automatico di massimo quattro worker.
+
+Benchmark e confronto numerico indipendenti dalle suite: PRESTAZIONI.txt.
+Input pubblicati solo da 4, 5 e 6 fasi; 240 storie, sette ripetizioni per modalita'.
+before.json e after.json conservano dati grezzi e 1200 stati confrontati.
+I benchmark non impongono asserzioni fragili su tempi minimi o speedup nei test.
+
+Risultati locali completi:
+  TestResults/Verify-PhaseBatch-20261106/summary.json
+  TestResults/Verify-PhaseBatch-20261106/*.trx
+  TestResults/verify-phase-batch.log
+  TestResults/Batch/batch-targeted.trx

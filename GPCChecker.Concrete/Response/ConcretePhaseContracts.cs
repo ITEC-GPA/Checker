@@ -49,7 +49,7 @@ namespace GPC.Checkers.Concrete.Response
         internal static void ValidateAxes(CoordinateSystem axes)
         {
             Axes.Validate(axes);
-            if (Math.Abs(axes.V3.Z - 1) > 1e-10)
+            if (Math.Abs(axes.V3.Z - 1) > 1e-10 || Math.Abs(axes.V1.Z) > 1e-10 || Math.Abs(axes.V2.Z) > 1e-10)
                 throw new ArgumentException("Phase force axes must lie in the section plane, with the same positive longitudinal direction.");
         }
     }
