@@ -1,0 +1,90 @@
+VERIFICA DI GPCChecker.Concrete 0.36.0.0 - 6 novembre 2026
+
+Codice verificato: d1063dc3 (implementazione 0256cace, versione 5628aaf5).
+Base Checker: d6e8049e, origin/master aggiornato prima dell'integrazione.
+Dipendenza Model: 2f934f9f, compilata nel checkout fratello.
+Nessuna modifica a Model, interfaccia, ANTHEA o fixture numeriche esistenti.
+
+Comando completo, concluso con exit code 0:
+powershell -NoProfile -ExecutionPolicy Bypass -File build/Verify.ps1
+  -Results TestResults/Verify-ConcretePhases-Final-20261106
+
+Suite                          Superati   Falliti   Ignorati
+Concrete (.NET Framework 4.7.2)      979         0          0
+Steel (.NET Framework 4.7.2)         122         0          0
+CompositeBridge                     475         0          0
+Geotechnics                         202         0          0
+Calculation                         175         0          0
+ShallowFoundation                    29         0          0
+EmbeddedWalls                        99         0          0
+Steel.Members                      7132         0          0
+Design.Checks (.NET 8)              274         0          0
+Design.Checks (.NET Framework)      273         0          0
+ModelChecker                        673         0          1
+TOTALE                            10433         0          1
+
+Il solo test ignorato e' TimingOfTheConcreteRun, benchmark gia' escluso dalla
+suite ordinaria. Nessun fallimento ammesso e nessuna nuova esclusione.
+I 17 nuovi casi per le fasi sono inclusi nei 979 test Concrete.
+Compatibilita' API: nessuna rimozione inattesa in GPCChecker.Concrete,
+GPCModelChecker, GPC.Design e GPCChecker.Masonry.
+La compilazione Concrete e' senza errori o avvisi. La compilazione complessiva
+riporta anche avvisi esistenti di altri progetti (nullable, architettura Gmsh test).
+
+PRECISIONE E CASI INDIPENDENTI
+- Ritiro libero: deformazione totale imposta, deformazione meccanica e tensioni
+  nulle, sia con modello lineare sia con parabola non lineare.
+- RC simmetrico: confronto con epsilon=Ec*(Ag-As)*epsilon_sh/[Ec*(Ag-As)+Es*As],
+  tolleranza 1e-11 sulla deformazione e 1e-6 MPa sulle tensioni.
+- RC asimmetrico: soluzione analitica del sistema accoppiato N-M, tolleranze
+  1e-11 sulla deformazione e 1e-13 1/mm sul gradiente.
+- Parabola in flessione deviata con ritiro: azioni costruite con quadratura
+  polinomiale indipendente; confronto del piano ritrovato a 2e-11 sulla
+  deformazione e 1e-13 1/mm sui gradienti.
+- Sottopassi adattivi: limite imposto di sole 3 iterazioni per tentativo;
+  recupero dell'equilibrio con 17 tentativi e 50 correzioni complessive.
+- Carico impossibile: arresto con frazione applicata <1, conservazione dello
+  stato in equilibrio e mancata esecuzione della fase successiva.
+- Scarico: ritorno senza deformazioni irreversibili, anche dopo snervamento;
+  coperto anche lo scarico piccolo con calcestruzzo sul plateau.
+
+ESEMPI DI DIAGNOSTICA REGISTRATA NELL'ULTIMA SUITE
+Tempi singoli durante esecuzione parallela di tutte le suite, non benchmark
+prestazionali ripetuti. Comprendono soluzione e preparazione dell'output della
+fase; escludono costruzione del checker ed equilibrio iniziale. Nessun confronto
+prima/dopo e' dichiarato: questo ingresso per le fasi non esisteva in Concrete.
+
+Caso/fase                  ms   Newton   Tentativi   Valutazioni forze
+RC simmetrico, ritiro     6.483        1           1                  14
+RC asimmetrico, ritiro    0.560        1           1                  14
+N-M-M non lineare, carico 5.579        5           1                  42
+N-M-M non lineare, ritiro 1.461        3           1                  28
+Carico con sottopassi    15.961       50          17                 373
+
+Residui finali (N, Nmm, Nmm), rispettivamente negli stessi cinque casi:
+  6.6211e-8;  1.0915e-6;  1.3807e-7
+  2.4385e-8;  2.1765e-6; -4.6566e-10
+  3.0091e-6; -3.6089e-4; -2.4014e-4
+  2.7940e-9; -1.9372e-7; -1.0803e-7
+  1.6554e-4; -1.2934e-2;  7.1928e-3
+Tutti i nuovi stati completati rispettano NormalizedResidual<=1.
+Le tolleranze sono definite nel README: residui di equilibrio, non stima
+dell'accuratezza fisica o dell'errore di discretizzazione della sezione.
+
+PROBLEMA EMERSO E RISOLTO DURANTE LA VERIFICA
+La prima suite completa ha segnalato ModelCheckerContractWithAnalyticDefaultIsUnchanged:
+91 differenze limitate al testo predefinito di ArgumentOutOfRangeException,
+italiano invece di inglese, senza differenze di risultati numerici.
+Riprodotto separatamente in Windows PowerShell/.NET Framework: dopo la prima
+eccezione in cultura it-IT, impostare InvariantCulture non cambia la frase
+predefinita gia' memorizzata dal runtime. I nuovi test sugli input non validi
+anticipavano quel primo uso rispetto al test K0.
+Correzione: messaggi espliciti e pertinenti per i nuovi input di deformazione
+imposta e numero di sottopassi. Nessuna modifica agli attesi o alla cultura
+globale del processo. Verificati prima i 17 nuovi casi insieme a K0 (18/18),
+poi ripetute tutte le suite sul codice definitivo, con l'esito riportato sopra.
+
+File locali dei risultati completi:
+  TestResults/Verify-ConcretePhases-Final-20261106/summary.json
+  TestResults/Verify-ConcretePhases-Final-20261106/*.trx
+  TestResults/verify-concrete-phases-final.log

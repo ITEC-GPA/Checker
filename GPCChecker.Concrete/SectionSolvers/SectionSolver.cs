@@ -30,7 +30,7 @@ namespace GPC.Checkers.Concrete.SectionSolvers
     /// Solver objects should generally not be instantiated directly (apart from tests) but always through a checker.
     /// </summary>
     [Serializable]
-    public abstract class SectionSolver : ModelObjectId, ISerializable
+    public abstract partial class SectionSolver : ModelObjectId, ISerializable
     {
         #region Constant 
 
