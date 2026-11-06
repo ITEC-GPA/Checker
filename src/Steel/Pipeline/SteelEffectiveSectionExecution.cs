@@ -88,7 +88,7 @@ namespace GPC.Checkers.Steel.Pipeline
                     :a.V2!=0?"; 7.1(1), conservative MfRd=0 and MplRd=effective elastic MRd":"");
             return new SteelCheckExecution(decision,utilization<=1?SteelExecutionStatus.Passed:SteelExecutionStatus.Failed,
                 reference:reference,scope:"Class4 unperforated unstiffened plates under concomitant N-M1-M2; iterative effective widths at fy, centroid eccentricity included. Conservative gross bounding-rectangle stress. "
-                    +(allPlates?"Explicit conservative N-M1-M2-V1-V2 plate interaction; H with compact flange outstands or uniform sharp RHS with all four continuous walls checked. "
+                    +(allPlates?"Explicit conservative N-M1-M2-V1-V2 plate interaction; H with compact flange outstands or sharp RHS with equal opposite walls and all four continuous walls checked. "
                         :extended?"Explicit in-plane H web N-M1-V2 interaction, including whole-web compression; continuous flange edges, no longitudinal stiffeners, ordinary beam shear distribution. "
                         :"H web shear: no reduction below 0.5 resistance; conservative pure-major-bending interaction above. ")
                     +"Shear lag, transverse patch loads, torsion and member stability excluded.",

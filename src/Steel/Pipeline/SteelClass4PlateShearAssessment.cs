@@ -23,7 +23,7 @@ namespace GPC.Checkers.Steel.Pipeline
             if(input.Section.GeometryType==typeof(SectionRHS))
                 return EvaluateClass4RhsWalls(input,axis,gammaM1,supportDetailSource);
             if(input.Section.GeometryType!=typeof(SectionH))
-                throw new NotSupportedException("All-plate interaction is qualified for H with compact flange outstands and uniform sharp RHS only.");
+                throw new NotSupportedException("All-plate interaction is qualified for H with compact flange outstands and sharp RHS with equal opposite walls only.");
             CheckPlateFactor(input,gammaM1);
             return axis==1?EvaluateClass4HFlanges(input,supportDetailSource)
                 :EvaluateNonRigidHWeb(input,gammaM1,1,supportDetailSource).WithConservativeBiaxialNormalInteraction();
@@ -91,12 +91,12 @@ namespace GPC.Checkers.Steel.Pipeline
                 {BucklingResistance=resistance,ConservativePlateNormalInteraction=true};
         }
 
-        /// <summary>Uniform-thickness, sharp-corner RHS; shear through its centroid/
+        /// <summary>Sharp-corner RHS with equal opposite walls; shear through its centroid/
         /// shear centre. ALL FOUR continuous walls are checked as unstiffened
         /// simply supported panels, k_tau=5.34, non-rigid end posts, eta=1, no
         /// flange contribution or tension-field credit above elastic bifurcation.
-        /// Bound the peak shear everywhere by 1.5 |Vi|/(2 clearDimension_i t).
-        /// Using the weakest wall and summing both direction ratios bounds the
+        /// Bound the peak shear FLOW everywhere by 1.5 |Vi|/(2 clearDimension_i).
+        /// Using min(tauRdi*ti) of the walls and summing both direction ratios bounds the
         /// entire combined field, including the walls normal to either shear.
         /// Source identifies separately checked end diaphragms/force transfer;
         /// it is not a verification of these supports.</summary>
@@ -110,18 +110,21 @@ namespace GPC.Checkers.Steel.Pipeline
                 || input.Section.Unperforated!=true || input.EffectiveActions.T!=0
                 || Math.Abs(input.Section.PoissonRatio-.3)>1e-10)
                 throw new NotSupportedException("Unperforated sharp RHS, principal axis1 horizontal, nu=.3 and no applied torque required.");
-            var h=(SectionRHS)s.SectionShape;double t=h.ThicknessTop;
-            if(h.R!=0 || h.ThicknessBottom!=t || h.ThicknessWebLeft!=t || h.ThicknessWebRight!=t)
-                throw new NotSupportedException("The all-wall shear-flow bound requires equal wall thickness and sharp corners.");
+            var h=(SectionRHS)s.SectionShape;double tf=h.ThicknessTop,tw=h.ThicknessWebLeft,t=Math.Min(tf,tw);
+            if(h.R!=0 || h.ThicknessBottom!=tf || h.ThicknessWebRight!=tw)
+                throw new NotSupportedException("The all-wall shear-flow bound requires equal opposite walls and sharp corners; asymmetric shear-centre offsets are not included.");
+            if(tf!=tw && s.SectionType!=Section.SectionTypes.Welded)
+                throw new NotSupportedException("Different flange/web thickness requires the fabricated welded-box section type.");
             CheckPlateFactor(input,gammaM1);
             double b=h.BaseInternal,d=h.Heightinternal,fy=input.Section.YieldStrength;
             double gm0=input.Code.SectionCode.GammaM0;
-            WebPanelShearResistance Panel(double width)=>Ec3WebPanelShear.Calculate(width,t,fy,input.Section.ElasticModulus,gm0,gammaM1,1);
-            var horizontal=Panel(b);var vertical=Panel(d);
+            WebPanelShearResistance Panel(double width,double thickness)=>Ec3WebPanelShear.Calculate(width,thickness,fy,input.Section.ElasticModulus,gm0,gammaM1,1);
+            var horizontal=Panel(b,tf);var vertical=Panel(d,tw);
             // No postcritical anchorage inferred from a closed cross-section.
             double Tau(WebPanelShearResistance p)=>Math.Min(p.Resistance/p.Area,p.TauCritical/gammaM1);
             double tau=Math.Min(Tau(horizontal),Tau(vertical));
-            double bound=tau*2*(axis==1?b:d)*t/1.5;
+            double lineResistance=Math.Min(Tau(horizontal)*tf,Tau(vertical)*tw);
+            double bound=lineResistance*2*(axis==1?b:d)/1.5;
             double resistance=Math.Min(bound,SteelPlasticShear.Resistance(input,axis));
             SteelInputValidation.Positive(resistance,"all-wall shear resistance");
             return new SteelShearBucklingAssessment(input,axis,false,supportDetailSource,
@@ -129,9 +132,11 @@ namespace GPC.Checkers.Steel.Pipeline
                 new[]{new SectionResistanceValue("GammaM1",gammaM1,"1"),
                     new SectionResistanceValue("ClearWidth",b,"mm"),new SectionResistanceValue("ClearHeight",d,"mm"),
                     new SectionResistanceValue("WallThickness",t,"mm"),new SectionResistanceValue("CheckedWalls",4,"1"),
+                    new SectionResistanceValue("HorizontalWallThickness",tf,"mm"),new SectionResistanceValue("VerticalWallThickness",tw,"mm"),
                     new SectionResistanceValue("HorizontalWallTauCritical",horizontal.TauCritical,"MPa"),
                     new SectionResistanceValue("VerticalWallTauCritical",vertical.TauCritical,"MPa"),
                     new SectionResistanceValue("AllWallShearStressResistance",tau,"MPa"),
+                    new SectionResistanceValue("AllWallShearFlowResistance",lineResistance,"N/mm"),
                     new SectionResistanceValue("PeakToNominalWebShearBound",1.5,"1"),
                     new SectionResistanceValue("ShearDesignResistance",resistance,"N")})
                 {BucklingResistance=resistance,ConservativePlateNormalInteraction=true};

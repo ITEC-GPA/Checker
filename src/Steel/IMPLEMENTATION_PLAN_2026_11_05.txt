@@ -99,6 +99,9 @@ o progetto sismico esteso in questo ciclo.
    CLASS4_PLATE_SUPERPOSITION_2026_11_06.txt. Non comprende ali H snelle,
    RHS curvi/spessori diversi o taglio eccentrico nelle sezioni aperte.
    Il punto4b resta parziale rispetto alla richiesta senza limiti di famiglia.
+   Secondo blocco6/11: cassoni saldati con tf!=tw e pareti opposte uguali,
+   resistenza minima in flusso qRd,21 nuovi test Steel+2 ModelChecker.
+   Restano escluse pareti opposte disuguali e raggi, non tutti gli spessori diversi.
 
 5. TRANSIZIONI FRA SEZIONI - da qualificare
 5a Prima larghezze diverse, con distribuzione ed eccentricita' esplicite.

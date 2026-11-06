@@ -126,7 +126,7 @@ namespace GPC.Model.Checker.Configuration
                 Require("HWebNormalInteractionNeedsResistance","The interaction needs computed resistance of the same web.",new[]{"HWebResistance","HWebSupportSource"},Has("HWebNormalInteraction"));
                 Require("HWebFingerprintRequired","Web support assessment must bind to the section.",new[]{"SectionFingerprint"},Has("HWebResistance"));
                 Add("Class4ShearInteraction",EngineParameterKind.Choice,choices:new[]{"ConservativePlateSuperposition"},
-                    description:"Conservative effective normal stress plus qualified shear-field ratios; H with compact flange outstands or uniform sharp RHS, continuous plate edges and no patch load/torsion.");
+                    description:"Conservative effective normal stress plus qualified shear-field ratios; H with compact flange outstands or sharp RHS with equal opposite walls, continuous plate edges and no patch load/torsion.");
                 Add("PlateSupportSource",description:"Verified supports, diaphragms, continuous attachments and end force transfer for this plate model.");
                 Together("Class4PlateSupportPair","Class4ShearInteraction","PlateSupportSource");
                 Require("Class4PlateFingerprint","Plate support assessment binds to the complete section.",new[]{"SectionFingerprint"},Has("Class4ShearInteraction"));

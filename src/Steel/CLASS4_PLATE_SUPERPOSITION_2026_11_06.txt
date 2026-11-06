@@ -8,10 +8,10 @@ CAMPO
   entro il criterio c/t<=14epsilon gia' presente nella libreria: N,M1,M2,V2.
   Con V1 occorrono anche ali uguali: nelle H monosimmetriche lo scostamento
   del centro di taglio introduce torsione, non coperta da questo metodo.
-- Sezione RHS con spigoli vivi, quattro pareti dello stesso spessore,
+- Sezione RHS con spigoli vivi e pareti opposte uguali,
   assi principali allineati: N,M1,M2,V1,V2. Si controllano TUTTE le pareti,
   anche quelle ortogonali alla direzione del taglio.
-- Asta: H doppiamente simmetrica oppure RHS uniforme, prisma, classe4,
+- Asta: H doppiamente simmetrica oppure RHS a pareti opposte uguali, prisma, classe4,
   stessi limiti geometrici, combinazioni e vincoli del metodo d'asta esistente.
   N costante; estremi dei momenti e tagli riferiti allo stesso caso FEM.
 - Piastre non irrigidite longitudinalmente, senza fori, carichi trasversali
@@ -95,7 +95,28 @@ Collaudi mirati:90/90 Steel (50 nuovi+40 preesistenti),11/11 ModelChecker
 (7 nuovi+4 preesistenti). I test nuovi non modificano fixture/attesi storici.
 Il collaudo completo del set integrato va registrato a conclusione del blocco.
 
-Restano esclusi: RHS curvi o a spessori diversi, ali H snelle a taglio,
+Restano esclusi: RHS curvi o con pareti OPPOSTE diverse, ali H snelle a taglio,
 V1 nelle H monosimmetriche, instabilita' generale d'asta asimmetrica senza
 valori/modelli esterni qualificati, famiglie aperte C/T/L con alto taglio.
 Il punto4b e' esteso sostanzialmente, NON equivale a tutte le geometrie classe4.
+
+SECONDO BLOCCO6/11: CASS0NI SALDATI CON tf DIVERSO DA tw
+Il caso uniforme sopra e' generalizzato senza cambiare il suo criterio:
+tf vale per entrambe le pareti orizzontali, tw per entrambe le verticali.
+Se tf!=tw e' obbligatorio SectionType.Welded; nessuna sezione laminata
+uniforme viene reinterpretata come cassone composto.
+Per V2, I_x=tf*b_m*h_m^2/2+tw*h_m^3/6 e
+qmax=V2*(tf*b_m*h_m/4+tw*h_m^2/8)/I_x.
+qmax/[V2/(2*h_m)] = (tf*b_m/2+tw*h_m/4)/(tf*b_m/2+tw*h_m/6) <=1.5.
+Lo stesso vale per V1 scambiando assi e spessori. Il limite riguarda il
+FLUSSO q, non una tensione ricavata da uno spessore medio.
+Si calcola qRd=min(tauRd_orizzontale*tf,tauRd_verticale*tw);
+VRdi=min(VplRdi,2*c_i*qRd/1.5), con c_i quota libera. Cosi' il campo di
+ogni parete e' limitato dalla propria resistenza e dal proprio spessore.
+Tracce aggiunte: HorizontalWallThickness,VerticalWallThickness e
+AllWallShearFlowResistance. WallThickness riporta lo spessore minimo.
+21 nuovi casi Class4FabricatedBoxShearTests: Aeff e qRd indipendenti,
+due modi d'asta, curve e q, segni, prodotto non coerente, integrazione
+indipendente con compatibilita' integrale(q/t ds)=0 per spessori variabili.
+2 nuovi flussi ModelChecker EC/NTC, incluse tracce e archivio del rapporto.
+Mirati:71/71 Steel (21 nuovi+50 precedenti),9/9 ModelChecker(2 nuovi+7 precedenti).

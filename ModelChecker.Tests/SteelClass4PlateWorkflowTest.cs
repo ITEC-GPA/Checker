@@ -88,4 +88,33 @@ public class SteelClass4PlateSectionWorkflowTest
         p["ShearBucklingExcluded1"]="true";p["ShearBucklingSource1"]="external";
         Assert.IsTrue(SteelParameterSchemas.Section.Validate(p).Count>0);
     }
+
+    [DataTestMethod][DataRow(false)][DataRow(true)]
+    public void FabricatedBoxKeepsTheDifferentFlangeAndWebThicknessThroughModelAndArchive(bool ntc)
+    {
+        var (model,plan)=SteelMemberPipelineTest.Fixture(sectionFactory:()=>new SteelSection(
+            new SectionRHS(800,400,20,20,6,6,"fabricated box"),SteelMaterialEN1993Data.S355,
+            Section.SectionTypes.Welded,Section.FormedTypes.HotFinished));
+        foreach(var cut in ResultQueries.Samples<StationResultBeamForces>(model.BeamElements[250],plan.Results[0])) {
+            cut.ResultBeamForces.N=-100000;cut.ResultBeamForces.M1=1e6;cut.ResultBeamForces.M2=2e6;
+            cut.ResultBeamForces.V1=10000;cut.ResultBeamForces.V2=-30000;cut.ResultBeamForces.T=0;
+        }
+        plan.SectionMechanisms=new[]{CheckMechanism.UlsBiaxialSection};plan.MemberChecks=Array.Empty<MemberCheckSpecification>();
+        var p=new Dictionary<string,string>{{"Unperforated","true"},{"Class4ShearInteraction","ConservativePlateSuperposition"},
+            {"PlateSupportSource","Separate check of fabricated-box supports and continuous plate attachments"},
+            {"SectionFingerprint",ModelValues.Fingerprint(new object[]{model.BeamElements[250].BeamProperty})}};
+        var request=new MultiMaterialCheckRequest();request.Jobs.Add(new MultiMaterialCheckJob{Name="Fabricated class4 box",Plan=plan,
+            Assignments=new[]{new MaterialCheckerAssignment{Checker=new SteelPipelineMaterialChecker(
+                ntc?new StandardNTC2018Steel():new StandardEN1993p11(),ntc?"2018":"2005",parameters:p),
+                Mechanisms=new[]{CheckMechanism.UlsBiaxialSection}}}});
+        var report=new Service().Verify(model,request);
+        Assert.AreNotEqual(EngineeringOutcome.NotEvaluated,report.Outcome,
+            string.Join(";",report.Jobs[0].Results.SelectMany(r=>r.Diagnostics).Select(d=>d.Code+" "+d.Message)));
+        foreach(var r in report.Jobs[0].Results) {
+            Assert.IsTrue(r.Details.Trace.Any(t=>t.Key.EndsWith("HorizontalWallThickness")&&t.Value==20));
+            Assert.IsTrue(r.Details.Trace.Any(t=>t.Key.EndsWith("VerticalWallThickness")&&t.Value==6));
+        }
+        using var stream=new MemoryStream();CheckReportArchive.Save(report.Jobs,stream);stream.Position=0;
+        Assert.AreEqual(report.Outcome,Service.CurrentOutcome(CheckReportArchive.Load(stream),model,request));
+    }
 }

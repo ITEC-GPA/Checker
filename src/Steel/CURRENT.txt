@@ -28,7 +28,9 @@ Estensione6/11: CLASS4_PLATE_SUPERPOSITION_2026_11_06.txt. N-M1-M2-V1-V2
 su H composte con ali compatte e RHS a spigoli vivi/spessore uniforme;
 controllo di tutte le pareti, picchi di taglio e limite critico elastico.
 H con ali diverse: ammesso V2, rifiutato V1 per il centro di taglio eccentrico.
-RHS curvi/spessori diversi e ali H snelle restano fuori dal nuovo metodo.
+Secondo blocco6/11: ammessi anche cassoni saldati con tf!=tw, pareti opposte
+uguali; qRd minimo dei flussi resistenti delle pareti. RHS curvi/pareti
+opposte disuguali e ali H snelle restano fuori dal nuovo metodo.
 Il coprigiunto interamente compresso ad alto taglio resta non qualificato.
 Risultati, commit e limiti del collaudo nel rapporto MEMBER_COMPLETION.
 Fonti persistenti per il successivo download: REFERENCE_REGISTER.json;
