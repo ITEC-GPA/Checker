@@ -154,6 +154,62 @@ namespace ConcreteTests
             Assert.AreEqual(0, unreinforced.Demand, 0);
         }
 
+        /// <summary>
+        /// S3 of the embedded-wall review (scheda decisioni ANTHEA 16/11/2026): with <see cref="WallCrackSpacing.TensionFace"/> the crack check takes the bar
+        /// spacing of the face in tension in each combination, not the sparser face. Strip 1000 × 400, clear cover 40: top 4Ø20, s = (1000 − 80 − 20)/3 = 300 mm;
+        /// bottom 7Ø16, s = (1000 − 80 − 16)/6 = 150.67 mm. NTC (Circolare C4.1.2.2.4.5): Δsm = Δsm,near when s ≤ 5 (c + Ø/2), otherwise max(Δsm,near;
+        /// 0.75 (h − x)). Bottom in tension (M = +50 kNm, Ø16, limit 5 (40 + 8) = 240 mm): the sparser face gave s = 300 > 240, so Δsm = max(near; far) with
+        /// far = 0.75 (h − x) > near and a larger wk; the tension face gives s = 150.67 ≤ 240 and Δsm = near. Top in tension (M = −50 kNm): s = 300 with both
+        /// rules, wk identical. Entirely tensile strip (N = +800 kN, M = 10 kNm): both faces in tension, the larger spacing with both rules. The default
+        /// session (retaining walls) keeps the sparser face.
+        /// </summary>
+        [TestMethod]
+        public void CrackSpacingOfTheTensionFaceIsOptIn()
+        {
+            WallSectionSession Unequal(WallCrackSpacing? rule)
+            {
+                var strip = new WallStrip(WallMember.Stem, 1000, 400, 40, 4, 20, 7, 16);
+                var concrete = new ConcreteMaterialEN1992("C30", 30, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle);
+                var steel = new SteelMaterial("B450", 200000, 450, 450, .075, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
+                var section = new ReinforcedConcreteSection(GetRectangularShape(1000, 400), concrete);
+                var top = new RebarSectionCircular(20, steel); var bottom = new RebarSectionCircular(16, steel);
+                section.AddRebars(Enumerable.Range(0, 4).Select(i => new ReinforcedConcreteRebar(top, new Point3d(40 + 10 + (1000 - 80 - 20) * i / 3.0, 400 - 40 - 10, 0)))
+                    .Concat(Enumerable.Range(0, 7).Select(i => new ReinforcedConcreteRebar(bottom, new Point3d(40 + 8 + (1000 - 80 - 16) * i / 6.0, 40 + 8, 0)))).ToArray());
+                return rule.HasValue ? new WallSectionSession(strip, section, new StandardNTC2018Concrete(), 2, "XC2", rule.Value)
+                    : new WallSectionSession(strip, section, new StandardNTC2018Concrete(), 2, "XC2");
+            }
+            double sTop = (1000 - 80 - 20) / 3.0, sBottom = (1000 - 80 - 16) / 6.0;
+            var probe = new WallStrip(WallMember.Stem, 1000, 400, 40, 4, 20, 7, 16);
+            Assert.AreEqual(sTop, probe.BarSpacing(WallFace.Top), 1e-12); Assert.AreEqual(sBottom, probe.BarSpacing(WallFace.Bottom), 1e-12);
+            Assert.AreEqual(Math.Max(sTop, sBottom), probe.MaximumBarSpacing, 0);
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => probe.BarSpacing((WallFace)7));
+            var sparser = Unequal(null); var tension = Unequal(WallCrackSpacing.TensionFace);
+            Assert.AreEqual(WallCrackSpacing.SparserFace, sparser.CrackSpacing); Assert.AreEqual(WallCrackSpacing.TensionFace, tension.CrackSpacing);
+            GPC.Checkers.Concrete.Cracking.SectionCrackResult Crack(WallSectionSession session, double n, double m)
+                => session.CheckServiceability(new WallSectionActions(n, 0, m), ServiceabilityCombination.QuasiPermanent).CrackResponse;
+            double Entry(GPC.Checkers.Concrete.Cracking.SectionCrackResult r, string symbol) => r.Details.Single(d => d.Symbol == symbol).Value;
+
+            // Bottom face in tension: the spacing and the NTC branch change, wk decreases.
+            var before = Crack(sparser, 0, 5e7); var after = Crack(tension, 0, 5e7);
+            Assert.AreEqual(sTop, before.BarSpacing.Value, 1e-12); Assert.AreEqual(sBottom, after.BarSpacing.Value, 1e-12);
+            Assert.AreEqual(240, Entry(after, "s,lim"), 1e-12);
+            double near = Entry(after, "Δsm,near"), far = Entry(after, "Δsm,far"), strain = Entry(after, "εsm − εcm");
+            Assert.IsTrue(far > near, "0.75 (h − x) = " + far + " > Δsm,near = " + near);
+            Assert.AreEqual(near, Entry(before, "Δsm,near"), 0); Assert.AreEqual(far, Entry(before, "Δsm,far"), 0); Assert.AreEqual(strain, Entry(before, "εsm − εcm"), 0);
+            Assert.AreEqual(1.7 * near * strain, after.Width.Value, 1e-12, "close bars: Δsm = near");
+            Assert.AreEqual(1.7 * far * strain, before.Width.Value, 1e-12, "sparser face: Δsm = max(near; far) = far");
+            Console.WriteLine("S3 bottom in tension: s {0} -> {1} mm, wk {2:R} -> {3:R} mm", before.BarSpacing, after.BarSpacing, before.Width, after.Width);
+
+            // Top face in tension: the sparser face is the tension face, nothing changes.
+            var topBefore = Crack(sparser, 0, -5e7); var topAfter = Crack(tension, 0, -5e7);
+            Assert.AreEqual(sTop, topAfter.BarSpacing.Value, 1e-12); Assert.AreEqual(topBefore.Width, topAfter.Width); Assert.AreEqual(topBefore.Status, topAfter.Status);
+
+            // Entirely tensile strip: both faces in tension, the larger spacing with both rules.
+            var tensileBefore = Crack(sparser, 8e5, 1e7); var tensileAfter = Crack(tension, 8e5, 1e7);
+            Assert.AreEqual(sTop, tensileAfter.BarSpacing.Value, 1e-12); Assert.AreEqual(tensileBefore.Width, tensileAfter.Width);
+            Assert.ThrowsException<ArgumentOutOfRangeException>(() => Unequal((WallCrackSpacing)9));
+        }
+
         [TestMethod]
         public void ShearUsesConcomitantCompressionAndDeclinesTension()
         {

@@ -8,6 +8,20 @@ namespace GPC.Checkers.Concrete.Walls
     public enum WallMember { Stem, Toe, Heel }
     public enum WallFace { Top, Bottom }
 
+    /// <summary>Bar spacing of the crack check of a strip (<see cref="WallSectionSession"/>).</summary>
+    public enum WallCrackSpacing
+    {
+        /// <summary>The larger spacing of the two faces, whatever face is in tension (<see cref="WallStrip.MaximumBarSpacing"/>): the rule before Concrete 0.38,
+        /// on the safe side; the default (retaining walls).</summary>
+        SparserFace,
+        /// <summary>
+        /// The spacing of the face in tension in each combination (<see cref="WallStrip.BarSpacing"/>): the face whose outer fibre has a positive strain in the
+        /// strain plane of the combination. With both faces in tension (entirely tensile strip) or none, the larger spacing as <see cref="SparserFace"/>.
+        /// S3 of the embedded-wall review of October 2026, scheda decisioni ANTHEA 16/11/2026 (diaphragm walls, <c>GPC.Design.EmbeddedWalls</c>).
+        /// </summary>
+        TensionFace
+    }
+
     /// <summary>Immutable rectangular strip, mm. Cover is clear cover to longitudinal bars, without links.
     /// Actions and capacities are totals on this width, never values per metre implicitly rescaled.</summary>
     public sealed class WallStrip
@@ -56,6 +70,12 @@ namespace GPC.Checkers.Concrete.Walls
         }
         public double MaximumBarSpacing => Math.Max((Width - 2 * Cover - TopDiameter) / (TopCount - 1),
             (Width - 2 * Cover - BottomDiameter) / (BottomCount - 1));
+        /// <summary>Centre-to-centre spacing of the bars of one face, mm: (b − 2c − Ø)/(n − 1), as in <see cref="MaximumBarSpacing"/>.</summary>
+        public double BarSpacing(WallFace face)
+        {
+            if (!Enum.IsDefined(typeof(WallFace), face)) throw new ArgumentOutOfRangeException(nameof(face));
+            return face == WallFace.Top ? (Width - 2 * Cover - TopDiameter) / (TopCount - 1) : (Width - 2 * Cover - BottomDiameter) / (BottomCount - 1);
+        }
         internal static bool Finite(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
         internal static void Positive(double value, string name)
         { if (!Finite(value) || value <= 0) throw new ArgumentOutOfRangeException(name); }

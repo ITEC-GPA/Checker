@@ -57,6 +57,21 @@ public sealed class EmbeddedWallReviewTests
         Assert.AreEqual(links, shear.Capacity!.Value, 1e-9 * links, "VRd ≈ 562 491 N (558 046 N with the rounding-dependent d).");
     }
 
+    // S3 (scheda decisioni ANTHEA 16/11/2026). The crack check of a diaphragm strip took the spacing of the sparser face whatever face was in
+    // tension; now the face in tension in each combination. Back 6φ20: s = (1000 − 80 − 20)/5 = 180 mm; front 5φ16: s = (1000 − 80 − 16)/4 = 226 mm.
+    // Back in tension (Concrete top, M < 0): 180 instead of 226; front in tension (M > 0): 226 as before. Both within 5 (c + φ/2) (250 and 240 mm),
+    // so wk does not change here: only the reported spacing does.
+    [TestMethod]
+    public void DiaphragmCrackCheckUsesTheSpacingOfTheFaceInTension()
+    {
+        var session = Strip().CreateSession();
+        Assert.AreEqual(WallCrackSpacing.TensionFace, session.CrackSpacing);
+        var back = session.CheckServiceability(new WallSectionActions(-1e5, 0, -60e6), GPC.Checkers.Concrete.Serviceability.ServiceabilityCombination.QuasiPermanent).CrackResponse;
+        var front = session.CheckServiceability(new WallSectionActions(-1e5, 0, 60e6), GPC.Checkers.Concrete.Serviceability.ServiceabilityCombination.QuasiPermanent).CrackResponse;
+        Assert.AreEqual(180, back.BarSpacing!.Value, 1e-12, "back face in tension"); Assert.AreEqual(226, front.BarSpacing!.Value, 1e-12, "front face in tension");
+        Assert.IsTrue(back.Width > 0 && front.Width > 0);
+    }
+
     // S1. The width passed to the checks was never compared with analysis.TributaryWidth: pile and tube actions were scaled by
     // spacing/width with the caller's number, and the RC strip only compared its own width with that same number. Fixed 22/10/2026.
     [TestMethod]

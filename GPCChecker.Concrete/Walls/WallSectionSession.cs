@@ -84,9 +84,19 @@ namespace GPC.Checkers.Concrete.Walls
         readonly Dictionary<Tuple<double, int>, SectionResistanceResponse> momentCache = new Dictionary<Tuple<double, int>, SectionResistanceResponse>();
         static readonly double UnitMomentNmm = GPC.Model.Units.ConverMomentToDefault(1, GPC.Model.Units.Knm);
 
+        /// <summary>Bar spacing of the crack check: <see cref="WallCrackSpacing.SparserFace"/> unless given to the constructor.</summary>
+        public WallCrackSpacing CrackSpacing { get; }
+
         public WallSectionSession(WallStrip strip, ReinforcedConcreteSection preparedSection, StandardNTC2018Concrete standard,
             double creep, string exposure)
+            : this(strip, preparedSection, standard, creep, exposure, WallCrackSpacing.SparserFace) { }
+
+        /// <summary>Session with the bar spacing rule of the crack check (<see cref="WallCrackSpacing"/>); the other checks do not depend on it.</summary>
+        public WallSectionSession(WallStrip strip, ReinforcedConcreteSection preparedSection, StandardNTC2018Concrete standard,
+            double creep, string exposure, WallCrackSpacing crackSpacing)
         {
+            if (!Enum.IsDefined(typeof(WallCrackSpacing), crackSpacing)) throw new ArgumentOutOfRangeException(nameof(crackSpacing));
+            CrackSpacing = crackSpacing;
             this.strip = strip ?? throw new ArgumentNullException(nameof(strip));
             section = preparedSection ?? throw new ArgumentNullException(nameof(preparedSection));
             this.standard = standard ?? throw new ArgumentNullException(nameof(standard));
@@ -147,6 +157,20 @@ namespace GPC.Checkers.Concrete.Walls
         }
 
         SectionAnalysisInput Input(WallSectionActions action) => new SectionAnalysisInput(new ResultBeamForces(action.N, action.V, 0, 0, action.M, 0, axes));
+
+        /// <summary>
+        /// Spacing assigned to the crack check (<see cref="CrackSpacing"/>): the larger of the two faces, or the spacing of the face whose outer fibre is in
+        /// tension in this strain plane (the larger one when both or neither are: entirely tensile or compressed strip).
+        /// </summary>
+        double CrackBarSpacing(GPC.Checkers.Concrete.Results.StrainPlane plane)
+        {
+            if (CrackSpacing == WallCrackSpacing.SparserFace) return strip.MaximumBarSpacing;
+            const double toleranceMm = 1e-7;
+            double maxY = geometry.Outline.Max(p => p.Y), minY = geometry.Outline.Min(p => p.Y);
+            bool top = geometry.Outline.Where(p => Math.Abs(p.Y - maxY) <= toleranceMm).Max(p => plane.GetStrain(p.X, p.Y)) > 0;
+            bool bottom = geometry.Outline.Where(p => Math.Abs(p.Y - minY) <= toleranceMm).Max(p => plane.GetStrain(p.X, p.Y)) > 0;
+            return top == bottom ? strip.MaximumBarSpacing : strip.BarSpacing(top ? WallFace.Top : WallFace.Bottom);
+        }
 
         public WallReinforcementChecks CheckLongitudinalAreas() => WallStripDetailing.Evaluate(strip, concrete.Fctm, steel.Fyk);
 
@@ -210,9 +234,10 @@ namespace GPC.Checkers.Concrete.Walls
                         // the tensile strength of the concrete is not used (the former proof σt,el ≤ fctk,0.05 is withdrawn).
                         var options = SectionCrackOptions.Default.WithValidateAtUse(true).WithTrace(true).WithAnalysisContext(concrete.E, response.PsiRebar)
                             .WithUnreinforcedTensileZoneFails(true);
+                        var plane = response.Strain.ToStrainPlane();
                         var crack = SectionCrackCheck.Evaluate(new SectionCrackInput(standard, combination, exposure, false, null, geometry,
-                            response.Strain.ToStrainPlane(), response.Bars.Select(p => p.Stress), response.Linear, false, false, steel.E, concrete.Ecm, concrete.Fctm,
-                            false, true, strip.Cover, strip.Cover, strip.MaximumBarSpacing, UncrackedStress, false, options));
+                            plane, response.Bars.Select(p => p.Stress), response.Linear, false, false, steel.E, concrete.Ecm, concrete.Fctm,
+                            false, true, strip.Cover, strip.Cover, CrackBarSpacing(plane), UncrackedStress, false, options));
                         checks.Add(crack.Passed == false && !crack.Width.HasValue && crack.Limit.HasValue
                             ? WallSectionCheck.NotSatisfiedWithoutDemand("Wall.Cracking", "mm", crack.Limit.Value, crack.Status)
                             : new WallSectionCheck("Wall.Cracking", "mm", crack.Width ?? 0, crack.Width.HasValue ? crack.Limit : null, ExecutionStatus.Completed, crack.Status));

@@ -29,7 +29,11 @@ public sealed record EmbeddedWallRcStrip(string Id, double Width, double Thickne
             || !PortableMath.IsFinite(Creep) || Creep < 0 || string.IsNullOrWhiteSpace(Exposure))
             throw new ArgumentException("Complete ordinary-concrete strip, reinforcement and serviceability properties required.");
     }
-    /// <summary>Creates an independent section session. No shared mutable material, mesh or verifier between analyses.</summary>
+    /// <summary>
+    /// Creates an independent section session. No shared mutable material, mesh or verifier between analyses. The crack check of a diaphragm wall uses
+    /// the bar spacing of the face in tension in each combination (<see cref="WallCrackSpacing.TensionFace"/>; S3 of the embedded-wall review of October 2026,
+    /// scheda decisioni ANTHEA 16/11/2026), no longer the sparser face: the two differ only when the faces have different bars.
+    /// </summary>
     public WallSectionSession CreateSession()
     {
         Validate();
@@ -39,7 +43,7 @@ public sealed record EmbeddedWallRcStrip(string Id, double Width, double Thickne
             SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
         Add(FrontBars, FrontDiameter, ClearCover + FrontDiameter / 2);
         Add(BackBars, BackDiameter, Thickness - ClearCover - BackDiameter / 2);
-        return new WallSectionSession(Strip(), section, new StandardNTC2018Concrete(), Creep, Exposure);
+        return new WallSectionSession(Strip(), section, new StandardNTC2018Concrete(), Creep, Exposure, WallCrackSpacing.TensionFace);
         void Add(int count, double diameter, double y)
         {
             var bar = new RebarSectionCircular(diameter, steel);

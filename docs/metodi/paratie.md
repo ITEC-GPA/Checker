@@ -133,6 +133,14 @@ Fase, caso, quota e lato del nodo restano associati a ogni controllo. Nessuna
 verifica viene eseguita su un'analisi non convergente. I minimi dei muri a gravità
 non vengono presentati come dettagli completi di diaframmi o pali.
 
+Fessurazione dei diaframmi: da Concrete 0.38 e GPC.Design 0.46 (voce S3 della
+revisione di ottobre, scheda decisioni del 16/11/2026) l'interasse delle barre è
+quello della faccia tesa della combinazione (`WallCrackSpacing.TensionFace`: la
+faccia con la fibra esterna in trazione), non più quello della faccia più rada;
+con le due facce tese, o nessuna, resta il maggiore. Cambia solo con armature
+diverse sulle due facce, e wk solo quando uno dei due interassi supera
+5 (c + Ø/2) e l'altro no. I muri di sostegno restano sulla faccia più rada.
+
 K0 è obbligatorio e positivo. Una tensione iniziale fuori dai limiti attivo/passivo
 viene rifiutata esplicitamente, senza correzioni silenziose.
 
