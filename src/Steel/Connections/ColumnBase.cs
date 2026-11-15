@@ -54,15 +54,26 @@ namespace GPC.Checkers.Steel.Connections
         public string Scope => "Static ULS resistance of one I/H column base: unstiffened rectangular plate welded concentrically, grout and concrete, "
             + "four anchors outside the flanges (tension T-stub) or anchors between the flanges (no anchor tension). N, M1 (major axis), V1, V2. "
             + "EN1993-1-8:2005 6.2.2(5)-(8), 6.2.5, 6.2.6.7, 6.2.6.9-6.2.6.12, 6.2.8 and Table6.7; EN1992-1-1 6.7 for FRdu. "
-            + "Concrete failure of the anchors is a declared input. No minor-axis/biaxial bending, stiffened or embedded bases, hollow columns, seismic capacity design or fatigue.";
-        public IReadOnlyList<string> ExternalConditions { get; } = Array.AsReadOnly(new[] {
+            + "Concrete failure of the anchors is a declared input. No minor-axis/biaxial bending, stiffened or embedded bases, hollow columns, seismic capacity design or fatigue."
+            + (Input.InternalRowAlpha != null || Input.InternalRowAlphaSciP398Source != null
+                ? " Opt-in: anchor tension between the flanges, Table6.6 row next to the flange with the declared Figure6.11 alpha and the column web in tension (6.2.6.3)." : "")
+            + (Input.TensionShearInteractionSource != null ? " Opt-in: tensioned anchors in shear by the Table3.4 combined rule without prying." : "")
+            + (Input.Stiffness != null ? " Opt-in: rotational stiffness 6.3.4 (Tables 6.11, 6.12)." : "");
+        public IReadOnlyList<string> ExternalConditions => Input.Stiffness == null ? DefaultConditions : StiffnessConditions;
+        private static readonly IReadOnlyList<string> DefaultConditions = Array.AsReadOnly(new[] {
             "Concrete failure modes of the anchors (EN1992-4: pull-out, cone, splitting, edge, pry-out) and the foundation design, including the splitting reinforcement of EN1992-1-1 6.7(1), are declared by the caller and not computed.",
             "The column cross-section and member at the base cut (N, M1, V) are verified separately; this result is a local joint resistance.",
             "Execution: plate flatness and grout filling as assumed in the uniform bearing pressure, grout strength and thickness as declared, anchor positions within tolerances (EN1993-1-8 6.2.6.12(2) note).",
             "The joint stiffness (EN1993-1-8 6.3.4) and its compatibility with the global model are not part of this result." });
+        private static readonly IReadOnlyList<string> StiffnessConditions = Array.AsReadOnly(DefaultConditions.Take(3).Concat(new[] {
+            "The rotational stiffness of EN1993-1-8 6.3.4 is computed for the actual N-M1 state with the declared concrete modulus; its classification (5.2.2.5) and compatibility with the global model stay with the caller." }).ToArray());
+        /// <summary>EN1993-1-8 6.3.4 rotational stiffness at the actual actions; only with ColumnBaseInput.WithStiffness and
+        /// a calculation without missing requirements, null otherwise (also beyond Mj,Rd).</summary>
+        public ColumnBaseRotationalStiffness RotationalStiffness { get; }
         internal ColumnBaseResult(ColumnBaseInput input, IEnumerable<ConnectionCheck> checks, IEnumerable<SectionResistanceValue> trace,
             IEnumerable<string> missing, ColumnBaseEquilibriumState state, double? fjd, double? c, double? zc, double? zt,
-            double? fc, double? ft, bool? prying, double? mj, double? nj, double? fv, FilletWeldGroupResult welds, FilletWeldGroupResult weldsAtResistance)
+            double? fc, double? ft, bool? prying, double? mj, double? nj, double? fv, FilletWeldGroupResult welds, FilletWeldGroupResult weldsAtResistance,
+            ColumnBaseRotationalStiffness stiffness = null)
         {
             Input = input; MissingRequirements = Array.AsReadOnly(missing.Distinct().ToArray());
             Checks = Array.AsReadOnly(ConnectionOutcome.Retained(checks, MissingRequirements.Count));
@@ -73,6 +84,7 @@ namespace GPC.Checkers.Steel.Connections
             bool evaluated = MissingRequirements.Count == 0;
             SideCompressionResistance = evaluated ? fc : null; SideTensionResistance = evaluated ? ft : null;
             MomentResistance = evaluated ? mj : null; AxialResistance = evaluated ? nj : null; ShearResistance = evaluated ? fv : null;
+            RotationalStiffness = evaluated ? stiffness : null;
         }
     }
 
@@ -83,6 +95,8 @@ namespace GPC.Checkers.Steel.Connections
     {
         public const string MethodId = "Steel.Connection.ColumnBase.Standard";
         private const double BetaJ = 2.0 / 3.0;
+        /// <summary>E of EN1993-1-1 3.2.6(1) and NTC2018 11.3.4.1, MPa (Table6.11 and Table6.12).</summary>
+        private const double SteelElasticModulus = 210000;
 
         public static ColumnBaseResult Verify(ColumnBaseInput p)
         {
@@ -95,6 +109,16 @@ namespace GPC.Checkers.Steel.Connections
             bool? pryingOut = null; FilletWeldGroupResult welds = null, weldsAtResistance = null;
             string ec = code.IsNtc ? "EN1993-1-8:2005 (supplementary EC component model with NTC2018 factors, NTC2018 Cap.12)" : "EN1993-1-8:2005";
             bool outside = pattern.Layout == ColumnBaseAnchorLayout.OutsideFlanges;
+            // Opt-in anchor tension between the flanges: two rows at +/-RowDistance and a declared Figure 6.11 alpha.
+            bool alphaDeclared = p.InternalRowAlpha != null || p.InternalRowAlphaSciP398Source != null;
+            bool internalTension = !outside && pattern.RowDistance > 0 && alphaDeclared;
+            ColumnBaseRotationalStiffness stiffnessOut = null;
+            if (p.InternalRowAlpha != null && p.InternalRowAlphaSciP398Source != null) missing.Add("INTERNAL_ROW_ALPHA_DECLARED_TWICE");
+            if (alphaDeclared && !(!outside && pattern.RowDistance > 0)) missing.Add("INTERNAL_ROW_ALPHA_REQUIRES_TWO_ROWS_BETWEEN_THE_FLANGES");
+            if (p.InternalRowAlphaSciP398Source != null && string.IsNullOrWhiteSpace(p.InternalRowAlphaSciP398Source)) missing.Add("SCI_P398_ALPHA_SOURCE_REQUIRED");
+            if (p.Stiffness != null && string.IsNullOrWhiteSpace(p.Stiffness.Source)) missing.Add("CONCRETE_MODULUS_SOURCE_REQUIRED");
+            if (p.TensionShearInteractionSource != null && string.IsNullOrWhiteSpace(p.TensionShearInteractionSource))
+                missing.Add("TENSION_SHEAR_INTERACTION_CONCRETE_SOURCE_REQUIRED");
 
             // Field of the method: every other typology or design situation is refused by name.
             if (p.Detail == ColumnBaseDetail.StiffenedPlate) missing.Add("STIFFENED_BASE_PLATE_OUT_OF_SCOPE");
@@ -188,18 +212,47 @@ namespace GPC.Checkers.Steel.Connections
             string compressionRef = ec + " 6.2.5 (6.4)-(6.6), 6.2.6.9, 6.2.6.10; EN1992-1-1:2004 6.7(2) (6.63); holes deducted (GPC, conservative)";
             string flangeRef = ec + " 6.2.6.7 (6.21); " + p.ColumnMomentResistance.Source;
 
-            // Tension side: anchors outside the flanges form the extended-row T-stub of 6.2.6.11 / 6.2.6.5.
-            double ft = 0, zt = 0, plateMode = 0, mode3 = 0; double? mode2 = null; bool prying = false;
-            if (outside)
+            // Tension side: anchors outside the flanges form the extended-row T-stub of 6.2.6.11 / 6.2.6.5; anchors between
+            // the flanges (opt-in) the T-stub of the row next to the tension flange (Table6.6 first row below the flange).
+            double ft = 0, zt = 0, plateMode = 0, mode3 = 0, webTension = double.PositiveInfinity, anchorSteel = 0, k15 = 0, k16 = 0;
+            double? mode2 = null; bool prying = false;
+            if (outside || internalTension)
             {
                 zt = row; ztOut = zt;
-                var geometry = TStubEffectiveGeometry.ExtendedEndPlateOuterRow(new TStubExtendedEndPlateGeometry(
-                    plate.Width, gauge, row - hc / 2, w.FlangeLeg, edgeY, pattern.DetailSource));
+                TStubDerivedGeometry geometry;
+                double firstRow = hc / 2 - tf - row;
+                if (outside)
+                    geometry = TStubEffectiveGeometry.ExtendedEndPlateOuterRow(new TStubExtendedEndPlateGeometry(
+                        plate.Width, gauge, row - hc / 2, w.FlangeLeg, edgeY, pattern.DetailSource));
+                else
+                {
+                    // Rows measured from the inner face of the tension flange; the opposite flange is the far boundary.
+                    TStubChartAlpha alpha = p.InternalRowAlpha;
+                    if (alpha == null)
+                        try
+                        {
+                            alpha = TStubSciAlpha.Calculate((gauge - col.WebThickness) / 2 - .8 * w.WebLeg, (plate.Width - gauge) / 2,
+                                firstRow - .8 * w.FlangeLeg, p.InternalRowAlphaSciP398Source + "; " + pattern.DetailSource);
+                        }
+                        catch (Exception ex) when (ex is NotSupportedException || ex is ArgumentException)
+                        { missing.Add("Tension.InternalRow:SCI_P398_ALPHA_NOT_AVAILABLE(" + ex.Message + ")"); return Result(); }
+                    geometry = TStubInternalEndPlateLengths.Calculate(new TStubInternalEndPlateGeometry(plate.Width, plate.Width, gauge,
+                        col.WebThickness, w.WebLeg, w.FlangeLeg, w.FlangeLeg, hc - 2 * tf, new[] { firstRow }, alpha, pattern.DetailSource));
+                }
                 foreach (var v in geometry.Trace) Value("Tension.TStub." + v.Name, v.Value, v.Unit);
                 foreach (var d in geometry.Diagnostics) missing.Add("Tension.TStub:" + d);
                 if (missing.Count != 0) return Result();
                 double m = geometry.M, emin = geometry.Emin, t = plate.Thickness;
                 if (!(m > half)) missing.Add("ANCHOR_HOLE_INTERSECTS_PLASTIC_HINGE_LINE");
+                if (!outside)
+                {
+                    if (!(firstRow - .8 * w.FlangeLeg > half)) missing.Add("ANCHOR_HOLE_INTERSECTS_PLASTIC_HINGE_LINE");
+                    // GPC condition: the unrestricted end-row pattern of each side (2m+0.625e beyond the row, Table6.6) stays
+                    // within its half of the plate, so the side T-stubs never share plate (Table6.7 adds independent sides).
+                    double endPattern = 2 * m + .625 * geometry.E;
+                    Value("Tension.InternalRow.EndPatternLength", endPattern, "mm");
+                    if (row < endPattern) missing.Add("INTERNAL_TENSION_ROW_PATTERN_CROSSES_THE_COLUMN_AXIS");
+                }
                 var lengths = geometry.IndividualRows[0];
                 double n = Math.Min(emin, 1.25 * m);
                 double mpl1 = .25 * lengths.Mode1 * t * t * plate.Fy / gM0, mpl2 = .25 * lengths.Mode2 * t * t * plate.Fy / gM0;
@@ -216,6 +269,25 @@ namespace GPC.Checkers.Steel.Connections
                 Value("Tension.Anchor.SteelTensionResistance", steel, "N");
                 Value("Tension.Anchor.AnchorElongationLength", lb, "mm"); Value("Tension.Anchor.PryingLengthLimit", lbStar, "mm");
                 Value("Tension.TStub.PryingDevelops", prying ? 1 : 0, "1"); Value("Tension.LeverArm", zt, "mm");
+                anchorSteel = steel;
+                if (!outside)
+                {
+                    // 6.2.8.3(2): column web in tension under the flange, 6.2.6.3 (6.15) with beff,t,wc = leff of the plate
+                    // T-stub (6.2.6.3(3)) and omega of Table6.3. A base has no web panel of 5.3; beta = 1 (omega1, the
+                    // single-sided value of Table5.4) is taken as a conservative reading. Avc of EN1993-1-1 6.2.6(3)(a).
+                    double avc = SectionPropertyArithmetic.RolledWebArea(col.Area, col.Width, tf, col.Width, tf, col.WebThickness, 2 * col.RootRadius);
+                    double x = lengths.Mode1 * col.WebThickness / avc, omega1 = 1 / Math.Sqrt(1 + 1.3 * x * x);
+                    webTension = omega1 * lengths.Mode1 * col.WebThickness * col.Fy / gM0;
+                    Value("Tension.ColumnWeb.ShearArea", avc, "mm2"); Value("Tension.ColumnWeb.EffectiveWidth", lengths.Mode1, "mm");
+                    Value("Tension.ColumnWeb.Omega1", omega1, "1"); Value("Tension.ColumnWeb.FtWcRd", webTension, "N");
+                }
+                if (p.Stiffness != null)
+                {
+                    // EN1993-1-8 Table6.11, one bolt row of two anchors: k15 plate in bending, k16 anchors in tension.
+                    k15 = (prying ? .85 : .425) * lengths.Mode1 * t * t * t / (m * m * m);
+                    k16 = (prying ? 1.6 : 2.0) * a.TensileArea / lb;
+                    Value("Stiffness.K15", k15, "mm"); Value("Stiffness.K16", k16, "mm");
+                }
                 if (missing.Count != 0) return Result();
                 double punchingResistance = punching.Checks.Single().Resistance;
                 Value("Tension.Anchor.PlatePunchingResistance", punchingResistance, "N");
@@ -230,6 +302,7 @@ namespace GPC.Checkers.Steel.Connections
                     plateMode = noPrying.PlateMode1; mode3 = noPrying.BoltsMode3;
                     if (prying) mode2 = TStubMechanismArithmetic.Calculate(mpl1, mpl2, m, n, 0, sumFt, true, TStubMode1Method.PointForce).CombinedMode2;
                     ft = Math.Min(plateMode, Math.Min(mode3, mode2 ?? double.PositiveInfinity));
+                    if (!outside) ft = Math.Min(ft, webTension);
                     Value("Tension.Anchor.ConcreteTensionResistance", concreteTension.Value, "N"); Value("Tension.Anchor.DesignTensionResistance", anchor, "N");
                     Value("Tension.TStub.PlateWithoutPrying", plateMode, "N"); if (mode2.HasValue) Value("Tension.TStub.Mode2", mode2.Value, "N");
                     Value("Tension.TStub.Mode3", mode3, "N"); Value("Tension.SideResistance", ft, "N");
@@ -241,7 +314,7 @@ namespace GPC.Checkers.Steel.Connections
             // N-M1 resistance: Table6.7 is the equilibrium of one force per side at its own lever arm,
             // FA at y=+zA and FB at y=-zB (tension positive): FA=(N zB+M)/(zA+zB), FB=(N zA-M)/(zA+zB).
             double nEd = act.N, mEd = act.M1;
-            double u = 0;
+            double u = 0, sideAForce = 0, sideBForce = 0; bool sideATension = false, sideBTension = false;
             if (mEd == 0 && nEd < 0)
             {
                 // 6.2.8.2: three non-overlapping T-stubs, the web one between the inner edges of the flange ones.
@@ -262,7 +335,7 @@ namespace GPC.Checkers.Steel.Connections
             else if (nEd != 0 || mEd != 0)
             {
                 var states = new List<Tuple<ColumnBaseEquilibriumState, bool, bool>>();
-                if (outside)
+                if (outside || internalTension)
                 {
                     states.Add(Tuple.Create(ColumnBaseEquilibriumState.SideATensionSideBCompression, true, false));
                     states.Add(Tuple.Create(ColumnBaseEquilibriumState.BothSidesInTension, true, true));
@@ -280,7 +353,7 @@ namespace GPC.Checkers.Steel.Connections
                     if (consistency > best) { best = consistency; state = s.Item1; fa = forceA; fb = forceB; aTension = s.Item2; bTension = s.Item3; }
                 }
                 // Without tension capacity a state with anchor tension cannot be a resistance mechanism.
-                if (!outside && best < -1e-12 * (Math.Abs(nEd) + Math.Abs(mEd) / zc))
+                if (!outside && !internalTension && best < -1e-12 * (Math.Abs(nEd) + Math.Abs(mEd) / zc))
                 {
                     missing.Add("ANCHOR_TENSION_BETWEEN_FLANGES_NOT_IMPLEMENTED");
                     return Result();
@@ -293,6 +366,7 @@ namespace GPC.Checkers.Steel.Connections
                 double z = (aTension ? zt : zc) + (bTension ? zt : zc);
                 Value("Equilibrium.LeverArmZ", z, "mm"); Value("Equilibrium.SideAForce", fa, "N"); Value("Equilibrium.SideBForce", fb, "N");
                 Side("SideA", fa, aTension); Side("SideB", fb, bTension);
+                sideAForce = fa; sideBForce = fb; sideATension = aTension; sideBTension = bTension;
                 u = Math.Max(Math.Abs(fa) / (aTension ? ft : fc), Math.Abs(fb) / (bTension ? ft : fc));
                 if (u > 0) { mjOut = mEd / u; njOut = nEd / u; }
                 if (mjOut.HasValue) Value("Equilibrium.MjRdAtActualEccentricity", Math.Abs(mjOut.Value), "Nmm");
@@ -301,6 +375,7 @@ namespace GPC.Checkers.Steel.Connections
             else state = ColumnBaseEquilibriumState.NoAxialForceOrMoment;
             Value("Equilibrium.State", (int)state, "1");
             if (missing.Count != 0) return Result();
+            if (p.Stiffness != null) Stiffness();
 
             // Shear (6.2.2(5)-(8), 6.2.8.1(5)): friction plus the anchors, only with holes that are not oversized.
             double vEd = Math.Sqrt(act.V1 * act.V1 + act.V2 * act.V2);
@@ -336,10 +411,38 @@ namespace GPC.Checkers.Steel.Connections
                 Value("Shear.Anchor.ConcreteShearResistance", concrete.ShearPerAnchor.Value, "N"); Value("Shear.Anchor.FvbRd", fvb, "N");
             }
             double fv = ff + credited * fvb;
+            // Opt-in (TensionShearInteractionSource): anchors in tension take shear by EN1993-1-8 Table3.4 combined shear and
+            // tension, Fv,Ed/Fv,Rd + Ft,Ed/(1.4 Ft,Rd) <= 1, with the anchor steel values (anchor = bolt, 6.2.6.12(3) -> 3.6):
+            // Fv,Rd = min(F1,vb, F2,vb), Ft,Rd = steel tension. Ft,Ed = side force / 2 (two anchors per side) holds only
+            // without prying (Lb > Lb*); with prying the tensioned anchors stay out of shear. Bearing and the declared concrete
+            // shear still cap each anchor; the concrete interaction is the declared source.
+            int interactionAnchors = 0; double interactionCredit = 0;
+            if (p.TensionShearInteractionSource != null && reasons.Count == 0 && free < total)
+            {
+                Value("Shear.Interaction.PryingExcludesTensionedAnchors", prying ? 1 : 0, "1");
+                if (!prying)
+                {
+                    double factor = a.ThreadsComplyWithEn1090 ? 1 : .85;
+                    double fvSteel = Math.Min(BoltResistance.Shear(1, .5, a.Fub, a.TensileArea, gM2) * factor, (.44 - .0003 * a.Fyb) * a.Fub * a.TensileArea / gM2);
+                    foreach (var side in new[] { Tuple.Create("SideA", sideATension, sideAForce), Tuple.Create("SideB", sideBTension, sideBForce) })
+                    {
+                        if (!side.Item2) continue;
+                        double ftEd = Math.Max(0, side.Item3) / 2;
+                        double remaining = Math.Max(0, fvSteel * (1 - ftEd / (1.4 * anchorSteel)));
+                        double perAnchor = Math.Min(fvb, remaining);
+                        Value("Shear.Interaction." + side.Item1 + ".AnchorTension", ftEd, "N");
+                        Value("Shear.Interaction." + side.Item1 + ".AnchorShearResistance", perAnchor, "N");
+                        interactionCredit += 2 * perAnchor; interactionAnchors += 2;
+                    }
+                    fv += interactionCredit;
+                }
+            }
             Value("Shear.CreditedAnchors", credited, "1"); Value("Shear.FvRd", fv, "N");
+            if (interactionAnchors != 0) Value("Shear.Interaction.CreditedTensionedAnchors", interactionAnchors, "1");
             fvOut = fv;
-            string shearRef = ec + " 6.2.2(5)-(8) (6.1)-(6.3), 6.2.8.1(5); Table3.4" + (code.IsNtc ? "; NTC2018 (4.2.67)" : "");
-            if (vEd <= fv || reasons.Count == 0 && credited == total) checks.Add(new ConnectionCheck("Shear.FrictionAndAnchors", vEd, fv, shearRef));
+            string shearRef = ec + " 6.2.2(5)-(8) (6.1)-(6.3), 6.2.8.1(5); Table3.4" + (code.IsNtc ? "; NTC2018 (4.2.67)" : "")
+                + (interactionAnchors != 0 ? "; tensioned anchors by the Table3.4 combined rule without prying; concrete interaction: " + p.TensionShearInteractionSource : "");
+            if (vEd <= fv || reasons.Count == 0 && credited + interactionAnchors == total) checks.Add(new ConnectionCheck("Shear.FrictionAndAnchors", vEd, fv, shearRef));
             else if (reasons.Count != 0) missing.Add("SHEAR_EXCEEDS_FRICTION:ANCHOR_SHEAR_NOT_ADMISSIBLE(" + string.Join(",", reasons) + "):SHEAR_KEY_OUT_OF_SCOPE");
             else missing.Add("SHEAR_EXCEEDS_RESISTANCE_WITHOUT_TENSIONED_ANCHORS:TENSION_SHEAR_INTERACTION_NOT_IMPLEMENTED");
 
@@ -367,10 +470,14 @@ namespace GPC.Checkers.Steel.Connections
                 double force = Math.Max(0, tension ? signedForce : -signedForce);
                 if (tension)
                 {
-                    string tref = ec + " 6.2.6.11(1)-(2), 6.2.6.12, 6.2.4 Table6.2, Table6.6 outer row; 6.2.8.3(2)";
+                    string tref = ec + " 6.2.6.11(1)-(2), 6.2.6.12, 6.2.4 Table6.2, " + (outside ? "Table6.6 outer row" : "Table6.6 first row below the flange, alpha of Figure6.11 ("
+                        + (p.InternalRowAlpha != null ? p.InternalRowAlpha.Source : "SCI P398 Appendix G: " + p.InternalRowAlphaSciP398Source) + ")") + "; 6.2.8.3(2)";
                     checks.Add(new ConnectionCheck(name + ".TStub.PlateWithoutPrying", force, plateMode, tref));
                     if (mode2.HasValue) checks.Add(new ConnectionCheck(name + ".TStub.Mode2", force, mode2.Value, tref + "; prying develops, Lb<=Lb*"));
                     checks.Add(new ConnectionCheck(name + ".TStub.Mode3", force, mode3, tref + "; anchors min(steel, punching, declared concrete): " + concrete.Source));
+                    if (!outside)
+                        checks.Add(new ConnectionCheck(name + ".ColumnWebInTension", force, webTension,
+                            ec + " 6.2.8.3(2), 6.2.6.3 (6.15), Table6.3 omega1 (beta=1, conservative reading for a base); beff,t,wc = leff,1 of the plate T-stub"));
                 }
                 else
                 {
@@ -413,11 +520,43 @@ namespace GPC.Checkers.Steel.Connections
                 if (!r.IsComplete && r.Status != ConnectionStatus.Failed && r.Diagnostics.Count == 0) missing.Add(name + ":INCOMPLETE_WELD_GROUP");
                 if (r.Utilization.HasValue) Value(name + ".Utilization", r.Utilization.Value, "1");
             }
+            void Stiffness()
+            {
+                // EN1993-1-8 6.3.4 and Table6.12 with the stiffness coefficients of Table6.11: compression side k13 with
+                // c = 1.25 tp (Table6.11 note 1) on the flange T-stub limited like the resistance one; tension side
+                // 1/kT = 1/k15 + 1/k16 (6.3.4(1), AC:2009). Lever arms as for the resistance (6.3.4(2) -> 6.2.8.1).
+                if (state == ColumnBaseEquilibriumState.NoAxialForceOrMoment || state == ColumnBaseEquilibriumState.NotEvaluated) return;
+                double cs = 1.25 * plate.Thickness, ec2 = p.Stiffness.ConcreteModulus;
+                double beff = tf + Math.Min(cs, (p.PlateLength - hc) / 2) + Math.Min(cs, (hc - 2 * tf) / 2);
+                double leff = 2 * Math.Min(col.Width / 2 + cs, plate.Width / 2);
+                double k13 = ec2 * Math.Sqrt(beff * leff) / (1.275 * SteelElasticModulus);
+                bool aT = sideATension, bT = sideBTension;
+                if (state == ColumnBaseEquilibriumState.AxialCompressionOnly) aT = bT = false;
+                double kT = k15 > 0 && k16 > 0 ? 1 / (1 / k15 + 1 / k16) : 0;
+                if ((aT || bT) && !(kT > 0)) { Value("Stiffness.NotDefined", 1, "1"); return; }
+                double ka = aT ? kT : k13, kb = bT ? kT : k13, za = aT ? zt : zc, zb = bT ? zt : zc, z = za + zb;
+                double e = nEd == 0 ? double.PositiveInfinity : mEd / nEd;
+                double ek = (zb * kb - za * ka) / (ka + kb);
+                // Symmetric states (ek = 0) and pure moment (N = 0) take e/(e+ek) = 1, the limit of Table6.12.
+                double eccentricityFactor = ek == 0 || double.IsInfinity(e) ? 1 : e / (e + ek);
+                double initial = eccentricityFactor * SteelElasticModulus * z * z / (1 / ka + 1 / kb);
+                Value("Stiffness.ConcreteModulus", ec2, "MPa"); Value("Stiffness.CompressionTStubBeff", beff, "mm"); Value("Stiffness.CompressionTStubLeff", leff, "mm");
+                Value("Stiffness.K13", k13, "mm"); if (kT > 0) Value("Stiffness.KT", kT, "mm");
+                Value("Stiffness.LeverArmZ", z, "mm"); Value("Stiffness.Ek", ek, "mm"); Value("Stiffness.EccentricityFactor", eccentricityFactor, "1");
+                if (!(eccentricityFactor > 0) || double.IsNaN(initial) || double.IsInfinity(initial)) { Value("Stiffness.NotDefined", 1, "1"); return; }
+                // 6.3.1(6), Table6.8 base plate connections psi = 2.7; Mj,Ed/Mj,Rd on the same N-M1 ray is u (zero moment: 0).
+                double momentRatio = mEd == 0 ? 0 : u;
+                double mu = momentRatio <= 2.0 / 3 ? 1 : Math.Pow(1.5 * momentRatio, 2.7);
+                Value("Stiffness.Sjini", initial, "Nmm/rad"); Value("Stiffness.Mu", mu, "1");
+                if (momentRatio > 1) { Value("Stiffness.SjBeyondResistance", 1, "1"); return; }
+                Value("Stiffness.Sj", initial / mu, "Nmm/rad");
+                stiffnessOut = new ColumnBaseRotationalStiffness(initial, initial / mu, mu, z, e, ek, ka, kb);
+            }
             void Required(string source, string issue) { if (string.IsNullOrWhiteSpace(source)) missing.Add(issue); }
             void Value(string name, double value, string unit)
             { if (double.IsNaN(value) || double.IsInfinity(value)) missing.Add(name + "_OUTSIDE_NUMERIC_RANGE"); else trace.Add(new SectionResistanceValue(name, value, unit)); }
             ColumnBaseResult Result() => new ColumnBaseResult(p, checks, trace, missing, state, fjdOut, cOut, zcOut, ztOut,
-                fcOut, ftOut, pryingOut, mjOut, njOut, fvOut, welds, weldsAtResistance);
+                fcOut, ftOut, pryingOut, mjOut, njOut, fvOut, welds, weldsAtResistance, stiffnessOut);
         }
         private static bool Equal(double a, double b) => Math.Abs(a - b) <= 1e-10 * Math.Max(Math.Abs(a), Math.Abs(b));
     }
@@ -441,10 +580,13 @@ namespace GPC.Checkers.Steel.Connections
             Add("Joint.SideCompressionResistance", r.SideCompressionResistance, "N"); Add("Joint.SideTensionResistance", r.SideTensionResistance, "N");
             Add("Joint.MomentResistanceAtActualEccentricity", r.MomentResistance, "Nmm"); Add("Joint.AxialResistanceAtActualEccentricity", r.AxialResistance, "N");
             Add("Joint.ShearResistance", r.ShearResistance, "N");
+            Add("Joint.InitialRotationalStiffness", r.RotationalStiffness?.InitialStiffness, "Nmm/rad");
+            Add("Joint.RotationalStiffness", r.RotationalStiffness?.Stiffness, "Nmm/rad");
             return new StandardConnectionCaseReport(ColumnBase.MethodId, code, r.Scope, r.Status, r.IsStaticResistanceComplete, input, values,
                 r.Checks, r.MissingRequirements, r.ExternalConditions,
                 new[] { p.ActionCombinationSource, p.Pattern.DetailSource, p.Anchor.MaterialSource, f.ConcentratedResistanceSource,
-                    p.AnchorConcrete.Source, p.ColumnMomentResistance.Source, "COLUMN_BASE_USAGE.txt" }.Where(s => !string.IsNullOrWhiteSpace(s)));
+                    p.AnchorConcrete.Source, p.ColumnMomentResistance.Source, p.InternalRowAlpha?.Source, p.InternalRowAlphaSciP398Source,
+                    p.TensionShearInteractionSource, p.Stiffness?.Source, "COLUMN_BASE_USAGE.txt" }.Where(s => !string.IsNullOrWhiteSpace(s)));
             void Add(string id, double? value, string unit) { if (value.HasValue) values.Add(V(id, value.Value, unit)); }
         }
     }

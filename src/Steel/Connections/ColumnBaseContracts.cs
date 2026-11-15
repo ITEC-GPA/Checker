@@ -155,6 +155,35 @@ namespace GPC.Checkers.Steel.Connections
         }
     }
 
+    /// <summary>Declared data of the rotational stiffness (EN1993-1-8 6.3.4, Table6.11 k13): elastic modulus of the
+    /// foundation concrete Ec, MPa (e.g. Ecm of EN1992-1-1 Table3.1 or NTC2018 (11.2.5)), never assumed, with its source.</summary>
+    public sealed class ColumnBaseStiffnessDeclaration
+    {
+        public double ConcreteModulus { get; }
+        public string Source { get; }
+        public ColumnBaseStiffnessDeclaration(double concreteModulus, string source)
+        {
+            ConnectionValidation.Positive(concreteModulus, nameof(concreteModulus));
+            ConcreteModulus = concreteModulus; Source = source;
+        }
+    }
+
+    /// <summary>Rotational stiffness of the base at the actual actions, EN1993-1-8 6.3.4 Table6.12 with 6.3.1(4)-(6):
+    /// Sj = e/(e+ek) E z^2/(mu sum 1/ki). Nmm/rad; stiffness coefficients in mm.</summary>
+    public sealed class ColumnBaseRotationalStiffness
+    {
+        public double InitialStiffness { get; }
+        public double Stiffness { get; }
+        public double Mu { get; }
+        public double LeverArm { get; }
+        public double Eccentricity { get; }
+        public double Ek { get; }
+        public double SideAStiffnessCoefficient { get; }
+        public double SideBStiffnessCoefficient { get; }
+        internal ColumnBaseRotationalStiffness(double initial, double stiffness, double mu, double z, double e, double ek, double ka, double kb)
+        { InitialStiffness = initial; Stiffness = stiffness; Mu = mu; LeverArm = z; Eccentricity = e; Ek = ek; SideAStiffnessCoefficient = ka; SideBStiffnessCoefficient = kb; }
+    }
+
     /// <summary>Qualified design moment resistance Mc,Rd of the column cross-section at the base, Nmm,
     /// already reduced for the concomitant shear V2 (and for the axial force where the caller's section
     /// policy requires it). Used only for Fc,fc,Rd=Mc,Rd/(h-tf), EN1993-1-8 6.2.6.7.</summary>
@@ -198,6 +227,33 @@ namespace GPC.Checkers.Steel.Connections
         public ColumnBaseColumnMomentResistance ColumnMomentResistance { get; }
         public SteelActions Actions { get; }
         public string ActionCombinationSource { get; }
+        /// <summary>Opt-in anchor tension between the flanges (BetweenFlanges, RowDistance &gt; 0): alpha of the bolt row
+        /// next to the tension flange read from EN1993-1-8 Figure 6.11 for this geometry, with its source. Null keeps the
+        /// refusal ANCHOR_TENSION_BETWEEN_FLANGES_NOT_IMPLEMENTED.</summary>
+        public TStubChartAlpha InternalRowAlpha { get; private set; }
+        /// <summary>Opt-in alternative to InternalRowAlpha: alpha from the SCI P398 Appendix G inversion of Figure 6.11,
+        /// chosen explicitly with this source; never substituted silently.</summary>
+        public string InternalRowAlphaSciP398Source { get; private set; }
+        /// <summary>Opt-in rotational stiffness (EN1993-1-8 6.3.4): declared concrete modulus and its source.</summary>
+        public ColumnBaseStiffnessDeclaration Stiffness { get; private set; }
+        /// <summary>Opt-in: anchors in tension are credited in shear with the EN1993-1-8 Table3.4 combined rule when no
+        /// prying develops; the source states that the declared concrete resistances hold for the combined tension and
+        /// shear of the same state (EN1992-4 interaction, outside this method). Null keeps tensioned anchors out of shear.</summary>
+        public string TensionShearInteractionSource { get; private set; }
+
+        public ColumnBaseInput WithInternalRowAlpha(TStubChartAlpha alpha)
+        { var c = Copy(); c.InternalRowAlpha = alpha ?? throw new ArgumentNullException(nameof(alpha)); return c; }
+        public ColumnBaseInput WithSciP398InternalRowAlpha(string source)
+        { var c = Copy(); c.InternalRowAlphaSciP398Source = source ?? throw new ArgumentNullException(nameof(source)); return c; }
+        public ColumnBaseInput WithStiffness(ColumnBaseStiffnessDeclaration stiffness)
+        { var c = Copy(); c.Stiffness = stiffness ?? throw new ArgumentNullException(nameof(stiffness)); return c; }
+        public ColumnBaseInput WithTensionShearInteraction(string concreteInteractionSource)
+        { var c = Copy(); c.TensionShearInteractionSource = concreteInteractionSource ?? throw new ArgumentNullException(nameof(concreteInteractionSource)); return c; }
+        private ColumnBaseInput Copy() => new ColumnBaseInput(Code, Detail, Situation, Column, ColumnFlangeFu, Plate, PlateLength, Anchor, Pattern,
+            Foundation, AnchorConcrete, Welds, ColumnMomentResistance, Actions, ActionCombinationSource)
+        { InternalRowAlpha = InternalRowAlpha, InternalRowAlphaSciP398Source = InternalRowAlphaSciP398Source, Stiffness = Stiffness,
+          TensionShearInteractionSource = TensionShearInteractionSource };
+
         public ColumnBaseInput(ConnectionDesignCode code, ColumnBaseDetail detail, ColumnBaseDesignSituation situation,
             ConnectionRolledISection column, double columnFlangeFu, ConnectionPlate plate, double plateLength,
             ColumnBaseAnchor anchor, ColumnBaseAnchorPattern pattern, ColumnBaseFoundation foundation,
