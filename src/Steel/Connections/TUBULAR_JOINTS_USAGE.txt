@@ -85,9 +85,19 @@ X kp fy0 t0^2/sin 5.2/(1-0.81 beta)/gammaM5; K e N (gap e overlap) kg kp fy0 t0^
 kg con g negativo per la sovrapposizione (7.4.2(6)). Punzonamento per T, Y, X e K/N a
 gap se di<=d0-2t0: fy0/sqrt3 t0 pi di (1+sin)/(2 sin^2)/gammaM5; nessun punzonamento
 nei nodi sovrapposti (Tab.7.2). kp = 1-0.3np(1+np) per np>0 (non sotto zero), 1 per np<=0.
-Momenti delle aste solo T, Y, X (Tab.7.5 da' Mip solo per T, X, Y): corrente e
+Momenti delle aste T, Y, X (Tab.7.5 da' Mip solo per T, X, Y): corrente e
 punzonamento nel piano e fuori piano, interazione (7.3)
 N/NRd + (Mip/Mip,Rd)^2 + |Mop|/Mop,Rd <= 1 con le resistenze minime.
+Dal 15/11/2026 anche Mop sulle aste dei K e N: la Tab.7.5 assegna la rottura della
+faccia del corrente fuori piano a "K, N, T, X e Y" e il punzonamento a "K e N a gap e
+tutti i T, X e Y". Per ogni asta con Mop: faccia del corrente con beta = min(di/d0,
+(d1+d2)/(2d0)) (1.5(6) definisce la media per K/N; la resistenza cresce con beta,
+quindi il minore e' una lettura cautelativa GPC, uguale alla definizione con aste
+uguali), punzonamento solo a gap con di <= d0-2t0, interazione (7.3) con Mip=0 e
+NRd = resistenza assiale dell'asta nel K (N1,Rd o N2,Rd, e il punzonamento a gap).
+Mip sui K/N resta rifiutato: la riga della faccia del corrente nel piano copre solo
+T, X e Y (BRACE_MOMENTS_NOT_COVERED_FOR_THIS_JOINT con la spiegazione). Test:
+TubularJointKMomentTests, riferimento ReferenceCalculations/tubular_k_out_of_plane_moments.py.
 (*) La stampa AC:2009 della Tab.7.1 riporta "(generally), but:" senza prosecuzione;
 si applica il limite 40 dei nodi X del testo 2005 (a favore di sicurezza, da verificare
 sul testo UNI).
@@ -167,7 +177,7 @@ TubularJointCode.Ntc2018() usa gammaM5=1.0, gammaM0=1.05 e gammaM2=1.25 delle NT
 RIFIUTI (NotSupported, nessun controllo valutato)
 Multiplanare (7.4.3, 7.5.3), rinforzato (7.5.2.2), fatica (7.1.1(7), EN1993-1-9),
 aste RHS/I su corrente CHS (Tab.7.4), aste miste CHS/RHS in un K, momenti delle aste
-su correnti RHS (Tab.7.14) e sui K/N, nodi fuori campo (7.4.1(3)/7.5.1(3) chiederebbero
+su correnti RHS (Tab.7.14) e momenti nel piano sui K/N, nodi fuori campo (7.4.1(3)/7.5.1(3) chiederebbero
 tutti i modi di 7.2.2 e i momenti secondari). Correnti I/H, piastre, KT/DK/KK e nodi a
 ginocchio non sono rappresentabili nell'ingresso. Fonti mancanti (azioni stesso caso,
 analisi della travatura 5.1.5, esecuzione delle saldature) sono requisiti mancanti: i

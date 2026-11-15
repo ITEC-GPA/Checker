@@ -21,7 +21,7 @@ namespace GPC.Checkers.Steel.Connections
     {
         public const string MethodId = "Steel.Connection.TubularJoint.EN1993_1_8_2005_Section7";
         public const string Scope = "EN1993-1-8:2005 (AC:2009) section7: predominantly static ULS resistance of one uniplanar unreinforced welded lattice joint. "
-            + "CHS braces on CHS chords: T, Y, X, K and N gap or overlap joints (Tables 7.1, 7.2; brace moments on T, Y and X joints by Table7.5 and eq.7.3). "
+            + "CHS braces on CHS chords: T, Y, X, K and N gap or overlap joints (Tables 7.1, 7.2; brace moments on T, Y and X joints and out-of-plane brace moments on K and N joints by Table7.5 and eq.7.3). "
             + "RHS or CHS braces on RHS chords: T, Y, X and K/N gap joints (Tables 7.8, 7.11, 7.12), K/N overlap joints (Table7.10), axial forces only. "
             + "Member resistance and stability, multiplanar or reinforced joints, I/H chords, plates, special joints of Tables 7.6/7.15, fatigue and EN1993-1-8:2024 rules are not included.";
         /// <summary>EN1993-1-1 3.2.6(1); NTC2018 11.3.4.1.</summary>
@@ -114,11 +114,19 @@ namespace GPC.Checkers.Steel.Connections
                     Require(na * nb < 0 || na == 0 && nb == 0,
                         "K_N_JOINT_REQUIRES_ONE_COMPRESSED_AND_ONE_TENSIONED_BRACE:Table7.6 special joints are not implemented");
                 }
-                // Table7.5 gives in-plane moments for T, X and Y joints only; RHS moments (Table7.14) are not implemented.
-                bool momentsAllowed = circularChord && !twoBraces;
+                // Table7.5 (CHS): chord face failure in plane for T, X and Y joints, out of plane for K, N, T, X and Y
+                // joints; punching shear for K and N gap joints and all T, X and Y joints. RHS moments (Table7.14) are
+                // not implemented. So K/N joints between CHS members take out-of-plane moments only.
                 foreach (var b in Braces())
-                    Require(momentsAllowed || b.Value.InPlaneMoment == 0 && b.Value.OutOfPlaneMoment == 0,
-                        "BRACE_MOMENTS_NOT_COVERED_FOR_THIS_JOINT:" + b.Key + " (only T, Y and X joints between CHS members; 5.1.5(3) secondary moments)");
+                {
+                    if (!circularChord)
+                        Require(b.Value.InPlaneMoment == 0 && b.Value.OutOfPlaneMoment == 0,
+                            "BRACE_MOMENTS_NOT_COVERED_FOR_THIS_JOINT:" + b.Key + " (RHS chords: Table7.14 is not implemented; 5.1.5(3) secondary moments)");
+                    else if (twoBraces)
+                        Require(b.Value.InPlaneMoment == 0,
+                            "BRACE_MOMENTS_NOT_COVERED_FOR_THIS_JOINT:" + b.Key + " (in-plane moment on a K or N joint: Table7.5 gives the in-plane chord face resistance"
+                            + " for T, X and Y joints only; out-of-plane moments are covered; 5.1.5(3) secondary moments)");
+                }
             }
 
             private void Member(string name, TubularJointSection s)
@@ -342,12 +350,34 @@ namespace GPC.Checkers.Steel.Connections
                 string faceRef = Ref("Table7.2 chord face failure, K and N " + (g < 0 ? "overlap" : "gap") + " joints");
                 Check((aIsFirst ? "BraceA" : "BraceB") + ".ChordFace", Math.Abs(first.AxialForce), n1, faceRef + " (N1,Rd, compression brace)");
                 Check((aIsFirst ? "BraceB" : "BraceA") + ".ChordFace", Math.Abs(second.AxialForce), n2, faceRef + " (N2,Rd = sin(theta1)/sin(theta2) N1,Rd)");
-                if (g < 0) return;
                 foreach (var b in Braces())
                 {
-                    double? punching = Punching(b.Value, d0, t0, fy0);
+                    double? punching = g < 0 ? null : Punching(b.Value, d0, t0, fy0);
                     if (punching.HasValue) Check(b.Key + ".PunchingShear", Math.Abs(b.Value.AxialForce), punching.Value, Ref("Table7.2 punching shear, K and N gap joints, di <= d0-2t0"));
+                    if (b.Value.OutOfPlaneMoment != 0)
+                        KOutOfPlaneMoment(b.Key, b.Value, Math.Min(ReferenceEquals(b.Value, first) ? n1 : n2, punching ?? double.PositiveInfinity), d0, t0, fy0, kp, g >= 0);
                 }
+            }
+
+            /// <summary>Out-of-plane moment of one brace of a K or N joint, Table7.5: chord face failure (K, N, T, X and Y
+            /// joints) and punching shear (K and N gap joints, di &lt;= d0-2t0), then eq.(7.3) with Mip = 0 (in-plane moments
+            /// are refused in Members()). beta: 1.5(6) defines it for K and N joints as the mean (d1+d2)/(2d0); the
+            /// resistance grows with beta, so the smaller of the mean and of the brace's own di/d0 is used (GPC cautelative
+            /// reading, equal to the definition for equal braces).</summary>
+            private void KOutOfPlaneMoment(string key, TubularBrace br, double nRd, double d0, double t0, double fy0, double kp, bool gap)
+            {
+                double di = br.Section.Depth, sin = Sin(br), scale = reduction / gm5, beta = Math.Min(di / d0, KBeta());
+                double opFace = fy0 * t0 * t0 * di / sin * 2.7 / (1 - .81 * beta) * kp * scale;
+                double? opPunching = gap && di <= d0 - 2 * t0 ? fy0 * t0 * di * di / Math.Sqrt(3) * (3 + sin) / (4 * sin * sin) * scale : (double?)null;
+                double mop = Math.Abs(br.OutOfPlaneMoment);
+                Value(key + ".MomentBeta", beta, "1");
+                Check(key + ".ChordFace.OutOfPlaneMoment", mop, opFace,
+                    Ref("Table7.5 chord face failure, K, N, T, X and Y joints; beta = min(di/d0, (d1+d2)/(2d0)) (cautelative reading of 1.5(6))"), "Nmm");
+                if (opPunching.HasValue)
+                    Check(key + ".PunchingShear.OutOfPlaneMoment", mop, opPunching.Value, Ref("Table7.5 punching shear, K and N gap joints, di <= d0-2t0"), "Nmm");
+                double opRd = Math.Min(opFace, opPunching ?? double.PositiveInfinity);
+                Value(key + ".MopRd", opRd, "Nmm"); Value(key + ".NRdForInteraction", nRd, "N");
+                Check(key + ".Interaction", Ratio(Math.Abs(br.AxialForce), nRd) + Ratio(mop, opRd), 1, Ref("7.4.2(2) eq.(7.3) with Mip,Ed = 0"), "1");
             }
 
             private double? Punching(TubularBrace br, double d0, double t0, double fy0)
