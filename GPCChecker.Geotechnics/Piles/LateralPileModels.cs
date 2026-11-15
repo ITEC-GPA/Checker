@@ -148,6 +148,16 @@ namespace GPC.Checkers.Geotechnics.Piles
         public bool StressesAvailable { get; internal set; }
         /// <summary>Model of the vertical as ANTHEA names it: "Omogeneo", "Multistrato sperimentale", "Diagramma stratificato · terreno omogeneo/multistrato".</summary>
         public string ModelName { get; internal set; } = "";
+        /// <summary>
+        /// Hu of Broms (concentrated closure in granular soils) for the same pile and vertical, N: set only with the stratified method on an entirely
+        /// granular vertical whose governing mechanism is short or intermediate, where the two closures can differ (option C of the ANTHEA decision sheet
+        /// of 16/11/2026); null otherwise, and when Broms has no admissible solution. Additional output: <see cref="Capacity"/> is the stratified one.
+        /// </summary>
+        public double? BromsCapacity { get; internal set; }
+        /// <summary>Governing mechanism of Broms for <see cref="BromsCapacity"/> (it may differ from <see cref="Mechanism"/>); null with it.</summary>
+        public LateralMechanism? BromsMechanism { get; internal set; }
+        /// <summary>Ratio stratified/Broms, <see cref="Capacity"/>/<see cref="BromsCapacity"/>: the sensitivity of the result to the closure; null with it.</summary>
+        public double? RatioToBroms { get; internal set; }
     }
 
     /// <summary>Group efficiency η of the transverse capacity: assigned (0 &lt; η ≤ 1) or Reese and Van Impe for eight interfering piles.</summary>
@@ -231,5 +241,12 @@ namespace GPC.Checkers.Geotechnics.Piles
         public string EngineVersion { get; internal set; } = "";
         public string Source { get; internal set; } = "";
         public IReadOnlyList<string> Warnings { get; internal set; } = new string[0];
+        /// <summary>
+        /// <see cref="LateralSurveyResult.BromsCapacity"/> of the governing vertical (<see cref="GoverningSurvey"/>), N: Hu of Broms for the same pile where the
+        /// stratified method governs a short or intermediate pile in granular soil; null otherwise. Additional output, <see cref="Capacity"/> is unchanged.
+        /// </summary>
+        public double? BromsCapacity { get; internal set; }
+        /// <summary><see cref="LateralSurveyResult.RatioToBroms"/> of the governing vertical: Hu stratified/Hu Broms; null with <see cref="BromsCapacity"/>.</summary>
+        public double? RatioToBroms { get; internal set; }
     }
 }

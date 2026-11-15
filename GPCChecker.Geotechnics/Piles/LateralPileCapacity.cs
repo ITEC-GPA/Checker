@@ -53,6 +53,7 @@ namespace GPC.Checkers.Geotechnics.Piles
                 uniform &= ground.Uniform;
                 var r = Solve(ground, e, pile.ResistingMoment, pile.FixedHead, pile.Step);
                 AddGroundDiagnostics(r, ground, d);
+                if (distributed) AddBromsComparison(r, survey, pile);
                 r.ModelName = ModelName(ground.Uniform, distributed); results.Add(r);
             }
             double hu = results.Min(r => r.Capacity); int governing = results.FindIndex(r => r.Capacity == hu);
@@ -74,8 +75,27 @@ namespace GPC.Checkers.Geotechnics.Piles
                 Efficiency = efficiency, MeanBranch = meanBranch, MinimumBranch = minBranch, MeanGoverns = meanBranch <= minBranch, CharacteristicResistance = rk, DesignResistance = rd,
                 MechanicalRatio = pile.DesignAction / hu, Utilization = pile.DesignAction / rd, Satisfied = pile.DesignAction <= rd, ModelName = ModelName(uniform, distributed),
                 Experimental = distributed || !uniform, EngineVersion = distributed ? "Stratificato-ANTHEA-1" : "Broms-ANTHEA-1",
-                Source = distributed ? StratifiedSource + " Leggi locali: " + Source : Source, Warnings = warnings
+                Source = distributed ? StratifiedSource + " Leggi locali: " + Source : Source, Warnings = warnings,
+                BromsCapacity = results[governing].BromsCapacity, RatioToBroms = results[governing].RatioToBroms
             };
+        }
+
+        /// <summary>
+        /// Comparison with Broms (option C of the ANTHEA decision sheet of 16/11/2026, library part): where the stratified closure can differ from the
+        /// concentrated one of Broms, an entirely granular vertical whose governing mechanism is short or intermediate, Hu of Broms for the same pile and
+        /// vertical, its mechanism and the ratio stratified/Broms. Additional output only: the formulas and the stratified result do not change. A Broms
+        /// solution that cannot be found leaves the comparison empty (never an exception where the stratified result exists).
+        /// </summary>
+        private static void AddBromsComparison(LateralSurveyResult result, LateralPileSurvey survey, LateralPile pile)
+        {
+            if (result.Cohesive || result.Mixed || result.Mechanism == LateralMechanism.Long) return;
+            try
+            {
+                var broms = Solve(new Ground(survey, pile.Length, pile.Diameter, pile.Tolerance, false, pile.HeadDepth), pile.Eccentricity, pile.ResistingMoment,
+                    pile.FixedHead, pile.Step);
+                result.BromsCapacity = broms.Capacity; result.BromsMechanism = broms.Mechanism; result.RatioToBroms = result.Capacity / broms.Capacity;
+            }
+            catch (ArgumentException) { result.BromsCapacity = null; result.BromsMechanism = null; result.RatioToBroms = null; }
         }
 
         /// <summary>

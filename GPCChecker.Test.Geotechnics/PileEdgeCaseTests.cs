@@ -226,6 +226,55 @@ public class PileEdgeCaseTests
         Assert.IsTrue(Lateral(sand, G, d, l, 1 * M, false, my).Capacity < Lateral(sand, G, d, l, 0, false, my).Capacity);
     }
 
+    /// <summary>
+    /// Option C of the ANTHEA decision sheet of 16/11/2026, library part: where the stratified method governs a short or intermediate pile in granular
+    /// soil the result also gives Hu of Broms for the same pile and vertical and the ratio stratified/Broms; formulas and results unchanged. Dry sand
+    /// φ' = 30° (Kp = 3), γ = 18 kN/m³, D = 0.6 m, L = 4 m, p = k z with k = 3 Kp D γ. Closed forms (tools/attesi/palo_stratificato_broms.py, article
+    /// ANTHEA supporto/docs/articolo-palo-orizzontale-stratificato.md, figure 2):
+    /// - free head, e = 1 m: Broms 0.5 γ D L³ Kp/(L + e) = 207.360 kN; stratified, ζ = zr/L root of 2ζ³ + 3εζ² − 1.5ε − 1 = 0 (ε = e/L = 0.25),
+    ///   ζ = 0.773647, H = k L² (ζ² − ½) = 153.234 kN, ratio 0.738976; e = 0: 202.115 / 259.200 kN = 0.779763;
+    /// - restrained head, short (My large): 1.5 γ D L² Kp = 777.6 kN with both closures, ratio 1;
+    /// - restrained head, intermediate, My = 1000 kNm: Broms (My + 0.5 γ D L³ Kp)/L = 509.200 kN; stratified zr³ = (3My/k + L³)/2, zr = 3619.85 mm,
+    ///   H = k (zr² − L²/2) = 496.043 kN, ratio 0.974162.
+    /// No comparison for long piles (the closures coincide), cohesive or mixed verticals, or with the Broms method.
+    /// </summary>
+    [TestMethod]
+    public void StratifiedResultExposesBromsForShortAndIntermediateGranularPiles()
+    {
+        var sand = Profile(null, (Sand(30), 30)); var G = new[] { SoilBehaviour.Granular };
+        double d = 600, l = 4 * M;
+        var free = Lateral(sand, G, d, l, 1 * M, false, 1e12, LateralPileMethod.Stratified); var s = free.Surveys[0];
+        Assert.AreEqual(LateralMechanism.Short, s.Mechanism);
+        Close(153234.045952, s.Capacity, "stratified, cubic of the article", 1e-10);
+        Close(207360, s.BromsCapacity!.Value, "Broms 0.5 γ D L³ Kp/(L + e)", 1e-12);
+        Assert.AreEqual(LateralMechanism.Short, s.BromsMechanism);
+        Close(.738975916048, s.RatioToBroms!.Value, "ratio", 1e-10); Assert.AreEqual(s.Capacity / s.BromsCapacity.Value, s.RatioToBroms.Value);
+        Assert.AreEqual(s.BromsCapacity, free.BromsCapacity, "pile result: the governing vertical"); Assert.AreEqual(s.RatioToBroms, free.RatioToBroms);
+        // The comparison is the Broms result itself, which carries none.
+        var broms = Lateral(sand, G, d, l, 1 * M, false, 1e12);
+        Assert.AreEqual(broms.Capacity, s.BromsCapacity.Value); Assert.IsNull(broms.BromsCapacity); Assert.IsNull(broms.Surveys[0].BromsCapacity);
+        Assert.IsNull(broms.Surveys[0].BromsMechanism); Assert.IsNull(broms.RatioToBroms);
+        var centred = Lateral(sand, G, d, l, 0, false, 1e12, LateralPileMethod.Stratified);
+        Close(202114.608398, centred.Capacity, "e = 0", 1e-10); Close(259200, centred.BromsCapacity!.Value, "Broms e = 0", 1e-12);
+        Close(.779763149685, centred.RatioToBroms!.Value, "ratio e = 0", 1e-10);
+        // Restrained head: short, the same closure; intermediate, the distributed closure is lower.
+        var fixedShort = Lateral(sand, G, d, l, 0, true, 1e12, LateralPileMethod.Stratified);
+        Assert.AreEqual(LateralMechanism.Short, fixedShort.Mechanism);
+        Close(777600, fixedShort.Capacity, "1.5 γ D L² Kp", 1e-12); Close(777600, fixedShort.BromsCapacity!.Value, "Broms", 1e-12); Close(1, fixedShort.RatioToBroms!.Value, "ratio", 1e-12);
+        var intermediate = Lateral(sand, G, d, l, 0, true, 1e9, LateralPileMethod.Stratified); var i = intermediate.Surveys[0];
+        Assert.AreEqual(LateralMechanism.Intermediate, i.Mechanism); Assert.AreEqual(LateralMechanism.Intermediate, i.BromsMechanism);
+        Close(496043.331344, i.Capacity, "k (zr² − L²/2)", 1e-10); Close(509200, i.BromsCapacity!.Value, "(My + 0.5 γ D L³ Kp)/L", 1e-12);
+        Close(.974162080408, i.RatioToBroms!.Value, "ratio", 1e-10);
+        // No comparison: long pile, cohesive vertical, mixed vertical.
+        var longPile = Lateral(sand, G, d, 20 * M, 0, false, 300e6, LateralPileMethod.Stratified);
+        Assert.AreEqual(LateralMechanism.Long, longPile.Mechanism); Assert.IsNull(longPile.BromsCapacity); Assert.IsNull(longPile.Surveys[0].RatioToBroms);
+        var clay = Lateral(Profile(null, (Clay(50), 30)), new[] { SoilBehaviour.Cohesive }, d, 6 * M, 0, false, 1e12, LateralPileMethod.Stratified);
+        Assert.AreEqual(LateralMechanism.Short, clay.Mechanism); Assert.IsNull(clay.BromsCapacity); Assert.IsNull(clay.Surveys[0].BromsMechanism);
+        var mixed = Lateral(Profile(null, (Clay(40), 2), (Sand(32), 30)), new[] { SoilBehaviour.Cohesive, SoilBehaviour.Granular }, 800, 5 * M, 500, false, 5000e6,
+            LateralPileMethod.Stratified);
+        Assert.AreEqual(LateralMechanism.Short, mixed.Mechanism); Assert.IsNull(mixed.BromsCapacity); Assert.IsNull(mixed.Surveys[0].RatioToBroms);
+    }
+
     [TestMethod]
     public void BromsDiagramsAreInEquilibrium()
     {
