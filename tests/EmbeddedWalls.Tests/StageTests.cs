@@ -108,6 +108,26 @@ public class StageTests
         Assert.AreEqual(0, EmbeddedWallAnalysis.Calculate(BeamAndPressureTests.Cantilever()).Warnings.Count, "no soil on either side");
     }
 
+    /// <summary>
+    /// The warnings of a history reach the envelope (review of 15/11/2026, B2): whoever shows only the envelope still sees that the first stage is not
+    /// geostatic. A history without warnings keeps an empty list; two histories keep their own.
+    /// </summary>
+    [TestMethod]
+    public void EnvelopeKeepsTheWarningsOfEachHistory()
+    {
+        var model = Excavation(500); model.Stages = [model.Stages[1]]; model.CaseId = "Diretta";
+        var direct = EmbeddedWallAnalysis.Calculate(model);
+        var staged = Excavation(500); staged.CaseId = "A fasi";
+        var phased = EmbeddedWallAnalysis.Calculate(staged);
+        Assert.IsTrue(direct.IsComplete && phased.IsComplete);
+        var single = EmbeddedWallAnalysis.Envelope([direct]).Histories.Single();
+        CollectionAssert.AreEqual(direct.Warnings.ToArray(), single.Warnings.ToArray());
+        StringAssert.StartsWith(single.Warnings.Single(), "Prima fase «Excavation» non geostatica");
+        var both = EmbeddedWallAnalysis.Envelope([direct, phased]).Histories;
+        Assert.AreEqual(1, both.Single(h => h.CaseId == "Diretta").Warnings.Count);
+        Assert.AreEqual(0, both.Single(h => h.CaseId == "A fasi").Warnings.Count);
+    }
+
     internal static EmbeddedWallModel Excavation(double step)
     {
         var soil = new Soil("Sand", 18e-6, 20e-6, Math.PI / 6, 0, "synthetic benchmark");

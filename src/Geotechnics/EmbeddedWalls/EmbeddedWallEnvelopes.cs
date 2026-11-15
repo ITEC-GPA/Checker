@@ -36,7 +36,8 @@ public static partial class EmbeddedWallAnalysis
         var result = new WallEnvelopeResult { Top = first.Top, Bottom = first.Bottom, TributaryWidth = first.TributaryWidth,
             Subdivisions = subdivisions, IsComplete = ordered.All(r => r.IsComplete && r.Stages.Count > 0),
             Histories = Array.AsReadOnly(ordered.Select(r => new WallEnvelopeHistory { CaseId = r.CaseId, Complete = r.IsComplete,
-                FailedStage = r.FailedStage, IncludedStages = Array.AsReadOnly(r.Stages.Select(s => s.Id).ToArray()), Diagnostic = r.Diagnostic }).ToArray()) };
+                FailedStage = r.FailedStage, IncludedStages = Array.AsReadOnly(r.Stages.Select(s => s.Id).ToArray()), Diagnostic = r.Diagnostic,
+                Warnings = Array.AsReadOnly((r.Warnings ?? Array.Empty<string>()).ToArray()) }).ToArray()) };
         var stages = ordered.SelectMany(r => r.Stages.OrderBy(s => s.Id, StringComparer.Ordinal)).ToArray();
         foreach (var history in ordered)
         {

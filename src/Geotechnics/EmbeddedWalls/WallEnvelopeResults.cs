@@ -52,6 +52,9 @@ public sealed class WallEnvelopeHistory
     public string? FailedStage { get; internal set; }
     public IReadOnlyList<string> IncludedStages { get; internal set; } = Array.Empty<string>();
     public string Diagnostic { get; internal set; } = "";
+    /// <summary><see cref="WallAnalysisResult.Warnings"/> of the history (for example the first stage not geostatic), so that whoever shows only the
+    /// envelope still sees them.</summary>
+    public IReadOnlyList<string> Warnings { get; internal set; } = Array.Empty<string>();
 }
 public sealed class WallEnvelopeResult
 {
