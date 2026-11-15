@@ -824,6 +824,94 @@ namespace ConcreteTests
             new SectionCrackInput(standard, ServiceabilityCombination.QuasiPermanent, exposure, false, null, geometry, plane, geometry.Bars.Select(b => 200000 * plane.GetStrain(b.X, b.Y)),
                 true, false, false, 200000, 33000, 2.9, false, true, 40, spacingOverride: 300));
 
+        /// <summary>
+        /// 9b of the ANTHEA decision sheet of 16/11/2026, option (a): <see cref="CrackSectionGeometry.From"/> recognises the inner ring of a hollow circle, as
+        /// FromCurves does, only for one hole that is a circle concentric with the outline (at least 16 vertices at the same distance from the origin, relative
+        /// 1e-6: the rule of the outline). Model section: circle Ø1000 (64-gon with a vertex at 0°), 16Ø20 at r = 440 and 8Ø20 at r = 340 (as the ring of
+        /// (i)), C30/37, entirely tensile along +x, ε = 2e-7 (x + 501) (every hole vertex tensile, outer zone within wlim), NTC XC1, spacing 300 mm. The polygon
+        /// constructor with the arrays of From is From before Concrete 0.38.
+        /// - Concentric hole Ø600 (64-gon): ring as before, every value bit-identical (width, status, ratio, k2, trace, regions).
+        /// - Eccentric hole Ø500 centred at (60; 0): before, an "InnerRing" band with ri = 310 mm (its farthest vertex from the centre of the section, not a
+        ///   ring); now no ring, the tensile inner surface is not supported: InnerSurfaceNotSupported, incomplete check («superfici interne non supportate»).
+        /// - Square hole of side 350 turned by 45° (4 vertices at r = 247.49 mm, the same distance from the origin but not a circle): before a ring of radius
+        ///   247.49; now not supported.
+        /// - Two holes Ø160 at (±220; 0): before the first one only was read as a ring (its band had a negative net area and was dropped, so the inner
+        ///   surfaces were silently left out); now not supported.
+        /// - Square hole 400×400 aligned with the axes: the four inner walls, as with FromCurves (circle outline, square hole: no ring, axis-aligned rectangle).
+        /// - Section C1000H of the legacy captures (Fixtures/crack-sections.xml): still a ring.
+        /// </summary>
+        [TestMethod]
+        public void FromRecognisesOnlyAConcentricCircularHoleAsTheInnerRing()
+        {
+            Point2d[] Circle(double radius, double cx = 0, double cy = 0) => Polygon64(radius).Select(v => new Point2d(cx + v.X, cy + v.Y)).ToArray();
+            ReinforcedConcreteSection Section(params Point2d[][] holes)
+            {
+                var section = new ReinforcedConcreteSection(new GPC.Geometry.Shape2d(new Polygon2d(Polygon64(500)), holes.Select(h => new Polygon2d(h)).ToArray()),
+                    new ConcreteMaterialEN1992("C30/37", 30, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle));
+                var steel = new SteelMaterial("B450C", 200000, 450, 450, .075, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
+                var bar = new GPC.Model.Sections.Rebar.RebarSectionCircular(20, steel);
+                section.AddRebars(Enumerable.Range(0, 16).Select(k => new ReinforcedConcreteRebar(bar,
+                    new Point3d(440 * Math.Cos(2 * Math.PI * k / 16), 440 * Math.Sin(2 * Math.PI * k / 16), 0))));
+                section.AddRebars(Enumerable.Range(0, 8).Select(k => new ReinforcedConcreteRebar(bar,
+                    new Point3d(340 * Math.Cos(2 * Math.PI * (k + .5) / 8), 340 * Math.Sin(2 * Math.PI * (k + .5) / 8), 0))));
+                return section;
+            }
+            var plane = new StrainPlane(2e-7, 0, new Point2d(-501, 0), 0);
+            SectionCrackResult Check(CrackSectionGeometry g) => SectionCrackCheck.Evaluate(new SectionCrackInput(Ntc, ServiceabilityCombination.QuasiPermanent, "XC1", false, null, g,
+                plane, g.Bars.Select(b => 200000 * plane.GetStrain(b.X, b.Y)), true, false, false, 200000, 33000, 2.9, false, true, 40, null, 300, null, false, Traced));
+            CrackSectionGeometry Before(CrackSectionGeometry g) => new CrackSectionGeometry(g.Outline, g.Holes.Select(h => (IEnumerable<Point2d>)h), g.Bars, g.Layout);
+            string Outcomes(SectionCrackResult r) => string.Join(", ", r.RegionOutcomes.Select(x => x.Key + ": " + x.Outcome));
+            Assert.IsTrue(plane.GetStrain(-500, 0) > 0, "entirely tensile");
+
+            // Concentric hole: the same geometry and result as before.
+            var concentric = CrackSectionGeometry.From(Section(Circle(300)));
+            Assert.IsTrue(concentric.Circular && concentric.HasCircularInnerRing);
+            var ring = Check(concentric);
+            AssertSameResult(Check(Before(concentric)), ring, "concentric hole");
+            Assert.IsTrue(ring.RegionOutcomes.Any(x => x.Key == "InnerRing" && x.Outcome == CrackOutcome.Evaluated), Outcomes(ring));
+            Assert.IsFalse(ring.RegionOutcomes.Any(x => x.Key == "InnerSurfaces"), Outcomes(ring));
+            Assert.AreEqual(true, ring.Passed, ring.Status);
+
+            // Eccentric, turned square and two holes: no ring now; before, a ring band (or, with two holes, nothing at all).
+            var turned = new[] { new Point2d(247.48737341529164, 0), new Point2d(0, 247.48737341529164), new Point2d(-247.48737341529164, 0), new Point2d(0, -247.48737341529164) };
+            foreach (var (what, holes) in new[] { ("eccentric Ø500 at (60; 0)", new[] { Circle(250, 60) }), ("square 350 turned by 45°", new[] { turned }),
+                ("two holes Ø160 at (±220; 0)", new[] { Circle(80, 220), Circle(80, -220) }) })
+            {
+                var g = CrackSectionGeometry.From(Section(holes));
+                Assert.IsTrue(g.Circular, what); Assert.IsFalse(g.HasCircularInnerRing, what);
+                var now = Check(g); var before = Check(Before(g));
+                if (holes.Length == 1) Assert.IsTrue(before.RegionOutcomes.Any(x => x.Key == "InnerRing" && x.Outcome == CrackOutcome.Evaluated), what + " before: " + Outcomes(before));
+                else
+                {
+                    Assert.IsFalse(before.RegionOutcomes.Any(x => x.Key.StartsWith("Inner")), what + " before: " + Outcomes(before));
+                    Assert.AreEqual(true, before.Passed, what + " before: passed without the inner surfaces"); StringAssert.Contains(before.Status, "outer and inner surfaces checked", what);
+                }
+                Assert.AreEqual(CrackOutcome.InnerSurfaceNotSupported, now.Outcome, what + ": " + now.Status);
+                Assert.IsNull(now.Passed, what + ": incomplete check, no verdict"); Assert.IsNull(now.Ratio, what);
+                Assert.IsFalse(now.Regions.Any(x => x.Key == "InnerRing"), what);
+                Assert.AreEqual("InnerSurfaces: InnerSurfaceNotSupported", now.RegionOutcomes.Last().Key + ": " + now.RegionOutcomes.Last().Outcome, what + ": " + Outcomes(now));
+                StringAssert.Contains(now.Status, "Inner surfaces: implemented for one axis-aligned rectangular hole or a circular ring", what);
+                Assert.IsFalse(now.Trace.Any(x => x.Code == CrackTraceCodes.InnerBoundaryNote), what);
+            }
+            // Ring radius of the old reading: the farthest vertex from the centre of the section.
+            Assert.AreEqual(310, Circle(250, 60).Max(v => CrackSectionGeometry.Hypot(v.X, v.Y)), 1e-9);
+
+            // Square hole aligned with the axes: the walls of the hole (as FromCurves), never a ring.
+            var square = CrackSectionGeometry.From(Section(new[] { new Point2d(-200, -200), new Point2d(200, -200), new Point2d(200, 200), new Point2d(-200, 200) }));
+            Assert.IsFalse(square.HasCircularInnerRing);
+            var walls = Check(square);
+            CollectionAssert.AreEqual(new[] { "InnerWall+x", "InnerWall-x", "InnerWall+y", "InnerWall-y" },
+                walls.RegionOutcomes.Select(x => x.Key).Where(k => k.StartsWith("Inner")).ToArray(), Outcomes(walls));
+
+            // The hollow circle of the legacy captures keeps its ring.
+            using (var stream = File.OpenRead(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Fixtures", "crack-sections.xml")))
+            {
+                var archive = ModelArchive.Load(stream);
+                var c1000h = CrackSectionGeometry.From((ReinforcedConcreteSection)archive.BeamProperties["C1000H"], true);
+                Assert.IsTrue(c1000h.Circular && c1000h.Holes.Count == 1 && c1000h.HasCircularInnerRing, "C1000H");
+            }
+        }
+
         private static string[] Bands(CrackSectionGeometry geometry) => geometry.Circular ? new[] { "InnerRing" } : InnerWalls.Select(w => w.Item1).ToArray();
 
         /// <summary>h − x used in wk: NTC Δsm,far / 0.75, EN sr,max / 1.3 (spacing 300 mm &gt; 5 (c + Ø/2)).</summary>

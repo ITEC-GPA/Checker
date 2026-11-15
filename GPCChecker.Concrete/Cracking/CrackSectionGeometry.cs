@@ -70,6 +70,12 @@ namespace GPC.Checkers.Concrete.Cracking
         /// Geometry of a Model section: concrete outline and holes, ordinary bars (tendons excluded) in the rebar order. A circle is recognised when
         /// all outline vertices lie at the same distance from the origin (relative 1e-6, at least 16 vertices); bars on more than one radius are
         /// concentric rings only when <paramref name="concentricRings"/> confirms it, otherwise the automatic spacing is not determined.
+        /// The inner ring of a hollow circle is recognised, as in <see cref="FromCurves(SectionCurveOutline, IEnumerable{CrackBar}, double, double, bool)"/>,
+        /// only for a single hole that is itself a circle concentric with the outline (same rule as the outline: at least 16 vertices at the same
+        /// distance from the origin, relative 1e-6). Any other hole of a circle (eccentric, square, polygonal, more than one) is no ring: its inner
+        /// surfaces follow the other rules of the crack check, so a tensile inner surface that is neither an axis-aligned rectangle nor a ring gives
+        /// <see cref="CrackOutcome.InnerSurfaceNotSupported"/> (declared incomplete check). Before Concrete 0.38 every hole of a circle was taken as
+        /// a concentric ring with the radius of its farthest vertex (scheda decisioni ANTHEA 16/11/2026, 9b option a).
         /// </summary>
         public static CrackSectionGeometry From(ReinforcedConcreteSection section, bool concentricRings = false)
         {
@@ -77,13 +83,20 @@ namespace GPC.Checkers.Concrete.Cracking
             var shape = section.ConcreteShape ?? throw new NotSupportedException("Cracking: the section has no concrete shape.");
             if (shape.Childs2d != null && shape.Childs2d.Length > 0) throw new NotSupportedException("Cracking: shapes with children inside the holes are not supported.");
             var outline = shape.Fill2d.Points.ToArray();
-            var holes = (shape.Holes2d ?? new Polygon2d[0]).Select(h => (IEnumerable<Point2d>)h.Points.ToArray()).ToArray();
+            var holes = (shape.Holes2d ?? new Polygon2d[0]).Select(h => h.Points.ToArray()).ToArray();
             var bars = section.Rebars.Where(r => r.RebarMaterial.SteelType != SteelMaterial.SteelTypes.Tendon && r.EpsilonP == 0)
                 .Select(r => new CrackBar(r.Position.X, r.Position.Y, r.RebarSection.Diameter, r.Area)).ToArray();
-            var radii = outline.Select(p => Math.Sqrt(p.X * p.X + p.Y * p.Y)).ToArray();
-            bool circle = outline.Length >= 16 && radii.Max() - radii.Min() <= 1e-6 * radii.Max();
+            bool circle = CircleAboutOrigin(outline);
             var layout = !circle ? CrackBarLayout.Rows : concentricRings ? CrackBarLayout.ConcentricRings : CrackBarLayout.Ring;
-            return new CrackSectionGeometry(outline, holes, bars, layout);
+            bool innerRing = circle && holes.Length == 1 && CircleAboutOrigin(holes[0]);
+            return new CrackSectionGeometry(outline, holes.Select(h => (IEnumerable<Point2d>)h), bars, layout, 0, 0, innerRing);
+        }
+
+        /// <summary>A polygon of at least 16 vertices all at the same distance from the origin (relative 1e-6): the circle rule of <see cref="From"/>.</summary>
+        private static bool CircleAboutOrigin(IReadOnlyList<Point2d> polygon)
+        {
+            var radii = polygon.Select(p => Math.Sqrt(p.X * p.X + p.Y * p.Y)).ToArray();
+            return polygon.Count >= 16 && radii.Max() - radii.Min() <= 1e-6 * radii.Max();
         }
 
         /// <summary>

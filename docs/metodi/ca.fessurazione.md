@@ -82,7 +82,7 @@ non fessurata), l'esito, tutte le regioni esaminate e la traccia dei valori inte
 | Area efficace nulla | non valutabile | esito incompleto (`NoEffectiveArea`) |
 | Sezione cava con foro rettangolare allineato agli assi o anello circolare | supportato | superfici interne verificate a parte (6.10) |
 | Superficie interna in trazione quasi uniforme | supportato | fascia intera, k2 = 1, h − x uguale all'altezza della sezione normale alla faccia (6.10) |
-| Altri fori con superficie interna tesa | non supportato | esito incompleto (`InnerSurfaceNotSupported`) |
+| Altri fori con superficie interna tesa (anche fori eccentrici o non circolari di una sezione circolare) | non supportato | esito incompleto (`InnerSurfaceNotSupported`) |
 | Superficie interna tesa senza armatura | non valutabile | esito incompleto (`InnerSurfaceUnreinforced`) |
 | Barre lisce con Model Code 2010 o DIN | non supportato | errore (`ArgumentException`) |
 
@@ -673,10 +673,14 @@ Iterazioni: solo la fascia baricentrica DS (bisezione di 65 passi sull'altezza d
   (7.15)): non implementate.
 - Deformazioni impresse e ritiro (nel Model Code 2010 il ritiro libero solo se assegnato con
   `ModelCode2010ShrinkageStrain`, riquadro F-6).
-- Sezioni circolari cave da `CrackSectionGeometry.From` (o dal costruttore pubblico): il foro è sempre trattato come
-  anello concentrico di raggio uguale alla massima distanza dei suoi vertici dall'origine, ed è considerato solo il
-  primo foro; un foro eccentrico o non circolare in un cerchio non è riconosciuto. Solo `FromCurves` controlla la
-  concentricità.
+- Sezioni circolari cave con fori eccentrici o non circolari. Da Concrete 0.38 (scheda decisioni del 16/11/2026, 9b
+  opzione a) `CrackSectionGeometry.From` riconosce l'anello interno, come `FromCurves`, solo con un unico foro circolare
+  concentrico (almeno 16 vertici alla stessa distanza dall'origine, scarto relativo 10⁻⁶, la regola del contorno). Un
+  foro eccentrico, poligonale o più di un foro non è un anello: con la superficie interna tesa l'esito è incompleto
+  (`InnerSurfaceNotSupported`, «superfici interne non supportate»); un foro rettangolare allineato agli assi segue le
+  pareti interne, come con `FromCurves`. Prima ogni foro di un cerchio era trattato come anello concentrico di raggio
+  uguale alla massima distanza dei suoi vertici dall'origine. Il costruttore pubblico per poligoni resta come prima:
+  presuppone cerchi centrati nell'origine e tratta il foro di un cerchio come anello concentrico.
 - DS: sistema grossolano solo per le sezioni interamente tese.
 - Barre lisce con Model Code 2010 e DIN.
 - Interasse automatico solo per file allineate o anelli; negli altri casi va assegnato.
