@@ -25,7 +25,7 @@ public static partial class EmbeddedWallAnalysis
         var mesh = new Mesh(m); var u = new double[mesh.Dofs]; var history = new History(mesh.Springs, m.Supports.Count);
         var complete = new List<WallStageResult>();
         var result = new WallAnalysisResult { CaseId = m.CaseId, Top = m.Top, Bottom = m.Bottom, TributaryWidth = m.TributaryWidth,
-            Stages = complete.AsReadOnly(), Status = WallAnalysisStatus.Converged };
+            Stages = complete.AsReadOnly(), Status = WallAnalysisStatus.Converged, Warnings = InitialStateWarnings(m, mesh) };
         EmbeddedWallStage? previous = null;
         foreach (var stage in m.Stages)
         {
@@ -68,6 +68,38 @@ public static partial class EmbeddedWallAnalysis
         }
         result.Diagnostic = "All stages converged. Small-displacement beam; no axial soil transfer or second-order effects.";
         return result;
+    }
+
+    /// <summary>
+    /// A4 of the embedded-wall review of October 2026 (docs/verifiche/paratie-revisione-2026-10.md, open question 5), option (a) of the ANTHEA decision
+    /// sheet of 16/11/2026: the history starts from the at-rest state of the first stage itself (wall wished in place, the "Initial" state of
+    /// <see cref="Calculate"/>), and only its loads and supports are applied by increments. When the at-rest pressures and the water of the two sides of
+    /// that stage do not balance at every integration point (excavation, water, surcharge or soils that differ between the sides), the imbalance enters
+    /// whole at the first load step: possible non-convergence, or a result different from a history that reaches the same state by stages. Warning only,
+    /// in Italian for the report: nothing of the analysis changes. Tolerance 1e-9 relative plus 1e-12 MPa, so identical sides never warn.
+    /// </summary>
+    private static IReadOnlyList<string> InitialStateWarnings(EmbeddedWallModel m, Mesh mesh)
+    {
+        var first = m.Stages[0]; double worst = 0, elevation = double.NaN;
+        try
+        {
+            for (int e = 0; e < mesh.Depth.Length - 1; e++) for (int g = 0; g < 4; g++)
+            {
+                double z = m.Top - mesh.Depth[e] - Gauss[g] * (mesh.Depth[e + 1] - mesh.Depth[e]);
+                var left = WallSoilPressure.At(m.LeftSoils, first.Left, z); var right = WallSoilPressure.At(m.RightSoils, first.Right, z);
+                // The pressure of a side at rest, as in Step.Evaluate with no displacement: K0 σ'v where the side has soil (stiffness > 0), plus the water.
+                double pl = (left.Stiffness > 0 ? left.AtRest : 0) + left.Water, pr = (right.Stiffness > 0 ? right.AtRest : 0) + right.Water;
+                double gap = Math.Abs(pl - pr);
+                if (gap > 1e-9 * Math.Max(Math.Abs(pl), Math.Abs(pr)) + 1e-12 && gap > worst) { worst = gap; elevation = z; }
+            }
+        }
+        catch (ArgumentException) { return Array.Empty<string>(); } // The same data stop the first stage of the analysis with its own message.
+        if (worst == 0) return Array.Empty<string>();
+        var culture = System.Globalization.CultureInfo.InvariantCulture;
+        return new[] { "Prima fase «" + first.Id + "» non geostatica: le spinte a riposo e le pressioni dell'acqua dei due lati non si equilibrano (scarto massimo "
+            + (worst * 1000).ToString("0.###", culture) + " kPa a quota " + (elevation / 1000).ToString("0.###", culture) + " m). Lo squilibrio iniziale entra tutto"
+            + " al primo passo di carico, non per incrementi: possibile mancata convergenza o risultato diverso da una storia a fasi. Per seguire la storia,"
+            + " iniziare con una fase geostatica (stessi terreno, falda e sovraccarico sui due lati)." };
     }
 
     private static bool Newton(Step step, double[] u, WallSolverOptions options, CancellationToken cancellation,

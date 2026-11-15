@@ -75,6 +75,39 @@ public class StageTests
         Assert.IsFalse(r.IsComplete); Assert.AreEqual(1, r.Stages.Count); Assert.AreEqual("All soil removed", r.FailedStage);
     }
 
+    /// <summary>
+    /// A4 of the embedded-wall review of October 2026, option (a) of the ANTHEA decision sheet of 16/11/2026: a warning when the first stage is not
+    /// geostatic, because its at-rest imbalance enters whole at the first load step. Results unchanged (warning only). Sand γ = 18 kN/m³, K0 = 0.5.
+    /// - Geostatic stage first (Excavation of these tests): no warning, also with two distinct but equal ground objects.
+    /// - Excavation of 4 m on the right as the first stage: K0 γ z on the left against K0 γ (z − 4 m) on the right below the excavation, so the gap grows
+    ///   to K0 γ · 4 m = 0.5 · 18 · 4 = 36 kPa at −4 m and stays 36 kPa below.
+    /// - Same ground level, surcharge 10 kPa on the left only: K0 q = 5 kPa over the whole wall.
+    /// - The warning is also given when the first stage does not converge.
+    /// </summary>
+    [TestMethod]
+    public void FirstStageThatIsNotGeostaticIsDeclared()
+    {
+        var staged = EmbeddedWallAnalysis.Calculate(Excavation(500));
+        Assert.IsTrue(staged.IsComplete, staged.Diagnostic); Assert.AreEqual(0, staged.Warnings.Count, string.Join(" | ", staged.Warnings));
+        var model = Excavation(500); model.Stages = [model.Stages[1]];
+        var direct = EmbeddedWallAnalysis.Calculate(model);
+        Assert.IsTrue(direct.IsComplete, direct.Diagnostic);
+        Assert.AreEqual("All stages converged. Small-displacement beam; no axial soil transfer or second-order effects.", direct.Diagnostic, "diagnostic unchanged");
+        string warning = direct.Warnings.Single();
+        StringAssert.StartsWith(warning, "Prima fase «Excavation» non geostatica");
+        StringAssert.Contains(warning, "(scarto massimo 36 kPa a quota -");
+        StringAssert.Contains(warning, "Lo squilibrio iniziale entra tutto al primo passo di carico");
+        Console.WriteLine("A4 top displacement: staged {0:R} mm, direct {1:R} mm", staged.Stages.Last().Points[0].Displacement, direct.Stages.Last().Points[0].Displacement);
+        var surcharge = Excavation(500); surcharge.Stages = [new() { Id = "Sovraccarico", Left = new() { Elevation = 0, Surcharge = .01 }, Right = new() { Elevation = 0 } }];
+        var loaded = EmbeddedWallAnalysis.Calculate(surcharge);
+        StringAssert.Contains(loaded.Warnings.Single(), "(scarto massimo 5 kPa a quota ");
+        var failing = Excavation(500); failing.Stages = [new() { Id = "Excavation", Left = new() { Elevation = 0 }, Right = new() { Elevation = -4000 },
+            PointLoads = [new() { Elevation = 0, HorizontalForce = 1e9 }] }];
+        var failed = EmbeddedWallAnalysis.Calculate(failing);
+        Assert.IsFalse(failed.IsComplete); StringAssert.StartsWith(failed.Warnings.Single(), "Prima fase «Excavation» non geostatica");
+        Assert.AreEqual(0, EmbeddedWallAnalysis.Calculate(BeamAndPressureTests.Cantilever()).Warnings.Count, "no soil on either side");
+    }
+
     internal static EmbeddedWallModel Excavation(double step)
     {
         var soil = new Soil("Sand", 18e-6, 20e-6, Math.PI / 6, 0, "synthetic benchmark");

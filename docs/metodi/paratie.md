@@ -51,6 +51,16 @@ terreno e la costruzione dello stato iniziale. Le fasi successive conservano
 gli offset plastici dei punti di integrazione ancora attivi. Un riporto nuovo
 assume la deformata già raggiunta come riferimento locale.
 
+Lo stato di partenza della prima fase è quello a riposo della fase stessa
+(parete infissa senza disturbo): solo i suoi carichi e i suoi sostegni sono
+applicati per incrementi. Se le spinte a riposo e le pressioni dell'acqua dei due
+lati non si equilibrano (scavo, falda, sovraccarico o terreni diversi fra i lati),
+lo squilibrio entra tutto al primo passo di carico. Da Geotechnics 0.29 (voce A4
+della revisione di ottobre, scheda decisioni del 16/11/2026, opzione a)
+`WallAnalysisResult.Warnings` lo dichiara con lo scarto massimo e la sua quota;
+i risultati non cambiano. Per seguire la storia si comincia con una fase
+geostatica.
+
 Un sostegno installato assume lo spostamento della fase precedente come
 riferimento, con forza di bloccaggio applicata progressivamente. Un puntone o
 un tirante che si scarica conserva il punto di forza nulla e riprende carico

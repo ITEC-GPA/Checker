@@ -31,6 +31,12 @@ public sealed class WallAnalysisResult
     public string? FailedStage { get; internal set; }
     public IReadOnlyList<WallStageResult> Stages { get; internal set; } = Array.Empty<WallStageResult>();
     public bool IsComplete => Status == WallAnalysisStatus.Converged;
+    /// <summary>
+    /// Warnings on the history, in Italian for the report; they never change the results. Today one: the first stage is not geostatic (A4 of the
+    /// embedded-wall review of October 2026, option (a) of the ANTHEA decision sheet of 16/11/2026), see <see cref="EmbeddedWallAnalysis.Calculate"/>.
+    /// Also set when the analysis does not converge.
+    /// </summary>
+    public IReadOnlyList<string> Warnings { get; internal set; } = Array.Empty<string>();
 }
 
 public sealed class WallStageResult
