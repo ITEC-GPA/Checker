@@ -679,8 +679,13 @@ Iterazioni: solo la fascia baricentrica DS (bisezione di 65 passi sull'altezza d
   foro eccentrico, poligonale o più di un foro non è un anello: con la superficie interna tesa l'esito è incompleto
   (`InnerSurfaceNotSupported`, «superfici interne non supportate»); un foro rettangolare allineato agli assi segue le
   pareti interne, come con `FromCurves`. Prima ogni foro di un cerchio era trattato come anello concentrico di raggio
-  uguale alla massima distanza dei suoi vertici dall'origine. Il costruttore pubblico per poligoni resta come prima:
-  presuppone cerchi centrati nell'origine e tratta il foro di un cerchio come anello concentrico.
+  uguale alla massima distanza dei suoi vertici dall'origine. Il costruttore pubblico per poligoni (rilievo R3 della
+  revisione G-207 del 16/11/2026) presuppone cerchi centrati nell'origine e applica la stessa regola al foro del cerchio
+  dichiarato con `Ring` o `ConcentricRings`: un unico foro con i vertici alla stessa distanza dall'origine (10⁻⁶) e
+  almeno 16 vertici, oppure almeno quanti il contorno quando questo ne ha meno (un cerchio poligonato come il suo
+  contorno: le sezioni circolari cave di ANTHEA, da 12 a 720 lati, restano anelli). Dove `From` riconosce il cerchio
+  (almeno 16 vertici) le due vie danno lo stesso anello e lo stesso esito; fori eccentrici, poligonali o più fori
+  danno anche qui `InnerSurfaceNotSupported`.
 - DS: sistema grossolano solo per le sezioni interamente tese.
 - Barre lisce con Model Code 2010 e DIN.
 - Interasse automatico solo per file allineate o anelli; negli altri casi va assegnato.

@@ -828,8 +828,9 @@ namespace ConcreteTests
         /// 9b of the ANTHEA decision sheet of 16/11/2026, option (a): <see cref="CrackSectionGeometry.From"/> recognises the inner ring of a hollow circle, as
         /// FromCurves does, only for one hole that is a circle concentric with the outline (at least 16 vertices at the same distance from the origin, relative
         /// 1e-6: the rule of the outline). Model section: circle Ø1000 (64-gon with a vertex at 0°), 16Ø20 at r = 440 and 8Ø20 at r = 340 (as the ring of
-        /// (i)), C30/37, entirely tensile along +x, ε = 2e-7 (x + 501) (every hole vertex tensile, outer zone within wlim), NTC XC1, spacing 300 mm. The polygon
-        /// constructor with the arrays of From is From before Concrete 0.38.
+        /// (i)), C30/37, entirely tensile along +x, ε = 2e-7 (x + 501) (every hole vertex tensile, outer zone within wlim), NTC XC1, spacing 300 mm. The internal
+        /// constructor with hasCircularInnerRing = true and the arrays of From is From before Concrete 0.38 (the public polygon constructor follows the rule
+        /// of From since R3 of the review G-207, see <see cref="PolygonConstructorRecognisesTheInnerRingWithTheRuleOfFrom"/>).
         /// - Concentric hole Ø600 (64-gon): ring as before, every value bit-identical (width, status, ratio, k2, trace, regions).
         /// - Eccentric hole Ø500 centred at (60; 0): before, an "InnerRing" band with ri = 310 mm (its farthest vertex from the centre of the section, not a
         ///   ring); now no ring, the tensile inner surface is not supported: InnerSurfaceNotSupported, incomplete check («superfici interne non supportate»).
@@ -843,23 +844,11 @@ namespace ConcreteTests
         [TestMethod]
         public void FromRecognisesOnlyAConcentricCircularHoleAsTheInnerRing()
         {
-            Point2d[] Circle(double radius, double cx = 0, double cy = 0) => Polygon64(radius).Select(v => new Point2d(cx + v.X, cy + v.Y)).ToArray();
-            ReinforcedConcreteSection Section(params Point2d[][] holes)
-            {
-                var section = new ReinforcedConcreteSection(new GPC.Geometry.Shape2d(new Polygon2d(Polygon64(500)), holes.Select(h => new Polygon2d(h)).ToArray()),
-                    new ConcreteMaterialEN1992("C30/37", 30, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle));
-                var steel = new SteelMaterial("B450C", 200000, 450, 450, .075, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
-                var bar = new GPC.Model.Sections.Rebar.RebarSectionCircular(20, steel);
-                section.AddRebars(Enumerable.Range(0, 16).Select(k => new ReinforcedConcreteRebar(bar,
-                    new Point3d(440 * Math.Cos(2 * Math.PI * k / 16), 440 * Math.Sin(2 * Math.PI * k / 16), 0))));
-                section.AddRebars(Enumerable.Range(0, 8).Select(k => new ReinforcedConcreteRebar(bar,
-                    new Point3d(340 * Math.Cos(2 * Math.PI * (k + .5) / 8), 340 * Math.Sin(2 * Math.PI * (k + .5) / 8), 0))));
-                return section;
-            }
+            Point2d[] Circle(double radius, double cx = 0, double cy = 0) => HoleCircle(radius, cx, cy);
+            ReinforcedConcreteSection Section(params Point2d[][] holes) => HollowCircleSection(holes);
             var plane = new StrainPlane(2e-7, 0, new Point2d(-501, 0), 0);
-            SectionCrackResult Check(CrackSectionGeometry g) => SectionCrackCheck.Evaluate(new SectionCrackInput(Ntc, ServiceabilityCombination.QuasiPermanent, "XC1", false, null, g,
-                plane, g.Bars.Select(b => 200000 * plane.GetStrain(b.X, b.Y)), true, false, false, 200000, 33000, 2.9, false, true, 40, null, 300, null, false, Traced));
-            CrackSectionGeometry Before(CrackSectionGeometry g) => new CrackSectionGeometry(g.Outline, g.Holes.Select(h => (IEnumerable<Point2d>)h), g.Bars, g.Layout);
+            SectionCrackResult Check(CrackSectionGeometry g) => HollowCircleCheck(g, plane);
+            CrackSectionGeometry Before(CrackSectionGeometry g) => new CrackSectionGeometry(g.Outline, g.Holes.Select(h => (IEnumerable<Point2d>)h), g.Bars, g.Layout, 0, 0, true);
             string Outcomes(SectionCrackResult r) => string.Join(", ", r.RegionOutcomes.Select(x => x.Key + ": " + x.Outcome));
             Assert.IsTrue(plane.GetStrain(-500, 0) > 0, "entirely tensile");
 
@@ -910,6 +899,72 @@ namespace ConcreteTests
                 var c1000h = CrackSectionGeometry.From((ReinforcedConcreteSection)archive.BeamProperties["C1000H"], true);
                 Assert.IsTrue(c1000h.Circular && c1000h.Holes.Count == 1 && c1000h.HasCircularInnerRing, "C1000H");
             }
+        }
+
+        // Model section and check of the 9b tests: circle Ø1000 (64-gon), 16Ø20 at r = 440 and 8Ø20 at r = 340, C30/37, NTC XC1, spacing 300 mm.
+        private static Point2d[] HoleCircle(double radius, double cx = 0, double cy = 0) => Polygon64(radius).Select(v => new Point2d(cx + v.X, cy + v.Y)).ToArray();
+
+        private static ReinforcedConcreteSection HollowCircleSection(params Point2d[][] holes)
+        {
+            var section = new ReinforcedConcreteSection(new GPC.Geometry.Shape2d(new Polygon2d(Polygon64(500)), holes.Select(h => new Polygon2d(h)).ToArray()),
+                new ConcreteMaterialEN1992("C30/37", 30, ConcreteMaterial.CompressionStressStrainDiagrams.ParabolaRectangle));
+            var steel = new SteelMaterial("B450C", 200000, 450, 450, .075, SteelMaterial.StressStrainCurveType.ElasticPerfectPlastic, SteelMaterial.SteelTypes.Rebar);
+            var bar = new GPC.Model.Sections.Rebar.RebarSectionCircular(20, steel);
+            section.AddRebars(Enumerable.Range(0, 16).Select(k => new ReinforcedConcreteRebar(bar,
+                new Point3d(440 * Math.Cos(2 * Math.PI * k / 16), 440 * Math.Sin(2 * Math.PI * k / 16), 0))));
+            section.AddRebars(Enumerable.Range(0, 8).Select(k => new ReinforcedConcreteRebar(bar,
+                new Point3d(340 * Math.Cos(2 * Math.PI * (k + .5) / 8), 340 * Math.Sin(2 * Math.PI * (k + .5) / 8), 0))));
+            return section;
+        }
+
+        private static SectionCrackResult HollowCircleCheck(CrackSectionGeometry g, StrainPlane plane) => SectionCrackCheck.Evaluate(new SectionCrackInput(Ntc,
+            ServiceabilityCombination.QuasiPermanent, "XC1", false, null, g, plane, g.Bars.Select(b => 200000 * plane.GetStrain(b.X, b.Y)), true, false, false, 200000, 33000,
+            2.9, false, true, 40, null, 300, null, false, Traced));
+
+        /// <summary>
+        /// R3 of the review G-207 (16/11/2026): the public polygon constructor recognises the inner ring of a declared circle with the rule of
+        /// <see cref="CrackSectionGeometry.From"/> (one hole, every vertex at the same distance from the origin, relative 1e-6, at least 16 vertices or as many
+        /// as the declared outline when it has fewer), so the two paths agree. Same section, plane and data as
+        /// <see cref="FromRecognisesOnlyAConcentricCircularHoleAsTheInnerRing"/>; the constructor receives the polygons with <see cref="CrackBarLayout.Ring"/>.
+        /// - Concentric Ø600, eccentric Ø500 at (60; 0), square 350 turned by 45°, two holes Ø160, square 400 aligned, 12-gon Ø600 in the 64-gon (B3 of the
+        ///   first review): the same ring flag and the same result (width, status, ratio, k2, trace, regions) as From.
+        /// - Hollow circle declared by a 12-gon outline with a concentric 12-gon hole (ANTHEA: CircularSides from 12 to 720, SezioneCA.BuildHole): still a
+        ///   ring, the InnerRing band is evaluated as before. A 12-gon outline is no circle for From (Rows), so this case exists only in the constructor.
+        /// - Layout Rows: never a ring.
+        /// </summary>
+        [TestMethod]
+        public void PolygonConstructorRecognisesTheInnerRingWithTheRuleOfFrom()
+        {
+            var plane = new StrainPlane(2e-7, 0, new Point2d(-501, 0), 0);
+            var turned = new[] { new Point2d(247.48737341529164, 0), new Point2d(0, 247.48737341529164), new Point2d(-247.48737341529164, 0), new Point2d(0, -247.48737341529164) };
+            var aligned = new[] { new Point2d(-200, -200), new Point2d(200, -200), new Point2d(200, 200), new Point2d(-200, 200) };
+            Point2d[] Gon(int sides, double radius, int sign = 1) => Enumerable.Range(0, sides)
+                .Select(i => new Point2d(radius * Math.Cos(sign * 2 * Math.PI * i / sides), radius * Math.Sin(sign * 2 * Math.PI * i / sides))).ToArray();
+            foreach (var (what, holes, ring) in new[] { ("concentric Ø600", new[] { HoleCircle(300) }, true), ("eccentric Ø500 at (60; 0)", new[] { HoleCircle(250, 60) }, false),
+                ("square 350 turned by 45°", new[] { turned }, false), ("two holes Ø160 at (±220; 0)", new[] { HoleCircle(80, 220), HoleCircle(80, -220) }, false),
+                ("square 400 aligned", new[] { aligned }, false), ("12-gon Ø600 in the 64-gon", new[] { Gon(12, 300, -1) }, false) })
+            {
+                var from = CrackSectionGeometry.From(HollowCircleSection(holes));
+                var polygons = new CrackSectionGeometry(from.Outline, from.Holes.Select(h => (IEnumerable<Point2d>)h), from.Bars, CrackBarLayout.Ring);
+                Assert.AreEqual(CrackBarLayout.Ring, from.Layout, what);
+                Assert.AreEqual(ring, from.HasCircularInnerRing, what + ": From"); Assert.AreEqual(ring, polygons.HasCircularInnerRing, what + ": constructor");
+                AssertSameResult(HollowCircleCheck(from, plane), HollowCircleCheck(polygons, plane), what);
+                Assert.AreEqual(ring, HollowCircleCheck(polygons, plane).RegionOutcomes.Any(x => x.Key == "InnerRing" && x.Outcome == CrackOutcome.Evaluated), what);
+            }
+            var eccentric = HollowCircleCheck(new CrackSectionGeometry(Polygon64(500), new[] { HoleCircle(250, 60) }, HollowCircleSection().Rebars
+                .Select(r => new CrackBar(r.Position.X, r.Position.Y, r.RebarSection.Diameter, r.Area)), CrackBarLayout.Ring), plane);
+            Assert.AreEqual(CrackOutcome.InnerSurfaceNotSupported, eccentric.Outcome, eccentric.Status); Assert.IsNull(eccentric.Passed); Assert.IsNull(eccentric.Ratio);
+
+            // ANTHEA hollow circle with 12 sides: outline and hole polygonized alike (hole in the opposite order, as SezioneCA.BuildHole), still the ring.
+            var bars = HollowCircleSection().Rebars.Select(r => new CrackBar(r.Position.X, r.Position.Y, r.RebarSection.Diameter, r.Area)).ToArray();
+            var anthea = new CrackSectionGeometry(Gon(12, 500), new[] { Gon(12, 300, -1) }, bars, CrackBarLayout.Ring);
+            Assert.IsTrue(anthea.HasCircularInnerRing, "12-gon declared circle with a concentric 12-gon hole");
+            var twelve = HollowCircleCheck(anthea, plane);
+            Assert.IsTrue(twelve.RegionOutcomes.Any(x => x.Key == "InnerRing" && x.Outcome == CrackOutcome.Evaluated), twelve.Status);
+            AssertSameResult(HollowCircleCheck(new CrackSectionGeometry(anthea.Outline, anthea.Holes.Select(h => (IEnumerable<Point2d>)h), bars, CrackBarLayout.Ring, 0, 0, true), plane),
+                twelve, "12-gon: as before");
+            Assert.IsFalse(new CrackSectionGeometry(Gon(12, 500), new[] { Gon(8, 300) }, bars, CrackBarLayout.Ring).HasCircularInnerRing, "octagon in a 12-gon: no ring");
+            Assert.IsFalse(new CrackSectionGeometry(Polygon64(500), new[] { HoleCircle(300) }, bars, CrackBarLayout.Rows).HasCircularInnerRing, "Rows: no ring");
         }
 
         private static string[] Bands(CrackSectionGeometry geometry) => geometry.Circular ? new[] { "InnerRing" } : InnerWalls.Select(w => w.Item1).ToArray();

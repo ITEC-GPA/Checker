@@ -49,11 +49,24 @@ namespace GPC.Checkers.Concrete.Cracking
         internal double CenterY { get; }
         internal bool HasCircularInnerRing { get; }
 
+        /// <summary>
+        /// Geometry from polygons in the coordinates of the strain plane. <paramref name="layout"/> declares the outline: <see cref="CrackBarLayout.Rows"/>
+        /// or a circle centred at the origin (<see cref="CrackBarLayout.Ring"/>, <see cref="CrackBarLayout.ConcentricRings"/>). The hole of a declared circle
+        /// is its inner ring with the rule of <see cref="From"/> (R3 of the review G-207, 16/11/2026): a single hole whose vertices all lie at the same
+        /// distance from the origin (relative 1e-6), with at least 16 vertices, or at least as many as the declared outline when it has fewer (a circle
+        /// polygonized like its outline, e.g. the 12…720 sides of ANTHEA). Any other hole of a circle (eccentric, square, polygonal, more than one) is no ring:
+        /// a tensile inner surface that is neither a ring nor an axis-aligned rectangle gives <see cref="CrackOutcome.InnerSurfaceNotSupported"/>.
+        /// Before Concrete 0.38 this constructor took every hole of a circle as a concentric ring with the radius of its farthest vertex.
+        /// </summary>
         public CrackSectionGeometry(IEnumerable<Point2d> outline, IEnumerable<IEnumerable<Point2d>> holes, IEnumerable<CrackBar> bars, CrackBarLayout layout)
-            : this(outline, holes, bars, layout, 0, 0, true) { }
+            : this(outline, holes, bars, layout, 0, 0, null) { }
 
-        private CrackSectionGeometry(IEnumerable<Point2d> outline, IEnumerable<IEnumerable<Point2d>> holes, IEnumerable<CrackBar> bars,
-            CrackBarLayout layout, double centerX, double centerY, bool hasCircularInnerRing)
+        /// <summary>
+        /// <paramref name="hasCircularInnerRing"/> null: the rule of the polygon constructor (<see cref="InnerRingAboutOrigin"/>). Internal: the tests also
+        /// rebuild with it the reading before Concrete 0.38 (true: every hole of a circle is a concentric ring).
+        /// </summary>
+        internal CrackSectionGeometry(IEnumerable<Point2d> outline, IEnumerable<IEnumerable<Point2d>> holes, IEnumerable<CrackBar> bars,
+            CrackBarLayout layout, double centerX, double centerY, bool? hasCircularInnerRing)
         {
             Outline = (outline ?? throw new ArgumentNullException(nameof(outline))).ToArray();
             Holes = (holes ?? Enumerable.Empty<IEnumerable<Point2d>>()).Select(h => (IReadOnlyList<Point2d>)h.ToArray()).ToArray();
@@ -62,7 +75,7 @@ namespace GPC.Checkers.Concrete.Cracking
             if (Bars.Any(b => !Positive(b.Diameter) || !Positive(b.Area) || double.IsNaN(b.X + b.Y) || double.IsInfinity(b.X + b.Y)))
                 throw new ArgumentException("Cracking: invalid bar.");
             Layout = layout; Circular = layout != CrackBarLayout.Rows;
-            CenterX = centerX; CenterY = centerY; HasCircularInnerRing = hasCircularInnerRing;
+            CenterX = centerX; CenterY = centerY; HasCircularInnerRing = hasCircularInnerRing ?? (Circular && InnerRingAboutOrigin(Outline.Count, Holes));
             Width = Outline.Max(p => p.X) - Outline.Min(p => p.X); Height = Outline.Max(p => p.Y) - Outline.Min(p => p.Y);
         }
 
@@ -88,16 +101,27 @@ namespace GPC.Checkers.Concrete.Cracking
                 .Select(r => new CrackBar(r.Position.X, r.Position.Y, r.RebarSection.Diameter, r.Area)).ToArray();
             bool circle = CircleAboutOrigin(outline);
             var layout = !circle ? CrackBarLayout.Rows : concentricRings ? CrackBarLayout.ConcentricRings : CrackBarLayout.Ring;
-            bool innerRing = circle && holes.Length == 1 && CircleAboutOrigin(holes[0]);
+            bool innerRing = circle && InnerRingAboutOrigin(outline.Length, holes);
             return new CrackSectionGeometry(outline, holes.Select(h => (IEnumerable<Point2d>)h), bars, layout, 0, 0, innerRing);
         }
 
         /// <summary>A polygon of at least 16 vertices all at the same distance from the origin (relative 1e-6): the circle rule of <see cref="From"/>.</summary>
-        private static bool CircleAboutOrigin(IReadOnlyList<Point2d> polygon)
+        private static bool CircleAboutOrigin(IReadOnlyList<Point2d> polygon) => CircleAboutOrigin(polygon, 16);
+
+        private static bool CircleAboutOrigin(IReadOnlyList<Point2d> polygon, int minimumVertices)
         {
             var radii = polygon.Select(p => Math.Sqrt(p.X * p.X + p.Y * p.Y)).ToArray();
-            return polygon.Count >= 16 && radii.Max() - radii.Min() <= 1e-6 * radii.Max();
+            return polygon.Count >= minimumVertices && radii.Max() - radii.Min() <= 1e-6 * radii.Max();
         }
+
+        /// <summary>
+        /// Inner ring of a circle centred at the origin, the rule shared by <see cref="From"/> and the polygon constructor: one hole, all its vertices at the
+        /// same distance from the origin (relative 1e-6), at least 16 vertices or as many as the outline when it has fewer. In <see cref="From"/> the outline
+        /// is a circle only with at least 16 vertices, so there the minimum is always 16 (rule of 9b); a declared circular outline of fewer vertices admits a
+        /// hole polygonized like it. Read only with a circular layout.
+        /// </summary>
+        private static bool InnerRingAboutOrigin(int outlineVertices, IReadOnlyList<IReadOnlyList<Point2d>> holes)
+            => holes.Count == 1 && CircleAboutOrigin(holes[0], Math.Min(16, outlineVertices));
 
         /// <summary>
         /// Explicitly samples the native Model curves with the given chord tolerance (mm) and maximum segment length.
