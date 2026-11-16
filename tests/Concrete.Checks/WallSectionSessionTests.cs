@@ -162,6 +162,14 @@ namespace ConcreteTests
         /// far = 0.75 (h − x) > near and a larger wk; the tension face gives s = 150.67 ≤ 240 and Δsm = near. Top in tension (M = −50 kNm): s = 300 with both
         /// rules, wk identical. Entirely tensile strip (N = +800 kN, M = 10 kNm): both faces in tension, the larger spacing with both rules. The default
         /// session (retaining walls) keeps the sparser face.
+        /// Independent expected values (R2 of the review G-207, 16/11/2026): the cracked section by hand in tools/attesi/fessurazione_s3_faccia_tesa.py
+        /// (part B), not the intermediate results of the same calculation: C30 Ecm = 22 000 (38/10)^0.3 = 32 836.568 MPa, fctm = 2.896468 MPa,
+        /// n = Es (1 + φ)/Ecm = 18.272312 (φ = 2), compressed bars with n − 1, no tensile concrete. M = +50 kNm: x = 102.658455 mm from the top, h − x =
+        /// 297.341545 mm, σs = 112.791411 MPa, hc,eff = (h − x)/3 = 99.113848 mm, ρ = 7 · 201.06/(1000 hc,eff) = 0.0142002, εsm − εcm = 3.38374e-4,
+        /// Δsm,near = 192.674706 mm, Δsm,far = 223.006159 mm, wk 0.128281215 → 0.110833465 mm. M = −50 kNm: h − x = 303.599917 mm, σs = 126.449656 MPa,
+        /// s = 300 > 5 (40 + 10) = 250 mm, Δsm = max(near 241.064759; far 227.699938), wk = 0.155461035 mm with both rules. Tolerance 1e-3 relative:
+        /// the section solver integrates the stresses on its mesh (deviation from the closed form about 1e-4 in this case); the branch of Δsm is
+        /// checked exactly by <see cref="CrackWidthBranchOfS3MatchesTheIndependentScalarVector"/>.
         /// </summary>
         [TestMethod]
         public void CrackSpacingOfTheTensionFaceIsOptIn()
@@ -199,15 +207,52 @@ namespace ConcreteTests
             Assert.AreEqual(1.7 * near * strain, after.Width.Value, 1e-12, "close bars: Δsm = near");
             Assert.AreEqual(1.7 * far * strain, before.Width.Value, 1e-12, "sparser face: Δsm = max(near; far) = far");
             Console.WriteLine("S3 bottom in tension: s {0} -> {1} mm, wk {2:R} -> {3:R} mm", before.BarSpacing, after.BarSpacing, before.Width, after.Width);
+            // Independent expected values (tools/attesi/fessurazione_s3_faccia_tesa.py, part B), relative tolerance 1e-3 (mesh of the section solver).
+            void Near(double expected, double actual, string what) => Assert.AreEqual(expected, actual, 1e-3 * Math.Abs(expected), what + " = " + actual.ToString("R"));
+            foreach (var r in new[] { before, after })
+            {
+                Near(297.341545138, Entry(r, "h − x"), "h − x"); Near(112.791411298, Entry(r, "σs"), "σs");
+                Near(99113.848379, Entry(r, "Ac,eff"), "Ac,eff"); Assert.AreEqual(7 * Math.PI * 64, Entry(r, "As,eff"), 1e-9, "As,eff: the seven bottom bars");
+                Near(0.014200170126, Entry(r, "ρp,eff"), "ρp,eff"); Near(3.38374234e-4, Entry(r, "εsm − εcm"), "εsm − εcm");
+                Near(192.674706418, Entry(r, "Δsm,near"), "Δsm,near"); Near(223.006158854, Entry(r, "Δsm,far"), "Δsm,far");
+            }
+            Near(0.110833465, after.Width.Value, "wk, tension face (Δsm = near)"); Near(0.128281215, before.Width.Value, "wk, sparser face (Δsm = far)");
 
             // Top face in tension: the sparser face is the tension face, nothing changes.
             var topBefore = Crack(sparser, 0, -5e7); var topAfter = Crack(tension, 0, -5e7);
             Assert.AreEqual(sTop, topAfter.BarSpacing.Value, 1e-12); Assert.AreEqual(topBefore.Width, topAfter.Width); Assert.AreEqual(topBefore.Status, topAfter.Status);
+            Near(303.599917460, Entry(topAfter, "h − x"), "top: h − x"); Near(126.449656155, Entry(topAfter, "σs"), "top: σs");
+            Near(241.064758620, Entry(topAfter, "Δsm,near"), "top: Δsm,near"); Near(227.699938095, Entry(topAfter, "Δsm,far"), "top: Δsm,far");
+            Assert.AreEqual(250, Entry(topAfter, "s,lim"), 1e-12); Near(0.155461035, topAfter.Width.Value, "top: wk (s = 300 > 250, Δsm = max = near)");
 
             // Entirely tensile strip: both faces in tension, the larger spacing with both rules.
             var tensileBefore = Crack(sparser, 8e5, 1e7); var tensileAfter = Crack(tension, 8e5, 1e7);
             Assert.AreEqual(sTop, tensileAfter.BarSpacing.Value, 1e-12); Assert.AreEqual(tensileBefore.Width, tensileAfter.Width);
             Assert.ThrowsException<ArgumentOutOfRangeException>(() => Unequal((WallCrackSpacing)9));
+        }
+
+        /// <summary>
+        /// R2 of the review G-207 (16/11/2026): the branch of Δsm that S3 switches, with fixed expected values from explicit inputs, not from the
+        /// Details of the same calculation. Vector of the review (section S3, table W1-W4), recomputed in tools/attesi/fessurazione_s3_faccia_tesa.py
+        /// (part A): σs 200 MPa, Es 200 000, Ecm 30 000, fct 3 MPa, ρ 0.02, Ø16 ribbed (k1 0.8), k2 0.5, long term (kt 0.4), c 40 mm, h − x 300 mm.
+        /// εsm − εcm = max[(200 − 0.4 · 3/0.02 · (1 + 0.02 · 200 000/30 000))/200 000; 0.6 · 200/200 000] = 0.00066; Δsm,near = (3.4 · 40 + 0.8 · 0.5 ·
+        /// 0.425 · 16/0.02)/1.7 = 160 mm; Δsm,far = 0.75 · 300 = 225 mm; s,lim = 5 (40 + 8) = 240 mm. wk = 1.7 · 160 · 0.00066 = 0.17952 mm for
+        /// s = 150.67 and s = 240 exactly (close bars), 1.7 · 225 · 0.00066 = 0.25245 mm for s = 300 and s = 240.000001 mm.
+        /// </summary>
+        [TestMethod]
+        public void CrackWidthBranchOfS3MatchesTheIndependentScalarVector()
+        {
+            foreach (var (s, distance, width) in new[] { ((1000 - 80 - 16) / 6.0, 160.0, .17952), (300.0, 225.0, .25245), (240.0, 160.0, .17952), (240.000001, 225.0, .25245) })
+            {
+                var details = new System.Collections.Generic.List<GPC.Checkers.Concrete.Shear.ShearCalculationDetail>();
+                double wk = GPC.Checkers.Concrete.Cracking.CrackWidthCalculator.Width(GPC.Checkers.Concrete.Cracking.CrackProfile.Ntc2018,
+                    new GPC.Checkers.Concrete.Cracking.CrackWidthInput(200, 200000, 30000, 3, .02, 16, 40, s, 300, false, true, .5), details);
+                double Entry(string symbol) => details.Single(d => d.Symbol == symbol).Value;
+                string what = "s = " + s.ToString("R");
+                Assert.AreEqual(.00066, Entry("εsm − εcm"), 1e-15, what); Assert.AreEqual(160, Entry("Δsm,near"), 1e-10, what);
+                Assert.AreEqual(225, Entry("Δsm,far"), 1e-10, what); Assert.AreEqual(240, Entry("s,lim"), 1e-12, what);
+                Assert.AreEqual(distance, Entry("Δsm"), 1e-10, what); Assert.AreEqual(width, wk, 1e-12, what); Assert.AreEqual(width, Entry("wk"), 1e-12, what);
+            }
         }
 
         [TestMethod]
