@@ -158,8 +158,10 @@ public partial class ColumnBaseTests
         var plain = ColumnBase.Verify(Internal().Build());
         CollectionAssert.Contains(plain.MissingRequirements.ToList(), "ANCHOR_TENSION_BETWEEN_FLANGES_NOT_IMPLEMENTED");
         var alpha = new TStubChartAlpha(6.0, "test");
-        // Rows at +/-150 < 2m + 0.625e = 162.7: the side patterns would cross the column axis.
-        var close = ColumnBase.Verify((Internal() with { Row = 150 }).Build().WithInternalRowAlpha(alpha));
+        // Rows at +/-150 < 2m + 0.625e = 162.7 with BOTH sides in tension (N = +300 kN, M1 = 10 kNm, e = 33 < zT):
+        // the two side patterns would cross the column axis and share plate.
+        var close = ColumnBase.Verify((Internal() with { Row = 150, N = 300e3, M1 = 10e6 }).Build().WithInternalRowAlpha(alpha));
+        Assert.AreEqual(ColumnBaseEquilibriumState.BothSidesInTension, close.State);
         CollectionAssert.Contains(close.MissingRequirements.ToList(), "INTERNAL_TENSION_ROW_PATTERN_CROSSES_THE_COLUMN_AXIS");
         // Alpha below the unstiffened asymptote 5.7746 is rejected by the Table6.6 geometry.
         var low = ColumnBase.Verify(Internal().Build().WithInternalRowAlpha(new TStubChartAlpha(5.5, "test")));
@@ -169,6 +171,39 @@ public partial class ColumnBaseTests
         var outside = ColumnBase.Verify(Example1().Build().WithInternalRowAlpha(alpha));
         CollectionAssert.Contains(outside.MissingRequirements.ToList(), "INTERNAL_ROW_ALPHA_REQUIRES_TWO_ROWS_BETWEEN_THE_FLANGES");
         foreach (var r in new[] { plain, close, low, twice, outside }) Assert.AreEqual(ConnectionStatus.NotSupported, r.Status);
+    }
+
+    [TestMethod]
+    public void NonOverlapRuleAppliesOnlyToStatesThatNeedIt()
+    {
+        // Review B1 (16/11): rows at +/-150 < 2m + 0.625e = 162.7.
+        var alpha = new TStubChartAlpha(6.0, "test");
+        // Both flanges compressed (N = -500 kN, M1 = 20 kNm, e = -40 mm): no anchor in tension, same outcome as without alpha.
+        var compressed = Internal() with { Row = 150, N = -500e3, M1 = 20e6 };
+        var plain = ColumnBase.Verify(compressed.Build());
+        var declared = ColumnBase.Verify(compressed.Build().WithInternalRowAlpha(alpha));
+        Assert.AreEqual(ColumnBaseEquilibriumState.BothSidesInCompression, declared.State);
+        Assert.AreEqual(plain.Status, declared.Status, string.Join(";", declared.MissingRequirements));
+        CollectionAssert.AreEqual(plain.MissingRequirements.ToList(), declared.MissingRequirements.ToList());
+        Assert.AreEqual(plain.Checks.Count, declared.Checks.Count);
+        foreach (var c in plain.Checks)
+        {
+            var d = Check(declared, c.Id);
+            Assert.AreEqual(c.Demand, d.Demand, c.Id); Assert.AreEqual(c.Resistance, d.Resistance, c.Id); Assert.AreEqual(c.Reference, d.Reference, c.Id);
+        }
+        Assert.AreEqual(plain.MomentResistance, declared.MomentResistance);
+        // One side in tension (N = +50 kN, M1 = 60 kNm): its pattern reaches y = 150 - 162.7 = -12.7 mm, while the compressed
+        // T-stub of side B starts at y = -(222 - 60.93) = -161.07 mm: no contact, the joint is computed.
+        var oneSide = ColumnBase.Verify((Internal() with { Row = 150 }).Build().WithInternalRowAlpha(alpha));
+        Assert.AreEqual(ColumnBaseEquilibriumState.SideATensionSideBCompression, oneSide.State);
+        Assert.AreEqual(0, oneSide.MissingRequirements.Count, string.Join(";", oneSide.MissingRequirements));
+        Assert.AreEqual(ConnectionStatus.Passed, oneSide.Status);
+        // HEB240 on a 240x440x60 plate, rows at +/-60, gauge 100: c = 60 sqrt(275/(3*22.2222)) = 121.9 > (240-34)/2 = 103, so the
+        // compressed T-stub of side B reaches the axis; m = 45 - 6.4 = 38.6, e = 70, 2m + 0.625e = 120.95 > 60: refused.
+        var reach = ColumnBase.Verify((Example1() with { PlateWidth = 240, PlateThickness = 60, Layout = ColumnBaseAnchorLayout.BetweenFlanges,
+            Gauge = 100, Row = 60, N = 50e3, M1 = 25e6, V2 = 20e3 }).Build().WithInternalRowAlpha(new TStubChartAlpha(6.5, "test")));
+        CollectionAssert.Contains(reach.MissingRequirements.ToList(), "INTERNAL_TENSION_ROW_PATTERN_REACHES_THE_COMPRESSED_T_STUB");
+        Assert.AreEqual(ConnectionStatus.NotSupported, reach.Status);
     }
 
     [TestMethod]

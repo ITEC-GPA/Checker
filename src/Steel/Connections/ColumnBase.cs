@@ -215,7 +215,7 @@ namespace GPC.Checkers.Steel.Connections
             // Tension side: anchors outside the flanges form the extended-row T-stub of 6.2.6.11 / 6.2.6.5; anchors between
             // the flanges (opt-in) the T-stub of the row next to the tension flange (Table6.6 first row below the flange).
             double ft = 0, zt = 0, plateMode = 0, mode3 = 0, webTension = double.PositiveInfinity, anchorSteel = 0, k15 = 0, k16 = 0;
-            double? mode2 = null; bool prying = false;
+            double? mode2 = null; bool prying = false; double internalEndPattern = 0;
             if (outside || internalTension)
             {
                 zt = row; ztOut = zt;
@@ -247,11 +247,10 @@ namespace GPC.Checkers.Steel.Connections
                 if (!outside)
                 {
                     if (!(firstRow - .8 * w.FlangeLeg > half)) missing.Add("ANCHOR_HOLE_INTERSECTS_PLASTIC_HINGE_LINE");
-                    // GPC condition: the unrestricted end-row pattern of each side (2m+0.625e beyond the row, Table6.6) stays
-                    // within its half of the plate, so the side T-stubs never share plate (Table6.7 adds independent sides).
-                    double endPattern = 2 * m + .625 * geometry.E;
-                    Value("Tension.InternalRow.EndPatternLength", endPattern, "mm");
-                    if (row < endPattern) missing.Add("INTERNAL_TENSION_ROW_PATTERN_CROSSES_THE_COLUMN_AXIS");
+                    // Unrestricted end-row pattern of the row towards the column axis (2m+0.625e beyond the row, Table6.6);
+                    // the GPC non-overlap conditions depend on the equilibrium state and are applied after it is chosen.
+                    internalEndPattern = 2 * m + .625 * geometry.E;
+                    Value("Tension.InternalRow.EndPatternLength", internalEndPattern, "mm");
                 }
                 var lengths = geometry.IndividualRows[0];
                 double n = Math.Min(emin, 1.25 * m);
@@ -361,6 +360,20 @@ namespace GPC.Checkers.Steel.Connections
                 if ((aTension || bTension) && !concrete.TensionPerAnchor.HasValue)
                 {
                     missing.Add("ANCHOR_CONCRETE_TENSION_RESISTANCE_REQUIRED");
+                    return Result();
+                }
+                // GPC non-overlap conditions of the internal rows, only in states with anchor tension (Table6.7 adds
+                // independent sides): with both sides in tension each row pattern stays within its half of the plate;
+                // with one side in tension it must not reach the compressed flange T-stub of the other side, whose inner
+                // edge lies at hc/2 - tf - inward from the axis.
+                if (internalTension && aTension && bTension && row < internalEndPattern)
+                {
+                    missing.Add("INTERNAL_TENSION_ROW_PATTERN_CROSSES_THE_COLUMN_AXIS");
+                    return Result();
+                }
+                if (internalTension && aTension != bTension && internalEndPattern - row >= hc / 2 - tf - inward)
+                {
+                    missing.Add("INTERNAL_TENSION_ROW_PATTERN_REACHES_THE_COMPRESSED_T_STUB");
                     return Result();
                 }
                 double z = (aTension ? zt : zc) + (bTension ? zt : zc);
