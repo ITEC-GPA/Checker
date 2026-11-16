@@ -59,14 +59,21 @@ namespace GPC.Checkers.Steel.Connections
                 ? " Opt-in: anchor tension between the flanges, Table6.6 row next to the flange with the declared Figure6.11 alpha and the column web in tension (6.2.6.3)." : "")
             + (Input.TensionShearInteractionSource != null ? " Opt-in: tensioned anchors in shear by the Table3.4 combined rule without prying." : "")
             + (Input.Stiffness != null ? " Opt-in: rotational stiffness 6.3.4 (Tables 6.11, 6.12)." : "");
-        public IReadOnlyList<string> ExternalConditions => Input.Stiffness == null ? DefaultConditions : StiffnessConditions;
+        public IReadOnlyList<string> ExternalConditions => Input.Stiffness == null ? DefaultConditions
+            : RotationalStiffness != null ? StiffnessConditions : StiffnessNotDefinedConditions;
         private static readonly IReadOnlyList<string> DefaultConditions = Array.AsReadOnly(new[] {
             "Concrete failure modes of the anchors (EN1992-4: pull-out, cone, splitting, edge, pry-out) and the foundation design, including the splitting reinforcement of EN1992-1-1 6.7(1), are declared by the caller and not computed.",
             "The column cross-section and member at the base cut (N, M1, V) are verified separately; this result is a local joint resistance.",
             "Execution: plate flatness and grout filling as assumed in the uniform bearing pressure, grout strength and thickness as declared, anchor positions within tolerances (EN1993-1-8 6.2.6.12(2) note).",
             "The joint stiffness (EN1993-1-8 6.3.4) and its compatibility with the global model are not part of this result." });
         private static readonly IReadOnlyList<string> StiffnessConditions = Array.AsReadOnly(DefaultConditions.Take(3).Concat(new[] {
-            "The rotational stiffness of EN1993-1-8 6.3.4 is computed for the actual N-M1 state with the declared concrete modulus; its classification (5.2.2.5) and compatibility with the global model stay with the caller." }).ToArray());
+            "The rotational stiffness of EN1993-1-8 6.3.4 is computed for the actual N-M1 state with the declared concrete modulus. It is valid only "
+            + "within the eccentricity interval of its Table6.12 row (RotationalStiffness.EccentricityMin/Max, MomentAtLowerLimit/UpperLimit at the "
+            + "actual N); a base without anchor tension capacity is a hinge beyond it (HingeBeyondRange). Its classification (5.2.2.5) and "
+            + "compatibility with the global model stay with the caller." }).ToArray());
+        private static readonly IReadOnlyList<string> StiffnessNotDefinedConditions = Array.AsReadOnly(DefaultConditions.Take(3).Concat(new[] {
+            "The rotational stiffness of EN1993-1-8 6.3.4 was requested but is not defined for this result (no N and M1, actions beyond Mj,Rd, "
+            + "or a missing requirement): see the Stiffness.* trace. Nothing is assumed for the global model." }).ToArray());
         /// <summary>EN1993-1-8 6.3.4 rotational stiffness at the actual actions; only with ColumnBaseInput.WithStiffness and
         /// a calculation without missing requirements, null otherwise (also beyond Mj,Rd).</summary>
         public ColumnBaseRotationalStiffness RotationalStiffness { get; }
@@ -117,6 +124,10 @@ namespace GPC.Checkers.Steel.Connections
             if (alphaDeclared && !(!outside && pattern.RowDistance > 0)) missing.Add("INTERNAL_ROW_ALPHA_REQUIRES_TWO_ROWS_BETWEEN_THE_FLANGES");
             if (p.InternalRowAlphaSciP398Source != null && string.IsNullOrWhiteSpace(p.InternalRowAlphaSciP398Source)) missing.Add("SCI_P398_ALPHA_SOURCE_REQUIRED");
             if (p.Stiffness != null && string.IsNullOrWhiteSpace(p.Stiffness.Source)) missing.Add("CONCRETE_MODULUS_SOURCE_REQUIRED");
+            // Field check of the declared Ec in MPa (EN1992-1-1 Table3.1: Ecm 27-44 GPa for C12/15-C90/105): a value in GPa or kPa
+            // would scale k13 by 1/1000 or 1000 and go unnoticed into the global model.
+            if (p.Stiffness != null && (p.Stiffness.ConcreteModulus < 10000 || p.Stiffness.ConcreteModulus > 60000))
+                missing.Add("CONCRETE_MODULUS_OUTSIDE_10000_TO_60000_MPA");
             if (p.TensionShearInteractionSource != null && string.IsNullOrWhiteSpace(p.TensionShearInteractionSource))
                 missing.Add("TENSION_SHEAR_INTERACTION_CONCRETE_SOURCE_REQUIRED");
 
@@ -538,7 +549,9 @@ namespace GPC.Checkers.Steel.Connections
                 // EN1993-1-8 6.3.4 and Table6.12 with the stiffness coefficients of Table6.11: compression side k13 with
                 // c = 1.25 tp (Table6.11 note 1) on the flange T-stub limited like the resistance one; tension side
                 // 1/kT = 1/k15 + 1/k16 (6.3.4(1), AC:2009). Lever arms as for the resistance (6.3.4(2) -> 6.2.8.1).
-                if (state == ColumnBaseEquilibriumState.NoAxialForceOrMoment || state == ColumnBaseEquilibriumState.NotEvaluated) return;
+                // Without N and M1 no Table6.12 row (and no eccentricity) exists: not defined, said in the trace and conditions.
+                if (state == ColumnBaseEquilibriumState.NoAxialForceOrMoment || state == ColumnBaseEquilibriumState.NotEvaluated)
+                { Value("Stiffness.NotDefined", 1, "1"); return; }
                 double cs = 1.25 * plate.Thickness, ec2 = p.Stiffness.ConcreteModulus;
                 double beff = tf + Math.Min(cs, (p.PlateLength - hc) / 2) + Math.Min(cs, (hc - 2 * tf) / 2);
                 double leff = 2 * Math.Min(col.Width / 2 + cs, plate.Width / 2);
@@ -548,22 +561,40 @@ namespace GPC.Checkers.Steel.Connections
                 double kT = k15 > 0 && k16 > 0 ? 1 / (1 / k15 + 1 / k16) : 0;
                 if ((aT || bT) && !(kT > 0)) { Value("Stiffness.NotDefined", 1, "1"); return; }
                 double ka = aT ? kT : k13, kb = bT ? kT : k13, za = aT ? zt : zc, zb = bT ? zt : zc, z = za + zb;
-                double e = nEd == 0 ? double.PositiveInfinity : mEd / nEd;
+                double? e = nEd == 0 ? (double?)null : mEd / nEd;
                 double ek = (zb * kb - za * ka) / (ka + kb);
                 // Symmetric states (ek = 0) and pure moment (N = 0) take e/(e+ek) = 1, the limit of Table6.12.
-                double eccentricityFactor = ek == 0 || double.IsInfinity(e) ? 1 : e / (e + ek);
+                double eccentricityFactor = ek == 0 || !e.HasValue ? 1 : e.Value / (e.Value + ek);
                 double initial = eccentricityFactor * SteelElasticModulus * z * z / (1 / ka + 1 / kb);
                 Value("Stiffness.ConcreteModulus", ec2, "MPa"); Value("Stiffness.CompressionTStubBeff", beff, "mm"); Value("Stiffness.CompressionTStubLeff", leff, "mm");
                 Value("Stiffness.K13", k13, "mm"); if (kT > 0) Value("Stiffness.KT", kT, "mm");
-                Value("Stiffness.LeverArmZ", z, "mm"); Value("Stiffness.Ek", ek, "mm"); Value("Stiffness.EccentricityFactor", eccentricityFactor, "1");
+                Value("Stiffness.LeverArmZ", z, "mm"); Value("Stiffness.Ek", ek, "mm");
+                // The factor is traced only after its check: a non-finite value must not turn the resistance into a missing requirement.
                 if (!(eccentricityFactor > 0) || double.IsNaN(initial) || double.IsInfinity(initial)) { Value("Stiffness.NotDefined", 1, "1"); return; }
+                Value("Stiffness.EccentricityFactor", eccentricityFactor, "1");
+                // Validity interval of the Table6.12 row (M1 > 0 tensions side A = left, N > 0 tension): rows 4 and 2 between the
+                // lever arms of the two sides; row 1 e > zT,A (N > 0) or e <= -zC,B (N <= 0); row 3 e <= -zT,B (N > 0) or e > zC,A (N <= 0).
+                double? eMin = null, eMax = null;
+                if (aT == bT) { eMin = -zb; eMax = za; }
+                else if (aT) { if (nEd > 0) eMin = za; else eMax = -zb; }
+                else { if (nEd > 0) eMax = -zb; else eMin = za; }
+                double? mLow = null, mHigh = null;
+                if (nEd != 0)
+                {
+                    double? atMin = eMin * nEd, atMax = eMax * nEd;
+                    mLow = nEd > 0 ? atMin : atMax; mHigh = nEd > 0 ? atMax : atMin;
+                }
+                bool hinge = !(outside || internalTension);
+                if (eMin.HasValue) Value("Stiffness.ValidEccentricityMin", eMin.Value, "mm");
+                if (eMax.HasValue) Value("Stiffness.ValidEccentricityMax", eMax.Value, "mm");
+                Value("Stiffness.HingeBeyondValidRange", hinge ? 1 : 0, "1");
                 // 6.3.1(6), Table6.8 base plate connections psi = 2.7; Mj,Ed/Mj,Rd on the same N-M1 ray is u (zero moment: 0).
                 double momentRatio = mEd == 0 ? 0 : u;
                 double mu = momentRatio <= 2.0 / 3 ? 1 : Math.Pow(1.5 * momentRatio, 2.7);
                 Value("Stiffness.Sjini", initial, "Nmm/rad"); Value("Stiffness.Mu", mu, "1");
                 if (momentRatio > 1) { Value("Stiffness.SjBeyondResistance", 1, "1"); return; }
                 Value("Stiffness.Sj", initial / mu, "Nmm/rad");
-                stiffnessOut = new ColumnBaseRotationalStiffness(initial, initial / mu, mu, z, e, ek, ka, kb);
+                stiffnessOut = new ColumnBaseRotationalStiffness(initial, initial / mu, mu, z, e, ek, ka, kb, eMin, eMax, mLow, mHigh, hinge);
             }
             void Required(string source, string issue) { if (string.IsNullOrWhiteSpace(source)) missing.Add(issue); }
             void Value(string name, double value, string unit)

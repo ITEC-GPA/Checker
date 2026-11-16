@@ -169,19 +169,37 @@ namespace GPC.Checkers.Steel.Connections
     }
 
     /// <summary>Rotational stiffness of the base at the actual actions, EN1993-1-8 6.3.4 Table6.12 with 6.3.1(4)-(6):
-    /// Sj = e/(e+ek) E z^2/(mu sum 1/ki). Nmm/rad; stiffness coefficients in mm.</summary>
+    /// Sj = e/(e+ek) E z^2/(mu sum 1/ki). Nmm/rad; stiffness coefficients and eccentricities in mm.
+    /// The value belongs to ONE row of Table6.12 (which sides are in tension), i.e. to the eccentricity interval
+    /// [EccentricityMin, EccentricityMax] of that row (null = unbounded), under proportional loading. Outside it another row
+    /// applies; with HingeBeyondRange (no anchor tension capacity) the base offers no rotational restraint beyond it.</summary>
     public sealed class ColumnBaseRotationalStiffness
     {
         public double InitialStiffness { get; }
         public double Stiffness { get; }
         public double Mu { get; }
         public double LeverArm { get; }
-        public double Eccentricity { get; }
+        /// <summary>e = M1/N of the actual state, mm; null for N = 0 (pure moment, the limit e/(e+ek) = 1 is used).</summary>
+        public double? Eccentricity { get; }
         public double Ek { get; }
         public double SideAStiffnessCoefficient { get; }
         public double SideBStiffnessCoefficient { get; }
-        internal ColumnBaseRotationalStiffness(double initial, double stiffness, double mu, double z, double e, double ek, double ka, double kb)
-        { InitialStiffness = initial; Stiffness = stiffness; Mu = mu; LeverArm = z; Eccentricity = e; Ek = ek; SideAStiffnessCoefficient = ka; SideBStiffnessCoefficient = kb; }
+        /// <summary>Lower bound of e = M1/N for the Table6.12 row of this value, mm; null when unbounded.</summary>
+        public double? EccentricityMin { get; }
+        /// <summary>Upper bound of e = M1/N for the Table6.12 row of this value, mm; null when unbounded.</summary>
+        public double? EccentricityMax { get; }
+        /// <summary>Moments M1 = e N at the bounds of the interval with the actual N, Nmm (ascending); null when N = 0 or unbounded.</summary>
+        public double? MomentAtLowerLimit { get; }
+        public double? MomentAtUpperLimit { get; }
+        /// <summary>True when the base has no anchor tension capacity (anchors between the flanges without the opt-in): beyond the
+        /// both-compression interval it is a hinge for M1, not a semi-rigid joint.</summary>
+        public bool HingeBeyondRange { get; }
+        internal ColumnBaseRotationalStiffness(double initial, double stiffness, double mu, double z, double? e, double ek, double ka, double kb,
+            double? eMin, double? eMax, double? mLow, double? mHigh, bool hinge)
+        {
+            InitialStiffness = initial; Stiffness = stiffness; Mu = mu; LeverArm = z; Eccentricity = e; Ek = ek; SideAStiffnessCoefficient = ka; SideBStiffnessCoefficient = kb;
+            EccentricityMin = eMin; EccentricityMax = eMax; MomentAtLowerLimit = mLow; MomentAtUpperLimit = mHigh; HingeBeyondRange = hinge;
+        }
     }
 
     /// <summary>Qualified design moment resistance Mc,Rd of the column cross-section at the base, Nmm,

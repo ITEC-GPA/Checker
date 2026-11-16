@@ -51,7 +51,11 @@ public partial class ColumnBaseTests
         Close(19.70976312526361, Trace(r, "Stiffness.K13"), "k13"); Close(33.421267031430624, Trace(r, "Stiffness.K15"), "k15");
         Close(2.6466729147141517, Trace(r, "Stiffness.K16"), "k16"); Close(2.4524595072408966, Trace(r, "Stiffness.KT"), "kT");
         Close(2.4524595072408966, s.SideAStiffnessCoefficient, "kA"); Close(19.70976312526361, s.SideBStiffnessCoefficient, "kB");
-        Close(280.2944774115439, s.LeverArm, "z"); Close(-200, s.Eccentricity, "e"); Close(79.27724293313649, s.Ek, "ek");
+        Close(280.2944774115439, s.LeverArm, "z"); Close(-200, s.Eccentricity!.Value, "e"); Close(79.27724293313649, s.Ek, "ek");
+        // Review M2: Table6.12 row 1 with N <= 0 holds for e <= -zC,B = -110.294477 mm, i.e. M1 >= 66.18 kNm at N = -600 kN.
+        Assert.IsNull(s.EccentricityMin); Close(-110.29447741154388, s.EccentricityMax!.Value, "e max");
+        Close(110.29447741154388 * 600e3, s.MomentAtLowerLimit!.Value, "M1 at the limit"); Assert.IsNull(s.MomentAtUpperLimit);
+        Assert.IsFalse(s.HingeBeyondRange);
         Close(59615496349.82951, s.InitialStiffness, "Sj,ini"); Close(2.0699795933422815, s.Mu, "mu");
         Close(28800040609.855324, s.Stiffness, "Sj");
         var report = StandardConnectionCaseReport.Create(r);
@@ -90,6 +94,36 @@ public partial class ColumnBaseTests
         Close(0, r.RotationalStiffness!.Ek, "ek"); Close(1, r.RotationalStiffness.Mu, "mu");
         Close(210000 * z * z / (2 / k13), r.RotationalStiffness.InitialStiffness, "Sj,ini");
         Close(r.RotationalStiffness.InitialStiffness, r.RotationalStiffness.Stiffness, "Sj = Sj,ini");
+        // Review M2: valid only while both flanges stay compressed, |e| < zC = 97.7772 mm, i.e. |M1| < 48.89 kNm at N = -500 kN;
+        // the anchors on the axis carry no tension, so beyond it the base is a hinge.
+        Close(-zc, r.RotationalStiffness.EccentricityMin!.Value, "e min"); Close(zc, r.RotationalStiffness.EccentricityMax!.Value, "e max");
+        Close(-zc * 500e3, r.RotationalStiffness.MomentAtLowerLimit!.Value, "M1 low"); Close(zc * 500e3, r.RotationalStiffness.MomentAtUpperLimit!.Value, "M1 high");
+        Assert.IsTrue(r.RotationalStiffness.HingeBeyondRange);
+        Assert.AreEqual(1, Trace(r, "Stiffness.HingeBeyondValidRange"));
+        StringAssert.Contains(r.ExternalConditions.Last(), "hinge beyond it");
+    }
+
+    [TestMethod]
+    public void StiffnessIsNotDefinedWithoutActionsAndNeverInfinite()
+    {
+        // Review B3: N = M1 = 0 (shear only): no Table6.12 row, a trace says so and the conditions do not claim a value.
+        var none = ColumnBase.Verify((Example1() with { N = 0, M1 = 0, V2 = 20e3 }).Build().WithStiffness(new ColumnBaseStiffnessDeclaration(31000, Ecm)));
+        Assert.AreEqual(ColumnBaseEquilibriumState.NoAxialForceOrMoment, none.State);
+        Assert.AreEqual(0, none.MissingRequirements.Count, string.Join(";", none.MissingRequirements));
+        Assert.IsNull(none.RotationalStiffness);
+        Assert.AreEqual(1, Trace(none, "Stiffness.NotDefined"));
+        StringAssert.Contains(none.ExternalConditions.Last(), "requested but is not defined");
+        // Pure moment (N = 0): e is null, not infinite, and the result serializes.
+        var moment = ColumnBase.Verify((Example1() with { N = 0, M1 = 50e6, V2 = 50e3 }).Build().WithStiffness(new ColumnBaseStiffnessDeclaration(31000, Ecm)));
+        Assert.IsNotNull(moment.RotationalStiffness, string.Join(";", moment.MissingRequirements));
+        Assert.IsNull(moment.RotationalStiffness!.Eccentricity);
+        Close(1, Trace(moment, "Stiffness.EccentricityFactor"), "e/(e+ek) limit");
+        Assert.IsNull(moment.RotationalStiffness.MomentAtLowerLimit);
+        StringAssert.Contains(System.Text.Json.JsonSerializer.Serialize(moment.RotationalStiffness), "\"Eccentricity\":null");
+        // Review B4: Ec in GPa (31) is outside the MPa field and refused, not used.
+        var gpa = ColumnBase.Verify(Example1().Build().WithStiffness(new ColumnBaseStiffnessDeclaration(31, Ecm)));
+        CollectionAssert.Contains(gpa.MissingRequirements.ToList(), "CONCRETE_MODULUS_OUTSIDE_10000_TO_60000_MPA");
+        Assert.IsNull(gpa.RotationalStiffness);
     }
 
     [TestMethod]
