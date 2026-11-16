@@ -468,6 +468,9 @@ namespace GPC.Checkers.Steel.Connections
                 + (interactionAnchors != 0 ? "; tensioned anchors by the Table3.4 combined rule without prying; concrete interaction: " + p.TensionShearInteractionSource : "");
             if (vEd <= fv || reasons.Count == 0 && credited + interactionAnchors == total) checks.Add(new ConnectionCheck("Shear.FrictionAndAnchors", vEd, fv, shearRef));
             else if (reasons.Count != 0) missing.Add("SHEAR_EXCEEDS_FRICTION:ANCHOR_SHEAR_NOT_ADMISSIBLE(" + string.Join(",", reasons) + "):SHEAR_KEY_OUT_OF_SCOPE");
+            // With the opt-in declared, tensioned anchors are excluded only by prying (Lb <= Lb*): say so instead of "not implemented".
+            else if (p.TensionShearInteractionSource != null && prying)
+                missing.Add("SHEAR_EXCEEDS_RESISTANCE:TENSIONED_ANCHORS_EXCLUDED_BY_PRYING(Lb<=Lb*: the anchor force is not F/2, Table3.4 rule not applied)");
             else missing.Add("SHEAR_EXCEEDS_RESISTANCE_WITHOUT_TENSIONED_ANCHORS:TENSION_SHEAR_INTERACTION_NOT_IMPLEMENTED");
 
             // Welds all round the column with the module's elastic line-weld group (EN1993-1-8 4.5.3 / NTC 4.2.8.2.4):

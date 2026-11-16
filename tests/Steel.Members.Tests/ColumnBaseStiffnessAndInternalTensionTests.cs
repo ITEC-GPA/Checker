@@ -272,5 +272,14 @@ public partial class ColumnBaseTests
         Assert.AreEqual(1, Trace(r, "Shear.Interaction.PryingExcludesTensionedAnchors"));
         Assert.AreEqual(plain.ShearResistance, r.ShearResistance);
         Assert.IsFalse(r.Trace.Any(v => v.Name == "Shear.Interaction.CreditedTensionedAnchors"));
+        // Review B2: shear beyond Fv,Rd (2 compressed anchors x F2,vb = 2*0.248*800*245/1.25 = 77772.8 N < 100 kN) with the option
+        // declared: the requirement names prying, not a missing interaction model.
+        var over = ColumnBase.Verify((Example2() with { V2 = 100e3 }).Build().WithTensionShearInteraction("EN1992-4 interaction declared"));
+        Assert.AreEqual(ConnectionStatus.NotSupported, over.Status);
+        Assert.IsTrue(over.MissingRequirements.Any(m => m.StartsWith("SHEAR_EXCEEDS_RESISTANCE:TENSIONED_ANCHORS_EXCLUDED_BY_PRYING")), string.Join(";", over.MissingRequirements));
+        Assert.IsFalse(over.MissingRequirements.Any(m => m.Contains("NOT_IMPLEMENTED")));
+        // Without the option the historical requirement is unchanged.
+        var overPlain = ColumnBase.Verify((Example2() with { V2 = 100e3 }).Build());
+        Assert.IsTrue(overPlain.MissingRequirements.Any(m => m.StartsWith("SHEAR_EXCEEDS_RESISTANCE_WITHOUT_TENSIONED_ANCHORS")));
     }
 }
