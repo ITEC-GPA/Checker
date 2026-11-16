@@ -159,34 +159,38 @@ def example2():
     return {"compression": comp, "Lb": lb, "LbStar": lbs, "prying": prying, "leff1": leff1, "tstub": ts, "equilibrium": eq, "stiffness": st}
 
 
-def internal(alpha_declared=None):
+def internal(alpha_declared=None, tp=30.0, d=24.0, as_=353.0, d0=26.0, fub=500.0, washer=4.0, nut=21.5, concrete=110000.0):
     # HEB500 S275 (h500 b300 tw14.5 tf28 r27), plate 300x600x30 S275, 4 M24 5.6 between the flanges: gauge 140,
     # rows at +/-180; welds flange 12, web 8; EC factors; concrete C25/30 Ac1 = 4 Ac0; N = +50 kN, M1 = 60 kNm.
     hc, bc, tw, tf, r = 500.0, 300.0, 14.5, 28.0, 27.0
     area_col = 2 * bc * tf + (hc - 2 * tf) * tw + 4 * (1 - math.pi / 4) * r * r
-    comp = compression_side(300, 600, 30, 275, 1.0, 25, 1.0, 1.5, 4.0, hc, bc, tf, [180.0], 26)
+    comp = compression_side(300, 600, tp, 275, 1.0, 25, 1.0, 1.5, 4.0, hc, bc, tf, [180.0], d0)
     m = (140 - tw) / 2 - 0.8 * 8; e = (300 - 140) / 2; first_row = hc / 2 - tf - 180; m2 = first_row - 0.8 * 12
     if alpha_declared is None:
         alpha, l1, l2 = sci_alpha(m, e, m2)
     else:
         alpha, l1, l2 = alpha_declared, m / (m + e), m2 / (m + e)
     leff_cp = 2 * math.pi * m; leff_nc = alpha * m; leff1 = min(leff_cp, leff_nc); n = min(e, 1.25 * m)
-    lb = 8 * 24 + 30 + 30 + 4 + 21.5 / 2; lbs = 8.8 * m ** 3 * 353 / (leff1 * 30 ** 3); prying = lb <= lbs
-    anchor = min(0.9 * 500 * 353 / 1.25, 110000.0)
-    ts = tstub(leff1, leff_nc, m, n, 30, 275, 1.0, 2 * anchor, prying)
-    avc = area_col - 2 * bc * tf + (tw + 2 * r) * tf
+    lb = 8 * d + 30 + tp + washer + nut / 2; lbs = 8.8 * m ** 3 * as_ / (leff1 * tp ** 3); prying = lb <= lbs
+    steel = 0.9 * fub * as_ / 1.25
+    anchor = min(steel, concrete)                         # plate punching under the nut is larger in these cases
+    ts = tstub(leff1, leff_nc, m, n, tp, 275, 1.0, 2 * anchor, prying)
+    avc =area_col - 2 * bc * tf + (tw + 2 * r) * tf
     x = leff1 * tw / avc; omega1 = 1 / math.sqrt(1 + 1.3 * x * x); ftwc = omega1 * leff1 * tw * 275 / 1.0
     ft = min(ts["FT"], ftwc)
     fc = min(comp["FcPl"], 4815e3 * 275 / 1.0 / (hc - tf))
     eq = equilibrium(50e3, 60e6, 180, comp["zC"], ft, fc)
-    k13, beff, leff = k13_of(31000, 300, 600, 30, hc, bc, tf)
-    k15 = (0.85 if prying else 0.425) * leff1 * 30 ** 3 / m ** 3; k16 = (1.6 if prying else 2.0) * 353 / lb
+    k13, beff, leff = k13_of(31000, 300, 600, tp, hc, bc, tf)
+    k15 = (0.85 if prying else 0.425) * leff1 * tp ** 3 / m ** 3; k16 = (1.6 if prying else 2.0) * as_ / lb
     st = stiffness(eq, 180, comp["zC"], k13, k15, k16, 50e3, 60e6)
     return {"m": m, "e": e, "m2": m2, "lambda1": l1, "lambda2": l2, "alpha": alpha, "asymptote": 4 + 1.25 * e / m,
             "endPattern": 2 * m + 0.625 * e, "leff1": leff1, "leff2": leff_nc, "Lb": lb, "LbStar": lbs, "prying": prying,
-            "compression": comp, "tstub": ts, "Avc": avc, "omega1": omega1, "FtWcRd": ftwc, "FT": ft, "equilibrium": eq, "stiffness": st}
+            "AnchorSteel": steel, "compression": comp, "tstub": ts, "Avc": avc, "omega1": omega1, "FtWcRd": ftwc, "FT": ft, "equilibrium": eq, "stiffness": st}
 
 
 if __name__ == "__main__":
     print(json.dumps({"Example1": example1(), "Example2": example2(), "InternalDeclaredAlpha6": internal(6.0),
-                      "InternalSciAlpha": internal()}, indent=2))
+                      "InternalSciAlpha": internal(),
+                      # Review M1 (16/11): M36 10.9 (As 817, hole 39, washer 5, nut 29), plate 40, concrete 600 kN per anchor.
+                      "InternalWebGoverns": internal(6.0, tp=40.0, d=36.0, as_=817.0, d0=39.0, fub=1000.0, washer=5.0, nut=29.0,
+                                                     concrete=600000.0)}, indent=2))

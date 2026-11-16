@@ -173,6 +173,32 @@ public partial class ColumnBaseTests
     }
 
     [TestMethod]
+    public void ColumnWebInTensionGovernsWithStrongAnchorsAndAThickPlate()
+    {
+        // Review M1 (16/11): same HEB500 geometry and alpha 6.0, four M36 10.9 between the flanges (As 817, hole 39, washer 5,
+        // nut 29, dm 57.9), declared concrete 600 kN per anchor, plate 40 mm, V = 0, N = +50 kN, M1 = 60 kNm.
+        // Anchor steel 0.9*1000*817/1.25 = 588240 N -> Mode3 = 1176480 N; plate Mpl,1 = 0.25*338.1*40^2*275 = 37191000 Nmm,
+        // 2Mpl,1/m = 1320000 N; Lb = 8*36 + 30 + 40 + 5 + 29/2 = 377.5 > Lb* = 59.451 (no prying);
+        // Ft,wc,Rd = omega1 beff twc fy = 0.849015*338.1*14.5*275 = 1144619.20 N governs FT (reference script, InternalWebGoverns).
+        // Compression: c = 40*2.03101 = 81.240, bearing y 140.760..300 with two whole holes r = 19.5 at y = 180: zC = 222.505600.
+        // FA = (N zC + M)/(zT + zC) = 176706.31 N, u = FA/FT = 0.154380, Mj,Rd = 388651380.19 Nmm.
+        var spec = Internal() with { PlateThickness = 40, Diameter = 36, TensileArea = 817, Hole = 39, Fyb = 900, Fub = 1000, Washer = 5, Nut = 29, Dm = 57.9,
+            AnchorSource = "EN ISO 898-1 class 10.9 rods, rolled threads to EN1090-2", ConcreteTension = 600e3, V2 = 0 };
+        var r = ColumnBase.Verify(spec.Build().WithInternalRowAlpha(new TStubChartAlpha(6.0, "Figure 6.11 read for lambda1 0.413, lambda2 0.238 (test input)")));
+        Assert.AreEqual(0, r.MissingRequirements.Count, string.Join(";", r.MissingRequirements));
+        Close(588240, Trace(r, "Tension.Anchor.SteelTensionResistance"), "Ft,Rd anchor"); Close(1176480, Trace(r, "Tension.TStub.Mode3"), "Mode3");
+        Close(1320000, Trace(r, "Tension.TStub.PlateWithoutPrying"), "plate"); Close(59.45129855729168, Trace(r, "Tension.Anchor.PryingLengthLimit"), "Lb*");
+        Close(1144619.198635532, Trace(r, "Tension.ColumnWeb.FtWcRd"), "Ft,wc,Rd");
+        Close(1144619.198635532, r.SideTensionResistance!.Value, "FT = Ft,wc,Rd");
+        Close(222.50559998936785, r.CompressionLeverArm!.Value, "zC");
+        Close(176706.31166708528, Check(r, "SideA.ColumnWebInTension").Demand, "FA");
+        Close(388651380.1924613, r.MomentResistance!.Value, "Mj,Rd");
+        // The web is the governing tension component of side A.
+        var tension = r.Checks.Where(c => c.Id.StartsWith("SideA.")).OrderByDescending(c => c.Utilization).First();
+        Assert.AreEqual("SideA.ColumnWebInTension", tension.Id);
+    }
+
+    [TestMethod]
     public void AnchorTensionBetweenTheFlangesWithTheSciAlphaInversion()
     {
         // SCI P398 Appendix G inversion at lambda1 = 0.413275, lambda2 = 0.237624: alpha = 7.212330, alpha m = 406.41 > 2 pi m:
