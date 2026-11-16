@@ -37,6 +37,33 @@ public partial class ColumnBaseTests
     }
 
     [TestMethod]
+    public void AnOptionThatDoesNotApplyLeavesEveryValueUnchanged()
+    {
+        // Review B8: full comparison, not only the absence of new entries. Example 3 has no anchor tension in any state, so the
+        // tension-shear option cannot act: checks, trace, requirements, conditions and report values must be identical.
+        var plain = ColumnBase.Verify(Example3().Build());
+        var option = ColumnBase.Verify(Example3().Build().WithTensionShearInteraction("EN1992-4 interaction declared"));
+        Assert.AreEqual(plain.Status, option.Status); Assert.AreEqual(plain.State, option.State);
+        CollectionAssert.AreEqual(plain.MissingRequirements.ToList(), option.MissingRequirements.ToList());
+        Assert.AreEqual(plain.Checks.Count, option.Checks.Count);
+        for (int i = 0; i < plain.Checks.Count; i++)
+        {
+            var a = plain.Checks[i]; var b = option.Checks[i];
+            Assert.AreEqual(a.Id, b.Id); Assert.AreEqual(a.Demand, b.Demand, a.Id); Assert.AreEqual(a.Resistance, b.Resistance, a.Id);
+            Assert.AreEqual(a.Reference, b.Reference, a.Id); Assert.AreEqual(a.Unit, b.Unit, a.Id); Assert.AreEqual(a.Role, b.Role, a.Id);
+        }
+        CollectionAssert.AreEqual(plain.Trace.Select(v => (v.Name, v.Value, v.Unit)).ToList(), option.Trace.Select(v => (v.Name, v.Value, v.Unit)).ToList());
+        CollectionAssert.AreEqual(plain.ExternalConditions.ToList(), option.ExternalConditions.ToList());
+        Assert.AreEqual(plain.ShearResistance, option.ShearResistance); Assert.AreEqual(plain.AxialResistance, option.AxialResistance);
+        var pr = StandardConnectionCaseReport.Create(plain); var opr = StandardConnectionCaseReport.Create(option);
+        CollectionAssert.AreEqual(pr.Results.Select(v => (v.Name, v.Value)).ToList(), opr.Results.Select(v => (v.Name, v.Value)).ToList());
+        CollectionAssert.AreEqual(pr.Inputs.Select(v => (v.Name, v.Value)).ToList(), opr.Inputs.Select(v => (v.Name, v.Value)).ToList());
+        // Only the declaration itself shows: scope sentence and source.
+        Assert.AreEqual(plain.Scope + " Opt-in: tensioned anchors in shear by the Table3.4 combined rule without prying.", option.Scope);
+        CollectionAssert.AreEqual(pr.Sources.ToList(), opr.Sources.Where(s => s != "EN1992-4 interaction declared").ToList());
+    }
+
+    [TestMethod]
     public void Example1StiffnessFollowsTable612AndTheTwoSpringModel()
     {
         // Compression (Table6.11 k13, note 1: c = 1.25 tp = 37.5): beff = 17 + 37.5 + 37.5 = 92, leff = 2*min(120+37.5, 200) = 315,

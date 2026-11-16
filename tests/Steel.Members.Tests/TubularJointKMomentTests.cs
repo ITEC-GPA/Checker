@@ -90,6 +90,58 @@ public class TubularJointKMomentTests
     }
 
     [TestMethod]
+    public void NJointUsesTheSineRatioInTheInteraction()
+    {
+        // Review B8 (16/11), values also in the review report: N gap joint, chord 168.3x8, braces 88.9x5, g = 15, e/d0 = 0.227;
+        // A at 90 deg -150 kN, B at 45 deg +212.13 kN, cuts -400 / -550 kN, Mop = 1 kNm on both. kp = 0.892631, kg = 1.987240,
+        // N1,Rd (A) = 289688.49 N, N2,Rd (B) = sin90/sin45 N1,Rd = 409681.39 N (punching 457940.81 / 781753.86 N larger).
+        // Mop face A (sin90) = 8508325.19 Nmm, B (sin45) = 12032588.88 Nmm; eq.(7.3) A = 0.635330, B = 0.600905.
+        var r = TubularJoint.Verify(D.Two(TubularJointType.N, Chord, D.Cut(-400000), D.Cut(-550000),
+            D.Brace(D.Chs(88.9, 5), 90, -150000, 0, 1e6), D.Brace(D.Chs(88.9, 5), 45, 150000 / D.Sin45, 0, 1e6), 15));
+        D.Complete(r);
+        D.Close(289688.48877236, D.Trace(r, "BraceA.NRdForInteraction"));
+        D.Close(409681.389685237, D.Trace(r, "BraceB.NRdForInteraction"));
+        D.Close(8508325.19493298, D.Check(r, "BraceA.ChordFace.OutOfPlaneMoment").Resistance);
+        D.Close(12032588.8837549, D.Check(r, "BraceB.ChordFace.OutOfPlaneMoment").Resistance);
+        D.Close(12958693.9955325, D.Check(r, "BraceA.PunchingShear.OutOfPlaneMoment").Resistance);
+        D.Close(0.635329529343948, D.Check(r, "BraceA.Interaction").Demand);
+        D.Close(0.60090521996425, D.Check(r, "BraceB.Interaction").Demand);
+    }
+
+    [TestMethod]
+    public void PunchingGovernsTheOutOfPlaneMomentOfSmallBracesOnAThickChord()
+    {
+        // Chord 168.3x16 (d0/t0 = 10.52), braces 42.4x4 at 45/45, A -50 kN with Mop = 0.5 kNm, B +50 kN, g = 20 (e/d0 = -0.262).
+        // np = 100000/A0/355 = 0.036796, kp = 0.988555, beta = 42.4/168.3 = 0.251931.
+        // Mop face = 355*256*42.4/0.707107*2.7/(1-0.81*0.251931)*0.988555 = 18274087.96 Nmm;
+        // Mop punching = 355*16*42.4^2/sqrt3*(3+0.707107)/(4*0.5) = 10927593.26 Nmm governs.
+        // Axial: N1,Rd face = 864899.86 N, punching 745699.97 N governs; eq.(7.3) = 50000/745699.97 + 0.5e6/10927593.26 = 0.112807.
+        var r = TubularJoint.Verify(D.Two(TubularJointType.K, D.Chs(168.3, 16), D.Cut(-100000), D.Cut(-100000 - 100000 * D.Sin45),
+            D.Brace(D.Chs(42.4, 4), 45, -50000, 0, 0.5e6), D.Brace(D.Chs(42.4, 4), 45, 50000), 20));
+        D.Complete(r);
+        D.Close(18274087.9617719, D.Check(r, "BraceA.ChordFace.OutOfPlaneMoment").Resistance);
+        D.Close(10927593.2624013, D.Check(r, "BraceA.PunchingShear.OutOfPlaneMoment").Resistance);
+        D.Close(10927593.2624013, D.Trace(r, "BraceA.MopRd"));
+        D.Close(745699.969184797, D.Trace(r, "BraceA.NRdForInteraction"));
+        D.Close(0.112806825075467, D.Check(r, "BraceA.Interaction").Demand);
+    }
+
+    [TestMethod]
+    public void EquilibratedRouteGivesTheSameMomentChecks()
+    {
+        // VerifyEquilibrated on the equal-brace K gap joint: zero chord shears satisfy VB - VA + sum Ni sin(theta_i) = 0
+        // (-200 sin45 + 200 sin45 = 0); with gammaM5 = 1 the n/np envelope equals the printed ratio, so the Mop checks are the
+        // same as with Verify: interaction A = 0.625383, B = 0.583829.
+        var input = KGap(D.Chs(88.9, 5), D.Chs(88.9, 5), 1.5e6, 1.0e6);
+        var r = TubularJoint.VerifyEquilibrated(input);
+        D.Complete(r);
+        StringAssert.EndsWith(r.MethodId, ".EquilibratedConservative");
+        D.Close(0.625383034052495, D.Check(r, "BraceA.Interaction").Demand);
+        D.Close(0.583829216762598, D.Check(r, "BraceB.Interaction").Demand);
+        D.Close(12032588.8837549, D.Check(r, "BraceA.ChordFace.OutOfPlaneMoment").Resistance);
+    }
+
+    [TestMethod]
     public void OverloadedOutOfPlaneMomentFailsTheInteraction()
     {
         // Mop,A = 8 kNm: 200000/399423.57 + 8e6/12032588.88 = 0.500722 + 0.664861 = 1.165583 > 1.
