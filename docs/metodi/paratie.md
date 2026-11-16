@@ -57,7 +57,9 @@ applicati per incrementi. Se le spinte a riposo e le pressioni dell'acqua dei du
 lati non si equilibrano (scavo, falda, sovraccarico o terreni diversi fra i lati),
 lo squilibrio entra tutto al primo passo di carico. Da Geotechnics 0.29 (voce A4
 della revisione di ottobre, scheda decisioni del 16/11/2026, opzione a)
-`WallAnalysisResult.Warnings` lo dichiara con lo scarto massimo e la sua quota, e
+`WallAnalysisResult.Warnings` lo dichiara con lo scarto massimo ai punti di integrazione e la sua quota (il massimo
+dei quattro punti di Gauss di ogni elemento, non del diagramma continuo: con uno scarto che cresce verso il piede è il
+valore del punto più profondo, per esempio 21,538 kPa invece di 21,6 kPa al piede; rilievo R4 della revisione G-207), e
 `WallEnvelopeHistory.Warnings` lo riporta nell'inviluppo; i risultati non cambiano. Per seguire la storia si comincia con una fase
 geostatica.
 

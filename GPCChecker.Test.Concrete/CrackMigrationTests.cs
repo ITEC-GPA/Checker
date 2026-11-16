@@ -967,6 +967,30 @@ namespace ConcreteTests
             Assert.IsFalse(new CrackSectionGeometry(Polygon64(500), new[] { HoleCircle(300) }, bars, CrackBarLayout.Rows).HasCircularInnerRing, "Rows: no ring");
         }
 
+        /// <summary>
+        /// Precisation of the review G-207 (16/11/2026, R5): an inner surface that is not supported makes the check incomplete, but it does not cancel a
+        /// failure already shown on the outer surface. Eccentric hole Ø500 at (60; 0) of <see cref="FromRecognisesOnlyAConcentricCircularHoleAsTheInnerRing"/>,
+        /// entirely tensile along +x. ε = 2e-7 (x + 501): outer wk within wlim (NTC, XC1, quasi-permanent), so no verdict and no ratio. ε = 2e-6 (x + 501),
+        /// ten times the strains: the outer wk exceeds wlim, so the check is not satisfied with its ratio wk/wlim, and the status still says that the inner
+        /// surfaces were not checked. No favourable verdict is ever given without the inner surfaces.
+        /// </summary>
+        [TestMethod]
+        public void UnsupportedInnerSurfaceKeepsAnOuterFailure()
+        {
+            var g = CrackSectionGeometry.From(HollowCircleSection(HoleCircle(250, 60)));
+            Assert.IsTrue(g.Circular && !g.HasCircularInnerRing);
+            var within = HollowCircleCheck(g, new StrainPlane(2e-7, 0, new Point2d(-501, 0), 0));
+            Assert.IsTrue(within.Width <= within.Limit, within.Width + " ≤ " + within.Limit);
+            Assert.AreEqual(CrackOutcome.InnerSurfaceNotSupported, within.Outcome); Assert.IsNull(within.Passed); Assert.IsNull(within.Ratio);
+            var beyond = HollowCircleCheck(g, new StrainPlane(2e-6, 0, new Point2d(-501, 0), 0));
+            Assert.AreEqual(within.Limit, beyond.Limit);
+            Assert.IsTrue(beyond.Width > beyond.Limit, "outer wk " + beyond.Width + " > " + beyond.Limit);
+            Assert.AreEqual(false, beyond.Passed, beyond.Status); Assert.AreEqual(beyond.Width.Value / beyond.Limit.Value, beyond.Ratio.Value, 1e-12);
+            Assert.AreEqual(CrackOutcome.Evaluated, beyond.Outcome, beyond.Status);
+            StringAssert.Contains(beyond.Status, "Inner surfaces: implemented for one axis-aligned rectangular hole or a circular ring");
+            Assert.IsTrue(beyond.RegionOutcomes.Any(x => x.Key == "InnerSurfaces" && x.Outcome == CrackOutcome.InnerSurfaceNotSupported));
+        }
+
         private static string[] Bands(CrackSectionGeometry geometry) => geometry.Circular ? new[] { "InnerRing" } : InnerWalls.Select(w => w.Item1).ToArray();
 
         /// <summary>h − x used in wk: NTC Δsm,far / 0.75, EN sr,max / 1.3 (spacing 300 mm &gt; 5 (c + Ø/2)).</summary>

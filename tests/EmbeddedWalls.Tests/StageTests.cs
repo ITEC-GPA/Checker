@@ -95,17 +95,37 @@ public class StageTests
         Assert.AreEqual("All stages converged. Small-displacement beam; no axial soil transfer or second-order effects.", direct.Diagnostic, "diagnostic unchanged");
         string warning = direct.Warnings.Single();
         StringAssert.StartsWith(warning, "Prima fase «Excavation» non geostatica");
-        StringAssert.Contains(warning, "(scarto massimo 36 kPa a quota -");
+        StringAssert.Contains(warning, "(scarto massimo ai punti di integrazione 36 kPa a quota -");
         StringAssert.Contains(warning, "Lo squilibrio iniziale entra tutto al primo passo di carico");
         Console.WriteLine("A4 top displacement: staged {0:R} mm, direct {1:R} mm", staged.Stages.Last().Points[0].Displacement, direct.Stages.Last().Points[0].Displacement);
         var surcharge = Excavation(500); surcharge.Stages = [new() { Id = "Sovraccarico", Left = new() { Elevation = 0, Surcharge = .01 }, Right = new() { Elevation = 0 } }];
         var loaded = EmbeddedWallAnalysis.Calculate(surcharge);
-        StringAssert.Contains(loaded.Warnings.Single(), "(scarto massimo 5 kPa a quota ");
+        StringAssert.Contains(loaded.Warnings.Single(), "(scarto massimo ai punti di integrazione 5 kPa a quota ");
         var failing = Excavation(500); failing.Stages = [new() { Id = "Excavation", Left = new() { Elevation = 0 }, Right = new() { Elevation = -4000 },
             PointLoads = [new() { Elevation = 0, HorizontalForce = 1e9 }] }];
         var failed = EmbeddedWallAnalysis.Calculate(failing);
         Assert.IsFalse(failed.IsComplete); StringAssert.StartsWith(failed.Warnings.Single(), "Prima fase «Excavation» non geostatica");
         Assert.AreEqual(0, EmbeddedWallAnalysis.Calculate(BeamAndPressureTests.Cantilever()).Warnings.Count, "no soil on either side");
+    }
+
+    /// <summary>
+    /// R4 of the review G-207 (16/11/2026): the gap of the warning is the largest at the integration points, not the maximum of the continuous diagram.
+    /// Geostatic first stage (both sides at 0) with K0 = 0.6 on the left and 0.5 on the right, dry sand γ = 18 kN/m³, wall 12 m, elements of 0.5 m:
+    /// the gap (0.6 − 0.5) γ z grows with the depth. By hand: deepest Gauss point z = 11.5 + 0.5 · 0.9305681557970262 = 11.965284078 m,
+    /// gap 0.1 · 18 · 11.965284078 = 21.537511 kPa (case A7 of the review), shown 21.538 kPa at −11.965 m; the continuous maximum 1.8 · 12 = 21.6 kPa
+    /// at the toe is not a point of the analysis and is not reported.
+    /// </summary>
+    [TestMethod]
+    public void FirstStageWarningReportsTheLargestGapAtTheIntegrationPoints()
+    {
+        var model = Excavation(500); var soil = new Soil("Sand", 18e-6, 20e-6, Math.PI / 6, 0, "synthetic benchmark");
+        model.LeftSoils = [new() { Top = 0, Bottom = -12000, Soil = soil, HorizontalModulus = .001, AtRestCoefficient = .6, StiffnessSource = "given" }];
+        model.Stages = [model.Stages[0]];
+        double depth = 11.5 + .5 * .9305681557970262, gap = (.6 - .5) * 18 * depth;
+        Assert.AreEqual(21.537511, gap, 1e-6); Assert.AreEqual(11.965284078, depth, 1e-9);
+        string warning = EmbeddedWallAnalysis.Calculate(model).Warnings.Single();
+        StringAssert.StartsWith(warning, "Prima fase «Geostatic» non geostatica");
+        StringAssert.Contains(warning, "(scarto massimo ai punti di integrazione 21.538 kPa a quota -11.965 m)");
     }
 
     /// <summary>

@@ -76,7 +76,10 @@ public static partial class EmbeddedWallAnalysis
     /// <see cref="Calculate"/>), and only its loads and supports are applied by increments. When the at-rest pressures and the water of the two sides of
     /// that stage do not balance at every integration point (excavation, water, surcharge or soils that differ between the sides), the imbalance enters
     /// whole at the first load step: possible non-convergence, or a result different from a history that reaches the same state by stages. Warning only,
-    /// in Italian for the report: nothing of the analysis changes. Tolerance 1e-9 relative plus 1e-12 MPa, so identical sides never warn.
+    /// in Italian for the report: nothing of the analysis changes. Tolerance 1e-9 relative plus 1e-12 MPa (1e-9 kPa), so identical sides never warn.
+    /// The gap reported is the largest at the integration points of the analysis (four Gauss points per element), not the maximum of the continuous
+    /// diagrams: where the gap grows towards the toe it is the value of the deepest point (R4 of the review G-207, 16/11/2026), e.g. K0 0.6 against 0.5
+    /// with γ = 18 kN/m³ over 12 m and elements of 0.5 m: 21.538 kPa at −11.965 m, not 21.6 kPa at the toe. The warning only needs one point.
     /// </summary>
     private static IReadOnlyList<string> InitialStateWarnings(EmbeddedWallModel m, Mesh mesh)
     {
@@ -96,7 +99,7 @@ public static partial class EmbeddedWallAnalysis
         catch (ArgumentException) { return Array.Empty<string>(); } // The same data stop the first stage of the analysis with its own message.
         if (worst == 0) return Array.Empty<string>();
         var culture = System.Globalization.CultureInfo.InvariantCulture;
-        return new[] { "Prima fase «" + first.Id + "» non geostatica: le spinte a riposo e le pressioni dell'acqua dei due lati non si equilibrano (scarto massimo "
+        return new[] { "Prima fase «" + first.Id + "» non geostatica: le spinte a riposo e le pressioni dell'acqua dei due lati non si equilibrano (scarto massimo ai punti di integrazione "
             + (worst * 1000).ToString("0.###", culture) + " kPa a quota " + (elevation / 1000).ToString("0.###", culture) + " m). Lo squilibrio iniziale entra tutto"
             + " al primo passo di carico, non per incrementi: possibile mancata convergenza o risultato diverso da una storia a fasi. Per seguire la storia,"
             + " iniziare con una fase geostatica (stessi terreno, falda e sovraccarico sui due lati)." };

@@ -82,7 +82,7 @@ non fessurata), l'esito, tutte le regioni esaminate e la traccia dei valori inte
 | Area efficace nulla | non valutabile | esito incompleto (`NoEffectiveArea`) |
 | Sezione cava con foro rettangolare allineato agli assi o anello circolare | supportato | superfici interne verificate a parte (6.10) |
 | Superficie interna in trazione quasi uniforme | supportato | fascia intera, k2 = 1, h − x uguale all'altezza della sezione normale alla faccia (6.10) |
-| Altri fori con superficie interna tesa (anche fori eccentrici o non circolari di una sezione circolare) | non supportato | esito incompleto (`InnerSurfaceNotSupported`) |
+| Altri fori con superficie interna tesa (anche fori eccentrici o non circolari di una sezione circolare) | non supportato | esito incompleto (`InnerSurfaceNotSupported`): nessun esito favorevole; un superamento già dimostrato sulla superficie esterna resta riportato (non soddisfatta, con il rapporto wk/wlim) |
 | Superficie interna tesa senza armatura | non valutabile | esito incompleto (`InnerSurfaceUnreinforced`) |
 | Barre lisce con Model Code 2010 o DIN | non supportato | errore (`ArgumentException`) |
 
