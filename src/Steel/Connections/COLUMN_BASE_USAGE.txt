@@ -15,12 +15,13 @@ CAMPO
 - Tirafondi tutti uguali, schema doppiamente simmetrico:
   OutsideFlanges: una fila di due tirafondi oltre ciascuna ala (quattro), con T-stub teso;
   BetweenFlanges: tirafondi fra le ali, uno per lato dell'anima, due file a +/-RowDistance
-  o una fila sull'asse forte (RowDistance=0); ammesso SOLO negli stati senza trazione nei
-  tirafondi (compressione su entrambe le ali o compressione pura).
+  o una fila sull'asse forte (RowDistance=0); per default ammesso SOLO negli stati senza
+  trazione nei tirafondi (compressione su entrambe le ali o compressione pura); con file a
+  +/-RowDistance>0 la trazione e' calcolata solo con l'opt-in dell'alfa (ESTENSIONI, punto 1).
 - Azioni concomitanti N, M1 (asse forte), V1, V2 di un caso SLU statico; M2=T=0.
 - Rifiuti con codice (MissingRequirements, mai esito favorevole): piastra irrigidita,
   colonna annegata, profilo cavo, progetto sismico in capacita', fatica, M2 o biassiale,
-  torsione, trazione fra le ali, fonti o dichiarazioni mancanti (vedi sotto).
+  torsione, trazione fra le ali senza l'opt-in dell'alfa, fonti o dichiarazioni mancanti (vedi sotto).
 
 ASSI E CONVENZIONI (N, mm, Nmm, MPa)
 X lungo le ali (larghezza bp = Plate.Width), Y lungo l'anima (lunghezza hp = PlateLength),
@@ -97,8 +98,8 @@ METODO
    perche' alpha_bc<0.37), F2=alpha_bc fub As/gammaM2, alpha_bc=0.44-0.0003 fyb (6.2);
    rifollamento della piastra verificato separatamente nelle due direzioni (nota Tab.3.4),
    il minore applicato alla risultante. Fv,Rd=Ff,Rd+n Fvb,Rd (6.3).
-   SCELTA GPC: un tirafondo teso nello stato considerato non e' contato a taglio (nessun
-   modello di interazione trazione-taglio per i tirafondi). Taglio oltre Ff,Rd senza
+   SCELTA GPC: un tirafondo teso nello stato considerato non e' contato a taglio, salvo
+   l'opt-in WithTensionShearInteraction (ESTENSIONI, punto 3). Taglio oltre Ff,Rd senza
    tirafondi ammissibili, o con tirafondi esclusi perche' tesi -> requisito mancante
    (chiave di taglio fuori campo); con tutti i tirafondi contati e taglio eccessivo ->
    fallimento.
@@ -170,20 +171,38 @@ condizioni esterne e rapporto restano quelli di prima (test dedicato).
    omega1 beff,t,wc twc fy/gammaM0, beff,t,wc = leff,1 del T-stub (6.2.6.3(3)), Avc di
    EN1993-1-1 6.2.6(3)(a). LETTURA GPC: una base non ha il pannello d'anima di 5.3, quindi
    beta non e' definito; si usa omega1 (beta=1, valore del nodo da un lato della Tab.5.4),
-   a favore di sicurezza rispetto a omega=1. CONDIZIONE GPC: il meccanismo di estremita'
-   della fila (2m+0.625e oltre la fila, Tab.6.6) deve restare nella meta' della piastra
-   (RowDistance >= 2m+0.625e), cosi' i due lati non condividono piastra (la Tab.6.7 somma
-   lati indipendenti); altrimenti INTERNAL_TENSION_ROW_PATTERN_CROSSES_THE_COLUMN_AXIS.
+   a favore di sicurezza rispetto a omega=1. CONDIZIONI GPC, solo negli stati con tirafondi
+   tesi (revisione 16/11, B1): il meccanismo di estremita' della fila (2m+0.625e oltre la
+   fila verso l'asse, Tab.6.6) con entrambi i lati tesi deve restare nella meta' della
+   piastra (RowDistance >= 2m+0.625e), cosi' i due lati non condividono piastra (la Tab.6.7
+   somma lati indipendenti), altrimenti INTERNAL_TENSION_ROW_PATTERN_CROSSES_THE_COLUMN_AXIS;
+   con un solo lato teso non deve raggiungere il T-stub compresso dell'altro lato
+   (2m+0.625e-RowDistance < h/2-tf-estensione interna), altrimenti
+   INTERNAL_TENSION_ROW_PATTERN_REACHES_THE_COMPRESSED_T_STUB. Negli stati solo compressi
+   nessuna condizione: stesso esito che senza alfa. La geometria della fila (dominio di alfa,
+   fori e cerniere plastiche) si controlla sempre quando l'alfa e' dichiarato, come per la
+   fila esterna; un alfa dichiarato con OutsideFlanges o RowDistance=0 e' rifiutato come
+   dichiarazione incoerente (INTERNAL_ROW_ALPHA_REQUIRES_TWO_ROWS_BETWEEN_THE_FLANGES).
    Senza alfa resta ANCHOR_TENSION_BETWEEN_FLANGES_NOT_IMPLEMENTED come prima.
 2. Rigidezza rotazionale: WithStiffness(new ColumnBaseStiffnessDeclaration(Ec, fonte)).
    EN1993-1-8 6.3.4 e Tab.6.12 (testo con AC2009: 1/kT = 1/k15 + 1/k16), coefficienti della
    Tab.6.11: k13 = Ec sqrt(beff leff)/(1.275 E) sul T-stub compresso con c = 1.25 tp (nota1),
    limitato come quello di resistenza e senza fori; k15 = 0.85 (0.425 senza leveraggio)
    leff,1 tp^3/m^3, k16 = 1.6 (2.0) As/Lb per una fila di due tirafondi. Bracci come per la
-   resistenza (6.3.4(2) -> 6.2.8.1). Sj = e/(e+ek) E z^2/(mu sum 1/k), ek = (zB kB - zA kA)/
+   resistenza (6.3.4(2) -> 6.2.8.1): LETTURA GPC (revisione B5) zC e' il baricentro del T-stub
+   compresso di RESISTENZA (c della (6.5), fori dedotti), non quello con c = 1.25 tp usato solo
+   per k13; esempio interno zC 231.86 invece di 236.00 mm, Sj,ini -1.7%. Ec dichiarato in MPa,
+   campo 10000-60000 (B4), altrimenti CONCRETE_MODULUS_OUTSIDE_10000_TO_60000_MPA. Sj = e/(e+ek) E z^2/(mu sum 1/k), ek = (zB kB - zA kA)/
    (kA+kB) con A = lato sinistro della Tab.6.12; e/(e+ek)=1 negli stati simmetrici (ek=0) e
    con N=0. mu = 1 fino a 2/3 Mj,Rd, (1.5 Mj,Ed/Mj,Rd)^2.7 oltre (6.3.1(6), Tab.6.8 basi);
-   oltre Mj,Rd Sj non e' esposto. Uscita ColumnBaseResult.RotationalStiffness e voci
+   oltre Mj,Rd Sj non e' esposto. VALIDITA' (revisione M2): il valore appartiene a una riga
+   della Tab.6.12, quindi a un intervallo di e = M1/N: EccentricityMin/Max (null = illimitato) e
+   MomentAtLowerLimit/UpperLimit al N attuale. Righe 4 e 2: -zB < e < zA; riga 1: e > zT,A (N>0)
+   o e <= -zC,B (N<=0); riga 3: e <= -zT,B (N>0) o e > zC,A (N<=0). Senza capacita' a trazione
+   dei tirafondi (fra le ali senza opt-in) HingeBeyondRange: oltre l'intervallo la base e' una
+   cerniera (esempio 3: |M1| < 48.9 kNm con N = -500 kN). Con N = M1 = 0 nessuna riga: traccia
+   Stiffness.NotDefined e condizione esterna coerente; con N = 0 Eccentricity e' null (mai
+   infinito). Uscita ColumnBaseResult.RotationalStiffness e voci
    Joint.InitialRotationalStiffness / Joint.RotationalStiffness del rapporto. La formula
    della Tab.6.12 e' verificata contro un modello indipendente a due molle (piastra rigida,
    M/phi a eccentricita' costante): coincidono. Classificazione 5.2.2.5 a cura del chiamante.
@@ -192,16 +211,11 @@ condizioni esterne e rapporto restano quelli di prima (test dedicato).
    Fv,Ed/Fv,Rd + Ft,Ed/(1.4 Ft,Rd) <= 1, con i valori d'acciaio del tirafondo
    (6.2.6.12(3) rinvia a 3.6): Fv,Rd = min(F1,vb, F2,vb), Ft,Rd = trazione d'acciaio.
    Ft,Ed = forza del lato / 2 solo senza leveraggio (Lb > Lb*); con leveraggio i tirafondi
-   tesi restano esclusi. Rifollamento e taglio dichiarato del calcestruzzo limitano ogni
+   tesi restano esclusi e, se il taglio supera Fv,Rd, il requisito mancante e'
+   SHEAR_EXCEEDS_RESISTANCE:TENSIONED_ANCHORS_EXCLUDED_BY_PRYING (B2). Rifollamento e taglio dichiarato del calcestruzzo limitano ogni
    tirafondo come prima. Domanda aperta all'utente: regola della Tab.3.4 o quella
    quadratica di EN1992-4 per la rottura d'acciaio (vedi rapporto 15/11).
 Prove: ColumnBaseStiffnessAndInternalTensionTests; riferimento indipendente
 tests/Steel.Members.Tests/ReferenceCalculations/column_base_stiffness_internal_tension.py.
 
-APERTI (MissingMechanisms del catalogo)
-Flessione M2/biassiale e torsione; trazione fra le ali (T-stub di fila interna, anima del
-pilastro in trazione 6.2.6.3), piu' file per lato, altri schemi, piastre eccentriche,
-pilastri oltre 600 mm; piastre irrigidite, colonne annegate, profili cavi, chiavi di
-taglio e resistenza a taglio della fondazione; interazione trazione-taglio dei tirafondi
-tesi, fori maggiorati a taglio, contatto della testa del pilastro; rigidezza (6.3.4),
-sisma (NTC 7.5.4.5), fatica, incendio.
+APERTI (MissingMechanisms del catalogo) M2/biassiale e torsione; piu' file per lato; trazione fra le ali senza alfa o con meccanismi di fila che violano le condizioni GPC; altri schemi, piastre, pilastri oltre 600 mm; piastre irrigidite, colonne annegate, profili cavi, di taglio e resistenza a taglio della fondazione; interazione trazione-taglio dei tesi con leveraggio, fori maggiorati a taglio, contatto della testa del pilastro; della rigidezza (5.2.2.5), sisma (NTC 7.5.4.5), fatica, incendio.

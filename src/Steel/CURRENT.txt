@@ -531,6 +531,13 @@ Basi di colonna (30/10/2026, branch claude/conn-basi-colonne):
   dell'impronta efficace: intersezione esatta, non sottrazione del foro intero.
   Vedi Connections/COLUMN_BASE_BEARING_AUDIT_2026_11_01.txt per test e attesi.
   Vedi Connections/COLUMN_BASE_USAGE.txt; ColumnBaseTests (52 casi, calcoli a mano).
+  Estensioni opt-in del 15/11/2026 (revisione 16/11), risultati di default invariati:
+  rigidezza rotazionale 6.3.4 (Tab.6.11, 6.12, 6.3.1(6)) con Ec dichiarato e intervallo
+  di eccentricita' di validita' della riga della Tab.6.12; trazione nei tirafondi fra le ali
+  con alfa della Fig.6.11 dichiarato o inversione SCI P398 (Tab.6.6 fila sotto l'ala, anima
+  del pilastro in trazione 6.2.6.3 con omega1); tirafondi tesi a taglio con la regola della
+  Tab.3.4 senza leveraggio. ColumnBaseStiffnessAndInternalTensionTests; sezione ESTENSIONI
+  di COLUMN_BASE_USAGE.txt.
 
 Nodi di travature reticolari in profili cavi (30/10/2026, branch claude/conn-nodi-tubolari):
   TubularJoint.Verify(TubularJointInput) -> ConnectionVerification -> SteelAssessmentSummary.
@@ -538,7 +545,8 @@ Nodi di travature reticolari in profili cavi (30/10/2026, branch claude/conn-nod
   equilibrio del taglio firmato, taglio effettivo nel gap e inviluppo
   cautelativo n/np; convenzione delle due facce in TUBULAR_JOINTS_USAGE.txt.
   EN1993-1-8:2005 (AC:2009) cap.7, nodo piano saldato non rinforzato, un caso concomitante:
-  CHS su CHS T/Y/X/K/N a gap o sovrapposti (Tab.7.1, 7.2, 7.5 ed eq.7.3 su T/Y/X), RHS o
+  CHS su CHS T/Y/X/K/N a gap o sovrapposti (Tab.7.1, 7.2, 7.5 ed eq.7.3 su T/Y/X; dal 15/11/2026
+  anche Mop sulle aste dei K/N, Tab.7.5, TubularJointKMomentTests), RHS o
   CHS su RHS T/Y/X/K/N a gap e sovrapposti (Tab.7.8, 7.10-7.12, solo assiali). n/np dai
   due tagli del corrente; rifiuto di ogni nodo fuori dalle Tab.7.1/7.8, da 7.1.1/7.1.2,
   5.1.5(5) e 7.3.1(2); saldature a piena resistenza (7.3.1(4)). NTC via cap.12 e

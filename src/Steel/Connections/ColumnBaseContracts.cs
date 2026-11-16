@@ -13,7 +13,9 @@ namespace GPC.Checkers.Steel.Connections
     /// <summary>OutsideFlanges: one row of two anchors beyond each flange, four anchors, rows at
     /// y=+/-RowDistance outside the column depth. BetweenFlanges: anchors between the flanges, one on
     /// each side of the web, two rows at y=+/-RowDistance, or one row on the major axis when
-    /// RowDistance is zero; this layout is computed only in states without anchor tension.</summary>
+    /// RowDistance is zero. By default this layout is computed only in states without anchor tension; with two rows
+    /// (RowDistance &gt; 0) anchor tension is computed with the opt-in ColumnBaseInput.WithInternalRowAlpha or
+    /// WithSciP398InternalRowAlpha (Table6.6 row next to the flange, column web in tension 6.2.6.3).</summary>
     public enum ColumnBaseAnchorLayout { OutsideFlanges, BetweenFlanges }
 
     /// <summary>EN1993-1-8 6.2.6.12(4) fixing of the anchor into the foundation.</summary>
