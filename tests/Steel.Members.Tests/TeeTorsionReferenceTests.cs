@@ -20,26 +20,30 @@ public class TeeTorsionReferenceTests
     {
         // CISC, Torsional section properties of steel shapes, rev.Aug2002,p.9.
         // Pure geometric/mechanical reference, no CSA design rule is used.
+        // J and shear centre of the source are of the thin-walled theory: compared
+        // with the thin-walled formulas of Model (user decision D5 of 17/11/2026);
+        // Jt and ShearCenter are solved with the finite elements (option B).
         var t = new SectionT(178, 369, 11.2, 18, "WT180x67 idealized");
-        Assert.AreEqual(796e3, t.Jt, .5e3, "rounded published J, mm4");
+        Assert.AreEqual(796e3, t.ThinWallTorsionConstant(), .5e3, "rounded published J, mm4");
         Assert.AreEqual(2.22e9, t.Jw, .005e9, "rounded published Cw, mm6");
-        Assert.AreEqual(184.5, t.ShearCenter.X, 1e-12);
-        Assert.AreEqual(169, t.ShearCenter.Y, 1e-12);
+        Assert.AreEqual(184.5, t.ThinWallShearCenter().X, 1e-12);
+        Assert.AreEqual(169, t.ThinWallShearCenter().Y, 1e-12);
     }
 
     [TestMethod]
     public void PublishedL203x102x13TorsionalProperties()
     {
         // Same primary document,p.8; sharp equal-thickness angle.
+        // Thin-walled J and shear centre of the source: the thin-walled formulas (D5).
         var t = new SectionL(102, 12.7, 203, 12.7, "");
-        Assert.AreEqual(200e3, t.Jt, .5e3);
+        Assert.AreEqual(200e3, t.ThinWallTorsionConstant(), .5e3);
         // The source first rounds d'=196.65 to197 and b'=95.65 to95.7.
         // Transfer that documented intermediate rounding, not a fitted tolerance.
         double sourceRounding = (Math.Pow(197, 3) + Math.Pow(95.7, 3)
             - Math.Pow(196.65, 3) - Math.Pow(95.65, 3)) * Math.Pow(12.7, 3) / 36;
         Assert.AreEqual(.485e9, t.Jw + sourceRounding, .0005e9);
-        Assert.AreEqual(6.35, t.ShearCenter.X, 1e-12);
-        Assert.AreEqual(6.35, t.ShearCenter.Y, 1e-12);
+        Assert.AreEqual(6.35, t.ThinWallShearCenter().X, 1e-12);
+        Assert.AreEqual(6.35, t.ThinWallShearCenter().Y, 1e-12);
     }
 
     [TestMethod]
@@ -48,7 +52,8 @@ public class TeeTorsionReferenceTests
         // Same document,p.7: zero flange slope assumed by the source.
         var t = new SectionC(305, 7.2, 74, 12.7, 74, 12.7, "");
         // Source first rounds the middle-line depth from292.3 to292 mm.
-        double sourceJ = t.Jt - .3 * Math.Pow(7.2, 3) / 3;
+        // Thin-walled J and shear centre of the source: the thin-walled formulas (D5).
+        double sourceJ = t.ThinWallTorsionConstant() - .3 * Math.Pow(7.2, 3) / 3;
         Assert.AreEqual(132e3, sourceJ, .5e3);
         double d = 292, b = 70.4, alpha = 1 / (2 + d * 7.2 / (3 * b * 12.7));
         double sourceCw = d * d * b * b * b * 12.7 / 6 *
@@ -63,7 +68,7 @@ public class TeeTorsionReferenceTests
         // The source supplies xbar=17.5 (without its derivation). It is NOT
         // the centroid19.711... of the zero-slope idealization. Qualify the
         // absolute shear-centre coordinate, keeping that source datum explicit.
-        Assert.AreEqual(39.2, 17.5 - t.ShearCenter.X, .1);
+        Assert.AreEqual(39.2, 17.5 - t.ThinWallShearCenter().X, .1);
     }
 
     public static IEnumerable<object[]> UniformMomentCases =>
@@ -86,7 +91,10 @@ public class TeeTorsionReferenceTests
         double yc = (b * tf * (h - tf / 2) + tw * Math.Pow(h - tf, 2) / 2) / area;
         double ix = Integrate(t, (x, y) => (y - yc) * (y - yc));
         double iz = Integrate(t, (x, y) => x * x);
-        double geo = Integrate(t, (x, y) => (y - yc) / ix * (x * x + Math.Pow(y - (h - tf / 2), 2)));
+        // Rotation about the shear centre of the section (user decision D5 of
+        // 17/11/2026: the numerical one of option B, before the middle of the flange).
+        double xs = t.ShearCenter.X - b / 2, ys = t.ShearCenter.Y;
+        double geo = Integrate(t, (x, y) => (y - yc) / ix * (Math.Pow(x - xs, 2) + Math.Pow(y - ys, 2)));
         double ncr = Math.PI * Math.PI * 210000 * iz / (length * length);
         double kt = 210000 / 2.6 * t.Jt + Math.PI * Math.PI * 210000 * t.Jw / (length * length);
         // det K = Ncr*(Kt+M*geo)-M^2 = 0. Solve for the positive magnitude.
@@ -111,9 +119,15 @@ public class TeeTorsionReferenceTests
     public void ExactWagnerIntegralMatchesRationalTwoRectangleIntegration()
     {
         // A=24000, yc=775/3, Ix=1135000000/3,
-        // integral(x^2+y^2)*y dA=-211400000000/9 -> zj=33530/227 mm.
-        var p = new Probe(new SectionT(400, 200, 40, 50, ""), 4000);
-        Assert.AreEqual(33530d / 227, p.Wagner(), 1e-11);
+        // integral(x^2+y^2)*y dA=-211400000000/9 -> zj=33530/227 mm with the
+        // shear centre at the middle of the flange (y=375, thin-walled theory).
+        // zj = ys - yc - integral/(2 Ix): with the shear centre of the section
+        // (user decision D5 of 17/11/2026: the numerical one of option B),
+        // zj = 33530/227 + (ys - 375).
+        var tee = new SectionT(400, 200, 40, 50, "");
+        var p = new Probe(tee, 4000);
+        Assert.AreEqual(33530d / 227 + (tee.ShearCenter.Y - 375), p.Wagner(), 1e-11);
+        Assert.AreEqual(375, tee.ThinWallShearCenter().Y, 1e-12);
     }
 
     [DataTestMethod]
