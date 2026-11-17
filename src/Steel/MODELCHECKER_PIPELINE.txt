@@ -28,7 +28,8 @@ orizzontale: per V2 quello d'anima (EC3 con l'eta del profilo normativo
 effettivamente utilizzato, NTC eq. 4.2.27 con eta=1); per V1 quello delle ali,
 SteelShearBucklingAssessment.EvaluateHFlanges (sbalzi c/t <= 14 eps, criterio
 GPC e non clausola di norma, dichiarato come tale nella traccia). Oltre il
-limite la valutazione e' negativa e la riga resta non valutata.
+limite la valutazione e' negativa e la riga resta non valutata. Il filtro
+automatico delle ali (dal 28/10/2026) e' ratificato dall'utente il 17/11/2026.
 Dal 29/10/2026 anche le cave rettangolari (SectionRHS a spigoli vivi e
 SectionRHSRoundedCorners, le famiglie qualificate) con asse 1 orizzontale:
 le pareti parallele al taglio sono anime non irrigidite, per entrambi gli

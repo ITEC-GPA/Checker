@@ -117,6 +117,8 @@ Stato reale del taglio (28 ottobre 2026):
   l'instabilita a taglio delle ali se gli sbalzi restano entro 14 eps
   (criterio GPC, non clausola di norma). ModelChecker lo applica in automatico
   sulle H esatte quando manca una valutazione esplicita ShearBucklingExcluded1.
+  Automatico dal 28/10/2026 (9f21bdf2), ratificato dall'utente il 17/11/2026
+  (scheda decisioni ANTHEA, voce 11a, opzione a): resta automatico e dichiarato.
   Cave rettangolari (29 ottobre 2026): SectionRHS a spigoli vivi e
   SectionRHSRoundedCorners con asse 1 orizzontale. Le pareti parallele al taglio
   sono anime non irrigidite: V2 le pareti di altezza h, V1 quelle di larghezza b.

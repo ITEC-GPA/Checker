@@ -56,14 +56,14 @@ namespace GPC.Checkers.Concrete.Cracking
         /// distance from the origin (relative 1e-6), with at least 16 vertices, or at least as many as the declared outline when it has fewer (a circle
         /// polygonized like its outline, e.g. the 12…720 sides of ANTHEA). Any other hole of a circle (eccentric, square, polygonal, more than one) is no ring:
         /// a tensile inner surface that is neither a ring nor an axis-aligned rectangle gives <see cref="CrackOutcome.InnerSurfaceNotSupported"/>.
-        /// Before Concrete 0.38 this constructor took every hole of a circle as a concentric ring with the radius of its farthest vertex.
+        /// Before Concrete 0.39 this constructor took every hole of a circle as a concentric ring with the radius of its farthest vertex.
         /// </summary>
         public CrackSectionGeometry(IEnumerable<Point2d> outline, IEnumerable<IEnumerable<Point2d>> holes, IEnumerable<CrackBar> bars, CrackBarLayout layout)
             : this(outline, holes, bars, layout, 0, 0, null) { }
 
         /// <summary>
         /// <paramref name="hasCircularInnerRing"/> null: the rule of the polygon constructor (<see cref="InnerRingAboutOrigin"/>). Internal: the tests also
-        /// rebuild with it the reading before Concrete 0.38 (true: every hole of a circle is a concentric ring).
+        /// rebuild with it the reading before Concrete 0.39 (true: every hole of a circle is a concentric ring).
         /// </summary>
         internal CrackSectionGeometry(IEnumerable<Point2d> outline, IEnumerable<IEnumerable<Point2d>> holes, IEnumerable<CrackBar> bars,
             CrackBarLayout layout, double centerX, double centerY, bool? hasCircularInnerRing)
@@ -87,7 +87,7 @@ namespace GPC.Checkers.Concrete.Cracking
         /// only for a single hole that is itself a circle concentric with the outline (same rule as the outline: at least 16 vertices at the same
         /// distance from the origin, relative 1e-6). Any other hole of a circle (eccentric, square, polygonal, more than one) is no ring: its inner
         /// surfaces follow the other rules of the crack check, so a tensile inner surface that is neither an axis-aligned rectangle nor a ring gives
-        /// <see cref="CrackOutcome.InnerSurfaceNotSupported"/> (declared incomplete check). Before Concrete 0.38 every hole of a circle was taken as
+        /// <see cref="CrackOutcome.InnerSurfaceNotSupported"/> (declared incomplete check). Before Concrete 0.39 every hole of a circle was taken as
         /// a concentric ring with the radius of its farthest vertex (scheda decisioni ANTHEA 16/11/2026, 9b option a).
         /// </summary>
         public static CrackSectionGeometry From(ReinforcedConcreteSection section, bool concentricRings = false)

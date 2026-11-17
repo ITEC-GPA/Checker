@@ -829,7 +829,7 @@ namespace ConcreteTests
         /// FromCurves does, only for one hole that is a circle concentric with the outline (at least 16 vertices at the same distance from the origin, relative
         /// 1e-6: the rule of the outline). Model section: circle Ø1000 (64-gon with a vertex at 0°), 16Ø20 at r = 440 and 8Ø20 at r = 340 (as the ring of
         /// (i)), C30/37, entirely tensile along +x, ε = 2e-7 (x + 501) (every hole vertex tensile, outer zone within wlim), NTC XC1, spacing 300 mm. The internal
-        /// constructor with hasCircularInnerRing = true and the arrays of From is From before Concrete 0.38 (the public polygon constructor follows the rule
+        /// constructor with hasCircularInnerRing = true and the arrays of From is From before Concrete 0.39 (the public polygon constructor follows the rule
         /// of From since R3 of the review G-207, see <see cref="PolygonConstructorRecognisesTheInnerRingWithTheRuleOfFrom"/>).
         /// - Concentric hole Ø600 (64-gon): ring as before, every value bit-identical (width, status, ratio, k2, trace, regions).
         /// - Eccentric hole Ø500 centred at (60; 0): before, an "InnerRing" band with ri = 310 mm (its farthest vertex from the centre of the section, not a

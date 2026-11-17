@@ -55,7 +55,7 @@ Lo stato di partenza della prima fase è quello a riposo della fase stessa
 (parete infissa senza disturbo): solo i suoi carichi e i suoi sostegni sono
 applicati per incrementi. Se le spinte a riposo e le pressioni dell'acqua dei due
 lati non si equilibrano (scavo, falda, sovraccarico o terreni diversi fra i lati),
-lo squilibrio entra tutto al primo passo di carico. Da Geotechnics 0.29 (voce A4
+lo squilibrio entra tutto al primo passo di carico. Da Geotechnics 0.30 (voce A4
 della revisione di ottobre, scheda decisioni del 16/11/2026, opzione a)
 `WallAnalysisResult.Warnings` lo dichiara con lo scarto massimo ai punti di integrazione e la sua quota (il massimo
 dei quattro punti di Gauss di ogni elemento, non del diagramma continuo: con uno scarto che cresce verso il piede è il
@@ -135,7 +135,7 @@ Fase, caso, quota e lato del nodo restano associati a ogni controllo. Nessuna
 verifica viene eseguita su un'analisi non convergente. I minimi dei muri a gravità
 non vengono presentati come dettagli completi di diaframmi o pali.
 
-Fessurazione dei diaframmi: da Concrete 0.38 e GPC.Design 0.46 (voce S3 della
+Fessurazione dei diaframmi: da Concrete 0.39 e GPC.Design 0.47 (voce S3 della
 revisione di ottobre, scheda decisioni del 16/11/2026) l'interasse delle barre è
 quello della faccia tesa della combinazione (`WallCrackSpacing.TensionFace`: la
 faccia con la fibra esterna in trazione), non più quello della faccia più rada;

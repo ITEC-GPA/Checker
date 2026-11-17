@@ -75,7 +75,7 @@ classe minima di resistenza della sezione.
 | Caratteristiche del calcestruzzo secondo le Linee Guida del C.S.LL.PP., con riferimento a UNI EN 206 e UNI 11104 | NTC | 2018 | 11.2.11 | — | testo |
 | Copriferri minimi per ambiente, elemento (piastra o altro) e classe (C ≥ C0; Cmin ≤ C < C0); +10 mm per 100 anni; +5 mm sotto Cmin; −5 mm con controllo di qualità; tolleranza di posa 10 mm o minore; Cmin riferita alla pertinente classe di esposizione della UNI EN 206:2016 | Circolare | 2019 | C4.1.6.1.3 | Tab. C4.1.IV | testo |
 | cnom = cmin + Δcdev; cmin = max(cmin,b; cmin,dur; 10 mm); classi strutturali S1-S6 (S4 di base); maggiorazioni 4.4.1.2(11), (13); getti contro terreno 4.4.1.3(4) | EN 1992-1-1 | 2004 + AC:2010, valori raccomandati | 4.4.1.1-4.4.1.3 | (4.1), (4.2), prospetti 4.2, 4.3N, 4.4N | testo |
-| Classi indicative di resistenza per esposizione; XF4 assente | EN 1992-1-1 | 2004 + AC:2010 | appendice E | prospetto E.1N (informativo) | testo; XC3 C30/37 da fonte secondaria, da riscontrare (riquadro C-3) |
+| Classi indicative di resistenza per esposizione; XF4 assente | EN 1992-1-1 | 2004 + AC:2010 | appendice E | prospetto E.1N (informativo) | testo; XC3 C30/37 riscontrato sul testo il 1/11/2026 (riquadro C-3) |
 | S4 di base con le modifiche del prospetto 4.3N; prospetto 4.4N; Δcdur = 0; k1/k2/k3 = 5/10/15 mm; Δcdev = 10 mm, riducibile fino a 5 o 0 mm; getti contro terreno 40/75 mm | UNI EN 1992-1-1 | DM 31/07/2012 | 4.4.1.2(5)-(8), (13), 4.4.1.3(2)-(4) | — | testo |
 | Prospetto E.1N nazionale (XC1 C25/30, XC2 C25/30, XC3-XC4 C30/37, XF2 C30/37) | UNI EN 1992-1-1 | DM 31/07/2012 | E.1(2) | prospetto E.1N | testo (riquadro C-3) |
 | cmin,dur per esposizione senza classi strutturali, vita di almeno 50 anni; Δcdev ≥ 5 mm (10 mm nella classe di controllo ridotta); resistenza minima per gruppi | DS/EN 1992-1-1 | DK NA:2024 | 4.4.1.2(5), 4.4.1.3(1)P, E.1(2) | Tabel 4.4N NA, Tabel E.1(2) | testo |
@@ -297,12 +297,15 @@ disponibile per classe e come massimo della resistenza minima.
 > - Norma: il prospetto E.1N del DM 31/07/2012 dà per XC3 e XC4 una sola cella con C30/37 (XC1 e XC2 hanno celle
 >   proprie, C25/30); il DM riproduce l'impaginazione del prospetto E.1N della EN 1992-1-1 cambiando i valori
 >   nazionali. Le riproduzioni del prospetto E.1N della EN danno XC3 C30/37, come XC4 (fonte secondaria).
+>   Riscontro sul testo (1/11/2026, agente ca-metodi): la UNI EN 1992-1-1:2015 della raccolta dell'ufficio riporta il
+>   testo inglese di EN 1992-1-1:2004 + AC:2010 + A1:2014; nel prospetto E.1N (p. 242 del PDF, 210 a stampa) XC3 e XC4
+>   hanno una sola cella, C30/37, e XC2 la sua, C25/30; le altre celle coincidono con il codice.
 > - Programma fino a Concrete 0.27: C25/30 per XC3 nei profili EN e UNI, con le celle unite lette come XC2-XC3. Effetto:
 >   a sfavore di sicurezza; con XC3 sola (o combinata con classi meno severe) il controllo della classe minima accettava
 >   C25/30 e C28/35. Nessun effetto sui copriferri.
 > - Correzione (ANTHEA 1.16.0, decisione dell'utente del 28/10/2026 «Fonti secondarie»): C30/37 per XC3 nei profili EN e
->   UNI. Per il profilo UNI il testo è riscontrato; per il profilo EN la fonte è secondaria, da riscontrare sul testo
->   della EN 1992-1-1. Opzione storica: `IndicativeStrengthReading.MergedXc2Xc3` di `ExposureClasses.MinimumStrength`.
+>   UNI. Il testo è riscontrato per i due profili (per il profilo EN il 1/11/2026, scritto con l'ok dell'utente del
+>   17/11/2026, scheda decisioni ANTHEA, R17). Opzione storica: `IndicativeStrengthReading.MergedXc2Xc3` di `ExposureClasses.MinimumStrength`.
 > - Stato: corretto (voce R17 del registro delle differenze).
 
 ## 7. Coefficienti e valori predefiniti

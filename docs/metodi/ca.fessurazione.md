@@ -673,7 +673,7 @@ Iterazioni: solo la fascia baricentrica DS (bisezione di 65 passi sull'altezza d
   (7.15)): non implementate.
 - Deformazioni impresse e ritiro (nel Model Code 2010 il ritiro libero solo se assegnato con
   `ModelCode2010ShrinkageStrain`, riquadro F-6).
-- Sezioni circolari cave con fori eccentrici o non circolari. Da Concrete 0.38 (scheda decisioni del 16/11/2026, 9b
+- Sezioni circolari cave con fori eccentrici o non circolari. Da Concrete 0.39 (scheda decisioni del 16/11/2026, 9b
   opzione a) `CrackSectionGeometry.From` riconosce l'anello interno, come `FromCurves`, solo con un unico foro circolare
   concentrico (almeno 16 vertici alla stessa distanza dall'origine, scarto relativo 10⁻⁶, la regola del contorno). Un
   foro eccentrico, poligonale o più di un foro non è un anello: con la superficie interna tesa l'esito è incompleto

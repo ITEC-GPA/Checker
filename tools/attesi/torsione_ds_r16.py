@@ -1,4 +1,5 @@
-"""Expected values of R16 option (b) (ANTHEA decision sheet of 16/11/2026): DS torsion with nu = nu_t whenever there is torsion.
+"""Expected values of R16 (ANTHEA decision sheet of 16/11/2026): variant (b2), decided by the user on 17/11/2026, against
+option (b) (not taken: nu = nu_t for both terms whenever there is torsion) and the weighted mean of Concrete 0.28-0.37.
 
 Independent hand arithmetic for TorsionMigrationTests.DsTorsionUsesTheTorsionEfficiencyOfDkNa (GPCChecker.Test.Concrete).
 Rectangle 300x500 of the tests: Ak = 82416 mm2, tef = 96 mm, fck = 30 MPa, fcd = 20 MPa, cot(theta) = 1.5, T = 30 kNm.
@@ -21,9 +22,12 @@ nu_old = (nu_v * tau_v + nu_t * tau_t) / (tau_v + tau_t)
 trcd_old = nu_old * truss
 inter_old = T / trcd_old + V / VRCD * nu_v / nu_old
 
-# Concrete 0.38 (R16 option b): nu = nu_t with torsion; the shear ratio is referred to the same nu (scale nu_v/nu_t).
+# Option (b), not taken: nu = nu_t with torsion; the shear ratio is referred to the same nu (scale nu_v/nu_t).
 trcd_new = nu_t * truss
-inter_new = T / trcd_new + V / VRCD * nu_v / nu_t
+inter_b = T / trcd_new + V / VRCD * nu_v / nu_t
+
+# Concrete 0.39 (R16 variant b2, decided 17/11/2026): TRd,max with nu_t, the shear term with the VRd,max of nu_v, unscaled.
+inter_new = T / trcd_new + V / VRCD
 
 # Legacy option DsTorsionStrutEfficiency.ShearFactor: nu_v in the strut, shear ratio unscaled (unchanged).
 inter_legacy = T / (nu_v * truss) + V / VRCD
@@ -31,6 +35,7 @@ inter_legacy = T / (nu_v * truss) + V / VRCD
 print(f"nu_v = {nu_v:.6f}  nu_t = {nu_t:.6f}  truss = {truss:.6f} N mm")
 print(f"pure torsion: TRcd = {trcd_new / 1e6:.6f} kNm (nu_t), box {nu_v * truss / 1e6:.6f} kNm (nu_v)")
 print(f"before: tau_T = {tau_t:.6f} MPa, tau_V = {tau_v:.6f} MPa, nu = {nu_old:.6f}, TRcd = {trcd_old / 1e6:.6f} kNm, interaction = {inter_old:.6f}")
-print(f"now:    nu = {nu_t:.6f}, TRcd = {trcd_new / 1e6:.6f} kNm, interaction = {inter_new:.6f}")
+print(f"option (b), not taken: nu = {nu_t:.6f}, TRcd = {trcd_new / 1e6:.6f} kNm, interaction = {inter_b:.6f}")
+print(f"now (b2): nu_t = {nu_t:.6f} in TRcd, TRcd = {trcd_new / 1e6:.6f} kNm, interaction = {inter_new:.6f}")
 print(f"legacy ShearFactor: interaction = {inter_legacy:.6f}")
 print(f"change of the strut interaction: {inter_new / inter_old - 1:+.2%}; of TRcd: {trcd_new / trcd_old - 1:+.2%}")

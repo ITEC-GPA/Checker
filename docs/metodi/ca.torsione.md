@@ -183,8 +183,8 @@ con εx la maggiore delle deformazioni longitudinali del taglio delle due direzi
 [ca.taglio](ca.taglio.md), (T.6)); senza dati di taglio εx = 0.
 
 DS con taglio e torsione insieme (DK NA 5.6.1(3)P: «media di νv e νt pesata sulle due azioni»; la norma non scrive i
-pesi e il testo del DK NA:2024 non è nella raccolta dell'ufficio). Da Concrete 0.38 (scheda decisioni ANTHEA del
-16/11/2026, R16, variante b2 della revisione del 15/11) ogni termine dell'interazione (R.7) ha il suo fattore: TRcd con
+pesi). Da Concrete 0.39 (scheda decisioni ANTHEA del 16/11/2026, R16, variante b2 della revisione del 15/11,
+decisa dall'utente il 17/11/2026) ogni termine dell'interazione (R.7) ha il suo fattore: TRcd con
 νt (5.104 NA), il taglio con il VRcd della sua direzione, cioè con νv (5.103 NA), senza ridimensionamento:
 
 ```math
@@ -301,12 +301,12 @@ accetta solo cot θ = 1.
 >   Fonti: testo del DK NA per νv e νt; per la media pesata il testo dice solo «pesata sulle due azioni» (riscontrato
 >   anche su una copia secondaria del DK NA): i pesi sulle tensioni delle pareti sono una nostra lettura, da
 >   riscontrare sul testo. Opzione storica: `DsTorsionStrutEfficiency.ShearFactor`.
-> - Concrete 0.38 (scheda decisioni ANTHEA del 16/11/2026, R16, variante b2 della revisione del 15/11, in attesa del
->   testo del DK NA:2024): con taglio e torsione insieme ogni termine dell'interazione ha il suo fattore, TRcd con νt e
+> - Concrete 0.39 (scheda decisioni ANTHEA del 16/11/2026, R16, variante b2 della revisione del 15/11, decisa
+>   dall'utente il 17/11/2026; il DK NA:2024 non scrive i pesi della media): con taglio e torsione insieme ogni termine dell'interazione ha il suo fattore, TRcd con νt e
 >   il taglio con νv (R.6a). Non è mai sotto la media pesata di 0.28-0.37 ed è continua per TEd → 0; non è il limite
 >   superiore di ogni peso (lo è l'opzione b, νt anche per il taglio). La media pesata di 0.28-0.37 non resta come
 >   opzione: non la usava nessun programma (ANTHEA fa la torsione solo con NTC, ReBear con Model Code 2010).
-> - Ramo `claude/scheda-r16-nu-min` (rilievo R1 della revisione G-207 del 16/11/2026, da scegliere): il DK NA:2024,
+> - Concrete 0.39 (rilievo R1 della revisione G-207 del 16/11/2026, preso dall'utente il 17/11/2026): il DK NA:2024,
 >   5.6.1(3)P (pagina 30 del PDF ufficiale), dice che i valori del punto valgono con almeno l'armatura minima, che senza
 >   di essa vale ν = 2/√fck (5.100 NA) e che questo valore «è sempre un limite inferiore» di ν. Quindi
 >   νt = max[0,7 (0,7 − fck/200); 2/√fck]: il limite governa per fck < 24,46 MPa e fck > 73,22 MPa (C20: 0,420 → 0,447;

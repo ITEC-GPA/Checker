@@ -11,7 +11,7 @@ namespace GPC.Checkers.Concrete.Walls
     /// <summary>Bar spacing of the crack check of a strip (<see cref="WallSectionSession"/>).</summary>
     public enum WallCrackSpacing
     {
-        /// <summary>The larger spacing of the two faces, whatever face is in tension (<see cref="WallStrip.MaximumBarSpacing"/>): the rule before Concrete 0.38,
+        /// <summary>The larger spacing of the two faces, whatever face is in tension (<see cref="WallStrip.MaximumBarSpacing"/>): the rule before Concrete 0.39,
         /// on the safe side; the default (retaining walls).</summary>
         SparserFace,
         /// <summary>
