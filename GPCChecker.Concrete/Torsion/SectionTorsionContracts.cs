@@ -20,7 +20,9 @@ namespace GPC.Checkers.Concrete.Torsion
     {
         /// <summary>
         /// DK NA 5.6.1(3)P, supplementary information: νt = 0.7 (0.7 − fck/200) (5.104 NA), νt = νv when the walls are reinforced on both
-        /// faces; with shear and torsion together the mean of νv and νt weighted on the wall shear stresses of the two actions.
+        /// faces. With shear and torsion together the NA asks for a weighted mean of νv and νt whose weights are not available: since Concrete 0.38
+        /// (R16, variant b2 of the review of 15/11/2026) each term of the strut interaction keeps its own factor, TRd,max with νt and the shear with νv
+        /// (the mean weighted on the two ratios, continuous at T → 0); Concrete 0.28-0.37 used the mean weighted on the wall shear stresses.
         /// </summary>
         DkNa,
         /// <summary>νv of the shear also in torsion, as before Concrete 0.28 (unsafe for walls reinforced on the outer face only).</summary>

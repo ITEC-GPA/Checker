@@ -81,7 +81,7 @@ calcolato con la stessa inclinazione delle bielle. Restituisce:
 | ν di (6.30) | EN 1992-1-1 | 2004 + AC:2010 | 6.2.2(6) | (6.6N) | da riscontrare |
 | ν = 0,5 fino a C70/85 | UNI EN 1992-1-1 | DM 31/07/2012 | 6.2.2(6) | — | testo |
 | ν = 0,525 ν2 (0,75 ν2 per sezioni cave armate sulle due facce); interazione quadratica per sezioni piene; campo di cot θ con VEd,T+V | DIN EN 1992-1-1 | NA | 6.3.2(2), 6.3.2(4) | (6.29) modificata | fonte secondaria (ν), da riscontrare (interazione e VEd,T+V) |
-| νv = 0,7 − fck/200 ≥ 0,45 (taglio); νt = 0,7 (0,7 − fck/200) (torsione), νt = νv con pareti armate su entrambe le facce; media pesata con taglio e torsione | DS/EN 1992-1-1 | DK NA:2024 | 5.6.1(3)P, informazione supplementare | (5.103 NA), (5.104 NA) | testo (νt: riquadro R-4) |
+| νv = 0,7 − fck/200 ≥ 0,45 (taglio); νt = 0,7 (0,7 − fck/200) (torsione), νt = νv con pareti armate su entrambe le facce; con taglio e torsione la norma chiede una media pesata, la libreria usa νt in TRcd e νv nel taglio (R16 variante b2) | DS/EN 1992-1-1 | DK NA:2024 | 5.6.1(3)P, informazione supplementare | (5.103 NA), (5.104 NA) | testo (νt: riquadro R-4); pesi della media da riscontrare |
 | cot θ ≤ 2,0 | DS/EN 1992-1-1 | DK NA:2024 | 6.2.3(2) | (6.7b NA) | testo |
 | Regola per V, T, N e M combinati (non applicata) | DS/EN 1992-1-1 | DK NA:2024 | 6.3.2(6) | — | testo |
 | fck ≤ 60 MPa nelle formule del taglio | NS-EN 1992-1-1 | NA | 3.1.2(2)P | — | fonte secondaria |
@@ -171,7 +171,7 @@ cot θ/(1 + cot²θ) = sin θ cos θ. La resistenza delle bielle fc,s dipende da
 | NTC 2018, CNR-DT 200 | f'cd = ν fcd con ν = 0,5 (Circolare 2019 C4.1.2.3.6) |
 | EN 1992-1-1, NS | ν fcd, ν = 0,6 (1 − fck/250), αcw = 1; NS con fck ≤ 60 MPa e fcd ridotto in proporzione |
 | UNI | ν fcd, ν = 0,5 per fck ≤ 70 MPa, altrimenti come EN |
-| DS | ν fcd: νt = 0,7 (0,7 − fck/200) (5.104 NA), νv = max(0,45; 0,7 − fck/200) del taglio con pareti armate su entrambe le facce; con il taglio la media pesata (R.6a); opzione storica: νv in ogni caso (riquadro R-4) |
+| DS | ν fcd: νt = 0,7 (0,7 − fck/200) (5.104 NA), νv = max(0,45; 0,7 − fck/200) del taglio con pareti armate su entrambe le facce; con il taglio TRcd con νt e il termine del taglio con νv (R.6a); opzione storica: νv in ogni caso (riquadro R-4) |
 | DIN | ν fcd, ν = 0,525 ν2 (0,75 ν2 per sezioni cave armate sulle due facce delle pareti), ν2 = min(1; 1,1 − fck/500) |
 | Model Code 2010 | kc fck/γc, con kc da (R.6) |
 
@@ -183,18 +183,24 @@ con εx la maggiore delle deformazioni longitudinali del taglio delle due direzi
 [ca.taglio](ca.taglio.md), (T.6)); senza dati di taglio εx = 0.
 
 DS con taglio e torsione insieme (DK NA 5.6.1(3)P: «media di νv e νt pesata sulle due azioni»; la norma non scrive i
-pesi): i pesi sono le tensioni tangenziali delle pareti, τT della torsione e τV del taglio ricavata da VRcd della (6.9)
-con αcw = 1 e lo stesso cot θ; la parte del taglio nell'interazione (R.7) si riferisce allo stesso ν:
+pesi e il testo del DK NA:2024 non è nella raccolta dell'ufficio). Da Concrete 0.38 (scheda decisioni ANTHEA del
+16/11/2026, R16, variante b2 della revisione del 15/11) ogni termine dell'interazione (R.7) ha il suo fattore: TRcd con
+νt (5.104 NA), il taglio con il VRcd della sua direzione, cioè con νv (5.103 NA), senza ridimensionamento:
 
 ```math
-\tau_T = \frac{|T_{Ed}|}{2 A_k t_{ef}}, \qquad \tau_V = \sum_i \frac{|V_i|}{V_{Rcd,i}}\,\nu_v f_{cd} \frac{\cot\theta}{1 + \cot^2\theta}, \qquad
-\nu = \frac{\nu_v \tau_V + \nu_t \tau_T}{\tau_V + \tau_T}, \qquad
-\eta_c = \frac{|T_{Ed}|}{T_{Rcd}(\nu)} + \frac{\nu_v}{\nu} \sum_i \frac{|V_i|}{V_{Rcd,i}} \qquad \text{(R.6a)}
+\eta_c = \frac{|T_{Ed}|}{T_{Rcd}(\nu_t)} + \sum_i \frac{|V_i|}{V_{Rcd,i}(\nu_v)} \qquad \text{(R.6a)}
 ```
 
-Con la sola torsione ν = νt, con il solo taglio ν = νv. L'interazione vale (τT + τV)(1 + cot²θ)/(ν fcd cot θ): la
-tensione totale della parete contro la resistenza delle bielle con il fattore medio. I pesi sono una nostra lettura
-del testo (fonte secondaria della forma pesata; da riscontrare sul testo del DK NA).
+È la media di νv e νt pesata sui due rapporti, ν = (νv ηV + νt ηT)/(ηV + ηT), ed è continua per TEd → 0 (la sola
+verifica a taglio). La torsione c'è con la stessa soglia del suo rapporto (|TEd| ≥ 10⁻⁶ Nmm). Con pareti armate su
+entrambe le facce νt = νv e nulla cambia. Da Concrete 0.28 a 0.37 ν era la media pesata sulle tensioni tangenziali
+delle pareti, ν = (νv τV + νt τT)/(τV + τT) con τT = |TEd|/(2 Ak tef) e τV = Σ (|Vi|/VRcd,i) νv fcd cot θ/(1 + cot²θ):
+una nostra lettura dei pesi. L'opzione (b) della scheda usava νt anche per il taglio (termine del taglio moltiplicato
+per νv/νt, da 1,43 fino a C50/60 a 2,57 a C90), con un salto appena compare una torsione piccola. Sempre
+media sulle tensioni ≤ (b2) ≤ (b); (b) è il limite superiore di ogni media fra νt e νv, (b2) no
+(`tools/attesi/torsione_ds_r16_varianti.py`). Esempio dei test (Ak = 82 416 mm², tef = 96 mm, fck = 30 MPa,
+fcd = 20 MPa, cot θ = 1,5, TEd = 30 kNm, V/VRcd = 0,25): media sulle tensioni ηc = 0,760, (b2) 0,783, (b) 0,891. Con il
+testo del DK NA i pesi si potranno riscontrare.
 
 ### 6.3 Interazione con il taglio
 
@@ -295,6 +301,11 @@ accetta solo cot θ = 1.
 >   Fonti: testo del DK NA per νv e νt; per la media pesata il testo dice solo «pesata sulle due azioni» (riscontrato
 >   anche su una copia secondaria del DK NA): i pesi sulle tensioni delle pareti sono una nostra lettura, da
 >   riscontrare sul testo. Opzione storica: `DsTorsionStrutEfficiency.ShearFactor`.
+> - Concrete 0.38 (scheda decisioni ANTHEA del 16/11/2026, R16, variante b2 della revisione del 15/11, in attesa del
+>   testo del DK NA:2024): con taglio e torsione insieme ogni termine dell'interazione ha il suo fattore, TRcd con νt e
+>   il taglio con νv (R.6a). Non è mai sotto la media pesata di 0.28-0.37 ed è continua per TEd → 0; non è il limite
+>   superiore di ogni peso (lo è l'opzione b, νt anche per il taglio). La media pesata di 0.28-0.37 non resta come
+>   opzione: non la usava nessun programma (ANTHEA fa la torsione solo con NTC, ReBear con Model Code 2010).
 > - Stato: corretto (voce R16 del registro delle differenze).
 
 Il campo di cot θ del profilo Model Code 2010 non dipende da εx: vale il riquadro T-1 della pagina
@@ -308,7 +319,7 @@ Il campo di cot θ del profilo Model Code 2010 non dipende da εx: vale il riqua
 | ν | 0,6 (1 − fck/250) | EN, NS (fck ≤ 60) | EN (6.6N) | no | `SectionShearCalculator.StrutEfficiency` |
 | ν | 0,5 (fck ≤ 70) | UNI | DM 2012 6.2.2(6) | no | idem |
 | ν | max(0,45; 0,7 − fck/200) | DS | DK NA (5.103 NA), νv del taglio; in torsione con pareti armate su entrambe le facce | no | idem |
-| νt | 0,7 (0,7 − fck/200) | DS | DK NA (5.104 NA); media pesata con il taglio (R.6a) | sì (`DsTorsionStrutEfficiency.ShearFactor`: νv, storico) | `SectionTorsionCalculator.Evaluate` |
+| νt | 0,7 (0,7 − fck/200) | DS | DK NA (5.104 NA); in TRcd anche con il taglio, che resta con νv (R.6a, R16 variante b2) | sì (`DsTorsionStrutEfficiency.ShearFactor`: νv, storico) | `SectionTorsionCalculator.Evaluate` |
 | ν | 0,525 ν2; 0,75 ν2 sezioni cave armate sulle due facce | DIN | NA DIN 6.3.2 | no (indicatore della sezione cava sì) | `SectionTorsionCalculator.Evaluate` |
 | ν2 | min(1; 1,1 − fck/500) | DIN | NA DIN 6.2.3(3) | no | idem |
 | kc,max, ηfc | 0,65; min[1; (30/fck)^(1/3)] | Model Code 2010 | MC2010 7.3.3.3 | no | idem |

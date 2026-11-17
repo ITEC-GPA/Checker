@@ -15,6 +15,9 @@ namespace GPC.Checkers.Concrete.Torsion
     {
         public const string MethodId = "Concrete.SectionTorsion";
 
+        /// <summary>Actions below these are zero in the ratios (units of the legacy tolerance, 1e-12 kNm and 1e-12 kN): torque in Nmm, shear in N.</summary>
+        private const double TorsionZero = 1e-6, ShearZero = 1e-9;
+
         /// <summary>
         /// Computes the shear of each direction with <see cref="SectionShearCalculator"/> and the common cot θ, then the torsion check.
         /// A null direction is allowed only when it carries no shear. Its cot θ is replaced by the torsion one; for DIN the admissible
@@ -73,19 +76,24 @@ namespace GPC.Checkers.Concrete.Torsion
             {
                 case TorsionProfile.DsEN1992p11 when p.DsStrutEfficiency == DsTorsionStrutEfficiency.DkNa:
                     {
-                        // R16: DK NA 5.6.1(3)P. The weights are the shear stresses of the walls: τT = |T|/(2 Ak tef) and, for each direction,
-                        // τV = |V|/(bw z) = (|V|/VRcd) νv fcd cot θ/(1 + cot²θ) from VRcd = bw z νv fcd cot θ/(1 + cot²θ) of (6.9) with αcw = 1.
-                        // The shear part of the strut interaction is then referred to the same weighted ν (scale νv/ν).
+                        // R16: DK NA 5.6.1(3)P, νt (5.104 NA) for the torsion. With shear and torsion together the NA asks for a weighted mean of νv and νt
+                        // without the weights (text not available to the office). Variant (b2) of the review of 15/11/2026: each term of the strut
+                        // interaction keeps its own factor, TRd,max with νt and the shear term with the VRd,max of its direction (νv, 5.103 NA), unscaled:
+                        // T/TRd,max(νt) + Σ V/VRd,max(νv). It is the mean of νv and νt weighted on the two ratios, never below the mean weighted on the wall
+                        // shear stresses of Concrete 0.28-0.37 (difference t r (νv − νt)²/(νv² r + νt² t)) and continuous at T → 0 (the shear check alone),
+                        // but not on the safe side of every weighting: option (b) (one ν = νt for both terms) is the upper bound. Without torsion ν is νv
+                        // with shear and νt without, as before. Torsion and shear are present with the zero thresholds of their ratios below
+                        // (|T| ≥ 1e-6 Nmm, |V| ≥ 1e-9 N).
                         double nuV = SectionShearCalculator.StrutEfficiency(TorsionProfiles.Shear(profile), fck), nuT = box ? nuV : .7 * (.7 - fck / 200);
-                        double tauT = Math.Abs(p.T) / (2 * ak * tef), tauV = 0;
-                        foreach (var c in new[] { axis1, axis2 })
-                            if (c != null && c.VRcd > 0 && Math.Abs(c.Demand) >= 1e-9) tauV += Math.Abs(c.Demand) / c.VRcd * nuV * fcd * cot / (1 + cot * cot);
-                        double nu = tauV + tauT > 0 ? (nuV * tauV + nuT * tauT) / (tauV + tauT) : nuT;
-                        strut = nu * fcd; shearStrutScale = nuV / nu;
+                        bool torsion = Math.Abs(p.T) >= TorsionZero;
+                        bool shear = new[] { axis1, axis2 }.Any(c => c != null && c.VRcd > 0 && Math.Abs(c.Demand) >= ShearZero);
+                        bool shearOnly = !torsion && shear;
+                        double nu = shearOnly ? nuV : nuT;
+                        strut = nu * fcd;
                         Add("νv", nuV, "−", "max(0.45; 0.7 − fck/200) (5.103 NA)");
                         Add("νt", nuT, "−", box ? "νv: walls reinforced on both faces (DK NA 5.6.1(3)P)" : "0.7 (0.7 − fck/200) (5.104 NA)");
-                        if (tauV > 0) { Add("τT", tauT, "MPa", "|T|/(2 Ak tef)"); Add("τV", tauV, "MPa", "Σ (|V|/VRcd) νv fcd cot θ/(1 + cot²θ)"); }
-                        Add("ν", nu, "−", tauV > 0 ? "(νv τV + νt τT)/(τV + τT), mean weighted on the two actions" : "νt");
+                        Add("ν", nu, "−", shearOnly ? "νv: no torsion" : shear
+                            ? "νt in TRd,max; the shear terms keep νv of their VRd,max (each term with its own factor; weights of DK NA 5.6.1(3)P not taken from the text)" : "νt");
                         break;
                     }
                 case TorsionProfile.Ntc2018:
@@ -121,8 +129,8 @@ namespace GPC.Checkers.Concrete.Torsion
 
             // Units of the legacy tolerance (1e-12 kNm and 1e-12 kN).
             double Ratio(double action, double capacity, double tolerance) => Math.Abs(action) < tolerance ? 0 : capacity > 0 ? Math.Abs(action) / capacity : double.PositiveInfinity;
-            double TorsionRatio(double capacity) => Ratio(t, capacity, 1e-6);
-            double ShearRatio(TorsionShearComponent c, bool concrete) => c == null ? 0 : Ratio(c.Demand, concrete ? c.VRcd : c.VRsd, 1e-9);
+            double TorsionRatio(double capacity) => Ratio(t, capacity, TorsionZero);
+            double ShearRatio(TorsionShearComponent c, bool concrete) => c == null ? 0 : Ratio(c.Demand, concrete ? c.VRcd : c.VRsd, ShearZero);
             foreach (var c in new[] { axis1, axis2 })
                 if (c != null && Math.Abs(c.Demand) > 0 && Math.Abs(c.CotTheta - cot) > 1e-8)
                     throw new ArgumentException("Shear and torsion must use the same cot θ.");
