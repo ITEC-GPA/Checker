@@ -3975,10 +3975,11 @@ namespace ConcreteTests
             ReinforcedConcreteSection section = GetRectangularSection4Rebars(400, 400, 14, 40, ConcreteMaterialEN1992Data.C25_30, SteelMaterialEN1992Data.B450C);
             section.ClearRebars();
 
+            var angle = new SectionL(200.0, 60.0, 300.0, 40.0, "L 300×200×60");
             section.AddSteelSection(
                 new SteelSectionPosition(
                     new SteelSection(
-                        new SectionL(200.0, 60.0, 300.0, 40.0, "L 300×200×60"),
+                        angle,
                         SteelMaterialEN1993Data.S235
                         ),
                     Point2d.Origin,
@@ -4008,7 +4009,10 @@ namespace ConcreteTests
                 (InsertionPointType.TopCenter, 200.0, 350.0),
                 (InsertionPointType.TopRight, 300.0, 350.0),
                 (InsertionPointType.Centroid, 164.4444444444, 146.6666666667),
-                (InsertionPointType.ShearCenter, 120.0, 80.0)
+                // the shear centre of the section from its bottom left corner (100, 50): user decision D9 of 17/11/2026. Before option B
+                // it was the thin-walled one at the corner of the middle lines (20, 30), fixed here as (120, 80); the numerical one of
+                // this stocky angle (legs 60 and 40 thick) is elsewhere
+                (InsertionPointType.ShearCenter, 100.0 + angle.ShearCenter.X, 50.0 + angle.ShearCenter.Y)
             };
 
             foreach (var position in positionInfo)
