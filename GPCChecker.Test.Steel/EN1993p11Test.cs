@@ -754,25 +754,29 @@ namespace SteelTests
             Assert.AreEqual(5000.0, EN1993P11Checker.GetLengthCriticalMoment1());
             Assert.IsFalse(sectionC.IsDoubleSymmetric);
             // A/I/Wel: exact independent integrals. It/Iw/Wpl: pinned Model inputs.
+            // It pinned again with option B (user decision D5 bis of 17/11/2026): the torsion constant of the channel
+            // with its fillets from the finite elements of GPCModel, 354080 (thin-walled formula) -> 378842.76240356266
+            // (+6.99%, value on .NET Framework; on .NET 8 378842.76239956915, 1.1e-11 apart), and the outputs that
+            // depend on it (MCr, lambda, phi, chi, LTB capacity) with it.
             Assert.AreEqual(5989.876140340506d, sectionC.Area, 5989.876140340506d * 1e-10, "Area");
             Assert.AreEqual(82503848.784416333d, sectionC.J11, 82503848.784416333d * 1e-10, "J11");
             Assert.AreEqual(5670781.1767174806d, sectionC.J22, 5670781.1767174806d * 1e-10, "J22");
             Assert.AreEqual(550025.65856277558d, sectionC.Wel1, 550025.65856277558d * 1e-10, "Wel1");
             Assert.AreEqual(80093.336023861237d, sectionC.Wel2, 80093.336023861237d * 1e-10, "Wel2");
             Assert.AreEqual(648295.81394674582d, sectionC.Wpl1, 648295.81394674582d * 1e-10, "Wpl1");
-            Assert.AreEqual(354080d, sectionC.Jt, 354080d * 1e-10, "Jt");
+            Assert.AreEqual(378842.76240356266d, sectionC.Jt, 378842.76240356266d * 1e-10, "Jt");
             Assert.AreEqual(78943251406.911942d, sectionC.Jw, 78943251406.911942d * 1e-10, "Jw");
             // Two internal quarter-circle fillets discretized with 64 chords.
             double areaExcess = 2 * r * r / 2 * (Math.PI / 2 - 64 * Math.Sin(Math.PI / 128));
             Assert.AreEqual(648290.71789351315d, sectionC.Wpl1, areaExcess * h / 2, "Wpl1 geometric bound");
             var expected = new[] {
                 new { Name = nameof(result.BendingMoment1Capacity), Value = 230145013.95109475d },
-                new { Name = nameof(result.MCr), Value = 113448258.07184538d },
-                new { Name = nameof(result.LambdaSignedLTBuckling), Value = 1.4243012952645475d },
+                new { Name = nameof(result.MCr), Value = 117398003.77644905d },
+                new { Name = nameof(result.LambdaSignedLTBuckling), Value = 1.4001366668301432d },
                 new { Name = nameof(result.AlphaLTBuckling), Value = 0.76000000000000001d },
-                new { Name = nameof(result.PhiLTBuckling), Value = 1.979551582046662d },
-                new { Name = nameof(result.ChiLTBuckling), Value = 0.29812295014073709d },
-                new { Name = nameof(result.LateralTosionalBucklingCapacity), Value = 68611510.519281462d },
+                new { Name = nameof(result.PhiLTBuckling), Value = 1.9362432762965662d },
+                new { Name = nameof(result.ChiLTBuckling), Value = 0.30546947917474471d },
+                new { Name = nameof(result.LateralTosionalBucklingCapacity), Value = 70302277.546305284d },
             };
             foreach (var item in expected)
             {
