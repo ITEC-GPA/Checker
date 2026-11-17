@@ -72,6 +72,7 @@ namespace GPC.Checkers.Concrete.Torsion
                 throw new ArgumentException("DIN: without the shear data of the directions the range of cot θ (VEd,T+V) is not known; use cot θ = 1.");
 
             double strut, shearStrutScale = 1;
+            bool minimumReinforcementAssumed = false;
             switch (profile)
             {
                 case TorsionProfile.DsEN1992p11 when p.DsStrutEfficiency == DsTorsionStrutEfficiency.DkNa:
@@ -84,14 +85,22 @@ namespace GPC.Checkers.Concrete.Torsion
                         // but not on the safe side of every weighting: option (b) (one ν = νt for both terms) is the upper bound. Without torsion ν is νv
                         // with shear and νt without, as before. Torsion and shear are present with the zero thresholds of their ratios below
                         // (|T| ≥ 1e-6 Nmm, |V| ≥ 1e-9 N).
-                        double nuV = SectionShearCalculator.StrutEfficiency(TorsionProfiles.Shear(profile), fck), nuT = box ? nuV : .7 * (.7 - fck / 200);
+                        // R1 of the review G-207 (16/11/2026), DK NA:2024 5.6.1(3)P: "the value of (5.100 NA) is always a lower bound of ν", ν = 2/√fck,
+                        // so νt = max[0.7 (0.7 − fck/200); 2/√fck]: the bound governs for fck below 24.46 MPa and above 73.22 MPa. νv = max(0.45;
+                        // 0.7 − fck/200) is not below 2/√fck from fck = 9.38 MPa, i.e. for every class from C12/15, so νv (and VRd,max of the shear) is
+                        // unchanged. The factors of the clause assume at least the minimum reinforcement, which is not checked here (limitation below):
+                        // without it the NA gives ν = 2/√fck itself.
+                        double nuMinimum = 2 / Math.Sqrt(fck);
+                        double nuV = SectionShearCalculator.StrutEfficiency(TorsionProfiles.Shear(profile), fck), nuT = box ? nuV : Math.Max(.7 * (.7 - fck / 200), nuMinimum);
                         bool torsion = Math.Abs(p.T) >= TorsionZero;
                         bool shear = new[] { axis1, axis2 }.Any(c => c != null && c.VRcd > 0 && Math.Abs(c.Demand) >= ShearZero);
                         bool shearOnly = !torsion && shear;
                         double nu = shearOnly ? nuV : nuT;
                         strut = nu * fcd;
                         Add("νv", nuV, "−", "max(0.45; 0.7 − fck/200) (5.103 NA)");
-                        Add("νt", nuT, "−", box ? "νv: walls reinforced on both faces (DK NA 5.6.1(3)P)" : "0.7 (0.7 − fck/200) (5.104 NA)");
+                        Add("νt", nuT, "−", box ? "νv: walls reinforced on both faces (DK NA 5.6.1(3)P)"
+                            : "max[0.7 (0.7 − fck/200) (5.104 NA); 2/√fck (5.100 NA, lower bound)]");
+                        minimumReinforcementAssumed = true;
                         Add("ν", nu, "−", shearOnly ? "νv: no torsion" : shear
                             ? "νt in TRd,max; the shear terms keep νv of their VRd,max (each term with its own factor; weights of DK NA 5.6.1(3)P not taken from the text)" : "νt");
                         break;
@@ -151,6 +160,9 @@ namespace GPC.Checkers.Concrete.Torsion
             if (profile == TorsionProfile.DsEN1992p11)
                 limitations.Add("DK NA 6.3.2(6): the linear rule Σ SEd/SRd ≤ 1 for combined V, T, N and M (and the alternative of Annex F) is not applied; "
                     + "only the strut interaction 6.29 and the truss reinforcement are checked.");
+            if (minimumReinforcementAssumed)
+                limitations.Add("DK NA 5.6.1(3)P: νv and νt assume at least the minimum reinforcement, not checked here; without it the NA gives "
+                    + "ν = 2/√fck (5.100 NA), which is also the lower bound applied to νt.");
             if (profile == TorsionProfile.ModelCode2010 || profile == TorsionProfile.DinEN1992p11)
                 Add("interaction", quadratic ? 2 : 1, "−", quadratic ? "√[(T/TRcd)² + (ΣV/VRcd)²] (solid section)" : "T/TRcd + ΣV/VRcd (box section)");
 

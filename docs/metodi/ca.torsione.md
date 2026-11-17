@@ -81,7 +81,7 @@ calcolato con la stessa inclinazione delle bielle. Restituisce:
 | ν di (6.30) | EN 1992-1-1 | 2004 + AC:2010 | 6.2.2(6) | (6.6N) | da riscontrare |
 | ν = 0,5 fino a C70/85 | UNI EN 1992-1-1 | DM 31/07/2012 | 6.2.2(6) | — | testo |
 | ν = 0,525 ν2 (0,75 ν2 per sezioni cave armate sulle due facce); interazione quadratica per sezioni piene; campo di cot θ con VEd,T+V | DIN EN 1992-1-1 | NA | 6.3.2(2), 6.3.2(4) | (6.29) modificata | fonte secondaria (ν), da riscontrare (interazione e VEd,T+V) |
-| νv = 0,7 − fck/200 ≥ 0,45 (taglio); νt = 0,7 (0,7 − fck/200) (torsione), νt = νv con pareti armate su entrambe le facce; con taglio e torsione la norma chiede una media pesata, la libreria usa νt in TRcd e νv nel taglio (R16 variante b2) | DS/EN 1992-1-1 | DK NA:2024 | 5.6.1(3)P, informazione supplementare | (5.103 NA), (5.104 NA) | testo (νt: riquadro R-4); pesi della media da riscontrare |
+| νv = 0,7 − fck/200 ≥ 0,45 (taglio); νt = 0,7 (0,7 − fck/200) ≥ 2/√fck (torsione, limite inferiore 5.100 NA), νt = νv con pareti armate su entrambe le facce; con taglio e torsione la norma chiede una media pesata, la libreria usa νt in TRcd e νv nel taglio (R16 variante b2) | DS/EN 1992-1-1 | DK NA:2024 | 5.6.1(3)P, informazione supplementare | (5.100 NA), (5.103 NA), (5.104 NA) | testo (νt: riquadro R-4); pesi della media da riscontrare |
 | cot θ ≤ 2,0 | DS/EN 1992-1-1 | DK NA:2024 | 6.2.3(2) | (6.7b NA) | testo |
 | Regola per V, T, N e M combinati (non applicata) | DS/EN 1992-1-1 | DK NA:2024 | 6.3.2(6) | — | testo |
 | fck ≤ 60 MPa nelle formule del taglio | NS-EN 1992-1-1 | NA | 3.1.2(2)P | — | fonte secondaria |
@@ -171,7 +171,7 @@ cot θ/(1 + cot²θ) = sin θ cos θ. La resistenza delle bielle fc,s dipende da
 | NTC 2018, CNR-DT 200 | f'cd = ν fcd con ν = 0,5 (Circolare 2019 C4.1.2.3.6) |
 | EN 1992-1-1, NS | ν fcd, ν = 0,6 (1 − fck/250), αcw = 1; NS con fck ≤ 60 MPa e fcd ridotto in proporzione |
 | UNI | ν fcd, ν = 0,5 per fck ≤ 70 MPa, altrimenti come EN |
-| DS | ν fcd: νt = 0,7 (0,7 − fck/200) (5.104 NA), νv = max(0,45; 0,7 − fck/200) del taglio con pareti armate su entrambe le facce; con il taglio TRcd con νt e il termine del taglio con νv (R.6a); opzione storica: νv in ogni caso (riquadro R-4) |
+| DS | ν fcd: νt = max[0,7 (0,7 − fck/200) (5.104 NA); 2/√fck (5.100 NA)], νv = max(0,45; 0,7 − fck/200) del taglio con pareti armate su entrambe le facce; con il taglio TRcd con νt e il termine del taglio con νv (R.6a); opzione storica: νv in ogni caso (riquadro R-4) |
 | DIN | ν fcd, ν = 0,525 ν2 (0,75 ν2 per sezioni cave armate sulle due facce delle pareti), ν2 = min(1; 1,1 − fck/500) |
 | Model Code 2010 | kc fck/γc, con kc da (R.6) |
 
@@ -306,6 +306,12 @@ accetta solo cot θ = 1.
 >   il taglio con νv (R.6a). Non è mai sotto la media pesata di 0.28-0.37 ed è continua per TEd → 0; non è il limite
 >   superiore di ogni peso (lo è l'opzione b, νt anche per il taglio). La media pesata di 0.28-0.37 non resta come
 >   opzione: non la usava nessun programma (ANTHEA fa la torsione solo con NTC, ReBear con Model Code 2010).
+> - Ramo `claude/scheda-r16-nu-min` (rilievo R1 della revisione G-207 del 16/11/2026, da scegliere): il DK NA:2024,
+>   5.6.1(3)P (pagina 30 del PDF ufficiale), dice che i valori del punto valgono con almeno l'armatura minima, che senza
+>   di essa vale ν = 2/√fck (5.100 NA) e che questo valore «è sempre un limite inferiore» di ν. Quindi
+>   νt = max[0,7 (0,7 − fck/200); 2/√fck]: il limite governa per fck < 24,46 MPa e fck > 73,22 MPa (C20: 0,420 → 0,447;
+>   C80: 0,210 → 0,224; C90: 0,175 → 0,211, TRcd +20,5 %). νv non cambia: max(0,45; 0,7 − fck/200) ≥ 2/√fck da
+>   fck = 9,38 MPa. L'armatura minima non è controllata: lo dice una voce delle limitazioni del risultato.
 > - Stato: corretto (voce R16 del registro delle differenze).
 
 Il campo di cot θ del profilo Model Code 2010 non dipende da εx: vale il riquadro T-1 della pagina
@@ -319,7 +325,7 @@ Il campo di cot θ del profilo Model Code 2010 non dipende da εx: vale il riqua
 | ν | 0,6 (1 − fck/250) | EN, NS (fck ≤ 60) | EN (6.6N) | no | `SectionShearCalculator.StrutEfficiency` |
 | ν | 0,5 (fck ≤ 70) | UNI | DM 2012 6.2.2(6) | no | idem |
 | ν | max(0,45; 0,7 − fck/200) | DS | DK NA (5.103 NA), νv del taglio; in torsione con pareti armate su entrambe le facce | no | idem |
-| νt | 0,7 (0,7 − fck/200) | DS | DK NA (5.104 NA); in TRcd anche con il taglio, che resta con νv (R.6a, R16 variante b2) | sì (`DsTorsionStrutEfficiency.ShearFactor`: νv, storico) | `SectionTorsionCalculator.Evaluate` |
+| νt | max[0,7 (0,7 − fck/200); 2/√fck] | DS | DK NA (5.104 NA, limite inferiore 5.100 NA); in TRcd anche con il taglio, che resta con νv (R.6a, R16 variante b2) | sì (`DsTorsionStrutEfficiency.ShearFactor`: νv, storico) | `SectionTorsionCalculator.Evaluate` |
 | ν | 0,525 ν2; 0,75 ν2 sezioni cave armate sulle due facce | DIN | NA DIN 6.3.2 | no (indicatore della sezione cava sì) | `SectionTorsionCalculator.Evaluate` |
 | ν2 | min(1; 1,1 − fck/500) | DIN | NA DIN 6.2.3(3) | no | idem |
 | kc,max, ηfc | 0,65; min[1; (30/fck)^(1/3)] | Model Code 2010 | MC2010 7.3.3.3 | no | idem |

@@ -184,6 +184,35 @@ namespace ConcreteTests
             Assert.AreEqual(30e6 / (.55 * truss) + .25, old.ConcreteInteraction.Value, 1e-9);
         }
 
+        /// <summary>
+        /// R1 of the review G-207 (16/11/2026), branch claude/scheda-r16-nu-min: DK NA:2024 5.6.1(3)P, page 30, "the value of (5.100 NA) is always a
+        /// lower bound of ν", ν = 2/√fck, so νt = max[0.7 (0.7 − fck/200); 2/√fck]. Same geometry as above with fcd = 20 MPa (to isolate the factor),
+        /// TRcd = νt · 146 066 510.77 N mm. Expected values by hand in tools/attesi/torsione_ds_r1_nu_min.py and in the review G-207 (R1):
+        /// fck 20: 0.42 → 2/√20 = 0.447214 (65.3229 kNm instead of 61.3479); fck 30: 0.385, the bound 0.365148 does not govern (56.2356 kNm, unchanged);
+        /// fck 80: 0.21 → 0.223607 (32.6615 instead of 30.6740); fck 90: 0.175 → 0.210819 (30.7935 instead of 25.5616). Walls reinforced on both faces
+        /// keep νv (0.6 at fck 20, 0.45 at fck 90): νv ≥ 2/√fck from fck = 9.38 MPa. With fck 90, fcd 60 (review G-207): 76.684918 → 92.380573 kNm.
+        /// </summary>
+        [TestMethod]
+        public void DsTorsionFactorHasTheLowerBoundOfDkNa()
+        {
+            var ds = new StandardDSEN1992p11();
+            double truss = 2 * 82416 * 96 * 20 * 1.5 / 3.25;
+            foreach (var (fck, nuT) in new[] { (20.0, .447213595499958), (30.0, .385), (80.0, .223606797749979), (90.0, .210818510677892) })
+            {
+                var r = SectionTorsionCalculator.Evaluate(Input(ds, fck: fck), null, null);
+                Assert.AreEqual(nuT, r.Details.Single(d => d.Symbol == "νt").Value, 1e-15, "fck " + fck);
+                Assert.AreEqual(nuT * truss, r.TRcd, 1e-3, "fck " + fck); Assert.AreEqual(nuT * 20, r.StrutStrength, 1e-12, "fck " + fck);
+                var box = SectionTorsionCalculator.Evaluate(Input(ds, box: true, fck: fck), null, null);
+                Assert.AreEqual(Math.Max(.45, .7 - fck / 200), box.Details.Single(d => d.Symbol == "νt").Value, 1e-15, "fck " + fck + ", box: νt = νv");
+            }
+            Assert.AreEqual(65322929.463241, SectionTorsionCalculator.Evaluate(Input(ds, fck: 20), null, null).TRcd, 1e-3);
+            Assert.AreEqual(30793524.260285, SectionTorsionCalculator.Evaluate(Input(ds, fck: 90), null, null).TRcd, 1e-3);
+            Assert.AreEqual(92.380573, SectionTorsionCalculator.Evaluate(Input(ds, fck: 90, fcd: 60), null, null).TRcd / 1e6, 1e-6);
+            // The shear term keeps its VRd,max (b2): fck 90, T = 20 kNm, V/VRcd = 0.25 → 20/30.7935 + 0.25.
+            var interaction = SectionTorsionCalculator.Evaluate(Input(ds, t: 20e6, fck: 90), new TorsionShearComponent(100e3, 300e3, 400e3, 1.5), null);
+            Assert.AreEqual(20e6 / 30793524.260285 + .25, interaction.ConcreteInteraction.Value, 1e-9);
+        }
+
         [TestMethod]
         public void DinAndModelCodeUseTheirStrutAndQuadraticInteractionForSolidSections()
         {
@@ -278,8 +307,11 @@ namespace ConcreteTests
             var frp = SectionTorsionCalculator.Evaluate(Input(new StandardCNR200()), null, null);
             var ntc = SectionTorsionCalculator.Evaluate(Input(new StandardNTC2018Concrete()), null, null);
             Assert.AreEqual(ntc.TRd, frp.TRd); Assert.AreEqual(0, frp.Details.Single(d => d.Symbol == "TRd,f").Value);
-            // DS: the DK NA rule for combined V, T, N and M is declared as not applied.
-            Assert.IsTrue(SectionTorsionCalculator.Evaluate(Input(new StandardDSEN1992p11()), null, null).Limitations.Single().Contains("6.3.2(6)"));
+            // DS: the DK NA rule for combined V, T, N and M is declared as not applied; so is the minimum reinforcement assumed by the factors of
+            // 5.6.1(3)P (R1 of the review G-207).
+            var dsLimitations = SectionTorsionCalculator.Evaluate(Input(new StandardDSEN1992p11()), null, null).Limitations;
+            Assert.AreEqual(2, dsLimitations.Count, string.Join(" | ", dsLimitations));
+            Assert.IsTrue(dsLimitations[0].Contains("6.3.2(6)")); Assert.IsTrue(dsLimitations[1].Contains("minimum reinforcement") && dsLimitations[1].Contains("5.100 NA"));
         }
     }
 }
