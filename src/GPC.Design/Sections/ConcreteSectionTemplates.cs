@@ -25,6 +25,10 @@ public sealed record ConcreteTemplateGeometry(Shape2d Shape, IReadOnlyList<Desig
     /// <summary>Closed path of bar centres for column spacing; absent for other templates.
     /// Curved portions follow the discretized offset contour; straight portions join their bars.</summary>
     public IReadOnlyList<Point2d>? ColumnBarPath { get; init; }
+
+    /// <summary>Free sections (<see cref="ConcreteSectionTemplates.CreateFree"/>) only: the concrete centroid in the coordinates of the
+    /// input (mm), origin of every returned coordinate (returned point = input point − InputCentroid). Null for the templates.</summary>
+    public Point2d? InputCentroid { get; init; }
 }
 
 /// <summary>
@@ -48,23 +52,9 @@ public static partial class ConcreteSectionTemplates
             throw new ArgumentException("Numero di barre per anello compreso fra 4 e 500.");
         if (p.PerimeterSpacing < p.BarDiameter) throw new ArgumentException("Passo delle barre inferiore al diametro.");
 
-        Shape2d shape = Shape(p);
-        var outer = shape.Fill2d;
-        var holes = shape.Holes2d ?? [];
-        // Weighted polygon centroid, also for cavities.
-        double area = Math.Abs(outer.GetSignedArea());
-        var center = outer.GetCentroid();
-        double sx = area * center.X, sy = area * center.Y;
-        foreach (var hole in holes)
-        {
-            double a = Math.Abs(hole.GetSignedArea()); var c = hole.GetCentroid();
-            area -= a; sx -= a * c.X; sy -= a * c.Y;
-        }
-        center = new Point2d(sx / area, sy / area);
+        Shape2d shape = Centred(Shape(p), out double area, out var center);
         Point2d Shift(Point2d point) => new(point.X - center.X, point.Y - center.Y);
-        Polygon2d Move(Polygon2d polygon) => new(polygon.Points.Select(Shift));
-        shape = new Shape2d(Move(outer), holes.Select(Move).ToArray());
-        outer = shape.Fill2d; holes = shape.Holes2d ?? [];
+        var outer = shape.Fill2d; var holes = shape.Holes2d ?? [];
 
         double offset = p.Cover + p.LinkDiameter + p.BarDiameter / 2;
         var barPaths = new List<Point2d[]>();
@@ -116,7 +106,38 @@ public static partial class ConcreteSectionTemplates
                 ValidateLink(shape, link, p.Cover, p.LinkDiameter);
         }
 
-        // Sampling for stress maps only. Equilibrium and stiffness continue using the native GPC mesh.
+        var fibers = SampleFibers(shape, out double width, out double height);
+        return new(shape, bars.AsReadOnly(), links.AsReadOnly(), fibers, width, height, area,
+            "Staffatura geometrica preliminare: verificare piegature, ancoraggi, trattenimento delle barre e ripartizione del taglio nelle pareti. " +
+            "Per questa tipologia assegnare esplicitamente bw, d, Asl e i bracci efficaci per direzione; la torsione richiede un modello dedicato.")
+        { ColumnBarPath = columnBarPath };
+    }
+
+    /// <summary>The shape moved to its concrete centroid (weighted polygon centroid, also for cavities): <paramref name="area"/> is the net
+    /// area, <paramref name="center"/> the centroid in the coordinates of <paramref name="shape"/>. Shared by templates and free sections.</summary>
+    private static Shape2d Centred(Shape2d shape, out double area, out Point2d center)
+    {
+        var outer = shape.Fill2d;
+        var holes = shape.Holes2d ?? [];
+        area = Math.Abs(outer.GetSignedArea());
+        var centroid = outer.GetCentroid();
+        double sx = area * centroid.X, sy = area * centroid.Y;
+        foreach (var hole in holes)
+        {
+            double a = Math.Abs(hole.GetSignedArea()); var c = hole.GetCentroid();
+            area -= a; sx -= a * c.X; sy -= a * c.Y;
+        }
+        var origin = center = new Point2d(sx / area, sy / area);
+        Point2d Shift(Point2d point) => new(point.X - origin.X, point.Y - origin.Y);
+        Polygon2d Move(Polygon2d polygon) => new(polygon.Points.Select(Shift));
+        return new Shape2d(Move(outer), holes.Select(Move).ToArray());
+    }
+
+    /// <summary>Sampling for stress maps only: the centres of the 48 × 48 cells of the bounding box of the outline that fall in the concrete,
+    /// each with the cell area. Equilibrium and stiffness continue using the native GPC mesh. Shared by templates and free sections.</summary>
+    private static IReadOnlyList<ConcreteTemplateFiber> SampleFibers(Shape2d shape, out double width, out double height)
+    {
+        var outer = shape.Fill2d;
         var fibers = new List<ConcreteTemplateFiber>();
         double xmin = outer.Points.Min(v => v.X), xmax = outer.Points.Max(v => v.X);
         double ymin = outer.Points.Min(v => v.Y), ymax = outer.Points.Max(v => v.Y);
@@ -126,10 +147,8 @@ public static partial class ConcreteSectionTemplates
             var point = new Point2d(xmin + (i + .5) * dx, ymin + (j + .5) * dy);
             if (Inside(shape, point)) fibers.Add(new(point.X, point.Y, dx * dy));
         }
-        return new(shape, bars.AsReadOnly(), links.AsReadOnly(), fibers.AsReadOnly(), xmax - xmin, ymax - ymin, area,
-            "Staffatura geometrica preliminare: verificare piegature, ancoraggi, trattenimento delle barre e ripartizione del taglio nelle pareti. " +
-            "Per questa tipologia assegnare esplicitamente bw, d, Asl e i bracci efficaci per direzione; la torsione richiede un modello dedicato.")
-        { ColumnBarPath = columnBarPath };
+        width = xmax - xmin; height = ymax - ymin;
+        return fibers.AsReadOnly();
     }
 
     private static Shape2d Shape(ConcreteTemplateInput p)

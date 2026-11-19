@@ -56,6 +56,8 @@ F|GPC.Design.EmbeddedWalls.EmbeddedWallSteelCheckKind|value__|System.Int32|Publi
 F|GPC.Design.Piles.PileDesignStage|Layout|GPC.Design.Piles.PileDesignStage|Public, Static, Literal, HasDefault|0
 F|GPC.Design.Piles.PileDesignStage|Resistance|GPC.Design.Piles.PileDesignStage|Public, Static, Literal, HasDefault|1
 F|GPC.Design.Piles.PileDesignStage|value__|System.Int32|Public, SpecialName, RTSpecialName|
+F|GPC.Design.Sections.ConcreteSectionTemplates|FreeSectionMaximumBars|System.Int32|Public, Static, Literal, HasDefault|2000
+F|GPC.Design.Sections.ConcreteSectionTemplates|FreeSectionMaximumVertices|System.Int32|Public, Static, Literal, HasDefault|5000
 F|GPC.Design.Sections.ConcreteTemplateKind|C|GPC.Design.Sections.ConcreteTemplateKind|Public, Static, Literal, HasDefault|4
 F|GPC.Design.Sections.ConcreteTemplateKind|Ellipse|GPC.Design.Sections.ConcreteTemplateKind|Public, Static, Literal, HasDefault|5
 F|GPC.Design.Sections.ConcreteTemplateKind|HollowCircle|GPC.Design.Sections.ConcreteTemplateKind|Public, Static, Literal, HasDefault|1
@@ -2024,7 +2026,38 @@ M|GPC.Design.Piles.PileSegmentDesignResult|set_Evaluated(System.Int32 value:None
 M|GPC.Design.Piles.PileSegmentDesignResult|set_GeometricExclusions(System.Collections.Generic.IReadOnlyList`1<GPC.Design.Piles.PileDesignExclusion> value:None)|System.Void|Public, HideBySig, SpecialName|
 M|GPC.Design.Piles.PileSegmentDesignResult|set_Selected(GPC.Design.Piles.PileDesignLayout value:None)|System.Void|Public, HideBySig, SpecialName|
 M|GPC.Design.Piles.PileSegmentDesign|Search(System.Collections.Generic.IEnumerable`1<System.Int32> counts:None,System.Collections.Generic.IEnumerable`1<System.Double> diameters:None,System.Collections.Generic.IEnumerable`1<System.Double> linkDiameters:None,System.Collections.Generic.IEnumerable`1<System.Double> spacings:None,System.Collections.Generic.IEnumerable`1<GPC.Checkers.Concrete.Piles.PileAction> sourceActions:None,System.Double start:None,System.Double end:None,System.Double pileLength:None,GPC.Checkers.Concrete.Piles.PileSeismicSettings sourceSeismic:None,System.Func`2<GPC.Design.Piles.PileDesignLayout,GPC.Checkers.Concrete.Piles.PileRcParameters> factory:None,System.Threading.CancellationToken cancellation:Optional, HasDefault=null,System.IProgress`1<GPC.Design.Piles.PileDesignProgress> progress:Optional, HasDefault=null,System.Int32 maximumParallelism:Optional, HasDefault=0)|GPC.Design.Piles.PileSegmentDesignResult|Public, Static, HideBySig|
+M|GPC.Design.Sections.ConcreteFreeBar|.ctor(System.Double X:None,System.Double Y:None,System.Double Diameter:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Design.Sections.ConcreteFreeBar|<Clone>$()|GPC.Design.Sections.ConcreteFreeBar|Public, HideBySig|
+M|GPC.Design.Sections.ConcreteFreeBar|Deconstruct(System.Double& X:Out,System.Double& Y:Out,System.Double& Diameter:Out)|System.Void|Public, HideBySig|
+M|GPC.Design.Sections.ConcreteFreeBar|Equals(GPC.Design.Sections.ConcreteFreeBar other:None)|System.Boolean|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Design.Sections.ConcreteFreeBar|Equals(System.Object obj:None)|System.Boolean|Public, Virtual, HideBySig|
+M|GPC.Design.Sections.ConcreteFreeBar|GetHashCode()|System.Int32|Public, Virtual, HideBySig|
+M|GPC.Design.Sections.ConcreteFreeBar|ToString()|System.String|Public, Virtual, HideBySig|
+M|GPC.Design.Sections.ConcreteFreeBar|get_Diameter()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Sections.ConcreteFreeBar|get_X()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Sections.ConcreteFreeBar|get_Y()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Sections.ConcreteFreeBar|op_Equality(GPC.Design.Sections.ConcreteFreeBar left:None,GPC.Design.Sections.ConcreteFreeBar right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Sections.ConcreteFreeBar|op_Inequality(GPC.Design.Sections.ConcreteFreeBar left:None,GPC.Design.Sections.ConcreteFreeBar right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Sections.ConcreteFreeBar|set_Diameter(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Sections.ConcreteFreeBar|set_X(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Sections.ConcreteFreeBar|set_Y(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Sections.ConcreteFreeSectionInput|.ctor(System.Collections.Generic.IReadOnlyList`1<GPC.Geometry.Point2d> Outline:None,System.Collections.Generic.IReadOnlyList`1<System.Collections.Generic.IReadOnlyList`1<GPC.Geometry.Point2d>> Holes:None,System.Collections.Generic.IReadOnlyList`1<GPC.Design.Sections.ConcreteFreeBar> Bars:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
+M|GPC.Design.Sections.ConcreteFreeSectionInput|<Clone>$()|GPC.Design.Sections.ConcreteFreeSectionInput|Public, HideBySig|
+M|GPC.Design.Sections.ConcreteFreeSectionInput|Deconstruct(System.Collections.Generic.IReadOnlyList`1<GPC.Geometry.Point2d>& Outline:Out,System.Collections.Generic.IReadOnlyList`1<System.Collections.Generic.IReadOnlyList`1<GPC.Geometry.Point2d>>& Holes:Out,System.Collections.Generic.IReadOnlyList`1<GPC.Design.Sections.ConcreteFreeBar>& Bars:Out)|System.Void|Public, HideBySig|
+M|GPC.Design.Sections.ConcreteFreeSectionInput|Equals(GPC.Design.Sections.ConcreteFreeSectionInput other:None)|System.Boolean|Public, Final, Virtual, HideBySig, VtableLayoutMask|
+M|GPC.Design.Sections.ConcreteFreeSectionInput|Equals(System.Object obj:None)|System.Boolean|Public, Virtual, HideBySig|
+M|GPC.Design.Sections.ConcreteFreeSectionInput|GetHashCode()|System.Int32|Public, Virtual, HideBySig|
+M|GPC.Design.Sections.ConcreteFreeSectionInput|ToString()|System.String|Public, Virtual, HideBySig|
+M|GPC.Design.Sections.ConcreteFreeSectionInput|get_Bars()|System.Collections.Generic.IReadOnlyList`1<GPC.Design.Sections.ConcreteFreeBar>|Public, HideBySig, SpecialName|
+M|GPC.Design.Sections.ConcreteFreeSectionInput|get_Holes()|System.Collections.Generic.IReadOnlyList`1<System.Collections.Generic.IReadOnlyList`1<GPC.Geometry.Point2d>>|Public, HideBySig, SpecialName|
+M|GPC.Design.Sections.ConcreteFreeSectionInput|get_Outline()|System.Collections.Generic.IReadOnlyList`1<GPC.Geometry.Point2d>|Public, HideBySig, SpecialName|
+M|GPC.Design.Sections.ConcreteFreeSectionInput|op_Equality(GPC.Design.Sections.ConcreteFreeSectionInput left:None,GPC.Design.Sections.ConcreteFreeSectionInput right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Sections.ConcreteFreeSectionInput|op_Inequality(GPC.Design.Sections.ConcreteFreeSectionInput left:None,GPC.Design.Sections.ConcreteFreeSectionInput right:None)|System.Boolean|Public, Static, HideBySig, SpecialName|
+M|GPC.Design.Sections.ConcreteFreeSectionInput|set_Bars(System.Collections.Generic.IReadOnlyList`1<GPC.Design.Sections.ConcreteFreeBar> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Sections.ConcreteFreeSectionInput|set_Holes(System.Collections.Generic.IReadOnlyList`1<System.Collections.Generic.IReadOnlyList`1<GPC.Geometry.Point2d>> value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Sections.ConcreteFreeSectionInput|set_Outline(System.Collections.Generic.IReadOnlyList`1<GPC.Geometry.Point2d> value:None)|System.Void|Public, HideBySig, SpecialName|
 M|GPC.Design.Sections.ConcreteSectionTemplates|Create(GPC.Design.Sections.ConcreteTemplateInput p:None)|GPC.Design.Sections.ConcreteTemplateGeometry|Public, Static, HideBySig|
+M|GPC.Design.Sections.ConcreteSectionTemplates|CreateFree(GPC.Design.Sections.ConcreteFreeSectionInput input:None)|GPC.Design.Sections.ConcreteTemplateGeometry|Public, Static, HideBySig|
 M|GPC.Design.Sections.ConcreteSectionTemplates|ValidateBars(GPC.Geometry.Shape2d shape:None,System.Collections.Generic.IReadOnlyList`1<GPC.Design.Sections.DesignBar> bars:None,System.Double requiredCover:None)|System.Void|Public, Static, HideBySig|
 M|GPC.Design.Sections.ConcreteTemplateFiber|.ctor(System.Double X:None,System.Double Y:None,System.Double Area:None)|-|Public, HideBySig, SpecialName, RTSpecialName|
 M|GPC.Design.Sections.ConcreteTemplateFiber|<Clone>$()|GPC.Design.Sections.ConcreteTemplateFiber|Public, HideBySig|
@@ -2053,6 +2086,7 @@ M|GPC.Design.Sections.ConcreteTemplateGeometry|get_Bars()|System.Collections.Gen
 M|GPC.Design.Sections.ConcreteTemplateGeometry|get_ColumnBarPath()|System.Collections.Generic.IReadOnlyList`1<GPC.Geometry.Point2d>|Public, HideBySig, SpecialName|
 M|GPC.Design.Sections.ConcreteTemplateGeometry|get_Fibers()|System.Collections.Generic.IReadOnlyList`1<GPC.Design.Sections.ConcreteTemplateFiber>|Public, HideBySig, SpecialName|
 M|GPC.Design.Sections.ConcreteTemplateGeometry|get_Height()|System.Double|Public, HideBySig, SpecialName|
+M|GPC.Design.Sections.ConcreteTemplateGeometry|get_InputCentroid()|GPC.Geometry.Point2d|Public, HideBySig, SpecialName|
 M|GPC.Design.Sections.ConcreteTemplateGeometry|get_Links()|System.Collections.Generic.IReadOnlyList`1<GPC.Design.Sections.ConcreteTemplateLink>|Public, HideBySig, SpecialName|
 M|GPC.Design.Sections.ConcreteTemplateGeometry|get_Shape()|GPC.Geometry.Shape2d|Public, HideBySig, SpecialName|
 M|GPC.Design.Sections.ConcreteTemplateGeometry|get_ShearNote()|System.String|Public, HideBySig, SpecialName|
@@ -2064,6 +2098,7 @@ M|GPC.Design.Sections.ConcreteTemplateGeometry|set_Bars(System.Collections.Gener
 M|GPC.Design.Sections.ConcreteTemplateGeometry|set_ColumnBarPath(System.Collections.Generic.IReadOnlyList`1<GPC.Geometry.Point2d> value:None)|System.Void|Public, HideBySig, SpecialName|
 M|GPC.Design.Sections.ConcreteTemplateGeometry|set_Fibers(System.Collections.Generic.IReadOnlyList`1<GPC.Design.Sections.ConcreteTemplateFiber> value:None)|System.Void|Public, HideBySig, SpecialName|
 M|GPC.Design.Sections.ConcreteTemplateGeometry|set_Height(System.Double value:None)|System.Void|Public, HideBySig, SpecialName|
+M|GPC.Design.Sections.ConcreteTemplateGeometry|set_InputCentroid(GPC.Geometry.Point2d value:None)|System.Void|Public, HideBySig, SpecialName|
 M|GPC.Design.Sections.ConcreteTemplateGeometry|set_Links(System.Collections.Generic.IReadOnlyList`1<GPC.Design.Sections.ConcreteTemplateLink> value:None)|System.Void|Public, HideBySig, SpecialName|
 M|GPC.Design.Sections.ConcreteTemplateGeometry|set_Shape(GPC.Geometry.Shape2d value:None)|System.Void|Public, HideBySig, SpecialName|
 M|GPC.Design.Sections.ConcreteTemplateGeometry|set_ShearNote(System.String value:None)|System.Void|Public, HideBySig, SpecialName|
@@ -3276,6 +3311,8 @@ T|GPC.Design.Piles.PileDesignProgress|Public, Sealed, BeforeFieldInit|base=Syste
 T|GPC.Design.Piles.PileDesignStage|Public, Sealed|base=System.Enum|interfaces=System.IComparable,System.IConvertible,System.IFormattable,System.ISpanFormattable|
 T|GPC.Design.Piles.PileSegmentDesignResult|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Piles.PileSegmentDesignResult>|
 T|GPC.Design.Piles.PileSegmentDesign|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
+T|GPC.Design.Sections.ConcreteFreeBar|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Sections.ConcreteFreeBar>|
+T|GPC.Design.Sections.ConcreteFreeSectionInput|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Sections.ConcreteFreeSectionInput>|
 T|GPC.Design.Sections.ConcreteSectionTemplates|Public, Abstract, Sealed, BeforeFieldInit|base=System.Object|interfaces=|
 T|GPC.Design.Sections.ConcreteTemplateFiber|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Sections.ConcreteTemplateFiber>|
 T|GPC.Design.Sections.ConcreteTemplateGeometry|Public, Sealed, BeforeFieldInit|base=System.Object|interfaces=System.IEquatable`1<GPC.Design.Sections.ConcreteTemplateGeometry>|
