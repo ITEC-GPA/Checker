@@ -10,5 +10,6 @@
     <PackageReference Include="MSTest.TestFramework" Version="3.6.4" />
     <None Update="Fixtures/*.json.gz" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Fixtures/*.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Fixtures/*.tsv" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
