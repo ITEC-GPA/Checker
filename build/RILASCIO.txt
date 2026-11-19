@@ -39,6 +39,14 @@ REGOLE
    per riferimenti diretti alla DLL aggiungere il PackageReference nell'applicazione.
    Su .NET Framework abilitare AutoGenerateBindingRedirects; Design.Checks verifica
    questa configurazione su net472 con gli stessi attesi del consumatore net8.0.
+9. Livelli di verifica (decisione dell'utente del 19/11/2026). La regola 4 vale per ogni
+   set. Nei consumatori la full non si fa a ogni aggiornamento:
+   - all'installazione del set, ANTHEA esegue il livello 2: profilo baseline del runner e
+     prove WPF dei moduli toccati;
+   - la full di ANTHEA si esegue sul candidato finale del rilascio che porta il set
+     (AGENTS.md di ANTHEA, "Livelli di verifica");
+   - i plug-in eseguono le loro suite a ogni aggiornamento; le prove native e gli esempi
+     50 e 99 di BridGHe si eseguono sul commit finale della copia su X:.
 
 PROCEDURA
 a. Lavoro su un branch da master aggiornato; suite del repository toccato.
@@ -49,7 +57,7 @@ c. L'agente assegna le versioni delle DLL cambiate secondo la regola 1; il commi
    in build/dependencies.props versioni e SHA-256 di Geometry e Utilities.
 d. Release-Set.ps1 -Root <checkout puliti> -Out <cartella nuova> -Previous <set precedente>.
 e. Push dei commit con l'ok dell'utente; poi in ANTHEA Update-Snapshot.ps1 -ReleaseSet
-   <cartella> -Install, profilo full del runner e voce nel README di lib/Checker.
+   <cartella> -Install, livello 2 del runner (regola 9) e voce nel README di lib/Checker.
 
 SET CANDIDATO
 Release-Set.ps1 -Candidate ammette branch e commit non pushati e salta il controllo
